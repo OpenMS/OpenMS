@@ -57,7 +57,16 @@ using namespace std;
 	@brief Identifies peptides in MS/MS spectra via Mascot.
 	
 	This wrapper application serves for getting peptide identifications
-	for MS/MS spectra. The wrapper can be executed in three different
+	for MS/MS spectra. It uses a local installation of the Mascot 
+	server to generate the identifications. A second wrapper (MascotAdapterOnline) is 
+	available which is able to perform identifications by 
+	communicating with a Mascot server over the network. So, it is not 
+	necessary to execute MascotAdapterOnline on the same machine 
+	as Mascot.
+
+	The minimal version of Mascot supported with this server is 2.1.
+	
+	This wrapper can be executed in three different
 	modes:
 	<ol>	
 				<li>

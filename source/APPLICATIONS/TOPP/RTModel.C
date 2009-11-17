@@ -48,7 +48,7 @@ using namespace std;
 	
 	@brief Used to train a prediction model for peptide retention 
 				 time prediction or peptide separation prediction.
-	
+
 	For retention time prediction, a support vector machine is 
 	trained with peptide sequences and their measured retention 
 	times.
@@ -57,6 +57,18 @@ using namespace std;
 	are collected) and one file contains the negative peptides
 	(the flowthrough peptides).
 	
+	This methods and applications of this model are described 
+	in several publications:
+
+	Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+	Statistical learning of peptide retention behavior in chromatographic separations: A new kernel-based approach for computational proteomics.
+	BMC Bioinformatics 2007, 8:468 
+
+	Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+	Improving Peptide Identification in Proteome Analysis by a Two-Dimensional Retention Time Filtering Approach
+	J. Proteome Res. 2009, 8(8):4109-15
+
+
 	There are a number of parameters which
 	can be changed for the svm (specified in the ini file):
 	<ul>

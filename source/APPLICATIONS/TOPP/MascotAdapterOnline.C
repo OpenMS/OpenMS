@@ -54,10 +54,13 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via Mascot.
 
-	@experimental This tool has not been tested thoroughly and might behave not as expected!
-
 	This wrapper application serves for getting peptide identifications
-	for MS/MS spectra.
+	for MS/MS spectra. It communicates with the Mascot server
+	over the network and is not needed to be called from same machine.
+
+	It support Mascot security features and has also proxy server
+	support. This minimal version of Mascot support by this wrapper
+	is version 2.2.x.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MascotAdapterOnline.cli

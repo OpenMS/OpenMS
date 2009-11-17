@@ -48,6 +48,11 @@ using namespace std;
 	@brief This application is used to predict the likelihood 
 				 of peptides to be proteotypic.
 	
+	This method has been described in the publication
+  Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gröpl, Oliver Kohlbacher and Knut Reinert
+  LC-MSsim - a simulation software for Liquid ChromatographyMass Spectrometry data
+  BMC Bioinformatics 2008, 9:423.
+
 	The input of this application 
 	is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified
