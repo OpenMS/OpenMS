@@ -63,6 +63,7 @@ Detailed list of changes to specific OpenMS classes
   - full rewrite, uses a similar algorithm like PoseClusteringAffineSuperimposer now
 - TranformationDescription:
   - added cubic b-spline transformation
+  - PairsType uses DoubleReal instead of Real now, thus can be used for m/z as well
 - VersionInfo:
 	- includes (if available) SVN Revision number that the library is build upon
 	  via support by the Build System.
