@@ -12,6 +12,7 @@ endif()
 install(TARGETS OpenMS 
   LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
   ARCHIVE DESTINATION ${OPENMS_LIB_INSTALL_PATH}
+	RUNTIME DESTINATION ${OPENMS_LIB_INSTALL_PATH}
   COMPONENT library)
 
 ## install utils
@@ -37,8 +38,8 @@ INSTALL(DIRECTORY share/
   REGEX ".svn" EXCLUDE)
 
 ## install the documentation and the tutorials
-install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
-install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
-install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
-install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
+install(FILES     ${PROJECT_BINARY_DIR}/doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+install(FILES ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
+install(FILES ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
 
