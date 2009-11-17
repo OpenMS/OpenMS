@@ -1,9 +1,13 @@
-## variables we need to distinguish 32Bit/64Bit versions
-set(OPENMS_LIB_INSTALL_PATH "lib")
-if (OPENMS_64BIT_ARCHITECTURE)
-	set(OPENMS_LIB_INSTALL_PATH "lib64")
+if (WIN32)
+	set(OPENMS_LIB_INSTALL_PATH "bin")
+else()	## Linux & MacOS
+	## variables we need to distinguish 32Bit/64Bit versions
+	set(OPENMS_LIB_INSTALL_PATH "lib")
+	if (OPENMS_64BIT_ARCHITECTURE)
+		set(OPENMS_LIB_INSTALL_PATH "lib64")
+	endif()
 endif()
-
+	
 ## CPack installation and packaging procedures
 install(TARGETS OpenMS 
   LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
