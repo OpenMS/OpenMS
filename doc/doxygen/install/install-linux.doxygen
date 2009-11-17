@@ -166,7 +166,7 @@
   &gt; make
   </pre>
 
-	If you have chosen to use a install prefix via the INSTALL_PREFIX variable you should install the components using 
+	If you have chosen to use a install prefix via the INSTALL_PREFIX variable you should install the components using: 
 	<pre>
 	&gt; make install
 	</pre>

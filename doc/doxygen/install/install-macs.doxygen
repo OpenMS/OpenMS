@@ -137,11 +137,16 @@
   &gt; make
   </pre>
 
+  If you have chosen to use a install prefix via the INSTALL_PREFIX variable you should install the components using:
+  <pre>
+  &gt; make install
+  </pre>
+
   @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>DYLD_LIBRARY_PATH</b>.
   
   @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
 
-  @note The TOPP tools are ready to use in the <code>bin/</code> folder of the installation directory.
+  @note The TOPP tools are ready to use in the <code>bin/</code> folder of the installation directory. Add this folder to your <b>PATH</b> variable.
 
 <HR>
 
