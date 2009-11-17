@@ -33,7 +33,21 @@
 namespace OpenMS
 {
 	/**
-		@brief A special vertex that allows to merge several inputs into a single output file list
+		@brief A special vertex that allows to merge several inputs.
+		
+		A special vertex that allows to merge several inputs. Mergers have two modes: The normal,
+		round-based merging mode and a "wait & merge all" mode. In round-based mode, a merger
+		first takes the first files of each incoming file list and merges them into a list (which
+		has as many elements as the merger has incoming edges). All tools this merger has outgoing
+		edges to are called with this merged list as input files.
+		As soon as they have all been processed, the second files of each incoming list are merged
+		and the tools below the merger are called again, and so on.
+		If several mergers are nested, mergers further upstream wait until mergers further downstream
+		have performed all their merging rounds and then perform their own next merging round.
+		
+		In "wait & merge all" mode, the merger first waits for all upstream mergers to finish all
+		their merging rounds and then merges all collected files from all merging rounds for all
+		incoming edges into one single list and calls the next tool with this list of files as input.
 	
 		@ingroup TOPPAS_elements
 	*/
