@@ -16,7 +16,7 @@
    - CMake (version 2.6 or higher) is required to configure and build the package 
 	 - Qt4 (version 4.4. or higher)  containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://www.qtsoftware.com/" target="_new">http://www.qtsoftware.com/</a>)
 
-	 @note On SnowLeoard (10.6) is no stable Qt version available, the COCOA 4.5.3 dmg package seems to work
+	 @note On SnowLeoard (10.6) is no stable Qt version available, the Cocoa 4.5.3 dmg package seems to work (<a href="http://get.qt.nokia.com/qt/source/qt-mac-cocoa-opensource-4.5.3.dmg" target="_new">link</a>).
 	   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
