@@ -48,11 +48,10 @@ using namespace std;
 	The details are described in the publication:
  
 	Andreas Bertsch, Andreas Leinenbach, Anton Pervukhin, Markus Lubeck, 
-	Ralf Hartmer, 	Carsten Baessmann, Yasser A Elnakady, Rolf Müller, 
-	Sebastian Böcker, Christian G Huber, 	and Oliver Kohlbacher  (2009)
+	Ralf Hartmer, 	Carsten Baessmann, Yasser A Elnakady, Rolf M&uuml;ller, 
+	Sebastian B&ouml;cker, Christian G Huber and Oliver Kohlbacher  (2009)
 	"De novo peptide sequencing by tandem MS using complementary CID and 
 	electron transfer dissociation"
-
 	Electrophoresis, 30(21):3736-3747. (PubMed ID: 19862751)
 
 	@experimental This implementation may contain bugs!

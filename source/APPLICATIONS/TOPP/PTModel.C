@@ -54,7 +54,7 @@ using namespace std;
 	
 	Parts of this model has been described in the publication
 
-	Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gröpl, Oliver Kohlbacher and Knut Reinert
+	Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gr&ouml;pl, Oliver Kohlbacher and Knut Reinert
 	LC-MSsim - a simulation software for Liquid ChromatographyMass Spectrometry data
 	BMC Bioinformatics 2008, 9:423.
 
