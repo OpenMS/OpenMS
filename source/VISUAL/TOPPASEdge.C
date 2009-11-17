@@ -513,6 +513,7 @@ namespace OpenMS
 			{
 				TOPPASEdge* merger_out_edge = *e_it;
 				TOPPASToolVertex* merger_out_tool = qobject_cast<TOPPASToolVertex*>(merger_out_edge->getTargetVertex());
+				TOPPASOutputFileListVertex* merger_out_output = qobject_cast<TOPPASOutputFileListVertex*>(merger_out_edge->getTargetVertex());
 				
 				if (source_tool)
 				{
@@ -535,7 +536,7 @@ namespace OpenMS
 							return es;
 						}
 					}	
-					else
+					else if (merger_out_output)
 					// [input] -> [merger] -> [output]) makes no sense
 					{
 						return ES_MERGER_WITHOUT_TOOL;
