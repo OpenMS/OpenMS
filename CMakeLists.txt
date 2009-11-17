@@ -884,8 +884,6 @@ MESSAGE(STATUS "----------------------------------------------------------------
 MESSAGE(STATUS "")
 
 ##### install/copy (cpack mainly) #####
-## TODO:
-##  - this code breaks the windows cmake call (already code for win support added .. needs testing)
 
 if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
@@ -909,7 +907,6 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	
 	# install routines for MacOSX
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-		#include(cmake/package_dmg.cmake)
 		include(cmake/package_dragndrop_dmg.cmake)
 	endif()
 
