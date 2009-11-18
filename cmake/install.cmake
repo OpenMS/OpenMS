@@ -32,14 +32,14 @@ foreach(TOPP_exe ${TOPP_executables})
 endforeach()
 
 ## install share
-INSTALL(DIRECTORY share/
+INSTALL(DIRECTORY share/		# warning: that slash(/) is important here, otherwise the whole directory (not its content) will be copied!
   DESTINATION share
   COMPONENT share
-  REGEX ".svn" EXCLUDE)
+  PATTERN ".svn" EXCLUDE)
 
 ## install the documentation and the tutorials
 install(FILES     ${PROJECT_BINARY_DIR}/doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            DESTINATION share/OpenMS/doc COMPONENT doc PATTERN ".svn" EXCLUDE)
 install(FILES ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
 install(FILES ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
 
