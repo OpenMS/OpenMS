@@ -873,10 +873,10 @@ A residue is represented in %OpenMS by the class @a Residue. It provides a conta
 Example (Tutorial_Residue.C):
 
 @dontinclude Tutorial_Residue.C
-@skip ResidueDB res_db
+@skip  const ResidueDB* res_db = ResidueDB::getInstance();
 @until endl
 
-This small example show how to create a instance of ResidueDB were all Residues are stored in. The amino acids themselves can be accessed via the getResidue function. ResidueDB reads its amino acid and modification data from data/CHEMISTRY/.
+This small example show how to create a instance of ResidueDB were all Residues are stored in. The amino acids themselves can be accessed via the getResidue function. ResidueDB reads its amino acid and modification data from share/OpenMS/CHEMISTRY/.
 
 The output of the example would look like this
 
@@ -1210,9 +1210,9 @@ corresponding distance matrix).
 		Wiebke Timm:  <em>Peak Intensity Prediction in Mass Spectra using Machine Learning Methods</em>,
 		PhD Thesis (2008)</A>
 		\arg \c <b>[2]</b>:Helge Ritter: <em>Learning with Self-Organizing Map, Artificial Neural Networks</em>, 
-				In T. Kohonen et al., eds.: Artificial Neural Networks, Elsevier Science Publishers (1991), 379�384
+				In T. Kohonen et al., eds.: Artificial Neural Networks, Elsevier Science Publishers (1991), 379-384
 		\arg \c <b>[3]</b>:<A HREF="http://www.biomedcentral.com/1471-2105/9/443">
-		W. Timm, A. Scherbart, S. B�cker, O. Kohlbacher, T.W. Nattkemper: <em>Peak Intensity Prediction in 
+		W. Timm, A. Scherbart, S. B&ouml;cker, O. Kohlbacher, T.W. Nattkemper: <em>Peak Intensity Prediction in 
 		MALDI-TOF Mass Spectrometry: A Machine Learning Study to support Quantitative Proteomics</em>, 
 		BMC Bioinformatics (2008)</A>
 
