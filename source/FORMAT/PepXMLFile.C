@@ -285,7 +285,7 @@ namespace OpenMS
         {
         	mod_str += ", " + *mit;
         }
-        error(LOAD, String("Found more than one modification: '") + mod_str +  "' setting first one!");
+				error(LOAD, "Modification '" + String(mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
 				modification_description = mods[0];
       }
 		}
@@ -905,7 +905,7 @@ namespace OpenMS
 						{
 							mod_str += ", " + *mit;
 						}
-						error(LOAD, String("Found more than one modification: '") + mod_str +  "' setting first one!");
+						error(LOAD, "Modification '" + String(it->mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
 						for (Size i = 0; i < temp_aa_sequence.size(); ++i)
             {
               if (it->aminoacid.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
