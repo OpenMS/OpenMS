@@ -12,15 +12,15 @@
         <LISTITEM value="../BSA/BSA2.mzML"/>
         <LISTITEM value="../BSA/BSA3.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-380" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
+      <ITEM name="x_pos" value="-280" type="float" description="" />
+      <ITEM name="y_pos" value="-20" type="float" description="" />
     </NODE>
     <NODE name="1" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="OMSSAAdapter" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="-200" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
+      <ITEM name="x_pos" value="-100" type="float" description="" />
+      <ITEM name="y_pos" value="-20" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="precursor_mass_tolerance" value="0.05" type="float" description="precursor mass tolerance" />
@@ -77,8 +77,8 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="PeptideIndexer" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="160" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
+      <ITEM name="x_pos" value="260" type="float" description="" />
+      <ITEM name="y_pos" value="-20" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="fasta" value="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" type="string" description="Input sequence database in fasta format." tags="input file" />
@@ -95,8 +95,8 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FalseDiscoveryRate" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="160" type="float" description="" />
-      <ITEM name="y_pos" value="80" type="float" description="" />
+      <ITEM name="x_pos" value="260" type="float" description="" />
+      <ITEM name="y_pos" value="140" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="fwd_in" value="" type="string" description="Identification input to estimate FDR, forward(valid formats: &apos;idXML&apos;)" tags="input file" />
@@ -114,8 +114,8 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="IDFilter" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="-20" type="float" description="" />
-      <ITEM name="y_pos" value="80" type="float" description="" />
+      <ITEM name="x_pos" value="80" type="float" description="" />
+      <ITEM name="y_pos" value="140" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="sequences_file" value="" type="string" description="filename of a fasta file containing protein sequences.#br#All peptides that are not a substring of a sequence in this file are filtered out" tags="input file" />
@@ -141,15 +141,15 @@
     </NODE>
     <NODE name="5" description="">
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
-      <ITEM name="x_pos" value="-200" type="float" description="" />
-      <ITEM name="y_pos" value="80" type="float" description="" />
+      <ITEM name="x_pos" value="-100" type="float" description="" />
+      <ITEM name="y_pos" value="140" type="float" description="" />
     </NODE>
     <NODE name="6" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="IDFilter" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="-20" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
+      <ITEM name="x_pos" value="80" type="float" description="" />
+      <ITEM name="y_pos" value="-20" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="sequences_file" value="" type="string" description="filename of a fasta file containing protein sequences.#br#All peptides that are not a substring of a sequence in this file are filtered out" tags="input file" />

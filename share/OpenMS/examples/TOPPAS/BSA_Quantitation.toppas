@@ -12,15 +12,15 @@
         <LISTITEM value="../BSA/BSA2.mzML"/>
         <LISTITEM value="../BSA/BSA3.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-420" type="float" description="" />
-      <ITEM name="y_pos" value="-300" type="float" description="" />
+      <ITEM name="x_pos" value="-140" type="float" description="" />
+      <ITEM name="y_pos" value="-160" type="float" description="" />
     </NODE>
     <NODE name="1" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FeatureFinder" type="string" description="" />
       <ITEM name="tool_type" value="centroided" type="string" description="" />
-      <ITEM name="x_pos" value="-420" type="float" description="" />
-      <ITEM name="y_pos" value="-180" type="float" description="" />
+      <ITEM name="x_pos" value="-140" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="seeds" value="" type="string" description="User-specified seed list. This feature is not supported by all algorithms!(valid formats: &apos;featureXML&apos;)" tags="input file" />
@@ -83,15 +83,15 @@
         <LISTITEM value="../BSA/BSA2_OMSSA.idXML"/>
         <LISTITEM value="../BSA/BSA3_OMSSA.idXML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-220" type="float" description="" />
-      <ITEM name="y_pos" value="-300" type="float" description="" />
+      <ITEM name="x_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="-160" type="float" description="" />
     </NODE>
     <NODE name="3" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="IDMapper" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="-220" type="float" description="" />
-      <ITEM name="y_pos" value="-180" type="float" description="" />
+      <ITEM name="x_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="rt_delta" value="5" type="float" description="Maximum allowed RT deviation between identification and peak/feature." restrictions="0:" />
@@ -107,8 +107,8 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FeatureLinker" type="string" description="" />
       <ITEM name="tool_type" value="unlabeled" type="string" description="" />
-      <ITEM name="x_pos" value="-220" type="float" description="" />
-      <ITEM name="y_pos" value="-40" type="float" description="" />
+      <ITEM name="x_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="100" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
@@ -133,8 +133,8 @@
     </NODE>
     <NODE name="5" description="">
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
-      <ITEM name="x_pos" value="-420" type="float" description="" />
-      <ITEM name="y_pos" value="-40" type="float" description="" />
+      <ITEM name="x_pos" value="-140" type="float" description="" />
+      <ITEM name="y_pos" value="100" type="float" description="" />
     </NODE>
   </NODE>
   <NODE name="edges" description="">
