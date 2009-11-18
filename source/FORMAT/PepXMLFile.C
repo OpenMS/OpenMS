@@ -285,7 +285,8 @@ namespace OpenMS
         {
         	mod_str += ", " + *mit;
         }
-        error(LOAD, String("Found more than one modification: '") + mod_str +  "'");
+        error(LOAD, String("Found more than one modification: '") + mod_str +  "' setting first one!");
+				modification_description = mods[0];
       }
 		}
 	}
@@ -904,7 +905,14 @@ namespace OpenMS
 						{
 							mod_str += ", " + *mit;
 						}
-						error(LOAD, String("Found more than one modification: '") + mod_str +  "'");
+						error(LOAD, String("Found more than one modification: '") + mod_str +  "' setting first one!");
+						for (Size i = 0; i < temp_aa_sequence.size(); ++i)
+            {
+              if (it->aminoacid.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
+              {
+                temp_aa_sequence.setModification(i, mods[0]);
+              }
+            }
 					}
 				}
 				//}
