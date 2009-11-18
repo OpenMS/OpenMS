@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/hendrik/Software/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="XSL/IdXML.xsl"?>
 <IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="./current.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		<FixedModification name="C+57.0215" />
@@ -125,7 +125,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0" MZ="770.055558365233" RT="3.4" >
-			<PeptideHit score="1.606" sequence="LDGNYLKPPIPLDLMMC(Carbamidomethyl)FR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_23" >
+			<PeptideHit score="1.606" sequence="LDGNYLKPPIPLDLM(Oxidation)MC(Carbamidomethyl)FR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_23" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0" MZ="512.7845250319" RT="5.2" >
