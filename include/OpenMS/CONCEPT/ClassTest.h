@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 #include <string>
@@ -489,9 +490,9 @@ int main(int argc, char **argv)																		\
 	else																																	\
 	{																																			\
 		/* remove temporary files	*/																				\
-		for (Size i=0;i<TEST::tmp_file_list.size();++i)														\
+		for (OpenMS::Size i=0;i<TEST::tmp_file_list.size();++i)														\
 		{																																		\
-			if (!File::remove(TEST::tmp_file_list[i]))															\
+			if (!OpenMS::File::remove(TEST::tmp_file_list[i]))															\
 			{																																	\
 				std__cout << "Warning: unable to remove temporary file '" << TEST::tmp_file_list[i] << "'" << std::endl;\
 			}																																	\
