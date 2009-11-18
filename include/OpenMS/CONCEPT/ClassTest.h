@@ -488,6 +488,14 @@ int main(int argc, char **argv)																		\
 	}																																			\
 	else																																	\
 	{																																			\
+		/* remove temporary files	*/																				\
+		for (Size i=0;i<TEST::tmp_file_list.size();++i)														\
+		{																																		\
+			if (!File::remove(TEST::tmp_file_list[i]))															\
+			{																																	\
+				std__cout << "Warning: unable to remove temporary file '" << TEST::tmp_file_list[i] << "'" << std::endl;\
+			}																																	\
+		}																																		\
 		std__cout << "PASSED";																							\
 		if (TEST::add_message != "") std__cout << " (" << TEST::add_message << ")";	\
 		std__cout << std::endl;																							\
