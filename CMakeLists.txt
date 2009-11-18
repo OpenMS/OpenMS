@@ -935,6 +935,8 @@ else()
 	cmake_export_build_settings(${PROJECT_BINARY_DIR}/cmake/OpenMSBuildSettings.cmake)
 	export_library_dependencies(${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryDepends.cmake)
 
-	include(cmake/install.cmake)
+	if (NOT "${INSTALL_PREFIX}" STREQUAL ".")
+		include(cmake/install.cmake)
+	endif()
 endif()
 
