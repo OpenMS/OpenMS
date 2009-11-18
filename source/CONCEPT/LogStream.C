@@ -92,8 +92,17 @@ namespace OpenMS
 
   int LogStreamBuf::overflow(int c)
   {
-    sync();
-    return ::std::streambuf::overflow(c);
+    if(c != traits_type::eof())
+    {
+      *pptr() = c;
+      pbump(1);
+      sync();
+      return c;
+    }
+    else 
+    {
+      return traits_type::eof();
+    }
   }
 		
 
