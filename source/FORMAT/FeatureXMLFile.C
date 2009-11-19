@@ -695,6 +695,7 @@ namespace OpenMS
 		else if (tag == "SearchParameters")
 		{
 			prot_id_.setSearchParameters(search_param_);
+			search_param_ = ProteinIdentification::SearchParameters();
 		}
 		else if (tag == "ProteinHit")
 		{
