@@ -183,7 +183,7 @@
   
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
   <pre>
-  &gt; make TEST
+  &gt; make test_build
   &gt; make test
   </pre>
   
