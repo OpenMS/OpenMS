@@ -117,16 +117,15 @@ namespace OpenMS
 				{
 					return 	db == rhs.db &&
 									db_version == rhs.db_version &&
-									taxonomy == taxonomy &&
-									charges == charges &&
-									mass_type == mass_type &&
-									fixed_modifications == fixed_modifications &&
-									variable_modifications == variable_modifications &&
-									enzyme == enzyme &&
-									missed_cleavages == missed_cleavages &&
-									peak_mass_tolerance == peak_mass_tolerance &&
-									precursor_tolerance == precursor_tolerance;
-
+									taxonomy == rhs.taxonomy &&
+									charges == rhs.charges &&
+									mass_type == rhs.mass_type &&
+									fixed_modifications == rhs.fixed_modifications &&
+									variable_modifications == rhs.variable_modifications &&
+									enzyme == rhs.enzyme &&
+									missed_cleavages == rhs.missed_cleavages &&
+									peak_mass_tolerance == rhs.peak_mass_tolerance &&
+									precursor_tolerance == rhs.precursor_tolerance;
 				}
 
 				bool operator != (const SearchParameters& rhs) const
