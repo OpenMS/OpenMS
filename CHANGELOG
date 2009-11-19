@@ -66,13 +66,15 @@ Main improvements of OpenMS C++ library:
 - IdXMLFile segmentation fault if no protein identification given fixed
 
 Detailed list of changes to specific OpenMS classes
-- New classes:
+- [New classes]:
   - UniqueIdGenerator, UniqueIdInterface, UniqueIdIndexer
   - SVOutStream
   - MapAlignmentAlgorithmIdentification
   - SeedListGenerator
-- Removed classes:
+- [Removed classes]:
   - FeatureFinderAlgorithmWavelet	
+- [Renamed classes]:
+	- IDMapper -> DocumentIDMapper
 - String:
   - improved behaviour of split(...) method
   - added support for quoting and unquoting of strings
@@ -107,11 +109,18 @@ Changes to the contrib package:
 
 Bug fixes:
 
+[old tracker: http://sourceforge.net/tracker/?func=detail&aid=2857130&group_id=90558&atid=1059012]
 - [2857042]: RTModel/PTModel unable to find modification
 - [2857040]: Modification names with brackets fail to parse
 - [2849215]: OMSSAAdapter fails with Acetlyation not found
 - [2849201]: Parameters in INI files are duplicated
 - [2849439]: Compilation error with Qt 4.3.x
+- [2900457]: idXML files with more than ProteinIdentification might be incorrect
+
+[new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.6]
+- #29: FilerMerger accumulates processingMethod entries
+- #28: Segfault if idXML file does not contain a protein identification.
+- #24: XML formats are written with unescaped special chars like "&"
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.5                                      ----
