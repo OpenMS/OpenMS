@@ -1,6 +1,7 @@
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.6                                      ----
 ------------------------------------------------------------------------------------------
+Release date: Nov 19th 2009
 
 Main improvements of TOPPView:
 - Storing peak data is now possible in mzData, mzXML and mzML format
@@ -16,35 +17,44 @@ Main improvements of TOPP-Framework:
 - Combining '-write_ini' and '-ini' option now allows to transfer settings with 
 	identical path&names from an old ini file into a new one.
 
+New TOPP tools:
+- SeedListGenerator
+  - generates seed lists for feature detection (still experimental)
+- PrecursorMassCorrector
+	- update precursor m/z information of MS/MS spectra based on MS1 peptide isotope fits (still experimental)
+	
 Main improvements of TOPP-Tools:
-- IDMapper
-	- has new default m/z tolerance and uses ppm as new default measure! Da is still supported.
-	- assigns more peptides to features with convex hulls (the deltas are used)
+- all tools:
+	- gzipped and bzipped XML files (e.g. mzML) can be directly read
 - FeatureFinder 
 	- Centroided
 		- supports parallel execution now
 		- supports user-specified seeds now
 	- Wavelet: removed (Isotope-Wavelet is still available)
-- new tool: SeedListGenerator
-  - generates seed lists for feature detection (still experimental)
-- TextImporter can now import Koenik(Hardkloer) feature files
-- TextExporter
-  - added option for string quoting
-  - improved export of consensusXML
-- MapAligner
-  - new "identification" algorithm for alignment based on identified peptides (still experimental)
+- FileMerger: accumulated processingMethod entries, which all contained the same information
+- IDMapper
+	- has new default m/z tolerance and uses ppm as new default measure! Da is still supported.
+	- referenze m/z of ID can now be either: 1) precursor mass, 2) [new] mass of identified peptide
+	- assigns more peptides to features with convex hulls (the deltas are used)
 - InternalCalibration
   - supports calibration functions calculated seperately for each spectrum or one global function
   - supports peptide ids as reference peaks
   - works on peak or feature data now
-- new tool: PrecursorMassCorrector
-	- update precursor m/z information of MS/MS spectra based on MS1 peptide isotope fits (still experimental)
-- gzipped and bzipped XML files can be directly read
-- PepNovoAdapter: complete rewrite of the code, includeing classes
-- FileMerger: accumulated processingMethod entries, which all contained the same information
+- MapAligner
+  - new "identification" algorithm for alignment based on identified peptides (still experimental)
+- PeakPicker
+	- support for automatic estimation of peak width
+- TextImporter can now import Koenik(Hardkloer) feature files
+- TextExporter
+  - added option for string quoting
+  - improved export of consensusXML
+- PepNovoAdapter: complete rewrite of the code, including classes
+
+New UTILS:
+- UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
 
 Main improvements of UTILS:
-- UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
+
 
 Main improvements of OpenMS C++ library:
 - MGF file creation speedup (also affects some TOPP tools)
