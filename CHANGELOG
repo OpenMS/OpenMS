@@ -13,6 +13,7 @@ Main improvements of TOPPView:
 - rudimentary chromatogram support
 
 Main improvements of TOPP-Framework:
+- Major update of TOPPAS
 - TOPP tools now warn when used with parameter files from a different version
 - Combining '-write_ini' and '-ini' option now allows to transfer settings with 
 	identical path&names from an old ini file into a new one.
