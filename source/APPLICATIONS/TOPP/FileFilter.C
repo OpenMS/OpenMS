@@ -80,7 +80,7 @@ class TOPPFileFilter
 {
 	public:
 		TOPPFileFilter()
-			: TOPPBase("FileFilter","Extracts or manipulates portions of data from peak, feature or consensus feature files.")
+			: TOPPBase("FileFilter","Extracts or manipulates portions of data from peak, feature or consensus-feature files.")
 		{
 		}
 
@@ -106,8 +106,8 @@ class TOPPFileFilter
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 			registerIntList_("level","\"i,j,...\"",IntList::create("1,2,3"),"MS levels to extract", false);
       registerFlag_("sort_peaks","sorts the peaks according to m/z.");
-			registerFlag_("no_chromatograms", "Skip conversion e.g. from SRM scans into real chromatograms (creates huge files).");
-			registerFlag_("remove_chromatograms", "Removes chromatograms stored in an file.");
+			registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
+			registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
 			
 			addEmptyLine_();
 			addText_("Remove spectra: ");

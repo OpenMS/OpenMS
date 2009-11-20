@@ -28,6 +28,38 @@
 #ifndef OPENMS_VISUAL_TOPPASVERTEX_H
 #define OPENMS_VISUAL_TOPPASVERTEX_H
 
+// ------------- DEBUGGING ----------------
+
+// ---- Uncomment to enable debug mode ----
+//#define TOPPAS_DEBUG
+// ----------------------------------------
+
+#ifdef TOPPAS_DEBUG
+#define __DEBUG_BEGIN_METHOD__	{																																													\
+																		for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)	\
+																		{																																											\
+																			std::cout << "  ";																																	\
+																		}																																											\
+																		std::cout << "BEGIN [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;				\
+																		++global_debug_indent_;																																\
+																}
+
+#define __DEBUG_END_METHOD__	{																																														\
+																		--global_debug_indent_;																																\
+																		if (global_debug_indent_ < 0) global_debug_indent_ = 0;																\
+																		for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)	\
+																		{																																											\
+																			std::cout << "  ";																																	\
+																		}																																											\
+																		std::cout << "END [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;					\
+																}
+#else
+#define __DEBUG_BEGIN_METHOD__ {}
+#define __DEBUG_END_METHOD__ {}
+#endif
+
+// ----------------------------------------
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QtGui/QPainter>
@@ -133,18 +165,28 @@ namespace OpenMS
 			UInt getTopoNr();
 			/// Sets the topological sort number (overridden in tool and output vertices)
 			virtual void setTopoNr(UInt nr);
-			/// Checks if all mergers above this node have finished (all rounds complete) and if yes, propagates this downwards
-			virtual void checkIfAllUpstreamMergersFinished();
 			/// Checks if the tools in the subtree below this node have finished and if yes, propagates this upwards
 			virtual void checkIfSubtreeFinished();
+			/// Returns if all mergers further upstream in the pipeline have finished merging already
+			virtual bool areAllUpstreamMergersFinished();
 			/// Resets the status
-			virtual void reset(bool reset_all_files = false, bool mergers_finished = true);
+			virtual void reset(bool reset_all_files = false);
 			/// Returns whether all tools in the subtree below this node are finished
 			virtual bool isSubtreeFinished();
-			/// Indicates whether all mergers above this node are finished
-			virtual bool isAllUpstreamMergersFinished();
-			/// Resets the whole subtree below this node
-			void resetSubtree(bool including_this_node = true, bool mergers_finished = false);
+			/// Resets the subtree below this node
+			virtual void resetSubtree(bool including_this_node = true);
+			/// Recursive sanity check for mergers and tools
+			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
+			/// Used in sanity check, returns the overall number of files at this node over all merging rounds
+			int getScFilesTotal();
+			/// Used in sanity check, returns the number of files at this node per merging round
+			int getScFilesPerRound();
+			/// Used in sanity check, returns if this node has already been checked
+			bool isScListLengthChecked();
+			/// Returns whether this node has already been started by an input file node
+			bool isAlreadyStarted();
+			/// Sets whether this node has already been started by an input file node
+			void setAlreadyStarted(bool b);
 		
 		public slots:
 		
@@ -192,8 +234,21 @@ namespace OpenMS
 			UInt topo_nr_;
 			/// Indicates whether all tools in the subtree below this node are finished
 			bool subtree_finished_;
-			/// Indicates whether all mergers above this node are finished
-			bool all_upstream_mergers_finished_;
+			/// Used during sanity check, stores the number of files at this node per merging round
+			int sc_files_per_round_;
+			/// Used during sanity check, stores the overall number of files at this node over all merging rounds
+			int sc_files_total_;
+			/// Used during sanity check, stores if this node has been checked already
+			bool sc_list_length_checked_;
+			/// Stores if the file names for the current call are already known
+			bool files_known_;
+			/// Stores if this node has already been started by an input file node
+			bool already_started_;
+			
+			#ifdef TOPPAS_DEBUG
+			// Indentation level for nicer debug output
+			static int global_debug_indent_;
+			#endif
 			
 			///@name reimplemented Qt events
       //@{
@@ -210,6 +265,22 @@ namespace OpenMS
 			String get3CharsNumber_(UInt number);
 			/// Removes the specified directory (absolute path). Returns true if successful.
 			bool removeDirRecursively_(const QString& dir_name);
+			
+			/// Displays the debug output @p message, if TOPPAS_DEBUG is defined
+			void debugOut_(const String&
+			#ifdef TOPPAS_DEBUG
+			message
+			#endif
+			)
+			{
+				#ifdef TOPPAS_DEBUG
+				for (int i = 0; i < global_debug_indent_; ++i)
+				{
+					std::cout << "  ";
+				}
+				std::cout << "[" << topo_nr_ << "] " << message << std::endl;
+				#endif
+			}
 	};
 }
 

@@ -319,7 +319,10 @@ namespace OpenMS
 					&& qobject_cast<TOPPASOutputFileListVertex*>(v)) ||
 				// nor multiple incoming edges for a single output file/list node
 				(qobject_cast<TOPPASOutputFileListVertex*>(v)
-					&& v->inEdgesBegin() != v->inEdgesEnd()))
+					&& v->inEdgesBegin() != v->inEdgesEnd()) ||
+				// nor mergers connected directly to an output node
+				(qobject_cast<TOPPASMergerVertex*>(u)
+					&& qobject_cast<TOPPASOutputFileListVertex*>(v)))
 		{
 			return false;
 		}
@@ -403,19 +406,29 @@ namespace OpenMS
 
 	void TOPPASScene::runPipeline()
 	{
+		//reset all nodes
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			(*it)->reset(true);
+		}
+		update(sceneRect());
+		
+		//check if pipeline OK
+		if (!sanityCheck())
+		{
+			return;
+		}
+		
+		//ask for output directory
 		if (!askForOutputDir(true))
 		{
 			return;
 		}
 		
-		//reset all nodes
-		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
-		{
-			(*it)->reset(true,true);
-		}
-		update(sceneRect());
+		//reset processes
+		topp_processes_queue_.clear();
 		
-		// start recursive execution at every output node
+		// start at input nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
@@ -445,11 +458,13 @@ namespace OpenMS
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
 			if (iflv)
 			{
+				// store file names relative to toppas file
+				QDir save_dir(File::path(file).toQString());
 				const QStringList& files_qt = iflv->getFilenames();
 				StringList files;
-				foreach (QString file_qt, files_qt)
+				foreach (const QString& file_qt, files_qt)
 				{
-					files.push_back(String(file_qt));
+					files.push_back(save_dir.relativeFilePath(file_qt));
 				}
 				save_param.setValue("vertices:"+id+":toppas_type", DataValue("input file list"));
 				save_param.setValue("vertices:"+id+":file_names", DataValue(files));
@@ -486,6 +501,7 @@ namespace OpenMS
 				save_param.setValue("vertices:"+id+":toppas_type", DataValue("merger"));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
+				save_param.setValue("vertices:"+id+":round_based", DataValue(mv->roundBasedMode() ? "true" : "false"));
 				continue;
 			}
 		}
@@ -538,10 +554,12 @@ namespace OpenMS
 				if (current_type == "input file list")
 				{
 					StringList file_names = vertices_param.getValue(current_id + ":file_names");
+					// make file names absolute again
+					QDir load_dir(File::path(file).toQString());
 					QStringList file_names_qt;
 					for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
 					{
-						file_names_qt.push_back(str_it->toQString());
+						file_names_qt.push_back(QDir::cleanPath(load_dir.absoluteFilePath(str_it->toQString())));
 					}
 					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names_qt);
 					current_vertex = iflv;
@@ -580,6 +598,11 @@ namespace OpenMS
 				else if (current_type == "merger")
 				{
 					TOPPASMergerVertex* mv = new TOPPASMergerVertex();
+					if (vertices_param.exists(current_id + ":round_based"))
+					{
+						String rb = vertices_param.getValue(current_id + ":round_based");
+						mv->setRoundBasedMode(rb == "true" ? true : false);
+					}
 					current_vertex = mv;
 				}
 				else
@@ -995,6 +1018,13 @@ namespace OpenMS
 	void TOPPASScene::abortPipeline()
 	{
 		emit terminateCurrentPipeline();
+		resetProcessesQueue();
+		running_ = false;
+	}
+	
+	void TOPPASScene::resetProcessesQueue()
+	{
+		topp_processes_queue_.clear();
 	}
 	
 	void TOPPASScene::setPipelineRunning(bool b)
@@ -1250,6 +1280,214 @@ namespace OpenMS
 		}
 		
 		event->accept();
+	}
+	
+	void TOPPASScene::enqueueProcess(QProcess* p, const QString& command, const QStringList& args)
+	{
+		topp_processes_queue_ << TOPPProcess(p, command, args);
+		
+		// run first process
+		if (topp_processes_queue_.size() == 1)
+		{
+			const TOPPProcess& tp = topp_processes_queue_.first();
+			tp.proc->start(tp.command, tp.args);
+		}
+	}
+	
+	void TOPPASScene::runNextProcess()
+	{
+		if (topp_processes_queue_.empty())
+		{
+			return;
+		}
+		
+		topp_processes_queue_.removeFirst();
+		if (!topp_processes_queue_.empty())
+		{
+			const TOPPProcess& tp = topp_processes_queue_.first();
+			tp.proc->start(tp.command, tp.args);
+		}
+	}
+	
+	bool TOPPASScene::sanityCheck()
+	{
+		QStringList strange_vertices;
+		
+		// ----- are there any input nodes and are files specified? ----
+		QVector<TOPPASInputFileListVertex*> input_nodes;
+		foreach (TOPPASVertex* tv, vertices_)
+		{
+			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
+			if (iflv)
+			{
+				input_nodes.push_back(iflv);
+			}
+		}
+		if (input_nodes.empty())
+		{
+			if (gui_)
+			{
+				QMessageBox::warning(0,"No input files","The pipeline does not contain any input file nodes!");
+			}
+			else
+			{
+				std::cerr << "The pipeline does not contain any input file nodes!" << std::endl;
+			}
+			return false;
+		}
+		foreach (TOPPASInputFileListVertex* iflv, input_nodes)
+		{
+			if (iflv->getFilenames().empty())
+			{
+				strange_vertices.push_back(QString::number(iflv->getTopoNr()));
+			}
+		}
+		if (!strange_vertices.empty())
+		{
+			if (gui_)
+			{
+				QMessageBox::warning(views().first(), "Empty input file nodes",
+																QString("Node")
+																+(strange_vertices.size()>1 ? "s " : " ")
+																+strange_vertices.join(", ")
+																+(strange_vertices.size()>1 ? " have " : " has ")
+																+" an empty input file list!");
+			}
+			else
+			{
+				std::cerr << "Pipeline contains input file nodes without specified files!" << std::endl;
+			}
+			return false;
+		}
+		
+		// ----- are there nodes without parents (besides input nodes)? -----
+		strange_vertices.clear();
+		foreach (TOPPASVertex* tv, vertices_)
+		{
+			if (qobject_cast<TOPPASInputFileListVertex*>(tv))
+			{
+				continue;
+			}
+			if (tv->inEdgesBegin() == tv->inEdgesEnd())
+			{
+				strange_vertices << QString::number(tv->getTopoNr());
+			}
+		}
+		if (!strange_vertices.empty())
+		{
+			if (gui_)
+			{
+				QMessageBox::StandardButton ret;
+				ret = QMessageBox::warning(views().first(), "Nodes without incoming edges",
+																	 QString("Node")
+																	 +(strange_vertices.size()>1 ? "s " : " ")
+																	 +strange_vertices.join(", ")
+																	 +" will never be reached.\n\nDo you still want to run the pipeline?",
+																	 QMessageBox::Yes | QMessageBox::No);
+				if (ret == QMessageBox::No)
+				{
+					return false;
+				}
+			}
+			//else
+			//{
+			//	assume the pipeline was tested in the gui, continue
+			//}
+		}
+		
+		// ----- are there nodes without children (besides output nodes)? -----
+		strange_vertices.clear();
+		foreach (TOPPASVertex* tv, vertices_)
+		{
+			if (qobject_cast<TOPPASOutputFileListVertex*>(tv))
+			{
+				continue;
+			}
+			if (tv->outEdgesBegin() == tv->outEdgesEnd())
+			{
+				strange_vertices << QString::number(tv->getTopoNr());
+			}
+		}
+		if (!strange_vertices.empty())
+		{
+			if (gui_)
+			{
+				QMessageBox::StandardButton ret;
+				ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges",
+																	 QString("Node")
+																	 +(strange_vertices.size()>1 ? "s " : " ")
+																	 +strange_vertices.join(", ")
+																	 +(strange_vertices.size()>1 ? " have " : " has ")
+																	 +"no outgoing edges.\n\nDo you still want to run the pipeline?",
+																	 QMessageBox::Yes | QMessageBox::No);
+				if (ret == QMessageBox::No)
+				{
+					return false;
+				}
+			}
+			//else
+			//{
+			//	assume the pipeline was tested in the gui, continue
+			//}
+		}
+		
+		// ----- are there mergers with unequal input list lengths (per merge round and over entire run)? -----
+		QStringList unequal_per_round;
+		QStringList unequal_over_entire_run;
+		
+		foreach (TOPPASVertex* tv, vertices_)
+		{
+			if (qobject_cast<TOPPASInputFileListVertex*>(tv))
+			{
+				tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
+			}
+		}
+		
+		if (!unequal_per_round.empty() || !unequal_over_entire_run.empty())
+		{
+			if (gui_)
+			{
+				QString message("");
+				if (!unequal_per_round.empty())
+				{
+					message = QString("Node")
+										+(unequal_per_round.size()>1 ? "s " : " ")
+										+unequal_per_round.join(", ")
+										+(unequal_per_round.size()>1 ? " have " : " has ")
+										+"unequal input list lengths. Some files will not be processed.\n\n";
+				}
+				foreach(const QString& str, unequal_per_round)
+				{
+					unequal_over_entire_run.removeAll(str);
+				}
+				if (!unequal_over_entire_run.empty())
+				{
+					message += QString("Merger")
+										+(unequal_over_entire_run.size()>1 ? "s " : " ")
+										+unequal_over_entire_run.join(", ")+":\n"
+										+"The overall number of files to be merged is not the same "
+										+"for all incoming edges. This either means that some files "
+										+"will not be merged or that one and the same file will be "
+										+"merged several times.\n\n";
+				}
+				message += "Do you still want to continue?";
+				
+				QMessageBox::StandardButton ret;
+				ret = QMessageBox::warning(views().first(), "Unequal input list lengths",
+																	 message,
+																	 QMessageBox::Yes | QMessageBox::No);
+				if (ret == QMessageBox::No)
+				{
+					return false;
+				}
+			}
+			//else
+			//{
+			//	assume the pipeline was tested in the gui, continue
+			//}
+		}
+		
+		return true;
 	}
 	
 } //namespace OpenMS

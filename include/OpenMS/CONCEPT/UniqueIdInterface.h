@@ -130,7 +130,7 @@ class OPENMS_DLLAPI UniqueIdInterface
       return isValid(unique_id_);
     }
 
-    /// Returns whether the unique id is valid.  Returns 1 if the unique id is invalid, 0 otherwise.
+    /// Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise.
     Size
     hasInvalidUniqueId() const
     {

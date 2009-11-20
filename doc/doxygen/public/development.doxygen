@@ -4,7 +4,7 @@
   
 	@section development_external Compiling external code
 	
-	It is very easy to set up an environment to write your own programs using %OpenMS. Make sure you downloaded and installed the source package of %OpenMS/TOPP properly.
+	It is very easy to set up an environment to write your own programs using %OpenMS. Make sure you downloaded and installed the source package of %OpenMS/TOPP properly. Note that you cannot use an install and 'make install' to build a devel version of %OpenMS, it must be built in place.
 	<br>
 	<br>
 	To ease the usage you can create your own CMake configurations file. All the configurations done for the building of the %OpenMS package will be used to build your own code. The example that follows will be explained in details:

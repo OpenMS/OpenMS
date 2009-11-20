@@ -25,8 +25,8 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BZIP2_IFSTREAM_H
-#define	OPENMS_FORMAT_BZIP2_IFSTREAM_H
+#ifndef OPENMS_FORMAT_BZIP2IFSTREAM_H
+#define	OPENMS_FORMAT_BZIP2IFSTREAM_H
 
 #include <OpenMS/config.h>
 #include <bzlib.h>
@@ -42,21 +42,20 @@ namespace OpenMS
 		public: 
 			///Default Constructor
 			Bzip2Ifstream();
-			/// 
+			/// Detailed constructor with filename
 			Bzip2Ifstream(const char * filename);
 			///Destructor
 			virtual ~Bzip2Ifstream();
 			
-			//operator>>();
 			/**
 					@brief reads n bytes from the bzip2 compressed file into buffer s
 					
 					@param s will be filled with bytes
 					@param n is the size of the buffer s
-					@ret the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
+					@return the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
 					
 					@exception Exception::ConversionError is thrown if decompression fails
-					@exception Exception::IllegalArgument is thrwon if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
+					@exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
 					@note it is undefined what will happen if parameter n is bigger than the length of the buffer
 			*/
 			size_t read(char* s, size_t n);
@@ -64,7 +63,7 @@ namespace OpenMS
 			/**
 				@brief indicates whether the read function can be used safely
 				
-				@ret true if end of file was reached. Otherwise false.
+				@return true if end of file was reached. Otherwise false.
 			*/
 			bool streamEnd() const;
 			
@@ -85,15 +84,15 @@ namespace OpenMS
 			void close();
 		protected:
 			/// pointer to a FILE object. Necessary for opening the file
-			FILE*   file;
+			FILE*   file_;
 			/// a pointer to a BZFILE object. Necessary for decompression
-			BZFILE* bzip2file;
-			///counts the last read bufffer
-			size_t     n_buffer;
+			BZFILE* bzip2file_;
+			///counts the last read buffer
+			size_t     n_buffer_;
 			///saves the last returned error by the read function
-			int     bzerror;
+			int     bzerror_;
 			///true if end of file is reached
-			bool stream_at_end;
+			bool stream_at_end_;
 			
 			//not implemented
 			Bzip2Ifstream(const Bzip2Ifstream& bzip2);
@@ -103,13 +102,13 @@ namespace OpenMS
 	//return bzip2file???!!!!????
 	inline bool Bzip2Ifstream::isOpen() const
 	{
-		return (file);
+		return (file_ != NULL);
 	}
 	
 	inline bool Bzip2Ifstream::streamEnd() const
 	{
-		return stream_at_end;
+		return stream_at_end_;
 	}
 
 } //namespace OpenMS
-#endif //OPENMS_FORMAT_BZIP2_IFSTREAM_H
+#endif //OPENMS_FORMAT_BZIP2IFSTREAM_H

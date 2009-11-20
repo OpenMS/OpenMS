@@ -34,12 +34,12 @@ using namespace xercesc;
 namespace OpenMS
 {
 	GzipInputStream::GzipInputStream(const   String&   file_name)
-	:gzip_(new GzipIfstream(file_name.c_str())),file_current_index(0)
+	:gzip_(new GzipIfstream(file_name.c_str())),file_current_index_(0)
 	{
 	}
 
 	GzipInputStream::GzipInputStream(const   char* file_name)
-	:gzip_(new GzipIfstream(file_name)),file_current_index(0)
+	:gzip_(new GzipIfstream(file_name)),file_current_index_(0)
   {
   }
 	
@@ -63,7 +63,7 @@ namespace OpenMS
    
    unsigned char* fill_it = static_cast<unsigned char*>(to_fill);
    XMLSize_t actual_read = (XMLSize_t) gzip_->read((char*)fill_it, static_cast<const size_t>(max_to_read));
-   file_current_index += actual_read;
+   file_current_index_ += actual_read;
    return actual_read;
 	}
 

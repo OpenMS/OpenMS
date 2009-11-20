@@ -83,6 +83,7 @@ namespace OpenMS
 			/** 
 				@brief Calculate the FDR of one run from a concatenated sequence db search
 				
+				
 				@param ids protein identifications, containing target and decoy hits
 			*/
 			void apply(std::vector<ProteinIdentification>& ids);

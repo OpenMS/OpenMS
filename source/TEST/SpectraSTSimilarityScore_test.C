@@ -58,7 +58,7 @@ END_SECTION
 START_SECTION(~SpectraSTSimilarityScore())
 	delete ptr;
 END_SECTION
-
+TOLERANCE_ABSOLUTE(0.01)
 ptr = new SpectraSTSimilarityScore();
 
 START_SECTION(SpectraSTSimilarityScore(const SpectraSTSimilarityScore& source))
@@ -133,7 +133,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
   TEST_REAL_SIMILAR(score, 0)
 END_SECTION
 
-START_SECTION(DoubleReal operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const)
+START_SECTION((DoubleReal operator()(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2) const))
   PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -173,7 +173,7 @@ START_SECTION(DoubleReal operator () (const BinnedSpectrum& spec1, const BinnedS
   TEST_REAL_SIMILAR(score, 0)
 END_SECTION
 
-START_SECTION(bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold, Real filter_all_peaks_below_mz,Real min_peak_number))
+START_SECTION(bool preprocess(PeakSpectrum &spec, Real remove_peak_intensity_threshold=2.01, UInt cut_peaks_below=1000, Size min_peak_number=5, Size max_peak_number=150))
 	PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -215,9 +215,7 @@ START_SECTION(bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_thr
 	TEST_EQUAL(s3.size(),8)
 END_SECTION
 
-START_SECTION(DoubleReal dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product))
-	
-END_SECTION
+
 
 START_SECTION(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* psf = SpectraSTSimilarityScore::create();
@@ -228,6 +226,26 @@ END_SECTION
 
 START_SECTION(static const String getProductName())
 	TEST_EQUAL(ptr->getProductName(), "SpectraSTSimilarityScore")
+END_SECTION
+
+START_SECTION(DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up))
+SpectraSTSimilarityScore spectrast;
+TEST_EXCEPTION( Exception::DivisionByZero, spectrast.delta_D(0,5))
+TEST_REAL_SIMILAR(spectrast.delta_D(5,4),0.2)
+TEST_REAL_SIMILAR(spectrast.delta_D(25,1),0.96)
+END_SECTION
+
+START_SECTION((DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal dot_bias)))
+//pretty straightforward function
+NOT_TESTABLE
+END_SECTION
+
+START_SECTION(DoubleReal dot_bias(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2, DoubleReal dot_product=-1) const)
+	
+END_SECTION
+START_SECTION(BinnedSpectrum transform(const PeakSpectrum& spec))
+
+
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

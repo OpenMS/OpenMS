@@ -228,12 +228,13 @@ svn propset svn:eol-style native MyClass.C
 			<LI><b>[Eclipse CDT] The indexer gets stuck at some file which \#includes seqan</b><br>
 				It seems that SeqAn code is just too confusing for older eclipse C++ indexers.
 				You should upgrade to eclipse galileo (CDT 6.0.x).
-				Also, increase the available memory limit in eclipse.ini, e.g. -Xmx1000m for one gig.
+				Also, increase the available memory limit in eclipse.ini, e.g. -Xmx1024m for one gig.
 			<LI><b>[Eclipse CDT] The parser is confused after OPENMS_DLLAPI and does not recognize standard C++ headers</b><br>
-				Go to Project -> Properties -> C/C++ Include Paths and Preprocessor Symbols -> Add Preprocessor symbol -> "OPENMMS_DLL=".
+				Go to Project -> Properties -> C/C++ Include Paths and Preprocessor Symbols -> Add Preprocessor symbol -> "OPENMS_DLLAPI=".
 			 	This tells eclipse that the macro is defined empty.<br>
 				In the same dialog you can also add an external include path to e.g. /usr/include/c++/4.3.3/, etc.
-				[Hints to resolve these issues using the cmake generator are welcome!]
+				The issue with C++ headers was fixed in the latest galileo release.
+				Hints to resolve the OPENMS_DLLAPI issue using the cmake generator are welcome!
 		</UL>
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>

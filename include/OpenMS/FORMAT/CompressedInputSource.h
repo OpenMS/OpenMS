@@ -55,7 +55,7 @@ namespace OpenMS
 		  virtual xercesc::BinInputStream* makeStream() const;
 		  
 		private:
-			 char head[2];
+			 char head_[2];
 		  //not implemented
 		  CompressedInputSource();
 		  CompressedInputSource(const CompressedInputSource& source);

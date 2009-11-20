@@ -36,6 +36,8 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <QRegExpValidator>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -60,7 +62,7 @@ START_TEST(LogStream, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, bool associate_stdio=false))
+START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream* stream))
 {
   LogStream* l1 = 0;
   l1 = new LogStream((LogStreamBuf*)0);
@@ -77,16 +79,28 @@ END_SECTION
 
 START_SECTION((virtual ~LogStream()))
 {
-  LogStream* l1 = new LogStream((LogStreamBuf*)0);
-  delete l1;
+	ostringstream stream_by_logger;
+  {
+		LogStream* l1 = new LogStream(new LogStreamBuf());
+		l1->insert(stream_by_logger);
+		*l1 << "flushtest" << endl;
+		TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+		*l1 << "unfinishedline...";
+		TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+		delete l1;
+		// testing if loggers' d'tor will distribute the unfinished line to its children...
+	}
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\nunfinishedline...\n")
+	
 }
 END_SECTION
-// if we add these two tests to the end of the TEST 
-// we have correct out put on the command line
+
+
 START_SECTION((LogStreamBuf* operator->()))
 {
   LogStream l1(new LogStreamBuf());
-  l1->sync();
+  l1->sync(); // if it doesn't crash we're happy
+  NOT_TESTABLE
 }
 END_SECTION
 
@@ -100,61 +114,33 @@ START_SECTION((LogStreamBuf* rdbuf()))
 }
 END_SECTION
   
-START_SECTION((void setLevel(LogLevel level)))
+START_SECTION((void setLevel(std::string level)))
 {
-  String filename;
-  NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT , ERROR);
-
-  l1 << "1" << endl;
-  l1.setLevel(INFORMATION);
-  l1 << "2" << endl;
-  l1.setLevel(FATAL_ERROR);
-  l1 << "X" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+  l1.setLevel("INFORMATION");
+  TEST_EQUAL(l1.getLevel(), "INFORMATION")
 }
 END_SECTION
 
 START_SECTION((LogLevel getLevel()))
 {
   LogStream l1(new LogStreamBuf());
-  TEST_EQUAL(l1.getLevel(), DEVELOPMENT)
-  l1.setLevel(FATAL_ERROR);
-  TEST_EQUAL(l1.getLevel(), FATAL_ERROR)
+  TEST_EQUAL(l1.getLevel(), LogStreamBuf::UNKNOWN_LOG_LEVEL)
+  l1.setLevel("FATAL_ERROR");
+  TEST_EQUAL(l1.getLevel(), "FATAL_ERROR")
 }
 END_SECTION
 
-START_SECTION((LogStream& level(LogLevel level)))
+START_SECTION((void insert(std::ostream &s)))
 {
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT , ERROR);
+  l1.insert(s);
 
-  l1.level(DEVELOPMENT) << "1" <<endl;
-  l1.level(ERROR) << "2" <<endl;
-  l1.level(FATAL_ERROR) << "X" <<endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
-START_SECTION((void insert(std::ostream &s, LogLevel min_level=LogStreamBuf::MIN_LEVEL, LogLevel max_level=LogStreamBuf::MAX_LEVEL)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, ERROR, ERROR);
-
-  l1.level(WARNING) << "X" << endl;
-  l1.level(ERROR) << "1" << endl;
-  l1.level(ERROR)  << "2" << endl;
-  l1.level(FATAL_ERROR)<< "X" << endl;
+  l1 << "1\n";
+  l1 << "2" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -163,15 +149,19 @@ END_SECTION
 START_SECTION((void remove(std::ostream &s)))
 {
   LogStream l1(new LogStreamBuf());
-  ofstream s;
+  ostringstream s;
+  l1 << "BLA"<<endl;
   l1.insert(s);
+  l1 << "to_stream"<<endl;
   l1.remove(s);
   // make sure we can remove it twice without harm
   l1.remove(s);
+	l1 << "BLA2"<<endl;
+  TEST_EQUAL(s.str(),"to_stream\n");
 }
 END_SECTION
 
-START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target, LogLevel min_level=LogStreamBuf::MIN_LEVEL, LogLevel max_level=LogStreamBuf::MAX_LEVEL)))
+START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target)))
 {
   LogStream l1(new LogStreamBuf());
   TestTarget target;
@@ -202,108 +192,139 @@ START_SECTION(([EXTRA]removeNotification))
 }
 END_SECTION
 
-START_SECTION((void setMinLevel(const std::ostream &s, LogLevel min_level)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT);
-  l1.setMinLevel(s, WARNING);
-  l1.level(INFORMATION) << "X" << endl;
-  l1.level(WARNING) << "1" << endl;
-  l1.level(ERROR) << "2" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
-START_SECTION((void setMaxLevel(const std::ostream &s, LogLevel max_level)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT);
-  l1.setMaxLevel(s, ERROR);
-  l1.level(WARNING) << "1" << endl;
-  l1.level(ERROR) << "2" << endl;
-  l1.level(FATAL_ERROR) << "X" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
 START_SECTION((void setPrefix(const std::string &prefix)))
 {
-  // TODO
+	LogStream l1(new LogStreamBuf());
+	ostringstream stream_by_logger;
+	l1.insert(stream_by_logger);
+	l1.setLevel("DEVELOPMENT");
+	l1.setPrefix("%y"); //message type ("Error", "Warning", "Information", "-")
+	l1 << "  2." << endl;
+	l1.setPrefix("%T"); //time (HH:MM:SS)
+	l1 << "  3." << endl;
+	l1.setPrefix( "%t"); //time in short format (HH:MM)
+	l1 << "  4." << endl;
+	l1.setPrefix("%D"); //date (DD.MM.YYYY)
+	l1 << "  5." << endl;
+	l1.setPrefix("%d"); // date in short format (DD.MM.)
+	l1 << "  6." << endl;
+	l1.setPrefix("%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
+	l1 << "  7." << endl;
+	l1.setPrefix("%s"); //time and date in short format (DD.MM., HH:MM)
+	l1 << "  8." << endl;
+	l1.setPrefix("%%"); //percent sign (escape sequence)
+	l1 << "  9." << endl;
+	l1.setPrefix(""); //no prefix
+	l1 << " 10." << endl;
+
+	StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+	TEST_EQUAL(to_validate_list.size(),10)
+
+	StringList regex_list;
+	regex_list.push_back("DEVELOPMENT  2\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+  5\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.  6\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+, [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\., [0-2][0-9]:[0-5][0-9]  8\\.");
+	regex_list.push_back("%  9\\.");
+	regex_list.push_back(" 10\\.");
+
+	int pos(0);
+	for (Size i=0;i<regex_list.size();++i)
+		{
+		QRegExp rx(regex_list[i].c_str());
+		QRegExpValidator v(rx, 0);
+		QString to_validate = to_validate_list[i].toQString();
+		TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+	}
 }
 END_SECTION
 
 START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix)))
 {
-  // TODO
-
-	/*
-  String filename;
-  NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);;
-  l1.insert(s, DEVELOPMENT);
-  l1.setPrefix(s, "%l"); //loglevel
-  l1.level(1) << "  1." << endl;
-  l1.setPrefix(s, "%y"); //message type ("Error", "Warning", "Information", "-")
-  l1.level(2) << "  2." << endl;
-  l1.setPrefix(s, "%T"); //time (HH:MM:SS)
-  l1.level(3) << "  3." << endl;
-  l1.setPrefix(s, "%t"); //time in short format (HH:MM)
-  l1.level(4) << "  4." << endl;
-  l1.setPrefix(s, "%D"); //date (DD.MM.YYYY)
-  l1.level(5) << "  5." << endl;
-  l1.setPrefix(s, "%d"); // date in short format (DD.MM.)
-  l1.level(6) << "  6." << endl;
-  l1.setPrefix(s, "%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
-  l1.level(7) << "  7." << endl;
-  l1.setPrefix(s, "%s"); //time and date in short format (DD.MM., HH:MM)
-  l1.level(8) << "  8." << endl;
-  l1.setPrefix(s, "%%"); //percent sign (escape sequence)
-  l1.level(9) << "  9." << endl;
-  l1.setPrefix(s, ""); //no prefix
-  l1.level(10) << " 10." << endl;
-	*/
-  /*
-  TEST_EQUAL(l1.getNumberOfLines(), 10)
-  */
-  //TEST_FILE_REGEXP(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_setPrefix.txt"))
-}
-END_SECTION
+  ostringstream stream_by_logger;
+	ostringstream stream_by_logger_otherprefix;
+  l1.insert(stream_by_logger);
+  l1.insert(stream_by_logger_otherprefix);
+  l1.setPrefix(stream_by_logger_otherprefix, "BLABLA"); //message type ("Error", "Warning", "Information", "-")
+  l1.setLevel("DEVELOPMENT");
+  l1.setPrefix(stream_by_logger, "%y"); //message type ("Error", "Warning", "Information", "-")
+  l1 << "  2." << endl;
+  l1.setPrefix(stream_by_logger, "%T"); //time (HH:MM:SS)
+  l1 << "  3." << endl;
+  l1.setPrefix(stream_by_logger, "%t"); //time in short format (HH:MM)
+  l1 << "  4." << endl;
+  l1.setPrefix(stream_by_logger, "%D"); //date (DD.MM.YYYY)
+  l1 << "  5." << endl;
+  l1.setPrefix(stream_by_logger, "%d"); // date in short format (DD.MM.)
+  l1 << "  6." << endl;
+  l1.setPrefix(stream_by_logger, "%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
+  l1 << "  7." << endl;
+  l1.setPrefix(stream_by_logger, "%s"); //time and date in short format (DD.MM., HH:MM)
+  l1 << "  8." << endl;
+  l1.setPrefix(stream_by_logger, "%%"); //percent sign (escape sequence)
+  l1 << "  9." << endl;
+  l1.setPrefix(stream_by_logger, ""); //no prefix
+  l1 << " 10." << endl;
+	
+	StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+	TEST_EQUAL(to_validate_list.size(),10)
+	StringList to_validate_list2 = StringList::create(String(stream_by_logger_otherprefix.str()),'\n');
+	TEST_EQUAL(to_validate_list2.size(),10)
 
-START_SECTION((void disableOutput()))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((void enableOutput()))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((bool outputEnabled() const ))
-{
-  // TODO
+	StringList regex_list;
+	regex_list.push_back("DEVELOPMENT  2\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+  5\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.  6\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+, [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\., [0-2][0-9]:[0-5][0-9]  8\\.");
+	regex_list.push_back("%  9\\.");
+	regex_list.push_back(" 10\\.");
+	
+	String other_stream_regex = "BLABLA [ 1][0-9]\\.";
+	QRegExp rx2(other_stream_regex.c_str());
+	QRegExpValidator v2(rx2, 0);
+	
+	int pos(0);
+	for (Size i=0;i<regex_list.size();++i)
+	{
+		QRegExp rx(regex_list[i].c_str());
+		QRegExpValidator v(rx, 0);
+		QString to_validate = to_validate_list[i].toQString();
+		QString to_validate2 = to_validate_list2[i].toQString();
+		TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+		TEST_EQUAL(v2.validate(to_validate2,pos)==QValidator::Acceptable, true)
+		
+	}
+	
 }
 END_SECTION
 
 START_SECTION((void flush()))
 {
-  // TODO
+	LogStream l1(new LogStreamBuf());
+	ostringstream stream_by_logger;
+	l1.insert(stream_by_logger);
+	l1 << "flushtest" << endl;
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+	l1 << "unfinishedline...\n";
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+	l1.flush();
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\nunfinishedline...\n")
+	
 }
 END_SECTION
 
 START_SECTION(([EXTRA]Test minimum string length of output))
 {
+  // taken from BALL tests, it seems that it checks if the logger crashs if one
+  // uses longer lines
+  NOT_TESTABLE
   LogStream l1(new LogStreamBuf());
   l1 << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
 }
@@ -316,7 +337,7 @@ START_SECTION(([EXTRA]Test log caching))
   ofstream s(filename.c_str(), std::ios::out);
   { 
     LogStream l1(new LogStreamBuf());
-    l1.insert(s, DEVELOPMENT);
+    l1.insert(s);
 
     l1 << "This is a repeptitive message" << endl;
     l1 << "This is another repeptitive message" << endl;
@@ -331,30 +352,167 @@ START_SECTION(([EXTRA]Test log caching))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] String LogLevelToStringUpper(LogLevel level)))
+START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
 {
-	TEST_STRING_EQUAL(LogLevelToStringUpper(FATAL_ERROR), "FATAL_ERROR")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(ERROR), "ERROR")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(WARNING), "WARNING")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(INFORMATION), "INFORMATION")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(DEBUG), "DEBUG")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(DEBUG_INTENSE), "DEBUG_INTENSE")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(DEVELOPMENT), "DEVELOPMENT")
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_fatal.remove(cerr);
+  ostringstream stream_by_logger;
+  {
+    Log_fatal.insert(stream_by_logger);
+
+    LOG_FATAL_ERROR << "1\n";
+    LOG_FATAL_ERROR << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
 }
 END_SECTION
 
-START_SECTION(([EXTRA] String LogLevelToString(LogLevel level)))
+START_SECTION(([EXTRA] Macro test - LOG_ERROR))
 {
-	TEST_STRING_EQUAL(LogLevelToString(FATAL_ERROR), "fatal_error")
-	TEST_STRING_EQUAL(LogLevelToString(ERROR), "error")
-	TEST_STRING_EQUAL(LogLevelToString(WARNING), "warning")
-	TEST_STRING_EQUAL(LogLevelToString(INFORMATION), "information")
-	TEST_STRING_EQUAL(LogLevelToString(DEBUG), "debug")
-	TEST_STRING_EQUAL(LogLevelToString(DEBUG_INTENSE), "debug_intense")
-	TEST_STRING_EQUAL(LogLevelToString(DEVELOPMENT), "development")
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_error.remove(cerr);
+  String filename;
+  NEW_TMP_FILE(filename)
+  ofstream s(filename.c_str(), std::ios::out);
+  {
+    Log_error.insert(s);
+
+    LOG_ERROR << "1\n";
+    LOG_ERROR << "2" << endl;
+  }
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Macro test - LOG_WARN))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_warn.remove(cout);
+  String filename;
+  NEW_TMP_FILE(filename)
+  ofstream s(filename.c_str(), std::ios::out);
+  {
+    Log_warn.insert(s);
+
+    LOG_WARN << "1\n";
+    LOG_WARN << "2" << endl;
+  }
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_INFO))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_info.remove(cout);
+  String filename;
+  NEW_TMP_FILE(filename)
+  ofstream s(filename.c_str(), std::ios::out);
+  {
+    Log_info.insert(s);
+
+    LOG_INFO << "1\n";
+    LOG_INFO << "2" << endl;
+  }
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_debug.remove(cout);
+  ostringstream stream_by_logger;
+  {
+    Log_debug.insert(stream_by_logger);
+
+    LOG_DEBUG << "1\n";
+    LOG_DEBUG << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_DEBUG_INTENSE))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_debug_intense.remove(cout);
+  ostringstream stream_by_logger;
+  {
+    Log_debug_intense.insert(stream_by_logger);
+
+    LOG_DEBUG_INTENSE << "1\n";
+    LOG_DEBUG_INTENSE << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_DEVELOPMENT))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_development.remove(cout);
+  ostringstream stream_by_logger;
+  {
+    Log_development.insert(stream_by_logger);
+
+    LOG_DEVELOPMENT << "1\n";
+    LOG_DEVELOPMENT << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

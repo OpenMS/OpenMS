@@ -36,8 +36,8 @@ namespace OpenMS
 	}
 
 	
- 	void SeedListGenerator::getSeedList(const MSExperiment<>& experiment,
-																			SeedList& seeds)
+ 	void SeedListGenerator::generateSeedList(const MSExperiment<>& experiment,
+																					 SeedList& seeds)
 	{
 		seeds.clear();
 		for (MSExperiment<>::ConstIterator exp_it = experiment.begin();
@@ -55,8 +55,8 @@ namespace OpenMS
 	}
 
 
-	void SeedListGenerator::getSeedList(const vector<PeptideIdentification>&
-																			peptides, SeedList& seeds)
+	void SeedListGenerator::generateSeedList(const vector<PeptideIdentification>&
+																					 peptides, SeedList& seeds)
 	{
 		seeds.clear();
 		for (vector<PeptideIdentification>::const_iterator pep_it =
@@ -69,8 +69,8 @@ namespace OpenMS
 	}
 
 	
-	void SeedListGenerator::getSeedLists(const ConsensusMap& consensus,
-																			 Map<UInt64, SeedList>& seed_lists)
+	void SeedListGenerator::generateSeedLists(const ConsensusMap& consensus,
+																						Map<UInt64, SeedList>& seed_lists)
 	{
 		seed_lists.clear();
 		// iterate over all consensus features...
@@ -98,21 +98,27 @@ namespace OpenMS
 	}
 
 
-	void SeedListGenerator::convert(const SeedList& seeds, FeatureMap<>& features)
+	void SeedListGenerator::convertSeedList(const SeedList& seeds, 
+																					FeatureMap<>& features)
 	{
 		features.clear(true); // "true" should really be a default value here...
+		Size counter = 0;
 		for (SeedList::const_iterator seed_it = seeds.begin();
-				 seed_it != seeds.end(); ++seed_it)
+				 seed_it != seeds.end(); ++seed_it, ++counter)
 		{
 			Feature feature;
 			feature.setRT(seed_it->getX());
 			feature.setMZ(seed_it->getY());
+			feature.setUniqueId(counter);
 			features.push_back(feature);
 		}
+		// // assign unique ids:
+		// features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 	}
 
 
-	void SeedListGenerator::convert(const FeatureMap<>& features, SeedList& seeds)
+	void SeedListGenerator::convertSeedList(const FeatureMap<>& features, 
+																					SeedList& seeds)
 	{
 		seeds.clear();
 		for (FeatureMap<>::ConstIterator feat_it = features.begin();

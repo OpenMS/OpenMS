@@ -42,7 +42,7 @@ using namespace OpenMS;
 
 /////////////////////////////////////////////////////////////
 
-START_TEST(FeatureMap<D>, "$Id$")
+START_TEST(FeatureMap, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -462,6 +462,16 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
 	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30);
 
+	to_be_sorted.sortByOverallQuality(true);
+
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],2);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],1);
+
+	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),30);
+	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
+	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),10);
+
 END_SECTION
 
 START_SECTION((void clear(bool clear_meta_data)))
@@ -482,8 +492,49 @@ START_SECTION((void clear(bool clear_meta_data)))
 	TEST_EQUAL(map1==FeatureMap<>(),true)
 END_SECTION
 
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)())))
+	FeatureMap<> fm;
+	fm.ensureUniqueId();
+	Feature f1;
+	f1.ensureUniqueId();
+	fm.push_back(f1);
+	Feature f2;
+	f2.ensureUniqueId();
+	fm.push_back(f2);	
 
-START_SECTION((void updateUniqueIdToIndex()))
+	Feature f3;
+	fm.push_back(f3);	
+	
+	Feature f4;
+	f4.ensureUniqueId();
+	fm.push_back(f4);	
+
+	TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
+
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)() const ) const))
+	FeatureMap<> fm;
+	fm.ensureUniqueId();
+	Feature f1;
+	f1.ensureUniqueId();
+	fm.push_back(f1);
+	Feature f2;
+	f2.ensureUniqueId();
+	fm.push_back(f2);	
+
+	Feature f3;
+	fm.push_back(f3);	
+	
+	Feature f4;
+	f4.ensureUniqueId();
+	fm.push_back(f4);	
+
+	TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
+
+END_SECTION
+
+START_SECTION(([EXTRA] void uniqueIdToIndex()))
 {
 	  FeatureMap<> fm;
 	  Feature f;
@@ -530,6 +581,46 @@ START_SECTION((void updateUniqueIdToIndex()))
     TEST_EXCEPTION_WITH_MESSAGE(Exception::Postcondition,fm.updateUniqueIdToIndex(),"Duplicate valid unique ids detected!   RandomAccessContainer has size()==7, num_valid_unique_id==4, uniqueid_to_index_.size()==3");
 }
 END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)())))
+{
+  FeatureMap<> fm;
+  fm.push_back(Feature());
+  fm.push_back(Feature());
+  fm.back().getSubordinates().push_back(Feature());
+
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  fm.setUniqueId();
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  fm.front().clearUniqueId();
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)() const ) const ))
+{
+  FeatureMap<> fm;
+  FeatureMap<> const & fmc(fm);
+  fm.push_back(Feature());
+  fm.push_back(Feature());
+  fm.back().getSubordinates().push_back(Feature());
+
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  fm.setUniqueId();
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  fm.front().clearUniqueId();
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

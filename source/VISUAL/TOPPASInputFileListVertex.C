@@ -116,7 +116,8 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		QString text = "Input files";
+		QString text = QString::number(files_.size())+" input file"
+										+(files_.size() == 1 ? "" : "s");
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 	}
@@ -148,22 +149,52 @@ namespace OpenMS
 	
 	void TOPPASInputFileListVertex::startPipeline()
 	{
+		if (files_.empty())
+		{
+			return;
+		}
+		
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
 			if (ttv)
 			{
-				ttv->runToolIfInputReady();
+				if (!ttv->isAlreadyStarted())
+				{
+					ttv->runToolIfInputReady();
+					ttv->setAlreadyStarted(true);
+				}
 				continue;
 			}
 			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
 			if (mv)
 			{
-				mv->forwardPipelineExecution();
+				if (!mv->isAlreadyStarted())
+				{
+					mv->forwardPipelineExecution();
+					mv->setAlreadyStarted(true);
+				}
 				continue;
 			}
 		}
+	}
+	
+	void TOPPASInputFileListVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run)
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		sc_files_per_round_ = files_.size();
+		sc_files_total_ = sc_files_per_round_;
+		sc_list_length_checked_ = true;
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
+		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 }

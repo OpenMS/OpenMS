@@ -66,34 +66,31 @@ namespace OpenMS
 			bool operator==(const PepNovoOutfile& pepnovo_outfile) const;
 
 			 /**
-				@brief loads data from a Inspect outfile
+				@brief loads data from a PepNovo outfile
 
 				@param result_filename the file to be loaded
-				@param peptide_identifications the peptide identification
-				@param protein_identification the protein identifications
+				@param peptide_identifications the peptide identifications
+				@param protein_identification the protein identification
 				@param score_threshold cutoff threshold for the PepNovo score (PnvScr)
-				@param dta_filenames_and_precursor_retention_times retention times
-
-				@throw Exception::FileNotFound is thrown if the result file could not be found
-				@throw Exception::ParseErro is thrown if the results file could not be parsed
-
-				This class serves to read in a PepNovo outfile. The information can be
-				retrieved via the load function.
+				@param id_rt_mz map the spectrum identifiers returned by PepNovo
+				to the rt and mz values of the spectrum (used to map the identifications back to the spectra). key= <PepNovo Id>, value= <pair<rt,mz> >.
+				For spectra not present in this map identifications cannot be mapped back.
+				@param mod_id_map map the OpenMS id for modifications (FullId) to the ids returned by PepNovo key= <PepNovo_key>, value= <OpenMS FullId>
 			*/
 			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications,
 			    ProteinIdentification& protein_identification,
 			    const Real& score_threshold,
-			    const std::map< String, std::pair<Real,Real> >& dta_filenames_and_precursor_retention_times,
-			    const std::map<String, String> &keys_to_id);
+			    const std::map< String, std::pair<Real,Real> >& id_rt_mz,
+			    const std::map<String, String> &mod_id_map);
 
-			/** get the search engine and it's version from a file that is the output of PepNovo run without parameters
+			/** @brief get the search engine version and search parameters from a PepNovo output file
+			 *
+			 * search parameters (precursor tolerance, peak mass tolerance, allowed modifications)are stored in the protein_identification.
 
-				@param pepnovo_output_without_parameters_filename
-				@param protein_identification 
-
-				@throw Exception::FileNotFound is thrown if the results file could not be found
+				@param pepnovo_output_filename
+				@param protein_identification
 			*/
-			void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification);
+			void getSearchEngineAndVersion(const String& pepnovo_output__filename, ProteinIdentification& protein_identification);
 
 	};
 

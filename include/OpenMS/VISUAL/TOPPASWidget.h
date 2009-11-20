@@ -66,6 +66,8 @@ namespace OpenMS
 			
 			/// Returns the scene
 			TOPPASScene* getScene();
+			/// Zooms in or out, depending on @p zoom_in
+			void zoom(bool zoom_in);
 		
 		signals:
 		

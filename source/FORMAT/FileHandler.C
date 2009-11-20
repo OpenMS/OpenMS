@@ -27,6 +27,8 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/GzipIfstream.h>
+#include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
 #include <fstream>
 
@@ -140,6 +142,10 @@ namespace OpenMS
 		{
 			return FileTypes::PNG;
 		}
+		else if (tmp == "BZ2" || tmp == "ZIP" || tmp == "GZ")
+		{
+			return getTypeByContent(filename);
+		}
 
 		return FileTypes::UNKNOWN;
 
@@ -219,12 +225,65 @@ namespace OpenMS
 
 	FileTypes::Type FileHandler::getTypeByContent(const String& filename)
 	{
-    //load first 5 lines
-    TextFile file(filename,true,5);
-    file.resize(5); // in case not enough lines are in the file
-    String two_five = file[1] + ' ' + file[2] + ' ' + file[3] + ' ' + file[4];
-    two_five.substitute('\t',' ');
-		String all_simple = file[0] + ' ' + two_five;
+		String first_line;
+		String two_five;
+		String all_simple;
+
+		// only the first five lines will be set for compressed files
+		// so far, compression is only supported for XML files
+		vector<String> complete_file;
+
+
+		// test whether the file is compressed (bzip2 or gzip)
+    ifstream compressed_file(filename.c_str());
+    char bz[2];
+    compressed_file.read(bz,2);
+    char g1 = 0x1f;
+    char g2 = 0;
+    g2 |= 1 << 7;
+    g2 |= 1 <<3;
+    g2  |=1  <<1;
+    g2 |=1 <<0;
+		compressed_file.close();
+    if(bz[0] == 'B' && bz[1] =='Z' ) // bzip2
+		{
+			Bzip2Ifstream bzip2_file(filename.c_str());
+			char buffer[1024];
+			bzip2_file.read(buffer, 1024);
+			String buffer_str(buffer);
+      vector<String> split;
+      buffer_str.split('\n', split);
+      split.resize(5);
+      first_line = split[0];
+      two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
+			all_simple = first_line + ' ' + two_five;
+      complete_file = split;
+		}
+		else if (bz[0] == g1 && bz[1] == g2) // gzip
+    {
+			GzipIfstream gzip_file(filename.c_str());
+			char buffer[1024];
+			gzip_file.read(buffer, 1024);
+			String buffer_str(buffer);
+			vector<String> split;
+			buffer_str.split('\n', split);
+			split.resize(5);
+			first_line = split[0];
+			two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
+			all_simple = first_line + ' ' + two_five;
+			complete_file = split;
+    }		
+		else // uncompressed
+		{
+    	//load first 5 lines
+    	TextFile file(filename, true, 5);
+    	file.resize(5); // in case not enough lines are in the file
+    	two_five = file[1] + ' ' + file[2] + ' ' + file[3] + ' ' + file[4];
+    	two_five.substitute('\t',' ');
+			all_simple = file[0] + ' ' + two_five;
+			first_line = file[0];
+			complete_file = file;
+		}
 
 		//mzXML (all lines)
     if (all_simple.hasSubstring("<mzXML")) return FileTypes::MZXML;
@@ -245,7 +304,7 @@ namespace OpenMS
     if (all_simple.hasSubstring("<featureMap")) return FileTypes::FEATUREXML;
 
     //ANDIMS (first line)
-    if (file[0].hasSubstring("CDF")) return FileTypes::ANDIMS;
+    if (first_line.hasSubstring("CDF")) return FileTypes::ANDIMS;
 
     //IdXML (all lines)
     if (all_simple.hasSubstring("<IdXML")) return FileTypes::IDXML;
@@ -255,7 +314,6 @@ namespace OpenMS
 
     //mzData (all lines)
     if (all_simple.hasSubstring("<PARAMETERS")) return FileTypes::INI;
-
 
     //mzData (all lines)
     if (all_simple.hasSubstring("<TrafoXML")) return FileTypes::TRANSFORMATIONXML;
@@ -271,16 +329,16 @@ namespace OpenMS
 
 		// PNG file (to be really correct, the first eight bytes of the file would
 		// have to be checked; see e.g. the wikipedia article)
-		if (file[0].substr(1, 3) == "PNG") return FileTypes::PNG;
+		if (first_line.substr(1, 3) == "PNG") return FileTypes::PNG;
 
 		//MSP (all lines)
-		for (Size i = 0; i != file.size(); ++i)
+		for (Size i = 0; i != complete_file.size(); ++i)
 		{
-			if (file[i].hasPrefix("Name: ") && file[i].hasSubstring("/"))
+			if (complete_file[i].hasPrefix("Name: ") && complete_file[i].hasSubstring("/"))
 			{
 				return FileTypes::MSP;
 			}
-			if (file[i].hasPrefix("Num peaks: "))
+			if (complete_file[i].hasPrefix("Num peaks: "))
 			{
 				return FileTypes::MSP;
 			}
@@ -333,11 +391,9 @@ namespace OpenMS
 		}
 		else
 		{
-			ifstream is(filename.c_str());
-			String line;
-			while (getline(is, line))
+			for (Size i = 0; i != complete_file.size(); ++i)
 			{
-				if (line.hasSubstring("BEGIN IONS"))
+				if (complete_file[i].hasSubstring("BEGIN IONS"))
 				{
 					return FileTypes::MGF;
 				}

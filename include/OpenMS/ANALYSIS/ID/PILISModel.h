@@ -102,12 +102,6 @@ namespace OpenMS
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge);
 
-			/// sets the main hidden Markov model
-			void setHMM(const HiddenMarkovModel& model);
-
-			/// set the precursor hidden Markov model
-			void setPrecursorHMM(const HiddenMarkovModel& model);
-			
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
 			//@}
@@ -115,18 +109,18 @@ namespace OpenMS
 		protected:
 
 			/// get the initial transition probabilities from the proton dist, returns true if charge remote is enabled
-			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
-																							std::vector<double>& cr_init, 
-																							std::vector<double>& sc_init, 
-																							double& precursor_init,
-																							const std::vector<double>& bb_charges,
-																							const std::vector<double>& sc_charges,
+			bool getInitialTransitionProbabilities_(std::vector<DoubleReal>& bb_init, 
+																							std::vector<DoubleReal>& cr_init, 
+																							std::vector<DoubleReal>& sc_init, 
+																							DoubleReal& precursor_init,
+																							const std::vector<DoubleReal>& bb_charges,
+																							const std::vector<DoubleReal>& sc_charges,
 																							const AASequence& peptide);
 
-			double getAvailableBackboneCharge_(const AASequence& ion, Residue::ResidueType res_type, int charge);
+			DoubleReal getAvailableBackboneCharge_(const AASequence& ion, Residue::ResidueType res_type, int charge);
 
 			/// add peaks to spectrum
-			void addPeaks_(double mz, int charge, double mz_offset, double intensity, RichPeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
+			void addPeaks_(DoubleReal mz, int charge, DoubleReal mz_offset, DoubleReal intensity, RichPeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
 		
 			/// parse the base model
 			void parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm, Param& param);
@@ -147,7 +141,7 @@ namespace OpenMS
 			bool valid_;
 
 			/// stores the peaks of a spectrum
-			Map<double, std::vector<RichPeak1D> > peaks_;
+			Map<DoubleReal, std::vector<RichPeak1D> > peaks_;
 
 			/// the alignment algorithm used
 			SpectrumAlignment spectra_aligner_;

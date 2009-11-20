@@ -60,6 +60,9 @@ namespace OpenMS
 			//@{
 			void mousePressEvent(QMouseEvent* e);
 			void mouseMoveEvent(QMouseEvent* e);
+			void keyPressEvent(QKeyEvent* e);
+			void leaveEvent(QEvent* e);
+			void enterEvent(QEvent* e);
 			//@}
 			
 			/// The drag start position

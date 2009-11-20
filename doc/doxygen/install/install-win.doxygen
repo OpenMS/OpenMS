@@ -11,8 +11,6 @@
 	(see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
 	instead of building %OpenMS from sources. For more information read the install instructions for the TOPP binaries.
 
-  @warning Compilation of %OpenMS on Windows is experimental, but should work on any system with a Visual Studio 2005 compiler and above.
-
 	This document especially considers the installation
   of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
   <br>
@@ -21,9 +19,9 @@
 
 <b>Notation of this tutorial</b>
  <UL>
-    <LI>whenever there is a $ this implies entering everything that follows the $ into a command line (usually the Visual Studio Command line)
+    <LI>whenever there is a $ this implies entering everything that follows the $ into a command prompt (usually the Visual Studio Command Prompt)
     <LI>A string in <> is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
-    <LI>Whenever you added a path to your Windows PATH Environment variable, the <tt>Command Lines</tt> which are already open are not refreshed. You will need a to open a new one.
+    <LI>Whenever you added a path to your Windows PATH Environment variable, the <tt>Command Prompt</tt> which are already open are not refreshed. You will need a to open a new one.
   </UL>
 
 
@@ -37,12 +35,17 @@
     <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)
     <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
-    You can find the binaries here: http://subversion.tigris.org
+    Installing svnversion.exe allows to include the current svn repository revision into the TOPP binaries' help message, which can ease debugging.
+		You can find the binaries here: http://subversion.tigris.org. 
+		Svnversion.exe is searched in "c:/program files/subversion/bin" and "c:/programme/subversion/bin". Make sure it is in either of these locations or add
+		the installation directory to your PATH.
     <br>Make sure to add the location of svnversion.exe to your PATH (usually this is "C:\progam files\subversion\bin")
     <LI>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
-    <br>Make sure to add the location of 7z.exe to your PATH (usually this is "C:\progam files\7-zip")
+    <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
+		the installation directory to your PATH.
     <LI>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
-    <br>Make sure to add the location of patch.exe to your PATH. On Vista patch.exe requires elevation, 
+    <br>patch.exe is searched in "C:/Program Files/gnuwin32/bin" and "C:/Program Files/patch/bin". Make sure it is in either of these locations or add
+		the installation directory to your PATH. On Vista patch.exe requires elevation, 
     		i.e. you need an admin account with disabled UAC (User Account Control), otherwise the contrib will not build.
   </UL>
 
@@ -50,45 +53,6 @@
   @section install_win_required Installing required dependency libraries
 
 		%OpenMS depends on several other libraries. On a windows system, these are usually not present.
-		Some of  those libraries again depend on others. Here is a little overview of the dependencies:
-
-		<table cellpadding="2" cellspacing="0" border="0">
-			<tr>
-				<td align="left">&nbsp;</td>
-				<td align="left">ANDI/MS</td>
-				<td align="left">(requires NetCDF)</td>
-			</tr>
-			<tr>
-				<td align="left">&nbsp;</td>
-				<td align="left">GSL</td>
-				<td align="left">&nbsp;</td>
-			</tr>
-			<tr>
-				<td align="left">&nbsp;</td>
-				<td align="left">CGAL</td>
-				<td align="left">&nbsp;</td>
-			</tr>
-			<tr>
-				<td align="left">&nbsp;</td>
-				<td align="left">XERCES-C</td>
-				<td align="left">&nbsp;</td>
-			</tr>
-			<tr>
-				<td align="left">&nbsp;</td>
-				<td align="left">libSVM</td>
-				<td align="left">&nbsp;</td>
-			</tr>
-			<tr>
-				<td align="left">&nbsp;</td>
-				<td align="left">SeqAn</td>
-				<td align="left">&nbsp;</td>
-			</tr>
-			<tr>
-				<td align="left">&nbsp;</td>
-				<td align="left">Qt</td>
-				<td align="left">(requires other libraries for DB support e.g. MySQL)</td>
-			</tr>
-		</table>
 
   @subsection install_qt QT installation
 		
@@ -98,7 +62,7 @@
     <OL>
       <LI>non-commercial:
         <OL>
-          <LI>download Qt source (Qt for Open Source C++ development on Windows - http://trolltech.com/downloads/opensource/appdev/windows-cpp)
+          <LI>download Qt source (Qt for Open Source C++ development on Windows - http://qt.nokia.com/downloads/windows-cpp)
           <LI>extract zip file
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <LI>$ cd <path-to-qt>
@@ -117,7 +81,7 @@
 	@subsection install_win_contrib Contrib installation
 		In order to make the
 		installation of the remaining required libraries easier, we composed a
-		"contrib-package" containing the libraries GSL, CGAL, libSVM, SeqAn and XERCES-C.
+		"contrib-package" containing the libraries GSL, CGAL, libSVM, SeqAn, XERCES-C, COIN-OR, ZLib and bz2Lib.
 		<br>ANDI/MS and NetCDF are currently only included in the Linux version. We are working on a patch of those external libaries for Windows.
 		This contrib package has several advantages over manual installation
 		<ul>
@@ -251,8 +215,13 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 
   @section install_win_testing_openms Testing your OpenMS/TOPP installation
 
-		After you have build %OpenMS, TOPP and the corresponding tests (e.g. by executing the 'ALL_BUILD' project), you can test your installation
-		by executing "RUN_TESTS" project in the IDE. 
+		Each class in OpenMS and each TOPP tool have a unit test. To build and execute the tests,
+		go to your %OpenMS build_tree and further into ./source/TEST. There you'll find an OpenMS_tests.sln file, which you can open.
+		For other generators an equivalent file with another suffix will be present. Now, build the 'test_build' target and the 'RUN_TESTS' target.
+		You can also run the tests in a command prompt in <OpenMS_build_tree>/source/TEST using $ ctest
+		Single tests can be run with $ ctest -R <testname>, e.g. $ ctest -R Base64_test
+		For more syntax on ctest look at the online documentation at http://cmake.org/.
+		
 
   @section enable_db [deprecated] Enabling database support
   

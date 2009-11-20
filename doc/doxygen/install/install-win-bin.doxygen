@@ -5,7 +5,7 @@
 	In order to install the binary package of TOPP, simply download and execute the installer from http://www.OpenMS.de and follow the instructions.
 	
 	The windows binary version should work on many versions of windows including WinXP, VISTA and Win2000
-	and installation should take you a few minutes only. We also support 64bit version, which can deal with larger files. If your operating system supports
+	and installation should take you a few minutes only. We also supply a 64bit version, which can deal with larger files. If your operating system supports
 	64bit, we strongly encourage you to use the 64bit version.
 	
 */

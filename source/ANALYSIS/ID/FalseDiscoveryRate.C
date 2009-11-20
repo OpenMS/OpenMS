@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -44,6 +44,7 @@ namespace OpenMS
 		defaults_.setValidStrings("q_value", StringList::create("true,false"));
 		defaults_.setValue("use_all_hits", "false", "if true not only the first hit, but all are used");
 		defaults_.setValidStrings("use_all_hits", StringList::create("true,false"));
+		defaults_.setValue("decoy_string", "_rev", "String which is appended at the accession of the protein to indicate that it is a decoy protein.");
 		defaultsToParam_();
 	}
 
@@ -97,7 +98,7 @@ namespace OpenMS
 		Size number_of_target_scores = target_scores.size();
 
 		
-		cerr << "FalseDiscoveryRate: #target sequences=" << target_scores.size() << ", #decoy sequences=" << decoy_scores.size() << endl;
+		//cerr << "FalseDiscoveryRate: #target sequences=" << target_scores.size() << ", #decoy sequences=" << decoy_scores.size() << endl;
 
 		if (decoy_scores.size() == 0)
 		{
@@ -254,18 +255,8 @@ namespace OpenMS
       }
       it->setHits(hits);
     }
-
-
-
     return;
-
-
 	}
-
-
-
-
-
 
 	void FalseDiscoveryRate::apply(vector<PeptideIdentification>& fwd_ids, vector<PeptideIdentification>& rev_ids)
 	{
@@ -444,11 +435,81 @@ namespace OpenMS
 		return;
 	}
 
-	void FalseDiscoveryRate::apply(vector<ProteinIdentification>& /*ids*/)
+	void FalseDiscoveryRate::apply(vector<ProteinIdentification>& ids)
 	{
-		// to be implemented
-		return;
-	}
+		if (ids.size() == 0) 
+		{
+			return;
+		}
+
+		vector<DoubleReal> target_scores, decoy_scores;
+		String decoy_string = (String)param_.getValue("decoy_string");
+		for (vector<ProteinIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+		{
+			for (vector<ProteinHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+			{
+				if (pit->getAccession().hasSubstring(decoy_string))
+				{
+					decoy_scores.push_back(pit->getScore());
+				}
+				else
+				{
+					target_scores.push_back(pit->getScore());
+				}
+			}
+		}
+
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+
+    // sort the scores
+    if (higher_score_better)
+    {
+      sort(target_scores.rbegin(), target_scores.rend());
+      sort(decoy_scores.rbegin(), decoy_scores.rend());
+    }
+    else
+    {
+      sort(target_scores.begin(), target_scores.end());
+      sort(decoy_scores.begin(), decoy_scores.end());
+    }
+
+    // calculate fdr for the forward scores
+    Map<DoubleReal, DoubleReal> score_to_fdr;
+    Size j = 0;
+    for (Size i = 0; i != target_scores.size(); ++i)
+    {
+      while (j != decoy_scores.size() &&
+             ((target_scores[i] <= decoy_scores[j] && higher_score_better) ||
+             (target_scores[i] >= decoy_scores[j] && !higher_score_better)))
+      {
+        ++j;
+      }
+      DoubleReal fdr(0);
+      fdr = (DoubleReal)j / ((DoubleReal)(i) + 1);
+      score_to_fdr[target_scores[i]] = fdr;
+			if (j < decoy_scores.size())
+			{
+				score_to_fdr[decoy_scores[j]] = fdr;
+			}
+    }
+
+    // annotate fdr
+    String score_type = ids.begin()->getScoreType() + "_score";
+    for (vector<ProteinIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    {
+      it->setScoreType("FDR");
+      it->setHigherScoreBetter(false);
+      vector<ProteinHit> hits = it->getHits();
+      for (vector<ProteinHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+      {
+        pit->setMetaValue(score_type, pit->getScore());
+        pit->setScore(score_to_fdr[pit->getScore()]);
+      }
+      it->setHits(hits);
+    }
+
+    return;
+  }
 
 	void FalseDiscoveryRate::apply(vector<ProteinIdentification>& fwd_ids, vector<ProteinIdentification>& rev_ids)
 	{

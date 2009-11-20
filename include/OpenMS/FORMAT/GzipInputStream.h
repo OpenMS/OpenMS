@@ -25,8 +25,8 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_GZIPInputStream_H
-#define OPENMS_FORMAT_GZIPInputStream_H
+#ifndef OPENMS_FORMAT_GZIPINPUTSTREAM_H
+#define OPENMS_FORMAT_GZIPINPUTSTREAM_H
 
 #include <xercesc/util/BinInputStream.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
@@ -67,7 +67,7 @@ namespace OpenMS
 				@param to_fill is the buffer which is written to
 				@param max_to_read is the size of the buffer
 				
-				@ret returns the number of bytes which were actually read
+				@return returns the number of bytes which were actually read
 			
 			*/
    	 	virtual XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read);
@@ -82,7 +82,7 @@ namespace OpenMS
     ///pointer to an compression stream
     	GzipIfstream* 	gzip_;
     	///current index of the actual file
-    	XMLSize_t       file_current_index;
+    	XMLSize_t       file_current_index_;
     	
     	//not implemented
     	GzipInputStream();
@@ -92,7 +92,7 @@ namespace OpenMS
 	
 	inline XMLFilePos GzipInputStream::curPos() const
 	{
-    return file_current_index;
+    return file_current_index_;
 	}
 	
 	inline bool GzipInputStream::getIsOpen() const

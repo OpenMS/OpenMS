@@ -80,8 +80,7 @@ END_SECTION
 PepNovoOutfile file;
 
 
-START_SECTION(void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times))
-	
+START_SECTION((void load(const std::string &result_filename, std::vector< PeptideIdentification > &peptide_identifications, ProteinIdentification &protein_identification, const Real &score_threshold, const std::map< String, std::pair< Real, Real > > &dta_filenames_and_precursor_retention_times, const std::map< String, String > &keys_to_id)))	
 	std::vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	map< String, Real > filenames_and_precursor_retention_times;

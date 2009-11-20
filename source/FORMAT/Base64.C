@@ -51,36 +51,80 @@ namespace OpenMS
 		out.clear();
 		if (in.size() == 0) return;
 		std::string str;
+		std::string compressed;
+		Byte* it;
+		Byte* end;
 		for(Size i = 0 ; i < in.size(); ++i )
 		{
 			str = str.append(in[i]);
 			str.push_back('\0');
 		}
-
-		QByteArray original = QByteArray::fromRawData(str.c_str(),(int) str.size());
-		QByteArray base64_compressed;
-		if (zlib_compression)
+		
+		if(zlib_compression)
 		{
-			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
-			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
-			base64_compressed = extern_compressed.toBase64();
+			unsigned long compressed_length = static_cast<unsigned long>(2*str.size());
+			compressed.resize(compressed_length);
+			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&str[0]),(unsigned long) str.size()) != Z_OK)
+			{
+				compressed_length *= 2;
+				compressed.reserve(compressed_length);
+			}
+			it = reinterpret_cast<Byte*>(&compressed[0]);
+			end =it + compressed_length;
+			out.resize((Size)ceil(compressed_length/3.)*4); //resize output array in order to have enough space for all characters
 		}
-		//encode without compression
 		else
 		{
-			base64_compressed = original.toBase64();
-		}	
-		out = QString(base64_compressed).toStdString();
-	}
+			out.resize((Size)ceil(str.size()/3.) * 4); //resize output array in order to have enough space for all characters
+			it = reinterpret_cast<Byte*>(&str[0]);
+			end = it + str.size();		
+		}
+			Byte* to = reinterpret_cast<Byte*>(&out[0]);			
+			Size written = 0;
 
+			while (it!=end)
+			{
+				Int int_24bit = 0;
+				Int padding_count = 0;
+
+				// construct 24-bit integer from 3 bytes
+				for (Size i=0; i<3; i++)
+				{
+					if (it!=end)
+					{
+						int_24bit |= *it++<<((2-i)*8);
+					}
+					else
+					{
+						padding_count++;
+					}
+				}
+
+				// write out 4 characters
+				for (Int i=3; i>=0; i--)
+				{
+					to[i] = encoder_[int_24bit & 0x3F];
+					int_24bit >>= 6;
+				}
+
+				// fixup for padding
+				if (padding_count > 0) to[3] = '=';
+				if (padding_count > 1) to[2] = '=';
+
+				to += 4;
+				written += 4;
+			}
+
+			out.resize(written); //no more space is needed		
+	}
+	
 	void Base64::decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression)
 	{
 		out.clear();
 		if (in == "") return;
-		
 		QByteArray base64_uncompressed;
 		QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
-		base64_uncompressed = QByteArray::fromBase64(herewego);		
+		base64_uncompressed = QByteArray::fromBase64(herewego);
 		if(zlib_compression)
 		{		
 			QByteArray czip;
@@ -98,7 +142,6 @@ namespace OpenMS
 			}
 		}
 		QList<QByteArray> null_strings = base64_uncompressed.split('\0');
-		
 		for(QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end();++it)
 		{
 			if(!it->isEmpty())
@@ -106,8 +149,8 @@ namespace OpenMS
 				out.push_back(QString(*it).toStdString());
 			}
 		}
-
 	}	
 	
-}
+
+}//end OpenMS
 

@@ -384,6 +384,12 @@ namespace OpenMS
 					{
 						do
 						{
+							line.trim();
+							if (line.size() == 0)
+							{
+								continue;
+							}
+
 							line.substitute('\t', ' ');
 							vector<String> split;
 							line.split(' ', split);
@@ -403,7 +409,8 @@ namespace OpenMS
 									throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
 								}
 							}
-						}while(getline(is, line, '\n') && line.trim() != "END IONS");
+						}
+						while(getline(is, line, '\n') && line.trim() != "END IONS");
 						if (line.trim() == "END IONS")
 						{
 							// found spectrum

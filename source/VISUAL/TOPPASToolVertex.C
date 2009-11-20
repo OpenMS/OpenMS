@@ -333,12 +333,28 @@ namespace OpenMS
 		// progress light
 		painter->setPen(Qt::black);
 		painter->setBrush(progress_color_);
-		painter->drawEllipse(45,-52, 14, 14);
+		painter->drawEllipse(46,-52, 14, 14);
 		
 		//topo sort number
-		qreal x_pos = -62.0;
-		qreal y_pos = 48.0; 
+		qreal x_pos = -64.0;
+		qreal y_pos = -41.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
+		
+		if (progress_color_ != Qt::gray)
+		{
+			QString text;
+			if (in_parameter_has_list_type_)
+			{
+				text = QString::number(iteration_nr_ == 1 ? input_list_length_ : 0);
+				text += QString(" / ") + QString::number(input_list_length_); 
+			}
+			else
+			{
+				text = QString::number(iteration_nr_)+" / "+QString::number(num_iterations_);
+			}
+			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
+			painter->drawText((int)(62.0-text_boundings.width()), 48, text);
+		}
 	}
 	
 	QRectF TOPPASToolVertex::boundingRect() const
@@ -365,6 +381,8 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::runToolIfInputReady()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		//check if everything ready
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
@@ -372,12 +390,16 @@ namespace OpenMS
 			if (tv && !tv->isFinished())
 			{
 				// some tool that we depend on has not finished execution yet --> do not start yet
+				debugOut_("Not run (parent not finished)");
+				
+				__DEBUG_END_METHOD__
 				return;
 			}
 		}
-	
+		
 		// all inputs are ready --> GO!
 		updateCurrentOutputFileNames();
+		
 		createDirs();
 		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
@@ -418,6 +440,7 @@ namespace OpenMS
 		
 		for (int i = 0; i < num_iterations_; ++i)
 		{
+			debugOut_(String("Enqueueing process nr ")+i);
 			QStringList args = shared_args;
 			
 			// add all input file parameters
@@ -450,6 +473,11 @@ namespace OpenMS
 					}
 					else
 					{
+						if (i >= source_out_files.size())
+						{
+							std::cerr << "Input list too short!" << std::endl;
+							break;
+						}
 						args << source_out_files[i];
 					}
 					continue;
@@ -466,6 +494,11 @@ namespace OpenMS
 					}
 					else
 					{
+						if (i >= input_files.size())
+						{
+							std::cerr << "Input list too short!" << std::endl;
+							break;
+						}
 						args << input_files[i];
 					}
 					continue;
@@ -481,6 +514,11 @@ namespace OpenMS
 					}
 					else
 					{
+						if (i >= input_files.size())
+						{
+							std::cerr << "Input list too short!" << std::endl;
+							break;
+						}
 						args << input_files[i];
 					}
 					continue;
@@ -508,6 +546,11 @@ namespace OpenMS
 						}
 						else
 						{
+							if (i >= output_files.size())
+							{
+								std::cerr << "Output list too short!" << std::endl;
+								break;
+							}
 							args << output_files[i];
 						}
 						
@@ -516,25 +559,25 @@ namespace OpenMS
 				}
 			}
 			
-			//start process
+			//create process
 			QProcess* p = new QProcess();
 			p->setProcessChannelMode(QProcess::MergedChannels);
 			connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
 			connect(p,SIGNAL(readyReadStandardOutput()),this,SLOT(forwardTOPPOutput()));
 			connect(ts,SIGNAL(terminateCurrentPipeline()),p,SLOT(kill()));
 			
-			//start process
-			p->start(name_.toQString(), args);
-			p->waitForStarted();
+			//enqueue process
+			ts->enqueueProcess(p, name_.toQString(), args);
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	void TOPPASToolVertex::executionFinished(int ec, QProcess::ExitStatus es)
 	{
-		iteration_nr_++;
+		__DEBUG_BEGIN_METHOD__
 		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		
 		if (es != QProcess::NormalExit)
 		{
 			ts->setPipelineRunning(false);
@@ -545,6 +588,7 @@ namespace OpenMS
 			{
 				delete p;
 			}
+			__DEBUG_END_METHOD__
 			return;
 		}
 		
@@ -558,11 +602,21 @@ namespace OpenMS
 			{
 				delete p;
 			}
+			__DEBUG_END_METHOD__
 			return;
 		}
 		
+		++iteration_nr_;
+		update(boundingRect());
+		debugOut_(String("Increased iteration_nr_ to ")+iteration_nr_+" / "+num_iterations_);
+		
+		// notify the scene that this process has finished (so the next pending one can run)
+		ts->runNextProcess();
+		
 		if (iteration_nr_ == num_iterations_) // all iterations performed --> proceed in pipeline
 		{
+			debugOut_("All iterations finished!");
+			
 			finished_ = true;
 			emit toolFinished();
 			
@@ -578,37 +632,31 @@ namespace OpenMS
 			// notify all childs that we are finished, proceed in pipeline
 			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 			{
-				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getTargetVertex());
-				if (tv)
+				TOPPASVertex* tv = (*it)->getTargetVertex();
+				debugOut_(String("Starting child ")+tv->getTopoNr());
+				
+				TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+				if (ttv)
 				{
-					tv->runToolIfInputReady();
+					ttv->runToolIfInputReady();
 					continue;
 				}
-				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getTargetVertex());
+				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
 				if (mv)
 				{
 					mv->forwardPipelineExecution();
 					continue;
 				}
-				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>((*it)->getTargetVertex());
+				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
 				if (oflv)
 				{
 					oflv->finish();
 					continue;
 				}
 			}
+			
+			debugOut_("All children started!");
 		}
-		
-		/*	Normally, the subtree finished signal is propagated upstream from finished output nodes.
-				However, if there is a blocking "merge all" node in the way, this will not happen
-				--> additionally check here if subtree is finished ("merge all" nodes will return true
-				in every case)	*/
-		checkIfSubtreeFinished();
-		
-		/*	Because "merge all" nodes wait for the signal that all round-based mergers above them have completed
-				their merging rounds, we additionally check this here (in case there is no merger that sends this signal
-				downwards	*/ 
-		checkIfAllUpstreamMergersFinished();
 		
 		//clean up
 		QProcess* p = qobject_cast<QProcess*>(QObject::sender());
@@ -616,6 +664,8 @@ namespace OpenMS
 		{
 			delete p;
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	bool TOPPASToolVertex::isFinished()
@@ -814,7 +864,7 @@ namespace OpenMS
 	void TOPPASToolVertex::inEdgeHasChanged()
 	{
 		// something has changed --> tmp files might be invalid --> reset
-		reset(true,true);
+		reset(true);
 		
 		TOPPASVertex::inEdgeHasChanged();
 	}
@@ -854,6 +904,11 @@ namespace OpenMS
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		QDir current_dir(ts->getOutDir());
 		
+		if (!current_dir.mkpath(getOutputDir().toQString()))
+		{
+			std::cerr << "Could not create path " << getOutputDir() << std::endl;
+		}
+		
 		foreach (const QStringList& files, current_output_files_)
 		{
 			if (!files.isEmpty())
@@ -875,19 +930,19 @@ namespace OpenMS
 		if (topo_nr_ != nr)
 		{
 			// topological number changes --> output dir changes --> reset
-			reset(true,true);
+			reset(true);
 			topo_nr_ = nr;
 			emit somethingHasChanged();
 		}
 	}
 	
-	void TOPPASToolVertex::reset(bool reset_all_files, bool mergers_finished)
+	void TOPPASToolVertex::reset(bool reset_all_files)
 	{
-		TOPPASVertex::reset(reset_all_files, mergers_finished);
+		__DEBUG_BEGIN_METHOD__
+		
 		finished_ = false;
 		current_output_files_.clear();
 		progress_color_ = Qt::gray;
-		update(boundingRect());
 		
 		if (reset_all_files)
 		{
@@ -898,6 +953,81 @@ namespace OpenMS
 				removeDirRecursively_(remove_dir);
 			}
 		}
+		
+		TOPPASVertex::reset(reset_all_files);
+		
+		__DEBUG_END_METHOD__
+	}
+	
+	void TOPPASToolVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run)
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		//all parents checked?
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			if (!((*it)->getSourceVertex()->isScListLengthChecked()))
+			{
+				__DEBUG_END_METHOD__
+				return;
+			}
+		}
+		
+		// do all input lists have equal length?
+		int parent_per_round = (*inEdgesBegin())->getSourceVertex()->getScFilesPerRound();
+		int parent_total = (*inEdgesBegin())->getSourceVertex()->getScFilesTotal();		
+		
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			if ((*it)->getSourceVertex()->getScFilesPerRound() != parent_per_round)
+			{
+				unequal_per_round.push_back(QString::number(topo_nr_));
+				break;
+			}
+		}
+		
+		// n:1 tool? --> files per round = 1
+		QVector<IOInfo> input_infos;
+		getInputParameters(input_infos);
+		QVector<IOInfo> output_infos;
+		getOutputParameters(output_infos);
+		bool in_param_list_type = false;
+		bool out_param_file_type = false;
+		foreach (const IOInfo& io, input_infos)
+		{
+			if (io.param_name == "in" && io.type == IOInfo::IOT_LIST)
+			{
+				in_param_list_type = true;
+			}
+		}
+		foreach (const IOInfo& io, output_infos)
+		{
+			if (io.param_name == "out" && io.type == IOInfo::IOT_FILE)
+			{
+				out_param_file_type = true;
+			}
+		}
+		
+		if (in_param_list_type && out_param_file_type)
+		{
+			sc_files_per_round_ = 1;
+			sc_files_total_ = parent_total / parent_per_round;
+		}
+		else
+		{
+			sc_files_per_round_ = parent_per_round;
+			sc_files_total_ = parent_total;
+		}
+		
+		sc_list_length_checked_ = true;
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
+		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 }

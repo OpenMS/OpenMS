@@ -54,10 +54,13 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via Mascot.
 
-	@experimental This tool has not been tested thoroughly and might behave not as expected!
-
 	This wrapper application serves for getting peptide identifications
-	for MS/MS spectra.
+	for MS/MS spectra. It communicates with the Mascot server
+	over the network and is not needed to be called from same machine.
+
+	It support Mascot security features and has also proxy server
+	support. This minimal version of Mascot support by this wrapper
+	is version 2.2.x.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MascotAdapterOnline.cli
@@ -85,6 +88,7 @@ class TOPPMascotAdapterOnline
 			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n");
 			setValidFormats_("out", StringList::create("idXML"));
 
+			registerStringOption_("temp_data_directory", "<directory>" , "", "Directory were temporary data files can be stored.", false);
 			registerSubsection_("Mascot_server", "Mascot server details");
 			registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
 		}
@@ -115,6 +119,11 @@ class TOPPMascotAdapterOnline
 
       //input/output files
 			String in(getStringOption_("in")), out(getStringOption_("out"));
+			String temp_data_directory(getStringOption_("temp_data_directory"));
+			if (temp_data_directory != "")
+			{
+				temp_data_directory.ensureLastChar('/');
+			}
 			FileHandler fh;
 			FileTypes::Type in_type = fh.getType(in);
 
@@ -168,7 +177,7 @@ class TOPPMascotAdapterOnline
 
 			// write Mascot response to file
 			String unique_name = File::getUniqueName(); // body for the tmp files
-			String mascot_tmp_file_name(unique_name + "_Mascot_response");
+			String mascot_tmp_file_name(temp_data_directory + unique_name + "_Mascot_response");
 			QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
 			mascot_tmp_file.open(QIODevice::WriteOnly);
 			mascot_tmp_file.write(mascot_query->getMascotXMLResponse());

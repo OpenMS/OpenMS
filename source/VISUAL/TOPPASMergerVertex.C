@@ -36,7 +36,9 @@ namespace OpenMS
 	TOPPASMergerVertex::TOPPASMergerVertex()
 		:	TOPPASVertex(),
 			round_based_mode_(true),
-			merge_counter_(0)
+			merge_counter_(0),
+			currently_notifying_parents_(false),
+			min_input_list_length_(-1)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -45,7 +47,9 @@ namespace OpenMS
 	TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs)
 		:	TOPPASVertex(rhs),
 			round_based_mode_(rhs.round_based_mode_),
-			merge_counter_(rhs.merge_counter_)
+			merge_counter_(rhs.merge_counter_),
+			currently_notifying_parents_(rhs.currently_notifying_parents_),
+			min_input_list_length_(rhs.min_input_list_length_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -61,6 +65,8 @@ namespace OpenMS
 		TOPPASVertex::operator=(rhs);
 		round_based_mode_ = rhs.round_based_mode_;
 		merge_counter_ = rhs.merge_counter_;
+		currently_notifying_parents_ = rhs.currently_notifying_parents_;
+		min_input_list_length_ = rhs.min_input_list_length_;
 		
 		return *this;
 	}
@@ -71,6 +77,21 @@ namespace OpenMS
 	
 	QStringList TOPPASMergerVertex::getCurrentOutputList()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
+		int tmp_merge_counter = merge_counter_;
+		if (mergeComplete())
+		{
+			/*	Only relevant if nested mergers have incompatible input list lengths.
+					If this merger has finished merging already (and so do all upstream
+					mergers, if any) and this merger is still asked to return its output files
+					(by another merger further downstream), then we just return the list
+					from the last merging round, although the result is probably bogus. */
+			--tmp_merge_counter;
+		}
+		
+		int new_min_input_list_length = std::numeric_limits<int>::max();
+		
 		QStringList out_files;
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
@@ -84,7 +105,12 @@ namespace OpenMS
 				{
 					const QVector<QStringList>& output_files = source_tool->getCurrentOutputFileNames();
 					const QStringList& file_names = output_files[param_index];
-					out_files << file_names[merge_counter_];
+					out_files << file_names[tmp_merge_counter];
+					
+					if (file_names.size() < new_min_input_list_length)
+					{
+						new_min_input_list_length = file_names.size();
+					}
 				}
 				else
 				{
@@ -99,7 +125,12 @@ namespace OpenMS
 			{
 				if (round_based_mode_)
 				{
-					out_files << source_list->getFilenames()[merge_counter_];
+					out_files << source_list->getFilenames()[tmp_merge_counter];
+					
+					if (source_list->getFilenames().size() < new_min_input_list_length)
+					{
+						new_min_input_list_length = source_list->getFilenames().size();
+					}
 				}
 				else
 				{
@@ -112,7 +143,12 @@ namespace OpenMS
 			{
 				if (round_based_mode_)
 				{
-					out_files << source_merger->getCurrentOutputList()[merge_counter_];
+					out_files << source_merger->getCurrentOutputList()[tmp_merge_counter];
+					
+					if (source_merger->getCurrentOutputList().size() < new_min_input_list_length)
+					{
+						new_min_input_list_length = source_merger->getCurrentOutputList().size();
+					}
 				}
 				else
 				{
@@ -121,12 +157,19 @@ namespace OpenMS
 				continue;
 			}
 		}
-
+		
+		last_output_files_ = out_files;
+		min_input_list_length_ = new_min_input_list_length;
+		files_known_ = true;
+		
+		__DEBUG_END_METHOD__
 		return out_files;
 	}
 	
 	QStringList TOPPASMergerVertex::getAllCollectedFiles_()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		QStringList out_files;
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
@@ -155,35 +198,95 @@ namespace OpenMS
 			}
 		}
 		
+		__DEBUG_END_METHOD__
 		return out_files;
 	}
 
 	bool TOPPASMergerVertex::allInputsReady()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 		  TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 		  if (tv && !tv->isFinished())
 		  {
 		    // some tool that we depend on has not finished execution yet --> do not start yet
+				__DEBUG_END_METHOD__
 		    return false;
 		  }
 			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
 			if (mv && !mv->allInputsReady())
 			{
 				// some input of a merger that we depend on not finished yet
+				__DEBUG_END_METHOD__
 				return false;
 			}
 		}
+		
+		__DEBUG_END_METHOD__
 		return true;
 	}
-
-	void TOPPASMergerVertex::forwardPipelineExecution(bool start_merge_all)
+	
+	void TOPPASMergerVertex::forwardPipelineExecution()
 	{
-		if (!allInputsReady() || (!round_based_mode_ && !start_merge_all))
+		__DEBUG_BEGIN_METHOD__
+		
+		if (currently_notifying_parents_) // merger was run and has finished, but not all parents have been informed yet
 		{
+			debugOut_("Not run because not all parents notified yet!");
+			
+			__DEBUG_END_METHOD__
 			return;
 		}
+		
+		if (!allInputsReady())
+		{
+			debugOut_("Not run because !allInputsReady()");
+			
+			__DEBUG_END_METHOD__
+			return;
+		}
+		
+		if (!round_based_mode_)
+		{
+			currently_notifying_parents_ = true;
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				(*it)->getSourceVertex()->checkIfSubtreeFinished();
+			}
+			currently_notifying_parents_ = false;
+			
+			// still everything ready?
+			if (!allInputsReady())
+			{
+				debugOut_("Not run because !allInputsReady()");
+				
+				__DEBUG_END_METHOD__
+				return;
+			}
+			
+			if (!TOPPASVertex::areAllUpstreamMergersFinished())
+			{
+				debugOut_("Not run because !round_based_mode_ and not all upstream mergers finished");
+				
+				__DEBUG_END_METHOD__
+				return;
+			}
+		}
+		
+		debugOut_("About to run");
+		
+		if (subtree_finished_)
+		{
+			// this merger was run and has finished already and is now asked to run a second time --> reset subtree first
+			debugOut_("Resetting subtree");
+			
+			TOPPASVertex::resetSubtree(true);
+			subtree_finished_ = false;
+		}
+		
+		debugOut_("Proceeding in pipeline...");
 		
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
@@ -209,10 +312,18 @@ namespace OpenMS
 		}
 		
 		++merge_counter_;
+		
+		update(boundingRect());
+		
+		debugOut_(String("All children nodes run! Incremented merge_counter_ to ")+merge_counter_+" / "+min_input_list_length_);
+		
+		__DEBUG_END_METHOD__
 	}
 
 	void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		if (isSelected())
 		{
@@ -232,9 +343,32 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
+		
 		QString text = round_based_mode_ ? "Merge" : "Merge all";
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
+		
+		if (files_known_)
+		{
+			if (round_based_mode_)
+			{
+				text = QString::number(merge_counter_)+" / "+QString::number(min_input_list_length_);
+			}
+			else
+			{
+				QString num_files = QString::number(last_output_files_.size());
+				text = (mergeComplete() ? num_files : "0")+" / "+num_files;
+			}
+			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
+			painter->drawText(-(int)(text_boundings.width()/2.0), 31, text);
+		}
+		
+		//topo sort number
+		qreal x_pos = -36.0;
+		qreal y_pos = -23.0; 
+		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	QRectF TOPPASMergerVertex::boundingRect() const
@@ -251,7 +385,13 @@ namespace OpenMS
 	
 	bool TOPPASMergerVertex::mergeComplete()
 	{
-		return merge_counter_ == numIterations_();
+		__DEBUG_BEGIN_METHOD__
+		
+		bool complete = merge_counter_ == numIterations_();
+		debugOut_(String("Returning ")+(complete ? "true" : "false"));
+		
+		__DEBUG_END_METHOD__
+		return complete;
 	}
 	
 	bool TOPPASMergerVertex::roundBasedMode()
@@ -261,135 +401,105 @@ namespace OpenMS
 	
 	void TOPPASMergerVertex::setRoundBasedMode(bool b)
 	{
+		reset();
 		round_based_mode_ = b;
-	}
-	
-	int TOPPASMergerVertex::minInputListLength_()
-	{
-		int min_length = std::numeric_limits<int>::max();
-		
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASVertex* source = (*it)->getSourceVertex();
-			TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
-			if (source_tool)
-			{
-				const QVector<QStringList>& output_files = source_tool->getCurrentOutputFileNames();
-				int param_index = (*it)->getSourceOutParam();
-				const QStringList& file_names = output_files[param_index];
-				
-				if (file_names.size() < min_length)
-				{
-					min_length = file_names.size();
-				}
-				continue;
-			}
-			TOPPASInputFileListVertex* source_list = qobject_cast<TOPPASInputFileListVertex*>(source);
-			if (source_list)
-			{
-				if (source_list->getFilenames().size() < min_length)
-				{
-					min_length = source_list->getFilenames().size();
-				}
-				continue;
-			}
-			TOPPASMergerVertex* source_merger = qobject_cast<TOPPASMergerVertex*>(source);
-			if (source_merger)
-			{
-				if (source_merger->getCurrentOutputList().size() < min_length)
-				{
-					min_length = source_merger->getCurrentOutputList().size();
-				}
-				continue;
-			}
-		}
-		
-		return min_length;
+		emit somethingHasChanged();
 	}
 	
 	int TOPPASMergerVertex::numIterations_()
 	{
-		if (round_based_mode_)
-		{
-			return minInputListLength_();
-		}
-		else
-		{
-			return 1;
-		}
-	}
-	
-	void TOPPASMergerVertex::checkIfAllUpstreamMergersFinished()
-	{
-		/*	We do not have to forward this (unlike in the base class implementation).
-				Proceed in pipeline if this merger is a "merge all" merger (instead of round based).
-				Ignore this signal (and do not propagate it downstream) if this merger is a normal round based merger
-				("merge all" mergers only wait for the nearest round-based mergers upstream in the pipeline) */
+		__DEBUG_BEGIN_METHOD__
 		
-		if (round_based_mode_)
-		{
-			return;
-		}
+		int iterations = round_based_mode_ ? min_input_list_length_ : 1;
 		
-		// check if all mergers above this node have finished merging
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASVertex* source = (*it)->getSourceVertex();
-			if (!source->isAllUpstreamMergersFinished())
-			{
-				return;
-			}
-		}
-		
-		// all preceding upstream mergers finished merging --> ready --> go
-		forwardPipelineExecution(true);
+		debugOut_(String("Returning ")+iterations);
+		__DEBUG_END_METHOD__
+		return iterations;
 	}
 	
 	void TOPPASMergerVertex::checkIfSubtreeFinished()
 	{
-		/*	Proceed with next merging round, if this merger is still running and
-				if all children have finished already. If merge is complete, propagate
-				this upwards. */
+		__DEBUG_BEGIN_METHOD__
+		
+		// parents still ready? (might not be the case if they have been reset --> wait)
+		if (!allInputsReady())
+		{
+			return;
+		}
 
 		// all children's subtrees finished?
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* target = (*it)->getTargetVertex();
+			
+			debugOut_(String("Checking if subtree of child ")+target->getTopoNr()+" finished...");
+			
 			if (!target->isSubtreeFinished())
 			{
+				debugOut_("... subtree NOT finished.");
+				__DEBUG_END_METHOD__
 				return;
+			}
+			else
+			{
+				debugOut_("... subtree finished.");
 			}
 		}
 		
+		/*	Proceed with next merging round, if this merger is still running and
+				if all children have finished already. If merge is complete, propagate
+				this upwards. */
+		
 		if (!mergeComplete())
 		{
+			debugOut_("Merge not complete yet, resetting subtree...");
 			// proceed with next merge iteration
-			resetSubtree(false,false);
+			subtree_finished_ = false;
+			TOPPASVertex::resetSubtree(false);
+			debugOut_("Subtree successfully reset");
 			forwardPipelineExecution();
+			debugOut_("forwardPipelineExecution() successfully called");
 		}
 		else
 		{
+			debugOut_("Merge complete - notifying parents");
 			// merge complete --> propagate this upwards (for other round-based mergers)
 			subtree_finished_ = true;
+			currently_notifying_parents_ = true;
 			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 			{
+				if (inEdgesEnd() - it == 1)
+				{
+					// notifying last parent: merger can continue if it is asked to by parent
+					currently_notifying_parents_ = false;
+				}
 				TOPPASVertex* source = (*it)->getSourceVertex();
+				debugOut_(String("Notifying parent ")+source->getTopoNr()+" that merging round complete");
 				source->checkIfSubtreeFinished();
 			}
-			// and downwards (for waiting "merge all" mergers)
-			all_upstream_mergers_finished_ = true;
-			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-			{
-				TOPPASVertex* target = (*it)->getTargetVertex();
-				target->checkIfAllUpstreamMergersFinished();
-			}
+			subtree_finished_ = false;
+			currently_notifying_parents_ = false;
+			debugOut_("Upstream notification successful");
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
-	void TOPPASMergerVertex::reset(bool /*reset_all_files*/, bool mergers_finished)
+	void TOPPASMergerVertex::reset(bool reset_all_files)
 	{
-		TOPPASVertex::reset(false, mergers_finished);
+		__DEBUG_BEGIN_METHOD__
+		
 		merge_counter_ = 0;
+		min_input_list_length_ = -1;
+		
+		bool tmp = subtree_finished_;
+		TOPPASVertex::reset(reset_all_files);
+		if (!reset_all_files)
+		{
+			// for "soft" reset, restore subtree_finished_, because otherwise only 1 parent is notified that subtree finished
+			subtree_finished_ = tmp;
+		}
+		__DEBUG_END_METHOD__
 	}
 	
 	bool TOPPASMergerVertex::isSubtreeFinished()
@@ -406,17 +516,81 @@ namespace OpenMS
 		}
 	}
 	
-	bool TOPPASMergerVertex::isAllUpstreamMergersFinished()
+	void TOPPASMergerVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run)
 	{
-		if (!round_based_mode_)
+		__DEBUG_BEGIN_METHOD__
+		
+		//all parents checked?
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
-			/*	HACK: a waiting "merge all" merger performs only 1 merge round, so it
-					can claim to have finished merging here	*/
-			return true;
+			if (!((*it)->getSourceVertex()->isScListLengthChecked()))
+			{
+				__DEBUG_END_METHOD__
+				return;
+			}
+		}
+		
+		// do all input lists have equal length?
+		int min_parent_total = (*inEdgesBegin())->getSourceVertex()->getScFilesTotal();
+		int parent_total = min_parent_total;
+		bool equal_length = true;
+		if (round_based_mode_)
+		{
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				int total = (*it)->getSourceVertex()->getScFilesTotal();
+				if (total != parent_total)
+				{
+					equal_length = false;
+					min_parent_total = total < min_parent_total ? total : min_parent_total;
+				}
+			}
+			if (!equal_length)
+			{
+				unequal_over_entire_run.push_back(QString::number(topo_nr_));
+			}
+			
+			// number of in edges determines list length per merging round
+			sc_files_per_round_ = inEdgesEnd() - inEdgesBegin();
+			// assume all sc_files_total_'s of inputs are equal already
+			sc_files_total_ = sc_files_per_round_ * min_parent_total;
 		}
 		else
 		{
-			return TOPPASVertex::isAllUpstreamMergersFinished();
+			// no check needed, waiting merger does not care about unequal input list lengths
+			sc_files_per_round_ = 0;
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				sc_files_per_round_ += (*it)->getSourceVertex()->getScFilesTotal();
+			}
+			sc_files_total_ = sc_files_per_round_;
 		}
+		
+		sc_list_length_checked_ = true;
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
+		}
+		
+		__DEBUG_END_METHOD__
 	}
+	
+	bool TOPPASMergerVertex::areAllUpstreamMergersFinished()
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		if (!mergeComplete())
+		{
+			__DEBUG_END_METHOD__
+			return false;
+		}
+		
+		bool finished = TOPPASVertex::areAllUpstreamMergersFinished();
+		
+		__DEBUG_END_METHOD__
+		return finished;
+	}
+
 }

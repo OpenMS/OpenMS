@@ -27,6 +27,7 @@
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
 
@@ -35,7 +36,7 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.3"), XMLFile("/SCHEMAS/ConsensusXML_1_3.xsd", "1.3"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
+    XMLHandler("", "1.4"), XMLFile("/SCHEMAS/ConsensusXML_1_4.xsd", "1.4"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
   {
   }
 
@@ -245,14 +246,19 @@ namespace OpenMS
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
       }
-      //handle file id
-      String id;
-      if ( optionalAttributeAsString_(id, attributes, "id") )
+      // handle document id
+      String document_id;
+      if ( optionalAttributeAsString_(document_id, attributes, "document_id") )
       {
-        consensus_map_->setIdentifier(id);
+        consensus_map_->setIdentifier(document_id);
       }
-      //handle unique id
+      // handle unique id
       String unique_id;
+      if (optionalAttributeAsString_(unique_id, attributes, "id"))
+      {
+        consensus_map_->setUniqueId(unique_id);
+      }
+      // TODO The next four lines should be removed in OpenMS 1.7 or so!
       if (optionalAttributeAsString_(unique_id, attributes, "unique_id"))
       {
         consensus_map_->setUniqueId(unique_id);
@@ -527,13 +533,25 @@ namespace OpenMS
     progress_ = 0;
     setProgress(++progress_);
 
-    if ( Size invalid_unique_ids = consensus_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) > 0 )
+    if ( Size invalid_unique_ids = consensus_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) )
     {
+      // TODO Take care *outside* that this does not happen.
+      // We can detect this here but it is too late to fix the problem;
+      // there is no straightforward action to be taken in all cases.
+      // Note also that we are given a const reference.
+      LOG_INFO << String("ConsensusXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+    }
 
-      // TODO Take care outside that this does not happen.  We cannot fix this here due to constness.
-
-      // throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("found ")+invalid_unique_ids+" invalid unique ids");
-      // std::cout<<String("\nfound ")+invalid_unique_ids+" invalid unique ids"<<"\n";
+    // This will throw if the unique ids are not unique,
+    // so we never create bad files in this respect.
+    try
+    {
+      consensus_map.updateUniqueIdToIndex();
+    }
+    catch ( Exception::Postcondition& e )
+    {
+      LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
+      throw;
     }
 
     //open stream
@@ -562,19 +580,19 @@ namespace OpenMS
     // file id
     if ( consensus_map.getIdentifier() != "" )
     {
-      os << " id=\"" << consensus_map.getIdentifier() << "\"";
+      os << " document_id=\"" << consensus_map.getIdentifier() << "\"";
     }
     // unique id
     if (consensus_map.hasValidUniqueId())
     {
-      os << " unique_id=\"cm_" << consensus_map.getUniqueId() << "\"";
+      os << " id=\"cm_" << consensus_map.getUniqueId() << "\"";
     }
     if ( consensus_map.getExperimentType() != "" )
     {
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-        << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+        << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //user param
     writeUserParam_("userParam", os, consensus_map, 1);

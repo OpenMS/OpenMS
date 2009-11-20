@@ -71,6 +71,21 @@ START_SECTION((void searchTerminalModifications(std::set< const ResidueModificat
 	TEST_EQUAL(mods.size(), 1)
 END_SECTION
 
+
+START_SECTION((void getTerminalModificationsByDiffMonoMass(std::vector< String > &mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)))
+	vector<String> mods;
+	ptr->getTerminalModificationsByDiffMonoMass(mods, 42, 0.1, ResidueModification::N_TERM);
+	set<String> uniq_mods;
+	for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+	{
+		uniq_mods.insert(*it);
+	}
+	TEST_EQUAL(mods.size(), 16)
+	TEST_EQUAL(uniq_mods.size(), 16)
+	TEST_EQUAL(uniq_mods.find("Acetyl (N-term)") != uniq_mods.end(), true)
+
+END_SECTION
+
 START_SECTION(const ResidueModification& getModification(const String & modification) const)
 	TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getFullId(), "Carboxymethyl (C)")
 	TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getId(), "Carboxymethyl")

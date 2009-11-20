@@ -63,7 +63,7 @@
   @section install_linux_contrib Installing the contrib package
 
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
-  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
+  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn, COINOR, imslib, zlib, libbz2 and XERCES-C. 
     
   The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
   
@@ -101,7 +101,7 @@
   <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
   For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
 
-  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_contrib above.
+  If you have not installed thei contrib libraries which %OpenMS requires, please refer to the section @ref install_linux_contrib above and install the contrib libraries.
   
   CMake is used to check the system and create the main 'Makefile'.
   @n Go to the %OpenMS directory and execute the following command:
@@ -125,7 +125,11 @@
           <BR>
           <b>Note:</b> Moving the library after installing it is not possible! 
           Please use this option to point CMake to the location %OpenMS should
-          be installed to.</td>
+          be installed to.
+					
+					Install prefixes are not supported for developing with OpenMS. OpenMS must
+					be built in place!					
+					</td>
     </tr>
     <tr>
       <td valign="top">CONTRIB_CUSTOM_DIR</td>
@@ -162,9 +166,14 @@
   &gt; make
   </pre>
 
+	If you have chosen to use a install prefix via the INSTALL_PREFIX variable you should install the components using: 
+	<pre>
+	&gt; make install
+	</pre>
+
   @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>/home/smith/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
   
-  @note  The TOPP tools are ready to use in the <i>&lt;path_to_OpenMS&gt;/bin/</i> folder. To use the TOPP tools from TOPPView, you have to add this path to the environment variable <b>PATH</b> (do not use the tilde character @em ~ to abbreviate your home folder).
+  @note  The TOPP tools are ready to use in the <i>&lt;path_to_OpenMS&gt;/bin/</i> folder. To use the TOPP tools from TOPPView, you have to add this path to the environment variable <b>PATH</b> (do not use the tilde character @em ~ to abbreviate your home folder). 
   
   @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
 
@@ -174,7 +183,7 @@
   
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
   <pre>
-  &gt; make TEST
+  &gt; make test_build
   &gt; make test
   </pre>
   

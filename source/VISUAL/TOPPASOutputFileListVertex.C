@@ -87,13 +87,14 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		QString text = "Output files";
+		QString text = QString::number(files_.size())+" output file"
+										+(files_.size() == 1 ? "" : "s");
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 		
 		//topo sort number
-		qreal x_pos = -62.0;
-		qreal y_pos = 28.0; 
+		qreal x_pos = -63.0;
+		qreal y_pos = -19.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 	}
 	
@@ -111,12 +112,20 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::finish()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		// copy tmp files to output dir
 		
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
 		const QVector<QStringList>& output_files = tv->getCurrentOutputFileNames();
 		int param_index = e->getSourceOutParam();
+		if (output_files.size() <= param_index)
+		{
+			std::cerr << "Parent tool has no output files. This is a bug, please report it!" << std::endl;
+			__DEBUG_END_METHOD__
+			return;
+		}
 		const QStringList& tmp_file_names = output_files[param_index];
 		QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
 		
@@ -159,9 +168,13 @@ namespace OpenMS
 			}
 		}
 		
+		update(boundingRect());
+		
 		finished_ = true;
 		checkIfSubtreeFinished();
 		emit iAmDone();
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()
@@ -217,6 +230,8 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::reset(bool reset_all_files)
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		TOPPASVertex::reset();
 		finished_ = false;
 		
@@ -225,6 +240,8 @@ namespace OpenMS
 			files_.clear();
 			// do not actually delete the output files here
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 }
 

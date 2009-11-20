@@ -236,6 +236,12 @@ namespace OpenMS
 #endif
 		// map ids on features 
 		IDMapper mapper;
+		Param p = mapper.getParameters();
+		p.setValue("rt_delta", 0.2);
+		p.setValue("mz_delta", 0.05);
+		p.setValue("mz_measure","Da");
+		mapper.setParameters(p);
+
 		mapper.annotate(features,filtered_pep_ids,prot_ids);
 #ifdef PIS_DEBUG
 		std::cout << "mapped ids"<<std::endl;
@@ -489,10 +495,13 @@ namespace OpenMS
 		std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(pep_ids);
 		
 		// annotate map with ids
-		// TODO: wirklich mit deltas? oder lieber ueber convex hulls?
+		// TODO: wirklich mit deltas? oder lieber ueber convex hulls? Anm v. Chris: IDMapper benutzt CH's + Deltas wenn CH vorhanden sind
 		IDMapper mapper;
-		mapper.setRTDelta(0.2);
-		mapper.setMZDelta(0.05);
+		Param p = mapper.getParameters();
+		p.setValue("rt_delta", 0.2);
+		p.setValue("mz_delta", 0.05);
+		p.setValue("mz_measure","Da");
+		mapper.setParameters(p);
 		mapper.annotate(features,filtered_pep_ids,prot_ids,true);
 		
 		// get first precursors

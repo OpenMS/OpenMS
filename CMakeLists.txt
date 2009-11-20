@@ -884,8 +884,6 @@ MESSAGE(STATUS "----------------------------------------------------------------
 MESSAGE(STATUS "")
 
 ##### install/copy (cpack mainly) #####
-## TODO:
-##  - this code breaks the windows cmake call (already code for win support added .. needs testing)
 
 if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
@@ -909,7 +907,6 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	
 	# install routines for MacOSX
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-		#include(cmake/package_dmg.cmake)
 		include(cmake/package_dragndrop_dmg.cmake)
 	endif()
 
@@ -932,10 +929,14 @@ else()
 		set(OPENMS_ADDCXX_FLAGS "${OPENMS_ADDCXX_FLAGS} -D${i}")
 	endforeach(i)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
-	#Message(STATUS "Definitions: ${OPENMS_ADDCXX_FLAGS}")
 	
 	# build settings and  configs for external code
 	include(CMakeExportBuildSettings)
 	cmake_export_build_settings(${PROJECT_BINARY_DIR}/cmake/OpenMSBuildSettings.cmake)
 	export_library_dependencies(${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryDepends.cmake)
+
+	if (NOT "${INSTALL_PREFIX}" STREQUAL ".")
+		include(cmake/install.cmake)
+	endif()
 endif()
+

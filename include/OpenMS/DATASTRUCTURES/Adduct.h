@@ -65,7 +65,7 @@ public:
     singleMass_(singleMass),
     log_prob_(log_prob)
     {
-			if (amount < 0) std::cerr << "Warning: Adduct received negative amount! (" << amount << ")\n";
+			if (amount < 0) std::cerr << "Attention: Adduct received negative amount! (" << amount << ")\n";
 			formula_ = checkFormula_(formula);
     }
 

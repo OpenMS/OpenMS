@@ -696,7 +696,7 @@ namespace OpenMS
 						exception that is not allowed by its exception specification. Both
 						functions are replaced by a function of GlobalExceptionHandler that
 						tries to determine the last exception thrown. This mechanism only
-						works, if all exceptions are defrived from Base.
+						works, if all exceptions are derived from Base.
 
 						The default <tt>new_handler</tt> is replaced by #newHandler and
 						throws an exception of type OutOfMemory instead of

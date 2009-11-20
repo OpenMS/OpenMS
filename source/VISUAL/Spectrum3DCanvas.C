@@ -320,9 +320,38 @@ namespace OpenMS
     	proposed_name = layer.filename;
     }
     
-  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)");
-		if (!file_name.isEmpty())
-		{
+		QString selected_filter = "";
+    QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)", &selected_filter);
+    if (!file_name.isEmpty())
+    {
+      // check whether a file type suffix has been given
+      // first check mzData and mzXML then mzML
+      // if the setting is at "All files"
+      // mzML will be used
+    	String upper_filename = file_name;
+      upper_filename.toUpper();
+      if (selected_filter == "mzData files (*.mzData)")
+      {
+        if (!upper_filename.hasSuffix(".MZDATA"))
+        {
+          file_name += ".mzData";
+        }
+      }
+      else if (selected_filter == "mzXML files (*.mzXML)")
+      {
+        if (!upper_filename.hasSuffix(".MZXML"))
+        {
+          file_name += ".mzXML";
+        }
+      }
+      else
+      {
+        if (!upper_filename.hasSuffix(".MZML"))
+        {
+          file_name += ".mzML";
+        }
+      }
+
     	if (visible) //only visible data
     	{
 				ExperimentType out;

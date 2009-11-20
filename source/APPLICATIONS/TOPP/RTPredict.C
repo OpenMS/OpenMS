@@ -47,7 +47,19 @@ using namespace std;
 	
 	@brief This application is used to predict retention times 
 				 for peptides or peptide separation.
-	
+
+  This methods and applications of this model are described 
+  in several publications:
+
+  Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+  Statistical learning of peptide retention behavior in chromatographic separations: A new kernel-based approach for computational proteomics.
+  BMC Bioinformatics 2007, 8:468 
+
+  Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+  Improving Peptide Identification in Proteome Analysis by a Two-Dimensional Retention Time Filtering Approach
+  J. Proteome Res. 2009, 8(8):4109-15
+
+
 	The input of this application 
 	is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified

@@ -31,13 +31,13 @@
 using namespace std;
 namespace OpenMS
 {
-	GzipIfstream::GzipIfstream(const char * filename) :gzfile(NULL), n_buffer(0),stream_at_end(false)
+	GzipIfstream::GzipIfstream(const char * filename) :gzfile_(NULL), n_buffer_(0),stream_at_end_(false)
 	{
 		open(filename);
 	}
 	
 	GzipIfstream::GzipIfstream()
-		: gzfile(NULL),n_buffer(0),gzerror(0),stream_at_end(true)
+		: gzfile_(NULL),n_buffer_(0),gzerror_(0),stream_at_end_(true)
 	{
 	}
 	
@@ -48,20 +48,20 @@ namespace OpenMS
 	
 	size_t GzipIfstream::read(char* s, size_t n)
 	{
-		if(gzfile != NULL)
+		if(gzfile_ != NULL)
 		{
-  		n_buffer = gzread (gzfile, s, n/* size of buf */ );		
-			if(gzeof(gzfile) == 1) 
+  		n_buffer_ = gzread (gzfile_, s,(unsigned int) n/* size of buf */ );		
+			if(gzeof(gzfile_) == 1) 
 			{
    			close();
-   			stream_at_end = true;
+   			stream_at_end_ = true;
 			}
-			if(n_buffer < 0)
+			if(n_buffer_ < 0)
 			{
 				close();
 				throw Exception::ConversionError(__FILE__,__LINE__,__PRETTY_FUNCTION__,"gzip file seems to be corrupted");
 			}
-			return n_buffer;
+			return n_buffer_;
 		}
 		else
 		{
@@ -71,21 +71,21 @@ namespace OpenMS
 	
 	void GzipIfstream::open(const char* filename)
 	{
-		if(gzfile != NULL)
+		if(gzfile_ != NULL)
 		{
 			close();
 		}
-		gzfile = gzopen( filename, "rb" ); //read binary: always open in binary mode because windows and mac open in text mode
+		gzfile_ = gzopen( filename, "rb" ); //read binary: always open in binary mode because windows and mac open in text mode
 		
 		//aborting, ahhh!
-		if( gzfile == NULL ) 
+		if( gzfile_ == NULL ) 
 		{
 			close();
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 		else
 		{
-			stream_at_end = false;
+			stream_at_end_ = false;
 	/*		crc  = crc32(0L, Z_NULL, 0);
 			FILE* file =  fopen(filename,"rb");
 			fseek(file,8,SEEK_END);
@@ -128,12 +128,12 @@ namespace OpenMS
 	
 	void GzipIfstream::close()
 	{
-		if(gzfile != NULL)
+		if(gzfile_ != NULL)
 		{
-			gzclose(gzfile);
+			gzclose(gzfile_);
 		}
-		gzfile = NULL;
-		stream_at_end = true;
+		gzfile_ = NULL;
+		stream_at_end_ = true;
 	}
 /*	
 	 void GzipIfstream::updateCRC32(const char* s, const size_t n)

@@ -43,7 +43,7 @@ START_TEST(SVOutStream, "$Id$")
 
 SVOutStream* sv_ptr = 0;
 
-START_SECTION((SVOutStream(std::ostream& out, const String& sep, const String& replacement, String::QuotingMethod quoting)))
+START_SECTION((SVOutStream(std::ostream &out, const String &sep="\t", const String &replacement="_", String::QuotingMethod quoting=String::DOUBLE)))
 {
 	stringstream strstr;
 	sv_ptr = new SVOutStream(strstr);

@@ -33,6 +33,10 @@
 
 namespace OpenMS
 {
+	#ifdef TOPPAS_DEBUG
+	int TOPPASVertex::global_debug_indent_ = 0;
+	#endif
+	
 	TOPPASVertex::TOPPASVertex()
 		:	QObject(),
 			QGraphicsItem(),
@@ -47,7 +51,8 @@ namespace OpenMS
 			topo_sort_marked_(false),
 			topo_nr_(0),
 			subtree_finished_(false),
-			all_upstream_mergers_finished_(true)
+			files_known_(false),
+			already_started_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -67,7 +72,8 @@ namespace OpenMS
 			topo_sort_marked_(rhs.topo_sort_marked_),
 			topo_nr_(rhs.topo_nr_),
 			subtree_finished_(rhs.subtree_finished_),
-			all_upstream_mergers_finished_(rhs.all_upstream_mergers_finished_)
+			files_known_(rhs.files_known_),
+			already_started_(rhs.already_started_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);	
@@ -91,7 +97,8 @@ namespace OpenMS
 		topo_sort_marked_ = rhs.topo_sort_marked_;
 		topo_nr_ = rhs.topo_nr_;
 		subtree_finished_ = rhs.subtree_finished_;
-		all_upstream_mergers_finished_ = rhs.all_upstream_mergers_finished_;
+		files_known_ = rhs.files_known_;
+		already_started_ = rhs.already_started_;
 		
 		return *this;
 	}
@@ -327,46 +334,33 @@ namespace OpenMS
 		return !fail;
 	}
 	
-	void TOPPASVertex::checkIfAllUpstreamMergersFinished()
-	{
-		// check if all mergers above this node have finished merging
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASVertex* source = (*it)->getSourceVertex();
-			if (!source->isAllUpstreamMergersFinished())
-			{
-				return;
-			}
-		}
-		
-		all_upstream_mergers_finished_ = true;
-		// tell children
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-		{
-			TOPPASVertex* target = (*it)->getTargetVertex();
-			target->checkIfAllUpstreamMergersFinished();
-		}
-	}
-	
 	void TOPPASVertex::checkIfSubtreeFinished()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		// check if entire subtree below this node is finished now, else return
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* target = (*it)->getTargetVertex();
 			if (!target->isSubtreeFinished())
 			{
+				debugOut_(String("Child ")+target->getTopoNr()+": subtree NOT finished. Returning.");
+				__DEBUG_END_METHOD__
 				return;
 			}
 		}
 		
+		debugOut_("Subtrees of all children finished! Notifying parents...");
 		subtree_finished_ = true;
     // tell parents
     for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			TOPPASVertex* source = (*it)->getSourceVertex();
+			debugOut_(String("Notifying parent ")+source->getTopoNr());
 			source->checkIfSubtreeFinished();
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	bool TOPPASVertex::isSubtreeFinished()
@@ -374,35 +368,94 @@ namespace OpenMS
 		return subtree_finished_;
 	}
 	
-	bool TOPPASVertex::isAllUpstreamMergersFinished()
-	{
-		return all_upstream_mergers_finished_;
-	}
-	
 	void TOPPASVertex::setSubtreeFinished(bool b)
 	{
 		subtree_finished_ = b;
 	}
 	
-	void TOPPASVertex::reset(bool /*reset_all_files*/, bool mergers_finished)
+	void TOPPASVertex::reset(bool reset_all_files)
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		subtree_finished_ = false;
-		all_upstream_mergers_finished_ = mergers_finished;
+		sc_files_per_round_ = 0;
+		sc_files_total_ = 0;
+		sc_list_length_checked_ = false;
+		if (reset_all_files)
+		{
+			files_known_ = false;
+			already_started_ = false;
+		}
+		update(boundingRect());
+		
+		__DEBUG_END_METHOD__
 	}
 	
-	void TOPPASVertex::resetSubtree(bool including_this_node, bool mergers_finished)
+	void TOPPASVertex::resetSubtree(bool including_this_node)
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		if (including_this_node)
 		{
-			reset(false,mergers_finished);
+			reset(false);
+			files_known_ = false;
 		}
 		
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
-			tv->reset(false, mergers_finished);
-			tv->resetSubtree(false, mergers_finished);
+			tv->resetSubtree(true);
 		}
+		
+		__DEBUG_END_METHOD__
+	}
+	
+	void TOPPASVertex::checkListLengths(QStringList& /*unequal_per_round*/, QStringList& /*unequal_over_entire_run*/)
+	{
+	}
+	
+	int TOPPASVertex::getScFilesPerRound()
+	{
+		return sc_files_per_round_;
+	}
+	
+	int TOPPASVertex::getScFilesTotal()
+	{
+		return sc_files_total_;
+	}
+	
+	bool TOPPASVertex::isScListLengthChecked()
+	{
+		return sc_list_length_checked_;
+	}
+	
+	bool TOPPASVertex::areAllUpstreamMergersFinished()
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASVertex* source = (*it)->getSourceVertex();
+			debugOut_(String("Checking parent ")+source->getTopoNr());
+			if (!source->areAllUpstreamMergersFinished())
+			{
+				__DEBUG_END_METHOD__
+				return false;
+			}
+		}
+		
+		__DEBUG_END_METHOD__
+		return true;
+	}
+	
+	bool TOPPASVertex::isAlreadyStarted()
+	{
+		return already_started_;
+	}
+	
+	void TOPPASVertex::setAlreadyStarted(bool b)
+	{
+		already_started_ = b;
 	}
 	
 }

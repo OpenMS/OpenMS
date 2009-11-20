@@ -277,7 +277,6 @@ namespace OpenMS
         //-------------------------------------------------------------
 				else if (mode=="Kroenik")
 				{
-					bool first_line = true;
 					for (Size i=1; i<input.size(); ++i)
 					{
 						String line = input[i];
@@ -331,7 +330,7 @@ namespace OpenMS
 						feature_map.push_back(f);
 					}
 
-					std::cout << "Warning: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
+					std::cout << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
 				}
 				
 				std::cout << "Converted " << feature_map.size() << " features!\n";

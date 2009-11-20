@@ -1,21 +1,22 @@
 
 -- General information --
 
-file name: FileInfo_8_input.notype
+file name: /share/usr/bertsch/OpenMS_i386_sl5/source/TEST/TOPP/FileInfo_8_input.notype
 file type: cdf
 
 peak type (metadata) : Unknown
 peak type (estimated): Raw data
 estimated raw data spacing: 10 (min: 10 max: 10)
 
-Number of peaks: 9
+Number of spectra: 3
+Number of peaks:   9
 
 Ranges:
-  retention time:  60 : 180
-  mass-to-charge:  100 : 140
-  intensity:       100 : 300
-MS levels: 1
+  retention time:  60.00 : 180.00
+  mass-to-charge:  100.00 : 140.00
+  intensity:       100.00 : 300.00
 
+MS levels: 1
 Spectra of MS Level 1: 3
 
 

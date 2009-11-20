@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
     @brief Generate seed lists for feature detection
 
-		Seed lists specify locations in an MS experiment where features are expected. Currently, only the "wavelet" FeatureFinder algorithm (class @p FeatureFinderAlgorithmPicked) supports custom seed lists (in featureXML format).
+		Seed lists specify locations in an MS experiment where features are expected. Currently, only the "centroided" FeatureFinder algorithm (class @p FeatureFinderAlgorithmPicked) supports custom seed lists (in featureXML format).
 
 		@experimental This is a new class that still needs to be tested.
   */
@@ -63,7 +63,7 @@ namespace OpenMS
 
 			 This uses the locations of MS2 precurors as seed positions.
 		*/
-		void getSeedList(const MSExperiment<>& experiment, SeedList& seeds);
+		void generateSeedList(const MSExperiment<>& experiment, SeedList& seeds);
 
 		
 		/**
@@ -71,8 +71,8 @@ namespace OpenMS
 
 			 This uses the locations of the corresponding MS2 precursors ("RT" and "MZ" MetaInfo entries) as seed positions.
 		*/
-		void getSeedList(const std::vector<PeptideIdentification>& peptides,
-										 SeedList& seeds);
+		void generateSeedList(const std::vector<PeptideIdentification>& peptides,
+													SeedList& seeds);
 
 		
 		/**
@@ -83,16 +83,16 @@ namespace OpenMS
 
 			 Note that the resulting seed lists use the retention time scale of the consensus map, which might be different from the original time scales of the experiments if e.g. the MapAligner tool was used to perform retention time correction as part of the alignment process.
 		*/		
-		void getSeedLists(const ConsensusMap& consensus,
-											Map<UInt64, SeedList>& seed_lists);
+		void generateSeedLists(const ConsensusMap& consensus,
+													 Map<UInt64, SeedList>& seed_lists);
 
 		
 		/// Convert a list of seed positions to a feature map (expected format for FeatureFinder)
-		void convert(const SeedList& seeds, FeatureMap<>& features);
+		void convertSeedList(const SeedList& seeds, FeatureMap<>& features);
 
 
 		/// Convert a feature map with seed positions back to a simple list
-		void convert(const FeatureMap<>& features, SeedList& seeds);
+		void convertSeedList(const FeatureMap<>& features, SeedList& seeds);
 		
 	};
 

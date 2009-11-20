@@ -89,7 +89,12 @@ namespace OpenMS
 			file.read(bz,2);
 			xercesc::InputSource *source;
 			char g1 = 0x1f;
-			char g2 = 0x8b;
+			char g2 = 0;
+			g2 |= 1 << 7;
+			g2 |= 1 <<3;
+			g2  |=1  <<1;
+			g2 |=1 <<0;
+			//g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
 			if((bz[0] == 'B' && bz[1] =='Z' ) || 	(bz[0] == g1 && bz[1] == g2))
 			{
 				source = new CompressedInputSource(StringManager().convert(filename.c_str()), bz);

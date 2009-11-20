@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://www-bs.informatik.uni-tuebingen.de/compas" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:plnk="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://www-bs.informatik.uni-tuebingen.de/compas" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="AdditiveSeriesRequest">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="in" default="[]">
+              <xs:annotation>
+                <xs:documentation>input files separated by blanks(valid formats: 'featureXML')</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:stringlist">
+                  <xs:pattern value="^$|[^,](,[^,]+)*"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="out" type="xs:string" default="">
+              <xs:annotation>
+                <xs:documentation>output XML file containg regression line and confidence interval</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="mz_tolerance" type="xs:double" default="1">
+              <xs:annotation>
+                <xs:documentation>Tolerance in m/z dimension</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="rt_tolerance" type="xs:double" default="1">
+              <xs:annotation>
+                <xs:documentation>Tolerance in RT dimension</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="feature_rt" type="xs:double" default="0">
+              <xs:annotation>
+                <xs:documentation>RT position of the feature</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="feature_mz" type="xs:double" default="0">
+              <xs:annotation>
+                <xs:documentation>m/z position of the feature</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="standard_rt" type="xs:double" default="0">
+              <xs:annotation>
+                <xs:documentation>RT position of the standard</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="standard_mz" type="xs:double" default="0">
+              <xs:annotation>
+                <xs:documentation>m/z position of the standard</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="write_gnuplot_output" default="false">
+              <xs:annotation>
+                <xs:documentation>Flag that activates the GNUplot output</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="true"/>
+                  <xs:enumeration value="false"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="out_gp" type="xs:string" default="">
+              <xs:annotation>
+                <xs:documentation>base file name (3 files with different extensions are created)</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="mz_unit" type="xs:string" default="Thomson">
+              <xs:annotation>
+                <xs:documentation>the m/z unit of the plot</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="rt_unit" type="xs:string" default="seconds">
+              <xs:annotation>
+                <xs:documentation>the RT unit of the plot</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="log" type="xs:string" default="TOPP.log">
+              <xs:annotation>
+                <xs:documentation>Location of the log file</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="debug" type="xs:integer" default="0">
+              <xs:annotation>
+                <xs:documentation>Sets the debug level</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="threads" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>Sets the number of threads allowed to be used by the TOPP tool</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="no_progress" default="false">
+              <xs:annotation>
+                <xs:documentation>Disables progress logging to command line</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="true"/>
+                  <xs:enumeration value="false"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="test" default="false">
+              <xs:annotation>
+                <xs:documentation>Enables the test mode (needed for software testing only)</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="true"/>
+                  <xs:enumeration value="false"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="concentrations:1" type="xs:double" default="1">
+            </xs:element>
+            <xs:element name="concentrations:2" type="xs:double" default="2">
+            </xs:element>
+            <xs:element name="concentrations:3" type="xs:double" default="3">
+            </xs:element>
+            <xs:element name="in:1" type="xs:string" default="data/file1.xml">
+            </xs:element>
+            <xs:element name="in:2" type="xs:string" default="data/file2.xml">
+            </xs:element>
+            <xs:element name="in:3" type="xs:string" default="data/file3.xml">
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="AdditiveSeriesRequestMessage">
+    <wsdl:part element="ns1:AdditiveSeriesRequest" name="part1"/>
+  </wsdl:message>
+  <wsdl:portType name="SVMHCProcessPortType">
+    <wsdl:operation name="request">
+      <wsdl:input message="tns:AdditiveSeriesRequestMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="AdditiveSeriesProviderServiceBinding" type="tns:AdditiveSeriesPortType">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+    <wsdl:operation name="request">
+      <soap:operation soapAction="" style="rpc" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+      <wsdl:input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" use="encoded" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" use="encoded" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="AdditiveSeriesProviderService">
+    <wsdl:port binding="tns:AdditiveSeriesProviderServiceBinding" name="AdditiveSeriesProviderServicePort">
+     <soap:address location="http://trypsin.informatik.uni-tuebingen.de:30090/active-bpel/services/AdditiveSeriesProviderService" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

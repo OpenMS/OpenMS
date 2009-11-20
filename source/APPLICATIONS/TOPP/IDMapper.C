@@ -80,10 +80,15 @@ class TOPPIDMapper
 
 			addEmptyLine_();
 			IDMapper mapper;
-			registerDoubleOption_("rt_delta","<value>",mapper.getRTDelta(), "Maximum allowed RT deviation between identification and peak/feature.", false);
+			Param p = mapper.getParameters();
+			registerDoubleOption_("rt_delta","<value>",p.getValue("rt_delta"), "Maximum allowed RT delta (seconds) between identification and peak/feature.", false);
 			setMinFloat_("rt_delta",0.0);
-			registerDoubleOption_("mz_delta","<value>",mapper.getMZDelta(), "Maximum allowed m/z deviation between identification and peak/feature.", false);
+			registerDoubleOption_("mz_delta","<value>",p.getValue("mz_delta"), "Maximum allowed m/z delta (ppm or Da) between identification and peak/feature.", false);
 			setMinFloat_("mz_delta",0.0);
+			registerStringOption_("mz_measure","<String>",p.getEntry("mz_measure").valid_strings[0],"Unit of mz_delta", false);
+			setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
+			registerStringOption_("mz_reference","<String>",p.getEntry("mz_reference").valid_strings[1],"Method to determine m/z of identification", false);
+			setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
 			registerFlag_("use_centroids","[FeatureMap only] use RT&MZ coordinate instead of convex hull");
 			registerFlag_("use_subelements","[ConsensusMap only] use RT&MZ coordinate of sub-features instead of consensus RT&MZ");
 		}
@@ -106,8 +111,12 @@ class TOPPIDMapper
 			//create mapper
 			//----------------------------------------------------------------
 			IDMapper mapper;
-			mapper.setRTDelta(getDoubleOption_("rt_delta"));
-			mapper.setMZDelta(getDoubleOption_("mz_delta"));
+			Param p = mapper.getParameters();
+			p.setValue("rt_delta", getDoubleOption_("rt_delta"));
+			p.setValue("mz_delta", getDoubleOption_("mz_delta"));
+			p.setValue("mz_measure",getStringOption_("mz_measure"));
+			p.setValue("mz_reference",getStringOption_("mz_reference"));
+			mapper.setParameters(p);
 
 			//----------------------------------------------------------------
 			// consensusXML

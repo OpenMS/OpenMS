@@ -617,23 +617,18 @@ namespace OpenMS
 			double *tempx =  new double [x.size()];
 			double *tempy = new double [x.size()];
 			
-			/*for(Int i= x.size()-1 ; i >=0; --i)
-			{
-				tempx[x.size()-1-i]=x[i];
-				tempy[x.size()-1-i]=y[i];
-			}*/
-			std::vector<std::pair<Real,Real> >PairVector;
+			TransformationDescription::PairVector pair_vector;
 			for (Size i= 0 ; i <x.size(); ++i)
 			{
 				tempx[i]=x[i];
 				tempy[i]=y[i];
 				//fill pairs with the anchorpoints
-				PairVector.push_back(std::make_pair((Real)x[i],(Real)y[i]));
+				pair_vector.push_back(std::make_pair((Real)x[i],(Real)y[i]));
 			}
 			//setting transformation by replacing the PairVector
 			TransformationDescription trans;
 			trans.setName("spline");
-			trans.setPairs(PairVector);
+			trans.setPairs(pair_vector);
 			transformation.push_back(trans);
 			gsl_interp_accel *acc = gsl_interp_accel_alloc();
 			gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, x.size());

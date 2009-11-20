@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_VALIDATORS_TRAMLVALIDATOR_H
@@ -56,23 +56,6 @@ namespace OpenMS
 				
 				/// Destructor
 				virtual ~TraMLValidator();
-				
-			protected:
-				
-				// Docu in base class
-				void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-
-				// Docu in base class
-				virtual String getPath_(UInt remove_from_end = 0) const;
-				
-				// Docu in base class
-				virtual void handleTerm_(const String& path, const CVTerm& parsed_term); 
-				
-				///CV terms which can have a value (term => value type)
-				Map<String,std::vector<CVTerm> > param_groups_;
-				
-				///Current referenceableParamGroup identifier
-				String current_id_;
 				
 			private:
 				

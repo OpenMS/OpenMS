@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDTAGGER_H
-#define OPENMS_METADATA_IDTAGGER_H
+#ifndef OPENMS_METADATA_DOCUMENTIDTAGGER_H
+#define OPENMS_METADATA_DOCUMENTIDTAGGER_H
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -39,7 +39,7 @@ namespace OpenMS
   /**
     @brief Tags OpenMS file containers with a DocumentID
     
-    Intented usage is from within a TOPP tool. An instance of this class
+    Intended usage is from within a TOPP tool. An instance of this class
 		is present in TOPPBase and can be used by all derived TOPP tools
 		to assign a unique ID which is fetched from an ID pool in ./share/OpenMS/IDPool/.
 				
@@ -54,7 +54,7 @@ namespace OpenMS
 			/**
 				@brief retrieve an ID from the pool
 
-				Uses boost filelocks to savely retrieve an ID from an ID pool.
+				Uses boost filelocks to safely retrieve an ID from an ID pool.
 				
 				@param id Unique identifier returned from ID pool
 				@param free Number of available identifiers in ID pool (before this query)
@@ -108,7 +108,7 @@ namespace OpenMS
 				@brief return the number of available IDs in the pool.
 
 				Retrieve the number of available IDs in the pool.
-				Returns true of count was successfull, false otherwise (locking error, file creation error ...)
+				Returns true of count was successful, false otherwise (locking error, file creation error ...)
 				
 				@param free Number of available identifiers. You should worry if it's 0!
 			*/
@@ -124,5 +124,5 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_IDTAGGER_H
+#endif // OPENMS_METADATA_DOCUMENTIDTAGGER_H
 

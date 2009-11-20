@@ -979,7 +979,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
-	TEST_EQUAL(warnings.size(),10) // TODO add mappings for chromatogram/precursor/activation and selectedIon
+	TEST_EQUAL(warnings.size(),10) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
 
 	//valid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)

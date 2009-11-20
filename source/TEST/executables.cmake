@@ -149,11 +149,13 @@ set(format_executables_list
   MascotRemoteQuery_test
   MascotXMLFile_test
   MzDataFile_test
-  MzIdentMLFile_test
+	MzIdentMLFile_test
+	MzDataValidator_test
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLValidator_test
   MzXMLFile_test
+	TraMLValidator_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   PTMXMLFile_test
@@ -170,7 +172,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   TextFile_test
-  TraMLFile_test
+	TraMLFile_test
   TransformationXMLFile_test
   UnimodXMLFile_test
   XMLFile_test
@@ -335,6 +337,8 @@ set(analysis_executables_list
 	PILISModelGenerator_test
 	PILISModel_test
 	PILISScoring_test
+	PILISCrossValidation_test
+	PILISNeutralLossModel_test
 	PeakIntensityPredictor_test
 	PoseClusteringAffineSuperimposer_test
 	PoseClusteringShiftSuperimposer_test
@@ -369,7 +373,6 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithmSimple_test
   FeatureFinderAlgorithmSimplest_test
-  FeatureFinderAlgorithmWavelet_test
   FeatureFinderAlgorithm_test
   FeatureFinder_test
   Fitter1D_test

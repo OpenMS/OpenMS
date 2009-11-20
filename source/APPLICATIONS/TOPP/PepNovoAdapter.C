@@ -64,39 +64,18 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via PepNovo.
 
-	@experimental This tool has not been tested thoroughly and might behave not as expected!
-
 	This wrapper application serves for getting peptide identifications
-	for MS/MS spectra. The wrapper can be executed in three different
-	modes:
-	<ol>
-				<li>
-				The whole process of identification via PepNovo is executed.
-				Inputfile is one (or more) mz file containing the MS/MS spectra
-				(Supported spectrum file formats are .mzXML, .mzData)
-				for which the identifications are to be found. The results are written
-				as an idXML output file. This mode is selected by default.
-			 	</li>
+	for MS/MS spectra.
 
-				<li>
-				Only the first part of the ProteinIdentification process is performed.
-				This means that a PepNovo input file is generated and dta files are
-				created from the mz file.
-				The call for the corresponding DeNovo process is written to standard
-				output.
+	The whole process of identification via PepNovo is executed.
+	Inputfile is one mzXML file containing the MS/MS spectra
+	for which the identifications are to be found. The results are written
+	as an idXML output file.
 
-				Consult your PepNovo reference manual for further details.
+	The resulting idXML file can then be directly mapped to the spectra using the
+	IDMapper class.
 
-				This mode is selected by the <b>-pepnovo_in</b> option in the command line.
-				</li>
-
-				<li>
-				Only the second part of the ProteinIdentification process is performed.
-				This means that the output of pepnovo is translated into idXML.
-
-				This mode is selected by the <b>-pepnovo_out</b> option in the command line.
-				</li>
-	</ol>
+	Consult your PepNovo reference manual for further details about parameter meanings.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PepNovoAdapter.cli
@@ -110,7 +89,7 @@ class TOPPPepNovoAdapter
 {
 	public:
 		TOPPPepNovoAdapter()
-			: TOPPBase("PepNovoAdapter", "Annotates MS/MS spectra using PepNovo.")
+			: TOPPBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
 		{
 		}
 
@@ -126,13 +105,15 @@ class TOPPPepNovoAdapter
 
 			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true);
 			registerStringOption_("temp_data_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", true);
+      registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
+      addEmptyLine_ ();
+      addText_("PepNovo Parameters");
 			registerFlag_("correct_pm", "find optimal precursor mass and charge values.");
 			registerFlag_("use_spectrum_charge", "do not correct charge");
 			registerFlag_("use_spectrum_mz", "do not correct the precursor m/z value that appears in the file.");
 			registerFlag_("no_quality_filter", "do not remove low quality spectra.");
 			registerDoubleOption_("fragment_tolerance", "<Float>", -1.0, "the fragment tolerance (between 0 and 0.75 Da. Set to -1.0 to use model's default setting)", false, false);
 			registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "the precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
-			registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
 			registerStringOption_("model", "<file>", "CID_IT_TRYP", "name of the model that should be used", false);
 
 			registerStringOption_("digest", "", "TRYPSIN", "enzyme used for digestion (default TRYPSIN)", false);
@@ -239,10 +220,25 @@ class TOPPPepNovoAdapter
 			std::map<String, pair<Real, Real> >id_to_rt;
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
+			  Int valid_id;
+			  Size num_pos=0;
 			  String native_id=it->getNativeID();
-			  if(native_id.find('=')!=native_id.length())
-			    native_id=native_id.substr(native_id.find('=')+1);//replace entries "scan=number" by "number"as PepNovo uses it as identifier in output
-				id_to_rt[native_id.trim()]=make_pair(it->getRT(), it->getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
+
+			  while(!isdigit(native_id[num_pos]) && num_pos<native_id.length())
+			  {
+			    ++num_pos;
+			  }
+			  if(num_pos==native_id.length())
+			  {
+			    writeLog_("No valid NativeId for spectrum. Aborting!");
+          return INPUT_FILE_CORRUPT;
+			  }
+			  else
+			  {
+			    valid_id=native_id.substr(num_pos).toInt();
+			  }
+			  id_to_rt[valid_id]=make_pair(it->getRT(), it->getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
+				//std::cout<<"stored id: "<<valid_id<<std::endl;
 			}
 
 			logfile = getStringOption_("log");
@@ -274,7 +270,7 @@ class TOPPPepNovoAdapter
 			  String temp_pepnovo_outfile = qdir_temp.absoluteFilePath("tmp_pepnovo_out.txt");
 			  String tmp_models_dir=qdir_temp.absoluteFilePath("Models");
 
-        std::map<String, String>mods_and_keys, key_to_id;
+        std::map<String, String>mods_and_keys; //, key_to_id;
 
 				if(qdir_temp.cd("Models"))
 				{
@@ -332,7 +328,7 @@ class TOPPPepNovoAdapter
 							ptm_command+=":";
 						}
 						ptm_command+= key_it->first;
-						key_to_id[key_it->second]=key_it->first;
+						//key_to_id[key_it->second]=key_it->first;
 					}
 				}
 
@@ -406,7 +402,7 @@ class TOPPPepNovoAdapter
 				  return EXTERNAL_PROGRAM_ERROR;
 				}
       }
-			catch(...)
+			catch(Exception::BaseException &exc)
 			{
 				//remove all possibly created files and folders ion case of unexpected error
 				qdir_temp.setPath(temp_data_directory);
@@ -435,10 +431,11 @@ class TOPPPepNovoAdapter
 					qdir_temp.cdUp();
 					qdir_temp.remove("tmp_pepnovo_out.txt");
 					qdir_temp.rmdir("Models");
-			}
-      return EXTERNAL_PROGRAM_ERROR;
-		}
-  }
+        }
+        writeLog_(exc.what());
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+    }
 };
 
 //@endcond

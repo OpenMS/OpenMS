@@ -69,5 +69,6 @@
   - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
   - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
+  - @subpage UTILS_UniqueIdAssigner - Assign new unique ids to FeatureXML or ConsensusXML files.
 	
 */

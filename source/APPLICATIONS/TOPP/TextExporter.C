@@ -340,7 +340,11 @@ namespace OpenMS
         registerFlag_("no_ids", "Suppresses output of identification data.");
         addEmptyLine_();
 
-        addText_("Options for IdXML files:");
+				addText_("Options for featureXML files:");
+				registerFlag_("minimal", "Set this flag to write only what can be read again by TextImporter: RT, m/z, and intensity");
+				addEmptyLine_();
+
+        addText_("Options for idXML files:");
         registerFlag_("proteins_only",
           "Set this flag if you want only protein information from an idXML file");
         registerFlag_("peptides_only",
@@ -350,7 +354,7 @@ namespace OpenMS
           "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
         addEmptyLine_();
 
-        addText_("Options for ConsensusXML files:");
+        addText_("Options for consensusXML files:");
         registerOutputFile_("consensus_centroids", "<file>", "",
           "Output file for centroids of consensus features", false);
         registerOutputFile_("consensus_elements", "<file>", "",
@@ -413,40 +417,46 @@ namespace OpenMS
           ofstream outstr(out.c_str());
 					SVOutStream output(outstr, sep, replacement, quoting_method);
 
-          // stores one feature per line
+					bool minimal = getFlag_("minimal");
+					no_ids |= minimal; // "minimal" implies "no_ids"
+					
+					// write header:
 					output.modifyStrings(false);
-          if (no_ids)
-          {
-            output << "#rt" << "mz" << "intensity" << "charge"
-									 << "overall_quality" << "rt_quality" << "mz_quality"
-									 << "rt_start" << "rt_end" << endl;
-          }
-          else
-          {
-            output << "#FEATURE" << "rt" << "mz" << "intensity" << "charge"
-									 << "overall_quality" << "rt_quality" << "mz_quality"
-									 << "rt_start" << "rt_end" << endl;
-            output << "#PEPTIDE" << "rt" << "mz" << "score" << "rank"
+					if (!no_ids) output << "#FEATURE" << "rt";
+					else output << "#rt";
+					output << "mz" << "intensity";
+					if (!minimal)
+					{
+						output << "charge" << "overall_quality" << "rt_quality" 
+									 << "mz_quality" << "rt_start" << "rt_end";
+					}
+					output << endl;
+					if (!no_ids)
+					{
+						output << "#PEPTIDE" << "rt" << "mz" << "score" << "rank"
 									 << "sequence" << "charge" << "aa_before" << "aa_after"
 									 << "score_type" << "search_identifier" << endl;
           }
 					output.modifyStrings(true);
+
           for ( FeatureMap<>::const_iterator citer = feature_map.begin(); citer
               != feature_map.end(); ++citer )
           {
             if (!no_ids) output << "FEATURE";
-            output << citer->getPosition()[0] << citer->getPosition()[1]
-									 << citer->getIntensity() << citer->getCharge()
-									 << citer->getOverallQuality() << citer->getQuality(0)
-									 << citer->getQuality(1);
+            output << citer->getRT() << citer->getMZ() << citer->getIntensity();
+						if (!minimal)
+						{
+							output << citer->getCharge() << citer->getOverallQuality() 
+										 << citer->getQuality(0) << citer->getQuality(1);
 
-            if (citer->getConvexHulls().size() > 0)
-            {
-              output << citer->getConvexHulls().begin()->
-								getBoundingBox().minX() << citer->getConvexHulls().begin()->
-								getBoundingBox().maxX();
-            }
-            else output << "-1" << "-1";
+							if (citer->getConvexHulls().size() > 0)
+							{
+								output << citer->getConvexHulls().begin()->
+									getBoundingBox().minX() << citer->getConvexHulls().begin()->
+									getBoundingBox().maxX();
+							}
+							else output << "-1" << "-1";
+						}
             output << endl;
 
             //peptide ids

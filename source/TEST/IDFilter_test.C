@@ -433,6 +433,37 @@ START_SECTION((void removeUnreferencedProteinHits(const ProteinIdentification &i
   TEST_EQUAL(protein_identification.getHits()[2].getAccession(), "Q872T5")
 END_SECTION
 
+START_SECTION((void filterIdentificationsUnique(const PeptideIdentification &identification, PeptideIdentification &filtered_identification)))
+	PeptideIdentification id, id2;
+	vector<PeptideHit> hits;
+	PeptideHit hit;
+	hit.setSequence("DFPIANGER");
+	hit.setCharge(1);
+	hit.setScore(0.3);
+	hits.push_back(hit);
+	hit.setCharge(2);
+	hits.push_back(hit);
+	hit.setScore(0.5);
+	hits.push_back(hit);
+	hit.setSequence("DFPIANGEK");
+	hits.push_back(hit);
+	hits.push_back(hit);
+	hits.push_back(hit);
+	hit.setCharge(5);
+	hits.push_back(hit);
+	IDFilter id_filter;
+	TEST_EQUAL(hits.size(), 7)
+	id.setHits(hits);
+
+	id_filter.filterIdentificationsUnique(id, id2);
+	TEST_EQUAL(id2.getHits().size(), 5)
+	TEST_STRING_EQUAL(id2.getHits()[3].getSequence().toString(), "DFPIANGEK")
+	TEST_EQUAL(id2.getHits()[3].getCharge(), 2)
+	TEST_STRING_EQUAL(id2.getHits()[4].getSequence().toString(), "DFPIANGEK")
+	TEST_EQUAL(id2.getHits()[4].getCharge(), 5)
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

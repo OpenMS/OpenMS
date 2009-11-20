@@ -81,32 +81,60 @@ END_SECTION
 
 START_SECTION((void digest(FeatureMapSim & feature_map)))
 {
-  SampleProteins in,out;
-  // TODO: re-enable test code  
-/* 	in["ACDKDDLDDFRLNN"] = 100;
- * 	in["ACDKDDLASSRL"] = 50;
- * 
- * 	// test if "out" is deleted
- * 	out["AALA"] = 10000;
- * 
- * 	DigestSimulation a;
- * 	a.digest(in,out);
- * 
- * 	TEST_REAL_SIMILAR(out["ACDK"], 107.143);
- * 	TEST_REAL_SIMILAR(out["ACDKDDLASSR"], 35.7143);
- * 	TEST_REAL_SIMILAR(out["ACDKDDLDDFR"], 71.4286);
- * 	TEST_REAL_SIMILAR(out["DDLASSR"], 35.7143);
- * 	TEST_REAL_SIMILAR(out["DDLASSRL"], 35.7143);
- * 	TEST_REAL_SIMILAR(out["DDLDDFR"], 71.4286);
- * 	TEST_REAL_SIMILAR(out["DDLDDFRLNN"], 71.4286);
- * 	TEST_REAL_SIMILAR(out["LNN"], 71.4286);
- */
+	FeatureMapSim fm;
+  ProteinIdentification protIdent;
+	// add new ProteinHit to ProteinIdentification
+	{
+  ProteinHit protHit(0.0, 1, "Hit1", "ACDKDDLDDFRLNN");
+  protHit.setMetaValue("description", "desc 1");
+	protHit.setMetaValue("intensity", 100);
+  protIdent.insertHit(protHit);
+	}
+	{
+  ProteinHit protHit(0.0, 1, "Hit2", "ACDKDDLASSRL");
+  protHit.setMetaValue("description", "desc 1");
+	protHit.setMetaValue("intensity", 50);
+  protIdent.insertHit(protHit);
+	}
+  std::vector<ProteinIdentification> vec_protIdent;
+  vec_protIdent.push_back(protIdent);
+  fm.setProteinIdentifications(vec_protIdent);
+     
+	DigestSimulation a;
+	a.digest(fm);
+	  
+	TEST_EQUAL(fm.size(), 8) 
+	
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "ACDK")
+	TEST_EQUAL(fm[0].getIntensity(), 108)
 
- //for (SampleProteins::const_iterator protein = out.begin();
- //        protein != out.end();
- //        ++protein)
+	TEST_EQUAL(fm[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), "ACDKDDLASSR")
+	TEST_EQUAL(fm[1].getIntensity(), 36)
+
+	TEST_EQUAL(fm[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), "ACDKDDLDDFR")
+	TEST_EQUAL(fm[2].getIntensity(), 72)
+
+	TEST_EQUAL(fm[3].getPeptideIdentifications()[0].getHits()[0].getSequence(), "DDLASSR")
+	TEST_EQUAL(fm[3].getIntensity(), 36)
+
+	TEST_EQUAL(fm[4].getPeptideIdentifications()[0].getHits()[0].getSequence(), "DDLASSRL")
+	TEST_EQUAL(fm[4].getIntensity(), 36)
+
+	TEST_EQUAL(fm[5].getPeptideIdentifications()[0].getHits()[0].getSequence(), "DDLDDFR")
+	TEST_EQUAL(fm[5].getIntensity(), 72)
+
+	TEST_EQUAL(fm[6].getPeptideIdentifications()[0].getHits()[0].getSequence(), "DDLDDFRLNN")
+	TEST_EQUAL(fm[6].getIntensity(), 72)
+
+	TEST_EQUAL(fm[7].getPeptideIdentifications()[0].getHits()[0].getSequence(), "LNN")
+	TEST_EQUAL(fm[7].getIntensity(), 72)
+
+
+ //for (FeatureMapSim::const_iterator f = fm.begin();
+ //        f != fm.end();
+ //        ++f)
  //{
- //  std::cout << protein->first.toString() << " " << protein->second << "\n";
+ //  std::cout << f->getPeptideIdentifications()[0].getHits()[0].getSequence() << " " << f->getIntensity() << "\n";
  //}
 
 }

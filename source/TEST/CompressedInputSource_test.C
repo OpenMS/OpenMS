@@ -30,12 +30,14 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/CompressedInputSource.h>
 #include <OpenMS/FORMAT/GzipInputStream.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 using namespace OpenMS;
 
 
 ///////////////////////////
 
-START_TEST(CompressedInputSource, "$Id: $")
+START_TEST(CompressedInputSource, "$Id$")
 
 CompressedInputSource* ptr = 0;
 START_SECTION(CompressedInputSource(const   String& file_path, const char * header,xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager))
@@ -45,12 +47,22 @@ START_SECTION(CompressedInputSource(const   String& file_path, const char * head
 	ptr = new CompressedInputSource(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"),header);
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
-
 START_SECTION((~CompressedInputSource()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(makeStream())
+START_SECTION(CompressedInputSource(const XMLCh *const file_path, const char *header, xercesc::MemoryManager *const manager=xercesc::XMLPlatformUtils::fgMemoryManager))
+		char header[2];
+	header[0] = 'B';
+	header[1] = 'Z';
+	String filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
+	ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()),header);
+	TEST_NOT_EQUAL(ptr, 0)
+	delete ptr;
+END_SECTION
+
+
+START_SECTION(virtual xercesc::BinInputStream* makeStream() const)
 	char header[2];
 	header[0] = 'B';
 	header[1] = 'Z';

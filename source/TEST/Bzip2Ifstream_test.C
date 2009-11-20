@@ -37,7 +37,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(Bzip2Ifstream_test, "$Id: MzMLFile_test.C 6174 2009-10-23 09:48:00Z davidwojnar $")
+START_TEST(Bzip2Ifstream_test, "$Id$")
 
 Bzip2Ifstream* ptr = 0;
 START_SECTION((Bzip2Ifstream()))
@@ -64,7 +64,7 @@ START_SECTION(Bzip2Ifstream(const char * filename))
 
 END_SECTION
 
-START_SECTION(open(const char * filename))
+START_SECTION(void open(const char *filename))
 	Bzip2Ifstream bzip;
 	TEST_EXCEPTION(Exception::FileNotFound, bzip.open(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	
@@ -80,7 +80,7 @@ START_SECTION(open(const char * filename))
 	
 END_SECTION
 
-START_SECTION(read(char* s, size_t n))
+START_SECTION(size_t read(char *s, size_t n))
 	//tested in open(const char * filename)
 	Bzip2Ifstream bzip(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1_corrupt.bz2"));
 		char buffer[30];
@@ -109,15 +109,15 @@ START_SECTION(read(char* s, size_t n))
 	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
 END_SECTION
 
-START_SECTION(close())
+START_SECTION(void close())
 	//tested in read
 	NOT_TESTABLE
 END_SECTION
-START_SECTION(streamEnd()(char* s, size_t n))
+START_SECTION(bool streamEnd() const )
 	//tested in open(const char * filename) and read
 	NOT_TESTABLE
 END_SECTION
-START_SECTION(isOpen(char* s, size_t n))
+START_SECTION(bool isOpen() const )
 	//tested in open(const char * filename) and read
 	NOT_TESTABLE
 END_SECTION

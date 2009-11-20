@@ -89,8 +89,42 @@ START_SECTION((PeakShape(const PeakShape& rhs)))
     TEST_REAL_SIMILAR(peakshape.area, 8329832.141)
     TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
 END_SECTION
-
+MSSpectrum<> spec;
+spec.resize(100);
+for(Int i = 0; i<100;++i)
+{
+  spec[i].setMZ(i*0.1);
+  spec[i].setIntensity(100.); 
+}
 START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, PeakIterator left_, PeakIterator right_, Type type_)))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 0.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 3.0;
+    DoubleReal area = 309.23292;
+    PeakShape::Type type = PeakShape::LORENTZ_PEAK;
+
+    
+    PeakShape::PeakIterator it1 = spec.begin()+2;
+    PeakShape::PeakIterator it2 = spec.begin()+30;
+    PeakShape peakshape(height,
+    mz_position,
+    left_width,
+    right_width,
+		area,it1,it2,
+		type);
+
+    TEST_EQUAL(peakshape.iteratorsSet(), true)
+    TEST_REAL_SIMILAR(peakshape.height,height) 
+	  TEST_REAL_SIMILAR(peakshape.mz_position, mz_position)
+		TEST_REAL_SIMILAR(peakshape.left_width, left_width)
+    TEST_REAL_SIMILAR(peakshape.right_width, right_width)
+    TEST_REAL_SIMILAR(peakshape.area, area)
+    TEST_REAL_SIMILAR(peakshape.r_value, 0.0)
+		TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
+END_SECTION
+
+START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, Type type_)))
     DoubleReal height = 100.0;
     DoubleReal mz_position = 0.0;
     DoubleReal left_width = 3.0;
@@ -105,6 +139,7 @@ START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal
 		area,
 		type);
 
+    TEST_EQUAL(peakshape.iteratorsSet(), false)
     TEST_REAL_SIMILAR(peakshape.height,height) 
 	  TEST_REAL_SIMILAR(peakshape.mz_position, mz_position)
 		TEST_REAL_SIMILAR(peakshape.left_width, left_width)
@@ -113,6 +148,127 @@ START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal
     TEST_REAL_SIMILAR(peakshape.r_value, 0.0)
 		TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
 END_SECTION
+
+START_SECTION((bool iteratorsSet() const))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 0.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 3.0;
+    DoubleReal area = 309.23292;
+    PeakShape::Type type = PeakShape::LORENTZ_PEAK;
+
+    PeakShape peakshape(height,
+    mz_position,
+    left_width,
+    right_width,
+		area,
+		type);
+
+    
+    PeakShape::PeakIterator it1 = spec.begin()+2;
+    PeakShape::PeakIterator it2 = spec.begin()+30;
+    PeakShape peakshape2(height,
+    mz_position,
+    left_width,
+    right_width,
+		area,it1,it2,
+		type);
+
+    TEST_EQUAL(peakshape2.iteratorsSet(), true)
+    TEST_EQUAL(peakshape.iteratorsSet(), false)
+END_SECTION
+
+START_SECTION((PeakIterator getRightEndpoint() const))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 4.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 3.0;
+    DoubleReal area = 309.23292;
+    PeakShape::Type type = PeakShape::LORENTZ_PEAK;
+
+    PeakShape::PeakIterator it1 = spec.begin()+2;
+    PeakShape::PeakIterator it2 = spec.begin()+30;
+    PeakShape peakshape(height,
+    mz_position,
+    left_width,
+    right_width,
+		area,it1,it2,
+		type);
+
+    TEST_REAL_SIMILAR(peakshape.getRightEndpoint()->getMZ(), (spec.begin()+30)->getMZ())
+    TEST_REAL_SIMILAR(peakshape.getRightEndpoint()->getIntensity(), (spec.begin()+30)->getIntensity())
+END_SECTION
+
+
+START_SECTION((void setRightEndpoint(PeakIterator right_endpoint)))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 4.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 3.0;
+    DoubleReal area = 309.23292;
+    PeakShape::Type type = PeakShape::LORENTZ_PEAK;
+
+    PeakShape::PeakIterator it1 = spec.begin()+2;
+    PeakShape::PeakIterator it2 = spec.begin()+30;
+    PeakShape peakshape(height,
+    mz_position,
+    left_width,
+    right_width,
+		area,
+		type);
+
+    peakshape.setLeftEndpoint(it1);
+    peakshape.setRightEndpoint(it2); 
+    TEST_EQUAL(peakshape.iteratorsSet(), true)
+    TEST_REAL_SIMILAR(peakshape.getRightEndpoint()->getMZ(), (spec.begin()+30)->getMZ())
+    TEST_REAL_SIMILAR(peakshape.getRightEndpoint()->getIntensity(), (spec.begin()+30)->getIntensity())
+END_SECTION
+
+START_SECTION((PeakIterator getLeftEndpoint() const))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 4.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 3.0;
+    DoubleReal area = 309.23292;
+    PeakShape::Type type = PeakShape::LORENTZ_PEAK;
+
+    PeakShape::PeakIterator it1 = spec.begin()+2;
+    PeakShape::PeakIterator it2 = spec.begin()+30;
+    PeakShape peakshape(height,
+    mz_position,
+    left_width,
+    right_width,
+		area,it1,it2,
+		type);
+
+    TEST_REAL_SIMILAR(peakshape.getLeftEndpoint()->getMZ(), (spec.begin()+2)->getMZ())
+    TEST_REAL_SIMILAR(peakshape.getLeftEndpoint()->getIntensity(), (spec.begin()+2)->getIntensity())
+END_SECTION
+
+
+START_SECTION((void setLeftEndpoint(PeakIterator left_endpoint)))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 4.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 3.0;
+    DoubleReal area = 309.23292;
+    PeakShape::Type type = PeakShape::LORENTZ_PEAK;
+
+    PeakShape::PeakIterator it1 = spec.begin()+2;
+    PeakShape::PeakIterator it2 = spec.begin()+30;
+    PeakShape peakshape(height,
+    mz_position,
+    left_width,
+    right_width,
+		area,
+		type);
+    peakshape.setLeftEndpoint(it1);
+
+    TEST_EQUAL(peakshape.iteratorsSet(), false)
+    TEST_REAL_SIMILAR(peakshape.getLeftEndpoint()->getMZ(), (spec.begin()+2)->getMZ())
+    TEST_REAL_SIMILAR(peakshape.getLeftEndpoint()->getIntensity(), (spec.begin()+2)->getIntensity())
+END_SECTION
+
 
 START_SECTION((DoubleReal getSymmetricMeasure() const))
 		DoubleReal height = 100.0;

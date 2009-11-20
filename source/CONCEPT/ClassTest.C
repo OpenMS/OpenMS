@@ -40,6 +40,7 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <QFileInfo>
 
 namespace OpenMS
 {
@@ -240,7 +241,8 @@ namespace OpenMS
       std::string
       tmpFileName( const std::string& file, int line )
       {
-        return String(file).prefix('.') + '_' + String(line) + ".tmp";
+				QFileInfo fi(file.c_str());
+        return String(fi.baseName()) + '_' + String(line) + ".tmp";
       }
 
       void testRealSimilar( const char * /*file*/, int line,

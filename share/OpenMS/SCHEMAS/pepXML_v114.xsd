@@ -581,6 +581,11 @@
 											<xs:documentation>retention time associated with start_scan</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
+									<xs:attribute name="activation_method" type="activationMethodType" use="optional" >
+										<xs:annotation>
+											<xs:documentation>Activation or fragmentation method: ETD, ECD, CID, etc</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="precursor_neutral_mass" type="xs:float" use="required"/>
 									<xs:attribute name="assumed_charge" type="xs:nonNegativeInteger" use="required">
 										<xs:annotation>
@@ -610,11 +615,6 @@
 
 							</xs:element>
 						</xs:sequence>
-						<xs:attribute name="search_engine" type="engineType" use="required">
-							<xs:annotation>
-								<xs:documentation>SEQUEST, Mascot, COMET, etc</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
 						<xs:attribute name="base_name" type="xs:string" use="required">
 							<xs:annotation>
 								<xs:documentation>full path file name of mzXML (minus the .mzXML)</xs:documentation>
@@ -890,7 +890,36 @@
 								<xs:documentation>Inferred number of incorrect 5+ spectra</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-
+						<xs:attribute name="obs_6_distr" type="xs:nonNegativeInteger" use="required">
+							<xs:annotation>
+								<xs:documentation>Number of 6+ spectra</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="model_6_pos_distr" type="xs:float" use="required">
+							<xs:annotation>
+								<xs:documentation>Inferred number of correct 6+ spectra</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="model_6_neg_distr" type="xs:float" use="required">
+							<xs:annotation>
+								<xs:documentation>Inferred number of incorrect 6+ spectra</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="obs_7_distr" type="xs:nonNegativeInteger" use="required">
+							<xs:annotation>
+								<xs:documentation>Number of 7+ spectra</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="model_7_pos_distr" type="xs:float" use="required">
+							<xs:annotation>
+								<xs:documentation>Inferred number of correct 7+ spectra</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="model_7_neg_distr" type="xs:float" use="required">
+							<xs:annotation>
+								<xs:documentation>Inferred number of incorrect 7+ spectra</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="mixture_model" minOccurs="0" maxOccurs="unbounded">
@@ -1158,6 +1187,13 @@
 			<xs:enumeration value="X! Tandem (k-score)"/>
 			<xs:enumeration value="X! Tandem"/>
 			<xs:enumeration value="InsPecT"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="activationMethodType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ETD"/>
+			<xs:enumeration value="ECD"/>
+			<xs:enumeration value="CID"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="model_dis_type">

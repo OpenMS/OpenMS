@@ -74,10 +74,10 @@ namespace OpenMS
 				void addCVTerm(const CVTerm& term);
 
 				/// checks whether the spellings of the CV terms stored are correct
-				bool checkCVTerms(const ControlledVocabulary& cv) const;
+				//bool checkCVTerms(const ControlledVocabulary& cv) const;
 
 				/// corrects the CVTerm names, according to the loaded CV
-				void correctCVTermNames();
+				//void correctCVTermNames();
 				//@}
 			
 				/** @name Predicates

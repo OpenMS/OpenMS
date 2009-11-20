@@ -69,26 +69,26 @@ protected:
   {
     registerInputFile_("in", "<path>", "", "Input file/directory containing the output of the search engine.\n"
       "Sequest: Directory containing the .out files\n"
-      "PepXML: Single PepXML file.\n"
+      "pepXML: Single pepXML file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", StringList::create("idXML,PepXML"));
+    setValidFormats_("out", StringList::create("idXML,pepXML"));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", StringList::create("idXML,pepXML"));
 
     addEmptyLine_();
     addText_("Sequest options:");
     registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
-      "Note: Sequest .out files do not contain retention times, but only scan numbers.", false);
+      "Note: Sequest .out files do not contain retention times, only scan numbers.", false);
     // Please contact the maintainers if you know more about Sequest .out files and might help to resolve this issue
     registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
       "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
 
     addEmptyLine_();
-    addText_("PepXML options:");
+    addText_("pepXML options:");
     registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
-    																							 "Note: PepXML files do not contain retention times, but only scan numbers.", false);
-		registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the PepXML file ('base_name' attribute);\nonly necessary if different from 'mz_file'.", false);
+													"Note: pepXML files do not contain retention times, only scan numbers.", false);
+		registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the pepXML file ('base_name' attribute);\nonly necessary if different from 'mz_file'.", false);
   }
 
   ExitCodes
@@ -230,14 +230,8 @@ protected:
   			String exp_name = getStringOption_("mz_file"),
 					orig_name =	getStringOption_("mz_name");
 
-				// no extension present => add one (will be removed by PepXMLFile)
-				if (!orig_name.empty() && !orig_name.has('.')) {
-					orig_name = orig_name + ".mzXML";
-				}
-
-  			protein_identifications.resize(1);
 				if (exp_name.empty()) {
-					PepXMLFile().load(in, protein_identifications[0],
+					PepXMLFile().load(in, protein_identifications,
 														peptide_identifications, orig_name);
 				}
 				else {
@@ -246,7 +240,7 @@ protected:
 					if (!orig_name.empty()) {
 						exp_name = orig_name;
 					}
-					PepXMLFile().load(in, protein_identifications[0],
+					PepXMLFile().load(in, protein_identifications,
 														peptide_identifications, exp_name, exp);
 				}
   		}

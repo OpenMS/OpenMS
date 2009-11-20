@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="SeedListGenerator" version="version_string" />
+		<processingAction name="Data processing action" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="9">
+		<feature id="f_0">
+			<position dim="0">0.5927</position>
+			<position dim="1">538.605</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">0.5927</position>
+			<position dim="1">637.885</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">0.5927</position>
+			<position dim="1">678.384</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">2.3364</position>
+			<position dim="1">762.728</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">2.3364</position>
+			<position dim="1">1143.59</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">2.3364</position>
+			<position dim="1">770.055</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">3.7572</position>
+			<position dim="1">757.412</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_7">
+			<position dim="0">3.7572</position>
+			<position dim="1">807.394</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_8">
+			<position dim="0">3.7572</position>
+			<position dim="1">512.784</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+	</featureList>
+</featureMap>

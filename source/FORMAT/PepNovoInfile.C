@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <algorithm>
 #include <set>
@@ -81,7 +81,7 @@ namespace OpenMS
 	}
 
 
-	String PepNovoInfile::handlePTMs(const String &modification, const bool variable)
+	String PepNovoInfile::handlePTMs_(const String &modification, const bool variable)
 	{
 		String locations, key, type;
 
@@ -123,10 +123,9 @@ namespace OpenMS
 		}
 
 		if(mass>=0)
-		  key+="+"+String(round(mass));
+		  key+="+"+String(Math::round(mass));
 		else
-		  key+=String(round(mass));
-
+		  key+=String(Math::round(mass));
 
 		String line="";
 		line+=origin.toUpper();
@@ -142,8 +141,6 @@ namespace OpenMS
 		line+=full_name;
 
 		mods_and_keys_[key]=full_id;
-		//std::cout<<"pepNovo Line:"<<line<<std::endl;
-		//std::cout<<"pepNovo key:"<<key<<std::endl;
 
 		return line;
 	}
@@ -159,21 +156,21 @@ namespace OpenMS
 		mods_and_keys_.clear();
 
 		//TextFile ptm_file_;
-    ptm_file_.reserve(mods_.getNumberOfModifications()+1);
-    ptm_file_.push_back("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
+		ptm_file_.reserve(mods_.getNumberOfModifications()+1);
+		ptm_file_.push_back("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
 
-    // fixed modifications
-    std::set<String>fixed_modifications=mods_.getFixedModificationNames();
-    for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
-    {
-      ptm_file_.push_back(handlePTMs(*it, false));
-    }
-    // variable modifications
-    std::set<String>variable_modifications=mods_.getVariableModificationNames();
-    for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
-    {
-      ptm_file_.push_back(handlePTMs(*it, true));
-    }
+		// fixed modifications
+		std::set<String>fixed_modifications=mods_.getFixedModificationNames();
+		for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+		{
+		  ptm_file_.push_back(handlePTMs_(*it, false));
+		}
+		// variable modifications
+		std::set<String>variable_modifications=mods_.getVariableModificationNames();
+		for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
+		{
+		  ptm_file_.push_back(handlePTMs_(*it, true));
+		}
 	}
 
 	void PepNovoInfile::getModifications(std::map<String,String>& modification_key_map) const

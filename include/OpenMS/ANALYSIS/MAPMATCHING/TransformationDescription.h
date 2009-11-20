@@ -58,7 +58,7 @@ namespace OpenMS
 	 public:
 			
 		/// Coordinate pair vector type
-		typedef std::vector< std::pair<Real,Real> > PairVector;
+		typedef std::vector< std::pair<DoubleReal,DoubleReal> > PairVector;
 			
 		/// Constructor
 		TransformationDescription();

@@ -30,7 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 
 ///////////////////////////
 
@@ -55,15 +55,32 @@ END_SECTION
 ptr = new PILISModelGenerator();
 
 START_SECTION(PILISModelGenerator(const PILISModelGenerator& model))
-	// TODO
+	PILISModelGenerator p1;
+	Param p(p1.getParameters());
+	p.setValue("visible_model_depth", 10);
+	p1.setParameters(p);
+
+	PILISModelGenerator p2(p1);
+	TEST_EQUAL(p1.getParameters() == p2.getParameters(), true)
 END_SECTION
 
 START_SECTION(PILISModelGenerator& operator = (const PILISModelGenerator& mode))
-	// TODO
+  PILISModelGenerator p1;
+  Param p(p1.getParameters());
+  p.setValue("visible_model_depth", 10);
+  p1.setParameters(p);
+
+  PILISModelGenerator p2;
+	p2 = p1;
+  TEST_EQUAL(p1.getParameters() == p2.getParameters(), true)
 END_SECTION
 
 START_SECTION((void getModel(HiddenMarkovModel& model)))
-	// TODO
+	HiddenMarkovModel hmm;
+	TEST_EQUAL(hmm.getNumberOfStates(), 0)
+	PILISModelGenerator p;
+	p.getModel(hmm);
+	TEST_EQUAL(hmm.getNumberOfStates(), 68379)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

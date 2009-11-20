@@ -71,16 +71,29 @@ START_SECTION((const Param& getParameters() const))
 	TEST_EQUAL(td.getParameters(),Param())
 END_SECTION
 
-START_SECTION((DoubleReal getParam(const String& name) const))
+START_SECTION((const DataValue& getParam(const String &name) const))
 	TransformationDescription td;
 	TEST_EXCEPTION(Exception::ElementNotFound, td.getParam("bla"))
 END_SECTION
 
 START_SECTION((void setParam(const String& name, DoubleReal value)))
-	TransformationDescription td;
-	td.setParam("bla",4.5);
-	TEST_REAL_SIMILAR(td.getParam("bla"),4.5)
+  TransformationDescription td;
+  td.setParam("bla",4.5);
+  TEST_REAL_SIMILAR(td.getParam("bla"),4.5)
 END_SECTION
+
+START_SECTION((void setParam(const String& name, Int value)))
+  TransformationDescription td;
+  td.setParam("bla",17);
+  TEST_EQUAL(td.getParam("bla"),17)
+END_SECTION
+
+START_SECTION((void setParam(const String& name, const String& value)))
+  TransformationDescription td;
+  td.setParam("bla","yummyummmmyummmmmy");
+  TEST_EQUAL(td.getParam("bla"),"yummyummmmyummmmmy")
+END_SECTION
+
 
 START_SECTION((void setParameters(const Param& param)))
 	TransformationDescription td;
@@ -93,9 +106,9 @@ END_SECTION
 
 
 TransformationDescription::PairVector pairs;
-pairs.push_back(make_pair(1.2f,5.2f));
-pairs.push_back(make_pair(3.2f,7.3f));
-pairs.push_back(make_pair(2.2f,6.25f));
+pairs.push_back(make_pair(1.2,5.2));
+pairs.push_back(make_pair(3.2,7.3));
+pairs.push_back(make_pair(2.2,6.25));
 
 START_SECTION((const PairVector& getPairs() const))
 	TransformationDescription td;
@@ -106,9 +119,9 @@ START_SECTION((PairVector& getPairs()))
 {
   TransformationDescription td;
   TEST_EQUAL(td.getPairs().size(),0)
-  td.getPairs().push_back(make_pair(12.34f,56.78f));
+  td.getPairs().push_back(make_pair(12.34,56.78));
   TEST_EQUAL(td.getPairs().size(),1)
-  TEST_EQUAL(td.getPairs()[0].first,12.34);
+  TEST_EQUAL(td.getPairs()[0].first,12.34); // not TEST_REAL_SIMILAR!  I want to see an alert when someone messes up float vs. double!
   TEST_EQUAL(td.getPairs()[0].second,56.78);
   TEST_NOT_EQUAL(td.getPairs().empty(),true);
   td.getPairs().clear();
@@ -277,17 +290,17 @@ START_SECTION((void apply(DoubleReal &value) const))
 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
 
 	pairs.clear();
-  pairs.push_back(make_pair(1.2f,5.2f));
-  pairs.push_back(make_pair(3.2f,7.3f));
-  pairs.push_back(make_pair(2.2f,6.25f));
-  pairs.push_back(make_pair(2.2f,3.1f));
-  pairs.push_back(make_pair(2.2f,7.25f));
-  pairs.push_back(make_pair(3.0f,8.5f));
-  pairs.push_back(make_pair(3.1f,4.7f));
-  pairs.push_back(make_pair(1.7f,6.0f));
-  pairs.push_back(make_pair(2.9f,4.7f));
-  pairs.push_back(make_pair(4.2f,5.0f));
-  pairs.push_back(make_pair(3.7f,-2.4f));
+  pairs.push_back(make_pair(1.2,5.2));
+  pairs.push_back(make_pair(3.2,7.3));
+  pairs.push_back(make_pair(2.2,6.25));
+  pairs.push_back(make_pair(2.2,3.1));
+  pairs.push_back(make_pair(2.2,7.25));
+  pairs.push_back(make_pair(3.0,8.5));
+  pairs.push_back(make_pair(3.1,4.7));
+  pairs.push_back(make_pair(1.7,6.0));
+  pairs.push_back(make_pair(2.9,4.7));
+  pairs.push_back(make_pair(4.2,5.0));
+  pairs.push_back(make_pair(3.7,-2.4));
 
   td.setPairs(pairs);
 

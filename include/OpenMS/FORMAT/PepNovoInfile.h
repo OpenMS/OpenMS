@@ -40,7 +40,7 @@ namespace OpenMS
 	/**
 		@brief PepNovo input file adapter.
 		
-		Creates a pepnovo.params file for PepNovo search from a peak list.
+		Creates a PepNovo_PTMs.txt file for PepNovo search.
   	  	
   	@ingroup FileIO
 	*/
@@ -59,21 +59,29 @@ namespace OpenMS
 			/// assignment operator
 			PepNovoInfile& operator=(const PepNovoInfile& pepnovo_infile);
 
-//			/// equality operator
-  			bool operator==(const PepNovoInfile& pepnovo_infile) const;
+			/// equality operator
+			bool operator==(const PepNovoInfile& pepnovo_infile) const;
 
 			/** stores the experiment data in a PepNovo input file that can be used as input for PepNovo shell execution
 					
-					@param filename the file which the input file is stored into
-					@throw Exception::UnableToCreateFile is thrown if the given file could not be created
+				@param filename the file which the input file is stored into
+				@throw Exception::UnableToCreateFile is thrown if the given file could not be created
 			*/
 			void store(const String& filename);
 
-
+			/** @brief generates the PepNovo Infile for given fixed and variable modifications			 *
+			 *
+			 * @param fixed_mods StringList of fixed modifications unique identifiers
+			 * @param variable_mods StringList of variable modifications unique identifiers
+			 */
 			void setModifications(const StringList &fixed_mods, const StringList &variable_mods);
 
-			/// return the modifications (the modification names map to the affected residues, the mass change and the type)
-			///void getModifications(std::vector<Modification>&) const;
+			/** @brief return the modifications.
+			 *
+			 *  the modification unique identifiers are mapped to the keys used
+			 *  in the PepNovo Infile (origin+rounded monoisotopic mass of modification ).
+			 *  (e.g. modification_key_map["K+16"]=="Oxidation (K)" )
+			 */
 			void getModifications(std::map<String,String>& modification_key_map) const;
 
 		private:
@@ -82,18 +90,12 @@ namespace OpenMS
 			TextFile ptm_file_;
 
 
-			//void generate_pepnovo_lines();
-
-     /** retrieves the name, mass change, affected residues, type and position for all modifications from a string
-
-            @param modification_line
-            @param modifications_filename
-            @param monoisotopic
-            @throw FileNotFound is thrown if the given file is not found
-            @throw FileNotReadable is thrown if the given file is not readable
-            @throw ParseError is throw if the given file could not be parsed
-        */
-        String handlePTMs(const String &modification, const bool variable);
+		 /** retrieves the name of modification, and generates the corresponding line for the
+			 PepNovo infile.
+			 @param modification the modification
+			 @param variable should be set to true if it variable
+		*/
+		  String handlePTMs_(const String &modification, const bool variable);
   };
 
 } // namespace OpenMS

@@ -46,8 +46,11 @@ using namespace std;
 	
 	@brief Corrects the precursor entries of MS/MS spectra, by using MS1 information.
 
-	There are currently two option implemented. One expects as input data produced from
-	an ABI/SCIEX QStar Pulsar I and the second one is a ABI/SCIEX 4000 Q Trap.
+	There is currently only one option implemented. The tool expects as input data produced from
+	an ABI/SCIEX QStar Pulsar I, or a similar instrument. It is a QTof instrument with 
+	a moderate resolution. 
+
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PrecursorMassCorrector.cli
@@ -74,11 +77,13 @@ class TOPPPrecursorMassCorrector
 			registerOutputFile_("out","<file>","","Output mzML file.");
 			setValidFormats_("in", StringList::create("mzML"));
 			registerStringOption_("type", "<instrument_type>", "", "Type of instrument used");
-			setValidStrings_("type", StringList::create("QStarPulsarI,QTrap4000"));
+			setValidStrings_("type", StringList::create("QStarPulsarI"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Maximal deviation in Th which is acceptable to be corrected.", false);
 			setMinFloat_("precursor_mass_tolerance", 0);
 
-			// TODO add merging of spectra of the same precursor and feature
+			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge that should be assumend for precursor peaks", false, true);
+			registerDoubleOption_("intensity_threshold", "<threshold>", -1.0, "Intensity threshold value for isotope wavelet feature finder, please look at the documentation of the class for details.", false, true);
+			/// @improvement add merging of spectra of the same precursor and feature
 
 		}
 
@@ -104,8 +109,8 @@ class TOPPPrecursorMassCorrector
 
 			FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature> iso_ff;
       Param ff_param(iso_ff.getParameters());
-      //ff_param.setValue("max_charge", 3);
-      //ff_param.setValue("intensity_threshold", -1.0);
+      ff_param.setValue("max_charge", getIntOption_("max_charge"));
+      ff_param.setValue("intensity_threshold", getDoubleOption_("intensity_threshold"));
       iso_ff.setParameters(ff_param);
 
       FeatureFinder ff;
@@ -124,10 +129,14 @@ class TOPPPrecursorMassCorrector
 			exp = exp2;
 			exp.updateRanges();
 
-
 			// TODO check MS2 and MS1 counts
+			ProgressLogger progresslogger;
+			progresslogger.setLogType(log_type_);
+			progresslogger.startProgress(0, exp.size(), "Correcting precursor masses");
+			Size counter(0);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
+				progresslogger.setProgress(++counter);
 				if (it->getMSLevel() == 2)
 				{
 					// find first MS1 scan of the MS/MS scan
@@ -153,11 +162,6 @@ class TOPPPrecursorMassCorrector
           FeatureMap<> features, seeds;
           ff.run("isotope_wavelet", new_exp, features, ff_param, seeds);
 
-					for (Size i = 0; i != features.size(); ++i)
-					{
-						cerr << "Feature" << i << ", mz=" << features[i].getMZ() << ", charge=" << features[i].getCharge() << ", quality=" << features[i].getOverallQuality() << endl;
-					}
-
 					if (features.size() == 0)
 					{
 						writeDebug_("No features found for scan RT=" + String(ms1_it->getRT()), 1);
@@ -171,7 +175,7 @@ class TOPPPrecursorMassCorrector
 					{
 						if (ms2_it->getPrecursors().size() == 0)
 						{
-							writeLog_("Warning: found no precursors of spectrum RT=" + String(ms2_it->getRT()) + ", skipping it.");
+							writeDebug_("Warning: found no precursors of spectrum RT=" + String(ms2_it->getRT()) + ", skipping it.", 1);
 							++ms2_it;
 							continue;
 						}
@@ -185,10 +189,8 @@ class TOPPPrecursorMassCorrector
 						
 						DoubleReal min_dist(numeric_limits<DoubleReal>::max());
 						Size min_feat_idx(0);
-						cerr << "RT=" << ms1_it->getRT() << ": MS2 prec_pos=" << prec_pos << ", ";
 						for (Size i = 0; i != features.size(); ++i)
 						{
-							cerr << "f" << i << " mz=" << features[i].getMZ() << " ";
 							if (fabs(features[i].getMZ() - prec_pos) < min_dist)
 							{
 								min_feat_idx = i;
@@ -196,7 +198,7 @@ class TOPPPrecursorMassCorrector
 							}
 						}
 
-						cerr << " min_dist=" << min_dist << " mz=" << features[min_feat_idx].getMZ() << " charge=" << features[min_feat_idx].getCharge() << endl;
+						writeDebug_(" min_dist=" + String(min_dist) + " mz=" + String(features[min_feat_idx].getMZ()) + " charge=" + String(features[min_feat_idx].getCharge()), 5);
 						if (min_dist < precursor_mass_tolerance)
 						{
 							prec.setMZ(features[min_feat_idx].getMZ());
@@ -211,6 +213,7 @@ class TOPPPrecursorMassCorrector
 					}
 				}
 			}
+			progresslogger.endProgress();
 
 			//-------------------------------------------------------------
       // writing output

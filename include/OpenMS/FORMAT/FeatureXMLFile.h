@@ -42,7 +42,7 @@ namespace OpenMS
 
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
-    @todo take care that unique ids are assigned properly by TOPP tools before calling store().
+    @todo Take care that unique ids are assigned properly by TOPP tools before calling FeatureXMLFile::store().  There will be a message on LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
 
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML (mzIdentML and mzQuantML) formats!
 
@@ -147,7 +147,7 @@ namespace OpenMS
 			/// Map from protein id to accession
 			Map<String,String> proteinid_to_accession_;
 			/// Map from search identifier concatenated with protein accession to id
-			Map<String,UInt> accession_to_id_;
+			Map<String,Size> accession_to_id_;
 			/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
 			Map<String,String> identifier_id_;
 			/// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)

@@ -897,6 +897,7 @@ p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
+p.addTags("test:float", StringList::create("a,b,c"));
 
 START_SECTION((Param(const Param& rhs)))
 	Param p2(p);
@@ -913,6 +914,8 @@ START_SECTION((Param(const Param& rhs)))
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
+	TEST_EQUAL(p2.getTags("test:float").size(), 3)
+	TEST_EQUAL(p2.getTags("test:float") == StringList::create("a,b,c"), true)
 END_SECTION
 
 START_SECTION((Param& operator = (const Param& rhs)))
@@ -931,6 +934,8 @@ START_SECTION((Param& operator = (const Param& rhs)))
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
+	TEST_EQUAL(p2.getTags("test:float").size(), 3)
+	TEST_EQUAL(p2.getTags("test:float") == StringList::create("a,b,c"), true)
 END_SECTION
 
 START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const))
@@ -1752,7 +1757,7 @@ START_SECTION([EXTRA] loading and storing of lists)
 END_SECTION
 
 
-START_SECTION(([Extra] Escapingi of characters))
+START_SECTION(([EXTRA] Escapingi of characters))
 	Param p;
 	p.setValue("string",String("bla"),"string");
 	p.setValue("string_with_ampersand", String("bla2&blubb"), "string with ampersand");

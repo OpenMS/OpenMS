@@ -96,7 +96,7 @@ START_SECTION((Int getCharge() const))
 }
 END_SECTION
 
-START_SECTION((FeatureHandle(Size map_index, Size element_index, const Peak2D &point)))
+START_SECTION((FeatureHandle(UInt64 map_index, UInt64 element_index, const Peak2D &point)))
   ElementType e;
   FeatureHandle it(1,2,e);
 
@@ -105,7 +105,7 @@ START_SECTION((FeatureHandle(Size map_index, Size element_index, const Peak2D &p
   TEST_EQUAL(it.getPosition() == e.getPosition(), true)
 END_SECTION
 
-START_SECTION((FeatureHandle(Size map_index, Size element_index, const Feature &point)))
+START_SECTION((FeatureHandle(UInt64 map_index, UInt64 element_index, const Feature &point)))
 
   Feature f;
   f.setCharge(-17);
@@ -122,7 +122,7 @@ START_SECTION((FeatureHandle(Size map_index, Size element_index, const Feature &
 
 END_SECTION
 
-START_SECTION((FeatureHandle(Size map_index, Size element_index, const ConsensusFeature &point)))
+START_SECTION((FeatureHandle(UInt64 map_index, UInt64 element_index, const ConsensusFeature &point)))
 
   ConsensusFeature f;
   f.setCharge(-17);
@@ -160,7 +160,7 @@ START_SECTION((FeatureHandleMutable_ & asMutable() const))
 END_SECTION
 
 
-START_SECTION((virtual bool operator!=(const FeatureHandle &i) const))
+START_SECTION((bool operator!=(const FeatureHandle &i) const))
   ElementType e;
   FeatureHandle it1(1,2,e);
   FeatureHandle it2(2,2,e);
@@ -168,7 +168,7 @@ START_SECTION((virtual bool operator!=(const FeatureHandle &i) const))
   TEST_EQUAL(it1 != it2, true)
 END_SECTION
 
-START_SECTION((virtual bool operator==(const FeatureHandle &i) const))
+START_SECTION((bool operator==(const FeatureHandle &i) const))
   ElementType e;
   FeatureHandle it1(2,2,e);
   FeatureHandle it2(2,2,e);
@@ -176,28 +176,28 @@ START_SECTION((virtual bool operator==(const FeatureHandle &i) const))
   TEST_EQUAL(it1 == it2, true)
 END_SECTION
 
-START_SECTION((Size getElementIndex() const))
+START_SECTION((UInt64 getElementIndex() const))
   ElementType e;
   FeatureHandle it(1,2,e);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)
 END_SECTION
 
-START_SECTION((Size getMapIndex() const))
+START_SECTION((UInt64 getMapIndex() const))
   ElementType e;
   FeatureHandle it(1,2,e);
 
   TEST_EQUAL(it.getMapIndex() == 1, true)
 END_SECTION
 
-START_SECTION((void setElementIndex(Size e)))
+START_SECTION((void setElementIndex(UInt64 e)))
   FeatureHandle it;
   it.setElementIndex(2);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)
 END_SECTION
 
-START_SECTION((void setMapIndex(Size i)))
+START_SECTION((void setMapIndex(UInt64 i)))
   FeatureHandle it;
   it.setMapIndex(2);
 

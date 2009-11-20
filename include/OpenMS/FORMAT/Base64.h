@@ -43,8 +43,10 @@
 #include <cmath>
 #include <vector>
 
-
+#include <zlib.h>
 #include <QtCore/QString>
+
+
 namespace OpenMS
 {
   /**
@@ -190,7 +192,9 @@ namespace OpenMS
 		//initialize
 		const Size element_size = sizeof(FromType);
 		const Size input_bytes = element_size * in.size();
-		
+		String compressed;
+		Byte* it;
+		Byte* end;
 		//Change endianness if necessary
 		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
@@ -216,23 +220,34 @@ namespace OpenMS
 			}
 		}
 		
-		//encode with compression (use Qt because of zlib support)
+		//encode with compression
 		if (zlib_compression)
 		{
-			QByteArray original = QByteArray::fromRawData(reinterpret_cast<const char*>(&in[0]), (int) input_bytes);
-			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
-			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
-			QByteArray base64_compressed = extern_compressed.toBase64();
-	
-			out = QString(base64_compressed).toStdString();
+			unsigned long compressed_length = static_cast<unsigned long>(2*input_bytes);
+			compressed.resize(compressed_length);
+			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&in[0]), (unsigned long)input_bytes) != Z_OK)
+			{
+				compressed_length *= 2;
+				compressed.reserve(compressed_length);
+			}
+			
+			
+			String(compressed).swap(compressed);
+			it = reinterpret_cast<Byte*>(&compressed[0]);
+			end =it + compressed_length;
+			out.resize((Size)ceil(compressed_length/3.) * 4); //resize output array in order to have enough space for all characters
 		}
 		//encode without compression
 		else
 		{
 			out.resize((Size)ceil(input_bytes/3.) * 4); //resize output array in order to have enough space for all characters
+			it = reinterpret_cast<Byte*>(&in[0]);
+			end = it + input_bytes;
+		}
+			
 			Byte* to = reinterpret_cast<Byte*>(&out[0]);
-			Byte* it = reinterpret_cast<Byte*>(&in[0]);
-			Byte* end = it + input_bytes;
+			
+			
 			Size written = 0;
 
 			while (it!=end)
@@ -269,7 +284,6 @@ namespace OpenMS
 			}
 
 			out.resize(written); //no more space is needed
-		}
 	}
 	
 	template<typename ToType>
@@ -479,7 +493,9 @@ namespace OpenMS
 		//initialize
 		const Size element_size = sizeof(FromType);
 		const Size input_bytes = element_size * in.size();
-		
+		String compressed;
+		Byte* it;
+		Byte* end;
 		//Change endianness if necessary
 		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
@@ -506,20 +522,31 @@ namespace OpenMS
 		//encode with compression (use Qt because of zlib support)
 		if (zlib_compression)
 		{
-			QByteArray original = QByteArray::fromRawData(reinterpret_cast<const char*>(&in[0]), (int) input_bytes);
-			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
-			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
-			QByteArray base64_compressed = extern_compressed.toBase64();
-	
-			out = QString(base64_compressed).toStdString();
+			unsigned long compressed_length = static_cast<unsigned long>(2*input_bytes);
+			compressed.resize(compressed_length);
+			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&in[0]), (unsigned long)input_bytes) != Z_OK)
+			{
+				compressed_length *= 2;
+				compressed.reserve(compressed_length);
+			}
+			
+			
+			String(compressed).swap(compressed);
+			it = reinterpret_cast<Byte*>(&compressed[0]);
+			end =it + compressed_length;
+			out.resize((Size)ceil(compressed_length/3.) * 4); //resize output array in order to have enough space for all characters
 		}
 		//encode without compression
 		else
 		{
 			out.resize((Size)ceil(input_bytes/3.) * 4); //resize output array in order to have enough space for all characters
+			it = reinterpret_cast<Byte*>(&in[0]);
+			end = it + input_bytes;
+		}
+			
 			Byte* to = reinterpret_cast<Byte*>(&out[0]);
-			Byte* it = reinterpret_cast<Byte*>(&in[0]);
-			Byte* end = it + input_bytes;
+			
+			
 			Size written = 0;
 
 			while (it!=end)
@@ -556,7 +583,6 @@ namespace OpenMS
 			}
 
 			out.resize(written); //no more space is needed
-		}
 	}
 
 	template<typename ToType>

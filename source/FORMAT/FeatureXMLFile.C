@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
 
@@ -34,8 +35,8 @@ using namespace std;
 namespace OpenMS
 {
 	FeatureXMLFile::FeatureXMLFile()
-		: Internal::XMLHandler("","1.3"),
-			Internal::XMLFile("/SCHEMAS/FeatureXML_1_3.xsd","1.3"),
+		: Internal::XMLHandler("","1.4"),
+			Internal::XMLFile("/SCHEMAS/FeatureXML_1_4.xsd","1.4"),
 		 	map_(0),
 		 	in_description_(false),
 			subordinate_feature_level_(0),
@@ -90,10 +91,23 @@ namespace OpenMS
 		if ( Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) )
 		{
 
-		  /// @todo Take care outside that this does not happen.  We cannot fix this here due to constness. (Clemens)
+		  // TODO Take care *outside* that this does not happen.
+		  // We can detect this here but it is too late to fix the problem;
+		  // there is no straightforward action to be taken in all cases.
+		  // Note also that we are given a const reference.
+		  LOG_INFO << String("FeatureXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+		}
 
-		  // throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("found ")+invalid_unique_ids+" invalid unique ids");
-		  // std::cout<<String("\nfound ")+invalid_unique_ids+" invalid unique ids"<<std::endl;
+		// This will throw if the unique ids are not unique,
+		// so we never create bad files in this respect.
+		try
+		{
+		  feature_map.updateUniqueIdToIndex();
+		}
+		catch ( Exception::Postcondition& e )
+		{
+		  LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
+		  throw;
 		}
 
 		os.precision(writtenDigits<DoubleReal>());
@@ -103,14 +117,14 @@ namespace OpenMS
 		// file id
 		if (feature_map.getIdentifier()!="")
 		{
-			os << " id=\"" << feature_map.getIdentifier() << "\"";
+			os << " document_id=\"" << feature_map.getIdentifier() << "\"";
 		}
 		// unique id
     if (feature_map.hasValidUniqueId())
     {
-      os << " unique_id=\"fm_" << feature_map.getUniqueId() << "\"";
+      os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
 		//write data processing
 		for (Size i=0; i< feature_map.getDataProcessing().size(); ++i)
@@ -268,8 +282,11 @@ namespace OpenMS
 		static const XMLCh* s_value = xercesc::XMLString::transcode("value");
 		static const XMLCh* s_type = xercesc::XMLString::transcode("type");
 		static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
+		static const XMLCh* s_document_id = xercesc::XMLString::transcode("document_id");
 		static const XMLCh* s_id = xercesc::XMLString::transcode("id");
-    static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
+
+    // TODO The next line should be removed in OpenMS 1.7 or so!
+		static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
 
 		String tag = sm_.convert(qname);
 		String parent_tag;
@@ -358,14 +375,19 @@ namespace OpenMS
 			{
 				warning(LOAD, String("The XML file (") + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
-			//handle file id
-			String id;
-			if (optionalAttributeAsString_(id, attributes, s_id))
+			//handle document id
+			String document_id;
+			if (optionalAttributeAsString_(document_id, attributes, s_document_id))
 			{
-				map_->setIdentifier(id);
+				map_->setIdentifier(document_id);
 			}
 			//handle unique id
       String unique_id;
+      if (optionalAttributeAsString_(unique_id, attributes, s_id))
+      {
+        map_->setUniqueId(unique_id);
+      }
+      // TODO The next four lines should be removed in OpenMS 1.7 or so!
       if (optionalAttributeAsString_(unique_id, attributes, s_unique_id))
       {
         map_->setUniqueId(unique_id);
@@ -673,6 +695,7 @@ namespace OpenMS
 		else if (tag == "SearchParameters")
 		{
 			prot_id_.setSearchParameters(search_param_);
+			search_param_ = ProteinIdentification::SearchParameters();
 		}
 		else if (tag == "ProteinHit")
 		{

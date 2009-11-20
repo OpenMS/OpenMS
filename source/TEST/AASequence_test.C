@@ -661,7 +661,19 @@ END_SECTION
 
 
 START_SECTION([EXTRA] Tag in peptides)
-	// TODO
+	String I_weight = String(ResidueDB::getInstance()->getResidue("I")->getMonoWeight(Residue::Internal));
+  AASequence aa1("DFPIANGER");
+  AASequence aa2("DPF[" + I_weight + "]ANGER");
+  AASequence aa3("[" + I_weight + "]DFPANGER");
+  AASequence aa4("DFPANGER[" + I_weight + "]");
+	TEST_REAL_SIMILAR(aa1.getMonoWeight(), 1017.487958568)
+	TEST_EQUAL(aa2.isModified(), false)
+	TEST_EQUAL(aa3.hasNTerminalModification(), false)
+	TEST_EQUAL(aa4.hasCTerminalModification(), false)
+	TEST_REAL_SIMILAR(aa2.getMonoWeight(), 1017.487958568)
+	TEST_REAL_SIMILAR(aa3.getMonoWeight(), 1017.487958568)
+	TEST_REAL_SIMILAR(aa4.getMonoWeight(), 1017.487958568)
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

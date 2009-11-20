@@ -25,8 +25,8 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_GZIP_IFSTREAM_H
-#define	OPENMS_FORMAT_GZIP_IFSTREAM_H
+#ifndef OPENMS_FORMAT_GZIPIFSTREAM_H
+#define	OPENMS_FORMAT_GZIPIFSTREAM_H
 
 #include <OpenMS/config.h>
 #include <zlib.h>
@@ -41,18 +41,17 @@ namespace OpenMS
 		public: 
 			///Default Constructor
 			GzipIfstream();
-			/// 
+			/// Detailed constructor with filename
 			GzipIfstream(const char * filename);
 			///Destructor
 			virtual ~GzipIfstream();
 			
-			//operator>>();
 			/**
 					@brief reads n bytes from the gzip compressed file into buffer s
 					
 					@param s will be filled with bytes
 					@param n is the size of the buffer s
-					@ret the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
+					@return the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
 					
 					@exception Exception::ConversionError is thrown if decompression fails
 					@exception Exception::IllegalArgument is thrwon if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
@@ -62,7 +61,7 @@ namespace OpenMS
 			/**
 				@brief indicates whether the read function can be used safely
 				
-				@ret true if end of file was reached. Otherwise false.
+				@return true if end of file was reached. Otherwise false.
 			*/
 			bool streamEnd() const;
 			
@@ -88,47 +87,47 @@ namespace OpenMS
 				@param s the buffer which will be checked
 				@param n the size of the buffer
 			*	
-			void updateCRC32(const char* s,const size_t n);
+			//void updateCRC32(const char* s,const size_t n);
 			
 			*
 				@brief	checks if data is corrupted after crc32 was computed
 				@note 	it can only be used if updateCRC32 was called after every call of function read
-				@ret true if the buffer and hence the file is corrupted; no decompression is possible
+				@return true if the buffer and hence the file is corrupted; no decompression is possible
 			*
-			bool isCorrupted();
+			//bool isCorrupted();
 			
-			unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
-                                       size_t bufLen );*/
+			//unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
+      //                                 size_t bufLen );*/
 			
 		protected:
 
 			///a gzFile object(void*) . Necessary for decompression
-			gzFile gzfile;
+			gzFile gzfile_;
 			///counts the last read bufffer
-			int     n_buffer;
+			int     n_buffer_;
 			///saves the last returned error by the read function
-			int     gzerror;
+			int     gzerror_;
 			///true if end of file is reached
-			bool stream_at_end;
+			bool stream_at_end_;
 			
 			//needed if one wants to know whetther file is okay
 			//unsigned long original_crc;
 			//needed if one wants to know whetther file is okay			
     	//		unsigned long crc;
 			
-			//not implemented
+			///not implemented
 			GzipIfstream(const GzipIfstream& bzip2);
 			GzipIfstream& operator=(const GzipIfstream& bzip2);
 	};
 	
 	inline bool GzipIfstream::isOpen() const
 	{
-		return (gzfile != NULL);
+		return (gzfile_ != NULL);
 	}
 	
 	inline bool GzipIfstream::streamEnd() const
 	{
-		return stream_at_end;
+		return stream_at_end_;
 	}
 /*	inline bool GzipIfstream::isCorrupted()
 	{
@@ -137,4 +136,4 @@ namespace OpenMS
 	}*/	
 
 } //namespace OpenMS
-#endif //OPENMS_FORMAT_GZIP_IFSTREAM_H
+#endif //OPENMS_FORMAT_GZIPIFSTREAM_H

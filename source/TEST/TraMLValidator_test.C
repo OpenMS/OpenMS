@@ -21,7 +21,45 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace OpenMS::Internal;
+using namespace std;
+
+START_TEST(TraMLValidator, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+CVMappings mapping;
+ControlledVocabulary cv;
+
+TraMLValidator* ptr = 0;
+START_SECTION((TraMLValidator(const CVMappings &mapping, const ControlledVocabulary &cv)))
+{
+	ptr = new TraMLValidator(mapping, cv);
+	TEST_NOT_EQUAL(ptr, 0)
+}
+END_SECTION
+
+START_SECTION(virtual ~TraMLValidator())
+{
+	delete ptr;
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
 

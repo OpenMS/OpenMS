@@ -110,7 +110,8 @@ namespace OpenMS
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
     file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
-    file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
+		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
 		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
@@ -128,7 +129,7 @@ namespace OpenMS
 		//Pipeline menu
 		QMenu* pipeline = new QMenu("&Pipeline", this);
 		menuBar()->addMenu(pipeline);
-		pipeline->addAction("&Run",this,SLOT(runPipeline()));
+		pipeline->addAction("&Run (F5)",this,SLOT(runPipeline()));
 		pipeline->addAction("&Abort",this,SLOT(abortPipeline()));
 
 		//Windows menu
@@ -138,13 +139,14 @@ namespace OpenMS
 		//Help menu
 		QMenu* help = new QMenu("&Help", this);
 		menuBar()->addMenu(help);
-		//help->addAction(QWhatsThis::createAction(help));
-		//help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
+		action = help->addAction("TOPPAS tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
+		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPP_tutorial.html");
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
-
+		
+		
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);
@@ -213,6 +215,8 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:PrecursorIonSelector", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:PeptideIndexer", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:CompNovo", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PrecursorMassCorrector", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
 		
   	defaultsToParam_();
 
@@ -344,9 +348,21 @@ namespace OpenMS
 	
 	}
 	
+	void TOPPASBase::openExampleDialog()
+	{
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"),
+													File::getOpenMSDataPath().toQString()
+													+QDir::separator()+"examples"+QDir::separator()
+													+"TOPPAS"+QDir::separator(),
+													tr("TOPPAS pipelines (*.toppas)"));
+		
+		openFile(file_name);
+	}
+	
 	void TOPPASBase::openFileDialog()
   {
 		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		
 		openFile(file_name);
   }
  
@@ -371,8 +387,8 @@ namespace OpenMS
 
 			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 			showAsWindow_(tw, File::basename(file_name));
+			connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
 			TOPPASScene* scene = tw->getScene();
-			
 			connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
 			scene->load(file_name);
 			
@@ -403,6 +419,7 @@ namespace OpenMS
   void TOPPASBase::newFileDialog()
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+		connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
 		TOPPASScene* ts = tw->getScene();
 		connect (ts, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
   	showAsWindow_(tw, "(Untitled)");
@@ -751,7 +768,7 @@ namespace OpenMS
 		{
 			QString text = actions[i]->text();
 			
-			if (text=="&Run")
+			if (text=="&Run (F5)")
 			{
 				bool show = false;
 				if (tw && ts && !(ts->isPipelineRunning()))
@@ -815,10 +832,15 @@ namespace OpenMS
 		//}
 	}
 	
-	void TOPPASBase::insertNewVertex_(double x, double y)
+	void TOPPASBase::insertNewVertex_(double x, double y, QTreeWidgetItem* item)
 	{
+		if (!activeWindow_() || !activeWindow_()->getScene() || !tools_tree_view_)
+		{
+			return;
+		}
+		
 		TOPPASScene* scene = activeWindow_()->getScene();
-		QTreeWidgetItem* current_tool = tools_tree_view_->currentItem();
+		QTreeWidgetItem* current_tool = item ? item : tools_tree_view_->currentItem();
 		String tool_name = String(current_tool->text(0));
 		TOPPASVertex* tv = 0;
 		
@@ -902,6 +924,7 @@ namespace OpenMS
 		{
 			w->getScene()->abortPipeline();
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolStarted()
@@ -1008,6 +1031,17 @@ namespace OpenMS
 	void TOPPASBase::showSuccessLogMessage()
 	{
 		showLogMessage_(LS_NOTICE, "Entire pipeline execution finished!", "");
+	}
+	
+	void TOPPASBase::insertNewVertexInCenter_(QTreeWidgetItem* item)
+	{
+		if (!activeWindow_() || !activeWindow_()->getScene() || !tools_tree_view_ || !tools_tree_view_->currentItem())
+		{
+			return;
+		}
+		
+		QPointF center = activeWindow_()->mapToScene(QPoint(activeWindow_()->width()/2.0,activeWindow_()->height()/2.0));
+		insertNewVertex_(center.x(), center.y(), item);
 	}
 
 } //namespace OpenMS

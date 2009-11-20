@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,68 +21,45 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
-
+#include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
 ///////////////////////////
 
-START_TEST(FeatureFinderAlgorithmWavelet, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
 using namespace OpenMS;
-using namespace OpenMS::Math;
+using namespace OpenMS::Internal;
 using namespace std;
 
-typedef FeatureFinderAlgorithmWavelet<Peak1D,Feature> FFAW;
+START_TEST(MzDataValidator, "$Id$")
 
-FFAW* ptr;
-START_SECTION(FeatureFinderAlgorithmWavelet())
-	ptr = new FFAW;
-	TEST_NOT_EQUAL(ptr,0)
-END_SECTION
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
-START_SECTION((virtual ~FeatureFinderAlgorithmWavelet()))
-	delete ptr;
-END_SECTION
+CVMappings mapping;
+ControlledVocabulary cv;
 
-//TODO: this should work (Clemens, Rene)
-//START_SECTION([EXTRA] FeatureFinderAlgorithmWavelet() - with RichPeak1D)
-//	FeatureFinderAlgorithmWavelet<RichPeak1D,Feature> ffa;
-//END_SECTION
-
-START_SECTION(virtual void run())
-	// dummy subtest
-	TEST_EQUAL(1,1)
-END_SECTION
-
-START_SECTION((virtual Param getDefaultParameters() const))
+MzDataValidator* ptr = 0;
+START_SECTION((MzDataValidator(const CVMappings &mapping, const ControlledVocabulary &cv)))
 {
-  // dummy subtest
-	TEST_EQUAL(1,1)
+	ptr = new MzDataValidator(mapping, cv);
+	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
-START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
-	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFAW::create();
-	TEST_NOT_EQUAL(ptr2,0)
-	delete ptr2;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-    TEST_EQUAL(FFAW::getProductName(),"wavelet")
+START_SECTION(virtual ~MzDataValidator())
+{
+	delete ptr;
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
 END_TEST
+
+
+
