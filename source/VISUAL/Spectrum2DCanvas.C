@@ -802,25 +802,25 @@ namespace OpenMS
 
 		//try to find the right layer to project
 		const LayerData* layer = 0;		
-		//first chioce: current layer
+		//first choice: current layer
 		if (layer_count!=0 && getCurrentLayer().type==LayerData::DT_PEAK)
 		{
 			layer = &(getCurrentLayer());
 		}
-		//second chioce: the only peak layer
+		//second choice: the only peak layer
 		else if (layer_count==1)
 		{
 			layer = &(getLayer(last_layer));
 		}
-		//third chioce: the only visible peak layer
+		//third choice: the only visible peak layer
 		else if (visible_layer_count==1)
 		{
 			layer = &(getLayer(visible_last_layer));
 		}
-		//do nothing
+		//no layer with peaks: disable projections
 		else
 		{
-			QMessageBox::critical(this,"Error","Cannot show projections!");
+			emit toggleProjections();
 			return;
 		}
 		
