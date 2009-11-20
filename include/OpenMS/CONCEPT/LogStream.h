@@ -432,7 +432,7 @@ namespace OpenMS
 
 	} // namespace Logger
 
-
+	/** @file Logstream.h */
 	/** @brief Macros to use the logger
 
 			To use a specific logger of a log level simply
@@ -442,7 +442,7 @@ namespace OpenMS
 			not want to see warning, this error is still visible, for example.
 	*/
 	//@{
-	/// Macro to be used if fatal error are reported (processing stops)
+	/** @def Macro to be used if fatal error are reported (processing stops) */
 	#define LOG_FATAL_ERROR \
   Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 	
