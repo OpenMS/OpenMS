@@ -24,7 +24,7 @@ PROJECT("OpenMS")
 ########################################################
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "1")
-set(OPENMS_PACKAGE_VERSION_MINOR "6")
+set(OPENMS_PACKAGE_VERSION_MINOR "7")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 ########################################################
@@ -236,7 +236,8 @@ else()
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.6.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+# maybe we should change this method to a more robust one
+FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.7.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
 
 if ("${CONTRIB_CONFIRM_DIR}" STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
 	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct or you need to update your contrib!")
@@ -627,10 +628,10 @@ foreach(i ${TOPP_executables})
 
     add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C ${resource_dir}/${i}.icns)         
     ## transform TOPPView and INIFileEditor to real Mac OS X applications
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.6")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.6")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.6")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.6")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${i}.icns")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${i}") 
