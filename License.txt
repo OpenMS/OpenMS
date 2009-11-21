@@ -64,6 +64,15 @@ Boost (headers)
 ANDI/MS
   - URL: http://sourceforge.net/projects/andi/
   - License.lgpl-2.1.txt
+  
+ZLib
+  - URL: http://www.zlib.net
+  - License available at http://www.zlib.net/zlib_license.html
+  
+BZ2Lib
+  - URL: http://www.bzip.org/
+  - BSD-style(?)
+ 
 
 -------------------------------------------------------------------------------
 

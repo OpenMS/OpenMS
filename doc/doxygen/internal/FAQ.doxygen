@@ -470,10 +470,19 @@ svn propset svn:eol-style native MyClass.C
 
 				<LI><B>How is the platform-independent source release package created?</B>
 					<OL>
-						<LI> Update version number of contrib README file in CMakeLists.txt of contrib and %OpenMS.
-						<LI> Update version number of TOPPView and TOPPAS splash screen <TT>source/VISUAL/ICONS/</TT>.@n
-						     The PhotoShop files can be found in the @em images SVN module.
-						<LI> Update version number in <TT>CMakeLists.txt</TT> (three OPENMS_PACKAGE_VERSION_* variables)
+						<LI> Year numbers update in:
+							<OL>
+								<LI> License.txt
+								<LI> All headers
+							</OL>	
+						<LI> Version Number update in:
+							<OL>
+								<LI> <TT>CMakeLists.txt</TT> of contrib.
+								<LI> <TT>CMakeLists.txt</TT> of %OpenMS (three OPENMS_PACKAGE_VERSION_* variables, and the contrib version check)
+								<LI> <TT>source/TEST/VersionInfo_test.C</TT>
+								<LI> TOPPView and TOPPAS splash screen <TT>source/VISUAL/ICONS/</TT>.@n
+									 The GIMP/PhotoShop files can be found in the @em images SVN module.
+							</OL>
 						<LI> Run cmake
 						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed (target 'Tutorials_build' and 'Tutorials_exec')
 						<LI> Commit the changes to the SVN repository
