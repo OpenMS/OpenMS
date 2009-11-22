@@ -218,8 +218,8 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 		Each class in OpenMS and each TOPP tool have a unit test. To build and execute the tests,
 		go to your %OpenMS build_tree and further into ./source/TEST. There you'll find an OpenMS_tests.sln file, which you can open.
 		For other generators an equivalent file with another suffix will be present. Now, build the 'test_build' target and the 'RUN_TESTS' target.
-		You can also run the tests in a command prompt in <OpenMS_build_tree>/source/TEST using $ ctest
-		Single tests can be run with $ ctest -R <testname>, e.g. $ ctest -R Base64_test
+		You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt;/source/TEST using $ ctest
+		Single tests can be run with $ ctest -R &lt;testname&gt;, e.g. $ ctest -R Base64_test
 		For more syntax on ctest look at the online documentation at http://cmake.org/.
 		
 

@@ -422,25 +422,27 @@ namespace OpenMS
 		bool hasStream_(std::ostream& stream);
 		bool bound_() const;
 
-		// flag needed by the destructor to decide whether the streambuf
-		// has to be deleted. If the default ctor is used to create
-		// the LogStreamBuf, delete_buffer_ is set to true and the ctor
-		// also deletes the buffer.
+		/// flag needed by the destructor to decide whether the streambuf
+		/// has to be deleted. If the default ctor is used to create
+		/// the LogStreamBuf, delete_buffer_ is set to true and the ctor
+		/// also deletes the buffer.
 		bool	delete_buffer_;
 
 	}; //LogStream
 
 	} // namespace Logger
 
-	/** @file Logstream.h */
-	/** @brief Macros to use the logger
+	/** @file Logstream */
+	/*@{ 
+	
+	/**@brief Macros to use the logger
 
 			To use a specific logger of a log level simply
 			use it as cerr or cout: <br>
 			<code> LOG_ERROR << " A bad error occured ..."  </code> <br>
 			Which produces an error message in the log. If the user does
 			not want to see warning, this error is still visible, for example.
-	*/
+		**/
 	/** @def Macro to be used if fatal error are reported (processing stops) */
 	#define LOG_FATAL_ERROR \
   Log_fatal << __FILE__ << "(" << __LINE__ << "): "
@@ -478,12 +480,16 @@ namespace OpenMS
   #define LOG_DEVELOPMENT \
     if(0) cerr
 #endif
+	/*@}*/
 
 
-	/** Global static instance of a logstream.
+	/*@{
+	/**
+ Global static instance of a logstream.
 			This instance of LogStream is by default bound to <b>cout</b> <b>cerr</b> by calling
 			the default constructor.
-	*/
+	**/
+
 	OPENMS_DLLAPI extern Logger::LogStream	Log_fatal;
 	OPENMS_DLLAPI extern Logger::LogStream  Log_error;
 	OPENMS_DLLAPI extern Logger::LogStream  Log_warn;
@@ -493,6 +499,7 @@ namespace OpenMS
   OPENMS_DLLAPI extern Logger::LogStream  Log_debug_intense;
   OPENMS_DLLAPI extern Logger::LogStream  Log_development;
 #endif
+	/*@}*/
 
 } // namespace OpenMS
 

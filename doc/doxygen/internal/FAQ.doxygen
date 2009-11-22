@@ -646,7 +646,6 @@ svn propset svn:eol-style native MyClass.C
 	         <LI>Commit everything, send an email do developers mentioning revision numbers (for %OpenMS, contrib, SeqAn)
 	         <LI>Consider updating this FAQ entry.
 	      </OL>
-	      
 		</UL>
 */
 
