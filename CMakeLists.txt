@@ -801,7 +801,7 @@ if (MSVC)
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/source/TEST/bin/$(OutDir)/"
 										COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y                    
-                    COMMENT "message after library is built & copy OpenMS(d).dll to test binary dir"
+                    COMMENT "Library build. Copying OpenMS(d).dll to test binary dir"
                     VERBATIM)
 else()
   add_custom_command(TARGET OpenMS
