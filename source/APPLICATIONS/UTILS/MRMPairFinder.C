@@ -123,8 +123,10 @@ class TOPPMRMPairFinder
 			registerDoubleOption_("mass_tolerance", "<tolerance>", 0.01, "Precursor mass tolerance which is used for the pair finding and the matching of the given pair m/z values to the features.", false, true);
 			setMinFloat_("mass_tolerance", 0.0);
 
-			registerDoubleOption_("RT_tolerance", "<tolerance>", 200, "Maximal deviation in RT dimension in seconds a feature can have when comparing to the RT values given in the pair file", false, true);
-			setMinFloat_("RT_tolerance", 1.0);
+			registerDoubleOption_("RT_tolerance", "<tolerance>", 200, "Maximal deviation in RT dimension in seconds a feature can have when comparing to the RT values given in the pair file.", false, true);
+			setMinFloat_("RT_tolerance", 0.0);
+			registerDoubleOption_("RT_pair_tolerance", "<tolerance>", 5, "Maximal deviation in RT dimension in seconds the two partners of a pair is allowed to have.", false, true);
+			setMinFloat_("RT_pair_tolerance", 0.0);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -138,6 +140,7 @@ class TOPPMRMPairFinder
 			String pair_in(getStringOption_("pair_in"));
 			DoubleReal mass_tolerance(getDoubleOption_("mass_tolerance"));
 			DoubleReal RT_tolerance(getDoubleOption_("RT_tolerance"));
+			DoubleReal RT_pair_tolerance(getDoubleOption_("RT_pair_tolerance"));
 
 			//-------------------------------------------------------------
 			// reading input
@@ -243,7 +246,7 @@ class TOPPMRMPairFinder
 							{
 								for (vector<MatchedFeature>::const_iterator fit2 = heavy.begin(); fit2 != heavy.end(); ++fit2)
 								{	
-									if (fit1->idx != fit2->idx)
+									if (fit1->idx != fit2->idx || fabs(fit1->f.getRT() - fit2->f.getRT()) > RT_pair_tolerance)
 									{
 										continue;
 									}
@@ -298,7 +301,7 @@ class TOPPMRMPairFinder
 					}
 
 					DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (light_sum + heavy_sum);
-					cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/-" << absdev_ratios <<  " " << "(#XIC-pairs for quantation=" + String(ratios.size()) + ")" << endl;
+					cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/- " << absdev_ratios <<  " " << "(#XIC-pairs for quantation: " + String(ratios.size()) + " )" << endl;
 				}
 			}
 

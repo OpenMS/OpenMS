@@ -151,10 +151,6 @@ class TOPPERPairFinder
 
 			registerDoubleOption_("expansion_range", "<range>", 5.0, "The range that is used to extend the isotope distribution with null intensity peaks in Th.", false, true);
 			setMinFloat_("expansion_range", 0.0);
-			
-			registerIntOption_("max_number_of_ratios", "<num>", 5, "The maximal number of ratios from different scans to be used to calculate the final ratio. If more ratios are found, the ratios with the highest intensity sums are used.", false, true);
-			setMinInt_("max_number_of_ratios", 1);
-
 		}
 
 		ExitCodes main_(int , const char**)
@@ -170,7 +166,6 @@ class TOPPERPairFinder
 			DoubleReal RT_tolerance(getDoubleOption_("RT_tolerance"));
 			DoubleReal expansion_range(getDoubleOption_("expansion_range"));
 			Size max_isotope(getIntOption_("max_isotope"));
-			Size max_number_of_ratios(getIntOption_("max_number_of_ratios"));
 			Int debug(getIntOption_("debug"));
 
 			//-------------------------------------------------------------
@@ -375,13 +370,14 @@ class TOPPERPairFinder
 						{
 							for (vector<MatchedFeature>::const_iterator fit2 = heavy.begin(); fit2 != heavy.end(); ++fit2)
 							{
-								if (fit1->idx != fit2->idx)
+								if (fit1->idx != fit2->idx || fit1->f.getCharge() != fit2->f.getCharge() ||
+										fabs(fit1->f.getMZ() - pairs[fit1->idx].mz_light) > precursor_mass_tolerance || 
+										fabs(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy) > precursor_mass_tolerance)
 								{
 									continue;
 								}
 								DoubleReal deviation(0);
-								deviation = fabs((fit1->f.getMZ() - pairs[fit1->idx].mz_light) -
-														(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy));
+								deviation = fabs((fit1->f.getMZ() - pairs[fit1->idx].mz_light) - (fit2->f.getMZ() - pairs[fit2->idx].mz_heavy));
 								if (deviation < best_deviation && deviation < precursor_mass_tolerance)
 								{
 									best_light = fit1->f;
@@ -418,8 +414,6 @@ class TOPPERPairFinder
 			for (Map<Size, vector<SILACQuantitation> >::ConstIterator it1 = idx_to_quantlet.begin(); it1 != idx_to_quantlet.end(); ++it1)
 			{
 				SILAC_pair silac_pair = pairs[it1->first];
-				//writeDebug_("Quantitation of pair " + String(silac_pair.mz_light) + " <-> " + String(silac_pair.mz_heavy) + " @RT=" + String(silac_pair.rt) + "s (#scans for quantation=" + String(it1->second.size()) + ")", 1);
-				cout << "Quantitation of pair " + String(silac_pair.mz_light) + " <-> " + String(silac_pair.mz_heavy) + " @RT=" + String(silac_pair.rt) + "s (#scans for quantation=" + String(it1->second.size()) + ")" << endl;
 
 				// simply add up all intensities and calculate the final ratio
 				DoubleReal light_sum(0), heavy_sum(0);
@@ -434,12 +428,7 @@ class TOPPERPairFinder
 				}
 
 				DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (heavy_sum + light_sum);
-
-				if (ratios.size() > max_number_of_ratios)
-				{
-					// only use the max_number_of_ratios
-				}
-				cout << "Ratio: " << silac_pair.mz_light << " <-> " << silac_pair.mz_heavy << " @ " << silac_pair.rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/-" << absdev_ratios << endl;
+				cout << "Ratio: " << silac_pair.mz_light << " <-> " << silac_pair.mz_heavy << " @ " << silac_pair.rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/- " << absdev_ratios << " (#scans for quantation: " << String(it1->second.size()) << " )" << endl;
 			}
 
 
