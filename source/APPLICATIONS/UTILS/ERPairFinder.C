@@ -228,7 +228,7 @@ class TOPPERPairFinder
 			FeatureMap<> all_features;
 			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
 			{
-				if (it->size() == 0)
+				if (it->size() == 0 || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
 				{
 					continue;
 				}
