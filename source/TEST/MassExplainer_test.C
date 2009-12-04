@@ -55,7 +55,7 @@ END_SECTION
 
 START_SECTION((MassExplainer(AdductsType adduct_base)))
 {
-	Adduct a(2, 1, 123.12, "Na", -0.5);
+	Adduct a(2, 1, 123.12, "Na", -0.5,0);
 	MassExplainer::AdductsType va;
 	va.push_back(a);  
 	MassExplainer me(va);
@@ -73,11 +73,11 @@ END_SECTION
 START_SECTION((MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp)))
 {
 	MassExplainer::AdductsType va;
-	Adduct a1(2, 1, 123.12, "Na", -0.5);
-	Adduct a2(3, 1, 123.12, "K", -0.7);
+	Adduct a1(2, 1, 123.12, "Na", -0.5,0);
+	Adduct a2(3, 1, 123.12, "K", -0.7,0);
 	va.push_back(a1);  
 	va.push_back(a2);  
-	MassExplainer me(va,5,10,2,-10.3);
+	MassExplainer me(va,5,10,2,-10.3,0);
 	TEST_EQUAL(me.getAdductBase().size(), 2);
 }
 END_SECTION
@@ -85,11 +85,11 @@ END_SECTION
 START_SECTION((MassExplainer& operator=(const MassExplainer &rhs)))
 {
   MassExplainer::AdductsType va;
-	Adduct a1(2, 1, 123.12, "Na", -0.5);
-	Adduct a2(3, 1, 123.12, "K", -0.7);
+	Adduct a1(2, 1, 123.12, "Na", -0.5,0);
+	Adduct a2(3, 1, 123.12, "K", -0.7,0);
 	va.push_back(a1);  
 	va.push_back(a2);  
-	MassExplainer me(va,5,10,2,-10.3);
+	MassExplainer me(va,5,10,2,-10.3,0);
 	MassExplainer me2;
 	me2 = me;
 	TEST_EQUAL(me.getAdductBase().size(), 2);
@@ -100,8 +100,8 @@ END_SECTION
 START_SECTION((void setAdductBase(AdductsType adduct_base)))
 {
 	MassExplainer::AdductsType va;
-	Adduct a1(2, 1, 123.12, "Na", -0.5);
-	Adduct a2(3, 1, 123.12, "K", -0.7);
+	Adduct a1(2, 1, 123.12, "Na", -0.5,0);
+	Adduct a2(3, 1, 123.12, "K", -0.7,0);
 	va.push_back(a1);  
 	va.push_back(a2);  
 	MassExplainer me;

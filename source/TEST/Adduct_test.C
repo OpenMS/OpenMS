@@ -61,7 +61,7 @@ END_SECTION
 
 START_SECTION((Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob)))
 {
-	Adduct a(123, 43, 123.456f, "S", -0.3453);
+	Adduct a(123, 43, 123.456f, "S", -0.3453, 0);
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43);
 	TEST_REAL_SIMILAR(a.getSingleMass(), 123.456);
@@ -74,7 +74,7 @@ END_SECTION
 START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Adduct& a, const Adduct& b))
 {
 	
-	Adduct a(123,  3, 123.456f, "S", -0.3453f);
+	Adduct a(123,  3, 123.456f, "S", -0.3453f, 0);
 	Adduct b(a);
 
 	TEST_EQUAL(a==b, true);
@@ -157,7 +157,7 @@ END_SECTION
 
 START_SECTION((Adduct operator *(Int m)))
 {
-	Adduct a_p(123, 43, 123.456, "S", -0.3453);
+	Adduct a_p(123, 43, 123.456, "S", -0.3453, 0);
 	Adduct a = a_p*4;
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43*4);
@@ -169,8 +169,8 @@ END_SECTION
 
 START_SECTION((Adduct operator+(const Adduct &rhs)))
 {
-	Adduct a_p(123, 43, 123.456f, "S", -0.3453f);
-	Adduct a_p2(123, 40, 123.456f, "S", -0.3453f);
+	Adduct a_p(123, 43, 123.456f, "S", -0.3453f, 0);
+	Adduct a_p2(123, 40, 123.456f, "S", -0.3453f, 0);
 	Adduct a = a_p + a_p2;
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43+40);
@@ -182,7 +182,7 @@ END_SECTION
 
 START_SECTION((void operator+=(const Adduct &rhs)))
 {
-	Adduct a_p(123, 43, 123.456f, "S", -0.3453f);
+	Adduct a_p(123, 43, 123.456f, "S", -0.3453f, 0);
 	Adduct a(a_p);
 	a.setAmount(10);
 	a	+= a_p;

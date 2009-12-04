@@ -65,8 +65,8 @@ END_SECTION
 START_SECTION((Compomer(const Compomer& p) ))
 {
 	Compomer c(34, 45.32f, 12.34f);
-	Adduct a1(123,  3, 123.456f, "S", -0.3453f);
-	Adduct b1(3, -2, 1.456f, "H", -0.13f);
+	Adduct a1(123,  3, 123.456f, "S", -0.3453f, 0);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f, 0);
 	c.setID(434);
 	c.add(a1, Compomer::RIGHT);
 	c.add(b1, Compomer::LEFT);
@@ -85,8 +85,8 @@ END_SECTION
 START_SECTION((Compomer& operator=(const Compomer &source)))
 {
 	Compomer c(34, 45.32f, 12.34f);
-	Adduct a1(123,  3, 123.456f, "S", -0.3453f);
-	Adduct b1(3, -2, 1.456f, "H", -0.13f);
+	Adduct a1(123,  3, 123.456f, "S", -0.3453f, 0);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f, 0);
 	c.setID(434);
 	c.add(a1, Compomer::RIGHT);
 	c.add(b1, Compomer::LEFT);
@@ -105,8 +105,8 @@ END_SECTION
 START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Compomer& a, const  Compomer& b))
 {
 	Compomer c(34, 45.32f, 12.34f);
-	Adduct a1(123,  3, 123.456f, "S", -0.3453f);
-	Adduct b1(3, -2, 1.456f, "H", -0.13f);
+	Adduct a1(123,  3, 123.456f, "S", -0.3453f, 0);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f, 0);
 	c.setID(434);
 	c.add(a1, Compomer::RIGHT);
 	
@@ -121,10 +121,10 @@ END_SECTION
 START_SECTION((void add(const Adduct &a, UInt side)))
 {
 	//Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob
-	Adduct a1(123, 43, 123.456f, "S", -0.3453f);
-	Adduct a2(123,  3, 123.456f, "S", -0.3453f);
+	Adduct a1(123, 43, 123.456f, "S", -0.3453f, 0);
+	Adduct a2(123,  3, 123.456f, "S", -0.3453f, 0);
 
-	Adduct b1(3, -2, 1.456f, "H", -0.13f);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f, 0);
 
 	Compomer c;
 	c.add(a1, Compomer::RIGHT);
@@ -156,11 +156,11 @@ END_SECTION
 START_SECTION(bool isConflicting(const Compomer &cmp, UInt side_this, UInt side_other) const)
 {
 	EmpiricalFormula ef("H");
-	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7f));
+	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7f), 0);
 
 	{
-	Adduct a1(1, 1, 1.007f, "H1", -0.13f);
-	Adduct a2(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a1(1, 1, 1.007f, "H1", -0.13f, 0);
+	Adduct a2(1, 2, 123.456f, "NH4", -0.3453f, 0);
 
 	
 	Compomer c,d;
@@ -185,10 +185,10 @@ START_SECTION(bool isConflicting(const Compomer &cmp, UInt side_this, UInt side_
 	}
 	
 	{
-  Adduct a1(1, -2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, 1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, -2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, 1, 1.007f, "H1", -0.13f, 0);
 
-	Adduct b1(1, 2, 1.007f, "H1", -0.13f);
+	Adduct b1(1, 2, 1.007f, "H1", -0.13f, 0);
 
 	Compomer c,d;
 	c.add(a1, Compomer::RIGHT);
@@ -201,8 +201,8 @@ START_SECTION(bool isConflicting(const Compomer &cmp, UInt side_this, UInt side_
 	}
 
 	{
-  Adduct a1(1, 3, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, 3, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 3, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, 3, 1.007f, "H1", -0.13f, 0);
 
 	Compomer c,d;
 	c.add(a1, Compomer::RIGHT);
@@ -273,8 +273,8 @@ END_SECTION
 START_SECTION((const Int& getPositiveCharges() const))
 {
   Compomer c;
-	Adduct a1(3, -2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(6, 1, 1.007f, "H1", -0.13f);
+	Adduct a1(3, -2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(6, 1, 1.007f, "H1", -0.13f, 0);
 
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
@@ -285,8 +285,8 @@ END_SECTION
 START_SECTION((const Int& getNegativeCharges() const))
 {
   Compomer c;
-	Adduct a1(3, -2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(6, 1, 1.007f, "H1", -0.13f);
+	Adduct a1(3, -2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(6, 1, 1.007f, "H1", -0.13f, 0);
 
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
@@ -304,21 +304,21 @@ END_SECTION
 
 START_SECTION((String getAdductsAsString() const))
 {
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f, 0);
 	Compomer c;
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
-	TEST_EQUAL(c.getAdductsAsString(), "()-(H-1H8N2)");
+	TEST_EQUAL(c.getAdductsAsString(), "() --> (H-1H8N2)");
 	c.add(a1, Compomer::LEFT);
-	TEST_EQUAL(c.getAdductsAsString(), "(H8N2)-(H-1H8N2)");
+	TEST_EQUAL(c.getAdductsAsString(), "(H8N2) --> (H-1H8N2)");
 }
 END_SECTION
 
 START_SECTION((String getAdductsAsString(UInt side) const))
 {
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f, 0);
 	Compomer c;
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
@@ -332,8 +332,8 @@ END_SECTION
 
 START_SECTION((const CompomerComponents& getComponent() const))
 {
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f, 0);
 	Compomer c;
 	Compomer::CompomerComponents comp(2);
 	TEST_EQUAL(c.getComponent()==comp, true);
@@ -350,52 +350,52 @@ END_SECTION
 
 START_SECTION((Compomer removeAdduct(const Adduct& a) const))
 {
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f, 0);
 	Compomer c;
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
 	c.add(a1, Compomer::LEFT);
 	Compomer tmp = c.removeAdduct(a1);
-	TEST_EQUAL(tmp.getAdductsAsString(), "()-(H-1)");
+	TEST_EQUAL(tmp.getAdductsAsString(), "() --> (H-1)");
 }
 END_SECTION
 
 START_SECTION((Compomer removeAdduct(const Adduct& a, const UInt side) const))
 {
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f, 0);
 	Compomer c;
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
 	c.add(a1, Compomer::LEFT);
 	Compomer tmp = c.removeAdduct(a1, Compomer::RIGHT);
-	TEST_EQUAL(tmp.getAdductsAsString(), "(H8N2)-(H-1)");
+	TEST_EQUAL(tmp.getAdductsAsString(), "(H8N2) --> (H-1)");
 					 tmp = c.removeAdduct(a1, Compomer::LEFT);
-	TEST_EQUAL(tmp.getAdductsAsString(), "()-(H-1H8N2)");	
+	TEST_EQUAL(tmp.getAdductsAsString(), "() --> (H-1H8N2)");	
 }
 END_SECTION
 
 START_SECTION((void add(const CompomerSide& add_side, UInt side)))
 {
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f, 0);
 	Compomer c;
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
 	c.add(a1, Compomer::LEFT);
-	TEST_EQUAL(c.getAdductsAsString(), "(H8N2)-(H-1H8N2)");
+	TEST_EQUAL(c.getAdductsAsString(), "(H8N2) --> (H-1H8N2)");
 	Compomer tmp = c;
 	tmp.add(c.getComponent()[Compomer::RIGHT], Compomer::RIGHT);
-	TEST_EQUAL(tmp.getAdductsAsString(), "(H8N2)-(H-2H16N4)");
+	TEST_EQUAL(tmp.getAdductsAsString(), "(H8N2) --> (H-2H16N4)");
 	tmp.add(c.getComponent()[Compomer::RIGHT], Compomer::LEFT);
-	TEST_EQUAL(tmp.getAdductsAsString(), "(H-1H16N4)-(H-2H16N4)");	
+	TEST_EQUAL(tmp.getAdductsAsString(), "(H-1H16N4) --> (H-2H16N4)");	
 }
 END_SECTION
 
 START_SECTION((bool isSingleAdduct(Adduct &a, const UInt side) const))
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f, 0);
 	Compomer c;
 	c.add(a1, Compomer::RIGHT);
 	c.add(a2, Compomer::RIGHT);
