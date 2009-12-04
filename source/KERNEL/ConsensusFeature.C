@@ -291,10 +291,11 @@ namespace OpenMS
 			Int q = it->getCharge();
 			if (q==0) std::cerr << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
     	DoubleReal adduct_mass;
-    	if (it->getElementIndex() > fm.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, it->getElementIndex(), fm.size());
-    	if (fm[it->getElementIndex()].metaValueExists("dc_charge_adduct_mass"))
+    	Size index=fm.uniqueIdToIndex(it->getElementIndex());
+    	if (index > fm.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, index, fm.size());
+    	if (fm[index].metaValueExists("dc_charge_adduct_mass"))
     	{
-    		adduct_mass = (DoubleReal) fm[it->getElementIndex()].getMetaValue("dc_charge_adduct_mass");
+    		adduct_mass = (DoubleReal) fm[index].getMetaValue("dc_charge_adduct_mass");
     	}
     	else
     	{

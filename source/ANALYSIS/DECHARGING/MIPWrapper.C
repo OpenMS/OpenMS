@@ -138,9 +138,9 @@ namespace OpenMS {
      //   std::cout << "found";
      // }
 			
-			// log scores are good for addition in ILP - but we need them to be > 0
-
-      score = -log(1-exp(getLogScore_(i, pairs, fm)));
+			// log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
+			// ... so we just add normal probabilities...
+      score = exp(getLogScore_(i, pairs, fm));
 			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 			namebuf.str("");
 			namebuf<<"x#"<<i;
@@ -155,7 +155,6 @@ namespace OpenMS {
 			// DEBUG:
 			//std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
 		}
-		std::cout << "DONE adding variables..."<< std::endl;
 		std::cout << "score_min: " << score_min << " score_max: " << score_max << "\n";
 
 		//------------------------------------adding constraints--------------------------------------------------
@@ -239,7 +238,7 @@ namespace OpenMS {
             ChargePair ti =  pairs[i];
             ChargePair tj =  pairs[j];
             
-            std::cout << "conflicting egde!";
+            std::cout << "conflicting edge!";
           }
 
 					namebuf.str("");

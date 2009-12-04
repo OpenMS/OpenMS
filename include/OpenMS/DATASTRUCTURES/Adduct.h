@@ -46,7 +46,9 @@ public:
     amount_(0),
     singleMass_(0),
     log_prob_(0),
-    formula_()
+    formula_(),
+    rt_shift_(0),
+    label_()
     {
     }
 
@@ -55,21 +57,25 @@ public:
     amount_(0),
     singleMass_(0),
     log_prob_(0),
-    formula_()
+    formula_(),
+    rt_shift_(0),
+    label_()
     {
     }
 
-    Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob)
+    Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob, DoubleReal rt_shift, const String label="")
     : charge_(charge),
     amount_(amount),
     singleMass_(singleMass),
-    log_prob_(log_prob)
+    log_prob_(log_prob),
+    rt_shift_(rt_shift),
+    label_(label)
     {
 			if (amount < 0) std::cerr << "Attention: Adduct received negative amount! (" << amount << ")\n";
 			formula_ = checkFormula_(formula);
     }
 
-    Adduct operator *(Int m)
+    Adduct operator *(const Int m) const
     {
         Adduct a = *this;
         a.amount_ *= m;
@@ -152,14 +158,27 @@ public:
     {
 			formula_ = checkFormula_(formula);
     }      
+    
+		const DoubleReal& getRTShift() const
+		{
+			return rt_shift_;
+		}
+    const String& getLabel() const
+    {
+      return label_;
+    }
+
+
 //}
     
 private:
-    Int charge_; //usually +1
-    Int amount_; // number of entities
-    DoubleReal singleMass_; //mass of a single entity
-    DoubleReal log_prob_;   // log probability of observing a single entity of this adduct
-    String formula_;   // chemical formula (parsable by EmpiricalFormula)
+    Int charge_; //< usually +1
+    Int amount_; //< number of entities
+    DoubleReal singleMass_; //< mass of a single entity
+    DoubleReal log_prob_;   //< log probability of observing a single entity of this adduct
+    String formula_;   //< chemical formula (parsable by EmpiricalFormula)
+		DoubleReal rt_shift_; //< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
+		String label_; //< Label for this adduct (can be used to indicate heavy labels)
 
 		String checkFormula_(const String & formula)
 		{

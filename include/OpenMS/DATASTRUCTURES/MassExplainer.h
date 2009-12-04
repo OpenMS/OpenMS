@@ -39,7 +39,7 @@ namespace OpenMS
 {
 
   /**
-    @brief computes empirical formulae for given mass differences using a set of allowed elements
+    @brief computes empirical formulas for given mass differences using a set of allowed elements
     
   	
   	@ingroup Datastructures
@@ -49,7 +49,7 @@ namespace OpenMS
 
 	 public:
 			 
-		typedef Adduct::AdductsType AdductsType;
+		typedef Adduct::AdductsType AdductsType; //vector<Adduct>
 		typedef std::vector<Compomer>::const_iterator CompomerIterator;
 		
     ///@name Constructors and destructor
@@ -60,7 +60,8 @@ namespace OpenMS
 				adduct_base_(),
 				q_min_(1),
 				q_max_(5),
-				max_span_(3)
+				max_span_(3),
+				max_neutrals_(0)
 		{
 				init_(true);
 		}
@@ -71,7 +72,8 @@ namespace OpenMS
 				adduct_base_(adduct_base),
 				q_min_(1),
 				q_max_(5),
-				max_span_(3)
+				max_span_(3),
+				max_neutrals_(0)
 		{
 				init_(true);
 		}
@@ -83,19 +85,21 @@ namespace OpenMS
 				q_min_(q_min),
 				q_max_(q_max),
 				max_span_(max_span),
-				thresh_p_(thresh_logp)
+				thresh_p_(thresh_logp),
+				max_neutrals_(0)
 		{
 				init_(false);
 		}
 
 		/// Constructor
-		MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp)
+		MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp, Size max_neutrals)
 			:	explanations_(),
 				adduct_base_(adduct_base),
 				q_min_(q_min),
 				q_max_(q_max),
 				max_span_(max_span),
-				thresh_p_(thresh_logp)
+				thresh_p_(thresh_logp),
+				max_neutrals_(max_neutrals)
 		{
 				init_(false);
 		}
@@ -119,13 +123,13 @@ namespace OpenMS
 						Int tmp = q_max_;
 						q_max_ = q_min_;
 						q_min_ = tmp;
-						std::cerr << "__FILE__: Warning! \"q_max < q_min\" needed fixing!\n";
+						std::cerr << __FILE__ << ": Warning! \"q_max < q_min\" needed fixing!\n";
 				}
 
 				if (max_span_ > (q_max_ - q_min_ + 1))
 				{
 						max_span_ = q_max_ - q_min_ + 1;
-						std::cerr << "__FILE__: Warning! \"max_span_ > (q_max - q_min + 1)\" needed fixing!\n";
+						std::cerr << __FILE__ << ": Warning! \"max_span_ > (q_max - q_min + 1)\" needed fixing!\n";
 				}
 				
 				if (adduct_base_.size() == 0)
@@ -167,13 +171,21 @@ namespace OpenMS
 		/// fill map with possible mass-differences along with their explanation
 		void compute()
 		{
+				// differentiate between neutral and charged adducts
+				AdductsType adduct_neutral, adduct_charged;
+				for (AdductsType::const_iterator it=adduct_base_.begin(); it!=adduct_base_.end(); ++it)
+				{
+					if (it->getCharge()==0) adduct_neutral.push_back(*it);
+					else adduct_charged.push_back(*it);
+				}
+			
 				// calculate some initial boundaries that can be used to shorten the enumeration process
 				//Int q_comp_min = -max_span_; //minimal expected charge of compomer
 				//Int q_comp_max = max_span_;  //maximal expected charge of compomer
 				Int max_pq = q_max_;				 //maximal number of positve adduct-charges for a compomer
 				//Int max_nq = q_max_;				 //maximal number of negative adduct-charges for a compomer
 				
-				for (AdductsType::const_iterator it=adduct_base_.begin(); it!=adduct_base_.end(); ++it)
+				for (AdductsType::const_iterator it=adduct_charged.begin(); it!=adduct_charged.end(); ++it)
 				{
 					std::vector <Adduct> new_adducts; 
 					//create new compomers
@@ -233,6 +245,41 @@ namespace OpenMS
 				}
 				explanations_.swap(valids_only);
 				
+				// add neutral adducts
+				Size size_of_explanations = explanations_.size();
+				for (AdductsType::const_iterator it_neutral=adduct_neutral.begin(); it_neutral!=adduct_neutral.end(); ++it_neutral)
+				{
+					std::cout << "Adding neutral: " << *it_neutral << "\n";
+					for (Int n=1;n<=max_neutrals_;++n)
+					{
+						// neutral itself:
+						Compomer cmpr1;
+						cmpr1.add((*it_neutral)*n,Compomer::RIGHT);
+						explanations_.push_back(cmpr1);
+
+						Compomer cmpr2;
+						cmpr2.add((*it_neutral)*n,Compomer::LEFT);
+						explanations_.push_back(cmpr2);
+
+
+						// neutral in combination with others
+						for (Size i=0;i<size_of_explanations;++i)
+						{
+							{
+							Compomer cmpr(explanations_[i]);
+							cmpr.add((*it_neutral)*n,Compomer::RIGHT);
+							explanations_.push_back(cmpr);
+							}
+							{
+							Compomer cmpr(explanations_[i]);
+							cmpr.add((*it_neutral)*n,Compomer::LEFT);
+							explanations_.push_back(cmpr);
+							}
+						}
+					}
+				}
+				
+				
 				// sort according to (in-order) net-charge, mass, probability
 				std::sort(explanations_.begin(), explanations_.end());
 				
@@ -242,7 +289,7 @@ namespace OpenMS
 				//#if DEBUG_FD
 				for (size_t ci=0; ci < explanations_.size(); ++ci)
 				{
-				//		std::cout << explanations_[ci] << " ";
+						std::cout << explanations_[ci] << " ";
 				}
 				//#endif
 		}
@@ -277,12 +324,12 @@ namespace OpenMS
 		/// @param thresh_log_p		  minimal log probability required
 		/// @param firstExplanation begin range with candidates according to net_charge and mass
 		/// @param lastExplanation  end range
-		SignedSize query(const Int net_charge, 
-						  const float mass_to_explain, 
-							const float mass_delta,
-							const float thresh_log_p,
-							std::vector< Compomer >::const_iterator & firstExplanation, 
-							std::vector< Compomer >::const_iterator & lastExplanation) const
+		SignedSize query(const Int net_charge,
+										 const float mass_to_explain,
+										 const float mass_delta,
+										 const float thresh_log_p,
+										 std::vector< Compomer >::const_iterator & firstExplanation,
+										 std::vector< Compomer >::const_iterator & lastExplanation) const
 		{
 			#ifdef DEBUG_FD
 				if (fabs(mass_to_explain) < 120.0)
@@ -302,7 +349,7 @@ namespace OpenMS
 
 	 protected:
     
-	  ///check if the generated compomer is valid jugded by its probability, charges etc
+	  ///check if the generated compomer is valid judged by its probability, charges etc
 		bool compomerValid_(const Compomer& cmp)
 		{
 				// probability ok?
@@ -326,11 +373,11 @@ namespace OpenMS
 		{
 
 			EmpiricalFormula ef(formula);
-			//effectively substract charge electron masses: (-H plus one Proton)*charge
-			ef -= ("H" + String(charge)); // substracts x hydrogen
+			//effectively subtract charge electron masses: (-H plus one Proton)*charge
+			ef -= ("H" + String(charge)); // subtracts x hydrogen
 			ef.setCharge(charge); // adds x protons
 			
-			Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p));
+			Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p),0);
 			
 			return a;
 		}
@@ -347,6 +394,9 @@ namespace OpenMS
 		Int max_span_;
 		/// minimum required probability of a compound (all other compounds are discarded)
 		DoubleReal thresh_p_;
+		/// Maximum number of neutral(q=0) adducts
+		Size max_neutrals_;
+		
   };
 
 
