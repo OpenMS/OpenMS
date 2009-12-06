@@ -290,7 +290,7 @@ namespace OpenMS {
 						
 						copy_map.push_back(charged_feature);
 						// add to consensus
-						cf.insert(0, copy_map.size()-1, charged_feature);
+						cf.insert(0, charged_feature.getUniqueId(), charged_feature);
 
 						// decrease # of allowed compomers of current compomer's charge
 						--allowed_entities_of_charge[charge];
@@ -388,7 +388,7 @@ namespace OpenMS {
 						
 						copy_map.push_back(charged_feature);
 						
-						cf.insert(0, copy_map.size()-1, charged_feature);
+						cf.insert(0, charged_feature.getUniqueId(), charged_feature);
 					}
 				}
 				// add consensus element containing all charge variants just created
@@ -425,6 +425,7 @@ namespace OpenMS {
 
 		f.setMZ( (feature_ef.getMonoWeight() + adduct_mass ) / charge);
 		f.setCharge(charge);
+		f.ensureUniqueId();
 		
 		// add meta information on compomer (mass)
 		f.setMetaValue("charge_adduct_mass", adduct_mass );

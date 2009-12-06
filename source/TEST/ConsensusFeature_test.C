@@ -370,8 +370,9 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm)))
 	tmp_feature.setMZ(mz1);
 	tmp_feature.setIntensity(200.0f);
 	tmp_feature.setCharge(3);
+	tmp_feature.ensureUniqueId();
 	fm.push_back(tmp_feature);
-  cons.insert(2,0,tmp_feature);
+  cons.insert(2,tmp_feature.getUniqueId(),tmp_feature);
 	cons.computeDechargeConsensus(fm);
 	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
 	TEST_REAL_SIMILAR(cons.getRT(),100)
@@ -383,9 +384,10 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm)))
 	tmp_feature2.setMZ(mz2);
 	tmp_feature2.setIntensity(250.0f);
 	tmp_feature2.setCharge(3);
+	tmp_feature2.ensureUniqueId();
 	tmp_feature2.setMetaValue("dc_charge_adduct_mass", 2*natrium_mass + proton_mass);
 	fm.push_back(tmp_feature2);
-	cons.insert(4,1,tmp_feature2);
+	cons.insert(4,tmp_feature2.getUniqueId(),tmp_feature2);
 	cons.computeDechargeConsensus(fm);
 	TEST_REAL_SIMILAR(cons.getIntensity(),450.0)
 	TEST_REAL_SIMILAR(cons.getRT(),101)
@@ -397,9 +399,10 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm)))
 	tmp_feature3.setMZ(mz3);
 	tmp_feature3.setIntensity(350.0f);
 	tmp_feature3.setCharge(5);
+	tmp_feature3.ensureUniqueId();
 	tmp_feature3.setMetaValue("dc_charge_adduct_mass", 1*natrium_mass + 4*proton_mass);
 	fm.push_back(tmp_feature3);
-	cons.insert(4,2,tmp_feature3);
+	cons.insert(4,tmp_feature3.getUniqueId(),tmp_feature3);
 	cons.computeDechargeConsensus(fm);
 	TEST_REAL_SIMILAR(cons.getIntensity(),800.0)
 	TEST_REAL_SIMILAR(cons.getRT(),101)
