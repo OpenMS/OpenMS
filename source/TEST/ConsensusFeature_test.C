@@ -357,9 +357,12 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm)))
   DoubleReal natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
   
   DoubleReal m = 1000;
-  DoubleReal mz1 = (m+3*proton_mass) / 3;
-  DoubleReal mz2 = (m+1*proton_mass + 2*natrium_mass) / 3;
-  DoubleReal mz3 = (m+4*proton_mass + natrium_mass) / 5;
+  DoubleReal m1_add = 0.5;
+  DoubleReal mz1 = (m+m1_add+3*proton_mass) / 3;
+  DoubleReal m2_add = 1;
+  DoubleReal mz2 = (m+m2_add+1*proton_mass + 2*natrium_mass) / 3;
+  DoubleReal m3_add = -0.5;
+  DoubleReal mz3 = (m+m3_add+4*proton_mass + natrium_mass) / 5;
   
   FeatureMap<> fm;
   
@@ -376,37 +379,48 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm)))
 	cons.computeDechargeConsensus(fm);
 	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
 	TEST_REAL_SIMILAR(cons.getRT(),100)
-	TEST_REAL_SIMILAR(cons.getMZ(), m);
+	TEST_REAL_SIMILAR(cons.getMZ(), m+m1_add);
 	
 	//two points
   Feature tmp_feature2;
 	tmp_feature2.setRT(102);
 	tmp_feature2.setMZ(mz2);
-	tmp_feature2.setIntensity(250.0f);
+	tmp_feature2.setIntensity(400.0f);
 	tmp_feature2.setCharge(3);
 	tmp_feature2.ensureUniqueId();
 	tmp_feature2.setMetaValue("dc_charge_adduct_mass", 2*natrium_mass + proton_mass);
 	fm.push_back(tmp_feature2);
 	cons.insert(4,tmp_feature2.getUniqueId(),tmp_feature2);
-	cons.computeDechargeConsensus(fm);
-	TEST_REAL_SIMILAR(cons.getIntensity(),450.0)
-	TEST_REAL_SIMILAR(cons.getRT(),101)
-	TEST_REAL_SIMILAR(cons.getMZ(), m)
+	cons.computeDechargeConsensus(fm, true);
+	TEST_REAL_SIMILAR(cons.getIntensity(),600.0)
+	TEST_REAL_SIMILAR(cons.getRT(),(100.0/3 + 102.0*2/3))
+	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)*2/3))
+
+	cons.computeDechargeConsensus(fm, false);
+	TEST_REAL_SIMILAR(cons.getIntensity(),600.0)
+	TEST_REAL_SIMILAR(cons.getRT(),(100.0/2 + 102.0/2))
+	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/2 + (m+m2_add)/2))
 	
 	//three points
   Feature tmp_feature3;
 	tmp_feature3.setRT(101);
 	tmp_feature3.setMZ(mz3);
-	tmp_feature3.setIntensity(350.0f);
+	tmp_feature3.setIntensity(600.0f);
 	tmp_feature3.setCharge(5);
 	tmp_feature3.ensureUniqueId();
 	tmp_feature3.setMetaValue("dc_charge_adduct_mass", 1*natrium_mass + 4*proton_mass);
 	fm.push_back(tmp_feature3);
 	cons.insert(4,tmp_feature3.getUniqueId(),tmp_feature3);
-	cons.computeDechargeConsensus(fm);
-	TEST_REAL_SIMILAR(cons.getIntensity(),800.0)
-	TEST_REAL_SIMILAR(cons.getRT(),101)
-	TEST_REAL_SIMILAR(cons.getMZ(), m)
+	cons.computeDechargeConsensus(fm, true);
+	TEST_REAL_SIMILAR(cons.getIntensity(),1200.0)
+	TEST_REAL_SIMILAR(cons.getRT(),(100.0/6 + 102.0/3 + 101.0/2))
+	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/6 + (m+m2_add)/3 + (m+m3_add)/2))
+
+	cons.computeDechargeConsensus(fm, false);
+	TEST_REAL_SIMILAR(cons.getIntensity(),1200.0)
+	TEST_REAL_SIMILAR(cons.getRT(),(100.0/3 + 102.0/3 + 101.0/3))
+	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)/3 + (m+m3_add)/3))
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -276,7 +276,7 @@ namespace OpenMS
     return;
   }
   
-  void ConsensusFeature::computeDechargeConsensus(const FeatureMap<>& fm)
+  void ConsensusFeature::computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging)
   {
   	// for computing average position and intensity
   	DoubleReal rt=0.0;
@@ -285,9 +285,18 @@ namespace OpenMS
 		
 		DoubleReal proton_mass = Constants::PROTON_MASS_U;
 
+		// intensity sum (for weighting)
     for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
     {
-    	rt += it->getRT();
+			intensity += it->getIntensity();
+    }
+
+		// unweighted averaging by default
+		DoubleReal weighting_factor = 1.0/size();
+		
+		// RT and Mass
+    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    {
 			Int q = it->getCharge();
 			if (q==0) std::cerr << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
     	DoubleReal adduct_mass;
@@ -301,13 +310,15 @@ namespace OpenMS
     	{
     		adduct_mass = q * proton_mass;
     	}
-    	m += it->getMZ() * q - adduct_mass;
-    	intensity += it->getIntensity();
+
+			if (intensity_weighted_averaging) weighting_factor = it->getIntensity() / intensity;
+    	rt += it->getRT() * weighting_factor;
+    	m += (it->getMZ() * q - adduct_mass) * weighting_factor;
     }
 
     // compute the average position and intensity
-    setRT(rt / size());
-    setMZ(m / size());
+    setRT(rt);
+    setMZ(m);
     setIntensity(intensity);
     setCharge(0);
     return;

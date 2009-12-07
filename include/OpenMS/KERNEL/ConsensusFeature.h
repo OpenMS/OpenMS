@@ -233,15 +233,15 @@ namespace OpenMS
 		/**
        @brief Computes the uncharged parent RT & mass, assuming the handles are charge variants.
 
-       The position of the feature handles (decharged) is averaged.
+       The position of the feature handles (decharged) is averaged (using intensity as weights if @param intensity_weighted_averaging is true).
        Intensities are summed up.
        Charge is set to 0.
        Mass calculation: If the given features contain a metavalue "dc_charge_adduct_mass" then this will be used as adduct mass instead of
        weight(H+) * charge.
 
        @note This method has to be called explicitly, <i>after</i> adding the feature handles.
-       */
-		void computeDechargeConsensus(const FeatureMap<>& fm);
+    */
+		void computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging=false);
 
 		/// returns a const reference to the PeptideIdentification vector
 		const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
