@@ -84,6 +84,7 @@ namespace OpenMS
 				addText_("    Input text file containing the following columns: RT, m/z, intensity.");
 				addText_("    Additionally meta data columns may follow.");
 				addText_("    If meta data is used, meta data column names have to be specified in a header line.");
+				addText_("    If a meta column named 'charge' with numeric data exists, the charge of the features will be set accordingly.");
 				addText_("- msInspect");
 				addText_("    Imports an msInspect feature file.");
 				addText_("- SpecArray");
@@ -200,6 +201,17 @@ namespace OpenMS
 								}
 								//add meta value
 								f.setMetaValue(headers[j],part_trimmed);
+								if (headers[j] == "charge")
+								{
+									try
+									{
+										f.setCharge(part_trimmed.toInt());
+									}
+									catch (...)
+									{
+										writeLog_(String("Failed to convert metavalue 'charge' into integer (line '") + i + ")");
+									}
+								}
 							}
 
 						}
