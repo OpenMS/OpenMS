@@ -35,6 +35,8 @@
 #include <OpenMS/SIMULATION/PTMSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
+//#define _DEBUG
+
 namespace OpenMS {
 
   void verbosePrintFeatureMap(FeatureMapSim feature_map, String stage)
@@ -55,7 +57,12 @@ namespace OpenMS {
         feat != feature_map.end();
         ++feat)
     {
-      std::cout << " RT: " << (*feat).getRT() << " MZ: " << (*feat).getMZ() << " INT: " << (*feat).getIntensity() << " CHARGE: " << (*feat).getCharge() << " Det: " << (*feat).getMetaValue("detectibility") << ::std::endl;
+      std::cout << " RT: " << (*feat).getRT()
+								<< " MZ: " << (*feat).getMZ()
+								<< " INT: " << (*feat).getIntensity()
+								<< " CHARGE: " << (*feat).getCharge()
+								<< " Det: " << (*feat).getMetaValue("detectibility")
+								<< " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence () .toString() << ::std::endl;
       std::cout << "derived from protein(s): ";
       for(std::vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
           it != (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();

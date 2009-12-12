@@ -263,7 +263,10 @@ namespace OpenMS {
 		solver.loadFromCoinModel(build);
 
 		// DEBUG:
-		std::cout << " CONSTRAINTS count: " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl << std::flush;
+		{
+		std::cout << "node count: " << fm.size() << "\n";
+		std::cout << "edge count: " << pairs.size() << "\n";
+		std::cout << "constraint count: " << (conflict_idx[0]+conflict_idx[1]+conflict_idx[2]+conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
 		TextFile conflict_map_out;
 		for (Map<Size, std::vector <Size> >::const_iterator it = conflict_map.begin(); it!= conflict_map.end(); ++it)
 		{
@@ -276,6 +279,10 @@ namespace OpenMS {
 			conflict_map_out.push_back(s);
 		}
 		//conflict_map_out.store("c:/conflict_map.txt");
+		//get rid of memory blockers:
+		conflict_map.swap(Map< Size, std::vector<Size> >());
+		}
+		
 
 		// write the model (for debug)
 		//build.writeMps ("Y:/datasets/simulated/coinor.mps");
@@ -311,13 +318,13 @@ namespace OpenMS {
 		CglFlowCover flowGen;
 		
 		// Add in generators (you should prefer the ones used often and disable the others as they increase solution time)
-		//model.addCutGenerator(&generator1,-1,"Probing");
-		//model.addCutGenerator(&generator2,-1,"Gomory");
-		//model.addCutGenerator(&generator3,-1,"Knapsack");
+		model.addCutGenerator(&generator1,-1,"Probing");
+		model.addCutGenerator(&generator2,-1,"Gomory");
+		model.addCutGenerator(&generator3,-1,"Knapsack");
 		//model.addCutGenerator(&generator4,-1,"OddHole"); // seg faults...
 		model.addCutGenerator(&generator5,-10,"Clique");
-		//model.addCutGenerator(&flowGen,-1,"FlowCover");
-		//model.addCutGenerator(&mixedGen,-1,"MixedIntegerRounding");
+		model.addCutGenerator(&flowGen,-1,"FlowCover");
+		model.addCutGenerator(&mixedGen,-1,"MixedIntegerRounding");
 
 		// Heuristics
 		CbcRounding heuristic1(model);

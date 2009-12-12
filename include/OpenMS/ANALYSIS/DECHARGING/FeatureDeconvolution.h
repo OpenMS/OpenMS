@@ -52,6 +52,8 @@ namespace OpenMS
   {
     public:
     
+			enum CHARGEMODE {QFROMFEATURE=1,QHEURISTIC,QALL};
+			
       typedef FeatureMap<> FeatureMapType;
       typedef Feature FeatureType;
       typedef DPosition<2> ClusterPointType;
@@ -111,6 +113,15 @@ namespace OpenMS
 			**/
 			inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp,const FeatureType& f1,const FeatureType& f2);
 
+			/**
+				@brief determines if we should test a putative feature charge
+				
+				Answer query given the internal status of @em q_try.
+				Features with q<=0 always return true.
+				
+			**/
+			bool chargeTestworthy_(const Int feature_charge, const Int putative_charge) const;
+
       /// List of adducts used to explain mass differences
       MassExplainer::AdductsType potential_adducts_;
       /// labeling table
@@ -119,6 +130,8 @@ namespace OpenMS
       Map<String, Size> map_label_inverse_;
 			/// status of intensity filter for edges
 			bool enable_intensity_filter_;
+			/// status of charge discovery
+			CHARGEMODE q_try_;
 
   };
 } // namespace OpenMS

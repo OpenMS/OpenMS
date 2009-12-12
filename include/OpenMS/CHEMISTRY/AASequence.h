@@ -62,6 +62,11 @@ namespace OpenMS
 		modification as suffix. C-terminal modifications are distinguished from modifications of the last amino 
 		acid by considering the specificity of the modification as stored in ModificationsDB.
 	
+		Arbitrary/unknown modifications can be specified using tags: '[weight]'. This indicates a new AA with the specified
+		weight, e.g. R[148.5]T. Note that this tag does not alter the AA's to the left or right. It represents an AA on its own.
+		Be careful when converting AASequence to an EmpiricalFormula using .getFormula(), as tags will not be considered
+		in this case. However, they have an influence on .getMonoWeight() and .getAverageWeight()!
+	
 		If a string cannot be converted into a valid instance of AASequence, the valid flag is false. The flag
 		can be read using the isValid() predicate. However, instances of AASequence which are not valid report 
 		wrong weights, because the weight cannot be calculated then. Also other operations might fail.

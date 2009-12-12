@@ -106,16 +106,15 @@ namespace OpenMS
   {
     defaults_.setValue("charge_min", 1, "minimal possible charge");
     defaults_.setValue("charge_max", 10, "maximal possible charge");
-		// TODO how to enforce this later after pairs merged? build pairs only for span=2?
     defaults_.setValue("charge_span_max", 4, "maximal range of charges for a single analyte, i.e. observing q1=[5,6,7] implies span=3");
-    defaults_.setMinInt("charge_span_max", 1);
-		defaults_.setValue("q_try", "false", "Try different values of charge for each feature according to the above settings ('true'), or leave feature charge untouched ('false').");
-		defaults_.setValidStrings("q_try",StringList::create("true,false"));
+    defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
+		defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
+		defaults_.setValidStrings("q_try",StringList::create("feature,heuristic,all"));
 
     defaults_.setValue("mass_max", 25000.0, "maximal mass (not m/z!) expected", StringList::create("advanced"));
     defaults_.setValue("retention_max_diff", 1.0, "maximum allowed RT difference between any two features if their relation shall be determined");
 		defaults_.setValue("retention_max_diff_local", 1.0, "maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
-		/// TODO should be m/z difference?!
+		/// TODO should be m/z ppm?!
     defaults_.setValue("mass_max_diff", 0.5, "maximum allowed mass difference between between two co-features");
     defaults_.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Adducts used to explain mass differences in format: 'Element(+)*:Probability:[RTShift]', i.e. the number of '+' indicate the charge, e.g. 'Ca++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fourth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 0, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
@@ -144,6 +143,10 @@ namespace OpenMS
 		map_label_inverse_[param_.getValue("default_map_label")] = 0;
 		map_label_[0] = param_.getValue("default_map_label");
   
+		if (param_.getValue("q_try") == "feature") q_try_=QFROMFEATURE;
+		else if (param_.getValue("q_try") == "heuristic") q_try_=QHEURISTIC;
+		else q_try_=QALL;
+		
   
     StringList potential_adducts_s = param_.getValue("potential_adducts");
     potential_adducts_.clear();
@@ -270,8 +273,7 @@ namespace OpenMS
 		
 		DoubleReal rt_min_overlap = param_.getValue("min_rt_overlap");
 		
-		bool q_try = (param_.getValue("q_try") == "true" ? true : false);
-		
+	
 		// sort by RT and then m/z
 		fm_out = fm_in;
 		fm_out.sortByPosition();
@@ -356,7 +358,7 @@ namespace OpenMS
 				
 				for (Int q1=q_min; q1<=q_max; ++q1)
 				{ // ** q1
-					if (!q_try && f1.getCharge()!=q1) continue;
+					if (!chargeTestworthy_(f1.getCharge(), q1)) continue;
 
           //DEBUG:
           /**if (fm_out[i_RT_window].getRT()>1930.08 && fm_out[i_RT_window].getRT()<1931.2 && mz1>1443 && mz2>1443 && mz1<2848 && mz2<2848)
@@ -375,7 +377,7 @@ namespace OpenMS
 					     ; (q2<=q_max) && (q2<=q1+q_span-1)
 							 ; ++q2)
 					{ // ** q2
-						if (!q_try && f2.getCharge()!=q2) continue;
+						if (!chargeTestworthy_(f2.getCharge(), q2)) continue;
 						
 						++possibleEdges; // internal count, not vital
 						
@@ -518,7 +520,7 @@ namespace OpenMS
 #endif
 
 		std::cout << "found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
-							<< " and avg hit-size of " << (overallHits/feature_relation.size())
+							<< " and avg hit-size of " << (1.0*overallHits/feature_relation.size())
 							<< std::endl;
 
 		// -------------------------- //
@@ -884,6 +886,7 @@ namespace OpenMS
 			cons_map_tmp.push_back(*it);					
 			// set a centroid
 			cons_map_tmp.back().computeDechargeConsensus(fm_out);
+			cons_map_tmp.back().setMetaValue("pure_proton_features", backbone_count);
 
 		}
 		cons_map_tmp.swap(cons_map);
@@ -1056,6 +1059,31 @@ namespace OpenMS
 			}
 		}
 		return true;
+	}
+
+	bool FeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge) const
+	{
+		// if no charge given or all-charges is selected
+		if ((feature_charge<=0) || (q_try_ == QALL))
+		{
+			return true;
+		}
+		else if (q_try_ == QHEURISTIC)
+		{
+			// test two adjacent charges:
+			if (abs(feature_charge-putative_charge)<=2) return true;
+			// test two multiples
+			if (feature_charge*2 == putative_charge || feature_charge*3 == putative_charge
+				  || feature_charge == putative_charge*2 || feature_charge == putative_charge*3) return true;
+			return false;
+		}
+		else if (q_try_ == QFROMFEATURE)
+		{
+		  return (feature_charge==putative_charge);
+		}
+
+		throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"q_try_ has unhandled enum value!", String((Int)q_try_));
+
 	}
 
 }

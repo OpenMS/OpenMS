@@ -2741,7 +2741,15 @@ namespace OpenMS
   		//copy data
   		ExperimentType exp;
 			activeCanvas_()->getVisiblePeakData(exp);
-
+  		
+  		// insert placeholder peaks
+  		const SpectrumCanvas::AreaType& area = activeCanvas_()->getVisibleArea();
+  		SpectrumType::PeakType p_left,p_right;
+  		p_left.setMZ(area.min()[0]);
+  		exp.back().push_back(p_left);
+  		p_right.setMZ(area.max()[0]);
+  		exp.back().push_back(p_right);
+  		
 	    if (!w->canvas()->addLayer(exp))
 	  	{
 	  		return;

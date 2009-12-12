@@ -162,7 +162,7 @@ namespace OpenMS {
       for(Size idx=0; idx<features.size(); ++idx)
       {
         add2DSignal_(features[idx], experiment);
-        if (idx % (features.size()/10) == 0) std::cout << idx << " of " << features.size() << " MS1 features generated...\n";
+        if (idx % (features.size()/10+1) == 0) std::cout << idx << " of " << features.size() << " MS1 features generated...\n";
       }
       addShotNoise_(experiment, minimal_mz_measurement_limit, maximal_mz_measurement_limit);
     }
@@ -209,6 +209,7 @@ namespace OpenMS {
     Param p1;
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+    //std::cout << "current feature: " << active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << " with scale " << scale << std::endl;
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
     ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
     p1.setValue("statistics:mean", ef.getAverageWeight() / q);

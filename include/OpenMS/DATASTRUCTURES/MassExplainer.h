@@ -289,9 +289,12 @@ namespace OpenMS
 				//#if DEBUG_FD
 				for (size_t ci=0; ci < explanations_.size(); ++ci)
 				{
-						std::cout << explanations_[ci] << " ";
+				//		std::cerr << explanations_[ci] << " ";
 				}
 				//#endif
+				
+				std::cout << "MassExplainer table size: " << explanations_.size() << "\n";
+				
 		}
 		
 		
