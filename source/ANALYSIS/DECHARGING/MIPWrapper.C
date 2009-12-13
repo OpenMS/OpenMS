@@ -280,7 +280,8 @@ namespace OpenMS {
 		}
 		//conflict_map_out.store("c:/conflict_map.txt");
 		//get rid of memory blockers:
-		conflict_map.swap(Map< Size, std::vector<Size> >());
+		Map< Size, std::vector<Size> > tmp_map;
+		conflict_map.swap(tmp_map);
 		}
 		
 
