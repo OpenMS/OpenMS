@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <algorithm> // for "min", "max"
 
 namespace OpenMS 
 {
@@ -61,7 +62,7 @@ namespace OpenMS
       IDMapper(const IDMapper& cp);
       
       /// Assignment
-      IDMapper& operator = (const IDMapper& rhs);
+      IDMapper& operator= (const IDMapper& rhs);
 			
 			/**
 				@brief Mapping method for peak maps
@@ -147,11 +148,11 @@ namespace OpenMS
 			{
 				checkHits_(ids);
 				
-				//append protein identifications
-				map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
+				// append protein identifications
+				map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
-				//check if all feature have at least one convex hull
-				//if not, use the centroid and the given deltas
+				// check if all features have at least one convex hull
+				// if not, use the centroid and the given deltas
 				if (!use_centroids)
 				{
 					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
@@ -165,113 +166,166 @@ namespace OpenMS
 					}
 				}
 				
-				//precalculate feature bounding boxes
-				std::vector< DBoundingBox<2> > bbs;
-				if (!use_centroids)
+				// hash features (bounding boxes) by RT:
+				// RT range is partitioned into slices (bins) of 1 second; every feature
+				// that overlaps a certain slice is hashed into the corresponding bin
+				std::vector<std::vector<Int> > hash_table;
+				DoubleReal min_rt, max_rt;
+				Int offset;
+
+				// calculate feature bounding boxes only once (if applicable):
+				std::vector< DBoundingBox<2> > boxes;
+				if (use_centroids)
 				{
-					bbs.reserve(map.size());
-					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
+					// fill the hash table:
+					map.sortByRT();
+					min_rt = map.front().getRT() - rt_delta_;
+					max_rt = map.back().getRT() + rt_delta_;
+					offset = Int(floor(min_rt));
+					hash_table.resize(Int(floor(max_rt)) - offset + 1);			
+					for (Size index = 0; index < map.size(); ++index)
 					{
-						DBoundingBox<2> bb = f_it->getConvexHull().getBoundingBox();
-						bb.setMin(bb.min() - DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.min().getY())));
-						bb.setMax(bb.max() + DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.max().getY())));
-						bbs.push_back(bb);
+						DoubleReal feat_rt = map[index].getRT();
+						for (Int i = Int(floor(feat_rt - rt_delta_)); 
+								 i <= Int(floor(feat_rt + rt_delta_)); ++i)
+						{
+							hash_table[i - offset].push_back(index);
+						}
 					}
 				}
-				
-				//keep track of assigned/unassigned peptide identifications
-				std::map<Size, Size> assigned;
-				
-				std::vector<DoubleReal> mz_values;
-				DoubleReal rt_pep;
-			
-				// features...
-				std::vector< DBoundingBox<2> >::const_iterator bb_it = bbs.begin();
-				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
+				else // use bouding boxes
 				{
-					//iterate over the IDs
-					for (Size i=0; i<ids.size(); ++i)
+					// std::cout << "Precomputing bounding boxes" << std::endl;
+					boxes.reserve(map.size());
+					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); 
+							f_it != map.end(); ++f_it)
 					{
-						if (ids[i].getHits().size()==0) continue;
-
-						getRTandMZofID_(ids[i], rt_pep, mz_values);
-						// if set to TRUE, we leave the i_mz-loop as we added the whole ID with all hits
-						bool was_added=false; // was current pep-m/z matched?!
-
-						// iterate over m/z values of pepIds
-						for (Size i_mz=0;i_mz<mz_values.size();++i_mz)
+						DBoundingBox<2> box;
+						if (param_.getValue("mz_reference") == "PeptideMass")
+						{ // find monoisotopic mass trace:
+							std::vector<ConvexHull2D>::iterator mono_it = 
+								min_element(f_it->getConvexHulls().begin(), 
+														f_it->getConvexHulls().end(),
+														IDMapper::mass_trace_comp_);
+							box = mono_it->getBoundingBox();
+						}
+						else
 						{
-							DoubleReal mz_pep = mz_values[i_mz];
+							box = f_it->getConvexHull().getBoundingBox();
+						}
+						increaseBoundingBox_(box);
+						boxes.push_back(box);
 
+						// "min"/"max" redefinition (DBoundingBox) confuses the compiler:
+						// min_rt = min(min_rt, box.min().getX());
+						// max_rt = max(max_rt, box.max().getX());
+						if (box.min().getX() < min_rt) min_rt = box.min().getX();
+						if (box.max().getX() > max_rt) max_rt = box.max().getX();
+					}
+				
+					// fill the hash table:
+					offset = Int(floor(min_rt));
+					hash_table.resize(Int(floor(max_rt)) - offset + 1);			
+					for (Size index = 0; index < boxes.size(); ++index)
+					{
+						const DBoundingBox<2>& box = boxes[index];
+						for (Int i = Int(floor(box.min().getX())); 
+								 i <= Int(floor(box.max().getX())); ++i)
+						{
+							hash_table[i - offset].push_back(index);
+						}
+					}
+				}
+
+				// for statistics:
+				Size matches_none = 0, matches_single = 0, matches_multi = 0;
+				
+				// iterate over peptide IDs:
+				for (std::vector<PeptideIdentification>::const_iterator id_it = 
+							 ids.begin(); id_it != ids.end(); ++id_it)
+				{
+					// std::cout << "Peptide ID: " << id_it - ids.begin() << std::endl;
+
+					if (id_it->getHits().empty()) continue;
+
+					std::vector<DoubleReal> mz_values;
+					DoubleReal rt_value;
+					getRTandMZofID_(*id_it, rt_value, mz_values);
+
+					if ((rt_value < min_rt) || (rt_value > max_rt)) // RT out of bounds
+					{
+ 						map.getUnassignedPeptideIdentifications().push_back(*id_it);
+						++matches_none;
+						continue;
+					}
+
+					// iterate over candidate features:
+					Size index = Int(floor(rt_value)) - offset, matching_features = 0;
+					for (std::vector<Int>::iterator hash_it = hash_table[index].begin();
+							 hash_it != hash_table[index].end(); ++hash_it)
+					{
+						Feature& feat = map[*hash_it];
+
+						// iterate over m/z values
+						// (only one if "mz_reference" is "PrecursorMZ"):
+						for (std::vector<DoubleReal>::iterator mz_it = mz_values.begin();
+								 mz_it != mz_values.end(); ++mz_it)
+						{
 							if (use_centroids)
 							{
-							
-
-								if ( isMatch_(rt_pep - f_it->getRT(), mz_pep, f_it->getMZ()) )
+								if (isMatch_(rt_value - feat.getRT(), *mz_it, feat.getMZ()))
 								{
-									was_added = true;
-									f_it->getPeptideIdentifications().push_back(ids[i]);
-									assigned[i]++;
+									feat.getPeptideIdentifications().push_back(*id_it);
+									++matching_features;
+									break; // "mz_it" loop
 								}
 							}
-							else
+							else // use bounding boxes
 							{
-								DPosition<2> id_pos(rt_pep, mz_pep);
-								//check if the ID lies within the bounding box
-
-								if (bb_it->encloses(id_pos))
+								DPosition<2> id_pos(rt_value, *mz_it);
+								if (boxes[*hash_it].encloses(id_pos))
 								{
-									// iterate over all convex hulls
-									for(std::vector<ConvexHull2D>::iterator ch_it = f_it->getConvexHulls().begin(); ch_it!=f_it->getConvexHulls().end(); ++ch_it)
+									if (param_.getValue("mz_reference") == "PeptideMass")
+									{ // already checked monoisotopic mass trace -> success!
+										feat.getPeptideIdentifications().push_back(*id_it);
+										++matching_features;
+										break; // "mz_it" loop
+									}
+									// else: check all the mass traces
+									// (in this case, "mz_values" contains only one value ->
+									// no need to break out of the "mz_it" loop)
+									for(std::vector<ConvexHull2D>::iterator ch_it = 
+												feat.getConvexHulls().begin(); ch_it != 
+												feat.getConvexHulls().end(); ++ch_it)
 									{
-										DBoundingBox<2> bb = ch_it->getBoundingBox();
-										bb.setMin(bb.min() - DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.min().getY())));
-										bb.setMax(bb.max() + DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.max().getY())));
-										if (bb.encloses(id_pos))
-										{
-											was_added = true;
-											f_it->getPeptideIdentifications().push_back(ids[i]);
-											assigned[i]++;
-											break;
+										DBoundingBox<2> box = ch_it->getBoundingBox();
+										increaseBoundingBox_(box);
+										if (box.encloses(id_pos))
+										{ // success!
+											feat.getPeptideIdentifications().push_back(*id_it);
+											++matching_features;
+											break; // "ch_it" loop
 										}
 									}
-								} 
-							} // !centroids
-							
-							if (was_added) break;
-						} // m/z values to check
-
-					} // ID's
-					if(!use_centroids)	++bb_it;
-				} // features
-				
-				Size matches_none = 0;
-				Size matches_single = 0;
-				Size matches_multi = 0;
-				
-				//append unassigned peptide identifications
-				for (Size i=0; i<ids.size(); ++i)
-				{
-					Size matches = assigned[i];
-					if (matches==0)
-					{
-						map.getUnassignedPeptideIdentifications().push_back(ids[i]);
-						matches_none++;
+								}
+							}
+						}
 					}
-					else if (matches==1)
+					if (matching_features == 0)
 					{
-						matches_single++;
+ 						map.getUnassignedPeptideIdentifications().push_back(*id_it);
+						++matches_none;
 					}
-					else
-					{
-						matches_multi++;
-					}
+					else if (matching_features == 1) ++matches_single;
+					else ++matches_multi;
 				}
-				
+
 				//some statistics output
 				std::cout << "Unassigned peptides: " << matches_none << std::endl;
-				std::cout << "Peptides assigned to exactly one features: " << matches_single << std::endl;
-				std::cout << "Peptides assigned to multiple features: " << matches_multi << std::endl;
+				std::cout << "Peptides assigned to exactly one feature: " 
+									<< matches_single << std::endl;
+				std::cout << "Peptides assigned to multiple features: " 
+									<< matches_multi << std::endl;
 			}
 			
 			/**
@@ -310,10 +364,18 @@ namespace OpenMS
 			///Helper function that checks if all peptide hits are annotated with RT and MZ meta values
 			void checkHits_(const std::vector<PeptideIdentification>& ids) const;
 			
-			///get RT and M/Z value(s) of a peptideIdentification
+			///get RT and M/Z value(s) of a PeptideIdentification
 			/// - multiple m/z values are returned if "mz_reference" is set to "PeptideMass" (one for each PeptideHit)
 			/// - one m/z value is returned if "mz_reference" is set to "PrecursorMZ"
 			void getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, std::vector<DoubleReal>& mz_values) const;
+
+			/// "operator<" to compare mass traces (convex hulls) by mean m/z
+			static bool mass_trace_comp_(const ConvexHull2D& first, 
+																	 const ConvexHull2D& second);
+
+			/// increase a bounding box by the given RT and m/z deltas
+			void increaseBoundingBox_(DBoundingBox<2>& box);
+
   };
  
 } // namespace OpenMS

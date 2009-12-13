@@ -38,10 +38,10 @@ namespace OpenMS
   		mz_delta_(1),
   		measure_(MEASURE_PPM)
   {
-		defaults_.setValue("rt_delta",rt_delta_, "allowed RT delta in seconds"); 
-		defaults_.setMinFloat("rt_delta",0);
+		defaults_.setValue("rt_delta", rt_delta_, "allowed RT delta in seconds"); 
+		defaults_.setMinFloat("rt_delta", 0);
 		defaults_.setValue("mz_delta", mz_delta_, "allowed m/z delta in ppm or Da"); 
-		defaults_.setMinFloat("mz_delta",0);
+		defaults_.setMinFloat("mz_delta", 0);
 		defaults_.setValue("mz_measure", "ppm", "unit of mz_delta (ppm or Da)"); 
 		defaults_.setValidStrings("mz_measure", StringList::create("ppm,Da"));
 		defaults_.setValue("mz_reference", "PrecursorMZ", "Method to determine m/z of identification"); 
@@ -60,11 +60,11 @@ namespace OpenMS
 		updateMembers_();
 	}
 
-	IDMapper& IDMapper::operator = (const IDMapper& rhs)
+	IDMapper& IDMapper::operator= (const IDMapper& rhs)
 	{
 		if (this == &rhs) return *this;
 		
-		DefaultParamHandler::operator = (rhs);
+		DefaultParamHandler::operator= (rhs);
 		rt_delta_=rhs.rt_delta_;
   	mz_delta_=rhs.mz_delta_;
   	measure_=rhs.measure_;
@@ -227,8 +227,36 @@ namespace OpenMS
 				mz_values.push_back(id.getHits()[i_hit].getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge);
 			}
 		}
-		
+	}
+
+
+	bool IDMapper::mass_trace_comp_(const ConvexHull2D& first, 
+																	const ConvexHull2D& second)
+	{
+		DoubleReal first_mean = 0, second_mean = 0;
+		for (ConvexHull2D::PointArrayType::const_iterator it = 
+					 first.getPoints().begin(); it != first.getPoints().end(); ++it)
+		{
+			first_mean += it->getY();
+		}
+		first_mean /= first.getPoints().size();
+		for (ConvexHull2D::PointArrayType::const_iterator it = 
+					 second.getPoints().begin(); it != first.getPoints().end(); ++it)
+		{
+			second_mean += it->getY();
+		}
+		second_mean /= second.getPoints().size();
+		return first_mean < second_mean;
 	}
 	
+
+	void IDMapper::increaseBoundingBox_(DBoundingBox<2>& box)
+	{
+		DPosition<2> sub_min(rt_delta_, getAbsoluteMZDelta_(box.min().getY())),
+			add_max(rt_delta_, getAbsoluteMZDelta_(box.max().getY()));
+
+		box.setMin(box.min() - sub_min);
+		box.setMax(box.max() + add_max);
+	}
 
 } // namespace OpenMS
