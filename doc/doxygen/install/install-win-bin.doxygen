@@ -3,10 +3,21 @@
 	@page install_win_bin Installation on Windows
   
 	In order to install the binary package of TOPP, simply download and execute the installer from http://www.OpenMS.de and follow the instructions.
+	You need an administator account to install the OpenMS binary package!
 	
-	The windows binary version should work on many versions of windows including WinXP, VISTA and Win2000
-	and installation should take you a few minutes only. We also supply a 64bit version, which can deal with larger files. If your operating system supports
-	64bit, we strongly encourage you to use the 64bit version.
+	The windows binary version works on many versions of windows including Win2000, WinXP, VISTA and Windows,
+	and installation should take you a few minutes only. We also supply a 64bit version, which can deal with larger LC/MS files, due to more allocatable system memory. If your operating
+	system supports	64bit and has more than 2Gigabytes of RAM, we strongly encourage you to use the 64bit version.
+	
+	
+	<H2>Known Issues:</H2><br>
+	<b>Problem</b>:<br>
+	During installation, an error message pops up, saying <i>The installation of the Visual Studio redistributable package ... failed. ..."</i>.<br>
+	<b>Solution</b>:<br>
+	Your user account does not have administator rights, which are required to install some Microsoft libraries required by OpenMS. 
+	Use an administator account	or ask your IT staff to install OpenMS for you.
+	
+	
 	
 */
 
