@@ -231,14 +231,22 @@ namespace OpenMS
 					{
 						if (default_params.exists(it.getName()))
 						{
-							// param 'type': do not override!
-							if (it.getName().hasSuffix(":type"))
+							if (it.getName().hasSuffix(":version"))
 							{	
 								if (default_params.getValue(it.getName()) != it->value)
 								{
-									writeLog_("Warning: Augmented and Default Ini-File differ in value. Default value will not be altered!");
-									continue;
+									writeLog_("Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!");
 								}
+								continue;
+							}
+							// param 'type': do not override!
+							else if (it.getName().hasSuffix(":type"))
+							{	
+								if (default_params.getValue(it.getName()) != it->value)
+								{
+									writeLog_("Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!");
+								}
+								continue;
 							}
 							
 							// all other parameters:
@@ -253,12 +261,12 @@ namespace OpenMS
 									if (entry.isValid(s))
 									{
 										// overwrite default value
-										writeDebug_(String("Overriding Default-Parameter ") + it.getName() + " with new value "+String(it->value) ,10); 
+										writeLog_(String("Overriding Default-Parameter ") + it.getName() + " with new value "+String(it->value)); 
 										default_params.setValue(it.getName(),it->value, entry.description, default_params.getTags(it.getName()));
 									}
 									else
 									{
-										writeDebug_(String("Parameter ") + it.getName() + " does not fit into new restriction settings! Ignoring...",10); 
+										writeLog_(String("Parameter ") + it.getName() + " does not fit into new restriction settings! Ignoring..."); 
 									}
 								}
 								else
@@ -268,12 +276,12 @@ namespace OpenMS
 							}
 							else
 							{
-								writeDebug_(String("Parameter ") + it.getName() + " has changed value type! Ignoring...",10); 
+								writeLog_(String("Parameter ") + it.getName() + " has changed value type! Ignoring..."); 
 							}
 						}
 						else
 						{
-							writeDebug_(String("Deprecated Parameter ") + it.getName() + " given in -ini argument! Ignoring...",10); 
+							writeLog_(String("Deprecated Parameter ") + it.getName() + " given in -ini argument! Ignoring..."); 
 						}
 					}
 				
