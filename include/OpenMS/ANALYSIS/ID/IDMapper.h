@@ -202,12 +202,21 @@ namespace OpenMS
 					{
 						DBoundingBox<2> box;
 						if (param_.getValue("mz_reference") == "PeptideMass")
-						{ // find monoisotopic mass trace:
-							std::vector<ConvexHull2D>::iterator mono_it = 
-								min_element(f_it->getConvexHulls().begin(), 
-														f_it->getConvexHulls().end(),
-														IDMapper::mass_trace_comp_);
-							box = mono_it->getBoundingBox();
+						{ 
+							if (f_it->getConvexHulls().size() == 1)
+							{ // only one hull for the whole feature (-> "isotope_wavelet"):
+								box = f_it->getConvexHull().getBoundingBox();
+								box.setMinY(f_it->getMZ());
+								box.setMaxY(f_it->getMZ());
+							}
+							else
+							{ // find monoisotopic mass trace:
+								std::vector<ConvexHull2D>::iterator mono_it = 
+									min_element(f_it->getConvexHulls().begin(), 
+															f_it->getConvexHulls().end(),
+															IDMapper::mass_trace_comp_);
+								box = mono_it->getBoundingBox();
+							}
 						}
 						else
 						{
