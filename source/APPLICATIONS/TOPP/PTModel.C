@@ -247,7 +247,7 @@ class TOPPPTModel
 			UInt max_negative_count = 0;
 			UInt max_positive_count = 0;
 			bool non_redundant = false;
-			bool skip_cv = false;
+			bool skip_cv = getFlag_("skip_cv");
 			
 			svm.setParameter(SVMWrapper::PROBABILITY, 1);
 			//-------------------------------------------------------------
