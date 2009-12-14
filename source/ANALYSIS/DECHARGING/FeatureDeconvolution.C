@@ -358,7 +358,7 @@ namespace OpenMS
 				
 				for (Int q1=q_min; q1<=q_max; ++q1)
 				{ // ** q1
-					if (!chargeTestworthy_(f1.getCharge(), q1)) continue;
+					if (!chargeTestworthy_(f1.getCharge(), q1, true)) continue;
 
           //DEBUG:
           /**if (fm_out[i_RT_window].getRT()>1930.08 && fm_out[i_RT_window].getRT()<1931.2 && mz1>1443 && mz2>1443 && mz1<2848 && mz2<2848)
@@ -377,7 +377,7 @@ namespace OpenMS
 					     ; (q2<=q_max) && (q2<=q1+q_span-1)
 							 ; ++q2)
 					{ // ** q2
-						if (!chargeTestworthy_(f2.getCharge(), q2)) continue;
+						if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge()==q1)) continue;
 						
 						++possibleEdges; // internal count, not vital
 						
@@ -609,7 +609,7 @@ namespace OpenMS
 					std::cout << "conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity() 
 										<< " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) 
 										<< "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" 
-										<< feature_relation[i].getEdgeScore() << " f#:" << f_idx_v[f_idx] << " " << feature_relation[i].getCompomer().getAdductsAsString((UInt)f_idx) 
+										<< feature_relation[i].getEdgeScore() << " f#:" << fm_out[f_idx_v[f_idx]].getUniqueId() << " " << feature_relation[i].getCompomer().getAdductsAsString((UInt)f_idx) 
 										<< "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
 					dirty = true;
 				}
@@ -1061,8 +1061,9 @@ namespace OpenMS
 		return true;
 	}
 
-	bool FeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge) const
+	bool FeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const
 	{
+	
 		// if no charge given or all-charges is selected
 		if ((feature_charge<=0) || (q_try_ == QALL))
 		{
@@ -1070,6 +1071,9 @@ namespace OpenMS
 		}
 		else if (q_try_ == QHEURISTIC)
 		{
+			// do not allow two charges to change at the same time
+			if (!other_unchanged && feature_charge!=putative_charge) return false;
+
 			// test two adjacent charges:
 			if (abs(feature_charge-putative_charge)<=2) return true;
 			// test two multiples

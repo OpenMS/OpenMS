@@ -290,9 +290,29 @@ namespace OpenMS
 
 
 	/**	Log Stream Class.
-			 \par
-			
-			 \par
+
+	Defines a log stream which features a cache and some formatting.
+	For the developer, however, only some macros are of interest which
+	will push the message that follows them into the
+	appropriate stream:
+	
+	Macros:
+		- LOG_FATAL_ERROR
+		- LOG_ERROR (non-fatal error are reported (processing continues))
+		- LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
+		- LOG_INFO (information, e.g. a status should be reported)
+		- LOG_DEBUG (general debugging information)
+		
+	Special Macros (they only print something when OpenMS is in Debug-Mode)
+		- LOG_DEBUG_INTENSE (verbose debugging information)
+		- LOG_DEVELOPMENT (development debugging messages)
+				 
+			To use a specific logger of a log level simply
+			use it as cerr or cout: <br>
+			<code> LOG_ERROR << " A bad error occured ..."  </code> <br>
+			Which produces an error message in the log.
+		**/
+			 
 	*/
 	class OPENMS_DLLAPI LogStream
 		: public std::ostream
@@ -432,17 +452,7 @@ namespace OpenMS
 
 	} // namespace Logger
 
-	/** @file Logstream */
-	/*@{ 
 	
-	/**@brief Macros to use the logger
-
-			To use a specific logger of a log level simply
-			use it as cerr or cout: <br>
-			<code> LOG_ERROR << " A bad error occured ..."  </code> <br>
-			Which produces an error message in the log. If the user does
-			not want to see warning, this error is still visible, for example.
-		**/
 	/** @def Macro to be used if fatal error are reported (processing stops) */
 	#define LOG_FATAL_ERROR \
   Log_fatal << __FILE__ << "(" << __LINE__ << "): "

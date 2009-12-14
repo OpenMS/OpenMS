@@ -120,7 +120,7 @@ namespace OpenMS
 				Features with q<=0 always return true.
 				
 			**/
-			bool chargeTestworthy_(const Int feature_charge, const Int putative_charge) const;
+			bool chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const;
 
       /// List of adducts used to explain mass differences
       MassExplainer::AdductsType potential_adducts_;
