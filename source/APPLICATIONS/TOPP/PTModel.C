@@ -193,7 +193,7 @@ class TOPPPTModel
 			setMinInt_("number_of_partitions", 2);
 			registerIntOption_("degree_start","<int>",1,"starting point of degree",false);
 			setMinInt_("degree_start", 1);
-			registerIntOption_("degree_step_size","<int>",1,"step size point of degree",false);
+			registerIntOption_("degree_step_size","<int>",2,"step size point of degree",false);
 			registerIntOption_("degree_stop","<int>",4,"stopping point of degree",false);
 			registerDoubleOption_("c_start","<float>",1,"starting point of c",false);
 			registerDoubleOption_("c_step_size","<float>",100,"step size of c",false);
@@ -201,12 +201,12 @@ class TOPPPTModel
 			registerDoubleOption_("nu_start","<float>",0.1,"starting point of nu",false);
 			setMinFloat_("nu_start", 0);
 			setMaxFloat_("nu_start", 1);
-			registerDoubleOption_("nu_step_size","<float>",0.1,"step size of nu",false);
+			registerDoubleOption_("nu_step_size","<float>",1.3,"step size of nu",false);
 			registerDoubleOption_("nu_stop","<float>",0.9,"stopping point of nu",false);
 			setMinFloat_("nu_stop", 0);
 			setMaxFloat_("nu_stop", 1);
 			registerDoubleOption_("sigma_start","<float>",1,"starting point of sigma",false);
-			registerDoubleOption_("sigma_step_size","<float>",1,"step size of sigma",false);
+			registerDoubleOption_("sigma_step_size","<float>",1.3,"step size of sigma",false);
 			registerDoubleOption_("sigma_stop","<float>",15,"stopping point of sigma",false);
 			registerFlag_("skip_cv", "Has to be set if the cv should be skipped and the model should just be trained with the specified parameters.");			
 		}
@@ -325,25 +325,21 @@ class TOPPPTModel
 			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
 			{
 				svm.setParameter(SVMWrapper::DEGREE, getIntOption_("degree"));
-
-				if (setByUser_("degree_start") 
-						&& setByUser_("degree_step_size") 
-						&& setByUser_("degree_stop")
-						&& !skip_cv)
-				{
-					DoubleReal degree_start = getIntOption_("degree_start");
-					DoubleReal degree_step_size = getIntOption_("degree_step_size");
-					if (!additive_cv && degree_step_size <= 1)
+				if(!skip_cv)
 					{
-						writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
-						return ILLEGAL_PARAMETERS;
+						DoubleReal degree_start = getIntOption_("degree_start");
+						DoubleReal degree_step_size = getIntOption_("degree_step_size");
+						if (!additive_cv && degree_step_size <= 1)
+							{
+								writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
+								return ILLEGAL_PARAMETERS;
+							}
+						DoubleReal degree_stop = getIntOption_("degree_stop");
+				
+						start_values.insert(make_pair(SVMWrapper::DEGREE, degree_start));
+						step_sizes.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
+						end_values.insert(make_pair(SVMWrapper::DEGREE, degree_stop));
 					}
-					DoubleReal degree_stop = getIntOption_("degree_stop");
-
-					start_values.insert(make_pair(SVMWrapper::DEGREE, degree_start));
-					step_sizes.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
-					end_values.insert(make_pair(SVMWrapper::DEGREE, degree_stop));	
-				}
 			}			
 			
 			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC)
@@ -352,10 +348,7 @@ class TOPPPTModel
 				DoubleReal c_step_size = 0.;
 				DoubleReal c_stop = 0.;
 	
-				if (setByUser_("c_start") 
-						&& setByUser_("c_step_size") 
-						&& setByUser_("c_stop") 
-						&& !skip_cv)
+				if (!skip_cv)
 				{
 					c_start = getDoubleOption_("c_start");
 					c_step_size = getDoubleOption_("c_step_size");
@@ -377,10 +370,7 @@ class TOPPPTModel
 				DoubleReal nu_start = 0.;
 				DoubleReal nu_step_size = 0.;
 				DoubleReal nu_stop = 0.;
-				if (setByUser_("nu_start") 
-						&& setByUser_("nu_step_size") 
-						&& setByUser_("nu_stop")
-						&& !skip_cv)
+				if (!skip_cv)
 				{
 					nu_start = getDoubleOption_("nu_start");
 					nu_step_size = getDoubleOption_("nu_step_size");
@@ -397,68 +387,37 @@ class TOPPPTModel
 				}			
 			}			
 
- 			if (!setByUser_("border_length")
- 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
- 			{
-				writeLog_("No border length given for POBK. Aborting!");
-				return ILLEGAL_PARAMETERS;		
- 			}
-			if (setByUser_("border_length"))
-			{
- 				border_length = getIntOption_("border_length");
- 			}
+			border_length = getIntOption_("border_length");
 			svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
- 			if (!setByUser_("sigma") 
- 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
- 			{
-				writeLog_("No sigma given for POBK. Aborting!");
-				return ILLEGAL_PARAMETERS;		
- 			}
-			if (setByUser_("sigma"))
-			{
-	 			sigma = getDoubleOption_("sigma");
-	 		}
-			svm.setParameter(SVMWrapper::SIGMA, sigma);
 
- 			if (!setByUser_("k_mer_length")
- 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
- 			{
-				writeLog_("No k-mer length given for POBK. Aborting!");
-				return ILLEGAL_PARAMETERS;		
- 			}
-			if (setByUser_("k_mer_length"))
-			{
-	 			k_mer_length = getIntOption_("k_mer_length");
-			}
+			sigma = getDoubleOption_("sigma");
+	 		svm.setParameter(SVMWrapper::SIGMA, sigma);
 
+			k_mer_length = getIntOption_("k_mer_length");
+			
 			sigma_start = 0.;
 			sigma_step_size = 0.;
 			sigma_stop = 0.;
 			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO 
 					&& !skip_cv)
 			{
-				if (setByUser_("sigma_start") 
-						&& setByUser_("sigma_step_size") 
-						&& setByUser_("sigma_stop"))
-				{
-					sigma_start = getDoubleOption_("sigma_start");
-					sigma_step_size = getDoubleOption_("sigma_step_size");
-					if (!additive_cv && sigma_step_size <= 1)
+				sigma_start = getDoubleOption_("sigma_start");
+				sigma_step_size = getDoubleOption_("sigma_step_size");
+				if (!additive_cv && sigma_step_size <= 1)
 					{
 						writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					sigma_stop = getDoubleOption_("sigma_stop");
-
-					start_values.insert(make_pair(SVMWrapper::SIGMA, sigma_start));
-					step_sizes.insert(make_pair(SVMWrapper::SIGMA, sigma_step_size));
-					end_values.insert(make_pair(SVMWrapper::SIGMA, sigma_stop));
-					
-					debug_string = "CV from sigma = " + String(sigma_start) +
-						 " to sigma = " + String(sigma_stop) + " with step size " + 
-						 String(sigma_step_size);
-					writeDebug_(debug_string, 1);			
-				}			
+				sigma_stop = getDoubleOption_("sigma_stop");
+				
+				start_values.insert(make_pair(SVMWrapper::SIGMA, sigma_start));
+				step_sizes.insert(make_pair(SVMWrapper::SIGMA, sigma_step_size));
+				end_values.insert(make_pair(SVMWrapper::SIGMA, sigma_stop));
+				
+				debug_string = "CV from sigma = " + String(sigma_start) +
+					" to sigma = " + String(sigma_stop) + " with step size " + 
+					String(sigma_step_size);
+				writeDebug_(debug_string, 1);			
 			}
 
 			if (!skip_cv && start_values.size() > 0)
