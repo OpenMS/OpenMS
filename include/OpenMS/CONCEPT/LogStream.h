@@ -311,9 +311,9 @@ namespace OpenMS
 			use it as cerr or cout: <br>
 			<code> LOG_ERROR << " A bad error occured ..."  </code> <br>
 			Which produces an error message in the log.
-		**/
-			 
 	*/
+			 
+
 	class OPENMS_DLLAPI LogStream
 		: public std::ostream
 	{
@@ -493,12 +493,12 @@ namespace OpenMS
 	/*@}*/
 
 
-	/*@{
+	/*@{*/
 	/**
  Global static instance of a logstream.
 			This instance of LogStream is by default bound to <b>cout</b> <b>cerr</b> by calling
 			the default constructor.
-	**/
+	*/
 
 	OPENMS_DLLAPI extern Logger::LogStream	Log_fatal;
 	OPENMS_DLLAPI extern Logger::LogStream  Log_error;
