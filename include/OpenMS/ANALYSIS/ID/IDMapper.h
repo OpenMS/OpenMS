@@ -31,7 +31,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <algorithm> // for "min", "max"
+
+#include <algorithm>
+#include <limits>
 
 namespace OpenMS 
 {
@@ -146,6 +148,7 @@ namespace OpenMS
 			template <typename FeatureType>
 		  void annotate(FeatureMap<FeatureType>& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroids=false)
 			{
+				// std::cout << "Starting annotation..." << std::endl;
 				checkHits_(ids);
 				
 				// append protein identifications
@@ -169,8 +172,10 @@ namespace OpenMS
 				// hash features (bounding boxes) by RT:
 				// RT range is partitioned into slices (bins) of 1 second; every feature
 				// that overlaps a certain slice is hashed into the corresponding bin
+				// std::cout << "Setting up hash table..." << std::endl;
 				std::vector<std::vector<Int> > hash_table;
-				DoubleReal min_rt, max_rt;
+				DoubleReal min_rt = std::numeric_limits<DoubleReal>::max(), 
+					max_rt = std::numeric_limits<DoubleReal>::min();
 				Int offset;
 
 				// calculate feature bounding boxes only once (if applicable):
@@ -195,7 +200,7 @@ namespace OpenMS
 				}
 				else // use bouding boxes
 				{
-					// std::cout << "Precomputing bounding boxes" << std::endl;
+					// std::cout << "Precomputing bounding boxes..." << std::endl;
 					boxes.reserve(map.size());
 					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); 
 							f_it != map.end(); ++f_it)
@@ -233,6 +238,7 @@ namespace OpenMS
 					}
 				
 					// fill the hash table:
+					// std::cout << "Filling hash table..." << std::endl;
 					offset = Int(floor(min_rt));
 					hash_table.resize(Int(floor(max_rt)) - offset + 1);			
 					for (Size index = 0; index < boxes.size(); ++index)
@@ -249,6 +255,7 @@ namespace OpenMS
 				// for statistics:
 				Size matches_none = 0, matches_single = 0, matches_multi = 0;
 				
+				// std::cout << "Finding matches..." << std::endl;
 				// iterate over peptide IDs:
 				for (std::vector<PeptideIdentification>::const_iterator id_it = 
 							 ids.begin(); id_it != ids.end(); ++id_it)
