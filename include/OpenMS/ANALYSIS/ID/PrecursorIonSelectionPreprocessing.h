@@ -61,8 +61,12 @@ namespace OpenMS
 		const std::map<String,std::vector<DoubleReal> >& getProtMasses() const;
 
 
-		const std::vector<DoubleReal> & getMasses(String acc);
-	
+		const std::vector<DoubleReal> & getMasses(String acc) const;
+
+		const std::map<String, std::vector<DoubleReal> >& getProteinRTMap() const;
+		const std::map<String, std::vector<DoubleReal> >& getProteinPTMap() const;
+		const std::map<String, std::vector<String> >& getProteinPeptideSequenceMap() const;
+		
 
 		/**
 		 *	@brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
@@ -106,7 +110,7 @@ namespace OpenMS
 		/// get the rt-weight for the proposed peptide and its measured rt
 		DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt);
 
-		
+		void setFixedModifications(StringList& modifications);
 	protected:
 		/// saves the preprocessed db
 		void savePreprocessedDB_(String db_path,String path);
@@ -127,8 +131,11 @@ namespace OpenMS
 		/// maximal relative frequency of a mass
     UInt f_max_;
 
+		bool fixed_mods_;
 		std::map<String, std::vector<DoubleReal> > rt_prot_map_;
 		std::map<String, std::vector<DoubleReal> > pt_prot_map_;
+		std::map<String, std::vector<String> > prot_peptide_seq_map_;
+		std::map<char, std::vector<String> > fixed_modifications_;
   };
 }
     
