@@ -241,7 +241,7 @@ namespace OpenMS
 		}
 		first_mean /= first.getPoints().size();
 		for (ConvexHull2D::PointArrayType::const_iterator it = 
-					 second.getPoints().begin(); it != first.getPoints().end(); ++it)
+					 second.getPoints().begin(); it != second.getPoints().end(); ++it)
 		{
 			second_mean += it->getY();
 		}
