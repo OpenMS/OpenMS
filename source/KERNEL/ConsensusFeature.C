@@ -292,6 +292,8 @@ namespace OpenMS
     }
 
 		// unweighted averaging by default
+		/// @todo: add outlier removal
+		/// @todo: split cluster for each channel (in FD.C)
 		DoubleReal weighting_factor = 1.0/size();
 		
 		// RT and Mass

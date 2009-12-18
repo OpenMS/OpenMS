@@ -302,10 +302,6 @@ namespace OpenMS
 		- LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
 		- LOG_INFO (information, e.g. a status should be reported)
 		- LOG_DEBUG (general debugging information)
-		
-	Special Macros (they only print something when OpenMS is in Debug-Mode)
-		- LOG_DEBUG_INTENSE (verbose debugging information)
-		- LOG_DEVELOPMENT (development debugging messages)
 				 
 			To use a specific logger of a log level simply
 			use it as cerr or cout: <br>
@@ -473,24 +469,6 @@ namespace OpenMS
   #define LOG_DEBUG \
   Log_debug << __FILE__ << "(" << __LINE__ << "): "
 
-#ifndef OPENMS_RELEASE_MODE
-	/// Macro for verbose debugging information
-	#define LOG_DEBUG_INTENSE \
-  Log_debug_intense << __FILE__ << "(" << __LINE__ << "): "
-
-	/// Macro for development debugging messages
-	#define LOG_DEVELOPMENT \
-  Log_development << __FILE__ << "(" << __LINE__ << "): "
-#else
-  /// Macro for verbose debugging information
-  #define LOG_DEBUG_INTENSE \
-    if(0) cerr
-
-	/// Macro for development debugging messages
-  #define LOG_DEVELOPMENT \
-    if(0) cerr
-#endif
-
 
 	/**
  Global static instance of a logstream.
@@ -503,10 +481,6 @@ namespace OpenMS
 	OPENMS_DLLAPI extern Logger::LogStream  Log_warn;
 	OPENMS_DLLAPI extern Logger::LogStream  Log_info;
 	OPENMS_DLLAPI extern Logger::LogStream  Log_debug;
-#ifndef OPENMS_RELEASE_MODE
-  OPENMS_DLLAPI extern Logger::LogStream  Log_debug_intense;
-  OPENMS_DLLAPI extern Logger::LogStream  Log_development;
-#endif
 
 } // namespace OpenMS
 
