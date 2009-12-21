@@ -5,12 +5,10 @@ PROJECT("OpenMS")
 
 # TODO LIST:
 # - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
-# - parallel build of test executables
-# - target to execute all EXAMPLES
 
 ########################################################
 ### entries meant to be configured using CMake cache ###
-### - do NOT hardcode them here!										 ###
+### - do NOT hardcode them here!                     ###
 ### - edit them within CMakeCache.txt using ccmake	 ###
 ########################################################
 # OPENMS_BUILD_TYPE
@@ -28,12 +26,20 @@ set(OPENMS_PACKAGE_VERSION_MINOR "7")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 ########################################################
-###    end manual	entries													   ###
+###            end manual entries                    ###
 ########################################################
 
 # Heart of the BUILD system : only edit when you know what you´re doing (we don´t)
-# quick manual for most commands: http://www.cmake.org/cmake/help/cmake2.6docs.html
+# quick manual for most commands: http://www.cmake.org/cmake/help
 # useful predefined variables: http://www.paraview.org/Wiki/CMake_Useful_Variables
+
+
+## naming conventions:
+##
+## prefix a variable with 'CF_' if it is used to configure a file!
+## e.g., CF_LibOpenMSExport
+
+
 
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
@@ -51,6 +57,9 @@ include (cmake/macros.cmake)
 ########################################################
 ###    compiler flags																 ###
 ########################################################
+
+## fill this with compile flags that external projects should use as well
+set(CF_OPENMS_ADD_DEFINITIONS)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	if (MT_ENABLE_CUDA)
@@ -73,13 +82,13 @@ elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
 	## disable dll-interface warning
-	add_definitions(/wd4251 /wd4275)
+	list(APPEND CF_OPENMS_ADD_DEFINITIONS "/wd4251 /wd4275")
 	
 	## disable deprecated functions warning (e.g. for POSIX functions)
-	add_definitions(/wd4996)
+	list(APPEND CF_OPENMS_ADD_DEFINITIONS "/wd4996")
 
 	## disable explicit template instantiation request for partially defined classes
-	add_definitions(/wd4661)
+	list(APPEND CF_OPENMS_ADD_DEFINITIONS "/wd4661")
 	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
@@ -104,6 +113,8 @@ else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
 
+
+add_definitions(${CF_OPENMS_ADD_DEFINITIONS})
 
 ##### Parallelization things
 #################################
@@ -712,14 +723,6 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 endif()
 
 
-#### configs for external include files, e.g. to develop code with OpenMS
-configure_file(
-	"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
-	"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
-	@ONLY
-)
-
-
 ##### targets list #####
 if (MSVC)
 	add_custom_target(targets
@@ -924,20 +927,34 @@ else()
 	get_property(OPENMS_CMP_DEFS DIRECTORY . PROPERTY COMPILE_DEFINITIONS)
 	
 	## convert to CXX flags
-	set(OPENMS_ADDCXX_FLAGS)
+	set(CF_OPENMS_ADDCXX_FLAGS)
 	#
 	foreach(i ${OPENMS_CMP_DEFS})
-		set(OPENMS_ADDCXX_FLAGS "${OPENMS_ADDCXX_FLAGS} -D${i}")
+		set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} -D${i}")
 	endforeach(i)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
+
 	
 	# build settings and  configs for external code
-	include(CMakeExportBuildSettings)
-	cmake_export_build_settings(${PROJECT_BINARY_DIR}/cmake/OpenMSBuildSettings.cmake)
-	export_library_dependencies(${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryDepends.cmake)
-
-	if (NOT "${INSTALL_PREFIX}" STREQUAL ".")
+	## note: export_build_settings and
+	##       export_library_dependencies are deprecated and should not be used
+	set(CF_LibOpenMSExport ${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryExport.cmake)
+	if ("${INSTALL_PREFIX}" STREQUAL ".")
+		## register OpenMS with CMake so that it can be found easily
+		export(PACKAGE OpenMS)
+		## export our lib
+		export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
+	else()
 		include(cmake/install.cmake)
 	endif()
+
+	
+	## create code that allows to call find_package()
+	## (must come after the above code!)
+	configure_file(
+		"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
+		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
+		@ONLY
+	)
+	
 endif()
 

@@ -9,12 +9,15 @@ else()	## Linux & MacOS
 endif()
 	
 ## CPack installation and packaging procedures
-install(TARGETS OpenMS 
+install(TARGETS OpenMS EXPORT OpenMSLibExportGroup
   LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
   ARCHIVE DESTINATION ${OPENMS_LIB_INSTALL_PATH}
 	RUNTIME DESTINATION ${OPENMS_LIB_INSTALL_PATH}
   COMPONENT library)
 
+## create script that allows external projects to use our OpenMS lib
+install(EXPORT OpenMSLibExportGroup DESTINATION cmake/ FILE ${CF_LibOpenMSExport})
+		  
 ## install utils
 foreach(util ${UTILS_executables})
   install(TARGETS ${util}

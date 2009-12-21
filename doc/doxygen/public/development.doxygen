@@ -4,55 +4,32 @@
   
 	@section development_external Compiling external code
 	
-	It is very easy to set up an environment to write your own programs using %OpenMS. Make sure you downloaded and installed the source package of %OpenMS/TOPP properly. Note that you cannot use an install and 'make install' to build a devel version of %OpenMS, it must be built in place.
+	It is very easy to set up an environment to write your own programs using %OpenMS. Make sure you downloaded and installed the source package of %OpenMS/TOPP properly.
+	Note that you cannot use an install and 'make install' to build a devel version of %OpenMS, it must be built in place.
 	<br>
 	<br>
-	To ease the usage you can create your own CMake configurations file. All the configurations done for the building of the %OpenMS package will be used to build your own code. The example that follows will be explained in details:
+	The example configuration file below can be found in @em OpenMS/share/OpenMS/examples/external_code.
+	All important compiler settings and preprocessor definitions along with the %OpenMS library will
+	be available to you.
+	The most important variables are:
+	<UL>
+	<LI>OPENMS_INCLUDE_DIRS - all include directories containing OpenMS headers
+	<LI>OPENMS_ADDCXX_FLAGS - preprocessor macros we require written as (-DMACRO1 -DMACRO2) etc
+	<LI>OPENMS_DEFINITIONS - compiler flags (e.g. to disable certain compiler warnings)
+	</UL>
+	and the OpenMS target itself (which you can link against).
+	<br>	
+	The example that follows will be explained in details:
 
-	@code
-### example CMakeLists.txt to develop programs using OpenMS
+\include examples/external_code/CMakeLists.txt
 
-project("MyOwnOpenMSProject")
-cmake_minimum_required(VERSION 2.6)
-
-# set the OpenMS_DIR variable to the path were
-# OpenMS is installed, ending with cmake!
-# Windows Users Note: use forward slashes for paths e.g. C:/path/to/OpenMS/cmake
-set(OpenMS_DIR /path/to/OpenMS/cmake)
-find_package(OpenMS)
-
-# check whether the OpenMS package was found
-if (OpenMS_FOUND)
-
-  # list all executables here
-  set(my_executables
-    example_executable
-  )
-
-  # list all objects here, which are additionally needed
-  set(my_sources
-    example_library_file.C
-  )
-
-  add_library(my_custom_lib STATIC ${my_sources})
-
-  # include the use file, which contains most of the important variables
-  include (${OpenMS_USE_FILE})
-
-  # add targets for the executables
-  foreach(i ${my_executables})
-    add_executable(${i} ${i}.C)
-    target_link_libraries(${i} ${OPENMS_LIBRARIES} my_custom_lib)
-  endforeach(i)
-
-endif(OpenMS_FOUND)
-
-#### end	
-	@endcode
-
-	The command @em project defines the name of the project. The variable @em OpenMS_DIR must be set to the root directory of your %OpenMS installation. If it is set correctly CMake will recognize it. To be able to compile your program you just need to append it to the @em my_executables list. If you use also Object files, classes which do not contain a main program this can be down by appending the @em my_sources list. In the next step CMake creates a statically linked library of the object files, listed in my_sources. At the end a for loop is used to link all the executables against %OpenMS and against your own custom lib. This simple CMakeLists.txt example can be extended to also build shared libraries, include other external libraries and so on. For more information visit the website of cmake at cmake.org and consult the documentation.
+	The command @em project defines the name of the project - the name is only of interest of you're working in an IDE or want to export this project's targets.
+	To compile your program just append it to the @em my_executables list. If you use also object files (classes which do not contain a main program) this can be down by appending 
+	to the @em my_sources list. In the next step CMake creates a statically linked library of the object files, listed in my_sources.
+	This simple CMakeLists.txt example can be extended to also build shared libraries, include other external libraries and so on.
+	For more information visit the website of cmake at cmake.org and consult the documentation.
 	<br>
-	<b>Have fun coding with OpenMS!</b>
+	<b>Have fun coding with %OpenMS!</b>
 
 
 
