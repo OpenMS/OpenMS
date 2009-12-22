@@ -939,8 +939,13 @@ else()
 	##       export_library_dependencies are deprecated and should not be used
 	set(CF_LibOpenMSExport ${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryExport.cmake)
 	if ("${INSTALL_PREFIX}" STREQUAL ".")
-		## register OpenMS with CMake so that it can be found easily
-		export(PACKAGE OpenMS)
+		string(COMPARE LESS ${CMAKE_MINOR_VERSION} "8" CMAKE_DEPRECATED_VERSION)
+		if (${CMAKE_DEPRECATED_VERSION})
+			message(STATUS "Cannot register OpenMS with CMake! You'll need to set the path to OpenMS for external code yourself during find_package().")
+		else()
+			## register OpenMS with CMake so that it can be found easily
+			export(PACKAGE OpenMS)
+		endif()
 		## export our lib
 		export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
 	else()
