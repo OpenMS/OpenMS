@@ -46,5 +46,5 @@ else(OpenMS_FOUND)
   message(FATAL_ERROR "OpenMSConfig.cmake file not found!")
 endif(OpenMS_FOUND)
 
-INCLUDE(Dart) ## for Nighlty Build log
-add_test(Main)
+include(Dart) ## for Nighlty Build log
+add_test(TestExternalCode)
