@@ -1,5 +1,5 @@
 ### example CMakeLists.txt to develop programs using OpenMS
-project("Main")
+project("OpenMS_external_code_test")
 cmake_minimum_required(VERSION 2.6)
 
 ## list all your executables here (a corresponding .C file should exist, e.g. Main.C)
@@ -14,9 +14,9 @@ set(my_sources
 )
 
 ## find OpenMS configuration and register target "OpenMS" (our library)
-find_package(OpenMS)
+#find_package(OpenMS)
 ## if the above fails you can try:
-#find_package(OpenMS PATHS "</c/path/to/OpenMS>/cmake")
+find_package(OpenMS PATHS "$ENV{OPENMS_BUILD_TREE}/cmake")
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
@@ -47,4 +47,4 @@ else(OpenMS_FOUND)
 endif(OpenMS_FOUND)
 
 include(Dart) ## for Nighlty Build log
-add_test(TestExternalCode)
+add_test(TestExternalCode TestExternalCode)
