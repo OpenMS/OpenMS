@@ -526,15 +526,9 @@ namespace OpenMS
 
 	// global default logstream
 	OPENMS_DLLAPI  Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
-	OPENMS_DLLAPI	 Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
+	OPENMS_DLLAPI  Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
 	OPENMS_DLLAPI  Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
 	OPENMS_DLLAPI  Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
 	OPENMS_DLLAPI  Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), true, &cout);
-
-	// global debug logstreams
-#ifndef OPENMS_RELEASE_MODE
-	OPENMS_DLLAPI  Logger::LogStream Log_debug_intense(new Logger::LogStreamBuf("DEBUG_INTENSE"), true, &cout);
-	OPENMS_DLLAPI  Logger::LogStream Log_development(new Logger::LogStreamBuf("DEVELOPMENT"), true, &cout);
-#endif
 
 } // namespace OpenMS

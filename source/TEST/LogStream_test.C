@@ -460,60 +460,6 @@ START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_DEBUG_INTENSE))
-{
-  // remove cout/cerr streams from global instances
-  // and append trackable ones
-  Log_debug_intense.remove(cout);
-  ostringstream stream_by_logger;
-  {
-    Log_debug_intense.insert(stream_by_logger);
-
-    LOG_DEBUG_INTENSE << "1\n";
-    LOG_DEBUG_INTENSE << "2" << endl;
-  }
-
-  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
-  TEST_EQUAL(to_validate_list.size(),3)
-
-  int pos(0);
-  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
-  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
-  {
-    QString to_validate = to_validate_list[i].toQString();
-    QRegExpValidator v(rx, 0);
-    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
-  }
-}
-END_SECTION
-
-START_SECTION(([EXTRA] Macro test - LOG_DEVELOPMENT))
-{
-  // remove cout/cerr streams from global instances
-  // and append trackable ones
-  Log_development.remove(cout);
-  ostringstream stream_by_logger;
-  {
-    Log_development.insert(stream_by_logger);
-
-    LOG_DEVELOPMENT << "1\n";
-    LOG_DEVELOPMENT << "2" << endl;
-  }
-
-  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
-  TEST_EQUAL(to_validate_list.size(),3)
-
-  int pos(0);
-  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
-  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
-  {
-    QString to_validate = to_validate_list[i].toQString();
-    QRegExpValidator v(rx, 0);
-    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
-  }
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
