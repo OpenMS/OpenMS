@@ -40,8 +40,8 @@ namespace OpenMS
 		pos_charges_(0),
 		neg_charges_(0),
 		log_p_(0),
-		id_(0),
-		rt_shift_(0)
+		rt_shift_(0),
+		id_(0)
 	{
 	}
 
@@ -53,8 +53,8 @@ namespace OpenMS
 		pos_charges_(0),
 		neg_charges_(0),
 		log_p_(log_p),
-		id_(0),
-		rt_shift_(0)
+		rt_shift_(0),
+		id_(0)
 	{
 	}
 	
@@ -66,8 +66,8 @@ namespace OpenMS
 			pos_charges_(p.pos_charges_),
 			neg_charges_(p.neg_charges_),
 			log_p_(p.log_p_),
-			id_(p.id_),
-			rt_shift_(p.rt_shift_)
+			rt_shift_(p.rt_shift_),
+			id_(p.id_)
 	{
 	}
 	
@@ -81,8 +81,8 @@ namespace OpenMS
 		pos_charges_ = source.pos_charges_;
 		neg_charges_ = source.neg_charges_;
 		log_p_ = source.log_p_;
-		id_ = source.id_;
 		rt_shift_ = source.rt_shift_;
+		id_ = source.id_;
 		
 		return *this;
 	}	

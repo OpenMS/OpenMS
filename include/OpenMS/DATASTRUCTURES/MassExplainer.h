@@ -250,7 +250,7 @@ namespace OpenMS
 				for (AdductsType::const_iterator it_neutral=adduct_neutral.begin(); it_neutral!=adduct_neutral.end(); ++it_neutral)
 				{
 					std::cout << "Adding neutral: " << *it_neutral << "\n";
-					for (Int n=1;n<=max_neutrals_;++n)
+					for (Int n=1;n<=(SignedSize)max_neutrals_;++n)
 					{
 						// neutral itself:
 						Compomer cmpr1;
