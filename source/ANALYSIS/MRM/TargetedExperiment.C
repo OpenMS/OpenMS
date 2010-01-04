@@ -25,7 +25,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MRM/MRMExperiment.h>
+#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
 #include <algorithm>
 
 using namespace std;
@@ -33,11 +33,11 @@ using namespace std;
 
 namespace OpenMS
 {
-	MRMExperiment::MRMExperiment()
+	TargetedExperiment::TargetedExperiment()
 	{
 	}
 
-  MRMExperiment::MRMExperiment(const MRMExperiment& rhs)
+  TargetedExperiment::TargetedExperiment(const TargetedExperiment& rhs)
 		: cvs_(rhs.cvs_),
 			contacts_(rhs.contacts_),
 			publications_(rhs.publications_),
@@ -50,11 +50,11 @@ namespace OpenMS
 	{
 	}
 
-	MRMExperiment::~MRMExperiment()
+	TargetedExperiment::~TargetedExperiment()
 	{
 	}
 
-	MRMExperiment& MRMExperiment::operator = (const MRMExperiment& rhs)
+	TargetedExperiment& TargetedExperiment::operator = (const TargetedExperiment& rhs)
 	{
 		if (&rhs != this)
 		{
@@ -72,7 +72,7 @@ namespace OpenMS
 	}
 
 
-	bool MRMExperiment::operator == (const MRMExperiment& rhs) const
+	bool TargetedExperiment::operator == (const TargetedExperiment& rhs) const
 	{
 		return 	cvs_ == rhs.cvs_ &&
       			contacts_ == rhs.contacts_ &&
@@ -85,152 +85,183 @@ namespace OpenMS
       			transitions_ == rhs.transitions_;
 	}
 
-	void MRMExperiment::setCVs(const vector<CV>& cvs)
+	void TargetedExperiment::setCVs(const vector<CV>& cvs)
 	{
 		cvs_ = cvs;
 	}
 
-	const vector<MRMExperiment::CV>& MRMExperiment::getCVs() const
+	const vector<TargetedExperiment::CV>& TargetedExperiment::getCVs() const
 	{
 		return cvs_;
 	}
 
-	void MRMExperiment::addCV(const CV& cv)
+	void TargetedExperiment::addCV(const CV& cv)
 	{
 		cvs_.push_back(cv);
 	}
 
-  void MRMExperiment::setContacts(const vector<CVTermList>& contacts)
+  void TargetedExperiment::setContacts(const vector<CVTermList>& contacts)
   {
     contacts_ = contacts;
   }
 
-  const vector<CVTermList>& MRMExperiment::getContacts() const
+  const vector<CVTermList>& TargetedExperiment::getContacts() const
   {
     return contacts_;
   }
 
-  void MRMExperiment::addContact(const CVTermList& contact)
+  void TargetedExperiment::addContact(const CVTermList& contact)
   {
     contacts_.push_back(contact);
   }
 
-	void MRMExperiment::setPublications(const vector<CVTermList>& publications)
+	void TargetedExperiment::setPublications(const vector<CVTermList>& publications)
 	{
 		publications_ = publications;
 	}
 
-	const vector<CVTermList>& MRMExperiment::getPublications() const
+	const vector<CVTermList>& TargetedExperiment::getPublications() const
 	{
 		return publications_;
 	}
 
-	void MRMExperiment::addPublication(const CVTermList& publication)
+	void TargetedExperiment::addPublication(const CVTermList& publication)
 	{
 		publications_.push_back(publication);
 	}
 
-  void MRMExperiment::setInstruments(const vector<CVTermList>& instruments)
+  void TargetedExperiment::setInstruments(const vector<CVTermList>& instruments)
   {
     instruments_ = instruments;
   }
 
-  const vector<CVTermList>& MRMExperiment::getInstruments() const
+  const vector<CVTermList>& TargetedExperiment::getInstruments() const
   {
     return instruments_;
   }
 
-  void MRMExperiment::addInstrument(const CVTermList& instrument)
+  void TargetedExperiment::addInstrument(const CVTermList& instrument)
   {
     instruments_.push_back(instrument);
   }
 
-	void MRMExperiment::setSoftware(const vector<Software>& software)
+	void TargetedExperiment::setSoftware(const vector<Software>& software)
   {
     software_ = software;
   }
 
-  const vector<Software>& MRMExperiment::getSoftware() const
+  const vector<Software>& TargetedExperiment::getSoftware() const
   {
     return software_;
   }
 
-  void MRMExperiment::addSoftware(const Software& software)
+  void TargetedExperiment::addSoftware(const Software& software)
   {
     software_.push_back(software);
   }
 
-  void MRMExperiment::setProteins(const vector<Protein>& proteins)
+  void TargetedExperiment::setProteins(const vector<Protein>& proteins)
   {
     proteins_ = proteins;
   }
 
-  const vector<MRMExperiment::Protein>& MRMExperiment::getProteins() const
+  const vector<TargetedExperiment::Protein>& TargetedExperiment::getProteins() const
   {
     return proteins_;
   }
 
-  void MRMExperiment::addProtein(const Protein& protein)
+  void TargetedExperiment::addProtein(const Protein& protein)
   {
     proteins_.push_back(protein);
   }
 
-	void MRMExperiment::setCompounds(const vector<Compound>& compounds)
+	void TargetedExperiment::setCompounds(const vector<Compound>& compounds)
 	{
 		compounds_ = compounds;
 	}
 
-	const vector<MRMExperiment::Compound>& MRMExperiment::getCompounds() const
+	const vector<TargetedExperiment::Compound>& TargetedExperiment::getCompounds() const
 	{
 		return compounds_;
 	}
 
-	void MRMExperiment::addCompound(const Compound& rhs)
+	void TargetedExperiment::addCompound(const Compound& rhs)
 	{
 		compounds_.push_back(rhs);
 	}
 
-  void MRMExperiment::setPeptides(const vector<Peptide>& peptides)
+  void TargetedExperiment::setPeptides(const vector<Peptide>& peptides)
   {
     peptides_ = peptides;
   }
 
-  const vector<MRMExperiment::Peptide>& MRMExperiment::getPeptides() const
+  const vector<TargetedExperiment::Peptide>& TargetedExperiment::getPeptides() const
   {
     return peptides_;
   }
 
-  void MRMExperiment::addPeptide(const Peptide& rhs)
+  void TargetedExperiment::addPeptide(const Peptide& rhs)
   {
     peptides_.push_back(rhs);
   }
 
-	void MRMExperiment::setTransitions(const vector<ReactionMonitoringTransition>& transitions)
+	void TargetedExperiment::setTransitions(const vector<ReactionMonitoringTransition>& transitions)
 	{
 		transitions_ = transitions;
 	}
 
-	const vector<ReactionMonitoringTransition>& MRMExperiment::getTransitions() const
+	const vector<ReactionMonitoringTransition>& TargetedExperiment::getTransitions() const
 	{
 		return transitions_;
 	}
 
-	void MRMExperiment::addTransition(const ReactionMonitoringTransition& transition)
+	void TargetedExperiment::addTransition(const ReactionMonitoringTransition& transition)
 	{
 		transitions_.push_back(transition);
 	}
 
-	void MRMExperiment::setSourceFiles(const vector<SourceFile>& source_files)
+	void TargetedExperiment::setIncludeTargets(const vector<IncludeExcludeTarget>& targets)
+	{
+		include_targets_ = targets;
+	}
+
+	const vector<IncludeExcludeTarget>& TargetedExperiment::getIncludeTargets() const
+	{
+		return include_targets_;
+	}
+
+	void TargetedExperiment::addIncludeTarget(const IncludeExcludeTarget& target)
+	{
+		include_targets_.push_back(target);
+	}
+
+  void TargetedExperiment::setExcludeTargets(const vector<IncludeExcludeTarget>& targets)
+  {
+    exclude_targets_ = targets;
+  }
+
+  const vector<IncludeExcludeTarget>& TargetedExperiment::getExcludeTargets() const
+  {
+    return exclude_targets_;
+  }
+
+  void TargetedExperiment::addExcludeTarget(const IncludeExcludeTarget& target)
+  {
+    exclude_targets_.push_back(target);
+  }
+
+
+	void TargetedExperiment::setSourceFiles(const vector<SourceFile>& source_files)
 	{
 		source_files_ = source_files;
 	}
 
-	const vector<SourceFile>& MRMExperiment::getSourceFiles() const
+	const vector<SourceFile>& TargetedExperiment::getSourceFiles() const
 	{
 		return source_files_;
 	}
 
-	void MRMExperiment::addSourceFile(const SourceFile& source_file)
+	void TargetedExperiment::addSourceFile(const SourceFile& source_file)
 	{
 		source_files_.push_back(source_file);
 	}

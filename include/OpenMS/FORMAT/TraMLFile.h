@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/MRM/MRMExperiment.h>
+#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
 
 namespace OpenMS
 {
@@ -60,14 +60,14 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, MRMExperiment& id);
+			void load(const String& filename, TargetedExperiment& id);
 
 			/**
 				@brief Stores a map in a TraML file.
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(const String& filename, const MRMExperiment& id) const;
+			void store(const String& filename, const TargetedExperiment& id) const;
 
 			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.

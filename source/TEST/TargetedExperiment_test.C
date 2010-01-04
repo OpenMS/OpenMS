@@ -28,38 +28,38 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/MRM/MRMExperiment.h>
+#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MRMExperiment, "$Id$")
+START_TEST(TargetedExperiment, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMExperiment* ptr = 0;
-START_SECTION(MRMExperiment())
+TargetedExperiment* ptr = 0;
+START_SECTION(TargetedExperiment())
 {
-	ptr = new MRMExperiment();
+	ptr = new TargetedExperiment();
 	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
-START_SECTION(virtual ~MRMExperiment())
+START_SECTION(virtual ~TargetedExperiment())
 {
 	delete ptr;
 }
 END_SECTION
 
-START_SECTION((MRMExperiment(const MRMExperiment &rhs)))
+START_SECTION((TargetedExperiment(const TargetedExperiment &rhs)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((bool operator==(const MRMExperiment &rhs) const ))
+START_SECTION((bool operator==(const TargetedExperiment &rhs) const ))
 {
   // TODO
 }
@@ -227,7 +227,7 @@ START_SECTION((void addTransition(const ReactionMonitoringTransition &transition
 }
 END_SECTION
 
-START_SECTION((MRMExperiment& operator=(const MRMExperiment &rhs)))
+START_SECTION((TargetedExperiment& operator=(const TargetedExperiment &rhs)))
 {
   // TODO
 }

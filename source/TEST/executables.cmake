@@ -322,7 +322,7 @@ set(analysis_executables_list
 	ItraqQuantifier_test
 	LabeledPairFinder_test
 	LocalLinearMap_test
-	MRMExperiment_test
+	TargetedExperiment_test
 	MRMFragmentSelection_test
 	MapAlignmentAlgorithmIdentification_test
 	MapAlignmentAlgorithmPoseClustering_test

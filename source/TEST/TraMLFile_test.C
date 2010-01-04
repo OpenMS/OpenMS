@@ -53,31 +53,32 @@ END_SECTION
 
 START_SECTION((void load(const String& filename, MRMexperiment& exp)))
 	TraMLFile file;
-	MRMExperiment exp;
+	TargetedExperiment exp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp);
 
 END_SECTION
 
-START_SECTION((void store(const String& filename, const MRMExperiment& exp) const))
+START_SECTION((void store(const String& filename, const TargetedExperiment& exp) const))
 	TraMLFile file;
 	
 	{
 		//load map
-		MRMExperiment exp_original;
+		TargetedExperiment exp_original;
 		file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
 	 	
 		//store map
 		std::string tmp_filename;
 	 	NEW_TMP_FILE(tmp_filename);
 		file.store(tmp_filename, exp_original);
+		//file.store("include.traML", TargetedExperiment());
 		//load written map
-		MRMExperiment exp;
+		TargetedExperiment exp;
 		file.load(tmp_filename, exp);
 
 		//test if everything worked
 		//TEST_EQUAL(exp == exp_original,true)
 	}
-/*	
+/*
 	//test with empty map
 	{
 		
@@ -123,7 +124,7 @@ END_SECTION
 START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
 	std::string tmp_filename;
   TraMLFile file;
-  MRMExperiment e;
+  TargetedExperiment e;
 
   //written empty file
 	NEW_TMP_FILE(tmp_filename);
@@ -139,10 +140,11 @@ START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr)
 END_SECTION
 
 START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+
 	std::string tmp_filename;
 	TraMLFile file;
 	StringList errors, warnings;
-  MRMExperiment e;
+  TargetedExperiment e;
 
   //written empty file
 	NEW_TMP_FILE(tmp_filename);

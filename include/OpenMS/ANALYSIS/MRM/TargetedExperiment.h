@@ -25,11 +25,12 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MRM_MRMEXPERIMENT_H
-#define OPENMS_ANALYSIS_MRM_MRMEXPERIMENT_H
+#ifndef OPENMS_ANALYSIS_MRM_TARGETEDEXPERIMENT_H
+#define OPENMS_ANALYSIS_MRM_TARGETEDEXPERIMENT_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/MRM/IncludeExcludeTarget.h>
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/Software.h>
@@ -43,7 +44,7 @@ namespace OpenMS
 
 
 	*/
-	class OPENMS_DLLAPI MRMExperiment
+	class OPENMS_DLLAPI TargetedExperiment
 	{
 		public:
 
@@ -115,7 +116,7 @@ namespace OpenMS
 
 			RetentionTime(const RetentionTime& rhs)
         : CVTermList(rhs),
-					predicted_retention_time_software_ref(rhs.predicted_retention_time_software_ref)
+					software_ref(rhs.software_ref)
       {
       }
 
@@ -128,7 +129,7 @@ namespace OpenMS
 				if (&rhs != this)
 				{
 					CVTermList::operator = (rhs);
-					predicted_retention_time_software_ref = rhs.predicted_retention_time_software_ref;
+					software_ref = rhs.software_ref;
 				}
 				return *this;
 			}
@@ -136,11 +137,11 @@ namespace OpenMS
       bool operator == (const RetentionTime& rhs) const
       {
 				return	CVTermList::operator == (rhs) && 
-          			predicted_retention_time_software_ref == rhs.predicted_retention_time_software_ref;
+          			software_ref == rhs.software_ref;
       }
 
 
-			String predicted_retention_time_software_ref;
+			String software_ref;
 		};
 
 		class OPENMS_DLLAPI Compound
@@ -188,6 +189,14 @@ namespace OpenMS
     {
       public:
 
+			struct Modification
+				: public CVTermList
+			{
+				DoubleReal avg_mass_delta;
+				Size location;
+				DoubleReal mono_mass_delta;
+			};
+
       Peptide()
 				: CVTermList()
       {
@@ -197,8 +206,10 @@ namespace OpenMS
         : CVTermList(rhs),
 					rts(rhs.rts),
 					id(rhs.id),
-					protein_ref(rhs.protein_ref),
-					evidence(rhs.evidence)
+					protein_refs(rhs.protein_refs),
+					evidence(rhs.evidence),
+					sequence(rhs.sequence),
+					mods(rhs.mods)
       {
       }
 
@@ -209,8 +220,10 @@ namespace OpenMS
 					CVTermList::operator = (rhs);
           rts = rhs.rts;
 					id = rhs.id;
-					protein_ref = rhs.protein_ref;
+					protein_refs = rhs.protein_refs;
 					evidence = rhs.evidence;
+					sequence = rhs.sequence;
+					mods = rhs.mods;
         }
         return *this;
       }
@@ -220,16 +233,20 @@ namespace OpenMS
 				return	CVTermList::operator == (rhs) && 
 								rts == rhs.rts &&
           			id == rhs.id &&
-          			protein_ref == rhs.protein_ref &&
-          			evidence == rhs.evidence;
+          			protein_refs == rhs.protein_refs &&
+          			evidence == rhs.evidence &&
+								sequence == rhs.sequence &&
+								mods == rhs.mods;
       }
 
 
 
       std::vector<RetentionTime> rts;
 			String id;
-			String protein_ref;
+			std::vector<String> protein_refs;
 			CVTermList evidence;
+			String sequence;
+			std::vector<Modification> mods;
     };
 
 
@@ -237,22 +254,22 @@ namespace OpenMS
 		*/
 		//@{
 		/// default constructor
-		MRMExperiment();
+		TargetedExperiment();
 
 		/// copy constructor
-		MRMExperiment(const MRMExperiment& rhs);
+		TargetedExperiment(const TargetedExperiment& rhs);
 
 		/// destructor
-		virtual ~MRMExperiment();
+		virtual ~TargetedExperiment();
 		//@}
 
 		/// assignment operator 
-		MRMExperiment& operator = (const MRMExperiment& rhs);
+		TargetedExperiment& operator = (const TargetedExperiment& rhs);
 
 		/** @name Predicates
 		*/
 		//@{
-		bool operator == (const MRMExperiment& rhs) const;
+		bool operator == (const TargetedExperiment& rhs) const;
 		//@}
 
 		/** @name Accessors
@@ -322,9 +339,17 @@ namespace OpenMS
 		/// adds a transition to the list
 		void addTransition(const ReactionMonitoringTransition& transition);
 
-		//void setTargetLists(const TargetLists& target_lists);
+		void setIncludeTargets(const std::vector<IncludeExcludeTarget>& targets);
 
-		//const TargetLists& getTargetLists() const;
+		const std::vector<IncludeExcludeTarget>& getIncludeTargets() const;
+
+		void addIncludeTarget(const IncludeExcludeTarget& target);
+
+		void setExcludeTargets(const std::vector<IncludeExcludeTarget>& targets);
+
+		const std::vector<IncludeExcludeTarget>& getExcludeTargets() const;
+	
+		void addExcludeTarget(const IncludeExcludeTarget& target);
 
 		/// sets the source files
 		void setSourceFiles(const std::vector<SourceFile>& source_files);
@@ -356,10 +381,14 @@ namespace OpenMS
 
 		std::vector<ReactionMonitoringTransition> transitions_;
 
+		std::vector<IncludeExcludeTarget> include_targets_;
+
+		std::vector<IncludeExcludeTarget> exclude_targets_;
+
 		std::vector<SourceFile> source_files_;
 
 	};
 }
 
-#endif // OPENMS_ANALYSIS_MRM_MRMEXPERIMENT_H
+#endif // OPENMS_ANALYSIS_MRM_TARGETEDEXPERIMENT_H
 

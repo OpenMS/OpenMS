@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/ANALYSIS/MRM/MRMExperiment.h>
+#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
 #include <OpenMS/METADATA/CVTermList.h>
 
 namespace OpenMS
@@ -52,10 +52,10 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      TraMLHandler(const MRMExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger);
+      TraMLHandler(const TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler
-      TraMLHandler(MRMExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger);
+      TraMLHandler(TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~TraMLHandler();
@@ -84,9 +84,9 @@ namespace OpenMS
 		
 			String tag_;
 
-			MRMExperiment* exp_;
+			TargetedExperiment* exp_;
 
-			const MRMExperiment* cexp_;
+			const TargetedExperiment* cexp_;
 
 			CVTermList actual_publication_;
 
@@ -98,15 +98,17 @@ namespace OpenMS
 			
 			Software actual_software_;
 
-			MRMExperiment::Protein actual_protein_;
+			TargetedExperiment::Protein actual_protein_;
 
-			MRMExperiment::RetentionTime actual_rt_;
+			TargetedExperiment::RetentionTime actual_rt_;
 
-			MRMExperiment::Peptide actual_peptide_;
+			TargetedExperiment::Peptide actual_peptide_;
 
-			MRMExperiment::Compound actual_compound_;
+			TargetedExperiment::Compound actual_compound_;
 			
 			ReactionMonitoringTransition actual_transition_;
+
+			IncludeExcludeTarget actual_target_;
 
 			CVTermList actual_validation_;
 	

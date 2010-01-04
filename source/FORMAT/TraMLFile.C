@@ -39,7 +39,7 @@ namespace OpenMS
 {
 
 	TraMLFile::TraMLFile()
-		: XMLFile("/SCHEMAS/TraML0.9.0.xsd","0.9.0")
+		: XMLFile("/SCHEMAS/TraML0.9.2.xsd","0.9.2")
 	{
 	}
 
@@ -47,13 +47,13 @@ namespace OpenMS
 	{
 	}
 
-  void TraMLFile::load(const String& filename, MRMExperiment& exp)
+  void TraMLFile::load(const String& filename, TargetedExperiment& exp)
   {
   	Internal::TraMLHandler handler(exp, filename, schema_version_, *this);
     parse_(filename, &handler);
   }
 
-  void TraMLFile::store(const String& filename, const MRMExperiment& exp) const
+  void TraMLFile::store(const String& filename, const TargetedExperiment& exp) const
   {
   	Internal::TraMLHandler handler(exp, filename, schema_version_, *this);
     save_(filename, &handler);
