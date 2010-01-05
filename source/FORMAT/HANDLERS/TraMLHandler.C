@@ -33,8 +33,8 @@
 
 // This is generate simple examples of
 // inclusion and exclusion lists
-#define WRITE_TARGET_INCLUDE_LIST
-#define WRITE_TARGET_EXCLUDE_LIST
+//#define WRITE_TARGET_INCLUDE_LIST
+//#define WRITE_TARGET_EXCLUDE_LIST
 
 using namespace std;
 
@@ -78,7 +78,7 @@ namespace OpenMS
       tags_to_ignore.insert("CompoundList"); // contains only compounds
       tags_to_ignore.insert("TransitionList"); // contains only transitions
       tags_to_ignore.insert("ConfigurationList"); // contains only configurations
-      tags_to_ignore.insert("CvList"); // contains only CVs
+      tags_to_ignore.insert("cvList"); // contains only CVs
       tags_to_ignore.insert("InstrumentList"); // contains only instruments
       tags_to_ignore.insert("SoftwareList"); // contains only software 
       tags_to_ignore.insert("PublicationList"); // contains only publications
@@ -109,13 +109,13 @@ namespace OpenMS
     String parent_parent_tag;
     if (open_tags_.size()>2) parent_parent_tag = *(open_tags_.end()-3);
 
-		if (tag_ == "CvParam")
+		if (tag_ == "cvParam")
 		{
 			String value, cv_ref, unit_accession, unit_name, unit_cv_ref;
       optionalAttributeAsString_(value, attributes, "value");
       optionalAttributeAsString_(unit_accession, attributes, "unitAccession");
       optionalAttributeAsString_(unit_name, attributes, "unitName");
-      optionalAttributeAsString_(unit_cv_ref, attributes, "unitCvRef");
+      optionalAttributeAsString_(unit_cv_ref, attributes, "unitcvRef");
       optionalAttributeAsString_(cv_ref, attributes, "cvRef");
 			CVTerm::Unit unit(unit_accession, unit_name, unit_cv_ref);
 	    CVTerm cv_term(attributeAsString_(attributes, "accession"), attributeAsString_(attributes, "name"), cv_ref, value, unit);
@@ -123,7 +123,7 @@ namespace OpenMS
       handleCVParam_(parent_parent_tag, parent_tag, cv_term);
 			return;
 		}
-		else if (tag_ == "Cv")
+		else if (tag_ == "cv")
 		{
 			exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, "id"), attributeAsString_(attributes, "fullName"), attributeAsString_(attributes, "version"), attributeAsString_(attributes, "URI")));
 		}
@@ -299,7 +299,7 @@ namespace OpenMS
       tags_to_ignore.insert("CompoundList"); // contains only compounds
       tags_to_ignore.insert("TransitionList"); // contains only transitions
       tags_to_ignore.insert("ConfigurationList"); // contains only configurations
-      tags_to_ignore.insert("CvList"); // contains only CVs
+      tags_to_ignore.insert("cvList"); // contains only CVs
       tags_to_ignore.insert("InstrumentList"); // contains only instruments
       tags_to_ignore.insert("SoftwareList"); // contains only software 
       tags_to_ignore.insert("PublicationList"); // contains only publications
@@ -307,8 +307,8 @@ namespace OpenMS
       tags_to_ignore.insert("SourceFileList"); // contains only source files
       tags_to_ignore.insert("InterpretationList"); // contains only interpretations
       tags_to_ignore.insert("Evidence"); // only cv terms
-			tags_to_ignore.insert("CvParam"); // already handled
-			tags_to_ignore.insert("Cv"); // already handled
+			tags_to_ignore.insert("cvParam"); // already handled
+			tags_to_ignore.insert("cv"); // already handled
 			tags_to_ignore.insert("Sequence"); // already handled in characters
 			tags_to_ignore.insert("Precursor"); // contains only cv terms
 			tags_to_ignore.insert("Product"); // contains only cv terms
@@ -443,7 +443,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 	for (StringList::const_iterator it = bsa_peptides.begin(); it != bsa_peptides.end(); ++it)
 	{
 		TargetedExperiment::RetentionTime retention_time;
-		/// <CvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+		/// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
 		CVTerm rt;
 		rt.setCVIdentifierRef("MS");
 		rt.setAccession("MS:1000897");
@@ -460,8 +460,8 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		peptide.rts.push_back(retention_time);
 		peptide.protein_refs.push_back("BSA");
 
-		//<CvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
-    //<CvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
+		//<cvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
+    //<cvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
 		CVTerm unmod_seq;
 		unmod_seq.setCVIdentifierRef("MS");
 		unmod_seq.setAccession("MS:1000888");
@@ -472,7 +472,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		unmod_seq.setName("modified peptide sequence");
 		peptide.addCVTerm(unmod_seq);
 		
-		//<CvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
+		//<cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
 		CVTerm evidence;
 		evidence.setCVIdentifierRef("MS");
 		evidence.setAccession("MS:1001100");
@@ -487,7 +487,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
   for (StringList::const_iterator it = p53_peptides.begin(); it != p53_peptides.end(); ++it)
   {
     TargetedExperiment::RetentionTime retention_time;
-    /// <CvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+    /// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
     CVTerm rt;
     rt.setCVIdentifierRef("MS");
     rt.setAccession("MS:1000897");
@@ -504,8 +504,8 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     peptide.rts.push_back(retention_time);
     peptide.protein_refs.push_back("BSA");
 
-    //<CvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
-    //<CvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
+    //<cvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
+    //<cvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
     CVTerm unmod_seq;
     unmod_seq.setCVIdentifierRef("MS");
     unmod_seq.setAccession("MS:1000888");
@@ -516,7 +516,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     unmod_seq.setName("modified peptide sequence");
     peptide.addCVTerm(unmod_seq);
 
-    //<CvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
+    //<cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
     CVTerm evidence;
     evidence.setCVIdentifierRef("MS");
     evidence.setAccession("MS:1001100");
@@ -539,21 +539,21 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     //--------------------------------------------------------------------------------------------
     // CV list
     //--------------------------------------------------------------------------------------------
-    os  << "  <CvList>" << "\n";
+    os  << "  <cvList>" << "\n";
 
 		if (exp.getCVs().size() == 0)
 		{
-      os  << "    <Cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=\"unknown\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>" << "\n"
-        	<< "    <Cv id=\"UO\" fullName=\"Unit Ontology\" version=\"unknown\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>" << "\n";
+      os  << "    <cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=\"unknown\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>" << "\n"
+        	<< "    <cv id=\"UO\" fullName=\"Unit Ontology\" version=\"unknown\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>" << "\n";
 		}
 		else
 		{
 			for (vector<TargetedExperiment::CV>::const_iterator it = exp.getCVs().begin(); it != exp.getCVs().end(); ++it)
 			{
-				os << "    <Cv id=\"" << it->id << "\" fullName=\"" << it->fullname << "\" version=\"" << it->version << "\" URI=\"" << it->URI << "\"/>" << "\n";
+				os << "    <cv id=\"" << it->id << "\" fullName=\"" << it->fullname << "\" version=\"" << it->version << "\" URI=\"" << it->URI << "\"/>" << "\n";
 			}
 		}
-    os  << "  </CvList>" << "\n";
+    os  << "  </cvList>" << "\n";
 
 		// contact list
 		if (exp.getContacts().size() > 0)
@@ -611,7 +611,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 
 #ifdef WRITE_TARGET_INCLUDE_LIST
 				os << "    <Software id=\"GUESSING1.0\" version=\"1.0\">" << "\n";
-				os << "      <CvParam cvRef=\"MS\" accession=\"MS:1000874\" name=\"SSRCalc\"/>\n";
+				os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000874\" name=\"SSRCalc\"/>\n";
 				os << "    </Software>" << "\n";
 #endif
 			os << "  </SoftwareList>" << "\n";
@@ -634,16 +634,16 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			}
 #ifdef WRITE_TARGET_INCLUDE_LIST
 				os << "    <Protein id=\"BSA\">" << "\n";
-      	os << "      <CvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\"gi|162648|gb|AAA51411.1|\"/>" << "\n";
-        os << "      <CvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"BSA\"/>" << "\n";
-        os << "      <CvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"albumin [Bos taurus]\"/>" << "\n";
+      	os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\"gi|162648|gb|AAA51411.1|\"/>" << "\n";
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"BSA\"/>" << "\n";
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"albumin [Bos taurus]\"/>" << "\n";
       	os << "      <Sequence>MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA</Sequence>" << "\n";
 				os << "    </Protein>" << "\n";
 
         os << "    <Protein id=\"p53_human\">" << "\n";
-        os << "      <CvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\"sp|P04637|P53_HUMAN\"/>" << "\n";
-        os << "      <CvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"P53_HUMAN\"/>" << "\n";
-        os << "      <CvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"Cellular tumor antigen p53\"/>" << "\n";
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\"sp|P04637|P53_HUMAN\"/>" << "\n";
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"P53_HUMAN\"/>" << "\n";
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"Cellular tumor antigen p53\"/>" << "\n";
         os << "      <Sequence>MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDEAPRMPEAAPPVAPAPAAPTPAAPAPAPSWPLSSSVPSQKTYQGSYGFRLGFLHSGTAKSVTCTYSPALNKMFCQLAKTCPVQLWVDSTPPPGTRVRAMAIYKQSQHMTEVVRRCPHHERCSDSDGLAPPQHLIRVEGNLRVEYLDDRNTFRHSVVVPYEPPEVGSDCTTIHYNYMCNSSCMGGMNRRPILTIITLEDSSGNLLGRNSFEVRVCACPGRDRRTEEENLRKKGEPHHELPPGSTKRALPNNTSSSPQPKKKPLDGEYFTLQIRGRERFEMFRELNEALELKDAQAGKEPGGSRAHSSHLKSKKGQSTSRHKKLMFKTEGPDSD</Sequence>" << "\n";
         os << "    </Protein>" << "\n";
 #endif
@@ -758,12 +758,12 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 				os << " >" << "\n";
 
 				os << "      <Precursor>" << "\n"; 
-				os << "        <CvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\"/>" << "\n";
+				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitcvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
 				writeCVParams_(os, it->getPrecursorCVTermList(), 4);
 				os << "      </Precursor>" << "\n";
 			
 				os << "      <Product>" << "\n";
-				os << "        <CvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\"/>" << "\n";
+				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\" />\n";
 				writeCVParams_(os, it->getProductCVTermList(), 4);
 				os << "      </Product>" << "\n";
 
@@ -841,7 +841,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 
 		// create and include list for all the peptides listed above
 		os << "  <TargetList>" << "\n";
-		os << "    <CvParam cvRef=\"MS\" accession=\"MS:1000920\" name=\"includes supersede excludes\"/>\n";
+		os << "    <cvParam cvRef=\"MS\" accession=\"MS:1000920\" name=\"includes supersede excludes\"/>\n";
 
     os << "    <TargetIncludeList>" << "\n";
     for (StringList::const_iterator it = p53_peptides.begin(); it != p53_peptides.end(); ++it)
@@ -917,7 +917,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			if (cv_.exists(key))
 			{
 				ControlledVocabulary::CVTerm term = cv_.getTerm(key);
-				os << String(2 * indent, ' ') << "<CvParam cvRef=\"" << key.prefix(':') << "\" accession=\"" << key << "\" name=\"" << term.name << "\"";
+				os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << key.prefix(':') << "\" accession=\"" << key << "\" name=\"" << term.name << "\"";
 				if (term.xref_type != ControlledVocabulary::CVTerm::NONE)
 				{
 					os << " value=\"" << (String)meta.getMetaValue(key) << "\"";
@@ -948,7 +948,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		{
 			for (vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
 			{
-				os << String(2 * indent, ' ') << "<CvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
+				os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
 				if (cit->hasValue())
 				{
 					os << " value=\"" << cit->getValue().toString() << "\"";
@@ -956,7 +956,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 
 				if (cit->hasUnit())
 				{
-					os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
+					os << " unitcvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
 				}
 				os << "/>" << "\n";
 			}
@@ -1135,7 +1135,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		}
 		else if (parent_tag == "Precursor")
 		{
-			if (cv_term.getAccession() == "MS:1000040")
+			if (cv_term.getAccession() == "MS:1000827")
 			{
 				actual_transition_.setPrecursorMZ(cv_term.getValue().toString().toDouble());
 			}
