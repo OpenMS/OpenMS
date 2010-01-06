@@ -53,7 +53,7 @@ int main (int , char** )
 	}
 	
 	//UTILS
-	StringList utils_tools = StringList::create("IDMassAccuracy,DecoyDatabase,MapAlignmentEvaluation,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation,MSSimulator,ERPairFinder,SpecLibCreator,SpectrumGeneratorNetworkTrainer,MRMPairFinder,DeMeanderize,UniqueIdAssigner");
+	StringList utils_tools = StringList::create("IDMassAccuracy,DecoyDatabase,MapAlignmentEvaluation,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation,MSSimulator,ERPairFinder,SpecLibCreator,SpectrumGeneratorNetworkTrainer,MRMPairFinder,DeMeanderize,UniqueIdAssigner,ImageCreator");
 	for (Size i=0; i<utils_tools.size(); ++i)
 	{
 		//start process

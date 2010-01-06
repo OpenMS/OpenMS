@@ -248,10 +248,6 @@ add_test("TOPP_PeakPicker_4_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TO
 ### Resampler tests
 add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.mzML -sampling_rate 0.3)
 add_test("TOPP_Resampler_1_out1" ${DIFF} -in1 Resampler.mzML -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML)
-add_test("TOPP_Resampler_2" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_2_input.mzML -out Resampler2.png -width 20 -height 15)
-add_test("TOPP_Resampler_2_out1" ${DIFF} -in1 Resampler2.png -in2 ${DATA_DIR_TOPP}/Resampler_2_output.png)
-add_test("TOPP_Resampler_3" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler3.png -width 20 -height 15 -precursor_size 3 -precursor_color green -log_intensity)
-add_test("TOPP_Resampler_3_out1" ${DIFF} -in1 Resampler3.png -in2 ${DATA_DIR_TOPP}/Resampler_3_output.png)
 
 ### RTModel tests
 add_test("TOPP_RTModel_1" ${TOPP_BIN_PATH}/RTModel -in ${DATA_DIR_TOPP}/RTModel_1_input.idXML -out RTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_1_parameters.ini)
@@ -446,4 +442,12 @@ add_test("TOPP_CompNovo_2_out1" ${DIFF} -whitelist "?xml-stylesheet" "Identifica
 ### PrecursorMassCorrector tests
 add_test("TOPP_PrecursorMassCorrector_1" ${TOPP_BIN_PATH}/PrecursorMassCorrector -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp)
 add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -in1 PrecursorMassCorrector_1_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_output.mzML)
+
+
+### UTILS tests (if this becomes too much, we should create a separate directory)
+add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.png -width 20 -height 15)
+add_test("UTILS_ImageCreator_1_out1" ${DIFF} -in1 ImageCreator1.png -in2 ${DATA_DIR_TOPP}/ImageCreator_1_output.png)
+add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator2.png -width 20 -height 15 -precursor_size 3 -precursor_color green -log_intensity)
+add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_DIR_TOPP}/ImageCreator_2_output.png)
+
 

@@ -65,6 +65,7 @@
 
 
 	<b>Misc</b>
+  - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage UTILS_HistView - A viewer for histograms.
   - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
   - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.

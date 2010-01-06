@@ -10,6 +10,7 @@ FFEval
 FuzzyDiff
 HistView
 IDExtractor
+ImageCreator
 LabeledEval
 MapAlignmentEvaluation
 MSSimulator
