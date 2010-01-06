@@ -218,6 +218,14 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:PrecursorMassCorrector", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
 		
+		// UTILS:
+		map<String,StringList> util_tools = TOPPBase::getUtilList();
+		for (map<String,StringList>::const_iterator it=util_tools.begin(); it!=util_tools.end(); ++it)
+		{
+			// for now, we put all UTILS tools in one category
+			defaults_.setValue("tool_categories:" + it->first, "Utils", "The category of the tool");		
+		}
+		
   	defaultsToParam_();
 
   	//load param file
@@ -267,8 +275,12 @@ namespace OpenMS
 		item->setText(0, "Misc");
 		tools_tree_view_->addTopLevelItem(item);
 		category_map["Misc"] = item;
-    
+		
     Map<String,StringList> tools_list = TOPPBase::getToolList();
+    Map<String,StringList> util_list = TOPPBase::getUtilList();
+    // append utils
+    tools_list.insert(util_list.begin(),util_list.end());
+    
     QTreeWidgetItem* parent_item;
     for (Map<String,StringList>::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {

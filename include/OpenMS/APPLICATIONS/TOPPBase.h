@@ -149,6 +149,9 @@ namespace OpenMS
 			
 			/// Returns the list of official TOPP tools contained in the OpenMS/TOPP release.
 			static Map<String,StringList> getToolList();
+
+			/// Returns the list of "official" UTIL tools contained in the OpenMS/TOPP release.
+			static Map<String,StringList> getUtilList();
 			
       ///Stuct that captures all information of a parameter
       struct ParameterInformation

@@ -2023,6 +2023,38 @@ namespace OpenMS
 		return tools_map;
 	}
 
+	Map<String,StringList> TOPPBase::getUtilList()
+	{
+		Map<String,StringList> util_map;
+
+		util_map["IDMassAccuracy"] = StringList::create("");
+		util_map["DecoyDatabase"] = StringList::create("");
+		util_map["MapAlignmentEvaluation"] = StringList::create("");
+		util_map["CaapConvert"] = StringList::create("");
+		util_map["CVInspector"] = StringList::create("");
+		util_map["DecoyDatabase"] = StringList::create("");
+		util_map["Digestor"] = StringList::create("");
+		util_map["FFEval"] = StringList::create("");
+		util_map["FuzzyDiff"] = StringList::create("");
+		util_map["HistView"] = StringList::create("");
+		util_map["IDExtractor"] = StringList::create("");
+		util_map["LabeledEval"] = StringList::create("");
+		util_map["SemanticValidator"] = StringList::create("");
+		util_map["SequenceCoverageCalculator"] = StringList::create("");
+		util_map["XMLValidator"] = StringList::create("");
+		util_map["IdXMLEvaluation"] = StringList::create("");
+		util_map["MSSimulator"] = StringList::create("");
+		util_map["ERPairFinder"] = StringList::create("");
+		util_map["SpecLibCreator"] = StringList::create("");
+		util_map["SpectrumGeneratorNetworkTrainer"] = StringList::create("");
+		util_map["MRMPairFinder"] = StringList::create("");
+		util_map["DeMeanderize"] = StringList::create("");
+		util_map["UniqueIdAssigner"] = StringList::create("");
+		util_map["ImageCreator"] = StringList::create("");
+		
+		return util_map;
+	}
+
   DataProcessing TOPPBase::getProcessingInfo_(DataProcessing::ProcessingAction action) const
   {
 		std::set<DataProcessing::ProcessingAction> actions;

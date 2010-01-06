@@ -53,16 +53,16 @@ int main (int , char** )
 	}
 	
 	//UTILS
-	StringList utils_tools = StringList::create("IDMassAccuracy,DecoyDatabase,MapAlignmentEvaluation,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation,MSSimulator,ERPairFinder,SpecLibCreator,SpectrumGeneratorNetworkTrainer,MRMPairFinder,DeMeanderize,UniqueIdAssigner,ImageCreator");
-	for (Size i=0; i<utils_tools.size(); ++i)
+	map<String,StringList> util_tools = TOPPBase::getUtilList();
+	for (map<String,StringList>::const_iterator it=util_tools.begin(); it!=util_tools.end(); ++it)
 	{
 		//start process
 		QProcess process;
 		process.setProcessChannelMode(QProcess::MergedChannels);
-		process.start((utils_tools[i] + " --help").toQString());
+		process.start((it->first + " --help").toQString());
 		process.waitForFinished();
 		//write output
-		ofstream f((String("output/UTILS_") + utils_tools[i] + ".cli").c_str());
+		ofstream f((String("output/UTILS_") + it->first + ".cli").c_str());
 		f << QString(process.readAllStandardOutput()).toStdString();
 	}
 	
