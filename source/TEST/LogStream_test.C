@@ -122,7 +122,7 @@ START_SECTION((void setLevel(std::string level)))
 }
 END_SECTION
 
-START_SECTION((LogLevel getLevel()))
+START_SECTION((std::string getLevel()))
 {
   LogStream l1(new LogStreamBuf());
   TEST_EQUAL(l1.getLevel(), LogStreamBuf::UNKNOWN_LOG_LEVEL)
