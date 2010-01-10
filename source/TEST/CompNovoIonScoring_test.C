@@ -69,8 +69,8 @@ START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, Pe
 {
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
-  tsg_param.setValue("add_losses", 1);
-  tsg_param.setValue("add_isotopes", 1);
+  tsg_param.setValue("add_losses", "true");
+  tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
   RichPeakSpectrum rspec;

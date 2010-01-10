@@ -92,17 +92,32 @@ using namespace OpenMS;
         registerOutputFile_("out_network_model", "<file>", "", "Output model of probabilistic network as textfile", true);
 
         //considered ion types
-        registerIntOption_("add_y_ions", "<Int>", 1, "If set to 1 y-ion peaks will be considered", false, true);
-        registerIntOption_("add_b_ions", "<Int>", 1, "If set to 1 b-ion peaks will be considered", false, true);
-        registerIntOption_("add_y2_ions", "<Int>", 1, "If set to 1 doubly charged y-ion peaks will be considered", false, true);
-        registerIntOption_("add_b2_ions", "<Int>", 1, "If set to 1 doubly charged b-ion peaks will be considered", false, true);
-        registerIntOption_("add_a_ions", "<Int>", 1, "If set to 1 a-ion peaks will be considered", false, true);
-        registerIntOption_("add_c_ions", "<Int>", 1, "If set to 1 c-ion peaks will be considered", false, true);
-        registerIntOption_("add_x_ions", "<Int>", 1, "If set to 1 x-ion peaks will be considered", false, true);
-        registerIntOption_("add_z_ions", "<Int>", 1, "If set to 1 z-ion peaks will be considered", false, true);
+        registerStringOption_("add_y_ions", "<Bool>", "true", "If set to true y-ion peaks will be considered", false, true);
+				setValidStrings_("add_y_ions", StringList::create("true,false"));
+        
+				registerStringOption_("add_b_ions", "<Bool>", "true", "If set to true b-ion peaks will be considered", false, true);
+				setValidStrings_("add_b_ions", StringList::create("true,false"));
+
+        registerStringOption_("add_y2_ions", "<Bool>", "true", "If set to true doubly charged y-ion peaks will be considered", false, true);
+				setValidStrings_("add_y2_ions", StringList::create("true,false"));
+
+        registerStringOption_("add_b2_ions", "<Bool>", "true", "If set to true doubly charged b-ion peaks will be considered", false, true);
+				setValidStrings_("add_b2_ions", StringList::create("true,false"));
+
+        registerStringOption_("add_a_ions", "<Bool>", "true", "If set to true a-ion peaks will be considered", false, true);
+				setValidStrings_("add_a_ions", StringList::create("true,false"));
+
+        registerStringOption_("add_c_ions", "<Bool>", "true", "If set to true c-ion peaks will be considered", false, true);
+				setValidStrings_("add_c_ions", StringList::create("true,false"));
+
+        registerStringOption_("add_x_ions", "<Bool>", "true", "If set to true x-ion peaks will be considered", false, true);
+				setValidStrings_("add_x_ions", StringList::create("true,false"));
+
+        registerStringOption_("add_z_ions", "<Bool>", "true", "If set to true z-ion peaks will be considered", false, true);
+				setValidStrings_("add_z_ions", StringList::create("true,false"));
 
         //losses
-        registerIntOption_("add_losses", "<Int>", 1, "Considers common losses to those ion expect to have them, only water and ammonia loss is considered", false, true);
+        registerIntOption_("add_losses", "<Bool>", true, "Considers common losses to those ion expect to have them, only water and ammonia loss is considered", false, true);
 
         //model parameters
         //registerDoubleOption_("frequency_cutoff", "<Double>", 0.05, "Only ion types with a frequency > frequency_cutoff will be added to the model", false);
@@ -128,20 +143,32 @@ using namespace OpenMS;
         std::vector<IonType> ion_types;
 
         //build set of ion typed
-        if (getIntOption_("add_y_ions"))
+        if (DataValue(getStringOption_("add_y_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::YIon, EmpiricalFormula(), 1));
-        if (getIntOption_("add_b_ions"))
+				}
+        if (DataValue(getStringOption_("add_b_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::BIon, EmpiricalFormula(), 1));
-        if (getIntOption_("add_x_ions"))
+				}
+        if (DataValue(getStringOption_("add_x_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::XIon, EmpiricalFormula(), 1));
-        if (getIntOption_("add_a_ions"))
+				}
+        if (DataValue(getStringOption_("add_a_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::AIon, EmpiricalFormula(), 1));
-        if (getIntOption_("add_z_ions"))
+				}
+        if (DataValue(getStringOption_("add_z_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::ZIon, EmpiricalFormula(), 1));
-        if (getIntOption_("add_c_ions"))
+				}
+        if (DataValue(getStringOption_("add_c_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::CIon, EmpiricalFormula(), 1));
+				}
 
-        if (getIntOption_("add_losses"))
+        if (DataValue(getStringOption_("add_losses")).toBool())
         {
           EmpiricalFormula loss_ammonia("NH3");
           EmpiricalFormula loss_water("H2O");
@@ -153,10 +180,14 @@ using namespace OpenMS;
           ion_types.push_back(IonType(Residue::YIon, loss_water, 1));
         }
 
-        if (getIntOption_("add_y2_ions"))
+        if (DataValue(getStringOption_("add_y2_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::YIon, EmpiricalFormula(), 2));
-        if (getIntOption_("add_b2_ions"))
+				}
+        if (DataValue(getStringOption_("add_b2_ions")).toBool())
+				{
           ion_types.push_back(IonType(Residue::BIon, EmpiricalFormula(), 2));
+				}
 
         //Amino acid sequences used for obtaining prefix and suffix mass
         AASequence prefix, suffix;

@@ -80,13 +80,13 @@ START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptid
 	{
 		TEST_REAL_SIMILAR(y_spec[i].getPosition()[0], y_result[i])
 	}
-	double b_result[] = {115.1, 261.16, 348.192, 476.251, 575.319, 632.341};
+	double b_result[] = {/*115.1,*/ 261.16, 348.192, 476.251, 575.319, 632.341};
 	for (Size i = 0; i != b_spec.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(b_spec[i].getPosition()[0], b_result[i])
 	}
 
-	double a_result[] = {87.1048, 233.165, 320.197, 448.256, 547.324, 604.346};
+	double a_result[] = {/*87.1048,*/ 233.165, 320.197, 448.256, 547.324, 604.346};
 	for (Size i = 0; i != a_spec.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(a_spec[i].getPosition()[0], a_result[i])
@@ -123,11 +123,11 @@ END_SECTION
 START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	RichPeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
-	TEST_EQUAL(spec.size(), 12)
+	TEST_EQUAL(spec.size(), 11)
 
 	TOLERANCE_ABSOLUTE(0.001)
 
-	double result[] = {115.1, 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
+	double result[] = {/*115.1,*/ 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
 	for (Size i = 0; i != spec.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
@@ -135,7 +135,22 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
 
 	spec.clear(true);
 	ptr->getSpectrum(spec, peptide, 2);
-	TEST_EQUAL(spec.size(), 24)
+	TEST_EQUAL(spec.size(), 22)
+
+	spec.clear(true);
+	Param param(ptr->getParameters());
+	param.setValue("add_first_prefix_ion", "true");
+	ptr->setParameters(param);
+	ptr->getSpectrum(spec, peptide, 1);
+  TEST_EQUAL(spec.size(), 12)
+
+	double result2[] = {115.1, 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result2[i])
+  }
+
+
 END_SECTION
 
 START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative element frequencies))
@@ -145,8 +160,9 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
   TheoreticalSpectrumGenerator t_gen;
   Param params;
 
-  params.setValue("add_isotopes", 1);
-  params.setValue("add_losses", 1);
+  params.setValue("add_isotopes", "true");
+  params.setValue("add_losses", "true");
+	params.setValue("add_first_prefix_ion", "true");
   t_gen.setParameters(params);
 
   t_gen.getSpectrum(tmp, tmp_aa,1);

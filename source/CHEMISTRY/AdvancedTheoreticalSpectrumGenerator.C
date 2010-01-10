@@ -182,11 +182,11 @@ namespace OpenMS
     ion_types_(0)
   {
     this->setName("AdvancedTheoreticalSpectrumGenerator");
-    defaults_.setValue("add_isotopes", 0, "If set to 1 isotope peaks of the product ion peaks are added");
+    defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
-    defaults_.setValue("add_metainfo", 0, "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    defaults_.setValue("add_losses", 0, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    defaults_.setValue("add_precursor_peaks", 0, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+    defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+    defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+    defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
     defaults_.setValue("model_file_name", "examples/simulation/MSMSim.model", "Name of the probabilistic Model file");
 
     //defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
@@ -236,10 +236,10 @@ namespace OpenMS
   void AdvancedTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const gsl_rng *rng, Int charge)
   {
     //load parameters
-    bool add_isotopes = (UInt)param_.getValue("add_isotopes");
+    bool add_isotopes = param_.getValue("add_isotopes").toBool();
     UInt max_isotope = (UInt)param_.getValue("max_isotope");
-    bool add_metainfo = (UInt)param_.getValue("add_metainfo");
-    bool add_precursor_peaks = (UInt)param_.getValue("add_precursor_peaks");
+    bool add_metainfo = param_.getValue("add_metainfo").toBool();
+    bool add_precursor_peaks = param_.getValue("add_precursor_peaks").toBool();
 
     //get an instance of the IndexConverter functor
     IndexConverter index_converter;

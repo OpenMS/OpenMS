@@ -47,8 +47,8 @@ RichPeakSpectrum spec1, spec2, spec3;
 
 TheoreticalSpectrumGenerator tsg;
 Param tsg_param(tsg.getParameters());
-tsg_param.setValue("add_metainfo", 1);
-tsg_param.setValue("add_losses", 1);
+tsg_param.setValue("add_metainfo", "true");
+tsg_param.setValue("add_losses", "true");
 tsg.setParameters(tsg_param);
 tsg.getSpectrum(spec1, AASequence("DFPIANGER"), 1);
 tsg.getSpectrum(spec2, AASequence("DFPIANGEK"), 1);

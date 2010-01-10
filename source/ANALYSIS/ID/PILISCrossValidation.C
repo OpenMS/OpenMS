@@ -416,7 +416,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 
 			TheoreticalSpectrumGenerator tsg;
 			Param tsg_param(tsg.getParameters());
-      tsg_param.setValue("add_metainfo", 1);
+      tsg_param.setValue("add_metainfo", "true");
       tsg.setParameters(tsg_param);
 
       SpectrumAlignment aligner;

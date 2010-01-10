@@ -2627,9 +2627,11 @@ namespace OpenMS
 				Param p;
 
 				bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
-				p.setValue("add_losses", losses, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+				String losses_str = losses ? "true" : "false";
+				p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
 				bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
-				p.setValue("add_isotopes", isotopes, "If set to 1 isotope peaks of the product ion peaks are added");
+				String iso_str = isotopes ? "true" : "false";
+				p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
 				p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
 				p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
 				p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
