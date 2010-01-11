@@ -217,6 +217,7 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:CompNovo", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:PrecursorMassCorrector", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:GenericWrapper", "Misc", "The category of the tool");
 		
 		// UTILS:
 		map<String,StringList> util_tools = TOPPBase::getUtilList();

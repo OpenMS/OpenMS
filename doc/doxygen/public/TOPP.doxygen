@@ -101,5 +101,6 @@
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
 	- @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
 	- @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
+	- @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
 
 */
