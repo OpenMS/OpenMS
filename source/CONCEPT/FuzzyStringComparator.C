@@ -457,7 +457,11 @@ namespace OpenMS
 							{
                 if ( letter_1_ == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
                 {
-                  reportFailure_("input_1 is carriage return, but input_2_ is not whitespace");
+									// we skip over '\r'
+									line_2_.clear(); // reset status
+									line_2_.seekg(line_2_pos_); // rewind to saved position
+                  continue;
+									//reportFailure_("input_1 is carriage return, but input_2_ is not whitespace");
                 }
                 else
                 {
@@ -472,7 +476,11 @@ namespace OpenMS
 							{
 							  if ( letter_2_ == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
 							  {
-							    reportFailure_("input_1 is not whitespace, but input_2 is carriage return");
+									// we skip over '\r'
+									line_1_.clear(); // reset status
+									line_1_.seekg(line_1_pos_); // rewind to saved position
+									continue;
+							    //reportFailure_("input_1 is not whitespace, but input_2 is carriage return");
 							  }
 							  else
                 {
@@ -586,6 +594,7 @@ namespace OpenMS
 				for ( ; iter != line_str_1.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
 			}
+			//std::cout << "eof: " << input_1.eof() << " failbit: " << input_1.fail() << " badbit: " << input_1.bad() << " reading " << input_1.tellg () << "chars\n";
 
 			for ( line_str_2.clear(); ++line_num_2_, std::getline(input_2,line_str_2); )
 			{
@@ -594,6 +603,7 @@ namespace OpenMS
 				for ( ; iter != line_str_2.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
 			}
+			//std::cout << "eof: " << input_2.eof() << " failbit: " << input_2.fail() << " badbit: " << input_2.bad() << " reading " << input_2.tellg () << "chars\n";
 
 			// compare the two lines of input
 			if ( !compareLines_(line_str_1, line_str_2) && verbose_level_ < 3 ) break;
@@ -619,7 +629,7 @@ namespace OpenMS
 		}
 
 		std::ifstream  input_1_f;
-		input_1_f.open(input_1_name_.c_str());
+		input_1_f.open(input_1_name_.c_str(), std::ios::in | std::ios::binary);
 		if ( !input_1_f )
 		{
 			*log_dest_ << "Error opening first input file '" << input_1_name_ <<"'.\n";
@@ -628,7 +638,7 @@ namespace OpenMS
 		input_1_f.unsetf(std::ios::skipws);
 
 		std::ifstream  input_2_f;
-		input_2_f.open(input_2_name_.c_str());
+		input_2_f.open(input_2_name_.c_str(), std::ios::in | std::ios::binary);
 		if ( !input_2_f )
 		{
 			*log_dest_ << "Error opening second input file '" << input_2_name_ <<"'.\n";
