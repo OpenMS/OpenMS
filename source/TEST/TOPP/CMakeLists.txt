@@ -447,7 +447,7 @@ add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -in1 PrecursorMassCorrecto
 ### UTILS tests (if this becomes too much, we should create a separate directory)
 add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.png -width 20 -height 15)
 add_test("UTILS_ImageCreator_1_out1" ${DIFF} -in1 ImageCreator1.png -in2 ${DATA_DIR_TOPP}/ImageCreator_1_output.png)
-add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator2.png -width 20 -height 15 -precursor_size 3 -precursor_color green -log_intensity)
+add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_2_input.mzML -out ImageCreator2.png -width 20 -height 15 -precursor_size 3 -precursor_color green -log_intensity)
 add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_DIR_TOPP}/ImageCreator_2_output.png)
 
 
