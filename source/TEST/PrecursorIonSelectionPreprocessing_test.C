@@ -114,19 +114,19 @@ END_SECTION
 PrecursorIonSelectionPreprocessing rt_pt_pp;
 rt_pt_pp.setParameters(param);
 rt_pt_pp.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),
-												 OPENMS_GET_TEST_DATA_PATH("RTSimulation.svm"),
+												 OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_rt.model"),
 												 OPENMS_GET_TEST_DATA_PATH("DetectabilitySimulation.svm"),false);
 	
 START_SECTION(void dbPreprocessing(String db_path,String rt_model_path,String dt_model_path,bool save=true))
   TEST_EQUAL(rt_pt_pp.getProtMasses().size(),3);
   DoubleReal w = rt_pt_pp.getWeight(147.113);
   TEST_REAL_SIMILAR(w,1)
-		//	TEST_REAL_SIMILAR(rt_pt_pp.getRT("P01008",1),0.09798)
+	TEST_REAL_SIMILAR(rt_pt_pp.getRT("P01008",1),831.46429)
  	TEST_REAL_SIMILAR(rt_pt_pp.getPT("P01008",1),0.0402)	
 END_SECTION	
 
 START_SECTION(DoubleReal getRT(String prot_id,Size peptide_index))
-		//TEST_REAL_SIMILAR(rt_pt_pp.getRT("P01008",1),0.09798)
+	TEST_REAL_SIMILAR(rt_pt_pp.getRT("P01008",1),831.46429)
 END_SECTION
 	
 START_SECTION(DoubleReal getPT(String prot_id,Size peptide_index))
@@ -134,7 +134,7 @@ START_SECTION(DoubleReal getPT(String prot_id,Size peptide_index))
 END_SECTION
 
 START_SECTION(DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt))
-	TEST_REAL_SIMILAR(rt_pt_pp.getRTWeight("P01008",1,0.2),99.999)
+	TEST_REAL_SIMILAR(rt_pt_pp.getRTWeight("P01008",1,831.),99.999)
 END_SECTION
 
 	
