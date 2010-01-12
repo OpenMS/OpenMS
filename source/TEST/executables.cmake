@@ -197,6 +197,7 @@ set(math_executables_list
   BilinearInterpolation_test
   GammaDistributionFitter_test
   GaussFitter_test
+  GumbelDistributionFitter_test
   Histogram_test
   LinearInterpolation_test
   LinearRegression_test

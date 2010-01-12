@@ -8,6 +8,7 @@ AveragePosition.h
 BasicStatistics.h
 GammaDistributionFitter.h
 GaussFitter.h
+GumbelDistributionFitter.h
 Histogram.h
 LinearRegression.h
 ROCCurve.h

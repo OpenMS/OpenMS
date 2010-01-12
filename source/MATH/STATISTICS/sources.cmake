@@ -8,6 +8,7 @@ AveragePosition.C
 BasicStatistics.C
 GammaDistributionFitter.C
 GaussFitter.C
+GumbelDistributionFitter.C
 Histogram.C
 LinearRegression.C
 ROCCurve.C
