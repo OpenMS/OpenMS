@@ -89,10 +89,7 @@ namespace OpenMS
      */
     bool isRTColumnOn() const;
 
-		/// Wrapper for the SVM RT Prediction (HPLC)
-		void wrapSVM(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times);
-
-		/// Wrapper for the SVM RT Prediction (HPLC) using AASequences (TODO: eventually remove other wrapper function??)
+		/// Wrapper for the SVM RT Prediction (HPLC) using AASequences
 		void wrapSVM(std::vector<AASequence>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times);
 
     SimCoordinateType getGradientTime() const;
@@ -111,7 +108,7 @@ namespace OpenMS
     void predictFeatureRT_(FeatureMapSim &);
   
 		/// Size experiment and assign retention time grid
-		void createExperiment_(MSSimExperiment & experiment, Size number_of_scans);
+		void createExperiment_(MSSimExperiment & experiment, Size number_of_scans, DoubleReal rt_start);
 
 		/// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
 		void smoothRTDistortion_(MSSimExperiment & experiment);
@@ -123,13 +120,21 @@ namespace OpenMS
 															  Map< String, double> & q_nterm,
 															  Map< String, double> & q_aa_basic,
 															  Map< String, double> & q_aa_acidic);
-    // MEMBERS:
     
+		// MEMBERS:
+
     // Name of the svm model file
 		OpenMS::String rt_model_file_;
     
     /// Total gradient time
-    SimCoordinateType gradient_time_;
+    SimCoordinateType total_gradient_time_;
+
+    /// gradient ranges
+
+    /// Minimal observed gradient time
+    SimCoordinateType gradient_min_;
+    /// Maximal observed gradient time
+    SimCoordinateType gradient_max_;
 
     /// bin size in rt dimension
     SimCoordinateType rt_sampling_rate_;
@@ -138,11 +143,6 @@ namespace OpenMS
 		DoubleReal distortion_;
     DoubleReal symmetry_up_;
     DoubleReal symmetry_down_;
-    
-    /// Front part of the LC gradient that will not be directly assigned to guarantee a full elution profile
-    static const DoubleReal gradient_front_offset_;
-    /// Total part (front + back) of the LC gradient that will not be directly assigned
-    static const DoubleReal gradient_total_offset_;
     
   protected:  
 		/// Random number generator
