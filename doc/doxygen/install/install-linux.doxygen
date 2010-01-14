@@ -137,7 +137,7 @@
           Please use this option to point CMake to the location %OpenMS should
           be installed to.
 					
-					Install prefixes are not supported for developing with OpenMS. OpenMS must
+					For development, install prefixes are not supported. In this case %OpenMS must
 					be built in place!					
 					</td>
     </tr>
@@ -178,7 +178,7 @@
 
 	If you have chosen to use a install prefix via the INSTALL_PREFIX variable you should install the components using: 
 	<pre>
-	&gt; make install
+  &gt; make install
 	</pre>
 
   @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>/home/smith/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
