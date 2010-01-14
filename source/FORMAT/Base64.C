@@ -62,13 +62,28 @@ namespace OpenMS
 		
 		if(zlib_compression)
 		{
-			unsigned long compressed_length = static_cast<unsigned long>(2*str.size());
-			compressed.resize(compressed_length);
-			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&str[0]),(unsigned long) str.size()) != Z_OK)
+			unsigned long compressed_length = compressBound((unsigned long)str.size());
+			int zlib_error;
+			do
 			{
-				compressed_length *= 2;
-				compressed.reserve(compressed_length);
+      	compressed.resize(compressed_length);
+      	zlib_error = compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&str[0]),(unsigned long) str.size());
+       
+        switch (zlib_error) 
+        {
+        	case Z_MEM_ERROR:
+          	throw Exception::OutOfMemory(__FILE__,__LINE__,__PRETTY_FUNCTION__,compressed_length);
+            break;
+        	case Z_BUF_ERROR:
+            compressed_length *= 2;
+     		}
+    	}while (zlib_error == Z_BUF_ERROR);
+			
+			if(zlib_error != Z_OK)
+			{
+				throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Compression error?");
 			}
+			
 			it = reinterpret_cast<Byte*>(&compressed[0]);
 			end =it + compressed_length;
 			out.resize((Size)ceil(compressed_length/3.)*4); //resize output array in order to have enough space for all characters
