@@ -462,22 +462,26 @@ namespace OpenMS
 		else if (element == "search_score") // parent: "search_hit"
 		{
 			String name = attributeAsString_(attributes, "name");
-			DoubleReal value = attributeAsDouble_(attributes, "value");
+			DoubleReal value;
+
 			// TODO: deal with different scores
 			if (name == "hyperscore")
 			{ // X!Tandem score
+				value = attributeAsDouble_(attributes, "value");
 				peptide_hit_.setScore(value);
 				current_peptide_.setScoreType(name); // add "X!Tandem" to name?
 				current_peptide_.setHigherScoreBetter(true);
 			}
 			else if (name == "xcorr")
 			{ // Sequest score
+				value = attributeAsDouble_(attributes, "value");
 				peptide_hit_.setScore(value);
 				current_peptide_.setScoreType(name); // add "Sequest" to name?
 				current_peptide_.setHigherScoreBetter(true);
 			}
 			else if (name == "fval")
 			{ // SpectraST score
+				value = attributeAsDouble_(attributes, "value");
 				peptide_hit_.setScore(value);
 				current_peptide_.setScoreType(name);
 				current_peptide_.setHigherScoreBetter(true);
