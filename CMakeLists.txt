@@ -14,6 +14,7 @@ PROJECT("OpenMS")
 # OPENMS_BUILD_TYPE
 # CONTRIB_CUSTOM_DIR
 # STL_DEBUG
+# DB_TEST
 # QT_DB_PLUGIN
 # MT_CUDA_BUILD_TYPE
 
@@ -29,11 +30,10 @@ set(OPENMS_PACKAGE_VERSION_PATCH "0")
 ###            end manual entries                    ###
 ########################################################
 
-# Heart of the BUILD system : only edit when you know what you´re doing (we don´t)
-# quick manual for most commands: http://www.cmake.org/cmake/help
-# useful predefined variables: http://www.paraview.org/Wiki/CMake_Useful_Variables
-
-
+## Heart of the BUILD system : only edit when you know what you´re doing (we don´t)
+## quick manual for most commands: http://www.cmake.org/cmake/help
+## useful predefined variables: http://www.paraview.org/Wiki/CMake_Useful_Variables
+##
 ## naming conventions:
 ##
 ## prefix a variable with 'CF_' if it is used to configure a file!
@@ -505,22 +505,8 @@ endif()
 ## user flag with default "QMYSQL"
 set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database plugin.")
 
-## DB test settings
-set(DB_TEST OFF CACHE BOOL "If true, the DB tests are enabled.")
-set(DB_TEST_HOST "localhost" CACHE STRING "Test database server name (only used if DB_TEST is true).")
-set(DB_TEST_PORT "3307" CACHE STRING "Test database server port (only used if DB_TEST is true).")
-set(DB_TEST_DB "OPENMS_TEST_DB" CACHE STRING "Test database name (only used for DB_TEST).")
-set(DB_TEST_USER "openms_test_user" CACHE STRING "Test database user name (only used for DB_TEST).")
-set(DB_TEST_PW "openms_test_password" CACHE STRING "Test database user password (only used for DB_TEST).")
-if (DB_TEST)
-	# output
-	message(STATUS "DB testing enabled")
-	message(STATUS "DB testing - creating credentials files ...")
-	# create assorted credentials files
-	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/DB_credentials.txt.in ${PROJECT_BINARY_DIR}/source/TEST/DB_credentials.txt)
-	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBImporter.ini.in ${PROJECT_BINARY_DIR}/source/TEST/TOPP/DBImporter.ini)
-	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter.ini.in ${PROJECT_BINARY_DIR}/source/TEST/TOPP/DBExporter.ini)
-endif()
+## Configures what is tested (DB-test, MS2-search engines)
+include(cmake/TestConfig.cmake)
 
 ## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
 set(BUILD_SHARED_LIBS true)
@@ -537,13 +523,13 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/openms_package_version.h.in 
 set (OPENMS_CONFIGURED_FILES ${SVN_REVISION_FILE} ${CONFIGURED_CONFIG_H} ${CONFIGURED_OPENMS_PACKAGE_VERSION_H})
 
 ########################################################
-###    Documentation    														 ###
+###    Documentation                                 ###
 ########################################################
 
 include(cmake/doc.cmake)
 
 ########################################################
-###    BUILD the lib																 ###
+###    BUILD the lib                                 ###
 ########################################################
 
 #package type

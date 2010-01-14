@@ -2,7 +2,29 @@
 ----                                  OpenMS 1.7                                      ----
 ------------------------------------------------------------------------------------------
 
+Changes to TOPP tools:
+- Resampler
+	- PNG image creation functionality removed and transferred to ImageCreator UTIL
 
+New UTIL tools:
+- ImageCreator (creates PNG's from an MS map)
+
+
+Changes to the Build System:
+- external code support for CMake 2.8; External Code using 
+  "include (${OpenMS_USE_FILE})" in its CMakeLists.txt 
+  cannot be configured against OpenMS 1.7, however, 
+  only minor changes are required to fix this.
+  See the documentation for "Programming with OpenMS".
+
+BugFixes:
+[new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.7]
+- #44 : TOPPView warning "Cannot show projections!"
+- #73 : Resampler: can't create PNGs with TOPPAS
+- #74 : Default parameters of PTModel cause infinite loop
+- #77 : FuzzyDiff always returns 'true' when comparing any two PNG images
+
+For more minor bugfixes visit the above URL.
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.6                                      ----
