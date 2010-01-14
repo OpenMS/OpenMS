@@ -116,8 +116,15 @@ namespace OpenMS
 		{
 			key="^";
 		}
-		//cout<<"origin: "<<origin<<"    loc: "<<locations<<endl;
-		if(origin!="C-term" && origin!="N-Term")
+		if(origin=="C-term")
+		{
+		  origin="C_TERM";
+		}
+		else if(origin=="N-term")
+		{
+		  origin="N_TERM";
+		}
+		else
 		{
 			key=origin;
 		}
