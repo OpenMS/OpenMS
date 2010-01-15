@@ -1,2 +1,0 @@
-This folder contains the output of the tutorial.
-All files that should be removed when calling 'make clean' have to be prefixed with 'Tutorial_'!

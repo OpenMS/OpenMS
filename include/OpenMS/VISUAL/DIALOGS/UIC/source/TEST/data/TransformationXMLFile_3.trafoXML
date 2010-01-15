@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TrafoXML version="1.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<Transformation name="none">
-	</Transformation>
-	</Transformation>
-</TrafoXML>
