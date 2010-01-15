@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
 #include <limits>
@@ -163,7 +164,7 @@ namespace OpenMS
 						if (f_it->getConvexHulls().size()==0)
 						{
 							use_centroids = true;
-							std::cout << "IDMapper warning: at least one feature has no convex hull => using centroids!" << std::endl;
+							LOG_WARN << "IDMapper warning: at least one feature has no convex hull => using centroids!" << std::endl;
 							break;
 						}
 					}
@@ -173,10 +174,11 @@ namespace OpenMS
 				// RT range is partitioned into slices (bins) of 1 second; every feature
 				// that overlaps a certain slice is hashed into the corresponding bin
 				// std::cout << "Setting up hash table..." << std::endl;
-				std::vector<std::vector<Int> > hash_table;
+				std::vector<std::vector<SignedSize> > hash_table;
 				DoubleReal min_rt = std::numeric_limits<DoubleReal>::max(), 
-					max_rt = std::numeric_limits<DoubleReal>::min();
-				Int offset;
+					max_rt = -std::numeric_limits<DoubleReal>::max();
+				// make sure the RT hash table has indices > 0	
+				SignedSize offset;
 
 				// calculate feature bounding boxes only once (if applicable):
 				std::vector< DBoundingBox<2> > boxes;
@@ -186,19 +188,19 @@ namespace OpenMS
 					map.sortByRT();
 					min_rt = map.front().getRT() - rt_delta_;
 					max_rt = map.back().getRT() + rt_delta_;
-					offset = Int(floor(min_rt));
-					hash_table.resize(Int(floor(max_rt)) - offset + 1);			
+					offset = SignedSize(floor(min_rt));
+					hash_table.resize(SignedSize(floor(max_rt)) - offset + 1);			
 					for (Size index = 0; index < map.size(); ++index)
 					{
 						DoubleReal feat_rt = map[index].getRT();
-						for (Int i = Int(floor(feat_rt - rt_delta_)); 
-								 i <= Int(floor(feat_rt + rt_delta_)); ++i)
+						for (SignedSize i = SignedSize(floor(feat_rt - rt_delta_)); 
+								 i <= SignedSize(floor(feat_rt + rt_delta_)); ++i)
 						{
 							hash_table[i - offset].push_back(index);
 						}
 					}
 				}
-				else // use bouding boxes
+				else // use bounding boxes
 				{
 					// std::cout << "Precomputing bounding boxes..." << std::endl;
 					boxes.reserve(map.size());
@@ -239,13 +241,13 @@ namespace OpenMS
 				
 					// fill the hash table:
 					// std::cout << "Filling hash table..." << std::endl;
-					offset = Int(floor(min_rt));
-					hash_table.resize(Int(floor(max_rt)) - offset + 1);			
+					offset = SignedSize(floor(min_rt));
+					hash_table.resize(SignedSize(floor(max_rt)) - offset + 1);			
 					for (Size index = 0; index < boxes.size(); ++index)
 					{
 						const DBoundingBox<2>& box = boxes[index];
-						for (Int i = Int(floor(box.min().getX())); 
-								 i <= Int(floor(box.max().getX())); ++i)
+						for (SignedSize i = SignedSize(floor(box.min().getX())); 
+								 i <= SignedSize(floor(box.max().getX())); ++i)
 						{
 							hash_table[i - offset].push_back(index);
 						}
@@ -276,8 +278,9 @@ namespace OpenMS
 					}
 
 					// iterate over candidate features:
-					Size index = Int(floor(rt_value)) - offset, matching_features = 0;
-					for (std::vector<Int>::iterator hash_it = hash_table[index].begin();
+					Size index = SignedSize(floor(rt_value)) - offset;
+					Size matching_features = 0;
+					for (std::vector<SignedSize>::iterator hash_it = hash_table[index].begin();
 							 hash_it != hash_table[index].end(); ++hash_it)
 					{
 						Feature& feat = map[*hash_it];
@@ -337,11 +340,10 @@ namespace OpenMS
 				}
 
 				//some statistics output
-				std::cout << "Unassigned peptides: " << matches_none << std::endl;
-				std::cout << "Peptides assigned to exactly one feature: " 
-									<< matches_single << std::endl;
-				std::cout << "Peptides assigned to multiple features: " 
-									<< matches_multi << std::endl;
+				LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
+								 << "Peptides assigned to exactly one feature: "  << matches_single << "\n"
+								 << "Peptides assigned to multiple features: "  << matches_multi 
+								 << std::endl;
 			}
 			
 			/**
