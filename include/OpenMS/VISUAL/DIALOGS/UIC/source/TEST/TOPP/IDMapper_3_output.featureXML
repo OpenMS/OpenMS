@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="IDMapper" version="version_string" />
+		<processingAction name="Identification mapping" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2006-03-09T11:31:52" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ABCDE" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="FGHIJ" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="19" MZ="2000" RT="170" >
+		<PeptideHit score="5.41" sequence="DEAD" charge="2">
+		</PeptideHit>
+		<PeptideHit score="7.87" sequence="DEADA" charge="2">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="19" MZ="2001" RT="180" >
+		<PeptideHit score="5.41" sequence="DEADAA" charge="2">
+		</PeptideHit>
+		<PeptideHit score="7.87" sequence="DEADAAA" charge="2">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<featureList count="6">
+		<feature id="f_1">
+			<position dim="0">64</position>
+			<position dim="1">10</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="10" RT="60" >
+				<PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="3" protein_refs="PH_0 PH_1">
+				</PeptideHit>
+				<PeptideHit score="33.12" sequence="MRSLGYVAVISAVATDTDK" charge="3" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">64</position>
+			<position dim="1">10.0001</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">117</position>
+			<position dim="1">110.0003</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="12" MZ="110" RT="120" >
+				<PeptideHit score="43.9" sequence="HSKLSAK" charge="2" protein_refs="PH_1">
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">117</position>
+			<position dim="1">110.0004</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">182</position>
+			<position dim="1">1999.995</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="19" MZ="2000" RT="180" >
+				<PeptideHit score="5.41" sequence="RASNSPQDPQSATAHSFR" charge="2">
+				</PeptideHit>
+				<PeptideHit score="7.87" sequence="MYSTVGPA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">182</position>
+			<position dim="1">2000.007</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+	</featureList>
+</featureMap>

@@ -1,0 +1,81 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+// ATTENTION:
+// Please write OpenMS like this:  %OpenMS
+// Otherwise a link to the namespace is created.
+// Thanks!
+
+
+/**
+	@page Contributing Contributing
+	
+	<H2 style="border-top:2px solid grey;">%OpenMS</H2>
+		<UL>
+
+
+			<LI><B>I have written a class for %OpenMS I want to contribute. What should I do?</B><BR>
+				Basically, you must conform to the %OpenMS @subpage coding_conventions :
+				<OL>
+					<LI> Coding style (brackets, variable names, etc.) must conform to the conventions.
+					<LI> The class and all the members must be documented thoroughly.
+					<LI> A class test must exists, which tests each public member function.
+					<LI> You can check your code with the tool <tt>tools/checker.php</tt>.
+					     Call <tt>php tools/checker.php</tt> for detailed instructions.
+				</OL>
+				
+				When this is done, you can either 
+				<UL>
+					<LI>post a patch to the mailing list or 
+					<LI>become a developer and commit your code to the SVN directly.
+				</UL>
+
+			<LI><B>I want to implement a new file adapter. What is to be done?</B><BR>
+				<OL>
+					<LI> First you should add a file adapter class to the <tt>include/OpenMS/FORMAT/</tt> and <tt>source/FORMAT/</tt> folders.
+					     The file adapter should implement a default constructor, a <tt>load</tt> method and a <tt>store</tt> method.
+					     Make sure your code conforms to the %OpenMS @subpage coding_conventions .
+					<LI> For automatic file type recognition, you need to
+					  <UL>
+					  	<LI> register your new file type at the <tt>Type</tt> enum in <tt>/include/OpenMS/FORMAT/FileTypes.h</tt>,
+					  	<LI> flag the file type as supported in the <tt>isSupported</tt> method of <tt>/source/FORMAT/FileHandler.C</tt> and
+					  	<LI> register the file extension in the <tt>getTypeByFileName</tt> method of <tt>/source/FORMAT/FileHandler.C</tt>.
+					  </UL>
+					<LI> If the new file is a peak or feature file format you should also add it to <tt>loadExperiment</tt> or <tt>loadFeatures</tt>, respectively, of the <tt>FileHandler</tt> class.
+					<LI> To add the file format to the TOPPView open dialog, you have to modify the file <tt>/source/APPLICATIONS/TOPPViewBase.C</tt>.
+					     Add the file extensions to the <tt>filter_all</tt> and <tt>filter_single</tt> variables of the <tt>getFileList_</tt> method.
+					<LI> To add your format to TOPP applications, add the file extension to the extensions list of the respective parameter:<BR>
+					     e.g. <tt>setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML"));</tt> in <tt>FileInfo</tt>
+				</OL>
+				
+
+		</UL>
+	<H2 style="border-top:2px solid grey;">TOPP</H2>
+		<UL>
+			<LI> Coming soon.
+		</UL>
+*/

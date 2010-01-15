@@ -1,0 +1,36 @@
+/**
+  
+  @page external_code Programming with OpenMS
+  
+	@section development_external Compiling external code
+	
+	It is very easy to set up an environment to write your own programs using %OpenMS. Make sure you downloaded and installed the source package of %OpenMS/TOPP properly.
+	Note that you cannot use an install and 'make install' to build a devel version of %OpenMS, it must be built in place.
+	<br>
+	<br>
+	The example configuration file below can be found in @em OpenMS/share/OpenMS/examples/external_code.
+	All important compiler settings and preprocessor definitions along with the %OpenMS library will
+	be available to you.
+	The most important variables are:
+	<UL>
+	<LI>OPENMS_INCLUDE_DIRS - all include directories containing OpenMS headers
+	<LI>OPENMS_ADDCXX_FLAGS - preprocessor macros we require written as (-DMACRO1 -DMACRO2) etc
+	<LI>OPENMS_DEFINITIONS - compiler flags (e.g. to disable certain compiler warnings)
+	</UL>
+	and the OpenMS target itself (which you can link against).
+	<br>	
+	The example that follows will be explained in details:
+
+\include examples/external_code/CMakeLists.txt
+
+	The command @em project defines the name of the project - the name is only of interest of you're working in an IDE or want to export this project's targets.
+	To compile your program just append it to the @em my_executables list. If you use also object files (classes which do not contain a main program) this can be down by appending 
+	to the @em my_sources list. In the next step CMake creates a statically linked library of the object files, listed in my_sources.
+	This simple CMakeLists.txt example can be extended to also build shared libraries, include other external libraries and so on.
+	For more information visit the website of cmake at cmake.org and consult the documentation.
+	<br>
+	<b>Have fun coding with %OpenMS!</b>
+
+
+
+*/

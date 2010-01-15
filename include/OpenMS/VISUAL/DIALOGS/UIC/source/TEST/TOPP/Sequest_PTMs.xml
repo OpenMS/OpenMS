@@ -1,0 +1,7 @@
+<PTMs>
+	<PTM>
+		<name>Phosphorylation</name>
+		<composition>HO3P</composition>
+		<possible_amino_acids>STYDHCR</possible_amino_acids>
+	</PTM>
+</PTMs>

@@ -1,0 +1,833 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+//##############################################################################
+
+/**
+	@page TOPP_general General introduction
+
+		This tutorial will give you a brief overview of the most important TOPP tools.
+		First, we explain some basics that you will need for every TOPP tool,
+		then we show several example pipelines.
+
+	@section TOPP_fileformats File formats
+
+		The TOPP tools use the HUPO-PSI standard format mzML 1.1.0 as input format.
+		In order to convert other open formats (mzData, mzXML, DTA, ANDI/MS) to mzML, a file converter
+		is provided by TOPP.
+
+		Proprietary MS machine formats are not supported. If you need to convert these formats to
+		mzML, mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
+		or contact your MS machine vendor.
+
+		mzML covers only the output of a mass spectrometry experiment. For further analysis of this data
+		several other file formats are needed. The main file formats used by TOPP are:
+		- @b mzML The HUPO-PSI standard format for mass spectrometry data.
+		- @b featureXML The %OpenMS format for quantitation results.
+		- @b consensusXML The %OpenMS format for grouping features in one map or across several maps.
+		- @b idXML The %OpenMS format for protein and peptide identification.
+
+		Documented schemas of the %OpenMS formats can be found at
+		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
+
+		@em IdXML files and @em ConsensusXML files created by %OpenMS can be visualized in a web browser directly.
+		XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained
+		in the @em OpenMS/share/OpenMS/XSLT/ folder of your %OpenMS installation.
+		@n If you want to view the file on the computer with the %OpenMS installation, you can just open it in your
+		browser. 
+		@n If you copy the file to another computer, you have must copy the XSLT stylesheet to that coputer and
+		change the second line in the XML file. The following example shows how to change the stylesheet location for
+		an IdXML file. You simply have to change the *PATH* in the line
+		@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*IdXML.xsl"?>@endcode
+		to the folder where the stylesheet resides.
+
+	<HR>
+	@section TOPP_common_options Common arguments of the TOPP tools
+
+		The command line and INI file parameters of the TOPP tools vary due to the different tasks of
+		the TOPP tools. However, all TOPP tools share this common interface:
+	  - <b>-ini &lt;file&gt;</b> Use the given TOPP INI file
+	  - <b>-log &lt;file&gt;</b> Location of the log file (default: 'TOPP.log')
+	  - <b>-instance &lt;n&gt;</b> Instance number in the TOPP INI file (default: '1')
+	  - <b>-debug &lt;n&gt;</b> Sets the debug level (default: '0')
+	  - <b>-write_ini &lt;file&gt;</b> Writes an example INI file
+	  - <b>-no_progress</b> Disables progress logging to command line
+	  - <b>--help</b> Shows a help page for the command line and INI file options
+
+	<HR>
+	@section TOPP_parameters TOPP INI files
+
+		Each TOPP tool has its own set of parameters which can be specified at the
+		command line.  However, a more convenient (and persistent) way to handle larger
+		sets of parameters is to use TOPP INI files.  TOPP INI files are XML-based
+		and can contain the configuration of one or several TOPP tools.
+
+		The following examples will give an overview of how TOPP tools can be chained
+		in order to create analysis pipelines.  INI files are the recommended way
+		to store all settings of such a pipeline in a single place.
+
+		Note that the issue of finding suitable parameters for the tools is not
+		adressed here. If you encounter problems during the execution of the example
+		pipelines on your data, you probably have to adapt the parameters. Have a
+		look at the documentation of the corresponding TOPP tool in that case.
+
+		@subsection TOPP_parameter_structure General structure of an INI file
+
+		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierachy
+		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags, each of which stores one of the
+		parameters.  The first two level of the hierarchy have a special meaning.
+
+		<b>Example:</b> Below is the content of an INI file for @b FileFilter.
+
+		 Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
+			The tool section is always named after the program itself, in this case "FileFilter".
+		- In order to make storing several parameter sets for the same tool in one
+			INI file possible, the tool section contains one or several
+			<i>numbered instance subsections</i> ('1', '2', ...). These numbers are
+			the instance numbers which can be specified using the  '-instance' command
+			line argument. (Remember the default is '1'.)
+		- Within each instance section, the actual parameters of the TOPP tool are given.
+			INI files for complex tools	can contain nested subsections in order to
+			group related parameters.
+		-	If a parameter is not found in the instance section, the <i>tool-specific
+			common section</i> is considered.
+		- Finally, we look if the <i>general common	section</i> contains a value
+			for the parameter.
+
+		Imagine we call the @b FileFilter tool with the INI file given below and instance number '2'.
+		The FileFilter parameters @a rt and @a mz are looked up by the tool.
+		@a mz can be found in section @b FileFilter - @a 2. @a rt is not specified in this section,
+		thus the @a common - @b FileFilter section is checked first, where it is found in our example.
+		When looking up the @a debug parameter, the tool would search the instance section and tool-specific common
+		section without finding a value. Finally, the general @a common section would be checked, where the debug
+		level is specified.
+
+@code
+<PARAMETERS>
+
+  <NODE name="FileFilter">
+    <NODE name="1">
+      <ITEM name="rt" value="0:1200" type="string"/>
+    </NODE>
+    <NODE name="2">
+      <ITEM name="mz" value="700:1000" type="string"/>
+    </NODE>
+  </NODE>
+
+  <NODE name="common">
+    <NODE name="FileFilter">
+      <ITEM name="rt" value=":" type="string"/>
+      <ITEM name="mz" value=":" type="string"/>
+    </NODE>
+		<ITEM name="debug" value="2" type="int"/>
+  </NODE>
+
+</PARAMETERS>
+@endcode
+
+		@subsection TOPP_parameter_documentation Parameter documentation
+
+			General documentation of  a TOPP tool and documentation for the command line parameters,
+			can be displayed using the command line argument @a --help.
+
+			Some TOPP tools also have subsections of parameters that are internally handed to
+			an algorithm. The documentation of these subsections is not displayed with @a --help.
+			It is however displayed in @b INIFileEditor (see next section).
+
+		@subsection TOPP_parameter_creation Creating an INI file for a TOPP tool
+
+			The easiest way of creating an INI file is to advise the corresponding TOPP
+			tool to write its default	configuration file using the argument '-write_ini'.
+			Now the INI file can be adapted to your needs
+			using @b INIFileEditor.
+			@image html INIFileEditor.png
+			@image latex INIFileEditor.png "" width=10cm
+
+			In the @b INIFileEditor, the documentation of most parameters is displayed
+			as tooltip when you hover above the parameter name with the mouse pointer.
+
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example_handling File Handling
+
+		@section TOPP_files_info General information about peak and feature maps
+
+			If you want some general information about a peak or feature map, use the @b FileInfo tool.
+			- It can print RT, m/z and intensity ranges, the overall number of peaks, and the distribution of MS levels
+			- It can print a statistical summary of intensities
+			- It can print some meta information
+			- It can validate XML files against their schema
+			- It can check for corrupt data in peak files
+			See the 'FileInfo --help' for details.
+
+		@section TOPP_files_info2 Problems with input files
+
+			If you are experiencing problems while processing an XML file you can check if the file 
+			does validate against the XML schema:
+			@code
+FileInfo -v -in infile.mzML
+			@endcode
+			Validation is available for several file formats including mzML, mzData, mzXML, FeatureXML and IdXML.
+			
+			Another frequently-occuring problem is currupt data. You can check for corrupt data in peak files
+			with @b FileInfo as well:
+			@code
+FileInfo -c -in infile.mzML
+			@endcode
+			
+		@section TOPP_files_conversion Converting your files to mzML
+
+			The TOPP tools work only on the HUPO-PSI @a mzML format. If you need to convert @a mzData, @a mzXML or @a ANDI/MS
+			data to @a mzML, you can do that using the @b FileConverter, e.g.
+			@code
+FileConverter -in infile.mzXML -out outfile.mzML
+			@endcode
+			If you use the format names as file extension, the tool derives the format from the extension.
+			For other extensions, the file formats of the input and output file can be given explicitly.
+
+		@section TOPP_files_dta Converting between DTA and mzML
+
+			Sequest DTA files can be extracted from a mzML file using the @b DTAExtractor:
+			@code
+DTAExtractor -in infile.mzML -out outfile
+			@endcode
+			The retention time of a scan, the precursor mass-to-charge ratio (for MS/MS scans) and the file
+			extension are appended to the output file name.
+
+			To combine several files (e.g. DTA files) to an mzML file use the @b FileMerger:
+			@code
+FileMerger -in infile_list.txt -out outfile.mzML
+			@endcode
+			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extrated
+			from the DTA file names. See the FileMerger documentation for details.
+
+		@section TOPP_files_filter Extracting part of the data from a file
+
+			If you want to extract part of the data from an mzML file, you can use the
+			@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
+			To extract the MS/MS scans between retention time 100 and 1500, you would use the following command:
+			@code
+FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
+			@endcode
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example_signalprocessing Profile data processing
+
+		@b Goal: You want to find all peaks in your profile data.
+
+		The first step shown here is the elimination of noise using the @b NoiseFilter. The
+		now smoothed profile data can be further processed by subtracting the baseline
+		with the @b BaselineFilter. Then use the @b PeakPicker to find all peaks in the
+		baseline-reduced profile data.
+
+		@image html TOPP_raw_data.png
+		@image latex TOPP_raw_data.png "" width=10cm
+
+		We offer two different smoothing filters: a Gaussian filter and a Savitzky Golay filter,
+	  which can be selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
+	  or our @b BaselineFilter with non equally spaced profile data, e.g. TOF data, you have to generate equally spaced data using the
+	  @b Resampler tool.
+
+		@section TOPP_example_signalprocessing_peakpicker Picking peaks with PeakPicker
+
+		The @b PeakPicker tool allows for picking peaks in profile data. Currently, there are two different algorithms.
+		With the option '<tt>type</tt>', the desired peak-picking algorithm can be selected.
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> wavelet &nbsp;&nbsp; <b>Input data:</b> profile data (low/medium resolution) </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br>			
+			This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
+			Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
+			are extracted.
+			In an optional step these parameters can be optimized using a non-linear opimization method. <br>
+			
+			The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
+		
+			@b Application:<br>
+			This algorithm was designed for low and medium resolution data. 
+			It can also be applied to high-resolution data, but can be slow on large datasets.<br>
+
+			See the PeakPickerCWT class documentation for a parameter list.
+		</TD>
+	</TR>
+	</TABLE>	
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> high_res &nbsp;&nbsp; <b>Input data:</b> profile data (high resolution) </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br>
+			This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (see parameter @a signal_to_noise). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline. Please notice that this method is still @b experimental since it has not been tested thoroughly yet.<br>
+
+			<B>Application:</B>
+			<br>The algorithm is best suited for high-resolution MS data (FT-ICR-MS, Orbitrap). In high-resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width. These properties faciliate a fast computation of picked peaks so that even large data sets can be processed very quickly.
+
+			See the PeakPickerHiRes class documentation for a parameter list.
+		</TD>
+	</TR>
+	</TABLE>
+
+
+	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
+
+	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
+	In order to find good parameters, we propose the	following procedure:
+	-# Load the data in TOPPView
+	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
+	-# Experiment with the parameters until you have found the proper settings
+		- You can find the @b NoiseFilter, the @b BaselineFilter, and the @b PeakPicker in @b TOPPView in the menu 'Layer' - 'Apply TOPP tool'
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example_id Consensus peptide identification
+
+		@b Goal: Use several identification engines in order to compute a consensus
+		identification for a HPLC-MS\\MS experiment.
+
+		%OpenMS offers adapters for the following commercial and free peptide identification engines:
+		Sequest, Mascot, OMSSA, PepNovo, XTandem and Inspect.@n
+		The adapters allow setting the input parameters and data for the identification
+		engine and return the result in the %OpenMS idXML format.
+
+		In order to improve the identification accuracy, several identification engines
+		can be used and a consensus identification can be calculated from the results.
+		The image below shows an example where Mascot and OMSSA results are fed to
+		the @b ConsensusID tool.
+
+		@image html TOPP_consensus_id.png
+		@image latex TOPP_consensus_id.png "" width=14cm
+
+		@b Goal: Combine quantitation and identification results.
+		
+		Protein/peptide identifications can be annotated to quantitation results (featureXML, conensusXML)
+		by the @b IDMapper tool. The combined results can then be exported by the @b TextExporter tool: @ref TOPP_example_convert .
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example_mapalignment Map alignment
+	
+	The goal of map alignment is to transform different HPLC-MS maps to a common retention time axis.
+	It corrects for shifted and scaled retention times, which may result from changes of the chromatography.
+	
+	The @b MapAligner tool takes @em n input maps, dewarps them and stores the @em n dewarped maps.
+	The following image shows the general procedure:
+	
+	@image html TOPP_alignment.png
+	@image latex TOPP_alignment.png "" width=14cm
+
+	There are different map alignment algorithms available. Which one is used, can be determined by 
+	the @em type parameter of the @b MapAligner tool. The following table gives a rough overview of the algorithms:
+
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> pose_clustering_affine &nbsp;&nbsp; <b>Applicable to:</b> feature maps, peak maps</TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br>
+				This algorihtm does a star-wise alignment of the input data. The center of the star is the map with
+				most data points. All other maps are then aligned to the center map by estimating a linear transformation
+				(shift and scaling) of retention times. The transformation is estimated using a pose clustering approach
+				as described in doi:10.1093/bioinformatics/btm209
+			</TD>
+		</TR>
+	</TABLE>
+
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> apply_given_trafo &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps, identifications</TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br>
+				This algorithm merely <i>applies</i> a set of transformations that are read from files (in TransformationXML format).
+				These transformations might have been generated by a previous invocation of MapAligner.
+				For example, you might compute a transformation based on identifications and then apply it to the features or raw data.
+				The transformation file format is not very complicated,
+				so it is relatively easy to write (or generate) your own transformation files.
+				</TD>
+		</TR>
+	</TABLE>
+
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> identification &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps, identifications</TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br>
+				This <i>experimental</i> algorithm utilizes peptide identifications, and thus is applicable to files containing peptide IDs
+			 	(idXML, annotated mzML, annotated featureXML). It finds peptide sequences that different input files have in common
+				and uses them as points of correspondence.
+				From the retention times of these peptides, smooth non-linear transformations are computed
+				that convert each file to a consensus time scale.
+			</TD>
+		</TR>
+	</TABLE>
+
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> spectrum_alignment &nbsp;&nbsp; <b>Applicable to:</b> peak maps</TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br>
+				This <i>experimental</i> algorithm uses a dynamic-programming approach based on spectrum similariy for the alignment.
+				The resulting retention time mapping of dynamic-programming is then smoothed by fitting a spline 
+				to the retention time pairs.
+			</TD>
+		</TR>
+	</TABLE>
+
+*/
+
+//##############################################################################
+
+/**
+@page TOPP_example_featuredetection Feature detection
+
+	For quantitation, the @b FeatureFinder tool is used. It extracts the
+	features from profile data or centroided data. The @b FeatureFinder offers different
+	algorithms:
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br>
+			
+			This algorithm detects and quantifies peptide signals in a profile LC-MS map. We use
+			the wavelet transform to identify signal candidates. The transform uses a mother
+			wavelet which models the intensity pattern of peptide isotopic peaks. Isotopic
+			pattern of the same peptide ion in adjacent scans are clustered using a sweep-line
+			approach. Finally, we fit a two-dimensional model to the signals and use it to
+			compute a bounding box and to filter for false positives.
+			The (relative) abundance of the peptide is estimated by integration the signal.<br>
+
+			Details of the algorithms can be found in Schulz-Trieglaff and Hussong et al.:
+			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data"
+			Proceedings of RECOMB (2007) and Schulz-Trieglaff and Hussong et al. "Computational
+			Quantification of Peptides from LC-MS data" Journal of Computational Biology 2008.<br>
+
+			Details on the mother wavelet can be found in Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>			
+			
+			<B>Seeding:</B>
+			<BR>Identification of regions of interest using the isotope wavelet. 
+
+			<B>Extension:</B>
+			<BR>
+			Clustering of isotopic signals using the sweep-line paradigm.
+			
+			<B>Modelling:</B>
+			<BR>
+			2D model based on averagine isotope pattern and elution profile.
+
+			See the FeatureFinderAlgorithmWavelet class documentation for a parameter list.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br>
+			
+			The algorithm has been designed to detect features in raw MS data sets.
+			The current implementation is only able to handle MS1 scans. An extension handling also tandem MS spectra
+			is under development.
+			The method is based on the <I>isotope wavelet</I>, which has been tailored to the detection of isotopic 
+			patterns following the averagine model.
+			For more information about the theory behind this technique, please refer to
+			Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
+			Please note that this algorithm features no "modelling stage", since the structure
+			of the isotopic pattern is explicitly coded by the wavelet itself.  
+			The algorithm also works for 2D maps (in combination with the so-called <I>sweep-line</I> technique (Schulz-Trieglaff et al.:
+			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data" (2007))).
+			Please note that the "wavelet" algorithm (described above), which is also based on the isotope wavelet
+			transform, uses an additional fit as a final filtering step.  
+			In contrast to "wavelet", "isotope_wavelet" can be executed on (several) high-speed CUDA graphics cards. 
+			Tests on real-world data sets revealed potential speedups beyond factors of 200 (using 2 NVIDIA Tesla cards in parallel).
+			Please refer to Hussong et al.: "Highly accelerated feature detection in proteomics data sets using modern graphics processing units" (2009)
+			for more details on the implementation.
+			
+			<B>Seeding:</B>
+			<BR>Identification of regions of interest by convolving the signal with the wavelet function.
+			<BR>A score, measuring the closeness of the transform to a theoretically determined output function, 
+					finally distinguishes potential features from noise.  			
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on the sweep-line paradigm and is done on the fly after the wavelet transform.
+			
+			<B>Modelling:</B>
+			<BR>
+			None (explicitly done by the wavelet, in contrast cf.: the "wavelet" algorithm).
+
+			See the FeatureFinderAlgorithmIsotopeWavelet class documentation for a parameter list.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> centroided &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br>
+			
+			This is an algorithm for feature detection based on peak data.
+		  In contrast to the other algorithms, it is based on peak/stick data,
+		  which makes it applicable even if no profile data is available.
+			Another advantage is its speed due to the reduced amount of data after peak picking.
+			
+			<B>Seeding:</B>
+			<BR>It identifies interesting regions by calculating a score for each peak based on 
+			<UL>
+				<LI>the significance of the intensity in the local environment
+				<LI>RT dimension: the quality of the mass trace in a local RT window
+				<LI>m/z dimension: the quality of fit to an averagine isotope model
+			</UL>
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
+			
+			<B>Modelling:</B>
+			<BR>
+			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+			
+			See the FeatureFinderAlgorithmPicked class documentation for a parameter list.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	<TR>
+		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+	</TR>
+		<TR>
+			<TD>
+				@b Description: <br>
+				
+				This is another algorithm for feature detection in profile data.
+				It is similar to the "simplest" algorithm, except for the modeling.
+				
+				@b Seeding: see "simplest"
+				
+				@b Extension: see "simplest"
+				
+				@b Modelling: <br>
+				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
+				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
+				(class EMGFitter1D, class LmaGaussFitter1D)
+				
+				See the FeatureFinderAlgorithmSimple class documentation for a parameter list.
+			</TD>
+		</TR>
+	</TABLE>
+	
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> simplest &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br>
+				This is an algorithm for feature detection in profile data.
+				The following components are used:
+				
+				@b Seeding: <br> A "seed" is a starting point for finding a feature.  In this
+				 algorithm, all data points above the noise threshold are sorted with respect
+				 to intensity.  The strongest unused data point is used as a seed.  (class
+				 SimpleSeeder)
+				
+				@b Extension: <br> A "region" is extended around the seed.  The region grows
+				in RT and m/z simultaneously.  These data points are marked as used.  (class
+				SimpleExtender)
+				
+				@b Modelling: <br> A theoretical "model" is fitted to the data points of the
+				region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
+				uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
+				are chosen to represent the data points to the left and right of the maximum
+				intensity.  This is done by maximum likelihood estimation (class
+				BiGaussModel).  The m/z dimension is represented by an isotope model, which is
+				essentially a mixture of Gaussians, one for each isotopic peak, whose relative
+				intensities are fixed according to the "averagine" atomic composition.  All
+				isotopic peaks have the same width.  As a special case, charge zero represents
+				a single Gaussian.  This is useful as a null hypothesis or if isotopic peaks
+				cannot be resolved.  The MZ model is fitted by a simple enumeration scheme.
+				(class IsotopeFitter1D)
+				
+				If the model fits well to the data, we report a feature.  Otherwise, the seed
+				and the whole region is discarded, and its data points are marked as unused
+				again.  (class ModelFitter)
+				
+				See the FeatureFinderAlgorithmSimplest class documentation for a parameter list.
+			</TD>
+		</TR>
+	</TABLE>
+	
+
+*/
+//##############################################################################
+
+/**
+	@page TOPP_example_featuregrouping Feature grouping
+
+	In order to quantify differences across maps (label-free) or within a map (isotope-labeled),
+	groups of corresponding features have to be found.  The TOPP tool @b FeatureLinker supports both approaches.
+	These groups are represented by consensus features, which contain information about the constituting features
+	in the maps as well as average position, intensity, and charge.
+	
+	@section TOPP_example_featuregrouping_isotope_labeled Isotope-labeled quantitation
+
+		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
+
+		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
+		application calculates the features from profile data or centroided data.
+
+		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
+		@b FeatureLinker algorithm type @em labeled.
+		The @b FeatureLinker first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
+		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
+		The score of a pair is the product of:
+		- feature quality of feature 1
+		- feature quality of feature 2
+		- quality measure for the shift (how near is it to the optimal shift)
+
+		@image html TOPP_labeled_quant.png
+		@image latex TOPP_labeled_quant.png "" width=14cm
+
+	@section TOPP_example_featuregrouping_labelfree Label-free quantitation
+
+		@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
+
+		@image html TOPP_labelfree_quant.png
+		@image latex TOPP_labelfree_quant.png "" width=14cm
+
+		@note This algorithm assumes that the retention time axes of all input maps are very similar.
+		If you need to correct for retention time distortions, please have a look at @ref TOPP_example_mapalignment .	
+		
+*/
+
+
+//##############################################################################
+
+
+/**
+	@page TOPP_example_calibration Calibration
+
+	We offer two calibration methods: an internal and an external calibration. Both
+	can handle peak data as well as profile data. If you want to calibrate profile data,
+	a peak picking step is necessary, the important parameters can be set via the ini-file.
+	If you have already picked data, don't forget the  '<tt>-peak_data</tt>' flag.
+
+	The external calibration (@b TOFCalibration) is used to convert flight times into m/z- values with the
+	help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra,
+	the calibration constants the machine uses need to be known as well as the expected masses. Then a quadratic function is fitted to
+	convert the flight times into m/z-values.
+
+	The internal calibration (@b InternalCalibration) uses reference masses in the spectra to correct the m/z-values using a linear function.
+
+	In a typical setting one would first pick the TOF-data, then perform the TOFCalibration and then the InternalCalibration:
+	@code
+	PeakPicker -in raw_tof.mzML -out picked_tof.mzML -ini pp.ini
+	TOFCalibration -in picked_tof.mzML -out picked.mzML -ext_calibrants ext_cal.mzML
+	               -ref_masses ext_cal_masses
+	               -tof_const tof_conv_consts -peak_data
+	InternalCalibration -in picked.mzML -out picked_calibrated.mzML
+	                    -ref_masses internal_calibrant_masses -peak_data
+	@endcode
+
+*/
+//##############################################################################
+
+
+/**
+	@page TOPP_example_ppp Peptide property prediction
+
+	You can train a model for retention time prediction as well as for the prediction of
+	proteotypic peptides. 
+
+	Two applications has been described in the following publications:
+  Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+  Statistical learning of peptide retention behavior in chromatographic separations: A new kernel-based approach for computational proteomics.
+  BMC Bioinformatics 2007, 8:468 
+  Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+  Improving Peptide Identification in Proteome Analysis by a Two-Dimensional Retention Time Filtering Approach
+  J. Proteome Res. 2009, 8(8):4109-15	
+
+	The predicted retention time can be used in IDFilter to filter out
+	false identifications. Assume you have data from several identification runs. You should
+	first align the data using MapAligner. Then you can use the various identification
+	wrappers like MascotAdapter, OMSSAAdapter, ... to get the identifications. To train a model using RTModel you can now use
+	IDFilter for one of the runs to get the high scoring identifications (40 to 200 distinct peptides should be enough). 
+	Then you use RTModel as described in the documentation to train a model for these spectra. 
+	With this model you can use RTPredict to predict the retention times for the remaining runs.
+	The predicted retention times are stored in the IdXML files. These predicted retention times can then
+	be used to filter out false identifications using the IDFilter tool.
+
+	A typical sequence of TOPP tools would look like this:
+	@code
+
+	MapAligner -in Run1.mzML,...,Run4.mzML -out Run1_aligned.mzML,...,Run4_aligned.mzML
+	MascotAdapter -in Run1_aligned.mzML -out Run1_aligned.IdXML -ini Mascot.ini
+	MascotAdapter -in Run2_aligned.mzML -out Run2_aligned.IdXML -ini Mascot.ini
+	MascotAdapter -in Run3_aligned.mzML -out Run3_aligned.IdXML -ini Mascot.ini
+	MascotAdapter -in Run4_aligned.mzML -out Run4_aligned.IdXML -ini Mascot.ini
+	IDFilter -in Run1_aligned.IdXML -out Run1_best_hits.IdXML -pep_fraction 1 -best_hits
+	RTModel -in Run1_best_hits.IdXML -out Run1.model -ini RT.ini
+	RTPredict -in Run2_aligned.IdXML -out Run2_predicted.IdXML -svm_model Run1.model
+	RTPredict -in Run3_aligned.IdXML -out Run3_predicted.IdXML -svm_model Run1.model
+	RTPredict -in Run4_aligned.IdXML -out Run4_predicted.IdXML -svm_model Run1.model
+	IDFilter -in Run2_predicted.mzML -out Run2_filtered.mzML -rt_filtering
+	IDFilter -in Run3_predicted.mzML -out Run3_filtered.mzML -rt_filtering
+	IDFilter -in Run4_predicted.mzML -out Run4_filtered.mzML -rt_filtering
+
+	@endcode
+
+	If you have a file with certainly identified peptides and want to train a model for RT prediction, you can also directly use the
+	IDs. Therefore, the file has to have one peptide sequence together with the RT per line (separated by one tab or space).
+	This can then be loaded by RTModel using the -textfile_input flag:
+	@code
+	RTModel -in IDs_with_RTs.txt -out IDs_with_RTs.model -ini RT.ini -textfile_input	
+	@endcode
+
+	The likelihood of a peptide to be proteotypic can be predicted using PTModel and PTPredict.
+	Assume we have a file PT.IdXML which contains all proteotypic peptides
+	of a set of proteins. Lets also assume, we have a fasta file containing the amino acid
+	sequences of these proteins called mixture.fasta. To be able to train PTPredict, we
+	need negative peptides (peptides, which are not proteotypic). Therefore, one can use
+	the Digestor, which is located in the APPLICATIONS/UTILS/ folder together with the IDFilter:
+
+	@code
+	Digestor -in mixture.fasta -out all.IdXML
+	IDFilter -in all.IdXML -out NonPT.IdXML -exclusion_peptides_file PT.IdXML 
+	@endcode
+ 
+	In this example the proteins are digested in silico and the non proteotypic peptides set is
+	created by subtracting all proteotypic peptides from the set of all possible peptides. Then, one
+	can train PTModel:
+
+	@code
+	PTModel -in_positive PT.IdXML -in_negative NonPT.IdXML -out PT.model -ini PT.ini
+	@endcode
+
+*/
+	
+
+//##############################################################################
+
+/**
+	@page TOPP_example_convert Conversion between OpenMS XML formats and text formats 
+
+	@section TOPP_example_convert_export Export of OpenMS XML formats
+		
+		As TOPP offers no functionality for statistical analysis, this step is normally done using external statistics packages.
+		@n In order to export the %OpenMS XML formats into an appropriate format for these packages the
+		TOPP @b TextExporter can be used.
+		
+		It converts the the following %OpenMS XML formats to text files:
+		- FeatureXML
+		- IdXML
+		- ConsensusXML
+		
+		The use of the @b TextExporter is very simple:
+		@code
+TextExporter -in infile.idXML -out outfile.txt
+		@endcode
+
+
+	@section TOPP_example_convert_import_feature Import of feature data to OpenMS
+
+		%OpenMS offers a lot of visualization and analysis functionality for feature data.
+		@n Feature data in text format, e.g. from other analysis tools, can be imported using the @b TextImporter. The default mode accepts comma separated values
+		containing the following columns: RT, m/z, intensity. Additionally meta data columns may follow. If meta data is used, meta data column names have to be specified in a header line.
+		Without headers:
+		@verbatim
+1201	503.123	1435000
+1201	1006.246	1235200
+		@endverbatim
+		Or with headers:
+		@verbatim
+RT	m/z	Int	isHeavy	myMeta
+1201	503.123	1435000	true	2
+1201	1006.246	1235200	maybe	1
+		@endverbatim
+		
+Example invocation:
+		@code
+TextImporter -in infile.txt -out outfile.featureXML
+		@endcode
+
+		The tool also supports data from msInspect,SpecArray and Kroenik(Hardkloer sibling), just specify the -mode option accordingly.
+		
+	@section TOPP_example_convert_import_id Import of protein/peptide identification data to OpenMS
+		
+		Peptide/protein identification data from several identification engines can be converted to idXML format using the @b IDFileConverter tool.
+		
+		It can currently read the following formats:
+		- Sequest output folder
+		- pepXML file
+		- idXML file
+
+		It can currently write the folling formats:
+		- pepXML
+		- idXML
+		
+		This example shows how to convert pepXML to idXML:
+		@code
+IDFileConverter -in infile.pepXML -out outfile.idXML
+		@endcode
+*/

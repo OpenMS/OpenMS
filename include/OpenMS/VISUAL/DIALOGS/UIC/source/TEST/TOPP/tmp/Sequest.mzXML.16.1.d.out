@@ -1,0 +1,89 @@
+
+ \\bude\langwisc\temp\Inspect_Sequest.mzXML.16.1.d.out
+ TurboSEQUEST v.27 (rev. 12), (c) 1998-2005
+ Molecular Biotechnology, Univ. of Washington, J.Eng/S.Morgan/J.Yates
+ Licensed to ThermoFinnigan Corp.
+ 01/17/2007, 05:29 PM, 0.0 sec. on BUCHE
+ (M+H)+ mass = 863.96600 ~ 1.3000 (+2), fragment tol = 0.3000, AVG/AVG
+ total inten = 8061.7, lowest Sp = 0.0, # matched peptides = 0
+ # amino acids = 0, # proteins = 2, \\bude\langwisc\daten\Inspect_Sequest_FASTAFile_test.fasta
+ ion series nABY ABCDVWXYZ: 0 1 1 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0
+ display top 2/0, ion % = 30.0, CODE = 101010
+ match peak mass = 544.45 725.20 ~ 0.30,  allowed errors = 4
+ (M* +15.99490) (ct[ +2.00000) (nt] +1.00000) +Cterm-prot=2.00000 +Nterm-prot=4.00000 +Cterm-pep=1.00000 +Nterm-pep=3.00000 L=123.45825 N=124.40310 K=138.47291 H=147.43990 R=166.48635  Enzyme:TEST_enzyme (2)
+ sequence header = HUMAN !MOUSE
+
+  #   Rank/Sp      Id#     (M+H)+   deltCn   XCorr    Sp    Sf    P    Ions  Reference                            Peptide
+ ---  --------  --------  --------  ------  ------   ----  ----  ----  ----  ---------                            -------
+  1.   1 / 12          0  765.3015  0.0000  0.7496    43.6 0.01    0  7/14  gi|399201|sp|P27884|CB12_RABIT  +11  N.SNDASGNT.W
+                       0  gi|399200|sp|P27883|CB11_RABIT BRA
+                       0  gi|2136950|pir||I46480 calcium cha
+                       0  gi|2136949|pir||I46479 calcium cha
+                       0  gi|2136948|pir||I46478 calcium cha
+                       0  gi|2136947|pir||I46477 calcium cha
+                       0  gi|1529 (X57689) calcium channel B
+                       0  gi|1527 (X57477) calcium channel B
+                       0  gi|1525 (X57688) calcium channel B
+                       0  gi|1523 (X57476) calcium channel B
+                       0  gi|227711|prf||1709354B voltage de
+                       0  gi|227710|prf||1709354A voltage de
+  2.   2 /  6          0  765.3419  0.0132  0.7397    46.7 0.02    0  7/12  gi|1430907|gnl|PID|e148876           T.FVSDPNS.Y
+  3.   3 / 27          0  766.3041  0.0977  0.6764    36.9 0.00    0  7/16  gi|462435|sp|P33674|KC21_RABIT  +3   M.GSSSMPGGS.T
+                       0  gi|423327|pir||JN0555 casein kinas
+                       0  gi|298365|bbs|126478 (S56527) case
+                       0  gi|1220473 (M98451) casein kinase-
+  4.   4 /  5          0  766.4099  0.0984  0.6758    47.0 0.01    0  7/14  gi|2499524|sp|Q28615|NDC1_RABIT +2   G.GYALAKGS.E
+                       0  gi|2137022|pir||I46528 sodium/dica
+                       0  gi|758384 (U12186) sodium/dicarbox
+  5.   5 /  7          0  765.4147  0.1183  0.6610    46.5 0.01    0  7/14  gi|1169124|sp|P42072|CTL4_RABIT +2   L.AAISSGLF.F
+                       0  gi|755101|gnl|PID|d1009257 (D49844
+                       0  gi|2136963|pir||I46696 CTLA-4 prec
+  6.   6 / 67          0  767.3212  0.1682  0.6235    31.1 0.00    0  6/12  gi|1730130|sp|Q10983|FUT2_RABIT +2   A.NYTAPDS.P
+                       0  gi|1363067|pir||B56392 beta-galact
+                       0  gi|854357 (X80225) galactoside 2-L
+  7.   7 /381          0  765.3453  0.1824  0.6129    20.0 0.00    0  5/12  gi|1586679|prf||2204315A        +1   Q.NTTPMTT.K
+                       0  gi|1109678 (U35239) podocalyxin-li
+  8.   8 / 44          0  765.2903  0.1918  0.6059    33.4 0.01    0  6/12  gi|1345657|sp|P48283|CAH4_RABIT +2   E.VQDSDDS.I
+                       0  gi|1066838 (L48928) carbonic anhyd
+                       0  gi|1575300 (U58871) carbonic anhyd
+  9.   9 /117          0  765.3545  0.2016  0.5985    27.8 0.00    0  5/12  gi|2384762                      +1   A.AAHCAHV.F
+                       0  gi|2137041|pir||A33369 UDPglucose-
+ 10.  10 /216          0  766.3082  0.2095  0.5926    23.9 0.00    0  4/10  gi|125534|sp|P00518|KPBG_RABIT  +3   K.EVDMWS.T
+                       0  gi|1827741|pdb|1PHK|  Two Structur
+                       0  gi|66740|pir||KIRBFG phosphorylase
+                       0  gi|1660 (Y00684) phosphorylase kin
+ 11.  11 /183          0  767.3939  0.2368  0.5721    24.7 0.00    0  5/14  gi|125545|sp|P05773|KPC2_RABIT  +7   M.GSLSFGIS.E
+                       0  gi|125539|sp|P05772|KPC1_RABIT PRO
+                       0  gi|66725|pir||KIRBC2 protein kinas
+                       0  gi|66722|pir||KIRBC1 protein kinas
+                       0  gi|1671 (X04795) PKC-beta (AA 1-67
+                       0  gi|1669 (X04793) PKC-alpha (AA 1-6
+                       0  gi|225409|prf||1302246B kinase C b
+                       0  gi|225408|prf||1302246A kinase C a
+ 12.  12 / 40          0  765.3565  0.2517  0.5609    33.9 0.01    0  6/12  gi|136221|sp|P02645|TRIS_RABIT  +1   V.RVSADAM*.L
+                       0  gi|71787|pir||TPRBIW troponin I, s
+
+232. 229 /  1          0  764.3983  0.7130  0.2151    81.8 0.00    1  9/12  gi|2829470|sp|P56201|G6PE_RABIT +1   Y.FSVPPFA.Y
+                       0  gi|1083158|pir||A47563 glucose-6-p
+
+  1.          0  gi|399201|sp|P27884|CB12_RABIT BRAIN CALCIUM CHANNEL BI-2 PROTEIN
+  2.          0  gi|1430907|gnl|PID|e148876 (Z49144) epithelial basolatelar chloride conduc
+      tanc
+  3.          0  gi|462435|sp|P33674|KC21_RABIT CASEIN KINASE II, ALPHA CHAIN (CK II)
+  4.          0  gi|2499524|sp|Q28615|NDC1_RABIT RENAL SODIUM/DICARBOXYLATE COTRANSPORTER (
+      NA(+
+  5.          0  gi|1169124|sp|P42072|CTL4_RABIT CYTOTOXIC T-LYMPHOCYTE PROTEIN 4 PRECURSOR
+      (CT
+  6.          0  gi|1730130|sp|Q10983|FUT2_RABIT GALACTOSIDE 2-L-FUCOSYLTRANSFERASE 2 (SECR
+      ETOR
+  7.          0  gi|1586679|prf||2204315A podocalyxin-like protein 1 [Oryctolagus cuniculus]
+  8.          0  gi|1345657|sp|P48283|CAH4_RABIT CARBONIC ANHYDRASE IV PRECURSOR (CARBONATE
+      DEH
+  9.          0  gi|2384762 (AF017114) glycogen synthase [Oryctolagus cuniculus]
+ 10.          0  gi|125534|sp|P00518|KPBG_RABIT PHOSPHORYLASE B KINASE GAMMA CATALYTIC CHAI
+      N, S
+ 11.          0  gi|125545|sp|P05773|KPC2_RABIT PROTEIN KINASE C, BETA-II TYPE (PKC-BETA-2)
+ 12.          0  gi|136221|sp|P02645|TRIS_RABIT TROPONIN I, SLOW SKELETAL MUSCLE (TROPONIN 
+      I, S
+
+

@@ -1,0 +1,823 @@
+format-version: 1.0
+date: 27:09:2004 16:06
+saved-by: gwg
+auto-generated-by: DAG-Edit 1.418
+default-namespace: gene_ontology
+remark: cvs version: $Revision: 1.1 $
+subsetdef: goslim_goa "GOA GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+remark: GO_Slim_name:GOA and whole proteome analysis
+remark: GO_Slim_authors: N.Mulder, M.Pruess
+remark: GO_Slim_author_contact: goa@ebi.ac.uk
+remark: GO_Slim_reference:Brief Bioinform.3:285-295
+
+[Term]
+id: GO:0000004
+name: biological_process unknown
+namespace: process
+def: "Used for the annotation of gene products whose process is not known or cannot be inferred." [SGD:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0008150
+
+[Term]
+id: GO:0003674
+name: molecular_function
+namespace: function
+def: "Elemental activities\, such as catalysis or binding\, describing the actions of a gene product at the molecular level. A given gene product may exhibit one or more molecular functions." [GO:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+
+[Term]
+id: GO:0003676
+name: nucleic acid binding
+namespace: function
+def: "Interacting selectively with any nucleic acid." [GO:jl]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0005488
+
+[Term]
+id: GO:0003774
+name: motor activity
+namespace: function
+def: "Catalysis of movement along a polymeric molecule such as a microfilament or microtubule\, coupled to the hydrolysis of a nucleoside triphosphate." [ISBN:0815316194, GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0003674
+
+[Term]
+id: GO:0003824
+name: catalytic activity
+namespace: function
+def: "Catalysis of a biochemical reaction at physiological temperatures. In biologically catalyzed reactions\, the reactants are known as substrates\, and the catalysts are naturally occurring macromolecular substances known as enzymes. Enzymes possess specific binding sites for substrates\, and are usually composed wholly or largely of protein\, but RNA that has catalytic activity (ribozyme) is often also regarded as enzymatic." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+related_synonym: "enzyme activity" []
+is_a: GO:0003674
+
+[Term]
+id: GO:0004386
+name: helicase activity
+namespace: function
+def: "Catalysis of the unwinding of a DNA or RNA duplex." [ISBN:0198506732]
+subset: goslim_goa
+subset: goslim_yeast
+xref_analog: Reactome:109879
+xref_analog: Reactome:111307
+xref_analog: Reactome:117604
+xref_analog: Reactome:117605
+xref_analog: Reactome:120688
+xref_analog: Reactome:72598
+xref_analog: Reactome:72599
+is_a: GO:0003824
+
+[Term]
+id: GO:0004871
+name: signal transducer activity
+namespace: function
+def: "Mediates the transfer of a signal from the outside to the inside of a cell by means other than the introduction of the signal molecule itself into the cell." [ISBN:0198506732, GO:jl]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0003674
+
+[Term]
+id: GO:0004872
+name: receptor activity
+namespace: function
+def: "Combining with an extracellular or intracellular messenger to initiate a change in cell activity." [GO:cb, ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0004871
+
+[Term]
+id: GO:0005198
+name: structural molecule activity
+namespace: function
+def: "The action of a molecule that contributes to the structural integrity of a complex or assembly within or outside a cell." [GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0003674
+
+[Term]
+id: GO:0005215
+name: transporter activity
+namespace: function
+def: "Enables the directed movement of substances (such as macromolecules\, small molecules\, ions) into\, out of\, within or between cells." [GO:ma, SGD:df]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0003674
+
+[Term]
+id: GO:0005386
+name: carrier activity
+namespace: function
+def: "Catalysis of the transfer of a specific substance or related group of substances from one side of the membrane to the other." [ISBN:0198506732]
+subset: goslim_goa
+exact_synonym: "carrier type transporter" []
+is_a: GO:0005215
+
+[Term]
+id: GO:0005488
+name: binding
+namespace: function
+def: "The selective and stoichiometric interaction of a molecule with one or more specific sites on another molecule." [GO:cb, ISBN:0198506732]
+comment: Note that ligand is being used in its broadest biological sense. For ligands that bind to signal transducing receptors\, consider the molecular function term 'receptor binding ; GO\:0005102' and its children.
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+synonym: "ligand" []
+is_a: GO:0003674
+
+[Term]
+id: GO:0005489
+name: electron transporter activity
+namespace: function
+def: "Enables the directed movement of electrons into\, out of\, within or between cells." [GO:ai]
+subset: goslim_generic
+subset: goslim_goa
+is_a: GO:0005215
+
+[Term]
+id: GO:0005515
+name: protein binding
+namespace: function
+def: "Interacting selectively with any protein or protein complex (a complex of two or more proteins that may include other nonprotein molecules)." [GO:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0005488
+
+[Term]
+id: GO:0005554
+name: molecular_function unknown
+namespace: function
+def: "Used for the annotation of gene products whose function is not known or cannot be inferred." [SGD:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0003674
+
+[Term]
+id: GO:0005575
+name: cellular_component
+namespace: component
+def: "The part of a cell of which a gene product is a component; for purpose of GO includes the extracellular environment of cells; a gene product may be a component of one or more parts of a cell; this term includes gene products that are parts of macromolecular complexes\, by the definition that all members of a complex normally copurify under all except extreme conditions." [GO:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+
+[Term]
+id: GO:0005576
+name: extracellular
+namespace: component
+def: "The space external to the outermost structure of a cell. For cells without external protective or external encapsulating structures this refers to space outside of the plasma membrane. This term covers the host cell environment outside an intracellular parasite." [GO:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0005575
+
+[Term]
+id: GO:0005578
+name: extracellular matrix
+namespace: component
+def: "A layer consisting mainly of proteins (especially collagen) and glycosaminoglycans (mostly as proteoglycans) that forms a sheet underlying cells such as endothelial and epithelial cells. The proteins are secreted by cells in the vicinity." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+relationship: part_of GO:0005576
+
+[Term]
+id: GO:0005615
+name: extracellular space
+namespace: component
+def: "That part of a multicellular organism outside the cells proper\, usually taken to be outside the plasma membranes\, and occupied by fluid." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+relationship: part_of GO:0005576
+
+[Term]
+id: GO:0005622
+name: intracellular
+namespace: component
+def: "The living contents of a cell; the matter contained within (but not including) the plasma membrane\, usually taken to exclude large vacuoles and masses of secretory or ingested material. In eukaryotes it includes the nucleus and cytoplasm." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+exact_synonym: "protoplasm" []
+relationship: part_of GO:0005623
+
+[Term]
+id: GO:0005623
+name: cell
+namespace: component
+def: "The basic structural and functional unit of all organisms. Includes the plasma membrane and any external encapsulating structures such as the cell wall and cell envelope." [GO:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0005575
+
+[Term]
+id: GO:0005634
+name: nucleus
+namespace: component
+def: "A membrane-bounded organelle of eukaryotic cells that contains the chromosomes. It is the primary site of DNA replication and RNA synthesis in the cell." [GO:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+relationship: part_of GO:0005622
+
+[Term]
+id: GO:0005694
+name: chromosome
+namespace: component
+def: "A structure composed of a very long molecule of DNA and associated proteins (e.g. histones) that carries hereditary information." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_yeast
+relationship: part_of GO:0005622
+
+[Term]
+id: GO:0005737
+name: cytoplasm
+namespace: component
+def: "All of the contents of a cell excluding the plasma membrane and nucleus\, but including other subcellular structures." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+relationship: part_of GO:0005622
+
+[Term]
+id: GO:0005941
+name: unlocalized
+namespace: component
+def: "Used as a holding place for cellular components whose precise localization is\, as yet\, unknown\, or has not been determined by GO (the latter is the major reason for nodes to have this parent); this term should not be used for annotation of gene products." [FB:ma]
+comment: See also the cellular component term 'cellular_component unknown ; GO\:0008372'.
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0005575
+
+[Term]
+id: GO:0006118
+name: electron transport
+namespace: process
+def: "The transport of electrons from an electron donor to an electron acceptor." [http://cancerweb.ncl.ac.uk/]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+exact_synonym: "electron transfer" []
+is_a: GO:0008152
+
+[Term]
+id: GO:0006139
+name: nucleobase, nucleoside, nucleotide and nucleic acid metabolism
+namespace: process
+def: "The chemical reactions and physical changes involving nucleobases\, nucleosides\, nucleotides and nucleic acids." [GO:ai]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0008152
+
+[Term]
+id: GO:0006519
+name: amino acid and derivative metabolism
+namespace: process
+def: "The chemical reactions and physical changes involving amino acids\, organic acids containing one or more amino substituents\, and compounds derived from amino acids." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0008152
+
+[Term]
+id: GO:0006810
+name: transport
+namespace: process
+def: "The directed movement of substances (such as macromolecules\, small molecules\, ions) into\, out of\, within or between cells." [GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0008151
+
+[Term]
+id: GO:0006928
+name: cell motility
+namespace: process
+def: "Any process involved in the controlled movement of a cell." [GO:jl]
+subset: goslim_goa
+exact_synonym: "cell movement" []
+is_a: GO:0050875
+
+[Term]
+id: GO:0006944
+name: membrane fusion
+namespace: process
+def: "The joining of two lipid bilayers to form a single membrane." [GO:mah]
+subset: goslim_goa
+is_a: GO:0009987
+
+[Term]
+id: GO:0007154
+name: cell communication
+namespace: process
+def: "Any process that mediates interactions between a cell and its surroundings. Encompasses interactions such as signaling or attachment between one cell and another cell\, between a cell and an extracellular matrix\, or between a cell and any other aspect of its environment." [GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0009987
+
+[Term]
+id: GO:0007275
+name: development
+namespace: process
+def: "Biological processes specifically aimed at the progression of an organism over time from an initial condition (e.g. a zygote\, or a young adult) to a later condition (e.g. a multicellular animal or an aged adult)." [WB:ems]
+comment: Note that this term was 'developmental process'.
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0008150
+
+[Term]
+id: GO:0007582
+name: physiological process
+namespace: process
+def: "Those processes specifically pertinent to the functioning of integrated living units\: cells\, tissues\, organs\, and organisms." [ISBN:0198506732, WB:ems]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0008150
+
+[Term]
+id: GO:0007610
+name: behavior
+namespace: process
+def: "The specific actions or reactions of an organism in response to external or internal stimuli. Patterned activity of a whole organism in a manner dependent upon some combination of that organism's internal state and external conditions." [WB:ems, ISBN:0395448956]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+exact_synonym: "behaviour" []
+is_a: GO:0008150
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: process
+def: "A phenomenon marked by changes that lead to a particular result\, mediated by one or more gene products." [GO:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+
+[Term]
+id: GO:0008151
+name: cell growth and/or maintenance
+namespace: process
+def: "Any process required for the survival and growth of a cell." [GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+synonym: "cell physiology" []
+is_a: GO:0050875
+
+[Term]
+id: GO:0008152
+name: metabolism
+namespace: process
+def: "The totality of the chemical reactions and physical changes that occur in living organisms\, comprising anabolism and catabolism; may be qualified to mean the chemical reactions and physical processes undergone by a particular substance\, or class of substances\, in a living organism." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0007582
+
+[Term]
+id: GO:0008219
+name: cell death
+namespace: process
+def: "The specific activation or halting of processes within a cell so that its vital functions markedly cease\, rather than simply deteriorating gradually over time\, which culminates in cell death." [WB:ems]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0007582
+
+[Term]
+id: GO:0008372
+name: cellular_component unknown
+namespace: component
+def: "Used for the annotation of gene products whose localization is not known or cannot be inferred." [FB:ma]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0005575
+
+[Term]
+id: GO:0008402
+name: aromatase activity
+namespace: function
+def: "Catalysis of the reaction\: R-H + reduced flavoprotein + O2 = R-OH + oxidized flavoprotein + H2O." [SP:P11511, GO:jl]
+subset: goslim_goa
+exact_synonym: "estrogen synthetase" []
+narrow_synonym: "cytochrome P450 CYP19" []
+is_a: GO:0003824
+
+[Term]
+id: GO:0008565
+name: protein transporter activity
+alt_id: GO:0015463
+namespace: function
+def: "Enables the directed movement of proteins into\, out of\, within or between cells." [ISBN:0198506732]
+subset: goslim_goa
+narrow_synonym: "enzyme transporter activity" []
+is_a: GO:0005215
+
+[Term]
+id: GO:0008907
+name: integrase activity
+namespace: function
+def: "Catalysis of the integration of lambdoid phage DNA during establishment\, probably by forming a transient DNA-protein link." [ISBN:0198506732]
+subset: goslim_goa
+is_a: GO:0003824
+
+[Term]
+id: GO:0009056
+name: catabolism
+namespace: process
+def: "Any metabolic process involving the breakdown of complex substances into smaller products\, including the breakdown of carbon compounds with the liberation of energy for use by the cell or organism." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0008152
+
+[Term]
+id: GO:0009058
+name: biosynthesis
+namespace: process
+def: "The energy-requiring part of metabolism in which simpler substances are transformed into more complex ones\, as in growth and other biosynthetic processes." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+exact_synonym: "anabolism" []
+is_a: GO:0008152
+
+[Term]
+id: GO:0009405
+name: pathogenesis
+namespace: process
+def: "The specific processes that generate the ability of an organism to cause disease in another." [GO:curators]
+comment: Note that this term should not be used to annotate gene products that are involved in the host response to pathogenesis. It should only be used to annotate those gene products involved in the generation of pathogenesis by the pathogen itself.
+subset: goslim_goa
+synonym: "virulence" []
+is_a: GO:0007582
+
+[Term]
+id: GO:0009986
+name: cell surface
+namespace: component
+def: "The external part of the cell wall and/or cell membrane." [TAIR:sm, GO:jl]
+subset: goslim_goa
+synonym: "cell associated" []
+synonym: "cell bound" []
+relationship: part_of GO:0005623
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: process
+def: "Processes that are carried out at the cellular level\, but are not necessarily restricted to a single cell. For example\, cell communication occurs among more than one cell\, but occurs at the cellular level." [GO:curators]
+subset: goslim_goa
+subset: goslim_plant
+is_a: GO:0008150
+
+[Term]
+id: GO:0015075
+name: ion transporter activity
+namespace: function
+def: "Enables the directed movement of charged atoms or small charged molecules into\, out of\, within or between cells." [SGD:df]
+subset: goslim_goa
+is_a: GO:0005215
+
+[Term]
+id: GO:0015267
+name: channel or pore class transporter activity
+namespace: function
+def: "Allows facilitated diffusion (by an energy-independent process) by passage through a transmembrane aqueous pore or channel without a carrier-mediated mechanism. They do not exhibit stereospecificity but may be specific for a particular molecular species or class of molecules." [TC:1.-.-.-.-]
+subset: goslim_goa
+exact_synonym: "channel/pore class transporter activity" []
+xref_analog: TC:1.-.-.-.-
+is_a: GO:0005215
+
+[Term]
+id: GO:0015646
+name: permease activity
+namespace: function
+def: "Catalysis of the stereospecific transfer of a substrate across a biological membrane." [ISBN:0198506732, GO:ai]
+subset: goslim_goa
+is_a: GO:0005215
+
+[Term]
+id: GO:0016020
+name: membrane
+namespace: component
+def: "Double layer of lipid molecules that encloses all cells\, and\, in eukaryotes\, many organelles; may be a single or double lipid bilayer\, also includes associated proteins." [GO:mah, ISBN:0815316194]
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+relationship: part_of GO:0005623
+
+[Term]
+id: GO:0016209
+name: antioxidant activity
+namespace: function
+def: "Inhibition of the reactions brought about by dioxygen (O2) or peroxides. Usually the antioxidant is effective because it can itself be more easily oxidized than the substance protected. The term is often applied to components that can trap free radicals\, thereby breaking the chain reaction that normally leads to extensive biological damage." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+is_a: GO:0003674
+
+[Term]
+id: GO:0016301
+name: kinase activity
+namespace: function
+def: "Catalysis of the transfer of a phosphate group\, usually from ATP\, to a substrate molecule." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+exact_synonym: "phosphokinase" []
+xref_analog: Reactome:113431
+xref_analog: Reactome:113433
+xref_analog: Reactome:114246
+xref_analog: Reactome:115027
+xref_analog: Reactome:115715
+xref_analog: Reactome:115932
+xref_analog: Reactome:115944
+xref_analog: Reactome:115947
+xref_analog: Reactome:115951
+xref_analog: Reactome:115974
+xref_analog: Reactome:115991
+xref_analog: Reactome:116605
+xref_analog: Reactome:117491
+xref_analog: Reactome:118310
+xref_analog: Reactome:118568
+xref_analog: Reactome:118583
+xref_analog: Reactome:118586
+xref_analog: Reactome:118589
+xref_analog: Reactome:118596
+xref_analog: Reactome:118617
+xref_analog: Reactome:118965
+xref_analog: Reactome:119356
+xref_analog: Reactome:120179
+xref_analog: Reactome:120930
+xref_analog: Reactome:121183
+xref_analog: Reactome:121192
+xref_analog: Reactome:121216
+xref_analog: Reactome:121239
+xref_analog: Reactome:121274
+xref_analog: Reactome:121543
+xref_analog: Reactome:122577
+xref_analog: Reactome:123125
+xref_analog: Reactome:123301
+xref_analog: Reactome:123309
+xref_analog: Reactome:123312
+xref_analog: Reactome:123316
+xref_analog: Reactome:123331
+xref_analog: Reactome:124636
+xref_analog: Reactome:125197
+xref_analog: Reactome:125408
+xref_analog: Reactome:125423
+xref_analog: Reactome:125426
+xref_analog: Reactome:125441
+xref_analog: Reactome:68385
+xref_analog: Reactome:68401
+xref_analog: Reactome:69194
+xref_analog: Reactome:69222
+xref_analog: Reactome:69246
+xref_analog: Reactome:69254
+xref_analog: Reactome:69603
+xref_analog: Reactome:69607
+xref_analog: Reactome:69716
+xref_analog: Reactome:69904
+xref_analog: Reactome:69913
+xref_analog: Reactome:75047
+xref_analog: Reactome:75051
+xref_analog: Reactome:75052
+xref_analog: Reactome:75053
+xref_analog: Reactome:75054
+xref_analog: Reactome:75225
+xref_analog: Reactome:75371
+xref_analog: Reactome:75808
+xref_analog: Reactome:75819
+xref_analog: Reactome:83536
+is_a: GO:0003824
+
+[Term]
+id: GO:0016491
+name: oxidoreductase activity
+namespace: function
+def: "Catalysis of an oxidation-reduction (redox) reaction\, a reversible chemical reaction in which the oxidation state of an atom or atoms within a molecule is altered. One substrate acts as a hydrogen or electron donor and becomes oxidized\, while the other acts as hydrogen or electron acceptor and becomes reduced." [GO:curators]
+comment: Note that enzymes of class EC\:1.97.-.- should also be annotated to this term.
+subset: goslim_goa
+subset: goslim_yeast
+exact_synonym: "redox activity" []
+xref_analog: EC:1.-.-.-
+is_a: GO:0003824
+
+[Term]
+id: GO:0016740
+name: transferase activity
+namespace: function
+def: "Catalysis of the transfer of a group\, e.g. a methyl group\, glycosyl group\, acyl group\, phosphorus-containing\, or other groups\, from one compound (generally regarded as the donor) to another compound (generally regarded as the acceptor). Transferase is the systematic name for any enzyme of EC class 2." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+xref_analog: EC:2.-.-.-
+is_a: GO:0003824
+
+[Term]
+id: GO:0016787
+name: hydrolase activity
+namespace: function
+def: "Catalysis of the hydrolysis of various bonds\, e.g. C-O\, C-N\, C-C\, phosphoric anhydride bonds\, etc. Hydrolase is the systematic name for any enzyme of EC class 3." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+xref_analog: EC:3.-.-.-
+is_a: GO:0003824
+
+[Term]
+id: GO:0016829
+name: lyase activity
+namespace: function
+def: "Catalysis of the cleavage of C-C\, C-O\, C-N and other bonds by other means than by hydrolysis or oxidation\, or conversely adding a group to a double bond. They differ from other enzymes in that two substrates are involved in one reaction direction\, but only one in the other direction. When acting on the single substrate\, a molecule is eliminated and this generates either a new double bond or a new ring." [ISBN:0198547684, EC:4.-.-.-]
+comment: Note that enzymes of class EC\:4.99.-.- should also be annotated to this term.
+subset: goslim_goa
+subset: goslim_yeast
+xref_analog: EC:4.-.-.-
+is_a: GO:0003824
+
+[Term]
+id: GO:0016853
+name: isomerase activity
+namespace: function
+def: "Catalysis of the geometric or structural changes within one molecule. Isomerase is the systematic name for any enzyme of EC class 5." [ISBN:0198506732]
+comment: Note that enzymes of class EC\:5.99.-.- should also be annotated to this term.
+subset: goslim_goa
+subset: goslim_yeast
+xref_analog: EC:5.-.-.-
+is_a: GO:0003824
+
+[Term]
+id: GO:0016874
+name: ligase activity
+namespace: function
+def: "Catalysis of the ligation of two substances with concomitant breaking of a diphosphate linkage\, usually in a nucleoside triphosphate. Ligase is the systematic name for any enzyme of EC class 6." [ISBN:0198506732]
+subset: goslim_goa
+subset: goslim_yeast
+xref_analog: EC:6.-.-.-
+is_a: GO:0003824
+
+[Term]
+id: GO:0030154
+name: cell differentiation
+namespace: process
+def: "The process whereby relatively unspecialized cells\, e.g. embryonic or regenerative cells\, acquire specialized structural and/or functional features that characterize the cells\, tissues\, or organs of the mature organism or some other relatively stable phase of the organism's life history." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+relationship: part_of GO:0007275
+is_a: GO:0009987
+
+[Term]
+id: GO:0030188
+name: chaperone regulator activity
+namespace: function
+def: "Modulates the activity of a molecular chaperone." [GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+is_a: GO:0003674
+
+[Term]
+id: GO:0030234
+name: enzyme regulator activity
+namespace: function
+def: "Modulates the activity of an enzyme." [GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+exact_synonym: "enzyme modulator" []
+is_a: GO:0003674
+
+[Term]
+id: GO:0030312
+name: external encapsulating structure
+namespace: component
+def: "A structure that lies outside the plasma membrane and surrounds the entire cell." [GOC:curators]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+relationship: part_of GO:0005623
+
+[Term]
+id: GO:0030528
+name: transcription regulator activity
+namespace: function
+def: "Plays a role in regulating transcription; may bind a promoter or enhancer DNA sequence or interact with a DNA-binding transcription factor." [GO:mah]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0003674
+
+[Term]
+id: GO:0043062
+name: extracellular structure organization and biogenesis
+namespace: process
+def: "The assembly and arrangement of structures in the space external to the outermost structure of a cell. For cells without external protective or external encapsulating structures this refers to space outside of the plasma membrane\, and also covers the host cell environment outside an intracellular parasite." [GO:ai]
+subset: goslim_goa
+is_a: GO:0007582
+
+[Term]
+id: GO:0043170
+name: macromolecule metabolism
+namespace: process
+def: "The chemical reactions and physical changes involving macromolecules\, large molecules including proteins\, nucleic acids and carbohydrates." [GO:jl ""]
+subset: goslim_goa
+is_a: GO:0008152
+
+[Term]
+id: GO:0045182
+name: translation regulator activity
+namespace: function
+def: "Any substance involved in the initiation\, activation\, perpetuation\, repression or termination of polypeptide synthesis at the ribosome." [GO:ai]
+subset: goslim_generic
+subset: goslim_goa
+subset: goslim_plant
+subset: goslim_yeast
+is_a: GO:0003674
+
+[Term]
+id: GO:0046903
+name: secretion
+namespace: process
+def: "The regulated release of a substance by a cell or group of cells." [GO:ai]
+subset: goslim_goa
+is_a: GO:0007582
+
+[Term]
+id: GO:0050789
+name: regulation of biological process
+namespace: process
+def: "Any process that modulates the frequency\, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression\, protein modification or interaction with a protein or substrate molecule." [GO:ai, GO:curators]
+subset: goslim_goa
+broad_synonym: "regulation" []
+is_a: GO:0008150
+
+[Term]
+id: GO:0050875
+name: cellular physiological process
+namespace: process
+def: "The processes pertinent to the integrated function of a cell." [MGI:dph, ISBN:0721619908]
+subset: goslim_goa
+is_a: GO:0007582
+is_a: GO:0009987
+
+[Term]
+id: GO:0050896
+name: response to stimulus
+namespace: process
+def: "A change in state or activity of a cell or organism (in terms of movement\, secretion\, enzyme production\, gene expression\, etc.) as a result of the perception of a stimulus." [GO:ai]
+subset: goslim_goa
+is_a: GO:0007582
+
+[Typedef]
+id: part_of
+name: Part of
+

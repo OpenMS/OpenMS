@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/groepl/Release1.6/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" id="cm_12972387059117453696" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureLinker" version="version_string" />
+		<processingAction name="Feature grouping" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="2">
+		<map id="0" name="FeatureLinker_5_input.featureXML" unique_id="5820599725211600419" label="light" size="457">
+		</map>
+		<map id="1" name="FeatureLinker_5_input.featureXML" unique_id="5820599725211600419" label="heavy" size="457">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_15311801897840890421" quality="0.633831564070332" charge="2">
+			<centroid rt="3732.405" mz="551.282" it="21552.9"/>
+			<groupedElementList>
+				<element map="0" id="4553131621376882167" rt="3746.54" mz="550.274" it="27028.1" charge="2"/>
+				<element map="1" id="2937143524595289577" rt="3718.27" mz="552.29" it="16077.7" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9880291474064165528" quality="0.957507566008897" charge="2">
+			<centroid rt="3372.01" mz="552.7075" it="6489.9"/>
+			<groupedElementList>
+				<element map="0" id="2180042318201876667" rt="3383.03" mz="551.708" it="7988.27" charge="2"/>
+				<element map="1" id="10128356901033535153" rt="3360.99" mz="553.707" it="4991.52" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7745020552079333443" quality="0.424612313221957" charge="2">
+			<centroid rt="3468.21" mz="553.745" it="14041.9"/>
+			<groupedElementList>
+				<element map="0" id="18236452831858497375" rt="3486.46" mz="552.744" it="19518.7" charge="2"/>
+				<element map="1" id="17289039021118115859" rt="3449.96" mz="554.746" it="8565.14" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_12100883438211046743" quality="0.775653226735389" charge="2">
+			<centroid rt="3643.325" mz="555.2295" it="6638.28"/>
+			<groupedElementList>
+				<element map="0" id="16972515542776032036" rt="3656.28" mz="554.226" it="8280.58" charge="2"/>
+				<element map="1" id="12274966712177148483" rt="3630.37" mz="556.233" it="4995.97" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5518053250940637392" quality="0.859313756318498" charge="2">
+			<centroid rt="4040.72" mz="555.237" it="10703.1"/>
+			<groupedElementList>
+				<element map="0" id="7415390949798823969" rt="4052.14" mz="554.232" it="13202.3" charge="2"/>
+				<element map="1" id="16683008560994748613" rt="4029.3" mz="556.242" it="8203.9" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4141062795889888898" quality="0.415019214584591" charge="2">
+			<centroid rt="4466.56" mz="556.725" it="133492"/>
+			<groupedElementList>
+				<element map="0" id="4494476854158543166" rt="4484.37" mz="555.719" it="142783" charge="2"/>
+				<element map="1" id="9530806539930639209" rt="4448.75" mz="557.731" it="124201" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3493458408774504607" quality="0.642133290111335" charge="2">
+			<centroid rt="4086.69" mz="560.2655" it="77241.1"/>
+			<groupedElementList>
+				<element map="0" id="16868777866250205305" rt="4101.33" mz="559.261" it="77180.3" charge="2"/>
+				<element map="1" id="15556263242053985652" rt="4072.05" mz="561.27" it="77302" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5193632232375084811" quality="0.934268716470762" charge="2">
+			<centroid rt="3899.665" mz="560.733" it="30322.1"/>
+			<groupedElementList>
+				<element map="0" id="3239456813139692886" rt="3910.44" mz="559.73" it="35983.7" charge="2"/>
+				<element map="1" id="11967862127333648034" rt="3888.89" mz="561.736" it="24660.4" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15614112063729321298" quality="0.904664257135583" charge="2">
+			<centroid rt="4188.135" mz="561.742" it="15013.1"/>
+			<groupedElementList>
+				<element map="0" id="17813372989783854527" rt="4199.58" mz="560.744" it="22524.3" charge="2"/>
+				<element map="1" id="11302647554303999526" rt="4176.69" mz="562.74" it="7501.85" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3228226264850677716" quality="0.82519133809685" charge="2">
+			<centroid rt="4426.275" mz="562.2365" it="53090.1"/>
+			<groupedElementList>
+				<element map="0" id="15121720617015795508" rt="4437.85" mz="561.23" it="68605.8" charge="2"/>
+				<element map="1" id="10247890373128119151" rt="4414.7" mz="563.243" it="37574.5" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15293233076457211324" quality="0.580392609473934" charge="2">
+			<centroid rt="3998.815" mz="562.734" it="5889.75"/>
+			<groupedElementList>
+				<element map="0" id="14465003759277035551" rt="4014.69" mz="561.736" it="6548.8" charge="2"/>
+				<element map="1" id="16014566787818759428" rt="3982.94" mz="563.732" it="5230.71" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8159264022189936865" quality="0.716356949166004" charge="2">
+			<centroid rt="3946.3" mz="563.681" it="15312.8"/>
+			<groupedElementList>
+				<element map="0" id="5805902092589576751" rt="3959.19" mz="562.673" it="15506.2" charge="2"/>
+				<element map="1" id="2037283399324119011" rt="3933.41" mz="564.689" it="15119.4" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1536232843330160525" quality="0.459878890152094" charge="2">
+			<centroid rt="3352.13" mz="564.2335" it="8911.13"/>
+			<groupedElementList>
+				<element map="0" id="15296569408822500918" rt="3369.79" mz="563.232" it="10720.7" charge="2"/>
+				<element map="1" id="14655882272028249899" rt="3334.47" mz="565.235" it="7101.57" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1926557348932225505" quality="0.820947498408893" charge="2">
+			<centroid rt="4027.12" mz="564.739" it="7138.79"/>
+			<groupedElementList>
+				<element map="0" id="10022768689391012091" rt="4039.54" mz="563.742" it="10222.9" charge="2"/>
+				<element map="1" id="16693869858940702240" rt="4014.7" mz="565.736" it="4054.68" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15194526321076929531" quality="0.393996535608452" charge="2">
+			<centroid rt="4504.1" mz="565.711" it="14913.2"/>
+			<groupedElementList>
+				<element map="0" id="4635264819223121583" rt="4522.5" mz="564.707" it="11871.2" charge="2"/>
+				<element map="1" id="1265851654172788142" rt="4485.7" mz="566.715" it="17955.1" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8497712635958126312" quality="0.878323964576935" charge="2">
+			<centroid rt="3514.175" mz="565.7515" it="12047.9"/>
+			<groupedElementList>
+				<element map="0" id="9612620359034648602" rt="3524.21" mz="564.746" it="16840" charge="2"/>
+				<element map="1" id="11973880808572293733" rt="3504.14" mz="566.757" it="7255.87" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1501195527457575847" quality="0.671699379892839" charge="2">
+			<centroid rt="4062.065" mz="568.742" it="9302.6"/>
+			<groupedElementList>
+				<element map="0" id="10978444272117784255" rt="4068.32" mz="567.743" it="6946.3" charge="2"/>
+				<element map="1" id="9862533339042248669" rt="4055.81" mz="569.741" it="11658.9" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2669865455511523740" quality="0.324386596719468" charge="2">
+			<centroid rt="3576.09" mz="569.259" it="40433.1"/>
+			<groupedElementList>
+				<element map="0" id="945664248032820469" rt="3595.23" mz="568.251" it="7303.92" charge="2"/>
+				<element map="1" id="7474751592790407007" rt="3556.95" mz="570.267" it="73562.2" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17020808019684661657" quality="0.325847996299902" charge="2">
+			<centroid rt="3478.32" mz="569.7365" it="4656.04"/>
+			<groupedElementList>
+				<element map="0" id="18216958950710430124" rt="3479.53" mz="568.735" it="5991.56" charge="2"/>
+				<element map="1" id="14259675482218463375" rt="3477.11" mz="570.738" it="3320.52" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17823247777105923513" quality="0.233888283627339" charge="2">
+			<centroid rt="3331.94" mz="570.228" it="7301.02"/>
+			<groupedElementList>
+				<element map="0" id="3169518479200730525" rt="3353.05" mz="569.235" it="5697.34" charge="2"/>
+				<element map="1" id="6616175566362140601" rt="3310.83" mz="571.221" it="8904.7" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2099511978546560052" quality="0.748360471805587" charge="2">
+			<centroid rt="4302.515" mz="570.747" it="11891.2"/>
+			<groupedElementList>
+				<element map="0" id="17312374460717086924" rt="4314.15" mz="569.736" it="16402" charge="2"/>
+				<element map="1" id="9744893216168334185" rt="4290.88" mz="571.758" it="7380.47" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9008311157021822169" quality="0.85556710621897" charge="2">
+			<centroid rt="3749.77" mz="571.7225" it="11429.8"/>
+			<groupedElementList>
+				<element map="0" id="8749762465553977180" rt="3760.27" mz="570.714" it="12582.3" charge="2"/>
+				<element map="1" id="1197097773285847091" rt="3739.27" mz="572.731" it="10277.2" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_10603158345002867292" quality="0.945145677453755" charge="2">
+			<centroid rt="4755.435" mz="571.7355" it="12503.5"/>
+			<groupedElementList>
+				<element map="0" id="5827084834007551826" rt="4765.5" mz="570.734" it="16791.3" charge="2"/>
+				<element map="1" id="6857221346541977226" rt="4745.37" mz="572.737" it="8215.71" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13983207966725110987" quality="0.670797497392458" charge="2">
+			<centroid rt="3536.64" mz="572.2485" it="30200.2"/>
+			<groupedElementList>
+				<element map="0" id="251711646443191980" rt="3551.36" mz="571.25" it="38930.1" charge="2"/>
+				<element map="1" id="1986707243369646115" rt="3521.92" mz="573.247" it="21470.3" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13460543230180819501" quality="0.64355281289972" charge="2">
+			<centroid rt="4049.815" mz="573.2465" it="7591.63"/>
+			<groupedElementList>
+				<element map="0" id="5656014862174965382" rt="4056.07" mz="572.25" it="9655.29" charge="2"/>
+				<element map="1" id="13577532334440524744" rt="4043.56" mz="574.243" it="5527.97" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7149730086971425074" quality="0.824907498680248" charge="2">
+			<centroid rt="3637.705" mz="574.242" it="8930.06"/>
+			<groupedElementList>
+				<element map="0" id="3135247176393242431" rt="3649.64" mz="573.247" it="9882.36" charge="2"/>
+				<element map="1" id="9943734732234151317" rt="3625.77" mz="575.237" it="7977.76" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_328221567324248895" quality="0.816607747501669" charge="2">
+			<centroid rt="4315.815" mz="575.24" it="11514.5"/>
+			<groupedElementList>
+				<element map="0" id="9776789176006097612" rt="4328.09" mz="574.236" it="15042" charge="2"/>
+				<element map="1" id="8052993613972321929" rt="4303.54" mz="576.244" it="7987.03" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3086314061215350142" quality="0.660560343400732" charge="2">
+			<centroid rt="3306.63" mz="575.242" it="6036.03"/>
+			<groupedElementList>
+				<element map="0" id="11230183228799543513" rt="3314.14" mz="574.233" it="8443.44" charge="2"/>
+				<element map="1" id="6601089399261123733" rt="3299.12" mz="576.251" it="3628.62" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_168593039173740787" quality="0.317067378074582" charge="2">
+			<centroid rt="4467.05" mz="575.7145" it="6259.17"/>
+			<groupedElementList>
+				<element map="0" id="4316208866841907130" rt="4486.73" mz="574.71" it="6377.13" charge="2"/>
+				<element map="1" id="7057026066535974124" rt="4447.37" mz="576.719" it="6141.22" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2233716215011261898" quality="0.702629163924358" charge="2">
+			<centroid rt="4924.07" mz="576.2275" it="33044.5"/>
+			<groupedElementList>
+				<element map="0" id="13366374154338181879" rt="4937.86" mz="575.223" it="43837" charge="2"/>
+				<element map="1" id="1670456057219639611" rt="4910.28" mz="577.232" it="22252" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3442396097512616882" quality="0.639431155029619" charge="2">
+			<centroid rt="3062.47" mz="576.728" it="7674.86"/>
+			<groupedElementList>
+				<element map="0" id="16578237815287481671" rt="3068.59" mz="575.731" it="9332.41" charge="2"/>
+				<element map="1" id="5047710564883930568" rt="3056.35" mz="577.725" it="6017.31" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17576637596582968076" quality="0.816510478721864" charge="2">
+			<centroid rt="4811.605" mz="577.72" it="17514.8"/>
+			<groupedElementList>
+				<element map="0" id="4562617053203318690" rt="4820.16" mz="576.717" it="9129.28" charge="2"/>
+				<element map="1" id="1164459906411804154" rt="4803.05" mz="578.723" it="25900.4" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15482706225654316569" quality="0.717138598484171" charge="2">
+			<centroid rt="4535.33" mz="579.2115" it="18711.7"/>
+			<groupedElementList>
+				<element map="0" id="1604187178245663539" rt="4543.38" mz="578.204" it="14145.5" charge="2"/>
+				<element map="1" id="3147963653874881647" rt="4527.28" mz="580.219" it="23277.9" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_983669377278849299" quality="0.461434271725844" charge="2">
+			<centroid rt="4252.36" mz="580.2415" it="6649"/>
+			<groupedElementList>
+				<element map="0" id="17619988497737319397" rt="4256" mz="579.238" it="6394.39" charge="2"/>
+				<element map="1" id="15844261912096226927" rt="4248.72" mz="581.245" it="6903.61" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1062212791827104401" quality="0.769559808360289" charge="2">
+			<centroid rt="4397.88" mz="581.727" it="9352.08"/>
+			<groupedElementList>
+				<element map="0" id="3877966132072390072" rt="4406.61" mz="580.72" it="5980.25" charge="2"/>
+				<element map="1" id="15864130424727318721" rt="4389.15" mz="582.734" it="12723.9" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6314981141923537273" quality="0.717998573159705" charge="2">
+			<centroid rt="3202.595" mz="581.751" it="6540.54"/>
+			<groupedElementList>
+				<element map="0" id="255329391415140545" rt="3215.46" mz="580.743" it="4425.46" charge="2"/>
+				<element map="1" id="15990379221627478664" rt="3189.73" mz="582.759" it="8655.61" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13644537300463511773" quality="0.912028660619627" charge="2">
+			<centroid rt="4326.38" mz="582.2515" it="26832.6"/>
+			<groupedElementList>
+				<element map="0" id="8451691246360541342" rt="4338.04" mz="581.252" it="30225.8" charge="2"/>
+				<element map="1" id="16416001261565257810" rt="4314.72" mz="583.251" it="23439.3" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7012987527684093960" quality="0.317603932647213" charge="2">
+			<centroid rt="4550.51" mz="582.7345" it="16610.8"/>
+			<groupedElementList>
+				<element map="0" id="1349767539666630734" rt="4551.67" mz="581.732" it="20579.6" charge="2"/>
+				<element map="1" id="9574890423643155519" rt="4549.35" mz="583.737" it="12641.9" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4984796765665624439" quality="0.96419517521518" charge="2">
+			<centroid rt="3611.03" mz="583.236" it="15415.5"/>
+			<groupedElementList>
+				<element map="0" id="14475217013955030936" rt="3621.6" mz="582.234" it="18755.5" charge="2"/>
+				<element map="1" id="4153536485369445279" rt="3600.46" mz="584.238" it="12075.4" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13737838347523601831" quality="0.442356595101527" charge="2">
+			<centroid rt="3451.65" mz="583.736" it="7072.74"/>
+			<groupedElementList>
+				<element map="0" id="6832071315117949267" rt="3469.4" mz="582.733" it="10464.2" charge="2"/>
+				<element map="1" id="4990517754167893908" rt="3433.9" mz="584.739" it="3681.27" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_14431161357967871170" quality="0.78169544599265" charge="2">
+			<centroid rt="4760.42" mz="584.2275" it="33643.9"/>
+			<groupedElementList>
+				<element map="0" id="2200322689379516317" rt="4773.48" mz="583.225" it="36840.5" charge="2"/>
+				<element map="1" id="7018115468174641354" rt="4747.36" mz="585.23" it="30447.2" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8810167539859117957" quality="0.640500224241508" charge="2">
+			<centroid rt="3808.545" mz="584.724" it="10263.7"/>
+			<groupedElementList>
+				<element map="0" id="15960398724575759791" rt="3822.77" mz="583.717" it="10992.6" charge="2"/>
+				<element map="1" id="14359239874969470662" rt="3794.32" mz="585.731" it="9534.84" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_18442197616197312555" quality="0.208975645227082" charge="2">
+			<centroid rt="3259.93" mz="585.244" it="7640.59"/>
+			<groupedElementList>
+				<element map="0" id="6863036662447012717" rt="3282" mz="584.247" it="12896.9" charge="2"/>
+				<element map="1" id="6016864640352620384" rt="3237.86" mz="586.241" it="2384.28" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7629731327450344927" quality="0.793487278217977" charge="2">
+			<centroid rt="4098.64" mz="585.2465" it="19752.6"/>
+			<groupedElementList>
+				<element map="0" id="7400316321361630825" rt="4107.39" mz="584.241" it="26337.1" charge="2"/>
+				<element map="1" id="9153719856709289604" rt="4089.89" mz="586.252" it="13168" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9101359589034952211" quality="0.881832901460034" charge="2">
+			<centroid rt="3356.48" mz="588.224" it="8579.84"/>
+			<groupedElementList>
+				<element map="0" id="3116037013008764825" rt="3368.25" mz="587.226" it="9635.76" charge="2"/>
+				<element map="1" id="4594533496903993713" rt="3344.71" mz="589.222" it="7523.92" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_387995510291170749" quality="0.823965040555662" charge="2">
+			<centroid rt="3754.865" mz="588.756" it="11477.4"/>
+			<groupedElementList>
+				<element map="0" id="2181120121547483807" rt="3763.14" mz="587.755" it="11496.2" charge="2"/>
+				<element map="1" id="15174281157813790037" rt="3746.59" mz="589.757" it="11458.6" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6521660470064378977" quality="0.615298614170809" charge="2">
+			<centroid rt="3027.27" mz="588.76" it="7157.18"/>
+			<groupedElementList>
+				<element map="0" id="6305157946027210383" rt="3042.52" mz="587.757" it="8597.56" charge="2"/>
+				<element map="1" id="17020903101553182364" rt="3012.02" mz="589.763" it="5716.8" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8898163301974030737" quality="0.927194665579942" charge="2">
+			<centroid rt="4367.105" mz="589.763" it="11442.7"/>
+			<groupedElementList>
+				<element map="0" id="10587792127500417499" rt="4376.8" mz="588.762" it="15783.1" charge="2"/>
+				<element map="1" id="4350527462188352710" rt="4357.41" mz="590.764" it="7102.32" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17933179466525596170" quality="0.854415873229062" charge="2">
+			<centroid rt="3918.905" mz="591.2175" it="19392.8"/>
+			<groupedElementList>
+				<element map="0" id="6054970626571747953" rt="3928.33" mz="590.213" it="21693.9" charge="2"/>
+				<element map="1" id="15098434887039212291" rt="3909.48" mz="592.222" it="17091.6" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6018839054943472492" quality="0.896263892169422" charge="2">
+			<centroid rt="4787.945" mz="593.2225" it="15529.5"/>
+			<groupedElementList>
+				<element map="0" id="8586704984004620880" rt="4797.31" mz="592.221" it="14951.7" charge="2"/>
+				<element map="1" id="11345425949933299296" rt="4778.58" mz="594.224" it="16107.3" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6956028087765283804" quality="0.922256796399186" charge="2">
+			<centroid rt="3795.805" mz="593.2295" it="4720.47"/>
+			<groupedElementList>
+				<element map="0" id="18339532467079465877" rt="3806.38" mz="592.225" it="4807.19" charge="2"/>
+				<element map="1" id="12879714285051578947" rt="3785.23" mz="594.234" it="4633.75" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_11594698932163791442" quality="0.416491801890072" charge="2">
+			<centroid rt="4314.93" mz="593.7395" it="5604.08"/>
+			<groupedElementList>
+				<element map="0" id="3034292120821380793" rt="4330.82" mz="592.722" it="4342.68" charge="2"/>
+				<element map="1" id="13463451132768836753" rt="4299.04" mz="594.757" it="6865.47" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6919564230193483080" quality="0.667179098142683" charge="2">
+			<centroid rt="4936.285" mz="593.749" it="5546.02"/>
+			<groupedElementList>
+				<element map="0" id="8274714659135451998" rt="4942.48" mz="592.748" it="6433.21" charge="2"/>
+				<element map="1" id="14855908198666178992" rt="4930.09" mz="594.75" it="4658.83" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1307989209553895849" quality="0.645050734147377" charge="2">
+			<centroid rt="4261.505" mz="594.732" it="6649.76"/>
+			<groupedElementList>
+				<element map="0" id="147788600093473524" rt="4269.21" mz="593.743" it="9832.08" charge="2"/>
+				<element map="1" id="18164395352626891474" rt="4253.8" mz="595.721" it="3467.44" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5718269184714403375" quality="0.894877683297819" charge="2">
+			<centroid rt="3474.815" mz="595.744" it="5248.73"/>
+			<groupedElementList>
+				<element map="0" id="16699745023748707836" rt="3485.94" mz="594.74" it="4578.3" charge="2"/>
+				<element map="1" id="1341366605131257407" rt="3463.69" mz="596.748" it="5919.17" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17051416242701841641" quality="0.907565784734901" charge="2">
+			<centroid rt="4383.355" mz="596.249" it="21813.9"/>
+			<groupedElementList>
+				<element map="0" id="11119675331547526491" rt="4393.46" mz="595.245" it="24900.2" charge="2"/>
+				<element map="1" id="6076950679267014050" rt="4373.25" mz="597.253" it="18727.6" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_10176013023596211258" quality="0.909922073759828" charge="2">
+			<centroid rt="3678.8" mz="597.238" it="13467.1"/>
+			<groupedElementList>
+				<element map="0" id="12335359007471480012" rt="3689.94" mz="596.235" it="16093.7" charge="2"/>
+				<element map="1" id="14883156166452193211" rt="3667.66" mz="598.241" it="10840.4" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6923805532073067361" quality="0.804712301480735" charge="2">
+			<centroid rt="3074.715" mz="597.247" it="13305.7"/>
+			<groupedElementList>
+				<element map="0" id="13052405033612964470" rt="3083.52" mz="596.252" it="19970.5" charge="2"/>
+				<element map="1" id="16704822644132139580" rt="3065.91" mz="598.242" it="6640.96" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13392308758460272523" quality="0.600753593629209" charge="2">
+			<centroid rt="4873.755" mz="600.2455" it="63440.6"/>
+			<groupedElementList>
+				<element map="0" id="7034291918614861498" rt="4888.82" mz="599.24" it="88717.5" charge="2"/>
+				<element map="1" id="17879048310759702469" rt="4858.69" mz="601.251" it="38163.6" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_14634610380425308393" quality="0.751913229540073" charge="2">
+			<centroid rt="3998.855" mz="600.2585" it="11650.5"/>
+			<groupedElementList>
+				<element map="0" id="15341619383716702355" rt="4006.09" mz="599.258" it="16074.9" charge="2"/>
+				<element map="1" id="17927554160699447063" rt="3991.62" mz="601.259" it="7226.19" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2643564510818638353" quality="0.792425428013404" charge="2">
+			<centroid rt="3327.98" mz="600.7325" it="6929.27"/>
+			<groupedElementList>
+				<element map="0" id="13365166517059589529" rt="3336.5" mz="599.728" it="8808.91" charge="2"/>
+				<element map="1" id="3737558156560986197" rt="3319.46" mz="601.737" it="5049.62" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9260012527763057474" quality="0.888096366210899" charge="2">
+			<centroid rt="4401.77" mz="601.735" it="8830.71"/>
+			<groupedElementList>
+				<element map="0" id="13734075220017865520" rt="4411.58" mz="600.731" it="9453.26" charge="2"/>
+				<element map="1" id="1073198296222104764" rt="4391.96" mz="602.739" it="8208.17" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_639377654519021226" quality="0.967547175180795" charge="2">
+			<centroid rt="4357.3" mz="601.752" it="4133.4"/>
+			<groupedElementList>
+				<element map="0" id="3923469604408243031" rt="4367.35" mz="600.752" it="4882.32" charge="2"/>
+				<element map="1" id="11221688287698590294" rt="4347.25" mz="602.752" it="3384.49" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_12951612350240196393" quality="0.869529556824716" charge="2">
+			<centroid rt="3494.23" mz="603.239" it="7317.63"/>
+			<groupedElementList>
+				<element map="0" id="14652646206264600427" rt="3505.96" mz="602.242" it="6542.04" charge="2"/>
+				<element map="1" id="5828605293803673682" rt="3482.5" mz="604.236" it="8093.22" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2207154730612544469" quality="0.885294483645617" charge="2">
+			<centroid rt="3284.555" mz="604.251" it="8749.36"/>
+			<groupedElementList>
+				<element map="0" id="1610371861806793487" rt="3294.57" mz="603.246" it="10706.6" charge="2"/>
+				<element map="1" id="11308274187240673522" rt="3274.54" mz="605.256" it="6792.12" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9509712453343102864" quality="0.909997070972625" charge="2">
+			<centroid rt="3802.49" mz="604.2575" it="16402.4"/>
+			<groupedElementList>
+				<element map="0" id="5286362363563602609" rt="3812.76" mz="603.253" it="22272.7" charge="2"/>
+				<element map="1" id="6987187798365084967" rt="3792.22" mz="605.262" it="10532.2" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13663699904480355862" quality="0.861400821297649" charge="2">
+			<centroid rt="3384.075" mz="604.7225" it="13768.8"/>
+			<groupedElementList>
+				<element map="0" id="12751113375196045878" rt="3395.34" mz="603.717" it="14606.5" charge="2"/>
+				<element map="1" id="6499996644172484522" rt="3372.81" mz="605.728" it="12931" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_837082648108656817" quality="0.923068426669256" charge="2">
+			<centroid rt="3611.225" mz="605.7375" it="14861.6"/>
+			<groupedElementList>
+				<element map="0" id="2711894177461377122" rt="3621.7" mz="604.733" it="21851.9" charge="2"/>
+				<element map="1" id="13769967486962746651" rt="3600.75" mz="606.742" it="7871.38" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5727308048134277291" quality="0.200739365235204" charge="2">
+			<centroid rt="4749.05" mz="606.2225" it="14829.1"/>
+			<groupedElementList>
+				<element map="0" id="17255750114572605857" rt="4748.67" mz="605.234" it="9533.88" charge="2"/>
+				<element map="1" id="6072642173130940322" rt="4749.43" mz="607.211" it="20124.3" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_18170660783939575668" quality="0.682110606189219" charge="2">
+			<centroid rt="4258.595" mz="606.728" it="5180.99"/>
+			<groupedElementList>
+				<element map="0" id="652570777867344421" rt="4265.3" mz="605.725" it="7050.88" charge="2"/>
+				<element map="1" id="6969368566852348363" rt="4251.89" mz="607.731" it="3311.1" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2986256499171336495" quality="0.865286213664011" charge="2">
+			<centroid rt="4646.445" mz="607.1975" it="22741.1"/>
+			<groupedElementList>
+				<element map="0" id="5542221977428748570" rt="4657.65" mz="606.192" it="26889.6" charge="2"/>
+				<element map="1" id="3516481489400596399" rt="4635.24" mz="608.203" it="18592.6" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7088108320860335831" quality="0.878118154558614" charge="2">
+			<centroid rt="4113.295" mz="608.7735" it="6843.96"/>
+			<groupedElementList>
+				<element map="0" id="13279627781139010942" rt="4125.42" mz="607.773" it="9260.72" charge="2"/>
+				<element map="1" id="2081961153003129951" rt="4101.17" mz="609.774" it="4427.19" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13259951414432970673" quality="0.7514974154579" charge="2">
+			<centroid rt="3600.11" mz="609.24" it="13367"/>
+			<groupedElementList>
+				<element map="0" id="7084011748763688245" rt="3607.95" mz="608.236" it="18166.2" charge="2"/>
+				<element map="1" id="1414058484003761956" rt="3592.27" mz="610.244" it="8567.85" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5589418801630824494" quality="0.748249511464695" charge="2">
+			<centroid rt="4022.7" mz="609.258" it="14242.7"/>
+			<groupedElementList>
+				<element map="0" id="16558701064285221807" rt="4030.31" mz="608.255" it="24423.9" charge="2"/>
+				<element map="1" id="9396799115829288796" rt="4015.09" mz="610.261" it="4061.45" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3417025043525424526" quality="0.821000537503786" charge="2">
+			<centroid rt="3045.765" mz="610.754" it="6018.21"/>
+			<groupedElementList>
+				<element map="0" id="9086924421041241974" rt="3057.28" mz="609.747" it="7171.95" charge="2"/>
+				<element map="1" id="4257563437815049768" rt="3034.25" mz="611.761" it="4864.47" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1811061024057677670" quality="0.445283323956922" charge="2">
+			<centroid rt="3361.125" mz="611.247" it="14149"/>
+			<groupedElementList>
+				<element map="0" id="8913924893744447543" rt="3378.83" mz="610.244" it="11754.6" charge="2"/>
+				<element map="1" id="3470606855053327633" rt="3343.42" mz="612.25" it="16543.5" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8631534797333505600" quality="0.214152068371644" charge="2">
+			<centroid rt="4708.38" mz="612.228" it="5250.69"/>
+			<groupedElementList>
+				<element map="0" id="10713356160098822498" rt="4707.95" mz="611.22" it="6500.64" charge="2"/>
+				<element map="1" id="17516085268054200307" rt="4708.81" mz="613.236" it="4000.74" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3295443609405335617" quality="0.568457879769997" charge="2">
+			<centroid rt="3987.52" mz="613.248" it="9615.02"/>
+			<groupedElementList>
+				<element map="0" id="11784087414496810733" rt="4003.28" mz="612.252" it="8310.13" charge="2"/>
+				<element map="1" id="7077923315960854497" rt="3971.76" mz="614.244" it="10919.9" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_14270710079791783595" quality="0.74038931998271" charge="2">
+			<centroid rt="4127.025" mz="614.7505" it="14801.3"/>
+			<groupedElementList>
+				<element map="0" id="11826624523053491149" rt="4140.47" mz="613.747" it="18826.8" charge="2"/>
+				<element map="1" id="8597163208252677580" rt="4113.58" mz="615.754" it="10775.8" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9641113546664350680" quality="0.459802404865014" charge="2">
+			<centroid rt="4845.395" mz="618.2635" it="275098"/>
+			<groupedElementList>
+				<element map="0" id="9049197557457146217" rt="4862.69" mz="617.259" it="325805" charge="2"/>
+				<element map="1" id="14353468662536697446" rt="4828.1" mz="619.268" it="224392" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9861205150368364207" quality="0.792646129215543" charge="2">
+			<centroid rt="4388.74" mz="618.2705" it="26558.4"/>
+			<groupedElementList>
+				<element map="0" id="8925817209025549668" rt="4397.06" mz="617.267" it="36244.1" charge="2"/>
+				<element map="1" id="12887873165785744991" rt="4380.42" mz="619.274" it="16872.6" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9494615781376754718" quality="0.489471200264661" charge="2">
+			<centroid rt="3808.73" mz="618.758" it="9788.28"/>
+			<groupedElementList>
+				<element map="0" id="712311085666273538" rt="3825.77" mz="617.755" it="11925.8" charge="2"/>
+				<element map="1" id="7605415920414104227" rt="3791.69" mz="619.761" it="7650.76" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4790442740760204127" quality="0.934849800399094" charge="2">
+			<centroid rt="3256.46" mz="618.7665" it="10548.8"/>
+			<groupedElementList>
+				<element map="0" id="1949001714063250365" rt="3267.1" mz="617.763" it="10605.9" charge="2"/>
+				<element map="1" id="3290353444256703499" rt="3245.82" mz="619.77" it="10491.8" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9882337604970389688" quality="0.470511930508634" charge="2">
+			<centroid rt="4611.62" mz="619.7405" it="2184.07"/>
+			<groupedElementList>
+				<element map="0" id="5592080265146630118" rt="4628.18" mz="618.732" it="1963.55" charge="2"/>
+				<element map="1" id="7239153897116139315" rt="4595.06" mz="620.749" it="2404.59" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_772359726254653421" quality="0.633129897279969" charge="2">
+			<centroid rt="3657.315" mz="620.2565" it="14693.6"/>
+			<groupedElementList>
+				<element map="0" id="15022988918547972891" rt="3672.68" mz="619.257" it="20952.5" charge="2"/>
+				<element map="1" id="10049624004749619329" rt="3641.95" mz="621.256" it="8434.71" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16432088180313220284" quality="0.498312369934871" charge="2">
+			<centroid rt="4741.84" mz="623.73" it="4411.62"/>
+			<groupedElementList>
+				<element map="0" id="429089940209994032" rt="4746.84" mz="622.721" it="4482.53" charge="2"/>
+				<element map="1" id="11386214711069775232" rt="4736.84" mz="624.739" it="4340.72" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17270785747626988654" quality="0.741007275418515" charge="2">
+			<centroid rt="3964.015" mz="623.775" it="3065.95"/>
+			<groupedElementList>
+				<element map="0" id="4842777737358479277" rt="3971.9" mz="622.77" it="3219.3" charge="2"/>
+				<element map="1" id="11110556709623283079" rt="3956.13" mz="624.78" it="2912.59" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8244543932044200300" quality="0.285007237609963" charge="2">
+			<centroid rt="3201.585" mz="624.251" it="5253.21"/>
+			<groupedElementList>
+				<element map="0" id="13248433205133987164" rt="3202.28" mz="623.247" it="3754.43" charge="2"/>
+				<element map="1" id="10811526929329265837" rt="3200.89" mz="625.255" it="6752" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4381733810499975086" quality="0.350492320772457" charge="2">
+			<centroid rt="3733.27" mz="626.256" it="7035.24"/>
+			<groupedElementList>
+				<element map="0" id="16910046978702736713" rt="3734.86" mz="625.257" it="6617.18" charge="2"/>
+				<element map="1" id="168663188869515965" rt="3731.68" mz="627.255" it="7453.29" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15859533957312387310" quality="0.615046413950003" charge="2">
+			<centroid rt="4794.86" mz="626.2645" it="27167.8"/>
+			<groupedElementList>
+				<element map="0" id="5903425381363797897" rt="4800.57" mz="625.262" it="28648.6" charge="2"/>
+				<element map="1" id="15996564728430674171" rt="4789.15" mz="627.267" it="25687" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15344100756749552573" quality="0.288972450555194" charge="2">
+			<centroid rt="4058.265" mz="627.7495" it="7999.01"/>
+			<groupedElementList>
+				<element map="0" id="15104138539358630156" rt="4078.58" mz="626.746" it="10640.9" charge="2"/>
+				<element map="1" id="2749279196918622098" rt="4037.95" mz="628.753" it="5357.12" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7875317659053347524" quality="0.819008631761256" charge="2">
+			<centroid rt="4395.22" mz="628.267" it="19305.9"/>
+			<groupedElementList>
+				<element map="0" id="6935698496019634107" rt="4403.81" mz="627.264" it="27839.5" charge="2"/>
+				<element map="1" id="12841610755058150710" rt="4386.63" mz="629.27" it="10772.4" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1420355626583229992" quality="0.874079506857654" charge="2">
+			<centroid rt="4554.305" mz="628.7065" it="13295.6"/>
+			<groupedElementList>
+				<element map="0" id="15845331626481334850" rt="4563.79" mz="627.703" it="15364.7" charge="2"/>
+				<element map="1" id="18140844278266581634" rt="4544.82" mz="629.71" it="11226.5" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7086623558680169816" quality="0.277002416481667" charge="2">
+			<centroid rt="3473.9" mz="633.2575" it="6862.27"/>
+			<groupedElementList>
+				<element map="0" id="8073317242822804813" rt="3494.45" mz="632.261" it="4463.02" charge="2"/>
+				<element map="1" id="7747434322011999332" rt="3453.35" mz="634.254" it="9261.52" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2404207600580380475" quality="0.845724509630392" charge="2">
+			<centroid rt="3922.235" mz="634.264" it="12202.8"/>
+			<groupedElementList>
+				<element map="0" id="15756300108556486946" rt="3934.51" mz="633.266" it="14315.6" charge="2"/>
+				<element map="1" id="4082531929582153014" rt="3909.96" mz="635.262" it="10090.1" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9280149244677683242" quality="0.845079948476925" charge="2">
+			<centroid rt="3439.265" mz="636.7455" it="11009.8"/>
+			<groupedElementList>
+				<element map="0" id="4163424336195460625" rt="3450.78" mz="635.74" it="16724.7" charge="2"/>
+				<element map="1" id="2785866810548919255" rt="3427.75" mz="637.751" it="5294.87" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_18392972818007699060" quality="0.763175145354886" charge="2">
+			<centroid rt="3513.545" mz="637.252" it="6050.69"/>
+			<groupedElementList>
+				<element map="0" id="12391454527522401038" rt="3521.01" mz="636.251" it="8353.21" charge="2"/>
+				<element map="1" id="4451557272323934628" rt="3506.08" mz="638.253" it="3748.17" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_11191241478600248165" quality="0.874043850432889" charge="2">
+			<centroid rt="4593.81" mz="637.261" it="26537.1"/>
+			<groupedElementList>
+				<element map="0" id="6875973792423668814" rt="4603.41" mz="636.257" it="44889.3" charge="2"/>
+				<element map="1" id="3102301524083044118" rt="4584.21" mz="638.265" it="8184.98" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6145577999191234743" quality="0.56431643836524" charge="2">
+			<centroid rt="4051.845" mz="638.208" it="9131.12"/>
+			<groupedElementList>
+				<element map="0" id="6138178977080043193" rt="4067.36" mz="637.202" it="11859.1" charge="2"/>
+				<element map="1" id="477209567431010025" rt="4036.33" mz="639.214" it="6403.14" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2855888823406430991" quality="0.495237070729538" charge="2">
+			<centroid rt="4132.64" mz="638.272" it="14197.3"/>
+			<groupedElementList>
+				<element map="0" id="16302966508465511822" rt="4149.72" mz="637.27" it="20129.3" charge="2"/>
+				<element map="1" id="11842755200616076094" rt="4115.56" mz="639.274" it="8265.37" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13437500639521060383" quality="0.569598615098995" charge="2">
+			<centroid rt="4376.74" mz="638.769" it="5266.46"/>
+			<groupedElementList>
+				<element map="0" id="10205439133453461312" rt="4381.89" mz="637.772" it="4754.35" charge="2"/>
+				<element map="1" id="16916843375906637184" rt="4371.59" mz="639.766" it="5778.56" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_18164011598964188839" quality="0.748171426747896" charge="2">
+			<centroid rt="4921.81" mz="638.7765" it="1714.58"/>
+			<groupedElementList>
+				<element map="0" id="3922485226004350178" rt="4929.51" mz="637.773" it="2382.82" charge="2"/>
+				<element map="1" id="2953797904655870342" rt="4914.11" mz="639.78" it="1046.35" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4418854281347410704" quality="0.462255742747882" charge="2">
+			<centroid rt="4437.6" mz="641.763" it="3409.69"/>
+			<groupedElementList>
+				<element map="0" id="11326494880776108165" rt="4453.89" mz="640.774" it="3947.25" charge="2"/>
+				<element map="1" id="10061897405332609462" rt="4421.31" mz="642.752" it="2872.14" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15287708916895027620" quality="0.655324869484184" charge="2">
+			<centroid rt="3861.255" mz="642.747" it="5492.88"/>
+			<groupedElementList>
+				<element map="0" id="3041549396104107288" rt="3868.1" mz="641.741" it="7205.28" charge="2"/>
+				<element map="1" id="10148444866171966799" rt="3854.41" mz="643.753" it="3780.47" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5385024755530074854" quality="0.832385188330282" charge="2">
+			<centroid rt="3100.31" mz="642.754" it="15257.3"/>
+			<groupedElementList>
+				<element map="0" id="11127040776543889892" rt="3109.76" mz="641.748" it="24863.7" charge="2"/>
+				<element map="1" id="3166418151288680045" rt="3090.86" mz="643.76" it="5650.88" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_10401967292583575989" quality="0.902318564279544" charge="2">
+			<centroid rt="3418.115" mz="642.758" it="5048.19"/>
+			<groupedElementList>
+				<element map="0" id="11621909607661480464" rt="3428.14" mz="641.762" it="6516.48" charge="2"/>
+				<element map="1" id="10169474167382047791" rt="3408.09" mz="643.754" it="3579.9" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_10091123077552849078" quality="0.646707822875407" charge="2">
+			<centroid rt="4019.65" mz="643.269" it="3862.23"/>
+			<groupedElementList>
+				<element map="0" id="8982448627319295056" rt="4025.87" mz="642.272" it="5540" charge="2"/>
+				<element map="1" id="1783549640926253258" rt="4013.43" mz="644.266" it="2184.47" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17327914626566613309" quality="0.727620581595434" charge="2">
+			<centroid rt="3595.63" mz="646.277" it="4536.61"/>
+			<groupedElementList>
+				<element map="0" id="12121198602186052532" rt="3605.25" mz="645.264" it="2388.18" charge="2"/>
+				<element map="1" id="12320054463621169507" rt="3586.01" mz="647.29" it="6685.04" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2989497187668066330" quality="0.783063108836673" charge="2">
+			<centroid rt="4398.225" mz="647.2505" it="47475.7"/>
+			<groupedElementList>
+				<element map="0" id="4991318882577699441" rt="4407.28" mz="646.243" it="50751.2" charge="2"/>
+				<element map="1" id="4282015675187982930" rt="4389.17" mz="648.258" it="44200.2" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7307720101428782158" quality="0.917837819484436" charge="2">
+			<centroid rt="4211.905" mz="647.765" it="6420.1"/>
+			<groupedElementList>
+				<element map="0" id="5797605431077122504" rt="4221.92" mz="646.762" it="8101.12" charge="2"/>
+				<element map="1" id="9980926931670678104" rt="4201.89" mz="648.768" it="4739.08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

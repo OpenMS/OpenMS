@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:///some/path/to/IdXML.xsl?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="Q824A5" score="32.3" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="250" >
+			<PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" protein_refs="PH_0" >
+				<UserParam type="float" name="predicted_RT" value="252.948"/>
+				<UserParam type="float" name="predicted_RT_p_value" value="0.05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="400" >
+			<PeptideHit score="11.79" sequence="DLEPGTDYEVTVSTLFGR" charge="2" >
+				<UserParam type="float" name="predicted_RT" value="380.598"/>
+				<UserParam type="float" name="predicted_RT_p_value" value="0.6"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="150" >
+			<PeptideHit score="11.38" sequence="FINFGVNVEVLSRFQTK" charge="2" >
+				<UserParam type="float" name="predicted_RT" value="140.559"/>
+				<UserParam type="float" name="predicted_RT_p_value" value="0.1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="232" >
+			<PeptideHit score="11.32" sequence="MSLLSNMISIVKVGYNAR" charge="2" >
+				<UserParam type="float" name="predicted_RT" value="263.784"/>
+				<UserParam type="float" name="predicted_RT_p_value" value="0.65"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

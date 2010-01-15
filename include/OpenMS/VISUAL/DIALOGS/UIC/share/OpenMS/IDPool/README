@@ -1,0 +1,29 @@
+This is the text file based OpenMS DocumentID pool.
+
+*** General Information ***
+
+By default the file IDPool.txt in this directory is used as ID pool by the TOPP tools capable of
+assigning DocumentID's.
+The file format is very simple: one line equals one unique ID.
+e.g.
+>>> IDPool.txt:
+ABC123
+ABC124
+ABC125
+<<< END IDPool.txt
+
+However the default ID pool file is *empty*.
+
+OpenMS will issue a warning once the ID pool file reaches a critical low level of five(5) remaining IDs.
+
+
+*** Using other ID Pool files ***
+
+If you wish to use another file as IDPool set the
+environment variable OPENMS_IDPOOL_FILE to the appropriate file path before calling the TOPP tool.
+
+
+*** Anticipated problems ***
+
+On Linux, some older kernels do not support file locking on remote network drives. If you happen to have OpenMS installed
+on a network drive and experience problems, try using a local file as ID pool (just set OPENMS_IDPOOL_FILE environment variable).

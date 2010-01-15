@@ -1,0 +1,139 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Clemens Groepl $
+// $Authors: $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/config.h>
+
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+
+#include <QtGui/QImage>
+
+using namespace OpenMS;
+using namespace OpenMS::Math;
+using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+	@page TOPP_Resampler Resampler
+
+	@brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
+
+	When writing an peak file, all spectra are resampled with a new sampling
+	rate.  The number of spectra does not change.
+
+	When writing an image, the input is first resampled into a matrix using
+	bilinear forward resampling.  Then the content of the matrix is written to
+	a PNG file.  The output has a uniform spacing in both dimensions regardless
+	of the input.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_Resampler.cli
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class TOPPResampler
+	: public TOPPBase
+{
+ public:
+	TOPPResampler()
+		: TOPPBase("Resampler",
+							 "Transforms an LC/MS map into a resampled map or a PNG image.")
+	{
+	}
+
+ protected:
+
+	void registerOptionsAndFlags_()
+	{
+		registerInputFile_("in", "<file>", "", "input file ");
+		setValidFormats_("in", StringList::create("mzML"));
+		registerOutputFile_("out", "<file>", "",
+												"output file in mzML format");
+		setValidFormats_("out", StringList::create("mzML"));
+
+		registerDoubleOption_("sampling_rate", "<rate>", 0.1,
+													"New sampling rate in m/z dimension", false);
+		setMinFloat_("sampling_rate",0.0);
+
+	}
+
+	ExitCodes main_(int , const char**)
+	{
+		//----------------------------------------------------------------
+		// load data
+		//----------------------------------------------------------------
+		String in = getStringOption_("in");
+		String out = getStringOption_("out");
+		MSExperiment<> exp;
+		MzMLFile f;
+		f.setLogType(log_type_);
+		f.load(in, exp);
+
+		DoubleReal sampling_rate = getDoubleOption_("sampling_rate");
+
+		LinearResampler lin_resampler;
+		Param resampler_param;
+		resampler_param.setValue("spacing",sampling_rate);
+		lin_resampler.setParameters(resampler_param);
+
+    // resample every scan
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      lin_resampler.raster(exp[i]);
+    }
+
+    //clear meta data because they are no longer meaningful
+    exp.clearMetaDataArrays();
+
+    //annotate output with data processing info
+		addDataProcessing_(exp,
+											 getProcessingInfo_(DataProcessing::DATA_PROCESSING));
+    
+    //store output
+		f.store(out, exp);
+
+		return EXECUTION_OK;
+	}
+
+};
+
+
+int main( int argc, const char** argv )
+{
+	TOPPResampler tool;
+	return tool.main(argc, argv);
+}
+
+/// @endcond

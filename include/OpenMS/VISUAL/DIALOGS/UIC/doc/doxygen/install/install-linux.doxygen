@@ -1,0 +1,207 @@
+/**
+  
+  @page install_linux Installation on Linux
+  
+  @section install_linux_read Read this section first!
+  
+  This document addresses %OpenMS users and explains the
+  installation procedure. It especially considers the installation
+  of several libraries which are required by %OpenMS. Most of these 
+  libraries are made available in our "contrib-package" (see below).
+  
+  <b>Required applications</b>
+  
+  In order to compile %OpenMS, several applications need to be installed:
+   - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
+   - CMake (version 2.6 or higher) is required to configure and build the package.
+	 - Qt4 (version 4.3 or higher; development package containing qmake and headers)
+   - GNU make is required
+	 - patch
+	 - autoconf (at least version 2.60)
+	 - automake (at least version 1.9)
+	 - libtool (libtoolize or glibtoolize)
+	   
+  If your %OpenMS version is a development version from SVN, the following 
+  applications are needed in order to create the %OpenMS documentation:
+    - doxygen (We recommend version 1.5.4)
+    - pdflatex
+
+  Depending on your linux distribution, you might have to install the following packages:
+  
+  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
+  	<tr>
+  		<td><B>Fedora 10</B></td>
+  		<td><B>OpenSuse 11.1</B></td>
+  		<td><B>Ubuntu 8.10 or 9.4</B></td>
+			<td><B>Debian (Lenny)</B></td>			
+  	</tr>
+  	<tr>
+  		<td valign="top">
+  			cmake
+  			@n gcc-g++
+  			@n autoconf
+  			@n qt-devel
+  		</td>
+  		<td valign="top">
+				cmake
+				@n gcc-g++
+				@n autoconf
+				@n libqt4-devel
+  		</td>
+  		<td valign="top">
+  			cmake
+  			@n g++
+  			@n autoconf
+  			@n qt4-dev-tools
+  			@n patch
+				@n libtool
+  		</td>
+  		<td valign="top">
+  			cmake
+  			@n g++
+  			@n autoconf
+  			@n qt4-dev-tools
+  			@n patch
+				@n libtool
+				@n make
+  		</td>			
+  	</tr>
+  </table>
+
+<HR> 
+
+  @section install_linux_contrib Installing the contrib package
+
+  In order to facilitate the installation of the libraries required for %OpenMS, we composed a
+  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn, COINOR, imslib, zlib, libbz2 and XERCES-C. 
+    
+  The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
+  
+  If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
+  <pre>
+  &gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib
+  </pre> 
+  
+  CMake is used to check the system and create the contrib libraries.
+  @n Go to the contrib directory and execute the following command:
+  <pre>
+  &gt; cmake .
+  </pre>
+  
+  If everything worked, the following sub-directories were created under @em contrib :
+
+  <ul>
+    <li>'lib/'
+    <br>
+    It contains the static libraries needed by %OpenMS.</li>
+
+    <li>'include/'
+    <br>
+    It contains the header files needed for %OpenMS.</li>
+  </ul>
+
+  @note To avoid problems while building the libraries contained in the contrib package, the path
+  to your contrib directory should not have any spaces in it.
+
+<HR>
+  
+  @section install_linux_openms Installing OpenMS/TOPP
+ 
+   You need to get the %OpenMS source package from our website. The latest stable version of %OpenMS can be found in the 
+  <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
+  For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+
+  If you have not installed thei contrib libraries which %OpenMS requires, please refer to the section @ref install_linux_contrib above and install the contrib libraries.
+  
+  CMake is used to check the system and create the main 'Makefile'.
+  @n Go to the %OpenMS directory and execute the following command:
+  <pre>
+  &gt; cmake .
+  </pre>
+  
+  You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
+  A full list of the CMake variables is shown when you execute
+  <pre>
+  &gt; ccmake .
+  </pre>
+  This works only after having executing <code>cmake .</code>.
+  
+  The most important CMake variables are:
+
+  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
+    <tr>
+      <td valign="top">INSTALL_PREFIX</td>
+      <td>the path where the library is installed.
+          <BR>
+          <b>Note:</b> Moving the library after installing it is not possible! 
+          Please use this option to point CMake to the location %OpenMS should
+          be installed to.
+					
+					For development, install prefixes are not supported. In this case %OpenMS must
+					be built in place!					
+					</td>
+    </tr>
+    <tr>
+      <td valign="top">CONTRIB_CUSTOM_DIR</td>
+      <td>search for the contrib libraries in this location.
+          If unset the the location is assumed to be <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.</td>
+    </tr>
+    <tr>
+      <td valign="top">QT_QMAKE_EXECUTABLE</td>
+      <td>Defines the Qt 'qmake' application. The corresponding Qt installation is used.</td>
+    </tr>
+    <tr>
+      <td valign="top">OPENMS_BUILD_TYPE</td>
+      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
+          precondition/postcondiction checks enabled).
+          @n The default is 'Release'.</td>
+    </tr>
+    <tr>
+      <td valign="top">QT_DB_PLUGIN</td>
+      <td>Defines the Qt database type. By default MySQL is used.</td>
+    </tr>
+    <tr>
+      <td valign="top">CMAKE_CXX_COMPILER</td>
+      <td>Defines the C++ compiler to use.</td>
+    </tr>
+  </table>
+
+  After CMake was executed, you can list the make targets by calling:
+  <pre>
+  &gt; make targets
+  </pre>
+  
+  In order to build the %OpenMS library and TOPP tools execute the following command:
+  <pre>
+  &gt; make
+  </pre>
+
+	If you have chosen to use a install prefix via the INSTALL_PREFIX variable you should install the components using: 
+	<pre>
+  &gt; make install
+	</pre>
+
+  @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>/home/smith/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
+  
+  @note  The TOPP tools are ready to use in the <i>&lt;path_to_OpenMS&gt;/bin/</i> folder. To use the TOPP tools from TOPPView, you have to add this path to the environment variable <b>PATH</b> (do not use the tilde character @em ~ to abbreviate your home folder). 
+  
+  @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
+
+<HR>
+
+  @section install_linux_testing_openms Testing your OpenMS/TOPP installation  
+  
+  After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
+  <pre>
+  &gt; make test_build
+  &gt; make test
+  </pre>
+  
+  @note To enable DB connectivity tests, use the following CMake parameters:
+  - DB_TEST
+  - DB_TEST_HOST
+  - DB_TEST_PORT
+  - DB_TEST_DB
+  - DB_TEST_USER
+  - DB_TEST_PW
+*/

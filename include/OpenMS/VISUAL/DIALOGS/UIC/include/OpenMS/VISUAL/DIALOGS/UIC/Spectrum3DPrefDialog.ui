@@ -1,0 +1,211 @@
+<ui version="4.0" >
+ <class>Spectrum3DPrefDialogTemplate</class>
+ <widget class="QDialog" name="Spectrum3DPrefDialogTemplate" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>420</width>
+    <height>290</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>3D view preferences</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <item>
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>3D view settings</string>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label" >
+        <property name="text" >
+         <string>Background color:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="OpenMS::ColorSelector" native="1" name="bg_color" />
+      </item>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="label_5" >
+        <property name="toolTip" >
+         <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">This setting determines what to do when a data file changes: 'none' -- does nothing, 'ask' -- asks the user whether to update the view, 'update automatically' -- updates without asking&lt;/p>&lt;/body>&lt;/html></string>
+        </property>
+        <property name="text" >
+         <string>Action when file changes:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" >
+       <widget class="QComboBox" name="on_file_change" >
+        <item>
+         <property name="text" >
+          <string>none</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>ask</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>update automatically</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2" >
+     <property name="title" >
+      <string>Layer settings</string>
+     </property>
+     <layout class="QGridLayout" >
+      <property name="leftMargin" >
+       <number>9</number>
+      </property>
+      <property name="topMargin" >
+       <number>9</number>
+      </property>
+      <property name="rightMargin" >
+       <number>9</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>9</number>
+      </property>
+      <property name="horizontalSpacing" >
+       <number>6</number>
+      </property>
+      <property name="verticalSpacing" >
+       <number>6</number>
+      </property>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="label_3" >
+        <property name="text" >
+         <string>Line width:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="label_4" >
+        <property name="text" >
+         <string>Shade mode:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label_2" >
+        <property name="text" >
+         <string>Peak colors:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="OpenMS::MultiGradientSelector" native="1" name="gradient" />
+      </item>
+      <item row="1" column="1" >
+       <widget class="QSpinBox" name="width" >
+        <property name="minimum" >
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" >
+       <widget class="QComboBox" name="shade" >
+        <item>
+         <property name="text" >
+          <string>flat</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>smooth</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>375</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>OpenMS::ColorSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/ColorSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OpenMS::MultiGradientSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>Spectrum3DPrefDialogTemplate</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>Spectrum3DPrefDialogTemplate</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

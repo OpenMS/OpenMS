@@ -1,0 +1,42 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+	<qresource>
+		
+		<!-- INIFileEditor -->
+		<file>INIFileEditor.png</file>
+		
+		<!-- TOPPAS -->
+		<file>TOPPAS.png</file>
+		<file>TOPPAS_Splashscreen.png</file>
+
+		<!-- TOPPView -->
+		<file>TOPPView.png</file>
+		<file>TOPPView_Splashscreen.png</file>
+		<file>convexhull.png</file>
+		<file>convexhulls.png</file>
+		<file>cursor_measure.png</file>
+		<file>cursor_move.png</file>
+		<file>cursor_zoom.png</file>
+		<file>elements.png</file>
+		<file>lin.png</file>
+		<file>lines.png</file>
+		<file>labels.png</file>
+		<file>unassigned.png</file>
+		<file>peaks.png</file>
+		<file>percentage.png</file>
+		<file>precursors.png</file>
+		<file>projections.png</file>
+		<file>reset_zoom.png</file>
+		<file>snap.png</file>
+		<file>tile_horizontal.png</file>
+		<file>tile_vertical.png</file>
+		
+		<!-- shared -->
+		<file>TOPP_about.png</file>
+
+	</qresource>
+</RCC>
+
+
+
+

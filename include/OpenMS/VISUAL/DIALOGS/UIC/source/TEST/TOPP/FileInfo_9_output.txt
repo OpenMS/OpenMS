@@ -1,0 +1,88 @@
+
+-- General information --
+
+file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_9_input.mzML
+file type: mzML
+
+peak type (metadata) : Unknown
+peak type (estimated): Raw data
+estimated raw data spacing: 1 (min: 1 max: 1)
+
+Number of spectra: 4
+Number of peaks:   40
+
+Ranges:
+  retention time:  5.10 : 5.40
+  mass-to-charge:  0.00 : 18.00
+  intensity:       1.00 : 20.00
+
+MS levels: 1, 2
+Spectra of MS Level 1: 3
+Spectra of MS Level 2: 1
+
+Meta data array: charge array (for 1 spectra)
+Meta data array: signal to noise array (for 1 spectra)
+
+
+-- Meta information --
+
+Document id       : OpenMS_document_id
+Date              : 2007-06-27 15:23:45
+
+Sample
+  Name             : Sample1
+  Organism         : 
+  Comment          : 
+
+Instrument
+  Name             : LCQ Deca
+  Model            : 
+  Vendor           : 
+  Ion source(s)    : Electrospray ionisation, Fast atom bombardment
+  Mass Analyzer(s) : Quadrupole ion trap, Linear ion trap
+  Detector(s)      : Electron multiplier, Electron multiplier
+
+Contact Person
+  First Name       : William
+  Last Name        : Pennington
+  Email            : wpennington@higglesworth.edu
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  Software name    : ProteoWizard
+  Software version : 1.0
+  Completion time  : 0000-00-00 00:00:00
+  Actions          : Conversion to mzML format
+
+
+-- Statistics --
+
+Intensities:
+  mean: 8
+  min: 1
+  lower quartile: 4.25
+  median: 8
+  upper quartile: 11.75
+  max: 15
+  variance: 19.3103
+
+Meta data: charge array
+  count: 10
+  min: 2.00
+  max: 20.00
+  mean: 11.00
+  median: 12.00
+
+Meta data: signal to noise array
+  count: 10
+  min: 2.00
+  max: 20.00
+  mean: 11.00
+  median: 12.00
+
+
+

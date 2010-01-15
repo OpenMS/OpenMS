@@ -1,0 +1,149 @@
+<ui version="4.0" >
+ <class>Spectrum1DGoToDialogTemplate</class>
+ <widget class="QDialog" name="Spectrum1DGoToDialogTemplate" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>256</width>
+    <height>133</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>go to</string>
+  </property>
+  <layout class="QGridLayout" >
+   <item row="0" column="0" >
+    <layout class="QGridLayout" >
+     <item row="2" column="1" >
+      <widget class="QLineEdit" name="max_" />
+     </item>
+     <item row="1" column="0" >
+      <widget class="QLabel" name="textLabel4" >
+       <property name="text" >
+        <string>begin:</string>
+       </property>
+       <property name="wordWrap" >
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" >
+      <widget class="QLabel" name="textLabel5" >
+       <property name="text" >
+        <string>end:</string>
+       </property>
+       <property name="wordWrap" >
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" >
+      <widget class="QLineEdit" name="min_" />
+     </item>
+     <item row="0" column="0" colspan="2" >
+      <widget class="QLabel" name="textLabel2_2" >
+       <property name="font" >
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text" >
+        <string>Show range</string>
+       </property>
+       <property name="wordWrap" >
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>166</width>
+       <height>16</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0" >
+    <layout class="QHBoxLayout" >
+     <item>
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>16</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ok_button_" >
+       <property name="text" >
+        <string>ok</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancel_button_" >
+       <property name="text" >
+        <string>cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <tabstops>
+  <tabstop>min_</tabstop>
+  <tabstop>max_</tabstop>
+  <tabstop>ok_button_</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>ok_button_</sender>
+   <signal>clicked()</signal>
+   <receiver>Spectrum1DGoToDialogTemplate</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>254</x>
+     <y>162</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cancel_button_</sender>
+   <signal>clicked()</signal>
+   <receiver>Spectrum1DGoToDialogTemplate</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>143</x>
+     <y>149</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>206</x>
+     <y>88</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

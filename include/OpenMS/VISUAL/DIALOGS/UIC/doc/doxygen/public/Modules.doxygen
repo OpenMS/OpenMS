@@ -1,0 +1,328 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+// ----------------------------- Concept -------------------------------
+
+/**
+	@defgroup Concept Concept
+
+	@brief OpenMS concepts (types, macros, ...)
+*/
+
+// ----------------------------- System -------------------------------
+
+/**
+	@defgroup System System
+
+	@brief Very vasic functionality like file system or stopwatch.
+*/
+
+// ----------------------------- Datastructures -------------------------------
+
+/**
+	@defgroup Datastructures Datastructures
+
+	@brief Auxilary datastructures.
+*/
+
+// ----------------------------- Math -------------------------------
+
+/**
+  @defgroup Math Math
+
+  @brief Math functions and classes
+*/
+
+/**
+  @defgroup MathFunctionsStatistics Statistics functions
+
+  @brief Various statistical functions
+
+	These functions are defined in OpenMS/MATH/STATISTICS/StatisticFunctions.h .
+
+	@ingroup Math
+*/
+
+/**
+  @defgroup MathFunctionsMisc Misc functions
+
+  @brief Math functions
+
+	These functions are defined in OpenMS/MATH/MISC/MathFunctions.h .
+
+	@ingroup Math
+*/
+
+
+
+// ----------------------------- Kernel -------------------------------
+
+/**
+	@defgroup Kernel Kernel
+
+	@brief Kernel datastructures
+*/
+
+// ----------------------------- Format -------------------------------
+
+/**
+	@defgroup Format Format
+
+	@brief IO classes.
+
+	This module contains all classes that are involved in file or DB IO.
+
+	Very basic file system functions can be found in the File class of the @ref System module!
+*/
+
+/**
+	@defgroup FileIO File IO
+
+	@brief File IO classes.
+
+	This module contains all classes that are involved in file IO.
+	Take a look at the FileHandler class!
+
+	@todo Implement reading of pepXML and protXML (Andreas)
+	@todo Allow reading of zipped XML files (David, Hiwi)
+
+	@ingroup Format
+*/
+
+/**
+	@defgroup DatabaseIO Database IO
+
+	@brief Database IO classes.
+
+	This module contains all classes that are involved in database IO.
+	
+	@ingroup Format
+*/
+
+// ----------------------------- Metadata -------------------------------
+
+/**
+	@defgroup Metadata Metadata
+
+	@brief Classes that capture meta data about a MS or HPLC-MS experiment.
+
+	The top-level classes are OpenMS::ExperimentalSettings and OpenMS::SpectrumSettings .
+*/
+
+// ----------------------------- Chemistry -------------------------------
+
+/**
+	@defgroup Chemistry Chemistry
+
+*/
+
+// ----------------------------- SpectraComparison -------------------------------
+
+/**
+	@defgroup SpectraComparison Spectrum Comparison
+
+	@brief The classes within this group are used to compare single spectra, by reporting a similarity value.
+*/
+
+// ----------------------------- Filtering -------------------------------
+
+/**
+	@defgroup Filtering Spectrum filters
+
+	@brief This group contains filtering classes for spectra
+*/
+
+/**
+	@defgroup SpectraPreprocessers Spectra Preprocessors
+
+	@brief The spectra preprocessors filter the spectra with different criterions
+
+	The preprocessors are able to handle single spectra as well as whole MSExperiments (PeakMap). For
+	single spectra this can be achieved by calling the filterSpectrum or filterPeakSpectrum functions.
+	Additionally PeakMaps can be filtered using the filterPeakMap function. The details of the filters
+	and their options are described in the class documentation respectively.
+
+	@ingroup Filtering
+*/
+
+/**
+	@defgroup SpectraFilter Spectra Filters
+
+	@brief Spectra filters report single values of spectra e.g. the TIC
+
+	@ingroup Filtering
+*/
+
+/**
+	@defgroup PeakMarker Peak Marker
+
+	@brief These classes mark peaks according to different criterions
+
+	For a detailed description of the available parameters and functions the details are documented
+	in the class documentation
+
+	@ingroup Filtering
+*/
+
+// ----------------------------- Analysis -------------------------------
+
+/**
+	@defgroup Analysis Analysis
+
+	@brief High-level analysis like PeakPicking, Quantitation, Identification,  MapAlginment
+*/
+
+/**
+	@defgroup SignalProcessing SignalProcessing
+
+	@brief Signal processing classes (noise estimation, noise filters, basline filters)
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup PeakPicking PeakPicking
+
+	@brief Classes for the transformation of raw ms data into peak data.
+
+	This module contains all important classes that are involved in the peak picking as described by Lange et al. (2006) Proc. PSB-06.
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup FeatureFinder FeatureFinder
+
+	@brief The feature detection algorithms.
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup MapAlignment MapAlignment
+
+	@brief The map alignment algorithms.
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup FeatureGrouping FeatureGrouping
+
+	@brief The feature grouping.
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup Analysis_ID Identification
+
+	@brief Protein and peptide identitfication classes.
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup SpectraClustering Clustering
+
+	@brief This class contains SpectraClustering classes
+	These classes are components for clustering all kinds of data for which a distance relation, normalizable in
+	the range of [0,1], is available. Mainly this will be data for which there is a corresponding CompareFunctor
+	given (e.g. PeakSpectrum) that is yielding the similarity normalized in the range of [0,1] of such two
+	elements, so it can easily converted to the needed distances. @see PeakSpectrumCompareFunctor.
+
+	@ingroup Analysis
+*/
+
+// ----------------------------- Visual -------------------------------
+
+/**
+	@defgroup Visual Visual
+
+	@brief Visualization classes
+*/
+
+/**
+	@defgroup SpectrumWidgets Spectrum visualizaion widgets
+
+	@brief Spectrum visualization widgets
+
+	The spectrum widgets allow spectrum data to be visualized
+	in different manners. There are predefined widgets for
+	1D, 2D and 3D visualization. For each type of view, at least
+	two new classes must be defined:
+
+	- a "canvas" class derived from OpenMS::SpectrumCanvas,
+	  used for painting the data.
+	- a "widget" class derived from OpenMS::SpectrumWidget,
+	  which holds the instance of the canvas class, and some
+	  additional widgets, such as OpenMS::AxisWidget. This
+	  class is also responsible for holding the data and for
+	  providing it to the canvas class instance.
+
+	@ingroup Visual
+*/
+
+/**
+	@defgroup TOPPView_elements  TOPPView
+
+	@brief GUI elements for TOPPView
+
+	Some GUI classes were designed for TOPPView only and are probably not usable in any other application.
+	These classes are listed in this module.
+
+	@ingroup Visual
+*/
+
+/**
+	@defgroup TOPPAS_elements  TOPPAS
+	
+	@brief GUI elements for TOPPAS
+	
+	Some GUI classes were designed for TOPPAS only and are probably not usable in any other application.
+	These classes are listed in this module.
+	
+	@ingroup Visual
+*/
+
+/**
+	@defgroup Dialogs Dialogs
+
+	@brief Dialogs for user interaction.
+
+	@ingroup Visual
+*/
+
+// ----------------------------- Simulation -------------------------------
+
+/**
+  @defgroup Simulation Simulation
+
+  @brief Simulation classes
+  
+  This module contains all classes involved in simulating different aspects of Mass Spectrometry Experiments.
+*/

@@ -1,0 +1,43 @@
+## -*- mode: C++; tab-width: 2; -*-
+## vi: set ts=2:
+##
+## --------------------------------------------------------------------------
+##                   OpenMS Mass Spectrometry Framework
+## --------------------------------------------------------------------------
+##  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+##
+##  This library is free software; you can redistribute it and/or
+##  modify it under the terms of the GNU Lesser General Public
+##  License as published by the Free Software Foundation; either
+##  version 2.1 of the License, or (at your option) any later version.
+##
+##  This library is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+##  Lesser General Public License for more details.
+##
+##  You should have received a copy of the GNU Lesser General Public
+##  License along with this library; if not, write to the Free Software
+##  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+## --------------------------------------------------------------------------
+## $Maintainer: Andreas Bertsch $
+## $Authors: Andreas Bertsch $
+## --------------------------------------------------------------------------
+
+## bashrc for the OpenMS/TOPP command shell ##
+
+## we need the systems profile for the bash
+source /etc/profile 
+
+## we need to set the DYLIB_LIBRARY_PATH for the TOPP-tools to execute properly
+export DYLD_LIBRARY_PATH=${OPENMS_TOPP_PATH}/lib/:${OPENMS_TOPP_PATH}/lib/QtCore.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtGui.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtNetwork.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtOpenGL.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtSql.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtXml.framework/Versions/4/:$DYLIB_LIBRARY_PATH
+
+## setting of the OpenMS data path to the share directory
+export OPENMS_DATA_PATH=${OPENMS_TOPP_PATH}/share/OpenMS
+
+## we need to set the path variable accordingly, also add TOPPView and INIFileEditor
+export PATH=${OPENMS_TOPP_PATH}/TOPP:${OPENMS_TOPP_PATH}/TOPPView.app/Contents/MacOS/:${OPENMS_TOPP_PATH}/INIFileEditor.app/Contents/MacOS/:${OPENMS_TOPP_PATH}/TOPPAS.app/Contents/MacOS/:$PATH
+
+## eof
+

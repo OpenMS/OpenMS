@@ -1,0 +1,1241 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+//########################### Please read this carefully! ###########################
+
+// Sections:
+// - to add new pages you have to add them to:
+//    - doc/OpenMS_tutorial/refman_overwrite.tex (pdf output)
+//    - doc/doxygen/public/OpenMS_Tutorial_html.doxygen (html output)
+
+// Conventions:
+// - Please write a short introduction for each chapter that explains
+//   what classes are described and where these classes can be found (folder)
+// - Use @a to visually highlight class names, namespaces, etc
+// - When using example code, put it in the OpenMS/source/Examples folder
+//   to make sure it can be compiled. The name of the file should be in the text
+//   to make the file easy to find for the user.
+//   Dont forget to add the built example application to the svn ignore list:
+//   'svn propedit svn:ignore source/EXAMPLES/'
+// - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
+//   link to the OpenMS namspace is generated automatically
+
+//####################################### GENERAL #######################################
+
+/**
+
+@page tutorial_general General information
+
+	This tutorial gives an introduction to the %OpenMS core datastructures and algorithms.
+	It is intended to allow for a quick start in writing your own applications based on
+	the %OpenMS framework.
+
+	The structure of this tutorial is similar to the modules of the class documentation.
+	First, the basic concepts and datastructures of %OpenMS are explained. The next chapter is
+	about the kernel datastructures. These datastructures represent the actual mass spectronomy
+	data: raw data, peaks, spectra and maps. In the following chapters, the more sophisticated
+	datastructures and algorithms, e.g. those used for peak picking, feature finding and identification
+	are presented.
+
+	All the example programs used in this tutorial, can be found in @a OpenMS/source/EXAMPLES/.
+
+	If you are looking for C++ literature, we recommend the following books:
+	- <b>C++:</b> C++ Primer, Effective C++
+	- <b>STL:</b> Generic Programming and the STL, Effective STL, The C++ Standard Library
+	- <b>Qt:</b> C++ GUI Programming with Qt 4
+
+	@section general_search Class search engine
+
+	You can search for Classes in the %OpenMS documentation using the the class search engine
+	that can be found at http://open-ms.sourceforge.net/documentation.php .
+
+	The search engine can e.g. be used to
+	- find all classes matching a keyword.
+	- find the exact include path, when you know the class name only.
+*/
+
+//####################################### STRUCTURE #######################################
+
+/**
+
+@page tutorial_structure Structure of %OpenMS
+
+The following	image shows the overall structure of %OpenMS:
+
+@image html Structure.png "Overall design of OpenMS."
+@image latex Structure.png "Overall design of OpenMS." width=14cm
+
+Without looking into the details of %OpenMS the situation is very simple. Applications
+can be implemented using %OpenMS, which in turn relies on several external
+libraries: <i>Qt</i> provides visualization, database support and a
+platform abstraction layer. <i>Xerces</i> allows XML file parsing.
+<i>libSVM</i> is used for machine learning tasks. The <i>Computational
+Geometry Algorithms Library</i> (CGAL) provides data structures and
+algorithms for geometric computation. The <i>GNU Scientific Library</i>(GSL)
+is used for different mathematical and statistical tasks.
+
+%OpenMS can itself be subdivided into several layers. At the very
+bottom are the foundation classes which implement low-level concepts and
+data structures. They include basic concepts (e.g. factory pattern, exception
+handling), basic data structures (e.g. string, points, ranges) and
+system-specific classes (e.g. file system, time). The kernel classes, which
+capture the actual MS data and metadata, are built upon the foundation classes.
+Finally, there is a layer of higher-level functionality that relies on the
+kernel classes. This layer contains database I/O, file I/O supporting several
+file formats, data reduction functionality and all other analysis algorithms.
+
+*/
+
+
+//####################################### TERMS #######################################
+
+/**
+
+@page tutorial_terms Mass spectrometry terms
+
+ The following terms for MS-related data are used in this tutorial and the %OpenMS class documentation:
+ - <b>raw data point</b> @n
+   An unprocessed data point as measured by the instrument.
+ - <b>peak</b> @n
+   Data point that is the result of some kind of peak detection algorithm.
+   Peaks are often referred to as @a sticks or @a centroided @a data as well.
+ - <b>spectrum / scan</b> @n
+   A mass spectrum containing raw data points (@a raw @a spectrum) or peaks (@a peak @a spectrum).
+
+  @image html Terms_Spectrum.png "Part of a raw spectrum (blue) with three peaks (red)"
+  @image latex Terms_Spectrum.png "Part of a raw spectrum (blue) with three peaks (red)" width=12cm
+
+ - <b>map</b> @n
+   A collection of spectra generated by a HPLC-MS experiment. Depending on what kinds of
+   spectra are contained, we use the terms  @a raw @a map or @a peak @a map. Often a
+   map is also referred to as an @a experiment.
+ - <b>feature</b> @n
+   The signal caused by a chemical entity detected in an HPLC-MS experiment, typically a peptide.
+
+  @image html Terms_Map.png "Peak map with a marked feature (red)"
+  @image latex Terms_Map.png "Peak map with a marked feature (red)" width=14cm
+
+*/
+
+//####################################### CONCEPT #######################################
+
+/**
+
+@page tutorial_concept OpenMS concepts
+
+  This chapter covers some very basic concepts needed to understand %OpenMS code.
+  It describes %OpenMS primitive types, namespaces, exceptions and
+  important preprocessor macros. The classes described in this section can be found in the @a CONCEPT folder.
+
+@section concept_primitives Basic data types
+
+  %OpenMS has its own names for the C++ primitive types. The integer types of %OpenMS
+  are @a Int (int) and @a UInt (unsigned int). For floating point numbers, @a Real (float) and
+  @a DoubleReal (double) are used.
+
+  These and more types are defined in @a OpenMS/CONCEPT/Types.h.
+  The typeAsString() function can be used to find out the actual type of an object,
+  e.g. if typedefs are used.
+
+@section concept_namespace The OpenMS namespace
+
+  The main classes of %OpenMS are implemented in the namespace @a OpenMS. There are several
+  sub-namespaces to the @a OpenMS namespace. The most important ones are:
+  - @a OpenMS::Constants contains nature constants.
+  - @a OpenMS::Math contains math functions and classes.
+  - @a OpenMS::Exception contains the %OpenMS exceptions.
+  - @a OpenMS::Internal contains certain auxiliary classes that are typically used by only one class of the @a OpenMS namespace and not by the user directly.
+
+  There are several more namespaces. For a detailed description have a look at the
+  class documentation.
+
+@section concept_exceptions Exception handling in OpenMS
+
+  All exceptions are defined in the namespace @a OpenMS::Exception. The Base class for all
+  %OpenMS exceptions is @a Base.  This base class provides three members for storing
+  the source file, the line number and the function name where the exception occurred.
+  All derived exceptions provide a constructor that takes
+  at least these arguments. The following code snippet shows the handling of an index overflow:
+  @code
+    void someMethod(UInt index) throw (Exception::IndexOverflow)
+    {
+      if (index >= size())
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size()-1);
+      }
+      // do something
+    };
+  @endcode
+	Note the first three arguments given to the constructor:  @a __FILE__ and @a __LINE__ are
+	built-in preprocessor macros that hold the file name and the line number.
+  @a __PRETTY_FUNCTION__ is replaced by the GNU g++ compiler with the demangled name of
+  the current function (including the class name and argument types).
+  For other compilers it is defined as "<unknown>". For an index overflow exception,
+  there are two further arguments: the invalid index and the maximum allowed index.
+
+  The file name, line number and function name are very useful in debugging. However, %OpenMS
+  also implements its own exception handler which allows to turn each uncaught exception into a
+  segmentation fault. This mechanism allows developers to trace the source of an exception
+  with a debugger. To use this feature, set the environment variable
+  @a OPENMS_DUMP_CORE.
+
+@section concept_macros Condition macros
+
+  In order to enforce algorithmic invariants, the two preprocessor macros @a OPENMS_PRECONDITION and
+  @a OPENMS_POSTCONDITION are provided. These macros are enabled only if debug info is enabled
+  and optimization is disabled in @a configure. Otherwise they are removed by the preprocessor,
+  so they won't cost any performance.
+
+  The macros throw Exception::Precondition or Exception::Postcondition respectively if
+  the condition fails. The example from section @ref concept_exceptions could have been
+  implemented like that:
+  @code
+    void someMethod(UInt index)
+    {
+      OPENMS_PRECONDITION(index < size(),"Precondition not met!");
+      //do something
+    };
+  @endcode
+
+*/
+
+//####################################### DATASTRUCTURES #######################################
+
+/**
+
+@page tutorial_datastructures Auxiliary datastructures
+
+  This section contains a short introduction to three datastructures you will
+  definitely need when programming with %OpenMS. The datastructures module of the
+  class documentation contains many more classes, which are not mentioned here in
+  detail. The classes described in this section can be found in the @a DATASTRUCTURES folder.
+
+@section datastructures_string The OpenMS string implementation
+
+  The %OpenMS string implementation @a String is based on the STL @a std::string.
+  In order to make the %OpenMS string class more convenient, a lot of methods have been
+  implemented in addition to the methods provided by the base class.
+  A selection of the added functionaliy is given here:
+  - Checking for a substring (suffix, prefix, substring, char)
+  - Extracting a substring (suffix, prefix, substring)
+  - Trimming (left, right, both sides)
+  - Concatenation of string and other primitive types with @a operator+
+  - Construction from QString and conversion to QString
+
+@section datastructures_dposition D-dimensional coordinates
+
+  Many %OpenMS classes, especially the kernel classes, need to store some kind of
+  d-dimensional coordinates. The template class @a DPosition is used for that purpose.
+  The interface of DPosition is pretty straightforward. The operator[] is used to
+  access the coordinate of the different dimensions. The dimensionality is stored
+  in the enum value @a DIMENSION. The following example (Tutorial_DPosition.C)
+  shows how to print a DPosition to the standard output stream.
+
+  First we need to include the header file for @a DPosition and @a iostream. Then we
+  import all the %OpenMS symbols to the scope with the @a using directive.
+  @dontinclude Tutorial_DPosition.C
+  @until namespace
+  The first commands in the main method initialize a 2-dimensional @a DPosition :
+  @until 47.11
+  Finally we print the content of the DPosition to the standard output stream:
+  @until main
+
+  The output of our first little %OpenMS program is the following:
+  @code
+    Dimension 0: 8.15
+    Dimension 1: 47.11
+  @endcode
+
+@section datastructures_drange D-dimensional ranges
+
+  Another important datastructure we need to look at in detail is @a DRange.
+  It defines a d-dimensional, half-open interval through its two @a DPosition members.
+  These members are accessed by the @a min and @a max methods and can be
+  set by the @a setMin and @a setMax methods.
+
+  DRange maintains the invariant that @a min is geometrically less or equal to @a max,
+  i.e. @f$ \min()[x] \le \max()[x]@f$ for each dimension @a x. The following example (Tutorial_DRange.C) demonstrates this behavior.
+
+  This time, we skip everything before the main method. In the main method, we
+  create a range and assign values to @a min and @a max. Note that the the minimum
+  value of the first dimension is larger than the maximum value.
+  @dontinclude Tutorial_DRange.C
+  @skip main
+  @until setMax
+  Then we print the content of @a range :
+  @until main
+
+  The output is:
+  @code
+    min 0: 1
+    max 0: 1
+    min 1: 3
+    max 1: 5
+  @endcode
+  As you can see, the minimum value of dimension one was adjusted in order
+  to make the maximum of @a 1 conform with the invariant.
+
+  @a DIntervalBase is the closed interval counterpart (and base class) of @a DRange.
+  Another class derived from @a DIntervalBase is @a DBoundingBox. It also represents a
+  closed interval, but differs in the methods. Please have a look at the class
+  documentation for details.
+
+@section datastructures_param Param
+
+  Most algorithms of %OpenMS and some of the TOPP tools have many parameters. The parameters
+  are stored in instances of @a Param. This class is similar to a Windows INI files.
+  The actual parameters (type, name and value) are stored in sections. Sections can contain parameters
+  and sub-sections, which leads to a tree-like structure. The values are stored in @a DataValue, but
+  @a Param supports only the types @a string, @a int and @a float. @n
+  Parameter names are given as a string including the sections and subsections in which ':' is used as a delimiter.
+
+  The following example (Tutorial_Param.C) shows how a file description is given.
+  @dontinclude Tutorial_Param.C
+  @skip main
+  @until end of main
+*/
+
+//####################################### KERNEL #######################################
+
+/**
+
+@page tutorial_kernel The kernel classes
+
+ The %OpenMS kernel contains the datastructures that store the actual MS data, i.e.
+ raw data points, peaks, features, spectra, maps.
+ The classes described in this section can be found in the @a KERNEL folder.
+
+@section kernel_datapoints Raw data point, Peak, Feature, ...
+
+  In general, there are three types of data points: raw data points, peaks and picked peaks.
+  Raw data points provide members to store position (mass-to-charge ratio, retention time, ...) and intensity.
+  Peaks are derived from raw data points and add an interface to store meta information.
+  Picked peaks are derived from peaks and have additional members for peak shape information:
+  charge, width, signal-to-noise ratio and many more.
+
+  The kernel data points exist in three versions: one-dimensional, two-dimensional and d-dimensional.
+
+  @image html Kernel_DataPoints.png "Data structures for MS data points"
+  @image latex Kernel_DataPoints.png "Data structures for MS data points" width=14cm
+
+  @par one-dimensional data points
+  The one-dimensional data points are most important, the two-dimensional and d-dimensional data points
+  are needed rarely.
+  The base class of the one-dimensional data points is @a Peak1D. It provides
+  members to store the mass-to-charge ratio (@a getMZ and @a setMZ) and the intensity
+  (@a getIntensity and @a setIntensity). @n
+  @a RichPeak1D is derived from @a Peak1D and adds an interface for metadata (see @ref metadata_metainfo).
+
+  @par two-dimensional data points
+  The two-dimensional data points are needed when geometry algorithms are applied
+  to the data points. A special case is the @a Feature class, which needs a two-dimensional
+  position (m/z and RT). @n
+  The base class of the two-dimensional data points is @a Peak2D. It provides
+  the same interface as @a Peak1D and additional members for the retention time (@a getRT and @a setRT). @n
+  @a RichPeak2D is derived from @a Peak2D and adds an interface for metadata. @n
+  @a Feature is derived from @a RichPeak2D and adds information about the convex hull of the feature, fitting quality
+  and so on.
+
+  @par d-dimensional data points
+  The d-dimensional data points are needed only in special cases, e.g. in template classes that
+  must operate on any number of dimensions. @n
+  The base class of the d-dimensional data points is @a DPeak. The methods to access the position
+  are @a getPosition and @a setPosition. @n
+  Note that the one-dimensional and two-dimensional data points also have the methods
+  @a getPosition and @a setPosition. They are needed in order to be able to write algorithms that can operate on
+  all data point types. It is, however, recommended not to use these members unless you really write such
+  a generic algorithm.
+
+@section kernel_spectra Spectra
+
+  The most important container for raw data and peaks is @a MSSpectrum. It is a template
+  class that takes the peak type as template argument. The default peak type is @a RichPeak1D. Possible other peak types
+  are classes derived from @a Peak1D or classes providing the same interface. @n
+  @a MSSpectrum is a container for 1-dimensional peak data. It is derived from
+  @a SpectrumSettings, a container for the meta data of a spectrum. Here, only MS data handling is explained,
+  @a SpectrumSettings is described in section @ref metadata_spectrum.
+
+  In the following example (Tutorial_MSSpectrum.C) program, a @a MSSpectrum is filled with peaks, sorted according to mass-to-charge
+  ratio and a selection of peak positions is displayed.
+
+  First we create a spectrum and insert peaks with descending mass-to-charge ratios:
+  @dontinclude Tutorial_MSSpectrum.C
+  @skip main
+  @until }
+  Then we sort the peaks according to ascending mass-to-charge ratio.
+  @until sort
+  Finally we print the peak positions of those peaks between 800 and 1000 Thomson. For printing all the peaks in the
+  spectrum, we simply would have used the STL-conform methods @a begin() and @a end().
+  @until main
+
+  @par Typedefs
+  For convenience, the following type definitions are defined in @a OpenMS/KERNEL/StandardTypes.h.
+  @code
+  typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
+  typedef MSSpectrum<Peak1D> PeakSpectrum;
+  @endcode
+
+@section kernel_maps Maps
+
+  Although raw data maps, peak maps and feature maps are conceptually very similar. They are stored in different
+  data types. For raw data and peak maps, the default container is @a MSExperiment, which is an array of @a MSSpectrum
+  instances. Just as @a MSSpectrum it is a template class with the peak type as template parameter.
+
+  In contrast to raw data and peak maps, feature maps are no collection of one-dimensional spectra, but an array
+  of two-dimensional @a Feature instances. The main datastructure for feature maps is called @a FeatureMap.
+
+  Although @a MSExperiment and @a FeatureMap differ in the data they store, they also have things in common.
+  Both store meta data that is valid for the whole map, i.e. sample description and instrument description.
+  This data is stored in the common base class @a ExperimentalSettings.
+
+  @par MSExperiment
+  The following figure shows the big picture of the kernel datastructures. @a MSExperiment is
+  derived from @a ExperimentalSettings (meta data of the experiment) and from @a vector<MSSpectrum>.
+  The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum. @n
+  Since MSSpectrum can store different peak types derived from @a Peak1D, all the data containers
+  are template classes that take the peak type as template argument.
+
+  @image html Kernel.png "Overview of the main kernel datastructures"
+  @image latex Kernel.png "Overview of the main kernel datastructures" width=12cm
+
+  @par Typedefs
+  For convenience, the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
+  @code
+  typedef MSExperiment<RichPeak1D> RichPeakMap;
+  typedef MSExperiment<Peak1D> PeakMap;
+  @endcode
+
+  The following example program (Tutorial_MSExperiment.C) creates a @a MSExperiment containing four @a MSSpectrum instances.
+  Then it iterates over an area and prints the peak positions in the area:
+
+  First we create the spectra in a for-loop and set the retention time and MS level. Survey scans have
+  a MS level of 1, MS/MS scans would have a MS level of 2, and so on.
+  @dontinclude Tutorial_MSExperiment.C
+  @skip main
+  @until setMSLevel
+  Then we fill each spectrum with several peaks. As all spectra would have the same peaks otherwise,
+  we add the retention time to the mass-to-charge ratio of each peak.
+  @until creation
+  Finally, we iterate over the RT range (2,3) and the m/z range (603,802) and print the peak positions.
+  @until }
+  The output of this loop is:
+  @code
+  2 - 702
+  2 - 802
+  3 - 603
+  3 - 703
+  @endcode
+  For printing all the peaks in the experiment, we could have used the STL-iterators of the
+  experiment to iterate over the spectra and the STL-iterators of the spectra to iterate over the peaks:
+  @until main
+
+  @par FeatureMap
+  @a FeatureMap, the container for features, is simply a @a vector<Feature>. Additionally, it is
+  derived from @a ExperimentalSettings, to store the meta information. Just like @a MSExperiment,
+  it is a template class. It takes the feature type as template argument.
+
+  The following example (Tutorial_FeatureMap.C) shows how to insert two features into a map and iterate over the features.
+  @dontinclude Tutorial_FeatureMap.C
+  @skip main
+  @until end of main
+
+  @par RangeManager
+  All peak and feature containers (@a MSSpectrum, @a MSExperiment, @a FeatureMap) are also derived from @a RangeManager.
+  This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range
+  and the intensity range of the container.
+
+  The following example (Tutorial_RangeManager.C) shows the functionality of the class @a RangeManger using a @a FeatureMap.
+  First a @a FeatureMap with two features is created, then the ranges are calulated and printed:
+  @dontinclude Tutorial_RangeManager.C
+  @skip main
+  @until end of main
+
+  The output of this program is:
+  @code
+  Int: 461.3 - 12213.5
+  RT:  15 - 23.3
+  m/z: 571.3 - 1311.3
+  @endcode
+
+*/
+
+//####################################### METADATA #######################################
+
+/**
+
+@page tutorial_metadata How meta data is stored
+
+  The meta informations about an HPLC-MS experiment are stored in @a ExperimentalSettings and
+  @a SpectrumSettings. All information that is not covered by these classes can be stored
+  in the type-name-value datastructure @a MetaInfo. All classes described in this section
+  can be found in the @a METADATA folder.
+
+@section metadata_metainfo MetaInfo
+
+  @a DataValue is a data structure that can store any numerical
+  or string information. It also supports casting of the stored
+  value back to its original type.
+
+  @a MetaInfo is used to easily store information of any type, that does not fit into the the other
+  classes. It implements type-name-value triplets.
+  The main datastructure is an associative container that stores
+  @a DataValue instances as values associated to string keys.
+  Internally, the string keys are converted to integer keys for
+  performance resaons i.e. a @a map<UInt,DataValue> is used.
+
+  The @a MetaInfoRegistry associates the string keys used in
+  @a MetaValue with the integer values that are used for
+  internal storage. The @a MetaInfoRegistry is a singleton.
+
+  If you want a class to have a @a MetaInfo member, simply derive it from @a MetaInfoInterface.
+  This class provides a @a MetaInfo member and the interface to access it.
+
+  @image html MetaInfo.png "The classes involved in meta information storage"
+  @image latex MetaInfo.png "The classes involved in meta information storage" width=5cm
+
+  The following example (Tutorial_MetaInfo.C) shows how to use @a Metadata.
+  We can simply set values for the string keys, and @a setMetaValue registers
+  these names automatically. In order to access the values, we can either use the registered name or the index of the name.
+  The @a getMetaValue method returns a @a DataValue, which has to be casted to the right type.
+  If you do not know the type, you can use the @a DataValue::valueType() method.
+  @dontinclude Tutorial_MetaInfo.C
+  @skip main
+  @until end of main
+
+@section metadata_experiment Meta data of a map
+
+  This class holds meta information about the experiment that is valid for the whole experiment:
+  - sample description
+  - source files
+  - contact persons
+  - MS instrument
+  - HPLC settings
+  - protein identifications
+
+  @image html ExperimentalSettings.png "Map meta information"
+  @image latex ExperimentalSettings.png "Map meta information" width=10cm
+
+@section metadata_spectrum Meta data of a spectrum
+
+  This class contains meta information about settings specific to one spectrum:
+  - spectrum-specific instrument settings
+  - source file
+  - information on the acquisition
+  - precursor information (e.g. for MS/MS spectra)
+  - product information (e.g. for SRM spectra)
+  - processing performed on the data
+  - peptide identifications
+
+  @image html SpectrumSettings.png "Spectrum meta information"
+  @image latex SpectrumSettings.png "Spectrum meta information" width=10cm
+
+@section metadata_peaks Meta data associated to peaks
+
+	If you want to annotate the peaks or raw data points in your spectra with meta information,
+	there are three different ways to do this with different advantages and disadvantages.
+
+	If each peak is annotated with the same type of information (e.g. width of a peak):
+	- Use the meta data arrays provided by MSSpectrum (recommended)
+	  - Advantages: Independent of peak type, information automatically stored in mzML files
+	  - Disadvantages: Information can be accessed through index only
+	- Derive a new peak type that contains members for the additional information
+	  - Advantages: Very fast
+	  - Disadvantages: Information not automatically stored in mzML files, Custom peak type are not supported by all algorithms
+
+	If you need to annotate only a small subset of the peaks with meta information:
+	- Use the MetaInfoInterface of RichPeak1D
+	  - Advantages: Each peak can be annotated with individual information
+	  - Disadvantages: Quite slow, Information not automatically stored in mzML files
+
+
+*/
+
+//####################################### FORMAT #######################################
+
+/**
+
+@page tutorial_format File and DB access
+
+  All classes for file and database IO can be found in the @a FORMAT folder.
+
+@section format_file File adapter classes
+
+  The interface of most file adapter classes is very similar. They implement
+  a @a load and a @a store method, that take a file name and the appropriate
+  data structure.
+
+  The following example (Tutorial_FileIO.C) demonstrates the use of @a MzMLFile
+  and @a MzXMLFile to convert one format into another using @a MSExperiment to hold the temporary data:
+  @dontinclude Tutorial_FileIO.C
+  @skip main
+  @until end of main
+
+  @par FileHandler
+  In order to make the handling of different file types easier, the class
+  @a FileHandler can be used. It loads a file into the appropriate
+  data structure independently of the file type. The file type is determined
+  from the file extension or the file contents:
+  @code
+  MSExperiment<> in;
+  FileHandler handler();
+  handler.loadExperiment("input.mzML",in);
+  @endcode
+
+@section format_db DB access
+
+  For database access, the class @a DBAdapter is used. As its interface is very similar
+  to the interface of the file adapters, no example is shown here.
+
+@section format_options PeakFileOptions
+
+  In order to have more control over loading data from files or databases,
+  most adapters can be configured using @a PeakFileOptions. The following options
+  are available:
+  - only a specific retention time range is loaded
+  - only a specific mass-to.charge ratio range is loaded
+  - only a specific intensity range is loaded
+  - only spectra with a given MS level are loaded
+  - only meta data of the whole experiment is loaded (@a ExperimentalSettings)
+
+*/
+
+//####################################### TRANSFORMATION #######################################
+
+/**
+
+@page tutorial_transformations Data reduction (peak picking, feature detection)
+
+Data reduction in LC-MS analysis mostly consists of two steps. In the first step,
+called "peak picking", important information of the mass spectrometric peaks
+(e.g. peaks' mass centroid positions, their areas under curve and full-width-at-half-maxima)
+ are extracted from the raw LC-MS data.
+The second data reduction step, called "feature finding", represents the quantitation of all peptides in a proteomic sample.
+Therefore, the signals in a LC-MS map caused by all charge and isotopic variants of the peptide are detected and summarized resulting
+in a list of compounds or features, each characterized by mass, retention time and abundance.
+The classes described in this section can be found in the @a TRANSFORMATIONS folder.
+
+@image html RawPeakFeatureMap.png "A peptide feature at different stages of data reduction."
+@image latex RawPeakFeatureMap.png "A peptide feature at different stages of data reduction." width=8cm
+
+
+@section transformations_pp Peak picking
+
+For peak picking, the class @a PeakPickerCWT or @a PeakPickerHiRes is used. Because this class detects and
+extracts mass spectrometric peaks it is applicable to LC-MS as well as MALDI raw data.
+
+The following example (Tutorial_PeakPickerCWT.C) shows how to open a raw map, initialize a
+ PeakPickerCWT object, set the most important parameters (the scale of the wavelet,
+ a peak's minimal height and fwhm), and start the peak picking process.
+
+@dontinclude Tutorial_PeakPickerCWT.C
+  @skip main
+  @until end of main
+
+The output of the program is:
+ @code
+		Scale of the wavelet: 0.2
+		Minimal fwhm of a mass spectrometric peak: 0.1
+		Minimal intensity of a mass spectrometric peak 500
+
+		Number of picked peaks 14
+@endcode
+
+@note A rough standard value for the peak's scale is the average fwhm of a mass spectrometric peak.
+
+
+
+@section transformations_ff Feature detection
+
+The FeatureFinder implements algorithms for the detection and
+quantitation of peptides from LC-MS maps. In contrast to the
+previous step (peak picking), we do not only search for pronounced
+signals (peak) in the LC-MS map but search explicitly for peptides
+which can be recognized by their isotopic pattern.
+
+%OpenMS offers different algorithms for this task. Details of how
+to apply them are given in the TOPP documentation. Please also refer
+to our publications on the %OpenMS web page. TOPP contains a command
+line program which allows to execute our algorithms without writing
+a single line of code.
+
+But you can also write your own FeatureFinder application. This gives you
+more flexibility and is straightforward to do.
+A short example (Tutorial_FeatureFinder.C) is given below. First we need to instantiate the FeatureFinder,
+its parameters and the input/output data:
+
+@dontinclude Tutorial_FeatureFinder.C
+  @skip FeatureFinder ff;
+  @until output
+
+Then we run the FeatureFinder. The first argument is the algorithm name (here 'simple').
+Using the second and third parameter, the peak and feature data is handed to the algorithm.
+The fourth argument sets the parameters used by the algorithm.
+  @until ff.run(
+Now the FeatureMap is filled with the found features.
+
+*/
+
+//####################################### FILTERING #######################################
+
+/**
+
+@page tutorial_filtering Signal processing (Smoothing, baseline reduction, calibration)
+%OpenMS offers several filters for the reduction of noise and baseline which disturb LC-MS measurements.
+These filters work spectra-wise and can therefore be applied to a whole raw data map as well as
+to a single raw spectrum. All filters offer functions for the filtering of raw data containers
+(e.g. @a PeakSpectrum) "filter" as well as functions for the processing of a collection of raw data
+containers (e.g. @a PeakMap) "filterExperiment".
+The functions "filter" and "filterExperiment" can both be invoked with an input container along with an output
+container or with iterators that define a range on the input container along with an output container.
+The classes described in this section can be found in the @a FILTERING folder.
+
+@section filtering_baseline Baseline filters
+Baseline reduction can be perfomed by the @a TopHatFilter. The top-hat filter is a morphological filter
+which uses the basic morphological operations "erosion" and "dilatation" to remove the baseline in raw data.
+Because both operations are implemented as described by Van Herk the top-hat filter expects equally spaced raw
+data points. If your data is not uniform yet, please use the @a LinearResampler to generate equally spaced data.
+
+The @a TopHatFilter removes signal structures in the raw data which are broader than the size of the structuring element.
+
+The following example (Tutorial_MorphologicalFilter.C) shows how to instantiate a tophat filter, set the length of the
+structuring element and remove the base line in a raw LC-MS map.
+
+@dontinclude Tutorial_MorphologicalFilter.C
+  @skip main
+  @until end of main
+
+@note In order to remove the baseline, the width of the structuring element should be greater than the width of a peak.
+
+
+@section filtering_smoothing Smoothing filters
+
+We offer two smoothing filters to reduce noise in LC-MS measurements.
+
+@subsection filtering_smoothing_gaussian Gaussian filter
+
+The class @a GaussFilter is a gaussian filter. The wider the kernel width, the smoother the signal (the more detail
+information gets lost).
+
+We show in the following example (Tutorial_GaussFilter.C) how to smooth a raw data map.
+The gaussian kernel width is set to 1 m/z.
+
+@dontinclude Tutorial_GaussFilter.C
+  @skip main
+  @until end of main
+
+
+@note Use a gaussian filter kernel which has approximately the same width as your mass peaks.
+
+@subsection filtering_smoothing_sgolay Savitzky Golay filter
+
+The Savitzky Golay filter is implemented in two ways @a SavitzkyGolaySVDFilter and @a SavitzkyGolayQRFilter.
+Both filters come to the same result but in most cases the @a SavitzkyGolaySVDFilter has a better run time.
+The Savitzky Golay filter works only on equally spaced data. If your data is not uniform use the @a LinearResampler
+to generate equally spaced data. The smoothing degree depends on two parameters: the frame size and the order
+of the polynomial used for smoothing. The frame size corresponds to the number of filter coefficients,
+so the width of the smoothing interval is given by frame_size*spacing of the raw data.
+The bigger the frame size or the smaller the order, the smoother the signal (the more detail information gets lost!).
+
+The following example (Tutorial_SavitzkyGolayFilter.C) shows how to use a @a SavitzkyGolaySVDFilter (the @a SavitzkyGolayQRFilter has the same interface)
+to smooth a single spectrum. The single raw data spectrum is loaded and resampled to uniform data with a spacing of 0.01 /m/z.
+The frame size of the Savitzky Golay filter is set to 21 data points and the polynomial order is set to 3.
+Afterwards the filter is applied to the resampled spectrum.
+
+@dontinclude Tutorial_SavitzkyGolayFilter.C
+  @skip main
+  @until end of main
+
+@section filtering_calibration Calibration
+%OpenMS offers methods for external and internal calibration of raw or peak data.
+
+@subsection filtering_calibration_internal Internal Calibration
+The InternalCalibration uses reference masses for calibration. At least two reference masses have to
+exist in each spectrum, otherwise it is not calibrated. The data to be calibrated can be raw data or
+already picked data. If we have raw data, a peak picking step is necessary. For the important peak picking
+parameters, have a look at the @ref  transformations_pp section.
+
+The following example (Tutorial_InternalCalibration.C) shows how to use the InternalCalibration for raw data.
+First the data and reference masses are loaded.
+
+@dontinclude Tutorial_InternalCalibration.C
+  @skip  main
+  @until 2465.19833942
+
+Then we set the important peak picking parameters and run the internal calibration:
+  @skip  Param
+  @until end of main
+
+
+@subsection filtering_calibration_external TOF Calibration
+The TOFCalibration uses calibrant spectra to convert a spectrum containing time-of-flight values into one
+with m/z values. For the calibrant spectra, the expected masses need to be known as well as the
+calibration constants in order to convert the calibrant spectra tof into m/z (determined by the instrument). Using the
+calibrant spectra's tof and m/z-values, first a quadratic curve fitting is done. The remaining error is estimated
+by a spline curve fitting. The quadratic function and the splines are used to determine the calibration equation
+for the conversion of the experimental data.
+
+The following example (Tutorial_TOFCalibration.C) shows how to use the TOFCalibration for raw data.
+First the spectra and reference masses are loaded.
+
+@dontinclude Tutorial_TOFCalibration.C
+  @skip main
+	@until }
+
+Then we set the calibration constants	for the calibrant spectra.
+  @until ec.setML3s
+
+Finally, we set the important peak picking parameters and run the external calibration:
+  @until end of main
+
+
+*/
+
+//####################################### CHEMISTRY #######################################
+
+/**
+
+@page tutorial_chemistry Chemistry
+
+Especially for peptide/protein identification, a lot of data and data structures for
+chemical entities are needed. OpenMS offers classes for elements, formulas, peptides, etc.
+The classes described in this section can be found in the @a CHEMISTRY folder.
+
+@section Elements
+
+There is a representation of Elements implemented in %OpenMS. The correcsponding class is named @a Element. This class stores the relevant information about an element. The handling of the Elements is done by the class ElementDB, which is implemented as a singleton. This means there is only one instance of the class in %OpenMS. This is straightforward because the Elements do not change during execution. Data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others.
+
+Example (Tutorial_Element.C):
+
+@dontinclude Tutorial_Element.C
+@skip ElementDB* db
+@until endl
+
+Elements can be accessed by the @a ElementDB class. As it is implemented as a singleton, only a pointer of the singleton can be used, via @a getInstance(). The example program writes the following output to the console.
+
+	@code
+		Carbon C 12 12.0107
+	@endcode
+
+
+@section EmpiricalFormula
+
+The Elements described in the section above can be combined to empirical formulas. Application are the exact weights of molecules, like peptides and their isotopic distributions. The class supports a large number of operations like addition and subtraction. A simple example is given in the next few lines of code.
+
+Example (Tutorial_EmpiricalFormula.C):
+
+@dontinclude Tutorial_EmpiricalFormula.C
+@skip methanol
+@until endl
+
+Two instances of empirical formula are created. They are summed up, and some information about the new formula is printed to the terminal. The next lines show how to create and handle a isotopic distribution of a given formula.
+
+@skip iso_dist
+	@until }
+
+The isotopic distribution can be simply accessed by the @a getIsotopeDistribution() function. The parameter of this function describes how many isotopes should be reported. In our case, 3 are enough, as the following numbers get very small. On larger molecules, or when one want to have the exact distribution, this number can be set much higher. The output of the code snipped might look like this.
+
+	@code
+		O2CH6 1 50.0571
+		50 0.98387
+		51 0.0120698
+		52 0.00406
+	@endcode
+
+
+@section Residue
+
+A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residues can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity and pk values are also available.
+
+Example (Tutorial_Residue.C):
+
+@dontinclude Tutorial_Residue.C
+@skip  const ResidueDB* res_db = ResidueDB::getInstance();
+@until endl
+
+This small example show how to create a instance of ResidueDB were all Residues are stored in. The amino acids themselves can be accessed via the getResidue function. ResidueDB reads its amino acid and modification data from share/OpenMS/CHEMISTRY/.
+
+The output of the example would look like this
+
+  @code
+		Lysine LYS K 146.188
+	@endcode
+
+
+@section AASequence
+This class handles the amino acid sequences in %OpenMS. A string of amino acid residues can be turned into a instance of @a AASequence to provide some commonly used operations and data. The implementation supports mathematical operations like addition or subtraction. Also, average and mono isotopic weight and isotope distributions are accessible.
+
+Weights, formulas and isotope distribution can be calculated depending on the charge state (additional proton count in case of positive ions) and ion type. Therefore, the class allows for a flexible handling of amino acid strings.
+
+A very simple example of handling amino acid sequence with AASequence is given in the next few lines.
+
+Example (Tutorial_AASequence.C):
+
+@dontinclude Tutorial_AASequence.C
+@skip DFPIANGER
+@until endl
+
+Not only the prefix, suffix and subsequence accession is supported, but also most of the features of EmpiricalFormulas and Residues given above. Additionally, a number of predicates like hasSuffix are supported. The output of the code snippet looks like this.
+
+	@code
+		DFPIANGER DFPI ANGER 1018.08
+	@endcode
+
+
+@section TheoreticalSpectrumGenerator
+
+This class implements a simple generator which generates tandem MS spectra from a given peptide charge combination. There are various options which influence the occurring ions and their intensities.
+
+Example (Tutorial_TheoreticalSpectrumGenerator.C)
+
+@dontinclude Tutorial_TheoreticalSpectrumGenerator.C
+@skip tsg
+@until Spectrum 2
+
+The example shows how to put peaks of a certain type, y-ions in this case, into a spectrum. Spectrum 2 is filled with a complete spectrum of all peaks (a-, b-, y-ions and losses). The TheoreticalSpectrumGenerator has many parameters which have a detailed description located in the class documentation. The output of the program looks like the following two lines.
+
+	@code
+		Spectrum 1 has 8 peaks.
+		Spectrum 2 has 32 peaks.
+	@endcode
+
+*/
+
+
+//####################################### MAPALIGNMENT #######################################
+
+/**
+
+@page tutorial_mapalignment Map alignment
+
+%OpenMS offers a number of map alignment algorithms. The take several peak or feature maps and transform
+the retention time axis so that peak/feature positions become comparable.
+
+The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
+
+All map alignment algorithms are derived from the common base class @em MapAlignmentAlgorithm and, thus, share
+a common interface. That is why only one example (Tutorial_MapAlignment.C) is shown here. Other algorithms can be work accordingly.
+
+First, we load two feature maps:
+	@dontinclude Tutorial_MapAlignment.C
+	@skip main
+	@until Tutorial_MapAlignment_2
+
+Then, we instanciate the algorithm and align the feature maps:
+	@until alignFeatureMaps
+
+Finally, the aligned maps are written to files:
+	@until end of main
+As an additional output the algorithms return one @em TransformationDescription per input file.
+This @em TransformationDescription describes the transformation that was applied to the retention times.
+
+@note In order to align peak maps the method @em alignPeakMaps has to be used.
+*/
+
+//####################################### QUANTITATION #######################################
+
+/**
+
+@page tutorial_featuregrouping Feature grouping
+
+Based on the features found during the @ref transformations_ff, quantitation can be performed.
+%OpenMS offers a number of feature grouping algorithms. The take one or several feature maps and group feature
+in one map or across maps, depending on the algorithm.
+
+The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
+
+All feature grouping algorithms are derived from the common base class @em FeatureGroupingAlgorithm and, thus, share a common interface. Currently two algorithms are implemented. One for isotope-labeled experiments with
+two labels and another for label-free quantitation.
+
+@section tutorial_featuregrouping_unlabeled Feature grouping for label-free quantitation
+
+	The first example shows the label-free quantitation (Tutorial_Unlabeled.C):
+
+	First, we load two feature maps:
+		@dontinclude Tutorial_Unlabeled.C
+		@skip main
+		@until Tutorial_Unlabeled_2
+
+	In order to write the a valid output file, we need to set the input file names and sizes.
+		@until maps[1].size()
+
+	Then, we instanciate the algorithm and group the features:
+		@until algorithm.group
+
+	Finally, we store the grouped features in a consensusXML file.
+		@until end of main
+
+
+@section tutorial_featuregrouping_labeled Feature grouping for isotope-labeled quantitation
+
+	The second example shows the isotope-labeled quantitation (Tutorial_Labeled.C):
+
+	First, we load the feature map:
+		@dontinclude Tutorial_Labeled.C
+		@skip main
+		@until Tutorial_Labeled.featureXML
+
+	The isotope-labeled quantitation finds two types of features in the same map (heavy and light variant).
+	So we add two map descriptions with the same file name to the output and set the labels accordingly:
+		@until "heavy"
+
+	Then, we instanciate the algorithm and group the features:
+		@until algorithm.group
+
+	Finally, we store the grouped features in a consensusXML file. In order to write a valid file, we need to set the input file names and sizes.
+		@until end of main
+
+*/
+
+//####################################### IDENTIFICATION #######################################
+
+//####################################### VISUAL #######################################
+
+/**
+
+@page tutorial_visual Visualization
+
+Visualization in %OpenMS is based on Qt.
+
+@section visualization_1D 1D view
+
+All types of peak or feature visualization share a common interface. So here only an example how to visualize
+a single spectrum is given (Tutorial_Spectrum1D.C).
+
+First we need to create a @a QApplication in order to be able to use Qt widgets in out application.
+	@dontinclude Tutorial_Spectrum1D.C
+  @skip main
+  @until QApplication
+
+Then we load a DTA file (the first command line argument of our application).
+	@until DTAFile
+
+Then we create a widget for 1D visualization and hand over the data.
+	@until show
+
+Finally we start the application.
+	@until end of main
+
+@section visualization_param Visual editing of parameters
+
+@a Param objects are used to set algorithm parameters in %OpenMS. In order to be able to visually edit them, the @a ParamEditor
+class can be used. The following example (Tutorial_ParamEditor.C) show how to use it.
+
+We need to create a QApplication, load the data from a file (e.g. the parameters file of any TOPP tool),
+create the @a ParamEditor and execute the application:
+	@dontinclude Tutorial_ParamEditor.C
+  @skip main
+  @until exec
+
+When it is closed, we store the result back to the @a Param object and then to the file.
+	@until end of main
+*/
+
+//####################################### CLUSTERING #######################################
+
+/**
+
+@page tutorial_clustering Clustering
+
+In OpenMS, generic hierarchical clustering is available, the example (Tutorial_Clustering.C)
+shows how to build a rudimental clustering pipeline.
+
+@section Inputdata
+
+All types of data can be clustered, as long as a SimilarityComparator for the type is provided.
+This Comparator has to produce a similarity measurment with the @a ()-operator in the
+range of @a [0,1] for each two elements of this type, so it can be transformed to a
+distance. Some SimilarityComparators are already implemented, e.g. the baseclass for the
+PeakSpectrum-type SimilarityComparator is OpenMS::PeakSpectrumCompareFunctor.
+
+	@dontinclude Tutorial_Clustering.C
+  @skip LowLevelComparator
+  @until end of LowLevelComparator
+
+This example of a SimilarityComparator is very basic and takes onedimensional input of @a doubles
+in the range of @a [0,1]. Real input will generally be more complex and so has to be the
+corresponding SimilarityComparator. Note that similarity in the example is calculated by
+@a 1-distance, whereas generally distance is obtained by getting the similarity and not the other
+way round.
+
+@section Clustering
+
+Clustering is conducted in the @a OpenMS::ClusterHierarchical class that offers an easy way to perform the clustering.
+
+  @skip main
+  @until must be filled
+  @skip llc
+  @until setThreshold
+
+The @a ClusterHierarchical functions will need at least these arguments, setting the threshold is
+optional (per default set to 1,0). The template-arguments have to be set to the type of clustered data and the type of CompareFunctor used. In this example double and LowLevelComparator.
+
+  @skip clustering
+  @until ch.cluster
+
+This function will create a hirarchical clustering up to the threshold. See @ref Output.
+
+@section Output
+
+If known, at what threshold (see @a OpenMS::ClusterHierarchical::cluster) a reasonable clustering is produced,
+the setting of the right threshold can potentually speed up the clustering process. After exceeding the threshold,
+the resulting tree (std::vector of OpenMS::BinaryTreeNode) is filled with dummy nodes. The tree represents the hirarchy of
+clusters by storing the stepwise merging process. It can eventually be transformed to a tree-representation in Newick-format
+and/or be analyzed with other methods the OpenMS::ClusterAnalyzer class provides.
+
+  @skip ClusterAnalyzer
+  @until return
+  @skip end of main
+  @until end of main
+
+So the output will look something like this (may actually vary since random numbers are used in this example):
+@code
+( ( ( ( ( 0 , 1 ) , ( 2 , ( 7 , 8 ) ) ) , ( ( 3 , 10 ) , ( 4 , 5 ) ) ) , ( 6 , 9 ) ) , 11 )
+@endcode
+
+
+For closer survey of the clustering process one can also view the whole hirarchy by viewing the tree in Newick-format
+with a tree viewer such as TreeViewX. A visualization of a particular cluster step (which gives rise
+to a certain partition of the data clustered) can be created with heatmaps (for example with gnuplot 4.3 heatmaps and the
+corresponding distance matrix).
+
+*/
+
+//####################################### PIP #######################################
+
+/**
+	@page tutorial_pip Peak Intensity Prediction
+
+		This tutorial will give you an overview of how to use the peak intensity prediction (PIP).
+		In general, PIP allows you to predict the peak intensity of a peptide relative to other 
+		peptides of the same abundance from its sequence alone. At the same time, this value allows to
+		correct peak intensities for peptide-specific instrument sensitivity in a label-free quantitation
+		application. 
+
+		This method is still in an early phase: A proof of concept has been conducted and published 
+		in <b><A HREF="#References">[1]</A></b>. Peak intensities @em can be predicted with significant correlations, 
+		but application tests are yet to come.
+
+	@section PIP_background Background
+		
+		The sensitivity of a mass spectrometer depends on the analyzed peptides, among other factors.
+		This peptide-specific sensitivity causes peak heights of peptides with the same abundance to be
+		generally different. PIP incorporates a model that maps peptide sequences to peptide-specific 
+		sensitivities. 
+
+	@section PIP_details Machine learning details
+		The incorporated model has been adapted with a Local Linear Map <b><A HREF="#References">[2]</A></b> - 
+		a machine learning algorithm that uses both supervised and unsupervised learning in its training, 
+		and which is fast and easy to implement. Better results can be achieved with other learning 
+		architectures <b><A HREF="#References">[3]</A></b>, however, these are not implemented in this 
+		prototype stage yet.
+
+	@section PIP_training About the training data
+		The model which the PIP module uses has been trained with data from a Bruker Ultraflex MALDI-TOF 
+		instrument.
+		Details about these data can be found with <b><A HREF="#References">[3]</A></b>. 
+		A Pearson's squared correlation of 0.43 in ten-fold cross-validation and of 0.34 across datasets from the same 
+		instrument (but with different settings and operating persons) could be achieved. There is no experience 
+		yet about the performance across instruments. So we would be pleased if you could share your experience 
+		with the model incorporated in PIP applied to other datasets.
+
+		@n At this point, it is not possible to train a model with your own data, but it is a planned feature. 
+		It is as of yet unknown how similar peptide-specific sensitivities behave between different MALDI instruments.
+
+	@section PIP_howto How to use PIP
+		PIP lets you predict intensities using peptide sequences as input. 
+		The output values have been normalized to a mean of 0 and variance 1.
+		
+		@n To @b test PIP with data from your instrument, MALDI spectra that contain only peptides of one 
+		protein can be used: 
+		-# Normalize your peak intensities with the sum of only the peptide's peaks to make them comparable
+		to other spectra. 
+		-# Logarithmize the resulting values. 
+		-# Center and normalize your peak intensities by variance (of course, multiple spectra should be 
+		used to find mean and variance), these value are referred to as @em tI in the following.
+		-# Predict the peptide's peak intensities (referred to as @em pI in the following)
+		-# Calculate the correlation between the @em tI and @em pI. If you calculate exp(log(tI) - pI), 
+		it should give 1 as a result in this test.
+
+		@n To calculate relative peptide abundance (relative to those of the other peptides in the mixture) 
+		from intensities of a peptide mixture using values predicted by PIP, do above steps 2. to 4. 
+		Then calculate the peptide level @em x = exp(log(tI) - pI). @b !!! The quantification with an actual 
+		protein mixture has never been tested with this model. 
+
+
+	@section PIP_example Example code
+		There is a usage example for the PeakIntensityPredictor class in 
+		<tt>source/EXAMPLES/Tutorial_PeakIntensityPredictor.C</tt>.
+		
+		Sequences of peptides to be predicted should be stored in a vector of AASequence instances:
+
+		@dontinclude Tutorial_PeakIntensityPredictor.C
+	  @skip Create
+	  @until TELGFDPEAHFAIDDEVIAHTR
+
+		Then create an instance of the model, and predict the peak intensities of the peptides:
+		
+		@until model.predict
+
+		You can output AASequence instances like normal strings:
+		
+		@until }
+
+	@section References References
+		<A NAME="References"></a>
+		\arg \c <b>[1]</b>:<A HREF="http://bieson.ub.uni-bielefeld.de/frontdoor.php?source_opus=1370">
+		Wiebke Timm:  <em>Peak Intensity Prediction in Mass Spectra using Machine Learning Methods</em>,
+		PhD Thesis (2008)</A>
+		\arg \c <b>[2]</b>:Helge Ritter: <em>Learning with Self-Organizing Map, Artificial Neural Networks</em>, 
+				In T. Kohonen et al., eds.: Artificial Neural Networks, Elsevier Science Publishers (1991), 379-384
+		\arg \c <b>[3]</b>:<A HREF="http://www.biomedcentral.com/1471-2105/9/443">
+		W. Timm, A. Scherbart, S. B&ouml;cker, O. Kohlbacher, T.W. Nattkemper: <em>Peak Intensity Prediction in 
+		MALDI-TOF Mass Spectrometry: A Machine Learning Study to support Quantitative Proteomics</em>, 
+		BMC Bioinformatics (2008)</A>
+
+*/
+
+//####################################### HOWTO #######################################
+
+/**
+
+@page tutorial_howto HowTo
+
+@section howto_algorithm Creating a new algorithm
+
+Most of the algorithms in %OpenMS share the following base classes:
+- @a ProgressLogger is used to report the progress of the algorithm.
+- @a DefaultParamHandler is used to make the handling of parameters (and their defaults) easy. @n
+  In most cases, you will not even need accessors for single parameters.
+
+The interfaces of an algorithm depend on the datastructures it works on.
+For an algorithm that works on peak data, a non-template class should be used that provides template methods operating
+on @a MSExperiment or @a MSSpectrum, no matter which peak type is used.
+See @a PeakPickerCWT for an example.
+
+For algorithms that do not work on peak data, templates should be avoided.
+
+*/

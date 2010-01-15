@@ -1,0 +1,89 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/**
+	
+	@page TOPP_tutorial TOPP tutorial
+	
+
+	This tutorial introduces you to TOPP and TOPPView. We start by describing the intent
+	and concept of TOPP compared to %OpenMS. Then we introduce you to the handling
+	of TOPPView which is our central GUI. Apart from viewing data you are also able
+	to analyze it in TOPPView using selected TOPP tools. How do do this is explained
+	in the third part of the Tutorial. Finally we give a complete list and command line
+	interfaces for all TOPP tools contained in the release.
+	
+	<b>Concepts</b>
+		
+		This part of the tutorial explains the intent of @subpage TOPP_concepts .
+
+	<b>TOPPView main interface</b>
+	
+		This part of the tutorial illustrates the main features of TOPPView and shows its basic use. 
+		
+		- @subpage TOPPView_introduction
+		- @subpage TOPPView_views
+		- @subpage TOPPView_modes
+		- @subpage TOPPView_analysis
+		- @subpage TOPPView_editing
+		- @subpage TOPPView_hotkeys
+
+	<b>Calling TOPP tools from TOPPView</b>
+	
+		This part of the tutorial illustrates how to interactively analyze proteomics data using TOPP tools from within TOPPView.
+		
+		- @subpage TOPPView_smoothing
+		- @subpage TOPPView_baseline_reduction
+		- @subpage TOPPView_peakpicking
+		- @subpage TOPPView_feature_detection_centroided
+
+	<b>Scripting with TOPP</b>
+	
+		This part of the tutorial will give you a detailled overview of the most important TOPP tools.
+		First, some basics that you will need for every TOPP tool are explained, then several example pipelines are shown.
+		
+		- @subpage TOPP_general
+		- @subpage TOPP_example_handling
+		- @subpage TOPP_example_signalprocessing
+		- @subpage TOPP_example_calibration
+		- @subpage TOPP_example_mapalignment
+		- @subpage TOPP_example_featuredetection
+		- @subpage TOPP_example_featuregrouping
+		- @subpage TOPP_example_id
+		- @subpage TOPP_example_ppp
+		- @subpage TOPP_example_convert
+	
+	<b>Using TOPPAS to create and run TOPP pipelines</b>
+	
+		This part of the tutorial introduces TOPPAS, a tool for visual creation
+		and execution of TOPP pipelines.
+		
+		- @subpage TOPPAS_general
+		- @subpage TOPPAS_interface
+		- @subpage TOPPAS_examples
+	
+*/

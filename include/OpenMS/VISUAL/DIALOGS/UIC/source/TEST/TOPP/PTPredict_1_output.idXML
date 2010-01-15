@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:///some/path/to/IdXML.xsl?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2006-03-09T11:31:52" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="Q824A5" score="32.3" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
+			<PeptideHit score="5.41" sequence="LLNGTVVSK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.5"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
+			<PeptideHit score="7.87" sequence="QNAGETWHDITGNR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.7251511"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="WHWYHFDGTDWDESR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.8172093"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="EGDSSVANSGLAALITDGPGGAK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.4190557"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="LQNDSAYLAEHGITAVWIPPAYK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.2272643"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="QYAYGAQHDYFDHHDIVGWTR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.8429307"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="AWTHFHFPGR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.8984382"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="YPILPEYLQCVK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.8439298"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="AFKDEDTQAMPFR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.5150063"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="GGLEPINFQTAADQAR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.7576724"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="EVVGSAEAGVDAASVSEEFR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.8584208"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="FDKLPGFGDSIEAQCGTSVNVHSSLR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.4078715"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="EVVGSAEAGVDAASVSEEFRADHPFLFCIK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.5351555"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="ILELPFASGTMSMLVLLPDEVSGLEQLESIINFEK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.2278364"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="HIATNAVLFFGR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.8481819"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="LTEWTSSNVMEER" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.528657"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="VTEQESKPVQMMYQIGLFR" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.3517904"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="VHHANENIFYCPIAIMSALAMVYLGAK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.04798472"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="VLDALDSIK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.640366"/>
+			</PeptideHit>
+			<PeptideHit score="7.87" sequence="MVNNGHSFNVEYDDSQDK" charge="2" >
+				<UserParam type="float" name="predicted_PT" value="0.5605775"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

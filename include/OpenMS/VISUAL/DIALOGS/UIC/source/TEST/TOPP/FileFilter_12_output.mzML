@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="document_accession" version="1.1.0">
+	<cvList count="2">
+		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+		<cv id="UO" fullName="Unit Ontology" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+	</cvList>
+	<fileDescription>
+		<fileContent>
+			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+		</fileContent>
+		<sourceFileList count="2">
+			<sourceFile id="sf_ru_0" name="tiny1.RAW" location="file:///F:/data/Exp01">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1" />
+				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" />
+				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
+				<userParam name="name" type="xsd:string" value="sourcefile1"/>
+			</sourceFile>
+			<sourceFile id="sf_sp_1" name="tiny1.dta" location="file:///F:/data/Exp01">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+				<userParam name="name" type="xsd:string" value="sourcefile4"/>
+			</sourceFile>
+		</sourceFileList>
+		<contact>
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Pennington, William" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="dort" />
+			<cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA" />
+			<cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.higglesworth.edu/" />
+			<cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="wpennington@higglesworth.edu" />
+			<userParam name="name" type="xsd:string" value="contact1"/>
+		</contact>
+		<contact>
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Drek'Thar, " />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="da" />
+			<userParam name="name" type="xsd:string" value="contact2"/>
+		</contact>
+	</fileDescription>
+	<sampleList count="1">
+		<sample id="sa_0" name="Sample1">
+			<cvParam cvRef="MS" accession="MS:1000001" name="sample number" value="5" />
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="11.7"  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="3.1" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="5.5" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000052" name="suspension" />
+			<userParam name="name" type="xsd:string" value="sample"/>
+			<userParam name="sample batch" type="xsd:string" value="4.4"/>
+			<userParam name="brenda source tissue" type="xsd:string" value="cardiac muscle"/>
+			<userParam name="GO cellular component" type="xsd:string" value="nucleus"/>
+			<userParam name="cellular quality" type="xsd:string" value="11.11"/>
+		</sample>
+	</sampleList>
+	<softwareList count="8">
+		<software id="so_in_0" version="3.3.1 sp1" >
+			<cvParam cvRef="MS" accession="MS:1000533" name="Bioworks" />
+		</software>
+		<software id="so_default" version="" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+		<software id="so_dp_sp_0_pm_0" version="2.0.5" >
+			<cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur" />
+		</software>
+		<software id="so_dp_sp_0_pm_1" version="1.0" >
+			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" />
+		</software>
+		<software id="so_dp_sp_0_pm_2" version="version_string" >
+			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
+		</software>
+		<software id="so_dp_sp_1_pm_0" version="2.0.5" >
+			<cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur" />
+		</software>
+		<software id="so_dp_sp_1_pm_1" version="version_string" >
+			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
+		</software>
+		<software id="so_dp_sp_1_bi_0_pm_0" version="1.6.1" >
+			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
+		</software>
+	</softwareList>
+	<instrumentConfigurationList count="1">
+		<instrumentConfiguration id="ic_0">
+			<cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca" />
+			<cvParam cvRef="MS" accession="MS:1000032" name="customization" value="Umbau" />
+			<cvParam cvRef="MS" accession="MS:1000221" name="magnetic deflection" />
+			<userParam name="name" type="xsd:string" value="instrumentConfiguration"/>
+			<userParam name="instrument serial number" type="xsd:string" value="23433"/>
+			<componentList count="6">
+				<source order="101">
+					<cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" />
+					<cvParam cvRef="MS" accession="MS:1000073" name="electrospray ionization" />
+					<userParam name="name" type="xsd:string" value="source1"/>
+				</source>
+				<source order="102">
+					<cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" />
+					<cvParam cvRef="MS" accession="MS:1000074" name="fast atom bombardment ionization" />
+					<userParam name="name" type="xsd:string" value="source2"/>
+				</source>
+				<analyzer order="201">
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="10.5" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="11.1" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="14.56" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" />
+					<userParam name="name" type="xsd:string" value="analyzer1"/>
+				</analyzer>
+				<analyzer order="202">
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="0" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="1414.14" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap" />
+					<userParam name="name" type="xsd:string" value="analyzer2"/>
+				</analyzer>
+				<detector order="301">
+					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="5.1" />
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" />
+					<cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" />
+					<userParam name="name" type="xsd:string" value="detector1"/>
+				</detector>
+				<detector order="302">
+					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="6.1" />
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" />
+					<cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" />
+					<userParam name="name" type="xsd:string" value="detector2"/>
+				</detector>
+			</componentList>
+			<softwareRef ref="so_in_0" />
+		</instrumentConfiguration>
+	</instrumentConfigurationList>
+	<dataProcessingList count="4">
+		<dataProcessing id="dp_sp_0">
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
+				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
+				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
+				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
+				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9"/>
+				<userParam name="p1" type="xsd:string" value="value1"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:10" />
+				<userParam name="p2" type="xsd:string" value="value2"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
+				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1">
+			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_0">
+				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
+				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
+				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
+				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9"/>
+				<userParam name="p1" type="xsd:string" value="value1"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_1">
+				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_0">
+			<processingMethod order="0" softwareRef="so_dp_sp_1_bi_0_pm_0">
+				<cvParam cvRef="MS" accession="MS:1000778" name="charge state calculation" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:15" />
+				<userParam name="p3" type="xsd:string" value="value3"/>
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_1">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+	</dataProcessingList>
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45" defaultSourceFileRef="sf_ru_0">
+				<cvParam cvRef="MS" accession="MS:1000858" name="fraction identifier" value="the_best_fraction_ever" />
+		<userParam name="mzml_id" type="xsd:string" value="document_id"/>
+		<userParam name="int" type="xsd:integer" value="5"/>
+		<userParam name="string" type="xsd:string" value="bla"/>
+		<userParam name="flag" type="xsd:string" value=""/>
+		<userParam name="float" type="xsd:double" value="5.11"/>
+		<spectrumList count="3" defaultDataProcessingRef="dp_sp_0">
+			<spectrum id="index=0" index="0" defaultArrayLength="15" dataProcessingRef="dp_sp_0">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+					<userParam name="maldi_spot_id" type="xsd:string" value="M0"/>
+					<userParam name="lowest observed m/z" type="xsd:double" value="400.39"/>
+					<userParam name="highest observed m/z" type="xsd:double" value="1795.56"/>
+					<userParam name="lowest observed wavelength" type="xsd:double" value="500.39"/>
+					<userParam name="highest observed wavelength" type="xsd:double" value="795.56"/>
+					<userParam name="base peak m/z" type="xsd:double" value="445.347"/>
+					<userParam name="base peak intensity" type="xsd:double" value="120054"/>
+					<userParam name="total ion current" type="xsd:double" value="16675500"/>
+					<userParam name="spectrum title" type="xsd:string" value="title"/>
+					<userParam name="peak list scans" type="xsd:string" value="15 scans"/>
+					<userParam name="peak list raw scans" type="xsd:string" value="16 scans"/>
+					<userParam name="sdname" type="xsd:string" value="spectrumdescription1"/>
+					<userParam name="scan rate" type="xsd:double" value="17.17"/>
+					<userParam name="mass resolving power" type="xsd:string" value="4.299"/>
+					<userParam name="mass resolution" type="xsd:string" value="4.3"/>
+					<userParam name="elution time (seconds)" type="xsd:double" value="55.11"/>
+					<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+					<userParam name="preset scan configuration" type="xsd:string" value="3 abc"/>
+					<userParam name="analyzer scan offset" type="xsd:double" value="-4.5"/>
+					<userParam name="dwell time" type="xsd:double" value="123.45"/>
+					<userParam name="mzname" type="xsd:string" value="mzarray1"/>
+					<userParam name="itname" type="xsd:string" value="itarray1"/>
+				<scanList count="2">
+					<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra" />
+					<userParam name="name" type="xsd:string" value="acquisition_list"/>
+					<scan externalSpectrumID="4711">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<userParam name="name" type="xsd:string" value="acquisition1"/>
+						<userParam name="source_file_name" type="xsd:string" value="ac.dta"/>
+						<userParam name="source_file_path" type="xsd:string" value="file:///F:/data/Exp02"/>
+						<scanWindowList count="1">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<userParam name="name" type="xsd:string" value="scanwindow1"/>
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+					<scan externalSpectrumID="4712">
+						<userParam name="name" type="xsd:string" value="acquisition2"/>
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="160">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="80">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AABwQQAAYEEAAFBBAABAQQAAMEEAACBBAAAQQQAAAEEAAOBAAADAQAAAoEAAAIBAAABAQAAAAEAAAIA/</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="index=1" index="1" defaultArrayLength="10" sourceFileRef="sf_sp_1">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+					<userParam name="maldi_spot_id" type="xsd:string" value="M1"/>
+					<userParam name="lowest observed m/z" type="xsd:double" value="320.39"/>
+					<userParam name="highest observed m/z" type="xsd:double" value="1003.56"/>
+					<userParam name="base peak m/z" type="xsd:double" value="456.347"/>
+					<userParam name="base peak intensity" type="xsd:double" value="23433"/>
+					<userParam name="total ion current" type="xsd:double" value="16675500"/>
+					<userParam name="sdname" type="xsd:string" value="spectrumdescription2"/>
+					<userParam name="mass resolution" type="xsd:string" value="4.1"/>
+					<userParam name="filter string" type="xsd:string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
+					<userParam name="preset scan configuration" type="xsd:string" value="4"/>
+					<userParam name="mzname" type="xsd:string" value="mzarray2"/>
+					<userParam name="itname" type="xsd:string" value="itarray2"/>
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan externalSpectrumID="0">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.2" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<scanWindowList count="3">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="600" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1000" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="1100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+				</scanList>
+      <precursorList count="2">
+          <precursor>
+            <isolationWindow>
+              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="5.5555" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="6.66" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="7.77" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+            </isolationWindow>
+            <selectedIonList count="1">
+              <selectedIon>
+                <cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="5.5555" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+                <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="120053" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="1" />
+                <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="3" />
+                <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="4" />
+              </selectedIon>
+            </selectedIonList>
+            <activation>
+              <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+            <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
+            <cvParam cvRef="MS" accession="MS:1000134" name="plasma desorption" />
+						<userParam name="source_file_name" type="xsd:string" value="pr.dta"/>
+						<userParam name="source_file_path" type="xsd:string" value="file:///F:/data/Exp03"/>
+						<userParam name="iwname" type="xsd:string" value="isolationwindow1"/>
+						<userParam name="siname" type="xsd:string" value="selectedion1"/>
+						<userParam name="buffer gas" type="xsd:string" value="Krypton"/>
+						<userParam name="collision gas" type="xsd:string" value="Argon"/>
+						<userParam name="collision energy" type="xsd:string" value="4.2"/>
+						<userParam name="acname" type="xsd:string" value="activation1"/>
+          </activation>
+        </precursor>
+          <precursor>
+            <isolationWindow>
+              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="16.66" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="17.77" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+            </isolationWindow>
+            <selectedIonList count="1">
+              <selectedIon>
+                <cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="15.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
+                <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
+              </selectedIon>
+            </selectedIonList>
+            <activation>
+              <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="36" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+            <cvParam cvRef="MS" accession="MS:1000598" name="electron transfer dissociation" />
+						<userParam name="iwname" type="xsd:string" value="isolationwindow2"/>
+						<userParam name="acname" type="xsd:string" value="activation2"/>
+          </activation>
+        </precursor>
+      </precursorList>
+				<binaryDataArrayList count="4">
+					<binaryDataArray encodedLength="108">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="10" encodedLength="108" dataProcessingRef="dp_sp_1_bi_0">
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000517" name="signal to noise array" />
+						<userParam name="name" type="xsd:string" value="binaryDataArray_sn"/>
+						<userParam name="name2" type="xsd:string" value="binaryDataArray_sn2"/>
+						<binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="10" encodedLength="108" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="user-defined name" />
+						<userParam name="name" type="xsd:string" value="binaryDataArray_c"/>
+						<binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="index=2" index="2" defaultArrayLength="15" dataProcessingRef="dp_sp_1">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+					<userParam name="maldi_spot_id" type="xsd:string" value="M2"/>
+					<userParam name="lowest observed m/z" type="xsd:double" value="400.39"/>
+					<userParam name="highest observed m/z" type="xsd:double" value="1795.56"/>
+					<userParam name="base peak m/z" type="xsd:double" value="445.347"/>
+					<userParam name="base peak intensity" type="xsd:double" value="120054"/>
+					<userParam name="total ion current" type="xsd:double" value="16675500"/>
+					<userParam name="sdname" type="xsd:string" value="spectrumdescription3"/>
+					<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+					<userParam name="preset scan configuration" type="xsd:string" value="3"/>
+				<scanList count="2">
+					<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra" />
+					<userParam name="name" type="xsd:string" value="acquisition_list"/>
+					<scan externalSpectrumID="4711">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.3" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<userParam name="name" type="xsd:string" value="acquisition1"/>
+						<scanWindowList count="1">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+					<scan externalSpectrumID="4712">
+						<userParam name="name" type="xsd:string" value="acquisition2"/>
+					</scan>
+				</scanList>
+        <productList count="2">
+          <product>
+            <isolationWindow>
+              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.88" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="1" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<userParam name="iwname" type="xsd:string" value="isolationwindow3"/>
+            </isolationWindow>
+        </product>
+          <product>
+            <isolationWindow>
+              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.99" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="3" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="4" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<userParam name="iwname" type="xsd:string" value="isolationwindow4"/>
+            </isolationWindow>
+        </product>
+      </productList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="160">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="80">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AABwQQAAYEEAAFBBAABAQQAAMEEAACBBAAAQQQAAAEEAAOBAAADAQAAAoEAAAIBAAABAQAAAAEAAAIA/</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+		</spectrumList>
+	</run>
+</mzML>

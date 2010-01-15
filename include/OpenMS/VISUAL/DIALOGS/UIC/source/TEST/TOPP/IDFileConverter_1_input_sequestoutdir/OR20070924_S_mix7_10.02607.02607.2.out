@@ -1,0 +1,28 @@
+
+ ./OR20070924_S_mix7_10.02607.02607.2.out
+ SEQUEST v.27 (rev. 0), (c) 1993
+ Molecular Biotechnology, Univ. of Washington, J.Eng/J.Yates
+ Licensed to Finnigan Corp., A Division of ThermoQuest Corp.
+ 01/13/2008, 02:50 AM, 1 sec. on regis72
+ (M+H)+ mass = 1339.6160 ~ 3.0000 (+2), fragment tol = 0.0, MONO/AVG
+ total inten = 5509.1, lowest Sp = 119.7, # matched peptides = 28032
+ # amino acids = 567460, # proteins = 1822, /dbase/misc/18mix092106/18mix092106_hinf
+ ion series nABY ABCDVWXYZ: 0 0 0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0
+ display top 5/3, ion % = 0.0, CODE = 0000
+ C=160.009 
+
+  #   Rank/Sp    (M+H)+   deltCn   XCorr    Sp     Ions  Reference                    Peptide
+ ---  -------  ---------  ------  ------   ----    ----  ---------                    -------
+  1.   1 /  1  1338.6149  0.0000  2.6641   668.0  15/22  sp|P00432|CATA_BOVIN       K.LVNADGEAVYCK.F
+  2.   2 / 17  1339.7846  0.4011  1.5955   273.8  11/22  gi|1574003|gb|AAC22634.1|  T.IVLSIIMLGMHL.A
+  3.   3 / 22  1338.7165  0.4236  1.5355   258.0  12/24  gi|1574535|gb|AAC23329.1|  I.ALITAGLMSLAFM.G
+  4.   4 /157  1338.6541  0.4354  1.5042   164.7   8/24  gi|1573678|gb|AAC22337.1|  I.NVKGAFTGDISTE.M
+  5.   5 /139  1338.6806  0.4375  1.4984   169.9   9/24  sp|P02188|MYG_HORSE        N.VWGKVEADIAGHG.Q
+
+  1.  sp|P00432|CATA_BOVIN CATALASE (EC 1.11.1.6) - Bos taurus (Bovine).
+  2.  gi|1574003|gb|AAC22634.1| sodium/pantothenate symporter (panF) [Haemophilu
+      s influenzae Rd]
+  3.  gi|1574535|gb|AAC23329.1| conserved hypothetical protein [Haemophilus infl
+      uenzae Rd]
+
+

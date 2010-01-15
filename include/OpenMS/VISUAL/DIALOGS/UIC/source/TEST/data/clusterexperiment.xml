@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ClusterExperiment>
+  <Data  Name = "subset_150_of_ALL_good_charge_1" Info = "created by ./makeRep 93214977 OpenMS_test 150 1" Size = "150"/>
+  <Info  User = "volker" Date = "Mon Mar  7 23:06:51 2005"/>
+  <ClusterRun finished="1" >
+    <Norm mean = "geometric"/>
+    <SimFunc  name ="SequestCompareFunctor">
+      <info>dummy so ClusterExperiment has something to put in its SequestRun</info>
+      <param name ="filterwindow" value = "5"/>
+      <param name ="isobaric" value = "1"/>
+      <param name ="maxdeltaCN" value = "0.1"/>
+      <param name ="tolerance" value = "0.1"/>
+    </SimFunc>
+    <ClustFunc  name ="LinkageCluster">
+      <info>complete,average and single Linkage</info>
+      <param sdfgsdfg ="cutoff" fgsdfg = "0.4"/>
+      <param name ="linkage" value = "2"/>
+      <param name ="massdiff" value = "3"/>
+      <param name ="split" value = "0"/>
+      <param name ="stepsize" value = "0"/>
+    </ClustFunc>
+    <Clustering>
+      <Cluster id ="1" size ="1" mininum_parent_mass ="1432.91" maximum_parent_mass ="1432.91">
+        <member_id>59143332</member_id>
+      </Cluster>
+      <Cluster id ="2" size ="1" mininum_parent_mass ="1432.92" maximum_parent_mass ="1432.92">
+        <member_id>57371841</member_id>
+      </Cluster>
+      <Cluster id ="3" size ="1" mininum_parent_mass ="1433.56" maximum_parent_mass ="1433.56">
+        <member_id>25147657</member_id>
+      </Cluster>
+      <Cluster id ="4" size ="1" mininum_parent_mass ="1433.85" maximum_parent_mass ="1433.85">
+        <member_id>19174706</member_id>
+      </Cluster>
+      <Cluster id ="5" size ="1" mininum_parent_mass ="1433.95" maximum_parent_mass ="1433.95">
+        <member_id>12280558</member_id>
+      </Cluster>
+      <Cluster id ="6" size ="1" mininum_parent_mass ="1433.96" maximum_parent_mass ="1433.96">
+        <member_id>20347451</member_id>
+      </Cluster>
+      <Cluster id ="7" size ="1" mininum_parent_mass ="1433.97" maximum_parent_mass ="1433.97">
+        <member_id>59154672</member_id>
+      </Cluster>
+      <Cluster id ="8" size ="1" mininum_parent_mass ="1433.97" maximum_parent_mass ="1433.97">
+        <member_id>16055090</member_id>
+      </Cluster>
+      <Cluster id ="9" size ="1" mininum_parent_mass ="1434.52" maximum_parent_mass ="1434.52">
+        <member_id>24090307</member_id>
+      </Cluster>
+      <Cluster id ="10" size ="1" mininum_parent_mass ="1434.61" maximum_parent_mass ="1434.61">
+        <member_id>39561927</member_id>
+      </Cluster>
+      <Cluster id ="11" size ="1" mininum_parent_mass ="1434.69" maximum_parent_mass ="1434.69">
+        <member_id>26803966</member_id>
+      </Cluster>
+      <Cluster id ="12" size ="1" mininum_parent_mass ="1434.76" maximum_parent_mass ="1434.76">
+        <member_id>14125051</member_id>
+      </Cluster>
+      <Cluster id ="13" size ="1" mininum_parent_mass ="1434.83" maximum_parent_mass ="1434.83">
+        <member_id>4537096</member_id>
+      </Cluster>
+      <Cluster id ="14" size ="1" mininum_parent_mass ="1434.92" maximum_parent_mass ="1434.92">
+        <member_id>3119694</member_id>
+      </Cluster>
+      <Cluster id ="15" size ="1" mininum_parent_mass ="1435.55" maximum_parent_mass ="1435.55">
+        <member_id>86735767</member_id>
+      </Cluster>
+      <Cluster id ="16" size ="1" mininum_parent_mass ="1435.63" maximum_parent_mass ="1435.63">
+        <member_id>77584481</member_id>
+      </Cluster>
+      <Cluster id ="17" size ="1" mininum_parent_mass ="1435.77" maximum_parent_mass ="1435.77">
+        <member_id>56353405</member_id>
+      </Cluster>
+      <Cluster id ="18" size ="2" mininum_parent_mass ="1435.82" maximum_parent_mass ="1435.85">
+        <member_id>4258979</member_id>
+        <member_id>54443390</member_id>
+      </Cluster>
+      <Cluster id ="19" size ="2" mininum_parent_mass ="1434.96" maximum_parent_mass ="1434.97">
+        <member_id>55269187</member_id>
+        <member_id>52876584</member_id>
+      </Cluster>
+      <Cluster id ="20" size ="2" mininum_parent_mass ="1432.99" maximum_parent_mass ="1434.95">
+        <member_id>2662465</member_id>
+        <member_id>1089430</member_id>
+      </Cluster>
+      <Cluster id ="21" size ="2" mininum_parent_mass ="1434.86" maximum_parent_mass ="1434.88">
+        <member_id>51591973</member_id>
+        <member_id>52436025</member_id>
+      </Cluster>
+      <Cluster id ="22" size ="2" mininum_parent_mass ="1434.7" maximum_parent_mass ="1434.74">
+        <member_id>50434213</member_id>
+        <member_id>49163651</member_id>
+      </Cluster>
+      <Cluster id ="23" size ="2" mininum_parent_mass ="1434.03" maximum_parent_mass ="1434.04">
+        <member_id>90911982</member_id>
+        <member_id>53245817</member_id>
+      </Cluster>
+      <Cluster id ="24" size ="2" mininum_parent_mass ="1433.97" maximum_parent_mass ="1434.01">
+        <member_id>6211875</member_id>
+        <member_id>56327027</member_id>
+      </Cluster>
+      <Cluster id ="25" size ="2" mininum_parent_mass ="1431.92" maximum_parent_mass ="1433.95">
+        <member_id>86520683</member_id>
+        <member_id>86520941</member_id>
+      </Cluster>
+      <Cluster id ="26" size ="3" mininum_parent_mass ="1431.78" maximum_parent_mass ="1433.84">
+        <member_id>13857986</member_id>
+        <member_id>13779665</member_id>
+        <member_id>13778595</member_id>
+      </Cluster>
+      <Cluster id ="27" size ="2" mininum_parent_mass ="1433.78" maximum_parent_mass ="1433.83">
+        <member_id>11454529</member_id>
+        <member_id>12277701</member_id>
+      </Cluster>
+      <Cluster id ="28" size ="26" mininum_parent_mass ="1432.8" maximum_parent_mass ="1434.95">
+        <member_id>3621706</member_id>
+        <member_id>3393741</member_id>
+        <member_id>83788186</member_id>
+        <member_id>52873772</member_id>
+        <member_id>3622331</member_id>
+        <member_id>83413454</member_id>
+        <member_id>83976460</member_id>
+        <member_id>3390726</member_id>
+        <member_id>3394519</member_id>
+        <member_id>83785590</member_id>
+        <member_id>52398112</member_id>
+        <member_id>75820477</member_id>
+        <member_id>91518589</member_id>
+        <member_id>91515145</member_id>
+        <member_id>3401469</member_id>
+        <member_id>83791681</member_id>
+        <member_id>52876314</member_id>
+        <member_id>52873436</member_id>
+        <member_id>3629521</member_id>
+        <member_id>51489189</member_id>
+        <member_id>3625289</member_id>
+        <member_id>55268761</member_id>
+        <member_id>3397557</member_id>
+        <member_id>83787995</member_id>
+        <member_id>3389925</member_id>
+        <member_id>83413176</member_id>
+      </Cluster>
+      <Cluster id ="29" size ="77" mininum_parent_mass ="1431.76" maximum_parent_mass ="1434.02">
+        <member_id>48235054</member_id>
+        <member_id>57990377</member_id>
+        <member_id>52444541</member_id>
+        <member_id>1672361</member_id>
+        <member_id>55083783</member_id>
+        <member_id>57984086</member_id>
+        <member_id>57004539</member_id>
+        <member_id>57981239</member_id>
+        <member_id>15494343</member_id>
+        <member_id>51604262</member_id>
+        <member_id>55086864</member_id>
+        <member_id>55000923</member_id>
+        <member_id>54913983</member_id>
+        <member_id>53249489</member_id>
+        <member_id>866311</member_id>
+        <member_id>57987504</member_id>
+        <member_id>57696304</member_id>
+        <member_id>52061110</member_id>
+        <member_id>91019819</member_id>
+        <member_id>91289074</member_id>
+        <member_id>54487678</member_id>
+        <member_id>86734774</member_id>
+        <member_id>85243970</member_id>
+        <member_id>84559814</member_id>
+        <member_id>4635801</member_id>
+        <member_id>91121608</member_id>
+        <member_id>52010537</member_id>
+        <member_id>75900746</member_id>
+        <member_id>86608147</member_id>
+        <member_id>85240370</member_id>
+        <member_id>86738689</member_id>
+        <member_id>865243</member_id>
+        <member_id>59091694</member_id>
+        <member_id>55172515</member_id>
+        <member_id>75531788</member_id>
+        <member_id>52064106</member_id>
+        <member_id>80704868</member_id>
+        <member_id>86660219</member_id>
+        <member_id>4632069</member_id>
+        <member_id>75652413</member_id>
+        <member_id>51333907</member_id>
+        <member_id>53025188</member_id>
+        <member_id>54486567</member_id>
+        <member_id>57691282</member_id>
+        <member_id>57983861</member_id>
+        <member_id>53245143</member_id>
+        <member_id>52060925</member_id>
+        <member_id>55079806</member_id>
+        <member_id>1671897</member_id>
+        <member_id>51603470</member_id>
+        <member_id>55085666</member_id>
+        <member_id>15493895</member_id>
+        <member_id>54913230</member_id>
+        <member_id>86734108</member_id>
+        <member_id>15496974</member_id>
+        <member_id>57987073</member_id>
+        <member_id>52444350</member_id>
+        <member_id>53251778</member_id>
+        <member_id>57974871</member_id>
+        <member_id>55000396</member_id>
+        <member_id>52009823</member_id>
+        <member_id>84559070</member_id>
+        <member_id>90911645</member_id>
+        <member_id>15353290</member_id>
+        <member_id>866229</member_id>
+        <member_id>4634931</member_id>
+        <member_id>85236252</member_id>
+        <member_id>85239436</member_id>
+        <member_id>53241803</member_id>
+        <member_id>91842372</member_id>
+        <member_id>91120872</member_id>
+        <member_id>91018967</member_id>
+        <member_id>15630848</member_id>
+        <member_id>91397214</member_id>
+        <member_id>91288622</member_id>
+        <member_id>58157784</member_id>
+        <member_id>85243268</member_id>
+      </Cluster>
+      <Cluster id ="30" size ="9" mininum_parent_mass ="1431.81" maximum_parent_mass ="1433.93">
+        <member_id>15625817</member_id>
+        <member_id>1585649</member_id>
+        <member_id>77250058</member_id>
+        <member_id>10219739</member_id>
+        <member_id>8140452</member_id>
+        <member_id>77362915</member_id>
+        <member_id>56326788</member_id>
+        <member_id>77249475</member_id>
+        <member_id>10217131</member_id>
+      </Cluster>
+    </Clustering>
+  </ClusterRun>
+  <ClusterRun finished="1" >
+    <Norm mean = "geometric"/>
+    <SimFunc  name ="SpectrumCheapDPCorr">
+      <info>Correlates Peaks with dynamic programming (when necessary, usually faster)</info>
+      <param name ="filterwindow" value = "5"/>
+      <param name ="int_cnt" value = "1"/>
+      <param name ="keeppeaks" value = "1"/>
+      <param name ="variation" value = "0.001"/>
+    </SimFunc>
+    <ClustFunc  name ="LinkageCluster">
+      <info>complete,average and single Linkage</info>
+      <param name ="cutoff" value = "0.4"/>
+      <param name ="linkage" value = "1"/>
+      <param name ="massdiff" value = "3"/>
+      <param name ="split" value = "0"/>
+      <param name ="stepsize" value = "0"/>
+    </ClustFunc>
+    <Clustering>
+      <Cluster id ="1" size ="1" mininum_parent_mass ="1432.91" maximum_parent_mass ="1432.91">
+        <member_id>59143332</member_id>
+      </Cluster>
+      <Cluster id ="2" size ="1" mininum_parent_mass ="1432.92" maximum_parent_mass ="1432.92">
+        <member_id>57371841</member_id>
+      </Cluster>
+      <Cluster id ="3" size ="1" mininum_parent_mass ="1433.56" maximum_parent_mass ="1433.56">
+        <member_id>25147657</member_id>
+      </Cluster>
+      <Cluster id ="4" size ="1" mininum_parent_mass ="1433.85" maximum_parent_mass ="1433.85">
+        <member_id>19174706</member_id>
+      </Cluster>
+      <Cluster id ="5" size ="1" mininum_parent_mass ="1433.95" maximum_parent_mass ="1433.95">
+        <member_id>12280558</member_id>
+      </Cluster>
+      <Cluster id ="6" size ="1" mininum_parent_mass ="1433.96" maximum_parent_mass ="1433.96">
+        <member_id>20347451</member_id>
+      </Cluster>
+      <Cluster id ="7" size ="1" mininum_parent_mass ="1433.97" maximum_parent_mass ="1433.97">
+        <member_id>59154672</member_id>
+      </Cluster>
+      <Cluster id ="8" size ="1" mininum_parent_mass ="1433.97" maximum_parent_mass ="1433.97">
+        <member_id>16055090</member_id>
+      </Cluster>
+      <Cluster id ="9" size ="1" mininum_parent_mass ="1434.52" maximum_parent_mass ="1434.52">
+        <member_id>24090307</member_id>
+      </Cluster>
+      <Cluster id ="10" size ="1" mininum_parent_mass ="1434.61" maximum_parent_mass ="1434.61">
+        <member_id>39561927</member_id>
+      </Cluster>
+      <Cluster id ="11" size ="1" mininum_parent_mass ="1434.69" maximum_parent_mass ="1434.69">
+        <member_id>26803966</member_id>
+      </Cluster>
+      <Cluster id ="12" size ="1" mininum_parent_mass ="1434.76" maximum_parent_mass ="1434.76">
+        <member_id>14125051</member_id>
+      </Cluster>
+      <Cluster id ="13" size ="1" mininum_parent_mass ="1434.83" maximum_parent_mass ="1434.83">
+        <member_id>4537096</member_id>
+      </Cluster>
+      <Cluster id ="14" size ="1" mininum_parent_mass ="1434.92" maximum_parent_mass ="1434.92">
+        <member_id>3119694</member_id>
+      </Cluster>
+      <Cluster id ="15" size ="1" mininum_parent_mass ="1435.55" maximum_parent_mass ="1435.55">
+        <member_id>86735767</member_id>
+      </Cluster>
+      <Cluster id ="16" size ="1" mininum_parent_mass ="1435.63" maximum_parent_mass ="1435.63">
+        <member_id>77584481</member_id>
+      </Cluster>
+      <Cluster id ="17" size ="1" mininum_parent_mass ="1435.77" maximum_parent_mass ="1435.77">
+        <member_id>56353405</member_id>
+      </Cluster>
+      <Cluster id ="18" size ="2" mininum_parent_mass ="1434.7" maximum_parent_mass ="1434.74">
+        <member_id>50434213</member_id>
+        <member_id>49163651</member_id>
+      </Cluster>
+      <Cluster id ="19" size ="2" mininum_parent_mass ="1431.92" maximum_parent_mass ="1433.95">
+        <member_id>86520683</member_id>
+        <member_id>86520941</member_id>
+      </Cluster>
+      <Cluster id ="20" size ="2" mininum_parent_mass ="1433.78" maximum_parent_mass ="1433.83">
+        <member_id>11454529</member_id>
+        <member_id>12277701</member_id>
+      </Cluster>
+      <Cluster id ="21" size ="2" mininum_parent_mass ="1432.99" maximum_parent_mass ="1434.95">
+        <member_id>2662465</member_id>
+        <member_id>1089430</member_id>
+      </Cluster>
+      <Cluster id ="22" size ="2" mininum_parent_mass ="1435.82" maximum_parent_mass ="1435.85">
+        <member_id>4258979</member_id>
+        <member_id>54443390</member_id>
+      </Cluster>
+      <Cluster id ="23" size ="2" mininum_parent_mass ="1434.86" maximum_parent_mass ="1434.88">
+        <member_id>51591973</member_id>
+        <member_id>52436025</member_id>
+      </Cluster>
+      <Cluster id ="24" size ="11" mininum_parent_mass ="1431.81" maximum_parent_mass ="1434.01">
+        <member_id>56326788</member_id>
+        <member_id>15625817</member_id>
+        <member_id>77249475</member_id>
+        <member_id>1585649</member_id>
+        <member_id>8140452</member_id>
+        <member_id>77362915</member_id>
+        <member_id>10217131</member_id>
+        <member_id>6211875</member_id>
+        <member_id>56327027</member_id>
+        <member_id>77250058</member_id>
+        <member_id>10219739</member_id>
+      </Cluster>
+      <Cluster id ="25" size ="3" mininum_parent_mass ="1431.78" maximum_parent_mass ="1433.84">
+        <member_id>13778595</member_id>
+        <member_id>13857986</member_id>
+        <member_id>13779665</member_id>
+      </Cluster>
+      <Cluster id ="26" size ="28" mininum_parent_mass ="1432.8" maximum_parent_mass ="1434.97">
+        <member_id>3389925</member_id>
+        <member_id>3621706</member_id>
+        <member_id>3625289</member_id>
+        <member_id>52873436</member_id>
+        <member_id>52876314</member_id>
+        <member_id>3397557</member_id>
+        <member_id>51489189</member_id>
+        <member_id>83791681</member_id>
+        <member_id>91518589</member_id>
+        <member_id>3393741</member_id>
+        <member_id>55268761</member_id>
+        <member_id>3401469</member_id>
+        <member_id>91515145</member_id>
+        <member_id>3390726</member_id>
+        <member_id>3622331</member_id>
+        <member_id>52398112</member_id>
+        <member_id>3394519</member_id>
+        <member_id>52876584</member_id>
+        <member_id>52873772</member_id>
+        <member_id>55269187</member_id>
+        <member_id>83976460</member_id>
+        <member_id>83788186</member_id>
+        <member_id>3629521</member_id>
+        <member_id>83785590</member_id>
+        <member_id>83413176</member_id>
+        <member_id>83787995</member_id>
+        <member_id>75820477</member_id>
+        <member_id>83413454</member_id>
+      </Cluster>
+      <Cluster id ="27" size ="79" mininum_parent_mass ="1431.76" maximum_parent_mass ="1434.04">
+        <member_id>58157784</member_id>
+        <member_id>51333907</member_id>
+        <member_id>57987073</member_id>
+        <member_id>53245143</member_id>
+        <member_id>55000396</member_id>
+        <member_id>15493895</member_id>
+        <member_id>55085666</member_id>
+        <member_id>57983861</member_id>
+        <member_id>15353290</member_id>
+        <member_id>15496974</member_id>
+        <member_id>52444350</member_id>
+        <member_id>4634931</member_id>
+        <member_id>53251778</member_id>
+        <member_id>52060925</member_id>
+        <member_id>4632069</member_id>
+        <member_id>52064106</member_id>
+        <member_id>54913230</member_id>
+        <member_id>866229</member_id>
+        <member_id>48235054</member_id>
+        <member_id>59091694</member_id>
+        <member_id>54486567</member_id>
+        <member_id>57990377</member_id>
+        <member_id>15630848</member_id>
+        <member_id>52009823</member_id>
+        <member_id>51603470</member_id>
+        <member_id>85239436</member_id>
+        <member_id>86734108</member_id>
+        <member_id>53025188</member_id>
+        <member_id>55172515</member_id>
+        <member_id>53241803</member_id>
+        <member_id>57691282</member_id>
+        <member_id>55079806</member_id>
+        <member_id>57974871</member_id>
+        <member_id>86660219</member_id>
+        <member_id>1671897</member_id>
+        <member_id>91842372</member_id>
+        <member_id>85243268</member_id>
+        <member_id>91397214</member_id>
+        <member_id>91120872</member_id>
+        <member_id>80704868</member_id>
+        <member_id>90911645</member_id>
+        <member_id>84559070</member_id>
+        <member_id>91288622</member_id>
+        <member_id>91018967</member_id>
+        <member_id>75531788</member_id>
+        <member_id>57696304</member_id>
+        <member_id>53245817</member_id>
+        <member_id>54913983</member_id>
+        <member_id>55083783</member_id>
+        <member_id>54487678</member_id>
+        <member_id>55086864</member_id>
+        <member_id>865243</member_id>
+        <member_id>866311</member_id>
+        <member_id>4635801</member_id>
+        <member_id>53249489</member_id>
+        <member_id>15494343</member_id>
+        <member_id>52444541</member_id>
+        <member_id>52010537</member_id>
+        <member_id>51604262</member_id>
+        <member_id>57987504</member_id>
+        <member_id>57981239</member_id>
+        <member_id>85243970</member_id>
+        <member_id>91289074</member_id>
+        <member_id>91121608</member_id>
+        <member_id>86608147</member_id>
+        <member_id>75652413</member_id>
+        <member_id>85240370</member_id>
+        <member_id>1672361</member_id>
+        <member_id>84559814</member_id>
+        <member_id>91019819</member_id>
+        <member_id>85236252</member_id>
+        <member_id>86738689</member_id>
+        <member_id>55000923</member_id>
+        <member_id>90911982</member_id>
+        <member_id>75900746</member_id>
+        <member_id>86734774</member_id>
+        <member_id>52061110</member_id>
+        <member_id>57984086</member_id>
+        <member_id>57004539</member_id>
+      </Cluster>
+    </Clustering>
+  </ClusterRun>
+  <AnalysisFunctorReferences>
+  </AnalysisFunctorReferences>
+</ClusterExperiment>

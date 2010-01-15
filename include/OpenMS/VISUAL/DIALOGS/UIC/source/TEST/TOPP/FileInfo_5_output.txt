@@ -1,0 +1,64 @@
+
+-- General information --
+
+file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_5_input.txt
+file type: mzData
+
+peak type (metadata) : Unknown
+peak type (estimated): Peak data
+
+Number of spectra: 10
+Number of peaks:   3149
+
+Ranges:
+  retention time:  20.87 : 39.97
+  mass-to-charge:  500.07 : 1497.28
+  intensity:       16.30 : 38920.12
+
+MS levels: 1, 2
+Spectra of MS Level 1: 4
+Spectra of MS Level 2: 6
+
+
+-- Meta information --
+
+Document id       : OpenMS:
+Date              : 0000-00-00 00:00:00
+
+Sample
+  Name             : MS-Sample
+  Organism         : 
+  Comment          : 
+
+Instrument
+  Name             : MS-Instrument
+  Model            : MS 1
+  Vendor           : MS-Vendor
+  Ion source(s)    : Electrospray ionisation
+  Mass Analyzer(s) : Quadrupole ion trap, Quadrupole
+  Detector(s)      : Faraday cup
+
+Contact Person
+  First Name       : John
+  Last Name        : Doe
+  Email            : 
+
+Contact Person
+  First Name       : Jane
+  Last Name        : Doe
+  Email            : 
+
+
+-- Statistics --
+
+Intensities:
+  mean: 869.843
+  min: 16.2972
+  lower quartile: 209.7
+  median: 490.921
+  upper quartile: 1037.65
+  max: 38920.1
+  variance: 1.89153e+06
+
+
+

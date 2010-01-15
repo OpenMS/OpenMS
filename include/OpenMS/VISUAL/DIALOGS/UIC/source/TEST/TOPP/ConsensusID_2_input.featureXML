@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2005-01-27T17:47:41" search_engine="" search_engine_version="">
+		<SearchParameters db="Dummy" db_version="1.1" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2005-01-27T17:47:42" search_engine="" search_engine_version="">
+		<SearchParameters db="Dummy" db_version="1.1" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="2">
+		<feature id="f_0">
+			<position dim="0">1.5</position>
+			<position dim="1">1.5</position>
+			<intensity>5</intensity>
+			<quality dim="0">0.5</quality>
+			<quality dim="1">0.5</quality>
+			<overallquality>0.5</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">0.5</hposition>
+					<hposition dim="1">0.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2.5</hposition>
+					<hposition dim="1">0.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2.5</hposition>
+					<hposition dim="1">2.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">0.5</hposition>
+					<hposition dim="1">2.5</hposition>
+				</hullpoint>
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1" RT="1" >
+				<PeptideHit score="1" sequence="A" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="2" RT="2" >
+				<PeptideHit score="2" sequence="E" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1" RT="1" >
+				<PeptideHit score="9" sequence="F" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="2" RT="2" >
+				<PeptideHit score="3" sequence="A" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">3.5</position>
+			<position dim="1">3.5</position>
+			<intensity>10</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2.6</hposition>
+					<hposition dim="1">2.6</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4.5</hposition>
+					<hposition dim="1">2.6</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4.5</hposition>
+					<hposition dim="1">4.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2.6</hposition>
+					<hposition dim="1">4.5</hposition>
+				</hullpoint>
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3" RT="3" >
+				<PeptideHit score="3" sequence="C" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="4" RT="4" >
+				<PeptideHit score="4" sequence="D" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3" RT="3" >
+				<PeptideHit score="7" sequence="H" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="4" RT="4" >
+				<PeptideHit score="1" sequence="C" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+	</featureList>
+</featureMap>

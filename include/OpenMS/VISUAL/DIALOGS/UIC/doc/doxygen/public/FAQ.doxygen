@@ -1,0 +1,81 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+// ATTENTION:
+// Please write OpenMS like this:  %OpenMS
+// Otherwise a link to the namespace is created.
+// Thanks!
+
+
+/**
+	@page FAQ FAQ
+	
+	<H2 style="border-top:2px solid grey;">%OpenMS</H2>
+		<UL>
+
+
+			<LI><B>(Linux) When executing 'make test', all tests fail.</B><BR>
+			
+			Please check the LD_LIBRARY_PATH environment variable:
+			- You can print the LD_LIBRARY_PATH with '<i>echo $LD_LIBRARY_PATH</i>'.
+			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> is present.
+			- With the ldd command, you can show the libraries used by an exutable, e.g. '<i>ldd &lt;%OpenMS&gt;/bin/ClassTest_test</i>'.
+
+		
+		</UL>
+	<H2 style="border-top:2px solid grey;">TOPP</H2>
+		<UL>
+
+
+			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B><BR>
+				If a error message similar to
+				@code OpenMS::File::find(...) of File.C error message: the file 'CHEMISTRY/Elements.xml' could not be found @endcode
+				is shown, you have probably moved your %OpenMS installation after compiling it.
+				Then the TOPP tools cannot find some required data files anymore, e.g. XML schema files or chemical isotope data.
+				
+				Either of the following actions should fix your problem:
+				- Use the cmake option <i>-D INSTALL_PREFIX=...</i> to set the installtion directory.
+				  Run '<i>make %OpenMS TOPP UTILS</i>' again.
+				- Execute <i>cmake</i> in the new location and run '<i>make %OpenMS TOPP UTILS</i>' again.
+				- Set the environment variable <i>OPENMS_DATA_PATH</i> to your &lt;%OpenMS&gt;/share/OpenMS/ folder.
+
+
+			<LI><B>A TOPP tool chrashes when loading a certain input file. Other files work properly.</B><BR>
+				If an XML input file is used, please check if the file is valid.
+				
+				For most XML data formats, this can be done using the @em FileInfo tool:
+				@code
+ FileInfo -v -in <file>
+				@endcode
+				
+				You can also check for corrupt data in peak files:
+				@code
+ FileInfo -c -in <file>
+				@endcode
+
+		</UL>
+*/

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileFilter" version="version_string" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="2">
+		<feature id="f_4">
+			<position dim="0">1097.92</position>
+			<position dim="1">487.829</position>
+			<intensity>77323</intensity>
+			<quality dim="0">0.168625</quality>
+			<quality dim="1">0.873581</quality>
+			<overallquality>0.744685</overallquality>
+			<charge>4</charge>
+			<model name="ProductModel2D">
+				<param name="MZ" value="IsotopeModel"/>
+				<param name="RT" value="BiGaussModel"/>
+				<param name="cutoff" value="0"/>
+				<param name="intensity_scaling" value="1.21678e+06"/>
+				<param name="MZ:charge" value="4"/>
+				<param name="MZ:cutoff" value="0"/>
+				<param name="MZ:intensity_scaling" value="1"/>
+				<param name="MZ:interpolation_step" value="0.1"/>
+				<param name="MZ:averagines:C" value="0.0443"/>
+				<param name="MZ:averagines:H" value="0"/>
+				<param name="MZ:averagines:N" value="0.0037"/>
+				<param name="MZ:averagines:O" value="0.022"/>
+				<param name="MZ:averagines:S" value="0"/>
+				<param name="MZ:isotope:distance" value="1.00049"/>
+				<param name="MZ:isotope:maximum" value="1000000"/>
+				<param name="MZ:isotope:stdev" value="0.05"/>
+				<param name="MZ:isotope:trim_right_cutoff" value="0.001"/>
+				<param name="MZ:statistics:mean" value="488.113"/>
+				<param name="RT:cutoff" value="0"/>
+				<param name="RT:intensity_scaling" value="1"/>
+				<param name="RT:interpolation_step" value="0.1"/>
+				<param name="RT:bounding_box:max" value="1145.64"/>
+				<param name="RT:bounding_box:min" value="1053.1"/>
+				<param name="RT:statistics:mean" value="1097.92"/>
+				<param name="RT:statistics:variance1" value="282.637"/>
+				<param name="RT:statistics:variance2" value="335.67"/>
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">1069.91</hposition>
+					<hposition dim="1">486.88</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1078.98</hposition>
+					<hposition dim="1">486.879</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1085.02</hposition>
+					<hposition dim="1">486.879</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1127.32</hposition>
+					<hposition dim="1">486.885</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1127.32</hposition>
+					<hposition dim="1">488.885</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1075.96</hposition>
+					<hposition dim="1">489.893</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1072.94</hposition>
+					<hposition dim="1">488.897</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		<feature id="f_9">
+			<position dim="0">1058.56</position>
+			<position dim="1">466.122</position>
+			<intensity>77929</intensity>
+			<quality dim="0">0.348302</quality>
+			<quality dim="1">0.580191</quality>
+			<overallquality>0.513121</overallquality>
+			<charge>3</charge>
+			<model name="ProductModel2D">
+				<param name="MZ" value="IsotopeModel"/>
+				<param name="RT" value="BiGaussModel"/>
+				<param name="cutoff" value="0"/>
+				<param name="intensity_scaling" value="455661"/>
+				<param name="MZ:charge" value="3"/>
+				<param name="MZ:cutoff" value="0"/>
+				<param name="MZ:intensity_scaling" value="1"/>
+				<param name="MZ:interpolation_step" value="0.1"/>
+				<param name="MZ:averagines:C" value="0.0443"/>
+				<param name="MZ:averagines:H" value="0"/>
+				<param name="MZ:averagines:N" value="0.0037"/>
+				<param name="MZ:averagines:O" value="0.022"/>
+				<param name="MZ:averagines:S" value="0"/>
+				<param name="MZ:isotope:distance" value="1.00049"/>
+				<param name="MZ:isotope:maximum" value="1000000"/>
+				<param name="MZ:isotope:stdev" value="0.03"/>
+				<param name="MZ:isotope:trim_right_cutoff" value="0.001"/>
+				<param name="MZ:statistics:mean" value="466.395"/>
+				<param name="RT:cutoff" value="0"/>
+				<param name="RT:intensity_scaling" value="1"/>
+				<param name="RT:interpolation_step" value="0.1"/>
+				<param name="RT:bounding_box:max" value="1102.36"/>
+				<param name="RT:bounding_box:min" value="1002.75"/>
+				<param name="RT:statistics:mean" value="1058.56"/>
+				<param name="RT:statistics:variance1" value="476.864"/>
+				<param name="RT:statistics:variance2" value="300.664"/>
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">1024.59</hposition>
+					<hposition dim="1">464.891</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1033.66</hposition>
+					<hposition dim="1">464.886</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1042.72</hposition>
+					<hposition dim="1">464.886</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1057.83</hposition>
+					<hposition dim="1">464.891</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1060.85</hposition>
+					<hposition dim="1">464.892</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1072.94</hposition>
+					<hposition dim="1">464.898</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1075.96</hposition>
+					<hposition dim="1">464.904</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1085.02</hposition>
+					<hposition dim="1">467.119</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1082</hposition>
+					<hposition dim="1">468.924</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1075.96</hposition>
+					<hposition dim="1">468.924</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1027.61</hposition>
+					<hposition dim="1">466.9</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+	</featureList>
+</featureMap>

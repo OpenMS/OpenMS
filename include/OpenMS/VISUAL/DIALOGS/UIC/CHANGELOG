@@ -1,0 +1,712 @@
+------------------------------------------------------------------------------------------
+----                                  OpenMS 1.7                                      ----
+------------------------------------------------------------------------------------------
+
+Changes to TOPP tools:
+- Resampler
+	- PNG image creation functionality removed and transferred to ImageCreator UTIL
+
+New UTIL tools:
+- ImageCreator (creates PNG's from an MS map)
+
+
+Changes to the Build System:
+- external code support for CMake 2.8; External Code using 
+  "include (${OpenMS_USE_FILE})" in its CMakeLists.txt 
+  cannot be configured against OpenMS 1.7, however, 
+  only minor changes are required to fix this.
+  See the documentation for "Programming with OpenMS".
+
+BugFixes:
+[new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.7]
+- #44 : TOPPView warning "Cannot show projections!"
+- #73 : Resampler: can't create PNGs with TOPPAS
+- #74 : Default parameters of PTModel cause infinite loop
+- #77 : FuzzyDiff always returns 'true' when comparing any two PNG images
+
+For more minor bugfixes visit the above URL.
+
+------------------------------------------------------------------------------------------
+----                                  OpenMS 1.6                                      ----
+------------------------------------------------------------------------------------------
+Release date: Nov 19th 2009
+
+Main improvements of TOPPView:
+- Storing peak data is now possible in mzData, mzXML and mzML format
+- Feature and consensus feature peaks are now configurable (icon and size)
+- Added new label mode for feature layers: all peptide hits of a feature are displayed
+- Added visualization of unassigned peptide hits for feature layers
+- Measuring to arbitrary end points is now supported in 1D and 2D view
+- file load progress bar stays responsive under load on Windows
+- rudimentary chromatogram support
+
+Main improvements of TOPP-Framework:
+- Major update of TOPPAS
+- TOPP tools now warn when used with parameter files from a different version
+- Combining '-write_ini' and '-ini' option now allows to transfer settings with identical
+  path and names from an old ini file into a new one.
+
+New TOPP tools:
+- SeedListGenerator
+  - generates seed lists for feature detection (still experimental)
+- PrecursorMassCorrector
+  - update precursor m/z information of MS/MS spectra based on MS1 peptide isotope fits
+    (still experimental)
+	
+Main improvements of TOPP-Tools:
+- all tools:
+  - gzipped and bzipped XML files (e.g. mzML) can be directly read
+- FeatureFinder 
+  - Centroided
+    - supports parallel execution now
+    - supports user-specified seeds now
+    - Wavelet: removed (Isotope-Wavelet is still available)
+- FileMerger: accumulated processingMethod entries, which all contained the same 
+  information
+- IDMapper
+  - has new default m/z tolerance and uses ppm as new default measure! Da is still 
+    supported.
+  - referenze m/z of ID can now be either: 1) precursor mass, 2) [new] mass of identified
+    peptide
+  - assigns more peptides to features with convex hulls (the deltas are used)
+- InternalCalibration
+  - supports calibration functions calculated seperately for each spectrum or one global
+    function
+  - supports peptide ids as reference peaks
+  - works on peak or feature data now
+- MapAligner
+  - new "identification" algorithm for alignment based on identified peptides
+    (still experimental)
+- PeakPicker
+  - support for automatic estimation of peak width
+- TextImporter can now import Koenik(Hardkloer) feature files
+- TextExporter
+  - added option for string quoting
+  - improved export of consensusXML
+- PepNovoAdapter: complete rewrite of the code, including classes
+
+New UTILS:
+- UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
+
+Main improvements of UTILS:
+
+
+Main improvements of OpenMS C++ library:
+- MGF file creation speedup (also affects some TOPP tools)
+- removed FeatureFinder-Wavelet (IsotopeWavelet is still available)
+- support for bzip2 and gzip compressed XML files
+- chromatogram support
+- comments and other strings of XML writers are now escaped to prevent reading problems
+- fixed IdXMLFile segmentation fault if no protein identification given
+
+Detailed list of changes to specific OpenMS classes
+- [New classes]:
+  - UniqueIdGenerator, UniqueIdInterface, UniqueIdIndexer
+  - SVOutStream
+  - MapAlignmentAlgorithmIdentification
+  - SeedListGenerator
+- [Removed classes]:
+  - FeatureFinderAlgorithmWavelet	
+- [Renamed classes]:
+  - IDTagger -> DocumentIDTagger
+- String:
+  - improved behaviour of split(...) method
+  - added support for quoting and unquoting of strings
+- ConsensusMap: added clear(...) method
+- IDMapper:
+  - uses bounding boxes of mass traces instead of convex hulls now
+  - the given deltas are used for features with convex hulls as well
+- PoseClusteringShiftSuperimposer:
+  - full rewrite, uses a similar algorithm like PoseClusteringAffineSuperimposer now
+- TranformationDescription:
+  - added cubic b-spline transformation
+  - PairsType uses DoubleReal instead of Real now, thus can be used for m/z as well
+- VersionInfo:
+  - includes (if available) SVN revision number that the library is build upon via support
+    by the build system
+  - SVN revision information is displayed in the TOPP tools help text
+- PepXMLFile: improved handling of PTMs
+	
+Changes to the Build System:
+- unit tests are now in a separate sub-project in <OpenMS/source/TEST/> avoiding huge 
+  Solution files in MSVC IDE
+- new targets: test_build, tutorials_build, tutorials_exec
+- SVN revision (if available) is determined and compiled into OpenMS before the library is
+  built
+- added real install prefix and install target to be able to do a 'make install'
+
+Changes to OpenMS XML formats:
+- FeatureXML and ConsensusXML files use unique ids now instead of running indices. New XML
+  Schema versions: 1.4
+
+Changes to the contrib package:
+- updated GSL to version 1.13
+- updated SVM to version 2.89
+- added Z lib and bz2 lib
+
+Bug fixes:
+
+[old tracker: http://sourceforge.net/tracker/?func=detail&aid=2857130&group_id=90558&atid=1059012]
+- [2857042]: RTModel/PTModel unable to find modification
+- [2857040]: Modification names with brackets fail to parse
+- [2849215]: OMSSAAdapter fails with Acetlyation not found
+- [2849201]: Parameters in INI files are duplicated
+- [2849439]: Compilation error with Qt 4.3.x
+- [2900457]: idXML files with more than ProteinIdentification might be incorrect
+
+[new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.6]
+- #29: FilerMerger accumulates processingMethod entries
+- #28: Segfault if idXML file does not contain a protein identification.
+- #24: XML formats are written with unescaped special chars like "&"
+
+------------------------------------------------------------------------------------------
+----                                  OpenMS 1.5                                      ----
+------------------------------------------------------------------------------------------
+
+Main improvements of TOPPView:
+- Added new labeling options for feature data
+- Fixed crash when zooming in snap-mode
+- Added context menu to spectra selection bar
+- Feature editing mode can be enabled/disabled in the context menu (to avoid accidental editing)
+- Several minor fixes and improvements
+
+Main improvements of TOPP:
+- Made mzML 1.1.0 the default format for all TOPP tools
+- Added data processing information to all output files to improve traceability
+- FileFilter: 
+  - added 'sort_peaks' option
+  - added filtering according to scan type
+  - added filtering according to activation type
+- FileInfo: 
+  - added flag for data processing output
+  - corrupt data checks: sorting is checked now, improved speed
+- Added new tool IDFileConverter, which can convert between identification file formats
+- Added TOPPAS, a tool for visual creation and execution of TOPP pipelines (beta)
+- TextImporter can now import SpecArray and msInspect feature files
+- Added CompNovo, a de novo identification tool for combined CID/ETD experiments
+- MapAligner uses a new algorithm for pose clustering with less parameters
+
+Main improvements of UTILS:
+- Added PeptideIndexer, assign proteins to peptides including target/decoy specification
+- Added MRMPairFinder, ERPairFinder to extract ratios of labeled experiments
+- Added IDMassAccurracy, given mzML files and identification, it calculates distributions of mass deviations
+- Added MapAlignmentEvaluation, a tool to evaluate alignment results
+- Added MSSimulator, a highly configurable simulator for mass spectrometry experiments
+
+Main improvements of OpenMS C++ library:
+- mzML 1.1.0 support
+- Improved the precision of mass values in several file formats
+  
+Detailed list of changes to specific OpenMS classes
+- New classes:
+  - CompNovo-classes
+  - StablePairFinder, which is now used by MapAligner and FeatureLinker
+  - Simulation-classes
+- Removed classes:
+  - FeatureFinderAlgorithmWatershed
+  - PeakIcon
+  - FactoryProduct (replaced by DefaultParamHandler)
+  - DSpectrum (all the functionalty was moved to MSSpectrum)
+- Renamed and moved classes:
+  - moved PersistentObject from FORMAT/ to FORMAT/DB/
+  - renamed PepXMLFile to PepXMLFileMascot
+- Changes to Classes:
+  - MSExperiment: added 'isSorted' method
+  - MSSpectrum:
+    - added 'isSorted' method
+    - renamed MetaDataArray to FloatDataArray
+    - added IntegerDataArrays
+    - added StringDataArrays
+  - DataValue: added constructor for 'std::string' and QString
+  - MetaInfo: 'setValue' method takes only DataValue now
+  - MetaInfoInterface: 'setMetaValue' method takes only DataValue now
+  - Param: 'setValue' method takes only DataValue now
+  - ExperimentalSettings: moved DataProcessing to SpectrumSettings (for mzML)
+  - Precursor: supports multiple dissociation methods now (for mzML)
+  - MetaInfoDescription: removed comment and source file; added data processing (for MzML)
+  - ElementDB: isotopes are now possible
+  - EmpiricalFormula: isotopes are now possible (e.g. (2)H for deuterium)
+  - ModificationsDB: switched completely to UniMod (www.unimod.org). PSI-MOD still provided for convenience
+  - PepXMLFile: added new 'load' method (moved the old 'load' method to PepXMLFileMascot)
+  - TextFile:
+    - is now derived from StringList
+    - the 'asString' method was replaced by 'concatenate' from StringList
+  - MzMLFile:
+    - added support for integer and string binary arrays
+    - added support for compressed binary data arrays 
+    - loading a file with unknown CV terms in certain tags no longer causes an error
+  - DBConnection:
+    - The 'executeQuery' method no longer sets the internal pointer to the first record of the result.
+      It is now positioned before the first record. A boolean flag can be used to switch to the old behaviour.
+  - SourceFile: changed native ID type to string
+  - PoseClusteringAffineSuperimposer: full rewrite, not using CGAL
+
+Changes to the contrib package:
+- Added CoinMP 1.3.3
+- Added IMSlib 0.1.0
+- Update Xerces-C to revision 806068 of SVN trunk
+
+Bug fixes:
+- [2778461]: mzData files containing 'supDataArray' elements no longer crash OpenMS 
+- [2777173]: TOPPView 2D view projections no longer forget the draw mode on repaint
+- [2776386]: TOPPView snap-to-max intensity mode no longer crashes with empty spectra
+- [2775912]: PeakPickerCWT no longer assigns RT=-1 to MS/MS spectra
+
+------------------------------------------------------------------------------------------
+----                                  OpenMS 1.4                                      ----
+------------------------------------------------------------------------------------------
+
+Main improvements of TOPPView:
+- Drag-and-drop is now supported from the layer bar, spectrum bar and for files from the operating system
+- Improved visualization of very high-resolution data
+- Improved painting speed of 2D view
+
+Main improvements of TOPP:
+- Added new tool TextImporter, which can convert text files to featureXML
+- TextExporter can now export peptide/protein information stored in consensusXML
+- PeakPicker: reduced the number of parameters, added parallization support
+- FeatureFinder: added new MRM algorithm and removed the tool 'FeatureFinderMRM'
+- FileInfo: added support for idXML
+
+Main improvements of OpenMS C++ library:
+- mzML 1.1.0 RC5 support
+- removed support for external memory (use the 64bit builds if you want to process large datasets)
+- added support for three kinds of parallization architectures
+  - OpenMP 
+  - Intel Threading Building Blocks
+  - Nvidia Cuda
+
+Detailed list of changes to specific OpenMS classes:
+- SpectrumSettings: several precursor peaks are now supported, added product list
+- Precursor: complete rewrite for better support of mzData, mzXML and mzML
+- PeakPickerCWT: cleaned up interface, improved meta data handling, improved parameters, added parallelization support
+- GaussFilter: cleaned up interface, improved meta data handling
+- SavitzkyGolayFilter: cleaned up interface, improved meta data handling
+- MorphologicalFilter: cleaned up interface
+- LinearResampler: cleaned up interface
+- LabeledPairFinder: estimated negative sigma values are now treated as positive values
+- FeatureFinder: added new algorithm 'MRM' for MRM feature detection; replaces FeatureFinderMRM
+- ExperimentalSettings: remove native ID type (for mzML support)
+- SourceFile: added native ID type (for mzML support)
+- File: replaced vector<String> by StringList in all methods
+
+Bug fixes:
+- [2645436]: TOPPView - Data Filter for "Size" not available
+- [2645510]: OpenMS - libOpenMS.so is built but linking fails (TOPP, tests) (on Debian "Lenny")
+- [2665055]: FileFilter ignores -sort option for FeatureXML and Consensus
+- [2659013]: windows contrib can fail when copying compiled libraries
+- [2606068]: TOPP tools with list parameters do not work with INI files
+- [2690367]: Protein references missing on peptide identifications
+
+------------------------------------------------------------------------------------------
+----                                   OpenMS 1.3                                     ----
+------------------------------------------------------------------------------------------
+
+New features and improvements of OpenMS:
+- The build system is now based on CMake - supporting Linux, MacOS and Windows.
+- Finalized mzML implementation (version 1.1.0 RC4)
+  - previously unsupported parts
+  - indexed mzML
+  - semantic validation (see FileInfo)
+- Kernel: Replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
+- Kernel: Replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
+- Improved the framework for meta data visualization.
+- Several extensions to the meta data classes were made for mzML compliance.
+- The macros used for unit testing in source/TEST have been revised.
+- More consistent handling of single vs. double numeric precision, esp. in file output.
+- Added ANALYSIS/PIP/PeakIntensityPredictor class for peak intensity prediction (contributed by Alexandra Scherbart).
+- Added support for Intel Compiler versions 10 and 11
+- Added support for Qt up to 4.5 rc1
+
+New features and improvements of TOPP:
+- Added SILACAnalyzer: A specialized tool for quantitation of SILAC experiments (contributed by Lars Nilse).
+- Added ITRAQAnalyzer: A specialized tool for quantitation of ITRAQ experiments.
+- Added IDMapper: Assigns protein/peptide identifications to features or consensus features.
+- FeatureLinker: Added automated RT parameter estimation for 'labeled' algorithm.
+- MapAligner: Added spectrum_alignment and apply_given_trafo, IdXML is supported.
+- Resampler: This tool is now used for resampling raw data instead of resampling in NoiseFilter or BaselineFilter.
+- FileInfo: The option '-v' now also does a semantic validation of mzML files.
+- FileMerger: Improved interface
+- ConsensusID: Now also supports consensus identification of features and consensus features.
+- INIFileEditor: Support for string/int/double lists and input/output files was added.
+- Added PrecursorIonSelector: A tool for result-driven precursor ion selection.
+- FalseDiscoveryRate: corrected FDR calculations and added optional support for q-values
+- Added MascotAdapterOnline: which allows queries to Mascot via network (together with Daniel Jameson)
+
+New features and improvements of TOPPView:
+- Added functionality for editing feature data
+- Added support for consensus features (consensusXML)
+- Added measuring and generic annotations to 1D view
+- Several minor interface improvements and bugfixes
+
+Changes to OpenMS XML formats:
+- ParamXML:
+  - Restrictions in Param .ini files are represented by 'min:max' instead
+    of 'min-max' now, to avoid issues with small (1e-06) and negative numbers.
+  - Replaced 'advanced' attribute by the more general 'tags' attribute.
+  - Added support for float, int and string lists
+- featureXML:
+  - Added tag <subordinate> to store competing features that did not qualify for the final map
+  - Removed <description> section
+  - Added document identifier
+  - Added protein and peptide information
+- consensusXML:
+  - Added document identifier
+  - Added protein and peptide information
+- idXML:
+  - Added document identifier
+
+Changes to the contrib package:
+- The build system is now based on CMake - supporting Linux, MacOS and Windows.
+- Updated SeqAn package to revision 2666 (this fixes the STL debug error)
+- Updated xerces-c to version 3.0.0
+- Updated boost to version 1.37.0
+- Downgraded GSL to 1.8 (because of Mac/Windows support)
+
+Detailed list of changes to specific OpenMS classes:
+- Renamed and moved classes
+  - Renamed MSMetaDataExplorer to MetaDataBrowser
+  - Renamed ProcessingMethod to DataProcessing
+  - Moved XMLValidator from FORMAT/ to FORMAT/VALIDATORS/
+- Removed classes
+  - DPeakArray (moved the functionality to the classes that inherited from it)
+  - IDSpectrumMapper (replaced by IDMapper)
+  - IDFeatureMapper (replaced by IDMapper)
+  - FeatureXMLHandler (merged into FeatureXMLFile)
+  - ConsensusXMLHandler (merged into ConsensusXMLFile)
+  - PeakPicker (merged into PeakPickerCWT)
+  - MorphFilter (merged into MorphologicalFilter)
+  - TopHatFilter (merged into MorphologicalFilter)
+- New classes
+  - DATASTRUCTURES/IntList
+  - DATASTRUCTURES/StringList
+  - ANALYSIS/ID/IDMapper
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment
+- Changes to classes
+  - InstrumentSettings
+    - Revisited scan modes
+    - Added bool member for zoom scans (no longer a scan mode)
+  - MassAnalyzer: Removed tandem scanning method. This is stored in the ScanMode of InstrumentSettings.
+  - DataProcessing: Now contains Software and can handle multiple processing actions.
+  - Software: Only contains name and version now.
+  - SourceFile: Added MetaInfointerface and checksum type
+  - ContactPerson: Added URL and address
+  - Instrument:
+    - Can contain multiple detectors and multiple ion sources now
+    - Added Software
+    - Added ion optics type
+  - AcquisitionInfo: Added MetaInfoInterface
+  - Acquisition: integer 'number' member was changed to a string 'identifier' (for mzML)
+  - ExperimentalSettings
+    - Now contains multiple SourceFiles and DataProcessings
+    - ExperimentType was removed
+  - SpectrumSettings
+    - Added nativeID (from acquisition software)
+  - DSpectrum
+    - The peaks are no longer stored in a container member, but DSpectrum is derived 
+      from std::vector<PeakType>.
+    - The container type is no longer a template argument. Peak type and allocator type
+      are the new template arguments.
+  - LabeledPairFinder: Added automated RT parameter estimation.
+  - GaussFitter: Removed several unneeded methods.
+  - GammaDistributionFitter: Removed several unneeded methods.
+  - DataValue: Added support for IntList and DoubleList types
+  - Param:
+    - Added a new remove(key) method, that removed only exact matches.
+      The old remove() method was renamed to removeAll(prefix)
+    - Replaced 'advanced' flag by a generic tagging mechanism
+    - Added support for IntList and DoubleList types
+  - File: find(...) now throws an exception, of the file is not found.
+  - DPeak and DRichPeak are metafunctions now, e.g. DPeak<1>::Type is a typedef for Peak1D.
+  - VersionInfo: Added support for SVN revision info. Slight interface changes.
+  - TOPPBase: Print revison info (if meaningful).
+  - MetaInfo: Uses double precision now.
+  - Date
+    - get() now returns a string instead of modifying a string reference.
+    - Made today() is static now and returns the current DateTime instead of modifying the object.
+  - DateTime
+    - get(), getDate() and getTime() now return a string instead of modifying a string reference.
+    - Made now() is static now and returns the current Date instead of modifying the object.
+  - MSExperiment: The date is now a DateTime object.
+  - ProgressLogger: Nested application uses indentation.
+  - XMLValidator: The output stream for error messages can now be set in the isValid(...) method
+  - XMLFile: The output stream for validation error messages can now be set in the isValid(...) method
+  - MzMLFile: The output stream for validation error messages can now be set in the isValid(...) method
+  - IdXMLFile: Adden document identifier to the load(...) and store(...) method
+  
+------------------------------------------------------------------------------------------
+----                                   OpenMS 1.2                                     ----
+------------------------------------------------------------------------------------------
+
+New features and improvements of OpenMS:
+- GCC 4.3 is now supported (GCC 3.4 and 4.0 are no longer supported)
+- Added support for GCC STL debug mode (configure option --enable-stl-debug)
+- Complete reimplementation of map alignment and feature grouping classes.
+  This affected some classes in KERNEL and nearly all classes in ANALYSIS/MAPMATCHING.
+  The affected classes are not listed in detail here.
+- Added meta data arrays to spectra as the new standard way of handing peak meta information
+- Improved interface of SpectrumCanvas and derived classes for easier reuse outside of TOPPView
+- Added support for arbitrary modifications to peptide/protein modifications (based on PSI-MOD)
+- Exceptions thrown by member functions are no longer declared in the header files.
+  They are however documented in the class documentation.
+- Added *beta* support for the HUPO PSI format mzML
+  Currently only reading is supported and some features are not implemented yet
+  e.g. chromatograms, zlib compression of base64 data, base64 integer data, base64 16 bit data
+- Added the UTILS package, a bundle of small helper tools.
+- Changed handling of amino acid sequences and modifications. Modifications are taken from
+  PSI-MOD and are fully supported via the class AASequence.
+- Added new framework for generic clustering
+
+New features and improvements of TOPP:
+- Replaced 'MapAlignment', 'UnlabeledMatcher' and 'LabeledMatcher' tools by 'MapAligner' and 'FeatureLinker' tools
+- Added map alignment algorithm based on spectrum similarity to 'MapAlignment'
+- Added 'PTModel' and 'PTPredict' tool for prediction of proteotypic peptides
+- Added XTandemAdapter with a minimal interface (shared with OMSSAAdapter) all advanced option can be set using a
+  standard X!Tandem configuration file
+- Changed OMSSAAdapter to same minimal interface as XTandemAdapter, advanced option are additionally available
+- Added IDDecoyProbability which implements the transformation of a forward and reversed search into probability
+  scores (target-decoy approach)
+- Added FalseDiscoveryRate, which implements FDR calculation from forward and reversed searches at peptide
+  and protein levels
+
+New features and improvements of TOPPView:
+- Major update to the user interface and functionality
+- Speed improvements of the 2D view
+- Many bug fixes
+- Updated tutorial
+
+Changes to OpenMS XML formats:
+- Added TransformationXML which stores information about map alignment
+- Removed map alignment information from ConsensusXML
+- FeaturePairsXML is now deprecated (ConsensusXML is used instead)
+
+Changes to the contrib package:
+- Updated to NetCDF 3.6.3
+- Updated to SeqAn 1.1 (r2416)
+- Updated to CGAL 3.3.1
+- Updated to GSL 1.11
+- Updated to xerces-c 2.80
+- Updated to boost 1.35.0
+- Updated to libsvm 2.86
+
+Detailed list of changes to specific OpenMS classes:
+- Renamed and moved classes
+  - Renamed 'Exception::Base' to 'Exception::BaseException'
+  - Renamed all 'Peak' classes to 'RichPeak'
+  - Renamed all 'RawDataPoint' classes to 'Peak'
+  - Renamed 'KERNEL/DPeakConstRefArray' to 'DATASTRUCTURES/ConstRefVector'
+
+- Removed classes
+  - KERNEL/PickedPeak1D
+  - DATASTRUCTURES/HashMap (replace by Map)
+  - ANALYSIS/MAPMATCHING/BaseAlignment (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BaseMapMatcher (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BasePairFinder (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BasePairFinder_impl (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_impl (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BaseSuperImposer_impl (restructuring of map alignment
+  - ANALYSIS/MAPMATCHING/ElementPair (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/Grid (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/GridCell (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/Group (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/IndexTuple (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/LinearMapping (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapDewarper (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapMatcherRegression (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/PairMatcher (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/StarAlignment (restructuring of map alignment)
+  - ANALYSIS/CLUSTERING/BinnedRep (reimplemented in BinnedSpectrum)
+  - COMPARISON/SPECTRA/BinnedRepCompareFunctor (reimplemented in BinnedSpectrumCompareFunctor)
+  - COMPARISON/SPECTRA/BinnedRepMutualInformation (reimplemented in BinnedMutualInformation)
+  - COMPARISON/SPECTRA/BinnedRepSharedPeakCount (reimplemented in BinnedSharedPeakCount)
+  - COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle (reimplemented in BinnedSpectralContrastAngle)
+  - COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities (reimplemented in BinnedSumAgreeingIntensities)
+  - CONCEPT/Benchmark
+  - CONCEPT/HashFunction
+  - FILTERING/SMOOTHING/SmoothFilter
+  - FORMAT/FeaturePairsXMLFile (restructuring of map alignment)
+  - FORMAT/GridFile (restructuring of map alignment)
+  - FORMAT/HANDLER/FeaturePairsHandler (restructuring of map alignment)
+  - FORMAT/HANDLER/GridHandler (restructuring of map alignment)
+  - FORMAT/HANDLER/OMSAAXMLHandler (replaced by OMSSAXMLFile)
+  - KERNEL/ConsensusPeak (restructuring of map alignment)
+  - KERNEL/FeatureHandle
+  - KERNEL/MSExperimentExtern
+  - KERNEL/PeakIndex
+  - TRANSFORMATIONS/RAW2PEAK/PeakShapeType
+
+- New classes
+  - CHEMISTRY/ModificationsDB which handles the PSI-MOD modifications
+  - CHEMISTRY/ModificationDefinition class, which specifies modification search options
+  - CHEMISTRY/ModificationDefinitionSet class, which specifies modification search options
+  - CHEMISTRY/ResidueModification which represents a PSI-MOD modification
+  - ANALYSIS/ID/FalseDiscoveryRate class, which calculates FDRs on peptide and protein level
+  - ANALYSIS/ID/IDDecoyProbability class, which implements a target decoy probability estimation
+  - DATASTRUCTURES/Map class and replaced HashMap usage with Map
+  - ANALYSIS/MAPMATCHING/BaseGroupFinder (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/LabeledPairFinder (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment (new map alignment type using spectral alignments)
+  - ANALYSIS/MAPMATCHING/TransformationDescription (new map alignment type using spectral alignments)
+  - ANALYSIS/CLUSTERING/AverageLinkage (new framework for clustering)
+  - ANALYSIS/CLUSTERING/ClusterFunctor (new framework for clustering)
+  - ANALYSIS/CLUSTERING/ClusterHierachical (new framework for clustering)
+  - ANALYSIS/CLUSTERING/CompleteLinkage (new framework for clustering)
+  - ANALYSIS/CLUSTERING/SingleLinkage (new framework for clustering)
+  - COMPARISON/SPECTRA/BinnedSpectrum (Binned represenetation of a spectrum)
+  - COMPARISON/SPECTRA/BinnedMutualInformation
+  - COMPARISON/SPECTRA/BinnedSumAgreeingIntensities
+  - COMPARISON/SPECTRA/BinnedSpectralContrastAngle
+  - COMPARISON/SPECTRA/BinnedSharedPeakCount
+  - COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor
+  - COMPARISON/SPECTRA/CompareFourierTransform
+  - COMPARISON/SPECTRA/PeakAlignment
+  - COMPARISON/SPECTRA/SteinScottImproveScore
+  - DATASTRUCTURE/DistanceMatrix
+  - FORMAT/ControlledVocabulary
+  - FORMAT/HANDLER/MzMLHandler
+  - FORMAT/HANDLER/UnimodXMLHandler
+  - FORMAT/HANDLER/XTandemInFileXMLHandler
+  - FORMAT/MSPFile
+  - FORMAT/MzMLFile
+  - FORMAT/OMSSACSVFile
+  - FORMAT/PepXMLFile (only for Mascot output, not complete implementation of pepXML)
+  - FORMAT/TransformationXMLFile
+  - FORMAT/XTandemInfile
+  - FORMAT/XTandemXMLFile
+  - MATH/STATISTICS/GammaDistributionFitter
+  - MATH/STATISTICS/GaussFitter
+  - TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet
+  - TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet
+
+- Changes to classes
+  - Changed AASequence to support PSI-MOD modifications
+  - Changed Residue to support PSI-MOD modifications
+
+
+
+------------------------------------------------------------------------------------------
+----                                  OpenMS 1.1.1                                    ----
+------------------------------------------------------------------------------------------
+
+Bug fixes:
+- [1953335]: TOPP - TOPPView: Filter bar is not updated when deleting a layer
+- [1953339]: TOPP - TOPPView: Crash when pressing cancel button of the DB password dialog
+- [1948699]: TOPP - TOPPView: Opening a file from command-line containing spaces fails
+- [1948080]: TOPP - MascotAdapter: Variable modification were added to fixed modifications
+- [1941268]: TOPP - TOPPView: Crash when displaying files with intensity 0 peaks only
+- [1941270]: TOPP - TOPPView: Recent file paths in TOPPView are wrong under certain conditions (Windows only)
+- [1941273]: TOPP - TOPPView: Crash when loading an INI file without type in TOPP dialog
+- [1934199]: OpenMS - SpectrumWidget: Crash when painted without layers
+- [1933097]: OpenMS - TOPPBase: Invalid default values of string parameters were not handled correctly
+
+
+------------------------------------------------------------------------------------------
+----                                   OpenMS 1.1                                     ----
+------------------------------------------------------------------------------------------
+
+New features and improvements of OpenMS:
+- Added support for Windows XP
+- Improved configure
+  - prefix option now works as expected
+  - Fixed several bugs in handling of Qt
+  - Fixed several minor bugs
+- Added support for large datasets through a custom allocator
+- Added support for XML schemas, which allows validation of files
+- Added optional schema version tag to all OpenMS XML formats
+- Removed classes: DataReducer, MaxReducer, SumReducer, SavitzkyGolaySVDFilter,
+                   MSExperimentExtern, BaseMapping
+- Added classes: StringList, SuffixArray, DataFilters
+- Renamed/moved classes:
+  - ExternalCalibraton -> TOFCalibration,
+  - SavitzkyGolayQRFilter -> SavitzkyGolayFilter
+  - FORMAT/Param.h -> DATASTRUCTURES/Param.h
+- Refactoring of FeatureFinder framework
+- Refactoring of MapAlignment framework
+- Refactoring of XML parsing classes
+- Refactoring of the visualization widgets
+- Reorganization of the OpenMS documentation
+- Lots of minor bug fixes and improvements to documentation
+
+New features and improvements of TOPP:
+- Added support for advanced parameters and parameter value restrictions
+- Added file type/name checks before use of input/output files
+- Improved parameter handling of the tools that offer different methods:
+  FeatureFinder, NoiseFilter and SpectraFilter
+- Lots of minor bug fixes and improvements to documentation
+- FileFilter: Added option to sort data points according to RT and m/z
+- FileInfo: Added validation of files against the XML schema, added check for corrupt data
+- Added TextExporter: exports featureXML, featurePairsXML, consensusXML and idXML to text 
+                      files for import to other tools
+- Added FeatureFinderMRM: performs peptide quantitation using Multiple-Reaction-Monitoring (MRM)                         
+
+New features and improvements of TOPPView:
+- Refactoring of the interface: Moved a lot of functions to context menus
+- Added data filters (intensity, quality, ...)
+- Lots of minor bug fixes
+- Added tutorial
+
+Detailed list of changes to specific OpenMS classes:
+- BoundingBox2D
+  - Added constructor from PointArrayType
+- DataValue
+  - Simplified to Int, DoubleReal and String types only
+  - Direct cast to all data types is not possible anymore
+- DefaultParamHandler
+  - Added support for restrictions
+  - Added support for advanced parameters
+- String
+  - Improved implementations of implode and substr
+  - Renamed implode(...) method to concatenate(...)
+- DSpectrum
+  - Added method to find the nearest peak to an m/z value (findNearest)
+- Feature
+  - Added support for convex hulls of individual mass traces
+- Param
+  - Added support for value restrictions
+  - Added support for advanced parameters
+  - Replaced STL iterator by Param-specific iterator, which is aware of the tree strucure
+  - The getValue method now throws an exception in case of a non-existing name.
+    Use exists(...) to check if a parameter exists
+- FileHandler
+  - Added support for IdXML, ConsensusXML and mgf format
+- Factory
+  - Added methods to find out which products are registered
+- MetaInfo/MetaInfoInterface/MetaInfoRegistry
+  - Names are automatically registered now
+- FileHandler
+  - Renamed some of the Type enum values to make them consistent
+
+------------------------------------------------------------------------------------------
+----                                   OpenMS 1.0                                     ----
+------------------------------------------------------------------------------------------
+- Kernel redesign (improvement of usability)
+- Removed Boost dependencies
+- Qt4 port
+- Experimental support for MacOS 10
+- Experimental support for Windows (XP & VISTA via MinGW)
+- New OpenMS and TOPP tutorial
+- Redesign of protein and peptide identification datastructures
+- New format for protein and peptide identification: IdXML
+- Release of annotated schemas for all OpenMS XML formats
+- New features and improvements of TOPPView
+  - Visualization of peaks, feature and feature pairs has been speeded up
+  - Meta data browsing and editing
+  - TOPP tools can be invoked via TOPPView
+  - Visualization of protein/peptide identification annotated to LC-MS/MS data
+- New features and improvements of TOPP
+  - Added INIFileEditor - A GUI editor for TOPP configuration files
+  - Added ConsensusID - A tool to unify protein and petide identification from several 
+                        search engines
+  - Added Decharger - Decharging feature maps
+  - Added MapAlignment - Multiple alignment of LC-MS maps
+  - Added MapNormalizer - Normalization of peak intensities
+  - Added InternalCalibration - Calibration of peak m/z using reference masses
+  - Added ExternalCalibration - Conversion of flight times into m/z using external 
+                                calibrant spectra

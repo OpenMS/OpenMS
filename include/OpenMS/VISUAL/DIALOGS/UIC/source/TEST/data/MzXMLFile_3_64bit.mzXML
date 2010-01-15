@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.0.xsd">
+	<msRun scanCount="4">
+		<parentFile fileName="File_test_1.raw" fileType="RAWData" fileSha1="2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"/>
+		<msInstrument>
+			<msManufacturer category="msManufacturer" value="MS-Vendor"/>
+			<msModel category="msModel" value="MS 1"/>
+			<msIonisation category="msIonisation" value="ESI"/>
+			<msMassAnalyzer category="msMassAnalyzer" value="Quadrupole Ion Trap"/>
+			<msDetector category="msDetector" value="Faraday Cup"/>
+			<software type="acquisition" name="MS-Y" version="2.0" completionTime="2001-02-03T04:05:06"/>
+			<msResolution category="msResolution" value="FWHM"/>
+			<operator first="FirstName" last="LastName" phone="+49-7071-123456" email="admin@foo.de" URI="http://www.OpenMS.de"/>
+		</msInstrument>
+		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1" intensityCutoff="2" spotIntegration="1">
+			<software type="processing" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
+		</dataProcessing>
+		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="Full" retentionTime="PT1S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAA==</peaks>
+		</scan>
+		<scan num="2" msLevel="1" peaksCount="3" polarity="+" scanType="Full" retentionTime="PT2M1S" startMz="110" endMz="130">
+			<peaks precision="64" byteOrder="network" pairOrder="m/z-int">QFuAAAAAAABAWQAAAAAAAEBeAAAAAAAAQGkAAAAAAABAYEAAAAAAAEBZAAAAAAAA</peaks>
+		</scan>
+		<scan num="3" msLevel="1" peaksCount="5" polarity="-" scanType="zoom" retentionTime="PT1H61S" startMz="100" endMz="140">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
+		</scan>
+	</msRun>
+	<indexOffset>0</indexOffset>
+</mzXML>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="2">
+
+		<feature id="f_0">
+			<position dim="0">4514.22</position>
+			<position dim="1">746.34</position>
+			<intensity>42343.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+		</feature>
+
+		<feature id="f_1">
+			<position dim="0">4515.45</position>
+			<position dim="1">750.32</position>
+			<intensity>128573.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+		</feature>
+
+		<feature id="f_2">
+			<position dim="0">4789.66</position>
+			<position dim="1">734.23</position>
+			<intensity>78955.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+		</feature>
+
+		<feature id="f_3">
+			<position dim="0">4789.59</position>
+			<position dim="1">738.26</position>
+			<intensity>138488.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+		</feature>
+
+		<feature id="f_4">
+			<position dim="0">4760.83</position>
+			<position dim="1">748.82</position>
+			<intensity>78955.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+		</feature>
+
+		<feature id="f_5">
+			<position dim="0">4753.44</position>
+			<position dim="1">757.25</position>
+			<intensity>138488.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+		</feature>
+
+	</featureList>
+</featureMap>

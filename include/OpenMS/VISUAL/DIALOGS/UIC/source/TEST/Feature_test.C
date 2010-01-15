@@ -1,0 +1,501 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Clemens Groepl $
+// $Authors: $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/KERNEL/Feature.h>
+
+///////////////////////////
+
+START_TEST(Feature, "$Id: Feature_test.C 5019 2009-04-05 20:49:49Z cbielow $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+Feature* d_ptr = 0;
+START_SECTION((Feature()))
+{
+	d_ptr = new Feature;
+	TEST_NOT_EQUAL(d_ptr, 0);
+}
+END_SECTION
+
+START_SECTION((~Feature()))
+{
+	delete d_ptr;
+}
+END_SECTION
+
+START_SECTION((QualityType getOverallQuality() const))
+	Feature p;
+	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
+	p.setOverallQuality(123.456);
+	TEST_REAL_SIMILAR(p.getOverallQuality(), 123.456)
+	p.setOverallQuality(-0.12345);
+	TEST_REAL_SIMILAR(p.getOverallQuality(), -0.12345)
+	p.setOverallQuality(0.0);
+	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
+END_SECTION
+
+START_SECTION((void setOverallQuality(QualityType q)))
+	Feature p;
+	p.setOverallQuality(123.456);
+	TEST_REAL_SIMILAR(p.getOverallQuality(), 123.456)
+	p.setOverallQuality(-0.12345);
+	TEST_REAL_SIMILAR(p.getOverallQuality(), -0.12345)
+	p.setOverallQuality(0.0);
+	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
+END_SECTION
+
+START_SECTION((QualityType getQuality(Size index) const ))
+	Feature p;
+	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
+	p.setQuality(0, 123.456);
+	TEST_REAL_SIMILAR(p.getQuality(0), 123.456)
+	p.setQuality(0, -0.12345);
+	TEST_REAL_SIMILAR(p.getQuality(0), -0.12345)
+	p.setQuality(0, 0.0);
+	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
+	TEST_REAL_SIMILAR(p.getQuality(1), 0.0)
+  TEST_PRECONDITION_VIOLATED(p.getQuality(10))
+END_SECTION
+
+START_SECTION((void setQuality(Size index, QualityType q)))
+	Feature p;
+	p.setQuality(1, 123.456);
+	TEST_REAL_SIMILAR(p.getQuality(1), 123.456)
+	p.setQuality(1, -0.12345);
+	TEST_REAL_SIMILAR(p.getQuality(1), -0.12345)
+	p.setQuality(1, 0.0);
+	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
+	TEST_REAL_SIMILAR(p.getQuality(1), 0.0)
+  TEST_PRECONDITION_VIOLATED(p.setQuality(10,1.0))
+END_SECTION
+
+START_SECTION((const ModelDescription<2>& getModelDescription() const))
+	const Feature p;
+	TEST_EQUAL(p.getModelDescription().getName(), "")
+	TEST_EQUAL(p.getModelDescription().getParam().empty(), true)
+END_SECTION
+
+START_SECTION((ModelDescription<2>& getModelDescription()))
+	Feature p;
+	TEST_EQUAL(p.getModelDescription().getName(), "")
+	p.getModelDescription().setName("gauss");
+	TEST_EQUAL(p.getModelDescription().getName(), "gauss")
+	p.getModelDescription().setName("");
+  TEST_EQUAL(p.getModelDescription().getName(), "")
+END_SECTION
+
+START_SECTION((void setModelDescription(const ModelDescription< 2 > &q)))
+	Feature p;
+  ModelDescription<2> desc;
+  desc.setName("gauss");
+	p.setModelDescription(desc);
+	TEST_EQUAL(p.getModelDescription().getName(), "gauss")
+	p.setModelDescription(ModelDescription<2>());
+	TEST_EQUAL(p.getModelDescription().getName(), "")
+END_SECTION
+
+START_SECTION([EXTRA](IntensityType getIntensity() const))
+	const Feature p;
+	TEST_REAL_SIMILAR(p.getIntensity(), 0.0)
+END_SECTION
+
+START_SECTION([EXTRA](const PositionType& getPosition() const))
+	const Feature	p;
+	TEST_REAL_SIMILAR(p.getPosition()[0], 0.0)
+	TEST_REAL_SIMILAR(p.getPosition()[1], 0.0)
+END_SECTION
+
+START_SECTION([EXTRA](IntensityType& getIntensity()))
+	Feature p;
+	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
+	p.setIntensity(123.456f);
+	TEST_REAL_SIMILAR(p.getIntensity(), 123.456f)
+	p.setIntensity(-0.12345f);
+	TEST_REAL_SIMILAR(p.getIntensity(), -0.12345f)
+	p.setIntensity(0.0f);
+	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
+END_SECTION
+
+START_SECTION([EXTRA](PositionType& getPosition()))
+	Feature::PositionType pos;
+	Feature p;
+	pos = p.getPosition();
+	TEST_REAL_SIMILAR(pos[0], 0.0)
+	TEST_REAL_SIMILAR(pos[1], 0.0)
+	pos[0] = 1.0;
+	pos[1] = 2.0;
+	p.setPosition(pos);
+	Feature::PositionType pos2(p.getPosition());
+	TEST_REAL_SIMILAR(pos2[0], 1.0)
+	TEST_REAL_SIMILAR(pos2[1], 2.0)
+END_SECTION
+
+//do not change these datastructures, they are used in the following tests...
+std::vector< ConvexHull2D > hulls(2);
+hulls[0].addPoint(DPosition<2>(1.0,2.0));
+hulls[0].addPoint(DPosition<2>(3.0,4.0));
+hulls[1].addPoint(DPosition<2>(0.5,0.0));
+hulls[1].addPoint(DPosition<2>(1.0,1.0));
+
+START_SECTION((const vector<ConvexHull2D>& getConvexHulls() const))
+	Feature tmp;
+	TEST_EQUAL(tmp.getConvexHulls().size(),0)
+END_SECTION
+
+START_SECTION((vector<ConvexHull2D>& getConvexHulls()))
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+	TEST_EQUAL(tmp.getConvexHulls().size(),2)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+END_SECTION
+
+START_SECTION((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+	TEST_EQUAL(tmp.getConvexHulls().size(),2)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+END_SECTION
+
+START_SECTION((ConvexHull2D& getConvexHull() const))
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+
+	//check if the bounding box is ok
+	DBoundingBox<2> bb = tmp.getConvexHull().getBoundingBox();
+	TEST_REAL_SIMILAR(bb.min()[0],0.5)
+	TEST_REAL_SIMILAR(bb.min()[1],0.0)
+	TEST_REAL_SIMILAR(bb.max()[0],3.0)
+	TEST_REAL_SIMILAR(bb.max()[1],4.0)
+
+	//check the convex hull points
+	TEST_EQUAL(tmp.getConvexHull().getPoints().size(),3)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[0][0],0.5)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[0][1],0.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[1][0],3.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[1][1],4.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[2][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[2][1],2.0)
+
+END_SECTION
+
+hulls[0].addPoint(DPosition<2>(3.0,2.0));
+hulls[1].addPoint(DPosition<2>(2.0,1.0));
+
+START_SECTION((bool encloses(DoubleReal rt, DoubleReal mz) const))
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+
+	TEST_EQUAL(tmp.encloses(0.0,0.0), false);
+	TEST_EQUAL(tmp.encloses(1.0,1.0), true);
+	TEST_EQUAL(tmp.encloses(2.0,0.5), false);
+	TEST_EQUAL(tmp.encloses(2.0,2.5), true);
+	TEST_EQUAL(tmp.encloses(2.0,3.5), false);
+	TEST_EQUAL(tmp.encloses(4.0,3.0), false);
+	TEST_EQUAL(tmp.encloses(1.5,1.5), false);
+END_SECTION
+
+START_SECTION((const ChargeType& getCharge() const))
+{
+	Feature const tmp;
+	TEST_EQUAL(tmp.getCharge(),0);
+	// continued in setCharge()
+}
+END_SECTION
+
+START_SECTION((void setCharge(const ChargeType &ch)))
+{
+	Feature tmp;
+	TEST_EQUAL(tmp.getCharge(),0);
+	tmp.setCharge(17);
+	TEST_EQUAL(tmp.getCharge(),17);
+}
+END_SECTION
+
+START_SECTION((Feature(const Feature &feature)))
+	Feature::PositionType pos;
+	pos[0] = 21.21;
+	pos[1] = 22.22;
+	Feature p;
+	p.setIntensity(123.456f);
+	p.setPosition(pos);
+	p.setMetaValue("cluster_id",4711);
+  p.setOverallQuality(0.9);
+  p.setQuality(0, 0.1);
+  p.setQuality(1, 0.2);
+  ModelDescription<2> desc;
+  desc.setName("gauss");
+  p.setModelDescription(desc);
+  p.setConvexHulls(hulls);
+	p.getConvexHull(); //this precalculates the overall convex hull
+
+	Feature::PositionType pos2;
+	Feature::IntensityType i2;
+
+	Feature copy_of_p(p);
+	i2 = copy_of_p.getIntensity();
+	pos2 = copy_of_p.getPosition();
+
+	TEST_REAL_SIMILAR(i2, 123.456)
+
+	TEST_REAL_SIMILAR(pos2[0], 21.21)
+	TEST_REAL_SIMILAR(pos2[1], 22.22)
+
+	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4711));
+
+  Feature::QualityType q2;
+	q2 = copy_of_p.getOverallQuality();
+	TEST_REAL_SIMILAR(q2, 0.9)
+	q2 = copy_of_p.getQuality(0);
+	TEST_REAL_SIMILAR(q2, 0.1)
+	q2 = copy_of_p.getQuality(1);
+	TEST_REAL_SIMILAR(q2, 0.2)
+	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
+	TEST_EQUAL(copy_of_p.getConvexHull().getPoints().size(),p.getConvexHull().getPoints().size())
+	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
+END_SECTION
+
+START_SECTION((Feature& operator = (const Feature& rhs)))
+	Feature::PositionType pos;
+	pos[0] = 21.21;
+	pos[1] = 22.22;
+	Feature p;
+	p.setIntensity(123.456f);
+	p.setPosition(pos);
+  p.setOverallQuality(0.9);
+  p.setQuality(0, 0.1);
+  p.setQuality(1, 0.2);
+  ModelDescription<2> desc;
+  desc.setName("gauss");
+  p.setModelDescription(desc);
+	p.setMetaValue("cluster_id",4712);
+  p.setConvexHulls(hulls);
+
+	Feature::PositionType pos2;
+	Feature::IntensityType i2;
+
+	Feature copy_of_p;
+	copy_of_p.getConvexHull(); //this precalculates the overall convex hull in order to check that the recalculation flag is copied correctly
+	copy_of_p = p;
+
+	i2 = copy_of_p.getIntensity();
+	pos2 = copy_of_p.getPosition();
+
+  Feature::QualityType q2;
+
+	TEST_REAL_SIMILAR(i2, 123.456)
+	TEST_REAL_SIMILAR(pos2[0], 21.21)
+	TEST_REAL_SIMILAR(pos2[1], 22.22)
+	q2 = copy_of_p.getOverallQuality();
+	TEST_REAL_SIMILAR(q2, 0.9)
+	q2 = copy_of_p.getQuality(0);
+	TEST_REAL_SIMILAR(q2, 0.1)
+	q2 = copy_of_p.getQuality(1);
+	TEST_REAL_SIMILAR(q2, 0.2)
+	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
+	TEST_EQUAL(copy_of_p.getConvexHull().getPoints().size(),p.getConvexHull().getPoints().size())
+	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
+END_SECTION
+
+START_SECTION((bool operator==(const Feature &rhs) const))
+  ModelDescription<2> desc;
+  desc.setName("gauss");
+
+	Feature p1;
+	Feature p2(p1);
+	TEST_EQUAL(p1==p2, true)
+
+	p1.setIntensity(5.0f);
+  p1.setOverallQuality(0.9);
+  p1.setQuality(0, 0.1);
+  p1.setModelDescription(desc);
+	TEST_EQUAL(p1==p2, false)
+	p2.setIntensity(5.0f);
+  p2.setOverallQuality(0.9);
+  p2.setQuality(0, 0.1);
+  p2.setModelDescription(desc);
+	TEST_EQUAL(p1==p2, true)
+
+	p1.getPosition()[0]=5;
+	TEST_EQUAL(p1==p2, false)
+	p2.getPosition()[0]=5;
+	TEST_EQUAL(p1==p2, true)
+END_SECTION
+
+START_SECTION([EXTRA](Feature& operator != (const Feature& rhs)))
+	Feature p1;
+	Feature p2(p1);
+	TEST_EQUAL(p1!=p2, false)
+
+	p1.setIntensity(5.0f);
+	TEST_EQUAL(p1!=p2, true)
+	p2.setIntensity(5.0f);
+	TEST_EQUAL(p1!=p2, false)
+
+	p1.getPosition()[0]=5;
+	TEST_EQUAL(p1!=p2, true)
+	p2.getPosition()[0]=5;
+	TEST_EQUAL(p1!=p2, false)
+END_SECTION
+
+START_SECTION(([EXTRA]meta info with copy constructor))
+	Feature p;
+	p.setMetaValue(2,String("bla"));
+ 	Feature p2(p);
+	TEST_EQUAL(p.getMetaValue(2), "bla")
+	TEST_EQUAL(p2.getMetaValue(2), "bla")
+ 	p.setMetaValue(2,String("bluff"));
+	TEST_EQUAL(p.getMetaValue(2), "bluff")
+	TEST_EQUAL(p2.getMetaValue(2), "bla")
+END_SECTION
+
+START_SECTION(([EXTRA]meta info with assignment))
+	Feature p;
+	p.setMetaValue(2,String("bla"));
+ 	Feature p2 = p;
+	TEST_EQUAL(p.getMetaValue(2), "bla")
+	TEST_EQUAL(p2.getMetaValue(2), "bla")
+ 	p.setMetaValue(2,String("bluff"));
+	TEST_EQUAL(p.getMetaValue(2), "bluff")
+	TEST_EQUAL(p2.getMetaValue(2), "bla")
+END_SECTION
+
+START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
+	Feature tmp;
+	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
+	TEST_EQUAL(vec.size(),0);
+END_SECTION
+
+START_SECTION((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
+	Feature tmp;
+	vector<PeptideIdentification> vec;
+
+	tmp.setPeptideIdentifications(vec);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),0);
+
+	PeptideIdentification dbs;
+	vec.push_back(dbs);
+	tmp.setPeptideIdentifications(vec);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
+END_SECTION
+
+START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
+	Feature tmp;
+	vector<PeptideIdentification> vec;
+
+	tmp.getPeptideIdentifications().resize(1);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
+END_SECTION
+
+
+START_SECTION((std::vector<Feature>& getSubordinates()))
+{
+	// see below
+	NOT_TESTABLE;
+}
+END_SECTION
+
+START_SECTION((void setSubordinates(const std::vector<Feature>& rhs)))
+{
+	// see below
+	NOT_TESTABLE;
+}
+END_SECTION
+
+START_SECTION((const std::vector<Feature>& getSubordinates() const))
+{
+	Feature f1;
+	f1.setRT(1001);
+	f1.setMZ(1002);
+	f1.setCharge(1003);
+	Feature f1_cpy(f1);
+	Feature f11;
+	f11.setRT(1101);
+	f11.setMZ(1102);
+	Feature f12;
+	f12.setRT(1201);
+	f12.setMZ(1202);
+	Feature f13;
+	f13.setRT(1301);
+	f13.setMZ(1302);
+	TEST_EQUAL(f1.getSubordinates().empty(),true);
+	f1.getSubordinates().push_back(f11);
+	TEST_EQUAL(f1.getSubordinates().size(),1);
+	f1.getSubordinates().push_back(f12);
+	TEST_EQUAL(f1.getSubordinates().size(),2);
+	f1.getSubordinates().push_back(f13);
+	TEST_EQUAL(f1.getSubordinates().size(),3);
+	TEST_EQUAL(f1.getRT(),1001);
+	TEST_EQUAL(f1.getSubordinates()[0].getRT(),1101);
+	TEST_EQUAL(f1.getSubordinates()[1].getRT(),1201);
+	TEST_EQUAL(f1.getSubordinates()[2].getRT(),1301);
+	const Feature &f1_cref = f1;
+	TEST_EQUAL(f1_cref.getMZ(),1002);
+	TEST_EQUAL(f1_cref.getSubordinates()[0].getMZ(),1102);
+	TEST_EQUAL(f1_cref.getSubordinates()[1].getMZ(),1202);
+	TEST_EQUAL(f1_cref.getSubordinates()[2].getMZ(),1302);
+	TEST_NOT_EQUAL(f1_cref,f1_cpy);
+	Feature f1_cpy2(f1);
+	TEST_EQUAL(f1_cpy2,f1);
+	f1.getSubordinates().clear();
+	TEST_EQUAL(f1_cref,f1_cpy);
+
+	Feature f2;
+	f2.setRT(1001);
+	f2.setMZ(1002);
+	f2.setCharge(1003);
+	TEST_NOT_EQUAL(f1_cpy2.getSubordinates().empty(),true);
+	f2.setSubordinates(f1_cpy2.getSubordinates());
+	TEST_EQUAL(f2,f1_cpy2);
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

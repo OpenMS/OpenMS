@@ -1,0 +1,75 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/**
+  @page UTILS UTILS documentation
+  
+  Besides TOPP, %OpenMS offers a range of other tools.
+  They are not included in TOPP as they are not part of typical analysis pipelines, 
+  but they still might be very helpful to you.
+
+	The %OpenMS UTILS are created by calling 'make UTILS' in in the %OpenMS source directory.
+	Just as the TOPP tools, they are copied to the %OpenMS bin folder.
+ 	
+ 	The UTILS tools are divided into several subgroups:
+ 	
+
+  <b>File handling</b>
+  - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
+  - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
+	- @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
+  - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
+  
+  <b>Algorithm evaluation</b>
+  - @subpage UTILS_FFEval - Evaluation tool for for feature detection algorithms.
+  - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
+	- @subpage UTILS_CaapConvert - Convert a CAAP ground truth file into consensusXML format.
+	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
+	- @subpage UTILS_IdXMLEvaluation - Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
+  
+  <b>Peptide identification</b>
+	- @subpage UTILS_Digestor - Digests a protein database in-silico.
+	- @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
+	- @subpage UTILS_SequenceCoverageCalculator - Prints information about IdXML files.
+  - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from IdXML files.
+  - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
+  - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
+  
+    <b>Quantitation</b>
+  - @subpage UTILS_ERPairFinder - Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
+  - @subpage UTILS_MRMPairFinder - Util which can be used to evaluate labeled pair ratios on MRM features.
+
+
+	<b>Misc</b>
+  - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
+  - @subpage UTILS_HistView - A viewer for histograms.
+  - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
+  - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.
+  - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
+  - @subpage UTILS_UniqueIdAssigner - Assign new unique ids to FeatureXML or ConsensusXML files.
+	
+*/

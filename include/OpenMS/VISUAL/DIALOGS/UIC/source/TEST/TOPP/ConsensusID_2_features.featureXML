@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="2">
+		<feature id="f_1">
+			<position dim="0">1.5</position>
+			<position dim="1">1.5</position>
+			<intensity>5</intensity>
+			<quality dim="0">0.5</quality>
+			<quality dim="1">0.5</quality>
+			<overallquality>0.5</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">0.5</hposition>
+					<hposition dim="1">0.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2.5</hposition>
+					<hposition dim="1">0.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2.5</hposition>
+					<hposition dim="1">2.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">0.5</hposition>
+					<hposition dim="1">2.5</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		
+		<feature id="f_2">
+			<position dim="0">3.5</position>
+			<position dim="1">3.5</position>
+			<intensity>10</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2.6</hposition>
+					<hposition dim="1">2.6</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4.5</hposition>
+					<hposition dim="1">2.6</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4.5</hposition>
+					<hposition dim="1">4.5</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2.6</hposition>
+					<hposition dim="1">4.5</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		
+	</featureList>
+</featureMap>

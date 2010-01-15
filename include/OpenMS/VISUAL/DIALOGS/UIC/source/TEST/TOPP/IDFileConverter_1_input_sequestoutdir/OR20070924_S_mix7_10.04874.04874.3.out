@@ -1,0 +1,31 @@
+
+ ./OR20070924_S_mix7_10.04874.04874.3.out
+ SEQUEST v.27 (rev. 0), (c) 1993
+ Molecular Biotechnology, Univ. of Washington, J.Eng/J.Yates
+ Licensed to Finnigan Corp., A Division of ThermoQuest Corp.
+ 01/13/2008, 02:51 AM, 0 sec. on regis75
+ (M+H)+ mass = 1756.8195 ~ 3.0000 (+3), fragment tol = 0.0, MONO/AVG
+ total inten = 5723.3, lowest Sp = 223.7, # matched peptides = 29087
+ # amino acids = 567460, # proteins = 1822, /dbase/misc/18mix092106/18mix092106_hinf
+ ion series nABY ABCDVWXYZ: 0 0 0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0
+ display top 5/3, ion % = 0.0, CODE = 0000
+ C=160.009 
+
+  #   Rank/Sp    (M+H)+   deltCn   XCorr    Sp     Ions  Reference                       Peptide
+ ---  -------  ---------  ------  ------   ----    ----  ---------                       -------
+  1.   1 /178  1758.8594  0.0000  1.8195   275.9  18/60  SW:K2CA_HUMAN             +3  V.KKQCANLQAAIADAEQ.R
+  2.   2 /138  1757.7226  0.0400  1.7467   289.5  16/56  gi|1573141|gb|AAC21854.1|     A.KQFGATDCLNPNDYD.K
+  3.   3 /437  1756.8870  0.0697  1.6926   230.9  14/52  gi|1573733|gb|AAC22388.1|     V.QKYAEELYRTLQSQ.G
+  4.   4 / 79  1756.9499  0.0765  1.6803   317.8  20/60  gi|1574235|gb|AAC23046.1|     D.GQAFKRYLGQGKSAFV.K
+  5.   5 / 14  1756.7931  0.1075  1.6238   408.5  22/68  gi|1574344|gb|AAC23163.1|     V.GAGWNYNVGSAAFGTDVA.V
+
+ 97.  97 /  1  1756.1325  0.4214  1.0528   750.6  23/52  gi|1573215|gb|AAC21915.1|     K.KRTALDKKKWLKLK.G
+
+  1.  SW:K2CA_HUMAN KERATIN, TYPE II CYTOSKELETAL 6A (CYTOKERATIN 6A) (CK 6A) (K
+      6A KE
+  2.  gi|1573141|gb|AAC21854.1| alcohol dehydrogenase, class III (adhC) [Haemoph
+      ilus influenzae Rd]
+  3.  gi|1573733|gb|AAC22388.1| prolyl-tRNA synthetase (proS) [Haemophilus influ
+      enzae Rd]
+
+

@@ -1,0 +1,52 @@
+
+-- General information --
+
+file name: /share/usr/bertsch/OpenMS_i386_sl5/source/TEST/TOPP/FileInfo_8_input.notype
+file type: cdf
+
+peak type (metadata) : Unknown
+peak type (estimated): Raw data
+estimated raw data spacing: 10 (min: 10 max: 10)
+
+Number of spectra: 3
+Number of peaks:   9
+
+Ranges:
+  retention time:  60.00 : 180.00
+  mass-to-charge:  100.00 : 140.00
+  intensity:       100.00 : 300.00
+
+MS levels: 1
+Spectra of MS Level 1: 3
+
+
+-- Meta information --
+
+Document id       : 
+Date              : 0000-00-00 00:00:00
+
+Sample
+  Name             : 
+  Organism         : 
+  Comment          : 42
+
+Instrument
+  Name             : i1
+  Model            : i4
+  Vendor           : i3
+  Ion source(s)    : Electron ionization
+  Mass Analyzer(s) : Unknown
+  Detector(s)      : Electron multiplier
+
+Contact Person
+  First Name       : 
+  Last Name        : 15
+  Email            : 
+
+Contact Person
+  First Name       : 
+  Last Name        : 7
+  Email            : 
+
+
+

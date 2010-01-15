@@ -1,0 +1,82 @@
+[SEQUEST]
+database_name = \\bude\langwisc\sequest_test\Analysis.mzXML.fasta
+peptide_mass_tolerance = 1.3
+peptide_mass_units = 0; 0=amu, 1=mmu, 2=ppm
+ion_series = 0 1 1 0 1.0 0 0 0 0 0 1.0 0;nABY ABCDVWXYZ
+fragment_ion_tolerance = 0.3
+num_output_lines = 10
+num_results = 10
+num_description_lines = 0
+show_fragment_ions = 1
+print_duplicate_references = 1
+enzyme_number = 14
+diff_search_options = 16 C
+term_diff_search_options = 0 -16
+remove_precursor_peak = 1
+ion_cutoff_percentage = 0.3
+protein_mass_filter = 30.2 0
+max_differential_AA_per_mod = 4
+max_differential_per_peptide = 3
+nucleotide_reading_frame = 0; 0=protein db, 1-6, 7 = forward three, 8-reverse three, 9=all six
+mass_type_parent = 1; 0=average masses, 1=monoisotopic masses
+mass_type_fragment = 1; 0=average masses, 1=monoisotopic masses
+normalize_xcorr = 1
+max_internal_cleavage_sites = 2
+create_output_files = 1
+partial_sequence = SEQVEST TEST
+sequence_header_filter = homo~sapiens !mus musculus
+match_peak_count = 5; number of auto-detected peaks to try matching (max 5)
+match_peak_allowed_error = 4
+match_peak_tolerance = 1.2
+residues_in_upper_case = 1
+
+
+add_Nterm_peptide = -16
+add_Cterm_peptide = 0
+add_Nterm_protein = -17
+add_Cterm_protein = -17
+
+add_G_Glycine = 0; added to G - avg.  57.0519, mono.  57.02146
+add_A_Alanine = 0; added to A - avg.  71.0788, mono.  71.03711
+add_S_Serine = 0; added to S - avg.  87.0782, mono.  87.03203
+add_P_Proline = 0; added to P - avg.  97.1167, mono.  97.05276
+add_V_Valine = 0; added to V - avg.  99.1326, mono.  99.06841
+add_T_Threonine = 0; added to T - avg. 101.1051, mono. 101.04768
+add_C_Cysteine = 0; added to C - avg. 103.1388, mono. 103.00919
+add_L_Leucine = 10.3; added to L - avg. 113.1594, mono. 113.08406
+add_I_Isoleucine = 0; added to I - avg. 113.1594, mono. 113.08406
+add_X_LorI = 0; added to X - avg. 113.1594, mono. 113.08406
+add_N_Asparagine = 10.3; added to N - avg. 114.1038, mono. 114.04293
+add_O_Ornithine = 0; added to O - avg. 114.1472, mono  114.07931
+add_B_avg_NandD = 0; added to B - avg. 114.5962, mono. 114.53494
+add_D_Aspartic_Acid = 0; added to D - avg. 115.0886, mono. 115.02694
+add_Q_Glutamine = 0; added to Q - avg. 128.1307, mono. 128.05858
+add_K_Lysine = 10.3; added to K - avg. 128.1741, mono. 128.09496
+add_Z_avg_QandE = 0; added to Z - avg. 128.6231, mono. 128.55059
+add_E_Glutamic_Acid = 0; added to E - avg. 129.1155, mono. 129.04259
+add_M_Methionine = 0; added to M - avg. 131.1926, mono. 131.04049
+add_H_Histidine = 10.3; added to H - avg. 137.1411, mono. 137.05891
+add_F_Phenylalanine = 0; added to F - avg. 147.1766, mono. 147.06841
+add_R_Arginine = 10.3; added to R - avg. 156.1875, mono. 156.10111
+add_Y_Tyrosine = 0; added to Y - avg. 163.1760, mono. 163.06333
+add_W_Tryptophan = 0; added to W - avg. 186.2132, mono. 186.07931
+
+[SEQUEST_ENZYME_INFO]
+0.  AspN                    0     D             -
+1.  AspN_DE                 0     DE            -
+2.  Chymotrypsin            1     FWYL          -
+3.  Chymotrypsin_WYF        1     FWY           -
+4.  Clostripain             1     R             -
+5.  Cyanogen_Bromide        1     M             -
+6.  Elastase                1     ALIV          P
+7.  Elastase/Tryp/Chymo     1     ALIVKRWFY     P
+8.  GluC                    1     E             -
+9.  GluC_ED                 1     ED            -
+10.  IodosoBenzoate          1     W             -
+11.  LysC                    1     K             -
+12.  No_Enzyme               0     -             -
+13.  Proline_Endopept        1     P             -
+14.  Trypsin                 1     KRLNH         -
+15.  Trypsin/Chymo           1     KRLFWYN       -
+16.  Trypsin_Strict          1     KR            -
+17.  Z_TestEnzyme            1     RMW           -

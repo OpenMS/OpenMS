@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" id="fm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="TextImporter" version="version_string" />
+		<processingAction name="File format conversion" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="6">
+		<feature id="f_13229490167902618598">
+			<position dim="0">10</position>
+			<position dim="1">114</position>
+			<intensity>2342</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_5024549519481199379">
+			<position dim="0">10</position>
+			<position dim="1">115</position>
+			<intensity>232</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6211693768620736135">
+			<position dim="0">10</position>
+			<position dim="1">116</position>
+			<intensity>523</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_2727934422266510952">
+			<position dim="0">14</position>
+			<position dim="1">220</position>
+			<intensity>343</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="Meta1" value="key"/>
+			<userParam type="string" name="Meta2" value="value"/>
+		</feature>
+		<feature id="f_3318143123566627610">
+			<position dim="0">14</position>
+			<position dim="1">431.1</position>
+			<intensity>343</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_16086848624660428181">
+			<position dim="0">15</position>
+			<position dim="1">543.2393</position>
+			<intensity>343</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="Meta1" value="a"/>
+			<userParam type="string" name="Meta2" value="b"/>
+		</feature>
+	</featureList>
+</featureMap>

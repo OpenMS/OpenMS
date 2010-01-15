@@ -1,0 +1,60 @@
+format-version: 1.2
+date: 07:07:2008 14:30
+saved-by: Walter Walters
+auto-generated-by: OBO-Edit 1.101
+default-namespace: MS
+remark: namespace: MS
+remark: version: 1.3.0
+remark: release date: 2008-07-07
+remark: coverage: Mass spectrometer output files
+remark: creator: Ich
+remark: publisher: OpenMS project
+
+[Term]
+id  :    OpenMS:1   
+			name  		 :  	Auto
+def: "Auto desc" [Bli: "bla"]
+synonym: "Kutsche" EXACT [OpenMS:Bla]
+synonym: "Karre" EXACT [OpenMS:Bla]
+
+[Term]
+id: OpenMS:6
+name: Ka
+is_a : OpenMS:2  		  ! 	 Ford
+is_obsolete 	: true
+def: "Ka desc"
+
+[Term]
+id : OpenMS:2
+name: Ford
+is_a : OpenMS:1  		  ! 	   Auto
+def: ""
+
+[Term]
+id: OpenMS:3
+name: Mercedes
+is_a : OpenMS:1!Auto
+synonym: "Zedes" EXACT [OpenMS:Bla]
+
+[Term]
+id: OpenMS:4
+name: A-Klasse
+is_a : OpenMS:3 ! Mercedes
+xref: unparsed line 1
+xref: unparsed line 2
+xref: unparsed line 3
+def: "A-Klasse desc" [Bli]
+
+[Term]
+id: OpenMS:5
+name: Mustang
+is_a : OpenMS:2  		  ! 	  Ford
+
+[Typedef]
+id: has_units
+name: has_units
+
+[Typedef]
+id: part_of
+name: part_of
+is_transitive: true

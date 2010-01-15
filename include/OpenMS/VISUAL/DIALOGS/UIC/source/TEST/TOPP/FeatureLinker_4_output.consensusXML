@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/groepl/Release1.6/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" id="cm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureLinker" version="version_string" />
+		<processingAction name="Feature grouping" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="2">
+		<map id="0" name="FeatureLinker_4_input1.featureXML" label="" size="4">
+		</map>
+		<map id="1" name="FeatureLinker_4_input2.featureXML" label="" size="4">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_13229490167902618598" quality="0" charge="2">
+			<centroid rt="1328.5" mz="909.4" it="127697"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="1328.5" mz="909.4" it="127697" charge="2"/>
+			</groupedElementList>
+			<userParam type="string" name="classification" value="hard"/>
+		</consensusElement>
+		<consensusElement id="e_5024549519481199379" quality="0.366136409096402" charge="2">
+			<centroid rt="1310.8545" mz="909.715" it="557679"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1310.869" mz="909.6" it="599422" charge="2"/>
+				<element map="1" id="0" rt="1310.84" mz="909.83" it="515936" charge="4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6211693768620736135" quality="0.794603" charge="3">
+			<centroid rt="1326.78" mz="909.827" it="120910"/>
+			<groupedElementList>
+				<element map="1" id="3" rt="1326.78" mz="909.827" it="120910" charge="3"/>
+			</groupedElementList>
+			<userParam type="string" name="label" value="Feature #4, +3, 215-&gt;61, Corr: (0.794603,0.946796,0.864727)"/>
+		</consensusElement>
+		<consensusElement id="e_2727934422266510952" quality="0.465746024775322" charge="2">
+			<centroid rt="1319.705" mz="910.4975" it="217114"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="1319.87" mz="910.4" it="217181" charge="2"/>
+				<element map="1" id="1" rt="1319.54" mz="910.595" it="217047" charge="3"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3318143123566627610" quality="0.181641677056317" charge="2">
+			<centroid rt="1306.405" mz="922.3305" it="131076"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="1305.66" mz="922.2" it="123455" charge="2"/>
+				<element map="1" id="2" rt="1307.15" mz="922.461" it="138697" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

@@ -1,0 +1,102 @@
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="COM"
+
+OpenMS search
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="USERNAME"
+
+OpenMS
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="FORMAT"
+
+Mascot generic
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="TOLU"
+
+Da
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="ITOLU"
+
+Da
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="FORMVER"
+
+1.01
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="DB"
+
+DB_TEST
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="SEARCH"
+
+MIS
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="REPORT"
+
+Hits_TEST
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="CLE"
+
+TrypChymo
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="MASS"
+
+Monoisotopic
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="MODS"
+
+Modifications_TEST_1
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="MODS"
+
+Modifications_TEST_2
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="IT_MODS"
+
+Variable_Modifications_TEST_1
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="INSTRUMENT"
+
+Instrument_TEST
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="PFA"
+
+4711
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="TOL"
+
+4711.1
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="ITOL"
+
+4711.2
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="TAXONOMY"
+
+. . . . . . Plasmodium falciparum (malaria parasite)
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="CHARGE"
+
+1+ and 2+
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="FILE"; filename="MascotAdapter_1_output.tmp"
+
+
+BEGIN IONS
+TITLE=1998_25.379
+PEPMASS=1998
+RTINSECONDS=25.379
+
+1 1
+2 4
+3 9
+4 16
+5 25
+6 36
+7 49
+8 64
+9 81
+END IONS
+
+
+--ABCDEFGHIJKMNOPQRSTUVWXYZ--

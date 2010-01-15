@@ -1,0 +1,255 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/// @cond INTERNAL_INFO
+
+/**
+	@page CPP C++ guide
+
+This file contains general C++ guidelines that are not OpenMS-specific.
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">The 'using' directive</H2>
+
+For <TT>.h</TT> files it is strictly forbidden to use <TT>using namespace %OpenMS;</TT>,
+<TT>using namespace std;</TT> or similar. This may cause name clashes (see 'Effective C++').
+<p>
+In <TT>.C</TT> files you should not import complete namespaces to the scope either.
+Instead, introduce individual symbols to the scope where you need
+them. E.g. you would write <TT>using std::vector;</TT> instead of <TT>using namespace std;</TT>.
+This immediately gives a hint to where the symbol is defined as well.
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">UInt is not Size!</H2>
+
+Whenever working with STL types (especially vectors), assign the return value of
+a <tt>.size()</tt> operation to the %OpenMS type <tt>Size</tt>, which is defined as follows
+@code
+// OpenMS/include/CONCEPT/Types.h
+typedef size_t Size;
+@endcode
+
+The correct usage is:
+@code
+std::vector<String> myVec;
+myVec.push_back("hello");
+for (Size i=0; i<myVec.size(); ++i)
+{
+  std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
+}
+@endcode
+
+Particularly do <b>not</b> use UInt as substitute for Size! Even though UInt and Size are equivalent
+on prominent 32bit systems, they are usually different types on 64bit systems, where UInt is 32bit, whereas Size is 64bit depending on the platform. Using UInt leads to warnings (at best) and might even break your code!
+<p>
+Size is an unsigned type!If you need a signed type (e.g. when comparing length of vectors) use SignedSize (also defined in types.h)<br>
+</p>
+
+Use SignedSize if you require loop variables with negative values:
+@code
+std::vector<String> myVec;
+myVec.push_back("hello");
+for (SignedSize i=0; i<(SignedSize)myVec.size() - 1; ++i)
+// never use Size here, because if myVec.size()==0 then Size x = 0 - 1; gives some really BIG number!
+{
+  std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
+}
+@endcode
+
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Math functions</H2>
+
+Using GCC a lot of common math functions are available (e.g. trunc(), round(), log2(), isnan() or isinf() etc). However, this is <b>not</b> required by the C++Standard,
+so Microsoft decided not to include them. You will break the windows port of %OpenMS if you use them!<br>
+You can rely on <tt>ceil()</tt> and <tt>floor()</tt> to exist everywhere (@verbatim #include cmath @endverbatim).
+If you are not sure whats available try http://www.cplusplus.com/ or for VisualStudio specific problems: MSDN (http://msdn.microsoft.com/en-us/visualc/default.aspx).<br>
+
+<H3>round()</H3>
+%OpenMS provides a <tt>Math::round()</tt> function for convenience (see MATH/MISC/MathFunctions.h).
+
+<H3>isnan(), isinf()</H3>
+Use the boost library for those.
+You need to include 
+
+@code #include <boost/math/special_functions/fpclassify.hpp> @endcode
+
+Then use
+
+<code>boost::math::isinf(myNumber)</code>
+and
+<code>boost::math::isnan(myNumber)</code>.
+
+<H3>log()</H3>
+
+Windows does not support <code>log2()</code>, so use <code>log(x)/log(2)</code> instead.
+
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Pass-by-value versus pass-by-reference</H2>
+
+Except of primitive types (int, double, float, ....) all method arguments should be passed as non-mutable references.
+<p>
+Return types of methods should be non-mutable references as well, where possible.
+Sometimes you cannot use references as the retuned value is constructed in the method.
+If the constructed type is large, you can save computation time like that:
+
+@code
+//Bad idea
+LargeObject someFunction()
+{
+  LargeObject tmp = ...
+  return tmp;
+}
+
+//Better idea
+void someFunction(LargeObject& obj)
+{
+  obj = ...
+}
+@endcode
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">What does this OPENMS_DLLAPI in class headers do?!</H2>
+
+OPENMS_DLLAPI is a preprocessor macro and ensures that Visual Studio exports
+this class into the DLL when building the DLL
+or references the DLL when building an executable.
+
+The OPENMS_DLLAPI macro is defined empty on other platforms,
+but it might still confuse the syntax parsing of your text editor or IDE.
+If you are using the Eclipse Platform, you can fix this at:
+Project->Properties->C/C++ Include Paths and Symbols.
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">When do I use OPENMS_DLLAPI?!</H2>
+
+Whenever you've written a new %OpenMS class, which is not a template class insert the macro into the header like this:
+@code
+class Myclass
+{ ...
+@endcode
+becomes
+@code
+class OPENMS_DLLAPI Myclass
+{ ...
+@endcode
+
+It is enough to prefix the class with the macro (do not prefix the members or member functions).
+
+OPENMS_DLLAPI is also required for structs, global (including 'extern') variables and global functions, as long as they are not templates.<br>
+Never prefix templates with OPENMS_DLLAPI!<br>
+The only exeption to this rule is when a template is fully specialized (i.e. it can be instantiated).
+Additionally you need to prefix nested public structs/classes with OPENMS_DLLAPI, otherwise you cannot use them from outside the library.
+
+A prominent global function is "operator <<", which is overloaded quite often for %OpenMS classes.
+Unless it is templatized, prefix it with OPENMS_DLLAPI. If the operator is declared a friend of some class, also make sure the
+friend statement also contains the OPENMS_DLLAPI keyword. Otherwise you will get inconsistent DLL-linkage, e.g use:
+@code
+// Adduct.h
+class OPENMS_DLLAPI Adduct
+{ 
+	...
+	friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a);
+	...
+}
+
+// Adduct.C
+namespace OpenMS
+{
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a)
+	{
+		...
+	}
+}
+@endcode
+
+If you forget the OPENMS_DLLAPI keyword, the DLL will have missing symbols and executables might not be able to link against it!
+
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Pointers versus references</H2>
+
+If you do not have really good reasons to do so, do not use pointers.
+They tend to cause segmentation faults!
+In 9 out of 10 cases a reference does the job as well!
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Iterators</H2>
+
+In simple looping constructs, iterators are generally preferable to indexed
+access.  Prefer ``<code>++i</code>'' to ``<code>i++</code>'', because the preincrement operator can safe
+a copy constructor.  Use <code>const_iterators</code> where possible to help
+avoiding unwanted side effects.
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Includes</H2>
+
+Includes in header files should be avoided and replaced by forward declarations.<BR>
+Unnecessary includes cause longer compile times after changes in %OpenMS header.
+<p>
+Reasons for includes in header files are:
+<UL>
+	<LI> Headers of base classes have to be included in the header of the derived classes.
+	<LI> If a class has members of type T (not T* or T&) the header has to be included.
+	<LI> Headers of template classes have to be included.
+</UL>
+
+An example class could look like this:
+@code
+#include <QtGui/QMainWindow>
+#include <QtGui/QPainter>
+
+// Forward declaration in main namespace
+class QLabel;
+
+namespace OpenMS
+{
+	// Forward declaration in OpenMS namespace
+ 	class Spectrum1DWidget;
+
+  class Dummy
+  	: public QMainWindow
+  {
+  	...
+
+  	protected:
+  		Spectrum1DWidget* parent_;
+  	  QLabel* label_;
+  	  QPainter painter_;
+  }
+}
+
+@endcode
+
+<b>Note:</b> In %OpenMS, Qt headers have to be included with the library prefix!
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Input/Output</H2>
+
+Note that code like <code>std::cout << "blabla" << std::endl;</code> forces the output buffer to be <i>flushed</i>,
+i.e. written to disk <i>immediately</i>, which is a big nuisance.
+Get used to write code like <code>std::cout << "blabla\n";</code>.
+Debug output can be an exception, because the content of the stream buffer may be lost upon segfault etc..
+
+Write sufficiently many digits to avoid unnecessary rounding errors.
+Use the constants OpenMS::written_digits_real, OpenMS::written_digits_doublereal, etc.
+which are defined in <OpenMS/CONCEPT/Types.h>.
+
+*/
+
+/// @endcond

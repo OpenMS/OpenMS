@@ -1,0 +1,5 @@
+#AA	offset	type	locations	symbol	PTM	name
+C	79.966331	FIXED	ALL	C+80	Phosphorylation
+C_TERM	43.042199	OPTIONAL	C_TERM	$+43	Carboxyl modification with ethanolamine
+D	79.966331	OPTIONAL	ALL	D+80	Phosphorylation
+N_TERM	229.162932	OPTIONAL	N_TERM	^+229	Sixplex Tandem Mass Tag®

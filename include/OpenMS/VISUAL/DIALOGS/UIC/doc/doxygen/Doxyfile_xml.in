@@ -1,0 +1,17 @@
+@INCLUDE = doxygen/Doxyfile
+
+GENERATE_TODOLIST      = NO
+
+# issue all possible warnings
+QUIET                  = NO
+WARNINGS               = YES
+
+# Internal info sections
+ENABLED_SECTIONS       = INTERNAL_INFO
+INTERNAL_DOCS          = YES
+
+# XML for checker.php
+GENERATE_XML           = YES
+
+#disable HTML docu
+GENERATE_HTML          = NO

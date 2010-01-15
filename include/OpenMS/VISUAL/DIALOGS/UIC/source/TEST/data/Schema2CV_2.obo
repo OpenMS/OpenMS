@@ -1,0 +1,15 @@
+format-version: 1.0
+
+[Term]
+id: Klettern:1   
+name: Klettergebiet
+
+[Term]
+id: Klettern:2
+name: Fontaine Bleau
+is_a : Klettern:1!Klettergebiet
+			
+[Term]
+id : Klettern:3
+name: Finale Ligure
+is_a : Klettern:1!Klettergebiet

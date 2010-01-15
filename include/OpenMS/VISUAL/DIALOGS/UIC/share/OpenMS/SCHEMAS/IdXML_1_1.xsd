@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="IdXML">
+		<xs:annotation>
+			<xs:documentation>Base node of IdXML</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="SearchParameters" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Search parameters that can be used for several identification runs</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="FixedModification" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>fixed modifications for the search</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence minOccurs="0">
+										<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+									<xs:attribute name="name" use="required">
+										<xs:annotation>
+											<xs:documentation>modification name</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="VariableModification" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>variable modifications for the search</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence minOccurs="0">
+										<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+									<xs:attribute name="name" use="required">
+										<xs:annotation>
+											<xs:documentation>modification name</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+						</xs:sequence>
+						<xs:attribute name="id" type="xs:ID" use="required">
+							<xs:annotation>
+								<xs:documentation>'id' referenced by IdentificationRun</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="db" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>protein sequence database name</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="db_version" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>database version</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="taxonomy" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>taxonomy restriction</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="mass_type" type="MassType" use="required">
+							<xs:annotation>
+								<xs:documentation>mass type ('monoisotopic' or 'average')</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="charges" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>searched for charges. If you want these charges to be automatically processed use the following format: '+1,+2,+3'</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="enzyme" type="DigestionEnzyme">
+							<xs:annotation>
+								<xs:documentation>digestion enzyme ('trypsin','pepsin_a','chymotrypsin','proteinase_k','no_enzyme' or 'unknown_enzyme')</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="missed_cleavages" type="xs:unsignedInt">
+							<xs:annotation>
+								<xs:documentation>number of allowed missed cleavages</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="precursor_peak_tolerance" type="xs:float" use="required">
+							<xs:annotation>
+								<xs:documentation>peak mass tolerance of precursor peak in Da</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="peak_mass_tolerance" type="xs:float" use="required">
+							<xs:annotation>
+								<xs:documentation>peak mass tolerance of fragment ions in Da</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="IdentificationRun" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>One identification run. It can contain peptide and protein identifications</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ProteinIdentification" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Collection of identified proteins</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ProteinHit" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Single reported protein hit</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence minOccurs="0">
+													<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+												</xs:sequence>
+												<xs:attribute name="id" type="xs:ID" use="required">
+													<xs:annotation>
+														<xs:documentation>'id' of the protein hit. Is referenced by peptide hits.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="accession" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>accession of the protein in the used database.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="score" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>score of the hit</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="sequence" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>protein sequences, if known</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+									<xs:attribute name="score_type" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>score type of the protein hits, e.g. MOWSE, p-value,...</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="higher_score_better" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if a higher score is better ('true' or false')</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="significance_threshold" type="xs:float">
+										<xs:annotation>
+											<xs:documentation>significance threshold as calculated by the search engine</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="PeptideIdentification" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Collections of identified peptides. Typically one for each spectrum or feature.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="PeptideHit" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>single reported peptide hit</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence minOccurs="0">
+													<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+												</xs:sequence>
+												<xs:attribute name="sequence" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>peptide sequence</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="charge" type="xs:integer" use="required">
+													<xs:annotation>
+														<xs:documentation>charge of the peptide</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="score" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>score of the hit</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="aa_before">
+													<xs:annotation>
+														<xs:documentation>amino acid before the sequence (for DB search)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="0"/>
+															<xs:maxLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="aa_after">
+													<xs:annotation>
+														<xs:documentation>amino acid after the sequence (for DB search)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="0"/>
+															<xs:maxLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="protein_refs" type="xs:IDREFS">
+													<xs:annotation>
+														<xs:documentation>References to proteins hits, this peptide occurs in.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+									<xs:attribute name="score_type" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>score type of the protein hits, e.g. MOWSE, p-value,...</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="higher_score_better" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if a higher score is better ('true' or false')</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="significance_threshold" type="xs:float">
+										<xs:annotation>
+											<xs:documentation>significance threshold as calculated by the search engine</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="spectrum_reference" type="xs:unsignedInt">
+										<xs:annotation>
+											<xs:documentation>Integer reference number of the identified spectrum (or feature)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="RT" type="xs:float">
+										<xs:annotation>
+											<xs:documentation>Precursor peak retention time of the identified spectrum</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="MZ" type="xs:float">
+										<xs:annotation>
+											<xs:documentation>Precursor peak mass-to-charge ratio of the identified spectrum</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="search_engine" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>search engine name, e.g. 'Mascot', 'Sequest'</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="search_engine_version" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>search engine version</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="date" type="xs:dateTime" use="required">
+							<xs:annotation>
+								<xs:documentation>date, when the search was performed (Format: yyyy-mm-ddThh:mm:ss)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="search_parameters_ref" type="xs:IDREF" use="required">
+							<xs:annotation>
+								<xs:documentation>Reference to SearchParameters id field</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Schema version, e.g. '1.1'. If it is missing, version 1.0 is assumed.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="UserParam">
+		<xs:annotation>
+			<xs:documentation>Type-Name-Value type for annotations</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="type" type="UserParamType" use="required">
+			<xs:annotation>
+				<xs:documentation>value type ('int', 'float' or 'string')</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>name of the annotation</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="value" type="xs:anySimpleType" use="required">
+			<xs:annotation>
+				<xs:documentation>actual value of the annotation</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="DigestionEnzyme">
+		<xs:annotation>
+			<xs:documentation>Enumeration of digestion enzymes</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="pepsin_a"/>
+			<xs:enumeration value="chymotrypsin"/>
+			<xs:enumeration value="proteinase_k"/>
+			<xs:enumeration value="trypsin"/>
+			<xs:enumeration value="no_enzyme"/>
+			<xs:enumeration value="unknown_enzyme"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="MassType">
+		<xs:annotation>
+			<xs:documentation>Enumeration of mass types</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="average"/>
+			<xs:enumeration value="monoisotopic"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="UserParamType">
+		<xs:annotation>
+			<xs:documentation>Enumeration of types</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="int"/>
+			<xs:enumeration value="float"/>
+			<xs:enumeration value="string"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

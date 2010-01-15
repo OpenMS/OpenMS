@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="mzData">
+		<xs:annotation>
+			<xs:documentation>This schema can capture the use of a mass spectrometer, the data generated, and the initial processing of that data (to the level of the peak list). Peak lists are processed data from a mass spectrometry experiment. There can be multiple peak lists in an mzData file, which might be related via a separation, or  just in sequence from an automated run. Any one peak list (mass spectrum) may also be composed of a number of acquisitions, which can be described individually herein.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="cvLookup" type="cvLookupType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>This stores the location, name, version and a short, arbitrarily assigned in-file reference label, for one or more controlled vocabulary sources. Short labels are for use elsewhere in the data file, primarily in the cvLabel attribute, to indicate the use of a particular source for an item of controlled vocabulary.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="description">
+					<xs:annotation>
+						<xs:documentation>Each data set starts with a description section. This section captures 'general' information; such as the instrument on which the data were generated.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="admin" type="adminType">
+								<xs:annotation>
+									<xs:documentation>Administrative information pertaining to the entire mzData file (i.e. not specific to any part of the data set) is stored here.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="instrument" type="instrumentDescriptionType">
+								<xs:annotation>
+									<xs:documentation>Instrument descripton (not 'run time' parameters, which should properly be captured in spectrumInstrument); these features must be common to all acquisitions.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="dataProcessing" type="dataProcessingType">
+								<xs:annotation>
+									<xs:documentation>Description of the default processing by which the peak list(s) were generated.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="spectrumList">
+					<xs:annotation>
+						<xs:documentation>All mass spectra and the acquisitions underlying them are described and attached here. Subsidiary data arrays are also both described and attached here.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="spectrum" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>This is an individual spectrum.The spectrum is considered to be composed of an array of acquisitions. There are two primary ways of representing data; base64 encoded binary (single or double precision) or arrays of simple data types. All arrays used to describe a single spectrum are the same length, with the same indexing.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:complexContent>
+										<xs:extension base="spectrumType"/>
+									</xs:complexContent>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="count" type="xs:int" use="required">
+							<xs:annotation>
+								<xs:documentation>The number of spectra that are to be found in the attached list.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:string" use="required" fixed="1.05">
+				<xs:annotation>
+					<xs:documentation>The development version of this mzData schema.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="accessionNumber" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>The accession number assigned arbitrarily to a particular mzData instance (i.e. data) file, by the generator of that file. This accession number is intended to serve as a (locally) unique reference by which to identify a particular mzData instance file, and is not intended to be related to any other accession number, such as that for a particular entry in a reference database such as Uniprot, or the element sampleName under the admin branch of mzData.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="sourceFileType">
+		<xs:annotation>
+			<xs:documentation>Description of the source file, including location and type.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="nameOfFile" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Name of the source file, without reference to location (either URI or local path).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="pathToFile" type="xs:anyURI">
+				<xs:annotation>
+					<xs:documentation>URI-formatted full path to file, without actual file name appended.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fileType" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Type of the file if appropriate, else a description of the software or reference resource used.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="supDataType">
+		<xs:annotation>
+			<xs:documentation>Data type for additional data vectors (beyond m/z and intensity).</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="arrayName" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Name of the supplemental data array.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:choice>
+				<xs:element name="float" type="xs:float" maxOccurs="unbounded"/>
+				<xs:element name="double" type="xs:double" maxOccurs="unbounded"/>
+				<xs:element name="int" type="xs:int" maxOccurs="unbounded"/>
+				<xs:element name="boolean" type="xs:boolean" maxOccurs="unbounded"/>
+				<xs:element name="string" type="xs:string" maxOccurs="unbounded"/>
+				<xs:element name="time" type="xs:float" maxOccurs="unbounded"/>
+				<xs:element name="URI" type="xs:anyURI" maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>The value to which the supDataArrayRef attribute on suppDesc refers; values should never be shared between binary and non-binary supplemental arrays.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="length" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>Number of items in the supDataArray.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="indexed" type="xs:boolean" use="required">
+			<xs:annotation>
+				<xs:documentation>Each supDataArray can either be related to the mzArray or not.If the elements are related to the mzArray then this flag is set to 1.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="offset" type="xs:int" use="optional" default="0">
+			<xs:annotation>
+				<xs:documentation>If the indexed flag is set, then this value gives the element count (starting from 1) in the mzArray which aligns with the first element in this supDataArray.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="cvLookupType">
+		<xs:annotation>
+			<xs:documentation>Information about an ontology/CV source and a short 'lookup' tag to
+                refer to.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="cvLabel" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The short label to be used as a reference tag with which to refer to this particulart Controlled Vocabulary source description, from an instance of the cvLabel attribute, where it appears (i.e. in things of type paramType).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fullName" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>The usual name for the resource (e.g. The MGED Ontology).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="version" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The version of the CV from which the referred-to terms are drawn.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="address" type="xs:anyURI" use="required">
+			<xs:annotation>
+				<xs:documentation>The URI for the resource.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="cvParamType">
+		<xs:annotation>
+			<xs:documentation>Parameters from a controlled vocbulary.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="cvLabel" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The short tag for the resource as defined in cvLookupType.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="accession" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The accession number of the referred-to term in the named resource.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The actual name for the parameter, from the referred-to controlled vocabulary.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="value" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>The value for the parameter; may be absent if not appropriate, or a numeric or symbolic value, or may itself be CV (legal values for a parameter should be enumerated and defined in the ontology).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="personType">
+		<xs:annotation>
+			<xs:documentation>Data type for operator identification information.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="name" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Contact person name, or role name (e.g. "Group leader of team 42") of the individual responsible for this dataset.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="institution" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Academic or corporate organisation with which the contact person or role is associated.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contactInfo" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Phone number, email, postal address or other appropriate means of contact.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="softwareType">
+		<xs:annotation>
+			<xs:documentation>Software information (the software that produced the peak list).</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="name" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>The official name for the software package used.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="version" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>The version number of the software package.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="comments" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Additional comments on the use of the software.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="completionTime" type="xs:dateTime" use="optional">
+			<xs:annotation>
+				<xs:documentation>The time to complete the processing that resulted in this mzData file, if the mzData file was generated in a single use of the software (i.e. if the software was not used with more than one parameter set, not whether the job was completed in several phases).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="dataProcessingType">
+		<xs:annotation>
+			<xs:documentation>Description of the software, and the way in which it was used to generate the peak list.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="software">
+				<xs:annotation>
+					<xs:documentation>Specific information on the conversion or processing software.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:extension base="softwareType"/>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="processingMethod" type="paramType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Description of the default peak processing method.This element describes the base method used in the generation of a particular mzData file. Variable methods should be described in the appropriate acquisition section - if no acquisition-specific details are found, then this information serves as the default.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="spectrumType">
+		<xs:annotation>
+			<xs:documentation>The structure tha captures the generation of a peak list (including
+ the underlying acquisitions)</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="spectrumDesc" type="spectrumDescType">
+				<xs:annotation>
+					<xs:documentation>There is one spectrumDesc per spectrum. It captures both the instance-specific parameters for the underlying acquisitions, and where applicable, the postion of this spectrum in a possible hierarchy of spectra. For example, for 'tandem' mass spectrometry; the id attribute on the spectrum element allows the survey scan to be identified from which the parent ion was selected that gave rise to this MSMS spectrum - note that these identifying numbers can be given, in a list if necessary, whether or not the actual referred-to spectra are present in the file - they are the 'family tree' of this spectrum.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="supDesc" type="supDescType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>There is one supDesc for each supDataArray (binary or otherwise) found under this particular spectrum element.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="mzArrayBinary" type="peakListBinaryType">
+				<xs:annotation>
+					<xs:documentation>The list of m/z values (for any type of spectrum). The array is stored as a base64 encoded binary.The only type allowed is IEEE-754 floating point; the precision must be specified as either 32- or 64-bit; endianess must also be specified.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="intenArrayBinary" type="peakListBinaryType">
+				<xs:annotation>
+					<xs:documentation>The intensities for each member of the m/z array, also in base64 encoded binary as IEEE-754 floating point, with specified precision and endianess.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>For each acquisition, there can be a mixture of binary and other data arrays. This is mostly to allow string and other data not conveniently handled by base64 to be associated with binary data. This [0..n] choice allows the number of arrays to be arbitrary.</xs:documentation>
+				</xs:annotation>
+				<xs:element name="supDataArrayBinary" type="supDataBinaryType">
+					<xs:annotation>
+						<xs:documentation>In addition to the m/z and intensity arrays, an arbitrary number of other arrays can be stored using the same indexing. For each array stored as base64 binary, precision and endianess must be specified.The only type allowed is IEEE-754 floating point (even booleans must be re-encoded this way).</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="supDataArray" type="supDataType">
+					<xs:annotation>
+						<xs:documentation>If the raw data representation method was not binary, or if the supplemental data array was a string or other non-binary type, then it can be represented in the supDataArray element (again with the same indexing).</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>The identifier for a particular spectrum; to serve as both an internal (to the file) reference with which to order spectra and also to as a means to associate them with each other (e.g. parent and child soectra from a tandem experiment). This number should be provided whether it legitmately comes from the source data, or has to be generated. In the absence of a parent spectrum for an MS</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="supDataBinaryType">
+		<xs:annotation>
+			<xs:documentation>Extension of binary data group for supplemental data</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="arrayName" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Name of the supplemental data array.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:group ref="binaryDataGroup"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>The value to which the supDataArrayRef attribute on suppDesc refers; values should never be shared between binary and non-binary supplemental arrays.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="peakListBinaryType">
+		<xs:annotation>
+			<xs:documentation>Extension of binary data group for m/z and intensity values</xs:documentation>
+		</xs:annotation>
+		<xs:group ref="binaryDataGroup"/>
+	</xs:complexType>
+	<xs:group name="binaryDataGroup">
+		<xs:annotation>
+			<xs:documentation>The structure into which base64-encoded binary data go</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="data">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:base64Binary">
+							<xs:attribute name="precision" use="required">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="32"/>
+										<xs:enumeration value="64"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:attribute>
+							<xs:attribute name="endian" use="required">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="big"/>
+										<xs:enumeration value="little"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:attribute>
+							<xs:attribute name="length" type="xs:int" use="required"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:group>
+	<xs:complexType name="adminType">
+		<xs:annotation>
+			<xs:documentation>'Header' information - sample description, contact details, comments</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="sampleName" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>A short label that is referable to the sample used to generate the dataset. This will often be a copy of the internal (lab) reference code for the sample being analysed.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="sampleDescription" type="descriptionType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Expansible description of the sample used to generate the dataset, named in sampleName.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="sourceFile" type="sourceFileType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Information about the original source file (i.e. that generated by the instrument) used in generating the instance document.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contact" type="personType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Audit information concerning the means by which the originator/owner of this mzData file can be identified, and contacted if necessary.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="spectrumSettingsType">
+		<xs:annotation>
+			<xs:documentation>Description of the parameters for the mass spectrometer for a given acquisition (or list of)</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="acqSpecification" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Specification for combining raw scans/acquisitions into a single peak list or spectrum. A list of acquisitions from the original raw file can be specified. Software parameters specified in the cv/userParams under acquisition automatically override the default parameters given in dataProcessing.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="acquisition" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Scan or acquisition from original raw file used to create this peak list, as specified in sourceFile.</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="paramType">
+										<xs:attribute name="acqNumber" type="xs:int" use="required">
+											<xs:annotation>
+												<xs:documentation>The actual acquisition number taken directly from the raw file.</xs:documentation>
+											</xs:annotation>
+										</xs:attribute>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="spectrumType" use="required">
+						<xs:annotation>
+							<xs:documentation>Whether these are discrete or continuous spectra.</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:enumeration value="discrete"/>
+								<xs:enumeration value="continuous"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="methodOfCombination" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:documentation>The method (most usually summing or some form of averaging) by which the acquisitions were combined to make the spectrum.</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="count" type="xs:int" use="required">
+						<xs:annotation>
+							<xs:documentation>The total number of acquisitions attached (as a simple data integrity check).</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="spectrumInstrument">
+				<xs:annotation>
+					<xs:documentation>The instrument's 'run time' parameters; common to the whole of this spectrum.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:extension base="paramType">
+							<xs:attribute name="msLevel" type="xs:int" use="required"/>
+							<xs:attribute name="mzRangeStart" type="xs:float" use="optional"/>
+							<xs:attribute name="mzRangeStop" type="xs:float" use="optional"/>
+						</xs:extension>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="precursorType">
+		<xs:annotation>
+			<xs:documentation>The method of precursor ion selection and activation</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="ionSelection" type="paramType">
+				<xs:annotation>
+					<xs:documentation>This captures the type of ion selection being performed, and  trigger m/z (or m/z's), neutral loss criteria etc. for tandem MS or data dependent scans.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="activation" type="paramType">
+				<xs:annotation>
+					<xs:documentation>The type and energy level used for activation.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="msLevel" type="xs:int" use="required"/>
+		<xs:attribute name="spectrumRef" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>Reference to the id attribute of the spectrum from which the precursor was selected.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="spectrumDescType">
+		<xs:annotation>
+			<xs:documentation>Description of the process of performing an acquisition</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="spectrumSettings" type="spectrumSettingsType">
+				<xs:annotation>
+					<xs:documentation>Both run time instrument settings and variations in software parameters all leading to the generation of the specific spectrum being described.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="precursorList" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>List and descriptions of precursors to the spectrum currently being described.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="precursor" type="precursorType" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>This is the precursor step. If source activation is used then both msLevel and  spectrumRef have the value 0. The spectrumRef holds the value of the id attrubute of the spectrum from which the precursor ion was selected. An ordered list of these precursors can be given; the referred-to id numbers my not represent spectra present in the mzData file, but this should not present a bar to providing the history of this scan. Example (trivially); MS survey scan has id = 1 and the first MSMS spectrum has id= 2, with the spectrumRef attribute on precursor for the MSMS spectrum having the value 1.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="count" type="xs:int" use="required">
+						<xs:annotation>
+							<xs:documentation>The number of precursor selection processes described in the attached list.</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="comments" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Additional comments regarding the acquisition are captured here as free text. This should only be used as a lifeboat for when the cv/userParams are inappropriate; or as a 'scratch' comment space.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="supDescType">
+		<xs:annotation>
+			<xs:documentation>Description of a supplemental data array</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="supDataDesc" type="descriptionType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Description of the supplemental dataset, in both CV and free-text.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="supSourceFile" type="sourceFileType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Information about the original source file used to generate the supDataArray.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="supDataArrayRef" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>Reference to the id attribute of the supplemental data array/binary.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="instrumentDescriptionType">
+		<xs:annotation>
+			<xs:documentation>Description of the components of the mass spectrometer used</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="instrumentName" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Descriptive name of the instrument (make, model, significant customisations).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="source" type="paramType">
+				<xs:annotation>
+					<xs:documentation>Invariant ion source (e.g. MALDI) information, as a run of name-value pairs.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="analyzerList">
+				<xs:annotation>
+					<xs:documentation>Mass analyzer component list; ordered so as to reflect the physical order of the desribed components in the mass spectrometer.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="analyzer" type="paramType" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>A single component of the mass analyzer (e.g. quadrupole, collision cell), decribed with a run of name-value pairs.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="count" type="xs:int" use="required">
+						<xs:annotation>
+							<xs:documentation>The number of analyzers that are described in the attached list.</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="detector" type="paramType">
+				<xs:annotation>
+					<xs:documentation>Ion detector information, as a run of name-value pairs.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="additional" type="paramType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Subsidiary information about the instrument; a run of additional parameters  captured as name-value pairs</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="paramType">
+		<xs:annotation>
+			<xs:documentation>Structure allowing the use of controlled or uncontrolled vocabulary</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="cvParam" type="cvParamType">
+				<xs:annotation>
+					<xs:documentation>This element holds additional data or annotation. Only controlled values are allowed here.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="userParam" type="userParamType">
+				<xs:annotation>
+					<xs:documentation>This element holds additional data or annotation. Uncontrolled, or user controlled values are allowed here.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="userParamType">
+		<xs:annotation>
+			<xs:documentation>Uncontrolled user parameters (vocabulary).</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The actual name for the parameter.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="value" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>The value for the parameter, where appropriate.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="descriptionType">
+		<xs:annotation>
+			<xs:documentation>Extension of 'paramType' with an added free-text comment attribute.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="paramType">
+				<xs:attribute name="comment" type="xs:string" use="optional">
+					<xs:annotation>
+						<xs:documentation>Free text opportunity to supplement, but not to replace, to the main CV-based description.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

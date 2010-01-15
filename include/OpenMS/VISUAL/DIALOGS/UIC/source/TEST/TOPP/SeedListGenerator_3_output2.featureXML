@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="SeedListGenerator" version="version_string" />
+		<processingAction name="Data processing action" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="2">
+		<feature id="f_0">
+			<position dim="0">1273.27</position>
+			<position dim="1">904.47</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">1184.46</position>
+			<position dim="1">953.368</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+	</featureList>
+</featureMap>

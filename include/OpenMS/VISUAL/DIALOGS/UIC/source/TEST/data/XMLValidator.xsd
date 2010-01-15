@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="Root">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="requiredElement"/>
+			</xs:sequence>
+			<xs:attribute name="requiredAttribute" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

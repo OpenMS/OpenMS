@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" date="2008-04-29T13:31:32Z" summary_xml=".xml">
+<msms_run_summary base_name="" raw_data_type="" raw_data="">
+<sample_enzyme name="Trypsin" description="" fidelity="specific" independent="0">
+<specificity sense="C" min_spacing="1" cut="KR" no_cut="P"/>
+</sample_enzyme>
+<search_summary base_name="../cgi/master_results.pl?file=/share/usr/npfeifer/SoCe/14_first.mascot_out" search_engine="MASCOT" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+<search_database local_path="/local/mascot/sequence/SoCe/current/SoCe_2008_04_22.fasta" database_name="SoCe" database_release_identifier="SoCe_2008_04_22.fasta" size_in_db_entries="9383" size_of_residues="3764366" type="AA"/>
+<enzymatic_search_constraint enzyme="Trypsin" max_num_internal_cleavages="1" min_number_termini="2"/>
+<aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="N" binary="N" description="Carboxymethyl (C)"/>
+<aminoacid_modification aminoacid="M" massdiff="+15.99" mass="147.0354" variable="Y" binary="N" description="Oxidation (M)"/>
+<aminoacid_modification aminoacid="N" massdiff="+0.98" mass="115.026943" variable="Y" binary="N" description="Deamidation (NQ)"/>
+<aminoacid_modification aminoacid="Q" massdiff="+0.98" mass="129.042594" variable="Y" binary="N" description="Deamidation (NQ)"/>
+<parameter name="CHARGE" value="1+, 2+ and 3+"/>
+<parameter name="CLE" value="Trypsin"/>
+<parameter name="COM" value="OpenMS search"/>
+<parameter name="DB" value="SoCe"/>
+<parameter name="FILE" value="/local/mascot/tmp//2008-04-29_15:26:07_tmp.mascot_in"/>
+<parameter name="FORMAT" value="Mascot generic"/>
+<parameter name="FORMVER" value="1.01"/>
+<parameter name="INSTRUMENT" value="ESI-TRAP"/>
+<parameter name="ITOL" value="0.3"/>
+<parameter name="ITOLU" value="Da"/>
+<parameter name="IT_MODS" value="Oxidation (M),Deamidation (NQ)"/>
+<parameter name="LICENSE" value="Licensed to: University of Tubingen, Dept. for Simulation of Bio. Systems (III - 19 167), (1 processor)."/>
+<parameter name="MASS" value="Monoisotopic"/>
+<parameter name="MODS" value="Carboxymethyl (C)"/>
+<parameter name="PFA" value="1"/>
+<parameter name="REPORT" value="AUTO"/>
+<parameter name="RULES" value="1,2,8,9,10,13,14,15"/>
+<parameter name="SEARCH" value="MIS"/>
+<parameter name="TAXONOMY" value="All entries"/>
+<parameter name="TOL" value="1.3"/>
+<parameter name="TOLU" value="Da"/>
+<parameter name="USERNAME" value="OpenMS"/>
+</search_summary>
+<spectrum_query spectrum="402.42_14_3688.53" start_scan="0" end_scan="0" precursor_neutral_mass="1204.238172" assumed_charge="3" index="1">
+<search_result search_id="1">
+<search_hit hit_rank="1" peptide="LAPSAAEDGAFR" peptide_prev_aa="R" peptide_next_aa="R" protein="sce6427" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1203.588348" massdiff="+0.65" num_missed_cleavages="0" is_rejected="0">
+<search_score name="ionscore" value="1.45"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="14"/>
+<search_score name="expect" value="81"/>
+</search_hit>
+<search_hit hit_rank="2" peptide="GQPLGQLEAHR" peptide_prev_aa="R" peptide_next_aa="A" protein="sce3989" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1204.631226" massdiff="-0.39" num_missed_cleavages="0" is_rejected="0">
+<search_score name="ionscore" value="1.15"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="14"/>
+<search_score name="expect" value="86"/>
+</search_hit>
+<search_hit hit_rank="3" peptide="SPAPLVPVRLR" peptide_prev_aa="R" peptide_next_aa="V" protein="sce8356" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1203.745132" massdiff="+0.49" num_missed_cleavages="1" is_rejected="0">
+<search_score name="ionscore" value="0.96"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="14"/>
+<search_score name="expect" value="90"/>
+</search_hit>
+<search_hit hit_rank="4" peptide="QPYLHPSFSK" peptide_prev_aa="K" peptide_next_aa="L" protein="sce5832" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1203.592392" massdiff="+0.65" num_missed_cleavages="0" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="1" mass="129.042589"/>
+</modification_info>
+<search_score name="ionscore" value="0.6"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="14"/>
+<search_score name="expect" value="98"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="404.875_14_333.442" start_scan="0" end_scan="0" precursor_neutral_mass="1211.603172" assumed_charge="3" index="2">
+<search_result search_id="1">
+<search_hit hit_rank="1" peptide="AQAVAAEIRER" peptide_prev_aa="R" peptide_next_aa="G" protein="sce5157" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1212.657425" massdiff="-1.05" num_missed_cleavages="1" is_rejected="0">
+<search_score name="ionscore" value="14.35"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="27"/>
+<search_score name="expect" value="4.2"/>
+</search_hit>
+<search_hit hit_rank="2" peptide="AALNAADIVTVR" peptide_prev_aa="R" peptide_next_aa="D" protein="sce2259" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1212.682587" massdiff="-1.08" num_missed_cleavages="0" is_rejected="0">
+<search_score name="ionscore" value="14.07"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="27"/>
+<search_score name="expect" value="4.5"/>
+</search_hit>
+<search_hit hit_rank="3" peptide="AEPAAELALEAK" peptide_prev_aa="R" peptide_next_aa="A" protein="sce0513" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1211.639709" massdiff="-0.04" num_missed_cleavages="0" is_rejected="0">
+<search_score name="ionscore" value="14.07"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="27"/>
+<search_score name="expect" value="4.5"/>
+</search_hit>
+<search_hit hit_rank="4" peptide="LANAASPAITQR" peptide_prev_aa="K" peptide_next_aa="G" protein="sce6896" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1212.64621" massdiff="-1.04" num_missed_cleavages="0" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="11" mass="129.042589"/>
+</modification_info>
+<search_score name="ionscore" value="14.07"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="27"/>
+<search_score name="expect" value="4.5"/>
+</search_hit>
+<search_hit hit_rank="5" peptide="SGHSAVLLQDGK" peptide_prev_aa="R" peptide_next_aa="V" protein="sce8648" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1211.614563" massdiff="-0.01" num_missed_cleavages="0" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="9" mass="129.042589"/>
+</modification_info>
+<search_score name="ionscore" value="14.07"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="27"/>
+<search_score name="expect" value="4.5"/>
+</search_hit>
+<search_hit hit_rank="6" peptide="AGAGIANVQAAIR" peptide_prev_aa="K" peptide_next_aa="Q" protein="sce6200" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1212.646164" massdiff="-1.04" num_missed_cleavages="0" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="7" mass="115.026939"/>
+
+<mod_aminoacid_mass position="9" mass="129.042589"/>
+</modification_info>
+<search_score name="ionscore" value="13.82"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="27"/>
+<search_score name="expect" value="4.8"/>
+</search_hit>
+<search_hit hit_rank="7" peptide="VTAPAARSAALGK" peptide_prev_aa="K" peptide_next_aa="D" protein="sce2986" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1211.698563" massdiff="-0.10" num_missed_cleavages="1" is_rejected="0">
+<search_score name="ionscore" value="13.82"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="27"/>
+<search_score name="expect" value="4.8"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="411.766_14_3724.98" start_scan="0" end_scan="0" precursor_neutral_mass="1232.276172" assumed_charge="3" index="3">
+<search_result search_id="1">
+<search_hit hit_rank="1" peptide="LLAWMGRTER" peptide_prev_aa="R" peptide_next_aa="S" protein="sce3970" num_tot_proteins="1" num_matched_ions="3" calc_neutral_pep_mass="1231.649521" massdiff="+0.63" num_missed_cleavages="1" is_rejected="0">
+<search_score name="ionscore" value="14.44"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="23"/>
+<search_score name="expect" value="3.9"/>
+</search_hit>
+<search_hit hit_rank="2" peptide="VLALYRAAQAR" peptide_prev_aa="R" peptide_next_aa="R" protein="sce6644" num_tot_proteins="1" num_matched_ions="3" calc_neutral_pep_mass="1231.703644" massdiff="+0.57" num_missed_cleavages="1" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="9" mass="129.042589"/>
+</modification_info>
+<search_score name="ionscore" value="5.59"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="23"/>
+<search_score name="expect" value="30"/>
+</search_hit>
+<search_hit hit_rank="3" peptide="RTLLMSLTGLK" peptide_prev_aa="R" peptide_next_aa="K" protein="sce5107" num_tot_proteins="1" num_matched_ions="3" calc_neutral_pep_mass="1231.732193" massdiff="+0.54" num_missed_cleavages="1" is_rejected="0">
+<search_score name="ionscore" value="5.25"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="23"/>
+<search_score name="expect" value="33"/>
+</search_hit>
+<search_hit hit_rank="4" peptide="LLGLSRFGLQK" peptide_prev_aa="K" peptide_next_aa="M" protein="sce2900" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1231.72879" massdiff="+0.55" num_missed_cleavages="1" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="10" mass="129.042589"/>
+</modification_info>
+<search_score name="ionscore" value="3.35"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="23"/>
+<search_score name="expect" value="51"/>
+</search_hit>
+<search_hit hit_rank="5" peptide="MGGIALLDEIGK" peptide_prev_aa="R" peptide_next_aa="T" protein="sce2546" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1231.648163" massdiff="+0.63" num_missed_cleavages="0" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="1" mass="147.035399"/>
+</modification_info>
+<search_score name="ionscore" value="3.21"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="23"/>
+<search_score name="expect" value="52"/>
+</search_hit>
+<search_hit hit_rank="6" peptide="DQMDNALRIR" peptide_prev_aa="K" peptide_next_aa="R" protein="sce6721" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1231.597885" massdiff="+0.68" num_missed_cleavages="1" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="5" mass="115.026939"/>
+</modification_info>
+<search_score name="ionscore" value="1.58"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="23"/>
+<search_score name="expect" value="76"/>
+</search_hit>
+<search_hit hit_rank="7" peptide="QTLAGRMVVQK" peptide_prev_aa="R" peptide_next_aa="T" protein="sce1256" num_tot_proteins="1" num_matched_ions="2" calc_neutral_pep_mass="1231.659393" massdiff="+0.62" num_missed_cleavages="1" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass position="1" mass="129.042589"/>
+
+<mod_aminoacid_mass position="10" mass="129.042589"/>
+</modification_info>
+<search_score name="ionscore" value="1.58"/>
+<search_score name="identityscore" value="33"/>
+<search_score name="homologyscore" value="23"/>
+<search_score name="expect" value="76"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

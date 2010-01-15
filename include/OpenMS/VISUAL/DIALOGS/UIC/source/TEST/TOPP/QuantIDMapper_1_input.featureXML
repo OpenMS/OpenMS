@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="21">
+		<feature id="f_0">
+			<position dim="0">90</position>
+			<position dim="1">1000</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">50</position>
+			<position dim="1">900</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">150</position>
+			<position dim="1">1200</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">66.586</position>
+			<position dim="1">935.934</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">123.057</position>
+			<position dim="1">968.785</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">127.356</position>
+			<position dim="1">1112.964</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">81.632</position>
+			<position dim="1">1138.515</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_7">
+			<position dim="0">114.069</position>
+			<position dim="1">1039.962</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_8">
+			<position dim="0">79.678</position>
+			<position dim="1">1167.107</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_9">
+			<position dim="0">123.253</position>
+			<position dim="1">1131.823</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_10">
+			<position dim="0">111.333</position>
+			<position dim="1">1058.213</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_11">
+			<position dim="0">112.701</position>
+			<position dim="1">975.477</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_12">
+			<position dim="0">139.08</position>
+			<position dim="1">1043.004</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_13">
+			<position dim="0">63.655</position>
+			<position dim="1">1036.92</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_14">
+			<position dim="0">142.598</position>
+			<position dim="1">920.726</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_15">
+			<position dim="0">97.655</position>
+			<position dim="1">929.851</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_16">
+			<position dim="0">87.299</position>
+			<position dim="1">1048.479</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_17">
+			<position dim="0">97.46</position>
+			<position dim="1">1081.938</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_18">
+			<position dim="0">104.69</position>
+			<position dim="1">1095.93</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_19">
+			<position dim="0">104.69</position>
+			<position dim="1">1030.837</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_20">
+			<position dim="0">89.839</position>
+			<position dim="1">979.736</position>
+			<intensity>0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+		</feature>
+	</featureList>
+</featureMap>

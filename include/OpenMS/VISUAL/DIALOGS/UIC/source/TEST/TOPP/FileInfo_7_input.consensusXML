@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/groepl/Release1.6/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" document_id="cons" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2009-06-19T10:33:33">
+		<software name="FileFilter" version="1.4" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: in" value="/home/sturm/OpenMS/source/TEST/TOPP/FileInfo_7_input.consensusXML"/>
+		<userParam type="string" name="parameter: out" value="/home/sturm/OpenMS/source/TEST/TOPP/FileInfo_7_input.consensusXML"/>
+	</dataProcessing>
+	<mapList count="2">
+		<map id="0" name="FeatureLinker_1_input.featureXML" label="light" size="16">
+		</map>
+		<map id="1" name="FeatureLinker_1_input.featureXML" label="heavy" size="16">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0.5">
+			<centroid rt="14.5" mz="532" it="101"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="15" mz="530" it="100"/>
+				<element map="1" id="10" rt="14" mz="534" it="102"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1" quality="1.5">
+			<centroid rt="10.5" mz="562" it="100"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="98"/>
+				<element map="1" id="6" rt="10" mz="566" it="102"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2" quality="1">
+			<centroid rt="10.5" mz="562" it="1000"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="900"/>
+				<element map="1" id="6" rt="10" mz="566" it="1111"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3" quality="0.4">
+			<centroid rt="10.5" mz="562" it="10"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="11"/>
+				<element map="1" id="6" rt="10" mz="566" it="9"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4" quality="0.5">
+			<centroid rt="10.5" mz="562" it="100"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="73"/>
+				<element map="1" id="6" rt="10" mz="566" it="136"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

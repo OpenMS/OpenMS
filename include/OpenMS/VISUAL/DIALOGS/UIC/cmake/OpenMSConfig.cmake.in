@@ -1,0 +1,13 @@
+### cmake OpenMS config file for external code
+
+set(OPENMS_INCLUDE_DIRS "@CONTRIB_INCLUDE_DIR@" "@QT_INCLUDE_DIR@" "@PROJECT_SOURCE_DIR@/include" "@PROJECT_BINARY_DIR@/include")
+
+set(OPENMS_ADDCXX_FLAGS "@CF_OPENMS_ADDCXX_FLAGS@")
+
+set(OPENMS_DEFINITIONS "@CF_OPENMS_ADD_DEFINITIONS@")
+
+## create target 'OpenMS', including its dependencies
+## Linux: libOpenMS.so will be in ./lib, Windows: OpenMS.lib will be directly in the binary tree
+include(@CF_LibOpenMSExport@)
+
+

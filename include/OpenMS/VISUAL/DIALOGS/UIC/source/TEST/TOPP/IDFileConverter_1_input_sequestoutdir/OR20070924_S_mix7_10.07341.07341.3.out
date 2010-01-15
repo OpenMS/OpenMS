@@ -1,0 +1,31 @@
+
+ ./OR20070924_S_mix7_10.07341.07341.3.out
+ SEQUEST v.27 (rev. 0), (c) 1993
+ Molecular Biotechnology, Univ. of Washington, J.Eng/J.Yates
+ Licensed to Finnigan Corp., A Division of ThermoQuest Corp.
+ 01/13/2008, 02:51 AM, 1 sec. on regis7
+ (M+H)+ mass = 2466.1833 ~ 3.0000 (+3), fragment tol = 0.0, MONO/AVG
+ total inten = 7617.1, lowest Sp = 177.7, # matched peptides = 28240
+ # amino acids = 567460, # proteins = 1822, /dbase/misc/18mix092106/18mix092106_hinf
+ ion series nABY ABCDVWXYZ: 0 0 0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0
+ display top 5/3, ion % = 0.0, CODE = 0000
+ C=160.009 
+
+  #   Rank/Sp    (M+H)+   deltCn   XCorr    Sp     Ions  Reference                       Peptide
+ ---  -------  ---------  ------  ------   ----    ----  ---------                       -------
+  1.   1 /  6  2466.1935  0.0000  2.5112   366.6  22/92  sp|P00722|BGAL_ECOLI          R.IDGSGQMAITVDVEVASDTPHPAR.I
+  2.   2 / 23  2468.1992  0.3196  1.7087   297.9  19/84  gi|1573955|gb|AAC22592.1|     E.NRQYQQAGMYLQQLLDSGNAAV.D
+  3.   3 /240  2467.1233  0.3973  1.5135   205.2  15/84  gi|1574793|gb|AAC22979.1| +1  T.EDEGEVFLGRSMAKAKHMSDET.A
+  4.   4 / 27  2465.3286  0.4023  1.5009   289.7  20/80  gi|1573856|gb|AAC22500.1|     K.ISWGHWFAFFNIIVAIFIGAR.Y
+  5.   5 /  8  2466.2823  0.4249  1.4442   346.8  20/80  gi|1573680|gb|AAC22339.1|     M.FKGILVSLLASFLFGYMYYFS.T
+
+252. 252 /  1  2467.3641  0.7100  0.7283   405.3  22/92  gi|1573673|gb|AAC22332.1|     -.MARSIIAVLPAAGVGSRMQADKPK.Q
+
+  1.  sp|P00722|BGAL_ECOLI BETA-GALACTOSIDASE (EC 3.2.1.23) (LACTASE) - Escheric
+      hia coli.
+  2.  gi|1573955|gb|AAC22592.1| cytochrome C-type biogenesis protein (nrfF) [Hae
+      mophilus influenzae Rd]
+  3.  gi|1574793|gb|AAC22979.1| cell division protein (ftsH) [Haemophilus influe
+      nzae Rd]
+
+

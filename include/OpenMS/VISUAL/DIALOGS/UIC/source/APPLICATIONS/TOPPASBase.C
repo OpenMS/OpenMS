@@ -1,0 +1,1061 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Johannes Junker $
+// $Authors: $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h> 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASWidget.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASTabBar.h>
+#include <OpenMS/VISUAL/TOPPASTreeView.h>
+
+//Qt
+#include <QtGui/QToolBar>
+#include <QtGui/QDockWidget>
+#include <QtGui/QListWidget>
+#include <QtGui/QListWidgetItem>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QTreeWidgetItem>
+#include <QtGui/QMenu>
+#include <QtGui/QMenuBar>
+#include <QtGui/QStatusBar>
+#include <QtGui/QToolButton>
+#include <QtGui/QMessageBox>
+#include <QtGui/QToolTip>
+#include <QtGui/QFileDialog>
+#include <QtGui/QWhatsThis>
+#include <QtGui/QInputDialog>
+#include <QtGui/QTextEdit>
+#include <QtGui/QCheckBox>
+#include <QtGui/QCloseEvent>
+#include <QtGui/QDesktopServices>
+#include <QtCore/QUrl>
+#include <QtGui/QSplashScreen>
+#include <QtGui/QVBoxLayout>
+#include <QtGui/QApplication>
+#include <QtGui/QLabel>
+#include <QtCore/QFile>
+#include <QtCore/QDir>
+#include <QtCore/QSet>
+#include <QtCore/QMap>
+
+using namespace std;
+
+namespace OpenMS
+{
+  using namespace Internal;
+
+  TOPPASBase::TOPPASBase(QWidget* parent):
+      QMainWindow(parent),
+      DefaultParamHandler("TOPPASBase")
+  {
+  	setWindowTitle("TOPPAS");
+    setWindowIcon(QIcon(":/TOPPAS.png"));
+
+    //prevents errors caused by too small width,height values
+    setMinimumSize(400,400);
+
+    // create dummy widget (to be able to have a layout), Tab bar and workspace
+    QWidget* dummy = new QWidget(this);
+    setCentralWidget(dummy);
+    QVBoxLayout* box_layout = new QVBoxLayout(dummy);
+    tab_bar_ = new TOPPASTabBar(dummy);
+    tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.");
+    tab_bar_->addTab("dummy",1336);
+    tab_bar_->setMinimumSize(tab_bar_->sizeHint());
+    tab_bar_->removeId(1336);
+    //connect slots and sigals for selecting spectra
+    connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
+    connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
+
+    box_layout->addWidget(tab_bar_);
+    ws_=new QWorkspace(dummy);
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
+
+    box_layout->addWidget(ws_);
+		
+		//################## MENUS #################
+    // File menu
+    QMenu* file = new QMenu("&File",this);
+    menuBar()->addMenu(file);
+    file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
+		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
+		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
+		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+    file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
+		file->addSeparator();
+
+    file->addSeparator();
+    //file->addAction("&Preferences",this, SLOT(preferencesDialog()));
+    file->addAction("&Quit",qApp,SLOT(quit()));
+
+    //Advanced menu
+    //QMenu* advanced = new QMenu("&Advanced",this);
+    //menuBar()->addMenu(advanced);
+    //advanced->addAction("&Refresh definitions",this,SLOT(refreshDefinitions()), Qt::CTRL+Qt::Key_R);
+
+		//Pipeline menu
+		QMenu* pipeline = new QMenu("&Pipeline", this);
+		menuBar()->addMenu(pipeline);
+		pipeline->addAction("&Run (F5)",this,SLOT(runPipeline()));
+		pipeline->addAction("&Abort",this,SLOT(abortPipeline()));
+
+		//Windows menu
+    QMenu * windows = new QMenu("&Windows", this);
+    menuBar()->addMenu(windows);
+
+		//Help menu
+		QMenu* help = new QMenu("&Help", this);
+		menuBar()->addMenu(help);
+		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
+		action->setData("http://www.OpenMS.de");
+		action = help->addAction("TOPPAS tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
+		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPP_tutorial.html");
+		help->addSeparator();
+		help->addAction("&About",this,SLOT(showAboutDialog()));
+		
+		
+    //create status bar
+    message_label_ = new QLabel(statusBar());
+    statusBar()->addWidget(message_label_,1);
+
+		//################## TOOLBARS #################
+    //create toolbars and connect signals
+
+  	//--Basic tool bar--
+    //tool_bar_ = addToolBar("Basic tool bar");
+    //tool_bar_->show();
+
+		//################## DEFAULTS #################
+    //general
+   	defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
+    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
+		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
+		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPAS.ini is up-to-date");
+		
+		//tool categories
+		defaults_.setValue("tool_categories:AdditiveSeries", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:BaselineFilter", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:ConsensusID", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:DBExporter", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:DBImporter", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:DTAExtractor", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:Decharger", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:FalseDiscoveryRate", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:FeatureFinder", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:FeatureLinker", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:FileConverter", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:FileFilter", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:FileInfo", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:FileMerger", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:IDDecoyProbability", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:IDFileConverter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:IDFilter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:IDMapper", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:IDMerger", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:IDRTCalibration", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:ITRAQAnalyzer", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:InspectAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:InternalCalibration", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:MapAligner", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:MapNormalizer", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:MascotAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:MascotAdapterOnline", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:NoiseFilter", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:OMSSAAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PILISModel", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PILISIdentification", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PTModel", "Peptide property prediction", "The category of the tool");
+		defaults_.setValue("tool_categories:PTPredict", "Peptide property prediction", "The category of the tool");
+		defaults_.setValue("tool_categories:PeakPicker", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:PepNovoAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:RTModel", "Peptide property prediction", "The category of the tool");
+		defaults_.setValue("tool_categories:RTPredict", "Peptide property prediction", "The category of the tool");
+		defaults_.setValue("tool_categories:Resampler", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:SILACAnalyzer", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:SequestAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:SpectraFilter", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:SpecLibSearcher", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:TOFCalibration", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:TextExporter", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:TextImporter", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:XTandemAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PrecursorIonSelector", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PeptideIndexer", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:CompNovo", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PrecursorMassCorrector", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:GenericWrapper", "Misc", "The category of the tool");
+		
+		// UTILS:
+		map<String,StringList> util_tools = TOPPBase::getUtilList();
+		for (map<String,StringList>::const_iterator it=util_tools.begin(); it!=util_tools.end(); ++it)
+		{
+			// for now, we put all UTILS tools in one category
+			defaults_.setValue("tool_categories:" + it->first, "Utils", "The category of the tool");		
+		}
+		
+  	defaultsToParam_();
+
+  	//load param file
+    loadPreferences();
+
+		//################## Dock widgets #################
+    
+    //TOPP tools window
+    QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
+    addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
+    tools_tree_view_ = new TOPPASTreeView(topp_tools_bar);
+    tools_tree_view_->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
+    tools_tree_view_->setColumnCount(1);
+  	QStringList header_labels;
+  	header_labels.append(QString("TOPP tools"));
+  	tools_tree_view_->setHeaderLabels(header_labels);
+    topp_tools_bar->setWidget(tools_tree_view_);
+    
+    QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Input files>");
+    tools_tree_view_->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Output files>");
+    tools_tree_view_->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Merger>");
+    tools_tree_view_->addTopLevelItem(item);
+    
+    Param category_param = param_.copy("tool_categories:", true);
+    
+    QSet<QString> category_set;
+    for (Param::ParamIterator it = category_param.begin(); it != category_param.end(); ++it)
+    {
+    	category_set << String(it->value).toQString();
+    }
+    
+    Map<QString,QTreeWidgetItem*> category_map;
+    
+    foreach (const QString& category, category_set)
+    {
+    	item = new QTreeWidgetItem((QTreeWidget*)0);
+    	item->setText(0, category);
+    	tools_tree_view_->addTopLevelItem(item);
+    	category_map[category] = item;
+    }
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+		item->setText(0, "Misc");
+		tools_tree_view_->addTopLevelItem(item);
+		category_map["Misc"] = item;
+		
+    Map<String,StringList> tools_list = TOPPBase::getToolList();
+    Map<String,StringList> util_list = TOPPBase::getUtilList();
+    // append utils
+    tools_list.insert(util_list.begin(),util_list.end());
+    
+    QTreeWidgetItem* parent_item;
+    for (Map<String,StringList>::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    {
+    	if (category_param.exists(it->first))
+    	{
+    		item = new QTreeWidgetItem(category_map[String(category_param.getValue(it->first)).toQString()]);
+    	}
+    	else
+    	{
+    		item = new QTreeWidgetItem(category_map["Misc"]);
+    	}
+    	item->setText(0, it->first.toQString());
+   		parent_item = item;
+   		StringList types = it->second;
+   		for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
+   		{
+   			item = new QTreeWidgetItem(parent_item);
+   			item->setText(0, types_it->toQString());
+   		}
+    }
+    
+    if (category_map["Misc"]->childCount() == 0)
+    {
+    	int index = tools_tree_view_->indexOfTopLevelItem(category_map["Misc"]);
+    	tools_tree_view_->takeTopLevelItem(index);
+    }
+    
+    tools_tree_view_->resizeColumnToContents(0);
+    
+		windows->addAction(topp_tools_bar->toggleViewAction());
+		
+    //Blocks window
+//     QDockWidget* blocks_bar = new QDockWidget("Blocks", this);
+//     addDockWidget(Qt::LeftDockWidgetArea, blocks_bar);
+//     blocks_list_ = new QListWidget(blocks_bar);
+//     blocks_list_->setWhatsThis("Blocks list<BR><BR>Custom analysis pipelines are shown here. They can be used as if they were TOPP tools themselves.");
+//     blocks_bar->setWidget(blocks_list_);
+
+		//log window
+		QDockWidget* log_bar = new QDockWidget("Log", this);
+		addDockWidget(Qt::BottomDockWidgetArea, log_bar);
+		log_ = new QTextEdit(log_bar);
+		log_->setReadOnly(true);
+		log_bar->setWidget(log_);
+		log_bar->hide();
+    //windows->addAction("&Show log window",log_bar,SLOT(show()));
+		windows->addAction(log_bar->toggleViewAction());
+		
+		//set current path
+		current_path_ = param_.getValue("preferences:default_path");
+		
+		//set temporary path
+		tmp_path_ = QDir::tempPath() + QDir::separator();
+		
+  	//update the menu
+  	updateMenu();
+	}
+
+  TOPPASBase::~TOPPASBase()
+  {
+  	savePreferences();
+  }
+
+	void TOPPASBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
+  {
+    for (StringList::const_iterator it=list.begin(); it!=list.end(); ++it)
+    {
+			splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+			splash_screen->repaint();
+			QApplication::processEvents();
+			openFile(*it);
+    }
+  }
+
+	void TOPPASBase::refreshDefinitions()
+	{
+	
+	}
+	
+	void TOPPASBase::openExampleDialog()
+	{
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"),
+													File::getOpenMSDataPath().toQString()
+													+QDir::separator()+"examples"+QDir::separator()
+													+"TOPPAS"+QDir::separator(),
+													tr("TOPPAS pipelines (*.toppas)"));
+		
+		openFile(file_name);
+	}
+	
+	void TOPPASBase::openFileDialog()
+  {
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		
+		openFile(file_name);
+  }
+ 
+	void TOPPASBase::openFile(const String& file_name)
+	{
+		if (file_name != "")
+		{
+			String::SizeType dot_index = file_name.rfind(".");
+			if (dot_index == String::npos)
+			{
+				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+				return;
+			}
+
+			String extension = file_name.substr(dot_index+1);
+			extension.toLower();
+			if (extension != "toppas")
+			{
+				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+				return;
+			}
+
+			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+			showAsWindow_(tw, File::basename(file_name));
+			connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+			TOPPASScene* scene = tw->getScene();
+			connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+			scene->load(file_name);
+			
+			//connect signals/slots for log messages
+			for (TOPPASScene::VertexIterator it = scene->verticesBegin(); it != scene->verticesEnd(); ++it)
+			{
+				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
+				if (tv)
+				{
+					connect (tv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
+					connect (tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
+					connect (tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
+					connect (tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+					connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+					continue;
+				}
+				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+				if (oflv)
+				{
+					connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+					continue;
+				}
+			}
+			scene->update(scene->sceneRect());
+		}
+	}
+
+  void TOPPASBase::newFileDialog()
+  {
+  	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+		connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+		TOPPASScene* ts = tw->getScene();
+		connect (ts, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+  	showAsWindow_(tw, "(Untitled)");
+  }
+	
+	void TOPPASBase::saveFileDialog()
+	{
+		TOPPASWidget* w = 0;
+		QObject* sendr = QObject::sender();
+		QAction* save_button_clicked = qobject_cast<QAction*>(sendr);
+		
+		if (!save_button_clicked)
+		{
+			// scene has requested to be saved
+			TOPPASScene* ts = qobject_cast<TOPPASScene*>(sendr);
+			if (ts && ts->views().size() > 0)
+			{
+				w = qobject_cast<TOPPASWidget*>(ts->views().first());
+			}
+		}
+		else
+		{
+			w = activeWindow_();
+		}
+		
+		if (!w)
+		{
+			return;
+		}
+		
+		String file_name = w->getScene()->getSaveFileName();
+		if (file_name != "")
+		{
+			if (!file_name.hasSuffix(".toppas"))
+			{
+				file_name += ".toppas";
+			}
+			w->getScene()->store(file_name);
+		}
+		else
+		{
+			saveAsFileDialog(w);
+		}
+	}
+	
+	void TOPPASBase::saveAsFileDialog(TOPPASWidget* w)
+	{
+		if (w == 0)
+		{
+			w = activeWindow_();
+		}
+		if (!w)
+		{
+			return;
+		}
+		
+		QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		if (file_name != "")
+		{
+			if (!file_name.endsWith(".toppas"))
+			{
+				file_name += ".toppas";
+			}
+			w->getScene()->store(file_name);
+			tab_bar_->setTabText(tab_bar_->currentIndex(), File::basename(file_name).toQString());
+		}
+	}
+	
+	void TOPPASBase::preferencesDialog()
+  {
+		// do something...
+		savePreferences();
+  }
+	
+	void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const String& caption)
+  {
+  	ws_->addWindow(tw);
+    connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
+    connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
+		connect(tw,SIGNAL(toolDroppedOnWidget(double,double)),this,SLOT(insertNewVertex_(double,double)));
+	  tw->setWindowTitle(caption.toQString());
+
+		//add tab with id
+  	static int window_counter = 1337;
+  	tw->window_id = window_counter++;
+
+    tab_bar_->addTab(caption.toQString(), tw->window_id);
+
+    //connect slots and sigals for removing the widget from the bar, when it is closed
+    //- through the menu entry
+    //- through the tab bar
+    //- thourgh the MDI close button
+    connect(tw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
+
+    tab_bar_->setCurrentId(tw->window_id);
+
+		//show first window maximized (only visible windows are in the list)
+		if (ws_->windowList().count()==0)
+		{
+			tw->showMaximized();
+		}
+		else
+		{
+			tw->show();
+		}
+		TOPPASScene* ts = tw->getScene();
+		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
+		connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
+		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
+  }
+
+	
+  void TOPPASBase::closeEvent(QCloseEvent* event)
+  {
+		bool close = true;
+		QList<QWidget*> all_windows = ws_->windowList();
+		foreach (QWidget* w, all_windows)
+		{
+			bool close_this = qobject_cast<TOPPASWidget*>(w)->getScene()->saveIfChanged();
+			if (!close_this)
+			{
+				close = false;
+				break;
+			}
+		}
+		if (close)
+		{
+			//ws_->closeAllWindows();
+			event->accept();
+		}
+		else
+		{
+			event->ignore();
+		}
+  }
+
+	void TOPPASBase::showURL()
+	{
+		QAction* action = qobject_cast<QAction*>(sender());
+		if (!QDesktopServices::openUrl(QUrl(action->data().toString())))
+		{
+			QMessageBox::warning(this, tr("Error"),
+												 tr("Unable to open\n") +
+														action->data().toString() +
+														tr("\n\nPossible reason: security settings or misconfigured Operating System"));
+		}
+	}
+	
+  TOPPASWidget* TOPPASBase::window_(int id) const
+  {
+		//cout << "Looking for tab with id: " << id << endl;
+  	QList<QWidget*> windows = ws_->windowList();
+		for(int i=0; i< windows.size(); ++i)
+		{
+			TOPPASWidget* window = qobject_cast<TOPPASWidget*>(windows.at(i));
+			//cout << "  Tab " << i << ": " << window->window_id << endl;
+			if (window->window_id == id)
+			{
+				return window;
+			}
+		}
+		return 0;
+  }
+  
+  TOPPASWidget* TOPPASBase::activeWindow_() const
+  {
+  	if (!ws_->activeWindow()) return 0;
+    return qobject_cast<TOPPASWidget*>(ws_->activeWindow());
+  }
+
+  void TOPPASBase::closeByTab(int id)
+  {
+  	TOPPASWidget* window = window_(id);
+  	if (window)
+  	{
+  		window->close();
+  		// if the window refused to close, do not remove tab
+			if (!window->isVisible())
+			{
+				tab_bar_->removeId(id);
+			}
+			updateMenu();
+  	}
+  }
+
+  void TOPPASBase::focusByTab(int id)
+  {
+  	TOPPASWidget* window = window_(id);
+  	if (window)
+  	{
+  		window->setFocus();
+  	}
+  }
+
+  void TOPPASBase::closeFile()
+  {
+    ws_->activeWindow()->close();
+    updateMenu();
+  }
+
+  void TOPPASBase::showStatusMessage(string msg, OpenMS::UInt time)
+  {
+    if (time==0)
+    {
+      message_label_->setText(msg.c_str());
+      statusBar()->update();
+    }
+    else
+    {
+      statusBar()->showMessage(msg.c_str(), time);
+    }
+  }
+
+	void TOPPASBase::showCursorStatus(double /*x*/, double /*y*/)
+	{
+		// TODO
+	}
+
+  void TOPPASBase::updateToolBar()
+  {
+    
+  }
+
+  void TOPPASBase::updateTabBar(QWidget* w)
+  {
+  	if (w)
+  	{
+  		Int window_id = qobject_cast<TOPPASWidget*>(w)->window_id;
+  		tab_bar_->setCurrentId(window_id);
+  	}
+  }
+
+  void TOPPASBase::loadPreferences(String filename)
+  {
+    //compose default ini file path
+    String default_ini_file = String(QDir::homePath()) + "/.TOPPAS.ini";
+
+    if (filename=="")
+    {
+      filename = default_ini_file;
+    }
+
+    //load preferences, if file exists
+    if (File::exists(filename))
+    {
+    	bool error = false;
+    	Param tmp;
+    	tmp.load(filename);
+    	//apply preferences if they are of the current TOPPAS version
+    	if(tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
+    	{
+    		try
+    		{
+      		setParameters(tmp);
+    		}
+    		catch (Exception::InvalidParameter& /*e*/)
+    		{
+    			error = true;
+    		}
+    	}
+    	else
+    	{
+				error = true;
+    	}
+			//set parameters to defaults when something is fishy with the parameters file
+			if (error)
+			{
+  			//reset parameters
+  			setParameters(Param());
+
+				cerr << "The TOPPAS preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPAS version and will be replaced." << endl;
+			}
+    }
+    else if (filename != default_ini_file)
+    {
+    	cerr << "Unable to load INI File: '" << filename << "'" << endl;
+    }
+    param_.setValue("PreferencesFile" , filename);
+  }
+
+  void TOPPASBase::savePreferences()
+  {
+		//set version
+		param_.setValue("preferences:version",VersionInfo::getVersion());
+
+    Param save_param = param_.copy("preferences:");
+    save_param.insert("",param_.copy("tool_categories:"));
+    
+    try
+    {
+      save_param.store(string(param_.getValue("PreferencesFile")));
+    }
+    catch(Exception::UnableToCreateFile& /*e*/)
+    {
+      cerr << "Unable to create INI File: '" << string(param_.getValue("PreferencesFile")) << "'" << endl;
+    }
+  }
+
+	void TOPPASBase::showAboutDialog()
+	{
+		//dialog and grid layout
+		QDialog* dlg = new QDialog(this);
+		QGridLayout* grid = new QGridLayout(dlg);
+		dlg->setWindowTitle("About TOPPAS");
+
+		QLabel* label = new QLabel(dlg);
+		label->setPixmap(QPixmap(":/TOPP_about.png"));
+		grid->addWidget(label,0,0);
+
+		//text
+		QString text = QString("<BR>"
+									 				 "<FONT size=+3>TOPPAS</font><BR>"
+									 				 "<BR>"
+													 "Version: %1<BR>"
+													 "<BR>"
+													 "OpenMS and TOPP is free software available under the<BR>"
+													 "Lesser GNU Public License (LGPL)<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
+													 "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
+													 "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
+													 ).arg(VersionInfo::getVersion().toQString());
+		QLabel* text_label = new QLabel(text,dlg);
+		grid->addWidget(text_label,0,1,Qt::AlignTop | Qt::AlignLeft);
+
+		//execute
+		dlg->exec();
+	}
+	
+  void TOPPASBase::updateMenu()
+  {
+  	TOPPASWidget* tw = activeWindow_();
+  	TOPPASScene* ts = 0;
+  	if (tw)
+  	{
+  		ts = tw->getScene();
+  	}
+  	
+  	QList<QAction*> actions = this->findChildren<QAction*>("");
+		for (int i=0; i<actions.count(); ++i)
+		{
+			QString text = actions[i]->text();
+			
+			if (text=="&Run (F5)")
+			{
+				bool show = false;
+				if (tw && ts && !(ts->isPipelineRunning()))
+				{
+					show = true;
+				}
+				actions[i]->setEnabled(show);
+			}
+			else if (text=="&Abort")
+			{
+				bool show = false;
+				if (tw && ts && ts->isPipelineRunning())
+				{
+					show = true;
+				}
+				actions[i]->setEnabled(show);
+			}
+		}
+  }
+
+  void TOPPASBase::showLogMessage_(TOPPASBase::LogState state, const String& heading, const String& body)
+  {
+		//Compose current time string
+		DateTime d = DateTime::now();
+
+		String state_string;
+		switch(state)
+		{
+			case LS_NOTICE: state_string = "NOTICE"; break;
+			case LS_WARNING: state_string = "WARNING"; break;
+			case LS_ERROR: state_string = "ERROR"; break;
+		}
+
+		//update log
+		log_->append("==============================================================================");
+		log_->append((d.getTime() + " " + state_string + ": " + heading).toQString());
+		log_->append(body.toQString());
+
+  	//show log tool window
+		qobject_cast<QWidget *>(log_->parent())->show();
+		log_->moveCursor(QTextCursor::End);
+  }
+
+	void TOPPASBase::keyPressEvent(QKeyEvent* /*e*/)
+	{
+ 		
+	}
+	
+	void TOPPASBase::updateCurrentPath()
+	{
+		//do not update if the user disabled this feature.
+		if (param_.getValue("preferences:default_path_current")!="true") return;
+		
+		//reset
+		current_path_ = param_.getValue("preferences:default_path");
+		
+		//update if the current layer has a path associated TODO
+		//if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")
+		//{
+		//	current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
+		//}
+	}
+	
+	void TOPPASBase::insertNewVertex_(double x, double y, QTreeWidgetItem* item)
+	{
+		if (!activeWindow_() || !activeWindow_()->getScene() || !tools_tree_view_)
+		{
+			return;
+		}
+		
+		TOPPASScene* scene = activeWindow_()->getScene();
+		QTreeWidgetItem* current_tool = item ? item : tools_tree_view_->currentItem();
+		String tool_name = String(current_tool->text(0));
+		TOPPASVertex* tv = 0;
+		
+		if (tool_name == "<Input files>")
+		{
+			tv = new TOPPASInputFileListVertex();
+		}
+		else if (tool_name == "<Output files>")
+		{
+			tv = new TOPPASOutputFileListVertex();
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
+			connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+			connect (oflv, SIGNAL(iAmDone()), scene, SLOT(checkIfWeAreDone()));
+		}
+		else if (tool_name == "<Merger>")
+		{
+			tv = new TOPPASMergerVertex();
+		}
+		else // node is a TOPP tool
+		{	
+			if (current_tool->childCount() > 0)
+			{
+				// category or tool name with types is selected (instead of a concrete type)
+				return;
+			}
+			String tool_type;
+			if (current_tool->parent() != 0 && current_tool->parent()->parent() != 0)
+			{
+				// selected item is a type
+				tool_type = String(current_tool->text(0));
+				tool_name = String(current_tool->parent()->text(0));
+			}
+			else
+			{
+				// normal tool which does not have type selected
+				tool_name = String(current_tool->text(0));
+				tool_type = "";
+			}
+			
+			tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
+			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+			connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
+			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
+			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
+			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+			
+			connect (ttv,SIGNAL(toolStarted()),scene,SLOT(setPipelineRunning()));
+			connect (ttv,SIGNAL(toolFailed()),scene,SLOT(pipelineErrorSlot()));
+			connect (ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
+		}
+		
+		tv->setPos(x,y);
+		scene->addVertex(tv);
+		
+		connect(tv,SIGNAL(clicked()),scene,SLOT(itemClicked()));
+		connect(tv,SIGNAL(released()),scene,SLOT(itemReleased()));
+		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),scene,SLOT(updateHoveringEdgePos(const QPointF&)));
+		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),scene,SLOT(addHoveringEdge(const QPointF&)));
+		connect(tv,SIGNAL(finishHoveringEdge()),scene,SLOT(finishHoveringEdge()));
+		connect(tv,SIGNAL(itemDragged(qreal,qreal)),scene,SLOT(moveSelectedItems(qreal,qreal)));
+		
+		scene->topoSort();
+		scene->snapToGrid();
+		scene->setChanged(true);
+	}
+	
+	void TOPPASBase::runPipeline()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (w)
+		{
+			w->getScene()->runPipeline();
+		}
+	}
+	
+	void TOPPASBase::abortPipeline()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (w)
+		{
+			w->getScene()->abortPipeline();
+		}
+		updateMenu();
+	}
+	
+	void TOPPASBase::toolStarted()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " started. Processing ...";
+			
+			showLogMessage_(LS_NOTICE, text, "");
+		}
+		updateMenu();
+	}
+	
+	void TOPPASBase::toolFinished()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " finished!";
+			
+			showLogMessage_(LS_NOTICE, text, "");
+		}
+		updateMenu();
+	}
+	
+	void TOPPASBase::toolCrashed()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " crashed!";
+			
+			showLogMessage_(LS_ERROR, text, "");
+		}
+		updateMenu();
+	}
+	
+	void TOPPASBase::toolFailed()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " failed!";
+			
+			showLogMessage_(LS_ERROR, text, "");
+		}
+		updateMenu();
+	}
+	
+	void TOPPASBase::outputVertexFinished(const String& file)
+	{
+		String text = "Output file '"+file+"' written.";
+		showLogMessage_(LS_NOTICE, text, "");
+	}
+	
+	void TOPPASBase::updateTOPPOutputLog(const QString& out)
+	{
+		TOPPASToolVertex* sender = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (!sender)
+		{
+			return;
+		}
+		QString text = (sender->getName()).toQString();
+		if (sender->getType() != "")
+		{
+			text += " ("+(sender->getType()).toQString()+")";
+		}
+		text += ":\n" + out;
+		
+		//show log if there is output
+		qobject_cast<QWidget*>(log_->parent())->show();
+
+		//update log_
+		log_->moveCursor(QTextCursor::End);
+		log_->textCursor().insertText(text);
+		log_->moveCursor(QTextCursor::End);
+	}
+	
+	void TOPPASBase::showSuccessLogMessage()
+	{
+		showLogMessage_(LS_NOTICE, "Entire pipeline execution finished!", "");
+	}
+	
+	void TOPPASBase::insertNewVertexInCenter_(QTreeWidgetItem* item)
+	{
+		if (!activeWindow_() || !activeWindow_()->getScene() || !tools_tree_view_ || !tools_tree_view_->currentItem())
+		{
+			return;
+		}
+		
+		QPointF center = activeWindow_()->mapToScene(QPoint(activeWindow_()->width()/2.0,activeWindow_()->height()/2.0));
+		insertNewVertex_(center.x(), center.y(), item);
+	}
+
+} //namespace OpenMS
+

@@ -1,0 +1,144 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// ==========================================================================
+//
+// IMPORTANT:
+// This is config.h / config.h.in
+// Please do ONLY change config.h.in, as config.h is automagically
+// created by CMAKE from config.h.in
+// 
+// Use appropriate options to configure instead of changing config.h.
+// Changes made in config.h will be lost as soon as you call CMAKE again.
+//
+// ==========================================================================
+// 
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: $
+// --------------------------------------------------------------------------
+
+#ifndef OPENMS_CONFIG_H
+#define OPENMS_CONFIG_H
+
+// Here are some global configuration flags for OpenMS
+
+// The path to the directory where OpenMS data is installed
+#define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"
+
+// The directory where OpenMS is build
+#define OPENMS_SOURCE_PATH "@PROJECT_SOURCE_DIR@"
+
+// The directory where the OpenMS sources are located
+#define OPENMS_BINARY_PATH "@PROJECT_BINARY_DIR@"
+
+// Macro to construct a c string containing the complete path to the test data
+#define OPENMS_GET_TEST_DATA_PATH(filename) (std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename).c_str()
+#define OPENMS_GET_TEST_DATA_PATH_MESSAGE(prefix,filename,suffix) (prefix + std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename + suffix).c_str()
+
+// do we use SVN revision in VersionInfo.C?! [depending on the availability of svnversion(.exe)]
+#cmakedefine OPENMS_HAS_SVNVERSION
+
+// Define compiler specifics (used in VERY few places only)
+// Microsoft Visual Studio .NET, 2005, 2008
+#cmakedefine OPENMS_COMPILER_MSVC
+// GNU g++
+#cmakedefine OPENMS_COMPILER_GXX
+
+// OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
+#ifdef OPENMS_COMPILER_MSVC
+#	ifndef NDEBUG // hopefully defined automatically by MS-compiler in Debug Mode
+#		define OPENMS_ASSERTIONS
+#	endif
+#else // linux & Co
+#cmakedefine OPENMS_ASSERTIONS
+#endif
+
+
+#cmakedefine OPENMS_BIG_ENDIAN
+
+// Define on 64 bit architectures
+#cmakedefine OPENMS_64BIT_ARCHITECTURE
+
+#define OPENMS_INT32_TYPE @CF_OPENMS_INT32_TYPE@
+#define OPENMS_INT64_TYPE @CF_OPENMS_INT64_TYPE@
+#define OPENMS_BYTE_TYPE @CF_OPENMS_BYTE_TYPE@
+#define OPENMS_UINT64_TYPE @CF_OPENMS_UINT64_TYPE@
+//#define OPENMS_SIZE_T_SIGNED @CF_OPENMS_SIZE_T_SIGNED@
+
+
+// if you ever want to do abs() or floor() on this type in VC then use _abs64() and include <stdlib.h> (no kidding!)
+#define PointerSizeInt @CF_OPENMS_INT64_TYPE@
+#define PointerSizeUInt @CF_OPENMS_UINT64_TYPE@
+
+#cmakedefine OPENMS_HAS_UNISTD_H
+#cmakedefine OPENMS_HAS_PROCESS_H
+#cmakedefine OPENMS_HAS_STDINT_H
+
+#cmakedefine OPENMS_HAS_TIME_H
+#cmakedefine OPENMS_HAS_SYS_TYPES_H
+#cmakedefine OPENMS_HAS_SYS_TIMES_H
+#cmakedefine OPENMS_HAS_SYS_TIME_H
+
+#cmakedefine OPENMS_HAS_KILL
+#cmakedefine OPENMS_HAS_SYSCONF
+
+
+// Defines for conditional compiles when Libs are missing
+#cmakedefine USE_ANDIMS
+
+#define DB_PLUGIN "@QT_DB_PLUGIN@"
+
+// __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
+#ifndef OPENMS_COMPILER_GXX 
+#define __PRETTY_FUNCTION__ "<unknown>"
+#endif
+
+
+
+// let Cmake decide if we are using Windows (ie if windows.h is available). 
+//   GCC and MSVC have pre-defined macros for this as well but using -ansi in GCC will disable those, thus asking the compiler is fragile
+#ifndef WIN32  //avoid warning of redefinition
+#cmakedefine WIN32
+#endif
+
+#ifdef WIN32   //should be true on: MinGW (32bit + 64bit) & MSVS compiler
+#define OPENMS_WINDOWSPLATFORM 1
+#endif
+
+// are we building a shared lib?
+#cmakedefine BUILD_SHARED_LIBS
+
+#ifdef OPENMS_WINDOWSPLATFORM
+# ifdef BUILD_SHARED_LIBS
+#  ifdef OpenMS_EXPORTS  //automatically defined by CMake when building a dll
+#    define OPENMS_DLLAPI  __declspec( dllexport )
+#  else
+#    define OPENMS_DLLAPI  __declspec( dllimport )
+#  endif
+# endif
+#endif
+#ifndef OPENMS_DLLAPI //leave empty when not building DLL
+# define OPENMS_DLLAPI
+#endif
+
+#endif // OPENMS_CONFIG_H

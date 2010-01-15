@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CvMapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.psidev.info/files/validator/CvMapping.xsd"
+  modelName="TraML.xsd" modelURI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/TraML/schema/TraML0.9.3.xsd" modelVersion="0.9.3">
+
+    <CvReferenceList>
+        <CvReference cvName="PSI-MS" cvIdentifier="MS"/>
+        <CvReference cvName="UO" cvIdentifier="UO"/>
+        <CvReference cvName="UNIMOD" cvIdentifier="UNIMOD"/>
+    </CvReferenceList>
+
+    <CvMappingRuleList>
+
+        <!-- sourceFile -->
+        <CvMappingRule id="sourceFile_must" cvElementPath="/TraML/SourceFileList/SourceFile/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/SourceFileList/SourceFile" cvTermsCombinationLogic="AND" >
+            <CvTerm termAccession="MS:1001459" useTermName="false" useTerm="true" termName="file format" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+        <CvMappingRule id="sourceFile_may" cvElementPath="/TraML/SourceFileList/SourceFile/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/SourceFileList/SourceFile/cvParam" cvTermsCombinationLogic="OR" >
+            <CvTerm termAccession="MS:1000561" useTermName="false" useTerm="false" termName="data file checksum type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <!-- contact -->
+        <CvMappingRule id="contact_must" cvElementPath="/TraML/ContactList/Contact/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/ContactList/Contact" cvTermsCombinationLogic="AND" >
+            <CvTerm termAccession="MS:1000586" useTermName="false" useTerm="true" termName="contact name" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1000590" useTermName="false" useTerm="true" termName="contact organization" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+        </CvMappingRule>
+        <CvMappingRule id="contact_may" cvElementPath="/TraML/ContactList/Contact/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/ContactList/Contact/cvParam" cvTermsCombinationLogic="OR" >
+            <CvTerm termAccession="MS:1000585" useTermName="false" useTerm="false" termName="contact person attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <!-- publication  -->
+        <CvMappingRule id="publication_must" cvElementPath="/TraML/PublicationList/Publication/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/PublicationList/Publication" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000879" useTerm="true" termName="PubMed identifier" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- instrument  -->
+        <CvMappingRule id="instrument_must" cvElementPath="/TraML/InstrumentList/Instrument/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/InstrumentList/Instrument" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000031" useTerm="false" termName="instrument model" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- software-->
+        <CvMappingRule id="software_must" cvElementPath="/TraML/SoftwareList/Software/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/SoftwareList/Software" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000531" useTerm="false" termName="software" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- protein -->
+        <CvMappingRule id="protein_may" cvElementPath="/TraML/ProteinList/Protein/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/ProteinList/Protein" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000884" useTerm="false" termName="protein attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- peptide -->
+        <CvMappingRule id="peptide_may" cvElementPath="/TraML/CompoundList/Peptide/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Peptide" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000863" useTerm="true" termName="predicted pI" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000890" useTerm="false" termName="peptide labeling state" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000893" useTerm="true" termName="peptide group label" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- modification -->
+        <CvMappingRule id="modification_may" cvElementPath="/TraML/CompoundList/Peptide/Modification/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Peptide/Modification" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="UNIMOD:0" useTerm="false" termName="unimod root node" isRepeatable="true" allowChildren="true" cvIdentifierRef="UNIMOD"></CvTerm>
+        </CvMappingRule>
+
+        <!-- peptide retentionTime -->
+        <CvMappingRule id="peptide_retentionTime_may" cvElementPath="/TraML/CompoundList/Peptide/RetentionTimeList/RetentionTime/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Peptide/RetentionTimeList/RetentionTime" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000894" useTerm="false" termName="retention time" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000915" useTerm="false" termName="retention time window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000901" useTerm="false" termName="retention time normalization standard" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- compound -->
+        <CvMappingRule id="compound_may" cvElementPath="/TraML/CompoundList/Compound/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Compound" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000863" useTerm="true" termName="predicted pI" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000864" useTerm="false" termName="chemical compound formula" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- compound retentionTime -->
+        <CvMappingRule id="compound_retentionTime_may" cvElementPath="/TraML/CompoundList/Compound/RetentionTimeList/RetentionTime/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Compound/RetentionTimeList/RetentionTime" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000894" useTerm="false" termName="retention time" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000915" useTerm="false" termName="retention time window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000901" useTerm="false" termName="retention time normalization standard" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- transition precursor -->
+        <CvMappingRule id="transition_precursor_must" cvElementPath="/TraML/TransitionList/Transition/Precursor/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/TransitionList/Transition/Precursor" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <CvMappingRule id="transition_precursor_may" cvElementPath="/TraML/TransitionList/Transition/Precursor/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TransitionList/Transition/Precursor" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000041" useTerm="true" termName="charge state" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- target include precursor -->
+        <CvMappingRule id="target_include_precursor_must" cvElementPath="/TraML/TargetList/TargetIncludeList/Target/Precursor/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/TargetList/TargetIncludeList/Target/Precursor" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <CvMappingRule id="target_include_precursor_may" cvElementPath="/TraML/TargetList/TargetIncludeList/Target/Precursor/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TargetList/TargetIncludeList/Target/Precursor" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000041" useTerm="true" termName="charge state" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- target exclude precursor -->
+        <CvMappingRule id="target_exclude_precursor_must" cvElementPath="/TraML/TargetList/TargetExcludeList/Target/Precursor/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/TargetList/TargetExcludeList/Target/Precursor" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <CvMappingRule id="target_exclude_precursor_may" cvElementPath="/TraML/TargetList/TargetExcludeList/Target/Precursor/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TargetList/TargetExcludeList/Target/Precursor" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000041" useTerm="true" termName="charge state" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- product -->
+        <CvMappingRule id="product_must" cvElementPath="/TraML/TransitionList/Transition/Product/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/TransitionList/Transition/Product" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <CvMappingRule id="product_may" cvElementPath="/TraML/TransitionList/Transition/Product/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TransitionList/Transition/Product" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000041" useTerm="true" termName="charge state" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- interpretation -->
+        <CvMappingRule id="interpretation_must" cvElementPath="/TraML/TransitionList/Transition/InterpretationList/Interpretation/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/TransitionList/Transition/InterpretationList/Interpretation" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000926" useTerm="true" termName="product interpretation rank" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1001221" useTerm="false" termName="fragmentation information" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000903" useTerm="true" termName="product ion series ordinal" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <CvMappingRule id="interpretation_may" cvElementPath="/TraML/TransitionList/Transition/InterpretationList/Interpretation/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TransitionList/Transition/InterpretationList/Interpretation" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000904" useTerm="true" termName="product ion m/z delta" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- prediction -->
+        <CvMappingRule id="prediction_may" cvElementPath="/TraML/TransitionList/Transition/Prediction/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TransitionList/Transition/Prediction" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000909" useTerm="false" termName="transition validation method" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000907" useTerm="true" termName="peak targeting suitability rank" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000042" useTerm="true" termName="peak intensity" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000906" useTerm="true" termName="peak intensity rank" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000443" useTerm="true" termName="mass analyzer type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000031" useTerm="true" termName="instrument model" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- validation -->
+        <CvMappingRule id="validation_may" cvElementPath="/TraML/TransitionList/Transition/ConfigurationList/Configuration/Validation/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TransitionList/Transition/ConfigurationList/Configuration/Validation" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000909" useTerm="false" termName="transition validation method" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000907" useTerm="true" termName="peak targeting suitability rank" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000042" useTerm="true" termName="peak intensity" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000906" useTerm="true" termName="peak intensity rank" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000031" useTerm="true" termName="instrument model" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- evidence -->
+        <CvMappingRule id="evidence_may" cvElementPath="/TraML/CompoundList/Peptide/Evidence/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Peptide/Evidence" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001100" useTerm="true" termName="confident peptide" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- transition configuration -->
+        <CvMappingRule id="transition_configuration_may" cvElementPath="/TraML/TransitionList/Transition/ConfigurationList/Configuration/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TransitionList/Transition/ConfigurationList/Configuration" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000502" useTerm="true" termName="dwell time" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000482" useTerm="false" termName="source attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000510" useTerm="false" termName="precursor activation attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- target configuration -->
+        <CvMappingRule id="target_configuration_may" cvElementPath="/TraML/TargetList/TargetIncludeList/Target/ConfigurationList/Configuration/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/TargetList/TargetIncludeList/Target/ConfigurationList/Configuration" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000502" useTerm="true" termName="dwell time" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000482" useTerm="false" termName="source attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000510" useTerm="false" termName="precursor activation attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- targetList -->
+        <CvMappingRule id="targetList_must" cvElementPath="/TraML/TargetList/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/TargetList" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000919" useTerm="false" termName="target inclusion exclusion priority" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+
+    </CvMappingRuleList>
+</CvMapping>

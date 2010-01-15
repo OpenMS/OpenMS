@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/takifugu/bielow/RAID/BUILD_OpenMS/x86_64-GNU-Linux/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="4">
+		<map id="0" name="" label="iTRAQ_114_myReference" size="31">
+			<userParam type="int" name="channel_name" value="114"/>
+			<userParam type="int" name="channel_id" value="0"/>
+			<userParam type="string" name="channel_description" value="myReference"/>
+			<userParam type="float" name="channel_center" value="114.1"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="1" name="" label="iTRAQ_115_" size="31">
+			<userParam type="int" name="channel_name" value="115"/>
+			<userParam type="int" name="channel_id" value="1"/>
+			<userParam type="string" name="channel_description" value=""/>
+			<userParam type="float" name="channel_center" value="115.1"/>
+			<userParam type="string" name="channel_active" value="false"/>
+		</map>
+		<map id="2" name="" label="iTRAQ_116_" size="31">
+			<userParam type="int" name="channel_name" value="116"/>
+			<userParam type="int" name="channel_id" value="2"/>
+			<userParam type="string" name="channel_description" value=""/>
+			<userParam type="float" name="channel_center" value="116.1"/>
+			<userParam type="string" name="channel_active" value="false"/>
+		</map>
+		<map id="3" name="" label="iTRAQ_117_" size="31">
+			<userParam type="int" name="channel_name" value="117"/>
+			<userParam type="int" name="channel_id" value="3"/>
+			<userParam type="string" name="channel_description" value=""/>
+			<userParam type="float" name="channel_center" value="117.1"/>
+			<userParam type="string" name="channel_active" value="false"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0">
+			<centroid rt="306.58" mz="426.849" it="0"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="306.58" mz="114.1" it="1"/>
+				<element map="1" id="0" rt="306.58" mz="115.1" it="0.923077"/>
+				<element map="2" id="0" rt="306.58" mz="116.1" it="0"/>
+				<element map="3" id="0" rt="306.58" mz="117.1" it="0.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1" quality="0">
+			<centroid rt="306.58" mz="405.85" it="0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="306.58" mz="114.1" it="1"/>
+				<element map="1" id="1" rt="306.58" mz="115.1" it="2.46154"/>
+				<element map="2" id="1" rt="306.58" mz="116.1" it="4.8"/>
+				<element map="3" id="1" rt="306.58" mz="117.1" it="6.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2" quality="0">
+			<centroid rt="312.738" mz="506.815" it="0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="312.738" mz="114.1" it="1"/>
+				<element map="1" id="2" rt="312.738" mz="115.1" it="4.61538"/>
+				<element map="2" id="2" rt="312.738" mz="116.1" it="8.4"/>
+				<element map="3" id="2" rt="312.738" mz="117.1" it="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3" quality="0">
+			<centroid rt="312.738" mz="484.83" it="0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="312.738" mz="114.1" it="1"/>
+				<element map="1" id="3" rt="312.738" mz="115.1" it="5.23077"/>
+				<element map="2" id="3" rt="312.738" mz="116.1" it="8.4"/>
+				<element map="3" id="3" rt="312.738" mz="117.1" it="1.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4" quality="0">
+			<centroid rt="3112.53" mz="496.244" it="0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="3112.53" mz="114.1" it="1"/>
+				<element map="1" id="4" rt="3112.53" mz="115.1" it="0.307692"/>
+				<element map="2" id="4" rt="3112.53" mz="116.1" it="13.2"/>
+				<element map="3" id="4" rt="3112.53" mz="117.1" it="7"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5" quality="0">
+			<centroid rt="3840.95" mz="430.212" it="0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="3840.95" mz="114.1" it="1"/>
+				<element map="1" id="5" rt="3840.95" mz="115.1" it="4.30769"/>
+				<element map="2" id="5" rt="3840.95" mz="116.1" it="2.4"/>
+				<element map="3" id="5" rt="3840.95" mz="117.1" it="2.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6" quality="0">
+			<centroid rt="3849.22" mz="446.081" it="0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="3849.22" mz="114.1" it="1"/>
+				<element map="1" id="6" rt="3849.22" mz="115.1" it="3.69231"/>
+				<element map="2" id="6" rt="3849.22" mz="116.1" it="2.4"/>
+				<element map="3" id="6" rt="3849.22" mz="117.1" it="3.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7" quality="0">
+			<centroid rt="3870.67" mz="453.233" it="0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="3870.67" mz="114.1" it="1"/>
+				<element map="1" id="7" rt="3870.67" mz="115.1" it="3.07692"/>
+				<element map="2" id="7" rt="3870.67" mz="116.1" it="16.8"/>
+				<element map="3" id="7" rt="3870.67" mz="117.1" it="4.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8" quality="0">
+			<centroid rt="3880.9" mz="400.172" it="0"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="3880.9" mz="114.1" it="1"/>
+				<element map="1" id="8" rt="3880.9" mz="115.1" it="6.76923"/>
+				<element map="2" id="8" rt="3880.9" mz="116.1" it="1.2"/>
+				<element map="3" id="8" rt="3880.9" mz="117.1" it="7"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9" quality="0">
+			<centroid rt="3892.26" mz="437.227" it="0"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="3892.26" mz="114.1" it="1"/>
+				<element map="1" id="9" rt="3892.26" mz="115.1" it="7.38462"/>
+				<element map="2" id="9" rt="3892.26" mz="116.1" it="4.8"/>
+				<element map="3" id="9" rt="3892.26" mz="117.1" it="6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_10" quality="0">
+			<centroid rt="3892.26" mz="526.264" it="0"/>
+			<groupedElementList>
+				<element map="0" id="10" rt="3892.26" mz="114.1" it="1"/>
+				<element map="1" id="10" rt="3892.26" mz="115.1" it="4.30769"/>
+				<element map="2" id="10" rt="3892.26" mz="116.1" it="3.6"/>
+				<element map="3" id="10" rt="3892.26" mz="117.1" it="3.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_11" quality="0">
+			<centroid rt="3896.37" mz="416.173" it="0"/>
+			<groupedElementList>
+				<element map="0" id="11" rt="3896.37" mz="114.1" it="1"/>
+				<element map="1" id="11" rt="3896.37" mz="115.1" it="7.38462"/>
+				<element map="2" id="11" rt="3896.37" mz="116.1" it="3.6"/>
+				<element map="3" id="11" rt="3896.37" mz="117.1" it="7"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_12" quality="0">
+			<centroid rt="3900.47" mz="414.206" it="0"/>
+			<groupedElementList>
+				<element map="0" id="12" rt="3900.47" mz="114.1" it="1"/>
+				<element map="1" id="12" rt="3900.47" mz="115.1" it="8"/>
+				<element map="2" id="12" rt="3900.47" mz="116.1" it="6"/>
+				<element map="3" id="12" rt="3900.47" mz="117.1" it="6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13" quality="0">
+			<centroid rt="3903.97" mz="809.894" it="0"/>
+			<groupedElementList>
+				<element map="0" id="13" rt="3903.97" mz="114.1" it="1"/>
+				<element map="1" id="13" rt="3903.97" mz="115.1" it="1.84615"/>
+				<element map="2" id="13" rt="3903.97" mz="116.1" it="2.4"/>
+				<element map="3" id="13" rt="3903.97" mz="117.1" it="0.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_14" quality="0">
+			<centroid rt="3912.22" mz="523.229" it="0"/>
+			<groupedElementList>
+				<element map="0" id="14" rt="3912.22" mz="114.1" it="1"/>
+				<element map="1" id="14" rt="3912.22" mz="115.1" it="4"/>
+				<element map="2" id="14" rt="3912.22" mz="116.1" it="4.8"/>
+				<element map="3" id="14" rt="3912.22" mz="117.1" it="3.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15" quality="0">
+			<centroid rt="3940.03" mz="569.239" it="0"/>
+			<groupedElementList>
+				<element map="0" id="15" rt="3940.03" mz="114.1" it="1"/>
+				<element map="1" id="15" rt="3940.03" mz="115.1" it="5.23077"/>
+				<element map="2" id="15" rt="3940.03" mz="116.1" it="7.2"/>
+				<element map="3" id="15" rt="3940.03" mz="117.1" it="5"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16" quality="0">
+			<centroid rt="3945.15" mz="534.233" it="0"/>
+			<groupedElementList>
+				<element map="0" id="16" rt="3945.15" mz="114.1" it="1"/>
+				<element map="1" id="16" rt="3945.15" mz="115.1" it="6.46154"/>
+				<element map="2" id="16" rt="3945.15" mz="116.1" it="6"/>
+				<element map="3" id="16" rt="3945.15" mz="117.1" it="12.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17" quality="0">
+			<centroid rt="3949.25" mz="583.243" it="0"/>
+			<groupedElementList>
+				<element map="0" id="17" rt="3949.25" mz="114.1" it="1"/>
+				<element map="1" id="17" rt="3949.25" mz="115.1" it="3.38462"/>
+				<element map="2" id="17" rt="3949.25" mz="116.1" it="2.4"/>
+				<element map="3" id="17" rt="3949.25" mz="117.1" it="5.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_18" quality="0">
+			<centroid rt="3954.38" mz="493.182" it="0"/>
+			<groupedElementList>
+				<element map="0" id="18" rt="3954.38" mz="114.1" it="1"/>
+				<element map="1" id="18" rt="3954.38" mz="115.1" it="8.61539"/>
+				<element map="2" id="18" rt="3954.38" mz="116.1" it="9.6"/>
+				<element map="3" id="18" rt="3954.38" mz="117.1" it="7"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_19" quality="0">
+			<centroid rt="3960.52" mz="479.241" it="0"/>
+			<groupedElementList>
+				<element map="0" id="19" rt="3960.52" mz="114.1" it="1"/>
+				<element map="1" id="19" rt="3960.52" mz="115.1" it="6.46154"/>
+				<element map="2" id="19" rt="3960.52" mz="116.1" it="3.6"/>
+				<element map="3" id="19" rt="3960.52" mz="117.1" it="10.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_20" quality="0">
+			<centroid rt="3965.65" mz="477.237" it="0"/>
+			<groupedElementList>
+				<element map="0" id="20" rt="3965.65" mz="114.1" it="1"/>
+				<element map="1" id="20" rt="3965.65" mz="115.1" it="6.76923"/>
+				<element map="2" id="20" rt="3965.65" mz="116.1" it="7.2"/>
+				<element map="3" id="20" rt="3965.65" mz="117.1" it="9.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_21" quality="0">
+			<centroid rt="3976.17" mz="430.225" it="0"/>
+			<groupedElementList>
+				<element map="0" id="21" rt="3976.17" mz="114.1" it="1"/>
+				<element map="1" id="21" rt="3976.17" mz="115.1" it="8"/>
+				<element map="2" id="21" rt="3976.17" mz="116.1" it="7.2"/>
+				<element map="3" id="21" rt="3976.17" mz="117.1" it="4.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_22" quality="0">
+			<centroid rt="3984.41" mz="607.283" it="0"/>
+			<groupedElementList>
+				<element map="0" id="22" rt="3984.41" mz="114.1" it="1"/>
+				<element map="1" id="22" rt="3984.41" mz="115.1" it="11.3846"/>
+				<element map="2" id="22" rt="3984.41" mz="116.1" it="7.2"/>
+				<element map="3" id="22" rt="3984.41" mz="117.1" it="24"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_23" quality="0">
+			<centroid rt="4002.81" mz="662.305" it="0"/>
+			<groupedElementList>
+				<element map="0" id="23" rt="4002.81" mz="114.1" it="1"/>
+				<element map="1" id="23" rt="4002.81" mz="115.1" it="5.23077"/>
+				<element map="2" id="23" rt="4002.81" mz="116.1" it="6"/>
+				<element map="3" id="23" rt="4002.81" mz="117.1" it="4.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_24" quality="0">
+			<centroid rt="4046.77" mz="643.347" it="0"/>
+			<groupedElementList>
+				<element map="0" id="24" rt="4046.77" mz="114.1" it="1"/>
+				<element map="1" id="24" rt="4046.77" mz="115.1" it="6.15385"/>
+				<element map="2" id="24" rt="4046.77" mz="116.1" it="6"/>
+				<element map="3" id="24" rt="4046.77" mz="117.1" it="5"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_25" quality="0">
+			<centroid rt="4070.27" mz="624.347" it="0"/>
+			<groupedElementList>
+				<element map="0" id="25" rt="4070.27" mz="114.1" it="1"/>
+				<element map="1" id="25" rt="4070.27" mz="115.1" it="3.38462"/>
+				<element map="2" id="25" rt="4070.27" mz="116.1" it="46.8"/>
+				<element map="3" id="25" rt="4070.27" mz="117.1" it="7.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_26" quality="0">
+			<centroid rt="4073.35" mz="563.3" it="0"/>
+			<groupedElementList>
+				<element map="0" id="26" rt="4073.35" mz="114.1" it="1"/>
+				<element map="1" id="26" rt="4073.35" mz="115.1" it="2.76923"/>
+				<element map="2" id="26" rt="4073.35" mz="116.1" it="1.2"/>
+				<element map="3" id="26" rt="4073.35" mz="117.1" it="4.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_27" quality="0">
+			<centroid rt="4084.98" mz="428.222" it="0"/>
+			<groupedElementList>
+				<element map="0" id="27" rt="4084.98" mz="114.1" it="1"/>
+				<element map="1" id="27" rt="4084.98" mz="115.1" it="2.76923"/>
+				<element map="2" id="27" rt="4084.98" mz="116.1" it="4.8"/>
+				<element map="3" id="27" rt="4084.98" mz="117.1" it="2.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_28" quality="0">
+			<centroid rt="4088.05" mz="432.838" it="0"/>
+			<groupedElementList>
+				<element map="0" id="28" rt="4088.05" mz="114.1" it="1"/>
+				<element map="1" id="28" rt="4088.05" mz="115.1" it="13.8462"/>
+				<element map="2" id="28" rt="4088.05" mz="116.1" it="4.8"/>
+				<element map="3" id="28" rt="4088.05" mz="117.1" it="6.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_29" quality="0">
+			<centroid rt="4101.48" mz="432.278" it="0"/>
+			<groupedElementList>
+				<element map="0" id="29" rt="4101.48" mz="114.1" it="1"/>
+				<element map="1" id="29" rt="4101.48" mz="115.1" it="11.0769"/>
+				<element map="2" id="29" rt="4101.48" mz="116.1" it="3.6"/>
+				<element map="3" id="29" rt="4101.48" mz="117.1" it="5.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_30" quality="0">
+			<centroid rt="4149.49" mz="450.26" it="0"/>
+			<groupedElementList>
+				<element map="0" id="30" rt="4149.49" mz="114.1" it="1"/>
+				<element map="1" id="30" rt="4149.49" mz="115.1" it="4"/>
+				<element map="2" id="30" rt="4149.49" mz="116.1" it="3.6"/>
+				<element map="3" id="30" rt="4149.49" mz="117.1" it="4"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

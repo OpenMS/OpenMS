@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# $Maintainer: Clemens Groepl $
+# $Authors: $
+
+# NOTE 1:
+# The following is a hack around the actual "dot" program
+# which increases the linewidth in the generated figures.
+# Note that the PATH must not include this directory in order to avoid cycles.
+# Doxygen apparently does not allow us to use another name for the dot program. (?!)
+# Any suggestions to improve the way all this is done are highly welcome!
+
+# NOTE 2:
+# The dot program from graphviz RPMs in openSUSE 10.3 seems to lack png support (?!)
+# I had to build it from sources.  You may wish to enable antialiasing etc. in freetype
+# (but note the patent issues involved).
+
+echo '"fat" dot is being called:' dot $@
+
+sed -i 's/style="/arrowsize=1.3,style="setlinewidth(2),/' $1
+dot $@
+

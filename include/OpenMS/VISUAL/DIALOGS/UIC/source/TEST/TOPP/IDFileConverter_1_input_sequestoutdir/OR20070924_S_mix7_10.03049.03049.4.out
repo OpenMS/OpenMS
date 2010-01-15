@@ -1,0 +1,31 @@
+
+ ./OR20070924_S_mix7_10.03049.03049.4.out
+ SEQUEST v.27 (rev. 0), (c) 1993
+ Molecular Biotechnology, Univ. of Washington, J.Eng/J.Yates
+ Licensed to Finnigan Corp., A Division of ThermoQuest Corp.
+ 01/13/2008, 02:50 AM, 1 sec. on regis23
+ (M+H)+ mass = 2266.1166 ~ 3.0000 (+4), fragment tol = 0.0, MONO/AVG
+ total inten = 5739.1, lowest Sp = 294.9, # matched peptides = 28130
+ # amino acids = 567460, # proteins = 1822, /dbase/misc/18mix092106/18mix092106_hinf
+ ion series nABY ABCDVWXYZ: 0 0 0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0
+ display top 5/3, ion % = 0.0, CODE = 0000
+ C=160.009 
+
+  #   Rank/Sp    (M+H)+   deltCn   XCorr    Sp     Ions  Reference                       Peptide
+ ---  -------  ---------  ------  ------   ----    ----  ---------                       -------
+  1.   1 /234  2266.1010  0.0000  1.6544   335.4  25/108 gi|1574548|gb|AAC23341.1|     F.TQKRCPFNHMTVAYQKSAV.I
+  2.   2 /177  2264.2083  0.0508  1.5703   352.6  27/114 gi|1572960|gb|AAC21694.1|     I.ARSTVKQLRKNVLAKCYGGD.V
+  3.   3 /236  2263.1869  0.0587  1.5572   335.2  25/108 gi|1574819|gb|AAC23003.1|     I.LNGEVLKQKYDQRVMDKQA.L
+  4.   4 /100  2266.1045  0.0874  1.5098   382.1  33/162 SW:K2CA_HUMAN             +2  F.GFGGGAGIGFGLGGGAGLAGGFGGPGFP.V
+  5.   5 /258  2269.0762  0.0982  1.4919   331.3  28/108 SW:UBA1_HUMAN                 A.PFWSGPKRCPHPLTFDVNN.P
+
+ 35.  35 /  1  2264.2012  0.2048  1.3156   649.7  32/114 gi|1574344|gb|AAC23163.1|     D.SRTRASHLALHGKIYRADDP.I
+
+  1.  gi|1574548|gb|AAC23341.1| lipopolysaccharide biosynthesis protein, putativ
+      e [Haemophilus influenzae Rd]
+  2.  gi|1572960|gb|AAC21694.1| GTP-binding membrane protein (lepA) [Haemophilus
+      influenzae Rd]
+  3.  gi|1574819|gb|AAC23003.1| 4-alpha-glucanotransferase (malQ) [Haemophilus i
+      nfluenzae Rd]
+
+

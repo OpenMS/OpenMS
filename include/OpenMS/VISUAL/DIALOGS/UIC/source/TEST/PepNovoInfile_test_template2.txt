@@ -1,0 +1,34 @@
+# Fixed PTMs
+#AA  offset      type    locations  symbol  PTM name
+K   10.3   FIXED   ALL   K+10   PTM_0
+R   10.3   FIXED   ALL   R+10   PTM_0
+L   10.3   FIXED   ALL   L+10   PTM_0
+N   10.3   FIXED   ALL   N+10   PTM_0
+H   10.3   FIXED   ALL   H+10   PTM_0
+
+# Optional PTMs
+C   14.01565   OPTIONAL   ALL   C+14   Methylation
+H   14.01565   OPTIONAL   ALL   H+14   Methylation
+K   14.01565   OPTIONAL   ALL   K+14   Methylation
+N   14.01565   OPTIONAL   ALL   N+14   Methylation
+Q   14.01565   OPTIONAL   ALL   Q+14   Methylation
+R   14.01565   OPTIONAL   ALL   R+14   Methylation
+I   14.01565   OPTIONAL   ALL   I+14   Methylation
+L   14.01565   OPTIONAL   ALL   L+14   Methylation
+D   14.01565   OPTIONAL   ALL   D+14   Methylation
+E   14.01565   OPTIONAL   ALL   E+14   Methylation
+S   14.01565   OPTIONAL   ALL   S+14   Methylation
+T   14.01565   OPTIONAL   ALL   T+14   Methylation
+C   16   OPTIONAL   ALL   C+16   PTM_2
+S   79.96635   OPTIONAL   ALL   S+80   Phosphorylation
+T   79.96635   OPTIONAL   ALL   T+80   Phosphorylation
+Y   79.96635   OPTIONAL   ALL   Y+80   Phosphorylation
+D   79.96635   OPTIONAL   ALL   D+80   Phosphorylation
+H   79.96635   OPTIONAL   ALL   H+80   Phosphorylation
+C   79.96635   OPTIONAL   ALL   C+80   Phosphorylation
+R   79.96635   OPTIONAL   ALL   R+80   Phosphorylation
+
+# Terminal PTMs
+C_TERM   -16   OPT   C_TERM   §-16   PTM_5
+N_TERM   43.00582   OPTIONAL   N_TERM   ^+43   Carbamylation
+N_TERM   -16   OPTIONAL   N_TERM   ^-16   PTM_6

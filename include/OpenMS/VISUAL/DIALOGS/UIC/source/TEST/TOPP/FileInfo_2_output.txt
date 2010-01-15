@@ -1,0 +1,22 @@
+
+-- General information --
+
+file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_2_input.dta2d
+file type: DTA2D
+
+peak type (metadata) : Unknown
+peak type (estimated): Unknown
+
+Number of spectra: 8
+Number of peaks:   8
+
+Ranges:
+  retention time:  0.00 : 6.00
+  mass-to-charge:  500.00 : 1100.00
+  intensity:       50.00 : 400.00
+
+MS levels: 1
+Spectra of MS Level 1: 8
+
+
+

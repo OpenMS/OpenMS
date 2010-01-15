@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" ></SearchParameters>
+<IdentificationRun date="2008-06-30T17:22:22" search_engine="File conversion" search_engine_version="" search_parameters_ref="SP_0">
+<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" />
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.247">
+<PeptideHit score="0" sequence="AAAINIIPTSTGAAK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.695">
+<PeptideHit score="0" sequence="AAALLDVAQISEVIAVVSSDTFVRPIYAGNALATVQSHDAVK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.348">
+<PeptideHit score="0" sequence="AAANFFSASCVPCADQSSFPK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.205">
+<PeptideHit score="0" sequence="AAASAAPVVQPLAAGR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.328">
+<PeptideHit score="0" sequence="AADLGLETVIVER" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.29">
+<PeptideHit score="0" sequence="AAEGVVPKPLDAHQVAELVK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.668">
+<PeptideHit score="0" sequence="AAFDIAVEHNAVDNWAEMLTFAALVSENETMKPLLTGSLASTK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.61">
+<PeptideHit score="0" sequence="AAFNSGKVDVVAINDPFIDLHYMVYMFQYDSTHGK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.476">
+<PeptideHit score="0" sequence="AAFVELELPVLDHLNVK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.278">
+<PeptideHit score="0" sequence="AAGAELVGMDDLAEK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.526">
+<PeptideHit score="0" sequence="AAGLVDTLNQELAVLDEHIAR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.575">
+<PeptideHit score="0" sequence="AAGTSLSGQAIGEGILLILGHDGFR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.603">
+<PeptideHit score="0" sequence="AALESTLAAITESLKEGDAVQLVGFGTFK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.287">
+<PeptideHit score="0" sequence="AAPSYEEQSNTTELLETGIK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.39">
+<PeptideHit score="0" sequence="AASQADSTYASALQNLISR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.449">
+<PeptideHit score="0" sequence="AASVAPLSEVLAVNKEPLVSIDFNHNAFSSNFDATQTR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.29">
+<PeptideHit score="0" sequence="AAVEEGVVAGGGVALIR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.297">
+<PeptideHit score="0" sequence="AAVEEGVVPGGGVALIR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.442">
+<PeptideHit score="0" sequence="AAVGEDAPPFNSMELIFNPK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.345">
+<PeptideHit score="0" sequence="ADAPDMGGMGGMGGMGGMM" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.272">
+<PeptideHit score="0" sequence="ADAVVIAAGGFAK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.253">
+<PeptideHit score="0" sequence="ADFAQSIDENAAHGSDSLASAER" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.26">
+<PeptideHit score="0" sequence="ADIDYSTSESHTQYGVIGIK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.815">
+<PeptideHit score="0" sequence="ADLLDAIADALTENTLAILAANAK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.35">
+<PeptideHit score="0" sequence="ADPQPVTADWIIDPTAGTPGTAK" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.225">
+<PeptideHit score="0" sequence="ADSGEGDFLAEGGGVR" charge="0" protein_refs="">
+</PeptideHit>
+</PeptideIdentification>
+</IdentificationRun>
+</IdXML>

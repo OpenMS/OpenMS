@@ -1,0 +1,6 @@
+Example project for external code using OpenMS library and headers.
+
+Usage: simply invoke Cmake on the CMakeLists.txt
+
+e.g.
+cmake -G "Visual Studio 9 2008 Win64" .

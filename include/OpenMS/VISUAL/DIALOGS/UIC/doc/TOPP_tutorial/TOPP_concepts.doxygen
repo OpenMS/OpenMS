@@ -1,0 +1,47 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/**
+	
+	@page TOPP_concepts TOPP and %OpenMS
+	
+	TOPP, The %OpenMS Proteomics Pipeline provides 
+	a set of computational tools which can be easily combined into analysis pipelines even by non-experts and then be used 
+	in proteomics workflows. These applications range from useful utilities file format conversion, peak picking) over wrapper 
+	applications for known applications (e.g. Mascot) to completely new algorithmic techniques for data reduction and data 
+	analysis. TOPP is based on the %OpenMS library and as more functionality
+	is added to new %OpenMS releases, TOPP will naturally conatin new or updated tools.
+
+	In addition to offering a toolbox, TOPP contains TOPPView the central graphical user interface which allows the user to view,
+	inspect and manipulate proteomics data. TOPPView reads standard formats and allows the user not only to view the data, but also
+	to interatively call TOPP tools and display the results. As such it is a powerful tool for interactive data manipulation.
+
+	In this tutorial we will now in detail explain the capabilities of TOPPView and the TOPP tools using real data sets and
+	standard analysis tasks.
+	
+		
+*/

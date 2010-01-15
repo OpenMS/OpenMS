@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters charges="+1, +2" id="SP_1" db_version="1.0" mass_type="average" peak_mass_tolerance="0.3" precursor_peak_tolerance="1.0" db="MSDB" enzyme="trypsin" />
+	<SearchParameters charges="+1, +2, +3" id="SP_2" db_version="1.1" mass_type="monoisotopic" peak_mass_tolerance="0.3" precursor_peak_tolerance="1.0" db="MSDB">
+		<FixedModification name="Fixed" />
+		<FixedModification name="Fixed2" />
+		<VariableModification name="Variable" />
+		<VariableModification name="Variable2" />
+	</SearchParameters>
+	<IdentificationRun date="2006-01-12T12:13:14" search_engine="Mascot" search_parameters_ref="SP_1" search_engine_version="2.1.0">
+		<ProteinIdentification score_type="MOWSE" higher_score_better="true">
+			<ProteinHit score="34.4" id="PH_3" accession="PROT1" sequence="ABCDEFG" >
+				<UserParam type="string" value="ProteinHit" name="name"/>
+			</ProteinHit>
+			<ProteinHit score="24.4" id="PH_4" accession="PROT2" sequence="ABCDEFG" />
+			<UserParam type="string" value="ProteinIdentification" name="name"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="MOWSE" higher_score_better="false" MZ="675.9" RT="1234.5" spectrum_reference="17">
+			<PeptideHit sequence="PEP1" score="0.9" charge="1" aa_before="A" aa_after="B" protein_refs="PH_3 PH_4">
+				<UserParam type="string" value="PeptideHit" name="name"/>
+			</PeptideHit>
+			<PeptideHit sequence="PEP2" score="1.4" charge="1" />
+			<UserParam type="string" value="PeptideIdentification" name="name"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MOWSE" higher_score_better="true">
+			<PeptideHit sequence="PEP3" score="44.4" charge="2" />
+			<PeptideHit sequence="PEP4" score="33.3" charge="2" />
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2007-01-12T12:13:14" search_engine="Mascot" search_parameters_ref="SP_2" search_engine_version="2.1.1">
+		<ProteinIdentification score_type="MOWSE" higher_score_better="true">
+			<ProteinHit score="100.0" id="PH_5" accession="PROT3" />
+		</ProteinIdentification>
+		<PeptideIdentification score_type="MOWSE" higher_score_better="true">
+			<PeptideHit sequence="PEP5" score="1.4" charge="1" protein_refs="PH_5"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

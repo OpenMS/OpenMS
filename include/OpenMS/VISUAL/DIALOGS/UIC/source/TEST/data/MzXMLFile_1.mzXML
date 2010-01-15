@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.0.xsd">
+	<msRun scanCount="4">
+		<parentFile fileName="File_test_1.raw" fileType="RAWData" fileSha1="2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"/>
+		<parentFile fileName="File_test_2.raw" fileType="processedData" fileSha1="2fd4e1c67a2d28fced849ee1bb76e7391b93eb13"/>
+		<msInstrument>
+			<msManufacturer category="msManufacturer" value="MS-Vendor"/>
+			<msModel category="msModel" value="MS 1"/>
+			<msIonisation category="msIonisation" value="ESI"/>
+			<msMassAnalyzer category="msMassAnalyzer" value="Quadrupole Ion Trap"/>
+			<msDetector category="msDetector" value="Faraday Cup"/>
+			<software type="acquisition" name="MS-Z" version="3.0"/>
+			<msResolution category="msResolution" value="FWHM"/>
+			<operator first="FirstName" last="LastName" phone="0049" email="a@b.de" URI="http://bla.de"/>
+			<nameValue name="URL1" value="www.open-ms.de"/>
+			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
+			<comment>Instrument Comment</comment>
+		</msInstrument>
+		<dataProcessing>
+			<software type="conversion" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
+			<processingOperation name="processing 1" type="bla" value="done 1"/>
+			<processingOperation name="processing 2" type="" value="done 2"/>
+			<comment>dataProcessing Comment 1</comment>
+		</dataProcessing>
+		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1" intensityCutoff="3.4">
+			<software type="processing" name="MS-Y" version="1.1"/>
+			<processingOperation name="processing 3" type="type 3" value="done 3"/>
+		</dataProcessing>
+		<scan num="10" msLevel="1" peaksCount="1" polarity="any" retentionTime="PT60S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
+			<nameValue name="URL1" value="www.open-ms.de"/>
+			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
+			<comment>Scan Comment</comment>
+		</scan>
+		<scan num="11" msLevel="1" peaksCount="3" polarity="any" retentionTime="PT120S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
+		</scan>
+		<scan num="12" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT180S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
+			<scan num="13" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT5S">
+				<precursorMz precursorIntensity="100.0" precursorCharge="1" windowWideness="10">101.0</precursorMz>
+				<precursorMz precursorIntensity="200.0" precursorCharge="2" windowWideness="20">201.0</precursorMz>
+				<precursorMz precursorIntensity="300.0" precursorCharge="3" windowWideness="30">301.0</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
+			</scan>
+		</scan>
+	</msRun>
+	<indexOffset>0</indexOffset>
+</mzXML>

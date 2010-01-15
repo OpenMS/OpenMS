@@ -1,0 +1,94 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Clemens Groepl $
+// $Authors: Clemens Groepl, Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+class TestSuperimposer 
+	: public BaseSuperimposer
+{
+  public:
+	TestSuperimposer() 
+		: BaseSuperimposer()
+	{ 
+		check_defaults_ = false; 
+	}
+
+	virtual void run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations)
+	{
+		if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
+		transformations.clear();
+		transformations.resize(1);
+		transformations[0].setName("linear");
+		transformations[0].setParam("slope",1.1);
+		transformations[0].setParam("intercept",5.0);
+	}
+};
+
+START_TEST(BaseSuperimposer, "$Id: BaseSuperimposer_test.C 6114 2009-10-13 21:43:07Z marc_sturm $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+TestSuperimposer* ptr = 0;
+START_SECTION((BaseSuperimposer()))
+	ptr = new TestSuperimposer();
+	TEST_NOT_EQUAL(ptr, 0)
+END_SECTION
+
+START_SECTION((virtual ~BaseSuperimposer()))
+	delete ptr;
+END_SECTION
+
+START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::vector<TransformationDescription>& transformations)=0))
+  std::vector<TransformationDescription> transformations;
+  TestSuperimposer si;
+	std::vector<ConsensusMap> maps;
+	TEST_EXCEPTION(Exception::IllegalArgument,si.run(maps,transformations))
+	maps.resize(2);
+  si.run(maps, transformations);
+  TEST_STRING_EQUAL(transformations[0].getName(),"linear");
+  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("slope"),1.1)
+  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("intercept"),5.0)
+END_SECTION
+
+START_SECTION((static void registerChildren()))
+  NOT_TESTABLE
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+
