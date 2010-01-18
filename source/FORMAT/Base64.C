@@ -29,6 +29,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QList>
+#include <QtCore/QString>
 
 using namespace std;
 

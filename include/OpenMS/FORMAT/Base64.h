@@ -43,9 +43,8 @@
 #include <cmath>
 #include <vector>
 
+#include <QByteArray>
 #include <zlib.h>
-#include <QtCore/QString>
-
 
 namespace OpenMS
 {
