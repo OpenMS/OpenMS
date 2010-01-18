@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protein_summary xmlns="http://regis-web.systemsbiology.net/protXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/protXML/protXML_v3.xsd" summary_xml="/nfs/wsi/bs/share/usr/bertsch/SchlueterDaten/lipid_rafts/IDs/LR4_all_probs.protXML">
+<protein_summary_header reference_database="/share/usr/bertsch/sequences/uniprot_sprot_55.6/uniprot_sprot_rat_55.6.fasta" residue_substitution_list="I -> L" source_files="/nfs/wsi/bs/share/usr/bertsch/SchlueterDaten/lipid_rafts/IDs/LR4_all_probs.pepXML" source_files_alt="/nfs/wsi/bs/share/usr/bertsch/SchlueterDaten/lipid_rafts/IDs/LR4_all_probs.pepXML" min_peptide_probability="0.20" min_peptide_weight="0.50" num_predicted_correct_prots="30.4" num_input_1_spectra="47" num_input_2_spectra="142" num_input_3_spectra="127" num_input_4_spectra="1" num_input_5_spectra="0" initial_min_peptide_prob="0.05" total_no_spectrum_ids="70.3" sample_enzyme="trypsin">
+<program_details analysis="proteinprophet" time="Mon Jul 14 11:51:35 200" version=" Insilicos_LabKey_C++ (TPP v3.5 SQUALL (pre-release) rev.4, Build 200806091442 (linux))">
+<proteinprophet_details  occam_flag="Y" groups_flag="Y" degen_flag="Y" nsp_flag="Y" initial_peptide_wt_iters="2" nsp_distribution_iters="2" final_peptide_wt_iters="1" run_options="NOPLOT MINPROB0.05 EXCELPEPS EXCEL0.05">
+      <nsp_information neighboring_bin_smoothing="Y">
+         <nsp_distribution bin_no="0" nsp_lower_bound_incl="0.00" nsp_upper_bound_excl="0.10" pos_freq="0.515" neg_freq="0.635" pos_to_neg_ratio="0.81"/>
+         <nsp_distribution bin_no="1" nsp_lower_bound_incl="0.10" nsp_upper_bound_excl="0.25" pos_freq="0.146" neg_freq="0.177" pos_to_neg_ratio="0.82"/>
+         <nsp_distribution bin_no="2" nsp_lower_bound_incl="0.25" nsp_upper_bound_excl="0.50" pos_freq="0.077" neg_freq="0.046" pos_to_neg_ratio="1.67"/>
+         <nsp_distribution bin_no="3" nsp_lower_bound_incl="0.50" nsp_upper_bound_excl="1.00" pos_freq="0.135" neg_freq="0.037" pos_to_neg_ratio="3.67"/>
+         <nsp_distribution bin_no="4" nsp_lower_bound_incl="1.00" nsp_upper_bound_excl="2.00" pos_freq="0.052" neg_freq="0.029" pos_to_neg_ratio="1.77" alt_pos_to_neg_ratio="3.67"/>
+         <nsp_distribution bin_no="5" nsp_lower_bound_incl="2.00" nsp_upper_bound_excl="5.00" pos_freq="0.025" neg_freq="0.026" pos_to_neg_ratio="0.98" alt_pos_to_neg_ratio="3.67"/>
+         <nsp_distribution bin_no="6" nsp_lower_bound_incl="5.00" nsp_upper_bound_excl="15.00" pos_freq="0.025" neg_freq="0.025" pos_to_neg_ratio="1.00" alt_pos_to_neg_ratio="3.67"/>
+         <nsp_distribution bin_no="7" nsp_lower_bound_incl="15.00" nsp_upper_bound_excl="inf" pos_freq="0.025" neg_freq="0.025" pos_to_neg_ratio="1.00" alt_pos_to_neg_ratio="3.67"/>
+      </nsp_information>
+      <ni_information>
+      </ni_information>
+      <protein_summary_data_filter min_probability="0.00" sensitivity="1.000" false_positive_error_rate="0.891" predicted_num_correct="30" predicted_num_incorrect="248" />
+      <protein_summary_data_filter min_probability="0.10" sensitivity="1.000" false_positive_error_rate="0.584" predicted_num_correct="30" predicted_num_incorrect="43" />
+      <protein_summary_data_filter min_probability="0.20" sensitivity="1.000" false_positive_error_rate="0.584" predicted_num_correct="30" predicted_num_incorrect="43" />
+      <protein_summary_data_filter min_probability="0.30" sensitivity="0.770" false_positive_error_rate="0.468" predicted_num_correct="23" predicted_num_incorrect="21" />
+      <protein_summary_data_filter min_probability="0.40" sensitivity="0.576" false_positive_error_rate="0.352" predicted_num_correct="17" predicted_num_incorrect="10" />
+      <protein_summary_data_filter min_probability="0.50" sensitivity="0.413" false_positive_error_rate="0.216" predicted_num_correct="13" predicted_num_incorrect="3" />
+      <protein_summary_data_filter min_probability="0.60" sensitivity="0.323" false_positive_error_rate="0.106" predicted_num_correct="10" predicted_num_incorrect="1" />
+      <protein_summary_data_filter min_probability="0.70" sensitivity="0.258" false_positive_error_rate="0.018" predicted_num_correct="8" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="0.80" sensitivity="0.258" false_positive_error_rate="0.018" predicted_num_correct="8" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="0.90" sensitivity="0.258" false_positive_error_rate="0.018" predicted_num_correct="8" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="0.95" sensitivity="0.197" false_positive_error_rate="0.001" predicted_num_correct="6" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="0.96" sensitivity="0.197" false_positive_error_rate="0.001" predicted_num_correct="6" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="0.97" sensitivity="0.197" false_positive_error_rate="0.001" predicted_num_correct="6" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="0.98" sensitivity="0.197" false_positive_error_rate="0.001" predicted_num_correct="6" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="0.99" sensitivity="0.197" false_positive_error_rate="0.001" predicted_num_correct="6" predicted_num_incorrect="0" />
+      <protein_summary_data_filter min_probability="1.00" sensitivity="0.066" false_positive_error_rate="0.000" predicted_num_correct="2" predicted_num_incorrect="0" />
+</proteinprophet_details>
+</program_details>
+</protein_summary_header>
+<dataset_derivation generation_no="0">
+</dataset_derivation>
+<protein_group group_number="1" probability="1.0000">
+      <protein protein_name="Q06647|ATPO_RAT" n_indistinguishable_proteins="1" probability="1.0000" percent_coverage="16.0" unique_stripped_peptides="GEVPCTVTTAFPLDEAVLSELK+TDPSIMGGMIVR" group_sibling_id="a" total_number_peptides="5" pct_spectrum_ids="6.93">
+         <annotation protein_description="ATP synthase subunit O, mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="GEVPCTVTTAFPLDEAVLSELK" charge="2" initial_probability="0.9990" nsp_adjusted_probability="0.9997" peptide_group_designator="a" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="3" exp_tot_instances="3.00" is_contributing_evidence="Y" calc_neutral_pep_mass="2376.6800">
+         </peptide>
+         <peptide peptide_sequence="GEVPCTVTTAFPLDEAVLSELK" charge="3" initial_probability="0.9990" nsp_adjusted_probability="0.9997" peptide_group_designator="a" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="2" exp_tot_instances="1.82" is_contributing_evidence="Y" calc_neutral_pep_mass="2376.6800">
+         </peptide>
+         <peptide peptide_sequence="TDPSIMGGMIVR" charge="2" initial_probability="0.0514" nsp_adjusted_probability="0.0514" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="2.00" n_sibling_peptides_bin="4" n_instances="1" exp_tot_instances="0.05" is_contributing_evidence="N" calc_neutral_pep_mass="1308.5200">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="2" probability="1.0000">
+      <protein protein_name="Q6AXV4|SAM50_RAT" n_indistinguishable_proteins="1" probability="1.0000" percent_coverage="6.2" unique_stripped_peptides="SLEPLPSSGTDFGALGEEAEFVEVEPEAK" group_sibling_id="a" total_number_peptides="3" pct_spectrum_ids="4.26">
+         <annotation protein_description="Sorting and assembly machinery component 50 homolog - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="SLEPLPSSGTDFGALGEEAEFVEVEPEAK" charge="2" initial_probability="0.9989" nsp_adjusted_probability="0.9997" peptide_group_designator="a" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="2" exp_tot_instances="2.00" is_contributing_evidence="Y" calc_neutral_pep_mass="3035.2200">
+         </peptide>
+         <peptide peptide_sequence="SLEPLPSSGTDFGALGEEAEFVEVEPEAK" charge="3" initial_probability="0.9989" nsp_adjusted_probability="0.9997" peptide_group_designator="a" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="Y" calc_neutral_pep_mass="3035.2200">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="3" probability="0.9998">
+      <protein protein_name="P21588|5NTD_RAT" n_indistinguishable_proteins="1" probability="0.9998" percent_coverage="4.7" unique_stripped_peptides="ETPFLSNPGTNLVFEDEVTALQPEVDK" group_sibling_id="a" total_number_peptides="4" pct_spectrum_ids="4.46">
+         <annotation protein_description="5'-nucleotidase precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ETPFLSNPGTNLVFEDEVTALQPEVDK" charge="2" initial_probability="0.9863" nsp_adjusted_probability="0.9962" peptide_group_designator="a" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.86" n_sibling_peptides_bin="3" n_instances="2" exp_tot_instances="1.86" is_contributing_evidence="Y" calc_neutral_pep_mass="2990.2300">
+         </peptide>
+         <peptide peptide_sequence="ETPFLSNPGTNLVFEDEVTALQPEVDK" charge="3" initial_probability="0.8572" nsp_adjusted_probability="0.9566" peptide_group_designator="a" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.99" n_sibling_peptides_bin="3" n_instances="2" exp_tot_instances="1.27" is_contributing_evidence="Y" calc_neutral_pep_mass="2990.2300">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="4" probability="0.9987">
+      <protein protein_name="P35435|ATPG_RAT" n_indistinguishable_proteins="1" probability="0.9987" percent_coverage="13.2" unique_stripped_peptides="ELIEIISGAAALD+KHLIIGVSSDR+SMKMVAAAKYAR" group_sibling_id="a" total_number_peptides="3" pct_spectrum_ids="4.45">
+         <annotation protein_description="ATP synthase subunit gamma, mitochondrial - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ELIEIISGAAALD" charge="2" initial_probability="0.9989" nsp_adjusted_probability="0.9987" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="3" exp_tot_instances="3.00" is_contributing_evidence="Y" calc_neutral_pep_mass="1314.4800">
+         </peptide>
+         <peptide peptide_sequence="SMKMVAAAKYAR" charge="2" initial_probability="0.0752" nsp_adjusted_probability="0.0752" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="1" exp_tot_instances="0.08" is_contributing_evidence="N" calc_neutral_pep_mass="1358.6300">
+         </peptide>
+         <peptide peptide_sequence="KHLIIGVSSDR" charge="2" initial_probability="0.0590" nsp_adjusted_probability="0.0590" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="1" exp_tot_instances="0.06" is_contributing_evidence="N" calc_neutral_pep_mass="1224.4100">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="5" probability="0.9980">
+      <protein protein_name="P00406|COX2_RAT" n_indistinguishable_proteins="1" probability="0.9980" percent_coverage="4.4" unique_stripped_peptides="YFENWSASMI" group_sibling_id="a" total_number_peptides="3" pct_spectrum_ids="4.20">
+         <annotation protein_description="Cytochrome c oxidase subunit 2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="YFENWSASMI" charge="2" initial_probability="0.9984" nsp_adjusted_probability="0.9980" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="3" exp_tot_instances="2.95" is_contributing_evidence="Y" calc_neutral_pep_mass="1247.3800">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="6" probability="0.9980">
+      <protein protein_name="Q4V888|TM55A_RAT" n_indistinguishable_proteins="1" probability="0.9980" percent_coverage="10.9" unique_stripped_peptides="IINLGPIMLISEEQPAQPALPVQPEGTR" group_sibling_id="a" total_number_peptides="4" pct_spectrum_ids="2.42">
+         <annotation protein_description="Transmembrane protein 55A - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="IINLGPIMLISEEQPAQPALPVQPEGTR" charge="3" initial_probability="0.9952" nsp_adjusted_probability="0.9971" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.29" n_sibling_peptides_bin="2" n_instances="3" exp_tot_instances="1.41" is_contributing_evidence="Y" calc_neutral_pep_mass="3012.4800">
+         </peptide>
+         <peptide peptide_sequence="IINLGPIMLISEEQPAQPALPVQPEGTR" charge="3" initial_probability="0.2930" nsp_adjusted_probability="0.2930" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="1" exp_tot_instances="0.29" is_contributing_evidence="Y" calc_neutral_pep_mass="3028.4800">
+<modification_info modified_peptide="IINLGPI[147]MLISEEQPAQPALPVQPEGTR">
+<mod_aminoacid_mass position="7" mass="147.035000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="7" probability="0.9337">
+      <protein protein_name="P08503|ACADM_RAT" n_indistinguishable_proteins="1" probability="0.9337" percent_coverage="2.9" unique_stripped_peptides="ELNMGQRCSDTR" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="1.53">
+         <annotation protein_description="Medium-chain specific acyl-CoA dehydrogenase, mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ELNMGQRCSDTR" charge="2" initial_probability="0.4626" nsp_adjusted_probability="0.7594" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.61" n_sibling_peptides_bin="3" n_instances="1" exp_tot_instances="0.46" is_contributing_evidence="Y" calc_neutral_pep_mass="1483.5800">
+         </peptide>
+         <peptide peptide_sequence="ELNMGQRCSDTR" charge="2" initial_probability="0.6114" nsp_adjusted_probability="0.7246" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.46" n_sibling_peptides_bin="2" n_instances="1" exp_tot_instances="0.61" is_contributing_evidence="Y" calc_neutral_pep_mass="1483.5800">
+<modification_info modified_peptide="ELN[147]MGQR[161]CSDTR">
+<mod_aminoacid_mass position="3" mass="147.035000"/>
+<mod_aminoacid_mass position="7" mass="161.015000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="8" probability="0.9253">
+      <protein protein_name="P31430|DPEP1_RAT" n_indistinguishable_proteins="1" probability="0.9253" percent_coverage="5.9" unique_stripped_peptides="VFSAVELVSNIMQVPEEETIPVEK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="1.33">
+         <annotation protein_description="Dipeptidase 1 precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="VFSAVELVSNIMQVPEEETIPVEK" charge="3" initial_probability="0.9386" nsp_adjusted_probability="0.9253" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.94" is_contributing_evidence="Y" calc_neutral_pep_mass="2704.0500">
+<modification_info modified_peptide="VFSAVELVSNI[147]MQVPEEETIPVEK">
+<mod_aminoacid_mass position="11" mass="147.035000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="9" probability="0.6924">
+      <protein protein_name="Q5M7W1|TXNIP_RAT" n_indistinguishable_proteins="1" probability="0.6924" percent_coverage="1.5" unique_stripped_peptides="AAIVAR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="1.05">
+         <annotation protein_description="Thioredoxin-interacting protein - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="AAIVAR" charge="1" initial_probability="0.7352" nsp_adjusted_probability="0.6924" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.74" is_contributing_evidence="Y" calc_neutral_pep_mass="599.7230">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="10" probability="0.6592">
+      <protein protein_name="Q5XI28|RAVR1_RAT" n_indistinguishable_proteins="1" probability="0.6592" percent_coverage="1.6" unique_stripped_peptides="MSPPPSSFSEPR" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="1.43">
+         <annotation protein_description="Ribonucleoprotein PTB-binding 1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MSPPPSSFSEPR" charge="2" initial_probability="0.7046" nsp_adjusted_probability="0.6592" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="2" exp_tot_instances="1.01" is_contributing_evidence="Y" calc_neutral_pep_mass="1334.4500">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="11" probability="0.6256">
+      <protein protein_name="Q62812|MYH9_RAT" n_indistinguishable_proteins="1" probability="0.6256" percent_coverage="1.3" unique_stripped_peptides="DMFQETMEAMRIMGIPEDEQMGLLR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.96">
+         <annotation protein_description="Myosin-9 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="DMFQETMEAMRIMGIPEDEQMGLLR" charge="3" initial_probability="0.6733" nsp_adjusted_probability="0.6256" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.67" is_contributing_evidence="Y" calc_neutral_pep_mass="3004.4600">
+<modification_info modified_peptide="DMFQETMEAMRI[147]MGIPEDEQ[147]MGLLR">
+<mod_aminoacid_mass position="12" mass="147.035000"/>
+<mod_aminoacid_mass position="20" mass="147.035000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="12" probability="0.5556">
+      <protein protein_name="Q7TMA5|APOB_RAT" n_indistinguishable_proteins="1" probability="0.5556" percent_coverage="0.2" unique_stripped_peptides="KMEMGDEVR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.86">
+         <annotation protein_description="Apolipoprotein B-100 precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="KMEMGDEVR" charge="3" initial_probability="0.6066" nsp_adjusted_probability="0.5556" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.61" is_contributing_evidence="Y" calc_neutral_pep_mass="1110.2600">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="13" probability="0.5527">
+      <protein protein_name="P97523|MET_RAT" n_indistinguishable_proteins="1" probability="0.5527" percent_coverage="2.0" unique_stripped_peptides="IIRFCSVDSGLHSYMEMPLECILTEKR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.86">
+         <annotation protein_description="Hepatocyte growth factor receptor precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="IIRFCSVDSGLHSYMEMPLECILTEKR" charge="3" initial_probability="0.6037" nsp_adjusted_probability="0.5527" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.60" is_contributing_evidence="Y" calc_neutral_pep_mass="3318.8200">
+<modification_info modified_peptide="IIRF[161]CSVDSGLHSY[147]ME[147]MPLECILTEKR">
+<mod_aminoacid_mass position="4" mass="161.015000"/>
+<mod_aminoacid_mass position="14" mass="147.035000"/>
+<mod_aminoacid_mass position="16" mass="147.035000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="14" probability="0.5440">
+      <protein protein_name="P97694|CYH1_RAT" n_indistinguishable_proteins="1" probability="0.5440" percent_coverage="2.5" unique_stripped_peptides="KQELLADIQR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.85">
+         <annotation protein_description="Cytohesin-1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="KQELLADIQR" charge="2" initial_probability="0.5953" nsp_adjusted_probability="0.5440" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.60" is_contributing_evidence="Y" calc_neutral_pep_mass="1213.3800">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="15" probability="0.5432">
+      <protein protein_name="Q01992|MIPEP_RAT" n_indistinguishable_proteins="1" probability="0.5432" percent_coverage="3.5" unique_stripped_peptides="RGLFGVPELSTPEGFQVAQEEALRK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.85">
+         <annotation protein_description="Mitochondrial intermediate peptidase, mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="RGLFGVPELSTPEGFQVAQEEALRK" charge="3" initial_probability="0.5945" nsp_adjusted_probability="0.5432" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.59" is_contributing_evidence="Y" calc_neutral_pep_mass="2759.0800">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="16" probability="0.5165">
+      <protein protein_name="P26431|SL9A1_RAT" n_indistinguishable_proteins="1" probability="0.5165" percent_coverage="1.7" unique_stripped_peptides="MLRWSGIWGLYPPR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.81">
+         <annotation protein_description="Sodium/hydrogen exchanger 1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MLRWSGIWGLYPPR" charge="3" initial_probability="0.5684" nsp_adjusted_probability="0.5165" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.57" is_contributing_evidence="Y" calc_neutral_pep_mass="1748.0600">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="17" probability="0.4985">
+      <protein protein_name="P28573|SC6A7_RAT" n_indistinguishable_proteins="1" probability="0.4985" percent_coverage="3.3" unique_stripped_peptides="ACWLFLSPATLLALLVYSIVK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.78">
+         <annotation protein_description="Sodium-dependent proline transporter - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ACWLFLSPATLLALLVYSIVK" charge="2" initial_probability="0.5507" nsp_adjusted_probability="0.4985" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.55" is_contributing_evidence="Y" calc_neutral_pep_mass="2379.9000">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="18" probability="0.4918">
+      <protein protein_name="P19637|TPA_RAT" n_indistinguishable_proteins="1" probability="0.4918" percent_coverage="1.6" unique_stripped_peptides="CTSQHLFNK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.77">
+         <annotation protein_description="Tissue-type plasminogen activator precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="CTSQHLFNK" charge="2" initial_probability="0.5441" nsp_adjusted_probability="0.4918" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.54" is_contributing_evidence="Y" calc_neutral_pep_mass="1134.2700">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="19" probability="0.4738">
+      <protein protein_name="Q6AY23|P5CR2_RAT" n_indistinguishable_proteins="1" probability="0.4738" percent_coverage="5.0" unique_stripped_peptides="RLAVRLGAQALLGAAK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.75">
+         <annotation protein_description="Pyrroline-5-carboxylate reductase 2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="RLAVRLGAQALLGAAK" charge="3" initial_probability="0.5261" nsp_adjusted_probability="0.4738" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.53" is_contributing_evidence="Y" calc_neutral_pep_mass="1607.9400">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="20" probability="0.4697">
+      <protein protein_name="Q7TT51|GLUD1_RAT" n_indistinguishable_proteins="1" probability="0.4697" percent_coverage="1.2" unique_stripped_peptides="GTQIENK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.74">
+         <annotation protein_description="Glutamate--ammonia ligase domain-containing protein 1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="GTQIENK" charge="1" initial_probability="0.5220" nsp_adjusted_probability="0.4697" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.52" is_contributing_evidence="Y" calc_neutral_pep_mass="788.8460">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="21" probability="0.4620">
+      <protein protein_name="Q6AY13|CCNA1_RAT" n_indistinguishable_proteins="1" probability="0.4620" percent_coverage="3.6" unique_stripped_peptides="CFSGSENVFPAAGKK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.73">
+         <annotation protein_description="Cyclin-A1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="CFSGSENVFPAAGKK" charge="2" initial_probability="0.5143" nsp_adjusted_probability="0.4620" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.51" is_contributing_evidence="Y" calc_neutral_pep_mass="1599.7600">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="22" probability="0.4497">
+      <protein protein_name="P22791|HMCS2_RAT" n_indistinguishable_proteins="1" probability="0.4497" percent_coverage="1.8" unique_stripped_peptides="MQRLLAPAR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.71">
+         <annotation protein_description="Hydroxymethylglutaryl-CoA synthase, mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MQRLLAPAR" charge="2" initial_probability="0.5019" nsp_adjusted_probability="0.4497" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.50" is_contributing_evidence="Y" calc_neutral_pep_mass="1055.3000">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="23" probability="0.4440">
+      <protein protein_name="Q62915|CSKP_RAT" n_indistinguishable_proteins="1" probability="0.4440" percent_coverage="1.2" unique_stripped_peptides="MNELNHCIVAR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.71">
+         <annotation protein_description="Peripheral plasma membrane protein CASK - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MNELNHCIVAR" charge="2" initial_probability="0.4962" nsp_adjusted_probability="0.4440" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.50" is_contributing_evidence="Y" calc_neutral_pep_mass="1357.5600">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="24" probability="0.4231">
+      <protein protein_name="O08618|KPRB_RAT" n_indistinguishable_proteins="1" probability="0.4231" percent_coverage="4.3" unique_stripped_peptides="IKTVDISMILSEAIRR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.68">
+         <annotation protein_description="Phosphoribosyl pyrophosphate synthetase-associated protein 2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="IKTVDISMILSEAIRR" charge="3" initial_probability="0.4749" nsp_adjusted_probability="0.4231" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.47" is_contributing_evidence="Y" calc_neutral_pep_mass="1845.2100">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="25" probability="0.4171">
+      <protein protein_name="Q4KM98|CB033_RAT" n_indistinguishable_proteins="1" probability="0.4171" percent_coverage="3.7" unique_stripped_peptides="QIIKLNRR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.67">
+         <annotation protein_description="Uncharacterized protein C2orf33 homolog - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="QIIKLNRR" charge="2" initial_probability="0.4688" nsp_adjusted_probability="0.4171" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.47" is_contributing_evidence="Y" calc_neutral_pep_mass="1040.2600">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="26" probability="0.4156">
+      <protein protein_name="P04800|CP3A1_RAT" n_indistinguishable_proteins="3" probability="0.4156" percent_coverage="3.2" unique_stripped_peptides="GSIDPYVYLPFGNGPR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.66">
+         <annotation protein_description="Cytochrome P450 3A1 - Rattus norvegicus (Rat)"/>
+         <indistinguishable_protein protein_name="P05183|CP3A2_RAT">
+            <annotation protein_description="Cytochrome P450 3A2 - Rattus norvegicus (Rat)"/>
+         </indistinguishable_protein>
+         <indistinguishable_protein protein_name="Q64581|CP3AI_RAT">
+            <annotation protein_description="Cytochrome P450 3A18 - Rattus norvegicus (Rat)"/>
+         </indistinguishable_protein>
+         <peptide peptide_sequence="GSIDPYVYLPFGNGPR" charge="2" initial_probability="0.4672" nsp_adjusted_probability="0.4156" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.47" is_contributing_evidence="Y" calc_neutral_pep_mass="1751.9300">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="27" probability="0.4075">
+      <protein protein_name="P11497|ACACA_RAT" n_indistinguishable_proteins="1" probability="0.4075" percent_coverage="1.4" unique_stripped_peptides="ARLGGIPVGVVAVETR+ECSQPVMVYIPPQAELR" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="0.70">
+         <annotation protein_description="Acetyl-CoA carboxylase 1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ECSQPVMVYIPPQAELR" charge="3" initial_probability="0.2413" nsp_adjusted_probability="0.2413" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.25" n_sibling_peptides_bin="2" n_instances="1" exp_tot_instances="0.24" is_contributing_evidence="Y" calc_neutral_pep_mass="2034.3100">
+<modification_info modified_peptide="E[161]CSQPV[147]MVYIPPQAELR">
+<mod_aminoacid_mass position="1" mass="161.015000"/>
+<mod_aminoacid_mass position="6" mass="147.035000"/>
+</modification_info>
+         </peptide>
+         <peptide peptide_sequence="ARLGGIPVGVVAVETR" charge="3" initial_probability="0.2539" nsp_adjusted_probability="0.2190" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.24" n_sibling_peptides_bin="1" n_instances="1" exp_tot_instances="0.25" is_contributing_evidence="Y" calc_neutral_pep_mass="1593.8700">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="28" probability="0.3959">
+      <protein protein_name="Q5BK61|SNX20_RAT" n_indistinguishable_proteins="1" probability="0.3959" percent_coverage="6.7" unique_stripped_peptides="SREFADFLTRPELCEAFGCLR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.64">
+         <annotation protein_description="Sorting nexin-20 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="SREFADFLTRPELCEAFGCLR" charge="3" initial_probability="0.4469" nsp_adjusted_probability="0.3959" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.45" is_contributing_evidence="Y" calc_neutral_pep_mass="2460.7900">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="29" probability="0.3913">
+      <protein protein_name="Q62640|GRID1_RAT" n_indistinguishable_proteins="1" probability="0.3913" percent_coverage="2.1" unique_stripped_peptides="ALGFKYEIYQAPDGR+TEELNR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.70">
+         <annotation protein_description="Glutamate receptor delta-1 subunit precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ALGFKYEIYQAPDGR" charge="3" initial_probability="0.4422" nsp_adjusted_probability="0.3913" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.44" is_contributing_evidence="Y" calc_neutral_pep_mass="1727.9100">
+         </peptide>
+         <peptide peptide_sequence="TEELNR" charge="1" initial_probability="0.0539" nsp_adjusted_probability="0.0539" weight="0.99" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="0.44" n_sibling_peptides_bin="2" n_instances="1" exp_tot_instances="0.05" is_contributing_evidence="N" calc_neutral_pep_mass="760.7930">
+            <peptide_parent_protein protein_name="Q6IFU7|K1C42_RAT"/>
+            <peptide_parent_protein protein_name="Q6IFU7|K1C42_RAT"/>
+            <peptide_parent_protein protein_name="Q6IFU8|K1C17_RAT"/>
+            <peptide_parent_protein protein_name="Q6IFV1|K1C14_RAT"/>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="30" probability="0.3803">
+      <protein protein_name="Q62751|IREB2_RAT" n_indistinguishable_proteins="1" probability="0.3803" percent_coverage="0.8" unique_stripped_peptides="NQEVEFGR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.61">
+         <annotation protein_description="Iron-responsive element-binding protein 2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="NQEVEFGR" charge="2" initial_probability="0.4307" nsp_adjusted_probability="0.3803" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.43" is_contributing_evidence="Y" calc_neutral_pep_mass="978.0170">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="31" probability="0.3690">
+      <protein protein_name="Q62968|SCNAA_RAT" n_indistinguishable_proteins="1" probability="0.3690" percent_coverage="0.6" unique_stripped_peptides="QEDLSATVIQK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.60">
+         <annotation protein_description="Sodium channel protein type 10 subunit alpha - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="QEDLSATVIQK" charge="2" initial_probability="0.4190" nsp_adjusted_probability="0.3690" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.42" is_contributing_evidence="Y" calc_neutral_pep_mass="1231.3500">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="32" probability="0.3681">
+      <protein protein_name="Q7M733|HPS6_RAT" n_indistinguishable_proteins="1" probability="0.3681" percent_coverage="1.1" unique_stripped_peptides="DYRSIEQLK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.59">
+         <annotation protein_description="Hermansky-Pudlak syndrome 6 protein homolog - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="DYRSIEQLK" charge="2" initial_probability="0.4180" nsp_adjusted_probability="0.3681" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.42" is_contributing_evidence="Y" calc_neutral_pep_mass="1151.2700">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="33" probability="0.3541">
+      <protein protein_name="P54758|EPHA6_RAT" n_indistinguishable_proteins="1" probability="0.3541" percent_coverage="1.5" unique_stripped_peptides="CGVDASQCEDCGAGLR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.57">
+         <annotation protein_description="Ephrin type-A receptor 6 precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="CGVDASQCEDCGAGLR" charge="3" initial_probability="0.4033" nsp_adjusted_probability="0.3541" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.40" is_contributing_evidence="Y" calc_neutral_pep_mass="1756.8500">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="34" probability="0.3517">
+      <protein protein_name="Q64560|TPP2_RAT" n_indistinguishable_proteins="1" probability="0.3517" percent_coverage="0.6" unique_stripped_peptides="NCIQLMK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.65">
+         <annotation protein_description="Tripeptidyl-peptidase 2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="NCIQLMK" charge="1" initial_probability="0.4008" nsp_adjusted_probability="0.3517" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.40" is_contributing_evidence="Y" calc_neutral_pep_mass="865.0730">
+         </peptide>
+         <peptide peptide_sequence="NCIQLMK" charge="1" initial_probability="0.0597" nsp_adjusted_probability="0.0597" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.40" n_sibling_peptides_bin="2" n_instances="1" exp_tot_instances="0.06" is_contributing_evidence="N" calc_neutral_pep_mass="865.0730">
+<modification_info modified_peptide="NCIQL[147]MK">
+<mod_aminoacid_mass position="5" mass="147.035000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="35" probability="0.3451">
+      <protein protein_name="Q00954|SCN1B_RAT" n_indistinguishable_proteins="1" probability="0.3451" percent_coverage="3.2" unique_stripped_peptides="ILCISCK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.56">
+         <annotation protein_description="Sodium channel subunit beta-1 precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ILCISCK" charge="1" initial_probability="0.3938" nsp_adjusted_probability="0.3451" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.39" is_contributing_evidence="Y" calc_neutral_pep_mass="836.0750">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="36" probability="0.3408">
+      <protein protein_name="Q3ZAV0|CCD60_RAT" n_indistinguishable_proteins="1" probability="0.3408" percent_coverage="1.7" unique_stripped_peptides="SRFLIQCVK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.55">
+         <annotation protein_description="Coiled-coil domain-containing protein 60 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="SRFLIQCVK" charge="2" initial_probability="0.3893" nsp_adjusted_probability="0.3408" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.39" is_contributing_evidence="Y" calc_neutral_pep_mass="1093.3400">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="37" probability="0.3395">
+      <protein protein_name="Q9R1K2|TEN2_RAT" n_indistinguishable_proteins="1" probability="0.3395" percent_coverage="0.9" unique_stripped_peptides="NCHGNGECVSGLCHCFPGFLGADCAK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.55">
+         <annotation protein_description="Teneurin-2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="NCHGNGECVSGLCHCFPGFLGADCAK" charge="3" initial_probability="0.3879" nsp_adjusted_probability="0.3395" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.39" is_contributing_evidence="Y" calc_neutral_pep_mass="2755.0700">
+<modification_info modified_peptide="NCHGNGECVSGLCHCFPGFLGAD[161]CAK">
+<mod_aminoacid_mass position="23" mass="161.015000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="38" probability="0.3366">
+      <protein protein_name="P58405|STRN3_RAT" n_indistinguishable_proteins="2" probability="0.3366" percent_coverage="0.9" unique_stripped_peptides="AKYHKLK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.55">
+         <annotation protein_description="Striatin-3 - Rattus norvegicus (Rat)"/>
+         <indistinguishable_protein protein_name="P70483|STRN_RAT">
+            <annotation protein_description="Striatin - Rattus norvegicus (Rat)"/>
+         </indistinguishable_protein>
+         <peptide peptide_sequence="AKYHKLK" charge="1" initial_probability="0.3849" nsp_adjusted_probability="0.3366" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.38" is_contributing_evidence="Y" calc_neutral_pep_mass="887.0800">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="39" probability="0.3311">
+      <protein protein_name="Q6AYH6|CS063_RAT" n_indistinguishable_proteins="1" probability="0.3311" percent_coverage="12.8" unique_stripped_peptides="YWMYIIPVVLFLMMSGAPDAGGQGGGGGGGSSR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.54">
+         <annotation protein_description="UPF0510 protein C19orf63 homolog precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="YWMYIIPVVLFLMMSGAPDAGGQGGGGGGGSSR" charge="3" initial_probability="0.3790" nsp_adjusted_probability="0.3311" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.38" is_contributing_evidence="Y" calc_neutral_pep_mass="3321.7600">
+<modification_info modified_peptide="YWMYIIPVVLFL[147]M[147]MSGAPDAGGQGGGGGGGSSR">
+<mod_aminoacid_mass position="12" mass="147.035000"/>
+<mod_aminoacid_mass position="13" mass="147.035000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="40" probability="0.3300">
+      <protein protein_name="P49654|P2RX3_RAT" n_indistinguishable_proteins="1" probability="0.3300" percent_coverage="3.3" unique_stripped_peptides="YRCVSDSQCGPER" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="0.67">
+         <annotation protein_description="P2X purinoceptor 3 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="YRCVSDSQCGPER" charge="2" initial_probability="0.3778" nsp_adjusted_probability="0.3300" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="2" exp_tot_instances="0.47" is_contributing_evidence="Y" calc_neutral_pep_mass="1499.6300">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="41" probability="0.3264">
+      <protein protein_name="Q63563|ABCC9_RAT" n_indistinguishable_proteins="1" probability="0.3264" percent_coverage="1.3" unique_stripped_peptides="MLELTDTNNIAYLFLSAANR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.53">
+         <annotation protein_description="ATP-binding cassette transporter sub-family C member 9 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MLELTDTNNIAYLFLSAANR" charge="3" initial_probability="0.3740" nsp_adjusted_probability="0.3264" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.37" is_contributing_evidence="Y" calc_neutral_pep_mass="2286.5600">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="42" probability="0.3260">
+      <protein protein_name="P19223|CBPB1_RAT" n_indistinguishable_proteins="1" probability="0.3260" percent_coverage="2.4" unique_stripped_peptides="ETKALADFIR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.53">
+         <annotation protein_description="Carboxypeptidase B precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="ETKALADFIR" charge="2" initial_probability="0.3736" nsp_adjusted_probability="0.3260" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.37" is_contributing_evidence="Y" calc_neutral_pep_mass="1163.3200">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="43" probability="0.3168">
+      <protein protein_name="O08654|CP070_RAT" n_indistinguishable_proteins="1" probability="0.3168" percent_coverage="1.2" unique_stripped_peptides="TAELP" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.52">
+         <annotation protein_description="UPF0183 protein C16orf70 homolog - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="TAELP" charge="1" initial_probability="0.3638" nsp_adjusted_probability="0.3168" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.36" is_contributing_evidence="Y" calc_neutral_pep_mass="529.5840">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="44" probability="0.3096">
+      <protein protein_name="P35559|IDE_RAT" n_indistinguishable_proteins="1" probability="0.3096" percent_coverage="0.8" unique_stripped_peptides="HIQALAIR" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="0.60">
+         <annotation protein_description="Insulin-degrading enzyme - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="HIQALAIR" charge="1" initial_probability="0.3561" nsp_adjusted_probability="0.3096" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="2" exp_tot_instances="0.42" is_contributing_evidence="Y" calc_neutral_pep_mass="921.0980">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="45" probability="0.2915">
+      <protein protein_name="P07756|CPSM_RAT" n_indistinguishable_proteins="1" probability="0.2915" percent_coverage="1.5" unique_stripped_peptides="TSACFEPSLDYMVTKIPRWDLDR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.48">
+         <annotation protein_description="Carbamoyl-phosphate synthase [ammonia], mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="TSACFEPSLDYMVTKIPRWDLDR" charge="3" initial_probability="0.3365" nsp_adjusted_probability="0.2915" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.34" is_contributing_evidence="Y" calc_neutral_pep_mass="2802.1400">
+<modification_info modified_peptide="TSA[161]CFEPSLDYMVTKIPRWDLDR">
+<mod_aminoacid_mass position="3" mass="161.015000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="46" probability="0.2887">
+      <protein protein_name="O88767|PARK7_RAT" n_indistinguishable_proteins="1" probability="0.2887" percent_coverage="12.7" unique_stripped_peptides="KGLIAAICAGPTALLAHEVGFGCK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.47">
+         <annotation protein_description="Protein DJ-1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="KGLIAAICAGPTALLAHEVGFGCK" charge="3" initial_probability="0.3335" nsp_adjusted_probability="0.2887" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.33" is_contributing_evidence="Y" calc_neutral_pep_mass="2455.8900">
+<modification_info modified_peptide="KGLIAAICAGPTALLAHEVGFG[161]CK">
+<mod_aminoacid_mass position="22" mass="161.015000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="47" probability="0.2842">
+      <protein protein_name="Q9Z340|PARD3_RAT" n_indistinguishable_proteins="1" probability="0.2842" percent_coverage="1.9" unique_stripped_peptides="SMDLGIADETKLNTVDDQRAGSPNR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.47">
+         <annotation protein_description="Partitioning-defective 3 homolog - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="SMDLGIADETKLNTVDDQRAGSPNR" charge="3" initial_probability="0.3287" nsp_adjusted_probability="0.2842" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.33" is_contributing_evidence="Y" calc_neutral_pep_mass="2719.8900">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="48" probability="0.2825">
+      <protein protein_name="Q63418|PCDH3_RAT" n_indistinguishable_proteins="1" probability="0.2825" percent_coverage="3.0" unique_stripped_peptides="TNEFNFLKPLFPILPTQAAAAEER" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.46">
+         <annotation protein_description="Protocadherin-3 precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="TNEFNFLKPLFPILPTQAAAAEER" charge="3" initial_probability="0.3268" nsp_adjusted_probability="0.2825" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.33" is_contributing_evidence="Y" calc_neutral_pep_mass="2718.0700">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="49" probability="0.2716">
+      <protein protein_name="P15337|CREB1_RAT" n_indistinguishable_proteins="1" probability="0.2716" percent_coverage="2.3" unique_stripped_peptides="EVRLMKNR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.45">
+         <annotation protein_description="cAMP response element-binding protein - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="EVRLMKNR" charge="2" initial_probability="0.3150" nsp_adjusted_probability="0.2716" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.31" is_contributing_evidence="Y" calc_neutral_pep_mass="1045.2600">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="50" probability="0.2675">
+      <protein protein_name="Q6QI44|CL030_RAT" n_indistinguishable_proteins="1" probability="0.2675" percent_coverage="1.0" unique_stripped_peptides="LLGLYHSMDK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.44">
+         <annotation protein_description="TPR repeat-containing protein C12orf30 homolog - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="LLGLYHSMDK" charge="2" initial_probability="0.3105" nsp_adjusted_probability="0.2675" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.31" is_contributing_evidence="Y" calc_neutral_pep_mass="1192.3800">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="51" probability="0.2662">
+      <protein protein_name="P26284|ODPA_RAT" n_indistinguishable_proteins="1" probability="0.2662" percent_coverage="1.8" unique_stripped_peptides="MLAAVSR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.44">
+         <annotation protein_description="Pyruvate dehydrogenase E1 component subunit alpha, somatic form, mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MLAAVSR" charge="1" initial_probability="0.3091" nsp_adjusted_probability="0.2662" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.31" is_contributing_evidence="Y" calc_neutral_pep_mass="762.9180">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="52" probability="0.2603">
+      <protein protein_name="Q5U2Y9|LCA5_RAT" n_indistinguishable_proteins="1" probability="0.2603" percent_coverage="1.1" unique_stripped_peptides="KLVSAELK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.43">
+         <annotation protein_description="Lebercilin - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="KLVSAELK" charge="1" initial_probability="0.3027" nsp_adjusted_probability="0.2603" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.30" is_contributing_evidence="Y" calc_neutral_pep_mass="887.0750">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="53" probability="0.2499">
+      <protein protein_name="Q8K4P2|NPB_RAT" n_indistinguishable_proteins="1" probability="0.2499" percent_coverage="13.4" unique_stripped_peptides="AAGLLSSFHRFPSTRR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.41">
+         <annotation protein_description="Neuropeptide B precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="AAGLLSSFHRFPSTRR" charge="3" initial_probability="0.2911" nsp_adjusted_probability="0.2499" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.29" is_contributing_evidence="Y" calc_neutral_pep_mass="1803.0300">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="54" probability="0.2476">
+      <protein protein_name="O35274|NEB2_RAT" n_indistinguishable_proteins="1" probability="0.2476" percent_coverage="1.1" unique_stripped_peptides="VLEESELAR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.41">
+         <annotation protein_description="Neurabin-2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="VLEESELAR" charge="2" initial_probability="0.2887" nsp_adjusted_probability="0.2476" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.29" is_contributing_evidence="Y" calc_neutral_pep_mass="1045.1400">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="55" probability="0.2423">
+      <protein protein_name="Q6AXZ4|CF182_RAT" n_indistinguishable_proteins="1" probability="0.2423" percent_coverage="2.8" unique_stripped_peptides="DISIQLSSAQSR" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="0.64">
+         <annotation protein_description="Uncharacterized protein C6orf182 homolog - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="DISIQLSSAQSR" charge="2" initial_probability="0.2828" nsp_adjusted_probability="0.2423" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="2" exp_tot_instances="0.45" is_contributing_evidence="Y" calc_neutral_pep_mass="1304.4100">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="56" probability="0.2412">
+      <protein protein_name="O88807|PADI4_RAT" n_indistinguishable_proteins="1" probability="0.2412" percent_coverage="2.0" unique_stripped_peptides="STTGASKWPLDPK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.40">
+         <annotation protein_description="Protein-arginine deiminase type-4 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="STTGASKWPLDPK" charge="3" initial_probability="0.2816" nsp_adjusted_probability="0.2412" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.28" is_contributing_evidence="Y" calc_neutral_pep_mass="1387.5400">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="57" probability="0.2397">
+      <protein protein_name="Q9ES21|SAC1_RAT" n_indistinguishable_proteins="1" probability="0.2397" percent_coverage="1.5" unique_stripped_peptides="SNCMDCLDR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.40">
+         <annotation protein_description="Phosphatidylinositide phosphatase SAC1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="SNCMDCLDR" charge="2" initial_probability="0.2799" nsp_adjusted_probability="0.2397" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.28" is_contributing_evidence="Y" calc_neutral_pep_mass="1170.3000">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="58" probability="0.2389">
+      <protein protein_name="P97526|NF1_RAT" n_indistinguishable_proteins="1" probability="0.2389" percent_coverage="0.3" unique_stripped_peptides="QRVTAILDK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.40">
+         <annotation protein_description="Neurofibromin - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="QRVTAILDK" charge="1" initial_probability="0.2790" nsp_adjusted_probability="0.2389" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.28" is_contributing_evidence="Y" calc_neutral_pep_mass="1043.2200">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="59" probability="0.2389">
+      <protein protein_name="Q0KL00|FA38A_RAT" n_indistinguishable_proteins="1" probability="0.2389" percent_coverage="0.9" unique_stripped_peptides="MNFMVILHGCWLVAILTRRR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.40">
+         <annotation protein_description="Protein FAM38A - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MNFMVILHGCWLVAILTRRR" charge="3" initial_probability="0.2790" nsp_adjusted_probability="0.2389" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.28" is_contributing_evidence="Y" calc_neutral_pep_mass="2519.0700">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="60" probability="0.2347">
+      <protein protein_name="Q66H16|FSIP1_RAT" n_indistinguishable_proteins="1" probability="0.2347" percent_coverage="2.3" unique_stripped_peptides="EIKKQGLEMR" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="0.47">
+         <annotation protein_description="Fibrous sheath-interacting protein 1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="EIKKQGLEMR" charge="2" initial_probability="0.2744" nsp_adjusted_probability="0.2347" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="2" exp_tot_instances="0.33" is_contributing_evidence="Y" calc_neutral_pep_mass="1231.4700">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="61" probability="0.2280">
+      <protein protein_name="Q3KR97|BI2L1_RAT" n_indistinguishable_proteins="1" probability="0.2280" percent_coverage="1.6" unique_stripped_peptides="MPPAPSVK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.38">
+         <annotation protein_description="Brain-specific angiogenesis inhibitor 1-associated protein 2-like protein 1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MPPAPSVK" charge="1" initial_probability="0.2669" nsp_adjusted_probability="0.2280" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.27" is_contributing_evidence="Y" calc_neutral_pep_mass="842.0150">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="62" probability="0.2270">
+      <protein protein_name="P23514|COPB_RAT" n_indistinguishable_proteins="1" probability="0.2270" percent_coverage="1.2" unique_stripped_peptides="EDIQSVMTEVR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.38">
+         <annotation protein_description="Coatomer subunit beta - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="EDIQSVMTEVR" charge="2" initial_probability="0.2658" nsp_adjusted_probability="0.2270" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.27" is_contributing_evidence="Y" calc_neutral_pep_mass="1306.4400">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="63" probability="0.2267">
+      <protein protein_name="Q67ET4|TR125_RAT" n_indistinguishable_proteins="1" probability="0.2267" percent_coverage="4.8" unique_stripped_peptides="LRQASLLVLWWLLCR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.38">
+         <annotation protein_description="Taste receptor type 2 member 125 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="LRQASLLVLWWLLCR" charge="3" initial_probability="0.2655" nsp_adjusted_probability="0.2267" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.27" is_contributing_evidence="Y" calc_neutral_pep_mass="1870.3100">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="64" probability="0.2258">
+      <protein protein_name="Q9Z1P2|ACTN1_RAT" n_indistinguishable_proteins="1" probability="0.2258" percent_coverage="1.1" unique_stripped_peptides="HRPELIDYGK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.38">
+         <annotation protein_description="Alpha-actinin-1 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="HRPELIDYGK" charge="1" initial_probability="0.2645" nsp_adjusted_probability="0.2258" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.26" is_contributing_evidence="Y" calc_neutral_pep_mass="1227.3700">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="65" probability="0.2211">
+      <protein protein_name="Q499N5|ACSF2_RAT" n_indistinguishable_proteins="1" probability="0.2211" percent_coverage="4.1" unique_stripped_peptides="AGSVGRIMPHTEAQIVNMETGELTK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.37">
+         <annotation protein_description="Acyl-CoA synthetase family member 2, mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="AGSVGRIMPHTEAQIVNMETGELTK" charge="3" initial_probability="0.2592" nsp_adjusted_probability="0.2211" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.26" is_contributing_evidence="Y" calc_neutral_pep_mass="2686.0300">
+<modification_info modified_peptide="AGSVGRI[147]MPHTEAQIVNMETGELTK">
+<mod_aminoacid_mass position="7" mass="147.035000"/>
+</modification_info>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="66" probability="0.2200">
+      <protein protein_name="P12939|CP2DA_RAT" n_indistinguishable_proteins="1" probability="0.2200" percent_coverage="7.5" unique_stripped_peptides="ALCNVIASLIFAR+EAGHLCDAFTAQNGRSINPKAMLNK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.44">
+         <annotation protein_description="Cytochrome P450 2D10 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="EAGHLCDAFTAQNGRSINPKAMLNK" charge="2" initial_probability="0.2580" nsp_adjusted_probability="0.2200" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.26" is_contributing_evidence="Y" calc_neutral_pep_mass="2760.0700">
+<modification_info modified_peptide="EAGHLCDAFTAQNGRSINPKA[147]MLNK">
+<mod_aminoacid_mass position="21" mass="147.035000"/>
+</modification_info>
+         </peptide>
+         <peptide peptide_sequence="ALCNVIASLIFAR" charge="2" initial_probability="0.0527" nsp_adjusted_probability="0.0527" weight="0.98" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="0.26" n_sibling_peptides_bin="2" n_instances="1" exp_tot_instances="0.05" is_contributing_evidence="N" calc_neutral_pep_mass="1390.6900">
+            <peptide_parent_protein protein_name="P10633|CP2D1_RAT"/>
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="67" probability="0.2189">
+      <protein protein_name="Q5XIN6|LETM1_RAT" n_indistinguishable_proteins="1" probability="0.2189" percent_coverage="1.2" unique_stripped_peptides="LRSIKADDK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.37">
+         <annotation protein_description="Leucine zipper-EF-hand-containing transmembrane protein 1, mitochondrial precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="LRSIKADDK" charge="2" initial_probability="0.2568" nsp_adjusted_probability="0.2189" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.26" is_contributing_evidence="Y" calc_neutral_pep_mass="1045.1900">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="68" probability="0.2181">
+      <protein protein_name="Q6Y290|GOLI_RAT" n_indistinguishable_proteins="1" probability="0.2181" percent_coverage="1.9" unique_stripped_peptides="MPPKNFSR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.36">
+         <annotation protein_description="Goliath homolog precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="MPPKNFSR" charge="2" initial_probability="0.2559" nsp_adjusted_probability="0.2181" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.26" is_contributing_evidence="Y" calc_neutral_pep_mass="992.1530">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="69" probability="0.2181">
+      <protein protein_name="Q8QZZ9|CD2A2_RAT" n_indistinguishable_proteins="1" probability="0.2181" percent_coverage="11.2" unique_stripped_peptides="CLGSPAARPGPRAGTSRR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.36">
+         <annotation protein_description="Cyclin-dependent kinase inhibitor 2A, isoform 2 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="CLGSPAARPGPRAGTSRR" charge="2" initial_probability="0.2559" nsp_adjusted_probability="0.2181" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.26" is_contributing_evidence="Y" calc_neutral_pep_mass="1868.0900">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="70" probability="0.2180">
+      <protein protein_name="P60572|PANX3_RAT" n_indistinguishable_proteins="1" probability="0.2180" percent_coverage="2.6" unique_stripped_peptides="SIRLVQHMLK" group_sibling_id="a" total_number_peptides="2" pct_spectrum_ids="0.61">
+         <annotation protein_description="Pannexin-3 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="SIRLVQHMLK" charge="2" initial_probability="0.2558" nsp_adjusted_probability="0.2180" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="2" exp_tot_instances="0.43" is_contributing_evidence="Y" calc_neutral_pep_mass="1224.5200">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="71" probability="0.2100">
+      <protein protein_name="P07152|MMP10_RAT" n_indistinguishable_proteins="1" probability="0.2100" percent_coverage="1.5" unique_stripped_peptides="DRVLIFK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.35">
+         <annotation protein_description="Stromelysin-2 precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="DRVLIFK" charge="2" initial_probability="0.2468" nsp_adjusted_probability="0.2100" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.25" is_contributing_evidence="Y" calc_neutral_pep_mass="890.0810">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="72" probability="0.2058">
+      <protein protein_name="Q7TQM3|FGRL1_RAT" n_indistinguishable_proteins="1" probability="0.2058" percent_coverage="1.7" unique_stripped_peptides="RVEYGSEGR" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.34">
+         <annotation protein_description="Fibroblast growth factor receptor-like 1 precursor - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="RVEYGSEGR" charge="3" initial_probability="0.2422" nsp_adjusted_probability="0.2058" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.24" is_contributing_evidence="Y" calc_neutral_pep_mass="1052.1000">
+         </peptide>
+      </protein>
+</protein_group>
+<protein_group group_number="73" probability="0.2045">
+      <protein protein_name="Q63520|SYCP3_RAT" n_indistinguishable_proteins="1" probability="0.2045" percent_coverage="5.8" unique_stripped_peptides="NNDNLFTGTQSELKK" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="0.34">
+         <annotation protein_description="Synaptonemal complex protein 3 - Rattus norvegicus (Rat)"/>
+         <peptide peptide_sequence="NNDNLFTGTQSELKK" charge="3" initial_probability="0.2406" nsp_adjusted_probability="0.2045" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="0.24" is_contributing_evidence="Y" calc_neutral_pep_mass="1708.8200">
+         </peptide>
+      </protein>
+</protein_group>
+</protein_summary>

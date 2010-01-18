@@ -37,7 +37,8 @@ namespace OpenMS
 			score_(0), 
 			rank_(0), 
 			accession_(""), 
-			sequence_("")
+			sequence_(""),
+			coverage_(0)
   {
   }
   
@@ -47,7 +48,8 @@ namespace OpenMS
   		score_(score), 
   		rank_(rank), 
   		accession_(accession.trim()), 
-  		sequence_(sequence.trim())
+  		sequence_(sequence.trim()),
+  		coverage_(0)
   {
   }
   
@@ -57,7 +59,8 @@ namespace OpenMS
 			score_(source.score_), 
 			rank_(source.rank_), 
 			accession_(source.accession_), 
-			sequence_(source.sequence_)
+			sequence_(source.sequence_),
+			coverage_(source.coverage_)
   {
   }
   
@@ -79,6 +82,7 @@ namespace OpenMS
 		rank_  = source.rank_;
     sequence_ = source.sequence_;
     accession_ = source.accession_;
+    coverage_ = source.coverage_;
     
     return *this;
   }
@@ -90,7 +94,8 @@ namespace OpenMS
 			&& score_ == rhs.score_ 
 			&& rank_ == rhs.rank_
 			&& accession_ == rhs.accession_ 
-			&& sequence_ == rhs.sequence_;
+			&& sequence_ == rhs.sequence_
+			&& coverage_ == rhs.coverage_;
 	}
 
 	// inequality operator
@@ -123,8 +128,14 @@ namespace OpenMS
 		return accession_;
 	}
 	
+	// returns the coverage (in percent) of the protein hit based upon matched peptides
+	DoubleReal ProteinHit::getCoverage() const
+	{
+		return coverage_;
+	}
+	
   // sets the score of the protein hit 
-  void ProteinHit::setScore(DoubleReal score) 
+  void ProteinHit::setScore(const DoubleReal score) 
   {
   	score_ = score;
   }
@@ -147,6 +158,12 @@ namespace OpenMS
 	{
 		accession_ = accession;
 		accession_.trim();
+	}
+
+	// sets the coverage (in percent) of the protein hit based upon matched peptides
+	void ProteinHit::setCoverage(const DoubleReal coverage)
+	{
+		coverage_ = coverage;
 	}
 
 } // namespace OpenMS

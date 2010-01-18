@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Maintainer: Nico Pfeifer, Chris Bielow $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_METADATA_PROTEINIDENTIFICATION_H
@@ -31,6 +31,8 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+
+#include <set>
 
 namespace OpenMS
 {   	
@@ -55,8 +57,28 @@ namespace OpenMS
   	: public MetaInfoInterface
   {
 	  public:
-	 		///Hit type definition
+	 		/// Hit type definition
 	 		typedef ProteinHit HitType;
+			
+			/**
+				@brief Connects multiple proteins which are indistinguishable
+			*/
+			struct ProteinGroup
+			{
+				bool operator == (const ProteinGroup rhs) const
+				{
+					return (id == rhs.id &&
+									probability == rhs.probability &&
+									indices == rhs.indices);
+				}
+			
+				/// id of the group
+				String id;
+				/// probability of this group
+				DoubleReal probability;
+				/// Indices to (indistinguishable) proteins belonging to the same group
+				std::set<Size> indices;
+			};
 			
 			/// Peak mass type
 			enum PeakMassType
@@ -161,21 +183,29 @@ namespace OpenMS
 	    void insertHit(const ProteinHit& input);
 			/// Sets the peptide and protein hits
 	    void setHits(const std::vector<ProteinHit>& hits); 
+
+			/// returns the protein groups
+			const std::vector<ProteinGroup>& getProteinGroups() const;
+			/// returns the protein groups (mutable)
+			std::vector<ProteinGroup>& getProteinGroups();
+			/// appends a new protein group
+			void insertGroup (const ProteinGroup& group);
+
 			/// returns the peptide significance threshold value
 	    DoubleReal getSignificanceThreshold() const;
-			/// setting of the peptide significance threshold value
+			/// Sets the peptide significance threshold value
 			void setSignificanceThreshold(DoubleReal value);
-	    /// returns the protein score type
+	    /// Returns the protein score type
 	    const String& getScoreType() const;   
-	    /// sets the protein score type
+	    /// Sets the protein score type
 	    void setScoreType(const String& type);
-	    /// returns true if a higher score represents a better score
+	    /// Returns true if a higher score represents a better score
 	    bool isHigherScoreBetter() const;   
-	    /// sets the orientation of the score (higher is better?)
+	    /// Sets the orientation of the score (higher is better?)
 	    void setHigherScoreBetter(bool higher_is_better);
-			///sorts the peptide and protein hits according to their score
+			/// Sorts the peptide and protein hits according to their score
 			void sort();
-			/// sorts the peptide hits and assigns ranks according to the sorting
+			/// Sorts the peptide hits by score and assigns ranks (best score has rank of 1)
 	    void assignRanks();
 			//@}
 
@@ -199,12 +229,26 @@ namespace OpenMS
 			const SearchParameters& getSearchParameters() const; 
 	    /// returns the identifier
 	    const String& getIdentifier() const;
-	    /// sets the indentifier
+	    /// sets the identifier
 	    void setIdentifier(const String& id);
 			//@}
 			
 	  protected:
 	  
+	  	template<class T, class PRED> 
+			struct ProteinCmp 
+			{
+				ProteinCmp(T arr, const PRED& func) : arr_(arr), func_(func) 
+				{}
+
+				bool operator()(const size_t a, const size_t b)
+				{
+					return func_(arr_[a], arr_[b]);
+				}
+				T arr_;
+				PRED func_;
+			};
+
 			///@name General information (search engine, parameters and DB)
 	  	//@{
 			String id_;
@@ -219,6 +263,7 @@ namespace OpenMS
 	    String protein_score_type_;   
 			bool higher_score_better_;
 		  std::vector<ProteinHit> protein_hits_; 
+			std::vector<ProteinGroup> protein_groups_;
 			DoubleReal protein_significance_threshold_;
 	    //@}
   };

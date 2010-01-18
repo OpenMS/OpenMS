@@ -47,7 +47,13 @@ namespace OpenMS
 		
 		OpenMS can only read parts of the protein_summary subtree to extract protein-peptide associations. All other parts are silently ignored.
 
+		For protein groups, only the "group leader" (which is annotated with a probability and coverage)
+		receives these attributes. All indistinguishable proteins of the same group only have 
+		an accession and score of -1.
+
   	@note This format will eventually be replaced by the HUPO-PSI (mzIdentML and mzQuantML) AnalysisXML formats!
+  	
+  	@todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
   	
   	@ingroup FileIO
   */
@@ -56,6 +62,9 @@ namespace OpenMS
   		public Internal::XMLFile
   {
 		public:
+		
+			/// A protein group (set of indices into ProteinIdentification)
+			typedef ProteinIdentification::ProteinGroup ProteinGroup;
 		
 			/// Constructor
 			ProtXMLFile();
@@ -69,7 +78,7 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
+			void load(const String& filename,  ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids);
 
 			/**
 				@brief [not implemented yet!] Stores the data in an ProtXML file
@@ -79,56 +88,54 @@ namespace OpenMS
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids ,const String& document_id=""); 
+			void store(const String& filename, const ProteinIdentification& protein_ids, const PeptideIdentification& peptide_ids ,const String& document_id=""); 
   	
   	protected:
 
 			/// reset members after reading/writing
 			void resetMembers_();
 
-			// Docu in base class
+			/// Docu in base class
 			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 			
-			// Docu in base class
+			/// Docu in base class
 			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			/// Creates a new protein entry (if not already present) and appends it to the current group
+			void registerProtein_(const String& protein_name);
+
+			/**
+				@brief find modification name given a modified AA mass
+			
+				Matches a mass of a modified AA to a mod in our modification db
+				For ambigious mods, the first (arbitrary) is returned
+				If no mod is found an error is issued and the return string is empty
+				@hint A duplicate of this function is also used in PepXMLFile
+				
+				@param mass Modified AA's mass
+				@param origin AA one letter code
+				@param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
+			*/
+		  void matchModification_(const DoubleReal mass, const String& origin, String& modification_description);
 			
 			/// @name members for loading data
 			//@{
-			/// Pointer to fill in protein identifications
-			std::vector<ProteinIdentification>* prot_ids_;
-			/// Pointer to fill in peptide identifications
-			std::vector<PeptideIdentification>* pep_ids_;
-			/// Pointer to last read object with MetaInfoInterface
-			MetaInfoInterface* last_meta_;
-			/// Search parameters map (key is the "id")
-			std::map<String,ProteinIdentification::SearchParameters> parameters_;
-			/// Temporary search parameters variable
-			ProteinIdentification::SearchParameters param_;
-			/// Temporary id
-			String id_;
-			/// Temporary protein ProteinIdentification
-			ProteinIdentification prot_id_;
-			/// Temporary peptide ProteinIdentification
-			PeptideIdentification pep_id_;
+			/// Pointer to protein identification
+			ProteinIdentification* prot_id_;
+			/// Pointer to peptide identification
+			PeptideIdentification* pep_id_;
 			/// Temporary protein hit
-			ProteinHit prot_hit_;
+			ProteinHit* prot_hit_;
 			/// Temporary peptide hit
-			PeptideHit pep_hit_;
-			/// Map from protein id to accession
-			std::map<String,String> proteinid_to_accession_;
-			/// Document identitifier
-			String* document_id_;
+			PeptideHit* pep_hit_;
+			/// Map from protein name to its index in ProteinIdentification
+			Map<String,Size> protein_name_to_index_;
 
-			/// probability of a protein group
-			DoubleReal p_protein_group_;
-			/// probability of a protein
-			DoubleReal protein_p_;
-			/// protein identifier
-			String protein_name_;
-			/// peptide sequence
-			String peptide_seq_;
-			/// peptide nsp adjusted probability
-			DoubleReal peptide_nspp_;
+			/// protein group
+			ProteinGroup protein_group_;
+			/// number of 'protein' tags in a 'protein_group' 
+			Int protein_tag_count_;
+
 
 			//@}
   };

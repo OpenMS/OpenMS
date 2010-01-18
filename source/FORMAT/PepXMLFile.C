@@ -262,11 +262,11 @@ namespace OpenMS
 	}
 
 
-  void PepXMLFile::matchModification_(DoubleReal mass, String& modification_description, const String& origin)
+  void PepXMLFile::matchModification_(const DoubleReal mass, const String& origin, String& modification_description)
 	{
-		DoubleReal new_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
+		DoubleReal mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
 		vector<String> mods;
-		ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, new_mass, 0.001);
+		ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
 			
 		if (mods.size() == 1)
     {
@@ -602,7 +602,7 @@ namespace OpenMS
 			modification_position = attributeAsInt_(attributes, "position");
 			modification_mass = attributeAsDouble_(attributes, "mass");
 			
-			matchModification_(modification_mass, temp_description, String(current_sequence_[modification_position - 1]));
+			matchModification_(modification_mass, String(current_sequence_[modification_position - 1]), temp_description);
 			
 			// the modification position is 1-based
 			current_modifications_.push_back(make_pair(temp_description, modification_position));

@@ -68,6 +68,7 @@ START_SECTION((ProteinHit(DoubleReal score, UInt rank, String accession, String 
 	TEST_EQUAL(hit.getRank(), rank)
 	TEST_EQUAL(hit.getAccession(), accession)
 	TEST_EQUAL(hit.getSequence(), sequence)
+	TEST_EQUAL(hit.getCoverage(), 0)
 END_SECTION
 
 START_SECTION(ProteinHit(const ProteinHit& source))
@@ -77,6 +78,7 @@ START_SECTION(ProteinHit(const ProteinHit& source))
 	source.setAccession(accession);
 	source.setSequence(sequence);
 	source.setMetaValue("label",17);
+  source.setCoverage(123.123);
   
   ProteinHit hit(source);
 	
@@ -85,12 +87,14 @@ START_SECTION(ProteinHit(const ProteinHit& source))
 	TEST_EQUAL(hit.getAccession(), accession)
 	TEST_EQUAL(hit.getSequence(), sequence)
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
+	TEST_EQUAL(hit.getCoverage(), 123.123)
 END_SECTION
 
 START_SECTION(ProteinHit& operator=(const ProteinHit& source))
 	ProteinHit hit;
 	ProteinHit hit2(score, rank, accession, sequence);
 	hit2.setMetaValue("label",17);
+	hit2.setCoverage(123.123);
 	
 	hit = hit2;
 	
@@ -99,6 +103,7 @@ START_SECTION(ProteinHit& operator=(const ProteinHit& source))
 	TEST_EQUAL(hit.getAccession(), accession)
 	TEST_EQUAL(hit.getSequence(), sequence)
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
+	TEST_EQUAL(hit.getCoverage(), 123.123)
 END_SECTION
 
 START_SECTION(bool operator == (const ProteinHit& rhs) const)
@@ -124,6 +129,10 @@ START_SECTION(bool operator == (const ProteinHit& rhs) const)
 	hit.setMetaValue("label",17);
   TEST_EQUAL(hit==hit2,false);
 	hit = hit2;
+	
+	hit.setCoverage(123.123);
+  TEST_EQUAL(hit==hit2,false);
+	hit = hit2;	
 END_SECTION
 
 START_SECTION(bool operator != (const ProteinHit& rhs) const)
@@ -149,6 +158,10 @@ START_SECTION(bool operator != (const ProteinHit& rhs) const)
 	hit.setMetaValue("label",17);
   TEST_EQUAL(hit!=hit2,true);
 	hit = hit2;
+
+	hit.setCoverage(123.123);
+  TEST_EQUAL(hit!=hit2,true);
+	hit = hit2;		
 END_SECTION
 
 START_SECTION(const String& getAccession() const)
@@ -171,13 +184,22 @@ START_SECTION(UInt getRank() const)
 	TEST_EQUAL(hit.getRank(), rank)
 END_SECTION
 
+
+START_SECTION(DoubleReal getCoverage() const)
+	ProteinHit hit(score, rank, accession, sequence);
+	TEST_EQUAL(hit.getCoverage(), 0)
+	hit.setCoverage(123.123);
+	TEST_EQUAL(hit.getCoverage(), 123.123)
+END_SECTION
+
+
 START_SECTION(void setRank(UInt newrank))
 	ProteinHit hit;
 	hit.setRank(rank);
 	TEST_EQUAL(hit.getRank(), rank)	
 END_SECTION
 
-START_SECTION(void setScore(DoubleReal score))
+START_SECTION(void setScore(const DoubleReal score))
 	ProteinHit hit;
 	hit.setScore(score);
 	TEST_EQUAL(hit.getScore(), score);
@@ -193,6 +215,12 @@ START_SECTION(void setAccession(const String& accession))
 	ProteinHit hit;
 	hit.setAccession(accession);
 	TEST_EQUAL(hit.getAccession(), accession)
+END_SECTION
+
+START_SECTION(void setCoverage(const DoubleReal coverage))
+	ProteinHit hit;
+	hit.setCoverage(123.123);
+	TEST_EQUAL(hit.getCoverage(), 123.123)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

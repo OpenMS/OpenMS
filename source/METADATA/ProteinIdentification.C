@@ -27,7 +27,9 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+
 #include <sstream>
 #include <algorithm>
 
@@ -41,6 +43,14 @@ namespace OpenMS
 
   ProteinIdentification::ProteinIdentification()
     : MetaInfoInterface(),
+			id_(),
+			search_engine_(),
+			search_engine_version_(),
+			search_parameters_(),
+			date_(),
+			protein_score_type_(),
+			protein_hits_(),
+			protein_groups_(),
 			higher_score_better_(true),
 			protein_significance_threshold_(0.0)
   {
@@ -56,6 +66,7 @@ namespace OpenMS
 			protein_score_type_(source.protein_score_type_),
 			higher_score_better_(source.higher_score_better_),
 			protein_hits_(source.protein_hits_),
+			protein_groups_(source.protein_groups_),
 	  	protein_significance_threshold_(source.protein_significance_threshold_)
   {
   }
@@ -74,11 +85,6 @@ namespace OpenMS
 		return date_;
 	}
 
-	void ProteinIdentification::setHits(const vector<ProteinHit>& protein_hits)
-	{
-		protein_hits_ = protein_hits;
-	}
-
 	const vector<ProteinHit>& ProteinIdentification::getHits() const
 	{
 		return protein_hits_;
@@ -88,7 +94,31 @@ namespace OpenMS
 	{
 		return protein_hits_;
 	}
+
+	void ProteinIdentification::setHits(const vector<ProteinHit>& protein_hits)
+	{
+		// groups might become invalid by this operation
+		if (protein_groups_.size()>0)
+		{
+			LOG_ERROR << "New protein hits set while proteins groups are non-empty! This might invalidate groups! Delete groups before setting new hits!\n";
+		}
+		protein_hits_ = protein_hits;
+	}
 	
+	const vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups() const
+	{
+		return protein_groups_;
+	}
+	vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups()
+	{
+		return protein_groups_;
+	}
+	void ProteinIdentification::insertGroup(const ProteinIdentification::ProteinGroup& group)
+	{
+		protein_groups_.push_back(group);
+	}
+
+
 	// retrival of the peptide significance threshold value
   DoubleReal ProteinIdentification::getSignificanceThreshold() const
   {
@@ -129,6 +159,7 @@ namespace OpenMS
 		search_parameters_ = source.search_parameters_;
 		date_ = source.date_;
     protein_hits_ = source.protein_hits_;
+    protein_groups_ = source.protein_groups_;
 		protein_score_type_ = source.protein_score_type_;
     protein_significance_threshold_ = source.protein_significance_threshold_;
 		higher_score_better_ = source.higher_score_better_;
@@ -145,6 +176,7 @@ namespace OpenMS
 						search_parameters_ == rhs.search_parameters_ &&
 						date_ == rhs.date_ &&
 						protein_hits_ == rhs.protein_hits_ &&
+						protein_groups_ == rhs.protein_groups_ &&
 						protein_score_type_ == rhs.protein_score_type_ &&
 						protein_significance_threshold_ == rhs.protein_significance_threshold_ &&
 						higher_score_better_ == rhs.higher_score_better_;
@@ -157,13 +189,49 @@ namespace OpenMS
 		return !operator==(rhs);
 	}
 
+
+  void ProteinIdentification::sort()
+  {
+		// while sorting proteins, we need to update the groups as well
+		
+		// create index vector ..
+		vector<size_t> index;
+		for (size_t i = 0; i < protein_hits_.size(); ++i)	index.push_back(i);
+
+		// .. and sort it
+ 		if (higher_score_better_)
+  	{
+			std::sort(index.begin(), index.end(), ProteinCmp<std::vector<ProteinHit>&, PeptideHit::ScoreMore>(protein_hits_, PeptideHit::ScoreMore()) );
+			// here we sort the actual proteins (could be done using sorted indices as well, but the list is short)
+			std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreMore());
+  	}
+  	else
+  	{
+  		std::sort(index.begin(), index.end(), ProteinCmp<std::vector<ProteinHit>&, PeptideHit::ScoreLess>(protein_hits_, PeptideHit::ScoreLess()) );
+  		// here we sort the actual proteins (could be done using sorted indices as well, but the list is short)
+  		std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreLess());
+  	}
+  	
+  	// create mapping (from old index to new one)
+  	Map<size_t, size_t> index_to_index;
+  	for (size_t i = 0; i < protein_hits_.size(); ++i)	index_to_index[index[i]] = i;
+  	
+  	// update groups
+  	for (std::vector<ProteinGroup>::iterator it=protein_groups_.begin(); it!=protein_groups_.end();++it)
+  	{
+  		std::set<Size> indices_new;
+  		for (std::set<Size>::const_iterator it_set=it->indices.begin();it_set!=it->indices.end();++it_set)
+  		{
+  			indices_new.insert(index_to_index[*it_set]);
+  		}
+  		it->indices=indices_new;
+  	}
+  	
+  }
+  
+  
   void ProteinIdentification::assignRanks()
   {
-		if (protein_hits_.size() == 0)
-		{
-			return;
-		}
-    
 		UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();
@@ -180,18 +248,6 @@ namespace OpenMS
 		}
   }
 
-  void ProteinIdentification::sort()
-  {
-
- 		if (higher_score_better_)
-  	{
-			std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreMore());
-  	}
-  	else
-  	{
-  		std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreLess());
-  	}
-  }
 
 	bool ProteinIdentification::isHigherScoreBetter() const
 	{

@@ -93,15 +93,27 @@ namespace OpenMS
 
   	protected:
 		
-			// Docu in base class
+			/// Docu in base class
 			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 			
-			// Docu in base class
+			/// Docu in base class
 			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
 		private:
 			
-		  void matchModification_(DoubleReal mass, String& modification_description, const String& origin);
+			/**
+				@brief find modification name given a modified AA mass
+			
+				Matches a mass of a modified AA to a mod in our modification db
+				For ambigious mods, the first (arbitrary) is returned
+				If no mod is found an error is issued and the return string is empty
+				@hint A duplicate of this function is also used in ProtXMLFile
+				
+				@param mass Modified AA's mass
+				@param origin AA one letter code
+				@param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
+			*/
+		  void matchModification_(const DoubleReal mass, const String& origin, String& modification_description);
 	
 			struct AminoAcidModification
 			{
