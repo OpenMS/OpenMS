@@ -22,11 +22,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Clemens Groepl $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_ELUTIONMODEL_H
-#define OPENMS_SIMULATION_ELUTIONMODEL_H
+#ifndef OPENMS_SIMULATION_EGHMODEL_H
+#define OPENMS_SIMULATION_EGHMODEL_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -36,12 +36,17 @@
 namespace OpenMS
 {
 	/**
-		@brief Exponentially modified gaussian distribution model for elution profiles.
+		@brief Exponential-Gaussian hybrid distribution model for elution profiles.
 
-    @htmlinclude OpenMS_ElutionModel.parameters
+    Lan K, Jorgenson JW.
+    A hybrid of exponential and gaussian functions as a simple model of asymmetric chromatographic peaks.
+    Journal of Chromatography A. 2001;915(1-2):1-13.
+    Available at: http://linkinghub.elsevier.com/retrieve/pii/S0021967301005945
+
+    @htmlinclude OpenMS_EGHModel.parameters
 
 	*/
-	class OPENMS_DLLAPI ElutionModel
+	class OPENMS_DLLAPI EGHModel
 		: public InterpolationModel
 	{
 
@@ -51,27 +56,27 @@ namespace OpenMS
     typedef LinearInterpolation::container_type ContainerType;
 
 		/// Default constructor
-		ElutionModel();
+    EGHModel();
 
 		/// copy constructor
-		ElutionModel(const ElutionModel& source);
+    EGHModel(const EGHModel& source);
 
 		/// destructor
-		virtual ~ElutionModel();
+		virtual ~EGHModel();
 
 		/// assignment operator
-		virtual ElutionModel& operator = (const ElutionModel& source);
+		virtual EGHModel& operator = (const EGHModel& source);
 
 		/// create new ElutionModel object (needed by Factory)
 		static BaseModel<1>* create()
 		{
-			return new ElutionModel();
+			return new EGHModel();
   	}
 
 		/// name of the model (needed by Factory)
 		static const String getProductName()
 		{
-			return "ElutionModel";
+			return "EGHModel";
 		}
 
 		/// set offset without being computing all over and without any discrepancy
@@ -87,12 +92,45 @@ namespace OpenMS
 		CoordinateType  min_;
 		CoordinateType  max_;
 		BasicStatistics statistics_;
-		CoordinateType height_;
-		CoordinateType width_;
-		CoordinateType symmetry_;
-		CoordinateType retention_;
+		CoordinateType  height_; // H in paper
+		CoordinateType  apex_rt_;
+
+		CoordinateType  A_;
+		CoordinateType  B_;
+
+		CoordinateType  tau_;
+		CoordinateType  sigma_square_;
+		CoordinateType  sigma_square_2_;
+
 
 		void updateMembers_();
+
+    /// Computes a left & right boundary for the EGH Profile and sets the internal parameters accordingly
+    void computeBoundaries_();
+
+    /**
+     * @brief Evaluate the EGH function at position rt
+     *
+     * @param rt        The position where the EGH function should be evaluated. Note that this is the position without the RT offset, meaning that the EGH apex is at position 0
+     * @param egh_value The computed value
+     */
+    inline void evaluateEGH_(CoordinateType & rt, CoordinateType & egh_value)
+    {
+      if((sigma_square_2_ + tau_ * rt) > 0)
+      {
+        // evaluate egh ->
+        egh_value = height_ * exp(
+            (-1 * rt * rt)
+            /
+            (sigma_square_2_ + tau_ * rt)
+            );
+      }
+      else
+      {
+        egh_value = 0.0;
+      }
+    }
+
 	};
 
 } // namespace OpenMS

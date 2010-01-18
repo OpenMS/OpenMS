@@ -408,7 +408,8 @@ set(transformations_executables_list
 set(simulation_executables_list
   DetectabilitySimulation_test
   DigestSimulation_test
-  ElutionModel_test
+  EGHModel_test
+  EGHFitter1D_test
   IonizationSimulation_test
   IsotopeModelGeneral_test
   MSSim_test

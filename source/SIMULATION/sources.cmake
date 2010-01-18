@@ -5,7 +5,8 @@ set(directory source/SIMULATION)
 set(sources_list
 DetectabilitySimulation.C
 DigestSimulation.C
-ElutionModel.C
+EGHModel.C
+EGHFitter1D.C
 IonizationSimulation.C
 IsotopeModelGeneral.C
 MSSim.C

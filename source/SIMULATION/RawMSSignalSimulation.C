@@ -28,11 +28,8 @@
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 #include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
-#include <OpenMS/SIMULATION/ElutionModel.h>
-
 
 #include <vector>
 using std::vector;
@@ -40,7 +37,8 @@ using std::vector;
 namespace OpenMS {
 
   /**
-   * TODO: review Ole's methods for improvment/changes
+   * TODO: review signal compression code
+   * TODO: review baseline and noise code
    */
   RawMSSignalSimulation::RawMSSignalSimulation(const gsl_rng * random_generator)
   : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
@@ -226,7 +224,7 @@ namespace OpenMS {
 			throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, experiment.size());
 		}
 		DoubleReal rt_sampling_rate = experiment[1].getRT() - experiment[0].getRT();
-		ElutionModel* elutionmodel = new ElutionModel();
+		EGHModel* elutionmodel = new EGHModel();
     chooseElutionProfile_(elutionmodel, active_feature, scale, rt_sampling_rate, experiment);
     ProductModel<2> pm;
     pm.setModel(0, elutionmodel); // new'ed models will be deleted by the pm! no need to delete them manually
@@ -239,11 +237,7 @@ namespace OpenMS {
     SimCoordinateType rt_end = elutionmodel->getInterpolation().supportMax();
     SimCoordinateType mz_start = isomodel->getInterpolation().supportMin();
     SimCoordinateType mz_end = isomodel->getInterpolation().supportMax();
-    
-    // TODO: the output of this should be evaluated (something's going wrong in the elutionmodel)
-    //std::cout << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:min")-rt_start) << " - " << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:max")-rt_end) << "\n";
-		//std::cout <<  mz_start << " - " << mz_end << " [mz] \n";
-		    
+
     // add peptide to global MS map
     samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
   }
@@ -348,33 +342,71 @@ namespace OpenMS {
 
   }
 
-  void RawMSSignalSimulation::chooseElutionProfile_(ElutionModel*& elutionmodel, const Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
+  void RawMSSignalSimulation::chooseElutionProfile_(EGHModel*& elutionmodel, const Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
+    {
+      SimCoordinateType f_rt = feature.getRT();
+
+      Param p;
+      // WARNING: step used to be 'rt_sampling_rate / 3.0', but distortion is not part of RT sim, and thus only
+      //          modeled 1:1
+      p.setValue("interpolation_step", rt_sampling_rate );
+      p.setValue("statistics:variance", 1.0);
+      p.setValue("statistics:mean", f_rt);
+
+      p.setValue("egh:height", scale);
+      p.setValue("egh:A", 50.0);
+      p.setValue("egh:B", 90.0);
+
+      elutionmodel->setParameters(p); // does the calculation
+
+      //----------------------------------------------------------------------
+
+      // Hack away constness :-P   We know what we want.
+      EmgModel::ContainerType &data = const_cast<EGHModel::ContainerType &>(elutionmodel->getInterpolation().getData());
+
+      SimCoordinateType rt_em_start = elutionmodel->getInterpolation().supportMin();
+
+      // find scan in experiment at which our elution starts
+      MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
+      for ( Size i = 1; (i < data.size() - 1) && exp_it!=experiment.end(); ++i, ++exp_it )
+      { // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
+        data[i] *= (DoubleReal) exp_it->getMetaValue("distortion");
+      }
+
+
+    }
+
+
+  void RawMSSignalSimulation::chooseElutionProfile_(EmgModel*& elutionmodel, const Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
   {
     SimCoordinateType f_rt = feature.getRT();
     DoubleReal f_symmetry = (DoubleReal) feature.getMetaValue("rt_symmetry");
     DoubleReal f_width = (DoubleReal) feature.getMetaValue("rt_width");
 
-    // Exponentially modified Gaussian
-    const DoubleReal decay_stretch = 5.0;
+    DoubleReal f_bb_min = (DoubleReal) feature.getMetaValue("rt_bb_min");
+    DoubleReal f_bb_max = (DoubleReal) feature.getMetaValue("rt_bb_max");
+
     // it doesn't matter what bounding box I set here, it always cuts of the fronting !!! :-(
     Param p;
-    p.setValue("bounding_box:min", f_rt - decay_stretch*(f_width+fabs(f_symmetry)) );
-    p.setValue("bounding_box:max", f_rt + decay_stretch*(f_width+fabs(f_symmetry)) );
+    p.setValue("bounding_box:min", f_bb_min );
+    p.setValue("bounding_box:max", f_bb_max );
     // WARNING: step used to be 'rt_sampling_rate / 3.0', but distortion is not part of RT sim, and thus only
-    //          modelled 1:1
+    //          modeled 1:1
     p.setValue("interpolation_step", rt_sampling_rate );
     p.setValue("statistics:variance", 1.0);
     p.setValue("statistics:mean", f_rt);
+
     p.setValue("emg:height", scale);
     p.setValue("emg:width", f_width);
     p.setValue("emg:symmetry", f_symmetry);
     p.setValue("emg:retention", f_rt);
+
     elutionmodel->setParameters(p); // does the calculation
 
     //----------------------------------------------------------------------
 
     // Hack away constness :-P   We know what we want.
-    ElutionModel::ContainerType &data = const_cast<ElutionModel::ContainerType &>(elutionmodel->getInterpolation().getData());
+    EmgModel::ContainerType &data = const_cast<EmgModel::ContainerType &>(elutionmodel->getInterpolation().getData());
 
 		SimCoordinateType rt_em_start = elutionmodel->getInterpolation().supportMin();
 	

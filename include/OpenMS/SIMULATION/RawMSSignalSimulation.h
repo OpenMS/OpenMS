@@ -32,15 +32,16 @@
 
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
+#include <OpenMS/SIMULATION/EGHModel.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 // GSL includes (random number generation)
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
 namespace OpenMS {
-
-	class ElutionModel;
 
   /**
    @brief Simulates MS signales for a given set of peptides
@@ -133,7 +134,13 @@ namespace OpenMS {
     /**
      @brief Add the correct Elution profile to the passed ProductModel
      */
-    void chooseElutionProfile_(ElutionModel*& elutionmodel, const Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
+    void chooseElutionProfile_(EmgModel*& elutionmodel, const Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
+
+    /**
+     @brief Add the correct Elution profile to the passed ProductModel
+     */
+    void chooseElutionProfile_(EGHModel*& elutionmodel, const Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
+
 
     /// Add shot noise to the experimet
     void addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit);

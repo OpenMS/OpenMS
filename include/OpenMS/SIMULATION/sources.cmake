@@ -5,7 +5,8 @@ set(directory include/OpenMS/SIMULATION)
 set(sources_list_h
 DetectabilitySimulation.h
 DigestSimulation.h
-ElutionModel.h
+EGHModel.h
+EGHFitter1D.h
 IonizationSimulation.h
 IsotopeModelGeneral.h
 MSSim.h
