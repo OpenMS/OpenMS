@@ -515,17 +515,23 @@ namespace OpenMS {
   {
     LOG_INFO << "Creating experiment with #" << number_of_scans << " scans ... ";
     experiment = MSSimExperiment();
-    
+
     if (isRTColumnOn())
     {
       experiment.resize(number_of_scans);
 
       DoubleReal current_scan_rt = rt_start;
+      Size id = 1;
       for(MSSimExperiment::iterator exp_it = experiment.begin();
           exp_it != experiment.end();
           ++exp_it)
       {
         (*exp_it).setRT(current_scan_rt);
+
+        String spec_id = String("spectrum=") + id;
+        ++id;
+        (*exp_it).setNativeID(spec_id);
+
         // dice & store distortion
         DoubleReal distortion = exp(gsl_ran_flat (rnd_gen_, -distortion_, +distortion_));
         (*exp_it).setMetaValue("distortion", distortion);
@@ -541,6 +547,7 @@ namespace OpenMS {
     {
       experiment.resize(1);
       experiment[0].setRT(-1);
+      experiment[0].setNativeID("spectrum=1");
     }
     experiment.updateRanges();
     LOG_INFO << "done\n";

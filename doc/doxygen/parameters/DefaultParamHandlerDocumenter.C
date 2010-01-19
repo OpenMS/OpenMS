@@ -143,7 +143,6 @@
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/MSSim.h>
-#include <OpenMS/SIMULATION/ElutionModel.h>
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
@@ -316,7 +315,6 @@ int main (int argc , char** argv)
 	DOCME(DelaunayPairFinder);
   DOCME(DetectabilitySimulation);
 	DOCME(DigestSimulation);
-	DOCME(ElutionModel);
 	DOCME(EmgFitter1D);
 	DOCME(EmgModel);
 	DOCME(ExtendedIsotopeFitter1D);

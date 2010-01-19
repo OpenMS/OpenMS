@@ -209,13 +209,13 @@ namespace OpenMS
         max_ = param_.getValue("bounding_box:max");
       }
 
-      LOG_DEBUG << "Computed EGH-Parameters:\n";
-      LOG_DEBUG << "A:            " << A_ << "\n";
-      LOG_DEBUG << "B:            " << B_ << "\n";
-      LOG_DEBUG << "retention:    " << apex_rt_ << "\n";
-      LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
-      LOG_DEBUG << "tau:          " << tau_ << "\n";
-      LOG_DEBUG << "Feature bounding box is <" << min_ << "," << max_ << ">" << std::endl;
+//      LOG_DEBUG << "Computed EGH-Parameters:\n";
+//      LOG_DEBUG << "A:            " << A_ << "\n";
+//      LOG_DEBUG << "B:            " << B_ << "\n";
+//      LOG_DEBUG << "retention:    " << apex_rt_ << "\n";
+//      LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
+//      LOG_DEBUG << "tau:          " << tau_ << "\n";
+//      LOG_DEBUG << "Feature bounding box is <" << min_ << "," << max_ << ">" << std::endl;
 
       setSamples();
     }
@@ -235,11 +235,11 @@ namespace OpenMS
       while(egh_value > threshold && egh_value > 1)
       {
         min_ -= A_;
-        LOG_DEBUG << "Decreased feature (" << apex_rt_ << ") min_ to " << (min_ + apex_rt_) << "\n";
+//        LOG_DEBUG << "Decreased feature (" << apex_rt_ << ") min_ to " << (min_ + apex_rt_) << "\n";
 
         evaluateEGH_(min_, egh_value);
 
-        LOG_DEBUG << "egh(" << min_ << ")=" << egh_value << " (H = " << height_ << ")" << endl;
+//        LOG_DEBUG << "egh(" << min_ << ")=" << egh_value << " (H = " << height_ << ")" << endl;
       }
 
       // go right .. B_ defines the step width
@@ -248,11 +248,11 @@ namespace OpenMS
       while(egh_value > threshold && egh_value > 1)
       {
         max_ += B_;
-        LOG_DEBUG << "Increased feature (" << apex_rt_ << ") max_ to " << (max_ + apex_rt_) << "\n";
+//        LOG_DEBUG << "Increased feature (" << apex_rt_ << ") max_ to " << (max_ + apex_rt_) << "\n";
 
         evaluateEGH_(max_, egh_value);
 
-        LOG_DEBUG << "egh(" << max_ << ")=" << egh_value << " (H = " << height_ << ")" << endl;
+//        LOG_DEBUG << "egh(" << max_ << ")=" << egh_value << " (H = " << height_ << ")" << endl;
       }
 
       // set boundaries at the correct position on the RT scale
