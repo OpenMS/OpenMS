@@ -63,7 +63,10 @@ namespace OpenMS
 		
 		if(zlib_compression)
 		{
-			unsigned long compressed_length = compressBound((unsigned long)str.size());
+			unsigned long sourceLen =	(unsigned long)str.size();
+			unsigned long compressed_length = //compressBound((unsigned long)str.size());
+					sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
+			
 			int zlib_error;
 			do
 			{

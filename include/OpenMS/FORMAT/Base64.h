@@ -221,8 +221,14 @@ namespace OpenMS
 		
 		//encode with compression
 		if (zlib_compression)
-		{		
-			unsigned long compressed_length = compressBound((unsigned long)in.size());
+		{	
+			unsigned long sourceLen = 	(unsigned long)in.size();
+			unsigned long compressed_length = //compressBound((unsigned long)in.size());
+					sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
+		 //
+		 // (*) compressBound is not defined in the QtCore lib, which forces the linker under windows to link in our zlib.
+		 //     This leads to multiply defined symbols as compress() is then defined twice.
+					
 			int zlib_error;
 			do
 			{
@@ -534,7 +540,10 @@ namespace OpenMS
 		//encode with compression (use Qt because of zlib support)
 		if (zlib_compression)
 		{
-			unsigned long compressed_length = static_cast<unsigned long>(2*input_bytes);
+			unsigned long sourceLen = 	(unsigned long)input_bytes;
+			unsigned long compressed_length = //compressBound((unsigned long)in.size());
+					sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
+		 
 			compressed.resize(compressed_length);
 			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&in[0]), (unsigned long)input_bytes) != Z_OK)
 			{
