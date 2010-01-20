@@ -114,7 +114,6 @@ START_SECTION(void store(const String& filename))
 
 	// test actual program
 	pepnovo_infile.store(filename);
-	pepnovo_infile.store("test_file.txt");
 
 	TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("PepNovoInfile_test_template.txt"));
 END_SECTION
