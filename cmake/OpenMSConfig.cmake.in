@@ -1,6 +1,7 @@
-### cmake OpenMS config file for external code
+### CMake OpenMS config file for external code
+### configured by the OpenMS build system from <OpenMS>/cmake/OpenMSConfig.cmake.in
 
-set(OPENMS_INCLUDE_DIRS "@CONTRIB_INCLUDE_DIR@" "@QT_INCLUDE_DIR@" "@PROJECT_SOURCE_DIR@/include" "@PROJECT_BINARY_DIR@/include")
+set(OPENMS_INCLUDE_DIRS "@CONTRIB_INCLUDE_DIR@" "@QT_INCLUDE_DIR@" "@QT_QTCORE_INCLUDE_DIR@" "@QT_QTGUI_INCLUDE_DIR@" "@QT_QTOPENGL_INCLUDE_DIR@" "@QT_QTSQL_INCLUDE_DIR@" "@QT_QTNETWORK_INCLUDE_DIR@" "@QT_QTXML_INCLUDE_DIR@" "@PROJECT_SOURCE_DIR@/include" "@PROJECT_BINARY_DIR@/include")
 
 set(OPENMS_ADDCXX_FLAGS "@CF_OPENMS_ADDCXX_FLAGS@")
 
