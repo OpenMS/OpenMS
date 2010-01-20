@@ -124,12 +124,12 @@ namespace OpenMS
 			ProteinIdentification* prot_id_;
 			/// Pointer to peptide identification
 			PeptideIdentification* pep_id_;
-			/// Temporary protein hit
-			ProteinHit* prot_hit_;
 			/// Temporary peptide hit
 			PeptideHit* pep_hit_;
 			/// Map from protein name to its index in ProteinIdentification
 			Map<String,Size> protein_name_to_index_;
+			/// index to last real protein (not an indistinguishable subtag)
+			Size master_protein_index_;
 
 			/// protein group
 			ProteinGroup protein_group_;

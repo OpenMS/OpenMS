@@ -76,11 +76,11 @@ namespace OpenMS
 	{
 		prot_id_ = 0;
 		pep_id_ = 0;
-		prot_hit_ = 0;
 		pep_hit_ = 0;
 		protein_name_to_index_.clear();
 		protein_group_ = ProteinGroup();
 		protein_tag_count_ = 0;
+		master_protein_index_=0;
 	}
   
 	void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
@@ -118,13 +118,13 @@ namespace OpenMS
 			// see if the Protein is already known (just a precaution)
 			String protein_name = attributeAsString_(attributes,"protein_name");
 			registerProtein_(protein_name); // create new protein (if required)
-
-			// set reference to protein
-			prot_hit_ = &(prot_id_->getHits()[protein_name_to_index_[protein_name]]);
+			
+			// remember last real protein
+			master_protein_index_ = protein_name_to_index_[protein_name];
 
 			// fill protein with life
-			prot_hit_->setCoverage(attributeAsDouble_(attributes,"percent_coverage"));
-			prot_hit_->setScore(attributeAsDouble_(attributes,"probability"));
+			prot_id_->getHits()[master_protein_index_].setCoverage(attributeAsDouble_(attributes,"percent_coverage"));
+			prot_id_->getHits()[master_protein_index_].setScore(attributeAsDouble_(attributes,"probability"));
 			
 		}
 		else if (tag =="indistinguishable_protein")
@@ -150,7 +150,7 @@ namespace OpenMS
 			pep_hit_->setScore(attributeAsDouble_(attributes,"nsp_adjusted_probability"));
 			// even if the peptide is degenerate, we only store the protein it is found at 
 			// (for the other proteins, the peptides' attributes will be different)
-			pep_hit_->addProteinAccession(prot_hit_->getAccession());
+			pep_hit_->addProteinAccession(prot_id_->getHits()[master_protein_index_].getAccession());
 			pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes,"is_nondegenerate_evidence"))=="Y" ? 1 : 0);
 			pep_hit_->setMetaValue("is_contributing", String(attributeAsString_(attributes,"is_contributing_evidence"))=="Y" ? 1 : 0);
 		}
