@@ -361,7 +361,7 @@ namespace OpenMS
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
 				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			virtual bool checkPositionForPlausibility_ (const TransSpectrum& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
-				const UInt c, const UInt scan_index, const bool check_PPMs) ;
+				const UInt c, const DoubleReal intens, const UInt scan_index, const bool check_PPMs) ;
 			
 			/** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
  				* (in comparison to the averagine model)
@@ -372,7 +372,7 @@ namespace OpenMS
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
 				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			virtual bool checkPositionForPlausibility_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
-				const UInt c, const UInt scan_index, const bool check_PPMs) ;
+				const UInt c, const DoubleReal intens, const UInt scan_index, const bool check_PPMs) ;
 			
 			virtual std::pair<DoubleReal, DoubleReal> checkPPMTheoModel_ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz) ;
 
@@ -1523,7 +1523,7 @@ namespace OpenMS
 	
 			if (bwd_diffs[i]>0 && bwd_diffs[i+1]<0)
 			{	
-				checkPositionForPlausibility_ (candidate, ref, final_box[i].mz, final_box[i].c, scan_index, check_PPMs);	
+				checkPositionForPlausibility_ (candidate, ref, final_box[i].mz, final_box[i].c, final_box[i].intens, scan_index, check_PPMs);	
 				continue;
 			};
 		};
@@ -2085,7 +2085,7 @@ namespace OpenMS
 			
 			if (bwd_diffs[i]>0 && bwd_diffs[i+1]<0)
 			{					
-				checkPositionForPlausibility_ (candidates, ref, final_box[i].mz, final_box[i].c, scan_index, check_PPMs);	
+				checkPositionForPlausibility_ (candidates, ref, final_box[i].mz, final_box[i].c, final_box[i].intens, scan_index, check_PPMs);	
 				continue;
 			};
 		};
@@ -2159,9 +2159,7 @@ namespace OpenMS
 				};
 				av_RT += c_RT;
 			};
-			av_intens /= (DoubleReal)charge_binary_votes[best_charge_index];
-
-			av_mz /= av_intens*(DoubleReal)charge_binary_votes[best_charge_index];
+			av_mz /= av_intens;
 			av_score /= (DoubleReal)charge_binary_votes[best_charge_index];
 			av_RT /= (DoubleReal)c_box.size();
 
@@ -2183,7 +2181,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_ (const MSSpectrum<PeakType>& candidate,
-		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs)
+		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const UInt scan_index, const bool check_PPMs)
 	{
 		typename MSSpectrum<PeakType>::const_iterator iter; 
 		UInt peak_cutoff;
@@ -2233,14 +2231,14 @@ namespace OpenMS
 		UInt real_mz_begin = distance (ref.begin(), real_l_MZ_iter);
 		UInt real_mz_end = distance (ref.begin(), real_r_MZ_iter);
 
-		push2Box_ (real_mz, scan_index, c, c_score, real_intens, ref.getRT(), real_mz_begin, real_mz_end);
+		push2Box_ (real_mz, scan_index, c, c_score, intens, ref.getRT(), real_mz_begin, real_mz_end);
 		return (true);
 	}
 
 
 	template <typename PeakType>
 	bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_ (const TransSpectrum& candidate,
-		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs)
+		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const UInt scan_index, const bool check_PPMs)
 	{
 		typename MSSpectrum<PeakType>::const_iterator iter; 
 		UInt peak_cutoff;
@@ -2289,7 +2287,7 @@ namespace OpenMS
 		UInt real_mz_begin = distance (ref.begin(), real_l_MZ_iter);
 		UInt real_mz_end = distance (ref.begin(), real_r_MZ_iter);
 					
-		push2Box_ (real_mz, scan_index, c, c_score, real_intens, ref.getRT(), real_mz_begin, real_mz_end);
+		push2Box_ (real_mz, scan_index, c, c_score, intens, ref.getRT(), real_mz_begin, real_mz_end);
 		return (true);
 	}
 
