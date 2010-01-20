@@ -79,16 +79,21 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 
 
 elseif (MSVC)
+	## do not use add_definitions
+	## add definitions also lands in stuff like RC_DEFINITION which tend to fail if you use
+	## Eclipse CDT 4 - NMAKE generator
+	## use set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ...") instead
+	
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
 	## disable dll-interface warning
-	list(APPEND CF_OPENMS_ADD_DEFINITIONS "/wd4251 /wd4275")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4275")
 	
 	## disable deprecated functions warning (e.g. for POSIX functions)
-	list(APPEND CF_OPENMS_ADD_DEFINITIONS "/wd4996")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996")
 
 	## disable explicit template instantiation request for partially defined classes
-	list(APPEND CF_OPENMS_ADD_DEFINITIONS "/wd4661")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661")
 	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
@@ -104,10 +109,10 @@ elseif (MSVC)
 	#add_definitions(/DGSL_DLL)
 
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
-	add_definitions(/bigobj)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 	
 	## minimal code rebuild
-	add_definitions(/Gm /Zi)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gm /Zi")
 
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
