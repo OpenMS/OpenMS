@@ -947,6 +947,7 @@ else()
 	
 	## create code that allows to call find_package()
 	## (must come after the above code!)
+	get_directory_property(OPENMS_INCLUDE_DIRS  INCLUDE_DIRECTORIES)
 	configure_file(
 		"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
 		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
