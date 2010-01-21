@@ -173,8 +173,7 @@ namespace OpenMS {
   {
     Param p1;
 
-    // was: 3000 TODO: ???? why 1500
-    SimIntensityType scale = active_feature.getIntensity() * 150;
+    SimIntensityType scale = active_feature.getIntensity();
 
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
@@ -200,14 +199,12 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
-    // was: 3000 TODO: ???? why 1500
-    // TODO: we need to improve this
-    SimIntensityType scale = active_feature.getIntensity() * 1500;
+    SimIntensityType scale = active_feature.getIntensity();
 
     Param p1;
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-    //std::cout << "current feature: " << active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << " with scale " << scale << std::endl;
+    std::cout << "current feature: " << active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << " with scale " << scale << std::endl;
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
     ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
     p1.setValue("statistics:mean", ef.getAverageWeight() / q);
@@ -354,8 +351,9 @@ namespace OpenMS {
       p.setValue("statistics:mean", f_rt);
 
       p.setValue("egh:height", scale);
+      p.setValue("egh:retention", f_rt);
       p.setValue("egh:A", 50.0);
-      p.setValue("egh:B", 90.0);
+      p.setValue("egh:B", 60.0);
 
       elutionmodel->setParameters(p); // does the calculation
 
