@@ -110,7 +110,7 @@ namespace OpenMS
 				Matches a mass of a modified AA to a mod in our modification db
 				For ambigious mods, the first (arbitrary) is returned
 				If no mod is found an error is issued and the return string is empty
-				@hint A duplicate of this function is also used in PepXMLFile
+				@note A duplicate of this function is also used in PepXMLFile
 				
 				@param mass Modified AA's mass
 				@param origin AA one letter code

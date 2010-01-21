@@ -109,9 +109,9 @@ namespace OpenMS
 		/**
 			 @brief Compute the median retention time for each peptide sequence
 			 
-			 @param rt_data lists of RT values for diff. peptide sequences (input, will be sorted)
-			 @param medians median RT values for the peptide sequences (output)
-			 @param are RT lists already sorted? (see @p median_)
+			 @param rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
+			 @param medians Median RT values for the peptide sequences (output)
+			 @param sorted Are RT lists already sorted? (see @p median_)
 			 
 			 @throw Exception::IllegalArgument if the input list is empty
 		*/
@@ -133,7 +133,7 @@ namespace OpenMS
 		/**
 			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs annotated to spectra
 
-			 @param peptides input peptide IDs (lists of peptide hits will be sorted)
+			 @param experiment Input map for RT data
 			 @param rt_data lists of RT values for diff. peptide sequences (output)
 		*/
 		void getRetentionTimes_(MSExperiment<>& experiment, SeqToList& rt_data);
@@ -143,7 +143,7 @@ namespace OpenMS
 
 			 Depending on global parameter @p use_unassigned_peptides, unassigned peptide IDs may be used in addition to assigned IDs
 
-			 @param peptides input peptide IDs (lists of peptide hits will be sorted)
+			 @param features Input features for RT data
 			 @param rt_data lists of RT values for diff. peptide sequences (output)
 		*/
 		void getRetentionTimes_(FeatureMap<>& features, SeqToList& rt_data);
@@ -151,9 +151,9 @@ namespace OpenMS
 		/**
 			 @brief Compute retention time transformations from RT data grouped by peptide sequence
 
-			 @param rt_data lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
-			 @param transforms resulting transformations, per dataset (output)
-			 @param are RT lists already sorted? (see @p median_)
+			 @param rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
+			 @param transforms Resulting transformations, per dataset (output)
+			 @param sorted Are RT lists already sorted? (see @p median_)
 		*/
 		void computeTransformations_(std::vector<SeqToList>& rt_data,
 																 std::vector<TransformationDescription>&

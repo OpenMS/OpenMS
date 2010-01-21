@@ -352,23 +352,25 @@ namespace OpenMS
 				const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff) ;	
 
 
-			/** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
+			/** @brief An ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
  				* (in comparison to the averagine model)
  				* @param candidate The wavelet transformed spectrum containing the candidate.
  				* @param ref The original spectrum containing the candidate.
  				* @param seed_mz The m/z position of the candidate pattern.
  				* @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
+ 				* @param intens Intensity 				
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
 				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			virtual bool checkPositionForPlausibility_ (const TransSpectrum& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
 				const UInt c, const DoubleReal intens, const UInt scan_index, const bool check_PPMs) ;
 			
-			/** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
+			/** @brief An ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
  				* (in comparison to the averagine model)
  				* @param candidate The wavelet transformed spectrum containing the candidate. 
  				* @param ref The original spectrum containing the candidate.
  				* @param seed_mz The m/z position of the candidate pattern.
  				* @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
+ 				* @param intens Intensity
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
 				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			virtual bool checkPositionForPlausibility_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 

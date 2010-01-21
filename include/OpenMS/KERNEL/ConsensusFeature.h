@@ -240,6 +240,9 @@ namespace OpenMS
        weight(H+) * charge.
 
        @note This method has to be called explicitly, <i>after</i> adding the feature handles.
+       
+       @param fm Input feature map, which provides additional information on the features
+       @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
 		void computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging=false);
 

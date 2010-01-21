@@ -56,8 +56,6 @@ using namespace std;
 
 	For more information on these algorithms, including their individual parameters, see also the documentation of the respective classes ("MapAlignmentAlgorithm...").
 
-  .
-
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MapAligner.cli
 */
