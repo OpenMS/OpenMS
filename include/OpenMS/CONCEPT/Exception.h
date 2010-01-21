@@ -790,7 +790,7 @@ namespace OpenMS
 			
 			@ingroup Exceptions
 		*/
-		std::ostream& operator << (std::ostream& os, const Exception::BaseException& e);
+		OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Exception::BaseException& e);
 	
 } // namespace OPENMS
 

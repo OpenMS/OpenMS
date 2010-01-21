@@ -27,6 +27,8 @@
 
 
 #include <OpenMS/APPLICATIONS/INIFileEditorWindow.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QApplication>
@@ -82,11 +84,20 @@ int main(int argc, const char** argv)
 	if (param.exists("print"))
 	{
 		Param data;
-		data.load(param.getValue("print"));
-		for (Param::ParamIterator it=data.begin(); it!=data.end(); ++it)
+		try
 		{
-			cout << it.getName() << " = " << it->value << endl;
+			data.load(param.getValue("print"));
+			for (Param::ParamIterator it=data.begin(); it!=data.end(); ++it)
+			{
+				cout << it.getName() << " = " << it->value << endl;
+			}
 		}
+		catch (Exception::BaseException &e)
+		{
+			LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
+			LOG_ERROR << e << "\n";
+		}
+		
 		return 0;
 	}
 	
