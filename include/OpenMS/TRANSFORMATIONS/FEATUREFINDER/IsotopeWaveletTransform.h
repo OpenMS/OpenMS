@@ -39,6 +39,7 @@
 #include <cmath>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_statistics_double.h>
+#include <boost/math/special_functions/bessel.hpp>
 #include <math.h>
 #include <vector>
 #include <map>
@@ -2104,7 +2105,7 @@ namespace OpenMS
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		UInt best_charge_index; DoubleReal best_charge_score, c_mz, c_RT; UInt c_charge;
-		DoubleReal av_intens=0, av_score=0, av_mz=0, av_RT=0, mz_cutoff;
+		DoubleReal av_intens=0, av_score=0, av_mz=0, av_RT=0, mz_cutoff, lambda;
 		ConvexHull2D c_conv_hull;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
@@ -2170,6 +2171,9 @@ namespace OpenMS
 			c_feature.setCharge (c_charge);
 			c_feature.setConvexHulls (std::vector<ConvexHull2D> (1, c_conv_hull));
 			
+			//This makes the intensity value independent of the m/z (the lambda) value (Skellam distribution)
+			lambda = IsotopeWavelet::getLambdaL(av_mz*c_charge);
+			av_intens /= exp(-2*lambda) * boost::math::cyl_bessel_i(0, 2*lambda);
 			c_feature.setMZ (av_mz);
 			c_feature.setIntensity (av_intens);
 			c_feature.setRT (av_RT);
