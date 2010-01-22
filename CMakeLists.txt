@@ -59,7 +59,7 @@ include (cmake/macros.cmake)
 ########################################################
 
 ## fill this with compile flags that external projects should use as well
-set(CF_OPENMS_ADD_DEFINITIONS)
+set(CF_OPENMS_ADDCXX_FLAGS)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	if (MT_ENABLE_CUDA)
@@ -82,18 +82,16 @@ elseif (MSVC)
 	## do not use add_definitions
 	## add definitions also lands in stuff like RC_DEFINITION which tend to fail if you use
 	## Eclipse CDT 4 - NMAKE generator
-	## use set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ...") instead
-	
-	#add_definitions(/Wall) ## disable for now.. its just too much!
+	## use set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} ...") instead
 
 	## disable dll-interface warning
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4275")
+	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4251 /wd4275")
 	
 	## disable deprecated functions warning (e.g. for POSIX functions)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996")
+	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4996")
 
 	## disable explicit template instantiation request for partially defined classes
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661")
+	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4661")
 	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
@@ -118,8 +116,7 @@ else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
 
-
-add_definitions(${CF_OPENMS_ADD_DEFINITIONS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 
 ##### Parallelization things
 #################################
@@ -915,21 +912,34 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	endif()
 
 else()
-	## grep definitions that were set using 'add_definitions()'
+
+######################################################
+#### build settings and configs for external code ####
+######################################################
+
+	## grep definitions (-D<XXX>) that were set using 'add_definitions()'
 	get_property(OPENMS_CMP_DEFS DIRECTORY . PROPERTY COMPILE_DEFINITIONS)
-	
 	## convert to CXX flags
-	set(CF_OPENMS_ADDCXX_FLAGS)
-	#
 	foreach(i ${OPENMS_CMP_DEFS})
 		set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} -D${i}")
 	endforeach(i)
-
-	
-	# build settings and  configs for external code
-	## note: export_build_settings and
-	##       export_library_dependencies are deprecated and should not be used
+	## for add_definition commands (currently empty, but who knows...)
+	set(CF_OPENMS_ADD_DEFINITIONS)
+	## the filename for library settings (this file will be included in OpenMSConfig.cmake)
 	set(CF_LibOpenMSExport ${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryExport.cmake)
+	
+	## create code that allows to call find_package()
+	## (must come after the above code that sets the variables!)
+	get_directory_property(OPENMS_INCLUDE_DIRS  INCLUDE_DIRECTORIES)
+	configure_file(
+		"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
+		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
+		@ONLY
+	)
+
+	## Create OpenMSLibraryExport.cmake:
+	## Note: export_build_settings and
+	##       export_library_dependencies are deprecated and should not be used
 	if ("${INSTALL_PREFIX}" STREQUAL ".")
 		string(COMPARE LESS ${CMAKE_MINOR_VERSION} "8" CMAKE_DEPRECATED_VERSION)
 		if (${CMAKE_DEPRECATED_VERSION})
@@ -944,15 +954,6 @@ else()
 		include(cmake/install.cmake)
 	endif()
 
-	
-	## create code that allows to call find_package()
-	## (must come after the above code!)
-	get_directory_property(OPENMS_INCLUDE_DIRS  INCLUDE_DIRECTORIES)
-	configure_file(
-		"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
-		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
-		@ONLY
-	)
 	
 endif()
 

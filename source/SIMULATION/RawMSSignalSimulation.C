@@ -108,9 +108,9 @@ namespace OpenMS {
     defaults_.setValue("peak_fwhm",0.5,"FWHM (full width at half maximum) of simulated peaks (Da).");
 
     // shot noise
-    defaults_.setValue("noise:rate",0.0,"Poisson rate of shot noise. Set to 0 to disable simulation of shot noise.");
+    defaults_.setValue("noise:rate",0.0,"Poisson rate of shot noise per unit m/z. Set to 0 to disable simulation of shot noise.");
     defaults_.setMinFloat("noise:rate",0.0);
-    defaults_.setValue("noise:int-mean",50.0,"Shot noise intensity mean.");
+    defaults_.setValue("noise:int-mean",50.0,"Shot noise intensity mean (gaussian distributed).");
 
     // baseline
     defaults_.setValue("baseline:scaling",0.0,"Scale of baseline. Set to 0 to disable simulation of baseline.");
