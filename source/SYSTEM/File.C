@@ -202,12 +202,23 @@ namespace OpenMS
   
   String File::getOpenMSDataPath()
   {
+		String path;
 		if (getenv("OPENMS_DATA_PATH") != 0)
 		{
-			return getenv("OPENMS_DATA_PATH");
+			path = getenv("OPENMS_DATA_PATH");
+		}
+		else
+		{
+			path = OPENMS_DATA_PATH;
 		}
 		
-		return OPENMS_DATA_PATH;
+		if (!exists(path))
+		{ // now we're in big trouble as './share' is not were its supposed to be...
+			std::cerr << "OpenMS FATAL ERROR!\nExpected shared data to be at '" << path << "'! OpenMS cannot function without it! Exiting ...\n";
+			exit(1);
+		}
+		
+		return path;
   }
 
 	String File::removeExtension(const OpenMS::String& file) 
