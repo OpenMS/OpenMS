@@ -1,7 +1,7 @@
 
-   OpenMS is a C++ library for shotgun proteomics.
+   OpenMS is a C++ library for mass spectrometry.
 
-   Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+   Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
    
    
    This library is free software; you can redistribute it and/or
