@@ -195,6 +195,21 @@ class TOPPPeptideIndexer
 						target_decoy = "target+decoy";
 					}
 					it2->setMetaValue("target_decoy", target_decoy);
+					if (it2->getProteinAccessions().size() == 1)
+					{
+						it2->setMetaValue("protein_references", "unique");
+					}
+					else
+					{
+						if (it2->getProteinAccessions().size() > 1)
+						{
+							it2->setMetaValue("protein_references", "non-unique");
+						}
+						else
+						{
+							it2->setMetaValue("protein_references", "unmatched");
+						}
+					}
 				}
 				it1->setHits(hits);
 			}

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -152,6 +152,7 @@ class TOPPIDFilter
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
 		registerFlag_("first_dim_rt","If this flag is set rt filtering will be pursued for first_dim.");
 		registerFlag_("unique","If this flag is set and a peptide hit occurs more than once, only one instance is kept.");
+		registerFlag_("unique_per_protein","If this flag is set, only peptides matching exactly one protein are kept.");
 	}
 
 	ExitCodes main_(int , const char**)
@@ -206,6 +207,7 @@ class TOPPIDFilter
 
 		bool strict = getFlag_("best_hits");
 		bool no_protein_identifiers = getFlag_("no_protein_identifiers_in_seq_filter");
+		bool unique_per_protein = getFlag_("unique_per_protein");
 	
 		//-------------------------------------------------------------
 		// reading input
@@ -241,6 +243,23 @@ class TOPPIDFilter
 		// Filtering peptide identifications	according to set criteria
 		for (Size i = 0; i < identifications.size(); i++)
 		{
+			if (unique_per_protein)
+			{
+				vector<PeptideHit> hits;
+				for (vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); it != identifications[i].getHits().end(); ++it)
+				{
+					if (it->metaValueExists("protein_references"))
+					{
+						writeLog_("IDFilter: Warning, filtering with 'unique_per_protein' can only be done after indexing the file with 'PeptideIndexer' first.");
+					}
+					if (it->metaValueExists("protein_references") && (String)it->getMetaValue("protein_references") == "unique")
+					{
+						hits.push_back(*it);
+					}
+				}
+				identifications[i].setHits(hits);
+			}
+
 			if (fabs(peptide_significance_threshold_fraction - 0) < 0.00001)
 			{
 				filtered_identification = identifications[i];
