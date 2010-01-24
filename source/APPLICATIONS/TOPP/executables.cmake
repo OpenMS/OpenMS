@@ -58,6 +58,7 @@ CompNovo
 PeptideIndexer
 PrecursorMassCorrector
 GenericWrapper
+ProteinInference
 )
 
 ### add filenames to Visual Studio solution tree
