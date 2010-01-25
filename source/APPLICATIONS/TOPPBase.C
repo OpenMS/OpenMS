@@ -2020,6 +2020,7 @@ namespace OpenMS
     tools_map["SILACAnalyzer"] = StringList::create("double,triple");
     tools_map["PrecursorMassCorrector"] = StringList::create("");
     tools_map["GenericWrapper"] = StringList::create("");
+    tools_map["ProteinInference"] = StringList::create("");
 
 		return tools_map;
 	}
