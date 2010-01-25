@@ -154,6 +154,70 @@ namespace OpenMS
 				return !(operator==(rhs));
 			}
 
+			
+			/**
+				@brief Joins two feature maps.
+				
+				Features are merged into one container
+				(see operator+= for details)
+			
+			*/
+			FeatureMap operator + (const FeatureMap& rhs) const
+			{
+				FeatureMap tmp(*this);
+				tmp +=rhs;
+				return tmp;
+			}
+
+
+			/**
+				@brief Add one feature map to another.
+				
+				Features are merged into one container, simply by appending.
+				UnassignedPeptides and ProteinIdentifications are appended.
+				Information on DocumentIdentifier, UniqueIdInterface (of container only)
+				are reset to default.
+			
+				For conflicting UID's, new UID's will be assigned.
+				
+				@param rhs The feature to add to this one.
+			*/
+			FeatureMap& operator+= (const FeatureMap& rhs)
+			{
+				FeatureMap empty_map;
+				// reset these:
+				RangeManagerType::operator=(empty_map);
+				
+				if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+				DocumentIdentifier::operator=(empty_map);
+				
+				UniqueIdInterface::operator =(empty_map);
+				
+				// merge these:
+				protein_identifications_.insert(protein_identifications_.end(),rhs.protein_identifications_.begin(),rhs.protein_identifications_.end());
+				unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(),rhs.unassigned_peptide_identifications_.end());
+				data_processing_.insert(data_processing_.end(),rhs.data_processing_.begin(), rhs.data_processing_.end());
+					
+				// append features:
+				this->insert(this->end(), rhs.begin(), rhs.end());
+				
+				// todo: check for double entries
+				// features, unassignedpeptides, proteins...
+				
+				// consistency
+				try
+				{
+					updateUniqueIdToIndex();
+				}
+				catch (Exception::Postcondition /*&e*/)
+				{ // assign new UID's for conflicting entries
+					Size replaced_uids = resolveUniqueIdConflicts();
+					LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
+				}
+				
+				return *this;
+			}
+			
 			/**	
 				@name Sorting.
 				These simplified sorting methods are supported in addition to	
@@ -382,7 +446,7 @@ namespace OpenMS
 			/// protein identifications
 			std::vector<ProteinIdentification> protein_identifications_;
 
-			/// protein identifications
+			/// peptide identifications not matched to a specific feature
 			std::vector<PeptideIdentification> unassigned_peptide_identifications_;
 			
 			/// applied data processing

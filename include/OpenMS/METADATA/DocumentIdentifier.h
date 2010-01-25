@@ -72,10 +72,10 @@ namespace OpenMS
        */
       //@{
 
-			/// retrieve computed zero-charge feature map
+			/// set document identifier (e.g. an LSID)
       void setIdentifier(const String& id);
 
-      /// retrieve computed zero-charge feature map
+      /// retrieve document identifier (e.g. an LSID)
       const String& getIdentifier() const;
 
 			/// exchange content with @p from

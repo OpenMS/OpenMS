@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2001-02-03T04:05:07">
+		<software name="Software1" version="0.91a" />
+		<processingAction name="Deisotoping" />
+		<userParam type="string" name="name" value="dataProcessing"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2001-02-03T04:05:06">
+		<software name="Software2" version="0.92a" />
+		<processingAction name="Smoothing" />
+		<processingAction name="Baseline reduction" />
+	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="MapAligner" version="version_string" />
+		<processingAction name="Retention time alignment" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileMerger" version="version_string" />
+		<processingAction name="File format conversion" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="9">
+		<feature id="f_16627578304933075941">
+			<position dim="0">25</position>
+			<position dim="1">0</position>
+			<intensity>300</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<model name="OlesModel">
+				<param name="a" value="5"/>
+				<param name="b" value="10"/>
+			</model>
+			<subordinate>
+				<feature id="f_16627578304933075941_0">
+					<position dim="0">24</position>
+					<position dim="1">0</position>
+					<intensity>320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>1</charge>
+				</feature>
+				<feature id="f_16627578304933075941_1">
+					<position dim="0">23</position>
+					<position dim="1">11</position>
+					<intensity>11320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>2</charge>
+				</feature>
+			</subordinate>
+			<userParam type="string" name="stringparametername" value="stringparametervalue"/>
+			<userParam type="int" name="intparametername" value="4"/>
+			<userParam type="float" name="floatparametername" value="4.551"/>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">25</position>
+			<position dim="1">0</position>
+			<intensity>300</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<model name="OlesModel">
+				<param name="a" value="5"/>
+				<param name="b" value="10"/>
+			</model>
+			<subordinate>
+				<feature id="f_1_0">
+					<position dim="0">24</position>
+					<position dim="1">0</position>
+					<intensity>320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>1</charge>
+					<subordinate>
+						<feature id="f_1_0_0">
+							<position dim="0">24</position>
+							<position dim="1">0</position>
+							<intensity>320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>1</charge>
+						</feature>
+						<feature id="f_1_0_1">
+							<position dim="0">24</position>
+							<position dim="1">0</position>
+							<intensity>320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>1</charge>
+						</feature>
+						<feature id="f_1_0_2">
+							<position dim="0">24</position>
+							<position dim="1">0</position>
+							<intensity>320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>1</charge>
+						</feature>
+						<feature id="f_1_0_3">
+							<position dim="0">24</position>
+							<position dim="1">0</position>
+							<intensity>320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>1</charge>
+						</feature>
+						<feature id="f_1_0_4">
+							<position dim="0">23</position>
+							<position dim="1">11</position>
+							<intensity>11320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>2</charge>
+							<model name="OlesModel">
+								<param name="a" value="5"/>
+								<param name="b" value="10"/>
+							</model>
+							<convexhull nr="0">
+								<hullpoint>
+									<hposition dim="0">1.5</hposition>
+									<hposition dim="1">1.8</hposition>
+								</hullpoint>
+								<hullpoint>
+									<hposition dim="0">2.5</hposition>
+									<hposition dim="1">2.8</hposition>
+								</hullpoint>
+							</convexhull>
+							<convexhull nr="1">
+								<hullpoint>
+									<hposition dim="0">1.5</hposition>
+									<hposition dim="1">1.8</hposition>
+								</hullpoint>
+								<hullpoint>
+									<hposition dim="0">2.5</hposition>
+									<hposition dim="1">2.8</hposition>
+								</hullpoint>
+							</convexhull>
+							<convexhull nr="2">
+								<hullpoint>
+									<hposition dim="0">1.5</hposition>
+									<hposition dim="1">1.8</hposition>
+								</hullpoint>
+								<hullpoint>
+									<hposition dim="0">2.5</hposition>
+									<hposition dim="1">2.8</hposition>
+								</hullpoint>
+							</convexhull>
+						</feature>
+					</subordinate>
+				</feature>
+				<feature id="f_1_1">
+					<position dim="0">23</position>
+					<position dim="1">11</position>
+					<intensity>11320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>2</charge>
+					<subordinate>
+						<feature id="f_1_1_0">
+							<position dim="0">24</position>
+							<position dim="1">0</position>
+							<intensity>320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>1</charge>
+							<model name="OlesModel">
+								<param name="a" value="5"/>
+								<param name="b" value="10"/>
+							</model>
+							<convexhull nr="0">
+								<hullpoint>
+									<hposition dim="0">1.5</hposition>
+									<hposition dim="1">1.8</hposition>
+								</hullpoint>
+								<hullpoint>
+									<hposition dim="0">2.5</hposition>
+									<hposition dim="1">2.8</hposition>
+								</hullpoint>
+							</convexhull>
+						</feature>
+						<feature id="f_1_1_1">
+							<position dim="0">23</position>
+							<position dim="1">11</position>
+							<intensity>11320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>2</charge>
+							<subordinate>
+								<feature id="f_1_1_1_0">
+									<position dim="0">24</position>
+									<position dim="1">0</position>
+									<intensity>320</intensity>
+									<quality dim="0">0.1</quality>
+									<quality dim="1">0</quality>
+									<overallquality>0.1</overallquality>
+									<charge>1</charge>
+								</feature>
+								<feature id="f_1_1_1_1">
+									<position dim="0">23</position>
+									<position dim="1">11</position>
+									<intensity>11320</intensity>
+									<quality dim="0">0.1</quality>
+									<quality dim="1">0</quality>
+									<overallquality>0.1</overallquality>
+									<charge>2</charge>
+									<subordinate>
+										<feature id="f_1_1_1_1_0">
+											<position dim="0">24</position>
+											<position dim="1">0</position>
+											<intensity>320</intensity>
+											<quality dim="0">0.1</quality>
+											<quality dim="1">0</quality>
+											<overallquality>0.1</overallquality>
+											<charge>1</charge>
+											<model name="OlesModel">
+												<param name="a" value="5"/>
+												<param name="b" value="10"/>
+											</model>
+											<convexhull nr="0">
+												<hullpoint>
+													<hposition dim="0">1.5</hposition>
+													<hposition dim="1">1.8</hposition>
+												</hullpoint>
+												<hullpoint>
+													<hposition dim="0">2.5</hposition>
+													<hposition dim="1">2.8</hposition>
+												</hullpoint>
+											</convexhull>
+										</feature>
+										<feature id="f_1_1_1_1_1">
+											<position dim="0">23</position>
+											<position dim="1">11</position>
+											<intensity>11320</intensity>
+											<quality dim="0">0.1</quality>
+											<quality dim="1">0</quality>
+											<overallquality>0.1</overallquality>
+											<charge>2</charge>
+										</feature>
+									</subordinate>
+								</feature>
+							</subordinate>
+						</feature>
+					</subordinate>
+				</feature>
+			</subordinate>
+			<userParam type="string" name="stringparametername" value="stringparametervalue"/>
+			<userParam type="int" name="intparametername" value="4"/>
+			<userParam type="float" name="floatparametername" value="4.551"/>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">0</position>
+			<position dim="1">35</position>
+			<intensity>500</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<model name="OlesModel">
+				<param name="a" value="5"/>
+				<param name="b" value="10"/>
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">1.5</hposition>
+					<hposition dim="1">1.8</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2.5</hposition>
+					<hposition dim="1">2.8</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		<feature id="f_13229490167902618598">
+			<position dim="0">64</position>
+			<position dim="1">10</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_5024549519481199379">
+			<position dim="0">64</position>
+			<position dim="1">10.0001</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">117</position>
+			<position dim="1">110.0003</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">117</position>
+			<position dim="1">110.0004</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">182</position>
+			<position dim="1">1999.995</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">182</position>
+			<position dim="1">2000.007</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+	</featureList>
+</featureMap>

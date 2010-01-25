@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl, Chris Bielow $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -140,6 +140,30 @@ START_SECTION((void updateUniqueIdToIndex() const))
 }
 END_SECTION
 
+START_SECTION((Size resolveUniqueIdConflicts()))
+  DummyVectorIndexed dvi;
+  Size num_uii = 10;
+  dvi.resize(num_uii);
+  for ( Size i = 0; i < num_uii; ++i )
+  {
+    dvi[i].dummy = i;
+    dvi[i].setUniqueId(10*i+1000);
+  }
+  
+  TEST_EQUAL(dvi.resolveUniqueIdConflicts(), 0);
+  
+  // introduce three doubles
+  Dummy a,b;
+  a.setUniqueId(1000);
+  b.setUniqueId(1000+30);
+  dvi.push_back(a);
+  dvi.push_back(b);
+	dvi.push_back(b);
+	TEST_EXCEPTION(Exception::Postcondition,dvi.updateUniqueIdToIndex());
+	TEST_EQUAL(dvi.resolveUniqueIdConflicts(), 3);
+
+END_SECTION
+
 START_SECTION((void swap(UniqueIdIndexer &rhs)))
 {
 
@@ -178,6 +202,8 @@ START_SECTION((void swap(UniqueIdIndexer &rhs)))
 
 }
 END_SECTION
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

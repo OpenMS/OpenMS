@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl, Chris Bielow $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -29,6 +29,7 @@
 #define OPENMS_CONCEPT_UNIQUEIDINDEXER_H
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #ifdef _MSC_VER // disable some BOOST warnings that distract from ours
 #	pragma warning( push ) // save warning state
@@ -138,6 +139,49 @@ template < typename RandomAccessContainer >
         }
         return;
       }
+      
+      /**
+				@brief Assign new UID's to doubly occuring UID's
+				
+				Assign new UID's to non-unique UID's. This usually occurs in merging of
+				'old' feature files, which have sequentially increasing UID's.
+				Conflicting entries receive a new UID, such that all UID's are unique in the container.
+				
+				@Note Subordinate features are not checked and may remain non-unique. However,
+				they are associated to their parent which makes identification 'unique'.
+				
+				@return The number of invalid (=replaced) elements
+				
+      */
+      Size
+      resolveUniqueIdConflicts()
+      {
+				Size invalid_uids(0);
+				uniqueid_to_index_.clear();
+        // add unique id of existing features
+        for ( Size index = 0; index < getBase_().size(); ++index )
+        {
+          UInt64 unique_id = getBase_()[index].getUniqueId();
+          if (! UniqueIdInterface::isValid(unique_id) )
+          {
+						getBase_()[index].ensureUniqueId();
+						unique_id = getBase_()[index].getUniqueId();
+          }
+          
+          // see if UID already present
+          while (uniqueid_to_index_.find(unique_id) != uniqueid_to_index_.end())
+          { // double entry!
+						getBase_()[index].setUniqueId();
+						unique_id = getBase_()[index].getUniqueId();
+						++invalid_uids;
+          }
+          
+          uniqueid_to_index_[unique_id] = index;
+          
+        }
+        
+        return invalid_uids;
+      }
 
       /**@brief Swap.
        *
@@ -161,6 +205,17 @@ template < typename RandomAccessContainer >
       {
         return *static_cast<const RandomAccessContainer*> (this);
       }
+
+      /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
+       *
+       * This is just a static_cast and probably not interesting elsewhere, so we make it a protected member.
+       */
+      RandomAccessContainer&
+      getBase_()
+      {
+        return *static_cast<RandomAccessContainer*> (this);
+      }
+
 
       /**@brief hash map from unique id to index of features
        *
