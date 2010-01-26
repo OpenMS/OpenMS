@@ -280,7 +280,7 @@ namespace OpenMS
 		}
 	}
 
-	bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<DoubleReal, DoubleReal> >& spectrum, UInt& charge, DoubleReal& precursor_mz, DoubleReal& precursor_int, DoubleReal& rt, String& title)
+	bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<DoubleReal, DoubleReal> >& spectrum, UInt& charge, DoubleReal& precursor_mz, DoubleReal& precursor_int, DoubleReal& rt, String& title, Size& line_number)
 	{
 		bool ok(false);
 		spectrum.clear();
@@ -292,12 +292,14 @@ namespace OpenMS
 		// seek to next peak list block
 		while (getline(is, line, '\n'))
 		{
+			++line_number;
 			// found peak list block?
 			if (line.trim() == "BEGIN IONS")
 			{
 				ok = false;
 				while (getline(is, line, '\n'))
 				{
+					++line_number;
 					// parse precursor position
 					if (line.trim().hasPrefix("PEPMASS"))
 					{
@@ -318,7 +320,7 @@ namespace OpenMS
 							}
 							else
 							{
-								throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "cannot parse PEPMASS: " + line, "");
+								throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "cannot parse PEPMASS: " + line + " in line " + String(line_number), "");
 							}
 						}
 					}
@@ -409,8 +411,8 @@ namespace OpenMS
 									throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
 								}
 							}
-						}
-						while(getline(is, line, '\n') && line.trim() != "END IONS");
+						}	while(getline(is, line, '\n') && ++line_number && line.trim() != "END IONS");
+						
 						if (line.trim() == "END IONS")
 						{
 							// found spectrum
@@ -418,7 +420,7 @@ namespace OpenMS
 						}
 						else
 						{
-							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
 						}
 					}
 				}

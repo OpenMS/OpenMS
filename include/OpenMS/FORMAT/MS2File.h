@@ -92,8 +92,14 @@ namespace OpenMS
 
 				String line;
 				bool first_spec(true);
+				
+				// line number counter
+				Size line_number = 0;
+				
 				while (getline(in, line, '\n'))
 				{
+					++line_number;
+					
 					line.trim();
 					if (line.size() == 0) continue;
 
@@ -122,7 +128,7 @@ namespace OpenMS
 						line.split(' ', split);
 						if (split.size() != 4)
 						{
-							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line '" + line  + "' should contain four values!", "");
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line (" + String(line_number) + ") '" + line  + "' should contain four values, got " + String(split.size()) + "!", "");
 						}
 						spec.getPrecursors().resize(1);
 						spec.getPrecursors()[0].setMZ(split[3].toDouble());
@@ -153,12 +159,18 @@ namespace OpenMS
 					line.split(' ', split);
 					if (split.size() != 2)
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line '" + line  + "' should contain two values!", "");
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line (" + String(line_number) + ") '" + line  + "' should contain two values, got " + String(split.size()) + "!", "");
 					}
 
-					// TODO catch exceptions
-					p.setPosition(split[0].toDouble());
-					p.setIntensity(split[1].toFloat());
+					try
+					{
+						p.setPosition(split[0].toDouble());
+						p.setIntensity(split[1].toFloat());
+					}
+					catch (Exception::ConversionError /*&e*/)
+					{
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
+					}
 					spec.push_back(p);
 				}
 

@@ -209,7 +209,7 @@ namespace OpenMS
 									}
 									catch (...)
 									{
-										writeLog_(String("Failed to convert metavalue 'charge' into integer (line '") + i + ")");
+										writeLog_(String("Failed to convert metavalue 'charge' into integer (line '") + (i+1) + ")");
 									}
 								}
 							}
@@ -246,22 +246,47 @@ namespace OpenMS
 						
 						//create feature
 						Feature f;
-						f.setMZ(parts[2].toDouble());
-						f.setCharge(parts[6].toInt());
-						f.setRT(parts[1].toDouble());
-						f.setOverallQuality(parts[8].toDouble());
-						f.setIntensity(parts[5].toDouble());
-						f.setMetaValue("accurateMZ",parts[3]);
-						f.setMetaValue("mass",parts[4].toDouble());
-						f.setMetaValue("chargeStates",parts[7].toInt());
-						f.setMetaValue("background",parts[9].toDouble());
-						f.setMetaValue("median",parts[10].toDouble());
-						f.setMetaValue("peaks",parts[11].toInt());
-						f.setMetaValue("scanFirst",parts[12].toInt());
-						f.setMetaValue("scanLast",parts[13].toInt());
-						f.setMetaValue("scanCount",parts[14].toInt());
-						f.setMetaValue("totalIntensity",parts[15].toDouble());
-						f.setMetaValue("sumSquaresDist",parts[16].toDouble());
+						Size column_to_convert=0;
+						try
+						{
+							column_to_convert = 1;
+							f.setRT(parts[1].toDouble());
+							column_to_convert = 2;
+							f.setMZ(parts[2].toDouble());
+							column_to_convert = 5;
+							f.setIntensity(parts[5].toDouble());
+							column_to_convert = 6;
+							f.setCharge(parts[6].toInt());
+							column_to_convert = 8;
+							f.setOverallQuality(parts[8].toDouble());
+
+							column_to_convert = 3;
+							f.setMetaValue("accurateMZ",parts[3]);
+							column_to_convert = 4;
+							f.setMetaValue("mass",parts[4].toDouble());
+							column_to_convert = 7;
+							f.setMetaValue("chargeStates",parts[7].toInt());
+							column_to_convert = 9;
+							f.setMetaValue("background",parts[9].toDouble());
+							column_to_convert = 10;
+							f.setMetaValue("median",parts[10].toDouble());
+							column_to_convert = 11;
+							f.setMetaValue("peaks",parts[11].toInt());
+							column_to_convert = 12;
+							f.setMetaValue("scanFirst",parts[12].toInt());
+							column_to_convert = 13;
+							f.setMetaValue("scanLast",parts[13].toInt());
+							column_to_convert = 14;
+							f.setMetaValue("scanCount",parts[14].toInt());
+							column_to_convert = 15;
+							f.setMetaValue("totalIntensity",parts[15].toDouble());
+							column_to_convert = 16;
+							f.setMetaValue("sumSquaresDist",parts[16].toDouble());
+						}
+						catch (Exception::BaseException /*&e*/)
+						{
+							writeLog_(String("Failed to convert value in column ") + String(column_to_convert+1) + "into a number (line '" + (i+1) + ")");
+						}
 						f.setMetaValue("description",parts[17]);
 						feature_map.push_back(f);
 					}
@@ -276,11 +301,18 @@ namespace OpenMS
 						String line = input[i];
 						
 						Feature f;
-						f.setMZ(line.substr(0,12).toDouble());
-						f.setCharge(line.substr(36,12).toInt());
-						f.setRT(line.substr(12,12).toDouble() *60.0);
-						f.setIntensity(line.substr(48,12).toDouble());
-						f.setMetaValue("s/n",line.substr(24,12).toDouble());
+						try
+						{						
+							f.setMZ(line.substr(0,12).toDouble());
+							f.setCharge(line.substr(36,12).toInt());
+							f.setRT(line.substr(12,12).toDouble() *60.0);
+							f.setIntensity(line.substr(48,12).toDouble());
+							f.setMetaValue("s/n",line.substr(24,12).toDouble());
+						}
+						catch (Exception::BaseException /*&e*/)
+						{
+							writeLog_(String("Failed to convert value into a number (line '") + (i+1) + ")");
+						}
 						feature_map.push_back(f);
 					}
 				}
@@ -300,6 +332,7 @@ namespace OpenMS
 						if (parts.size() != 14)
 						{
 							std::cerr << "Line #" << (i+1) << " does not have the expected 14 tab-separated entries. Skipping this line!\n";
+							continue;
 						}
 						//create feature
 						Feature f;

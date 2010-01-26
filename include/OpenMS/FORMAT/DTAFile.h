@@ -81,7 +81,10 @@ namespace OpenMS
 				std::vector<String> strings(2);
 				typename SpectrumType::PeakType p;
 				char delimiter;
-				
+			
+				// line number counter
+				Size line_number = 1;
+							
 				//read first line and store precursor m/z and charge
 				getline(is,line,'\n');
 				line.trim();
@@ -101,7 +104,7 @@ namespace OpenMS
 					line.split(delimiter,strings);
 					if (strings.size()!=2)
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\" (got  " + String(strings.size()) + ", expected 2 entries)" ,filename);
 					}
 					Precursor precursor;
 					double mh_mass = strings[0].toDouble();
@@ -119,11 +122,12 @@ namespace OpenMS
 				}
 				catch(...)
 				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\"" ,filename);
 				}
 				
 		    while (getline(is,line,'\n'))
 		    {
+					++line_number;
 		    	line.trim();
 					if ( line.empty() ) continue;
 					
@@ -142,7 +146,7 @@ namespace OpenMS
 						line.split(delimiter,strings);
 						if (strings.size()!=2)
 						{
-							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\" (got  " + String(strings.size()) + ", expected 2 entries)" ,filename);
 						}				
 						
 						//fill peak
@@ -151,7 +155,7 @@ namespace OpenMS
 					} 
 					catch ( Exception::BaseException & /*e*/ )
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\"" ,filename);
 					}
 					spectrum.push_back(p);
 				}

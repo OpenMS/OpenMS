@@ -57,11 +57,16 @@ namespace OpenMS
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "first line does not contain a description", "");
 		}
-		
+
+		// line number counter
+		Size line_number = 0;
+				
 		// ignore first line
 		Int actual_spectrum_number(-1);
 		while (getline(is, line, '\n'))
 		{
+			++line_number;
+			
 			// Spectrum number, Filename/id, Peptide, E-value, Mass, gi, Accession, Start, Stop, Defline, Mods, Charge, Theo Mass, P-value
 			// 1,,MSHHWGYGK,0.00336754,1101.49,0,6599,1,9,CRHU2 carbonate dehydratase (EC 4.2.1.1) II [validated] - human,,1,1101.48,1.30819e-08
 			line.trim();
@@ -83,7 +88,7 @@ namespace OpenMS
 			line.split(',', split);
 			if (split.size() != 14 && split.size() != 14 + offset)
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "number of columns should be 14");
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "number of columns should be 14 in line " + String(line_number));
 			}
 			PeptideHit p;
 			p.setSequence(split[2].trim());

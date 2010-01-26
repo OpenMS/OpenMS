@@ -87,7 +87,8 @@ namespace OpenMS
 				double pre_mz(0), pre_int(0), rt(-1);
 				String title;
 				UInt spectrum_number = 0;
-				while (getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title))
+				Size line_number=0;
+				while (getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title, line_number))
 				{
 					typename MapType::SpectrumType spectrum;
 					for (std::vector<std::pair<double, double> >::const_iterator it = spec.begin(); it != spec.end(); ++it)
@@ -136,7 +137,7 @@ namespace OpenMS
 			void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
 
 			/// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a mgf file
-			bool getNextSpectrum_(std::istream& is, std::vector<std::pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title);
+			bool getNextSpectrum_(std::istream& is, std::vector<std::pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title, Size& line_number);
   };
 
 } // namespace OpenMS

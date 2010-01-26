@@ -40,7 +40,7 @@ namespace OpenMS
 /**
 @brief Iterator over FASTA file
 
-iterates over FASTA file without loading it into memory. It just holds just one entry in memory.
+Iterates over FASTA file without loading it into memory. It holds just one entry in memory.
 @see FastaIteratorIntern.h
 */ 
 class OPENMS_DLLAPI FastaIterator : public PepIterator
