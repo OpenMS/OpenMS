@@ -128,25 +128,6 @@ class TOPPFileMerger
 		//output file names and types
 		String out_file = getStringOption_("out");
 
-		//rt
-		bool rt_auto_number = getFlag_("rt_auto");
-		bool rt_filename = getFlag_("rt_filename");
-		bool rt_custom = false;
-		DoubleList custom_rts = getDoubleList_("rt_custom");
-		if (custom_rts.size()!=0)
-		{
-			rt_custom = true;
-			if (custom_rts.size()!=file_list.size())
-			{
-				writeLog_("Custom retention time list must have as many elements as there are input files!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
-		}
-
-		//ms level
-		bool user_ms_level = getFlag_("user_ms_level");
-
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
@@ -175,6 +156,31 @@ class TOPPFileMerger
 		}
 		else
 		{
+		  // we might want to combine different types, thus we only
+		  // query in_type (which applies to all files)
+		  // and not the suffix or content of a single file
+			force_type = fh.nameToType(getStringOption_("in_type"));
+
+			//rt
+			bool rt_auto_number = getFlag_("rt_auto");
+			bool rt_filename = getFlag_("rt_filename");
+			bool rt_custom = false;
+			DoubleList custom_rts = getDoubleList_("rt_custom");
+			if (custom_rts.size()!=0)
+			{
+				rt_custom = true;
+				if (custom_rts.size()!=file_list.size())
+				{
+					writeLog_("Custom retention time list must have as many elements as there are input files!");
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+			}
+
+			//ms level
+			bool user_ms_level = getFlag_("user_ms_level");
+
+			
 			MSExperiment<> out;
 			out.reserve(file_list.size());
 			UInt rt_auto = 0;
