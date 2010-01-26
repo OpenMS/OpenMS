@@ -207,11 +207,11 @@ namespace OpenMS
 				// consistency
 				try
 				{
-					updateUniqueIdToIndex();
+					 UniqueIdIndexer<FeatureMap<FeatureT> >::updateUniqueIdToIndex();
 				}
 				catch (Exception::Postcondition /*&e*/)
 				{ // assign new UID's for conflicting entries
-					Size replaced_uids = resolveUniqueIdConflicts();
+					Size replaced_uids =  UniqueIdIndexer<FeatureMap<FeatureT> >::resolveUniqueIdConflicts();
 					LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
 				}
 				
