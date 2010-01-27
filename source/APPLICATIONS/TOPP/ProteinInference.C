@@ -77,12 +77,71 @@ class TOPPProteinInference
 		{
 			String in = getStringOption_("in");
 			String out = getStringOption_("out");
+			Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
 
 			vector<ProteinIdentification> prot_ids;
 			vector<PeptideIdentification> pep_ids;
 			IdXMLFile().load(in, prot_ids, pep_ids);
 
-			
+			for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+			{
+				Map<String, Size> acc_counts;
+				for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+				{
+					// only consider peptide identifications of the same id run
+					if (it1->getIdentifier() != it->getIdentifier())
+					{
+						continue;
+					}
+
+					// for all peptide hits
+					for (vector<PeptideHit>::const_iterator it2 = it1->getHits().begin(); it2 != it1->getHits().end(); ++it2)
+					{
+						// for all protein accessions
+						for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+						{
+							if (!acc_counts.has(*it3))
+							{
+								acc_counts[*it3] = 1;
+							}
+							else
+							{
+								++acc_counts[*it3];
+							}
+						}
+					}
+				}
+
+				vector<ProteinHit> hits = it->getHits();
+				it->setHits(vector<ProteinHit>());
+				set<String> accepted_proteins;
+				// for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides 
+				for (vector<ProteinHit>::const_iterator it1 = hits.begin(); it1 != hits.end(); ++it1)
+				{
+					if (acc_counts.has(it1->getAccession()) && acc_counts[it1->getAccession()] > min_peptides_per_protein)
+					{
+						it->insertHit(*it1);
+						accepted_proteins.insert(it1->getAccession());
+					}
+				}
+
+				// remove proteins and peptides that are not accepted
+				for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+				{
+					// only consider peptide identifications of the same id run
+					if (it1->getIdentifier() != it->getIdentifier())
+					{
+						continue;
+					}
+					
+					vector<PeptideHit> peptide_hits = it1->getHits();
+					it1->setHits(vector<PeptideHit>());
+
+					for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
+					{
+					}
+				}
+			}
 
 
 			return EXECUTION_OK;
