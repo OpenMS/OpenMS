@@ -66,6 +66,7 @@ namespace OpenMS
 			modification_->setId(title);
 
 			String full_name(attributeAsString_(attributes, "full_name"));
+			full_name.substitute("®", ""); // remove damn character (will be interpreted differently across platforms)
 			modification_->setFullName(full_name);
 
 			String record_id(attributeAsString_(attributes, "record_id"));
