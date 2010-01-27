@@ -2845,7 +2845,7 @@ namespace OpenMS
 		qobject_cast<QWidget *>(log_->parent())->show();
 
 		//update log_
-		log_->textCursor().insertText(topp_.process->readAllStandardOutput());
+		log_->append(topp_.process->readAllStandardOutput());
 	}
 
 	Param TOPPViewBase::getSpectrumParameters_(UInt dim)

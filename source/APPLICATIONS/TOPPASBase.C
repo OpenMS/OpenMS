@@ -1036,9 +1036,7 @@ namespace OpenMS
 		qobject_cast<QWidget*>(log_->parent())->show();
 
 		//update log_
-		log_->moveCursor(QTextCursor::End);
-		log_->textCursor().insertText(text);
-		log_->moveCursor(QTextCursor::End);
+		log_->append(text);
 	}
 	
 	void TOPPASBase::showSuccessLogMessage()
