@@ -93,9 +93,13 @@ namespace OpenMS
 
 
 		if(variable)
+		{
 			type="OPTIONAL";
+		}
 		else
+		{
 			type="FIXED";
+		}
 
 		switch(ts)
 		{
@@ -116,6 +120,8 @@ namespace OpenMS
 		{
 			key="^";
 		}
+		
+		//cout<<"origin: "<<origin<<"    loc: "<<locations<<endl;
 		if(origin=="C-term")
 		{
 		  origin="C_TERM";
@@ -130,9 +136,13 @@ namespace OpenMS
 		}
 
 		if(mass>=0)
+		{
 		  key+="+"+String(Math::round(mass));
+		}
 		else
+		{
 		  key+=String(Math::round(mass));
+		}
 
 		String line="";
 		line+=origin.toUpper();

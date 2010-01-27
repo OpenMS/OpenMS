@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" summary_xml=".xml">
-<msms_run_summary base_name="PepXMLFile_test_182.tmp" raw_data_type="raw" raw_data=".mzXML" search_engine="X! Tandem (k-score)">
+<msms_run_summary base_name="PepXMLFile_test_200.tmp" raw_data_type="raw" raw_data=".mzXML" search_engine="X! Tandem (k-score)">
 <sample_enzyme name="trypsin">
 <specificity cut="KR" no_cut="P" sense="C"/>
 </sample_enzyme>
-<search_summary base_name="PepXMLFile_test_182.tmp" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+<search_summary base_name="PepXMLFile_test_200.tmp" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
 		<search_database local_path="./current.fasta" type="AA"/>
 <aminoacid_modification aminoacid="C" massdiff="57.021464" mass="0" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
-<terminal_modification terminus="n" massdiff="-17.026549" mass="0" variable="Y" description="Gln->pyro-Glu (Q)" protein_terminus=""/>
-<terminal_modification terminus="n" massdiff="-18.010565" mass="0" variable="Y" description="Glu->pyro-Glu (E)" protein_terminus=""/>
+<terminal_modification terminus="n" massdiff="-17.026549" mass="0" variable="Y" description="Gln->pyro-Glu (N-term Q)" protein_terminus=""/>
+<terminal_modification terminus="n" massdiff="-18.010565" mass="0" variable="Y" description="Glu->pyro-Glu (N-term E)" protein_terminus=""/>
     </search_summary>
     <analysis_timestamp analysis="peptideprophet" time="2007-12-05T17:49:52" id="1"/>
 		<spectrum_query spectrum="1" start_scan="1" end_scan="1" precursor_neutral_mass="1612.8242908913" assumed_charge="3" index="1">

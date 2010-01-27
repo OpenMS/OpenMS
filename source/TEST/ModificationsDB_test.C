@@ -147,6 +147,7 @@ START_SECTION((void getAllSearchModifications(std::vector< String > &modificatio
 	TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true)
 	TEST_EQUAL(find(mods.begin(), mods.end(), "NIC (N-term)") != mods.end(), true)
 	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho") != mods.end(), false)
+	TEST_EQUAL(find(mods.begin(), mods.end(), "Dehydrated (N-term C)") != mods.end(), true)
 END_SECTION
 
 

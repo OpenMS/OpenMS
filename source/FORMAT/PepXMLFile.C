@@ -673,7 +673,11 @@ namespace OpenMS
 				aa_mod.description = description;
 			}
 			aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
-      aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
+			String aminoacid;
+			if (optionalAttributeAsString_(aminoacid, attributes, "aminoacid"))
+			{
+				aa_mod.aminoacid = aminoacid;
+			}
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
 			aa_mod.terminus = attributeAsString_(attributes, "terminus");
       String is_variable = attributeAsString_(attributes, "variable");
@@ -839,24 +843,17 @@ namespace OpenMS
 				// e.g. Carboxymethyl (C)
 				vector<String> mod_split;
 				it->first.split(' ', mod_split);
-				if (mod_split.size() == 2)
+				if (it->first.hasSubstring("C-term"))
 				{
-					if (mod_split[1] == "(C-term)" || ModificationsDB::getInstance()->getModification(it->first).getTermSpecificity() == ResidueModification::C_TERM)
-					{
-						temp_aa_sequence.setCTerminalModification(mod_split[0]);
-					}
-					else
-					{
-						if (mod_split[1] == "(N-term)" || ModificationsDB::getInstance()->getModification(it->first).getTermSpecificity() == ResidueModification::N_TERM)
-						{
-							temp_aa_sequence.setNTerminalModification(mod_split[0]);
-						}
-						else
-						{
-							// search this mod, if not directly use a general one
-							temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
-						}
-					}
+					temp_aa_sequence.setCTerminalModification(it->first);
+				}
+				else if (it->first.hasSubstring("N-term"))
+				{
+					temp_aa_sequence.setNTerminalModification(it->first);
+				}
+				else if (mod_split.size() == 2)
+				{
+					temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
 				}
 				else
 				{
@@ -867,17 +864,6 @@ namespace OpenMS
 			// fixed modifications
 			for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
 			{
-					/*if (mod_split[1] == "(C-term)")
-					{
-						temp_aa_sequence.setCTerminalModification(mod_split[0]);
-					}
-					else
-					{
-						if (mod_split[1] == "(N-term)")
-						{
-							temp_aa_sequence.setNTerminalModification(mod_split[0]);
-						}*/
-
 				const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
 				if (residue == 0)
 				{

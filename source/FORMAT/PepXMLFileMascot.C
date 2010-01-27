@@ -164,24 +164,17 @@ namespace OpenMS
 				// e.g. Carboxymethyl (C)
 				vector<String> mod_split;
 				it->first.split(' ', mod_split);
+				if (it->first.hasSubstring("C-term"))
+				{
+					temp_aa_sequence.setCTerminalModification(it->first);
+				}
+				else if (it->first.hasSubstring("N-term"))
+				{
+					temp_aa_sequence.setNTerminalModification(it->first);
+				}
 				if (mod_split.size() == 2)
 				{
-					if (mod_split[1] == "(C-term)")
-					{
-						temp_aa_sequence.setCTerminalModification(mod_split[0]);
-					}
-					else
-					{
-						if (mod_split[1] == "(N-term)")
-						{
-							temp_aa_sequence.setNTerminalModification(mod_split[0]);
-						}
-						else
-						{
-							// search this mod, if not directly use a general one
-							temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
-						}
-					}
+					temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
 				}
 				else
 				{
