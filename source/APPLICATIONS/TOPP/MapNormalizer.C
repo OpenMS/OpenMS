@@ -104,6 +104,30 @@ class TOPPMapNormalizer
 					}
 				}
 			}
+
+	
+			/// @todo add chromatogram support for normalization, e.g. for MRM stuff (Andreas)
+		  /*
+			vector<MSChromatogram<> > chroms = exp.getChromatograms();
+			DoubleReal sum(0);
+      for (vector<MSChromatogram<> >::iterator it = chroms.begin(); it != chroms.end(); ++it)
+      {
+        for (MSChromatogram<>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+        {
+					sum += it2->getIntensity();
+				}
+			}
+
+			for (vector<MSChromatogram<> >::iterator it = chroms.begin(); it != chroms.end(); ++it)
+			{
+				for (MSChromatogram<>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+				{
+					it2->setIntensity(it2->getIntensity() / sum * 1000000.0);
+				}
+			}
+
+			exp.setChromatograms(chroms);
+		  */
 			
 			//-------------------------------------------------------------
 			// writing output
