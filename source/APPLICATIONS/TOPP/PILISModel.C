@@ -589,6 +589,15 @@ class TOPPPILISModel
 					}
 				}
 			}
+			else
+			{
+				model.setParameters(pilis_param);
+				for (vector<PILISCrossValidation::Peptide>::const_iterator it = peptides.begin(); it != peptides.end(); ++it)
+				{
+					model.train(it->spec, it->sequence, it->charge);
+				}
+				model.evaluate();
+			}
 
 			if (trained_model_file != "")
 			{

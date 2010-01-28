@@ -433,10 +433,16 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
           if (sim_spectra[i][j].size() > 0)
           {
             vector<RichPeak1D> sim_highest_peak;
-						cerr << "Peptide: " << exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getSequence() << " "
-									<< exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getCharge() << endl;
-						cerr << "Sim-highest peaks: ";
+						//cerr << "Peptide: " << exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getSequence() << " "
+						//			<< exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getCharge() << endl;
+						cerr << "Sim-highest peaks: (sim-spectrum size=" << sim_spectra[i][j][0].size() << ") ";
+						/*
+						for (Size p = 0; p != sim_spectra[i][j][0].size(); ++p)
+						{
+							cerr << sim_spectra[i][j][0][p].getMZ() << " " << sim_spectra[i][j][0][p].getIntensity() << " " << sim_spectra[i][j][0][p].getMetaValue("IonName") << endl;
+						}*/
             fragment_selection.selectFragments(sim_highest_peak, sim_spectra[i][j][0]);
+						cerr << sim_highest_peak.size();
 						cerr << endl;
 
 						// normalize the exp_spectrum to the highest peaks which could be picked
@@ -444,21 +450,22 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
             RichPeakSpectrum theo_spec;
             const AASequence& peptide(exp_spec.getPeptideIdentifications().begin()->getHits().begin()->getSequence());
             tsg.addPeaks(theo_spec, peptide, Residue::BIon, 1);
-            tsg.addPeaks(theo_spec, peptide, Residue::BIon, 2); // TODO check which charge states are allowed
+            //tsg.addPeaks(theo_spec, peptide, Residue::BIon, 2); // TODO check which charge states are allowed
             tsg.addPeaks(theo_spec, peptide, Residue::YIon, 1);
-            tsg.addPeaks(theo_spec, peptide, Residue::YIon, 2);
+            //tsg.addPeaks(theo_spec, peptide, Residue::YIon, 2);
             theo_spec.sortByPosition();
             vector<pair<Size, Size> > alignment;
             aligner.getSpectrumAlignment(alignment, exp_spec, theo_spec);
 						vector<RichPeak1D> exp_highest_peak;
+
             for (vector<pair<Size, Size> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
             {
-              //exp_spec[it->first].setMetaValue("IonName", (String)theo_spec[it->second].getMetaValue("IonName"));
+              exp_spec[it->first].setMetaValue("IonName", (String)theo_spec[it->second].getMetaValue("IonName"));
 							exp_highest_peak.push_back(exp_spec[it->first]);
             }
 
 						//cerr << "Exp-highest peaks: ";
-						//fragment_selection.selectFragments(exp_highest_peak, exp_spec);
+						fragment_selection.selectFragments(exp_highest_peak, exp_spec);
 						//cerr << endl;
 
 						// normalize the exp spectrum to max possible intensity to be selected
@@ -486,7 +493,9 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 										&& exp_highest_peak[ii].getIntensity() >= min_intensity)
 								{
 									cerr << "Found: " << exp_spec.getPeptideIdentifications().begin()->getHits().begin()->getSequence()
-											 << " " << exp_spec.getPeptideIdentifications().begin()->getHits().begin()->getCharge() << endl;
+											 << " " << exp_spec.getPeptideIdentifications().begin()->getHits().begin()->getCharge() 
+											 << " exp m/z=" << exp_highest_peak[ii].getMZ()  << ", sim m/z=" << sim_highest_peak[jj].getMZ() 
+											 << " exp int=" << exp_highest_peak[ii].getIntensity() <<  ", sim m/z=" << sim_highest_peak[jj].getIntensity() << endl;
 									++num_correct_topn;
                   has_topn = true;
                   break;
