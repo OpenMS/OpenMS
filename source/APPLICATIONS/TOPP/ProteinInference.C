@@ -125,7 +125,7 @@ class TOPPProteinInference
 					}
 				}
 
-				// remove proteins and peptides that are not accepted
+				// remove peptides that are not accepted
 				for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 				{
 					// only consider peptide identifications of the same id run
@@ -139,10 +139,57 @@ class TOPPProteinInference
 
 					for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
 					{
+						for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+						{
+							if (accepted_proteins.find(*it3) != accepted_proteins.end())
+							{
+								it1->insertHit(*it2);
+								break;
+							}
+						}
 					}
 				}
+
+				// remove proteins that are not accepted
+				vector<ProteinHit> protein_hits = it->getHits();
+				it->setHits(vector<ProteinHit>());
+				for (vector<ProteinHit>::const_iterator it1 = protein_hits.begin(); it1 != protein_hits.end(); ++it1)
+				{
+					if (accepted_proteins.find(it1->getAccession()) != accepted_proteins.end())
+					{
+						it->insertHit(*it1);
+					}
+				}
+
+				// fix wrong accessions of the peptides (to proteins that were removed)
+				for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+        {
+          // only consider peptide identifications of the same id run
+          if (it1->getIdentifier() != it->getIdentifier())
+          {
+            continue;
+          }
+         
+				 	vector<PeptideHit> peptide_ids = it1->getHits();
+          for (vector<PeptideHit>::iterator it2 = peptide_ids.begin(); it2 != peptide_ids.end(); ++it2)
+          {
+						vector<String> valid_accessions;
+            for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+            {
+              if (accepted_proteins.find(*it3) != accepted_proteins.end())
+              { 
+								valid_accessions.push_back(*it3);
+              }
+            }
+						it2->setProteinAccessions(valid_accessions);
+					}
+					it1->setHits(peptide_ids);
+        }
 			}
 
+
+			// write output
+			IdXMLFile().store(out, prot_ids, pep_ids);
 
 			return EXECUTION_OK;
 		}
