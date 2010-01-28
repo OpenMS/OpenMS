@@ -115,7 +115,7 @@ namespace OpenMS
       optionalAttributeAsString_(value, attributes, "value");
       optionalAttributeAsString_(unit_accession, attributes, "unitAccession");
       optionalAttributeAsString_(unit_name, attributes, "unitName");
-      optionalAttributeAsString_(unit_cv_ref, attributes, "unitcvRef");
+      optionalAttributeAsString_(unit_cv_ref, attributes, "unitCvRef");
       optionalAttributeAsString_(cv_ref, attributes, "cvRef");
 			CVTerm::Unit unit(unit_accession, unit_name, unit_cv_ref);
 	    CVTerm cv_term(attributeAsString_(attributes, "accession"), attributeAsString_(attributes, "name"), cv_ref, value, unit);
@@ -443,7 +443,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 	for (StringList::const_iterator it = bsa_peptides.begin(); it != bsa_peptides.end(); ++it)
 	{
 		TargetedExperiment::RetentionTime retention_time;
-		/// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+		/// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
 		CVTerm rt;
 		rt.setCVIdentifierRef("MS");
 		rt.setAccession("MS:1000897");
@@ -487,7 +487,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
   for (StringList::const_iterator it = p53_peptides.begin(); it != p53_peptides.end(); ++it)
   {
     TargetedExperiment::RetentionTime retention_time;
-    /// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+    /// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
     CVTerm rt;
     rt.setCVIdentifierRef("MS");
     rt.setAccession("MS:1000897");
@@ -758,12 +758,12 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 				os << " >" << "\n";
 
 				os << "      <Precursor>" << "\n"; 
-				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitcvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
+				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
 				writeCVParams_(os, it->getPrecursorCVTermList(), 4);
 				os << "      </Precursor>" << "\n";
 			
 				os << "      <Product>" << "\n";
-				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\" />\n";
+				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
 				writeCVParams_(os, it->getProductCVTermList(), 4);
 				os << "      </Product>" << "\n";
 
@@ -956,7 +956,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 
 				if (cit->hasUnit())
 				{
-					os << " unitcvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
+					os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
 				}
 				os << "/>" << "\n";
 			}
@@ -1146,7 +1146,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		}
     else if (parent_tag == "Product")
     {
-      if (cv_term.getAccession() == "MS:1000040")
+      if (cv_term.getAccession() == "MS:1000827")
       {
         actual_transition_.setProductMZ(cv_term.getValue().toString().toDouble());
       }

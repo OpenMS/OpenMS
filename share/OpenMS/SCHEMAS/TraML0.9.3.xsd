@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://psi.hupo.org/ms/traml" elementFormDefault="qualified" targetNamespace="http://psi.hupo.org/ms/traml" version="0.9.3">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://psi.hupo.org/ms/traml" xmlns:traml="http://psi.hupo.org/ms/traml" elementFormDefault="qualified" targetNamespace="http://psi.hupo.org/ms/traml" version="0.9.3">
 	<xs:complexType name="TraMLType">
 		<xs:annotation>
 			<xs:documentation>Container for the HUPO PSI TraML format for encoding selected reaction monitoring transitions and other target lists</xs:documentation>
@@ -29,23 +29,23 @@
 	</xs:complexType>
 	<xs:element name="TraML" type="TraMLType">
 		<xs:key name="PK_PEPTIDE">
-			<xs:selector xpath=".//CompoundList/Peptide"/>
+			<xs:selector xpath=".//traml:CompoundList/traml:Peptide"/>
 			<xs:field xpath="@id"/>
 		</xs:key>
 		<xs:key name="PK_COMPOUND">
-			<xs:selector xpath=".//CompoundList/Compound"/>
+			<xs:selector xpath=".//traml:CompoundList/traml:Compound"/>
 			<xs:field xpath="@id"/>
 		</xs:key>
 		<xs:keyref name="FK_TRANSITION_PEPTIDE" refer="PK_PEPTIDE">
-			<xs:selector xpath=".//TransitionList/Transition"/>
+			<xs:selector xpath=".//traml:TransitionList/traml:Transition"/>
 			<xs:field xpath="@peptideRef"/>
 		</xs:keyref>
 		<xs:keyref name="FK_TRANSITION_COMPOUND" refer="PK_COMPOUND">
-			<xs:selector xpath=".//TransitionList/Transition"/>
+			<xs:selector xpath=".//traml:TransitionList/traml:Transition"/>
 			<xs:field xpath="@compoundRef"/>
 		</xs:keyref>
 		<xs:key name="PK_TRANSITION">
-			<xs:selector xpath=".//TransitionList/Transition"/>
+			<xs:selector xpath=".//traml:TransitionList/traml:Transition"/>
 			<xs:field xpath="@id"/>
 		</xs:key>
 	</xs:element>
@@ -188,7 +188,7 @@
 				<xs:documentation>An optional CV name for the unit accession number, if any (e.g., 'electron volt' for 'UO:0000266' ).</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
-		<xs:attribute name="unitcvRef" type="xs:IDREF" use="optional">
+		<xs:attribute name="unitCvRef" type="xs:IDREF" use="optional">
 			<xs:annotation>
 				<xs:documentation>If a unit term is referenced, this attribute must refer to the CV 'id' attribute defined in the cvList in this mzML file.</xs:documentation>
 			</xs:annotation>
@@ -286,7 +286,7 @@
 	</xs:complexType>
 	<xs:complexType name="PrecursorType">
 		<xs:annotation>
-			<xs:documentation>Precursor (Q1) of the transition</xs:documentation>
+			<xs:documentation>Precursor (Q1) of the transition or target</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
 			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>

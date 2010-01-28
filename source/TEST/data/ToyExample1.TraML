@@ -71,7 +71,7 @@
       <cvParam cvRef="MS" accession="MS:1000891" name="heavy labeled peptide"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000863" name="predicted pI" value="5.22"/>
-      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22" unitcvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <ProteinRef ref="Q12149"/>
       <ProteinRef ref="ENSP00000332698"/>
       <Modification location="0" monoisotopicMassDelta="127.063324">
@@ -82,16 +82,16 @@
       </Modification>
       <RetentionTimeList>
         <RetentionTime softwareRef="SSRCalc3.0">
-          <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
         </RetentionTime>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="38.43" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="38.43" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
           <cvParam cvRef="MS" accession="MS:1000902" name="H-PINS retention time normalization standard"/>
         </RetentionTime>
         <RetentionTime softwareRef="Skyline0.5">
-          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-          <cvParam cvRef="MS" accession="MS:1000916" name="retention time window lower offset" value="3.0" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-          <cvParam cvRef="MS" accession="MS:1000917" name="retention time window upper offset" value="3.0" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000916" name="retention time window lower offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000917" name="retention time window upper offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
         </RetentionTime>
       </RetentionTimeList>
       <Evidence>
@@ -101,39 +101,25 @@
     <Peptide id="PEPTIDEC" sequence="PEPTIDEC"/>
     <Peptide id="PEPTIDEM" sequence="PEPTIDEM"/>
     <Compound id="glyoxylate">
-      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39" unitcvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C2HO3"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="[CH](=[O])[C](=[O])[O-]"/>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="23.56" unitcvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="23.56" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
         </RetentionTime>
       </RetentionTimeList>
     </Compound>
   </CompoundList>
 
   <TransitionList>
-
-  <!-- This should generate a wrong kind of Ref error, but doesn't seem to for me! -->
-    <Transition id="ADTHFLLNIYDQLR-M1-T1" peptideRef="glyoxylate">
+      <Transition id="ADTHFLLNIYDQLR-M1-T1" peptideRef="ADTHFLLNIYDQLR-M1">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="862.9467" unitcvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="862.9467" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="1040.57"/>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
-      </Product>
-    </Transition>
-
-  <!-- This should generate a duplicate id error, but doesn't seem to for me! -->
-    <Transition id="ADTHFLLNIYDQLR-M1-T1" peptideRef="ADTHFLLNIYDQLR-M1">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="862.9467" unitcvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="1040.57"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1040.57" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
       </Product>
       <InterpretationList>
@@ -141,36 +127,36 @@
 	  <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
 	  <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
 	  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
-	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.03"/>
+	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.03" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         </Interpretation>
         <Interpretation>
 	  <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="2"/>
 	  <cvParam cvRef="MS" accession="MS:1001222" name="frag: b ion - H2O"/>
 	  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
-	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="-0.43"/>
+	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="-0.43" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         </Interpretation>
       </InterpretationList>
       <Prediction softwareRef="MaRiMba" contactRef="CS">
 	<cvParam cvRef="MS" accession="MS:1000912" name="transition purported from an MS/MS spectrum on a different, specified instrument"/>
 	<cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap"/>
-	<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10000" unitcvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
+	<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10000" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
 	<cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="1"/>
 	<cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
       </Prediction>
       <ConfigurationList>
         <Configuration instrumentRef="QTRAP" contactRef="CS">
-          <cvParam cvRef="MS" accession="MS:1000502" name="dwell time" value="0.12" unitcvRef="UO" unitAccession="UO:0000010" unitName="second"/>
-          <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="26" unitcvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
-          <cvParam cvRef="MS" accession="MS:1000875" name="declustering potential" value="64" unitcvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
+          <cvParam cvRef="MS" accession="MS:1000502" name="dwell time" value="0.12" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
+          <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="26" unitCvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
+          <cvParam cvRef="MS" accession="MS:1000875" name="declustering potential" value="64" unitCvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
           <cvParam cvRef="MS" accession="MS:1000419" name="collision gas" value="argon"/>
-          <cvParam cvRef="MS" accession="MS:1000869" name="collision gas pressure" value="12" unitcvRef="UO" unitAccession="UO:0000110" unitName="pascal"/>
-          <cvParam cvRef="MS" accession="MS:1000876" name="cone voltage" value="1200" unitcvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
-          <cvParam cvRef="MS" accession="MS:1000880" name="interchannel delay" value="0.01" unitcvRef="UO" unitAccession="UO:0000010" unitName="second"/>
-          <cvParam cvRef="MS" accession="MS:1000877" name="tube lens" value="23" unitcvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
+          <cvParam cvRef="MS" accession="MS:1000869" name="collision gas pressure" value="12" unitCvRef="UO" unitAccession="UO:0000110" unitName="pascal"/>
+          <cvParam cvRef="MS" accession="MS:1000876" name="cone voltage" value="1200" unitCvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
+          <cvParam cvRef="MS" accession="MS:1000880" name="interchannel delay" value="0.01" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
+          <cvParam cvRef="MS" accession="MS:1000877" name="tube lens" value="23" unitCvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
           <Validation>
 	    <cvParam cvRef="MS" accession="MS:1000910" name="transition optimized on specified instrument"/>
 	    <cvParam cvRef="MS" accession="MS:1000139" name="4000 Q TRAP"/>
-	    <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="4072" unitcvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
+	    <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="4072" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
 	    <cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="2"/>
 	    <cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
           </Validation>
@@ -184,12 +170,12 @@
     <TargetIncludeList>
       <Target id="PEPTIDEC2+" peptideRef="PEPTIDEC">
         <Precursor>
-          <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="862.9467" unitcvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+          <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="862.9467" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
           <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
         </Precursor>
         <ConfigurationList>
           <Configuration instrumentRef="LCQ_Deca" contactRef="CS">
-            <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="26" unitcvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
+            <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="26" unitCvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
           </Configuration>
         </ConfigurationList>
       </Target>
@@ -197,7 +183,7 @@
     <TargetExcludeList>
       <Target id="PEPTIDEM3+" peptideRef="PEPTIDEM">
         <Precursor>
-          <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="698.3443" unitcvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+          <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="698.3443" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
           <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
         </Precursor>
       </Target>
