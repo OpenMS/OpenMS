@@ -275,7 +275,7 @@ class TOPPMRMPairFinder
   	  				results_map.push_back(SILAC_feature);
 
 							quantlets.push_back(SILACQuantitation(best_light.getIntensity(), best_heavy.getIntensity(), best_idx));
-							writeDebug_("Ratio of XIC: " + String(best_heavy.getIntensity() / best_light.getIntensity()) + " " + String(best_light.getMZ()) + " <-> " + String(best_heavy.getMZ()) + " @" + String(SILAC_feature.getRT()) +
+							writeDebug_("Ratio of XIC: " + String(best_heavy.getIntensity() / best_light.getIntensity()) + " " + String(best_light.getMZ()) + " <-> " + String(best_heavy.getMZ()) + " @" + String(SILAC_feature.getRT()) + " RT-heavy=" + String(best_heavy.getRT()) + ", RT-light=" + String(best_light.getRT()) + ", RT-diff=" + String(best_heavy.getRT() - best_light.getRT()) + 
 							 " avg. int " + String((best_heavy.getIntensity() + best_light.getIntensity()) / 2.0), 1);
 
 						}
