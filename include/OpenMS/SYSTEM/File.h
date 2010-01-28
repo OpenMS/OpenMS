@@ -32,11 +32,6 @@
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/config.h>
 
-#ifdef OPENMS_WINDOWSPLATFORM  
-	#undef   _WIN32_WINNT        // avoid warning
-	#define  _WIN32_WINNT 0x0500
-	#include <Windows.h>
-#endif
 
 namespace OpenMS
 {

@@ -235,8 +235,8 @@ namespace OpenMS
 						// "min"/"max" redefinition (DBoundingBox) confuses the compiler:
 						// min_rt = min(min_rt, box.min().getX());
 						// max_rt = max(max_rt, box.max().getX());
-						if (box.min().getX() < min_rt) min_rt = box.min().getX();
-						if (box.max().getX() > max_rt) max_rt = box.max().getX();
+						if (box.minPosition().getX() < min_rt) min_rt = box.minPosition().getX();
+						if (box.maxPosition().getX() > max_rt) max_rt = box.maxPosition().getX();
 					}
 				
 					// fill the hash table:
@@ -246,8 +246,8 @@ namespace OpenMS
 					for (Size index = 0; index < boxes.size(); ++index)
 					{
 						const DBoundingBox<2>& box = boxes[index];
-						for (SignedSize i = SignedSize(floor(box.min().getX())); 
-								 i <= SignedSize(floor(box.max().getX())); ++i)
+						for (SignedSize i = SignedSize(floor(box.minPosition().getX())); 
+								 i <= SignedSize(floor(box.maxPosition().getX())); ++i)
 						{
 							hash_table[i - offset].push_back(index);
 						}

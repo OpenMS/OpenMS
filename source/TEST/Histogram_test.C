@@ -62,11 +62,11 @@ START_SECTION((Histogram(const Histogram& histogram)))
 END_SECTION
 
 START_SECTION((BinSizeType min() const))
-	TEST_REAL_SIMILAR(d.min(), 0.0)
+	TEST_REAL_SIMILAR(d.minBound(), 0.0)
 END_SECTION
 
 START_SECTION((BinSizeType max() const))
-	TEST_REAL_SIMILAR(d.max(), 10.0)
+	TEST_REAL_SIMILAR(d.maxBound(), 10.0)
 END_SECTION
 
 START_SECTION((BinSizeType binSize() const))
@@ -79,8 +79,8 @@ END_SECTION
 
 START_SECTION((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size)))
 	Histogram<float, float> d3(5.5f, 7.7f, 0.2f);
-	TEST_REAL_SIMILAR(d3.min(), 5.5)
-	TEST_REAL_SIMILAR(d3.max(), 7.7)
+	TEST_REAL_SIMILAR(d3.minBound(), 5.5)
+	TEST_REAL_SIMILAR(d3.maxBound(), 7.7)
 	TEST_REAL_SIMILAR(d3.binSize(), 0.2)
 END_SECTION
 
@@ -183,8 +183,8 @@ END_SECTION
 	
 START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)))
 	d.reset(1, 11, 2);
-	TEST_REAL_SIMILAR(d.min(), 1)
-	TEST_REAL_SIMILAR(d.max(), 11)
+	TEST_REAL_SIMILAR(d.minBound(), 1)
+	TEST_REAL_SIMILAR(d.maxBound(), 11)
 	TEST_EQUAL(d.size(), 5)
 	TEST_REAL_SIMILAR(d.binSize(), 2)
 END_SECTION

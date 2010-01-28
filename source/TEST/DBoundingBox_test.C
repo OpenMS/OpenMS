@@ -69,38 +69,38 @@ START_SECTION(DBoundingBox(const PositionType& minimum, const PositionType& maxi
 {
 	DPosition<1> min(2), max(5);
 	BB1 bb(min,max);
-	TEST_REAL_SIMILAR(bb.min()[0], 2);
-	TEST_REAL_SIMILAR(bb.max()[0], 5);
+	TEST_REAL_SIMILAR(bb.minPosition()[0], 2);
+	TEST_REAL_SIMILAR(bb.maxPosition()[0], 5);
 }
 END_SECTION
 
 START_SECTION(DBoundingBox(const DBoundingBox &rhs))
 	BB2 bb(DPosition<2>(1,2),DPosition<2>(3,4));
 	BB2 bb_copy(bb);
-	TEST_REAL_SIMILAR(bb.min()[0],bb_copy.min()[0]);
-	TEST_REAL_SIMILAR(bb.min()[1],bb_copy.min()[1]);
-	TEST_REAL_SIMILAR(bb.max()[0],bb_copy.max()[0]);
-	TEST_REAL_SIMILAR(bb.max()[1],bb_copy.max()[1]);
+	TEST_REAL_SIMILAR(bb.minPosition()[0],bb_copy.minPosition()[0]);
+	TEST_REAL_SIMILAR(bb.minPosition()[1],bb_copy.minPosition()[1]);
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],bb_copy.maxPosition()[0]);
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],bb_copy.maxPosition()[1]);
 END_SECTION
 
 START_SECTION(DBoundingBox& operator=(const DBoundingBox &rhs))
 	BB2 bb(DPosition<2>(1,2),DPosition<2>(3,4));
 	BB2 bb_copy;
 	bb_copy = bb;
-	TEST_REAL_SIMILAR(bb.min()[0],bb_copy.min()[0]);
-	TEST_REAL_SIMILAR(bb.min()[1],bb_copy.min()[1]);
-	TEST_REAL_SIMILAR(bb.max()[0],bb_copy.max()[0]);
-	TEST_REAL_SIMILAR(bb.max()[1],bb_copy.max()[1]);
+	TEST_REAL_SIMILAR(bb.minPosition()[0],bb_copy.minPosition()[0]);
+	TEST_REAL_SIMILAR(bb.minPosition()[1],bb_copy.minPosition()[1]);
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],bb_copy.maxPosition()[0]);
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],bb_copy.maxPosition()[1]);
 END_SECTION
 
 START_SECTION(DBoundingBox& operator=(const Base &rhs))
 	BB2::Base bb(DPosition<2>(1,2),DPosition<2>(3,4));
 	BB2 bb_copy;
 	bb_copy = bb;
-	TEST_REAL_SIMILAR(bb.min()[0],bb_copy.min()[0]);
-	TEST_REAL_SIMILAR(bb.min()[1],bb_copy.min()[1]);
-	TEST_REAL_SIMILAR(bb.max()[0],bb_copy.max()[0]);
-	TEST_REAL_SIMILAR(bb.max()[1],bb_copy.max()[1]);
+	TEST_REAL_SIMILAR(bb.minPosition()[0],bb_copy.minPosition()[0]);
+	TEST_REAL_SIMILAR(bb.minPosition()[1],bb_copy.minPosition()[1]);
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],bb_copy.maxPosition()[0]);
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],bb_copy.maxPosition()[1]);
 END_SECTION
 
 START_SECTION(bool isEmpty() const)
@@ -236,18 +236,18 @@ START_SECTION(bool intersects(const DBoundingBox& bounding_box) const)
 	TEST_EQUAL(r2.intersects(r3),true)
 	r3.setMaxX(10.0f);
 	TEST_EQUAL(r2.intersects(r3),true)
-	r3.setMax(r2.max()+one);
+	r3.setMax(r2.maxPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),true)
-	r3.setMin(r2.max()+one);
-	r3.setMax(r2.max()+two);
+	r3.setMin(r2.maxPosition()+one);
+	r3.setMax(r2.maxPosition()+two);
 	TEST_EQUAL(r2.intersects(r3),false)
-	r3.setMin(r2.min());
+	r3.setMin(r2.minPosition());
 	r3.setMinX(10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(-10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(-10.0f);
@@ -266,7 +266,7 @@ START_SECTION(bool intersects(const DBoundingBox& bounding_box) const)
 	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(0.0f);

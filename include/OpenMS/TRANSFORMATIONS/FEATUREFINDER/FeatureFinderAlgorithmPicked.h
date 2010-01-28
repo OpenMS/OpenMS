@@ -214,7 +214,7 @@ namespace OpenMS
 
 				  @exception Exception::Precondition is thrown if there are not mass traces (not only in debug mode)
 				*/
-				Size getTheoreticalMax() const
+				Size getTheoreticalmaxPosition() const
 				{
 					if (!this->size())
 					{
@@ -1195,7 +1195,7 @@ namespace OpenMS
 						String reported_mz = param_.getValue("feature:reported_mz");
 						if(reported_mz=="maximum")
 						{
-							f.setMZ(traces[traces.getTheoreticalMax()].getAvgMZ());
+							f.setMZ(traces[traces.getTheoreticalmaxPosition()].getAvgMZ());
 						}
 						else if(reported_mz=="average")
 						{
@@ -1214,8 +1214,8 @@ namespace OpenMS
 						}
 						else if(reported_mz=="monoisotopic")
 						{
-							DoubleReal mono_mz = traces[traces.getTheoreticalMax()].getAvgMZ();
-							mono_mz -= (1.005/c) * (traces.getTheoreticalMax() + best_pattern.theoretical_pattern.trimmed_left);
+							DoubleReal mono_mz = traces[traces.getTheoreticalmaxPosition()].getAvgMZ();
+							mono_mz -= (1.005/c) * (traces.getTheoreticalmaxPosition() + best_pattern.theoretical_pattern.trimmed_left);
 							f.setMZ(mono_mz);
 						}
 						
@@ -1506,21 +1506,21 @@ namespace OpenMS
 						DBoundingBox<2> bb2 = hulls2[j].getBoundingBox();
 						if (bb1.intersects(bb2))
 						{
-							if (bb1.min()[0]<=bb2.min()[0] && bb1.max()[0]>=bb2.max()[0]) //bb1 contains bb2
+							if (bb1.minPosition()[0]<=bb2.minPosition()[0] && bb1.maxPosition()[0]>=bb2.maxPosition()[0]) //bb1 contains bb2
 							{
 								overlap += bb2.width();
 							}
-							else if (bb2.min()[0]<=bb1.min()[0] && bb2.max()[0]>=bb1.max()[0]) //bb2 contains bb1
+							else if (bb2.minPosition()[0]<=bb1.minPosition()[0] && bb2.maxPosition()[0]>=bb1.maxPosition()[0]) //bb2 contains bb1
 							{
 								overlap += bb1.width();
 							}
-							else if (bb1.min()[0]<=bb2.min()[0] && bb1.max()[0]<=bb2.max()[0]) //the end of bb1 overlaps with bb2
+							else if (bb1.minPosition()[0]<=bb2.minPosition()[0] && bb1.maxPosition()[0]<=bb2.maxPosition()[0]) //the end of bb1 overlaps with bb2
 							{
-								overlap += bb1.max()[0]-bb2.min()[0];
+								overlap += bb1.maxPosition()[0]-bb2.minPosition()[0];
 							}
-							else if (bb2.min()[0]<=bb1.min()[0] && bb2.max()[0]<=bb1.max()[0]) //the end of bb2 overlaps with bb1
+							else if (bb2.minPosition()[0]<=bb1.minPosition()[0] && bb2.maxPosition()[0]<=bb1.maxPosition()[0]) //the end of bb2 overlaps with bb1
 							{
-								overlap += bb2.max()[0]-bb1.min()[0];
+								overlap += bb2.maxPosition()[0]-bb1.minPosition()[0];
 							}
 						}
 					}

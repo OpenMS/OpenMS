@@ -103,20 +103,20 @@ namespace OpenMS
 				DoubleReal intensity = it->getIntensity();
 
 				//update RT
-				if (rt < pos_range_.min()[Peak2D::RT])
+				if (rt < pos_range_.minPosition()[Peak2D::RT])
 				{
 					pos_range_.setMinX(rt);
 				}
-				if (rt > pos_range_.max()[Peak2D::RT])
+				if (rt > pos_range_.maxPosition()[Peak2D::RT])
 				{
 					pos_range_.setMaxX(rt);
 				}
 				//update m/z
-				if (mz < pos_range_.min()[Peak2D::MZ])
+				if (mz < pos_range_.minPosition()[Peak2D::MZ])
 				{
 					pos_range_.setMinY(mz);
 				}
-				if (mz > pos_range_.max()[Peak2D::MZ])
+				if (mz > pos_range_.maxPosition()[Peak2D::MZ])
 				{
 					pos_range_.setMaxY(mz);
 				}

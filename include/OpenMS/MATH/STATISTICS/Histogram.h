@@ -116,13 +116,13 @@ namespace OpenMS
 			//@}
 	
 			///returns to the lower bound
-			BinSizeType min() const
+			BinSizeType minBound() const
 			{
 				return min_;
 			}
 	
 			///returns the upper bound
-			BinSizeType max() const
+			BinSizeType maxBound() const
 			{
 				return max_;
 			}

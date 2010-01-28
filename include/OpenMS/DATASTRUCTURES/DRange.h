@@ -185,8 +185,8 @@ namespace OpenMS
 			PositionType united_max;
 			DRange<D> united_range = DRange<D>::empty;
 			
-			PositionType other_min = other_range.min();
-			PositionType other_max = other_range.max();
+			PositionType other_min = other_range.minPosition();
+			PositionType other_max = other_range.maxPosition();
 			
 			for (Size i = 0; i != D; ++i)
 			{

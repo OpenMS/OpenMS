@@ -70,10 +70,10 @@ END_SECTION
 
 START_SECTION(DRange(const PositionType& lower, const PositionType& upper))
 	DRange<2> r(p1,p2);
-	TEST_REAL_SIMILAR(r.min()[0],-1.0f);
-	TEST_REAL_SIMILAR(r.min()[1],-2.0f);
-	TEST_REAL_SIMILAR(r.max()[0],3.0f);
-	TEST_REAL_SIMILAR(r.max()[1],4.0f);
+	TEST_REAL_SIMILAR(r.minPosition()[0],-1.0f);
+	TEST_REAL_SIMILAR(r.minPosition()[1],-2.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[0],3.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[1],4.0f);
 END_SECTION
 
 //do not modify this range, it is used in many tests
@@ -82,46 +82,46 @@ DRange<2> r(p1,p2);
 
 START_SECTION(DRange(const DRange& range))
 	DRange<2> r2(r);
-	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
-	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
-	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
-	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
 END_SECTION
 
 START_SECTION(DRange(const Base& range))
 	Internal::DIntervalBase<2> ib(r);
 	DRange<2> r2(ib);
-	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
-	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
-	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
-	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
 END_SECTION
 
 START_SECTION(DRange& operator=(const Base& rhs))
 	Internal::DIntervalBase<2> ib(r);
 	DRange<2> r2;
 	r2 = ib;
-	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
-	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
-	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
-	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
 END_SECTION
 
 START_SECTION(DRange& operator=(const DRange& rhs))
 	DRange<2> r2;
 	r2 = r;
-	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
-	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
-	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
-	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
 END_SECTION
 
 START_SECTION(DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, CoordinateType maxy))
 	DRange<2> r2(1.0f,2.0f,3.0f,4.0f);
-	TEST_REAL_SIMILAR(r2.min()[0],1.0f);
-	TEST_REAL_SIMILAR(r2.min()[1],2.0f);
-	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
-	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[0],1.0f);
+	TEST_REAL_SIMILAR(r2.minPosition()[1],2.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
 END_SECTION
 
 START_SECTION(bool operator == (const DRange& rhs) const )
@@ -129,11 +129,11 @@ START_SECTION(bool operator == (const DRange& rhs) const )
 	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);
 	TEST_EQUAL(r==r2,false);
-	r2.setMinX(r.min()[0]);
+	r2.setMinX(r.minPosition()[0]);
 	TEST_EQUAL(r==r2,true);
 	r2.setMaxY(0.0f);
 	TEST_EQUAL(r==r2,false);
-	r2.setMaxY(r.max()[1]);
+	r2.setMaxY(r.maxPosition()[1]);
 	TEST_EQUAL(r==r2,true);
 END_SECTION
 
@@ -142,11 +142,11 @@ START_SECTION(bool operator == (const Base& rhs) const )
 	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);
 	TEST_EQUAL(r==r2,false);
-	r2.setMinX(r.min()[0]);
+	r2.setMinX(r.minPosition()[0]);
 	TEST_EQUAL(r==r2,true);
 	r2.setMaxY(0.0f);
 	TEST_EQUAL(r==r2,false);
-	r2.setMaxY(r.max()[1]);
+	r2.setMaxY(r.maxPosition()[1]);
 	TEST_EQUAL(r==r2,true);
 END_SECTION
 
@@ -188,18 +188,18 @@ START_SECTION(DRangeIntersection intersects(const DRange& range) const)
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Inside)
 	r3.setMaxX(10.0f);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Intersects)
-	r3.setMax(r2.max()+one);
+	r3.setMax(r2.maxPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Intersects)
-	r3.setMin(r2.max()+one);
-	r3.setMax(r2.max()+two);
+	r3.setMin(r2.maxPosition()+one);
+	r3.setMax(r2.maxPosition()+two);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Disjoint)
-	r3.setMin(r2.min());
+	r3.setMin(r2.minPosition());
 	r3.setMinX(10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Disjoint)
 	r3.setMinX(-10.0f);
 	r3.setMinY(-10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Disjoint)
 	r3.setMinX(-10.0f);
 	r3.setMinY(-10.0f);
@@ -218,7 +218,7 @@ START_SECTION(DRangeIntersection intersects(const DRange& range) const)
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Disjoint)		
 	r3.setMinX(-10.0f);
 	r3.setMinY(10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Disjoint)
 	r3.setMinX(-10.0f);
 	r3.setMinY(0.0f);
@@ -283,18 +283,18 @@ START_SECTION(bool isIntersected(const DRange& range) const)
 	TEST_EQUAL(r2.isIntersected(r3),true)
 	r3.setMaxX(10.0f);
 	TEST_EQUAL(r2.isIntersected(r3),true)
-	r3.setMax(r2.max()+one);
+	r3.setMax(r2.maxPosition()+one);
 	TEST_EQUAL(r2.isIntersected(r3),true)
-	r3.setMin(r2.max()+one);
-	r3.setMax(r2.max()+two);
+	r3.setMin(r2.maxPosition()+one);
+	r3.setMax(r2.maxPosition()+two);
 	TEST_EQUAL(r2.isIntersected(r3),false)
-	r3.setMin(r2.min());
+	r3.setMin(r2.minPosition());
 	r3.setMinX(10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.isIntersected(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(-10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.isIntersected(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(-10.0f);
@@ -313,7 +313,7 @@ START_SECTION(bool isIntersected(const DRange& range) const)
 	TEST_EQUAL(r2.isIntersected(r3),false)		
 	r3.setMinX(-10.0f);
 	r3.setMinY(10.0f);
-	r3.setMax(r3.min()+one);
+	r3.setMax(r3.minPosition()+one);
 	TEST_EQUAL(r2.isIntersected(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(0.0f);
@@ -379,11 +379,11 @@ START_SECTION(DRange united(const DRange<D>& other_range) const)
 	TEST_EQUAL(r3 == r2.united(r3), true)
 	TEST_EQUAL(r2 == r3.united(r2), true)
 	TEST_EQUAL(r3 == r3.united(r2), true)
-	r3.setMin(r2.max()+one);
-	r3.setMax(r2.max()+two);
+	r3.setMin(r2.maxPosition()+one);
+	r3.setMax(r2.maxPosition()+two);
 	DRange<2> r4;
-	r4.setMin(r2.min());
-	r4.setMax(r3.max());
+	r4.setMin(r2.minPosition());
+	r4.setMax(r3.maxPosition());
 	TEST_EQUAL(r2.united(r3) == r4, true);
 	TEST_EQUAL(r3.united(r2) == r4, true);
 END_SECTION

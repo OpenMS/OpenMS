@@ -90,7 +90,7 @@ namespace OpenMS
 		Histogram<> tmp;
 		
 		//determine min and max of the data
-		Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+		Real m_min = (numeric_limits<Real>::max)(), m_max = -(numeric_limits<Real>::max)();
 		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;
@@ -101,8 +101,8 @@ namespace OpenMS
 				{
 					for (Size i=0; i<it->size(); ++i)
 					{
-						if ((*it)[i]<min) min = (*it)[i];
-						if ((*it)[i]>max) max = (*it)[i];
+						if ((*it)[i]<m_min) m_min = (*it)[i];
+						if ((*it)[i]>m_max) m_max = (*it)[i];
 					}
 					break;
 				}
@@ -114,17 +114,17 @@ namespace OpenMS
 				{
 					for (Size i=0; i<it->size(); ++i)
 					{
-						if ((*it)[i]<min) min = (*it)[i];
-						if ((*it)[i]>max) max = (*it)[i];
+						if ((*it)[i]<m_min) m_min = (*it)[i];
+						if ((*it)[i]>m_max) m_max = (*it)[i];
 					}
 					break;
 				}
 			}
 		}
-		if (min>=max) return tmp;
+		if (m_min>=m_max) return tmp;
 		
 		//create histogram
-		tmp.reset(min,max,(max-min)/500.0);
+		tmp.reset(m_min,m_max,(m_max-m_min)/500.0);
 		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;

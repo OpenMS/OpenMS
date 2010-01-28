@@ -293,10 +293,10 @@ END_SECTION
 
 START_SECTION((const AreaType& getDataRange() const))
 	MSExperiment<Peak1D > tmp;
-	TEST_REAL_SIMILAR(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_SIMILAR(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_SIMILAR(tmp.getDataRange().min()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_SIMILAR(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
 END_SECTION
 
 START_SECTION((virtual void updateRanges()))
@@ -356,10 +356,10 @@ START_SECTION((virtual void updateRanges()))
 	TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
 	TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
 
-	TEST_REAL_SIMILAR(tmp.getDataRange().min()[1],5.0)
-	TEST_REAL_SIMILAR(tmp.getDataRange().max()[1],10.0)
-	TEST_REAL_SIMILAR(tmp.getDataRange().min()[0],30.0)
-	TEST_REAL_SIMILAR(tmp.getDataRange().max()[0],50.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[1],5.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[1],10.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[0],30.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[0],50.0)
 
 	TEST_EQUAL(tmp.getMSLevels().size(),2)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
@@ -863,7 +863,7 @@ START_SECTION((void swap(MSExperiment &from)))
 	
 	TEST_EQUAL(exp1.getComment(),"")
 	TEST_EQUAL(exp1.size(),0)
-	TEST_REAL_SIMILAR(exp1.getMinInt(),DRange<1>().min()[0])
+	TEST_REAL_SIMILAR(exp1.getMinInt(),DRange<1>().minPosition()[0])
 	TEST_EQUAL(exp1.getMSLevels().size(),0)
 	TEST_EQUAL(exp1.getSize(),0);
 	

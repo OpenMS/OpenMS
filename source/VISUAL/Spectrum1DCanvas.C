@@ -279,7 +279,7 @@ namespace OpenMS
 						const ExperimentType::PeakType& peak = measurement_start_.getPeak(getCurrentLayer().peaks);
 						if (intensity_mode_==IM_PERCENTAGE)
 						{
-							percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
 						}
 						else 
 						{
@@ -301,7 +301,7 @@ namespace OpenMS
 						const ExperimentType::PeakType& peak = measurement_start_.getPeak(getCurrentLayer().peaks);
 						if (intensity_mode_==IM_PERCENTAGE)
 						{
-							percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
 						}
 						else 
 						{
@@ -346,7 +346,7 @@ namespace OpenMS
 			{
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
-					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+					percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
 				}
 				else 
 				{
@@ -482,7 +482,7 @@ namespace OpenMS
 					// add new distance item to annotations_1d of current layer
 					if (intensity_mode_==IM_PERCENTAGE)
 					{
-						percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+						percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
 					}
 					else 
 					{
@@ -577,7 +577,7 @@ namespace OpenMS
 		// select source interval start and end depending on diagram orientation
 		if (intensity_mode_==IM_PERCENTAGE)
 		{
-			percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+			percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
 		}
 		else 
 		{
@@ -736,7 +736,7 @@ namespace OpenMS
 					painter.setPen(QPen(QColor(layer.param.getValue("peak_color").toQString()), 1));
 					if (intensity_mode_ == IM_PERCENTAGE)
 					{
-						percentage_factor_ = overall_data_range_.max()[1]/spectrum.getMaxInt();
+						percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum.getMaxInt();
 					}
 					else 
 					{
@@ -904,7 +904,7 @@ namespace OpenMS
 			
 			if (intensity_mode_==IM_PERCENTAGE)
 			{
-				percentage_factor_ = overall_data_range_.max()[1]/getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
+				percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
 			}
 			else 
 			{
@@ -969,7 +969,7 @@ namespace OpenMS
 		bool flipped = layer.flipped;
 		if (intensity_mode_==IM_PERCENTAGE)
 		{
-			percentage_factor_ = overall_data_range_.max()[1]/layer.getCurrentSpectrum().getMaxInt();
+			percentage_factor_ = overall_data_range_.maxPosition()[1]/layer.getCurrentSpectrum().getMaxInt();
 		}
 		else 
 		{
@@ -1136,7 +1136,7 @@ namespace OpenMS
 					local_max = tmp->getIntensity();
 				}
 			}
-			snap_factors_[0] = overall_data_range_.max()[1]/local_max;
+			snap_factors_[0] = overall_data_range_.maxPosition()[1]/local_max;
 		}
 		else
 		{ 
@@ -1146,13 +1146,13 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::updateScrollbars_()
 	{
-		emit updateHScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
+		emit updateHScrollbar(overall_data_range_.minPosition()[0],visible_area_.minPosition()[0],visible_area_.maxPosition()[0],overall_data_range_.maxPosition()[0]);
 		emit updateVScrollbar(1,1,1,1);
 	}
 
 	void Spectrum1DCanvas::horizontalScrollBarChange(int value)
 	{
-		changeVisibleArea_(value, value + (visible_area_.max()[0] - visible_area_.min()[0]));
+		changeVisibleArea_(value, value + (visible_area_.maxPosition()[0] - visible_area_.minPosition()[0]));
 	}
 	
 	void Spectrum1DCanvas::showCurrentLayerPreferences()
@@ -1334,7 +1334,7 @@ namespace OpenMS
 					{
 						if (intensity_mode_==IM_PERCENTAGE)
 						{
-							percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
 						}
 						else 
 						{
@@ -1709,7 +1709,7 @@ namespace OpenMS
 		{
 			if (intensity_mode_==IM_PERCENTAGE)
 			{
-				percentage_factor_ = overall_data_range_.max()[1]/getLayer_(i).getCurrentSpectrum().getMaxInt();
+				percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(i).getCurrentSpectrum().getMaxInt();
 			}
 			else 
 			{

@@ -75,47 +75,47 @@ I2Pos p2;
 p2[0]=65.0;
 p2[1]=-57.5;
 
-START_SECTION((PositionType const& max() const))
-  TEST_EQUAL(I2::empty.max()==I2Pos::min_negative(), true);
-  TEST_EQUAL(I2::zero.max()==I2Pos::zero(), true);
+START_SECTION((PositionType const& maxPosition() const))
+  TEST_EQUAL(I2::empty.maxPosition()==I2Pos::minNegative(), true);
+  TEST_EQUAL(I2::zero.maxPosition()==I2Pos::zero(), true);
 END_SECTION
 
-START_SECTION((PositionType const& min() const))
-  TEST_EQUAL(I2::empty.min()==I2Pos::max(), true);
-  TEST_EQUAL(I2::zero.min()==I2Pos::zero(), true);
+START_SECTION((PositionType const& minPosition() const))
+  TEST_EQUAL(I2::empty.minPosition()==I2Pos::maxPositive(), true);
+  TEST_EQUAL(I2::zero.minPosition()==I2Pos::zero(), true);
 END_SECTION
 
 START_SECTION((void setMinMax(PositionType const & min, PositionType const & max)))
   I2 tmp(I2::empty);
   tmp.setMinMax(p1,p2);
-  TEST_REAL_SIMILAR(tmp.min()[0],5.0);
-  TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
-  TEST_REAL_SIMILAR(tmp.max()[0],65.0);
-  TEST_REAL_SIMILAR(tmp.max()[1],17.5);
+  TEST_REAL_SIMILAR(tmp.minPosition()[0],5.0);
+  TEST_REAL_SIMILAR(tmp.minPosition()[1],-57.5);
+  TEST_REAL_SIMILAR(tmp.maxPosition()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.maxPosition()[1],17.5);
 END_SECTION
 
 START_SECTION((void setMin(PositionType const & position)))
   I2 tmp(I2::empty);
   tmp.setMin(p1);
-  TEST_EQUAL(tmp.min(),p1);
-  TEST_EQUAL(tmp.max(),p1);
+  TEST_EQUAL(tmp.minPosition(),p1);
+  TEST_EQUAL(tmp.maxPosition(),p1);
   tmp.setMin(p2);
-  TEST_REAL_SIMILAR(tmp.min()[0],65.0);
-  TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
-  TEST_REAL_SIMILAR(tmp.max()[0],65.0);
-  TEST_REAL_SIMILAR(tmp.max()[1],17.5);
+  TEST_REAL_SIMILAR(tmp.minPosition()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.minPosition()[1],-57.5);
+  TEST_REAL_SIMILAR(tmp.maxPosition()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.maxPosition()[1],17.5);
 END_SECTION
 
 START_SECTION((void setMax(PositionType const & position)))
   I2 tmp(I2::empty);
   tmp.setMax(p1);
-  TEST_EQUAL(tmp.min(),p1);
-  TEST_EQUAL(tmp.max(),p1);
+  TEST_EQUAL(tmp.minPosition(),p1);
+  TEST_EQUAL(tmp.maxPosition(),p1);
   tmp.setMax(p2);
-  TEST_REAL_SIMILAR(tmp.min()[0],5.0);
-  TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
-  TEST_REAL_SIMILAR(tmp.max()[0],65.0);
-  TEST_REAL_SIMILAR(tmp.max()[1],-57.5);
+  TEST_REAL_SIMILAR(tmp.minPosition()[0],5.0);
+  TEST_REAL_SIMILAR(tmp.minPosition()[1],-57.5);
+  TEST_REAL_SIMILAR(tmp.maxPosition()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.maxPosition()[1],-57.5);
 END_SECTION
 
 START_SECTION((bool operator==(const DIntervalBase &rhs) const ))
@@ -144,7 +144,7 @@ END_SECTION
 
 START_SECTION((DIntervalBase( PositionType const & minimum, PositionType const & maximum )))
 	I2 tmp(p1,p2);
-	I2 tmp2(tmp.min(), tmp.max());
+	I2 tmp2(tmp.minPosition(), tmp.maxPosition());
 	TEST_EQUAL(tmp==tmp2,true);
 END_SECTION
 
@@ -166,8 +166,8 @@ START_SECTION((void clear()))
 	TEST_EQUAL(tmp==I2::empty,false);
 	tmp.clear();
 	TEST_EQUAL(tmp==I2::empty,true);
-  TEST_EQUAL(tmp.max()==I2Pos::min_negative(), true);
-  TEST_EQUAL(tmp.min()==I2Pos::max(), true);
+  TEST_EQUAL(tmp.maxPosition()==I2Pos::minNegative(), true);
+  TEST_EQUAL(tmp.minPosition()==I2Pos::maxPositive(), true);
 END_SECTION
 
 START_SECTION((PositionType center() const))
@@ -251,15 +251,15 @@ DIntervalBase<2> i2(p1,p2);
 
 DIntervalBase<3> tmp;
 tmp.assign(i2);
-TEST_REAL_SIMILAR(tmp.min()[0],5.0);
-TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
-TEST_REAL_SIMILAR(tmp.max()[0],65.0);
-TEST_REAL_SIMILAR(tmp.max()[1],17.5);
+TEST_REAL_SIMILAR(tmp.minPosition()[0],5.0);
+TEST_REAL_SIMILAR(tmp.minPosition()[1],-57.5);
+TEST_REAL_SIMILAR(tmp.maxPosition()[0],65.0);
+TEST_REAL_SIMILAR(tmp.maxPosition()[1],17.5);
 
 DIntervalBase<1> tmp2;
 tmp2.assign(i2);
-TEST_REAL_SIMILAR(tmp2.min()[0],5.0);
-TEST_REAL_SIMILAR(tmp2.max()[0],65.0);
+TEST_REAL_SIMILAR(tmp2.minPosition()[0],5.0);
+TEST_REAL_SIMILAR(tmp2.maxPosition()[0],65.0);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

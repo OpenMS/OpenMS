@@ -1372,7 +1372,7 @@ namespace OpenMS
 		query << "SELECT id FROM DATA_Spectrum WHERE fid_MSExperiment=" << id;
 		if (options_.hasRTRange())
 		{
-			query << " AND RetentionTime > " << options_.getRTRange().min() << " AND RetentionTime < " << options_.getRTRange().max();
+			query << " AND RetentionTime > " << options_.getRTRange().minPosition() << " AND RetentionTime < " << options_.getRTRange().maxPosition();
 		}
 		if (options_.hasMSLevels())
 		{
@@ -1664,11 +1664,11 @@ namespace OpenMS
 		query << "SELECT mz,Intensity,fid_MetaInfo,id FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ";
 		if (options_.hasMZRange())
 		{
-			query << " AND mz > " << options_.getMZRange().min() << " AND mz < " << options_.getMZRange().max();
+			query << " AND mz > " << options_.getMZRange().minPosition() << " AND mz < " << options_.getMZRange().maxPosition();
 		}
 		if (options_.hasIntensityRange())
 		{
-			query << " AND Intensity > " << options_.getIntensityRange().min() << " AND Intensity < " << options_.getIntensityRange().max();
+			query << " AND Intensity > " << options_.getIntensityRange().minPosition() << " AND Intensity < " << options_.getIntensityRange().maxPosition();
 		}
 		query << " ORDER BY mz ASC";
 		result = db_con_.executeQuery(query.str());

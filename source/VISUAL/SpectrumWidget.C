@@ -127,7 +127,7 @@ namespace OpenMS
 		{
 			DataFilters filters;
 			
-			if (dw.getLeftSplitter()>dist.min())
+			if (dw.getLeftSplitter()>dist.minBound())
 			{
 				DataFilters::DataFilter filter;
 				filter.value = dw.getLeftSplitter();
@@ -136,7 +136,7 @@ namespace OpenMS
 				filters.add(filter);
 			}
 			
-			if (dw.getRightSplitter()<dist.max())
+			if (dw.getRightSplitter()<dist.maxBound())
 			{
 				DataFilters::DataFilter filter;
 				filter.value = dw.getRightSplitter();
@@ -159,7 +159,7 @@ namespace OpenMS
 		{
 			DataFilters filters;
 			
-			if (dw.getLeftSplitter()>dist.min())
+			if (dw.getLeftSplitter()>dist.minBound())
 			{
 				DataFilters::DataFilter filter;
 				filter.value = dw.getLeftSplitter();
@@ -170,7 +170,7 @@ namespace OpenMS
 				filters.add(filter);
 			}
 			
-			if (dw.getRightSplitter()<dist.max())
+			if (dw.getRightSplitter()<dist.maxBound())
 			{
 				DataFilters::DataFilter filter;
 				filter.value = dw.getRightSplitter();

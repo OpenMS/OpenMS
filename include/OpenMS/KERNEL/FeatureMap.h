@@ -282,22 +282,22 @@ namespace OpenMS
 					if (!box.isEmpty())
 					{
 						//update RT
-						if (box.min()[Peak2D::RT] < this->pos_range_.min()[Peak2D::RT])
+						if (box.minPosition()[Peak2D::RT] < this->pos_range_.minPosition()[Peak2D::RT])
 						{
-							this->pos_range_.setMinX(box.min()[Peak2D::RT]);
+							this->pos_range_.setMinX(box.minPosition()[Peak2D::RT]);
 						}
-						if (box.max()[Peak2D::RT] > this->pos_range_.max()[Peak2D::RT])
+						if (box.maxPosition()[Peak2D::RT] > this->pos_range_.maxPosition()[Peak2D::RT])
 						{
-							this->pos_range_.setMaxX(box.max()[Peak2D::RT]);
+							this->pos_range_.setMaxX(box.maxPosition()[Peak2D::RT]);
 						}
 						//update m/z
-						if (box.min()[Peak2D::MZ] < this->pos_range_.min()[Peak2D::MZ])
+						if (box.minPosition()[Peak2D::MZ] < this->pos_range_.minPosition()[Peak2D::MZ])
 						{
-							this->pos_range_.setMinY(box.min()[Peak2D::MZ]);
+							this->pos_range_.setMinY(box.minPosition()[Peak2D::MZ]);
 						}
-						if (box.max()[Peak2D::MZ] > this->pos_range_.max()[Peak2D::MZ])
+						if (box.maxPosition()[Peak2D::MZ] > this->pos_range_.maxPosition()[Peak2D::MZ])
 						{
-							this->pos_range_.setMaxY(box.max()[Peak2D::MZ]);
+							this->pos_range_.setMaxY(box.maxPosition()[Peak2D::MZ]);
 						}
 					}
 				}

@@ -55,14 +55,14 @@ namespace OpenMS
 		buffer_(),
 		log_mode_(false)
 	{
-		left_splitter_ =  dist_.min();
-		right_splitter_ = dist_.max();
+		left_splitter_ =  dist_.minBound();
+		right_splitter_ = dist_.maxBound();
 		setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 		setMinimumSize(600,450);
 		bottom_axis_ = new AxisWidget(AxisWidget::BOTTOM,"",this);
 		bottom_axis_->setMargin(margin_);
 		bottom_axis_->setTickLevel(2);
-		bottom_axis_->setAxisBounds(dist_.min(),dist_.max());
+		bottom_axis_->setAxisBounds(dist_.minBound(),dist_.maxBound());
 
 		//signals and slots
 		setContextMenuPolicy(Qt::CustomContextMenu);
@@ -91,12 +91,12 @@ namespace OpenMS
 
 	void HistogramWidget::setRightSplitter(DoubleReal pos)
 	{
-		right_splitter_=min(dist_.max(),pos);
+		right_splitter_=min(dist_.maxBound(),pos);
 	}
 
 	void HistogramWidget::setLeftSplitter(DoubleReal pos)
 	{
-		left_splitter_=max(dist_.min(),pos);
+		left_splitter_=max(dist_.minBound(),pos);
 	}
 
 	void HistogramWidget::setLegend(const String& legend)
@@ -110,7 +110,7 @@ namespace OpenMS
 		if (show_splitters_ && e->button()==Qt::LeftButton)
 		{
 			//left
-			Int p = margin_ + UInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
+			Int p = margin_ + UInt(((left_splitter_-dist_.minBound())/(dist_.maxBound()-dist_.minBound()))*(width()-2*margin_));
 			//cout << "Mouse: " << e->x() << " p: " << p << " splitter: " << left_splitter_ << endl;
 			if (e->x()>=p && e->x()<=p+5)
 			{
@@ -118,7 +118,7 @@ namespace OpenMS
 			}
 
 			//right
-			p = margin_ + UInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
+			p = margin_ + UInt(((right_splitter_-dist_.minBound())/(dist_.maxBound()-dist_.minBound()))*(width()-2*margin_));
 			if (e->x()<=p && e->x()>=p-5)
 			{
 				moving_splitter_=2;
@@ -137,16 +137,16 @@ namespace OpenMS
 			//left
 			if (moving_splitter_==1)
 			{
-				left_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.max()-dist_.min())+dist_.min();
+				left_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.maxBound()-dist_.minBound())+dist_.minBound();
 				//upper bound
-				if (left_splitter_>right_splitter_-(dist_.max()-dist_.min())/50.0)
+				if (left_splitter_>right_splitter_-(dist_.maxBound()-dist_.minBound())/50.0)
 				{
-					left_splitter_ = right_splitter_-(dist_.max()-dist_.min())/50.0;
+					left_splitter_ = right_splitter_-(dist_.maxBound()-dist_.minBound())/50.0;
 				}
 				//lower bound
-				if (left_splitter_<dist_.min())
+				if (left_splitter_<dist_.minBound())
 				{
-					left_splitter_=dist_.min();
+					left_splitter_=dist_.minBound();
 				}
 				update();
 			}
@@ -155,16 +155,16 @@ namespace OpenMS
 			if (moving_splitter_==2)
 			{
 
-				right_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
+				right_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.maxBound()-dist_.minBound())+dist_.minBound();
 				//upper bound
-				if (right_splitter_<left_splitter_+(dist_.max()-dist_.min())/50.0)
+				if (right_splitter_<left_splitter_+(dist_.maxBound()-dist_.minBound())/50.0)
 				{
-					right_splitter_ = left_splitter_+(dist_.max()-dist_.min())/50.0;
+					right_splitter_ = left_splitter_+(dist_.maxBound()-dist_.minBound())/50.0;
 				}
 				//lower bound
-				if (right_splitter_>dist_.max())
+				if (right_splitter_>dist_.maxBound())
 				{
-					right_splitter_=dist_.max();
+					right_splitter_=dist_.maxBound();
 				}
 				update();
 			}
@@ -209,11 +209,11 @@ namespace OpenMS
 			QFont label_font;
 			label_font.setPointSize(8);
 
-			//cout << "Left splitter: " << left_splitter_<< " dist: " << dist_.min() << endl;
-			//cout << "Right splitter: " << right_splitter_<< " dist: " << dist_.max() << endl;
+			//cout << "Left splitter: " << left_splitter_<< " dist: " << dist_.minBound() << endl;
+			//cout << "Right splitter: " << right_splitter_<< " dist: " << dist_.maxBound() << endl;
 
 			//left
-			UInt p =  UInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
+			UInt p =  UInt(((left_splitter_-dist_.minBound())/(dist_.maxBound()-dist_.minBound()))*(width()-2*margin_))+margin_;
 			//cout << "Left splitter position: " << p << endl;
 			painter.drawLine(p,margin_-8,p,height()-bottom_axis_->height());
 			painter.drawLine(p,margin_-8,p+5,margin_-8);
@@ -223,7 +223,7 @@ namespace OpenMS
 			painter.setFont(QFont());
 
 			//right
-			p = UInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
+			p = UInt(((right_splitter_-dist_.minBound())/(dist_.maxBound()-dist_.minBound()))*(width()-2*margin_))+margin_;
 			painter.drawLine(p,margin_-8,p,height()-bottom_axis_->height());
 			painter.drawLine(p,margin_-8,p-5,margin_-8);
 			painter.drawLine(p-5,margin_-8,p,margin_-3);

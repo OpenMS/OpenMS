@@ -147,7 +147,7 @@ namespace OpenMS
 
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
-			for (ExperimentType::ConstAreaIterator i = getCurrentLayer().peaks.areaBeginConst(area.min()[1],area.max()[1],area.min()[0],area.max()[0]);
+			for (ExperimentType::ConstAreaIterator i = getCurrentLayer().peaks.areaBeginConst(area.minPosition()[1],area.maxPosition()[1],area.minPosition()[0],area.maxPosition()[0]);
 					 i != getCurrentLayer().peaks.areaEndConst();
 					 ++i)
 			{
@@ -166,10 +166,10 @@ namespace OpenMS
 				   i != getCurrentLayer().features.end();
 				   ++i)
 			{
-				if ( i->getRT() >= area.min()[1] &&
-						 i->getRT() <= area.max()[1] &&
-						 i->getMZ() >= area.min()[0] &&
-						 i->getMZ() <= area.max()[0] &&
+				if ( i->getRT() >= area.minPosition()[1] &&
+						 i->getRT() <= area.maxPosition()[1] &&
+						 i->getMZ() >= area.minPosition()[0] &&
+						 i->getMZ() <= area.maxPosition()[0] &&
 						 getCurrentLayer().filters.passes(*i) )
 				{
 					if (i->getIntensity() > max_int)
@@ -187,10 +187,10 @@ namespace OpenMS
 				   i != getCurrentLayer().consensus.end();
 				   ++i)
 			{
-				if ( i->getRT() >= area.min()[1] &&
-						 i->getRT() <= area.max()[1] &&
-						 i->getMZ() >= area.min()[0] &&
-						 i->getMZ() <= area.max()[0] &&
+				if ( i->getRT() >= area.minPosition()[1] &&
+						 i->getRT() <= area.maxPosition()[1] &&
+						 i->getMZ() >= area.minPosition()[0] &&
+						 i->getMZ() <= area.maxPosition()[0] &&
 						 getCurrentLayer().filters.passes(*i) )
 				{
 					if (i->getIntensity() > max_int)
@@ -220,20 +220,20 @@ namespace OpenMS
 		{
 			if (layer.type == LayerData::DT_PEAK && layer.peaks.getMaxInt()>0.0)
 			{
-				percentage_factor_ = overall_data_range_.max()[2]/layer.peaks.getMaxInt();
+				percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.peaks.getMaxInt();
 			}
 			else if (layer.type != LayerData::DT_FEATURE && layer.features.getMaxInt()>0.0)
 			{
-				percentage_factor_ = overall_data_range_.max()[2]/layer.features.getMaxInt();
+				percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.features.getMaxInt();
 			}
 			else if (layer.type != LayerData::DT_CONSENSUS && layer.consensus.getMaxInt()>0.0)
 			{
-				percentage_factor_ = overall_data_range_.max()[2]/layer.consensus.getMaxInt();
+				percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.consensus.getMaxInt();
 			}
 			else if (layer.type != LayerData::DT_CHROMATOGRAM && layer.consensus.getMaxInt()>0.0)
 			{
 				//TODO CHROM
-				//percentage_factor_ = overall_data_range_.max()[2]/layer.peaks.getMaxInt();
+				//percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.peaks.getMaxInt();
 			}
 		}
 
@@ -248,10 +248,10 @@ namespace OpenMS
 		{
 			//renaming some values for readability
 			const ExperimentType& map = layer.peaks;
-			DoubleReal rt_min = visible_area_.min()[1];
-			DoubleReal rt_max = visible_area_.max()[1];
-			DoubleReal mz_min = visible_area_.min()[0];
-			DoubleReal mz_max = visible_area_.max()[0];
+			DoubleReal rt_min = visible_area_.minPosition()[1];
+			DoubleReal rt_max = visible_area_.maxPosition()[1];
+			DoubleReal mz_min = visible_area_.minPosition()[0];
+			DoubleReal mz_max = visible_area_.maxPosition()[0];
 
 			//determine number of pixels for each dimension
 			Int rt_pixel_count = image_height;
@@ -390,8 +390,8 @@ namespace OpenMS
 			//draw precursor peaks
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
 			{
-				for (ExperimentType::ConstIterator i = map.RTBegin(visible_area_.min()[1]);
-						 i != map.RTEnd(visible_area_.max()[1]);
+				for (ExperimentType::ConstIterator i = map.RTBegin(visible_area_.minPosition()[1]);
+						 i != map.RTEnd(visible_area_.maxPosition()[1]);
 						 ++i)
 				{
 					//this is an MS/MS scan
@@ -422,10 +422,10 @@ namespace OpenMS
 				   i != layer.features.end();
 				   ++i)
 			{
-				if ( i->getRT() >= visible_area_.min()[1] &&
-						 i->getRT() <= visible_area_.max()[1] &&
-						 i->getMZ() >= visible_area_.min()[0] &&
-						 i->getMZ() <= visible_area_.max()[0] &&
+				if ( i->getRT() >= visible_area_.minPosition()[1] &&
+						 i->getRT() <= visible_area_.maxPosition()[1] &&
+						 i->getMZ() >= visible_area_.minPosition()[0] &&
+						 i->getMZ() <= visible_area_.maxPosition()[0] &&
 						 layer.filters.passes(*i))
 				{
 					//determine color
@@ -487,10 +487,10 @@ namespace OpenMS
 				   i != layer.consensus.end();
 				   ++i)
 			{
-				if ( i->getRT() >= visible_area_.min()[1] &&
-						 i->getRT() <= visible_area_.max()[1] &&
-						 i->getMZ() >= visible_area_.min()[0] &&
-						 i->getMZ() <= visible_area_.max()[0] &&
+				if ( i->getRT() >= visible_area_.minPosition()[1] &&
+						 i->getRT() <= visible_area_.maxPosition()[1] &&
+						 i->getMZ() >= visible_area_.minPosition()[0] &&
+						 i->getMZ() <= visible_area_.maxPosition()[0] &&
 						 layer.filters.passes(*i))
 				{
 					//determine color
@@ -581,10 +581,10 @@ namespace OpenMS
 		const LayerData& layer = getLayer(layer_index);
 		for (FeatureMapType::ConstIterator i = layer.features.begin(); i != layer.features.end(); ++i)
 		{
-			if ( i->getRT() >= visible_area_.min()[1] &&
-					 i->getRT() <= visible_area_.max()[1] &&
-					 i->getMZ() >= visible_area_.min()[0] &&
-					 i->getMZ() <= visible_area_.max()[0] &&
+			if ( i->getRT() >= visible_area_.minPosition()[1] &&
+					 i->getRT() <= visible_area_.maxPosition()[1] &&
+					 i->getMZ() >= visible_area_.minPosition()[0] &&
+					 i->getMZ() <= visible_area_.maxPosition()[0] &&
 					 layer.filters.passes(*i)
 				 )
 			{
@@ -599,10 +599,10 @@ namespace OpenMS
 		const LayerData& layer = getLayer(layer_index);
 		for (FeatureMapType::ConstIterator i = layer.features.begin(); i != layer.features.end(); ++i)
 		{
-			if ( i->getRT() >= visible_area_.min()[1] &&
-					 i->getRT() <= visible_area_.max()[1] &&
-					 i->getMZ() >= visible_area_.min()[0] &&
-					 i->getMZ() <= visible_area_.max()[0] &&
+			if ( i->getRT() >= visible_area_.minPosition()[1] &&
+					 i->getRT() <= visible_area_.maxPosition()[1] &&
+					 i->getMZ() >= visible_area_.minPosition()[0] &&
+					 i->getMZ() <= visible_area_.maxPosition()[0] &&
 					 layer.filters.passes(*i))
 			{
 				//paint hull points
@@ -634,9 +634,9 @@ namespace OpenMS
 			if (ids[i].getHits().size()!=0)
 			{
 				DoubleReal rt = (DoubleReal)ids[i].getMetaValue("RT");
-				if (rt< visible_area_.min()[1] || rt > visible_area_.max()[1]) continue;
+				if (rt< visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1]) continue;
 				DoubleReal mz = (DoubleReal)ids[i].getMetaValue("MZ");
-				if (mz< visible_area_.min()[0] || mz > visible_area_.max()[0]) continue;
+				if (mz< visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0]) continue;
 				
 				//draw dot
 				QPoint pos;
@@ -733,10 +733,10 @@ namespace OpenMS
 	bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce, Size layer_index)
 	{
 		// check the centroid first
-		if (ce.getRT() >= visible_area_.min()[1] &&
-				ce.getRT() <= visible_area_.max()[1] &&
-				ce.getMZ() >= visible_area_.min()[0] &&
-				ce.getMZ() <= visible_area_.max()[0])
+		if (ce.getRT() >= visible_area_.minPosition()[1] &&
+				ce.getRT() <= visible_area_.maxPosition()[1] &&
+				ce.getMZ() >= visible_area_.minPosition()[0] &&
+				ce.getMZ() <= visible_area_.maxPosition()[0])
 		{
 			return true;
 		}
@@ -747,10 +747,10 @@ namespace OpenMS
 			ConsensusFeature::HandleSetType::const_iterator element=ce.getFeatures().begin();
 			for (; element != ce.getFeatures().end(); ++element)
 			{
-				if (element->getRT() >= visible_area_.min()[1] &&
-						element->getRT() <= visible_area_.max()[1] &&
-						element->getMZ() >= visible_area_.min()[0] &&
-						element->getMZ() <= visible_area_.max()[0])
+				if (element->getRT() >= visible_area_.minPosition()[1] &&
+						element->getRT() <= visible_area_.maxPosition()[1] &&
+						element->getMZ() >= visible_area_.minPosition()[0] &&
+						element->getMZ() <= visible_area_.maxPosition()[0])
 				{
 					return true;
 				}
@@ -771,7 +771,7 @@ namespace OpenMS
 	void Spectrum2DCanvas::recalculateDotGradient_(Size layer)
 	{
 		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
-		getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
+		getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
 	}
 
 	void Spectrum2DCanvas::updateProjections()
@@ -838,7 +838,7 @@ namespace OpenMS
 		float mult = 1.0/prec;
 
 
-		for (ExperimentType::ConstAreaIterator i = layer->peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); i != layer->peaks.areaEndConst(); ++i)
+		for (ExperimentType::ConstAreaIterator i = layer->peaks.areaBeginConst(visible_area_.minPosition()[1],visible_area_.maxPosition()[1],visible_area_.minPosition()[0],visible_area_.maxPosition()[0]); i != layer->peaks.areaEndConst(); ++i)
 		{
 			PeakIndex pi = i.getPeakIndex();
 			if (layer->filters.passes(layer->peaks[pi.spectrum],pi.peak))
@@ -858,14 +858,14 @@ namespace OpenMS
 
 		// write to spectra
 		projection_mz_[0].resize(mzint.size()+2);
-		projection_mz_[0][0].setMZ(visible_area_.min()[0]);
+		projection_mz_[0][0].setMZ(visible_area_.minPosition()[0]);
 		projection_mz_[0][0].setIntensity(0.0);
-		projection_mz_[0][1].setMZ(visible_area_.max()[0]);
+		projection_mz_[0][1].setMZ(visible_area_.maxPosition()[0]);
 		projection_mz_[0][1].setIntensity(0.0);
 		projection_rt_[0].resize(rt.size()+2);
-		projection_rt_[0][0].setMZ(visible_area_.min()[1]);
+		projection_rt_[0][0].setMZ(visible_area_.minPosition()[1]);
 		projection_rt_[0][0].setIntensity(0.0);
-		projection_rt_[0][1].setMZ(visible_area_.max()[1]);
+		projection_rt_[0][1].setMZ(visible_area_.maxPosition()[1]);
 		projection_rt_[0][1].setIntensity(0.0);
 
 		Size i = 2;
@@ -1064,7 +1064,7 @@ namespace OpenMS
 					DoubleReal local_max  = -numeric_limits<DoubleReal>::max();
 					if (getLayer(i).type==LayerData::DT_PEAK)
 					{
-						for (ExperimentType::ConstAreaIterator it = getLayer(i).peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]);
+						for (ExperimentType::ConstAreaIterator it = getLayer(i).peaks.areaBeginConst(visible_area_.minPosition()[1],visible_area_.maxPosition()[1],visible_area_.minPosition()[0],visible_area_.maxPosition()[0]);
 								 it != getLayer(i).peaks.areaEndConst();
 								 ++it)
 						{
@@ -1081,10 +1081,10 @@ namespace OpenMS
 							   it != getLayer(i).features.end();
 							   ++it)
 						{
-							if ( it->getRT() >= visible_area_.min()[1] &&
-									 it->getRT() <= visible_area_.max()[1] &&
-									 it->getMZ() >= visible_area_.min()[0] &&
-									 it->getMZ() <= visible_area_.max()[0] &&
+							if ( it->getRT() >= visible_area_.minPosition()[1] &&
+									 it->getRT() <= visible_area_.maxPosition()[1] &&
+									 it->getMZ() >= visible_area_.minPosition()[0] &&
+									 it->getMZ() <= visible_area_.maxPosition()[0] &&
 									 getLayer(i).filters.passes(*it) &&
 									 it->getIntensity() > local_max)
 							{
@@ -1098,10 +1098,10 @@ namespace OpenMS
 							   it != getLayer(i).consensus.end();
 							   ++it)
 						{
-							if ( it->getRT() >= visible_area_.min()[1] &&
-									 it->getRT() <= visible_area_.max()[1] &&
-									 it->getMZ() >= visible_area_.min()[0] &&
-									 it->getMZ() <= visible_area_.max()[0] &&
+							if ( it->getRT() >= visible_area_.minPosition()[1] &&
+									 it->getRT() <= visible_area_.maxPosition()[1] &&
+									 it->getMZ() >= visible_area_.minPosition()[0] &&
+									 it->getMZ() <= visible_area_.maxPosition()[0] &&
 									 getLayer(i).filters.passes(*it) &&
 									 it->getIntensity() > local_max)
 							{
@@ -1115,7 +1115,7 @@ namespace OpenMS
 					}
 					if (local_max>0.0)
 					{
-						snap_factors_[i] = overall_data_range_.max()[2]/local_max;
+						snap_factors_[i] = overall_data_range_.maxPosition()[2]/local_max;
 					}
 				}
 			}
@@ -1126,13 +1126,13 @@ namespace OpenMS
 	{
 		if (isMzToXAxis())
 		{
-			emit updateHScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
-			emit updateVScrollbar(overall_data_range_.min()[1],visible_area_.min()[1],visible_area_.max()[1],overall_data_range_.max()[1]);
+			emit updateHScrollbar(overall_data_range_.minPosition()[0],visible_area_.minPosition()[0],visible_area_.maxPosition()[0],overall_data_range_.maxPosition()[0]);
+			emit updateVScrollbar(overall_data_range_.minPosition()[1],visible_area_.minPosition()[1],visible_area_.maxPosition()[1],overall_data_range_.maxPosition()[1]);
 		}
 		else
 		{
-			emit updateVScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
-			emit updateHScrollbar(overall_data_range_.min()[1],visible_area_.min()[1],visible_area_.max()[1],overall_data_range_.max()[1]);
+			emit updateVScrollbar(overall_data_range_.minPosition()[0],visible_area_.minPosition()[0],visible_area_.maxPosition()[0],overall_data_range_.maxPosition()[0]);
+			emit updateHScrollbar(overall_data_range_.minPosition()[1],visible_area_.minPosition()[1],visible_area_.maxPosition()[1],overall_data_range_.maxPosition()[1]);
 		}
 	}
 
@@ -1190,7 +1190,7 @@ namespace OpenMS
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
 	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " rt: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
-	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " rt: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl;
+	  cout << "  Overall area -- m/z: " << overall_data_range_.minPosition()[0] << " - " << overall_data_range_.maxPosition()[0] << " rt: " << overall_data_range_.minPosition()[1] << " - " << overall_data_range_.maxPosition()[1] << endl;
 #endif
 		
 		//timing
@@ -1512,10 +1512,10 @@ namespace OpenMS
 					DoubleReal rt = new_data[1];
 
 					//restrict the movement to the data range
-					mz = max(mz,overall_data_range_.min()[0]);
-					mz = min(mz,overall_data_range_.max()[0]);
-					rt = max(rt,overall_data_range_.min()[1]);
-					rt = min(rt,overall_data_range_.max()[1]);
+					mz = max(mz,overall_data_range_.minPosition()[0]);
+					mz = min(mz,overall_data_range_.maxPosition()[0]);
+					rt = max(rt,overall_data_range_.minPosition()[1]);
+					rt = min(rt,overall_data_range_.maxPosition()[1]);
 
 					getCurrentLayer_().features[selected_peak_.peak].setRT(rt);
 					getCurrentLayer_().features[selected_peak_.peak].setMZ(mz);

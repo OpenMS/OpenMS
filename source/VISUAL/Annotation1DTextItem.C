@@ -90,21 +90,21 @@ namespace OpenMS
 		CoordinateType x_pos = position_.getX();
 		CoordinateType y_pos = position_.getY() * canvas->getPercentageFactor();
 		
-		if (x_pos < data_range.min()[0])
+		if (x_pos < data_range.minPosition()[0])
 		{
-			position_.setX(data_range.min()[0]);
+			position_.setX(data_range.minPosition()[0]);
 		}
-		if (x_pos > data_range.max()[0])
+		if (x_pos > data_range.maxPosition()[0])
 		{
-			position_.setX(data_range.max()[0]);
+			position_.setX(data_range.maxPosition()[0]);
 		}
-		if (y_pos < data_range.min()[1])
+		if (y_pos < data_range.minPosition()[1])
 		{
-			position_.setY(data_range.min()[1] / canvas->getPercentageFactor());
+			position_.setY(data_range.minPosition()[1] / canvas->getPercentageFactor());
 		}
-		if (y_pos > data_range.max()[1])
+		if (y_pos > data_range.maxPosition()[1])
 		{
-			position_.setY(data_range.max()[1] / canvas->getPercentageFactor());
+			position_.setY(data_range.maxPosition()[1] / canvas->getPercentageFactor());
 		}
 	}
 	

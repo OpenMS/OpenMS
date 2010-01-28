@@ -53,8 +53,8 @@ START_SECTION((FeatureMap()))
 	pl_ptr = new FeatureMap<>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 
-	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::max())
-	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::min_negative())
+	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::maxPositive())
+	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::minNegative())
 	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<DoubleReal>::max())
 	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
 END_SECTION
@@ -470,7 +470,7 @@ START_SECTION((void swap(FeatureMap& from)))
 
 	TEST_EQUAL(map1.getIdentifier(),"")
 	TEST_EQUAL(map1.size(),0)
-	TEST_REAL_SIMILAR(map1.getMinInt(),DRange<1>().min()[0])
+	TEST_REAL_SIMILAR(map1.getMinInt(),DRange<1>().minPosition()[0])
   TEST_EQUAL(map1.getDataProcessing().size(),0)
 	TEST_EQUAL(map1.getProteinIdentifications().size(),0);
 	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0);

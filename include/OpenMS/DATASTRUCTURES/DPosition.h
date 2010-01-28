@@ -361,21 +361,21 @@ namespace OpenMS
         }
         /// smallest positive
         inline static const DPosition
-        min()
+        minPositive()
         {
-          return DPosition(std::numeric_limits<typename DPosition::CoordinateType>::min());
+          return DPosition((std::numeric_limits<typename DPosition::CoordinateType>::min)());
         }
         /// smallest negative
         inline static const DPosition
-        min_negative()
+        minNegative()
         {
-          return DPosition(-std::numeric_limits<typename DPosition::CoordinateType>::max());
+          return DPosition(-(std::numeric_limits<typename DPosition::CoordinateType>::max)());
         }
         /// largest positive
         inline static const DPosition
-        max()
+        maxPositive()
         {
-          return DPosition(std::numeric_limits<typename DPosition::CoordinateType>::max());
+          return DPosition((std::numeric_limits<typename DPosition::CoordinateType>::max)());
         }
         //@}
 

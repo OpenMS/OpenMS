@@ -70,8 +70,8 @@ namespace OpenMS
 					Creates an empty interval with corners at infinity.
 				*/
 				DIntervalBase()
-					: min_(PositionType::max()),
-						max_(PositionType::min_negative())
+					: min_(PositionType::maxPositive()),
+						max_(PositionType::minNegative())
 				{
 				}
 				
@@ -111,13 +111,13 @@ namespace OpenMS
 				//@{
 				
 				/// Accessor to minimum position
-				inline PositionType const & min() const
+				inline PositionType const & minPosition() const
 				{
 					return min_;
 				}
 		
 				/// Accessor to maximum position
-				inline PositionType const & max() const
+				inline PositionType const & maxPosition() const
 				{
 					return max_;
 				}
@@ -172,8 +172,8 @@ namespace OpenMS
 				{
 					for (UInt i=0; i<std::min(D,D2); ++i)
 					{
-						min_[i] = rhs.min()[i];
-						max_[i] = rhs.max()[i];
+						min_[i] = rhs.minPosition()[i];
+						max_[i] = rhs.maxPosition()[i];
 					}
 				}
 				
@@ -331,15 +331,15 @@ namespace OpenMS
 			
 			template <UInt D>
 			DIntervalBase<D> const DIntervalBase<D>::empty 
-			= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max(), DIntervalBase<D>::PositionType::min_negative()));
+			= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::maxPositive(), DIntervalBase<D>::PositionType::minNegative()));
 			
 			///Print the contents to a stream.
 			template <UInt D>
 			std::ostream& operator << (std::ostream& os, const DIntervalBase<D>& rhs)
 			{
 				os << "--DIntervalBase BEGIN--"<<std::endl;
-				os << "MIN --> " << rhs.min() << std::endl;
-				os << "MAX --> " << rhs.max() << std::endl;
+				os << "MIN --> " << rhs.minPosition() << std::endl;
+				os << "MAX --> " << rhs.maxPosition() << std::endl;
 				os << "--DIntervalBase END--"<<std::endl;
 				return os;
 			}

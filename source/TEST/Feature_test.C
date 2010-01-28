@@ -208,10 +208,10 @@ START_SECTION((ConvexHull2D& getConvexHull() const))
 
 	//check if the bounding box is ok
 	DBoundingBox<2> bb = tmp.getConvexHull().getBoundingBox();
-	TEST_REAL_SIMILAR(bb.min()[0],0.5)
-	TEST_REAL_SIMILAR(bb.min()[1],0.0)
-	TEST_REAL_SIMILAR(bb.max()[0],3.0)
-	TEST_REAL_SIMILAR(bb.max()[1],4.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[0],0.5)
+	TEST_REAL_SIMILAR(bb.minPosition()[1],0.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],3.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],4.0)
 
 	//check the convex hull points
 	TEST_EQUAL(tmp.getConvexHull().getPoints().size(),3)

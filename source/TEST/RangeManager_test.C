@@ -130,11 +130,11 @@ START_SECTION((virtual ~RangeManager()))
 END_SECTION
 
 START_SECTION((const PositionType& getMin() const))
-	TEST_EQUAL(RM().getMin(), RM::PositionType::max())
+	TEST_EQUAL(RM().getMin(), RM::PositionType::maxPositive())
 END_SECTION
 
 START_SECTION((const PositionType& getMax() const))
-	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative())
+	TEST_EQUAL(RM().getMax(), RM::PositionType::minNegative())
 END_SECTION
 
 START_SECTION((DoubleReal getMinInt() const ))
@@ -180,8 +180,8 @@ START_SECTION((void clearRanges()))
 	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
 
 	rm.clearRanges();
-	TEST_EQUAL(RM().getMin(), RM::PositionType::max())
-	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative())
+	TEST_EQUAL(RM().getMin(), RM::PositionType::maxPositive())
+	TEST_EQUAL(RM().getMax(), RM::PositionType::minNegative())
 	TEST_REAL_SIMILAR(RM().getMinInt(), numeric_limits<DoubleReal>::max())
 	TEST_REAL_SIMILAR(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
 END_SECTION

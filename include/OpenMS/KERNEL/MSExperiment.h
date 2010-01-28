@@ -411,25 +411,25 @@ namespace OpenMS
 			/// returns the minimal m/z value
 			CoordinateType getMinMZ() const
 			{
-				return RangeManagerType::pos_range_.min()[1];
+				return RangeManagerType::pos_range_.minPosition()[1];
 			}
 
 			/// returns the maximal m/z value
 			CoordinateType getMaxMZ() const
 			{
-				return RangeManagerType::pos_range_.max()[1];
+				return RangeManagerType::pos_range_.maxPosition()[1];
 			}
 
 			/// returns the minimal retention time value
 			CoordinateType getMinRT() const
 			{
-				return RangeManagerType::pos_range_.min()[0];
+				return RangeManagerType::pos_range_.minPosition()[0];
 			}
 
 			/// returns the maximal retention time value
 			CoordinateType getMaxRT() const
 			{
-				return RangeManagerType::pos_range_.max()[0];
+				return RangeManagerType::pos_range_.maxPosition()[0];
 			}
 
 			/**

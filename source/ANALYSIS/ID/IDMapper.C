@@ -252,11 +252,11 @@ namespace OpenMS
 
 	void IDMapper::increaseBoundingBox_(DBoundingBox<2>& box)
 	{
-		DPosition<2> sub_min(rt_delta_, getAbsoluteMZDelta_(box.min().getY())),
-			add_max(rt_delta_, getAbsoluteMZDelta_(box.max().getY()));
+		DPosition<2> sub_min(rt_delta_, getAbsoluteMZDelta_(box.minPosition().getY())),
+			add_max(rt_delta_, getAbsoluteMZDelta_(box.maxPosition().getY()));
 
-		box.setMin(box.min() - sub_min);
-		box.setMax(box.max() + add_max);
+		box.setMin(box.minPosition() - sub_min);
+		box.setMax(box.maxPosition() + add_max);
 	}
 
 } // namespace OpenMS

@@ -2747,9 +2747,9 @@ namespace OpenMS
   		// insert placeholder peaks
   		const SpectrumCanvas::AreaType& area = activeCanvas_()->getVisibleArea();
   		SpectrumType::PeakType p_left,p_right;
-  		p_left.setMZ(area.min()[0]);
+  		p_left.setMZ(area.minPosition()[0]);
   		exp.back().push_back(p_left);
-  		p_right.setMZ(area.max()[0]);
+  		p_right.setMZ(area.maxPosition()[0]);
   		exp.back().push_back(p_right);
   		
 	    if (!w->canvas()->addLayer(exp))

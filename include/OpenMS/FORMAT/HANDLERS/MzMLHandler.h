@@ -3725,7 +3725,7 @@ namespace OpenMS
 			Size component_count = in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size();
 			if (component_count!=0)
 			{
-				os  << "			<componentList count=\"" << std::max((Size)3,component_count) << "\">\n";
+				os  << "			<componentList count=\"" << (std::max)((Size)3,component_count) << "\">\n";
 				//--------------------------------------------------------------------------------------------
 				// ion source
 				//--------------------------------------------------------------------------------------------
@@ -4238,7 +4238,7 @@ namespace OpenMS
 				}
 			}
 
-			os  << "	<dataProcessingList count=\"" << std::max((Size)1, dps.size() + num_bi_dps) << "\">\n";
+			os  << "	<dataProcessingList count=\"" << (std::max)((Size)1, dps.size() + num_bi_dps) << "\">\n";
 			//default (first spectrum data or fictional data)
 			if (exp.size()==0)
 			{
@@ -4436,7 +4436,7 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					//scan list
 					//--------------------------------------------------------------------------------------------
-					os	<< "				<scanList count=\"" << std::max((Size)1,spec.getAcquisitionInfo().size()) << "\">\n";
+					os	<< "				<scanList count=\"" << (std::max)((Size)1,spec.getAcquisitionInfo().size()) << "\">\n";
 					ControlledVocabulary::CVTerm ai_term = getChildWithName_("MS:1000570",spec.getAcquisitionInfo().getMethodOfCombination());
 					if (ai_term.id!="")
 					{

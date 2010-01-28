@@ -461,53 +461,53 @@ namespace OpenMS
 	void SpectrumCanvas::recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim)
 	{
 		overall_data_range_ = DRange<3>::empty;
-		DRange<3>::PositionType min = overall_data_range_.min();
-		DRange<3>::PositionType max = overall_data_range_.max();
+		DRange<3>::PositionType m_min = overall_data_range_.minPosition();
+		DRange<3>::PositionType m_max = overall_data_range_.maxPosition();
 		
 		for (Size layer_index=0; layer_index< getLayerCount(); ++layer_index)
 		{
 			if (getLayer(layer_index).type==LayerData::DT_PEAK || getLayer(layer_index).type==LayerData::DT_CHROMATOGRAM)
 			{
 				const ExperimentType& map = getLayer(layer_index).peaks;
-				if (map.getMinMZ() < min[mz_dim]) min[mz_dim] = map.getMinMZ();
-				if (map.getMaxMZ() > max[mz_dim]) max[mz_dim] = map.getMaxMZ();
-				if (map.getMinRT() < min[rt_dim]) min[rt_dim] = map.getMinRT();
-				if (map.getMaxRT() > max[rt_dim]) max[rt_dim] = map.getMaxRT();
-				if (map.getMinInt() < min[it_dim]) min[it_dim] = map.getMinInt();
-				if (map.getMaxInt() > max[it_dim]) max[it_dim] = map.getMaxInt();
+				if (map.getMinMZ() < m_min[mz_dim]) m_min[mz_dim] = map.getMinMZ();
+				if (map.getMaxMZ() > m_max[mz_dim]) m_max[mz_dim] = map.getMaxMZ();
+				if (map.getMinRT() < m_min[rt_dim]) m_min[rt_dim] = map.getMinRT();
+				if (map.getMaxRT() > m_max[rt_dim]) m_max[rt_dim] = map.getMaxRT();
+				if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
+				if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
 			}
 			else if (getLayer(layer_index).type==LayerData::DT_FEATURE)
 			{
 				const FeatureMapType& map = getLayer(layer_index).features;
-				if (map.getMin()[1] < min[mz_dim]) min[mz_dim] = map.getMin()[1];
-				if (map.getMax()[1] > max[mz_dim]) max[mz_dim] = map.getMax()[1];
-				if (map.getMin()[0] < min[rt_dim]) min[rt_dim] = map.getMin()[0];
-				if (map.getMax()[0] > max[rt_dim]) max[rt_dim] = map.getMax()[0];
-				if (map.getMinInt() < min[it_dim]) min[it_dim] = map.getMinInt();
-				if (map.getMaxInt() > max[it_dim]) max[it_dim] = map.getMaxInt();
+				if (map.getMin()[1] < m_min[mz_dim]) m_min[mz_dim] = map.getMin()[1];
+				if (map.getMax()[1] > m_max[mz_dim]) m_max[mz_dim] = map.getMax()[1];
+				if (map.getMin()[0] < m_min[rt_dim]) m_min[rt_dim] = map.getMin()[0];
+				if (map.getMax()[0] > m_max[rt_dim]) m_max[rt_dim] = map.getMax()[0];
+				if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
+				if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
 			}
 			else
 			{
 				const ConsensusMapType& map = getLayer(layer_index).consensus;
-				if (map.getMin()[1] < min[mz_dim]) min[mz_dim] = map.getMin()[1];
-				if (map.getMax()[1] > max[mz_dim]) max[mz_dim] = map.getMax()[1];
-				if (map.getMin()[0] < min[rt_dim]) min[rt_dim] = map.getMin()[0];
-				if (map.getMax()[0] > max[rt_dim]) max[rt_dim] = map.getMax()[0];
-				if (map.getMinInt() < min[it_dim]) min[it_dim] = map.getMinInt();
-				if (map.getMaxInt() > max[it_dim]) max[it_dim] = map.getMaxInt();
+				if (map.getMin()[1] < m_min[mz_dim]) m_min[mz_dim] = map.getMin()[1];
+				if (map.getMax()[1] > m_max[mz_dim]) m_max[mz_dim] = map.getMax()[1];
+				if (map.getMin()[0] < m_min[rt_dim]) m_min[rt_dim] = map.getMin()[0];
+				if (map.getMax()[0] > m_max[rt_dim]) m_max[rt_dim] = map.getMax()[0];
+				if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
+				if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
 			}
 		}
 		//Add 1% margin to RT in order to display all the data
-		DoubleReal margin = 0.01*std::max(1.0, max[rt_dim] - min[rt_dim]);
-		min[rt_dim] -= margin;
-		max[rt_dim] += margin;
+		DoubleReal margin = 0.01*std::max(1.0, m_max[rt_dim] - m_min[rt_dim]);
+		m_min[rt_dim] -= margin;
+		m_max[rt_dim] += margin;
 		//Add 1% margin to MZ in order to display all the data
-		margin = 0.01*std::max(1.0, max[mz_dim] - min[mz_dim]);
-		min[mz_dim] -= margin;
-		max[mz_dim] += margin;
+		margin = 0.01*std::max(1.0, m_max[mz_dim] - m_min[mz_dim]);
+		m_min[mz_dim] -= margin;
+		m_max[mz_dim] += margin;
 		
-		overall_data_range_.setMin(min);
-		overall_data_range_.setMax(max);
+		overall_data_range_.setMin(m_min);
+		overall_data_range_.setMax(m_max);
 	}
 
 	DoubleReal SpectrumCanvas::getSnapFactor()
@@ -737,8 +737,8 @@ namespace OpenMS
 			//copy experimental settings
 			map.ExperimentalSettings::operator=(peaks);
 			//reserve space for the correct number of spectra in RT range
-			ExperimentType::ConstIterator begin = layer.peaks.RTBegin(area.min()[1]);
-			ExperimentType::ConstIterator end = layer.peaks.RTEnd(area.max()[1]);
+			ExperimentType::ConstIterator begin = layer.peaks.RTBegin(area.minPosition()[1]);
+			ExperimentType::ConstIterator end = layer.peaks.RTEnd(area.maxPosition()[1]);
 			
 			//Exception for Spectrum1DCanvas, here we copy the currently visualized spectrum
 			bool is_1d = (getName()=="Spectrum1DCanvas");
@@ -761,14 +761,14 @@ namespace OpenMS
 				//copy peak information
 				if (!is_1d && it->getMSLevel()>1 && !it->getPrecursors().empty()) //MS^n (n>1) spectra are copied if their precursor is in the m/z range
 				{
-					if (it->getPrecursors()[0].getMZ()>=area.min()[0] && it->getPrecursors()[0].getMZ()<= area.max()[0])
+					if (it->getPrecursors()[0].getMZ()>=area.minPosition()[0] && it->getPrecursors()[0].getMZ()<= area.maxPosition()[0])
 					{
 						spectrum.insert(spectrum.begin(), it->begin(), it->end());
 					}
 				}
 				else // MS1(0) spectra are cropped to the m/z range
 				{
-					for (SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+					for (SpectrumType::ConstIterator it2 = it->MZBegin(area.minPosition()[0]); it2!= it->MZEnd(area.maxPosition()[0]); ++it2)
 					{
 						if (layer.filters.passes(*it,it2-it->begin()))
 						{
@@ -797,10 +797,10 @@ namespace OpenMS
 			map.setIdentifier(layer.features.getIdentifier());
 			map.setProteinIdentifications(layer.features.getProteinIdentifications());
 			//Visible area
-			DoubleReal min_rt = getVisibleArea().min()[1];
-			DoubleReal max_rt = getVisibleArea().max()[1];
-			DoubleReal min_mz = getVisibleArea().min()[0];
-			DoubleReal max_mz = getVisibleArea().max()[0];
+			DoubleReal min_rt = getVisibleArea().minPosition()[1];
+			DoubleReal max_rt = getVisibleArea().maxPosition()[1];
+			DoubleReal min_mz = getVisibleArea().minPosition()[0];
+			DoubleReal max_mz = getVisibleArea().maxPosition()[0];
 			//copy features
   		for (FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
   		{
@@ -827,10 +827,10 @@ namespace OpenMS
 			//copy file descriptions
 			map.getFileDescriptions() = layer.consensus.getFileDescriptions();
 			//Visible area
-			DoubleReal min_rt = getVisibleArea().min()[1];
-			DoubleReal max_rt = getVisibleArea().max()[1];
-			DoubleReal min_mz = getVisibleArea().min()[0];
-			DoubleReal max_mz = getVisibleArea().max()[0];
+			DoubleReal min_rt = getVisibleArea().minPosition()[1];
+			DoubleReal max_rt = getVisibleArea().maxPosition()[1];
+			DoubleReal min_mz = getVisibleArea().minPosition()[0];
+			DoubleReal max_mz = getVisibleArea().maxPosition()[0];
 			//copy features
   		for (ConsensusMapType::ConstIterator it=layer.consensus.begin(); it!=layer.consensus.end(); ++it)
   		{

@@ -205,8 +205,8 @@ namespace OpenMS
 	std::ostream& operator << (std::ostream& os, const DBoundingBox<D>& bounding_box)
 	{
 		os << "--DBOUNDINGBOX BEGIN--"<<std::endl;
-		os << "MIN --> " << bounding_box.min() << std::endl;
-		os << "MAX --> " << bounding_box.max() << std::endl;
+		os << "MIN --> " << bounding_box.minPosition() << std::endl;
+		os << "MAX --> " << bounding_box.maxPosition() << std::endl;
 		os << "--DBOUNDINGBOX END--"<<std::endl;
 		return os;
 	}

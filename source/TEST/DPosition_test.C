@@ -457,19 +457,19 @@ START_SECTION((static const DPosition zero()))
   TEST_EQUAL(D1::zero()[0],0);
 END_SECTION
 
-START_SECTION((static const DPosition min()))
+START_SECTION((static const DPosition minPositive()))
   typedef DPosition<1> D1;
-  TEST_EQUAL(D1::min()[0],std::numeric_limits<D1::CoordinateType>::min());
+  TEST_EQUAL(D1::minPositive()[0],std::numeric_limits<D1::CoordinateType>::min());
 END_SECTION
 
-START_SECTION((static const DPosition min_negative()))
+START_SECTION((static const DPosition minNegative()))
   typedef DPosition<1> D1;
-  TEST_EQUAL(D1::min_negative()[0],-std::numeric_limits<D1::CoordinateType>::max());
+  TEST_EQUAL(D1::minNegative()[0],-std::numeric_limits<D1::CoordinateType>::max());
 END_SECTION
 
-START_SECTION((static const DPosition max()))
+START_SECTION((static const DPosition maxPositive()))
   typedef DPosition<1> D1;
-  TEST_EQUAL(D1::max()[0],std::numeric_limits<D1::CoordinateType>::max());
+  TEST_EQUAL(D1::maxPositive()[0],std::numeric_limits<D1::CoordinateType>::max());
 END_SECTION
 
 /////////////////////////////////////////////////////////////

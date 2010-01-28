@@ -39,6 +39,8 @@
 #include <cstdio>
 
 #ifdef OPENMS_WINDOWSPLATFORM
+#  define NOMINMAX
+#  include <Windows.h>
 #  include <Winioctl.h> // for DeviceIoControl and constants e.g. FSCTL_SET_SPARSE
 #else
 #  include <fcntl.h> // for O_RDWR etc

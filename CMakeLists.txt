@@ -98,7 +98,7 @@ elseif (MSVC)
 
 	## disable min and max macros by default
 	## see CGAL and BOOST configs for more elaborate explanations
-	add_definitions(/DNOMINMAX)
+	#add_definitions(/DNOMINMAX)
 
 	## xerces bug workaround
 	add_definitions(/DOPENMS_XERCESDLL)

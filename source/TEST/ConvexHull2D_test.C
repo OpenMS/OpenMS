@@ -149,10 +149,10 @@ START_SECTION((DBoundingBox<2> getBoundingBox() const))
 	ConvexHull2D tmp2;
 	tmp2 = vec;
 	DBoundingBox<2> bb2 = tmp2.getBoundingBox();
-	TEST_REAL_SIMILAR(bb2.min()[0],1.0)
-	TEST_REAL_SIMILAR(bb2.min()[1],0.0)
-	TEST_REAL_SIMILAR(bb2.max()[0],5.0)
-	TEST_REAL_SIMILAR(bb2.max()[1],4.0)
+	TEST_REAL_SIMILAR(bb2.minPosition()[0],1.0)
+	TEST_REAL_SIMILAR(bb2.minPosition()[1],0.0)
+	TEST_REAL_SIMILAR(bb2.maxPosition()[0],5.0)
+	TEST_REAL_SIMILAR(bb2.maxPosition()[1],4.0)
 	
 	//full
 	ConvexHull2D tmp;
@@ -163,34 +163,34 @@ START_SECTION((DBoundingBox<2> getBoundingBox() const))
 	
 	tmp = vec2;
 	bb = tmp.getBoundingBox();
-	TEST_REAL_SIMILAR(bb.min()[0],1.0)
-	TEST_REAL_SIMILAR(bb.min()[1],1.0)
-	TEST_REAL_SIMILAR(bb.max()[0],3.0)
-	TEST_REAL_SIMILAR(bb.max()[1],3.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[1],1.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],3.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],3.0)
 
 	tmp = vec;
 	bb = tmp.getBoundingBox();
-	TEST_REAL_SIMILAR(bb.min()[0],1.0)
-	TEST_REAL_SIMILAR(bb.min()[1],0.0)
-	TEST_REAL_SIMILAR(bb.max()[0],5.0)
-	TEST_REAL_SIMILAR(bb.max()[1],4.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[1],0.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],5.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],4.0)
 
 	vector<DPosition<2> > vec3;
 	vec3.push_back(p1);
 	tmp = vec3;
 	bb = tmp.getBoundingBox();
-	TEST_REAL_SIMILAR(bb.min()[0],1.0)
-	TEST_REAL_SIMILAR(bb.min()[1],2.0)
-	TEST_REAL_SIMILAR(bb.max()[0],1.0)
-	TEST_REAL_SIMILAR(bb.max()[1],2.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[1],2.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],1.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],2.0)
 
 	vec3.push_back(p2);
 	tmp = vec3;
 	bb = tmp.getBoundingBox();
-	TEST_REAL_SIMILAR(bb.min()[0],1.0)
-	TEST_REAL_SIMILAR(bb.min()[1],2.0)
-	TEST_REAL_SIMILAR(bb.max()[0],3.0)
-	TEST_REAL_SIMILAR(bb.max()[1],4.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
+	TEST_REAL_SIMILAR(bb.minPosition()[1],2.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[0],3.0)
+	TEST_REAL_SIMILAR(bb.maxPosition()[1],4.0)
 END_SECTION
 
 START_SECTION((bool addPoint(const PointType& point)))
