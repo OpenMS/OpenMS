@@ -11,8 +11,8 @@ Int main()
 
   for (UInt i = 0; i < DRange<2>::DIMENSION; ++i)
   {
-    std::cout << "min " << i << ": "<< range.min()[i] << std::endl;
-    std::cout << "max " << i << ": "<< range.max()[i] << std::endl;
+    std::cout << "min " << i << ": "<< range.minPosition()[i] << std::endl;
+    std::cout << "max " << i << ": "<< range.maxPosition()[i] << std::endl;
   }  
 
   return 0;

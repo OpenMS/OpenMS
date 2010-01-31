@@ -41,8 +41,8 @@ namespace OpenMS
 
 			See DIntervalBase for a closed interval and DRange for a half-open interval class.
 
-			@invariant All methods maintain the invariant that min() is geometrically less or equal max() 
-			           i.e. min()[x] <= max()[x].
+			@invariant All methods maintain the invariant that minPosition() is geometrically less or equal maxPosition() 
+			           i.e. minPosition()[x] <= maxPosition()[x].
 		*/
 		template <UInt D>
 		class DIntervalBase
@@ -125,8 +125,8 @@ namespace OpenMS
 				/**
 					@brief Mutator for minimum position
 				
-					@note The minimum position given here will be returned my min() after the method.
-					      If necessary the value returned by max() will be adjusted.					
+					@note The minimum position given here will be returned my minPosition() after the method.
+					      If necessary the value returned by maxPosition() will be adjusted.					
 				*/
 				void setMin(PositionType const & position)
 				{
@@ -140,8 +140,8 @@ namespace OpenMS
 				/**
 					@brief Mutator for maximum position
 				
-					@note The maximum position given here will be returned my max() after the method.
-					      If necessary the value returned by min() will be adjusted.
+					@note The maximum position given here will be returned my maxPosition() after the method.
+					      If necessary the value returned by minPosition() will be adjusted.
 				*/
 				void setMax(PositionType const & position)
 				{
