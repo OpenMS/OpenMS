@@ -78,9 +78,9 @@ include (include/OpenMS/FILTERING/TRANSFORMERS/sources.cmake)
 include (include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
 include (include/OpenMS/TRANSFORMATIONS/RAW2PEAK/sources.cmake)
 include (include/OpenMS/SIMULATION/sources.cmake)
-include (include/OpenMS/VISUAL/sources.cmake)
-include (include/OpenMS/VISUAL/DIALOGS/sources.cmake)
-include (include/OpenMS/VISUAL/VISUALIZER/sources.cmake)
+include (include/OpenMS/VISUAL/sources.cmake)						## MOC sources are included here
+include (include/OpenMS/VISUAL/DIALOGS/sources.cmake)   ## and here ...
+include (include/OpenMS/VISUAL/VISUALIZER/sources.cmake)## and here ...
 include (include/OpenMS/APPLICATIONS/sources.cmake)
 
 ## add configured config.h&Co to source group

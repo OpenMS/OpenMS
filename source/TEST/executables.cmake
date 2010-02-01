@@ -418,6 +418,11 @@ set(simulation_executables_list
   RawMSSignalSimulation_test
 )
 
+############### GUI executables (require MOC) ########
+set(GUI_executables_list
+	TOPPView_test
+)
+
 ### collect test executables
 set(TEST_executables
 		${concept_executables_list}

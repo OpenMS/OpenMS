@@ -86,7 +86,9 @@ namespace OpenMS
   		public DefaultParamHandler
   {
       Q_OBJECT
-
+      
+      friend class TestTOPPView;
+      
     public:
     	///@name Type definitions
     	//@{
@@ -334,7 +336,7 @@ namespace OpenMS
       ///Estimates the noise by evaluating 10 random scans of MS level 1
       float estimateNoise_(const ExperimentType& exp);
 
-      /// Layer managment widget
+      /// Layer management widget
       QListWidget* layer_manager_;
 
       ///@name Spectrum selection widgets
@@ -453,6 +455,7 @@ namespace OpenMS
       /// The current path (used for loading and storing).
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
+
   }
   ; //class
 
