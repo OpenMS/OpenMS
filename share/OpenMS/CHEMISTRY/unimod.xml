@@ -15250,7 +15250,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          </umod:xref>
       </umod:mod>
       <umod:mod title="4AcAllylGal"
-                full_name="2,3,4,6-tetra-O-Acetyl-1-allyl-α-D-galactopyranoside modification of cysteine"
+                full_name="2,3,4,6-tetra-O-Acetyl-1-allyl-a-D-galactopyranoside modification of cysteine"
                 username_of_poster="paolo.nanni"
                 group_of_poster=""
                 date_time_posted="2009-03-06 16:08:43"
@@ -16463,3 +16463,4 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
       </umod:brick>
    </umod:mod_bricks>
 </umod:unimod>
+
