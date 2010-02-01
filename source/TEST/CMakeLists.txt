@@ -90,7 +90,13 @@ endforeach(i)
 
 ### "test_build" target
 add_custom_target(test_build)
-add_dependencies(test_build ${TEST_executables} TOPP FuzzyDiff)
+add_dependencies(test_build ${TEST_executables} TOPP UTILS)
+
+### all target that we require to show up in the targets list
+### and in the nightly build log (to test if they can be build properly)
+add_custom_target(extra_targets)
+add_dependencies(extra_targets Tutorials_build)
+
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
