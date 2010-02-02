@@ -2294,7 +2294,14 @@ namespace OpenMS
 		{
 			open_path = path_overwrite.toQString();;
 		}
-	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", open_path, (filter_all+ filter_single).toQString());
+		// we use the QT file dialog instead of using QFileDialog::getOpenFileNames(...)
+		// On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,
+		// which prevents us from doing GUI testing on it.
+		QFileDialog dialog(this, "Open file(s)", open_path, (filter_all+ filter_single).toQString());
+		dialog.setFileMode(QFileDialog::ExistingFiles);
+		QStringList file_names;
+		if (dialog.exec()) file_names = dialog.selectedFiles();
+		return file_names;
   }
 
   void TOPPViewBase::openFileDialog()
