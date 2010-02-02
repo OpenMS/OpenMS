@@ -440,4 +440,5 @@ set(TEST_executables
 		${applications_executables_list}
 		${transformations_executables_list}
 		${simulation_executables_list}
+		## NO GUI lists here! (GUI is handled in source/TEST/CMakeLists.txt separately)
 		)
