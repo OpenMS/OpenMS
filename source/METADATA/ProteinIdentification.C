@@ -50,8 +50,8 @@ namespace OpenMS
 			date_(),
 			protein_score_type_(),
 			protein_hits_(),
-			protein_groups_(),
 			higher_score_better_(true),
+			protein_groups_(),
 			protein_significance_threshold_(0.0)
   {
   }
