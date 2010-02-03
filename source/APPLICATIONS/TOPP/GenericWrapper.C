@@ -70,7 +70,7 @@ class TOPPGenericWrapper
 			//setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	//setValidFormats_("out",StringList::create("mzML"));
-			registerStringOption_("call", "<call>", "", "Command line which calls the external tool, e.g. 'ProteinProphet $ini $out'");
+			registerStringOption_("call", "<call>", "", "Command line which calls the external tool, e.g. 'ProteinProphet $in $out'");
 
 			addEmptyLine_();
 		}
