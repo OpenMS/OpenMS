@@ -92,11 +92,9 @@ endforeach(i)
 ## create mocced files - they are included manually in the implementation files
 QT4_WRAP_CPP(mocced_GUI_executables_list_C ${GUI_executables_list_C})
 
-add_custom_target(GUI_MOC_SOURCES SOURCES ${mocced_GUI_executables_list_C})
-
 foreach(i ${GUI_executables_list})
+	SET_SOURCE_FILES_PROPERTIES(GUI/${i}.C PROPERTIES OBJECT_DEPENDS ${mocced_GUI_executables_list_C})
 	add_executable(${i} GUI/${i}.C)
-	add_dependencies(${i} GUI_MOC_SOURCES)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
