@@ -43,7 +43,6 @@
 
 namespace OpenMS
 {
-	
 	TOPPASScene::TOPPASScene(QObject* parent, const String& tmp_path, bool gui)
 		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
@@ -956,6 +955,12 @@ namespace OpenMS
 
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
+			//only make selected nodes snap (those might have been moved)
+			if (!(*it)->isSelected())
+			{
+				continue;
+			}
+
 			int x_int = (int)((*it)->x());
 			int y_int = (int)((*it)->y());
 			int prev_grid_x = x_int - (x_int % grid_step);

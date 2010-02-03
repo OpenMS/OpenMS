@@ -198,7 +198,13 @@ namespace OpenMS
 			
 			/// The path for temporary files
 			String tmp_path_;
+			
+			/// Offset counter for new inserted nodes (to avoid invisible stacking)
+			static int node_offset_;
       
+			/// z-value counter for new inserted nodes (new nodes should be on top)
+			static qreal z_value_;
+
       ///returns a pointer to the active TOPPASWidget (0 if none is active)
       TOPPASWidget* activeWindow_() const;
       

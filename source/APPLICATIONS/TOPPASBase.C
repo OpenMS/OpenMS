@@ -75,6 +75,9 @@ namespace OpenMS
 {
   using namespace Internal;
 
+	int TOPPASBase::node_offset_ = 0;
+	qreal TOPPASBase::z_value_ = 0.0;
+
   TOPPASBase::TOPPASBase(QWidget* parent):
       QMainWindow(parent),
       DefaultParamHandler("TOPPASBase")
@@ -906,8 +909,10 @@ namespace OpenMS
 			connect (ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
 		}
 		
-		tv->setPos(x,y);
 		scene->addVertex(tv);
+		tv->setPos(x,y);
+		tv->setZValue(z_value_);
+		z_value_ += 0.000001;
 		
 		connect(tv,SIGNAL(clicked()),scene,SLOT(itemClicked()));
 		connect(tv,SIGNAL(released()),scene,SLOT(itemReleased()));
@@ -917,7 +922,6 @@ namespace OpenMS
 		connect(tv,SIGNAL(itemDragged(qreal,qreal)),scene,SLOT(moveSelectedItems(qreal,qreal)));
 		
 		scene->topoSort();
-		scene->snapToGrid();
 		scene->setChanged(true);
 	}
 	
@@ -1051,8 +1055,9 @@ namespace OpenMS
 			return;
 		}
 		
-		QPointF center = activeWindow_()->mapToScene(QPoint(activeWindow_()->width()/2.0,activeWindow_()->height()/2.0));
-		insertNewVertex_(center.x(), center.y(), item);
+		QPointF insert_pos = activeWindow_()->mapToScene(QPoint((activeWindow_()->width()/2.0)+(qreal)(5*node_offset_),(activeWindow_()->height()/2.0)+(qreal)(5*node_offset_)));
+		insertNewVertex_(insert_pos.x(), insert_pos.y(), item);
+		node_offset_ = (node_offset_+1) % 10;
 	}
 
 } //namespace OpenMS
