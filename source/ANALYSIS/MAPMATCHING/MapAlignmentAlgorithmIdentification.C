@@ -44,6 +44,9 @@ namespace OpenMS
 
 		defaults_.setValue("min_run_occur", 2, "Minimum number of runs a peptide must occur in to be used for the alignment.");
 		defaults_.setMinInt("min_run_occur", 2);
+
+		defaults_.setValue("max_rt_shift", 0.5, "Maximum realistic RT difference for a peptide (median per run vs. median overall).\nPeptides with higher shifts are not used to compute the alignment.\nIf > 1, the final value in seconds; if <= 1, taken as a fraction of the total retention time range.");
+		defaults_.setMinFloat("max_rt_shift", 0.0);
 		
 		defaults_.setValue("use_unassigned_peptides", "true", "Should unassigned peptide identifications be used when computing an alignment of feature maps?\nIf 'false', only peptide IDs assigned to features will be used.");
 		defaults_.setValidStrings("use_unassigned_peptides",
@@ -287,6 +290,21 @@ namespace OpenMS
 		SeqToValue medians_overall;
 		computeMedians_(medians_per_seq, medians_overall);
 
+		DoubleReal max_rt_shift = param_.getValue("max_rt_shift");
+		if (max_rt_shift <= 1)
+		{ // compute max. allowed shift from overall retention time range:
+			DoubleReal rt_range, rt_min = medians_overall.begin()->second, 
+				rt_max = rt_min;
+			for (SeqToValue::iterator it = ++medians_overall.begin(); 
+					 it != medians_overall.end(); ++it)
+			{
+				rt_min = min(rt_min, it->second);
+				rt_max = max(rt_max, it->second);
+			}
+			rt_range = rt_max - rt_min;
+			max_rt_shift *= rt_range;
+		}
+			
 		// generate RT transformations:
 		// cout << "Generating RT transformations..." << endl;
 		Int num_breakpoints = param_.getValue("num_breakpoints");
@@ -300,8 +318,9 @@ namespace OpenMS
 					 med_it != medians_per_run[i].end(); ++med_it)
 			{
 				SeqToValue::const_iterator pos = medians_overall.find(med_it->first);
-				if (pos != medians_overall.end())
-				{ // found!
+				if ((pos != medians_overall.end()) && 
+						(fabs(med_it->second - pos->second) <= max_rt_shift))
+				{ // found, and satisfies "max_rt_shift" condition!
 					pairs.push_back(make_pair(med_it->second, pos->second));
 				}
 			}
