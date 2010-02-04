@@ -134,7 +134,8 @@ void TestTOPPView::waitForModalWidget(const int max_wait, const String& line)
 	
 
 	QTime t;
-	while (!modal_key_sequence_.isEmpty () && max_wait < t.elapsed())
+	t.start();
+	while (!modal_key_sequence_.isEmpty () && max_wait > t.elapsed())
 	{
 		QTest::qWait(50);
 	}
@@ -166,7 +167,8 @@ void TestTOPPView::simulateClick_()
 				return;
 			}
 			QTest::keyClicks(0,entry.keys,Qt::NoModifier,20);
-			QTest::keyClick(0,Qt::Key_Return,Qt::NoModifier);
+			QTest::keyClick(0,Qt::Key_Return,Qt::NoModifier,20);
+			QApplication::processEvents();
 			
 			// remove from queue
 			modal_key_sequence_.dequeue();
@@ -183,17 +185,22 @@ void TestTOPPView::testGui()
 {
 	TOPPViewBase tv;
 	tv.show();
+	QApplication::processEvents();
+
 	// open file dialog
 	QTest::keyClicks(&tv,"f", Qt::AltModifier);
+	QApplication::processEvents();
 	// before we open the File-Open Dialog, we need to schedule the planned keyboard input
 	// as this dialog is modal and won't return.
-	scheduleModalWidget_("peakpicker_tutorial_1.mzML", "Open file(s)");								 // Open File dialog
-	scheduleModalWidget_("", "Open data options for peakpicker_tutorial_1.mzML",3200); // layer data options dialog
+	scheduleModalWidget_("peakpicker_tutorial_1.mzML", "Open file(s)",1000);								 // Open File dialog
+	scheduleModalWidget_("", "Open data options for peakpicker_tutorial_1.mzML",1000); // layer data options dialog
 	// launch the modal widget
+	QApplication::processEvents();
 	QTest::keyClicks(0,"e");
-
-	waitForModalWidget(5000, __LINE__);
-		
+	
+	
+	waitForModalWidget(15000, __LINE__);
+	
 	// compare the name of the opened tab
 	QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1.mzML"));
 
