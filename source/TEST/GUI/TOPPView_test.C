@@ -33,8 +33,10 @@
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
- 
-using namespace OpenMS;
+
+
+namespace OpenMS
+{
 
 
 /**
@@ -43,7 +45,7 @@ using namespace OpenMS;
 
 */
 
-class OpenMS::TestTOPPView: public QObject
+class TestTOPPView: public QObject
 {
 	Q_OBJECT
 
@@ -104,6 +106,7 @@ private slots:
 		/// event queue for modal/popup dialogs
 		QQueue<ScheduleInfo> modal_key_sequence_;
 };
+
 
 
 void TestTOPPView::scheduleModalWidget_(const QString& key_sequence, const QString& title, const int delay)
@@ -195,6 +198,10 @@ void TestTOPPView::testGui()
 	QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1.mzML"));
 
 }
+
+} // Namespace OpenMS
+
+using namespace OpenMS; // this is required to avoid linker errors on Windows
 
 QTEST_MAIN(TestTOPPView)		 // expands to a simple main() method that runs all the test functions
 #include <../source/TEST/GUI/moc_TOPPView_test.cxx> // for Qt's introspection
