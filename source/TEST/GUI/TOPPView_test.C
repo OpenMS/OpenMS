@@ -186,6 +186,8 @@ void TestTOPPView::testGui()
 	TOPPViewBase tv;
 	tv.show();
 	QApplication::processEvents();
+	
+	QTest::qWait(1000);
 
 	// open file dialog
 	QTest::keyClicks(&tv,"f", Qt::AltModifier);
@@ -195,8 +197,8 @@ void TestTOPPView::testGui()
 	scheduleModalWidget_("peakpicker_tutorial_1.mzML", "Open file(s)",1000);								 // Open File dialog
 	scheduleModalWidget_("", "Open data options for peakpicker_tutorial_1.mzML",1000); // layer data options dialog
 	// launch the modal widget
-	QApplication::processEvents();
 	QTest::keyClicks(0,"e");
+	QApplication::processEvents();
 	
 	
 	waitForModalWidget(15000, __LINE__);
