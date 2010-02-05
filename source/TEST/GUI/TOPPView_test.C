@@ -189,19 +189,22 @@ void TestTOPPView::testGui()
 	
 	QTest::qWait(1000);
 
+#ifdef __APPLE__ // MAC OS does not support entering a filename via keyboard in the file-open menu
+		tv.addDataFile(File::getOpenMSDataPath() + "/examples/peakpicker_tutorial_1.mzML", false, false);
+		QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1.mzML"));
+#else
+	scheduleModalWidget_("peakpicker_tutorial_1.mzML", "Open file(s)",1000);								 // Open File dialog
+	scheduleModalWidget_("", "Open data options for peakpicker_tutorial_1.mzML",1000); // layer data options dialog
 	// open file dialog
 	QTest::keyClicks(&tv,"f", Qt::AltModifier);
 	QApplication::processEvents();
 	// before we open the File-Open Dialog, we need to schedule the planned keyboard input
 	// as this dialog is modal and won't return.
-	scheduleModalWidget_("peakpicker_tutorial_1.mzML", "Open file(s)",1000);								 // Open File dialog
-	scheduleModalWidget_("", "Open data options for peakpicker_tutorial_1.mzML",1000); // layer data options dialog
 	// launch the modal widget
 	QTest::keyClicks(0,"e");
 	QApplication::processEvents();
-	
-	
 	waitForModalWidget(15000, __LINE__);
+#endif	
 	
 	// compare the name of the opened tab
 	QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1.mzML"));
