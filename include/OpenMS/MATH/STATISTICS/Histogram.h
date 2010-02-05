@@ -115,7 +115,7 @@ namespace OpenMS
 			}
 			//@}
 	
-			///returns to the lower bound
+			///returns the lower bound
 			BinSizeType minBound() const
 			{
 				return min_;
