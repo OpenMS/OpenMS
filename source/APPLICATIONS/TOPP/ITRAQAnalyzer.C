@@ -135,6 +135,8 @@ class TOPPITRAQAnalyzer
 		// do normalization
 		Param quant_param(getParam_().copy("algorithm:Quantification:",true));
 		ItraqQuantifier itraq_quant(itraq_type, quant_param);
+
+		// TODO: allow multiple input files and do statistics on labelling efficiency etc...
 		
 		if (File::readable(idxml))
 		{

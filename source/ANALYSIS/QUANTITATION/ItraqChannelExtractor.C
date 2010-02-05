@@ -263,11 +263,12 @@ namespace OpenMS
 			++element_index;
 		} // ! Experiment iterator
 
+		// TODO: put that into a statistics object and return it
 		std::cout <<   "iTRAQ: skipped " << emtpy_scans.size() << " of " << ms_exp_MS2.size() << " selected scans due to lack of iTRAQ information:\n  " << emtpy_scans.concatenate(", ") << "\n";
-		std::cout <<   "iTRAQ: emtpy channels\n";
+		std::cout <<   "iTRAQ: channels with signal\n";
 		for (Map<Int, Size>::ConstIterator it_ec=empty_channel.begin(); it_ec!=empty_channel.end();++it_ec)
 		{
-			std::cout << "      channel " << it_ec->first << ": " << it_ec->second << " / " <<  ms_exp_MS2.size() << "\n";
+			std::cout << "      channel " << it_ec->first << ": " << (ms_exp_MS2.size()-it_ec->second) << " / " <<  ms_exp_MS2.size() << " (" << ((ms_exp_MS2.size()-it_ec->second)*100/ms_exp_MS2.size()) << "%)\n";
 		}
 
 		#ifdef ITRAQ_DEBUG
