@@ -120,6 +120,8 @@ START_SECTION(void store(const String& filename))
   
 
 	TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("PepNovoInfile_test_template.txt"));
+	// if the comparison fails because the unimod.xml has been replaced, remove non-ascii characters
+	// from the unimod.xml file. E.g. registrated trademark symbol
 END_SECTION
 
 
