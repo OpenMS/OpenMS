@@ -115,6 +115,7 @@ namespace OpenMS
     file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
 		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
 		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+		file->addAction("&Include",this,SLOT(includeWorkflowDialog()), Qt::CTRL+Qt::Key_I);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
 		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
@@ -381,8 +382,16 @@ namespace OpenMS
 		
 		openFile(file_name);
   }
- 
-	void TOPPASBase::openFile(const String& file_name)
+ 	
+	void TOPPASBase::includeWorkflowDialog()
+	{
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		
+		openFile(file_name, false);
+	}
+
+
+	void TOPPASBase::openFile(const String& file_name, bool in_new_window)
 	{
 		if (file_name != "")
 		{
@@ -400,14 +409,30 @@ namespace OpenMS
 				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
 				return;
 			}
+		
+			TOPPASScene* scene = 0;
+			TOPPASScene* old_scene = 0;
+			if (in_new_window)
+			{
+				TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+				showAsWindow_(tw, File::basename(file_name));
+				connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+				scene = tw->getScene();
+				connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+				old_scene = scene;
+			}
+			else
+			{
+				old_scene = activeWindow_()->getScene();
+				if (!old_scene)
+				{
+					return;
+				}
+				scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+			}
 
-			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
-			showAsWindow_(tw, File::basename(file_name));
-			connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
-			TOPPASScene* scene = tw->getScene();
-			connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
 			scene->load(file_name);
-			
+
 			//connect signals/slots for log messages
 			for (TOPPASScene::VertexIterator it = scene->verticesBegin(); it != scene->verticesEnd(); ++it)
 			{
@@ -428,7 +453,13 @@ namespace OpenMS
 					continue;
 				}
 			}
-			scene->update(scene->sceneRect());
+
+			if (!in_new_window)
+			{
+				old_scene->include(scene);
+			}
+
+			old_scene->update(old_scene->sceneRect());
 		}
 	}
 
@@ -800,6 +831,11 @@ namespace OpenMS
 				{
 					show = true;
 				}
+				actions[i]->setEnabled(show);
+			}
+			else if (text=="&Include")
+			{
+				bool show = tw && ts;
 				actions[i]->setEnabled(show);
 			}
 		}

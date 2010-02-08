@@ -134,6 +134,8 @@ namespace OpenMS
 			void store(const String& file);
 			/// Loads the pipeline from @p file
 			void load(const String& file);
+			/// Includes the pipeline @p scene
+			void include(TOPPASScene* new_scene);
 			/// Returns the file name
 			const String& getSaveFileName();
 			/// Sets the file name

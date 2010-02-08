@@ -81,7 +81,7 @@ namespace OpenMS
 			/// loads the files and updates the splashscreen
 			void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 			/// opens the file in a new window
-			void openFile(const String& file_name);
+			void openFile(const String& file_name, bool in_new_window = true);
 
     public slots:
     	
@@ -91,7 +91,9 @@ namespace OpenMS
 			void openExampleDialog();
       /// shows the dialog for creating a new file
       void newFileDialog();
-      /// shows the dialog for saving the current file
+      /// shows the dialog for including another workflow in the currently opened one
+			void includeWorkflowDialog();
+			/// shows the dialog for saving the current file
       void saveFileDialog();
 			/// shows the dialog for saving the current file as new file
       void saveAsFileDialog(TOPPASWidget* tw = 0);
