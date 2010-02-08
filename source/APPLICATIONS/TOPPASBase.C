@@ -76,7 +76,7 @@ namespace OpenMS
   using namespace Internal;
 
 	int TOPPASBase::node_offset_ = 0;
-	qreal TOPPASBase::z_value_ = 0.0;
+	qreal TOPPASBase::z_value_ = 42.0;
 
   TOPPASBase::TOPPASBase(QWidget* parent):
       QMainWindow(parent),
