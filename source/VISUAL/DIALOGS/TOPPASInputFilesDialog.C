@@ -53,12 +53,10 @@ namespace OpenMS
 	
 	void TOPPASInputFilesDialog::showFileDialog()
 	{
-		QFileDialog fd;
-		fd.setFileMode(QFileDialog::ExistingFiles);
-		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
-		if (fd.exec())
+		QStringList file_names = QFileDialog::getOpenFileNames(this, tr("Select input file(s)"), tr(""), tr(/*valid filetypes*/""));
+		if (!file_names.isEmpty())
 		{
-			input_file_list->addItems(fd.selectedFiles());
+			input_file_list->addItems(file_names);
 		}
 	}
 	

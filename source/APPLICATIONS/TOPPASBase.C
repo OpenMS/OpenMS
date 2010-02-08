@@ -366,7 +366,7 @@ namespace OpenMS
 	
 	void TOPPASBase::openExampleDialog()
 	{
-		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"),
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Open example workflow"),
 													File::getOpenMSDataPath().toQString()
 													+QDir::separator()+"examples"+QDir::separator()
 													+"TOPPAS"+QDir::separator(),
@@ -377,7 +377,7 @@ namespace OpenMS
 	
 	void TOPPASBase::openFileDialog()
   {
-		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Open workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 		
 		openFile(file_name);
   }
@@ -492,7 +492,7 @@ namespace OpenMS
 			return;
 		}
 		
-		QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		QString file_name = QFileDialog::getSaveFileName(this, tr("Save workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 		if (file_name != "")
 		{
 			if (!file_name.endsWith(".toppas"))
