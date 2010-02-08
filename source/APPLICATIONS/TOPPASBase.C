@@ -115,7 +115,8 @@ namespace OpenMS
     file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
 		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
 		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
-		file->addAction("&Include",this,SLOT(includeWorkflowDialog()), Qt::CTRL+Qt::Key_I);
+		// still buggy:
+//		file->addAction("&Include",this,SLOT(includeWorkflowDialog()), Qt::CTRL+Qt::Key_I);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
 		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
