@@ -115,8 +115,7 @@ namespace OpenMS
     file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
 		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
 		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
-		// still buggy:
-//		file->addAction("&Include",this,SLOT(includeWorkflowDialog()), Qt::CTRL+Qt::Key_I);
+		file->addAction("&Include",this,SLOT(includeWorkflowDialog()), Qt::CTRL+Qt::Key_I);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
 		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
@@ -278,9 +277,9 @@ namespace OpenMS
     	category_map[category] = item;
     }
     item = new QTreeWidgetItem((QTreeWidget*)0);
-		item->setText(0, "Misc");
+		item->setText(0, "Unassigned");
 		tools_tree_view_->addTopLevelItem(item);
-		category_map["Misc"] = item;
+		category_map["Unassigned"] = item;
 		
     Map<String,StringList> tools_list = TOPPBase::getToolList();
     Map<String,StringList> util_list = TOPPBase::getUtilList();
@@ -296,7 +295,7 @@ namespace OpenMS
     	}
     	else
     	{
-    		item = new QTreeWidgetItem(category_map["Misc"]);
+    		item = new QTreeWidgetItem(category_map["Unassigned"]);
     	}
     	item->setText(0, it->first.toQString());
    		parent_item = item;
@@ -308,9 +307,9 @@ namespace OpenMS
    		}
     }
     
-    if (category_map["Misc"]->childCount() == 0)
+    if (category_map["Unassigned"]->childCount() == 0)
     {
-    	int index = tools_tree_view_->indexOfTopLevelItem(category_map["Misc"]);
+    	int index = tools_tree_view_->indexOfTopLevelItem(category_map["Unassigned"]);
     	tools_tree_view_->takeTopLevelItem(index);
     }
     
@@ -412,28 +411,27 @@ namespace OpenMS
 			}
 		
 			TOPPASScene* scene = 0;
-			TOPPASScene* old_scene = 0;
 			if (in_new_window)
 			{
 				TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 				showAsWindow_(tw, File::basename(file_name));
 				connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
 				scene = tw->getScene();
-				connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
-				old_scene = scene;
+				scene->load(file_name);
 			}
 			else
 			{
-				old_scene = activeWindow_()->getScene();
-				if (!old_scene)
+				if (!activeWindow_())
 				{
 					return;
 				}
-				scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+				TOPPASScene* tmp_scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+				tmp_scene->load(file_name);
+				scene = activeWindow_()->getScene();
+				scene->include(tmp_scene);
+				delete tmp_scene;
 			}
-
-			scene->load(file_name);
-
+			
 			//connect signals/slots for log messages
 			for (TOPPASScene::VertexIterator it = scene->verticesBegin(); it != scene->verticesEnd(); ++it)
 			{
@@ -454,13 +452,6 @@ namespace OpenMS
 					continue;
 				}
 			}
-
-			if (!in_new_window)
-			{
-				old_scene->include(scene);
-			}
-
-			old_scene->update(old_scene->sceneRect());
 		}
 	}
 

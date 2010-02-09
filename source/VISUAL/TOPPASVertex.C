@@ -47,7 +47,6 @@ namespace OpenMS
 			brush_color_(),
 			dfs_color_(DFS_WHITE),
 			dfs_parent_(0),
-			id_(0),
 			topo_sort_marked_(false),
 			topo_nr_(0),
 			subtree_finished_(false),
@@ -61,14 +60,14 @@ namespace OpenMS
 	TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs)
 		:	QObject(),
 			QGraphicsItem(),
-			in_edges_(rhs.in_edges_),
-			out_edges_(rhs.out_edges_),
+			// do not copy pointers to edges
+			in_edges_(/*rhs.in_edges_*/),
+			out_edges_(/*rhs.out_edges_*/),
 			edge_being_created_(rhs.edge_being_created_),
 			pen_color_(rhs.pen_color_),
 			brush_color_(rhs.brush_color_),
 			dfs_color_(rhs.dfs_color_),
 			dfs_parent_(rhs.dfs_parent_),
-			id_(rhs.id_),
 			topo_sort_marked_(rhs.topo_sort_marked_),
 			topo_nr_(rhs.topo_nr_),
 			subtree_finished_(rhs.subtree_finished_),
@@ -76,7 +75,9 @@ namespace OpenMS
 			already_started_(rhs.already_started_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
-		setZValue(42);	
+		setZValue(42);
+		
+		setPos(rhs.pos());
 	}
 	
 	TOPPASVertex::~TOPPASVertex()
@@ -93,12 +94,13 @@ namespace OpenMS
 		brush_color_ = rhs.brush_color_;
 		dfs_color_ = rhs.dfs_color_;
 		dfs_parent_ = rhs.dfs_parent_;
-		id_ = rhs.id_;
 		topo_sort_marked_ = rhs.topo_sort_marked_;
 		topo_nr_ = rhs.topo_nr_;
 		subtree_finished_ = rhs.subtree_finished_;
 		files_known_ = rhs.files_known_;
 		already_started_ = rhs.already_started_;
+		
+		setPos(rhs.pos());
 		
 		return *this;
 	}
@@ -237,16 +239,6 @@ namespace OpenMS
 	Size TOPPASVertex::outgoingEdgesCount()
 	{
 		return out_edges_.size();
-	}
-	
-	UInt TOPPASVertex::getID()
-	{
-		return id_;
-	}
-	
-	void TOPPASVertex::setID(UInt id)
-	{
-		id_ = id;
 	}
 	
 	void TOPPASVertex::inEdgeHasChanged()

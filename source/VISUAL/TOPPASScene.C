@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
@@ -447,12 +448,9 @@ namespace OpenMS
 		save_param.setValue("info:num_edges", DataValue(edges_.size()));
 		
 		// store all vertices (together with all parameters)
-		UInt counter = 0;
 		foreach (TOPPASVertex* tv, vertices_)
 		{
-			String id(counter);
-			tv->setID(counter);
-			counter++;
+			String id(tv->getTopoNr());
 			
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
 			if (iflv)
@@ -506,7 +504,7 @@ namespace OpenMS
 		}
 		
 		//store all edges
-		counter = 0;
+		int counter = 0;
 		foreach (TOPPASEdge* te, edges_)
 		{
 			if (!(te->getSourceVertex() && te->getTargetVertex()))
@@ -514,7 +512,7 @@ namespace OpenMS
 				continue;
 			}
 			
-			save_param.setValue("edges:"+String(counter)+":source/target:", DataValue(String(te->getSourceVertex()->getID()) + "/" + String(te->getTargetVertex()->getID())));
+			save_param.setValue("edges:"+String(counter)+":source/target:", DataValue(String(te->getSourceVertex()->getTopoNr()) + "/" + String(te->getTargetVertex()->getTopoNr())));
 			save_param.setValue("edges:"+String(counter)+":source_out_param:", DataValue(te->getSourceOutParam()));
 			save_param.setValue("edges:"+String(counter)+":target_in_param:", DataValue(te->getTargetInParam()));
 			
@@ -615,7 +613,6 @@ namespace OpenMS
 					float y = vertices_param.getValue(current_id + ":y_pos");
 					
 					current_vertex->setPos(QPointF(x,y));
-					current_vertex->setID((UInt)(current_id.toInt()));
 					
 					addVertex(current_vertex);
 					
@@ -716,61 +713,102 @@ namespace OpenMS
 		updateEdgeColors();
   }
 
-	void TOPPASScene::include(TOPPASScene* new_scene)
+	void TOPPASScene::include(TOPPASScene* tmp_scene)
 	{
-		QRectF new_bounding_rect = new_scene->itemsBoundingRect();
+		QRectF new_bounding_rect = tmp_scene->itemsBoundingRect();
 		QRectF our_bounding_rect = itemsBoundingRect();
-		qreal y_offset = our_bounding_rect.bottom() - new_bounding_rect.top() + 20.0;
+		qreal y_offset = our_bounding_rect.bottom() - new_bounding_rect.top() + 40.0;
 		qreal x_offset = our_bounding_rect.left() - new_bounding_rect.left();
+		Map<TOPPASVertex*,TOPPASVertex*> vertex_map;
 
-		for (VertexIterator it = new_scene->verticesBegin(); it != new_scene->verticesEnd(); ++it)
+		for (VertexIterator it = tmp_scene->verticesBegin(); it != tmp_scene->verticesEnd(); ++it)
 		{
 			TOPPASVertex* v = *it;
+			TOPPASVertex* new_v = 0;
+			
+			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(v);
+			if (iflv)
+			{
+				TOPPASInputFileListVertex* new_iflv = new TOPPASInputFileListVertex(*iflv);
+				new_v = new_iflv;
+			}
+			
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(v);
 			if (oflv)
 			{
-				connect (oflv, SIGNAL(iAmDone()), this, SLOT(checkIfWeAreDone()));
+				TOPPASOutputFileListVertex* new_oflv = new TOPPASOutputFileListVertex(*oflv);
+				new_v = new_oflv;
+				connect (new_oflv, SIGNAL(iAmDone()), this, SLOT(checkIfWeAreDone()));
 				if (!gui_)
 				{
-					connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(noGuiOutputFileWritten(const String&)));
+					connect (new_oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(noGuiOutputFileWritten(const String&)));
 				}
 			}
 
 			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(v);
 			if (tv)
 			{
-				connect(tv,SIGNAL(toolStarted()),this,SLOT(setPipelineRunning()));
-				connect(tv,SIGNAL(toolFailed()),this,SLOT(pipelineErrorSlot()));
-				connect(tv,SIGNAL(toolCrashed()),this,SLOT(pipelineErrorSlot()));
+				TOPPASToolVertex* new_tv = new TOPPASToolVertex(*tv);
+				new_v = new_tv;
+				connect(new_tv,SIGNAL(toolStarted()),this,SLOT(setPipelineRunning()));
+				connect(new_tv,SIGNAL(toolFailed()),this,SLOT(pipelineErrorSlot()));
+				connect(new_tv,SIGNAL(toolCrashed()),this,SLOT(pipelineErrorSlot()));
 				if (!gui_)
 				{
-					connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(noGuiTOPPOutput(const QString&)));
-					connect (tv, SIGNAL(toolStarted()), this, SLOT(noGuiToolStarted()));
-					connect (tv, SIGNAL(toolFinished()), this, SLOT(noGuiToolFinished()));
-					connect (tv, SIGNAL(toolFailed()), this, SLOT(noGuiToolFailed()));
-					connect (tv, SIGNAL(toolCrashed()), this, SLOT(noGuiToolCrashed()));
+					connect (new_tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(noGuiTOPPOutput(const QString&)));
+					connect (new_tv, SIGNAL(toolStarted()), this, SLOT(noGuiToolStarted()));
+					connect (new_tv, SIGNAL(toolFinished()), this, SLOT(noGuiToolFinished()));
+					connect (new_tv, SIGNAL(toolFailed()), this, SLOT(noGuiToolFailed()));
+					connect (new_tv, SIGNAL(toolCrashed()), this, SLOT(noGuiToolCrashed()));
 				}
 			}
-
-		 v->moveBy(x_offset, y_offset);
-
-     addVertex(v);
-
-     connect(v,SIGNAL(clicked()),this,SLOT(itemClicked()));
-     connect(v,SIGNAL(released()),this,SLOT(itemReleased()));
-     connect(v,SIGNAL(hoveringEdgePosChanged(const QPointF&)),this,SLOT(updateHoveringEdgePos(const QPointF&)));
-     connect(v,SIGNAL(newHoveringEdge(const QPointF&)),this,SLOT(addHoveringEdge(const QPointF&)));
-     connect(v,SIGNAL(finishHoveringEdge()),this,SLOT(finishHoveringEdge()));
-     connect(v,SIGNAL(itemDragged(qreal,qreal)),this,SLOT(moveSelectedItems(qreal,qreal)));
-
-     // temporarily block signals in order that the first topo sort does not set the changed flag
-     v->blockSignals(true);
+			
+			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(v);
+			if (mv)
+			{
+				TOPPASMergerVertex* new_mv = new TOPPASMergerVertex(*mv);
+				new_v = new_mv;
+			}
+			
+			if (!new_v)
+			{
+				std::cerr << "Unknown vertex type! Aborting." << std::endl;
+				return;
+			}
+			
+			vertex_map[v] = new_v;
+			new_v->moveBy(x_offset, y_offset);
+			addVertex(new_v);
+			
+			connect(new_v,SIGNAL(clicked()),this,SLOT(itemClicked()));
+			connect(new_v,SIGNAL(released()),this,SLOT(itemReleased()));
+			connect(new_v,SIGNAL(hoveringEdgePosChanged(const QPointF&)),this,SLOT(updateHoveringEdgePos(const QPointF&)));
+			connect(new_v,SIGNAL(newHoveringEdge(const QPointF&)),this,SLOT(addHoveringEdge(const QPointF&)));
+			connect(new_v,SIGNAL(finishHoveringEdge()),this,SLOT(finishHoveringEdge()));
+			connect(new_v,SIGNAL(itemDragged(qreal,qreal)),this,SLOT(moveSelectedItems(qreal,qreal)));
+			
+			// temporarily block signals in order that the first topo sort does not set the changed flag
+			new_v->blockSignals(true);
 		}
 
-		// add all edges
-		for (EdgeIterator it = new_scene->edgesBegin(); it != new_scene->edgesEnd(); ++it)
+		// add all edges (are not copied by copy constructors of vertices)
+		for (EdgeIterator it = tmp_scene->edgesBegin(); it != tmp_scene->edgesEnd(); ++it)
 		{
-			addEdge(*it);
+			TOPPASEdge* new_e = new TOPPASEdge();
+			TOPPASVertex* old_source = (*it)->getSourceVertex();
+			TOPPASVertex* old_target = (*it)->getTargetVertex();
+			TOPPASVertex* new_source = vertex_map[old_source];
+			TOPPASVertex* new_target = vertex_map[old_target];
+			new_e->setSourceVertex(new_source);
+			new_e->setTargetVertex(new_target);
+			new_e->setSourceOutParam((*it)->getSourceOutParam());
+			new_e->setTargetInParam((*it)->getTargetInParam());
+			new_source->addOutEdge(new_e);
+			new_target->addInEdge(new_e);
+			connect (new_source, SIGNAL(somethingHasChanged()), new_e, SLOT(sourceHasChanged()));
+			connect (new_e, SIGNAL(somethingHasChanged()), new_target, SLOT(inEdgeHasChanged()));
+			
+			addEdge(new_e);
 		}
 
     if (!views().empty())
