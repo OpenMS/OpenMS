@@ -959,19 +959,16 @@ namespace OpenMS
 			bool some_vertex_not_finished = false;
 			for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 			{
-				// ignore input vertices (need no tmp directory with number)
-				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
-				if (iflv || (*it)->isTopoSortMarked())
+				if ((*it)->isTopoSortMarked())
 				{
-					continue;
+					continue;	
 				}
 				some_vertex_not_finished = true;
 				bool has_predecessors = false;
 				for (TOPPASVertex::EdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
 				{
 					TOPPASVertex* v = (*e_it)->getSourceVertex();
-					TOPPASInputFileListVertex* v_iflv = qobject_cast<TOPPASInputFileListVertex*>(v);
-					if (!v_iflv && !(v->isTopoSortMarked()))
+					if (!(v->isTopoSortMarked()))
 					{
 						has_predecessors = true;
 						break;
