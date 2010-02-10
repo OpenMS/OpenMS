@@ -80,7 +80,8 @@ namespace OpenMS
 
   TOPPASBase::TOPPASBase(QWidget* parent):
       QMainWindow(parent),
-      DefaultParamHandler("TOPPASBase")
+      DefaultParamHandler("TOPPASBase"),
+			clipboard_(0)
   {
   	setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));
@@ -314,15 +315,8 @@ namespace OpenMS
     }
     
     tools_tree_view_->resizeColumnToContents(0);
-    
+		connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
 		windows->addAction(topp_tools_bar->toggleViewAction());
-		
-    //Blocks window
-//     QDockWidget* blocks_bar = new QDockWidget("Blocks", this);
-//     addDockWidget(Qt::LeftDockWidgetArea, blocks_bar);
-//     blocks_list_ = new QListWidget(blocks_bar);
-//     blocks_list_->setWhatsThis("Blocks list<BR><BR>Custom analysis pipelines are shown here. They can be used as if they were TOPP tools themselves.");
-//     blocks_bar->setWidget(blocks_list_);
 
 		//log window
 		QDockWidget* log_bar = new QDockWidget("Log", this);
@@ -415,9 +409,11 @@ namespace OpenMS
 			{
 				TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 				showAsWindow_(tw, File::basename(file_name));
-				connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
 				scene = tw->getScene();
 				scene->load(file_name);
+				connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+				connect (scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
+				connect (scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
 			}
 			else
 			{
@@ -458,8 +454,9 @@ namespace OpenMS
   void TOPPASBase::newFileDialog()
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
-		connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
 		TOPPASScene* ts = tw->getScene();
+		connect (ts, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
+		connect (ts, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
 		connect (ts, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
   	showAsWindow_(tw, "(Untitled)");
   }
@@ -952,7 +949,7 @@ namespace OpenMS
 		scene->topoSort();
 		scene->setChanged(true);
 	}
-	
+
 	void TOPPASBase::runPipeline()
 	{
 		TOPPASWidget* w = activeWindow_();
@@ -1087,6 +1084,26 @@ namespace OpenMS
 		insertNewVertex_(insert_pos.x(), insert_pos.y(), item);
 		node_offset_ = (node_offset_+1) % 10;
 	}
+	
+	void TOPPASBase::saveToClipboard(TOPPASScene* scene)
+	{
+		if (clipboard_ != 0)
+		{
+			delete clipboard_;
+			clipboard_ = 0;
+		}
 
+		clipboard_ = scene;
+	}
+
+	void TOPPASBase::sendClipboardContent()
+	{
+		TOPPASScene* sndr = qobject_cast<TOPPASScene*>(QObject::sender());
+		if (sndr != 0)
+		{
+			sndr->setClipboard(clipboard_);
+		}
+	}
+	
 } //namespace OpenMS
 

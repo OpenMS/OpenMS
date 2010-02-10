@@ -106,7 +106,23 @@ namespace OpenMS
 	
 	void TOPPASWidget::keyPressEvent(QKeyEvent* e)
 	{
-		if (e->key() == Qt::Key_Control)
+		if (e->key() == Qt::Key_C && e->modifiers() == Qt::ControlModifier)
+		{
+			scene_->copySelected();
+			e->accept();
+		}
+		else if (e->key() == Qt::Key_X && e->modifiers() == Qt::ControlModifier)
+		{
+			scene_->copySelected();
+			scene_->removeSelected();
+			e->accept();
+		}
+		else if (e->key() == Qt::Key_V && e->modifiers() == Qt::ControlModifier)
+		{
+			scene_->paste();
+			e->accept();
+		}
+		else if (e->key() == Qt::Key_Control)
 		{
 			setDragMode(QGraphicsView::ScrollHandDrag);
 			e->accept();
@@ -114,18 +130,22 @@ namespace OpenMS
 		else if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
 		{
 			scene_->removeSelected();
+			e->accept();
 		}
 		else if (e->key() == Qt::Key_F5)
 		{
 			scene_->runPipeline();
+			e->accept();
 		}
 		else if (e->key() == Qt::Key_Plus)
 		{
 			zoom(false);
+			e->accept();
 		}
 		else if (e->key() == Qt::Key_Minus)
 		{
 			zoom(true);
+			e->accept();
 		}
 	}
 	
@@ -136,7 +156,6 @@ namespace OpenMS
 			setDragMode(QGraphicsView::RubberBandDrag);
 			e->accept();
 		}
-		//e->ignore(); how does this work again?
 	}
 	
 	void TOPPASWidget::leaveEvent(QEvent* /*e*/)

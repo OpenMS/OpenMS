@@ -50,6 +50,7 @@ class QTreeWidgetItem;
 namespace OpenMS
 {
 	class TOPPASWidget;
+	class TOPPASScene;
 	class TOPPASTabBar;
 	
   /**
@@ -140,6 +141,10 @@ namespace OpenMS
 			void updateTOPPOutputLog(const QString& out);
 			/// Called by the scene if the pipeline execution finishes successfully
 			void showSuccessLogMessage();
+			/// Saves @p scene to the clipboard
+			void saveToClipboard(TOPPASScene* scene);
+			/// Sends the clipboard content to the sender of the connected signal
+			void sendClipboardContent();
 			
     protected slots:
 		
@@ -225,6 +230,9 @@ namespace OpenMS
 			};
 			/// Shows a log message in the log_ window 
       void showLogMessage_(LogState state, const String& heading, const String& body);
+
+			/// The clipboard
+			TOPPASScene* clipboard_;
   }
   ; //class
 

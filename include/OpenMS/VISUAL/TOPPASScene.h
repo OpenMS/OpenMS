@@ -122,6 +122,10 @@ namespace OpenMS
 			EdgeIterator edgesBegin();
 			/// Returns end() iterator of all edges
 			EdgeIterator edgesEnd();
+			/// Copies all currently selected edges and vertices
+			void copySelected();
+			/// Pastes the copied items
+			void paste(QPointF pos = QPointF());
 			/// Removes all currently selected edges and vertices
 			void removeSelected();
 			/// Unselects all items
@@ -135,7 +139,7 @@ namespace OpenMS
 			/// Loads the pipeline from @p file
 			void load(const String& file);
 			/// Includes the pipeline @p scene
-			void include(TOPPASScene* new_scene);
+			void include(TOPPASScene* new_scene, QPointF pos = QPointF());
 			/// Returns the file name
 			const String& getSaveFileName();
 			/// Sets the file name
@@ -162,6 +166,8 @@ namespace OpenMS
 			void runNextProcess();
 			/// Resets the processes queue
 			void resetProcessesQueue();
+			/// Sets the clipboard content
+			void setClipboard(TOPPASScene* clipboard);
 			
 		public slots:
 		
@@ -212,7 +218,11 @@ namespace OpenMS
 			void saveMe();
 			/// Kills all connected TOPP processes
 			void terminateCurrentPipeline();
-			
+			/// Emitted when a selection is copied to the clipboard
+			void selectionCopied(TOPPASScene* ts);
+			/// Requests the clipboard content from TOPPASBase, will be stored in clipboard_
+			void requestClipboardContent();
+
 		protected:
 			
 			/// The current action mode
@@ -241,6 +251,8 @@ namespace OpenMS
 			bool user_specified_out_dir_;
 			/// The queue of pending TOPP processes
 			QList<TOPPProcess> topp_processes_queue_;
+			/// Stores the clipboard content when requested from TOPPASBase
+			TOPPASScene* clipboard_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

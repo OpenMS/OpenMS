@@ -57,7 +57,8 @@ namespace OpenMS
 			out_dir_(QDir::currentPath()),
 			changed_(false),
 			running_(false),
-			user_specified_out_dir_(false)
+			user_specified_out_dir_(false),
+			clipboard_(0)
 	{
 		/*	ATTENTION!
 			 
@@ -257,7 +258,105 @@ namespace OpenMS
 		
 		return target;
 	}
+
+	void TOPPASScene::copySelected()
+	{
+		TOPPASScene* tmp_scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+		Map<TOPPASVertex*,TOPPASVertex*> vertex_map;
+
+		foreach (TOPPASVertex* v, vertices_)
+		{
+			if (!v->isSelected())
+			{
+				continue;
+			}
+
+			TOPPASVertex* new_v = 0;
+			
+			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(v);
+			if (iflv)
+			{
+				TOPPASInputFileListVertex* new_iflv = new TOPPASInputFileListVertex(*iflv);
+				new_v = new_iflv;
+			}
+			
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(v);
+			if (oflv)
+			{
+				TOPPASOutputFileListVertex* new_oflv = new TOPPASOutputFileListVertex(*oflv);
+				new_v = new_oflv;
+			}
+
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(v);
+			if (tv)
+			{
+				TOPPASToolVertex* new_tv = new TOPPASToolVertex(*tv);
+				new_v = new_tv;
+			}
+			
+			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(v);
+			if (mv)
+			{
+				TOPPASMergerVertex* new_mv = new TOPPASMergerVertex(*mv);
+				new_v = new_mv;
+			}
+			
+			if (!new_v)
+			{
+				std::cerr << "Unknown vertex type! Aborting." << std::endl;
+				return;
+			}
+			
+			vertex_map[v] = new_v;
+			tmp_scene->addVertex(new_v);
+		}
+
+		foreach (TOPPASEdge* e, edges_)
+		{
+			if (!e->isSelected())
+			{
+				continue;
+			}
+			
+			//check if both source and target node were also selected (otherwise don't copy)
+			TOPPASVertex* old_source = e->getSourceVertex();
+			TOPPASVertex* old_target = e->getTargetVertex();
+			if (!(vertex_map.has(old_source) && vertex_map.has(old_target)))
+			{
+				continue;
+			}
+
+			TOPPASEdge* new_e = new TOPPASEdge();
+			TOPPASVertex* new_source = vertex_map[old_source];
+			TOPPASVertex* new_target = vertex_map[old_target];
+			new_e->setSourceVertex(new_source);
+			new_e->setTargetVertex(new_target);
+			new_e->setSourceOutParam(e->getSourceOutParam());
+			new_e->setTargetInParam(e->getTargetInParam());
+			new_source->addOutEdge(new_e);
+			new_target->addInEdge(new_e);
+			
+			tmp_scene->addEdge(new_e);
+		}
+
+		emit selectionCopied(tmp_scene);
+	}
+
+	void TOPPASScene::paste(QPointF pos)
+	{
+		emit requestClipboardContent();
+		
+		if (clipboard_ != 0)
+		{
+			include(clipboard_, pos);
+		}
+	}
 	
+	void TOPPASScene::setClipboard(TOPPASScene* clipboard)
+	{
+		clipboard_ = clipboard;
+	}
+
 	void TOPPASScene::removeSelected()
 	{
 		QList<TOPPASVertex*> vertices_to_be_removed;
@@ -713,12 +812,21 @@ namespace OpenMS
 		updateEdgeColors();
   }
 
-	void TOPPASScene::include(TOPPASScene* tmp_scene)
+	void TOPPASScene::include(TOPPASScene* tmp_scene, QPointF pos)
 	{
 		QRectF new_bounding_rect = tmp_scene->itemsBoundingRect();
 		QRectF our_bounding_rect = itemsBoundingRect();
-		qreal y_offset = our_bounding_rect.bottom() - new_bounding_rect.top() + 40.0;
-		qreal x_offset = our_bounding_rect.left() - new_bounding_rect.left();
+		qreal x_offset, y_offset;
+		if (pos == QPointF())
+		{
+			y_offset = our_bounding_rect.bottom() - new_bounding_rect.top() + 40.0;
+			x_offset = our_bounding_rect.left() - new_bounding_rect.left();
+		}
+		else
+		{
+			x_offset = pos.x() - new_bounding_rect.left();
+			y_offset = pos.y() - new_bounding_rect.top();
+		}
 		Map<TOPPASVertex*,TOPPASVertex*> vertex_map;
 
 		for (VertexIterator it = tmp_scene->verticesBegin(); it != tmp_scene->verticesEnd(); ++it)
@@ -1177,139 +1285,161 @@ namespace OpenMS
 	{
 		QPointF scene_pos = event->scenePos();
 		QGraphicsItem* clicked_item = itemAt(scene_pos);
-		
+		QMenu menu;
+
 		if (clicked_item == 0)
 		{
-			return;
-		}
-		
-		if (!clicked_item->isSelected())
-		{
-			unselectAll();
-		}
-		
-		clicked_item->setSelected(true);
-		
-		// check which kinds of items are selected and display a context menu containing only actions compatible with all of them
-		bool found_tool = false;
-		bool found_input = false;
-		bool found_output = false;
-		bool found_merger = false;
-		bool found_edge = false;
-		bool disable_resume = false;
-		//bool disable_toppview = true;
-		
-		foreach (TOPPASEdge* edge, edges_)
-		{
-			if (edge->isSelected())
-			{
-				found_edge = true;
-				break;
-			}
-		}
-		
-		foreach (TOPPASVertex* tv, vertices_)
-		{
-			if (!tv->isSelected())
-			{
-				continue;
-			}
-			
-			if (qobject_cast<TOPPASToolVertex*>(tv))
-			{
-				found_tool = true;
-				// all predecessor nodes finished successfully? if not, disable resuming
-				for (EdgeIterator it = tv->inEdgesBegin(); it != tv->inEdgesEnd(); ++it)
-				{
-					TOPPASToolVertex* pred_ttv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-					if (pred_ttv && (pred_ttv->getProgressColor() != Qt::green || !pred_ttv->isFinished()))
-					{
-						disable_resume = true;
-						break;
-					}
-				}
-				continue;
-			}
-			if (qobject_cast<TOPPASInputFileListVertex*>(tv))
-			{
-				found_input = true;
-				continue;
-			}
-			if (qobject_cast<TOPPASOutputFileListVertex*>(tv))
-			{
-				found_output = true;
-				continue;
-			}
-			if (qobject_cast<TOPPASMergerVertex*>(tv))
-			{
-				found_merger = true;
-				continue;
-			}
-		}
-		
-		QMenu menu;
-		QList<QSet<QString> > all_actions;
-		
-		if (found_tool)
-		{
-			QSet<QString> tool_actions;
-			tool_actions.insert("Edit parameters");
-			tool_actions.insert("Resume");
-			tool_actions.insert("Open files in TOPPView");
-			tool_actions.insert("Remove");
-			all_actions.push_back(tool_actions);
-		}
-		
-		if (found_input)
-		{
-			QSet<QString> input_actions;
-			input_actions.insert("Change files");
-			input_actions.insert("Open files in TOPPView");
-			input_actions.insert("Remove");
-			all_actions.push_back(input_actions);
-		}
-		
-		if (found_output)
-		{
-			QSet<QString> output_actions;
-			output_actions.insert("Open files in TOPPView");
-			output_actions.insert("Remove");
-			all_actions.push_back(output_actions);
-		}
-		
-		if (found_edge)
-		{
-			QSet<QString> edge_actions;
-			edge_actions.insert("Edit I/O mapping");
-			edge_actions.insert("Remove");
-			all_actions.push_back(edge_actions);
-		}
-		
-		if (found_merger)
-		{
-			QSet<QString> merger_actions;
-			merger_actions.insert("Remove");
-			merger_actions.insert("Change mode");
-			all_actions.push_back(merger_actions);
-		}
-		
-		QSet<QString> supported_actions_set = all_actions.first();
-		foreach (const QSet<QString>& action_set, all_actions)
-		{
-			supported_actions_set.intersect(action_set);
-		}
-		QList<QString> supported_actions = supported_actions_set.toList();
-		
-		foreach (const QString& supported_action, supported_actions)
-		{
-			QAction* new_action = menu.addAction(supported_action);
-			if (supported_action == "Resume" && disable_resume)
+			QAction* new_action = menu.addAction("Paste");
+			emit requestClipboardContent();
+			if (clipboard_ == 0)
 			{
 				new_action->setEnabled(false);
 			}
 		}
-		
-		// ------ execute action on all selected items ------
+		else
+		{
+			if (!clicked_item->isSelected())
+			{
+				unselectAll();
+			}
+
+			clicked_item->setSelected(true);
+
+			// check which kinds of items are selected and display a context menu containing only actions compatible with all of them
+			bool found_tool = false;
+			bool found_input = false;
+			bool found_output = false;
+			bool found_merger = false;
+			bool found_edge = false;
+			bool disable_resume = false;
+			//bool disable_toppview = true;
+
+			foreach (TOPPASEdge* edge, edges_)
+			{
+				if (edge->isSelected())
+				{
+					found_edge = true;
+					break;
+				}
+			}
+
+			foreach (TOPPASVertex* tv, vertices_)
+			{
+				if (!tv->isSelected())
+				{
+					continue;
+				}
+
+				if (qobject_cast<TOPPASToolVertex*>(tv))
+				{
+					found_tool = true;
+					// all predecessor nodes finished successfully? if not, disable resuming
+					for (EdgeIterator it = tv->inEdgesBegin(); it != tv->inEdgesEnd(); ++it)
+					{
+						TOPPASToolVertex* pred_ttv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+						if (pred_ttv && (pred_ttv->getProgressColor() != Qt::green || !pred_ttv->isFinished()))
+						{
+							disable_resume = true;
+							break;
+						}
+					}
+					continue;
+				}
+				if (qobject_cast<TOPPASInputFileListVertex*>(tv))
+				{
+					found_input = true;
+					continue;
+				}
+				if (qobject_cast<TOPPASOutputFileListVertex*>(tv))
+				{
+					found_output = true;
+					continue;
+				}
+				if (qobject_cast<TOPPASMergerVertex*>(tv))
+				{
+					found_merger = true;
+					continue;
+				}
+			}
+
+			QList<QSet<QString> > all_actions;
+
+			if (found_tool)
+			{
+				QSet<QString> tool_actions;
+				tool_actions.insert("Edit parameters");
+				tool_actions.insert("Resume");
+				tool_actions.insert("Open files in TOPPView");
+				tool_actions.insert("Copy");
+				tool_actions.insert("Cut");
+				tool_actions.insert("Paste");
+				tool_actions.insert("Remove");
+				all_actions.push_back(tool_actions);
+			}
+
+			if (found_input)
+			{
+				QSet<QString> input_actions;
+				input_actions.insert("Change files");
+				input_actions.insert("Open files in TOPPView");
+				input_actions.insert("Copy");
+				input_actions.insert("Cut");
+				input_actions.insert("Paste");
+				input_actions.insert("Remove");
+				all_actions.push_back(input_actions);
+			}
+
+			if (found_output)
+			{
+				QSet<QString> output_actions;
+				output_actions.insert("Open files in TOPPView");
+				output_actions.insert("Copy");
+				output_actions.insert("Cut");
+				output_actions.insert("Paste");
+				output_actions.insert("Remove");
+				all_actions.push_back(output_actions);
+			}
+
+			if (found_edge)
+			{
+				QSet<QString> edge_actions;
+				edge_actions.insert("Edit I/O mapping");
+				edge_actions.insert("Copy");
+				edge_actions.insert("Cut");
+				edge_actions.insert("Paste");
+				edge_actions.insert("Remove");
+				all_actions.push_back(edge_actions);
+			}
+
+			if (found_merger)
+			{
+				QSet<QString> merger_actions;
+				merger_actions.insert("Change mode");
+				merger_actions.insert("Copy");
+				merger_actions.insert("Cut");
+				merger_actions.insert("Paste");
+				merger_actions.insert("Remove");
+				all_actions.push_back(merger_actions);
+			}
+
+			QSet<QString> supported_actions_set = all_actions.first();
+			foreach (const QSet<QString>& action_set, all_actions)
+			{
+				supported_actions_set.intersect(action_set);
+			}
+			QList<QString> supported_actions = supported_actions_set.toList();
+
+			foreach (const QString& supported_action, supported_actions)
+			{
+				QAction* new_action = menu.addAction(supported_action);
+				if (supported_action == "Resume" && disable_resume)
+				{
+					new_action->setEnabled(false);
+				}
+			}
+		}
+
+		// ------ execute action  ------
 		
 		QAction* selected_action = menu.exec(event->screenPos());
 		if (selected_action)
@@ -1319,6 +1449,28 @@ namespace OpenMS
 			if (text == "Remove")
 			{
 				removeSelected();
+				event->accept();
+				return;
+			}
+
+			if (text == "Copy")
+			{
+				copySelected();
+				event->accept();
+				return;
+			}
+
+			if (text == "Cut")
+			{
+				copySelected();
+				removeSelected();
+				event->accept();
+				return;
+			}
+
+			if (text == "Paste")
+			{
+				paste(event->scenePos());
 				event->accept();
 				return;
 			}

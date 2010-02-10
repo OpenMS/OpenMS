@@ -126,7 +126,7 @@ namespace OpenMS
 			void sourceHasChanged();
 		
 		signals:
-		
+			
 			/// Emitted when something has changed
 			void somethingHasChanged();
 		
