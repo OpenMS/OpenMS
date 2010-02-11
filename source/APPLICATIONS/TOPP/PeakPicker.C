@@ -141,7 +141,8 @@ class TOPPPeakPicker
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    
+		String type = getStringOption_("type");
+
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
@@ -174,7 +175,6 @@ class TOPPPeakPicker
 		Param pepi_param = getParam_().copy("algorithm:",true);		
 		writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
 		
-		String type = getStringOption_("type");
     if (type == "wavelet")
     {	
     	PeakPickerCWT pp;
