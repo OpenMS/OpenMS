@@ -267,10 +267,11 @@ namespace OpenMS
     {
     	category_set << String(it->value).toQString();
     }
-    
+		QStringList category_list = category_set.toList();
+		qSort(category_list);
     Map<QString,QTreeWidgetItem*> category_map;
     
-    foreach (const QString& category, category_set)
+    foreach (const QString& category, category_list)
     {
     	item = new QTreeWidgetItem((QTreeWidget*)0);
     	item->setText(0, category);

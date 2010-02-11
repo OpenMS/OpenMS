@@ -1370,10 +1370,6 @@ namespace OpenMS
 				tool_actions.insert("Edit parameters");
 				tool_actions.insert("Resume");
 				tool_actions.insert("Open files in TOPPView");
-				tool_actions.insert("Copy");
-				tool_actions.insert("Cut");
-				tool_actions.insert("Paste");
-				tool_actions.insert("Remove");
 				all_actions.push_back(tool_actions);
 			}
 
@@ -1382,10 +1378,6 @@ namespace OpenMS
 				QSet<QString> input_actions;
 				input_actions.insert("Change files");
 				input_actions.insert("Open files in TOPPView");
-				input_actions.insert("Copy");
-				input_actions.insert("Cut");
-				input_actions.insert("Paste");
-				input_actions.insert("Remove");
 				all_actions.push_back(input_actions);
 			}
 
@@ -1393,10 +1385,6 @@ namespace OpenMS
 			{
 				QSet<QString> output_actions;
 				output_actions.insert("Open files in TOPPView");
-				output_actions.insert("Copy");
-				output_actions.insert("Cut");
-				output_actions.insert("Paste");
-				output_actions.insert("Remove");
 				all_actions.push_back(output_actions);
 			}
 
@@ -1404,10 +1392,6 @@ namespace OpenMS
 			{
 				QSet<QString> edge_actions;
 				edge_actions.insert("Edit I/O mapping");
-				edge_actions.insert("Copy");
-				edge_actions.insert("Cut");
-				edge_actions.insert("Paste");
-				edge_actions.insert("Remove");
 				all_actions.push_back(edge_actions);
 			}
 
@@ -1415,10 +1399,6 @@ namespace OpenMS
 			{
 				QSet<QString> merger_actions;
 				merger_actions.insert("Change mode");
-				merger_actions.insert("Copy");
-				merger_actions.insert("Cut");
-				merger_actions.insert("Paste");
-				merger_actions.insert("Remove");
 				all_actions.push_back(merger_actions);
 			}
 
@@ -1428,7 +1408,7 @@ namespace OpenMS
 				supported_actions_set.intersect(action_set);
 			}
 			QList<QString> supported_actions = supported_actions_set.toList();
-
+			supported_actions << "Copy" << "Cut" << "Remove";
 			foreach (const QString& supported_action, supported_actions)
 			{
 				QAction* new_action = menu.addAction(supported_action);
