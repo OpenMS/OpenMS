@@ -63,7 +63,7 @@ using namespace std;
 	Note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend 
 	to use a noise or intensity filter to remove spurious points first and to speed-up the feature detection process.
   
-	In the following table you, can find example values of the most important parameters for 
+	In the following table you can find example values of the most important parameters for 
 	different instrument types. @n These parameters are not valid for all instruments of that type,
 	but can be used as a starting point for finding suitable parameters.
 
