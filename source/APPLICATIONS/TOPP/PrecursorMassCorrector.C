@@ -76,9 +76,15 @@ class TOPPPrecursorMassCorrector
 			setValidFormats_("in", StringList::create("mzML"));
 			registerOutputFile_("out","<file>","","Output mzML file.");
 			setValidFormats_("in", StringList::create("mzML"));
-			registerStringOption_("type", "<instrument_type>", "", "Type of instrument used");
-			setValidStrings_("type", StringList::create("QStarPulsarI"));
-			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Maximal deviation in Th which is acceptable to be corrected.", false);
+
+			registerInputFile_("feature_in", "<file>", "", "Input featureXML file, containing features; if set, the MS/MS spectra precursor entries \n"
+																										 "will be matched to the feature m/z values if possible.", false);
+
+			//registerStringOption_("type", "<instrument_type>", "", "Type of instrument used");
+			//setValidStrings_("type", StringList::create("QStarPulsarI"));
+
+			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Maximal deviation in Th which is acceptable to be corrected;\n"
+																																						"this value should be set to the instruments selection window.", false);
 			setMinFloat_("precursor_mass_tolerance", 0);
 
 			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge that should be assumend for precursor peaks", false, true);
@@ -93,6 +99,7 @@ class TOPPPrecursorMassCorrector
 			// parsing parameters
 			//-------------------------------------------------------------
 			String in(getStringOption_("in"));
+			String feature_in(getStringOption_("feature_in"));
 			String out(getStringOption_("out"));
 			DoubleReal precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
 			
@@ -102,6 +109,12 @@ class TOPPPrecursorMassCorrector
 
 			PeakMap exp;
 			MzMLFile().load(in, exp);
+
+			FeatureMap<> feature_map;
+			if (feature_in != "")
+			{
+				FeatureXMLFile().load(feature_in, feature_map);
+			}
 
 			//-------------------------------------------------------------
 			// calculations
@@ -186,17 +199,22 @@ class TOPPPrecursorMassCorrector
 
 						Precursor prec = *ms2_it->getPrecursors().begin();
 						DoubleReal prec_pos = prec.getMZ();
+					
 						
 						DoubleReal min_dist(numeric_limits<DoubleReal>::max());
+						DoubleReal max_int(numeric_limits<DoubleReal>::min());
 						Size min_feat_idx(0);
+						
 						for (Size i = 0; i != features.size(); ++i)
 						{
-							if (fabs(features[i].getMZ() - prec_pos) < min_dist)
+							if (fabs(features[i].getMZ() - prec_pos) < precursor_mass_tolerance &&
+									features[i].getIntensity() > max_int)
 							{
 								min_feat_idx = i;
 								min_dist = fabs(features[i].getMZ() - prec_pos);
 							}
 						}
+						
 
 						writeDebug_(" min_dist=" + String(min_dist) + " mz=" + String(features[min_feat_idx].getMZ()) + " charge=" + String(features[min_feat_idx].getCharge()), 5);
 						if (min_dist < precursor_mass_tolerance)
