@@ -70,7 +70,7 @@ namespace OpenMS
 
 				@param ids peptide identifications, containing target and decoy hits
 			*/
-			void apply(std::vector<PeptideIdentification>& ids);
+			void apply(std::vector<PeptideIdentification>& id);
 
 			/**
 			 	@brief Calculates the FDR of two runs, a forward run and decoy run on protein level
@@ -94,6 +94,9 @@ namespace OpenMS
   		
 			///Not implemented
 			FalseDiscoveryRate& operator = (const FalseDiscoveryRate&);
+
+			/// calculates the fdr stored into fdrs, given two vectors of scores
+			void calculateFDRs_(Map<DoubleReal, DoubleReal>& score_to_fdr, std::vector<DoubleReal>& target_scores, std::vector<DoubleReal>& decoy_scores, bool q_value, bool higher_score_better);
 
   };
  

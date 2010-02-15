@@ -120,57 +120,38 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 END_SECTION
 
 START_SECTION((void apply(std::vector<PeptideIdentification>& ids)))
-	vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids, prot_ids;
-  vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids, pep_ids;
-  String document_id;
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);
-
-	for (vector<PeptideIdentification>::iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
-	{
-		vector<PeptideHit> hits = it->getHits();
-		for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
-		{
-			pit->setMetaValue("target_decoy", "target");
-		}
-		it->setHits(hits);
-		pep_ids.push_back(*it);
-	}
-	for (vector<PeptideIdentification>::iterator it = rev_pep_ids.begin(); it != rev_pep_ids.end(); ++it)
-	{
-		vector<PeptideHit> hits = it->getHits();
-		for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
-		{
-			pit->setMetaValue("target_decoy", "decoy");
-		}
-		it->setHits(hits);
-		pep_ids.push_back(*it);
-	}
-
+{
+	vector<ProteinIdentification> prot_ids;
+  vector<PeptideIdentification> pep_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_OMSSA.idXML"), prot_ids, pep_ids);
 
   ptr->apply(pep_ids);
   TOLERANCE_ABSOLUTE(0.001)
-	for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
-  {
-    if (it->getHits().size() > 0)
-    {
-      PeptideHit hit(*it->getHits().begin());
-      DoubleReal fdr(hit.getScore());
-      DoubleReal orig_score((DoubleReal)hit.getMetaValue("XTandem_score"));
+	for (Size z = 1; z <= 4; ++z)
+	{
+		for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+  	{
+			for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+			{
+      	DoubleReal fdr(pit->getScore());
+      	DoubleReal orig_score((DoubleReal)pit->getMetaValue("OMSSA_score"));
 
-      if (orig_score >= 39.4)
-      {
-        TEST_REAL_SIMILAR(fdr, 0)
-      }
-      if (orig_score <= 37.9 + 0.0001 && orig_score >= 37.9 - 0.0001)
-      {
-        TEST_REAL_SIMILAR(fdr, 0.1)
-      }
+      	if (orig_score <= 10e-4)
+      	{
+        	TEST_REAL_SIMILAR(fdr, 0)
+      	}
+      	if (orig_score >= 1000 && pit->getCharge() != 1)
+      	{
+        	TEST_EQUAL(fdr > 0.1, true)
+      	}
+			}
     }
   }
+}
 END_SECTION
 
 START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
+{
 	vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids, prot_ids;
   vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids, pep_ids;
   String document_id;
@@ -211,14 +192,12 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
         }
 				if (orig_score > -1.2)
 				{
-					cerr << fdr << " " << orig_score << endl;
 					TEST_EQUAL(fdr > 0.1, true)
 				}
       }
     }
   }
-	
-
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -82,7 +82,9 @@ class TOPPFalseDiscoveryRate
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
 			registerFlag_("proteins_only", "if set, the FDR of the proteins only is calculated");
 			registerFlag_("peptides_only", "if set, the FDR of the peptides only is calculated");
-			registerFlag_("q_value", "if set, the q-values will be calculated instead of the FDRs");
+
+			registerSubsection_("algorithm","Parameter section for the fdr calculation algorithm");
+
 		
 			addEmptyLine_();		
 		}
@@ -93,7 +95,7 @@ class TOPPFalseDiscoveryRate
 			// parameter handling
 			//-------------------------------------------------------------
 	
-			Param alg_param = getParam_().copy("q_value",false);
+			Param alg_param = getParam_().copy("algorithm:", true);
 			FalseDiscoveryRate fdr;
 
 			if (!alg_param.empty())
@@ -138,9 +140,8 @@ class TOPPFalseDiscoveryRate
 			{
 				vector<PeptideIdentification> fwd_pep, rev_pep;
 				vector<ProteinIdentification> fwd_prot, rev_prot;
-				String document_id;
-				IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
-				IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
+				IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
+				IdXMLFile().load(rev_in, rev_prot, rev_pep);
 			
       	//-------------------------------------------------------------
       	// calculations
@@ -175,6 +176,15 @@ class TOPPFalseDiscoveryRate
 				if (!peptides_only)
 				{
 					fdr.apply(prot_ids);
+				}
+
+				for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+				{
+					it->assignRanks();
+				}
+				for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+				{
+					it->assignRanks();
 				}
 
 				IdXMLFile().store(out, prot_ids, pep_ids);
