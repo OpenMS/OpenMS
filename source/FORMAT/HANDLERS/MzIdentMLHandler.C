@@ -43,7 +43,7 @@ namespace OpenMS
 			id_(0),
 			cid_(&id)
   {
-  	cv_.loadFromOBO("PI",File::find("/CV/psi-ms.obo"));
+  	cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
   }
 
   MzIdentMLHandler::MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
@@ -62,8 +62,18 @@ namespace OpenMS
 	void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		tag_ = sm_.convert(qname);
-
 		open_tags_.push_back(tag_);
+
+		static set<String> to_ignore;
+		if (to_ignore.size() == 0)
+		{
+			to_ignore.insert("peptideSequence");
+		}
+
+		if (to_ignore.find(tag_) != to_ignore.end())
+		{
+			return;
+		}
 
 		//determine parent tag
     String parent_tag;
@@ -91,6 +101,7 @@ namespace OpenMS
       optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
       optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);
       handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, attributes, cv_ref, unit_accession);
+			return;
 		}
 
 		if (tag_ == "MzIdentML")
@@ -103,17 +114,39 @@ namespace OpenMS
 		{
 			// start new peptide
 			actual_peptide_ = AASequence();
-			// <Peptide id="peptide_1_1" sequenceMass="1341.72522" sequenceLength="12">
-      //   <Modification location="0" residues="R" monoisotopicMassDelta="127.063324">
-      //     <cvParam accession="UNIMOD:29" name="SMA" cvRef="UNIMOD" />
-      //   </Modification>
-      //   <peptideSequence>DAGTISGLNVLR</peptideSequence>
-    	// </Peptide>
+
+			// name attribute (opt)
+			String name;
+			if (optionalAttributeAsString_(name, attributes, "name"))
+			{
+				// TODO save name in AASequence
+			}		
+	
+			return;
 		}
 
 		if (tag_ == "Modification")
 		{
+			// average mass delta attribute (opt)
+			// TODO
+
+			// location attribute (opt)
+			Int mod_location = -1;
+			if (optionalAttributeAsInt_(mod_location, attributes, "location"))
+			{
+				current_mod_location_ = mod_location;
+			}
+			else
+			{
+				current_mod_location_ = -1;
+			}
+
+			// monoisotopic mass delta attribute (opt)
+			// TODO
 			
+			// residues attribute (opt)
+			// TODO			
+			return;
 		}
 
 		if (tag_ == "SpectrumIdentificationList")
@@ -169,7 +202,7 @@ namespace OpenMS
 
 			return;
 		}
-
+		error(LOAD, "MzIdentMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
 	}
 
 	void MzIdentMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -184,24 +217,36 @@ namespace OpenMS
 		if (tag_ == "seq")
 		{
 			String seq = sm_.convert(chars);
-			// TODO write to actual db sequence
+			actual_protein_.setSequence(seq);
 			return;
 		}
 
 		if (tag_ == "peptideSequence")
 		{
 			String pep = sm_.convert(chars);
-			//pep_sequences_[current] = current_sequence_;
+			actual_peptide_ = pep;
 			return;
 		}
 
-		// TODO any more?
+    //error(LOAD, "MzIdentMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
 	}
 
 	void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
+		static set<String> to_ignore;
+		if (to_ignore.size() == 0)
+		{
+			to_ignore.insert("mzIdentML");
+			to_ignore.insert("cvParam");
+		}
+
 		tag_ = sm_.convert(qname);
 		open_tags_.pop_back();
+
+		if (to_ignore.find(tag_) != to_ignore.end())
+		{
+			return;
+		}
 
 		if (tag_ == "DataCollection")
 		{
@@ -234,9 +279,10 @@ namespace OpenMS
 			current_id_hit_ = IdentificationHit();
 			return;
 		}
+		error(LOAD, "MzIdentMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring.");
 	}
 
-	void MzIdentMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref, const String& unit_accession)	
+	void MzIdentMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref, const String& unit_accession)	
 	{
 		if (parent_tag == "Modification")
 		{
@@ -258,7 +304,7 @@ namespace OpenMS
 					{
         		ModificationsDB::getInstance()->searchTerminalModifications(mods, uni_mod_id, ResidueModification::N_TERM);
 					}
-					else if (loc == actual_peptide_.size())
+					else if (loc == (Int)actual_peptide_.size())
 					{
         		ModificationsDB::getInstance()->searchTerminalModifications(mods, uni_mod_id, ResidueModification::C_TERM);
 					}

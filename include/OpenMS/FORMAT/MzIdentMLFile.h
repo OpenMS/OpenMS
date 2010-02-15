@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MZIDENTMLFILE_H
@@ -30,12 +30,11 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/METADATA/Identification.h>
 
 namespace OpenMS
 {
-	class Identification;
-	class StringList;
-
 	/**
 		@brief File adapter for MzIdentML files
 

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
@@ -37,7 +37,7 @@ namespace OpenMS
 {
 
 	MzIdentMLFile::MzIdentMLFile()
-		: XMLFile("/SCHEMAS/analysisXML_1_0.xsd","1.10")
+		: XMLFile("/SCHEMAS/mzIdentML1.0.0.xsd","1.0.0")
 	{
 	}
 
@@ -61,11 +61,11 @@ namespace OpenMS
 	{
 		//load mapping
 		CVMappings mapping;
-		CVMappingFile().load(File::find("/MAPPING/pi-mapping.xml"),mapping);
+		CVMappingFile().load(File::find("/MAPPING/mzIdentML-mapping.xml"),mapping);
 		
 		//load cvs
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
+		cv.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
 		cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
 		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
 		cv.loadFromOBO("BTO",File::find("/CV/brenda.obo"));
