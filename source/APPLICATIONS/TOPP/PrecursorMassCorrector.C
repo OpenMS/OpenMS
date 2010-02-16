@@ -30,6 +30,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <algorithm>
 
@@ -107,8 +108,12 @@ class TOPPPrecursorMassCorrector
 			// reading input
 			//-------------------------------------------------------------
 
-			PeakMap exp;
-			MzMLFile().load(in, exp);
+
+			FileHandler fh;
+      FileTypes::Type in_type = fh.getType(in);
+
+      PeakMap exp;
+      fh.loadExperiment(in, exp, in_type, log_type_);
 
 			FeatureMap<> feature_map;
 			if (feature_in != "")
@@ -237,7 +242,8 @@ class TOPPPrecursorMassCorrector
       // writing output
       //-------------------------------------------------------------
 		
-			MzMLFile().store(out, exp);
+
+			fh.storeExperiment(out, exp, log_type_);
 	
 			return EXECUTION_OK;
 		}
