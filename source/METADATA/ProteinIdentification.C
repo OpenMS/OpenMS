@@ -201,15 +201,15 @@ namespace OpenMS
 		// .. and sort it
  		if (higher_score_better_)
   	{
-			std::sort(index.begin(), index.end(), ProteinCmp<std::vector<ProteinHit>&, PeptideHit::ScoreMore>(protein_hits_, PeptideHit::ScoreMore()) );
+			std::sort(index.begin(), index.end(), ProteinCmp<std::vector<ProteinHit>&, ProteinHit::ScoreMore>(protein_hits_, ProteinHit::ScoreMore()) );
 			// here we sort the actual proteins (could be done using sorted indices as well, but the list is short)
-			std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreMore());
+			std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
   	}
   	else
   	{
-  		std::sort(index.begin(), index.end(), ProteinCmp<std::vector<ProteinHit>&, PeptideHit::ScoreLess>(protein_hits_, PeptideHit::ScoreLess()) );
+  		std::sort(index.begin(), index.end(), ProteinCmp<std::vector<ProteinHit>&, ProteinHit::ScoreLess>(protein_hits_, ProteinHit::ScoreLess()) );
   		// here we sort the actual proteins (could be done using sorted indices as well, but the list is short)
-  		std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreLess());
+  		std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
   	}
   	
   	// create mapping (from old index to new one)

@@ -48,6 +48,39 @@ namespace OpenMS
   	: public MetaInfoInterface
   {
   	public:
+
+      /// @name Comparators ProteinHit
+      //@{
+      /// Greater predicate for scores of hits
+      class OPENMS_DLLAPI ScoreMore
+      {
+        public:
+          template<typename Arg>
+          bool operator()(const Arg& a, const Arg& b)
+          {
+						if (a.getScore() != b.getScore())
+						{
+            	return a.getScore() > b.getScore();
+						}
+						return a.getAccession() > b.getAccession();
+          }
+      };
+
+      /// Lesser predicate for scores of hits
+      class OPENMS_DLLAPI ScoreLess
+      {
+        public:
+          template<typename Arg>
+          bool operator()(const Arg& a, const Arg& b)
+          {
+						if (a.getScore() != b.getScore())
+						{
+            	return a.getScore() < b.getScore();
+						}
+						return a.getAccession() < b.getAccession();
+          }
+      };
+      //@}
 		
 			/**	@name Constructors and Destructor */
 			//@{
