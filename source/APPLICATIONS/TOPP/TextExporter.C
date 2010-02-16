@@ -360,8 +360,6 @@ namespace OpenMS
         registerOutputFile_("consensus_elements", "<file>", "",
           "Output file for elements of consensus features", false);
         registerOutputFile_("consensus_features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if element is missing)", false);
-				// use 'no_ids' option instead (i.e. include peptides by default)?
-				registerFlag_("include_peptides", "Include annotated peptide sequences (best hit only) in output (use with 'consensus_features')", false);
         registerStringOption_("sorting_method", "<method>", "none",
           "Sorting method", false);
         setValidStrings_("sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
@@ -605,7 +603,6 @@ namespace OpenMS
 						SVOutStream output(consensus_features_file, sep, replacement,
 															 quoting_method);
 						
-						bool include_peptides = getFlag_("include_peptides");
 						std::map<Size,Size> map_id_to_map_num;
             std::vector<Size> map_num_to_map_id;
             std::vector<FeatureHandle> feature_handles;
@@ -629,8 +626,8 @@ namespace OpenMS
 						map<String, Size> prot_runs;
 						Size max_prot_run = 0;
 						StringList comments;
-						if (include_peptides) {
-							String pep_line = "Protein identification runs associated with peptide columns below: ";
+						if (!no_ids) {
+							String pep_line = "Protein identification runs associated with peptide/protein columns below: ";
 							for (vector<ProteinIdentification>::const_iterator prot_it =
 										 consensus_map.getProteinIdentifications().begin();
 									 prot_it != consensus_map.getProteinIdentifications().end();
@@ -665,12 +662,14 @@ namespace OpenMS
 										 << "intensity_" + String(map_id)
 										 << "charge_" + String(map_id);
             }
-						if (include_peptides)
+						if (!no_ids)
 						{
 							for (Size i = 0; i <= max_prot_run; ++i)
 							{
 								output << "peptide_" + String(i)
-											 << "n_diff_peptides_" + String(i);
+											 << "n_diff_peptides_" + String(i)
+											 << "protein_" + String(i)
+											 << "n_diff_proteins_" + String(i);
 							}
 						}					
             output << endl;
@@ -697,9 +696,10 @@ namespace OpenMS
               {
 								output << feature_handles[fhindex];
               }
-							if (include_peptides)
+							if (!no_ids)
 							{
-								vector<set<String> > peptides_by_source(max_prot_run + 1);
+								vector<set<String> > peptides_by_source(max_prot_run + 1),
+									proteins_by_source(max_prot_run + 1);
 								for (vector<PeptideIdentification>::const_iterator pep_it =
 											 cmit->getPeptideIdentifications().begin(); pep_it !=
 											 cmit->getPeptideIdentifications().end(); ++pep_it)
@@ -711,14 +711,25 @@ namespace OpenMS
 									{							
 										peptides_by_source[index].insert(hit_it->getSequence().
 																										 toString());
+										proteins_by_source[index].insert(
+											hit_it->getProteinAccessions().begin(), 
+											hit_it->getProteinAccessions().end());
 									}
 								}
-								for (vector<set<String> >::iterator pbs_it = peptides_by_source.
-											 begin(); pbs_it != peptides_by_source.end(); ++pbs_it)
+								vector<set<String> >::iterator pep_it = peptides_by_source.
+									begin(), prot_it = proteins_by_source.begin();
+								for (; pep_it != peptides_by_source.end(); ++pep_it, ++prot_it)
 								{
-									StringList seqs(vector<String>(pbs_it->begin(),
-																								 pbs_it->end()));
-									output << seqs.concatenate("/") << pbs_it->size();
+									StringList seqs(vector<String>(pep_it->begin(), 
+																								 pep_it->end())), 
+										accs(vector<String>(prot_it->begin(), prot_it->end()));
+									for (StringList::iterator acc_it = accs.begin();
+											 acc_it != accs.end(); ++acc_it)
+									{
+										acc_it->substitute('/', '_');
+									}
+									output << seqs.concatenate("/") << seqs.size() 
+												 << accs.concatenate("/") << accs.size();
 								}
 							}					
               output << endl;
