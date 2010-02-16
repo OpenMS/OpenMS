@@ -405,10 +405,10 @@ namespace OpenMS
 				}
 			}
 		
-      /**@brief Applies a member function of Type to all features, including subordinates.
+      /**@brief Applies a member function of Type to the container itself and all features (including subordinates).
          The returned values are accumulated.
 
-         <b>Example:</b>  The following will print the number of features with invalid unique ids:
+         <b>Example:</b>  The following will print the number of features with invalid unique ids (plus 1 if the container has an invalid UID as well):
          @code
          FeatureMap<> fm;
          (...)
