@@ -127,13 +127,6 @@ namespace OpenMS
 
 	void CompNovoIdentification::getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
 	{
-					/*
-		if (CID_spec.getPrecursors().begin()->getMZ() > 1000.0)
-		{
-			cerr << "Weight of precursor has been estimated to exceed 2000.0 Da which is the current limit" << endl;
-			return;
-		}*/
-					
 		PeakSpectrum new_CID_spec(CID_spec), new_ETD_spec(ETD_spec);
 		windowMower_(new_CID_spec, 0.3, 1);
 		windowMower_(new_ETD_spec, 0.3, 1);
@@ -154,35 +147,42 @@ namespace OpenMS
   	normalizer.filterSpectrum(new_CID_spec);
   	normalizer.filterSpectrum(new_ETD_spec);
 
-		Size charge(2);
-		
-		DoubleReal precursor_weight = estimatePrecursorWeight_(new_ETD_spec, charge);
+		Size charge(0);
+		DoubleReal precursor_weight = 0;
+
+		bool estimate_precursor_mz = param_.getValue("estimate_precursor_mz").toBool();
+
+		if (estimate_precursor_mz)
+		{
+			precursor_weight = estimatePrecursorWeight_(new_ETD_spec, charge);
+		}
 
 		if (precursor_weight == 0 || charge == 0)
 		{
-			charge = 2;
+			if (CID_spec.getPrecursors().size() == 0)
+			{
+				cerr << "No precursors found, skipping identification." << endl;
+				return;
+			}
+
+			if (CID_spec.getPrecursors().begin()->getCharge() != 0)
+			{
+				charge = CID_spec.getPrecursors().begin()->getCharge();
+			}
+			else
+			{
+				cerr << "No charge annotated with precursor, estimating as 2+" << endl;
+				charge = 2;
+			}
 			precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * (DoubleReal)charge - (DoubleReal)(charge - 1) * Constants::PROTON_MASS_U;
 		}
 
-		//cerr << "Estimated charge: " << charge << endl;
-		//cerr << "Estimated Pre-weight: " << precursor_weight << endl;
-	
-		//return;
 
 		if (precursor_weight > 2000.0)
 		{
 			cerr << "Weight of precursor has been estimated to exceed 2000.0 Da which is the current limit: " << precursor_weight << endl;
 			return;
 		}
-
-		/*
-		if (charge > 2)
-		{
-			cerr << "Only doubly charged peptides are allowed at the moment" << endl;
-			return;
-		}*/
-	
-
 
 		// now delete all peaks that are right of the estimated precursor weight
 		Size peak_counter(0);
