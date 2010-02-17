@@ -597,7 +597,7 @@ svn propset svn:eol-style native MyClass.C
 
 			<LI><B>What do I have to do to add a new TOPP tool?</B>
 			<OL>
-				<LI> Add your tool to getToolList() in <TT>include/OpenMS/APPLICATIONS/TOPPBase.h</TT>
+				<LI> Add your tool to getToolList() in <TT>source/APPLICATIONS/TOPPBase.C</TT>
 						 @n This creates a doxygen page with the @em --help output of the tool (using TOPPDocumenter).
 						 @n This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 				<LI> Add it to the TOPP docu page (in @a %doc/doxygen/public/TOPP.doxygen)
