@@ -189,7 +189,7 @@ void TestTOPPView::testGui()
 	
 	QTest::qWait(1000);
 
-#ifdef __APPLE__ // MAC OS does not support entering a filename via keyboard in the file-open menu
+#if 1 //__APPLE__ // MAC OS does not support entering a filename via keyboard in the file-open menu
 		tv.addDataFile(File::getOpenMSDataPath() + "/examples/peakpicker_tutorial_1.mzML", false, false);
 		QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1.mzML"));
 #else
