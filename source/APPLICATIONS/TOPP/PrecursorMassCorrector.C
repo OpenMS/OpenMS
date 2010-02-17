@@ -114,6 +114,7 @@ class TOPPPrecursorMassCorrector
 
       PeakMap exp;
       fh.loadExperiment(in, exp, in_type, log_type_);
+			exp.sortSpectra();
 
 			FeatureMap<> feature_map;
 			if (feature_in != "")
@@ -154,7 +155,7 @@ class TOPPPrecursorMassCorrector
 			Size counter(0);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
-				progresslogger.setProgress(++counter);
+				progresslogger.setProgress(exp.end() - it);
 				if (it->getMSLevel() == 2)
 				{
 					// find first MS1 scan of the MS/MS scan
@@ -173,24 +174,13 @@ class TOPPPrecursorMassCorrector
 						writeDebug_("No peaks in scan at RT=" + String(ms1_it->getRT()) + String(", skipping"), 1);
 						continue;
 					}
-
-					PeakMap new_exp;
-					new_exp.push_back(*ms1_it);
-					new_exp.updateRanges();
-          FeatureMap<> features, seeds;
-          ff.run("isotope_wavelet", new_exp, features, ff_param, seeds);
-
-					if (features.size() == 0)
-					{
-						writeDebug_("No features found for scan RT=" + String(ms1_it->getRT()), 1);
-						continue;
-					}
-
+					
 					PeakMap::Iterator ms2_it = ms1_it;
-					++ms2_it;
+          ++ms2_it;
 
 					while (ms2_it != exp.end() && ms2_it->getMSLevel() == 2)
 					{
+						// first: error checks
 						if (ms2_it->getPrecursors().size() == 0)
 						{
 							writeDebug_("Warning: found no precursors of spectrum RT=" + String(ms2_it->getRT()) + ", skipping it.", 1);
@@ -204,28 +194,48 @@ class TOPPPrecursorMassCorrector
 
 						Precursor prec = *ms2_it->getPrecursors().begin();
 						DoubleReal prec_pos = prec.getMZ();
-					
-						
-						DoubleReal min_dist(numeric_limits<DoubleReal>::max());
+				
+            PeakMap new_exp;
+						// now excise small region from the MS1 spec for the feature finder (isotope pattern must be covered...)
+						PeakSpectrum zoom_spec;
+						for (PeakSpectrum::ConstIterator pit = ms1_it->begin(); pit != ms1_it->end(); ++pit)
+						{
+							if (pit->getMZ() > prec_pos - 3 && pit->getMZ() < prec_pos + 3)
+							{
+								zoom_spec.push_back(*pit);
+							}
+						}
+            new_exp.push_back(zoom_spec);
+            new_exp.updateRanges();
+            FeatureMap<> features, seeds;
+            ff.run("isotope_wavelet", new_exp, features, ff_param, seeds);
+            if (features.size() == 0)
+            {
+              writeDebug_("No features found for scan RT=" + String(ms1_it->getRT()), 1);
+              continue;
+            }					
+	
 						DoubleReal max_int(numeric_limits<DoubleReal>::min());
-						Size min_feat_idx(0);
+						DoubleReal min_dist(numeric_limits<DoubleReal>::max());
+						Size max_int_feat_idx(0);
 						
 						for (Size i = 0; i != features.size(); ++i)
 						{
 							if (fabs(features[i].getMZ() - prec_pos) < precursor_mass_tolerance &&
 									features[i].getIntensity() > max_int)
 							{
-								min_feat_idx = i;
+								max_int_feat_idx = i;
+								max_int = features[i].getIntensity();
 								min_dist = fabs(features[i].getMZ() - prec_pos);
 							}
 						}
 						
 
-						writeDebug_(" min_dist=" + String(min_dist) + " mz=" + String(features[min_feat_idx].getMZ()) + " charge=" + String(features[min_feat_idx].getCharge()), 5);
+						writeDebug_(" max_int=" + String(max_int) + " mz=" + String(features[max_int_feat_idx].getMZ()) + " charge=" + String(features[max_int_feat_idx].getCharge()), 5);
 						if (min_dist < precursor_mass_tolerance)
 						{
-							prec.setMZ(features[min_feat_idx].getMZ());
-							prec.setCharge(features[min_feat_idx].getCharge());
+							prec.setMZ(features[max_int_feat_idx].getMZ());
+							prec.setCharge(features[max_int_feat_idx].getCharge());
 							vector<Precursor> precs;
 							precs.push_back(prec);
 							ms2_it->setPrecursors(precs);
@@ -234,6 +244,7 @@ class TOPPPrecursorMassCorrector
 						
 						++ms2_it;
 					}
+					it = --ms2_it;
 				}
 			}
 			progresslogger.endProgress();
