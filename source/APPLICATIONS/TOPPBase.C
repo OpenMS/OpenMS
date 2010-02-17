@@ -2005,6 +2005,7 @@ namespace OpenMS
 		tools_map["PepNovoAdapter"] = StringList::create("");
 		tools_map["PeptideIndexer"] = StringList::create("");
 		tools_map["PrecursorIonSelector"] = StringList::create("");
+		tools_map["ProteinQuantifier"] = StringList::create("");
 		tools_map["RTModel"] = StringList::create("");
 		tools_map["RTPredict"] = StringList::create("");
 		tools_map["Resampler"] = StringList::create("");

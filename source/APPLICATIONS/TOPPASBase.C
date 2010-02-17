@@ -173,6 +173,7 @@ namespace OpenMS
 		//tool categories
 		defaults_.setValue("tool_categories:AdditiveSeries", "Quantitation", "The category of the tool");
 		defaults_.setValue("tool_categories:BaselineFilter", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:CompNovo", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:ConsensusID", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:DBExporter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:DBImporter", "File Handling", "The category of the tool");
@@ -185,6 +186,7 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:FileFilter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:FileInfo", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:FileMerger", "File Handling", "The category of the tool");
+		defaults_.setValue("tool_categories:GenericWrapper", "Misc", "The category of the tool");
 		defaults_.setValue("tool_categories:IDDecoyProbability", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:IDFileConverter", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:IDFilter", "Protein/peptide Identification", "The category of the tool");
@@ -200,29 +202,28 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:MascotAdapterOnline", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:NoiseFilter", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:OMSSAAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:PILISModel", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:PILISIdentification", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PILISModel", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:PTModel", "Peptide property prediction", "The category of the tool");
 		defaults_.setValue("tool_categories:PTPredict", "Peptide property prediction", "The category of the tool");
 		defaults_.setValue("tool_categories:PeakPicker", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:PepNovoAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PeptideIndexer", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PrecursorIonSelector", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:PrecursorMassCorrector", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:ProteinQuantifier", "Quantitation", "The category of the tool");
 		defaults_.setValue("tool_categories:RTModel", "Peptide property prediction", "The category of the tool");
 		defaults_.setValue("tool_categories:RTPredict", "Peptide property prediction", "The category of the tool");
 		defaults_.setValue("tool_categories:Resampler", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:SILACAnalyzer", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
 		defaults_.setValue("tool_categories:SequestAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:SpectraFilter", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:SpecLibSearcher", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:SpectraFilter", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:TOFCalibration", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:TextExporter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:TextImporter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:XTandemAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:PrecursorIonSelector", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:PeptideIndexer", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:CompNovo", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:PrecursorMassCorrector", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:GenericWrapper", "Misc", "The category of the tool");
 		
 		// UTILS:
 		map<String,StringList> util_tools = TOPPBase::getUtilList();
