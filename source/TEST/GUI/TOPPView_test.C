@@ -43,6 +43,7 @@ namespace OpenMS
 
 	@todo write a proper GUI base class for the scheduler below (Chris)
 
+	@todo document schedule for winXP
 */
 
 class TestTOPPView: public QObject
@@ -189,7 +190,7 @@ void TestTOPPView::testGui()
 	
 	QTest::qWait(1000);
 
-#if 1 //__APPLE__ // MAC OS does not support entering a filename via keyboard in the file-open menu
+#ifdef __APPLE__ // MAC OS does not support entering a filename via keyboard in the file-open menu
 		tv.addDataFile(File::getOpenMSDataPath() + "/examples/peakpicker_tutorial_1.mzML", false, false);
 		QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1.mzML"));
 #else
