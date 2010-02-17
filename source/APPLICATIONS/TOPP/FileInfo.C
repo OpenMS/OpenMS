@@ -145,7 +145,7 @@ class TOPPFileInfo
 		registerFlag_("m","Show meta information about the whole experiment");
 		registerFlag_("p","Shows data processing information");
 		registerFlag_("s","Computes a five-number statistics of intensities and qualities");
-		registerFlag_("d","Show detailed listing of all spectra (peak files only)");
+		registerFlag_("d","Show detailed listing of all spectra and chromatograms (peak files only)");
 		registerFlag_("c","Check for corrupt data in the file (peak files only)");
 		registerFlag_("v","Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML)");
 	}
@@ -598,11 +598,24 @@ class TOPPFileInfo
 					
 					}
 				}
+				if (getFlag_("d") && chrom_types.has(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM))
+				{
+					os << endl << " -- Detailed chromatogram listing -- " << endl;
+					os << "\n#Selected Reaction Monitoring Transitions:" << endl;
+					os << "#Q1 Q3 RT-begin RT-end name comment" << endl;
+					for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+					{
+						if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+						{
+							os << it->getPrecursor().getMZ() << " " << it->getProduct().getMZ() << " " << it->front().getRT() << " " << it->back().getRT() << " " << it->getName() << " " << it->getComment() << endl;
+						}
+					}
+				}
 			}
 
 
 			// Detailed listing of scans
-			if (getFlag_("d"))
+			if (getFlag_("d") && exp.size() > 0)
 			{
 				os << endl
 						 << "-- Detailed spectrum listing --" << endl
