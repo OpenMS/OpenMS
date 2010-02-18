@@ -137,6 +137,10 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
+
+    // TODO: check if signal intensities scale linear with actual abundance, e.g. DOI: 10.1021/ac0202280 for NanoFlow-ESI
+
+
     if (param_.getValue("enabled") == "false")
     {
 			return;

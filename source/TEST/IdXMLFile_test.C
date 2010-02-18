@@ -83,6 +83,18 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 	TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
 	TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
 	TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
+
+  TEST_EQUAL(protein_ids[0].getProteinGroups().size(),2);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].id,"group1");
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].probability,0.88);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].indices.size(),2);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].indices.count(0)==1,true);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].indices.count(1)==1,true);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].id,"groupB");
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].probability,0.08);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].indices.size(),1);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].indices.count(1)==1,true);
+
 	TEST_EQUAL(protein_ids[0].getHits().size(),2)
 	//protein hit 1
 	TEST_REAL_SIMILAR(protein_ids[0].getHits()[0].getScore(),34.4)
@@ -215,6 +227,19 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
 	TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
 	TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
 	TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
+
+  TEST_EQUAL(protein_ids[0].getProteinGroups().size(),2);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].id,"group1");
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].probability,0.88);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].indices.size(),2);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].indices.count(0)==1,true);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[0].indices.count(1)==1,true);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].id,"groupB");
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].probability,0.08);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].indices.size(),1);
+  TEST_EQUAL(protein_ids[0].getProteinGroups()[1].indices.count(1)==1,true);
+
+
 	TEST_EQUAL(protein_ids[0].getHits().size(),2)
 	//protein hit 1
 	TEST_REAL_SIMILAR(protein_ids[0].getHits()[0].getScore(),34.4)

@@ -239,7 +239,27 @@ namespace OpenMS
 				os << "\t\t\t</ProteinHit>\n";
 			}
 			
-			writeUserParam_("UserParam", os, protein_ids[i], 3);
+      //add ProteinGroup info to metavalues (hack)
+      std::vector< ProteinIdentification::ProteinGroup > groups = 	protein_ids[i].getProteinGroups();
+      MetaInfoInterface p = protein_ids[i];
+      for (Size g=0;g<groups.size();++g)
+      {
+        String name = "pgroup_" + String(g);
+         if (p.metaValueExists(name))
+         {
+            warning(LOAD, String("Metavalue '")+name+"' already exists in ProteinIdentification"+String(i)+". Overwriting...");
+         }
+         String indices;
+         for (std::set< Size >::const_iterator ind_it=groups[g].indices.begin();ind_it!=groups[g].indices.end();++ind_it)
+         {
+           if (ind_it!=groups[g].indices.begin()) indices += ",";
+           indices += String(*ind_it);
+         }
+         String value = groups[g].id + "," + String(groups[g].probability) + "," + indices;
+         p.setMetaValue(name, value);
+      }
+
+			writeUserParam_("UserParam", os, p, 3);
 			os << "\t\t</ProteinIdentification>\n";
 
 			//write PeptideIdentifications
@@ -645,7 +665,7 @@ namespace OpenMS
 			}
 			else
 			{
-				fatalError(LOAD, String("Invlid UserParam type '") + sm_.convert(type) + "' of parameter '" + name +"'");
+				fatalError(LOAD, String("Invalid UserParam type '") + sm_.convert(type) + "' of parameter '" + name +"'");
 			}
 		}
 	}
@@ -677,10 +697,30 @@ namespace OpenMS
 		//PROTE IDENTIFICATIONS
 		else if (tag =="ProteinIdentification")
 		{
+      // post processing of ProteinGroups (hack)
+      Size g_id(0);
+      while (last_meta_->metaValueExists("pgroup_" + String(g_id)))
+      {
+        // convert to proper ProteinGroup
+        ProteinIdentification::ProteinGroup g;
+        StringList values;
+        String(last_meta_->getMetaValue("pgroup_" + String(g_id))).split(',', values);
+        if (values.size()<2) fatalError(LOAD, String("Invalid UserParam for ProteinGroups (not enough values)'"));
+        g.id = values[0];
+        g.probability = values[1].toDouble();
+        for (Size i_ind=2;i_ind<values.size();++i_ind)
+        {
+          g.indices.insert(values[i_ind].toInt());
+        }
+        last_meta_->removeMetaValue("pgroup_" + String(g_id));
+        prot_id_.insertGroup(g);
+        ++g_id;
+      }
 			prot_ids_->push_back(prot_id_);
 			prot_id_ = ProteinIdentification();
-			last_meta_  = 0;		
+			last_meta_  = 0;
 			prot_id_in_run_ = true;
+
 		}
 		else if (tag == "IdentificationRun")
 		{

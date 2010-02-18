@@ -14,7 +14,9 @@
 			</ProteinHit>
 			<ProteinHit score="24.4" id="PH_4" accession="PROT2" sequence="ABCDEFG" />
 			<UserParam type="string" value="ProteinIdentification" name="name"/>
-		</ProteinIdentification>
+      <UserParam type="string" value="group1,0.88,0,1" name="pgroup_0"/>
+      <UserParam type="string" value="groupB,0.08,1" name="pgroup_1"/>
+    </ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="false" MZ="675.9" RT="1234.5" spectrum_reference="17">
 			<PeptideHit sequence="PEP1" score="0.9" charge="1" aa_before="A" aa_after="B" protein_refs="PH_3 PH_4">
 				<UserParam type="string" value="PeptideHit" name="name"/>
