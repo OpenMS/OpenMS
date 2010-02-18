@@ -677,14 +677,14 @@ class TOPPSILACAnalyzer
             handle.setIntensity(int_l);
             handle.setCharge(charge);
             handle.setMapIndex(0);
-            handle.setElementIndex(i);
+            handle.setUniqueId(i);
             pair_light_medium.insert(handle);
             handle.setRT(rt);
             handle.setMZ(mz+envelope_distance_light_medium);
             handle.setIntensity(int_m);
             handle.setCharge(charge);
             handle.setMapIndex(1);
-            handle.setElementIndex(i);
+            handle.setUniqueId(i);
             pair_light_medium.insert(handle);
 			if (type=="triple") {
 			  all_pairs.push_back(pair_light_medium);
@@ -701,14 +701,14 @@ class TOPPSILACAnalyzer
 			handle.setIntensity(int_l);
 			handle.setCharge(charge);
 			handle.setMapIndex(0);
-			handle.setElementIndex(i);
+			handle.setUniqueId(i);
 			pair_light_heavy.insert(handle);
 			handle.setRT(rt);
 			handle.setMZ(mz+envelope_distance_light_heavy);
 			handle.setIntensity(int_h);
 			handle.setCharge(charge);
 			handle.setMapIndex(2);
-			handle.setElementIndex(i);
+			handle.setUniqueId(i);
 			pair_light_heavy.insert(handle);
 			all_pairs.push_back(pair_light_heavy);
           }

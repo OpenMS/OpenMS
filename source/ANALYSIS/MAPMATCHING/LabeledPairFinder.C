@@ -268,9 +268,9 @@ namespace OpenMS
 						matches.push_back(ConsensusFeature());
 						matches.back().setUniqueId();
 
-						matches.back().insert(light_index,it->begin()->getElementIndex(),*it);
+						matches.back().insert(light_index,*it);
 						matches.back().clearMetaInfo();
-						matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);
+						matches.back().insert(heavy_index,*it2);
 						matches.back().setQuality(score);
 						matches.back().setCharge(it->getCharge());
 						matches.back().computeConsensus();
@@ -288,14 +288,14 @@ namespace OpenMS
 		for (ConsensusMap::const_iterator match=matches.begin(); match!=matches.end(); ++match)
 		{
 			//check if features are not used yet
-			if ( used_features.find(match->begin()->getElementIndex())==used_features.end() && 
-					 used_features.find(match->rbegin()->getElementIndex())==used_features.end()
+			if ( used_features.find(match->begin()->getUniqueId())==used_features.end() &&
+					 used_features.find(match->rbegin()->getUniqueId())==used_features.end()
 			 	)
 			{
 				//if unused, add it to the final set of elements
 				result_map.push_back(*match);
-				used_features.insert(match->begin()->getElementIndex());
-				used_features.insert(match->rbegin()->getElementIndex());
+				used_features.insert(match->begin()->getUniqueId());
+				used_features.insert(match->rbegin()->getUniqueId());
 			}
 		}
 		

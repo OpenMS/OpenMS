@@ -243,7 +243,7 @@ namespace OpenMS
 				if (channel_value.getIntensity() == 0) ++empty_channel[cm_it->second.name];
 
 				// add channel to ConsensusFeature
-				cf.insert (index++, element_index, channel_value);
+				cf.insert (index++, channel_value, element_index);
 
 			} // ! channel_iterator
 

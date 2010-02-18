@@ -31,10 +31,10 @@
 namespace OpenMS
 {
 	
-	FeatureHandle::FeatureHandle(UInt64 map_index, UInt64 element_index, const ConsensusFeature& point)
+	FeatureHandle::FeatureHandle(UInt64 map_index, const ConsensusFeature& point)
 		: Peak2D(point),
+		  UniqueIdInterface(point),
 			map_index_(map_index),
-			element_index_(element_index),
 			charge_(point.getCharge())
 	{
 	}
@@ -46,7 +46,7 @@ namespace OpenMS
 		    << "m/z: " << cons.getMZ()<< std::endl
 		    << "Intensity: " << cons.getIntensity() << std::endl
 		    << "Map Index: " << cons.getMapIndex() << std::endl
-		    << "Element Index: " << cons.getElementIndex() << std::endl;
+		    << "Element Id: " << cons.getUniqueId() << std::endl;
     return os;
   }
 } 

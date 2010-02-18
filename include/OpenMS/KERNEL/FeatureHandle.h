@@ -40,12 +40,13 @@ namespace OpenMS
     @brief Representation of a Peak2D, RichPeak2D or Feature .
     
     The position and the intensity of the referenced feature are stored in the base class Peak2D.
-    The original datapoint is referenced by the map and element index.
+    The original datapoint is referenced by the map and unique id.
   	
   	@ingroup Kernel
   */
   class OPENMS_DLLAPI FeatureHandle
-  	: public Peak2D
+  	: public Peak2D,
+  	  public UniqueIdInterface
   {
   	
 	 public:
@@ -57,43 +58,48 @@ namespace OpenMS
 		/// Default constructor
 		FeatureHandle()
 			: Peak2D(),
+			  UniqueIdInterface(),
 				map_index_(0),
-				element_index_(0),
 				charge_(0)
 		{
 		}
+
 		/// Constructor with map index, element index and position
-		FeatureHandle(UInt64 map_index, UInt64 element_index, const Peak2D& point)
+		FeatureHandle(UInt64 map_index,const Peak2D& point, UInt64 element_index )
 			: Peak2D(point),
-				map_index_(map_index),
-				element_index_(element_index),
+			  map_index_(map_index),
 				charge_(0)
 		{
+      setUniqueId(element_index);
 		}
-		/// Constructor from map index, element index and Feature
-		FeatureHandle(UInt64 map_index, UInt64 element_index, const Feature& point)
+
+		/// Constructor from map index and Feature
+		FeatureHandle(UInt64 map_index, const Feature& point)
 			: Peak2D(point),
+			  UniqueIdInterface(point),
 				map_index_(map_index),
-				element_index_(element_index),
 				charge_(point.getCharge())
 		{
 		}
-		/// Constructor from map index, element index and ConsensusFeature
-		FeatureHandle(UInt64 map_index, UInt64 element_index, const ConsensusFeature& point);
+
+		/// Constructor from map index and ConsensusFeature
+		FeatureHandle(UInt64 map_index, const ConsensusFeature& point);
+
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)
 			: Peak2D(rhs),
+        UniqueIdInterface(rhs),
 				map_index_(rhs.map_index_),
-				element_index_(rhs.element_index_),
 				charge_(rhs.charge_)
 		{
 		}
+
 		/// Assignment operator
 		FeatureHandle& operator = (const FeatureHandle& rhs)
 		{
 			Peak2D::operator=(rhs);
+			UniqueIdInterface::operator=(rhs);
 			map_index_ = rhs.map_index_;
-			element_index_ = rhs.element_index_;
 			charge_ = rhs.charge_;
 			
 			return *this;
@@ -132,16 +138,7 @@ namespace OpenMS
 		{
 			map_index_ = i;
 		}
-		/// Returns the element index
-		UInt64 getElementIndex() const
-		{
-			return element_index_;
-		}
-		/// Set the element index
-		void setElementIndex(UInt64 e)
-		{
-			element_index_= e;
-		}
+
 		/// Sets the charge
 		void setCharge(Int charge)
 		{
@@ -158,8 +155,8 @@ namespace OpenMS
 		bool operator == (const FeatureHandle& i) const
 		{
 			return  (Peak2D::operator==(i)) &&
+			    (UniqueIdInterface::operator==(i)) &&
 			    (map_index_ == i.map_index_) &&
-			    (element_index_ == i.element_index_) &&
 			    (charge_ == i.charge_);
 		}
 
@@ -169,16 +166,16 @@ namespace OpenMS
 			return !(operator==(i));
 		}
 			
-		///Comparator by map and element index
+		///Comparator by map and unique id 
 		struct IndexLess
 			: std::binary_function < FeatureHandle, FeatureHandle, bool >
 		{
 			bool operator () ( FeatureHandle const & left, FeatureHandle const & right ) const
 			{
-				//if map indices are equal, use element indices
+				//if map indices are equal, use unique ids
 				if ( left.map_index_ == right.map_index_)
 				{
-					return left.element_index_ < right.element_index_;
+					return left.getUniqueId() < right.getUniqueId();
 				}
 				//else use map indices
 				return ( left.map_index_ < right.map_index_ );
@@ -187,24 +184,22 @@ namespace OpenMS
 
 	 protected:
     	
-		/// Int of the element's container
+		/// Index of the element's container
     UInt64 map_index_;
-		/// Int of the element within element's container
-		UInt64 element_index_;
 		/// Charge of the feature
 		Int charge_;
   };
 
 	/**@brief Helper class returned by FeatureHandle::asMutable(), which see.
 
-	Note that the mutators for element index and map index are declared private.
+	Note that the mutators for unique id and map index are declared private.
 	This is done because these are used by IndexLess comparator.  This way it is
 	a bit harder to use FeatureHandle::asMutable() for illegal purposes ;-)
-	*/
+	 */
 	class OPENMS_DLLAPI FeatureHandle::FeatureHandleMutable_ : public FeatureHandle
 	{
 	 private:
-		FeatureHandle::setElementIndex;
+		FeatureHandle::setUniqueId;
 		FeatureHandle::setMapIndex;
 		FeatureHandleMutable_();
 		FeatureHandleMutable_(const FeatureHandleMutable_&);

@@ -57,12 +57,13 @@ END_SECTION
 
 START_SECTION((FeatureHandle& operator=(const FeatureHandle &rhs)))
   ElementType e;
-  FeatureHandle it(1,2,e);
+  e.setUniqueId(2);
+  FeatureHandle it(1,e);
 
   FeatureHandle it_copy;
   it_copy = it;
 
-  TEST_EQUAL(it.getElementIndex() == it_copy.getElementIndex(), true)
+  TEST_EQUAL(it.getUniqueId() == it_copy.getUniqueId(), true)
   TEST_EQUAL(it.getMapIndex() == it_copy.getMapIndex(), true)
   TEST_EQUAL(it.getIntensity() == it_copy.getIntensity(), true)
   TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)
@@ -70,11 +71,12 @@ END_SECTION
 
 START_SECTION((FeatureHandle(const FeatureHandle &rhs)))
   ElementType e;
-  FeatureHandle it(1,2,e);
+  e.setUniqueId(2);
+  FeatureHandle it(1,e);
 
   FeatureHandle it_copy(it);
 
-  TEST_EQUAL(it.getElementIndex() == it_copy.getElementIndex(), true)
+  TEST_EQUAL(it.getUniqueId() == it_copy.getUniqueId(), true)
   TEST_EQUAL(it.getMapIndex() == it_copy.getMapIndex(), true)
   TEST_EQUAL(it.getIntensity() == it_copy.getIntensity(), true)
   TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)
@@ -98,41 +100,43 @@ END_SECTION
 
 START_SECTION((FeatureHandle(UInt64 map_index, UInt64 element_index, const Peak2D &point)))
   ElementType e;
-  FeatureHandle it(1,2,e);
+  FeatureHandle it(1,e,2);
 
-  TEST_EQUAL(it.getElementIndex() == 2, true)
+  TEST_EQUAL(it.getUniqueId() == 2, true)
   TEST_EQUAL(it.getMapIndex() == 1, true)
   TEST_EQUAL(it.getPosition() == e.getPosition(), true)
 END_SECTION
 
-START_SECTION((FeatureHandle(UInt64 map_index, UInt64 element_index, const Feature &point)))
+START_SECTION((FeatureHandle(UInt64 map_index, const Feature &point)))
 
   Feature f;
   f.setCharge(-17);
   f.setRT(44324.6);
   f.setMZ(867.4);
+  f.setUniqueId(23);
   const Feature& f_cref = f;
-  FeatureHandle fh(99,23,f_cref);
+  FeatureHandle fh(99,f_cref);
 
   TEST_EQUAL(fh.getMapIndex(),99);
-  TEST_EQUAL(fh.getElementIndex(),23);
+  TEST_EQUAL(fh.getUniqueId(),23);
   TEST_EQUAL(fh.getRT(),44324.6);
   TEST_EQUAL(fh.getMZ(),867.4);
   TEST_EQUAL(fh.getCharge(),-17);
 
 END_SECTION
 
-START_SECTION((FeatureHandle(UInt64 map_index, UInt64 element_index, const ConsensusFeature &point)))
+START_SECTION((FeatureHandle(UInt64 map_index, const ConsensusFeature &point)))
 
   ConsensusFeature f;
   f.setCharge(-17);
   f.setRT(44324.6);
   f.setMZ(867.4);
+  f.setUniqueId(23);
   const ConsensusFeature& f_cref = f;
-  FeatureHandle fh(99,23,f_cref);
+  FeatureHandle fh(99,f_cref);
 
   TEST_EQUAL(fh.getMapIndex(),99);
-  TEST_EQUAL(fh.getElementIndex(),23);
+  TEST_EQUAL(fh.getUniqueId(),23);
   TEST_EQUAL(fh.getRT(),44324.6);
   TEST_EQUAL(fh.getMZ(),867.4);
   TEST_EQUAL(fh.getCharge(),-17);
@@ -144,15 +148,16 @@ START_SECTION((FeatureHandleMutable_ & asMutable() const))
   f.setCharge(-17);
   f.setRT(44324.6);
   f.setMZ(867.4);
-  const ConsensusFeature& f_cref = f;
-  FeatureHandle fh(99, 23, f_cref);
+  f.setUniqueId(23);
+ const ConsensusFeature& f_cref = f;
+  FeatureHandle fh(99, f_cref);
 
   const FeatureHandle& fh_cref = fh;
   // fh_cref.setRT(-64544.3); // compile time error
   fh_cref.asMutable().setRT(-64544.3); // ok
 
   TEST_EQUAL(fh.getMapIndex(),99);
-  TEST_EQUAL(fh.getElementIndex(),23);
+  TEST_EQUAL(fh.getUniqueId(),23);
   TEST_EQUAL(fh.getRT(),-64544.3);
   TEST_EQUAL(fh.getMZ(),867.4);
   TEST_EQUAL(fh.getCharge(),-17);
@@ -162,44 +167,50 @@ END_SECTION
 
 START_SECTION((bool operator!=(const FeatureHandle &i) const))
   ElementType e;
-  FeatureHandle it1(1,2,e);
-  FeatureHandle it2(2,2,e);
+  e.setUniqueId(2);
+  FeatureHandle it1(1,e);
+  FeatureHandle it2(2,e);
 
   TEST_EQUAL(it1 != it2, true)
 END_SECTION
 
 START_SECTION((bool operator==(const FeatureHandle &i) const))
   ElementType e;
-  FeatureHandle it1(2,2,e);
-  FeatureHandle it2(2,2,e);
+  e.setUniqueId(2);
+  FeatureHandle it1(2,e);
+  FeatureHandle it2(2,e);
 
   TEST_EQUAL(it1 == it2, true)
 END_SECTION
 
-START_SECTION((UInt64 getElementIndex() const))
+START_SECTION((UInt64 getUniqueId() const))
   ElementType e;
-  FeatureHandle it(1,2,e);
+  e.setUniqueId(2);
+  FeatureHandle it(1,e);
 
-  TEST_EQUAL(it.getElementIndex() == 2, true)
+  TEST_EQUAL(it.getUniqueId() == 2, true)
 END_SECTION
 
 START_SECTION((UInt64 getMapIndex() const))
   ElementType e;
-  FeatureHandle it(1,2,e);
+  e.setUniqueId(2);
+  FeatureHandle it(1,e);
 
   TEST_EQUAL(it.getMapIndex() == 1, true)
 END_SECTION
 
-START_SECTION((void setElementIndex(UInt64 e)))
+START_SECTION((void setUniqueId(UInt64 e)))
   FeatureHandle it;
-  it.setElementIndex(2);
+  it.setMapIndex(555);
+  it.setUniqueId(2);
 
-  TEST_EQUAL(it.getElementIndex() == 2, true)
+  TEST_EQUAL(it.getUniqueId() == 2, true)
 END_SECTION
 
 START_SECTION((void setMapIndex(UInt64 i)))
   FeatureHandle it;
   it.setMapIndex(2);
+  it.setUniqueId(77);
 
   TEST_EQUAL(it.getMapIndex() == 2, true)
 END_SECTION

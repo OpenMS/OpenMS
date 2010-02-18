@@ -753,8 +753,8 @@ namespace OpenMS
 
         ConsensusFeature cf(fm_out[f0_idx]);
         cf.setUniqueId();
-        cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx") ,fm_out[f0_idx].getUniqueId(), fm_out[f0_idx]);
-        cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx") ,fm_out[f1_idx].getUniqueId(), fm_out[f1_idx]);
+        cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
+        cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
         cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
         cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge())+"("+ String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) +"):"
 														 +String(fm_out[f1_idx].getCharge())+"("+ String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) +") "
@@ -778,22 +778,22 @@ namespace OpenMS
         {
           if (target_cf0 == -1)
           {//** add f0 to the already existing cf of f1
-            cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx") ,fm_out[f0_idx].getUniqueId(), fm_out[f0_idx]);
+            cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
             clique_register[f0_idx] = target_cf1;
             //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " dueto F" << f1_idx << "\n";
           }
           else if (target_cf1 == -1)
           {//** add f1 to the already existing cf of f0
-            cons_map[target_cf0].insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx].getUniqueId(), fm_out[f1_idx]);
+            cons_map[target_cf0].insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
             clique_register[f1_idx] = target_cf0;
             //std::cout << "add: F" << f1_idx << " to " <<target_cf0 << " dueto F" << f0_idx << "\n";
           } else
-          { //** conflict: the two elements of the pair already have separate CF´s --> merge
+          { //** conflict: the two elements of the pair already have separate CFï¿½s --> merge
             // take every feature from second CF and: #1 put into first CF, #2 change registration with map
             ConsensusFeature::HandleSetType hst = cons_map[target_cf1].getFeatures();
             for (ConsensusFeature::HandleSetType::const_iterator it=hst.begin(); it!=hst.end();++it)
             { //** update cf_index
-              clique_register[fm_out.uniqueIdToIndex(it->getElementIndex())] = target_cf0;
+              clique_register[fm_out.uniqueIdToIndex(it->getUniqueId())] = target_cf0;
             }
             // insert features from cf1 to cf0
             cons_map[target_cf0].insert(hst);
@@ -866,8 +866,8 @@ namespace OpenMS
 			ConsensusFeature::HandleSetType hst = it->getFeatures();
       for (ConsensusFeature::HandleSetType::const_iterator it_h=hst.begin(); it_h!=hst.end();++it_h)
       { //** check if feature in CF has backbone
-				//std::cout << __LINE__ << " " << it_h->getElementIndex() << std::endl;
-        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(it_h->getElementIndex())].getMetaValue("is_backbone");
+        //std::cout << __LINE__ << " " << it_h->getElementIndex() << std::endl;
+        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("is_backbone");
         //std::cout << __LINE__ << std::endl;
       }
 			if (backbone_count==0)
@@ -875,8 +875,8 @@ namespace OpenMS
 				std::cout << "DEBUG: destroy ladder CF# " << cons_map_tmp.size() << " due to no backbone! (F_UIDs:";
 				for (ConsensusFeature::HandleSetType::const_iterator it_h=hst.begin(); it_h!=hst.end();++it_h)
 				{ //** remove cluster members from registry (they will become single features)
-					std::cout << " " << it_h->getElementIndex();
-					clique_register.erase(fm_out.uniqueIdToIndex(it_h->getElementIndex()));
+					std::cout << " " << it_h->getUniqueId();
+					clique_register.erase(fm_out.uniqueIdToIndex(it_h->getUniqueId()));
 					//std::cout << __LINE__ << std::endl;
 				}
 				std::cout << ")\n";
@@ -906,7 +906,7 @@ namespace OpenMS
 			
       ConsensusFeature cf(f_single);
       cf.setUniqueId();
-      cf.insert(0, f_single.getUniqueId(), f_single);
+      cf.insert(0, f_single);
 
       cons_map.push_back(cf);
       cons_map.back().computeDechargeConsensus(fm_out_untouched);

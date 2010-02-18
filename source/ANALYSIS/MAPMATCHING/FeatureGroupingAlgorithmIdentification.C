@@ -594,8 +594,8 @@ namespace OpenMS
         {
           // andere map, gleiche feature-nr, wie in erster (bzw. nullter) map, aber nicht beim insert machen, sondern in das richtige consensus feature füllen.
           // kann in featuremap ja woanders gewesen sein
-          consensus_map_0[(*iterout)[0].pep_feature_nr].insert(iterin->pep_map_nr, iterin->pep_feature_nr,
-              feature_maps[iterin->pep_map_nr][iterin->pep_feature_nr]);
+          consensus_map_0[(*iterout)[0].pep_feature_nr].insert(iterin->pep_map_nr,
+              feature_maps[iterin->pep_map_nr][iterin->pep_feature_nr], iterin->pep_feature_nr);
           consensus_map_0[(*iterout)[0].pep_feature_nr].computeConsensus();
         }
         consensus_map_0[(*iterout)[0].pep_feature_nr].setMetaValue("IDAlgorithm_usedID", ((*iterout)[0].pep_sequence).toString());
@@ -606,7 +606,7 @@ namespace OpenMS
         for ( std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin )
         {
           // müsste gehen, weil fertiges consensus feature gepushbackt wird.
-          consensus_feature.insert(iterin->pep_map_nr, iterin->pep_feature_nr, feature_maps[iterin->pep_map_nr][iterin->pep_feature_nr]);
+          consensus_feature.insert(iterin->pep_map_nr, feature_maps[iterin->pep_map_nr][iterin->pep_feature_nr], iterin->pep_feature_nr);
           consensus_feature.computeConsensus();
         }
         consensus_feature.setMetaValue("IDAlgorithm_usedID", ((*iterout)[0].pep_sequence).toString());

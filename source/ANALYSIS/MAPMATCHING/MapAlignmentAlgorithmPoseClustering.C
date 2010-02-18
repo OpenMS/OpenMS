@@ -290,8 +290,8 @@ namespace OpenMS
 		std::vector<double> vec_y;
 
 		// search for pairs, optionally apply coordinate transformation, store coordinates in vec_x and vec_y
-		FeatureHandle probe_x(index_x_map,0,Peak2D());
-		FeatureHandle probe_y(index_y_map,0,Peak2D());
+		FeatureHandle probe_x(index_x_map,Peak2D(),0);
+		FeatureHandle probe_y(index_y_map,Peak2D(),0);
 		for ( ConsensusMap::const_iterator iter = consensus_map.begin(); iter != consensus_map.end(); ++iter )
 		{
 			DoubleReal rt_x, rt_y;

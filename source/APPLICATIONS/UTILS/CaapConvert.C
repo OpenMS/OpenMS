@@ -135,7 +135,7 @@ int main( int argc, const char** argv )
 				);
 			feature_handle.setMapIndex(map_id_num);
 			// We currently do not trace the element indices back to the original feature maps.
-			feature_handle.setElementIndex(0);
+			feature_handle.setUniqueId(0);
 			feature_handle.setIntensity(intensity);
 			feature_handle.setRT(retention_time);
 			feature_handle.setMZ(mass_to_charge);

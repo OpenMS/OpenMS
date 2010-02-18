@@ -124,22 +124,22 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   ConsensusFeature::HandleSetType::const_iterator it;
 	it = group1.begin();
   STATUS(*it);
-	TEST_EQUAL(it->getElementIndex(),444444);
+	TEST_EQUAL(it->getUniqueId(),444444);
 	++it;
   STATUS(*it);
-  TEST_EQUAL(it->getElementIndex(),111111);
+  TEST_EQUAL(it->getUniqueId(),111111);
 	it = group2.begin();
   STATUS(*it);
-  TEST_EQUAL(it->getElementIndex(),555555);
+  TEST_EQUAL(it->getUniqueId(),555555);
 	++it;
   STATUS(*it);
-  TEST_EQUAL(it->getElementIndex(),222222);
+  TEST_EQUAL(it->getUniqueId(),222222);
   it = group3.begin();
   STATUS(*it);
-  TEST_EQUAL(it->getElementIndex(),666666);
+  TEST_EQUAL(it->getUniqueId(),666666);
 	++it;
   STATUS(*it);
-  TEST_EQUAL(it->getElementIndex(),333333);
+  TEST_EQUAL(it->getUniqueId(),333333);
 END_SECTION
 
 

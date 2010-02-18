@@ -77,13 +77,16 @@ START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
   PositionType pos3(400,500);
   feat1.setPosition(pos1);
   feat1.setIntensity(100.0f);
+  feat1.setUniqueId(0);
   feat2.setPosition(pos2);
   feat2.setIntensity(300.0f);
+  feat2.setUniqueId(1);
   feat3.setPosition(pos3);
   feat3.setIntensity(400.0f);
-  ConsensusFeature cons1(0,0,feat1);
-  ConsensusFeature cons2(0,1,feat2);
-  ConsensusFeature cons3(0,2,feat3);
+  feat3.setUniqueId(2);
+  ConsensusFeature cons1(0,feat1);
+  ConsensusFeature cons2(0,feat2);
+  ConsensusFeature cons3(0,feat3);
   input[0].push_back(cons1);
   input[0].push_back(cons2);
   input[0].push_back(cons3);
@@ -96,13 +99,16 @@ START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
   PositionType pos6(404,500.04);
   feat4.setPosition(pos4);
   feat4.setIntensity(100.0f);
+  feat4.setUniqueId(0);
   feat5.setPosition(pos5);
   feat5.setIntensity(300.0f);
+  feat5.setUniqueId(1);
   feat6.setPosition(pos6);
   feat6.setIntensity(400.0f);
-  ConsensusFeature cons4(1,0,feat4);
-  ConsensusFeature cons5(1,1,feat5);
-  ConsensusFeature cons6(1,2,feat6);
+  feat6.setUniqueId(2);
+  ConsensusFeature cons4(1,feat4);
+  ConsensusFeature cons5(1,feat5);
+  ConsensusFeature cons6(1,feat6);
   input[1].push_back(cons4);
   input[1].push_back(cons5);
   input[1].push_back(cons6);
@@ -122,12 +128,12 @@ START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
   ConsensusFeature::HandleSetType group2 = result[1].getFeatures();
   ConsensusFeature::HandleSetType group3 = result[2].getFeatures();
 
-  FeatureHandle ind1(0,0,feat1);
-  FeatureHandle ind2(0,1,feat2);
-  FeatureHandle ind3(0,2,feat3);
-  FeatureHandle ind4(1,0,feat4);
-  FeatureHandle ind5(1,1,feat5);
-  FeatureHandle ind6(1,2,feat6);
+  FeatureHandle ind1(0,feat1);
+  FeatureHandle ind2(0,feat2);
+  FeatureHandle ind3(0,feat3);
+  FeatureHandle ind4(1,feat4);
+  FeatureHandle ind5(1,feat5);
+  FeatureHandle ind6(1,feat6);
 
   ConsensusFeature::HandleSetType::const_iterator it;
 	it = group1.begin();

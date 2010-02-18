@@ -129,11 +129,12 @@ feature4.setIntensity(0.5f);
 
 START_SECTION((void updateRanges()))
   ConsensusMap map;
+  feature1.setUniqueId(1);
 	ConsensusFeature f;
 	f.setIntensity(1.0f);
 	f.setRT(2.0);
 	f.setMZ(3.0);
-	f.insert(1,1,feature1);
+	f.insert(1,feature1);
 	map.push_back(f);
 
   map.updateRanges();
@@ -155,7 +156,8 @@ START_SECTION((void updateRanges()))
   TEST_REAL_SIMILAR(map.getMin()[1],3.0)
 
   //two points
-	f.insert(1,2,feature2);
+  feature2.setUniqueId(2);
+	f.insert(1,feature2);
 	map.push_back(f);
 	map.updateRanges();
 
@@ -167,8 +169,10 @@ START_SECTION((void updateRanges()))
   TEST_REAL_SIMILAR(map.getMin()[1],2.5)
 
 	//four points
-	f.insert(1,3,feature3);
-	f.insert(1,4,feature4);
+  feature3.setUniqueId(3);
+	f.insert(1,feature3);
+  feature4.setUniqueId(4);
+	f.insert(1,feature4);
 	map.push_back(f);
 	map.updateRanges();
 
@@ -272,7 +276,7 @@ START_SECTION((template < typename FeatureT > static void convert(UInt64 const i
   {
     TEST_EQUAL(cm[i].size(),1);
     TEST_EQUAL(cm[i].begin()->getMapIndex(),33);
-    TEST_EQUAL(cm[i].begin()->getElementIndex(),i*33+17);
+    TEST_EQUAL(cm[i].begin()->getUniqueId(),i*33+17);
     TEST_REAL_SIMILAR(cm[i].begin()->getRT(),i*77.7);
     TEST_REAL_SIMILAR(cm[i].begin()->getMZ(),i+100.35);
   }
@@ -377,7 +381,7 @@ END_SECTION
 START_SECTION((void swap(ConsensusMap& from)))
 	ConsensusMap map1, map2;
 	ConsensusFeature f;
-	f.insert(1,1,Feature());
+	f.insert(1,Feature());
 	map1.push_back(f);
   map1.getFileDescriptions()[1].filename = "bla";
 	map1.getFileDescriptions()[1].size = 5;
@@ -544,7 +548,7 @@ START_SECTION((void clear(bool clear_meta_data)))
 {
   ConsensusMap map1;
 	ConsensusFeature f;
-	f.insert(1,1,Feature());
+	f.insert(1,Feature());
 	map1.push_back(f);
   map1.getFileDescriptions()[1].filename = "bla";
 	map1.getFileDescriptions()[1].size = 5;

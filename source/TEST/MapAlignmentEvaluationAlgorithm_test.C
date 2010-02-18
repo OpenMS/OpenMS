@@ -85,15 +85,17 @@ START_SECTION((bool isSameHandle(const FeatureHandle &lhs, const FeatureHandle &
 	tmp_feature.setMZ(555);
 	tmp_feature.setIntensity(200.0f);
 	tmp_feature.setCharge(3);
+	tmp_feature.setUniqueId(1);
 
   Feature tmp_feature2;
 	tmp_feature2.setRT(101);
 	tmp_feature2.setMZ(556);
 	tmp_feature2.setIntensity(1199.0f);
 	tmp_feature2.setCharge(4);
+  tmp_feature2.setUniqueId(2);
 
-	FeatureHandle a(0,1, tmp_feature);
-	FeatureHandle b(0,2, tmp_feature2);
+	FeatureHandle a(0,tmp_feature);
+	FeatureHandle b(0,tmp_feature2);
 
 	MAEA maea;
 
@@ -101,7 +103,7 @@ START_SECTION((bool isSameHandle(const FeatureHandle &lhs, const FeatureHandle &
 	TEST_EQUAL(maea.isSameHandle(a, b, 2, 1.5, 1000, true), false);
 
 	tmp_feature2.setCharge(3); // now charge is equal
-	FeatureHandle b2(0,1, tmp_feature2);
+	FeatureHandle b2(0,tmp_feature2);
 
 	TEST_EQUAL(maea.isSameHandle(a, b2, 2, 1.5, 1000, false), true);
 	TEST_EQUAL(maea.isSameHandle(a, b2, 2, 1.5, 1000, true), true);

@@ -70,7 +70,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    /// Namspace for class tests
+    /// Namespace for class tests
     namespace ClassTest
     {
 

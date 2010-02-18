@@ -289,7 +289,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   set by the @a setMin() and @a setMax() methods.
 
   DRange maintains the invariant that @a minPosition() is geometrically less or equal to @a maxPosition(),
-  i.e. @f$ \minPosition()[x] \le \maxPosition()[x]@f$ for each dimension @a x. The following example (Tutorial_DRange.C) demonstrates this behavior.
+  i.e. @f$ minPosition()[x] \le maxPosition()[x]@f$ for each dimension @a x. The following example (Tutorial_DRange.C) demonstrates this behavior.
 
   This time, we skip everything before the main method. In the main method, we
   create a range and assign values to @a min and @a max. Note that the the minimum

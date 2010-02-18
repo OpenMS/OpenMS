@@ -26,6 +26,12 @@ BugFixes:
 
 For more minor bugfixes visit the above URL.
 
+
+Detailed list of changes to specific OpenMS classes:
+- ConsensusMap, FeatureHandle, ConsensusFeature:
+  - element index replaced by unique id
+
+
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.6                                      ----
 ------------------------------------------------------------------------------------------
