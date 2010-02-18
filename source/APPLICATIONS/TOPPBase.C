@@ -2010,6 +2010,7 @@ namespace OpenMS
 		tools_map["RTPredict"] = StringList::create("");
 		tools_map["Resampler"] = StringList::create("");
 		tools_map["SILACAnalyzer"] = StringList::create("");
+		tools_map["SILACAnalyzer2"] = StringList::create("");
 		tools_map["SeedListGenerator"] = StringList::create("");
 		tools_map["SequestAdapter"] = StringList::create("");
 		tools_map["SpecLibSearcher"] = StringList::create("");
@@ -2018,7 +2019,8 @@ namespace OpenMS
 		tools_map["TextExporter"] = StringList::create("");
 		tools_map["TextImporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
-    tools_map["SILACAnalyzer"] = StringList::create("double,triple");
+		tools_map["SILACAnalyzer"] = StringList::create("double,triple");
+		tools_map["SILACAnalyzer2"] = StringList::create("double,triple");
     tools_map["PrecursorMassCorrector"] = StringList::create("");
     tools_map["GenericWrapper"] = StringList::create("");
     tools_map["ProteinInference"] = StringList::create("");
