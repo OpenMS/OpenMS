@@ -29,6 +29,7 @@
 #define OPENMS_COMPARISON_CLUSTERING_AVERAGELINKAGE_H
 
 #include <vector>
+#include <set>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>

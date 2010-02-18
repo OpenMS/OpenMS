@@ -76,7 +76,6 @@ namespace OpenMS
 
 		startProgress(0,original_distance.dimensionsize(),"clustering data");
 
-
 		//initialize first pointer values
 		pi.push_back(0);
 		lambda.push_back(std::numeric_limits<Real>::max());
@@ -160,8 +159,27 @@ namespace OpenMS
 			}
 
 		}
-		endProgress();
+		//~ prepare to redo clustering to get all indices for binarytree in min index element representation
+		std::vector< std::set<Size> >clusters(original_distance.dimensionsize());
+		for (Size i = 0; i < original_distance.dimensionsize(); ++i)
+		{
+			clusters[i].insert(i);
+		}
+		for (Size cluster_step = 0; cluster_step < cluster_tree.size(); ++cluster_step)
+		{
+			Size new_left_child = *(clusters[cluster_tree[cluster_step].left_child].begin());
+			Size new_right_child = *(clusters[cluster_tree[cluster_step].right_child].begin());
+			clusters[cluster_tree[cluster_step].left_child].insert(clusters[cluster_tree[cluster_step].right_child].begin(),clusters[cluster_tree[cluster_step].right_child].end());
+			clusters.erase(clusters.begin()+cluster_tree[cluster_step].right_child);
+			std::swap(cluster_tree[cluster_step].left_child, new_left_child);
+			std::swap(cluster_tree[cluster_step].right_child, new_right_child);
+			if(cluster_tree[cluster_step].left_child > cluster_tree[cluster_step].right_child)
+			{
+				std::swap(cluster_tree[cluster_step].left_child , cluster_tree[cluster_step].right_child);
+			}
+		}
 
+		endProgress();
 	}
 
 }

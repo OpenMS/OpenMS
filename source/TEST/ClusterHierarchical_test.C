@@ -209,10 +209,10 @@ START_SECTION((template <typename Data, typename SimilarityComparator> void clus
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.3f));
-	tree.push_back(BinaryTreeNode(2,3,0.4f));
+	tree.push_back(BinaryTreeNode(3,4,0.4f));
 	tree.push_back(BinaryTreeNode(0,1,0.5f));
-	tree.push_back(BinaryTreeNode(0,1,0.6f));
-	tree.push_back(BinaryTreeNode(0,1,0.7f));
+	tree.push_back(BinaryTreeNode(0,3,0.6f));
+	tree.push_back(BinaryTreeNode(0,5,0.7f));
 	DistanceMatrix<Real> matrix;
 
 	ch.cluster<Size,lowlevelComparator>(d,lc,sl,result, matrix);

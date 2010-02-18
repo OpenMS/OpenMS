@@ -95,11 +95,16 @@ START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::v
 
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
+	//~ tree.push_back(BinaryTreeNode(1,2,0.3f));
+	//~ tree.push_back(BinaryTreeNode(2,3,0.4f));
+	//~ tree.push_back(BinaryTreeNode(0,1,0.5f));
+	//~ tree.push_back(BinaryTreeNode(0,1,0.6f));
+	//~ tree.push_back(BinaryTreeNode(0,1,0.7f));
 	tree.push_back(BinaryTreeNode(1,2,0.3f));
-	tree.push_back(BinaryTreeNode(2,3,0.4f));
+	tree.push_back(BinaryTreeNode(3,4,0.4f));
 	tree.push_back(BinaryTreeNode(0,1,0.5f));
-	tree.push_back(BinaryTreeNode(0,1,0.6f));
-	tree.push_back(BinaryTreeNode(0,1,0.7f));
+	tree.push_back(BinaryTreeNode(0,3,0.6f));
+	tree.push_back(BinaryTreeNode(0,5,0.7f));
 
 	(*ptr)(matrix,result);
 	TEST_EQUAL(tree.size(), result.size());

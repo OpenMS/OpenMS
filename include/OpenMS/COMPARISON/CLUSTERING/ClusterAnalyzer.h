@@ -33,6 +33,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <vector>
+#include <set>
+#include <list>
 #include <iostream>
 #include <fstream>
 #include <cfloat>
@@ -44,7 +46,7 @@ namespace OpenMS
 	/** @brief Elements of a binary tree used to represent a hierarchical clustering process
 
 			strict indexing/topology is assumed, i.e. node no. x represents clusteringstep no. x
-			left_child and right_child are indices to the clusters merged (not to the elements), distance is the distance of the two children
+			left_child and right_child are each the lowest indices to elements of the merged clusters, distance is the distance of the two children
 	*/
 	class OPENMS_DLLAPI BinaryTreeNode
 	{
@@ -143,6 +145,19 @@ namespace OpenMS
 	void cut(Size cluster_quantity, std::vector< std::vector<Size> >& clusters, std::vector<BinaryTreeNode>& tree);
 
 /**
+		@brief Method to calculate subtrees from a given tree resulting from a certain step in clustering given by the number of clusters
+
+		@param cluster_quantity Size giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
+		@param tree vector of BinaryTreeNode's representing the clustering
+		@param subtrees vector of trees holding the trees, tree is composed of cut at given size
+		@throw invalid_parameter if desired clusterstep is invalid
+		@see BinaryTreeNode
+
+		after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
+	*/
+	void cut(Size cluster_quantity, std::vector< std::vector<BinaryTreeNode> >& subtrees, std::vector<BinaryTreeNode>& tree);
+
+/**
 		@brief Returns the hirarchy described by a clustering tree as Newick-String
 
 		@param tree vector of BinaryTreeNode's representing the clustering
@@ -159,5 +174,6 @@ namespace OpenMS
 	};
 	///returns the value of (x.distance < y.distance) for use with sort
 	bool compareBinaryTreeNode(const BinaryTreeNode& x, const BinaryTreeNode& y);
+
 }
 #endif //OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H

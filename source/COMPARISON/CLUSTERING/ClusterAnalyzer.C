@@ -59,25 +59,40 @@ namespace OpenMS
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
 		}
 
+		//initial leafs
+		std::set<Size> leafs;
+		for (Size i = 0; i < tree.size(); ++i)
+		{
+			leafs.insert(tree[i].left_child);
+			leafs.insert(tree[i].right_child);
+			if(tree[i].distance == -1)
+			{
+				break;
+			}
+		}
+
 		std::vector< Real > average_silhouette_widths; //for each step from the average silhouette widths of the clusters
-		std::vector< Real > interdist_i(original.dimensionsize(),std::numeric_limits<Real>::max()); //for each element i holds the min. average intercluster distance in cluster containing i
-		std::vector< Size > cluster_with_interdist(original.dimensionsize(),0); //for each element i holds which cluster originated the min. intercluster distance
-		std::vector< Real > intradist_i(original.dimensionsize(),0.0); //for each element i holds the average intracluster distance in [i]
+		std::vector< Real > interdist_i((*leafs.rbegin())+1,std::numeric_limits<Real>::max()); //for each element i holds the min. average intercluster distance in cluster containing i
+		std::vector< Size > cluster_with_interdist((*leafs.rbegin())+1,0); //for each element i holds which cluster originated the min. intercluster distance
+		std::vector< Real > intradist_i((*leafs.rbegin())+1,0.0); //for each element i holds the average intracluster distance in [i]
 
 		//inital values for interdis_i and cluster_with_interdist
-		for (Size i = 1; i < original.dimensionsize(); ++i)
+		std::set<Size>::iterator it = leafs.begin();
+		++it;
+		for (; it != leafs.end(); ++it)
 		{
-			for (Size j = 0; j < i; ++j)
+			std::set<Size>::iterator jt = leafs.begin();
+			for (; *jt < *it; ++jt)
 			{
-				if(original.getValue(i,j)<interdist_i[i])
+				if(original.getValue(*it,*jt)<interdist_i[*it])
 				{
-					interdist_i[i] = original.getValue(i,j);
-					cluster_with_interdist[i] = j;
+					interdist_i[*it] = original.getValue(*it,*jt);
+					cluster_with_interdist[*it] = *jt;
 				}
-				if(original.getValue(i,j)<interdist_i[j])
+				if(original.getValue(*it,*jt)<interdist_i[*jt])
 				{
-					interdist_i[j] = original.getValue(i,j);
-					cluster_with_interdist[j] = i;
+					interdist_i[*jt] = original.getValue(*it,*jt);
+					cluster_with_interdist[*jt] = *it;
 				}
 			}
 		}
@@ -91,46 +106,48 @@ namespace OpenMS
 
 		//initial cluster state
 		std::vector< std::vector < Size > > clusters(original.dimensionsize());
-		for (Size i = 0; i < clusters.size(); ++i)
+		for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
 		{
-			clusters[i].push_back(i);
+			clusters[*it].push_back(*it);
 		}
 
+		//subsequent cluster states after silhouette calc
 		for (Size t = 0; t < tree.size()-1; ++t) //last steps silhouettes would be all 0 respectively not defined
 		{
 
-			for (Size i = 0; i < original.dimensionsize(); ++i)
+			for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
 			{
-				std::vector<Size>::iterator in_left = std::find(clusters[tree[t].left_child].begin(),clusters[tree[t].left_child].end(),i);
-				std::vector<Size>::iterator in_right = std::find(clusters[tree[t].right_child].begin(),clusters[tree[t].right_child].end(),i);
 
-				if(in_left==clusters[tree[t].left_child].end() && in_right==clusters[tree[t].right_child].end()) //i (!element_of) left or right
+				std::vector<Size>::iterator in_left = std::find(clusters[tree[t].left_child].begin(),clusters[tree[t].left_child].end(),*it);
+				std::vector<Size>::iterator in_right = std::find(clusters[tree[t].right_child].begin(),clusters[tree[t].right_child].end(),*it);
+
+				if(in_left==clusters[tree[t].left_child].end() && in_right==clusters[tree[t].right_child].end()) //*it (!element_of) left or right
 				{
 					//intradist_i is always kept
 					//handle interdist:
-					if(tree[t].left_child != cluster_with_interdist[i] && tree[t].right_child != cluster_with_interdist[i]) //s(i)_nr (!element_of) left or right
+					if(tree[t].left_child != cluster_with_interdist[*it] && tree[t].right_child != cluster_with_interdist[*it]) //s(i)_nr (!element_of) left or right
 					{
 						Real interdist_merged(0);
 						for (Size j = 0; j < clusters[tree[t].left_child].size(); ++j)
 						{
-							interdist_merged += original.getValue(i,clusters[tree[t].left_child][j]);
+							interdist_merged += original.getValue(*it,clusters[tree[t].left_child][j]);
 						}
 						for (Size j = 0; j < clusters[tree[t].right_child].size(); ++j)
 						{
-							interdist_merged += original.getValue(i,clusters[tree[t].right_child][j]);
+							interdist_merged += original.getValue(*it,clusters[tree[t].right_child][j]);
 						}
 						interdist_merged /= (Real)(clusters[tree[t].left_child].size()+clusters[tree[t].right_child].size());
-						if (interdist_merged < interdist_i[i])
+						if (interdist_merged < interdist_i[*it])
 						{
-							interdist_i[i]=interdist_merged;
-							cluster_with_interdist[i] = tree[t].left_child;
+							interdist_i[*it]=interdist_merged;
+							cluster_with_interdist[*it] = tree[t].left_child;
 						}
 					}
 					else //s(i)_nr (element_of) left or right
 					{
 						//calculate interdist_i to merged
 						Size k; //the one cluster of the two merged which does NOT contain s(i)_nr
-						if(tree[t].right_child!=cluster_with_interdist[i] )
+						if(tree[t].right_child!=cluster_with_interdist[*it] )
 						{
 							k=tree[t].right_child;
 						}
@@ -141,36 +158,36 @@ namespace OpenMS
 						Real interdist_merged(0);
 						for (Size j = 0; j < clusters[k].size(); ++j)
 						{
-							interdist_merged += original.getValue(i,clusters[k][j]);
+							interdist_merged += original.getValue(*it,clusters[k][j]);
 						}
-						interdist_merged += (clusters[cluster_with_interdist[i]].size()*interdist_i[i]);
-						interdist_merged /= (Real)(clusters[k].size()+clusters[cluster_with_interdist[i]].size());
+						interdist_merged += (clusters[cluster_with_interdist[*it]].size()*interdist_i[*it]);
+						interdist_merged /= (Real)(clusters[k].size()+clusters[cluster_with_interdist[*it]].size());
 						//if new inderdist is smaller that old min. nothing else has to be done
-						if (interdist_merged <= interdist_i[i])
+						if (interdist_merged <= interdist_i[*it])
 						{
-							interdist_i[i]=interdist_merged;
-							cluster_with_interdist[i] = tree[t].left_child;
+							interdist_i[*it]=interdist_merged;
+							cluster_with_interdist[*it] = tree[t].left_child;
 						}
 						// else find min av. dist from other clusters to i
 						else
 						{
-							interdist_i[i]=interdist_merged;
-							cluster_with_interdist[i] = tree[t].left_child;
+							interdist_i[*it]=interdist_merged;
+							cluster_with_interdist[*it] = tree[t].left_child;
 
 							for (Size u = 0; u < clusters.size(); ++u)
 							{
-								if(u != tree[t].left_child && u != tree[t].right_child && clusters[u].end() == std::find(clusters[u].begin(),clusters[u].end(),i))
+								if(u != tree[t].left_child && u != tree[t].right_child && !clusters[u].empty() && clusters[u].end() == std::find(clusters[u].begin(),clusters[u].end(),*it))
 								{
 									Real min_interdist_i(0);
 									for (Size v = 0; v < clusters[u].size(); ++v)
 									{
-										min_interdist_i += original.getValue(clusters[u][v],i);
+										min_interdist_i += original.getValue(clusters[u][v],*it);
 									}
 									min_interdist_i /= (Real)clusters[u].size();
-									if (min_interdist_i < interdist_i[i])
+									if (min_interdist_i < interdist_i[*it])
 									{
-										interdist_i[i]=min_interdist_i;
-										cluster_with_interdist[i] = u;
+										interdist_i[*it]=min_interdist_i;
+										cluster_with_interdist[*it] = u;
 									}
 								}
 							}
@@ -192,39 +209,39 @@ namespace OpenMS
 						k = tree[t].right_child;
 					}
 
-					if(k != cluster_with_interdist[i]) //s(i)_nr (!element_of) left or right cluster
+					if(k != cluster_with_interdist[*it]) //s(i)_nr (!element_of) left or right cluster
 					{
 						//interdist_i is kept
 						//but intradist_i has to be updated
-						intradist_i[i] *= clusters[l].size()-1;
+						intradist_i[*it] *= clusters[l].size()-1;
 						for (Size j = 0; j < clusters[k].size(); ++j)
 						{
-							intradist_i[i] += original.getValue(i,clusters[k][j]);
+							intradist_i[*it] += original.getValue(*it,clusters[k][j]);
 						}
-						intradist_i[i] /= (Real)(clusters[k].size()+(clusters[l].size()-1));
+						intradist_i[*it] /= (Real)(clusters[k].size()+(clusters[l].size()-1));
 					}
 					else //s(i)_nr (element_of) left or right
 					{
 						//intradist_i has to be updated
-						intradist_i[i] *= clusters[l].size()-1;
-						intradist_i[i] += (clusters[k].size()*interdist_i[i]);
-						intradist_i[i] /= (Real)(clusters[k].size()+(clusters[l].size()-1));
+						intradist_i[*it] *= clusters[l].size()-1;
+						intradist_i[*it] += (clusters[k].size()*interdist_i[*it]);
+						intradist_i[*it] /= (Real)(clusters[k].size()+(clusters[l].size()-1));
 						//find new min av. interdist_i
-						interdist_i[i]=std::numeric_limits<Real>::max();
+						interdist_i[*it]=std::numeric_limits<Real>::max();
 						for (Size u = 0; u < clusters.size(); ++u)
 						{
-							if(u!=l && u!=k)
+							if(u!=l && u!=k && !clusters[u].empty())
 							{
 								Real av_interdist_i(0);
 								for (Size v = 0; v < clusters[u].size(); ++v)
 								{
-									av_interdist_i += original.getValue(clusters[u][v],i);
+									av_interdist_i += original.getValue(clusters[u][v],*it);
 								}
 								av_interdist_i /= (Real)clusters[u].size();
-								if (av_interdist_i < interdist_i[i])
+								if (av_interdist_i < interdist_i[*it])
 								{
-									interdist_i[i]=av_interdist_i;
-									cluster_with_interdist[i] = u;
+									interdist_i[*it]=av_interdist_i;
+									cluster_with_interdist[*it] = u;
 								}
 							}
 						}
@@ -236,16 +253,16 @@ namespace OpenMS
 			clusters[tree[t].left_child].insert(clusters[tree[t].left_child].end(),clusters[tree[t].right_child].begin(),clusters[tree[t].right_child].end());
 
 			//erase second one
-			clusters.erase(clusters.begin()+tree[t].right_child);
+			clusters[tree[t].right_child].clear();
 
-			//adept the cluster indices in clusters with interdist
-			for (Size x = 0; x < cluster_with_interdist.size();++x)
-			{
-				if(cluster_with_interdist[x]>tree[t].right_child)
-				{
-					--cluster_with_interdist[x];
-				}
-			}
+			//~ //adept the cluster indices in clusters with interdist
+			//~ for (Size x = 0; x < cluster_with_interdist.size();++x)
+			//~ {
+				//~ if(cluster_with_interdist[x]>tree[t].right_child)
+				//~ {
+					//~ --cluster_with_interdist[x];
+				//~ }
+			//~ }
 
 			/* to manually retrace
 			for (Size x = 0; x < clusters.size();++x)
@@ -269,7 +286,9 @@ namespace OpenMS
 
 			//calculate average silhouette width for clusters and then overall average silhouette width for cluster step
 			Real average_overall_silhouette(0); // from cluster step
+			/* to manually retrace
 			std::vector<Real> silhouettes(original.dimensionsize(),0.0);
+			*/
 			for (Size g = 0; g < clusters.size(); ++g)
 			{
 				if(clusters[g].size()>1)
@@ -294,7 +313,7 @@ namespace OpenMS
 				}
 				std::cout << "---------" << std::endl;
 			*/
-			average_silhouette_widths.push_back(average_overall_silhouette/(Real)original.dimensionsize());
+			average_silhouette_widths.push_back(average_overall_silhouette/(Real)(tree.size()+1));
 		}
 		average_silhouette_widths.push_back(0.0);
 		return average_silhouette_widths;
@@ -308,18 +327,60 @@ namespace OpenMS
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
 		}
 
-		std::vector< std::vector < Size > > clusters(original.dimensionsize());
 		std::vector< Real > all_dunn_indices;
+		all_dunn_indices.reserve(tree.size()+1);
+
+		std::set<Size> leafs;
+		for (Size i = 0; i < tree.size(); ++i)
+		{
+			leafs.insert(tree[i].left_child);
+			leafs.insert(tree[i].right_child);
+		}
 
 		//initial cluster state
-		for (Size i = 0; i < clusters.size(); ++i)
+		Size sz = *(leafs.rbegin())+1;
+		std::vector< std::vector < Size > > clusters(original.dimensionsize());
+		std::vector< std::pair<Real,Size> > min_intercluster_distances(original.dimensionsize(), std::make_pair<Real,Size>(-1,0));
+		for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
 		{
-			clusters[i].push_back(i);
+			clusters[*it].push_back(*it);
+			std::set<Size>::iterator it_2 = leafs.begin();
+			for (; it_2 != it; ++it_2)
+			{
+				Real d = original.getValue(*it,*it_2);
+				if( d < min_intercluster_distances[*it].first or min_intercluster_distances[*it].first == -1 )
+				{
+					min_intercluster_distances[*it].first = d;
+					min_intercluster_distances[*it].second = *it_2;
+				}
+			}
+			it_2 = it;
+			++it_2;
+			for (; it_2 != leafs.end(); ++it_2)
+			{
+				Real d = original.getValue(*it,*it_2);
+				if( d < min_intercluster_distances[*it].first or min_intercluster_distances[*it].first == -1 )
+				{
+					min_intercluster_distances[*it].first = d;
+					min_intercluster_distances[*it].second = *it_2;
+				}
+			}
+		}
+		Size min_intercluster_distance_index(0);
+		for(Size i = min_intercluster_distance_index+1; i < min_intercluster_distances.size(); ++i)
+		{
+			if(min_intercluster_distances[min_intercluster_distance_index].first == -1)
+			{
+				min_intercluster_distance_index = i;
+			}
+			else if(min_intercluster_distances[i].first != -1 and min_intercluster_distances[i].first < min_intercluster_distances[min_intercluster_distance_index].first)
+			{
+				min_intercluster_distance_index = i;
+			}
 		}
 
 		//initial state for min inter and max intra distances
-		Real min_intercluster_distance(tree[0].distance), max_intracluster_distance(0);
-		std::pair<Size,Size> clusters_with_min_intercluster_dist(tree[0].left_child,tree[0].right_child);
+		Real max_intracluster_distance(0);
 		for (Size cluster_step = 0; cluster_step < tree.size()-1; ++cluster_step)
 		{
 
@@ -340,42 +401,98 @@ namespace OpenMS
 			clusters[tree[cluster_step].left_child].insert(clusters[tree[cluster_step].left_child].end(),clusters[tree[cluster_step].right_child].begin(),clusters[tree[cluster_step].right_child].end());
 
 			//erase second one
-			clusters.erase(clusters.begin()+tree[cluster_step].right_child);
+			clusters[tree[cluster_step].right_child].clear();
 
-			//shortcut for single linkage generated hirachy as merging criterion is min intercluster distance
-			if(tree_from_singlelinkage)
+			//min intercluster distance changed?
+			if(!tree_from_singlelinkage)
 			{
-				min_intercluster_distance = tree[cluster_step+1].distance;
-			}
-			else
-			{
-				if(tree[cluster_step].left_child == clusters_with_min_intercluster_dist.first || tree[cluster_step].right_child == clusters_with_min_intercluster_dist.second)
+				min_intercluster_distances[tree[cluster_step].right_child].first = -1;
+				min_intercluster_distances[tree[cluster_step].right_child].second = 0;
+
+				if((min_intercluster_distance_index == tree[cluster_step].right_child and min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].left_child) or (min_intercluster_distance_index == tree[cluster_step].left_child and min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].right_child))
 				{
 					//find new min intercluster distance
-					min_intercluster_distance = std::numeric_limits<Real>::max();
-					for (Size k = 1; k < clusters.size(); ++k)
+					min_intercluster_distances[tree[cluster_step].left_child].first = std::numeric_limits<Real>::max();
+
+					for(Size j = 0; j < clusters[tree[cluster_step].left_child].size(); ++j)
 					{
-						for (Size l = 0; l < k; ++l)
+						Size k(0);
+						for (; k < tree[cluster_step].left_child; ++k)
 						{
-							for (Size i = 0; i < clusters[k].size(); ++i)
+							for (Size l = 0; l < clusters[k].size(); ++l)
 							{
-								for (Size j = 0; j < clusters[l].size(); ++j)
+								if(original.getValue(clusters[tree[cluster_step].left_child][j],clusters[k][l]) < min_intercluster_distances[tree[cluster_step].left_child].first)
 								{
-									if(original.getValue(clusters[k][i],clusters[l][j]) < min_intercluster_distance)
-									{
-										min_intercluster_distance=original.getValue(clusters[k][i],clusters[l][j]);
-										clusters_with_min_intercluster_dist.first = k;
-										clusters_with_min_intercluster_dist.second = l;
-									}
+									min_intercluster_distances[tree[cluster_step].left_child].first = original.getValue(clusters[tree[cluster_step].left_child][j],clusters[k][l]);
+									min_intercluster_distances[tree[cluster_step].left_child].second = k;
+								}
+							}
+						}
+						++k;
+						for (; k < clusters.size(); ++k)
+						{
+							for (Size l = 0; l < clusters[k].size(); ++l)
+							{
+								if(original.getValue(clusters[tree[cluster_step].left_child][j],clusters[k][l]) < min_intercluster_distances[tree[cluster_step].left_child].first)
+								{
+									min_intercluster_distances[tree[cluster_step].left_child].first = original.getValue(clusters[tree[cluster_step].left_child][j],clusters[k][l]);
+									min_intercluster_distances[tree[cluster_step].left_child].second = k;
 								}
 							}
 						}
 					}
-					if(clusters_with_min_intercluster_dist.first > clusters_with_min_intercluster_dist.second)
+
+					min_intercluster_distance_index = 0;
+					for(Size i = min_intercluster_distance_index+1; i < min_intercluster_distances.size(); ++i)
 					{
-						std::swap(clusters_with_min_intercluster_dist.first , clusters_with_min_intercluster_dist.second);
+						if(min_intercluster_distances[min_intercluster_distance_index].first == -1)
+						{
+							min_intercluster_distance_index = i;
+						}
+						else if(min_intercluster_distances[i].first != -1 and min_intercluster_distances[i].first < min_intercluster_distances[min_intercluster_distance_index].first)
+						{
+							min_intercluster_distance_index = i;
+						}
+					}
+
+				}
+				else
+				{
+					if(min_intercluster_distances[tree[cluster_step].right_child].first < min_intercluster_distances[tree[cluster_step].left_child].first)
+					{
+						min_intercluster_distances[tree[cluster_step].left_child].first = min_intercluster_distances[tree[cluster_step].right_child].first;
+						min_intercluster_distances[tree[cluster_step].left_child].second = min_intercluster_distances[tree[cluster_step].right_child].second;
 					}
 				}
+
+				for(Size k = 0; k < min_intercluster_distances.size(); ++k)
+				{
+					if(min_intercluster_distances[k].second == tree[cluster_step].right_child)
+					{
+						min_intercluster_distances[k].second = tree[cluster_step].left_child;
+					}
+				}
+			}
+
+			//shortcut for single linkage generated hirachy as merging criterion is min intercluster distance
+			if(tree_from_singlelinkage)
+			{
+				Real dunn_index(0);
+				if(max_intracluster_distance>0)
+				{
+					dunn_index=tree[cluster_step+1].distance/max_intracluster_distance;
+				}
+				all_dunn_indices.push_back(dunn_index);
+			}
+			else
+			{
+				//find max dunn index and deduct the corresponding cluster step
+				Real dunn_index(0);
+				if(max_intracluster_distance>0)
+				{
+					dunn_index=min_intercluster_distances[min_intercluster_distance_index].first/max_intracluster_distance;
+				}
+				all_dunn_indices.push_back(dunn_index);
 			}
 
 			/* to manually retrace
@@ -384,17 +501,6 @@ namespace OpenMS
 				std::cout << max_intracluster_distance << std::endl;
 			*/
 
-			//find max dunn index and deduct the corresponding cluster step
-			Real dunn_index;
-			if(max_intracluster_distance>0)
-			{
-				dunn_index=min_intercluster_distance/max_intracluster_distance;
-			}
-			else
-			{
-				dunn_index=0;
-			}
-			all_dunn_indices.push_back(dunn_index);
 		}
 		all_dunn_indices.push_back(0.0); //last one is clearly 0
 		return all_dunn_indices;
@@ -423,7 +529,52 @@ namespace OpenMS
 			clusters[tree[cluster_step].left_child].insert(clusters[tree[cluster_step].left_child].end(),clusters[tree[cluster_step].right_child].begin(),clusters[tree[cluster_step].right_child].end());
 
 			// erase second one
-			clusters.erase(clusters.begin()+tree[cluster_step].right_child);
+			clusters[tree[cluster_step].right_child].clear();
+		}
+
+		//~ sorts by first element contained!!
+		std::sort(clusters.begin(),clusters.end());
+		std::reverse(clusters.begin(),clusters.end());
+		clusters.resize(cluster_quantity);
+		std::sort(clusters.begin(),clusters.end());
+	}
+
+	void ClusterAnalyzer::cut(Size cluster_quantity, std::vector< std::vector<BinaryTreeNode> >& trees, std::vector<BinaryTreeNode>& tree)
+	{
+		if(cluster_quantity==0)
+		{
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "minimal partition contains one cluster, not zero");
+		}
+		if(cluster_quantity>=tree.size()+1)
+		{
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partition contains singleton clusters, further separation is not possible");
+		}
+		trees.clear();
+		trees.resize(cluster_quantity);
+
+		std::vector< std::vector<Size> > clusters;
+		cut(cluster_quantity, clusters, tree);
+
+		//~ unused nodes are discarded, (tree.begin()+tree.size()+1-cluster_quantity) is maximal tree.end() since cluster_quantity is always > 1! (tree.end()==tree.begin()+tree.size())
+		std::list<BinaryTreeNode> tc(tree.begin(), (tree.begin()+tree.size()+1-cluster_quantity));
+		for(Size cluster = 0; cluster < clusters.size(); ++cluster)
+		{
+			std::sort(clusters[cluster].begin(),clusters[cluster].end());
+			std::list<BinaryTreeNode>::iterator it = tc.begin();
+			while( it != tc.end() )
+			{
+				std::vector<Size>::iterator left = std::find(clusters[cluster].begin(),clusters[cluster].end(), it->left_child);
+				std::vector<Size>::iterator right = std::find(clusters[cluster].begin(),clusters[cluster].end(), it->right_child);
+				if((left != clusters[cluster].end() or right != clusters[cluster].end()))
+				{
+					trees[cluster].push_back(*it);
+					it = tc.erase(it);
+				}
+				else
+				{
+					++it;
+				}
+			}
 		}
 	}
 
@@ -454,17 +605,22 @@ namespace OpenMS
 			//pushback elements of right_child to left_child (and then erase second)
 			clusters[tree[cluster_step].left_child].insert(clusters[tree[cluster_step].left_child].end(),clusters[tree[cluster_step].right_child].begin(),clusters[tree[cluster_step].right_child].end());
 
-			// erase second one
-			clusters.erase(clusters.begin()+tree[cluster_step].right_child);
+			// clear second one
+			clusters[tree[cluster_step].right_child].clear();
 		}
 
 		Real average = (Real)(tree.size()+1)/(Real)cluster_quantity;
 		Real aberration(0);
+		Real cluster_number(0);
 		for (Size i = 0; i < clusters.size(); ++i)
 		{
-			aberration += std::fabs((Real)clusters[i].size()-average);
+			if(!clusters[i].empty())
+			{
+				aberration += std::fabs((Real)clusters[i].size()-average);
+				++cluster_number;
+			}
 		}
-		aberration /= (Real)clusters.size();
+		aberration /= cluster_number;
 
 		return aberration;
 	}
@@ -512,41 +668,72 @@ namespace OpenMS
 
 	String ClusterAnalyzer::newickTree(std::vector<BinaryTreeNode>& tree, bool include_distance)
 	{
-
-		std::vector<String> clusters;
-		clusters.reserve(tree.size()+1);
-		for (Size i = 0; i < tree.size()+1; ++i)
+		std::set<Size> leafs;
+		for (Size i = 0; i < tree.size(); ++i)
 		{
-			clusters.push_back(String(i));
+			leafs.insert(tree[i].left_child);
+			leafs.insert(tree[i].right_child);
 		}
+
+		std::vector<String> clusters(*(leafs.rbegin())+1, "");
+		for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
+		{
+			clusters[*it] = String(*it);
+		}
+
 		//redo clustering till step (original.dimensionsize()-1)
 		for (Size cluster_step = 0; cluster_step < tree.size(); ++cluster_step)
 		{
-			//append string right_child to left_child (and then erase second)
+			//append string right_child to left_child
+			clusters[tree[cluster_step].left_child].insert(0,"( ");
 			if(include_distance)
 			{
-				clusters[tree[cluster_step].left_child].insert(0,"( ");
-				clusters[tree[cluster_step].left_child] += ":" ;
-				clusters[tree[cluster_step].left_child] += tree[cluster_step].distance ;
-				clusters[tree[cluster_step].left_child] += " , ";
-				clusters[tree[cluster_step].left_child] += clusters[tree[cluster_step].right_child] ;
 				clusters[tree[cluster_step].left_child] += ":" ;
 				clusters[tree[cluster_step].left_child] += String(tree[cluster_step].distance) ;
-				clusters[tree[cluster_step].left_child] += " )";
 			}
-			else
+			clusters[tree[cluster_step].left_child] += " , ";
+			clusters[tree[cluster_step].left_child] += clusters[tree[cluster_step].right_child] ;
+			if(include_distance)
 			{
-				clusters[tree[cluster_step].left_child].insert(0,"( ");
-				clusters[tree[cluster_step].left_child] += " , ";
-				clusters[tree[cluster_step].left_child] += clusters[tree[cluster_step].right_child] ;
-				clusters[tree[cluster_step].left_child] += " )";
+				clusters[tree[cluster_step].left_child] += ":" ;
+				clusters[tree[cluster_step].left_child] += String(tree[cluster_step].distance) ;
 			}
+			clusters[tree[cluster_step].left_child] += " )";
 
-			// erase second one
-			clusters.erase(clusters.begin()+tree[cluster_step].right_child);
+			clusters[tree[cluster_step].right_child] = String("");
 		}
 
-		return clusters[0];
+		Size first_filled (0);
+		for (Size i = 0; i < clusters.size(); ++i)
+		{
+			if(!clusters[i].empty())
+			{
+				first_filled = i;
+				break;
+			}
+		}
+		for (Size i = first_filled+1; i < clusters.size(); ++i)
+		{
+			if(!clusters[i].empty())
+			{
+				clusters[first_filled].insert(0,"( ");
+				if(include_distance)
+				{
+					clusters[first_filled] += ":" ;
+					clusters[first_filled] += String("1");
+				}
+				clusters[first_filled] += " , ";
+				clusters[first_filled] += clusters[i] ;
+				if(include_distance)
+				{
+					clusters[first_filled] += ":" ;
+					clusters[first_filled] += String("1") ;
+				}
+				clusters[first_filled] += " )";
+			}
+		}
+		return clusters[first_filled];
+		//~example inspectable with: http://cgi-www.daimi.au.dk/cgi-chili/phyfi/go [BMC Bioinformatics 2006, 7:315]
 	}
 
 	bool compareBinaryTreeNode(const BinaryTreeNode& x, const BinaryTreeNode& y)

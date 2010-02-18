@@ -29,6 +29,7 @@
 #define OPENMS_COMPARISON_CLUSTERING_SINGLELINKAGE_H
 
 #include <vector>
+#include <set>
 #include <limits>
 #include <algorithm>
 

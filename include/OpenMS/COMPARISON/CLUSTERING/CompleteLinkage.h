@@ -29,6 +29,7 @@
 #define OPENMS_COMPARISON_CLUSTERING_COMPLETELINKAGE_H
 
 #include <vector>
+#include <set>
 #include <cmath>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>

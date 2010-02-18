@@ -62,11 +62,10 @@ namespace OpenMS
 			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
 		}
 
-		std::vector< std::vector<Size> >clusters;
-		clusters.reserve(original_distance.dimensionsize());
+		std::vector< std::set<Size> >clusters(original_distance.dimensionsize());
 		for (Size i = 0; i < original_distance.dimensionsize(); ++i)
 		{
-			clusters.push_back(std::vector<Size>(1,i));
+			clusters[i].insert(i);
 		}
 
 		cluster_tree.clear();
@@ -82,7 +81,11 @@ namespace OpenMS
 		while(original_distance(min.second,min.first) < threshold)
 		{
 			//grow the tree
-			cluster_tree.push_back( BinaryTreeNode(min.second,min.first,original_distance(min.first,min.second) ) );
+			cluster_tree.push_back( BinaryTreeNode(*(clusters[min.second].begin()),*(clusters[min.first].begin()),original_distance(min.first,min.second) ) );
+			if(cluster_tree.back().left_child > cluster_tree.back().right_child)
+			{
+				std::swap(cluster_tree.back().left_child , cluster_tree.back().right_child);
+			}
 
 			if(original_distance.dimensionsize() > 2)
 			{
@@ -94,7 +97,7 @@ namespace OpenMS
 				//~ std::cout << alpha_i << '\t' << alpha_j << std::endl;
 
 				//pushback elements of second to first (and then erase second)
-				clusters[min.second].insert(clusters[min.second].end(),clusters[min.first].begin(),clusters[min.first].end());
+				clusters[min.second].insert(clusters[min.first].begin(),clusters[min.first].end());
 				// erase first one
 				clusters.erase(clusters.begin()+min.first);
 
@@ -132,9 +135,10 @@ namespace OpenMS
 		//repeat until only two cluster remains, last step skips matrix operations
 		}
 		//fill tree with dummy nodes
-		while(cluster_tree.size() < cluster_tree.capacity())
+		Size sad (*clusters.front().begin());
+		for(Size i = 1; i < clusters.size() and (cluster_tree.size() < cluster_tree.capacity()); ++i)
 		{
-			cluster_tree.push_back(BinaryTreeNode(0,1,-1.0));
+			cluster_tree.push_back(BinaryTreeNode(sad,*clusters[i].begin(),-1.0));
 		}
 
 		endProgress();

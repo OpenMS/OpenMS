@@ -95,11 +95,16 @@ START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::v
 
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
+	//~ tree.push_back(BinaryTreeNode(1,2,0.3f));
+	//~ tree.push_back(BinaryTreeNode(2,3,0.4f));
+	//~ tree.push_back(BinaryTreeNode(0,1,0.65f));
+	//~ tree.push_back(BinaryTreeNode(0,1,0.766667f));
+	//~ tree.push_back(BinaryTreeNode(0,1,0.78f));
 	tree.push_back(BinaryTreeNode(1,2,0.3f));
-	tree.push_back(BinaryTreeNode(2,3,0.4f));
+	tree.push_back(BinaryTreeNode(3,4,0.4f));
 	tree.push_back(BinaryTreeNode(0,1,0.65f));
-	tree.push_back(BinaryTreeNode(0,1,0.766667f));
-	tree.push_back(BinaryTreeNode(0,1,0.78f));
+	tree.push_back(BinaryTreeNode(0,3,0.766667f));
+	tree.push_back(BinaryTreeNode(0,5,0.78f));
 
 	AverageLinkage al;
 	al(matrix,result);
@@ -115,8 +120,8 @@ START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::v
 	Real th(0.7f);
 	tree.pop_back();
 	tree.pop_back();
-	tree.push_back(BinaryTreeNode(0,1,-1.0f));
-	tree.push_back(BinaryTreeNode(0,1,-1.0f));
+	tree.push_back(BinaryTreeNode(0,3,-1.0f));
+	tree.push_back(BinaryTreeNode(0,5,-1.0f));
 	result.clear();
 
 	al(matrix2,result,th);
