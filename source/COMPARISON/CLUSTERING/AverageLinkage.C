@@ -136,7 +136,7 @@ namespace OpenMS
 		}
 		//fill tree with dummy nodes
 		Size sad (*clusters.front().begin());
-		for(Size i = 1; i < clusters.size() and (cluster_tree.size() < cluster_tree.capacity()); ++i)
+		for(Size i = 1; (i < clusters.size()) && (cluster_tree.size() < cluster_tree.capacity()); ++i)
 		{
 			cluster_tree.push_back(BinaryTreeNode(sad,*clusters[i].begin(),-1.0));
 		}
