@@ -68,20 +68,12 @@ namespace OpenMS
     defaults_.setMaxInt("interpolation_steps",1000);
     defaults_.setValue("dot:gradient", "Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Multi-color gradient for peaks.");
     defaults_.setValue("dot:feature_icon", "circle", "Icon used for features and consensus features.");
-		vector<String> strings;
-		strings.push_back("diamond");
-		strings.push_back("square");
-		strings.push_back("circle");
-		strings.push_back("triangle");
-		defaults_.setValidStrings("dot:feature_icon",strings);
+    defaults_.setValidStrings("dot:feature_icon", StringList::create("diamond,square,circle,triangle"));
     defaults_.setValue("dot:feature_icon_size", 4, "Icon size used for features and consensus features.");
     defaults_.setMinInt("dot:feature_icon_size",1);
     defaults_.setMaxInt("dot:feature_icon_size",999);
-    defaults_.setValue("mapping_of_mz_to","x_axis","Determines with axis is the m/z axis.");
-		strings.clear();
-		strings.push_back("x_axis");
-		strings.push_back("y_axis");
-		defaults_.setValidStrings("mapping_of_mz_to",strings);
+    defaults_.setValue("mapping_of_mz_to","x_axis","Determines which axis is the m/z axis.");
+		defaults_.setValidStrings("mapping_of_mz_to", StringList::create("x_axis,y_axis"));
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);
@@ -89,7 +81,7 @@ namespace OpenMS
 		projection_mz_.resize(1);
 		projection_rt_.resize(1);
 
-		//set preferences and update widgets acoordningly
+		//set preferences and update widgets accordingly
 		if (String(param_.getValue("mapping_of_mz_to")) != "x_axis")
 		{
 			mzToXAxis(false);

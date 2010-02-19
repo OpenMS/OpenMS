@@ -335,6 +335,7 @@ namespace OpenMS
 		projection_vert_->canvas()->mzToXAxis(false);
 		projection_vert_->showLegend(false);
 		projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+    // todo: why would we want to retain the old draw mode (same in horizontalProjection)??
 		if (!projectionsVisible() || projection_vert_->canvas()->getLayerCount()==0) //set draw mode
 		{
 			projection_vert_->canvas()->removeLayer(0);

@@ -969,7 +969,14 @@ namespace OpenMS
 		//draw text			
 		QStringList lines;
 		if (print_rt) lines.push_back("RT : " + QString::number(rt,'f',2));
-		lines.push_back("m/z: " + QString::number(mz,'f',6));
+    if (spectrum_widget_->canvas()->isMzToXAxis())
+    {
+		  lines.push_back("m/z: " + QString::number(mz,'f',6));
+    }
+    else
+    {
+      lines.push_back("RT: " + QString::number(mz,'f',2));
+    }
 		lines.push_back("Int: " + QString::number(it,'f',2));
 		if (getCurrentLayer().type==LayerData::DT_FEATURE || getCurrentLayer().type==LayerData::DT_CONSENSUS)
 		{

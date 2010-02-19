@@ -191,8 +191,10 @@ namespace OpenMS
       	Otherwise the message is displayed for @p time ms.
       */
       void showStatusMessage(std::string msg, OpenMS::UInt time);
-      /// shows m/z, intensity and rt in the status bar
+      /// shows m/z and rt in the status bar
       void showCursorStatus(double mz, double rt);
+      /// shows m/z and rt in the status bar (inverting RT and m/z)
+      void showCursorStatusInvert(double mz, double rt);
       /// Apply TOPP tool
       void showTOPPDialog();
       /// Annotates current layer with ID data

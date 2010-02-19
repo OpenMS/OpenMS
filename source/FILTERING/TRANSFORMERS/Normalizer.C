@@ -37,6 +37,7 @@ namespace OpenMS
   {
 		setName(Normalizer::getProductName());
     defaults_.setValue("method", "to_one", "Normalize by deviding though the TIC ('to_TIC') or normalize to max intensity of one ('to_one').");
+    defaults_.setValidStrings("method", StringList::create("to_one,to_TIC"));
 		defaultsToParam_();
   }
 

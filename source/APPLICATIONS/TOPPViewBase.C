@@ -1170,6 +1170,11 @@ namespace OpenMS
     }
   }
 
+  void TOPPViewBase::showCursorStatusInvert(double mz, double rt)
+  { // swap rt vs mz (for vertical projection)
+    showCursorStatus(rt, mz);
+  }
+
   void TOPPViewBase::showCursorStatus(double mz, double rt)
   {
     message_label_->setText("");
@@ -2069,7 +2074,7 @@ namespace OpenMS
   	if (sw2 != 0)
   	{
   		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
-  		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
+  		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatusInvert(double,double)));
   		connect(sw2,SIGNAL(showSpectrumAs1D(int)),this,SLOT(showSpectrumAs1D(int)));
   	}
 

@@ -97,11 +97,9 @@ namespace OpenMS
 				{
 					it->setIntensity(it->getIntensity() / max);
 				}
-				return;
 			}
-
 			// normalizes the peak intensities to the TIC
-			if (method == "to_TIC")
+			else if (method == "to_TIC")
 			{
 				double sum(0);
 				for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
@@ -113,11 +111,12 @@ namespace OpenMS
 				{
 					it->setIntensity(it->getIntensity() / sum);
 				}
-				return;
 			}
-			
-			// method unknown
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method);
+ 			// method unknown
+      else
+      {
+  			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method);
+      }
 			return;
 			
 		}
