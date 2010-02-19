@@ -348,7 +348,7 @@ namespace OpenMS
 			for (; it_2 != it; ++it_2)
 			{
 				Real d = original.getValue(*it,*it_2);
-				if( d < min_intercluster_distances[*it].first or min_intercluster_distances[*it].first == -1 )
+				if( d < min_intercluster_distances[*it].first || min_intercluster_distances[*it].first == -1 )
 				{
 					min_intercluster_distances[*it].first = d;
 					min_intercluster_distances[*it].second = *it_2;
@@ -359,7 +359,7 @@ namespace OpenMS
 			for (; it_2 != leafs.end(); ++it_2)
 			{
 				Real d = original.getValue(*it,*it_2);
-				if( d < min_intercluster_distances[*it].first or min_intercluster_distances[*it].first == -1 )
+				if( d < min_intercluster_distances[*it].first || min_intercluster_distances[*it].first == -1 )
 				{
 					min_intercluster_distances[*it].first = d;
 					min_intercluster_distances[*it].second = *it_2;
@@ -373,7 +373,7 @@ namespace OpenMS
 			{
 				min_intercluster_distance_index = i;
 			}
-			else if(min_intercluster_distances[i].first != -1 and min_intercluster_distances[i].first < min_intercluster_distances[min_intercluster_distance_index].first)
+			else if(min_intercluster_distances[i].first != -1 && min_intercluster_distances[i].first < min_intercluster_distances[min_intercluster_distance_index].first)
 			{
 				min_intercluster_distance_index = i;
 			}
@@ -409,7 +409,9 @@ namespace OpenMS
 				min_intercluster_distances[tree[cluster_step].right_child].first = -1;
 				min_intercluster_distances[tree[cluster_step].right_child].second = 0;
 
-				if((min_intercluster_distance_index == tree[cluster_step].right_child and min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].left_child) or (min_intercluster_distance_index == tree[cluster_step].left_child and min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].right_child))
+				if((min_intercluster_distance_index == tree[cluster_step].right_child && min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].left_child) 
+            ||
+           (min_intercluster_distance_index == tree[cluster_step].left_child  && min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].right_child))
 				{
 					//find new min intercluster distance
 					min_intercluster_distances[tree[cluster_step].left_child].first = std::numeric_limits<Real>::max();
@@ -449,7 +451,7 @@ namespace OpenMS
 						{
 							min_intercluster_distance_index = i;
 						}
-						else if(min_intercluster_distances[i].first != -1 and min_intercluster_distances[i].first < min_intercluster_distances[min_intercluster_distance_index].first)
+						else if(min_intercluster_distances[i].first != -1 && min_intercluster_distances[i].first < min_intercluster_distances[min_intercluster_distance_index].first)
 						{
 							min_intercluster_distance_index = i;
 						}
@@ -565,7 +567,7 @@ namespace OpenMS
 			{
 				std::vector<Size>::iterator left = std::find(clusters[cluster].begin(),clusters[cluster].end(), it->left_child);
 				std::vector<Size>::iterator right = std::find(clusters[cluster].begin(),clusters[cluster].end(), it->right_child);
-				if((left != clusters[cluster].end() or right != clusters[cluster].end()))
+				if((left != clusters[cluster].end() || right != clusters[cluster].end()))
 				{
 					trees[cluster].push_back(*it);
 					it = tc.erase(it);
