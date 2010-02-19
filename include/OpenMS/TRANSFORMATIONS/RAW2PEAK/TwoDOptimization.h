@@ -350,6 +350,8 @@ namespace OpenMS
 		for (UInt curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
 			{
 				Size nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
+				if (nr_peaks_in_scan == 0) continue;
+
 				//last_rt = current_rt;
 				current_rt = (ms_exp_it+curr_scan)->getRT();
 				typename MSExperiment<OutputPeakType>::SpectrumType::Iterator peak_it  = (ms_exp_it+curr_scan)->begin();
@@ -389,6 +391,7 @@ namespace OpenMS
 #endif      
 										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 											{
+												std::sort(iso_last_scan.begin(), iso_last_scan.end());
 												// there were some isotopic clustures in the last scan...
 												std::vector<DoubleReal>::iterator it =
 													searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
@@ -491,6 +494,7 @@ namespace OpenMS
 									{
 										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 											{
+												std::sort(iso_last_scan.begin(), iso_last_scan.end());
 												// there were some isotopic clusters in the last scan...
 												std::vector<DoubleReal>::iterator it =
 													searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
@@ -802,7 +806,7 @@ namespace OpenMS
     d.picked_peaks = ms_exp;
     d.raw_data_first =  first;
 
-		std::cout << "richtig hier" << std::endl;
+		//std::cout << "richtig hier" << std::endl;
     struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
 
 
