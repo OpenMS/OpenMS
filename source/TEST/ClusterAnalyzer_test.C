@@ -250,10 +250,10 @@ START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< BinaryT
 
 	ptr->cut(4, ts, trunk);
 	TEST_EQUAL(ts.size(), c_ts.size());
-	for (Size i = 0; i < c_ts.size() and i < ts.size(); ++i)
+	for (Size i = 0; i < c_ts.size() && i < ts.size(); ++i)
 	{
 		TEST_EQUAL(ts[i].size(), c_ts[i].size());
-		for (Size j = 0;  j < ts[i].size() and j < c_ts[i].size(); ++j)
+		for (Size j = 0;  j < ts[i].size() && j < c_ts[i].size(); ++j)
 		{
 			TEST_EQUAL(ts[i][j].right_child, c_ts[i][j].right_child);
 			TEST_EQUAL(ts[i][j].left_child, c_ts[i][j].left_child);
