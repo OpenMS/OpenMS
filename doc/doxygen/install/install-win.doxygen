@@ -29,11 +29,11 @@
 
 <b>Pre-Requisites (Software)</b>
   <UL>
-    <LI>have a Visual Studio 2005/2008 installed (2003 is not supported)
+    <LI>have a Visual Studio 2005/2008/2010 installed (2003 is not supported)
     <br> If you work with VS 2008, installation of the SP1 is recommended,
     otherwise VS might crash during the compilation of the contrib package.
-    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)
-    <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
+    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org) - for VS2010 you'll need CMake 2.8 or later.
+    <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
     Installing svnversion.exe allows to include the current svn repository revision into the TOPP binaries' help message, which can ease debugging.
 		You can find the binaries here: http://subversion.tigris.org. 
@@ -45,8 +45,7 @@
 		the installation directory to your PATH.
     <LI>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
     <br>patch.exe is searched in "C:/Program Files/gnuwin32/bin" and "C:/Program Files/patch/bin". Make sure it is in either of these locations or add
-		the installation directory to your PATH. On Vista patch.exe requires elevation, 
-    		i.e. you need an admin account with disabled UAC (User Account Control), otherwise the contrib will not build.
+		the installation directory to your PATH.
   </UL>
 
 
@@ -101,8 +100,11 @@
 
   @b Installation:
 
+		On Vista/Win7 some programs using during contrib creation (e.g. patch.exe) require elevation, otherwise the contrib will not build. 
+    	Thus, you need an admin account with disabled UAC (User Account Control) or alternatively you can start a command line by right-clicking on its link and choosing "Run as administrator", while UAC is still enabled.
+
 		After you got the source code for the contrib package open a VisualStudio Command line (see Start-Menu).
-    
+	
     <OL>
       <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
       <LI>create a build directory for the %OpenMS contrib <br>
