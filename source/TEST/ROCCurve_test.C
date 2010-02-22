@@ -68,15 +68,16 @@ START_SECTION((void insertPair(double score, bool clas)))
 	NOT_TESTABLE
 END_SECTION
 
-#ifdef OPENMS_HAS_CGAL 
-
 START_SECTION((double AUC()))
+  // random test:
   double auc = rcp->AUC();
   bool inBounds = ( auc >= 0 && auc <= 1 );
-  TEST_EQUAL(inBounds,1)
-END_SECTION
+  TEST_EQUAL(inBounds,true)
 
-#endif
+  // some real data:
+  ROCCurve rc;
+  TEST_EQUAL(rc.AUC(),0.5)
+END_SECTION
 
 START_SECTION((std::vector<std::pair<double, double> > curve(UInt resolution = 10)))
   vector<pair<double,double> > curvePoints = rcp->curve(100);

@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/MATH/STATISTICS/ROCCurve.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iostream>
 
@@ -75,23 +76,23 @@ namespace OpenMS
 	
 	  double ROCCurve::AUC()
 	  {
+      if (score_clas_pairs_.size()==0)
+      {
+	      cerr << "ROCCurve::AUC() : unsuitable dataset (no positives or no negatives)\n";
+        return 0.5;
+      }
+
 	    score_clas_pairs_.sort(simsortdec());
 	    // value that is not in score_clas_pairs_
 	    double prevsim = score_clas_pairs_.begin()->first + 1;
 	    UInt truePos = 0;
 	    UInt falsePos = 0;
-	    Polygon polygon;
-	    polygon.push_back(Point(0,0));
-	    if ( !neg_ || !pos_ )
-	    {
-	      cerr << "ROCCurve::AUC() : unsuitable dataset (no positives or no negatives)\n";
-	      return 0;
-	    }
+      std::vector<DPosition<2> > polygon;
 	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
 	    {
 	      if ( fabs(cit->first - prevsim) > 1e-8 )
 	      {
-	        polygon.push_back(Point((double)falsePos/neg_,(double)truePos/pos_));
+	        polygon.push_back(DPosition<2> ((double)falsePos/neg_,(double)truePos/pos_));
 	      }
 	      if ( cit->second )
 	      {
@@ -102,9 +103,16 @@ namespace OpenMS
 	        ++falsePos;
 	      }
 	    }
-	    polygon.push_back(Point(1,1));
-	    polygon.push_back(Point(1,0));
-	    return -polygon.area();
+      polygon.push_back(DPosition<2>(1,1));
+      std::sort(polygon.begin(), polygon.end());
+      DPosition<2> last(0,0);
+      DoubleReal area(0);
+      for (std::vector<DPosition<2> >::const_iterator it=polygon.begin(); it!=polygon.end();++it)
+      {
+        area += (it->getX() - last.getX()) * (it->getY());
+        last = *it;
+      }
+	    return area;
 	  }
 	
 	  std::vector<std::pair<double,double > > ROCCurve::curve(UInt resolution)

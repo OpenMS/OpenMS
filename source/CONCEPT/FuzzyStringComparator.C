@@ -179,8 +179,8 @@ namespace OpenMS
 				<< prefix << pre2_white << OpenMS::String(line_2_.str()).suffix(line_2_.str().size()-pre2.size()) << "\n"
 				<< prefix << "\n\n"
         << "Easy Access:" << "\n"
-				<< QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_ << ":" << line_1_col << ":\n"
-				<< QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_ << ":" << line_2_col << ":\n"
+				<< QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << line_1_col << ":\n"
+				<< QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << line_2_col << ":\n"
 				<< "\n"
 #ifdef WIN32
         << "TortoiseMerge"

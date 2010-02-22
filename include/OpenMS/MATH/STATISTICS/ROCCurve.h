@@ -31,16 +31,6 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-#ifdef _MSC_VER // disable some CGAL warnings that distract from ours
-#	pragma warning( push ) // save warning state
-#	pragma warning( disable : 4244 )
-#endif
-#include <CGAL/Cartesian.h>
-#include <CGAL/Polygon_2.h>
-#ifdef _MSC_VER
-#	pragma warning( pop )  // restore old warning state
-#endif
-
 #include <list>
 #include <vector>
 
@@ -51,6 +41,8 @@ namespace OpenMS
 	  /**
 	  	@brief ROCCurves show the tradeoff in sensitivity and specitivity for binary classifiers using different cutoff values
 	  	
+      [This class is buggy and usage is discouraged!]
+
 	  	@ingroup Math
 	  */
 	  class OPENMS_DLLAPI ROCCurve
@@ -94,9 +86,6 @@ namespace OpenMS
 			// @}
 	
 	  private:
-
-      typedef CGAL::Point_2<CGAL::Cartesian<double> > Point;
-      typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
 
       /// predicate for sort()
       class OPENMS_DLLAPI simsortdec

@@ -260,7 +260,9 @@ namespace OpenMS
   {
   
 		ConsensusMap cons_map_p_neg; // tmp
-		
+		cons_map = ConsensusMap();
+		cons_map_p = ConsensusMap();
+
     Int q_min = param_.getValue("charge_min");
 		Int q_max = param_.getValue("charge_max");
 		Int q_span = param_.getValue("charge_span_max");
@@ -277,7 +279,7 @@ namespace OpenMS
 		// sort by RT and then m/z
 		fm_out = fm_in;
 		fm_out.sortByPosition();
-		for (Size i=0;i<fm_out.size();++i)	fm_out[i].ensureUniqueId();
+    fm_out.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
 		FeatureMapType fm_out_untouched = fm_out;
 
     
@@ -936,7 +938,10 @@ namespace OpenMS
 		FeatureXMLFile fmf;
 		fmf.store("fm_missing.featureXML", fm_missing);
 #endif								
-		
+
+    cons_map_p.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+    cons_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+
     return;
   }
 
