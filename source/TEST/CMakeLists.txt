@@ -103,6 +103,8 @@ endforeach(i)
 add_custom_target(GUI_TEST)
 add_dependencies(GUI_TEST ${GUI_executables_list})
 
+### add gui tests to executables list
+set(TEST_executables "${TEST_executables} TOPPView_test")
 
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX)
 	set(${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE_SAVED})
