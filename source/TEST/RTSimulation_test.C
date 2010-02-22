@@ -143,7 +143,6 @@ END_SECTION
 
 START_SECTION(([EXTRA] Test MS Experiment Generation))
 {
-  // TODO: test generated experiment
   // init rng
   gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
   gsl_rng_set(rnd_gen, rnd_gen_seed);
