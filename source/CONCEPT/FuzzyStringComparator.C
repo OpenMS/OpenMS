@@ -166,21 +166,32 @@ namespace OpenMS
 				}
 			}
 
-			*log_dest_ <<
-				prefix << "\n" <<
-				prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n" <<
-				prefix << "\n" <<
-				prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << line_1_pos_ << '/' << line_1_col << ")\n" <<
-				prefix << pre1 << "!\n" <<
-				prefix << pre1_white << OpenMS::String(line_1_.str()).suffix(line_1_.str().size()-pre1.size()) << "\n" <<
-				prefix <<  "\n" <<
-				prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << line_2_pos_ << '/' << line_2_col << ")\n" <<
-				prefix << pre2 << "!\n" <<
-				prefix << pre2_white << OpenMS::String(line_2_.str()).suffix(line_2_.str().size()-pre2.size()) << "\n" <<
-				prefix << "\n" <<
-				QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_ << ":" << line_1_col << ":\n" <<
-				QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_ << ":" << line_2_col << ":\n" <<
-				std::endl;
+			*log_dest_
+				<< prefix << "\n"
+				<< prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
+				<< prefix << "\n"
+				<< prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << line_1_pos_ << '/' << line_1_col << ")\n"
+				<< prefix << pre1 << "!\n"
+				<< prefix << pre1_white << OpenMS::String(line_1_.str()).suffix(line_1_.str().size()-pre1.size()) << "\n"
+				<< prefix <<  "\n"
+				<< prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << line_2_pos_ << '/' << line_2_col << ")\n"
+				<< prefix << pre2 << "!\n"
+				<< prefix << pre2_white << OpenMS::String(line_2_.str()).suffix(line_2_.str().size()-pre2.size()) << "\n"
+				<< prefix << "\n\n"
+        << "Easy Access:" << "\n"
+				<< QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_ << ":" << line_1_col << ":\n"
+				<< QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_ << ":" << line_2_col << ":\n"
+				<< "\n"
+#ifdef WIN32
+        << "TortoiseMerge"
+        << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
+        << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\"" 
+#else
+        << "diff"
+        << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() 
+        << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() 
+#endif
+        << std::endl;
 		}
 
 		// If verbose level is low, report only the first error.

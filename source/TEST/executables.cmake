@@ -310,7 +310,7 @@ set(analysis_executables_list
 	DeNovoPostScoring_test
 	DelaunayPairFinder_test
 	FalseDiscoveryRate_test
-#	FeatureDeconvolution_test #temporarily disabled
+	FeatureDeconvolution_test
 	FeatureGroupingAlgorithmLabeled_test
 	FeatureGroupingAlgorithmUnlabeled_test
 	FeatureGroupingAlgorithm_test
