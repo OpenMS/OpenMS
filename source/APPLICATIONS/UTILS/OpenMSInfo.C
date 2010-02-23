@@ -42,7 +42,7 @@ namespace OpenMS
     std::string OpenMS_OSNames[] = {"unkown","MacOS","Windows","Linux"};
     enum OpenMS_Architecture {ARCH_UNKOWN, ARCH_32BIT, ARCH_64BIT};
     std::string OpenMS_ArchNames[] = {"unkown","32bit","64bit"};
-    
+
 #if WIN32
     OpenMS_Architecture getArchOnWin();
     String getWinOSVersion();
@@ -53,7 +53,7 @@ namespace OpenMS
       OpenMSOSInfo()
         : os(OS_UNKNOWN),
           os_version("unkown"),
-          arch(ARCH_UNKOWN) 
+          arch(ARCH_UNKOWN)
       {}
 
       OpenMS_OS os;
@@ -170,7 +170,7 @@ int main( int /*argc*/, const char** /*argv*/ )
   cout << "Architecture: " << info.getArchAsString() << endl;
 	cout << endl;
 
-	
+
 	return 0;
 }
 
