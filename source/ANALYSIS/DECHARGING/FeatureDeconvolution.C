@@ -191,7 +191,7 @@ namespace OpenMS
 			if (adduct.size()>=4)
 			{
 				label = adduct[3].trim();
-				map_label_inverse_[label] = map_label_inverse_.size();
+				map_label_inverse_[label] = map_label_.size(); // add extra virtual map
 				map_label_[map_label_inverse_[label]] = label;
 			}
 
