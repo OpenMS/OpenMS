@@ -67,10 +67,10 @@ namespace OpenMS
       FeatureDeconvolution();
       
       /// Copy constructor
-      inline FeatureDeconvolution(const FeatureDeconvolution& source);
+      FeatureDeconvolution(const FeatureDeconvolution& source);
       
       /// Assignment operator
-      inline FeatureDeconvolution& operator=(const FeatureDeconvolution& source);        
+      FeatureDeconvolution& operator=(const FeatureDeconvolution& source);        
 
       /// destructor
       virtual ~FeatureDeconvolution();

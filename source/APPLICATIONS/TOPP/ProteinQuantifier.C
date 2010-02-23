@@ -613,9 +613,8 @@ namespace OpenMS
 					for (ConsensusMap::Iterator cons_it = consensus.begin(); 
 							 cons_it != consensus.end(); ++cons_it)
 					{
-						PeptideHit hit = 
-							getAnnotation_(cons_it->getPeptideIdentifications());
-						for (set<FeatureHandle>::iterator feat_it = 
+						PeptideHit hit = getAnnotation_(cons_it->getPeptideIdentifications());
+            for (ConsensusFeature::HandleSetType::const_iterator feat_it = 
 									 cons_it->getFeatures().begin(); feat_it !=
 									 cons_it->getFeatures().end(); ++feat_it)
 						{
