@@ -151,6 +151,34 @@ namespace OpenMS
 			}
 		
 
+		template <typename T>
+		void orderBest_(const map<T, sample_abundances> abundances, 
+										vector<T>& result)
+			{
+				typedef pair<Size, DoubleReal> pair_type;
+				multimap<pair_type, T, greater<pair_type> > order;
+				for (typename map<T, sample_abundances>::const_iterator ab_it = 
+							 abundances.begin(); ab_it != abundances.end(); ++ab_it)
+				{
+					DoubleReal total = 0.0;
+					for (sample_abundances::const_iterator samp_it = 
+								 ab_it->second.begin(); samp_it != 
+								 ab_it->second.end(); ++samp_it)
+					{
+						total += samp_it->second;
+					}
+					pair_type key = make_pair(ab_it->second.size(), total);
+					order.insert(make_pair(key, ab_it->first));
+				}
+				result.clear();
+				for (typename multimap<pair_type, T, greater<pair_type> >::iterator 
+							 ord_it = order.begin(); ord_it != order.end(); ++ord_it)
+			  {
+					result.push_back(ord_it->second);
+				}
+			}
+
+
 		void quantifyPeptides_(peptide_quant& quant)
 			{
 				for (peptide_quant::iterator q_it = quant.begin(); q_it != quant.end();
@@ -160,6 +188,10 @@ namespace OpenMS
 					{
 						// find charge state with abundances for highest number of samples
 						// (break ties by total abundance):
+						IntList charges; // sorted charge states (best first)
+						orderBest_(q_it->second.abundances, charges);
+						Int best_charge = charges.front();
+/*
 						Size best_size = 0;
 						Int best_charge;
 						DoubleReal best_abundance;
@@ -182,7 +214,7 @@ namespace OpenMS
 								best_abundance = current_abundance;
 							}
 						}
-
+*/
 						// quantify according to the best charge state only:
 						for (sample_abundances::iterator samp_it = 
 									 q_it->second.abundances[best_charge].begin(); samp_it != 
@@ -272,15 +304,16 @@ namespace OpenMS
 			}
 		
 
-		void quantifyProteins_(peptide_quant& pep_quant, protein_quant& prot_quant)
+		void quantifyProteins_(const peptide_quant& pep_quant, 
+													 protein_quant& prot_quant)
 			{
-				for (peptide_quant::iterator pep_it = pep_quant.begin(); 
+				for (peptide_quant::const_iterator pep_it = pep_quant.begin(); 
 						 pep_it != pep_quant.end(); ++pep_it)
 				{
 					if (pep_it->second.accessions.size() == 1) // proteotypic peptide
 					{
 						String accession = *(pep_it->second.accessions.begin());
-						for (sample_abundances::iterator tot_it = 
+						for (sample_abundances::const_iterator tot_it = 
 									 pep_it->second.total_abundances.begin(); tot_it !=
 									 pep_it->second.total_abundances.end(); ++tot_it)
 						{
@@ -295,22 +328,32 @@ namespace OpenMS
 				bool include_fewer = getFlag_("include_fewer"), 
 					fix_peptides = getFlag_("fix_peptides");
 
-				if (fix_peptides)
-				{
-					throw Exception::NotImplemented(__FILE__, __LINE__, 
-																					__PRETTY_FUNCTION__);
-				}
-
 				for (protein_quant::iterator prot_it = prot_quant.begin();
 						 prot_it != prot_quant.end(); ++prot_it)
 				{
-					map<UInt64, DoubleList> abundances; // all pept. abundances by sample
-					for (map<AASequence, sample_abundances>::iterator ab_it =
-								 prot_it->second.abundances.begin(); ab_it !=
-								 prot_it->second.abundances.end(); ++ab_it)
+					vector<AASequence> peptides; // peptides selected for quantification
+					if (fix_peptides) // consider only "top" best peptides
 					{
-						for (sample_abundances::iterator samp_it = ab_it->second.begin();
-								 samp_it != ab_it->second.end(); ++samp_it)
+						orderBest_(prot_it->second.abundances, peptides);
+						peptides.resize(top);
+					}
+					else // consider all peptides
+					{
+						for (map<AASequence, sample_abundances>::iterator ab_it =
+									 prot_it->second.abundances.begin(); ab_it !=
+									 prot_it->second.abundances.end(); ++ab_it)
+						{
+							peptides.push_back(ab_it->first);							
+						}
+					}
+
+					map<UInt64, DoubleList> abundances; // all pept. abundances by sample
+					for (vector<AASequence>::iterator pep_it = peptides.begin();
+							 pep_it != peptides.end(); ++pep_it)
+					{
+						sample_abundances& current_ab = prot_it->second.abundances[*pep_it];
+						for (sample_abundances::iterator samp_it = current_ab.begin();
+								 samp_it != current_ab.end(); ++samp_it)
 						{
 							abundances[samp_it->first] << samp_it->second;
 						}
@@ -323,17 +366,17 @@ namespace OpenMS
 						{
 							continue; // not enough proteotypic peptides
 						}
-						// sort descending:
-						sort(ab_it->second.begin(), ab_it->second.end(), greater<double>());
 						if ((top > 0) && (ab_it->second.size() > top))
 						{
+							sort(ab_it->second.begin(), ab_it->second.end(), 
+									 greater<double>()); // sort descending
 							ab_it->second.resize(top); // remove all but best "top" values
 						}
 
 						DoubleReal result;
 						if (average == "median")
 						{
-							result = median_(ab_it->second, true);
+							result = median_(ab_it->second);
 						}
 						else // "mean" or "sum"
 						{
@@ -347,8 +390,8 @@ namespace OpenMS
 			}
 		
 
-		void writePeptideTable_(const peptide_quant& quant, vector<UInt64> samples,
-														SVOutStream& out)
+		void writePeptideTable_(SVOutStream& out, const peptide_quant& quant, 
+														const vector<UInt64> samples)
 			{
 				// write header:
 				out << "peptide" << "protein" << "n_proteins" << "charge";
@@ -386,7 +429,7 @@ namespace OpenMS
 						{
 							out << q_it->first.toString() << protein << accessions.size() 
 									<< ab_it->first;
-							for (vector<UInt64>::iterator samp_it = samples.begin(); 
+							for (vector<UInt64>::const_iterator samp_it = samples.begin(); 
 									 samp_it != samples.end(); ++samp_it)
 							{
 								// write abundance for the sample if it exists, 0 otherwise:
@@ -401,7 +444,7 @@ namespace OpenMS
 					{
 						// write total abundances (accumulated over all charge states):
 						out << q_it->first.toString() << protein << accessions.size() << 0;
-						for (vector<UInt64>::iterator samp_it = samples.begin(); 
+						for (vector<UInt64>::const_iterator samp_it = samples.begin(); 
 								 samp_it != samples.end(); ++samp_it)
 						{
 							// write abundance for the sample if it exists, 0 otherwise:
@@ -416,8 +459,8 @@ namespace OpenMS
 			}
 
 
-		void writeProteinTable_(protein_quant& quant, vector<UInt64> samples,
-														SVOutStream& out)
+		void writeProteinTable_(SVOutStream& out, protein_quant& quant,
+														const vector<UInt64> samples)
 			{
 				// write header:
 				out << "protein" << "n_peptides";
@@ -443,7 +486,7 @@ namespace OpenMS
 					if (include_fewer || (n_peptide >= top))
 					{
 						out << q_it->first << n_peptide;
-						for (vector<UInt64>::iterator samp_it = samples.begin(); 
+						for (vector<UInt64>::const_iterator samp_it = samples.begin(); 
 								 samp_it != samples.end(); ++samp_it)
 						{
 							out << q_it->second.total_abundances[*samp_it];
@@ -451,6 +494,45 @@ namespace OpenMS
 						out << endl;
 					}
 				}
+			}
+
+		
+		void writeComments_(SVOutStream& out, 
+												const ConsensusMap::FileDescriptions files,
+												const bool proteins=true)
+			{
+				String what = (proteins ? "Protein" : "Peptide"); 
+				bool old = out.modifyStrings(false);
+				out << "#" + what + " abundances computed from file '" + 
+					getStringOption_("in") + "'" << endl;
+				String params = "#Parameters: top=" + String(getIntOption_("top")) + 
+					", average=" + getStringOption_("average");
+				StringList flags = StringList::create("include_fewer,filter_charge");
+				if (files.size() > 1)
+				{
+					flags << "fix_peptides" << "normalize";
+				}
+				for (StringList::Iterator it = flags.begin(); it != flags.end(); ++it)
+				{
+					if (getFlag_(*it)) params += ", " + *it;
+				}
+				out << params << endl;
+				if (files.size() > 1)
+				{
+					String desc = 
+						"#Files/samples associated with abundance values below: ";
+					Size counter = 0;
+					for (ConsensusMap::FileDescriptions::const_iterator it = 
+								 files.begin(); it != files.end(); ++it, ++counter)
+					{
+						if (counter > 0) desc += ", ";
+						desc += String(counter) + ": '" + it->second.filename + "'";
+						String label = it->second.label;
+						if (!label.empty()) desc += " ('" + label + "')";
+					}
+					out << desc << endl;
+				}
+				out.modifyStrings(old);
 			}
 
 	
@@ -496,6 +578,7 @@ namespace OpenMS
 
 				bool normalize = false;
 				vector<UInt64> samples;
+				ConsensusMap::FileDescriptions files;
 				peptide_quant pep_quant;
 				
 				if (in_type == FileTypes::FEATUREXML)
@@ -520,9 +603,9 @@ namespace OpenMS
           ConsensusXMLFile().load(in, consensus);
 
 					normalize = getFlag_("normalize");
-					for (ConsensusMap::FileDescriptions::Iterator file_it = 
-								 consensus.getFileDescriptions().begin(); file_it !=
-								 consensus.getFileDescriptions().end(); ++file_it)
+					files = consensus.getFileDescriptions(); 
+					for (ConsensusMap::FileDescriptions::Iterator file_it = files.begin();
+							 file_it != files.end(); ++file_it)
 					{
 						samples.push_back(file_it->first);
 					}
@@ -549,7 +632,8 @@ namespace OpenMS
 				{
 					ofstream outstr(peptide_out.c_str());
 					SVOutStream output(outstr, separator, replacement, quoting_method);
-					writePeptideTable_(pep_quant, samples, output);
+					writeComments_(output, files, false);
+					writePeptideTable_(output, pep_quant, samples);
 					outstr.close();
 				}
 
@@ -557,7 +641,8 @@ namespace OpenMS
 				quantifyProteins_(pep_quant, prot_quant);
 				ofstream outstr(out.c_str());
 				SVOutStream output(outstr, separator, replacement, quoting_method);
-				writeProteinTable_(prot_quant, samples, output);
+				writeComments_(output, files);
+				writeProteinTable_(output, prot_quant, samples);
 				outstr.close();
 
 				return EXECUTION_OK;				
