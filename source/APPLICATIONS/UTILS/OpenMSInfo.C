@@ -29,6 +29,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <QSysInfo>
 
 using namespace OpenMS;
 using namespace std;
@@ -77,10 +78,42 @@ namespace OpenMS
       info.os = OS_WINDOWS;
       info.arch = getArchOnWin();
       info.os_version = getWinOSVersion();
-#elif defined (APPLE) // MacOS
+#elif (defined(__MACH__) && defined(__APPLE__)) // MacOS
       info.os = OS_MACOS;
-      // TODO
-      // system call via "uname -v"?
+
+// check if we can use QSysInfo 
+#if defined(Q_WS_MAC)
+			// identify 
+			switch (QSysInfo::MacintoshVersion)
+			{
+				case QSysInfo::MV_10_4: 
+				{
+					info.os_version = "10.4";
+					break;
+				}
+				case QSysInfo::MV_10_5:
+				{
+					info.os_version = "10.5";
+					break;
+				}
+				case QSysInfo::MV_10_6:
+				{
+					info.os_version = "10.6";
+					break;
+				}
+			}
+
+			// identify architecture
+			if(QSysInfo::WordSize == 32) 
+			{
+				info.arch = ARCH_32BIT;
+			}
+			else
+			{
+				info.arch = ARCH_64BIT;			
+			}
+#endif			
+			
 #else //Linux
       info.os = OS_LINUX;
       //TODO
