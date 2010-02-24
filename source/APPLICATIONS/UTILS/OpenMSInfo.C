@@ -136,7 +136,7 @@ namespace OpenMS
     OpenMS_Architecture getArchOnWin()
     {
 #ifdef OPENMS_64BIT_ARCHITECTURE
-       return ARCH_64BIT;
+      return ARCH_64BIT;
 #else
       BOOL bIsWow64 = FALSE;
 
@@ -151,11 +151,17 @@ namespace OpenMS
       {
           if (!fnIsWow64Process(GetCurrentProcess(),&bIsWow64))
           {
-             return OpenMS_Architecture::ARCH_UNKOWN;
+             return ARCH_UNKOWN;
           }
       }
-      if (bIsWow64) return OpenMS_Architecture::ARCH_64BIT
-      else return OpenMS_Architecture::ARCH_32BIT;
+      if (bIsWow64)
+      {
+        return ARCH_64BIT;
+      }
+      else
+      {
+        return ARCH_32BIT;
+      }
 #endif
     }
 
