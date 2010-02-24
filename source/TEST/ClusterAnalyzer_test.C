@@ -177,7 +177,7 @@ START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< Size > 
 		}
 	}
 
-	Size b[] = {0,1,10,5,8,12,2,3,9,11,4,6,7};
+	Size b[] = {0,1,5,8,10,12,2,3,9,11,4,6,7};
 	result.clear();
 
 	result.push_back(vector<Size>(b,b+1));
@@ -209,9 +209,6 @@ START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< Size > 
 			TEST_EQUAL(clusters[i][j], result[i][j]);
 		}
 	}
-
-
-
 
 }
 END_SECTION
@@ -245,8 +242,6 @@ START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< BinaryT
 	c_ts[2].push_back(BinaryTreeNode(2,11,0.3f));
 	c_ts[3].push_back(BinaryTreeNode(4,6,0.1f));
 	c_ts[3].push_back(BinaryTreeNode(4,7,0.2f));
-
-
 
 	ptr->cut(4, ts, trunk);
 	TEST_EQUAL(ts.size(), c_ts.size());

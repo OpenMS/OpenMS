@@ -338,7 +338,7 @@ namespace OpenMS
 		}
 
 		//initial cluster state
-		Size sz = *(leafs.rbegin())+1;
+		//~ Size sz = *(leafs.rbegin())+1;
 		std::vector< std::vector < Size > > clusters(original.dimensionsize());
 		std::vector< std::pair<Real,Size> > min_intercluster_distances(original.dimensionsize(), std::make_pair<Real,Size>(-1,0));
 		for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
@@ -409,7 +409,7 @@ namespace OpenMS
 				min_intercluster_distances[tree[cluster_step].right_child].first = -1;
 				min_intercluster_distances[tree[cluster_step].right_child].second = 0;
 
-				if((min_intercluster_distance_index == tree[cluster_step].right_child && min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].left_child) 
+				if((min_intercluster_distance_index == tree[cluster_step].right_child && min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].left_child)
             ||
            (min_intercluster_distance_index == tree[cluster_step].left_child  && min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].right_child))
 				{
@@ -535,6 +535,10 @@ namespace OpenMS
 		}
 
 		//~ sorts by first element contained!!
+		for (Size cluster_num = 0; cluster_num < clusters.size(); ++cluster_num)
+		{
+			std::sort(clusters[cluster_num].begin(),clusters[cluster_num].end());
+		}
 		std::sort(clusters.begin(),clusters.end());
 		std::reverse(clusters.begin(),clusters.end());
 		clusters.resize(cluster_quantity);
@@ -558,7 +562,7 @@ namespace OpenMS
 		cut(cluster_quantity, clusters, tree);
 
 		//~ unused nodes are discarded, (tree.begin()+tree.size()+1-cluster_quantity) is maximal tree.end() since cluster_quantity is always > 1! (tree.end()==tree.begin()+tree.size())
-		std::list<BinaryTreeNode> tc(tree.begin(), (tree.begin()+tree.size()+1-cluster_quantity));
+		std::list<BinaryTreeNode> tc(tree.begin(), (tree.begin()+(tree.size()+1-cluster_quantity)));
 		for(Size cluster = 0; cluster < clusters.size(); ++cluster)
 		{
 			std::sort(clusters[cluster].begin(),clusters[cluster].end());
