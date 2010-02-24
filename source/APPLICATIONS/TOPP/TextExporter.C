@@ -330,7 +330,7 @@ namespace OpenMS
       {
         registerInputFile_("in", "<file>", "", "Input file ");
         setValidFormats_("in", StringList::create(
-          "featureXML,consensusXML,idXML"));
+          "featureXML,consensusXML,idXML,mzML"));
         registerOutputFile_("out", "<file>", "",
           "Output file (mandatory for featureXML and idXML)", false);
         registerStringOption_("separator", "<sep>", "", "The used separator character(s); if not set the 'tab' character is used", false);
@@ -955,6 +955,28 @@ namespace OpenMS
 					
           txt_out.close();
         }
+				else if (in_type == FileTypes::MZML)
+				{
+					PeakMap exp;
+					FileHandler().loadExperiment(in, exp);
+					
+					ofstream outstr(out.c_str());
+					SVOutStream output(outstr, sep, replacement, quoting_method);
+					output.modifyStrings(false);
+					for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+					{
+						if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+						{
+							output << "MRM Q1=" << it->getPrecursor().getMZ() << " Q3=" << it->getProduct().getMZ() << endl;
+							for (MSChromatogram<>::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
+							{
+								output << cit->getRT() << " " << cit->getIntensity() << endl;
+							}
+							output << endl;
+						}
+					}
+					outstr.close();
+				}
 				
         return EXECUTION_OK;
       }
