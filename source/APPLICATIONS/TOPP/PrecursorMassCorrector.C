@@ -156,8 +156,10 @@ class TOPPPrecursorMassCorrector
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
 				progresslogger.setProgress(exp.end() - it);
-				if (it->getMSLevel() == 2)
+				if (it->getMSLevel() != 2)
 				{
+					continue;
+				}
 					// find first MS1 scan of the MS/MS scan
 					PeakMap::Iterator ms1_it = it;
 					while (ms1_it != exp.begin() && ms1_it->getMSLevel() != 1)
@@ -212,8 +214,9 @@ class TOPPPrecursorMassCorrector
             if (features.size() == 0)
             {
               writeDebug_("No features found for scan RT=" + String(ms1_it->getRT()), 1);
+							++ms2_it;
               continue;
-            }					
+            }
 	
 						DoubleReal max_int(numeric_limits<DoubleReal>::min());
 						DoubleReal min_dist(numeric_limits<DoubleReal>::max());
@@ -245,7 +248,6 @@ class TOPPPrecursorMassCorrector
 						++ms2_it;
 					}
 					it = --ms2_it;
-				}
 			}
 			progresslogger.endProgress();
 
