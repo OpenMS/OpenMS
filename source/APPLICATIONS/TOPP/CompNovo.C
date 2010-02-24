@@ -41,15 +41,15 @@ using namespace std;
 	
 	@brief Performs a peptide/protein identification with the CompNovo engine.
 
-	The CompNovo engine can operate in CID/ETD mode were the ETD spectra of the
+	The CompNovo engine can operate in CID/ETD mode where the ETD spectra of the
 	same precursor are used to support the de novo identification. In CID mode
 	all spectra are assumed to be CID spectra only.
 
 	The details are described in the publication:
  
 	Andreas Bertsch, Andreas Leinenbach, Anton Pervukhin, Markus Lubeck, 
-	Ralf Hartmer, 	Carsten Baessmann, Yasser A Elnakady, Rolf M&uuml;ller, 
-	Sebastian B&ouml;cker, Christian G Huber and Oliver Kohlbacher  (2009)
+	Ralf Hartmer,	Carsten Baessmann, Yasser A Elnakady, Rolf M&uuml;ller, 
+	Sebastian B&ouml;cker, Christian G Huber and Oliver Kohlbacher (2009)
 	"De novo peptide sequencing by tandem MS using complementary CID and 
 	electron transfer dissociation"
 	Electrophoresis, 30(21):3736-3747. (PubMed ID: 19862751)
