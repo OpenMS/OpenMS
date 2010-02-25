@@ -47,8 +47,8 @@ using namespace std;
 	
 	@brief Application to compute peptide and protein abundances from annotated feature/consensus maps.
 
-	The quantification is based on the intensity values of the features. The intensities are combined first to peptide and then to protein abundances, according to the peptide identifications annotated to the features.\n
-	Only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
+	Quantification is based on the intensity values of the features. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.\n
+	Only features with unambiguous peptide annotation are used for peptide quantification, and only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
 
 	More information below the parameter specification.
 
@@ -64,11 +64,11 @@ using namespace std;
 	- @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_0", "abundance_1", etc.).
 
 	<b>Peptide output</b> (one peptide or - if @a filter_charge is set - one charge state of a peptide per line):
-	- @b peptide: Peptide sequence.
+	- @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
 	- @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
 	- @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
 	- @b charge: Charge state quantified in this line. "0" (for "all charges") unless @a filter_charge was set.
-	- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for this peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_0", "abundance_1", etc.). Also for consensusXML, the reported values are already normalized if @a normalize was set.
+	- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_0", "abundance_1", etc.). Also for consensusXML, the reported values are already normalized if @a normalize was set.
 
 
 	In addition to the information above, consider this for parameter selection: With @a filter_charge and @a average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
@@ -547,7 +547,7 @@ namespace OpenMS
 			{
 				String what = (proteins ? "Protein" : "Peptide"); 
 				bool old = out.modifyStrings(false);
-				out << "#" + what + " abundances computed from file '" + 
+				out << "# " + what + " abundances computed from file '" + 
 					getStringOption_("in") + "'" << endl;
 				String params;
 				StringList flags;
@@ -567,13 +567,14 @@ namespace OpenMS
 				{
 					if (getFlag_(*it)) params += *it + ", ";
 				}
-				// remove trailing ", " from parameter string:
-				if (!params.empty()) params.resize(params.size() - 2);
-				out << "#Parameters (relevant only): " + params << endl;
+				if (params.empty()) params = "(none)";
+				else params.resize(params.size() - 2); // remove trailing ", "
+				out << "# Parameters (relevant only): " + params << endl;
+
 				if (files.size() > 1)
 				{
 					String desc = 
-						"#Files/samples associated with abundance values below: ";
+						"# Files/samples associated with abundance values below: ";
 					Size counter = 0;
 					for (ConsensusMap::FileDescriptions::const_iterator it = 
 								 files.begin(); it != files.end(); ++it, ++counter)
@@ -597,7 +598,7 @@ namespace OpenMS
 				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
 				registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
 				setMinInt_("top", 0);
-				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances.", false);
+				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
 				setValidStrings_("average", StringList::create("median,mean,sum"));
 				registerFlag_("include_fewer", "Include results for proteins with fewer than 'top' proteotypic peptides");
 				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
@@ -607,10 +608,10 @@ namespace OpenMS
 				registerFlag_("fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
 				addEmptyLine_();
 				addText_("Output formatting options:");
-				registerStringOption_("separator", "<sep>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
+				registerStringOption_("separator", "<string>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
 				registerStringOption_("quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
 				setValidStrings_("quoting", StringList::create("none,double,escape"));
-				registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
+				registerStringOption_("replacement", "<string>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
       }
 
 		
