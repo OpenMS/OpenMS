@@ -2,12 +2,22 @@
 ----                                  OpenMS 1.7                                      ----
 ------------------------------------------------------------------------------------------
 
-Changes to TOPP tools:
+
+TOPP tools:
 - Resampler
 	- PNG image creation functionality removed and transferred to ImageCreator UTIL
+- FileMerger
+	- merges featureXML
+- NEW: 
+	- GenericWrapper (e.g. to wrap ProteinProphet in TOPPAS)
 
-New UTIL tools:
-- ImageCreator (creates PNG's from an MS map)
+UTIL tools:
+- NEW:
+	- ImageCreator (creates PNG's from an MS map)
+
+OpenMS library improvements:
+- read ProtXML files
+- Line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
 
 
 Changes to the Build System:
@@ -16,21 +26,43 @@ Changes to the Build System:
   cannot be configured against OpenMS 1.7, however, 
   only minor changes are required to fix this.
   See the documentation for "Programming with OpenMS".
+- nightly tests for external code
+- SVN revision used to build the lib is remembered (finer version tracking)
+- Nightly coverage builds
+- GUI testing (experimental)
+- Visual Studio 2010 support
 
 BugFixes:
 [new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.7]
-- #44 : TOPPView warning "Cannot show projections!"
-- #73 : Resampler: can't create PNGs with TOPPAS
-- #74 : Default parameters of PTModel cause infinite loop
-- #77 : FuzzyDiff always returns 'true' when comparing any two PNG images
+- #44   TOPPView warning "Cannot show projections!"
+- #73   Resampler: can't create PNGs with TOPPAS
+- #74   Default parameters of PTModel cause infinite loop
+- #77   FuzzyDiff always returns 'true' when comparing any two PNG images
+- #23	implement protXML
+- #46	All TOPP/UTILS segfault if /share is not found
+- #53	TOPPAS select directory has save as dialog
+- #59	Test of external Code
+- #61	automatic ini file Version number update
+- #62	nightly tests for external code
+- #63	rename methods named min() or max() to something else...
+- #69	FileMerger needs ability to merge featureXML
+- #91	Simple FF crashes on very sparse data
+- #93	TOPPAS layer bug
+- #110	Copy&paste, include workflows in current window
+- #121	Tool categories and menu items in context menus have arbitrary order
+- #122	Projection view: mouse-over text on RT projection says "m/z"
 
 For more minor bugfixes visit the above URL.
-
 
 Detailed list of changes to specific OpenMS classes:
 - ConsensusMap, FeatureHandle, ConsensusFeature:
   - element index replaced by unique id
-
+- DPosition:
+  - min() renamed to minPositive()
+  - min_negative() to minNegative()
+- DIntervalBase  
+  - min() renamed to minPosition()
+  - max() renamed to maxPosition()
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.6                                      ----
