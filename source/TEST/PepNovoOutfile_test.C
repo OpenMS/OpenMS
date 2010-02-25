@@ -80,10 +80,10 @@ END_SECTION
 PepNovoOutfile file;
 
 
-START_SECTION((void load(const std::string &result_filename, std::vector< PeptideIdentification > &peptide_identifications, ProteinIdentification &protein_identification, const Real &score_threshold, const std::map< String, std::pair< Real, Real > > &dta_filenames_and_precursor_retention_times, const std::map< String, String > &keys_to_id)))	
+START_SECTION((void load(const std::string &result_filename, std::vector< PeptideIdentification > &peptide_identifications, ProteinIdentification &protein_identification, const DoubleReal &score_threshold, const std::map< String, std::pair< DoubleReal, DoubleReal > > &dta_filenames_and_precursor_retention_times, const std::map< String, String > &keys_to_id)))	
 	std::vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
-	map< String, Real > filenames_and_precursor_retention_times;
+	map< String, DoubleReal > filenames_and_precursor_retention_times;
 
 	// test exceptions
 	//TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), "the file 'a' could not be found")
@@ -98,7 +98,7 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
 	
 	// test the actual program
 	map<String, String>key_to_mod;
-	map< String, pair<Real, Real> > rt_and_index;
+	map< String, pair<DoubleReal, DoubleReal> > rt_and_index;
 
 	key_to_mod["K+42"]="Acetyl (K)";
 	key_to_mod["Y+42"]="Acetyl (Y)";

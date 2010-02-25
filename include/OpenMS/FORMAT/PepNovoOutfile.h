@@ -79,8 +79,8 @@ namespace OpenMS
 			*/
 			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications,
 			    ProteinIdentification& protein_identification,
-			    const Real& score_threshold,
-			    const std::map< String, std::pair<Real,Real> >& id_rt_mz,
+			    const DoubleReal& score_threshold,
+			    const std::map< String, std::pair<DoubleReal,DoubleReal> >& id_rt_mz,
 			    const std::map<String, String> &mod_id_map);
 
 			/** @brief get the search engine version and search parameters from a PepNovo output file

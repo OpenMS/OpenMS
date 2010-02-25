@@ -60,8 +60,8 @@ namespace OpenMS
 		const string& result_filename,
 		vector< PeptideIdentification >&	peptide_identifications,
 		ProteinIdentification& protein_identification,
-		const Real& score_threshold,
-		const map< String, pair<Real, Real> >& pnovoid_to_rt_mz,
+		const DoubleReal& score_threshold,
+		const map< String, pair<DoubleReal, DoubleReal> >& pnovoid_to_rt_mz,
 		const map<String, String>& pnovo_modkey_to_mod_id
 		)
 	{

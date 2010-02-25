@@ -217,7 +217,7 @@ class TOPPPepNovoAdapter
 
 			// we map the native id to the MZ and RT to be able to
 			// map the IDs back to the spectra (RT, and MZ Meta Information)
-			std::map<String, pair<Real, Real> >id_to_rt;
+			std::map<String, pair<DoubleReal, DoubleReal> >id_to_rt;
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
 			  Int valid_id;
@@ -366,7 +366,7 @@ class TOPPPepNovoAdapter
 
           //resolve PTMs (match them back to the OpenMs Identifier String)
           std::vector<ProteinIdentification>prot_ids;
-          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, (-1)*std::numeric_limits<Real>::max(), id_to_rt, mods_and_keys);
+          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, (-1)*std::numeric_limits<DoubleReal>::max(), id_to_rt, mods_and_keys);
           prot_ids.push_back(protein_identification);
           IdXMLFile().store(outputfile_name,prot_ids, peptide_identifications);
         }
