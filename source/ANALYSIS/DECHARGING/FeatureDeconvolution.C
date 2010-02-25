@@ -531,7 +531,7 @@ namespace OpenMS
 		
 		std::cout << "creating wrapper..." << std::endl;
 		// forward set of putative edges to ILP
-		MIPWrapper lp_wrapper;
+		ILPDCWrapper lp_wrapper;
 		std::cout << "Done" << std::endl;
 		// compute best solution
 		DoubleReal ilp_score = lp_wrapper.compute(me, fm_out, feature_relation);

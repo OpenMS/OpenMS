@@ -31,7 +31,7 @@
 // OpenMS
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/ANALYSIS/DECHARGING/MIPWrapper.h>
+#include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 
@@ -58,7 +58,7 @@ namespace OpenMS
       typedef Feature FeatureType;
       typedef DPosition<2> ClusterPointType;
 			typedef FeatureMapType::FeatureType::CoordinateType CoordinateType;
-			typedef MIPWrapper::PairsType PairsType;
+			typedef ILPDCWrapper::PairsType PairsType;
 			
       /** @name Constructors and Destructor s
       */

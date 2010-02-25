@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DECHARGING_MIPWRAPPER_H
-#define OPENMS_ANALYSIS_DECHARGING_MIPWRAPPER_H
+#ifndef OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
+#define OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
 
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
@@ -36,7 +36,7 @@ namespace OpenMS {
 
 	class MassExplainer;
 	
-	class OPENMS_DLLAPI MIPWrapper
+	class OPENMS_DLLAPI ILPDCWrapper
 	{
 
 	public:
@@ -44,10 +44,10 @@ namespace OpenMS {
 		typedef PairsType::size_type PairsIndex;
 		
 		///Constructor
-		MIPWrapper();
+		ILPDCWrapper();
 
 		///Destructor
-		virtual ~MIPWrapper();
+		virtual ~ILPDCWrapper();
 
 		/// compute optimal solution and return value of objective function
 		/// @return value of objective function
@@ -69,5 +69,5 @@ namespace OpenMS {
     
 } // !namespace
 
-#endif // OPENMS_ANALYSIS_DECHARGING_MIPWrapper_H
+#endif // OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
 

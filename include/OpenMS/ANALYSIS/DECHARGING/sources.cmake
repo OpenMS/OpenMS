@@ -4,7 +4,7 @@ set(directory include/OpenMS/ANALYSIS/DECHARGING)
 ### list all header files of the directory here
 set(sources_list_h
 FeatureDeconvolution.h
-MIPWrapper.h
+ILPDCWrapper.h
 )
 
 ### add path to the filenames

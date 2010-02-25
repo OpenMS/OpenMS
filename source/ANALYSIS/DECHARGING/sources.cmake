@@ -4,7 +4,7 @@ set(directory source/ANALYSIS/DECHARGING)
 ### list all filenames of the directory here
 set(sources_list
 FeatureDeconvolution.C
-MIPWrapper.C
+ILPDCWrapper.C
 )
 
 ### add path to the filenames
