@@ -2056,6 +2056,7 @@ namespace OpenMS
 		util_map["DeMeanderize"] = StringList::create("");
 		util_map["UniqueIdAssigner"] = StringList::create("");
 		util_map["ImageCreator"] = StringList::create("");
+		util_map["IDSplitter"] = StringList::create("");
 		
 		return util_map;
 	}

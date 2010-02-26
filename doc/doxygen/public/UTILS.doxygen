@@ -43,6 +43,7 @@
   - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
 	- @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
   - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
+	- @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
   
   <b>Algorithm evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for for feature detection algorithms.
