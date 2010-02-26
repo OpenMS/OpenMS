@@ -36,7 +36,8 @@
 #include <utility>
 
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
@@ -103,16 +104,16 @@ namespace OpenMS {
       
       std::cout << "Total number of components: " << num << std::endl;
       // ** check size of components **
-      Map <int,int> hist_components, hist_component_sum;
+      OpenMS::Map <int,int> hist_components, hist_component_sum;
       // size of each component
       for (Size i = 0; i != component.size(); ++i) ++hist_components[component[i]];
       // summary of component size
-      for (Map <int,int>::const_iterator it=hist_components.begin();it!=hist_components.end();++it)
+      for (OpenMS::Map <int,int>::const_iterator it=hist_components.begin();it!=hist_components.end();++it)
       {
         ++hist_component_sum[it->second]; // e.g. component 2 has size 4; thus increase count for size 4 
       }
       std::cout << "components of size>2:\n";
-      for (Map <int,int>::const_iterator it=hist_component_sum.begin();it!=hist_component_sum.end();++it)
+      for (OpenMS::Map <int,int>::const_iterator it=hist_component_sum.begin();it!=hist_component_sum.end();++it)
       {
         if ((it->first)>2) std::cout << "  size " << it->first << " occurs " << it->second << "x\n";
       }

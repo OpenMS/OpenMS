@@ -274,11 +274,7 @@ namespace OpenMS
     }
     else
     {
-     	if (mods.size() == 0)
-      {
-      	error(LOAD, String("Cannot find modification '") + String(mass) + " " + String(origin) + "'");
-      }
-      else
+     	if (mods.size() > 0)
       {
        	String mod_str = mods[0];
         for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
@@ -595,17 +591,22 @@ namespace OpenMS
 
 		else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
 		{
-			DoubleReal modification_mass = 0.;
-			Size 			 modification_position = 0;
+			DoubleReal modification_mass = attributeAsDouble_(attributes, "mass");
+			Size 			 modification_position = attributeAsInt_(attributes, "position");
+      String     origin = String(current_sequence_[modification_position - 1]);
 			String 		 temp_description = "";
 			
-			modification_position = attributeAsInt_(attributes, "position");
-			modification_mass = attributeAsDouble_(attributes, "mass");
+			matchModification_(modification_mass, origin, temp_description);
 			
-			matchModification_(modification_mass, String(current_sequence_[modification_position - 1]), temp_description);
-			
-			// the modification position is 1-based
-			current_modifications_.push_back(make_pair(temp_description, modification_position));
+      if (temp_description.size()>0)
+      {
+			  // the modification position is 1-based
+			  current_modifications_.push_back(make_pair(temp_description, modification_position));
+      }
+      else
+      {
+      	error(LOAD, String("Cannot find modification '") + String(modification_mass) + " " + String(origin) + "' @" + String(modification_position));
+      }
 		}
 
 		else if (element == "aminoacid_modification") // parent: "search_summary"

@@ -37,7 +37,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -121,6 +121,10 @@ namespace OpenMS
 		else if (tmp == "PEPXML") 
 		{
 			return FileTypes::PEPXML;
+		}
+		else if (tmp == "PROTXML") 
+		{
+			return FileTypes::PROTXML;
 		}
 		else if (tmp == "MZIDENTML")
 		{
@@ -211,6 +215,8 @@ namespace OpenMS
 			return true;
 		case FileTypes::PEPXML:
 			return true;
+		case FileTypes::PROTXML:
+			return true;
 		case FileTypes::GELML:
 			return true;
 		case FileTypes::OMSSAXML:
@@ -299,6 +305,9 @@ namespace OpenMS
 
 		//pepXML (all lines)
 		if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\"")) return FileTypes::PEPXML;
+
+		//protXML (all lines)
+ 		if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/protXML\"")) return FileTypes::PROTXML;
 
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap")) return FileTypes::FEATUREXML;

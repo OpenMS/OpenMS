@@ -22,12 +22,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Katharina Albers, Clemens Groepl $
+// $Authors: Katharina Albers, Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
@@ -48,7 +49,6 @@ using namespace std;
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDFileConverter.cli
 	
-	@todo Write tests (Clemens, Chris, Hendrik)
 */
 
 // We do not want this class to show up in the docu:
@@ -67,9 +67,10 @@ protected:
   void
   registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<path>", "", "Input file/directory containing the output of the search engine.\n"
+    registerInputFile_("in", "<path/file>", "", "Input file or directory containing the output of the search engine.\n"
       "Sequest: Directory containing the .out files\n"
       "pepXML: Single pepXML file.\n"
+      "protXML: Single pepXML file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
     setValidFormats_("out", StringList::create("idXML,pepXML"));
@@ -228,7 +229,7 @@ protected:
 			if (in_type==FileTypes::PEPXML)
   		{
   			String exp_name = getStringOption_("mz_file"),
-					orig_name =	getStringOption_("mz_name");
+				orig_name =	getStringOption_("mz_name");
 
 				if (exp_name.empty()) {
 					PepXMLFile().load(in, protein_identifications,
@@ -248,6 +249,12 @@ protected:
   		{
   			IdXMLFile().load(in, protein_identifications, peptide_identifications);
   		}
+      else if (in_type==FileTypes::PROTXML)
+  		{
+        protein_identifications.resize(1);
+        peptide_identifications.resize(1);
+        ProtXMLFile().load(in, protein_identifications[0], peptide_identifications[0]);
+      }
 			else
 			{
 				writeLog_("Unknown input file type given. Aborting!");
@@ -281,7 +288,7 @@ protected:
 		}
 		else
 		{
-			writeLog_("Unknown output file type given. Aborting!");
+			writeLog_("Unsupported output file type given. Aborting!");
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}

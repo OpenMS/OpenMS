@@ -182,6 +182,8 @@ add_test("TOPP_IDFileConverter_1" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DI
 add_test("TOPP_IDFileConverter_1_out1" ${DIFF} -in1 IDFileConverter_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_1_output.idXML)
 add_test("TOPP_IDFileConverter_2" ${TOPP_BIN_PATH}/IDFileConverter -in ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.pepxml -mz_file ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.mzML -mz_name PepXMLFile_test -out IDFileConverter_2_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_2_out1" ${DIFF} -in1 IDFileConverter_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_2_output.idXML)
+add_test("TOPP_IDFileConverter_3" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/IDFileConverter_3_input.protXML -out IDFileConverter_3_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_3_out1" ${DIFF} -in1 IDFileConverter_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_3_output.idXML)
 
 ### IDFilter tests
 add_test("TOPP_IDFilter_1" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_1_input.idXML -out IDFilter_1_output.tmp -sequences_file ${DATA_DIR_TOPP}/IDFilter_1_input.fas)

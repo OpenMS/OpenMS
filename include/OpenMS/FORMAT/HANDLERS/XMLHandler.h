@@ -178,21 +178,21 @@ namespace OpenMS
 			std::vector< std::vector<String> > cv_terms_;
 			
 			/// Converts @p term to the index of the term in the cv_terms_ entry @p section
-			inline SignedSize cvStringToEnum_(Size section, const String& term, const char* message)
+      /// If the term is not found, @p result_on_error is returned (0 by default)
+			inline SignedSize cvStringToEnum_(const Size section, const String& term, const char* message, const SignedSize result_on_error = 0)
 			{
-				OPENMS_PRECONDITION(section<cv_terms_.size(),"cvStringToEnum_: Index overflow (secion number too large)");
+				OPENMS_PRECONDITION(section<cv_terms_.size(),"cvStringToEnum_: Index overflow (section number too large)");
 					
 				std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
-				if (it == cv_terms_[section].end())
-				{
-					warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
-				}
-				else
+				if (it != cv_terms_[section].end())
 				{
 					return  (it - cv_terms_[section].begin());
 				}
-				
-				return 0;
+				else
+				{
+					warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
+  				return result_on_error;
+				}
 			}
 
 			//@}

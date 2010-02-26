@@ -28,6 +28,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -44,6 +45,14 @@ namespace OpenMS
 		: XMLHandler("","1.2"),
 			XMLFile("/SCHEMAS/protXML_v6.xsd","6.0")
 	{
+    cv_terms_.resize(1);
+		// Enzymes
+    std::vector<String> enzyme_names(ProteinIdentification::SIZE_OF_DIGESTIONENZYME);
+    for (Size i=0;i<ProteinIdentification::SIZE_OF_DIGESTIONENZYME;++i)
+    {
+      enzyme_names[i]=String(ProteinIdentification::NamesOfDigestionEnzyme[i]).toUpper();
+    }
+		cv_terms_[0] = enzyme_names;
 	}
 
   void ProtXMLFile::load(const String& filename,  ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
@@ -87,20 +96,38 @@ namespace OpenMS
 	{		
 		String tag = sm_.convert(qname);
 		
+		if (tag =="protein_summary_header")
+    {
+      String db = attributeAsString_(attributes,"reference_database"); // e.g. "/share/usr/sequences/uniprot_sprot_human_55.4.fasta"
+      String enzyme = attributeAsString_(attributes,"sample_enzyme");
+      ProteinIdentification::SearchParameters sp = prot_id_->getSearchParameters();
+      sp.db = db;
+      // find a matching enzyme name
+      sp.enzyme =  (ProteinIdentification::DigestionEnzyme) cvStringToEnum_(0, enzyme.toUpper(), "sample_enzyme",ProteinIdentification::UNKNOWN_ENZYME);
+      prot_id_->setSearchParameters(sp);
+    }
 		// identifier for Protein & PeptideIdentification
 		//<program_details analysis="proteinprophet" time="2009-11-29T18:30:03"
-		
 		if (tag =="program_details")
 		{
-			String id = attributeAsString_(attributes,"analysis");
-			id += "_" + String(attributeAsString_(attributes,"time"));
+			String analysis = attributeAsString_(attributes,"analysis");
+			String time = attributeAsString_(attributes,"time");
+      String version = attributeAsString_(attributes,"version");
 			
+      QDateTime date = QDateTime::fromString ( time.toQString());
+      if (!date.isValid()) date = QDateTime::fromString ( time.toQString(), Qt::ISODate);
+      if (!date.isValid()) LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
+      prot_id_->setDateTime(date);
+      prot_id_->setSearchEngine(analysis);
+      prot_id_->setSearchEngineVersion(version);
+      String id = String(UniqueIdGenerator::getUniqueId());// was: analysis + "_" + time;
 			prot_id_->setIdentifier(id);
 			pep_id_->setIdentifier(id);
 		}
 
 		if (tag =="protein_group")
 		{
+      // we group all <protein>'s (indistinguishable or not) in our internal group structure
 			protein_group_ = ProteinGroup();
 			protein_group_.id = attributeAsString_(attributes,"group_number");
 			protein_group_.probability = attributeAsDouble_(attributes,"probability");
@@ -108,13 +135,12 @@ namespace OpenMS
 		}
 		else if (tag =="protein")
 		{
-			++protein_tag_count_;
-			if (protein_tag_count_>1)
-			{ // We currently assume that all proteins in a protein_group are indistinguisable.
-			  // A second protein-tag indicates that this is not the case. We thus might need to introduce subgroups of indistinguishable proteins within a group
-				LOG_ERROR << "ProtXMLFile parsing: unexpected second <protein> tag. Internal protein group structure might need addtional information to represent this!\n";
-			}
-			
+      // usually there will be just one <protein> per <protein_group>, but more are possible
+      // each <protein> is distinguishable from the other, we nevertheless group them
+
+			++protein_tag_count_; // reset for each new protein_group
+
+
 			// see if the Protein is already known (just a precaution)
 			String protein_name = attributeAsString_(attributes,"protein_name");
 			registerProtein_(protein_name); // create new protein (if required)
@@ -123,7 +149,15 @@ namespace OpenMS
 			master_protein_index_ = protein_name_to_index_[protein_name];
 
 			// fill protein with life
-			prot_id_->getHits()[master_protein_index_].setCoverage(attributeAsDouble_(attributes,"percent_coverage"));
+      DoubleReal pc_coverage;
+      if (optionalAttributeAsDouble_(pc_coverage, attributes,"percent_coverage"))
+      {
+			  prot_id_->getHits()[master_protein_index_].setCoverage(attributeAsDouble_(attributes,"percent_coverage"));
+      }
+      else
+      {
+        LOG_WARN << "Required attribute 'percent_coverage' missing. Skipping over.\n";
+      }
 			prot_id_->getHits()[master_protein_index_].setScore(attributeAsDouble_(attributes,"probability"));
 			
 		}
@@ -162,34 +196,41 @@ namespace OpenMS
 			AASequence temp_aa_sequence(pep_hit_->getSequence());
 
 			String temp_description = "";
-			matchModification_(mass, temp_aa_sequence[position - 1].getOneLetterCode() , temp_description);
-
-			// e.g. Carboxymethyl (C)
-			vector<String> mod_split;
-			temp_description.split(' ', mod_split);
-			if (mod_split.size() == 2)
-			{
-				if (mod_split[1] == "(C-term)" || ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::C_TERM)
-				{
-					temp_aa_sequence.setCTerminalModification(mod_split[0]);
-				}
-				else
-				{
-					if (mod_split[1] == "(N-term)" || ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::N_TERM)
-					{
-						temp_aa_sequence.setNTerminalModification(mod_split[0]);
-					}
-					else
-					{
-						// search this mod, if not directly use a general one
-						temp_aa_sequence.setModification(position - 1, mod_split[0]);
-					}
-				}
-			}
-			else
-			{
-				error(LOAD, String("Cannot parse modification '") + temp_description + "@" + position + "'");
-			}
+      String origin = temp_aa_sequence[position - 1].getOneLetterCode();
+			matchModification_(mass, origin, temp_description);
+      if (temp_description.size()>0) // only if a mod was found
+      {
+			  // e.g. Carboxymethyl (C)
+			  vector<String> mod_split;
+			  temp_description.split(' ', mod_split);
+			  if (mod_split.size() == 2)
+			  {
+				  if (mod_split[1] == "(C-term)" || ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::C_TERM)
+				  {
+					  temp_aa_sequence.setCTerminalModification(mod_split[0]);
+				  }
+				  else
+				  {
+					  if (mod_split[1] == "(N-term)" || ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::N_TERM)
+					  {
+						  temp_aa_sequence.setNTerminalModification(mod_split[0]);
+					  }
+					  else
+					  {
+						  // search this mod, if not directly use a general one
+						  temp_aa_sequence.setModification(position - 1, mod_split[0]);
+					  }
+				  }
+			  }
+			  else
+			  {
+				  error(LOAD, String("Cannot parse modification '") + temp_description + "@" + position + "'");
+			  }
+      }
+      else
+      {
+      	error(LOAD, String("Cannot find modification '") + String(mass) + " " + String(origin) + "' @" + String(position));
+      }
 
 			pep_hit_->setSequence(temp_aa_sequence);
 		}
@@ -241,11 +282,7 @@ namespace OpenMS
     }
     else
     {
-     	if (mods.size() == 0)
-      {
-      	error(LOAD, String("Cannot find modification '") + String(mass) + " " + String(origin) + "'");
-      }
-      else
+     	if (mods.size() > 0)
       {
        	String mod_str = mods[0];
         for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)

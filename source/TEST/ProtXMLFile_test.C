@@ -58,13 +58,15 @@ START_SECTION(void ProtXMLFile::load(const String& filename,  ProteinIdentificat
 	PeptideIdentification peptides;
 	String prot_file;
 
+  StringList ids = StringList::create("16627578304933075941,13229490167902618598");
+
 	// we do this twice, just to check that members are correctly reset etc..
 	for (Int i=0;i<2;++i)
 	{
 		prot_file = OPENMS_GET_TEST_DATA_PATH("ProtXMLFile_input_1.protXML");
 		f.load(prot_file, proteins, peptides);
-		TEST_EQUAL(proteins.getIdentifier(), "proteinprophet_Thu Sep  4 11:14:47 200");
-		TEST_EQUAL(peptides.getIdentifier(), "proteinprophet_Thu Sep  4 11:14:47 200");
+		TEST_EQUAL(proteins.getIdentifier(), ids[i]);
+		TEST_EQUAL(peptides.getIdentifier(), ids[i]);
 	
 		// groups	
 		TEST_EQUAL(proteins.getProteinGroups().size(), 7);

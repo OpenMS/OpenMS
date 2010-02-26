@@ -104,7 +104,15 @@ namespace OpenMS
   	- add a doxygen page for the tool and add the page to TOPP.doxygen
   	- hide the derived class in the OpenMS documentation by using doxygen condition macros.
   
-		@todo write subsections if type was given or if no type is used see MascotAdapterOnline (Andreas)
+		@todo write subsections if type was given or if no type is used; see MascotAdapterOnline (Andreas)
+
+    @todo: replace writeLog_, writeDebug_ with a logger concept
+           we'd need something like -VLevels <LOGGERS> to specify which loggers shall print something
+           the '-log' flag should clone all output to the log-file (maybe with custom <LOGGERS), which can either be specified directly or is
+              equal to '-out' (if present) with a ".log" suffix
+           maybe a new LOGGER type (TOPP), which is only useable on TOPP level?
+
+
   */
   class OPENMS_DLLAPI TOPPBase
   {

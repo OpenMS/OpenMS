@@ -61,6 +61,7 @@ namespace OpenMS
 			MZML,								///< MzML file (.mzML)
 			MS2,								///< MS2 file (.ms2)
 			PEPXML,							///< TPP pepXML file (.pepXML)
+			PROTXML,						///< TPP protXML file (.protXML)
 			MZIDENTML,				  ///< mzIdentML (HUPO PSI AnalysisXML format) (.mzIdentML)
 			GELML,							///< GelML (HUPO PSI format) (.GelML)
 			TRAML,							///< TraML (HUPO PSI format) for transitions (.TraML)
