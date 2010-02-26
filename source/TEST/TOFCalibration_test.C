@@ -141,6 +141,8 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< P
 
   Param param;
   param.setValue("PeakPicker:thresholds:peak_bound",400.0);
+  param.setValue("PeakPicker:fwhm_lower_bound_factor",0.7);
+  param.setValue("PeakPicker:fwhm_upper_bound_factor",10000.0);
   param.setValue("PeakPicker:thresholds:correlation",0.0);
   param.setValue("PeakPicker:signal_to_noise",3.0);
   param.setValue("PeakPicker:centroid_percentage",0.6);
