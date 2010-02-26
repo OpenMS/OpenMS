@@ -98,8 +98,8 @@
 	to determine the fwhm of one or several representative peaks.
 	
 	If the peak picker delivers only a few peaks even though the the peak_with and signal_to_noise parameters are
-	set to good values, you may consider changing the advanced parameter fwhm_bound_factor to a lower value.
-	All peaks with a lower fwhm than fwhm_bound_factor * peak_width are discarded.
+	set to good values, you may consider changing the advanced parameter fwhm_lower_bound_factor to a lower value.
+	All peaks with a lower fwhm than fwhm_lower_bound_factor * peak_width are discarded.
 
 	The following image shows a part of the spectrum with the picked peaks shown in green,
 	the estimated peak width in the log window and the measured peak width.
