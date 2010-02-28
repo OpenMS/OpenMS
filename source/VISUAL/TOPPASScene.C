@@ -645,7 +645,7 @@ namespace OpenMS
       {
       	current_type = (it->value).toString();
       	current_id = substrings[0];
-     		Int index = current_id.toInt();
+     		Int index = current_id.toInt()-1;
       
 				if (current_type == "input file list")
 				{
@@ -759,8 +759,8 @@ namespace OpenMS
       	std::cerr << "Invalid edge format" << std::endl;
       	break;
       }
-      Int index_1 = edge_substrings[0].toInt();
-      Int index_2 = edge_substrings[1].toInt();
+      Int index_1 = edge_substrings[0].toInt()-1;
+      Int index_2 = edge_substrings[1].toInt()-1;
       
       if (index_1 >= vertex_vector.size() || index_2 >= vertex_vector.size())
       {
