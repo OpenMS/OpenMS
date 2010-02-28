@@ -174,7 +174,7 @@ namespace OpenMS
 		if (scene_)
 		{
 			QRectF items_rect = scene_->itemsBoundingRect();
-			scene_->setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
+			scene_->setSceneRect(items_rect.united(mapToScene(viewport()->rect()).boundingRect()));
 		}
 	}
 	
