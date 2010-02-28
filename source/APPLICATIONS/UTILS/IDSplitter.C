@@ -71,7 +71,7 @@ protected:
 
 	void removeDuplicates_(vector<PeptideIdentification>& peptides)
 		{
-			// there is no "PeptideIdentification::operator<", so we can't use a map
+			// there is no "PeptideIdentification::operator<", so we can't use a set
 			// or sort + unique to filter out duplicates...
 			// just use the naive O(n²) algorithm
 			vector<PeptideIdentification> unique;
@@ -138,7 +138,12 @@ protected:
 					exp_it->getPeptideIdentifications().clear();
 				}
 				experiment.getProteinIdentifications().swap(proteins);
-				if (!out.empty()) MzMLFile().store(out, experiment);
+				if (!out.empty()) 
+				{
+					addDataProcessing_(experiment, 
+														 getProcessingInfo_(DataProcessing::FILTERING));
+					MzMLFile().store(out, experiment);
+				}
 			}
 
 			else if (in_type == FileTypes::FEATUREXML)
@@ -155,7 +160,12 @@ protected:
 					feat_it->getPeptideIdentifications().clear();
 				}
 				features.getProteinIdentifications().swap(proteins);
-				if (!out.empty()) FeatureXMLFile().store(out, features);
+				if (!out.empty())
+				{
+					addDataProcessing_(features, 
+														 getProcessingInfo_(DataProcessing::FILTERING));
+					FeatureXMLFile().store(out, features);
+				}
 			}
 
 			else // consensusXML
@@ -172,7 +182,12 @@ protected:
 					cons_it->getPeptideIdentifications().clear();
 				}
 				consensus.getProteinIdentifications().swap(proteins);
-				if (!out.empty()) ConsensusXMLFile().store(out, consensus);	
+				if (!out.empty()) 
+				{
+					addDataProcessing_(consensus, 
+														 getProcessingInfo_(DataProcessing::FILTERING));
+					ConsensusXMLFile().store(out, consensus);
+				}
 			}
 
 			if (!id_out.empty())
