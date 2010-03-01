@@ -47,8 +47,11 @@ using namespace std;
 	
 	@brief Application to compute peptide and protein abundances from annotated feature/consensus maps.
 
-	Quantification is based on the intensity values of the features. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.\n
-	Only features with unambiguous peptide annotation are used for peptide quantification, and only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
+	Quantification is based on the intensity values of the features in the input. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.\n
+	The peptide-to-protein step implements a general version of the "top 3 approach" (but only for relative quantification) described in:\n
+	Silva <em>et al.</em>: "Absolute quantification of proteins by LCMSE: a virtue of parallel MS acquisition" (Mol. Cell. Proteomics, 2006).
+
+	Only features/feature groups with unambiguous peptide annotation are used for peptide quantification, and only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
 
 	More information below the parameter specification.
 
@@ -667,7 +670,8 @@ namespace OpenMS
 					for (ConsensusMap::Iterator cons_it = consensus.begin(); 
 							 cons_it != consensus.end(); ++cons_it)
 					{
-						PeptideHit hit = getAnnotation_(cons_it->getPeptideIdentifications());
+						PeptideHit hit = 
+							getAnnotation_(cons_it->getPeptideIdentifications());
             for (ConsensusFeature::HandleSetType::const_iterator feat_it = 
 									 cons_it->getFeatures().begin(); feat_it !=
 									 cons_it->getFeatures().end(); ++feat_it)
