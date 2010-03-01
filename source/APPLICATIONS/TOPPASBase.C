@@ -896,7 +896,7 @@ namespace OpenMS
 			tv = new TOPPASOutputFileListVertex();
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
 			connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
-			connect (oflv, SIGNAL(iAmDone()), scene, SLOT(checkIfWeAreDone()));
+			scene->connectOutputVertexSignals(oflv);
 		}
 		else if (tool_name == "<Merger>")
 		{
@@ -931,23 +931,14 @@ namespace OpenMS
 			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
 			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 			
-			connect (ttv,SIGNAL(toolStarted()),scene,SLOT(setPipelineRunning()));
-			connect (ttv,SIGNAL(toolFailed()),scene,SLOT(pipelineErrorSlot()));
-			connect (ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
+			scene->connectToolVertexSignals(ttv);
 		}
 		
+		scene->connectVertexSignals(tv);
 		scene->addVertex(tv);
 		tv->setPos(x,y);
 		tv->setZValue(z_value_);
 		z_value_ += 0.000001;
-		
-		connect(tv,SIGNAL(clicked()),scene,SLOT(itemClicked()));
-		connect(tv,SIGNAL(released()),scene,SLOT(itemReleased()));
-		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),scene,SLOT(updateHoveringEdgePos(const QPointF&)));
-		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),scene,SLOT(addHoveringEdge(const QPointF&)));
-		connect(tv,SIGNAL(finishHoveringEdge()),scene,SLOT(finishHoveringEdge()));
-		connect(tv,SIGNAL(itemDragged(qreal,qreal)),scene,SLOT(moveSelectedItems(qreal,qreal)));
-		
 		scene->topoSort();
 		scene->setChanged(true);
 	}
