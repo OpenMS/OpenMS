@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <fstream>
 #include <iostream>

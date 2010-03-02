@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <QtCore/QString>
 
+#include <string>
 using namespace std;
 
 namespace OpenMS

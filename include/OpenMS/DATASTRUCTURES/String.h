@@ -29,12 +29,12 @@
 #define OPENMS_DATASTRUCTURES_STRING_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <string>
 #include <vector>
 
 class QString;
+
 
 namespace OpenMS
 {

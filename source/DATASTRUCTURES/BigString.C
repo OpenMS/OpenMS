@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/BigString.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <iostream>
 
 namespace OpenMS {

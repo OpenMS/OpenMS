@@ -29,6 +29,7 @@
 #define OPENMS_CONCEPT_SINGLETONREGISTRY_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <map>
 #include <iostream>

@@ -29,6 +29,8 @@
 #define OPENMS_FORMAT_FASTAITERATORINTERN_H
 
 #include <OpenMS/CHEMISTRY/PepIterator.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <vector>
 
 namespace OpenMS

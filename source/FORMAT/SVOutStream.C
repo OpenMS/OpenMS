@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <limits>
 
 using namespace std;

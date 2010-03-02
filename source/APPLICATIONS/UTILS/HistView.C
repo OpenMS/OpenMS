@@ -35,9 +35,9 @@
 */
 
 //QT
-#include <QtGui/QApplication>
-#include <QtGui/QMainWindow>
-#include <QtGui/QStyleFactory>
+#include <QApplication>
+#include <QMainWindow>
+#include <QStyleFactory>
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -47,6 +47,7 @@
 //STL
 #include <iostream>
 #include <fstream>
+#include <string>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
