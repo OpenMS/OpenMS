@@ -19,6 +19,10 @@ OpenMS library improvements:
 - read ProtXML files
 - Line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
 
+TOPPAS improvements:
+- Added copy&paste for workflow items
+- Workflows can now include other workflows (File>Include)
+- Several bugfixes
 
 Changes to the Build System:
 - external code support for CMake 2.8; External Code using 
