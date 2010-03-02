@@ -224,6 +224,7 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:TextExporter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:TextImporter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:XTandemAdapter", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:ProteinInference", "Protein/peptide Identification", "The category of the tool");
 		
 		// UTILS:
 		map<String,StringList> util_tools = TOPPBase::getUtilList();
