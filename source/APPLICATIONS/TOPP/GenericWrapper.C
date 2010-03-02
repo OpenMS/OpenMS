@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch$
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 
@@ -33,6 +33,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <QFileInfo>
 #include <typeinfo>
 
 using namespace OpenMS;
@@ -43,8 +44,37 @@ using namespace std;
 	
 	@brief Allows generically the wrapping of external tools.
 	
-	@todo Write docu
 
+  This tool is solely a wrapper to call external (non-OpenMS) executables/scripts.
+  The input is forwarded to the external tool, and the resulting output is
+  generated as specified by '-out'.
+  You must provide the command line to call the tool, which should contain the placeholders
+  <b>$in</b> and <b>$out</b>, which will be substituted by the given input and output name given to this tool.
+
+  Example:
+    ProteinProphet $in $out
+
+  Some external tools do not offer an output parameter (e.g. msConvert from the ProteoWizard suite).
+  Thus you cannot specify $out in the command line.
+  Instead, you can specify a set of rules that tell this wrapper what the name of output-file 
+  will be once the external tool is finished. This is used to derive the generated file and copy it 
+  to the location specified by '-out'.
+  Supported commands are:
+  path:<value>       The path
+  prefix:<value>     The prefix of the filename (without path)
+  suffix:<value>     The suffix of the filename (without path)
+
+  e.g.
+  path:/home/user/somedir
+  or
+  path:$in
+  will extract the path of the input file.
+
+  Example:
+    -in /home/user/myfile.raw -out /network/converted/myfile.mzML -call "msConvert $in --mzML" -output_rename "path:$in" "prefix:$in" ".mzML"
+  This tells GenericWrapper to expect the an output file which has just a changed suffix named mzML. It will thus expect 
+  a file named '/home/user/myfile.mzML' which it will move to '/network/converted/myfile.mzML'.
+  
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_GenericWrapper.cli
 */
@@ -71,6 +101,7 @@ class TOPPGenericWrapper
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	//setValidFormats_("out",StringList::create("mzML"));
 			registerStringOption_("call", "<call>", "", "Command line which calls the external tool, e.g. 'ProteinProphet $in $out'");
+			registerStringList_("output_rename", "<expression>", StringList(), "mapping which allows to bind the callee's output to the '-out' parameter, in case the outfile cannot be explicitly created (msConvert for example), e.g. 'base:$in','suffix:mzML'. The callee's output will be renamed to the '-out' param.", false);
 
 			addEmptyLine_();
 		}
@@ -85,25 +116,75 @@ class TOPPGenericWrapper
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
 			String call(getStringOption_("call"));
+      StringList rename_rules(getStringList_("output_rename"));
 			String logfile(getStringOption_("log"));
 		
       //-------------------------------------------------------------
       // call external program
       //-------------------------------------------------------------
 
-			writeDebug_("Original call: '" + call, 1);
-			call.substitute("$in", in);
-			call.substitute("$out", out);
-			writeDebug_("Final call: '" + call , 1);
+      String call_hot = call;
+			writeDebug_("Original call: '" + call + "'", 1);
+			call_hot.substitute("$in", in);
+			call_hot.substitute("$out", out);
+			writeDebug_("Final call: '" + call_hot + "'", 1);
 
-			Int status(system(call.c_str()));
+      // what is the expected output?
+      if (call.hasSubstring("$out") && rename_rules.size()>0)
+      {
+        writeLog_("The call to the external program already contains an $out parameter. Thus '-output_rename' should not be specified. Please remove either one.");
+        return ILLEGAL_PARAMETERS;
+      }
+      String out_internal;
+      for (Size i=0;i<rename_rules.size();++i)
+      {
+        if (rename_rules[i].hasPrefix("path:"))
+        {
+          out_internal += File::path(rename_rules[i].substr(5).substitute("$in",in).substitute("$out",out)).ensureLastChar('/');
+        }
+        else if (rename_rules[i].hasPrefix("prefix:"))
+        {
+          out_internal += File::removeExtension(File::basename(rename_rules[i].substr(7).substitute("$in",in).substitute("$out",out)));
+        }
+        else if (rename_rules[i].hasPrefix("suffix:"))
+        {
+          QFileInfo fi(rename_rules[i].substr(7).substitute("$in",in).substitute("$out",out).c_str());
+          out_internal += String(fi.suffix());
+        }
+        else // simply append
+        {
+          out_internal += rename_rules[i];
+        }
+
+      }
+      writeDebug_("Expected internal output file: " + out_internal, 1);
+
+			Int status(system(call_hot.c_str()));
       if (status != 0)
       {
         writeLog_("Error: External program problem! (Details can be seen in the logfile: \"" + logfile + "\")");
-				writeLog_("Call was '" + call + "'");
+				writeLog_("Call was '" + call_hot + "'");
         return EXTERNAL_PROGRAM_ERROR;
       }
-			
+
+
+      // rename interal tools output file (if applicable)
+      if (out_internal.trim().size()>0)
+      {
+        if (File::exists(out_internal))
+        { // copy
+          QFile qf(out_internal.toQString());
+          qf.rename(out.toQString());
+        }
+        else
+        { // file not found
+          writeLog_("Expected interal program's output file '" + out_internal + "' not found, despite internal tool returning successfully. Please check your if the file is named differently and adjust '-output_rename'.");
+  				writeLog_("Call was '" + call_hot + "'");
+          return EXTERNAL_PROGRAM_ERROR;
+        }
+
+      }
+
 			return EXECUTION_OK;
 		}
 };

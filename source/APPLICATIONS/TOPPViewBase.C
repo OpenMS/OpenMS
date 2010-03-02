@@ -801,7 +801,7 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addDataFile(const String& filename,bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
+  void TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
   {
     setCursor(Qt::WaitCursor);
 
@@ -832,7 +832,7 @@ namespace OpenMS
       return;
 		}
 
-		//try to load data and determine if it is 1D or 2D data
+		//try to load data and determine if it's 1D or 2D data
 		FeatureMapType feature_map;
 		ExperimentType peak_map;
 		ConsensusMapType consensus_map;
