@@ -1976,6 +1976,7 @@ namespace OpenMS
 		tools_map["DBImporter"] = StringList::create("");
 		tools_map["DTAExtractor"] = StringList::create("");
 		tools_map["Decharger"] = StringList::create("");
+		tools_map["ExecutePipeline"] = StringList::create("");
 		tools_map["FalseDiscoveryRate"] = StringList::create("");
 		tools_map["FeatureFinder"] = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
 		tools_map["FeatureLinker"] = Factory<FeatureGroupingAlgorithm>::registeredProducts();

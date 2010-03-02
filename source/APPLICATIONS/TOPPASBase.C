@@ -179,6 +179,7 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:DBImporter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:DTAExtractor", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:Decharger", "Quantitation", "The category of the tool");
+		defaults_.setValue("tool_categories:ExecutePipeline", "Misc", "The category of the tool");
 		defaults_.setValue("tool_categories:FalseDiscoveryRate", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:FeatureFinder", "Quantitation", "The category of the tool");
 		defaults_.setValue("tool_categories:FeatureLinker", "Quantitation", "The category of the tool");

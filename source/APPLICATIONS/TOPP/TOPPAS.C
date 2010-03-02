@@ -37,7 +37,7 @@
   Furthermore, TOPPAS interactively performs validity checks during the pipeline
   editing process, in order to make it more difficult to create an invalid workflow.
   Once set up and saved, a workflow can also be run without the GUI using
-  the @em TOPPAS @em -execute \<file\> command line option.
+  the @em ExecutePipeline TOPP tool.
   
   The following figure shows a simple example pipeline that has just been created
   and executed successfully:
@@ -59,8 +59,6 @@
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h> 
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -90,8 +88,6 @@ void print_usage()
 			 << "Options are:" << endl
 			 << "  --help           Shows this help" << endl
 			 << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << endl
-			 << "  -execute <File>  Executes the specified pipeline without starting the GUI" << endl
-			 << "  -out_dir <Dir>   Specifies the directory where output files will be written (when used with -execute)" << endl
 			 << endl ;
 }
 
@@ -101,6 +97,7 @@ int main( int argc, const char** argv )
 	Map<String,String> valid_options, valid_flags, option_lists;
 	valid_flags["--help"] = "help";
 	valid_options["-ini"] = "ini";
+	//invalid, but keep for now in order to inform users where to find this functionality now
 	valid_options["-execute"] = "execute";
 	valid_options["-out_dir"] = "out_dir";
 	
@@ -133,47 +130,11 @@ int main( int argc, const char** argv )
 	{
 #endif
 
-	  if (param.exists("execute"))
+	 	if (param.exists("execute") || param.exists("out_dir"))
 		{
-			QApplication a(argc, const_cast<char**>(argv), false);
-			TOPPASScene ts(0, QDir::tempPath()+QDir::separator(), false);
-			a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()));
-			a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()));
-			String toppas_file = (String)param.getValue("execute");
-			ts.load(toppas_file);
+			cout << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl; 
 			
-			if (param.exists("out_dir"))
-			{
-				QString out_dir_name = ((String)param.getValue("out_dir")).toQString();
-				if (QDir::isRelativePath(out_dir_name))
-				{
-					out_dir_name = QDir::currentPath() + QDir::separator() + out_dir_name;
-				}
-				
-				if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
-				{
-					ts.setOutDir(out_dir_name);
-				}
-				else
-				{
-					cout << "The specified output directory does not exist. Aborting." << endl;
-					return 1;
-				}
-			}
-			else
-			{
-				cout << "No output directory specified. Trying current directory..." << endl;
-				
-				if (!File::writable("test_file_in_the_current_directory"))
-				{
-					cout << "You do not have permission to write in the current directory. Aborting." << endl;
-					return 1;
-				}
-			}
-			
-			ts.runPipeline();
-			
-			return a.exec();
+			return 1;
 		}
 		
 		QApplication a( argc, const_cast<char**>(argv));

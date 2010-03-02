@@ -107,5 +107,5 @@
 
   <b>Misc</b>
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
-
+	- @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
 */
