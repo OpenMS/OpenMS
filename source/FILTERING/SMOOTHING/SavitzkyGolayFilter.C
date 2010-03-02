@@ -35,7 +35,7 @@ namespace OpenMS
       DefaultParamHandler("SavitzkyGolayFilter"),
       coeffs_()
   {
-    defaults_.setValue("frame_length",11,"The number of subsequent peaks used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
+    defaults_.setValue("frame_length",11,"The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     defaults_.setValue("polynomial_order",4,"Order or the polynomial that is fitted.");
     
     defaultsToParam_();

@@ -79,7 +79,7 @@ class TOPPBaselineFilter
 			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out","<file>","","output raw data file ");
 	  	setValidFormats_("out",StringList::create("mzML"));
-      registerDoubleOption_("struc_elem_length","<size>",3,"Length of the structuring element.",false);
+      registerDoubleOption_("struc_elem_length","<size>",3,"Length of the structuring element (should be wider than maximal peak width - see documentation).",false);
       registerStringOption_("struc_elem_unit","<unit>","Thomson","Unit of 'struc_elem_length' parameter.",false);
 			setValidStrings_("struc_elem_unit",StringList::create("Thomson,DataPoints"));
       registerStringOption_("method","<string>","tophat","The name of the morphological filter to be applied. If you are unsure, use the default.",false);

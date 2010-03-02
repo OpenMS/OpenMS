@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -45,10 +45,14 @@ using namespace std;
 
    @brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
 
-   The Decharger uses an ILP approach to group charge variants (including undesired adducts like K+) of the same peptide, which
+   The Decharger uses an ILP approach to group charge variants of the same peptide, which
    usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,
    are written to consensusXML. Intensities of charge variants are summed up. The position of the zero charge
-   variant is the average of all clustered peptides in each dimension.
+   variant is the average of all clustered peptides in each dimension (m/z and RT).
+   It is also possible to include adducted species to the charge ladders (see 'potential_adducts' parameter).
+   Via this mechanism it is also possible to use this tool to find pairs/triples/quadruples/... in labeled data (by specifing the mass
+   tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
+   This will allow to tighten the RT search window, thus reducing false positive results.
 
 	 <B>The command line parameters of this tool are:</B>
    @verbinclude TOPP_Decharger.cli
