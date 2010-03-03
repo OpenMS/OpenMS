@@ -59,7 +59,7 @@ using namespace std;
   Thus you cannot specify $out in the command line.
   Instead, you can specify a set of rules via the '-output_forwarding' parameter that tell this wrapper what the name of output-file 
   will be once the external tool is finished. This is used to derive the generated filename and copy it 
-  to the location specified by '-out'.
+  to the location specified by '-out'.<br>
   Supported commands are:<br>
   path:&lt;value&gt;       The path<br>
   prefix:&lt;value&gt;     The prefix of the filename (without path)<br>
@@ -75,9 +75,8 @@ using namespace std;
 
   All strings of '-output_forwarding' will be evaluated and concatenated, resulting in the expected output file from the external tool.
 
-  Example:
-   GenericWrapper -in /home/user/myfile.raw -out /network/converted/myfile.mzML -call "msConvert $in --mzML -o /network/tmp/" -output_forwarding "path:/network/tmp/" "prefix:$in" ".mzML"
-   <br>
+  Example:<br>
+  <tt>GenericWrapper -in /home/user/myfile.raw -out /network/converted/myfile.mzML -call "msConvert $in --mzML -o /network/tmp/" -output_forwarding "/network/tmp/" "prefix:$in" ".mzML"</tt><br>
   This tells GenericWrapper to expect an output file which has just a changed suffix named mzML. It will thus expect 
   a file named '/network/tmp/myfile.mzML' which it will move to '/network/converted/myfile.mzML'.
   
