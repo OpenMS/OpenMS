@@ -170,6 +170,13 @@
 			In the @b INIFileEditor, the documentation of most parameters is displayed
 			as tooltip when you hover above the parameter name with the mouse pointer.
 
+		@subsection TOPP_parameter_creation Updating an INI file for a TOPP tool
+
+			If you have an old INI file which does not work for a newer OpenMS version 
+			(due to renamed/removed or new) parameters, you can rescue parameter's
+			whose name did not change into the new version by calling the corresponding TOPP tool
+			with '-ini <myini.ini> -write_ini <myini.ini>'. This will remove invalid parameters and
+			add new parameters (if available) while retaining values for unchanged parameters.
 */
 
 //##############################################################################
