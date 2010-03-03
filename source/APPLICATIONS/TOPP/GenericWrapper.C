@@ -60,12 +60,12 @@ using namespace std;
   Instead, you can specify a set of rules via the '-output_forwarding' parameter that tell this wrapper what the name of output-file 
   will be once the external tool is finished. This is used to derive the generated filename and copy it 
   to the location specified by '-out'.
-  Supported commands are:
+  Supported commands are:<br>
   path:&lt;value&gt;       The path<br>
   prefix:&lt;value&gt;     The prefix of the filename (without path)<br>
   suffix:&lt;value&gt;     The suffix of the filename (without path)<br>
-  &lt;value&gt;            Leaves the value as it is
-  <br>
+  &lt;value&gt;            Leaves the value as it is<br>
+
   Valid &lt;value&gt;'s:<br>
   - any string which is a valid file or path
   - any of: $in, $out or $cwd (current working directory)
@@ -76,10 +76,10 @@ using namespace std;
   All strings of '-output_forwarding' will be evaluated and concatenated, resulting in the expected output file from the external tool.
 
   Example:
-   GenericWrapper -in /home/user/myfile.raw -out /network/converted/myfile.mzML -call "msConvert $in --mzML -o z:/tmp/" -output_forwarding "path:z:/tmp/" "prefix:$in" ".mzML"
+   GenericWrapper -in /home/user/myfile.raw -out /network/converted/myfile.mzML -call "msConvert $in --mzML -o /network/tmp/" -output_forwarding "path:/network/tmp/" "prefix:$in" ".mzML"
    <br>
   This tells GenericWrapper to expect an output file which has just a changed suffix named mzML. It will thus expect 
-  a file named '/home/user/myfile.mzML' which it will move to '/network/converted/myfile.mzML'.
+  a file named '/network/tmp/myfile.mzML' which it will move to '/network/converted/myfile.mzML'.
   
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_GenericWrapper.cli
