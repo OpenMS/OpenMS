@@ -22,13 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MS2FILE_H
 #define OPENMS_FORMAT_MS2FILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
