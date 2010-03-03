@@ -131,15 +131,15 @@ class TOPPFileInfo
 	{
 		registerInputFile_("in","<file>","","input file ");
 #ifdef USE_ANDIMS
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML,pepXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
 #else
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
 #endif
 		registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content", false);
 #ifdef USE_ANDIMS
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML,pepXML"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
 #else
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
 #endif
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
 		registerFlag_("m","Show meta information about the whole experiment");

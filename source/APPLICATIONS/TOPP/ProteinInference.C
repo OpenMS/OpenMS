@@ -70,7 +70,9 @@ class TOPPProteinInference
 			registerIntOption_("min_peptides_per_protein", "<num>", 2, "Minimal number of peptides needed for a protein identification", false);
 			setMinInt_("min_peptides_per_protein", 1);
 
-			registerSubsection_("algorithm","Consensus algorithm section");
+			registerFlag_("treat_charge_variants_separately", "If this flag is set, different charge variants of the same peptide sequence count as inidividual evidences.");
+			registerFlag_("treat_modification_variants_separately", "If this flag is set, different modification variants of the same peptide sequence count as individual evidences.");
+			//registerSubsection_("algorithm","Consensus algorithm section");
 		}
 
 		ExitCodes main_(int , const char**)
@@ -83,17 +85,14 @@ class TOPPProteinInference
 			vector<PeptideIdentification> pep_ids;
 			IdXMLFile().load(in, prot_ids, pep_ids);
 
+			vector<ProteinIdentification> prot_id;
+			prot_id.push_back(*prot_ids.begin());
+
+			Map<String, Size> acc_counts;
 			for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
 			{
-				Map<String, Size> acc_counts;
 				for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 				{
-					// only consider peptide identifications of the same id run
-					if (it1->getIdentifier() != it->getIdentifier())
-					{
-						continue;
-					}
-
 					// for all peptide hits
 					for (vector<PeptideHit>::const_iterator it2 = it1->getHits().begin(); it2 != it1->getHits().end(); ++it2)
 					{
@@ -128,12 +127,6 @@ class TOPPProteinInference
 				// remove peptides that are not accepted
 				for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 				{
-					// only consider peptide identifications of the same id run
-					if (it1->getIdentifier() != it->getIdentifier())
-					{
-						continue;
-					}
-					
 					vector<PeptideHit> peptide_hits = it1->getHits();
 					it1->setHits(vector<PeptideHit>());
 
@@ -164,12 +157,6 @@ class TOPPProteinInference
 				// fix wrong accessions of the peptides (to proteins that were removed)
 				for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
         {
-          // only consider peptide identifications of the same id run
-          if (it1->getIdentifier() != it->getIdentifier())
-          {
-            continue;
-          }
-         
 				 	vector<PeptideHit> peptide_ids = it1->getHits();
           for (vector<PeptideHit>::iterator it2 = peptide_ids.begin(); it2 != peptide_ids.end(); ++it2)
           {
@@ -187,9 +174,17 @@ class TOPPProteinInference
         }
 			}
 
+			DateTime now = DateTime::now();
+			String identifier(now.get() + "_TOPPProteinInference");
+			for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+			{
+				it->setIdentifier(identifier);
+			}
+
+			prot_id[0].setIdentifier(identifier);
 
 			// write output
-			IdXMLFile().store(out, prot_ids, pep_ids);
+			IdXMLFile().store(out, prot_id, pep_ids);
 
 			return EXECUTION_OK;
 		}

@@ -37,7 +37,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG", "fid"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -59,6 +59,11 @@ namespace OpenMS
 		// no '.' => unknown type
 		catch (Exception::ElementNotFound&)
 		{
+      // last chance, Bruker fid file
+      if (filename.size() >= 3 && filename.suffix(3) == "fid")
+      {
+        return FileTypes::XMASS;
+      }
 			return FileTypes::UNKNOWN;
 		}
 		tmp.toUpper();
@@ -224,6 +229,9 @@ namespace OpenMS
 		case FileTypes::PNG:
 			return true;
 		case FileTypes::TRAML:
+			return true;
+		case FileTypes::XMASS:
+			return true;
 		default:
 			return false;
 		}

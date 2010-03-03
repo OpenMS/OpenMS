@@ -14,6 +14,8 @@ set(sources_list
 	XTandemInfileXMLHandler.C
 	MzIdentMLHandler.C
 	TraMLHandler.C
+	AcqusHandler.C
+	FidHandler.C
 )
 
 if (USE_ANDIMS) 	 

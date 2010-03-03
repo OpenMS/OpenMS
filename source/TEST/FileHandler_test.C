@@ -176,6 +176,8 @@ START_SECTION((template < class PeakType > bool loadExperiment(const String &fil
   TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 	TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
+	
+	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"),exp), true)
 
 	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp, FileTypes::DTA2D))
 END_SECTION
@@ -188,6 +190,7 @@ START_SECTION((static bool isSupported(FileTypes::Type type)))
 	TEST_EQUAL(true, tmp.isSupported(FileTypes::MZDATA));
 	TEST_EQUAL(true, tmp.isSupported(FileTypes::MZML));
   TEST_EQUAL(true, tmp.isSupported(FileTypes::MZXML));
+  TEST_EQUAL(true, tmp.isSupported(FileTypes::XMASS));
 	TEST_EQUAL(true, tmp.isSupported(FileTypes::FEATUREXML));
 #ifdef USE_ANDIMS
   TEST_EQUAL(true, tmp.isSupported(FileTypes::ANDIMS));

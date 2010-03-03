@@ -248,7 +248,7 @@ class TOPPIDFilter
 				vector<PeptideHit> hits;
 				for (vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); it != identifications[i].getHits().end(); ++it)
 				{
-					if (it->metaValueExists("protein_references"))
+					if (!it->metaValueExists("protein_references"))
 					{
 						writeLog_("IDFilter: Warning, filtering with 'unique_per_protein' can only be done after indexing the file with 'PeptideIndexer' first.");
 					}

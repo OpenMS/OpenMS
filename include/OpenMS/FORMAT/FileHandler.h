@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -206,6 +207,14 @@ namespace OpenMS
 						f.load(filename, exp);
 						return true;
 					}
+				case FileTypes::XMASS:
+				{
+					exp.reset();
+					exp.resize(1);
+					XMassFile().load(filename, exp[0]);
+					XMassFile().importExperimentalSettings(filename, exp);
+					return true;
+				}
 				default:
 					break;
 			}

@@ -68,6 +68,7 @@ namespace OpenMS
 			MSP,								///< NIST spectra library file format (.msp)
 			OMSSAXML,						///< OMSSA XML file format for peptide identifications (.xml)
 			PNG,                ///< Portable Network Graphics (.png)
+			XMASS,              ///< XMass Analysis file (fid)
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};
 	};

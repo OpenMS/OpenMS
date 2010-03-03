@@ -50,6 +50,7 @@ SVOutStream.C
 TextFile.C
 TransformationXMLFile.C
 UnimodXMLFile.C
+XMassFile.C
 XMLFile.C
 XTandemInfile.C
 XTandemXMLFile.C

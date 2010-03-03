@@ -176,6 +176,7 @@ set(format_executables_list
   TraMLFile_test
   TransformationXMLFile_test
   UnimodXMLFile_test
+	XMassFile_test
   XMLFile_test
   XMLValidator_test
   XTandemInfile_test

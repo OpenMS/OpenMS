@@ -75,15 +75,15 @@ class TOPPFileConverter
 	{
 		registerInputFile_("in","<file>","","input file ");
 #ifdef USE_ANDIMS
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2,fid"));
 #else
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid"));
 #endif
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
 #ifdef USE_ANDIMS
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2,fid"));
 #else
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid"));
 #endif
 
 		registerOutputFile_("out","<file>","","output file ");
