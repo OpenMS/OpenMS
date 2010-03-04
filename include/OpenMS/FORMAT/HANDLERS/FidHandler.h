@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz
-// $Authors: Guillaume Belz
+// $Maintainer: Guillaume Belz$
+// $Authors: Guillaume Belz$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_FIDHANDLER_H

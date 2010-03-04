@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz
-// $Authors: Guillaume Belz
+// $Maintainer: Guillaume Belz$
+// $Authors: Guillaume Belz$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
@@ -59,7 +59,9 @@ namespace OpenMS
         unsigned char c2 = get();
         unsigned char c3 = get();
         unsigned char c4 = get();
-             
+      
+				cerr << "c1='" << c1 << "', c2='" << c2 << "', c3='" << c3 << "', c4='" << c4 << "'" << endl;
+
         Size value = c4;
         value <<= 8;
         value |= c3;
