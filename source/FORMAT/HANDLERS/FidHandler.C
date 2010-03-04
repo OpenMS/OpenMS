@@ -37,7 +37,7 @@ namespace OpenMS
 	namespace Internal
 	{
       FidHandler::FidHandler(const String& filename)
-        : ifstream(filename.c_str())
+        : ifstream(filename.c_str(), ios_base::binary | ios_base::in)
       {
         index_ = 0;
         seekg(0, ios::beg);
@@ -55,12 +55,10 @@ namespace OpenMS
       Size FidHandler::getIntensity()
       {
         // intensity is coded in 32 bits little-endian integer format
-        unsigned char c1 = get();
-        unsigned char c2 = get();
-        unsigned char c3 = get();
-        unsigned char c4 = get();
-      
-				cerr << "c1='" << c1 << "', c2='" << c2 << "', c3='" << c3 << "', c4='" << c4 << "'" << endl;
+        Size c1 = get();
+        Size c2 = get();
+        Size c3 = get();
+        Size c4 = get();
 
         Size value = c4;
         value <<= 8;
