@@ -111,7 +111,7 @@ using namespace OpenMS;
   - mass_separation_light_medium - mass gap between light and medium isotopic envelopes [Da] (only relevant for the search for SILAC triplets, i.e. type triple)
   - mass_separation_light_heavy - mass gap between light and heavy isotopic envelopes [Da]
   - charge_min/max - range of charge states
-  - mz_step_width - step width with which the interpolated spectrum, Fig. (b), is scanned. The step width should be of about the same order with which the raw data were recorded, see Fig. (a).
+  - mz_schrittweite - step width with which the interpolated spectrum, Fig. (b), is scanned. The step width should be of about the same order with which the raw data were recorded, see Fig. (a).
 
   The remaining parameters should be tuned in the following order:
   - intensity_cutoff - adjust the intensity cutoff such that the data points that pass the non-local filter (*.featureXML layer) form clear distinct clusters,  see Fig. (e). Ignore the coloring of the clusters at that stage.
@@ -300,8 +300,8 @@ class TOPPSILACAnalyzer2
       tmp.setValue("intensity_cutoff", 5000.0, "intensity cutoff");
       tmp.setMinFloat("intensity_cutoff", 0.0);
 
-      tmp.setValue("mz_step_width", 0.01, "step width with which the (interpolated) spectrum is scanned, m/Z (Th)");
-      tmp.setMinFloat("mz_step_width",0.0);
+      tmp.setValue("mz_schrittweite", 0.01, "step width with which the (interpolated) spectrum is scanned, m/Z (Th)");
+      tmp.setMinFloat("mz_schrittweite",0.0);
 
       tmp.setValue("rt_scaling",0.05,"scaling factor of retention times (Cluster height [s] an\ncluster width [Th] should be of the same order. The clustering algorithms work better for\nsymmetric clusters.)");
       tmp.setMinFloat("rt_scaling", 0.0);
@@ -341,7 +341,7 @@ class TOPPSILACAnalyzer2
       UInt charge_min = getParam_().getValue("algorithm:charge_min");
       UInt charge_max = getParam_().getValue("algorithm:charge_max");
 
-      DoubleReal mz_step_width = getParam_().getValue("algorithm:mz_step_width");
+      DoubleReal mz_schrittweite = getParam_().getValue("algorithm:mz_schrittweite");
       DoubleReal intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
       DoubleReal rt_scaling = getParam_().getValue("algorithm:rt_scaling");
       DoubleReal optimal_silhouette_tolerance = getParam_().getValue("algorithm:optimal_silhouette_tolerance");
@@ -443,7 +443,7 @@ class TOPPSILACAnalyzer2
             gsl_interp_accel *acc2 = gsl_interp_accel_alloc();
             gsl_spline *spline2 = gsl_spline_alloc(gsl_interp_cspline, number_data_points);
             gsl_spline_init(spline2, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
-            for (DoubleReal mz=mz_min+isotope_distance; mz<mz_max-envelope_distance_light_heavy-3*isotope_distance; mz+=mz_step_width)
+            for (DoubleReal mz=mz_min+isotope_distance; mz<mz_max-envelope_distance_light_heavy-3*isotope_distance; mz+=mz_schrittweite)
             {
               DoubleReal int_lin1 = gsl_spline_eval (spline, mz, acc);
               DoubleReal int_lin2 = gsl_spline_eval (spline, mz+isotope_distance, acc);
