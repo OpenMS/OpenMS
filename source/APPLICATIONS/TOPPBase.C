@@ -2029,6 +2029,7 @@ namespace OpenMS
     tools_map["PrecursorMassCorrector"] = StringList::create("");
     tools_map["GenericWrapper"] = StringList::create("");
     tools_map["ProteinInference"] = StringList::create("");
+    tools_map["InclusionExclusionlistCreator"] = StringList::create("");
 
 		return tools_map;
 	}
