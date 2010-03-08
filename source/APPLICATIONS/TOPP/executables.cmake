@@ -62,6 +62,7 @@ TOPPView
 TextExporter
 TextImporter
 XTandemAdapter
+InclusionExclusionlistCreator
 )
 
 ### add filenames to Visual Studio solution tree
