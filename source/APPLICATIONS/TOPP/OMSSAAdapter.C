@@ -297,6 +297,7 @@ class TOPPOMSSAAdapter
 			PeakMap map;
 			
 			String parameters;
+      /// @todo This is not used! remove!
 			String temp_directory(getStringOption_("temp_directory"));
 			String unique_name = File::getUniqueName(); // body for the tmp files
 			String unique_input_name = unique_name + "_OMSSA.mgf";

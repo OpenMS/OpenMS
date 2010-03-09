@@ -626,7 +626,8 @@ namespace OpenMS
 						map<String, Size> prot_runs;
 						Size max_prot_run = 0;
 						StringList comments;
-						if (!no_ids) {
+						if (!no_ids) 
+            {
 							String pep_line = "Protein identification runs associated with peptide/protein columns below: ";
 							for (vector<ProteinIdentification>::const_iterator prot_it =
 										 consensus_map.getProteinIdentifications().begin();

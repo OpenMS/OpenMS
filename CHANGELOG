@@ -55,6 +55,7 @@ BugFixes:
 - #110	Copy&paste, include workflows in current window
 - #121	Tool categories and menu items in context menus have arbitrary order
 - #122	Projection view: mouse-over text on RT projection says "m/z"
+- #133  Textexporter runs indefinitely when input has no IDs and -consensus_features is specified
 
 For more minor bugfixes visit the above URL.
 
