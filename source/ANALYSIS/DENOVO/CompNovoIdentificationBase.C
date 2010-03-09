@@ -70,7 +70,7 @@ namespace OpenMS
 		defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", StringList::create("advanced"));
 		defaults_.setValue("missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
 		defaults_.setValue("number_of_hits", 100, "maximal number of hits which are reported per spectrum");
-		defaults_.setValue("estimate_precursor_mz", "false", "If set to true, the precursor charge will be estimated, e.g. from the precursor peaks of the ETD spectrum.\n"
+		defaults_.setValue("estimate_precursor_mz", "true", "If set to true, the precursor charge will be estimated, e.g. from the precursor peaks of the ETD spectrum.\n"
 																												 "The input is believed otherwise.");
 		defaults_.setValidStrings("estimate_precursor_mz", StringList::create("true,false"));
 		defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring", StringList::create("advanced"));
