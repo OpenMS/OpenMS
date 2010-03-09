@@ -647,7 +647,7 @@ namespace OpenMS
 								}
 								else prot_runs[run_id] = max_prot_run;
 							}
-							--max_prot_run; // increased beyond max. at end of for-loop
+							if (max_prot_run>0) --max_prot_run; // increased beyond max. at end of for-loop
 							comments << pep_line;
 						}
 
