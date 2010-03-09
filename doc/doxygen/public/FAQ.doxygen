@@ -49,8 +49,10 @@
 		</UL>
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
-
-
+			<LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
+				The Thermo interface expects an english locale setting. Otherwise it will silently forget to
+				return peak data. Set your locale to english and it should work.
+			
 			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B><BR>
 				If a error message similar to
 				@code OpenMS::File::find(...) of File.C error message: the file 'CHEMISTRY/Elements.xml' could not be found @endcode
