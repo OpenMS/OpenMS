@@ -108,8 +108,7 @@ namespace OpenMS
 
 		/// for internal use only!
     static void applyToFeature_( const std::vector<Feature>::iterator &iter,
-                                 TransformationDescription::Trafo_ const& trafo
-                               );
+                                 const TransformationDescription& trafo );
 
 	 private:
 		/// Copy constructor is not implemented -> private
