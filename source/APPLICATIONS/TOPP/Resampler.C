@@ -46,15 +46,10 @@ using namespace std;
 /**
 	@page TOPP_Resampler Resampler
 
-	@brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
+	@brief Resampler can be used to transform an LC/MS map into a resampled map.
 
 	When writing an peak file, all spectra are resampled with a new sampling
 	rate.  The number of spectra does not change.
-
-	When writing an image, the input is first resampled into a matrix using
-	bilinear forward resampling.  Then the content of the matrix is written to
-	a PNG file.  The output has a uniform spacing in both dimensions regardless
-	of the input.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_Resampler.cli
