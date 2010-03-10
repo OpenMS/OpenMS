@@ -42,7 +42,7 @@ namespace OpenMS
 
 		defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to use in the alignment.\nSelect a value that allows only 'high confidence' matches.");
 
-		defaults_.setValue("min_run_occur", 2, "Minimum number of runs a peptide must occur in to be used for the alignment.");
+		defaults_.setValue("min_run_occur", 2, "Minimum number of runs a peptide must occur in to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
 		defaults_.setMinInt("min_run_occur", 2);
 
 		defaults_.setValue("max_rt_shift", 0.5, "Maximum realistic RT difference for a peptide (median per run vs. median overall).\nPeptides with higher shifts are not used to compute the alignment.\nIf > 1, the final value in seconds; if <= 1, taken as a fraction of the total retention time range.");
