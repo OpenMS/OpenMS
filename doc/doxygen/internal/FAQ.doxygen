@@ -307,16 +307,27 @@ svn propset svn:eol-style native MyClass.C
 	        <TT>gdb&gt; run</TT>
 	      </OL>
 
-				<LI><B>(Linux) How can I find out which shared libraries are used by an application?</B>
+			<LI><B>How can I find out which shared libraries are used by an application?</B>
 				<BR>
-				ldd &lt;application&gt;
+        Linux:
+				<code>ldd &lt;application&gt;</code>
+        <BR>
+        Windows (Visual studio console):
+        Try "Dependency Walker"(http://www.dependencywalker.com/)
+        or <code>dumpbin /DEPENDENTS OpenMS.dll</code>
 
-				<LI><B>(Linux) How can I get a list of the symbols defined in a (shared) library or object file?</B>
+			<LI><B>How can I get a list of the symbols defined in a (shared) library or object file?</B>
 				<BR>
+        Linux:
 				<code>nm &lt;library&gt;</code>
-				<BR>
-				Use <code>nm -C</code> to switch on demangling of low-level symbols into their C++-equivalent names.
+        Use <code>nm -C</code> to switch on demangling of low-level symbols into their C++-equivalent names.
 				<code>nm</code> also accepts <code>.a</code> and <code>.o</code> files.
+				<BR>
+        Windows (Visual studio console):
+				<code>dumpbin /ALL &lt;library&gt;</code>
+				<BR>
+				You can use dumpbin on object files (.o) or (shared) library files (.lib) or the DLL itself
+        e.g. <code>dumpbin /EXPORTS OpenMS.dll</code>
 
 		</UL>
 
@@ -329,14 +340,14 @@ svn propset svn:eol-style native MyClass.C
 
 	    <LI><b>Reading/Writing binary files causes different behaviour ...</b><BR>
       Usually Linux does not make a difference between text-mode and binary-mode when reading files.
-      This is quite different on Windows some bytes are interpreted as EOF, which might to a premature end of the reading process.
-      So if reading binary files make sure that you explicitly state that the file is binary when opening it!
+      This is quite different on Windows as some bytes are interpreted as EOF, which lead might to a premature end of the reading process.
+      Thus, if reading binary files make sure that you explicitly state that the file is binary when opening it!
       
-      During writing in text-mode on windows a line-break (\n) is expanded to (\r\n). Keep this in mind or use the eol-style property of subversion to
+      During writing in text-mode on windows a line-break (\\n) is expanded to (\\r\\n). Keep this in mind or use the eol-style property of subversion to
       ensure that line endings are correctly checked out on non-Windows systems.
       
       <LI><b>unsigned int vs size_t (UInt and Size)</b><BR>
-      Is the same on Linux GCC (both have the same size, no matter if on 32 or 64 bit systems), however on Windows this only holds
+      UInt and Size are the same on Linux GCC (i.e. both have the same size, 32bit on 32bit systems, 64bit on 64 bit systems), however on Windows this only holds
       for 32bit. On a 64bit Windows the UInt type is still 32bit, Size is (obviously) 64bit. This might lead to warnings (at best) or
       overflows and other nasty stuff. So make sure you do not rely on UInt being equal to Size - because they're not.
       
@@ -567,8 +578,8 @@ svn propset svn:eol-style native MyClass.C
 		</UL>
 	<H2 style="border-top:2px solid grey;">Profiling and memory leaks and strange behaviour</H2>
 		
-		<b> First check that the executable you are calling actually is the correct one (in case you have multiple OpenMS version installed),
-		and also that it uses the correct OpenMS library (check PATH (Win) or LD_LIBRARY_PATH (Linux)).</b>
+		<b> First check that the executable you are calling actually is the correct one (in case you have multiple %OpenMS version installed),
+		and also that it uses the correct %OpenMS library (check PATH (Win) or LD_LIBRARY_PATH (Linux)).</b>
 		Otherwise you might get the strangest access violations, pointing to arbitrary code.
 		
 		<UL>
