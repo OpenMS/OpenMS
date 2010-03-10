@@ -11,6 +11,7 @@ PROJECT("OpenMS")
 ### - do NOT hardcode them here!                     ###
 ### - edit them within CMakeCache.txt using ccmake	 ###
 ########################################################
+# CONTRIB_CUSTOM_DIR
 # OPENMS_BUILD_TYPE
 # CONTRIB_CUSTOM_DIR
 # STL_DEBUG

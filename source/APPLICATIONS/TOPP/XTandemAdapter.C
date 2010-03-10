@@ -274,7 +274,6 @@ class TOPPXTandemAdapter
 			// calculations
 			//-------------------------------------------------------------
 
-			String call = xtandem_executable + " " + input_filename;
 			int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
 			
 			if (status != 0)
