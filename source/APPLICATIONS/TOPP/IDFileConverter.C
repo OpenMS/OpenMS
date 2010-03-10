@@ -70,7 +70,7 @@ protected:
     registerInputFile_("in", "<path/file>", "", "Input file or directory containing the output of the search engine.\n"
       "Sequest: Directory containing the .out files\n"
       "pepXML: Single pepXML file.\n"
-      "protXML: Single pepXML file.\n"
+      "protXML: Single protXML file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
     setValidFormats_("out", StringList::create("idXML,pepXML"));
