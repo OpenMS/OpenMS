@@ -376,7 +376,7 @@ namespace OpenMS
 					{
 	      
 	  
-						for(UInt curr_peak=0; peak_it+curr_peak < peak_it_last-1;++curr_peak)
+						for(UInt curr_peak=0; curr_peak < (ms_exp_it+curr_scan)->size()-1;++curr_peak)
 							{
 		  
 								// store the m/z of the current peak
@@ -1045,11 +1045,11 @@ namespace OpenMS
 				first_peak_mz = (exp_it->begin() + set_iter->second)->getMZ() - 1;
 				
 				// find the last entry with this rt-value
-				++pair.first;
+				if(pair.first < iso_map_iter->second.peaks.size()-1) ++pair.first;
 				IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks.begin(),
-																												 iso_map_iter->second.peaks.end(),
-																												 pair,IndexLess());
-				--set_iter2;
+                                                                         iso_map_iter->second.peaks.end(),
+                                                                         pair,IndexLess());
+				if(set_iter2 != iso_map_iter->second.peaks.begin()) --set_iter2;
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 				
 				//std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
