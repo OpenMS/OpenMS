@@ -64,41 +64,69 @@ namespace OpenMS
     ~InternalCalibration(){}
 
 	/**
-		 Calibrate a map using given reference masses. The calibration function is calculated for each spectrum
+     @brief Calibrate a peak map using given reference masses with a separate calibration function for each spectrum.
+     
+		 The calibration function is calculated for each spectrum
 		 separately. If not enough reference masses are found for a spectrum it is left uncalibrated.
      For the matching of the reference masses and the peaks, the parameter mz_tolerance is used to
      calculate a window around the reference masses. If more than one peak is found within this window the
      closest peak is taken.
+     @param exp the uncalibrated peak map
+     @param calibrated_exp the calibrated peak map
+     @param ref_masses the reference m/z values
 	*/		
     template<typename InputPeakType>
     void calibrateMapSpectrumwise(const MSExperiment<InputPeakType>& exp,MSExperiment<InputPeakType>& calibrated_exp, std::vector<DoubleReal>& ref_masses);
 
 	/**
-		 Calibrate a map using given reference masses. The calibration function is calculated for the whole map.
+     @brief Calibrate a peak map using given reference masses with one calibration function for the whole map.
+     
+		 The calibration function is calculated for the whole map.
      For the matching of the reference masses and the peaks the parameter mz_tolerance is used to
      calculate a window around the reference masses. If more than one peak is found within this window the
      closest peak is taken.
+     @param exp the uncalibrated peak map
+     @param calibrated_exp the calibrated peak map
+     @param ref_masses the reference m/z values
+     @param trafo_file_name file where the transformation function of the calibration is stored
 	*/		
     template<typename InputPeakType>
     void calibrateMapGlobally(const MSExperiment<InputPeakType>& exp,MSExperiment<InputPeakType>& calibrated_exp, std::vector<DoubleReal>& ref_masses,String trafo_file_name = "");
 
 	/**
-		 Calibrate a map using given identifications. The calibration function is calculated for the whole map.
+     @brief Calibrate a peak map using given reference ids with one calibration function for the whole map.
+     
+		 Calibrate a map using given peptide identifications. The calibration function is calculated for the whole map.
      The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide.
      For the matching of the reference masses and the peaks the parameter mz_tolerance is used to
      calculate a window around the reference masses. If more than one peak is found within this window the
      closest peak is taken.
+     @param exp the uncalibrated peak map
+     @param calibrated_exp the calibrated peak map
+     @param ref_ids the reference peptide identifications
+     @param trafo_file_name file where the transformation function of the calibration is stored
 	*/
     template<typename InputPeakType>
     void calibrateMapGlobally(const MSExperiment<InputPeakType>& exp, MSExperiment<InputPeakType>& calibrated_exp,std::vector<PeptideIdentification>& ref_ids,String trafo_file_name = "");
 
 	/**
+     @brief Calibrate an annotated feature map with one calibration function for the whole map.
+     
 		 Calibrate an annotated (!) feature map using the features' identifications. The calibration function is calculated for the whole map. The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide.
+     @param feature_map the uncalibrated feature map (annotated with peptide ids)
+     @param calibrated_feature_map the calibrated feature map
+     @param trafo_file_name file where the transformation function of the calibration is stored
 	*/
     void calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,String trafo_file_name = "");
 
 	/**
-		 Calibrate a feature map using given reference identifications. The calibration function is calculated for the whole map. Even if the features are already annotated with peptide ids these annotations are ignored for the calibration, only the reference ids are used. The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide. The reference ids are mapped onto the FeatureMap using IDMapper with the mz_tolerance and rt_tolerance parameters.
+     @brief Calibrate a feature map using given reference ids with one calibration function for the whole map.
+     
+		 Calibrate a feature map using given peptide identifications. The calibration function is calculated for the whole map. Even if the features are already annotated with peptide ids these annotations are ignored for the calibration, only the reference ids are used. The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide. The reference ids are mapped onto the FeatureMap using IDMapper with the mz_tolerance and rt_tolerance parameters.
+     @param feature_map the uncalibrated feature map
+     @param calibrated_feature_map the calibrated feature map
+     @param ref_ids the reference peptide identifications
+     @param trafo_file_name file where the transformation function of the calibration is stored
 	*/
     void calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,std::vector<PeptideIdentification>& ref_ids,String trafo_file_name = "");
 
