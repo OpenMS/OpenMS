@@ -43,7 +43,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-//~ #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 
 //Contrib includes
@@ -418,7 +418,7 @@ class TOPPSILACAnalyzer2
           logger_.setProgress(rt_it-exp.begin());
           Size number_data_points = rt_it->size();
           // spectra with less than 10 data points are being ignored
-          if (number_data_points>=10) {
+          if (number_data_points>=10) { //filter MS1 spectra (
             // read one OpenMS spectrum into GSL structure
             std::vector<DoubleReal> mz_vec;
             std::vector<DoubleReal> intensity_vec;
@@ -502,12 +502,13 @@ class TOPPSILACAnalyzer2
         //-------------------------------------------------------------
         // conduct clustering
         //-------------------------------------------------------------
-        //~ ClusterHierarchical ch;
+        ClusterHierarchical ch;
 		AverageLinkage al;
         al.setLogType(log_type_);
         std::vector< BinaryTreeNode > tree;
         al(distance_matrix_copy, tree, std::numeric_limits<float>::max());
-
+void cluster(std::vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)
+			ch.cluster(data,,al,tree,distance_matrix_copy)
         //-----------------------------------------------------------------
         // find number of clusters which maximizes average silhouette width
         //-----------------------------------------------------------------
@@ -518,7 +519,7 @@ class TOPPSILACAnalyzer2
         std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));
         //~ std::vector< Real >::iterator max_el(max_element((asw.end()-((Int)data.size()/10) ),asw.end()));//only the first size/10 steps are reviewed
         int best_n = (int)tree.size();
-        Real max_deviation((*max_el)*(optimal_silhouette_tolerance/100));
+        Real max_deviation((*max_el)*(optimal_silhouette_tolerance/100)); //wichtig, anschauen!
         for (Size i = 0; i < asw.size(); ++i)
         {
           if(std::fabs(asw[i]-(*max_el))<=max_deviation)
@@ -925,6 +926,7 @@ class TOPPSILACAnalyzer2
       //--------------------------------------------------------------
       //write gnuplot script
       //--------------------------------------------------------------
+// + silhoutte width in gnuplot
 	  // strings repeatedly used in debug output
 	  String light_medium_string = String(0.01*floor(mass_separation_light_medium*100+0.5)); 
 	  String light_heavy_string = String(0.01*floor(mass_separation_light_heavy*100+0.5));
