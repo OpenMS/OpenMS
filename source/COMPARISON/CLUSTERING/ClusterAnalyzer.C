@@ -27,6 +27,8 @@
 //
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <map>
+
 
 //using namespace std;
 
@@ -70,11 +72,10 @@ namespace OpenMS
 				break;
 			}
 		}
-
 		std::vector< Real > average_silhouette_widths; //for each step from the average silhouette widths of the clusters
-		std::vector< Real > interdist_i((*leafs.rbegin())+1,std::numeric_limits<Real>::max()); //for each element i holds the min. average intercluster distance in cluster containing i
-		std::vector< Size > cluster_with_interdist((*leafs.rbegin())+1,0); //for each element i holds which cluster originated the min. intercluster distance
-		std::vector< Real > intradist_i((*leafs.rbegin())+1,0.0); //for each element i holds the average intracluster distance in [i]
+		std::map<Size, Real > interdist_i; //for each element i holds the min. average intercluster distance in cluster containing i
+		std::map<Size, Size > cluster_with_interdist; //for each element i holds which cluster originated the min. intercluster distance
+		std::map<Size, Real > intradist_i; //for each element i holds the average intracluster distance in [i]
 
 		//inital values for interdis_i and cluster_with_interdist
 		std::set<Size>::iterator it = leafs.begin();
@@ -105,7 +106,7 @@ namespace OpenMS
 		*/
 
 		//initial cluster state
-		std::vector< std::vector < Size > > clusters(original.dimensionsize());
+		std::map<Size, std::vector < Size > > clusters;
 		for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
 		{
 			clusters[*it].push_back(*it);
@@ -508,7 +509,7 @@ namespace OpenMS
 		return all_dunn_indices;
 	}
 
-	void ClusterAnalyzer::cut(Size cluster_quantity, std::vector< std::vector<Size> >& clusters, std::vector<BinaryTreeNode>& tree)
+	void ClusterAnalyzer::cut(Size cluster_quantity, std::vector<std::vector<Size> >& clusters, std::vector<BinaryTreeNode>& tree)
 	{
 		if(cluster_quantity==0)
 		{
@@ -518,22 +519,42 @@ namespace OpenMS
 		{
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partition contains singleton clusters, further separation is not possible");
 		}
-		clusters.clear();
-		clusters.reserve(tree.size()+1);
-		for (Size i = 0; i < tree.size()+1; ++i)
+
+		std::set<Size> leafs;
+		for (Size i = 0; i < tree.size(); ++i)
 		{
-			clusters.push_back(std::vector<Size>(1,i));
+			leafs.insert(tree[i].left_child);
+			leafs.insert(tree[i].right_child);
+			if(tree[i].distance == -1)
+			{
+				break;
+			}
+		}
+
+		std::map<Size,std::vector<Size> > cluster_map;
+		std::set<Size>::iterator it = leafs.begin();
+		//++it;
+		for (; it != leafs.end(); ++it)
+
+		{
+			cluster_map[*it]=std::vector<Size>(1,*it);
 		}
 		//redo clustering till step (original.dimensionsize()-cluster_quantity)
 		for (Size cluster_step = 0; cluster_step < tree.size()+1-cluster_quantity; ++cluster_step)
 		{
 			//pushback elements of right_child to left_child (and then erase second)
-			clusters[tree[cluster_step].left_child].insert(clusters[tree[cluster_step].left_child].end(),clusters[tree[cluster_step].right_child].begin(),clusters[tree[cluster_step].right_child].end());
+			cluster_map[tree[cluster_step].left_child].insert(cluster_map[tree[cluster_step].left_child].end(),cluster_map[tree[cluster_step].right_child].begin(),cluster_map[tree[cluster_step].right_child].end());
 
 			// erase second one
-			clusters[tree[cluster_step].right_child].clear();
+			cluster_map[tree[cluster_step].right_child].clear();
 		}
-
+		//clusters.reserve(tree.size()+1);
+		  std::map<Size,std::vector<Size> >::iterator iter;
+		  for( iter = cluster_map.begin(); iter != cluster_map.end(); ++iter )
+		{
+			std::vector<Size> actCluster=iter->second;
+			clusters.push_back(actCluster);
+		}
 		//~ sorts by first element contained!!
 		for (Size cluster_num = 0; cluster_num < clusters.size(); ++cluster_num)
 		{
