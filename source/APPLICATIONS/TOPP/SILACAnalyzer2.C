@@ -291,6 +291,10 @@ private:
 	FeatureMap<> all_cluster_points;
 
 
+/**
+ * Check for all elements of the tree which have not distance=-1 to which
+ * subtree they belong
+ */
 
 	std::vector<Tree> extractSubtrees(Tree& tree)
 	{
@@ -313,6 +317,10 @@ private:
 				}
 			}
 		}
+		/**
+		 * Create correct tree structur:
+		 * sort the ascending, first by distance, second by the first element (see method "treeSort()")
+		 */
 		std::vector<Tree> subtrees;
 		subtrees.reserve(subtree_map.size());
 		for(std::map<Size,Tree>::iterator it=subtree_map.begin();it!=subtree_map.end();++it){
@@ -320,6 +328,7 @@ private:
 			sort(actTree.begin(),actTree.end(),treeSort);
 			subtrees.push_back(actTree);
 		}
+		//Append elements of the tree with distance=-1 as subtrees with one element
 		for (Tree::iterator it=tree.begin();it!=tree.end();++it)
 		{
 			if (leafs.find(it->left_child)==leafs.end() && leafs.find(it->right_child)==leafs.end())
@@ -601,8 +610,10 @@ public:
 			al.setLogType(log_type_);
 			DistanceMatrix<Real> dist;
 			std::vector< BinaryTreeNode > tree;
+			//start clustering and deliver the cutoff value at which the clustering can be stopped
 			al(distance_matrix_copy,tree,distance_cutoff);
 
+			//create the subtree vector of the whole tree
 			std::vector<Tree> subtrees=extractSubtrees(tree);
 			//-----------------------------------------------------------------
 			// find number of clusters which maximizes average silhouette width
@@ -611,17 +622,20 @@ public:
 			ClusterAnalyzer ca;
 
 
-			//choose asw that deviates at most the given percentage (optimal_silhouette_tolerance) from the max asw and contains the most clusters
 
+			//create the vector for the final clusters
 			std::vector<Cluster> best_clusters;
+			best_clusters.reserve(distance_matrix.dimensionsize());
 
 			//std::cout << "Elements: " << distance_matrix.dimensionsize() << std::endl;
 			//std::cout << "Overall tree size: " << tree.size() << std::endl << "Overall tree:" << std::endl << ca.ClusterAnalyzer::newickTree(tree,true) << std::endl;
 
-			best_clusters.reserve(distance_matrix.dimensionsize());
+			//create a vector for the best_n of every subtree and remember the sum of all best_ns
 			std::vector<int> best_ns;
 			int sum_best_n=0;
 
+
+			//run silhoutte optimization for all subtrees and find the appropriate best_n
 			for (std::vector<Tree>::iterator it=subtrees.begin();it!=subtrees.end();++it)
 			{
 				Tree actTree=*it;
@@ -633,6 +647,8 @@ public:
 				}
 
 				//std::cout <<"Subtree: "<< ca.ClusterAnalyzer::newickTree(actTree) << std::endl << "Elements: " << leafs.size() << std::endl;
+
+				//choose asw that deviates at most the given percentage (optimal_silhouette_tolerance) from the max asw and contains the most clusters
 				std::vector< Real >asw = ca.averageSilhouetteWidth(actTree,distance_matrix);
 
 				std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));
