@@ -100,6 +100,7 @@ namespace OpenMS
     V_("@@@ StablePairFinder::updateMembers_()");
 
     diff_exponent_[RT] = (DoubleReal) param_.getValue("diff_exponent:RT");
+    ///@todo this cannot happen, as params are checked within param object
     if ( diff_exponent_[RT] <= 0 )
     {
       throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
@@ -168,6 +169,7 @@ namespace OpenMS
   StablePairFinder::distance_( ConsensusFeature const & left,
                                ConsensusFeature const & right ) const
   {
+    // distance from position
     DPosition<2> position_difference = left.getPosition() - right.getPosition();
     for ( UInt dimension = 0; dimension < 2; ++dimension )
     {
@@ -181,6 +183,8 @@ namespace OpenMS
         diff_exponent_[dimension]);
     }
     DoubleReal result = position_difference[RT] + position_difference[MZ];
+    
+    // distance from intensity
     if ( intensity_exponent_ != 0 )
     {
       DoubleReal right_intensity(right.getIntensity());
@@ -201,6 +205,8 @@ namespace OpenMS
       intensity_ratio = pow(intensity_ratio, intensity_exponent_);
       result *= intensity_ratio;
     }
+
+    // distance from charge
     if ( left.getCharge() != right.getCharge() )
     {
       result *= different_charge_penalty_;
