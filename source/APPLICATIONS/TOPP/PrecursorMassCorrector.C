@@ -47,9 +47,15 @@ using namespace std;
 	
 	@brief Corrects the precursor entries of MS/MS spectra, by using MS1 information.
 
-	There is currently only one option implemented. The tool expects as input data produced from
-	an ABI/SCIEX QStar Pulsar I, or a similar instrument. It is a QTof instrument with 
-	a moderate resolution. 
+	This tool corrects the m/z entries of MS/MS spectra by using MS1 information. Therefore,
+	MS1 spectra must be supplied as profile mode spectra. The isotope distribution of the
+	peptide in the MS1 level information are then used to determine the exact position
+	of the monoisotopic peak. If no isotope distribution can be found the original 
+	entry is kept. As a side effect of determining the exact position of the monoisotopic
+	peak is that the charge state is also annotated. 
+
+	This implementation uses the isotopewavelet featurefinder and sets the monoisotopic
+	peak (and the charge) to the nearest feature.
 
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
@@ -81,17 +87,12 @@ class TOPPPrecursorMassCorrector
 			registerInputFile_("feature_in", "<file>", "", "Input featureXML file, containing features; if set, the MS/MS spectra precursor entries \n"
 																										 "will be matched to the feature m/z values if possible.", false);
 
-			//registerStringOption_("type", "<instrument_type>", "", "Type of instrument used");
-			//setValidStrings_("type", StringList::create("QStarPulsarI"));
-
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Maximal deviation in Th which is acceptable to be corrected;\n"
 																																						"this value should be set to the instruments selection window.", false);
 			setMinFloat_("precursor_mass_tolerance", 0);
 
 			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge that should be assumend for precursor peaks", false, true);
 			registerDoubleOption_("intensity_threshold", "<threshold>", -1.0, "Intensity threshold value for isotope wavelet feature finder, please look at the documentation of the class for details.", false, true);
-			/// @improvement add merging of spectra of the same precursor and feature
-
 		}
 
 		ExitCodes main_(int , const char**)
