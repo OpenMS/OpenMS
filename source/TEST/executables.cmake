@@ -242,6 +242,7 @@ set(filtering_executables_list
   TOFCalibration_test
   ThresholdMower_test
   WindowMower_test
+	SpectraMerger_test
 )
 
 set(comparison_executables_list

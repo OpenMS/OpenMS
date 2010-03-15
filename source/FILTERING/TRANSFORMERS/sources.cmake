@@ -25,6 +25,7 @@ SqrtMower.C
 TICFilter.C
 ThresholdMower.C
 WindowMower.C
+SpectraMerger.C
 )
 
 ### add path to the filenames

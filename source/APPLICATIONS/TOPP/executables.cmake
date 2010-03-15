@@ -63,6 +63,7 @@ TextExporter
 TextImporter
 XTandemAdapter
 InclusionExclusionlistCreator
+SpectraMerger
 )
 
 ### add filenames to Visual Studio solution tree
