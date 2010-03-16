@@ -66,7 +66,7 @@ namespace OpenMS
       }
 			return FileTypes::UNKNOWN;
 		}
-		
+		tmp=tmp.toUpper();
     if (tmp == "BZ2" || tmp == "ZIP" || tmp == "GZ")
 		{
 			return getTypeByContent(filename);
