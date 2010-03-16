@@ -113,7 +113,7 @@ class TOPPPeptideIndexer
 			Map<String, Map<Size, Size> > prot_idx_hits;			
 			
 			// map the number of the peptide to the corresponding iterator in vector<PeptideHits>
-			Size needle_count = numeric_limits<Size>::max();
+			Size needle_count = (numeric_limits<Size>::max)();
 			Map<String, Size> peptide_to_idx;
 			
 			for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
