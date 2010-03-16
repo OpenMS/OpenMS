@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Knut Reinert $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -113,10 +113,10 @@ class TOPPPeptideIndexer
 			Map<String, Map<Size, Size> > prot_idx_hits;			
 			
 			// map the number of the peptide to the corresponding iterator in vector<PeptideHits>
-			Size needleCount=-1;
-			Map<Size,vector<PeptideHit>::iterator> needleMap;
+			Size needle_count = numeric_limits<Size>::max();
+			Map<String, Size> peptide_to_idx;
 			
-			for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+			for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 			{
 				String run_id = it1->getIdentifier();
 				vector<PeptideHit> hits = it1->getHits();
@@ -124,9 +124,9 @@ class TOPPPeptideIndexer
 				{
 					it2->setProteinAccessions(vector<String>());
 					String seq = it2->getSequence().toUnmodifiedString();
-					seqan::appendValue(needle,seq.c_str());
+					seqan::appendValue(needle, seq.c_str());
 					
-					needleMap[++needleCount] = it2;
+					peptide_to_idx[seq] = ++needle_count;
 				}
 			}
 			
@@ -135,7 +135,7 @@ class TOPPPeptideIndexer
 			seqan::String<char> all_protein_sequences;
 			// build map accessions to proteins
 			Map<String, vector<Size> > acc_to_prot;
-			Size pos = 0;
+			Size pos(0);
 			Map<Size, Size> idx_to_protein; // stores the begin indices of the 'all_protein_sequences' string and the corresponding protein indices (proteins vector)
 			vector<Size> protein_idx_vector; // contains all begin indices of the proteins in the 'all_protein_sequences' string
 			for (Size i = 0; i != proteins.size(); ++i)
@@ -157,29 +157,17 @@ class TOPPPeptideIndexer
 			seqan::Finder<seqan::String<char>  > finder(all_protein_sequences); 
 			seqan::Pattern<seqan::StringSet<seqan::String<char> >, seqan::AhoCorasick > pattern(needle); 
 			
-			seqan::String<seqan::Pair<Size,Size> > patHits;
-			writeDebug_("Finding Peptide/Protein matches...", 1);
-			while(find(finder, pattern)){
-				appendValue(patHits,seqan::Pair<Size,Size>(position(pattern),position(finder)));
-				cout << seqan::Pair<Size,Size>(position(pattern),position(finder)) << endl;
+			seqan::String<seqan::Pair<Size, Size> > pat_hits;
+			Map<Size, vector<Size> > peptide_to_indices;
+			writeDebug_("Finding peptide/protein matches...", 1);
+			while (find(finder, pattern))
+			{
+				seqan::appendValue(pat_hits, seqan::Pair<Size, Size>(position(pattern), position(finder)));
+				peptide_to_indices[position(pattern)].push_back(position(finder));
 			}
-	
-			cout << "Found needles " << endl;
-			exit(0);
-			
-			
-			
-			// ANDREAS. This will go away. the patHits contains, <number of peptide, positionin concatenated protein string>
-			
-			writeDebug_("Building Index...", 1);
-			
-			seqan::String<Size> suffix_array;
-			resize(suffix_array, seqan::length(all_protein_sequences));
-			createSuffixArray(suffix_array, all_protein_sequences, seqan::Skew7()); 
-			
-			writeDebug_("Suffix array built", 1);
-			
-			
+			writeDebug_("Ended finding", 1);
+
+			writeDebug_("Reindexing peptide/protein matches...", 1);
 			for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 			{
 				String run_id = it1->getIdentifier();
@@ -190,12 +178,13 @@ class TOPPPeptideIndexer
 					String seq = it2->getSequence().toUnmodifiedString();
 
 					
-					seqan::Pair<Size> hits;
-					hits = seqan::equalRangeSA(all_protein_sequences, suffix_array, seq.c_str()); 
+					//seqan::Pair<Size> hits;
+					//hits = seqan::equalRangeSA(all_protein_sequences, suffix_array, seq.c_str()); 
 
-					for (Size i = hits.i1; i < hits.i2; ++i)
+
+					for (vector<Size>::const_iterator it = peptide_to_indices[peptide_to_idx[seq]].begin(); it != peptide_to_indices[peptide_to_idx[seq]].end(); ++it)
 					{
-						vector<Size>::const_iterator lower_bound_iter = lower_bound(protein_idx_vector.begin(), protein_idx_vector.end(), suffix_array[i]) - 1;
+						vector<Size>::const_iterator lower_bound_iter = lower_bound(protein_idx_vector.begin(), protein_idx_vector.end(), *it) - 1;
 						Size prot_idx = idx_to_protein[*lower_bound_iter];
 						it2->addProteinAccession(proteins[prot_idx].identifier);
 
@@ -323,6 +312,7 @@ class TOPPPeptideIndexer
 				new_prot_id.setHits(protein_hits);
 				new_prot_ids.push_back(new_prot_id);
 			}
+			writeDebug_("Ended reindexing", 1);
 			
 			//-------------------------------------------------------------
       // writing output
