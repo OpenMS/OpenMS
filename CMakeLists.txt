@@ -119,6 +119,16 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 
+
+#########################################################
+#            Mac OS X DEPLOYMENT TARGET                 #
+#########################################################
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	message(STATUS "Setting CMAKE_OSX_DEPLOYMENT_TARGET to 10.5")
+	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE INTERNAL "Set OS X Deployment Target to 10.5 to build packages compatible to leopard" FORCE )
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 ##### Parallelization things
 #################################
 
@@ -906,11 +916,7 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
 	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
 	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
-	if (APPLE)
-		set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/License.txt)
-	else()
-		set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
-	endif()
+  set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
 	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
 
