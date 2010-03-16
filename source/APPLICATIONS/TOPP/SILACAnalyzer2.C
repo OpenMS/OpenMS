@@ -522,7 +522,10 @@ public:
 
 		tmp.setValue("intensity_cutoff", 5000.0, "intensity cutoff");
 		tmp.setMinFloat("intensity_cutoff", 0.0);
-
+		
+		tmp.setValue("distance_cutoff", 20.0, "distance cutoff");
+		tmp.setMinFloat("distance_cutoff", 0.0);
+		
 		tmp.setValue("mz_stepwidth", 0.01, "step width with which the (interpolated) spectrum is scanned, m/Z (Th)");
 		tmp.setMinFloat("mz_stepwidth",0.0);
 
