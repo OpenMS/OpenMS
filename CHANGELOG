@@ -10,7 +10,9 @@ TOPP tools:
 	- merges featureXML
 - NEW: 
 	- GenericWrapper (e.g. to wrap ProteinProphet in TOPPAS)
-
+- REMOVE:
+  - TextImporter was removed; the functionality was moved to FileConverter
+  
 UTIL tools:
 - NEW:
 	- ImageCreator (creates PNG's from an MS map)

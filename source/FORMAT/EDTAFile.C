@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,62 +21,24 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
-// $Authors: David Wojnar $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/EDTAFile.h>
 
 using namespace std;
 
-namespace OpenMS 
+namespace OpenMS
 {
-	
-	CsvFile::CsvFile()
-		: TextFile(),itemseperator_(','),itemenclosed_(false)
+
+	EDTAFile::EDTAFile()
 	{
-		
 	}
 
-	CsvFile::~CsvFile()
+	EDTAFile::~EDTAFile()
 	{
-	}
-	
-	CsvFile::CsvFile(const String& filename, char is,bool ie, Int first_n)
-		: TextFile(),itemseperator_(is),itemenclosed_(ie)
-	{
-		load(filename, false, first_n);
-	}
-  
-  
-	void CsvFile::fload(const String& filename, char is,bool ie, Int first_n)
-	{
-		itemseperator_ = is;
-		itemenclosed_ = ie;
-		load(filename,true,first_n);
-	}
-
-	bool CsvFile::getRow(Size row,StringList &list)
-	{
-		if(row > this->size())
-		{
-			throw Exception::InvalidIterator(__FILE__, __LINE__,__PRETTY_FUNCTION__);
-		}
-		bool splitted = this->operator[](row).split(itemseperator_, list);
-		if(!splitted)
-		{
-			return splitted;
-		}
-		for(Size i = 0; i< list.size(); i++)
-		{
-			if(itemenclosed_)
-			{
-				list[i] = list[i].substr(1, list[i].size()-2);
-			}
-		}
-			return true;
 	}
 
 } // namespace OpenMS
+

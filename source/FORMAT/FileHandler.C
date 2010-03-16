@@ -37,7 +37,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG", "fid"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -66,97 +66,13 @@ namespace OpenMS
       }
 			return FileTypes::UNKNOWN;
 		}
-		tmp.toUpper();
-		if (tmp == "MZDATA")
-		{
-			return FileTypes::MZDATA;
-		}
-		else if (tmp == "MZML")
-		{
-			return FileTypes::MZML;
-		}
-		else if (tmp == "DTA")
-		{
-			return FileTypes::DTA;
-		}
-		else if (tmp == "DTA2D")
-		{
-			return FileTypes::DTA2D;
-		}
-		else if (tmp == "MZXML")
-		{
-			return FileTypes::MZXML;
-		}
-		else if (tmp == "CDF")
-		{
-			return FileTypes::ANDIMS;
-		}
-		else if (tmp == "NETCDF")
-		{
-			return FileTypes::ANDIMS;
-		}
-		else if (tmp == "FEATUREXML")
-		{
-			return FileTypes::FEATUREXML;
-		}
-		else if (tmp == "IDXML")
-		{
-			return FileTypes::IDXML;
-		}
-		else if (tmp == "CONSENSUSXML")
-		{
-			return FileTypes::CONSENSUSXML;
-		}
-		else if (tmp == "MGF")
-		{
-			return FileTypes::MGF;
-		}
-		else if (tmp == "INI")
-		{
-			return FileTypes::INI;
-		}
-		else if (tmp == "TRAFOXML")
-		{
-			return FileTypes::TRANSFORMATIONXML;
-		}
-		else if (tmp == "MS2")
-		{
-			return FileTypes::MS2;
-		}
-		else if (tmp == "PEPXML") 
-		{
-			return FileTypes::PEPXML;
-		}
-		else if (tmp == "PROTXML") 
-		{
-			return FileTypes::PROTXML;
-		}
-		else if (tmp == "MZIDENTML")
-		{
-			return FileTypes::MZIDENTML;
-		}
-		else if (tmp == "GELML")
-		{
-			return FileTypes::GELML;
-		}
-		else if (tmp == "TRAML")
-		{
-			return FileTypes::TRAML;
-		}
-		else if (tmp == "MSP")
-		{
-			return FileTypes::MSP;
-		}
-		else if (tmp == "PNG")
-		{
-			return FileTypes::PNG;
-		}
-		else if (tmp == "BZ2" || tmp == "ZIP" || tmp == "GZ")
+		
+    if (tmp == "BZ2" || tmp == "ZIP" || tmp == "GZ")
 		{
 			return getTypeByContent(filename);
 		}
 
-		return FileTypes::UNKNOWN;
+    return nameToType(tmp);
 
 	}
 
@@ -186,55 +102,23 @@ namespace OpenMS
 
 	bool FileHandler::isSupported(FileTypes::Type type)
 	{
-		switch (type)
-		{
-		case FileTypes::DTA:
-			return true;
-		case FileTypes::DTA2D:
-			return true;
-		case FileTypes::MZXML:
-			return true;
-		case FileTypes::MZML:
-			return true;
-		case FileTypes::MZDATA:
-			return true;
-		case FileTypes::FEATUREXML:
-			return true;
+
+		if (type==FileTypes::ANDIMS)
+    {
 #ifdef USE_ANDIMS
-		case FileTypes::ANDIMS:
 			return true;
+#else
+      return false;
 #endif
-		case FileTypes::IDXML:
-			return true;
-		case FileTypes::CONSENSUSXML:
-			return true;
-		case FileTypes::MGF:
-			return true;
-		case FileTypes::INI:
-			return true;
-		case FileTypes::TRANSFORMATIONXML:
-			return true;
-		case FileTypes::MS2:
-			return true;
-		case FileTypes::MZIDENTML:
-			return true;
-		case FileTypes::PEPXML:
-			return true;
-		case FileTypes::PROTXML:
-			return true;
-		case FileTypes::GELML:
-			return true;
-		case FileTypes::OMSSAXML:
-			return true;
-		case FileTypes::PNG:
-			return true;
-		case FileTypes::TRAML:
-			return true;
-		case FileTypes::XMASS:
-			return true;
-		default:
-			return false;
-		}
+    }
+    else if (type==FileTypes::UNKNOWN || type==FileTypes::SIZE_OF_TYPE)
+    {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
 	}
 
 	FileTypes::Type FileHandler::getTypeByContent(const String& filename)
@@ -361,7 +245,7 @@ namespace OpenMS
 			}
 		}
 
-		//tokenize lines two to five
+		//tokenize lines 2-5
 		vector<String> parts;
 		two_five.split(' ',parts);
 
@@ -425,6 +309,39 @@ namespace OpenMS
 				return FileTypes::MS2;
 			}
 		}
+
+    // msInspect file (.tsv)
+		for (Size i = 0; i != complete_file.size(); ++i)
+		{
+			if (complete_file[i].hasSubstring("scan	time	mz	accurateMZ	mass	intensity	charge	chargeStates	kl	background	median	peaks	scanFirst	scanLast	scanCount	totalIntensity	sumSquaresDist	description"))
+			{
+				return FileTypes::TSV;
+			}
+		}
+
+    // specArray file (.pepList)
+		if (first_line.hasSubstring("       m/z	     rt(min)	       snr	      charge	   intensity"))
+		{
+			return FileTypes::PEPLIST;
+		}
+    
+    // hardkloer file (.hardkloer)
+		/**
+    NOT IMPLEMENTED YET
+    if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
+		{
+			return FileTypes::HARDKLOER;
+		}
+    **/
+
+    // kroenik file (.kroenik)
+		if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
+		{
+			return FileTypes::KROENIK;
+		}
+
+    // EDTA file
+    // hard to tell... so we don't even try...
 
 		return FileTypes::UNKNOWN;
 	}

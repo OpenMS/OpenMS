@@ -33,6 +33,7 @@ ControlledVocabulary.h
 CsvFile.h
 DTA2DFile.h
 DTAFile.h
+EDTAFile.h
 FASTAFile.h
 FastaIterator.h
 FastaIteratorIntern.h
@@ -43,6 +44,7 @@ GzipInputStream.h
 IdXMLFile.h
 InspectInfile.h
 InspectOutfile.h
+KroenikFile.h
 LibSVMEncoder.h
 MS2File.h
 MSPFile.h
@@ -51,6 +53,7 @@ MascotGenericFile.h
 MascotOutfile.h
 MascotRemoteQuery.h
 MascotXMLFile.h
+MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
 MzXMLFile.h
@@ -66,6 +69,7 @@ PepXMLFileMascot.h
 ProtXMLFile.h
 SequestInfile.h
 SequestOutfile.h
+SpecArrayFile.h
 SVOutStream.h
 TextFile.h
 TransformationXMLFile.h

@@ -41,7 +41,7 @@ using namespace std;
 /**
 	@page UTILS_FFEval FFEval
 	
-	@brief Evaluation tool for for feature detection algorithms.
+	@brief Evaluation tool for feature detection algorithms.
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_FFEval.cli
@@ -382,6 +382,8 @@ class TOPPFFEVal
 				tf.push_back(String(f_false) + "	" + f_correct + "	" + String::number(f_false/found,3) + "	" + String::number(f_correct/correct,3));
 			}
 			tf.store(getStringOption_("out_roc"));
+
+      // TODO intensity correlation for matched features
 		}
 		
 		return EXECUTION_OK;

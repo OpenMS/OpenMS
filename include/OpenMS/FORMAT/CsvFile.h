@@ -55,7 +55,7 @@ namespace OpenMS
     		@brief Constructor with filename
     	
     		@param  filename The input file name.
-    		@param  is character which seperates the items.
+    		@param  is character which separates the items.
     		@param  ie Whether or not every item is enclosed.
     		@param  first_n  Only the given number of lines are read, starting from the beginning of the file.
 

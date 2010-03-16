@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Andreas Bertsch, Chris Bielow $
+// $Authors: Marc Sturm, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -73,17 +73,17 @@ class TOPPFileConverter
 
 	void registerOptionsAndFlags_()
 	{
+    addText_("All conversions are possible, but you might loose information!");
+    addText_("");
 		registerInputFile_("in","<file>","","input file ");
-#ifdef USE_ANDIMS
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2,fid"));
-#else
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid"));
-#endif
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    String formats("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
 #ifdef USE_ANDIMS
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2,fid"));
+		setValidFormats_("in",StringList::create(formats + "cdf"));
+		setValidStrings_("in_type",StringList::create(formats + "cdf"));
 #else
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid"));
+		setValidFormats_("in",StringList::create(formats));
+		setValidStrings_("in_type",StringList::create(formats));
 #endif
 
 		registerOutputFile_("out","<file>","","output file ");
@@ -153,18 +153,7 @@ class TOPPFileConverter
 
 		writeDebug_(String("Loading input file"), 1);
 
-		if (in_type == FileTypes::FEATUREXML)
-		{
-      FeatureXMLFile().load(in,fm);
-      fm.sortByPosition();
-		  if ( out_type != FileTypes::FEATUREXML )
-		  {
-	      // You will lose information and waste memory. Enough reasons to issue a warning!
-		    writeLog_("Warning: Converting features to peaks. You will lose information!");
-	      exp.set2DData(fm);
-		  }
-		}
-		else if (in_type == FileTypes::CONSENSUSXML)
+    if (in_type == FileTypes::CONSENSUSXML)
 		{
 			ConsensusXMLFile().load(in,cm);
 			cm.sortByPosition();
@@ -174,6 +163,21 @@ class TOPPFileConverter
         writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
         exp.set2DData(cm);
       }
+		}
+		else if (in_type == FileTypes::FEATUREXML ||
+             in_type == FileTypes::TSV || 
+             in_type == FileTypes::PEPLIST ||
+             in_type == FileTypes::KROENIK ||
+             in_type == FileTypes::EDTA)
+		{
+			fh.loadFeatures(in,fm,in_type);
+      fm.sortByPosition();
+		  if ( out_type != FileTypes::FEATUREXML )
+		  {
+	      // You will lose information and waste memory. Enough reasons to issue a warning!
+		    writeLog_("Warning: Converting features to peaks. You will lose information!");
+	      exp.set2DData(fm);
+		  }
 		}
 		else
 		{
@@ -225,9 +229,24 @@ class TOPPFileConverter
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
 			f.store(out,exp);
 		}
+		else if (out_type == FileTypes::MGF)
+		{
+			//add data processing entry
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
+				
+			MascotGenericFile f;
+			Param p(f.getParameters());
+			p.setValue("peaklists_only", "true");
+			f.setParameters(p);
+			f.store(out, exp);
+		}
 		else if (out_type == FileTypes::FEATUREXML)
 		{
-		  if ( in_type == FileTypes::FEATUREXML )
+		  if ( in_type == FileTypes::FEATUREXML ||
+           in_type == FileTypes::TSV || 
+           in_type == FileTypes::PEPLIST ||
+           in_type == FileTypes::KROENIK ||
+           in_type == FileTypes::EDTA)
 		  {
 		    fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
@@ -262,10 +281,10 @@ class TOPPFileConverter
 
 		    FeatureXMLFile().store(out,fm);
 		  }
-		  else
+		  else // not loaded as featureMap or consensusMap
 		  {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting peaks to features results in incomplete features!");
+        writeLog_("Warning: Converting peaks to features will lead to incomplete features!");
         FeatureMapType feature_map;
         feature_map.reserve(exp.getSize());
         typedef FeatureMapType::FeatureType FeatureType;
@@ -297,17 +316,6 @@ class TOPPFileConverter
 
         FeatureXMLFile().store(out,feature_map);
 		  }
-		}
-		else if (out_type == FileTypes::MGF)
-		{
-			//add data processing entry
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-				
-			MascotGenericFile f;
-			Param p(f.getParameters());
-			p.setValue("peaklists_only", "true");
-			f.setParameters(p);
-			f.store(out, exp);
 		}
 		else
 		{

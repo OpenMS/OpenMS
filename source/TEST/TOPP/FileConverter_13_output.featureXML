@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.4" id="fm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
-		<software name="TextImporter" version="version_string" />
+		<software name="FileConverter" version="version_string" />
 		<processingAction name="File format conversion" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
@@ -167,38 +167,6 @@
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
 		<feature id="f_16086848624660428181">
-			<position dim="0">570.002014</position>
-			<position dim="1">444.230097716771</position>
-			<intensity>417335</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.9747</overallquality>
-			<charge>4</charge>
-			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">560.914001</hposition>
-					<hposition dim="1">444.230097716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">588.521973</hposition>
-					<hposition dim="1">444.230097716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">588.521973</hposition>
-					<hposition dim="1">444.980097716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">560.914001</hposition>
-					<hposition dim="1">444.980097716771</hposition>
-				</hullpoint>
-			</convexhull>
-			<userParam type="float" name="Mass" value="1772.891285"/>
-			<userParam type="float" name="FirstScan" value="1599"/>
-			<userParam type="int" name="LastScan" value="1683"/>
-			<userParam type="float" name="NumOfScans" value="13"/>
-			<userParam type="string" name="AveragineModifications" value="_"/>
-		</feature>
-		<feature id="f_12945392992539867993">
 			<position dim="0">567.784973</position>
 			<position dim="1">887.451944466771</position>
 			<intensity>122096</intensity>
@@ -228,6 +196,38 @@
 			<userParam type="float" name="FirstScan" value="1599"/>
 			<userParam type="int" name="LastScan" value="1676"/>
 			<userParam type="float" name="NumOfScans" value="11"/>
+			<userParam type="string" name="AveragineModifications" value="_"/>
+		</feature>
+		<feature id="f_12945392992539867993">
+			<position dim="0">570.002014</position>
+			<position dim="1">444.230097716771</position>
+			<intensity>417335</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.9747</overallquality>
+			<charge>4</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">560.914001</hposition>
+					<hposition dim="1">444.230097716771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">588.521973</hposition>
+					<hposition dim="1">444.230097716771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">588.521973</hposition>
+					<hposition dim="1">444.980097716771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">560.914001</hposition>
+					<hposition dim="1">444.980097716771</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="float" name="Mass" value="1772.891285"/>
+			<userParam type="float" name="FirstScan" value="1599"/>
+			<userParam type="int" name="LastScan" value="1683"/>
+			<userParam type="float" name="NumOfScans" value="13"/>
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
 		<feature id="f_177690319544281384">
@@ -393,7 +393,7 @@
 		<feature id="f_12781587058763672036">
 			<position dim="0">670.021973</position>
 			<position dim="1">503.236674133438</position>
-			<intensity>1.32919e+06</intensity>
+			<intensity>1.32919e+006</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9891</overallquality>
@@ -455,35 +455,35 @@
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
 		<feature id="f_15278081089682622877">
-			<position dim="0">685.143005</position>
-			<position dim="1">560.777578716771</position>
-			<intensity>1.35932e+06</intensity>
+			<position dim="0">672.174988</position>
+			<position dim="1">849.909026466771</position>
+			<intensity>7545.76</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.9736</overallquality>
-			<charge>4</charge>
+			<overallquality>0.9274</overallquality>
+			<charge>2</charge>
 			<convexhull nr="0">
 				<hullpoint>
-					<hposition dim="0">665.525024</hposition>
-					<hposition dim="1">560.777578716771</hposition>
+					<hposition dim="0">672.174988</hposition>
+					<hposition dim="1">849.909026466771</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">713.080994</hposition>
-					<hposition dim="1">560.777578716771</hposition>
+					<hposition dim="0">678.859985</hposition>
+					<hposition dim="1">849.909026466771</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">713.080994</hposition>
-					<hposition dim="1">561.527578716771</hposition>
+					<hposition dim="0">678.859985</hposition>
+					<hposition dim="1">851.409026466771</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">665.525024</hposition>
-					<hposition dim="1">561.527578716771</hposition>
+					<hposition dim="0">672.174988</hposition>
+					<hposition dim="1">851.409026466771</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="float" name="Mass" value="2239.081209"/>
-			<userParam type="float" name="FirstScan" value="1907"/>
-			<userParam type="int" name="LastScan" value="2056"/>
-			<userParam type="float" name="NumOfScans" value="23"/>
+			<userParam type="float" name="Mass" value="1697.8035"/>
+			<userParam type="float" name="FirstScan" value="1928"/>
+			<userParam type="int" name="LastScan" value="1948"/>
+			<userParam type="float" name="NumOfScans" value="3"/>
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
 		<feature id="f_16704439577065469165">
@@ -551,38 +551,6 @@
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
 		<feature id="f_1895007395010724969">
-			<position dim="0">672.174988</position>
-			<position dim="1">849.909026466771</position>
-			<intensity>7545.76</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.9274</overallquality>
-			<charge>2</charge>
-			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">672.174988</hposition>
-					<hposition dim="1">849.909026466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">849.909026466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">851.409026466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">672.174988</hposition>
-					<hposition dim="1">851.409026466771</hposition>
-				</hullpoint>
-			</convexhull>
-			<userParam type="float" name="Mass" value="1697.8035"/>
-			<userParam type="float" name="FirstScan" value="1928"/>
-			<userParam type="int" name="LastScan" value="1948"/>
-			<userParam type="float" name="NumOfScans" value="3"/>
-			<userParam type="string" name="AveragineModifications" value="_"/>
-		</feature>
-		<feature id="f_15353061600706821008">
 			<position dim="0">680.966003</position>
 			<position dim="1">564.816701466771</position>
 			<intensity>183349</intensity>
@@ -614,7 +582,7 @@
 			<userParam type="float" name="NumOfScans" value="4"/>
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
-		<feature id="f_3816132561016537260">
+		<feature id="f_15353061600706821008">
 			<position dim="0">683.143982</position>
 			<position dim="1">747.367632133438</position>
 			<intensity>463090</intensity>
@@ -646,39 +614,39 @@
 			<userParam type="float" name="NumOfScans" value="12"/>
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
-		<feature id="f_16944639381024544029">
-			<position dim="0">691.309998</position>
-			<position dim="1">792.886503466771</position>
-			<intensity>262472</intensity>
+		<feature id="f_3816132561016537260">
+			<position dim="0">685.143005</position>
+			<position dim="1">560.777578716771</position>
+			<intensity>1.35932e+006</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.9934</overallquality>
-			<charge>2</charge>
+			<overallquality>0.9736</overallquality>
+			<charge>4</charge>
 			<convexhull nr="0">
 				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">792.886503466771</hposition>
+					<hposition dim="0">665.525024</hposition>
+					<hposition dim="1">560.777578716771</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">704.109009</hposition>
-					<hposition dim="1">792.886503466771</hposition>
+					<hposition dim="0">713.080994</hposition>
+					<hposition dim="1">560.777578716771</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">704.109009</hposition>
-					<hposition dim="1">794.386503466771</hposition>
+					<hposition dim="0">713.080994</hposition>
+					<hposition dim="1">561.527578716771</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">794.386503466771</hposition>
+					<hposition dim="0">665.525024</hposition>
+					<hposition dim="1">561.527578716771</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="float" name="Mass" value="1583.758454"/>
-			<userParam type="float" name="FirstScan" value="1948"/>
-			<userParam type="int" name="LastScan" value="2028"/>
-			<userParam type="float" name="NumOfScans" value="13"/>
+			<userParam type="float" name="Mass" value="2239.081209"/>
+			<userParam type="float" name="FirstScan" value="1907"/>
+			<userParam type="int" name="LastScan" value="2056"/>
+			<userParam type="float" name="NumOfScans" value="23"/>
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
-		<feature id="f_13484234755636222304">
+		<feature id="f_16944639381024544029">
 			<position dim="0">691.309998</position>
 			<position dim="1">528.926591466771</position>
 			<intensity>829892</intensity>
@@ -708,6 +676,38 @@
 			<userParam type="float" name="FirstScan" value="1955"/>
 			<userParam type="int" name="LastScan" value="2021"/>
 			<userParam type="float" name="NumOfScans" value="11"/>
+			<userParam type="string" name="AveragineModifications" value="_"/>
+		</feature>
+		<feature id="f_13484234755636222304">
+			<position dim="0">691.309998</position>
+			<position dim="1">792.886503466771</position>
+			<intensity>262472</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.9934</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">678.859985</hposition>
+					<hposition dim="1">792.886503466771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">704.109009</hposition>
+					<hposition dim="1">792.886503466771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">704.109009</hposition>
+					<hposition dim="1">794.386503466771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">678.859985</hposition>
+					<hposition dim="1">794.386503466771</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="float" name="Mass" value="1583.758454"/>
+			<userParam type="float" name="FirstScan" value="1948"/>
+			<userParam type="int" name="LastScan" value="2028"/>
+			<userParam type="float" name="NumOfScans" value="13"/>
 			<userParam type="string" name="AveragineModifications" value="_"/>
 		</feature>
 	</featureList>

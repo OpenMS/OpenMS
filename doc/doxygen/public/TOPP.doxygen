@@ -43,7 +43,6 @@
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
-  - @subpage TOPP_TextImporter - Imports text files and converts them to XML.
   - @subpage TOPP_DBExporter - Exports data from an %OpenMS database to a file.
   - @subpage TOPP_DBImporter - Imports data to an %OpenMS database.
 

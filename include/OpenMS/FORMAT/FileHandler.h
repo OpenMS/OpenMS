@@ -30,6 +30,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
@@ -39,6 +40,12 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/XMassFile.h>
+
+#include <OpenMS/FORMAT/MsInspectFile.h>
+#include <OpenMS/FORMAT/SpecArrayFile.h>
+#include <OpenMS/FORMAT/KroenikFile.h>
+#include <OpenMS/FORMAT/EDTAFile.h>
+
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -328,10 +335,29 @@ namespace OpenMS
 			if (type==FileTypes::FEATUREXML)
 			{
 				FeatureXMLFile().load(filename,map);
-				return true;
 			}
-			
-			return false;
+			else if (type==FileTypes::TSV)
+      {
+        MsInspectFile().load(filename,map);
+      }
+			else if (type==FileTypes::PEPLIST)
+      {
+        SpecArrayFile().load(filename,map);
+      }
+			else if (type==FileTypes::KROENIK)
+      {
+        KroenikFile().load(filename,map);
+      }
+			else if (type==FileTypes::EDTA)
+      {
+        EDTAFile().load(filename,map);
+      }
+      else
+      {
+        return false;
+      }
+
+      return true;
 		}
 
 		private:

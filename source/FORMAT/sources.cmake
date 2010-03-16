@@ -13,6 +13,7 @@ ControlledVocabulary.C
 CsvFile.C
 DTA2DFile.C
 DTAFile.C
+EDTAFile.C
 FASTAFile.C
 FastaIterator.C
 FastaIteratorIntern.C
@@ -23,6 +24,7 @@ GzipInputStream.C
 IdXMLFile.C
 InspectInfile.C
 InspectOutfile.C
+KroenikFile.C
 LibSVMEncoder.C
 MS2File.C
 MSPFile.C
@@ -31,6 +33,7 @@ MascotGenericFile.C
 MascotOutfile.C
 MascotRemoteQuery.C
 MascotXMLFile.C
+MsInspectFile.C
 MzDataFile.C
 MzMLFile.C
 MzXMLFile.C
@@ -46,6 +49,7 @@ PepXMLFileMascot.C
 ProtXMLFile.C
 SequestInfile.C
 SequestOutfile.C
+SpecArrayFile.C
 SVOutStream.C
 TextFile.C
 TransformationXMLFile.C
