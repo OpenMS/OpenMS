@@ -25,6 +25,7 @@ TOPPASInputFilesDialog.h
 TOPPASOutputFilesDialog.h
 TOPPASToolConfigDialog.h
 TOPPASIOMappingDialog.h
+TOPPASVertexNameDialog.h
 )
 
 ### add path to the filenames

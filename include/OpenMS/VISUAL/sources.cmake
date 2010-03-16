@@ -30,6 +30,8 @@ TOPPASMergerVertex.h
 TOPPASEdge.h
 TOPPASTabBar.h
 TOPPASTreeView.h
+TOPPASResource.h
+TOPPASResources.h
 EnhancedWorkspace.h
 )
 

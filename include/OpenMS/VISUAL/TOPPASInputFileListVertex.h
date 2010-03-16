@@ -56,6 +56,8 @@ namespace OpenMS
 			TOPPASInputFileListVertex& operator= (const TOPPASInputFileListVertex& rhs);
 			/// Returns the list of files
 			const QStringList& getFilenames();
+			/// Sets the list of files
+			void setFilenames(const QStringList& files);
 			/// Starts all tools below this node
 			void startPipeline();
 			// documented in base class
@@ -72,11 +74,17 @@ namespace OpenMS
 			void showFilesDialog();
 			/// Opens the files in TOPPView
 			void openInTOPPView();
+			/// Returns the key (for applying resources from a resource file)
+			const QString& getKey();
+			/// Sets the key (for applying resources from a resource file)
+			void setKey(const QString& key);
 			
 		protected:
 		
 			/// The file names
 			QStringList files_;
+			/// The key of this input node (for applying resources from a resource file)
+			QString key_;
 		
 			///@name reimplemented Qt events
       //@{

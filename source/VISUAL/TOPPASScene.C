@@ -34,8 +34,10 @@
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASVertexNameDialog.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/VISUAL/TOPPASResources.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
@@ -1116,7 +1118,7 @@ namespace OpenMS
 			{
 				if ((*it)->isTopoSortMarked())
 				{
-					continue;	
+					continue;
 				}
 				some_vertex_not_finished = true;
 				bool has_predecessors = false;
@@ -1131,8 +1133,22 @@ namespace OpenMS
 				}
 				if (!has_predecessors)
 				{
+					//update name of input node
+					TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
+					if (iflv)
+					{
+						//check if key was modified by user. if yes, don't update it
+						QString old_topo_nr = QString::number((*it)->getTopoNr());
+						if (old_topo_nr == iflv->getKey() || iflv->getKey() == "")
+						{
+							iflv->setKey(QString::number(topo_counter));
+						}
+					}
+					
+					(*it)->setTopoNr(topo_counter);
 					(*it)->setTopoSortMarked(true);
-					(*it)->setTopoNr(topo_counter++);
+					
+					++topo_counter;
 				}
 			}
 			if (!some_vertex_not_finished)
@@ -1385,6 +1401,7 @@ namespace OpenMS
 			if (found_input)
 			{
 				QSet<QString> input_actions;
+				input_actions.insert("Change name");
 				input_actions.insert("Change files");
 				input_actions.insert("Open files in TOPPView");
 				all_actions.push_back(input_actions);
@@ -1509,6 +1526,14 @@ namespace OpenMS
 					else if (text == "Change files")
 					{
 						ifv->showFilesDialog();
+					}
+					else if (text == "Change name")
+					{
+						TOPPASVertexNameDialog dlg(ifv->getKey());
+						if (dlg.exec())
+						{
+							ifv->setKey(dlg.getName());
+						}
 					}
 					
 					continue;
@@ -1785,6 +1810,59 @@ namespace OpenMS
 		TOPPASVertex* target = e->getTargetVertex();
 		connect(source, SIGNAL(somethingHasChanged()), e, SLOT(sourceHasChanged()));
 		connect(e, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
+	}
+	
+	void TOPPASScene::loadResources(const TOPPASResources& resources)
+	{
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
+			if (iflv)
+			{
+				const QString& key = iflv->getKey();
+				const QList<TOPPASResource>& resource_list = resources.get(key);
+				QStringList files;
+				foreach (const TOPPASResource& res, resource_list)
+				{
+					files << res.getLocalFile();
+				}
+				iflv->setFilenames(files);
+			}
+		}
+	}
+	
+	void TOPPASScene::createResources(TOPPASResources& resources)
+	{
+		resources.clear();
+		QStringList used_keys;
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
+			if (iflv)
+			{
+				QString key = iflv->getKey();
+				if (used_keys.contains(key))
+				{
+					if (gui_)
+					{
+						QMessageBox::warning(0,"Non-unique input node names","Some of the input nodes have the same names. Cannot create resource file.");
+					}
+					else
+					{
+						std::cerr << "Some of the input nodes have the same names. Cannot create resource file." << std::endl;
+					}
+					return;
+				}
+				used_keys << key;
+				QList<TOPPASResource> resource_list;
+				QStringList files = iflv->getFilenames();
+				foreach (const QString& file, files)
+				{
+					resource_list << TOPPASResource(file);
+				}
+				resources.add(key,resource_list);
+			}
+		}
 	}
 	
 } //namespace OpenMS

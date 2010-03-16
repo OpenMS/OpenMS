@@ -41,6 +41,7 @@ namespace OpenMS
 	class TOPPASToolVertex;
 	class TOPPASOutputFileListVertex;
 	class TOPPASEdge;
+	class TOPPASResources;
 	
 	/**
 		@brief A container for all visual items of a TOPPAS workflow
@@ -178,6 +179,10 @@ namespace OpenMS
 			void connectOutputVertexSignals(TOPPASOutputFileListVertex* oflv);
 			///Connects the signals to slots
 			void connectEdgeSignals(TOPPASEdge* e);
+			///Loads the @p resources into the input nodes of this workflow
+			void loadResources(const TOPPASResources& resources);
+			///Create @p resources from the current workflow
+			void createResources(TOPPASResources& resources);
 			
 		public slots:
 		

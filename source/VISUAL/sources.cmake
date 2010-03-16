@@ -38,6 +38,8 @@ TOPPASMergerVertex.C
 TOPPASEdge.C
 TOPPASTabBar.C
 TOPPASTreeView.C
+TOPPASResource.C
+TOPPASResources.C
 EnhancedWorkspace.C
 )
 

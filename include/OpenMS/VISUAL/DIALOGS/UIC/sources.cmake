@@ -20,6 +20,7 @@ TOPPASInputFileDialog.ui
 TOPPASInputFilesDialog.ui
 TOPPASOutputFilesDialog.ui
 TOPPASIOMappingDialog.ui
+TOPPASVertexNameDialog.ui
 )
 
 ### add path to the filenames

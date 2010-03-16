@@ -48,6 +48,7 @@ namespace OpenMS
 			scene_(new TOPPASScene(this, tmp_path))
 	{
 		setAttribute(Qt::WA_DeleteOnClose);
+		setAttribute(Qt::WA_AlwaysShowToolTips);
 		setRenderHint(QPainter::Antialiasing);
 		setScene(scene_);
 		setAcceptDrops(true);

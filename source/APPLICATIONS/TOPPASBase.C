@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
+#include <OpenMS/VISUAL/TOPPASResources.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -85,7 +86,7 @@ namespace OpenMS
   {
   	setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));
-
+		
     //prevents errors caused by too small width,height values
     setMinimumSize(400,400);
 
@@ -121,9 +122,9 @@ namespace OpenMS
 		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
-
+		file->addAction("&Load resource file",this,SLOT(loadResourceFileDialog()));
+		file->addAction("Save &resource file",this,SLOT(saveResourceFileDialog()));
     file->addSeparator();
-    //file->addAction("&Preferences",this, SLOT(preferencesDialog()));
     file->addAction("&Quit",qApp,SLOT(quit()));
 
     //Advanced menu
@@ -527,6 +528,46 @@ namespace OpenMS
 		}
 	}
 	
+	void TOPPASBase::loadResourceFileDialog()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (!w)
+		{
+			return;
+		}
+		TOPPASScene* scene = w->getScene();
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Load resource file"), current_path_.toQString(), tr("TOPPAS resource files (*.trf)"));
+		if (file_name == "")
+		{
+			return;
+		}
+		TOPPASResources resources;
+		resources.load(file_name);
+		scene->loadResources(resources);
+	}
+	
+	void TOPPASBase::saveResourceFileDialog()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (!w)
+		{
+			return;
+		}
+		TOPPASScene* scene = w->getScene();
+		QString file_name = QFileDialog::getSaveFileName(this, tr("Save resource file"), current_path_.toQString(), tr("TOPPAS resource files (*.trf)"));
+		if (file_name == "")
+		{
+			return;
+		}
+		if (!file_name.endsWith(".trf"))
+		{
+			file_name += ".trf";
+		}
+		TOPPASResources resources;
+		scene->createResources(resources);
+		resources.store(file_name);
+	}
+	
 	void TOPPASBase::preferencesDialog()
   {
 		// do something...
@@ -830,6 +871,16 @@ namespace OpenMS
 				bool show = tw && ts;
 				actions[i]->setEnabled(show);
 			}
+			else if (text=="&Load resource file")
+			{
+				bool show = tw && ts;
+				actions[i]->setEnabled(show);
+			}
+			else if (text=="Save &resource file")
+			{
+				bool show = tw && ts;
+				actions[i]->setEnabled(show);
+			}
 		}
   }
 
@@ -1098,6 +1149,5 @@ namespace OpenMS
 			sndr->setClipboard(clipboard_);
 		}
 	}
-	
 } //namespace OpenMS
 

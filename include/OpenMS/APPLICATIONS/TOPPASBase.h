@@ -52,6 +52,7 @@ namespace OpenMS
 	class TOPPASWidget;
 	class TOPPASScene;
 	class TOPPASTabBar;
+	class TOPPASResources;
 	
   /**
   	@brief Main window of the TOPPAS tool
@@ -98,6 +99,10 @@ namespace OpenMS
       void saveFileDialog();
 			/// shows the dialog for saving the current file as new file
       void saveAsFileDialog(TOPPASWidget* tw = 0);
+      /// shows a file dialog for selecting the resource file to load
+      void loadResourceFileDialog();
+      /// shows a file dialog for selecting the resource file to write to
+      void saveResourceFileDialog();
       /// shows the preferences dialog
       void preferencesDialog();
     	/// changes the current path according to the currently active window/layer

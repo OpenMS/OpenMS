@@ -25,6 +25,7 @@ TOPPASInputFilesDialog.C
 TOPPASOutputFilesDialog.C
 TOPPASToolConfigDialog.C
 TOPPASIOMappingDialog.C
+TOPPASVertexNameDialog.C
 )
 
 ### add path to the filenames
