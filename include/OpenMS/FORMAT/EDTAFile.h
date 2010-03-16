@@ -29,6 +29,9 @@
 #define OPENMS_FORMAT_EDTAFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <fstream>
@@ -87,7 +90,7 @@ namespace OpenMS
         else if (input[0].hasSubstring(",")) separator = ',';
 
 				// parsing header line
-				vector<String> headers;
+				std::vector<String> headers;
 				input[0].split(separator, headers);
 				int offset = 0;
 				for (Size i=0; i<headers.size(); ++i)
@@ -129,7 +132,7 @@ namespace OpenMS
 					}
 					
 					//split line to tokens
-					vector<String> parts;
+					std::vector<String> parts;
 					input[i].split(separator, parts);
 					
 					//abort if line does not contain enough fields

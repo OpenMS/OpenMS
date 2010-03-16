@@ -29,6 +29,9 @@
 #define OPENMS_FORMAT_SPECARRAYFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <fstream>
