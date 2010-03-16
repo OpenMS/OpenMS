@@ -225,7 +225,7 @@ namespace OpenMS {
 	      predicted_retention_times[i] = predicted_retention_times[i] * total_gradient_time_;
 	    }
 
-      LOG_DEBUG << predicted_retention_times[i] << ", " << features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << ", abundance: " << features[i].getIntensity() << std::endl;
+      //LOG_DEBUG << predicted_retention_times[i] << ", " << features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << ", abundance: " << features[i].getIntensity() << std::endl;
       
       features[i].setRT(predicted_retention_times[i] + rt_error);
 			fm_tmp.push_back(features[i]);
@@ -314,13 +314,13 @@ namespace OpenMS {
     SVMWrapper svm;
 		LibSVMEncoder encoder;
 		svm_problem* training_data = NULL;
-    svm_problem* prediction_data = NULL;
-    SVMData prediction_samples;
+		SVMData prediction_samples;
 		SVMData training_samples;
     UInt k_mer_length = 0;
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
-    
+    Size max_number_of_peptides(param_.getValue("max_number_of_peptides"));
+
 		LOG_INFO << "Predicting RT ... ";
     
     svm.loadModel(rt_model_file_);
@@ -361,13 +361,6 @@ namespace OpenMS {
     
     svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
     svm.setParameter(SVMWrapper::SIGMA, sigma);
-    
-    // Encoding test data
-    vector<DoubleReal> rts;
-    rts.resize(peptide_sequences.size(), 0);
-    //prediction_data =
-		encoder.encodeProblemWithOligoBorderVectors(peptide_sequences,k_mer_length, allowed_amino_acid_characters, border_length,prediction_samples.sequences);
-    prediction_samples.labels = rts;
 		
     // loading model data
     String sample_file = rt_model_file_ + "_samples";
@@ -379,10 +372,33 @@ namespace OpenMS {
 		svm.setTrainingSample(training_samples);
     svm.setTrainingSample(training_data);
 
-    svm.predict(prediction_samples, predicted_retention_times);
-
+		// use maximally max_number_of_peptides peptide sequence at once
+		Size tmp_count = 0;
+		Size count = 0;
+		std::vector<AASequence>::iterator pep_iter_start = peptide_sequences.begin();
+		std::vector<AASequence>::iterator pep_iter_stop = peptide_sequences.begin();
+		while(count < peptide_sequences.size())
+			{
+				while(pep_iter_stop != peptide_sequences.end() && tmp_count < max_number_of_peptides)
+					{
+						++tmp_count;
+						++pep_iter_stop;
+					}
+				std::vector<AASequence> tmp_peptide_seqs;
+				tmp_peptide_seqs.insert(tmp_peptide_seqs.end(),pep_iter_start,pep_iter_stop);
+				std::vector<DoubleReal> tmp_rts(tmp_peptide_seqs.size(), 0);
+				std::vector<DoubleReal> tmp_pred_rts;
+				// Encoding test data
+				encoder.encodeProblemWithOligoBorderVectors(tmp_peptide_seqs,k_mer_length, allowed_amino_acid_characters, border_length,prediction_samples.sequences);
+				prediction_samples.labels = tmp_rts;
+			
+				svm.predict(prediction_samples, tmp_pred_rts);
+				predicted_retention_times.insert(predicted_retention_times.end(),tmp_pred_rts.begin(),tmp_pred_rts.end());
+				pep_iter_start = pep_iter_stop;				
+				count += tmp_count;
+				tmp_count = 0;
+			}
     LibSVMEncoder::destroyProblem(training_data);
-    LibSVMEncoder::destroyProblem(prediction_data);
 		
     LOG_INFO << "done" << endl;
 	}
@@ -392,6 +408,7 @@ namespace OpenMS {
     // iterate of feature map
     for (Size i = 0; i < contaminants.size(); ++i)
     {
+
       // assign random retention time
       SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_, 0, total_gradient_time_);
       contaminants[i].setRT(retention_time);
@@ -470,10 +487,11 @@ namespace OpenMS {
     defaults_.setValue("column_condition:distortion", 1.0, "LC distortion (used only if preset is set to 'none')");
     defaults_.setValue("column_condition:symmetry_up", -60.0, "LC symmetry up (used only if preset is set to 'none')");
     defaults_.setValue("column_condition:symmetry_down", +60.0, "LC symmetry down (used only if preset is set to 'none')");
-
+		
     // HPLC specific Parameters
     defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
-    
+    defaults_.setValue("max_number_of_peptides",100000,"Maximal number of peptides considered at once");
+
     // CE specific Parameters
     defaults_.setValue("CE:pH",3.0,"pH of buffer");
     defaults_.setMinFloat("CE:pH", 0);
