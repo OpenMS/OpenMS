@@ -47,6 +47,12 @@ using namespace std;
 
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
+  This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above)<br>
+  or<br>
+  merge scans which stem from similar precursors (for MS2 and above).
+
+  In any case, the number of scans will be reduced.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_SpectraMerger.cli
 */
@@ -59,7 +65,7 @@ class TOPPSpectraMerger
 {
 	public:
 		TOPPSpectraMerger()
-			: TOPPBase("SpectraMerger","Corrects the precursor entries of MS/MS spectra, by using MS1 information.", false)
+			: TOPPBase("SpectraMerger","Merges either MS1 or MS2 spectra, increasing S/N ratios.", false)
 		{
 			
 		}
