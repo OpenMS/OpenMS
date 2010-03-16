@@ -171,10 +171,10 @@ namespace OpenMS
       /**
       	@brief Paints peptide identifications (for idXML and unassigned peptides in featureXML).
       	
+      	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
-				@param ids Peptide IDs to paint.
       */
-      void paintIdentifications_(const std::vector<PeptideIdentification>& ids, QPainter& p);
+      void paintIdentifications_(Size layer_index, QPainter& p);
       
       /**
       	@brief Paints the consensus elements of a consensus features layer.

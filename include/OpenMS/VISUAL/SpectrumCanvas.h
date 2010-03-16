@@ -227,56 +227,13 @@ namespace OpenMS
 		/// returns a layer flag of the current layer
 		bool getLayerFlag(LayerData::Flags f) const
 		{
-			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayerFlag() index overflow");
-			switch(f)
-			{
-				case LayerData::F_HULLS:
-					return layers_[current_layer_].f1;
-				case LayerData::F_HULL:
-					return layers_[current_layer_].f3;
-				case LayerData::F_UNASSIGNED:
-					return layers_[current_layer_].f2;
-				case LayerData::P_PRECURSORS:
-					return layers_[current_layer_].f1;
-				case LayerData::P_PROJECTIONS:
-					return layers_[current_layer_].f2;
-				case LayerData::C_ELEMENTS:
-					return layers_[current_layer_].f1;
-			}
-			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
-			return false;
+			return getLayerFlag(current_layer_, f);
 		}
 
 		/// sets a layer flag of the current layer
 		void setLayerFlag(LayerData::Flags f, bool value)
 		{
-			//abort if there are no layers
-			if (layers_.empty()) return;
-			
-			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::setLayerFlag() index overflow");
-			switch(f)
-			{
-				case LayerData::F_HULLS:
-					layers_[current_layer_].f1 = value;
-					break;
-				case LayerData::F_HULL:
-					layers_[current_layer_].f3 = value;
-					break;
-				case LayerData::F_UNASSIGNED:
-					layers_[current_layer_].f2 = value;
-					break;
-				case LayerData::P_PRECURSORS:
-					layers_[current_layer_].f1 = value;
-					break;
-				case LayerData::P_PROJECTIONS:
-					layers_[current_layer_].f2 = value;
-					break;
-				case LayerData::C_ELEMENTS:
-					layers_[current_layer_].f1 = value;
-					break;
-			}
-			update_buffer_ = true;
-			update();
+			setLayerFlag(current_layer_, f, value);
 		}
 
 		/// returns a layer flag of the layer @p layer
@@ -296,6 +253,8 @@ namespace OpenMS
 				case LayerData::P_PROJECTIONS:
 					return layers_[layer].f2;
 				case LayerData::C_ELEMENTS:
+					return layers_[layer].f1;
+			  case LayerData::I_PEPTIDEMZ:
 					return layers_[layer].f1;
 			}
 			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
@@ -328,6 +287,9 @@ namespace OpenMS
 					break;
 				case LayerData::C_ELEMENTS:
 					layers_[layer].f1 = value;
+					break;
+			  case LayerData::I_PEPTIDEMZ:
+					layers_[current_layer_].f1 = value;
 					break;
 			}
 			update_buffer_ = true;
@@ -700,6 +662,10 @@ namespace OpenMS
 			
 		/// Draws several lines of text to the upper right corner of the widget
 		void drawText_(QPainter& painter, QStringList text);
+
+		/// Returns the m/z value of an identification depending on the m/z source of the layer (precursor mass/theoretical peptide mass)
+		DoubleReal getIdentificationMZ_(const Size layer_index, 
+																		const PeptideIdentification& peptide) const;
 	
 		///Method that is called when a new layer has been added
 		virtual bool finishAdding_() = 0;

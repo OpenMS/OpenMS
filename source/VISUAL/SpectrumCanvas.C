@@ -519,7 +519,7 @@ namespace OpenMS
 					if (!it->getHits().empty())
 					{
 						DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
-						DoubleReal mz = (DoubleReal) it->getMetaValue("MZ");
+						DoubleReal mz = getIdentificationMZ_(layer_index, *it);
 						if (mz < m_min[mz_dim]) m_min[mz_dim] = mz;
 						if (mz > m_max[mz_dim]) m_max[mz_dim] = mz;
 						if (rt < m_min[rt_dim]) m_min[rt_dim] = rt;
@@ -896,7 +896,7 @@ namespace OpenMS
 						 layer.peptides.begin(); it != layer.peptides.end(); ++it)
   		{
 				DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
-				DoubleReal mz = (DoubleReal) it->getMetaValue("MZ");
+				DoubleReal mz = getIdentificationMZ_(current_layer_, *it);
 				// TODO: if (layer.filters.passes(*it) && ...)
 				if ((rt >= min_rt) && (rt <= max_rt) &&
 						(mz >= min_mz) && (mz <= max_mz))
@@ -1168,6 +1168,24 @@ namespace OpenMS
 		}
 		
 		painter.restore();
+	}
+
+	DoubleReal SpectrumCanvas::getIdentificationMZ_(const Size layer_index,
+																									const PeptideIdentification& 
+																									peptide) const
+	{
+		bool peptide_mz = getLayerFlag(layer_index, LayerData::I_PEPTIDEMZ);
+		
+		if (peptide_mz)
+		{
+			const PeptideHit& hit = peptide.getHits().front();
+			Int charge = hit.getCharge();
+			return hit.getSequence().getMonoWeight(Residue::Full, charge) / charge;
+		}
+		else
+		{
+			return (DoubleReal) peptide.getMetaValue("MZ");
+		}		
 	}
 
 } //namespace

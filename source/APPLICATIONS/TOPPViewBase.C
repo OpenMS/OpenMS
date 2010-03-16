@@ -380,6 +380,14 @@ namespace OpenMS
 		dm_elements_2d_->setShortcut(Qt::Key_9);
     connect(dm_elements_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
+		//--2D identifications toolbar--
+		tool_bar_2d_ident_ = addToolBar("2D identifications tool bar");
+		
+		dm_ident_2d_ = tool_bar_2d_ident_->addAction(QIcon(":/peptidemz.png"), "Use theoretical peptide mass for m/z positions (default: precursor mass)");
+    dm_ident_2d_->setCheckable(true);
+    dm_ident_2d_->setWhatsThis("2D peptide identification draw mode: m/z source<BR><BR>Toggle between precursor mass (default) and theoretical peptide mass as source for the m/z positions of peptide identifications.<BR>(Hotkey: 5)");
+		dm_ident_2d_->setShortcut(Qt::Key_5);
+    connect(dm_ident_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
 		//################## Dock widgets #################
     //layer window
@@ -1302,6 +1310,11 @@ namespace OpenMS
 			{
 				 win->canvas()->setLayerFlag(LayerData::C_ELEMENTS,on);
 			}
+			// identifications
+			else if (action == dm_ident_2d_)
+			{
+				win->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, on);
+			}
 		}
   }
 
@@ -1327,6 +1340,7 @@ namespace OpenMS
       tool_bar_2d_peak_->hide();
       tool_bar_2d_feat_->hide();
       tool_bar_2d_cons_->hide();
+			tool_bar_2d_ident_->hide();
     }
 
     //2d
@@ -1341,6 +1355,7 @@ namespace OpenMS
 	      tool_bar_2d_peak_->show();
  	    	tool_bar_2d_feat_->hide();
 	      tool_bar_2d_cons_->hide();
+				tool_bar_2d_ident_->hide();			
 			}
 			//feature draw modes
 			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1352,14 +1367,24 @@ namespace OpenMS
 	      tool_bar_2d_peak_->hide();
 	      tool_bar_2d_feat_->show();
 	      tool_bar_2d_cons_->hide();
+				tool_bar_2d_ident_->hide();
 			}
 			//consensus feature draw modes
-			else
+			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
 			{
       	dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
 	      tool_bar_2d_peak_->hide();
 	      tool_bar_2d_feat_->hide();
 	      tool_bar_2d_cons_->show();
+				tool_bar_2d_ident_->hide();
+			}
+			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_IDENT)
+			{
+				dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::I_PEPTIDEMZ));
+	      tool_bar_2d_peak_->hide();
+	      tool_bar_2d_feat_->hide();
+	      tool_bar_2d_cons_->hide();
+				tool_bar_2d_ident_->show();
 			}
     }
 
@@ -1372,6 +1397,7 @@ namespace OpenMS
       tool_bar_2d_peak_->hide();
       tool_bar_2d_feat_->hide();
       tool_bar_2d_cons_->hide();
+			tool_bar_2d_ident_->hide();
     }
   }
 

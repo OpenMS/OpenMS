@@ -371,6 +371,7 @@ namespace OpenMS
       QToolBar* tool_bar_2d_peak_;
       QToolBar* tool_bar_2d_feat_;
       QToolBar* tool_bar_2d_cons_;
+			QToolBar* tool_bar_2d_ident_;
       QAction* dm_precursors_2d_;
       QAction* dm_hull_2d_;
       QAction* dm_hulls_2d_;
@@ -378,6 +379,7 @@ namespace OpenMS
       QAction* dm_unassigned_2d_;
       QAction* dm_elements_2d_;
       QAction* projections_2d_;
+			QAction* dm_ident_2d_;
       //@}
 
       /// Main workspace

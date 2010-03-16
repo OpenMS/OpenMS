@@ -32,6 +32,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
@@ -535,8 +536,7 @@ namespace OpenMS
 		}
 		else if (layer.type==LayerData::DT_IDENT) // peptide identifications
 		{
-			// cout << "paintDots_" << endl;
-			paintIdentifications_(layer.peptides, painter);
+			paintIdentifications_(layer_index, painter);
 		}
 	}
 
@@ -631,18 +631,31 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::paintIdentifications_(const vector<PeptideIdentification>& ids, QPainter& painter)
+	void Spectrum2DCanvas::paintIdentifications_(Size layer_index, QPainter& painter)
 	{
-		// cout << "paintIdentifications_ (" << ids.size() << ")" << endl;
-		painter.setPen(Qt::black);
-		
-		for (Size i=0; i<ids.size();++i)
+		const LayerData& layer = getLayer(layer_index);
+		vector<PeptideIdentification>::const_iterator pep_begin, pep_end;
+		if (layer.type == LayerData::DT_FEATURE)
 		{
-			if (ids[i].getHits().size()!=0)
+			pep_begin = layer.features.getUnassignedPeptideIdentifications().begin();
+			pep_end = layer.features.getUnassignedPeptideIdentifications().end();
+		}
+		else if (layer.type == LayerData::DT_IDENT)
+		{
+			pep_begin = layer.peptides.begin();
+			pep_end = layer.peptides.end();
+		}
+		else return;
+
+		painter.setPen(Qt::black);
+
+		for (; pep_begin != pep_end; ++pep_begin)
+		{
+			if (pep_begin->getHits().size() != 0)
 			{
-				DoubleReal rt = (DoubleReal)ids[i].getMetaValue("RT");
-				if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1]) continue;
-				DoubleReal mz = (DoubleReal)ids[i].getMetaValue("MZ");
+				DoubleReal rt = (DoubleReal) pep_begin->getMetaValue("RT");
+				if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1]) continue;				
+				DoubleReal mz = getIdentificationMZ_(layer_index, *pep_begin);
 				if (mz < visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0]) continue;
 				
 				//draw dot
@@ -652,8 +665,8 @@ namespace OpenMS
 				painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 				
 				//draw sequence
-				String sequence = ids[i].getHits()[0].getSequence().toString();
-				if (ids[i].getHits().size()>1) sequence += " ...";
+				String sequence = pep_begin->getHits()[0].getSequence().toString();
+				if (pep_begin->getHits().size() > 1) sequence += "...";
 				painter.drawText(pos.x() + 10.0, pos.y() + 10.0, sequence.toQString());
 			}
 		}
@@ -1270,7 +1283,7 @@ namespace OpenMS
 						}
 						if (getLayerFlag(i,LayerData::F_UNASSIGNED))
 						{
-							paintIdentifications_(getLayer(i).features.getUnassignedPeptideIdentifications(), painter);
+							paintIdentifications_(i, painter);
 						}
 						paintDots_(i, painter);
 					}
@@ -1287,9 +1300,8 @@ namespace OpenMS
 						// TODO CHROM
 						paintDots_(i, painter);
 					}
-					else if (getLayer(i).type==LayerData::DT_IDENT)
+					else if (getLayer(i).type == LayerData::DT_IDENT)
 					{
-						// cout << "paintEvent" << endl;
 						paintDots_(i, painter);
 					}
 				}
@@ -2189,6 +2201,19 @@ namespace OpenMS
       layer.peaks.updateRanges(1);
 
 		}
+		else if (layers_.back().type == LayerData::DT_IDENT) // identifications
+		{
+			try
+			{
+				vector<ProteinIdentification> proteins;
+				IdXMLFile().load(layer.filename, proteins, layer.peptides);
+			}
+			catch(Exception::BaseException& e)
+			{
+				QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+				layer.peptides.clear();
+			}		
+		}
 		recalculateRanges_(0,1,2);
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 		intensityModeChange_();
@@ -2438,14 +2463,16 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification>& peptides)
 	{
-		OPENMS_PRECONDITION(i < layers_.size(), "Spectrum2DCanvas::mergeIntoLayer(i, map) index overflow");
+		OPENMS_PRECONDITION(i < layers_.size(), "Spectrum2DCanvas::mergeIntoLayer(i, peptides) index overflow");
 		OPENMS_PRECONDITION(layers_[i].type==LayerData::DT_IDENT, "Spectrum2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");
 		// reserve enough space
 		layers_[i].peptides.reserve(layers_[i].peptides.size() + peptides.size());
 		// insert peptides
 		layers_[i].peptides.insert(layers_[i].peptides.end(), peptides.begin(), 
 															 peptides.end());
-		// TODO: update the layer and overall ranges (if necessary)
+		// update the layer and overall ranges
+		recalculateRanges_(0,1,2);
+		resetZoom(true);
 	}
 
 } //namespace OpenMS

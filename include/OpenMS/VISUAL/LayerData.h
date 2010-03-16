@@ -63,12 +63,13 @@ namespace OpenMS
 		///Flags that determine which information is shown.
 		enum Flags
 		{
-			F_HULL,       ///< Features: Overall convex hull
-			F_HULLS,      ///< Features: Convex hulls of single mass traces 
-			F_UNASSIGNED,///< Features: Unassigned peptide hits
-			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
-			P_PROJECTIONS,///< Peaks: Show projections
-			C_ELEMENTS    ///< Consensus features: Show elements
+			F_HULL,        ///< Features: Overall convex hull
+			F_HULLS,       ///< Features: Convex hulls of single mass traces 
+			F_UNASSIGNED,  ///< Features: Unassigned peptide hits
+			P_PRECURSORS,  ///< Peaks: Mark precursor peaks of MS/MS scans
+			P_PROJECTIONS, ///< Peaks: Show projections
+			C_ELEMENTS,    ///< Consensus features: Show elements
+			I_PEPTIDEMZ    ///< Identifications: m/z source
 		};
 		
 		///Label used in visualization
@@ -160,11 +161,11 @@ namespace OpenMS
 		/// Index of the current spectrum (1d view)
 		Size current_spectrum;
 		
-		/// Flag one (Features: convex hulls, Peak: precursors, Consensus: elements)
+		/// Flag one (Features: convex hulls, Peak: precursors, Consensus: elements, Identifications: m/z source)
 		bool f1;
-		/// Flag two (Features: numbers, Peak: projections, Consensus: -)
+		/// Flag two (Features: numbers, Peak: projections, Consensus: -, Identifications: -)
 		bool f2;
-		/// Flag tree (Features: convex hull, Peak: -, Consensus: -)
+		/// Flag three (Features: convex hull, Peak: -, Consensus: -, Identifications: -)
 		bool f3;
 		
 		///Layer parameters
@@ -186,6 +187,7 @@ namespace OpenMS
 		
 		///Label type
 		LabelType label;
+
 	};
 
 	///Print the contents to a stream.
