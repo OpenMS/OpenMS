@@ -1,5 +1,6 @@
 #FEATURE	rt	mz	intensity	charge	overall_quality	rt_quality	mz_quality	rt_start	rt_end
 #PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier
+#UNASSIGNEDPEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier
 FEATURE	5	500	100	1	1	1	1	-1	-1
 FEATURE	20	600	100	1	1	1	1	-1	-1
 FEATURE	11	558	100	1	2	1	1	10	12
@@ -20,3 +21,4 @@ FEATURE	15	534	100	2	12	1	1	-1	-1
 FEATURE	13	534	100	2	13	1	1	-1	-1
 FEATURE	18	550	100	1	14	1	1	-1	-1
 FEATURE	17	558	100	2	15	1	1	-1	-1
+UNASSIGNEDPEPTIDE	-1	-1	4324.433	0	F	23	X	Y		Mascot_2006-03-09T11:31:52

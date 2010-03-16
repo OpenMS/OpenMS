@@ -431,9 +431,8 @@ namespace OpenMS
 					output << endl;
 					if (!no_ids)
 					{
-						output << "#PEPTIDE" << "rt" << "mz" << "score" << "rank"
-									 << "sequence" << "charge" << "aa_before" << "aa_after"
-									 << "score_type" << "search_identifier" << endl;
+						write_peptide_header(output);
+						write_peptide_header(output, "UNASSIGNEDPEPTIDE");
           }
 					output.modifyStrings(true);
 
@@ -464,28 +463,22 @@ namespace OpenMS
 										 citer->getPeptideIdentifications().begin(); pit !=
 										 citer->getPeptideIdentifications().end(); ++pit)
               {
-                for (vector<PeptideHit>::const_iterator ppit = pit->
-											 getHits().begin(); ppit != pit->getHits().end(); ++ppit)
-                {
-                  output << "PEPTIDE";
-                  if (pit->metaValueExists("RT"))
-									{
-										output << (DoubleReal) pit->getMetaValue("RT");
-                  }
-                  else output << "-1";
-                  if (pit->metaValueExists("MZ"))
-                  {
-                    output << (DoubleReal) pit->getMetaValue("MZ");
-                  }
-                  else output << "-1";
-                  output << ppit->getScore() << ppit->getRank()
-												 << ppit->getSequence() << ppit->getCharge()
-												 << ppit->getAABefore() << ppit->getAAAfter()
-												 << pit->getScoreType() << pit->getIdentifier() << endl;
-								}
+								write_peptide_id(output, *pit);
 							}
 						}
 					}
+
+					if (!no_ids) // unassigned peptide IDs
+					{
+						for (vector<PeptideIdentification>::const_iterator pit =
+									 feature_map.getUnassignedPeptideIdentifications().begin(); 
+								 pit != feature_map.getUnassignedPeptideIdentifications().end();
+								 ++pit)
+						{
+							write_peptide_id(output, *pit, "UNASSIGNEDPEPTIDE");
+						}
+					}
+
 					outstr.close();
 				}
 				
