@@ -56,6 +56,7 @@ namespace OpenMS
 			DT_FEATURE,	      ///< Feature data
 			DT_CONSENSUS,     ///< Consensus feature data
 			DT_CHROMATOGRAM,  ///< Chromatogram data
+			DT_IDENT,         ///< Peptide identification data
 			DT_UNKNOWN			  ///< Undefined data type indicating an error
 		};
 
@@ -101,6 +102,7 @@ namespace OpenMS
 				peaks(),
 				features(),
 				consensus(),
+				peptides(),
 				current_spectrum(0),
 				f1(false),
 				f2(false),
@@ -153,6 +155,8 @@ namespace OpenMS
 		FeatureMapType features;
 		/// consensus feature data
 		ConsensusMapType consensus;
+		/// peptide identifications
+		std::vector<PeptideIdentification> peptides;
 		/// Index of the current spectrum (1d view)
 		Size current_spectrum;
 		

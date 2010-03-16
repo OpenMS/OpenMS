@@ -300,9 +300,9 @@ namespace OpenMS
 
   			@param feature_map The feature data (empty if not feature data)
   			@param consensus_map The consensus feature data (empty if not consensus feature data)
+				@param peptides The peptide identifications (empty if not ID data)
   			@param peak_map The peak data (empty if not peak data)
-  			@param is_feature Flag that indicates the actual data type
-  			@param is_2D If more that one MS1 spectrum is contained in peak data
+				@param data_type Type of the data
   			@param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
   			@param show_options If the options dialog should be shown (otherwise the defaults are used)
   			@param filename source file name (if the data came from a file)
@@ -310,7 +310,7 @@ namespace OpenMS
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       	@param spectrum_id determines the spectrum to show in 1D view.
       */
-  		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
+  		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentType& peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
 
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);

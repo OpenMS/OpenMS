@@ -421,6 +421,17 @@ namespace OpenMS
 		bool addLayer(ConsensusMapType& map, const String& filename="");
 		//@}
 		
+		/**
+			@brief Add an identification data layer
+			
+			@param map Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
+			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
+			
+			@return If a new layer was created
+		*/
+		bool addLayer(std::vector<PeptideIdentification>& peptides, 
+									const String& filename="");
+		
 		/// Returns the minimum intensity of the active layer
 		inline Real getCurrentMinIntensity() const 
 		{ 
@@ -622,6 +633,15 @@ namespace OpenMS
 		*/
 		void getVisibleConsensusData(ConsensusMapType& map) const;
 		
+		/**
+			@brief Fills the handed over @p peptides with the visible peptide identifications of the current layer. 
+			
+			Takes zoom area into account.
+			
+			If the current layer is not an identification data layer, @p peptides is cleared only.
+		*/
+		void getVisibleIdentifications(std::vector<PeptideIdentification>& peptides) const;
+
 	signals:
 
 		/// Signal emitted whenever the modification status of a layer changes (editing and storing)

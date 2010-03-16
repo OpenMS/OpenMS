@@ -117,6 +117,10 @@ namespace OpenMS
 		{
 			//TODO CHROM
 		}
+		else if (getCurrentLayer().type==LayerData::DT_IDENT)
+		{
+			//TODO IDENT
+		}
 		
 		//paint highlighed peak
 		painter.save();
@@ -198,6 +202,11 @@ namespace OpenMS
 		{
 			//TODO CHROM
 		}
+		else if (getCurrentLayer().type==LayerData::DT_IDENT)
+		{
+			//TODO IDENT
+		}
+
 		return PeakIndex();
 	}
 
@@ -214,19 +223,20 @@ namespace OpenMS
 			{
 				percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.peaks.getMaxInt();
 			}
-			else if (layer.type != LayerData::DT_FEATURE && layer.features.getMaxInt()>0.0)
+			else if (layer.type == LayerData::DT_FEATURE && layer.features.getMaxInt()>0.0)
 			{
 				percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.features.getMaxInt();
 			}
-			else if (layer.type != LayerData::DT_CONSENSUS && layer.consensus.getMaxInt()>0.0)
+			else if (layer.type == LayerData::DT_CONSENSUS && layer.consensus.getMaxInt()>0.0)
 			{
 				percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.consensus.getMaxInt();
 			}
-			else if (layer.type != LayerData::DT_CHROMATOGRAM && layer.consensus.getMaxInt()>0.0)
+			else if (layer.type == LayerData::DT_CHROMATOGRAM && layer.consensus.getMaxInt()>0.0)
 			{
 				//TODO CHROM
 				//percentage_factor_ = overall_data_range_.maxPosition()[2]/layer.peaks.getMaxInt();
 			}
+
 		}
 
 		//set painter to black (we operate directly on the pixels for all colored data)
@@ -523,6 +533,11 @@ namespace OpenMS
 				}
 			}
 		}
+		else if (layer.type==LayerData::DT_IDENT) // peptide identifications
+		{
+			// cout << "paintDots_" << endl;
+			paintIdentifications_(layer.peptides, painter);
+		}
 	}
 
 	void Spectrum2DCanvas::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const
@@ -616,35 +631,35 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::paintUnassignedHits_(Size layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintIdentifications_(const vector<PeptideIdentification>& ids, QPainter& painter)
 	{
+		// cout << "paintIdentifications_ (" << ids.size() << ")" << endl;
 		painter.setPen(Qt::black);
-		const vector<PeptideIdentification>& ids = getLayer(layer_index).features.getUnassignedPeptideIdentifications();
 		
 		for (Size i=0; i<ids.size();++i)
 		{
 			if (ids[i].getHits().size()!=0)
 			{
 				DoubleReal rt = (DoubleReal)ids[i].getMetaValue("RT");
-				if (rt< visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1]) continue;
+				if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1]) continue;
 				DoubleReal mz = (DoubleReal)ids[i].getMetaValue("MZ");
-				if (mz< visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0]) continue;
+				if (mz < visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0]) continue;
 				
 				//draw dot
 				QPoint pos;
 				dataToWidget_(mz, rt, pos);
-				painter.drawLine(pos.x(),pos.y() - 1.0, pos.x(),pos.y() + 1.0);
+				painter.drawLine(pos.x(), pos.y() - 1.0, pos.x(), pos.y() + 1.0);
 				painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 				
 				//draw sequence
 				String sequence = ids[i].getHits()[0].getSequence().toString();
 				if (ids[i].getHits().size()>1) sequence += " ...";
-				painter.drawText(pos.x() + 10.0 ,pos.y() + 10.0 ,sequence.toQString());
+				painter.drawText(pos.x() + 10.0, pos.y() + 10.0, sequence.toQString());
 			}
 		}
 	}
 	
-  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, QPainter& painter)
+	void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, QPainter& painter)
   {
 		QPolygon points;
 
@@ -963,7 +978,18 @@ namespace OpenMS
 				return false;
 			}
 		}
-		
+		else if (layers_.back().type==LayerData::DT_IDENT) // identification data
+		{
+			//Abort if no data points are contained
+			if (getCurrentLayer_().peptides.size()==0)
+			{
+				layers_.resize(getLayerCount()-1);
+				if (current_layer_!=0) current_layer_ = current_layer_-1;
+				QMessageBox::critical(this,"Error","Cannot add an empty dataset. Aborting!");
+				return false;
+			}
+		}
+
 		//Warn if negative intensities are contained
 		if (getMinIntensity(current_layer_)<0.0)
 		{
@@ -1067,7 +1093,7 @@ namespace OpenMS
 							}
 						}
 					}
-					else if (getLayer(i).type==LayerData::DT_FEATURE) //features
+					else if (getLayer(i).type==LayerData::DT_FEATURE) // features
 					{
 						for (FeatureMapType::ConstIterator it = getLayer(i).features.begin();
 							   it != getLayer(i).features.end();
@@ -1084,7 +1110,7 @@ namespace OpenMS
 							}
 						}
 					}
-					else if (getLayer(i).type==LayerData::DT_CONSENSUS) //features
+					else if (getLayer(i).type==LayerData::DT_CONSENSUS) // consensus
 					{
 						for (ConsensusMapType::ConstIterator it = getLayer(i).consensus.begin();
 							   it != getLayer(i).consensus.end();
@@ -1101,10 +1127,15 @@ namespace OpenMS
 							}
 						}
 					}
-					else if (getLayer(i).type==LayerData::DT_CHROMATOGRAM) //features
+					else if (getLayer(i).type==LayerData::DT_CHROMATOGRAM) // chromatogr.
 					{
 						//TODO CHROM
 					}
+					else if (getLayer(i).type==LayerData::DT_IDENT) // identifications
+					{
+						//TODO IDENT
+					}
+
 					if (local_max>0.0)
 					{
 						snap_factors_[i] = overall_data_range_.maxPosition()[2]/local_max;
@@ -1239,7 +1270,7 @@ namespace OpenMS
 						}
 						if (getLayerFlag(i,LayerData::F_UNASSIGNED))
 						{
-							paintUnassignedHits_(i,painter);
+							paintIdentifications_(getLayer(i).features.getUnassignedPeptideIdentifications(), painter);
 						}
 						paintDots_(i, painter);
 					}
@@ -1254,6 +1285,11 @@ namespace OpenMS
 					else if (getLayer(i).type==LayerData::DT_CHROMATOGRAM)
 					{
 						// TODO CHROM
+						paintDots_(i, painter);
+					}
+					else if (getLayer(i).type==LayerData::DT_IDENT)
+					{
+						// cout << "paintEvent" << endl;
 						paintDots_(i, painter);
 					}
 				}
@@ -2398,6 +2434,18 @@ namespace OpenMS
 		{
 			intensityModeChange_();
 		}
+	}
+
+	void Spectrum2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification>& peptides)
+	{
+		OPENMS_PRECONDITION(i < layers_.size(), "Spectrum2DCanvas::mergeIntoLayer(i, map) index overflow");
+		OPENMS_PRECONDITION(layers_[i].type==LayerData::DT_IDENT, "Spectrum2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");
+		// reserve enough space
+		layers_[i].peptides.reserve(layers_[i].peptides.size() + peptides.size());
+		// insert peptides
+		layers_[i].peptides.insert(layers_[i].peptides.end(), peptides.begin(), 
+															 peptides.end());
+		// TODO: update the layer and overall ranges (if necessary)
 	}
 
 } //namespace OpenMS

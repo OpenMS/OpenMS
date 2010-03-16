@@ -371,7 +371,7 @@ namespace OpenMS
 		dm_unassigned_2d_->setShortcut(Qt::Key_8);
     connect(dm_unassigned_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-		//--2D feature toolbar--
+		//--2D consensus toolbar--
     tool_bar_2d_cons_ = addToolBar("2D peak tool bar");
 
     dm_elements_2d_ = tool_bar_2d_cons_->addAction(QIcon(":/elements.png"),"Show consensus feature element positions");
@@ -626,6 +626,7 @@ namespace OpenMS
     ExperimentType exp;
     FeatureMapType dummy_map;
     ConsensusMapType dummy_map2;
+		vector<PeptideIdentification> dummy_peptides;
 		try
 		{
 			db.loadExperiment(db_id, exp);
@@ -639,11 +640,13 @@ namespace OpenMS
 
 		//determine if the data is 1D or 2D
     QSqlQuery result = con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='")+db_id+"' and MSLevel='1'");
-		bool is_2D = (result.value(0).toInt()>1);
+		LayerData::DataType data_type = ((result.value(0).toInt()>1) ? 
+																		 LayerData::DT_PEAK : 
+																		 LayerData::DT_CHROMATOGRAM);
 
 		//add data
     if (caption=="") caption = String("DB entry ")+db_id;
-		addData_(dummy_map, dummy_map2, exp, false, is_2D, false, show_options, "", caption, window_id);
+		addData_(dummy_map, dummy_map2, dummy_peptides, exp, data_type, false, show_options, "", caption, window_id);
 
   	//Reset cursor
   	setCursor(Qt::ArrowCursor);
@@ -825,7 +828,7 @@ namespace OpenMS
       return;
 		}
 		//abort if file type unsupported
-		if (file_type==FileTypes::INI || file_type==FileTypes::IDXML)
+		if (file_type==FileTypes::INI)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
    		setCursor(Qt::ArrowCursor);
@@ -836,33 +839,38 @@ namespace OpenMS
 		FeatureMapType feature_map;
 		ExperimentType peak_map;
 		ConsensusMapType consensus_map;
+		vector<PeptideIdentification> peptides;
 
-		bool is_2D = false;
-		bool is_feature = false;
+		LayerData::DataType data_type;
+
     try
     {
 	    if (file_type==FileTypes::FEATUREXML)
 	    {
         FeatureXMLFile().load(abs_filename,feature_map);
-        is_2D = true;
-        is_feature = true;
+				data_type = LayerData::DT_FEATURE;
       }
       else if (file_type==FileTypes::CONSENSUSXML)
 	    {
         ConsensusXMLFile().load(abs_filename,consensus_map);
-        is_2D = true;
-        is_feature = true;
+				data_type = LayerData::DT_CONSENSUS;
       }
+			else if (file_type == FileTypes::IDXML)
+			{
+				vector<ProteinIdentification> proteins; // not needed later
+				IdXMLFile().load(abs_filename, proteins, peptides);
+				data_type = LayerData::DT_IDENT;
+			}
       else
       {
-      	fh.loadExperiment(abs_filename,peak_map, file_type,ProgressLogger::GUI);
-      	UInt ms1_scans = 0;
+      	fh.loadExperiment(abs_filename, peak_map, file_type, 
+													ProgressLogger::GUI);
+				data_type = LayerData::DT_CHROMATOGRAM;
       	for (Size i=0; i<peak_map.size();++i)
       	{
-      		if (peak_map[i].getMSLevel()==1) ++ms1_scans;
-      		if (ms1_scans>1)
+      		if (peak_map[i].getMSLevel() == 1)
       		{
-      			is_2D = true;
+						data_type = LayerData::DT_PEAK;
       			break;
       		}
       	}
@@ -884,7 +892,7 @@ namespace OpenMS
     {
     	abs_filename = "";
     }
-    addData_(feature_map, consensus_map, peak_map, is_feature, is_2D, false, show_options, abs_filename, caption, window_id, spectrum_id);
+    addData_(feature_map, consensus_map, peptides, peak_map, data_type, false, show_options, abs_filename, caption, window_id, spectrum_id);
 
   	//add to recent file
   	if (add_to_recent) addRecentFile_(filename);
@@ -893,7 +901,7 @@ namespace OpenMS
     setCursor(Qt::ArrowCursor);
   }
 
-  void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
+  void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, vector<PeptideIdentification>& peptides, ExperimentType& peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
   {
   	//initialize flags with defaults from the parameters
   	bool as_new_window = true;
@@ -901,7 +909,10 @@ namespace OpenMS
   	bool maps_as_1d = false;
   	bool use_mower = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
 
-		bool is_consensus_feature = (feature_map==FeatureMapType());
+		bool mergeable = ((data_type == LayerData::DT_FEATURE) || 
+											(data_type == LayerData::DT_CONSENSUS) ||
+											(data_type == LayerData::DT_IDENT));
+		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);
 
 		//set the window where (new layer) data could be opened in
 		SpectrumWidget* open_window = window_(window_id);
@@ -918,12 +929,12 @@ namespace OpenMS
 		TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_mower, this);
 		//disable opening in new window when
 		if (open_window==0 // there is no active window
-			  || (is_feature && qobject_cast<Spectrum3DWidget*>(open_window)!=0)) //feature data is to be opened, but the current window is a 3D window
+			  || (mergeable && qobject_cast<Spectrum3DWidget*>(open_window)!=0)) //feature/ID data is to be opened, but the current window is a 3D window
 		{
 			dialog.disableLocation(true);
 		}
 		//disable 1d/2d/3d option for features and single scans
-		if (is_feature)
+		if (mergeable)
 		{
 			dialog.disableDimension(true);
 		}
@@ -932,19 +943,15 @@ namespace OpenMS
 			dialog.disableDimension(false);
 		}
 		//disable cutoff for features and single scans
-		if (is_feature || !is_2D) dialog.disableCutoff(false);
+		if (mergeable || !is_2D) dialog.disableCutoff(false);
 		//enable merge layers if a feature layer is opened and there are already features layers to merge it to
-		if (is_feature && open_window!=0) //TODO merge
+		if (mergeable && open_window!=0) //TODO merge
 		{
 			SpectrumCanvas* open_canvas = open_window->canvas();
 			Map<Size,String> layers;
 			for (Size i=0; i<open_canvas->getLayerCount(); ++i)
 			{
-				if (!is_consensus_feature && open_canvas->getLayer(i).type==LayerData::DT_FEATURE)
-				{
-					layers[i] = open_canvas->getLayer(i).name;
-				}
-				if (is_consensus_feature && open_canvas->getLayer(i).type==LayerData::DT_CONSENSUS)
+				if (data_type == open_canvas->getLayer(i).type)
 				{
 					layers[i] = open_canvas->getLayer(i).name;
 				}
@@ -979,7 +986,7 @@ namespace OpenMS
       {
       	open_window = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
       }
-      else if (maps_as_2d || is_feature) //2d or features
+      else if (maps_as_2d || mergeable) //2d or features/IDs
       {
       	open_window = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
       	open_window->canvas()->setAdditionalContextMenu(add_2d_context_);
@@ -992,17 +999,18 @@ namespace OpenMS
 
     if (merge_layer==-1) //add data to the window
     {
-	    if (is_feature) //features and consensus features
-	    {
-	    	if (!is_consensus_feature) //features
-	    	{
-	      	if (!open_window->canvas()->addLayer(feature_map,filename)) return;
-	    	}
-	    	else //consensus features
-	    	{
-	    		if (!open_window->canvas()->addLayer(consensus_map,filename)) return;
-	    	}
-	    }
+	    if (data_type == LayerData::DT_FEATURE) //features
+			{
+				if (!open_window->canvas()->addLayer(feature_map,filename)) return;
+			}
+			else if (data_type == LayerData::DT_CONSENSUS) //consensus features
+			{
+				if (!open_window->canvas()->addLayer(consensus_map,filename)) return;
+			}
+			else if (data_type == LayerData::DT_IDENT)
+			{
+				if (!open_window->canvas()->addLayer(peptides, filename)) return;
+			}
 	    else //peaks
 	    {
 			  if (!open_window->canvas()->addLayer(peak_map,filename)) return;
@@ -1030,16 +1038,20 @@ namespace OpenMS
 			//set caption
     	open_window->canvas()->setLayerName(open_window->canvas()->activeLayerIndex(), caption);
 		}
-		else //merge features data into feature layer
+		else //merge feature/ID data into feature layer
 		{
 			Spectrum2DCanvas* canvas = qobject_cast<Spectrum2DCanvas*>(open_window->canvas());
-			if (is_consensus_feature)
+			if (data_type == LayerData::DT_CONSENSUS)
 			{
 				canvas->mergeIntoLayer(merge_layer,consensus_map);
 			}
-			else
+			else if (data_type == LayerData::DT_FEATURE)
 			{
 				canvas->mergeIntoLayer(merge_layer,feature_map);
+			}
+			else if (data_type == LayerData::DT_IDENT)
+			{
+				canvas->mergeIntoLayer(merge_layer, peptides);
 			}
 		}
 
@@ -1688,7 +1700,7 @@ namespace OpenMS
 
 		//add a copy of the current data as 1D view
 		LayerData cl = activeCanvas_()->getCurrentLayer();
-		addData_(cl.features, cl.consensus, cl.peaks, false, true, true, false, cl.filename, cl.name);
+		addData_(cl.features, cl.consensus, cl.peptides, cl.peaks, LayerData::DT_PEAK, true, false, cl.filename, cl.name);
 
 		//set properties for the new 1D view
 		if (active1DWindow_())
@@ -1798,7 +1810,7 @@ namespace OpenMS
 			{
 				//add a copy of the current data as 1D view
 				LayerData cl = activeCanvas_()->getCurrentLayer();
-				addData_(cl.features, cl.consensus, cl.peaks, false, true, true, false, cl.filename, cl.name);
+				addData_(cl.features, cl.consensus, cl.peptides, cl.peaks, LayerData::DT_PEAK, true, false, cl.filename, cl.name);
 
 				//set properties for the new 1D view
 				if (active1DWindow_())
@@ -2291,8 +2303,8 @@ namespace OpenMS
 		filter_all +=" *.cdf";
 		filter_single += ";;ANDI/MS files (*.cdf)";
 #endif
-		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML fid);;" ;
-		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;XML files (*.xml);;XMass Analysis (fid);;all files (*)";
+		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML fid);;" ;
+		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;all files (*)";
 
 		QString open_path = current_path_.toQString();
 		if (path_overwrite!="")
@@ -2694,7 +2706,8 @@ namespace OpenMS
 
 				FeatureMapType f_dummy;
 				ConsensusMapType c_dummy;
-				addData_(f_dummy, c_dummy, new_exp, false, false, false, true, "", seq_string + QString(" (theoretical)"));
+				vector<PeptideIdentification> p_dummy;
+				addData_(f_dummy, c_dummy, p_dummy, new_exp, LayerData::DT_CHROMATOGRAM, false, true, "", seq_string + QString(" (theoretical)"));
 
 	      // ensure spectrum is drawn as sticks
 	      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
@@ -3180,36 +3193,10 @@ namespace OpenMS
 			FeatureMapType features = layer.features;
 			ExperimentType peaks = layer.peaks;
 			ConsensusMapType consensus = layer.consensus;
-
-			//determine if the data is 2D data
-			bool is_2D = false;
-			bool is_feature = false;
-			if (layer.type==LayerData::DT_FEATURE)
-			{
-				is_2D = true;
-				is_feature = true;
-			}
-			else if (layer.type==LayerData::DT_CONSENSUS)
-			{
-				is_2D = true;
-				is_feature = true;
-			}
-			else
-			{
-				UInt ms1_scans = 0;
-				for (Size i=0; i<peaks.size();++i)
-				{
-					if (peaks[i].getMSLevel()==1) ++ms1_scans;
-					if (ms1_scans>1)
-					{
-						is_2D = true;
-						break;
-					}
-				}
-			}
+			vector<PeptideIdentification> peptides = layer.peptides;
 
 			//add the data
-			addData_(features, consensus, peaks, is_feature, is_2D, false, false, layer.filename, layer.name, new_id);
+			addData_(features, consensus, peptides, peaks, layer.type, false, false, layer.filename, layer.name, new_id);
 		}
 		else if (source == spectrum_selection_)
 		{
@@ -3223,7 +3210,8 @@ namespace OpenMS
 				new_exp.push_back(spectrum);
 				FeatureMapType f_dummy;
 				ConsensusMapType c_dummy;
-				addData_(f_dummy,c_dummy,new_exp,false,false,false,false,layer.filename,layer.name,new_id);
+				vector<PeptideIdentification> p_dummy;
+				addData_(f_dummy, c_dummy, p_dummy, new_exp, LayerData::DT_CHROMATOGRAM, false, false, layer.filename, layer.name, new_id);
 			}
 		}
 		else if (source == 0)

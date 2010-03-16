@@ -80,6 +80,9 @@ namespace OpenMS
 
 			/// Merges the consensus features in @p map into the features layer @p i 
 			void mergeIntoLayer(Size i, ConsensusMapType& map);
+
+			/// Merges the peptide identifications in @p peptides into the peptide layer @p i 
+			void mergeIntoLayer(Size i, std::vector<PeptideIdentification>& peptides);
 			
     signals:
       /// Sets the data for the horizontal projection
@@ -166,12 +169,12 @@ namespace OpenMS
       void paintFeatureConvexHulls_(Size layer_index, QPainter& p);
       
       /**
-      	@brief Paints the unassigned peptide hits of a feature layer.
+      	@brief Paints peptide identifications (for idXML and unassigned peptides in featureXML).
       	
-      	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
+				@param ids Peptide IDs to paint.
       */
-      void paintUnassignedHits_(Size layer_index, QPainter& p);
+      void paintIdentifications_(const std::vector<PeptideIdentification>& ids, QPainter& p);
       
       /**
       	@brief Paints the consensus elements of a consensus features layer.

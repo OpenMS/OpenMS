@@ -422,6 +422,18 @@ namespace OpenMS
 		return finishAdding_();
 	}
 
+	bool SpectrumCanvas::addLayer(vector<PeptideIdentification>& peptides, 
+																const String& filename)
+	{
+		layers_.resize(layers_.size()+1);
+		layers_.back().param = param_;
+		layers_.back().filename = filename;
+		layers_.back().peptides.swap(peptides);
+		layers_.back().type = LayerData::DT_IDENT;
+
+		return finishAdding_();
+	}
+
 	void SpectrumCanvas::setLayerName(Size i, const String& name)
 	{ 
 		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i,name) index overflow");
@@ -486,7 +498,7 @@ namespace OpenMS
 				if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
 				if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
 			}
-			else
+			else if (getLayer(layer_index).type == LayerData::DT_CONSENSUS)
 			{
 				const ConsensusMapType& map = getLayer(layer_index).consensus;
 				if (map.getMin()[1] < m_min[mz_dim]) m_min[mz_dim] = map.getMin()[1];
@@ -495,6 +507,25 @@ namespace OpenMS
 				if (map.getMax()[0] > m_max[rt_dim]) m_max[rt_dim] = map.getMax()[0];
 				if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
 				if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
+			}
+			else if (getLayer(layer_index).type == LayerData::DT_IDENT)
+			{
+				// cout << "recalculateRanges_" << endl;
+				const vector<PeptideIdentification>& peptides = 
+					getLayer(layer_index).peptides;
+				for (vector<PeptideIdentification>::const_iterator it = 
+							 peptides.begin(); it != peptides.end(); ++it)
+				{
+					if (!it->getHits().empty())
+					{
+						DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
+						DoubleReal mz = (DoubleReal) it->getMetaValue("MZ");
+						if (mz < m_min[mz_dim]) m_min[mz_dim] = mz;
+						if (mz > m_max[mz_dim]) m_max[mz_dim] = mz;
+						if (rt < m_min[rt_dim]) m_min[rt_dim] = rt;
+						if (rt > m_max[rt_dim]) m_max[rt_dim] = rt;
+					}					
+				}
 			}
 		}
 		//Add 1% margin to RT in order to display all the data
@@ -846,6 +877,36 @@ namespace OpenMS
 		}
 	}
 
+	void SpectrumCanvas::getVisibleIdentifications(vector<PeptideIdentification>&
+																								 peptides) const
+	{		
+		//clear output experiment
+		peptides.clear();
+		
+    const LayerData& layer = getCurrentLayer();
+  	if (layer.type == LayerData::DT_IDENT)
+  	{
+			//Visible area
+			DoubleReal min_rt = getVisibleArea().minPosition()[1];
+			DoubleReal max_rt = getVisibleArea().maxPosition()[1];
+			DoubleReal min_mz = getVisibleArea().minPosition()[0];
+			DoubleReal max_mz = getVisibleArea().maxPosition()[0];
+			//copy features
+  		for (vector<PeptideIdentification>::const_iterator it = 
+						 layer.peptides.begin(); it != layer.peptides.end(); ++it)
+  		{
+				DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
+				DoubleReal mz = (DoubleReal) it->getMetaValue("MZ");
+				// TODO: if (layer.filters.passes(*it) && ...)
+				if ((rt >= min_rt) && (rt <= max_rt) &&
+						(mz >= min_mz) && (mz <= max_mz))
+				{
+					peptides.push_back(*it);
+				}
+			}
+		}
+	}
+
 	void SpectrumCanvas::showMetaData(bool modifiable, Int index)
   {
 		LayerData& layer = getCurrentLayer_();
@@ -874,6 +935,10 @@ namespace OpenMS
 			{
 				//TODO CHROM
 			}
+			else if (layer.type == LayerData::DT_IDENT)
+			{
+				// TODO IDENT
+			}
 		}
 		else //show element meta data
 		{
@@ -892,6 +957,10 @@ namespace OpenMS
 			else if (layer.type==LayerData::DT_CHROMATOGRAM)
 			{
 				//TODO CHROM
+			}
+			else if (layer.type == LayerData::DT_IDENT)
+			{
+				// TODO IDENT
 			}
 		}
   	
@@ -964,6 +1033,10 @@ namespace OpenMS
 		else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
 		{
 			//TODO CHROM
+		}
+		else if (getCurrentLayer().type == LayerData::DT_IDENT)
+		{
+			// TODO IDENT
 		}
 		
 		//draw text			
@@ -1046,7 +1119,11 @@ namespace OpenMS
 		{
 			//TODO CHROM
 		}
-		
+		else if (getCurrentLayer().type == LayerData::DT_IDENT)
+		{
+			// TODO IDENT
+		}
+
 		//draw text			
 		QStringList lines;
 		if (print_rt) lines.push_back("RT delta : " + QString::number(rt,'f',2));
