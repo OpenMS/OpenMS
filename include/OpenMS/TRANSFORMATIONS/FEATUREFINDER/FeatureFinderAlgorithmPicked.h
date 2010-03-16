@@ -1369,15 +1369,18 @@ namespace OpenMS
 					//store map of abort reasons for failed seeds
 					FeatureMap<> abort_map;
 					abort_map.reserve(abort_reasons_.size());
-					for (typename std::map<Seed, String>::iterator it2=abort_reasons_.begin(); it2!=abort_reasons_.end(); ++it2)
+					Size counter = 0;
+					for (typename std::map<Seed, String>::iterator it2=abort_reasons_.begin(); it2!=abort_reasons_.end(); ++it2, ++counter)
 					{
 						Feature f;
 						f.setRT(map_[it2->first.spectrum].getRT());
 						f.setMZ(map_[it2->first.spectrum][it2->first.peak].getMZ());
 						f.setIntensity(map_[it2->first.spectrum][it2->first.peak].getIntensity());
-						f.setMetaValue("abort_reason",it2->second);
+						f.setMetaValue("label", it2->second);
+						f.setUniqueId(counter); // ID = index
 						abort_map.push_back(f);
 					}
+					abort_map.setUniqueId();
 					FeatureXMLFile().store("debug/abort_reasons.featureXML", abort_map);
 					
 					//store input map with calculated scores (without overall score)
