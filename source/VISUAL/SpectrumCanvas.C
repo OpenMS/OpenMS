@@ -1174,7 +1174,8 @@ namespace OpenMS
 																									const PeptideIdentification& 
 																									peptide) const
 	{
-		bool peptide_mz = getLayerFlag(layer_index, LayerData::I_PEPTIDEMZ);
+		bool peptide_mz = ((getLayer(layer_index).type == LayerData::DT_IDENT) && 
+											 (getLayerFlag(layer_index, LayerData::I_PEPTIDEMZ)));
 		
 		if (peptide_mz)
 		{
