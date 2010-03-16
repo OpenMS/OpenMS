@@ -92,6 +92,7 @@ class TOPPPeptideIndexer
 			// reading input
 			//-------------------------------------------------------------
 
+			// we stream the Fasta file
 			vector<FASTAFile::FASTAEntry> proteins;
 			FASTAFile().load(fasta, proteins);
 	
@@ -103,8 +104,35 @@ class TOPPPeptideIndexer
 			// calculations
 			//-------------------------------------------------------------					
 
-			seqan::String<char> all_protein_sequences;
+		
+			writeDebug_("Collecting peptides...", 1);	
+			// collect the peptides in a Seqan StringSet
+			seqan::StringSet<seqan::String<char> > needle;
 
+			// store for each run the protein idx and number of peptides that hit this protein
+			Map<String, Map<Size, Size> > prot_idx_hits;			
+			
+			// map the number of the peptide to the corresponding iterator in vector<PeptideHits>
+			Size needleCount=-1;
+			Map<Size,vector<PeptideHit>::iterator> needleMap;
+			
+			for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+			{
+				String run_id = it1->getIdentifier();
+				vector<PeptideHit> hits = it1->getHits();
+				for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
+				{
+					it2->setProteinAccessions(vector<String>());
+					String seq = it2->getSequence().toUnmodifiedString();
+					seqan::appendValue(needle,seq.c_str());
+					
+					needleMap[++needleCount] = it2;
+				}
+			}
+			
+			
+			// read and concatenate all proteins
+			seqan::String<char> all_protein_sequences;
 			// build map accessions to proteins
 			Map<String, vector<Size> > acc_to_prot;
 			Size pos = 0;
@@ -125,13 +153,33 @@ class TOPPPeptideIndexer
 				acc_to_prot[acc].push_back(i);
 			}
 
-			writeDebug_("Building suffix array...", 1);
+			// Aho Corasick Call
+			seqan::Finder<seqan::String<char>  > finder(all_protein_sequences); 
+			seqan::Pattern<seqan::StringSet<seqan::String<char> >, seqan::AhoCorasick > pattern(needle); 
+			
+			seqan::String<seqan::Pair<Size,Size> > patHits;
+			writeDebug_("Finding Peptide/Protein matches...", 1);
+			while(find(finder, pattern)){
+				appendValue(patHits,seqan::Pair<Size,Size>(position(pattern),position(finder)));
+				cout << seqan::Pair<Size,Size>(position(pattern),position(finder)) << endl;
+			}
+	
+			cout << "Found needles " << endl;
+			exit(0);
+			
+			
+			
+			// ANDREAS. This will go away. the patHits contains, <number of peptide, positionin concatenated protein string>
+			
+			writeDebug_("Building Index...", 1);
+			
 			seqan::String<Size> suffix_array;
 			resize(suffix_array, seqan::length(all_protein_sequences));
 			createSuffixArray(suffix_array, all_protein_sequences, seqan::Skew7()); 
+			
 			writeDebug_("Suffix array built", 1);
-
-			Map<String, Map<Size, Size> > prot_idx_hits; // store for each run the protein idx and number of peptides that hit this protein
+			
+			
 			for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 			{
 				String run_id = it1->getIdentifier();
@@ -141,6 +189,7 @@ class TOPPPeptideIndexer
 					it2->setProteinAccessions(vector<String>());
 					String seq = it2->getSequence().toUnmodifiedString();
 
+					
 					seqan::Pair<Size> hits;
 					hits = seqan::equalRangeSA(all_protein_sequences, suffix_array, seq.c_str()); 
 
@@ -161,7 +210,7 @@ class TOPPPeptideIndexer
 								prot_idx_hits[run_id][prot_idx] = 1;
 							}
 						}
-						else
+						else 
 						{
 							prot_idx_hits[run_id][prot_idx] = 1;
 						}
