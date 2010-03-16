@@ -30,6 +30,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QSysInfo>
+#include <QDir>
 
 using namespace OpenMS;
 using namespace std;
@@ -193,6 +194,9 @@ int main( int /*argc*/, const char** /*argv*/ )
 	cout << "Installation information:" << endl;
 	cout << "==================" << endl;
 	cout << "Data path    : " << OPENMS_DATA_PATH << endl;
+  cout << "Temp path    : " << String(QDir::tempPath ()) << endl;
+  cout << "Userdata path: " << String(QDir::homePath ()) << endl;
+
 	cout << endl;
 	cout << "Build information:" << endl;
 	cout << "==================" << endl;

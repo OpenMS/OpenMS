@@ -130,10 +130,12 @@ namespace OpenMS
 					// see if we have a header
 					try
 					{
-						rt = headers[0].toDouble();
+            if (headers.size()>3) throw Exception::BaseException(); // there is meta-data, so these must be their names
+            else if (headers.size()<3) throw Exception::BaseException(); // not enough data columns in first line...
+            // try to convert... if not: thats a header
+            rt = headers[0].toDouble();
 						mz = headers[1].toDouble();
 						it = headers[2].toDouble();
-						if (headers.size()>3) throw Exception::BaseException();
 					}
 					catch (Exception::BaseException&)
 					{
