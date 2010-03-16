@@ -43,7 +43,7 @@ using namespace std;
 /**
 	@page TOPP_SpectraMerger SpectraMerger
 	
-	@brief .
+	@brief Allows to add up several spectra.
 
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
@@ -111,11 +111,11 @@ class TOPPSpectraMerger
 			merger.setParameters(getParam_().copy("algorithm:",true));
 			if (merging_method == "precursor_method")
 			{
-				
+				merger.mergeSpectraPrecursors(exp);				
 			}
 			else if (merging_method == "block_method")
 			{
-
+				merger.mergeSpectraBlockWise(exp);
 			}
 
 			//-------------------------------------------------------------

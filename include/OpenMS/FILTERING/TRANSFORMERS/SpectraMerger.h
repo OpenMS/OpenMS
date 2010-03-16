@@ -29,13 +29,16 @@
 #define OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
 
 	/**	
   	@brief SpectraMerger Bla
-		 
+		
+		@todo Add Logger compatibility (Andreas)
+
 		@htmlinclude OpenMS_SpectraMerger.parameters
 
   */
@@ -63,22 +66,52 @@ namespace OpenMS
 		// @}
 
 		///
-		template <typename ExperimentType> void mergeSpectraBlockWise(ExperimentType& spectrum)
+		template <typename ExperimentType> void mergeSpectraBlockWise(ExperimentType& exp)
 		{
+			return;
 		}
 
+		/// merges spectra with similar precursors
 		template <typename ExperimentType> void mergeSpectraPrecursors(ExperimentType& exp)
 		{
+			DoubleReal mz_tolerance(param_.getValue("precursor_method:mz_tolerance"));
+			DoubleReal rt_tolerance(param_.getValue("precursor_method:rt_tolerance"));
+			DoubleReal mz_binning_width(param_.getValue("mz_binning_width"));
+			DoubleReal mz_binning_unit(param_.getValue("mz_binning_unit"));
+
+			typedef typename ExperimentType::ConstIterator const_exp_iter;
+			Map<DoubleReal, std::vector<Size> > spectra_by_mz;
+			Size count(0);
+			for (const_exp_iter it = exp.begin(); it != exp.end(); ++it, ++count)
+			{
+				if (it->getMSLevel() == 1)
+				{
+					continue;
+				}
+				DoubleReal rt(it->getRT());
+				if (it->getPrecursors().size() == 0)
+				{
+					std::cerr << "SpectrumMerger::mergeSpectraPrecursors(): no precursor defined at spectrum: RT=" << rt << ", skipping!" << std::endl;
+				}
+				else if (it->getPrecursors().size() > 1)
+				{
+					std::cerr << "SpectrumMerger::mergeSpectraPrecursors(): multiple precursors defined at spectrum RT=" << rt << ", using only first one!" << std::endl;
+				}
+				DoubleReal precursor_mz(it->getPrecursors().begin()->getMZ());
+			}
+			
+
+			return;
 		}
 
 
+		void mergeSpectraBlockWisePeakMap(PeakMap& exp);
 
-		//void filterPeakSpectrum(PeakSpectrum& spectrum);
-
-		//void filterPeakMap(PeakMap& exp);
+		/// merges spectra with similar precursors
+		void mergeSpectraPrecursorsPeakMap(PeakMap& exp);
 		// @}
 	
   };
 	
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H
+#endif //OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
