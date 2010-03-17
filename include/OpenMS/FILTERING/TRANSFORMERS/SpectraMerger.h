@@ -30,6 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
 #include <vector>
 #include <set>
 #include <stack>
@@ -69,23 +70,24 @@ namespace OpenMS
 		// @}
 
 		///
-		template <typename ExperimentType> void mergeSpectraBlockWise(ExperimentType& exp)
+		template <typename MapType> void mergeSpectraBlockWise(MapType& exp)
 		{
 			return;
 		}
 
 		/// merges spectra with similar precursors
-		template <typename ExperimentType> void mergeSpectraPrecursors(ExperimentType& exp)
+		template <typename MapType> void mergeSpectraPrecursors(MapType& exp)
 		{
 			DoubleReal mz_tolerance(param_.getValue("precursor_method:mz_tolerance"));
 			DoubleReal rt_tolerance(param_.getValue("precursor_method:rt_tolerance"));
 			DoubleReal mz_binning_width(param_.getValue("mz_binning_width"));
-			DoubleReal mz_binning_unit(param_.getValue("mz_binning_unit"));
+			//DoubleReal mz_binning_unit(param_.getValue("mz_binning_unit"));
 
-			typedef typename ExperimentType::ConstIterator const_exp_iter;
+			typedef typename MapType::ConstIterator ConstExpIterator;
+			typedef typename MapType::SpectrumType SpectrumType;
 			Map<Size, std::vector<Size> > spectra_by_idx;
 			Size count1(0);
-			for (const_exp_iter it1 = exp.begin(); it1 != exp.end(); ++it1, ++count1)
+			for (ConstExpIterator it1 = exp.begin(); it1 != exp.end(); ++it1, ++count1)
 			{
 				if (it1->getMSLevel() == 1)
 				{
@@ -105,7 +107,7 @@ namespace OpenMS
 				DoubleReal precursor_mz1(it1->getPrecursors().begin()->getMZ());
 
 				Size count2(count1);
-				for (const_exp_iter it2 = it1 + 1; it2 != exp.end(); ++it2, ++count2)
+				for (ConstExpIterator it2 = it1 + 1; it2 != exp.end(); ++it2, ++count2)
 				{
 					if (it2->getMSLevel() == 1)
 					{
@@ -160,24 +162,25 @@ namespace OpenMS
 				}
 			}
 
-
-			// merge spectra	
+			// merge spectra
+			MapType merged_spectra;
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
-				PeakSpectrum all_peaks = exp[it->first];			
+				SpectrumType all_peaks = exp[it->first];			
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
-					for (PeakSpectrum::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
+					for (typename SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
 					{
 						all_peaks.push_back(*pit);
 					}
 				}
 				all_peaks.sortByPosition();
 
-  			PeakSpectrum consensus_spec;
+  			SpectrumType consensus_spec;
 		  	consensus_spec.setMSLevel(2);
 		  	Peak1D old_peak = *all_peaks.begin();
-		  	for (PeakSpectrum::ConstIterator it = (++consensus_spec.begin()); it != consensus_spec.end(); ++it)
+				// TODO write this faster
+		  	for (typename SpectrumType::ConstIterator it = (++consensus_spec.begin()); it != consensus_spec.end(); ++it)
 		  	{
 		    	if (fabs(old_peak.getMZ() - it->getMZ()) < mz_binning_width) // TODO use unit
 		    	{
@@ -189,7 +192,17 @@ namespace OpenMS
      		 		old_peak = *it;
     			}
   			}
+				merged_spectra.push_back(consensus_spec);
 			}
+
+			// remove level2 spectra and add consensus spectra
+			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<SpectrumType>(IntList::create("2"), true)), exp.end());
+
+			for (ConstExpIterator it = merged_spectra.begin(); it != merged_spectra.end(); ++it)
+			{
+				exp.push_back(*it);
+			}
+			exp.setByRT();
 
 
 			return;
