@@ -41,6 +41,8 @@
 	#include <omp.h>
 #endif
 
+#include <QtCore/QProcess>
+
 #include <cmath>
 
 using namespace std;
@@ -48,6 +50,8 @@ using namespace std;
 namespace OpenMS
 {
 	using namespace Exception;
+
+	String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
 
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, const String& version)
   	: tool_name_(tool_name),
@@ -76,6 +80,7 @@ namespace OpenMS
 		{
 			writeLog_(String("Error: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
 		}
+
 	}
 
 	TOPPBase::~TOPPBase()
@@ -91,6 +96,55 @@ namespace OpenMS
   			File::remove(log_files[i]);
   		}
   	}
+	}
+
+	void TOPPBase::checkTOPPIniFile(const String& /*tool_path*/)
+	{
+    // check if .TOPP.ini exists, create it otherwise
+    if (!File::exists(topp_ini_file_))
+    {
+      ofstream create_out(topp_ini_file_.c_str());
+      create_out.close();
+      Param all_params;
+      for (Map<String, StringList>::ConstIterator it = getToolList().begin(); it != getToolList().end(); ++it)
+      {
+				String call = it->first; // @todo think about paths (chris, andreas)
+				String tmp_file = String(QDir::tempPath()) + String("/") + File::getUniqueName();
+				StringList types = it->second;
+				if (it->second.size() == 0)
+				{
+					types.push_back("");
+				}
+				
+				for (StringList::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+				{
+					String type_arg ="";
+					if (*sit != "")
+					{
+						 type_arg = "-type " + *sit;
+					}
+					QStringList args; 
+					args << type_arg.toQString() << " -write_ini " << tmp_file.toQString();
+					if (QProcess::execute(call.toQString(), args) == 0)
+					{
+						Param p;
+						p.load(tmp_file);
+						String prefix = it->first;
+						if (*sit != "")
+						{
+							prefix += "_" + *sit;
+						}
+						all_params.insert(prefix, p);
+					}
+					else
+					{
+						LOG_WARN << "Cannot create .TOPP.ini file, for system wide parameter defaults (" << it->first << ")." << endl;
+					}
+				}
+      }
+		}
+
+
 	}
 
 	TOPPBase::ExitCodes TOPPBase::main(int argc , const char** argv)

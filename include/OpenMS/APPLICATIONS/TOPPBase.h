@@ -152,6 +152,9 @@ namespace OpenMS
       /// Destructor
       virtual ~TOPPBase();
 
+			/// @todo to be documented (Chris, Andreas)
+			void checkTOPPIniFile(const String& tool_path);
+
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 			
@@ -858,6 +861,9 @@ namespace OpenMS
 				- current OpenMS version
 			*/
 			bool test_mode_;
+
+			/// .TOPP.ini file for storing system default parameters
+			static String topp_ini_file_;
 			
   };
 
