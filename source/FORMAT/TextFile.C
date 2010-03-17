@@ -74,7 +74,9 @@ namespace OpenMS
 
       // Mac (OS<=9): \r
       //    we just read the whole file into a string: split it
-      StringList lines=StringList::create(str,'\r');
+      StringList lines;
+      if (str.hasSubstring("\r")) lines = StringList::create(str,'\r');
+      else lines.push_back(str);
 
       // Linux&MacOSX: \n
       //    nothing to do
