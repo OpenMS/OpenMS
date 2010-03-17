@@ -9,6 +9,7 @@ OfflinePrecursorIonSelection.h
 ILPWrapper.h
 IncludeExcludeTarget.h
 TargetedExperiment.h
+InclusionExclusionList.h
 )
 
 ### add path to the filenames

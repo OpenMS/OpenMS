@@ -355,6 +355,7 @@ set(analysis_executables_list
 	SimplePairFinder_test
 	StablePairFinder_test
 	TransformationDescription_test
+	InclusionExclusionList_test
 )
 
 set(applications_executables_list

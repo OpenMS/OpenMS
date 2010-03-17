@@ -61,7 +61,7 @@ TOPPAS
 TOPPView
 TextExporter
 XTandemAdapter
-InclusionExclusionlistCreator
+InclusionExclusionListCreator
 SpectraMerger
 )
 
