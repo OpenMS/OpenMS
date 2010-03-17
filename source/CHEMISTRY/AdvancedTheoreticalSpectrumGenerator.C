@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
-// $Authors: $
+// $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
