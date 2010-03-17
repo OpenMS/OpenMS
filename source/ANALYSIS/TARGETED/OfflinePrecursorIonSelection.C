@@ -22,9 +22,9 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
-#include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>

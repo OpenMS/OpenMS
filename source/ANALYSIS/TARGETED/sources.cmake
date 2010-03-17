@@ -1,10 +1,14 @@
 ### the directory name
-set(directory source/ANALYSIS/MRM)
+set(directory source/ANALYSIS/TARGETED)
 
 ### list all filenames of the directory here
 set(sources_list
-MRMFragmentSelection.C
-ReactionMonitoringTransition.C
+PrecursorIonSelectionPreprocessing.C
+PrecursorIonSelection.C
+OfflinePrecursorIonSelection.C
+ILPWrapper.C
+IncludeExcludeTarget.C
+TargetedExperiment.C
 )
 
 ### add path to the filenames
@@ -17,5 +21,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\ANALYSIS\\MRM" FILES ${sources})
+source_group("Source Files\\ANALYSIS\\TARGETED" FILES ${sources})
 

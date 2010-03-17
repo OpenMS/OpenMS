@@ -1,10 +1,14 @@
 ### the directory name
-set(directory include/OpenMS/ANALYSIS/MRM)
+set(directory include/OpenMS/ANALYSIS/TARGETED)
 
 ### list all header files of the directory here
 set(sources_list_h
-MRMFragmentSelection.h
-ReactionMonitoringTransition.h
+PrecursorIonSelectionPreprocessing.h
+PrecursorIonSelection.h
+OfflinePrecursorIonSelection.h
+ILPWrapper.h
+IncludeExcludeTarget.h
+TargetedExperiment.h
 )
 
 ### add path to the filenames
@@ -14,7 +18,7 @@ foreach(i ${sources_list_h})
 endforeach(i)
 
 ### source group definition
-source_group("Header Files\\OpenMS\\ANALYSIS\\MRM" FILES ${sources_h})
+source_group("Header Files\\OpenMS\\ANALYSIS\\TARGETED" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 

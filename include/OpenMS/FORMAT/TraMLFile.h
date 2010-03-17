@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 namespace OpenMS
 {

@@ -22,11 +22,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>

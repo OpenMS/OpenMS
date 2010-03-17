@@ -25,7 +25,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MRM/IncludeExcludeTarget.h>
+#include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
 
 #include <algorithm>
 

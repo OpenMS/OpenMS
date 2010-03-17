@@ -22,16 +22,16 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/ID/ILPWrapper.h>
+#include <OpenMS/ANALYSIS/TARGETED/ILPWrapper.h>
 
 ///////////////////////////
 

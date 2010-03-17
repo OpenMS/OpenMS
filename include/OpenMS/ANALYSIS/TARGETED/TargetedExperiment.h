@@ -30,7 +30,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-#include <OpenMS/ANALYSIS/MRM/IncludeExcludeTarget.h>
+#include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/Software.h>

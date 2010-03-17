@@ -22,12 +22,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 using namespace std;

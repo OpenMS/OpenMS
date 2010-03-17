@@ -25,7 +25,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <algorithm>
 
 using namespace std;

@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/METADATA/CVTermList.h>
 
 namespace OpenMS

@@ -15,10 +15,6 @@ PILISNeutralLossModel.C
 PILISScoring.C
 PILISCrossValidation.C
 ProtonDistributionModel.C
-PrecursorIonSelectionPreprocessing.C
-PrecursorIonSelection.C
-OfflinePrecursorIonSelection.C
-ILPWrapper.C
 )
 
 ### add path to the filenames

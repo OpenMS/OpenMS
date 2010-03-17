@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
-#include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <gsl/gsl_blas.h>
 

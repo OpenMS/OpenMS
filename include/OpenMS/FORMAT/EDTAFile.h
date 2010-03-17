@@ -84,7 +84,7 @@ namespace OpenMS
         FeatureMapType fmap;
 				feature_map = fmap;
 			
-        char separator;
+        char separator = ' ';
         if (input[0].hasSubstring("\t")) separator = '\t';
         else if (input[0].hasSubstring(" ")) separator = ' ';
         else if (input[0].hasSubstring(",")) separator = ',';

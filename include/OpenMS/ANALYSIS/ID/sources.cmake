@@ -15,10 +15,6 @@ PILISNeutralLossModel.h
 PILISScoring.h
 PILISCrossValidation.h
 ProtonDistributionModel.h
-PrecursorIonSelectionPreprocessing.h
-PrecursorIonSelection.h
-OfflinePrecursorIonSelection.h
-ILPWrapper.h
 )
 
 ### add path to the filenames

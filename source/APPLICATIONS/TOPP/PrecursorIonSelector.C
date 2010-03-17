@@ -22,14 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 
 using namespace OpenMS;
 

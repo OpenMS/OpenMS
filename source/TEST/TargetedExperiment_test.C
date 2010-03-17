@@ -28,7 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/MRM/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 ///////////////////////////
 
 using namespace OpenMS;

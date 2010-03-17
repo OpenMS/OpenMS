@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTION_H
@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/ANALYSIS/ID/ILPWrapper.h>
+#include <OpenMS/ANALYSIS/TARGETED/ILPWrapper.h>
 
 namespace OpenMS
 {

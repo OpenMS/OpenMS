@@ -22,9 +22,9 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
-#include <OpenMS/ANALYSIS/ID/ILPWrapper.h>
+#include <OpenMS/ANALYSIS/TARGETED/ILPWrapper.h>
 
 #ifdef _MSC_VER // disable some COIN-OR warnings that distract from ours
 #	pragma warning( push ) // save warning state
