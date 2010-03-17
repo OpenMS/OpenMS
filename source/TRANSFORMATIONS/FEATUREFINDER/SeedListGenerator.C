@@ -55,15 +55,28 @@ namespace OpenMS
 	}
 
 
-	void SeedListGenerator::generateSeedList(const vector<PeptideIdentification>&
-																					 peptides, SeedList& seeds)
+	void SeedListGenerator::generateSeedList(vector<PeptideIdentification>& 
+																					 peptides, SeedList& seeds, 
+																					 bool use_peptide_mass)
 	{
 		seeds.clear();
-		for (vector<PeptideIdentification>::const_iterator pep_it =
-					 peptides.begin(); pep_it != peptides.end(); ++pep_it)
+		for (vector<PeptideIdentification>::iterator pep_it = peptides.begin(); 
+				 pep_it != peptides.end(); ++pep_it)
 		{
-			DPosition<2> point(pep_it->getMetaValue("RT"),
-												 pep_it->getMetaValue("MZ"));
+			DoubleReal mz;
+			if (!pep_it->getHits().empty() && use_peptide_mass)
+			{
+				pep_it->sort();
+				const PeptideHit& hit = pep_it->getHits().front();
+				Int charge = hit.getCharge();
+				mz = hit.getSequence().getMonoWeight(Residue::Full, charge) / 
+					DoubleReal(charge);
+			}
+			else
+			{
+				mz = pep_it->getMetaValue("MZ");
+			}
+			DPosition<2> point(pep_it->getMetaValue("RT"), mz);
 			seeds.push_back(point);
 		}
 	}

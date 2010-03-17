@@ -86,6 +86,9 @@ namespace OpenMS
 												 create("mzML,idXML,featureXML,consensusXML"));
         registerOutputFileList_("out", "<file(s)>", StringList(), "Output file(s)");
         setValidFormats_("out", StringList::create("featureXML"));
+				addEmptyLine_();		
+				addText_("Options for idXML input:");
+				registerFlag_("use_peptide_mass", "Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
 				addEmptyLine_();
 				addText_("If input is consensusXML, one output file per constituent map is required (same order as in the consensusXML);\notherwise, exactly one output file.");
 				addEmptyLine_();
@@ -140,7 +143,8 @@ namespace OpenMS
 					vector<ProteinIdentification> proteins;
 					vector<PeptideIdentification> peptides;
 					IdXMLFile().load(in, proteins, peptides);
-					seed_gen.generateSeedList(peptides, seed_lists[0]);
+					seed_gen.generateSeedList(peptides, seed_lists[0], 
+																		getFlag_("use_peptide_mass"));
 				}
 				
 				else if (in_type == FileTypes::FEATUREXML)

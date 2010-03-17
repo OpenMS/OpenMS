@@ -69,10 +69,12 @@ namespace OpenMS
 		/**
 			 @brief Generate a seed list based on a list of peptide identifications
 
-			 This uses the locations of the corresponding MS2 precursors ("RT" and "MZ" MetaInfo entries) as seed positions.
+			 This uses the retention time of the MS2 precursor ("RT" MetaInfo entry) together with either the precursor m/z value ("MZ" MetaInfo entry) or - if @p use_peptide_mass is true - the monoisotopic mass and charge of the best peptide hit to define the seed position for a peptide identification.
+
+			 The peptide hits in @p peptides will be sorted if @p use_peptide_mass is true.
 		*/
-		void generateSeedList(const std::vector<PeptideIdentification>& peptides,
-													SeedList& seeds);
+		void generateSeedList(std::vector<PeptideIdentification>& peptides,
+													SeedList& seeds, bool use_peptide_mass = false);
 
 		
 		/**

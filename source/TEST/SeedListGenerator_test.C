@@ -77,7 +77,7 @@ START_SECTION((void generateSeedList(const MSExperiment<>& experiment, SeedList&
 END_SECTION
 
 
-START_SECTION((void generateSeedList(const vector<PeptideIdentification>& peptides, SeedList& seeds)))
+START_SECTION((void generateSeedList(vector<PeptideIdentification>& peptides, SeedList& seeds, bool use_peptide_mass)))
 {
 	vector<PeptideIdentification> peptides(3);
 	peptides[0].setMetaValue("RT", 1.1);
@@ -92,6 +92,14 @@ START_SECTION((void generateSeedList(const vector<PeptideIdentification>& peptid
 	TEST_EQUAL(seeds[0], DPosition<2>(1.1, 111.111));
 	TEST_EQUAL(seeds[1], DPosition<2>(2.2, 222.222));
 	TEST_EQUAL(seeds[2], DPosition<2>(3.3, 333.333));
+	PeptideHit hit;
+	hit.setSequence("TEST");
+	hit.setCharge(2);
+	peptides[0].insertHit(hit);
+	peptides.resize(1);
+	SeedListGenerator().generateSeedList(peptides, seeds, true);
+	TEST_EQUAL(seeds.size(), 1);
+	TEST_REAL_SIMILAR(seeds[0][1], 219.09755);
 }
 END_SECTION
 
