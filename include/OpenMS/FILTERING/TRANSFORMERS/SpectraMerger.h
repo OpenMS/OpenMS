@@ -202,7 +202,7 @@ namespace OpenMS
 			{
 				exp.push_back(*it);
 			}
-			exp.setByRT();
+			exp.sortSpectra();
 
 
 			return;
