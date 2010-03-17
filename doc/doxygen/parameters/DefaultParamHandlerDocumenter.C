@@ -38,9 +38,9 @@
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
