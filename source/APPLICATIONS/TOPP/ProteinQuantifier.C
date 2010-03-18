@@ -47,6 +47,8 @@ using namespace std;
 	
 	@brief Application to compute peptide and protein abundances from annotated feature/consensus maps.
 
+	(To produce annotated maps, use the IDMapper TOPP tool to annotate featureXML or consensusXML files with identifications from idXML files.)
+
 	Quantification is based on the intensity values of the features in the input. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.\n
 	The peptide-to-protein step implements a general version of the "top 3 approach" (but only for relative quantification) described in:\n
 	Silva <em>et al.</em>: "Absolute quantification of proteins by LCMSE: a virtue of parallel MS acquisition" (Mol. Cell. Proteomics, 2006).
