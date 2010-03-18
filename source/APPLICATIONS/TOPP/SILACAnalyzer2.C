@@ -666,7 +666,8 @@ public:
 					}
 				}
 
-				best_n = int(cluster_number_scaling * best_n); // slightly increase cluster number
+				//best_n = int(cluster_number_scaling * best_n); // slightly increase cluster number
+				best_n = 1; //visualize subtrees
 
 				//std::cout << "Best n: " << best_n << std::endl;
 
@@ -958,10 +959,10 @@ public:
 				// write ratios of all cluster to *.dat
 				std::ofstream stream_ratios(debug_dat.c_str());
 				if (type=="double") {
-					stream_ratios << "cluster_id cluster_size rt mz ratio_light_heavy" << std::endl;
+					stream_ratios << "cluster_id cluster_size rt mz ratio_light_heavy intensity" << std::endl;
 				}
 				else {
-					stream_ratios << "cluster_id cluster_size rt mz ratio_light_medium ratio_light_heavy" << std::endl;
+					stream_ratios << "cluster_id cluster_size rt mz ratio_light_medium ratio_light_heavy intensity" << std::endl;
 				}
 				for (Size i=0; i<best_clusters.size();++i)
 				{
@@ -1039,10 +1040,10 @@ public:
 					linear_reg_light_medium.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i2.begin());
 					linear_reg_light_heavy.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i3.begin());
 					if (type=="double") {
-						stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg_light_heavy.getSlope() << std::endl;
+						stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg_light_heavy.getSlope() << " " << *max_element(i1.begin(),i1.end()) + *max_element(i2.begin(),i2.end()) << std::endl;
 					}
 					else {
-						stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg_light_medium.getSlope() << " " << linear_reg_light_heavy.getSlope() << std::endl;
+						stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg_light_medium.getSlope() << " " << linear_reg_light_heavy.getSlope() << " " << *max_element(i1.begin(),i1.end()) + *max_element(i2.begin(),i2.end()) << std::endl;
 					}
 				}
 				stream_ratios.close();
@@ -1109,6 +1110,7 @@ public:
 				String debug_dat = debug_trunk + debug_suffix + ".dat";
 				String debug_clusters_dat = debug_trunk + debug_suffix + "_clusters.dat";
 				// names of postscript files
+				String debug_ratios_light_medium_intensity = debug_trunk + debug_suffix + "_ratios_light_medium_intensity.eps";
 				String debug_ratios_light_medium = debug_trunk + debug_suffix + "_ratios_light_medium.eps";
 				String debug_ratios_light_heavy = debug_trunk + debug_suffix + "_ratios_light_heavy.eps";
 				String debug_sizes = debug_trunk + debug_suffix + "_sizes.eps";
@@ -1172,6 +1174,21 @@ public:
 				}
 				stream_gnuplotscript << std::endl;
 
+				// write *_ratios_light_heavy_intensity.eps
+				if (type=="double") {
+					stream_gnuplotscript << "set output \"" + debug_ratios_light_medium_intensity + "\"" << std::endl;
+					stream_gnuplotscript << "set title \"SILACAnalyzer2 " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
+					stream_gnuplotscript << "set nokey" << std::endl;
+					stream_gnuplotscript << "set logscale x" << std::endl;
+					stream_gnuplotscript << "set logscale y" << std::endl;
+					stream_gnuplotscript << "set xlabel \'ratio light medium\'" << std::endl;
+					stream_gnuplotscript << "set ylabel \'intensity \'" << std::endl;
+					stream_gnuplotscript << "plot \'" + debug_dat + "\' using 5:6" << std::endl;
+					stream_gnuplotscript << "unset logscale x" << std::endl;
+					stream_gnuplotscript << "unset logscale y" << std::endl;
+					stream_gnuplotscript << std::endl;
+				}
+				
 				// write *_ratios_light_medium.eps
 				if (type=="triple") {
 					stream_gnuplotscript << "set output \"" + debug_ratios_light_medium + "\"" << std::endl;
@@ -1182,7 +1199,7 @@ public:
 					stream_gnuplotscript << "plot \'" + debug_dat + "\' using 4:5";
 					stream_gnuplotscript << std::endl;
 				}
-
+				
 				// write *_ratios_light_heavy.eps
 				stream_gnuplotscript << "set output \"" + debug_ratios_light_heavy + "\"" << std::endl;
 				if (type=="double") {
