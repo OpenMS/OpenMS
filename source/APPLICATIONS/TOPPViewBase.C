@@ -2682,6 +2682,8 @@ namespace OpenMS
 				bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
 				String iso_str = isotopes ? "true" : "false";
 				p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
+        Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
+        p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
 				p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
 				p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
 				p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");

@@ -44,21 +44,21 @@ BugFixes:
 - #73   Resampler: can't create PNGs with TOPPAS
 - #74   Default parameters of PTModel cause infinite loop
 - #77   FuzzyDiff always returns 'true' when comparing any two PNG images
-- #23	implement protXML
-- #46	All TOPP/UTILS segfault if /share is not found
-- #53	TOPPAS select directory has save as dialog
-- #59	Test of external Code
-- #61	automatic ini file Version number update
-- #62	nightly tests for external code
-- #63	rename methods named min() or max() to something else...
-- #69	FileMerger needs ability to merge featureXML
-- #91	Simple FF crashes on very sparse data
-- #93	TOPPAS layer bug
-- #110	Copy&paste, include workflows in current window
-- #121	Tool categories and menu items in context menus have arbitrary order
-- #122	Projection view: mouse-over text on RT projection says "m/z"
+- #23   implement protXML
+- #46   All TOPP/UTILS segfault if /share is not found
+- #53   TOPPAS select directory has save as dialog
+- #59   Test of external Code
+- #61   automatic ini file Version number update
+- #62   nightly tests for external code
+- #63   rename methods named min() or max() to something else...
+- #69   FileMerger needs ability to merge featureXML
+- #91   Simple FF crashes on very sparse data
+- #93   TOPPAS layer bug
+- #110  Copy&paste, include workflows in current window
+- #121  Tool categories and menu items in context menus have arbitrary order
+- #122  Projection view: mouse-over text on RT projection says "m/z"
 - #133  Textexporter runs indefinitely when input has no IDs and -consensus_features is specified
-
+- #136  TOPPView: #of Isotopes in TheoreticalSpectrumGenerator not forwarded
 For more minor bugfixes visit the above URL.
 
 Detailed list of changes to specific OpenMS classes:
