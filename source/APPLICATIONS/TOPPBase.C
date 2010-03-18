@@ -282,66 +282,9 @@ namespace OpenMS
 				{
 					Param ini_params;
 					ini_params.load( (String)in_ini );
-					// augment
-					for(Param::ParamIterator it = ini_params.begin(); it != ini_params.end();++it)
-					{
-						if (default_params.exists(it.getName()))
-						{
-							if (it.getName().hasSuffix(":version"))
-							{	
-								if (default_params.getValue(it.getName()) != it->value)
-								{
-									writeLog_("Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!");
-								}
-								continue;
-							}
-							// param 'type': do not override!
-							else if (it.getName().hasSuffix(":type"))
-							{	
-								if (default_params.getValue(it.getName()) != it->value)
-								{
-									writeLog_("Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!");
-								}
-								continue;
-							}
-							
-							// all other parameters:
-							Param::ParamEntry entry = default_params.getEntry (it.getName());
-							if (entry.value.valueType() == it->value.valueType())
-							{
-								if (entry.value != it->value)
-								{
-									// check entry for consistency (in case restrictions have changed)							
-									entry.value = it->value;
-									String s;
-									if (entry.isValid(s))
-									{
-										// overwrite default value
-										writeLog_(String("Overriding Default-Parameter ") + it.getName() + " with new value "+String(it->value)); 
-										default_params.setValue(it.getName(),it->value, entry.description, default_params.getTags(it.getName()));
-									}
-									else
-									{
-										writeLog_(String("Parameter ") + it.getName() + " does not fit into new restriction settings! Ignoring..."); 
-									}
-								}
-								else
-								{
-									// value stayed the same .. nothing to be done
-								}
-							}
-							else
-							{
-								writeLog_(String("Parameter ") + it.getName() + " has changed value type! Ignoring..."); 
-							}
-						}
-						else
-						{
-							writeLog_(String("Deprecated Parameter ") + it.getName() + " given in -ini argument! Ignoring..."); 
-						}
-					}
-				
-				}
+
+          default_params.update(ini_params);
+        }
 				outputFileWritable_(write_ini_file);
 				
 				default_params.store(write_ini_file);

@@ -60,7 +60,7 @@ using namespace std;
 	- show a statistical summary for intensities and qualities
 	- show an overview of the metadata
 	- validate several XML formats against their XML schema
-	- check for corrupt data in a file (e.g. dupliacte spectra)
+	- check for corrupt data in a file (e.g. duplicate spectra)
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileInfo.cli
