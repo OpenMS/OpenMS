@@ -443,6 +443,12 @@ namespace OpenMS
 				}
 			}
 
+      if( feature_collection.empty() )
+      {
+        String mess = String( "Skipping feature, nothing in the feature collection." );
+        throw Exception::UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-EmptyFeatureCollection", mess.c_str() );
+      }
+
 			QualityType best_quality = -std::numeric_limits<QualityType>::max();
 			// find best feature
 			std::size_t best_idx = 0;
