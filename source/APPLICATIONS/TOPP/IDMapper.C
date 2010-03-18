@@ -34,6 +34,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -45,7 +46,7 @@ using namespace std;
 /**
 	@page TOPP_IDMapper IDMapper
 
-	Assigns protein/peptide identifications to feature or consensus features.
+	Assigns protein/peptide identifications to features or consensus features.
 
 	This tool is typically used before @ref TOPP_ConsensusID.
 
@@ -63,7 +64,7 @@ class TOPPIDMapper
 	public:
 
 		TOPPIDMapper()
-			: TOPPBase("IDMapper", "Assigns protein/peptide identifications to feature or consensus features.")
+			: TOPPBase("IDMapper", "Assigns protein/peptide identifications to features or consensus features.")
 		{
 		}
 
@@ -73,7 +74,7 @@ class TOPPIDMapper
 		{
 			registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
 			setValidFormats_("id",StringList::create("idXML"));
-			registerInputFile_("in", "<file>", "", "Protein/peptide identifications file");
+			registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
 			setValidFormats_("in",StringList::create("featureXML,consensusXML"));
 			registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
 			setValidFormats_("out",StringList::create("featureXML,consensusXML"));
@@ -89,12 +90,13 @@ class TOPPIDMapper
 			setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
 			registerStringOption_("mz_reference","<String>",p.getEntry("mz_reference").valid_strings[1],"Method to determine m/z of identification", false);
 			setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
-			registerFlag_("use_centroids","[FeatureMap only] use RT&MZ coordinate instead of convex hull");
-			registerFlag_("use_subelements","[ConsensusMap only] use RT&MZ coordinate of sub-features instead of consensus RT&MZ");
+			registerFlag_("use_centroids","[featureXML input only] use RT, m/z coordinate instead of convex hull");
+			registerFlag_("use_subelements","[consensusXML input only] use RT, m/z coordinates of sub-features instead of consensus RT, m/z");
 		}
 
 		ExitCodes main_(int , const char**)
 		{
+			// LOG_DEBUG << "Starting..." << endl;
 			String in = getStringOption_("in");
 			FileTypes::Type in_type = FileHandler::getType(in);
 			String out = getStringOption_("out");
@@ -102,6 +104,7 @@ class TOPPIDMapper
 			//----------------------------------------------------------------
 			// load idXML
 			//----------------------------------------------------------------
+			// LOG_DEBUG << "Loading idXML..." << endl;
 			vector<ProteinIdentification> protein_ids;
 			vector<PeptideIdentification> peptide_ids;
 			String document_id;
@@ -110,6 +113,7 @@ class TOPPIDMapper
 			//----------------------------------------------------------------
 			//create mapper
 			//----------------------------------------------------------------
+			// LOG_DEBUG << "Creating mapper..." << endl;
 			IDMapper mapper;
 			Param p = mapper.getParameters();
 			p.setValue("rt_delta", getDoubleOption_("rt_delta"));
@@ -123,6 +127,7 @@ class TOPPIDMapper
 			//----------------------------------------------------------------
 			if (in_type == FileTypes::CONSENSUSXML)
 			{
+				// LOG_DEBUG << "Processing consensus map..." << endl;
 				ConsensusXMLFile file;
 				ConsensusMap map;
 				file.load(in,map);
@@ -142,6 +147,7 @@ class TOPPIDMapper
 			//----------------------------------------------------------------
 			if (in_type == FileTypes::FEATUREXML)
 			{
+				// LOG_DEBUG << "Processing feature map..." << endl;
 				FeatureMap<> map;
 				FeatureXMLFile file;
 				file.load(in,map);
@@ -156,6 +162,7 @@ class TOPPIDMapper
 				file.store(out,map);
 			}
 
+			// LOG_DEBUG << "Done." << endl;
 			return EXECUTION_OK;
 		}
 
