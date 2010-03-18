@@ -206,7 +206,7 @@ class TOPPIDPosteriorErrorProbability
 
 int main( int argc, const char** argv )
 {
-	TOPPIDFilter tool;
+	TOPPIDPosteriorErrorProbability tool;
 
 	return tool.main(argc,argv);
 }
