@@ -28,11 +28,7 @@
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <iostream>
 #include <gsl/gsl_statistics.h>
-
-#define PEP_VERBOSE
-#undef PEP_VERBOSE
 
 using namespace std;
 
@@ -41,10 +37,12 @@ namespace OpenMS
 	namespace Math
 	{
 		PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel()
-		: DefaultParamHandler("PosteriorErrorProbabilityModel")
+		: DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5)
   	{
 			defaults_.setValue("number_of_bins", 100, "Number of bins used for visualisation. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
-			defaults_.setValue("write_to_dir","", "if PEP_VERBOSE is on, the output files will be written into the given directory. If no directory specified the files will be written into the openms directory",StringList::create("advanced"));
+			defaults_.setValue("output_plots","false","If true every step of the EM-algorithm will be written to a file as a gnuplot formula",StringList::create("advanced"));
+			defaults_.setValidStrings("output_plots",StringList::create("true,false"));
+			defaults_.setValue("output_name","", "if output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name>step_* for each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123_ then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123_step_0, /usr/home/OMSSA123_step_1 ... will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123_' just OMSSA123_, the files will be written into the working directory.",StringList::create("advanced,output file"));
 			defaultsToParam_();			
 		}
 		
@@ -58,7 +56,7 @@ namespace OpenMS
 			{
 				return;
 			}
-
+			
 			probabilities.clear();
 			probabilities.resize(x_scores.size());
 			//-------------------------------------------------------------
@@ -102,70 +100,69 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			// create files for output
 			//-------------------------------------------------------------
-#ifdef PEP_VERBOSE
-			std::vector<DPosition<2> > points;
-			DPosition<2> temp;
-			double dividing_score = probabilities.back()/(Int)param_.getValue("number_of_bins");
-			temp.setX(dividing_score/2);
-			temp.setY(0);
-			points.push_back(temp);
-			double temp_divider = dividing_score;
-			for(std::vector< double>::iterator it = probabilities.begin(); it < probabilities.end(); ++it)
-			{
-				if(temp_divider - *it >= 0)
-				{
-					points.back().setY(points.back().getY()+1);
-				}
-				else
-				{
-					temp.setX((temp_divider + temp_divider + dividing_score)/2);
-					temp.setY(0);
-					points.push_back(temp);
-					temp_divider += dividing_score;
-				}
-			}
-
-			for(vector<DPosition<2> >::iterator it = points.begin(); it < points.end(); ++it)
-			{
-				it->setY( it->getY()/( probabilities.size() * dividing_score));
-			}
-					
-			TextFile data_points;
-			for(vector<DPosition<2> >::iterator it = points.begin(); it < points.end() ; ++it)
-			{
-				String temp  = it->getX();
-				temp += "\t";
-				temp += it->getY();
-				data_points<<temp;
-			}
-			data_points.store((String)param_.getValue("write_to_dir") + "scores.txt");					
-				
-			cout<<"Init: "<<"\n";
-					
-			gauss_fit_param_ = gauss_fit2;
-			cout<<"Gauss2: "<<getGaussGnuplotFormula()<<"\n";
-			gauss_fit_param_ = gauss_fit1;
-			cout<<"Gauss1: "<<getGaussGnuplotFormula()<<"\n";
-					
-			TextFile file;
-			String step = (String)param_.getValue("write_to_dir") + "step_";
-			String output = "set output \"step_";
-			String output_ending = ".pdf\"";
+			bool output_plots  = param_.getValue("output_plots").toBool();
+			String step;
 			int iter = 0;
-			file<<"set terminal pdf";	
-			file<<(output + iter + output_ending);
-			gauss_fit_param_ = gauss_fit2;
-			String formula;
-			formula =  "f(x)=" + String(gauss_fit_param_.A) +" * exp(-(x - " + String(gauss_fit_param_.x0) + ") ** 2 / 2 / (" + String(gauss_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior);
-			file << formula;
-			gauss_fit_param_ = gauss_fit1;
-			formula = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
-			file<<formula;
-			formula = getBothGnuplotFormula(negative_prior); 
-			file<<formula;
-			file<<"plot \"scores.txt\" with boxes, f(x) , g(x), h(x)";
-			file.store(step + iter);	
-#endif
+			String output;
+			String output_ending;
+			TextFile file;
+			if(output_plots)
+			{
+				std::vector<DPosition<2> > points;
+				DPosition<2> temp;
+				double dividing_score = probabilities.back()/(Int)param_.getValue("number_of_bins");
+				temp.setX(dividing_score/2);
+				temp.setY(0);
+				points.push_back(temp);
+				double temp_divider = dividing_score;
+				for(std::vector< double>::iterator it = probabilities.begin(); it < probabilities.end(); ++it)
+				{
+					if(temp_divider - *it >= 0)
+					{
+						points.back().setY(points.back().getY()+1);
+					}
+					else
+					{
+						temp.setX((temp_divider + temp_divider + dividing_score)/2);
+						temp.setY(0);
+						points.push_back(temp);
+						temp_divider += dividing_score;
+					}
+				}	
+
+				for(vector<DPosition<2> >::iterator it = points.begin(); it < points.end(); ++it)
+				{
+					it->setY( it->getY()/( probabilities.size() * dividing_score));
+				}
+					
+				TextFile data_points;
+				for(vector<DPosition<2> >::iterator it = points.begin(); it < points.end() ; ++it)
+				{
+					String temp  = it->getX();
+					temp += "\t";
+					temp += it->getY();
+					data_points<<temp;
+				}
+				data_points.store((String)param_.getValue("output_name") + "scores.txt");
+					
+				step = (String)param_.getValue("output_name") + "step_";
+				output = "set output \""+ (String)param_.getValue("output_name") +"step_";
+				output_ending = ".pdf\"";
+				iter = 0;
+				file<<"set terminal pdf";	
+				file<<(output + iter + output_ending);
+				gauss_fit_param_ = gauss_fit2;
+				String formula;
+				formula =  "f(x)=" + String(gauss_fit_param_.A) +" * exp(-(x - " + String(gauss_fit_param_.x0) + ") ** 2 / 2 / (" + String(gauss_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior);
+				file << formula;
+				gauss_fit_param_ = gauss_fit1;
+				formula = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
+				file<<formula;
+				formula = getBothGnuplotFormula(negative_prior); 
+				file<<formula;
+				file<<"plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, f(x) , g(x), h(x)";
+				file.store(step + iter);	
+			}
 			//-------------------------------------------------------------
 			// Estimate Parameters
 			//-------------------------------------------------------------					
@@ -245,38 +242,24 @@ namespace OpenMS
 					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
 					new_maxlike += log10(negative_prior*x_gauss2+(1-negative_prior)*x_gauss1);
 				}
-						
-#ifdef PEP_VERBOSE
-				cout<<"new prior"<<negative_prior<<"\n";
-				gauss_fit_param_ = gauss_fit2;
-				cout<<"Gauss2: "<<getGaussGnuplotFormula()<<"\n";
-				gauss_fit_param_ = gauss_fit1;						
-				cout<<"Gauss1: "<<getGaussGnuplotFormula()<<"\n";
-						 
-  			cout<<"	new_maxlike - maxlike: " << new_maxlike - maxlike<<"\n";
-#endif
         if(fabs(new_maxlike - maxlike) < 0.001)
         {
         	stop_em_init = true;      		
         }
-#ifdef PEP_VERBOSE
-       	cout<<iter<<")\n";
-       	cout<<"oldmaxlike: "<<maxlike<<"\n";
-				cout<<"maxlike: "<<new_maxlike<<"\n";
-				iter++;
-				file[1] = (output + iter + output_ending);
-				gauss_fit_param_ = gauss_fit2;
-				String formula;
-				formula =  "f(x)=" + String(gauss_fit_param_.A) + " * exp(-(x - " + String(gauss_fit_param_.x0) + ") ** 2 / 2 / (" + String(gauss_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior);
-				file[2] = formula;
-				cout<<"Gauss2: "<<getGaussGnuplotFormula()<<"\n";
-				gauss_fit_param_ = gauss_fit1;
-				file[3] = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")"; 
-				cout<<"Gauss1: "<<getGaussGnuplotFormula()<<"\n";
-				formula = "h(x)=" + String(negative_prior)+"*" + String(gauss_fit2.A) + " * exp(-(x - " + String(gauss_fit2.x0) + ") ** 2 / 2 / (" + String(gauss_fit2.sigma) + ") ** 2)"+ " + "+"(1-"+String(negative_prior) + ")*" + String(gauss_fit1.A) + " * exp(-(x - " + String(gauss_fit1.x0) + ") ** 2 / 2 / (" + String(gauss_fit1.sigma) + ") ** 2)";
-				file[4] = formula;
-				file.store(step + iter);
-#endif	
+				if(output_plots)
+				{
+					++iter;
+					file[1] = (output + iter + output_ending);
+					gauss_fit_param_ = gauss_fit2;
+					String formula;
+					formula =  "f(x)=" + String(gauss_fit_param_.A) + " * exp(-(x - " + String(gauss_fit_param_.x0) + ") ** 2 / 2 / (" + String(gauss_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior);
+					file[2] = formula;
+					gauss_fit_param_ = gauss_fit1;
+					file[3] = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")"; 
+					formula = "h(x)=" + String(negative_prior)+"*" + String(gauss_fit2.A) + " * exp(-(x - " + String(gauss_fit2.x0) + ") ** 2 / 2 / (" + String(gauss_fit2.sigma) + ") ** 2)"+ " + "+"(1-"+String(negative_prior) + ")*" + String(gauss_fit1.A) + " * exp(-(x - " + String(gauss_fit1.x0) + ") ** 2 / 2 / (" + String(gauss_fit1.sigma) + ") ** 2)";
+					file[4] = formula;
+					file.store(step + iter);
+				}
 				//update maximum likelihood
 				maxlike = new_maxlike;
 			}while(!stop_em_init);									
@@ -293,15 +276,15 @@ namespace OpenMS
 				gumbel_fit_param_.b =gauss_fit2.sigma; //6*gauss_fit2.sigma/pow(3.14,2);
 				gumbel_fit_param_.a =gauss_fit2.x0; //gauss_fit2.x0 + 0.57722* 1/(3.14*sqrt(6*gumbel_fit_param_.b));
 			}
-#ifdef PEP_VERBOSE
-			iter++;			
-			file[1] = (output + iter + output_ending);
-			file[2] = getGumbelGnuplotFormula() + "*" + String(negative_prior);
-			file[3] = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
-			file[4] = getBothGnuplotFormula(negative_prior);
-			file.store(step + iter);				
-					
-#endif
+			if(output_plots)
+			{
+				++iter;			
+				file[1] = (output + iter + output_ending);
+				file[2] = getGumbelGnuplotFormula() + "*" + String(negative_prior);
+				file[3] = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
+				file[4] = getBothGnuplotFormula(negative_prior);
+				file.store(step + iter);				
+			}
 			//Compute probabilities
 			DoubleReal max_gumbel = exp(-1.0)/gumbel_fit_param_.b;
 			DoubleReal max_gauss = gauss_fit_param_.A;
@@ -329,12 +312,9 @@ namespace OpenMS
 					x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
 					x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
 				}
-				*probs = (negative_prior*x_gumbel)/((negative_prior*x_gumbel) + (1-negative_prior)*x_gauss);
-						
-#ifdef PEP_VERBOSE
-				cout<<"score: "<<the_x<<" with probability: "<< *probs<<"\n";
-#endif						
+				*probs = (negative_prior*x_gumbel)/((negative_prior*x_gumbel) + (1-negative_prior)*x_gauss);					
 			}
+			negative_prior_ = negative_prior;
 		}
 				
 		const String PosteriorErrorProbabilityModel::getGumbelGnuplotFormula() const

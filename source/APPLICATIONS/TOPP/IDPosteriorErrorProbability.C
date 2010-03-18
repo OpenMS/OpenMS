@@ -31,10 +31,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <vector>
-#include <iostream>
 
 using namespace OpenMS;
-using namespace Math;
+using namespace Math; //PosteriorErrorProbabilityModel
 using namespace std;
 
 //-------------------------------------------------------------
@@ -96,6 +95,7 @@ class TOPPIDPosteriorErrorProbability
 		String inputfile_name = getStringOption_("in");			
 		String outputfile_name = getStringOption_("out");
 		DoubleReal smallest_e_value = getDoubleOption_("smallest_e_value");
+		Param fit_algorithm = getParam_().copy("fit_algorithm:",true);
 	
 		
 		//-------------------------------------------------------------
@@ -144,6 +144,7 @@ class TOPPIDPosteriorErrorProbability
 			}
 		}
 		PosteriorErrorProbabilityModel PEP_model;
+		PEP_model.setParameters(fit_algorithm);
 		vector<double> probabilities_mascot;
 		PEP_model.fit(score_vector_mascot, probabilities_mascot);
 		vector<double> probabilities_omssa;

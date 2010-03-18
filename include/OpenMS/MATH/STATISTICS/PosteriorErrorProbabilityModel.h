@@ -58,26 +58,31 @@ namespace OpenMS
 			public:
 	
 		
-				/// Default constructor
+				///Default constructor
 				PosteriorErrorProbabilityModel();
 
-				/// Destructor
+				///Destructor
 				virtual ~PosteriorErrorProbabilityModel(); 
 				
-				///fits the curves to the data points(x_scores) and writes the computed probabilites into the given vector.
+				///fits the curves to the data points(x_scores) and writes the computed probabilites into the given vector (the second one).
 				void fit(std::vector<double>& x_scores, std::vector<double>& probabilites);
 				
 				///returns estimated gauss parameters. Fit should be used before.
-				GaussFitter::GaussFitResult getGaussFitResult()
+				GaussFitter::GaussFitResult getGaussFitResult() const
 				{
 					return gauss_fit_param_;
 				}
 				
 				///returns estimated gumbel parameters. Fit should be used before.
-				GumbelDistributionFitter::GumbelDistributionFitResult getGumbelFitResult()
+				GumbelDistributionFitter::GumbelDistributionFitResult getGumbelFitResult() const
 				{
 					return gumbel_fit_param_;
 				}
+				
+				DoubleReal getNegativePrior() const
+				{
+					return negative_prior_;
+				}	
 				
 				/// returns the gnuplot formula of the fitted gumbel distribution.
 				const String getGumbelGnuplotFormula() const;
@@ -93,9 +98,12 @@ namespace OpenMS
 				PosteriorErrorProbabilityModel& operator = (const PosteriorErrorProbabilityModel& rhs);
 				///Copy constructor
 				PosteriorErrorProbabilityModel(const PosteriorErrorProbabilityModel& rhs);
-				
+				///stores gumbel parameters
 				GumbelDistributionFitter::GumbelDistributionFitResult gumbel_fit_param_;
+				///stores gauss parameters
 				GaussFitter::GaussFitResult	gauss_fit_param_;
+				///stores final prior probability for negative peptides
+				DoubleReal negative_prior_;
 		};
 	}
 }

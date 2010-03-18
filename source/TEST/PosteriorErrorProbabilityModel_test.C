@@ -61,27 +61,7 @@ END_SECTION
 START_SECTION((void fit(std::vector<double>& x_scores, std::vector<double>& probabilites)))
 	ptr = new PosteriorErrorProbabilityModel();
 	vector<double> score_vector;
-/*	IdXMLFile file;
-	std::vector< ProteinIdentification > protein_ids;
-	std::vector< PeptideIdentification > peptide_ids;
-	file.load(OPENMS_GET_TEST_DATA_PATH("Mix_7_Orbitrap_Mascot.idXML"),protein_ids,peptide_ids);
-	//Mix_7_Orbitrap_Mascot.idXML
-	//OR20070924_S_mix7_07_OMSSA.idXML
-	//Mix_7_Orbitrap_OMSSA.idXML 
-	//Mix_7_Orbitrap_XTandem.idXML
-	for(std::vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
-	{
-		PeptideIdentification shorty = *it;
-		vector<PeptideHit> hits = shorty.getHits();
-		for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
-		{
-			score_vector.push_back(hit->getScore() - (DoubleReal)hit->getMetaValue("identity_threshold"));
-		//score_vector.push_back((-1)* log10(max((DoubleReal)hit->getMetaValue("E-Value"),10e-20)));
-		//score_vector.push_back((-1)* log10(max(hit->getScore(),10e-20)));
-			//break;
-		}
-	}
-*/
+	
 	score_vector.push_back(-0.39);
 	score_vector.push_back(0.06);
 	score_vector.push_back(0.12);
@@ -116,7 +96,7 @@ START_SECTION((void fit(std::vector<double>& x_scores, std::vector<double>& prob
 	TEST_REAL_SIMILAR(ptr->getGaussFitResult().sigma, 0.87)
 	TEST_REAL_SIMILAR(ptr->getGumbelFitResult().a, 1.06)
 	TEST_REAL_SIMILAR(ptr->getGumbelFitResult().b, 0.77)
-	
+	TEST_REAL_SIMILAR(ptr->getNegativePrior(), 0.546)
 	TOLERANCE_ABSOLUTE(0.001)
 	while(i < score_vector.size() && j < score_vector.size())
 	{
@@ -135,12 +115,17 @@ START_SECTION((void fit(std::vector<double>& x_scores, std::vector<double>& prob
 	}
 END_SECTION
 
-START_SECTION((GaussFitter::GaussFitResult getGaussFitResult()))
+START_SECTION((GaussFitter::GaussFitResult getGaussFitResult() const))
 //tested in fit
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((	GumbelDistributionFitter::GumbelDistributionFitResult getGumbelFitResult()))
+START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult getGumbelFitResult() const))
+//tested in fit
+NOT_TESTABLE
+END_SECTION
+
+START_SECTION((DoubleReal getNegativePrior() const))
 //tested in fit
 NOT_TESTABLE
 END_SECTION
