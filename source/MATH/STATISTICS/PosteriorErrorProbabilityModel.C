@@ -303,7 +303,7 @@ namespace OpenMS
 					
 #endif
 			//Compute probabilities
-			DoubleReal max_gumbel = exp(-1)/gumbel_fit_param_.b;
+			DoubleReal max_gumbel = exp(-1.0)/gumbel_fit_param_.b;
 			DoubleReal max_gauss = gauss_fit_param_.A;
 			probs = probabilities.begin();
 			for(vector<double >::iterator it = x_scores.begin(); it < x_scores.end() ; ++it, ++probs)
