@@ -76,11 +76,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("include", "<file>", "", "inclusion list input file in fasta or featureXML format.",false);
-    registerInputFile_("exclude","<file>", "", "exclusion list input file in IdXML format.",false);
+    registerInputFile_("exclude","<file>", "", "exclusion list input file in featureXML, IdXML or fasta format.",false);
     registerOutputFile_("out", "<file>", "", "output file (tab delimited).");
     //in fasta or featureXML  
-    registerIntList_("inclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the inclusion list compounds.",false);
-    registerIntList_("exclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the exclusion list compounds, space separated",false);
+    registerIntList_("inclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the inclusion list compounds, space separated.",false);
+    registerIntList_("exclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the exclusion list compounds, space separated.",false);
     registerIntOption_("missed_cleavages","<int>",0,"Number of missed cleavages used for protein digestion.\n",false);
     registerDoubleOption_("rel_rt_window_size","<double>",.05,"The relative factor for the rt_window_size, e.g. the window is calculated as [rt-rt*rel_rt_window_size,rt+rt*rel_rt_window_size].",false);
 		registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in fasta files.",false);
