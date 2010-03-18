@@ -2043,6 +2043,7 @@ namespace OpenMS
 		tools_map["FileInfo"] = StringList::create("");
 		tools_map["FileMerger"] = StringList::create("");
 		tools_map["IDDecoyProbability"] = StringList::create("");
+		tools_map["IDPosteriorErrorProbability"] = StringList::create("");
 		tools_map["IDFileConverter"] = StringList::create("");
 		tools_map["IDFilter"] = StringList::create("");
 		tools_map["IDMapper"] = StringList::create("");

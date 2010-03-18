@@ -11,6 +11,7 @@ GaussFitter.C
 GumbelDistributionFitter.C
 Histogram.C
 LinearRegression.C
+PosteriorErrorProbabilityModel.C
 ROCCurve.C
 )
 

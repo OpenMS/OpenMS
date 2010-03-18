@@ -21,6 +21,7 @@ FileInfo
 FileMerger
 GenericWrapper
 IDDecoyProbability
+IDPosteriorErrorProbability
 IDFileConverter
 IDFilter
 IDMapper

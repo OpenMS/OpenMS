@@ -85,6 +85,7 @@
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
   - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
+  - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
   - @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications. 	 
 	

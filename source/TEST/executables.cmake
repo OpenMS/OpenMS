@@ -205,6 +205,7 @@ set(math_executables_list
   LinearRegression_test
   MathFunctions_test
   NonNegativeLeastSquaresSolver_test
+  PosteriorErrorProbabilityModel_test
   ROCCurve_test
   StatisticFunctions_test
 )

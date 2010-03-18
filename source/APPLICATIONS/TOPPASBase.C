@@ -190,6 +190,7 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:FileMerger", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:GenericWrapper", "Misc", "The category of the tool");
 		defaults_.setValue("tool_categories:IDDecoyProbability", "Protein/peptide Identification", "The category of the tool");
+		defaults_.setValue("tool_categories:IDPosteriorErrorProbability", "Protein/peptide Identification", "The category of the tool");		
 		defaults_.setValue("tool_categories:IDFileConverter", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:IDFilter", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:IDMapper", "Protein/peptide Identification", "The category of the tool");

@@ -11,6 +11,7 @@ GaussFitter.h
 GumbelDistributionFitter.h
 Histogram.h
 LinearRegression.h
+PosteriorErrorProbabilityModel.h
 ROCCurve.h
 StatisticFunctions.h
 )

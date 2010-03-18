@@ -35,7 +35,7 @@ using namespace OpenMS;
 using namespace Math;
 using namespace std;
 
-START_TEST(GumbelDistributionFitter, "$Id: GaussFitter_test.C 5908 2009-08-26 13:44:26Z marc_sturm $")
+START_TEST(GumbelDistributionFitter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -145,8 +145,8 @@ START_SECTION((const String& GumbelDistributionFitter::getGnuplotFormula() const
   String formula = ptr->getGnuplotFormula();
 	// f(x)=(1/1) * exp(-(x - 1)/1) * exp(-1 * exp(-(x-1)/1))
 	TEST_EQUAL(formula.hasSubstring("f(x)="), true)
-	TEST_EQUAL(formula.hasSubstring("* exp(-(x -"), true)
-	TEST_EQUAL(formula.hasSubstring("* exp(-1*exp(-(x-"), true)
+	TEST_EQUAL(formula.hasSubstring(") * exp(-exp(("), true)
+	TEST_EQUAL(formula.hasSubstring(" - x)/"), true)
 }
 END_SECTION
 

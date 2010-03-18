@@ -53,8 +53,8 @@ namespace OpenMS
 	{
 		GumbelDistributionFitter::GumbelDistributionFitter()
 		{
-			init_param_.a = 1.0;
-			init_param_.b = 2.0;
+			init_param_.a = 0.25;
+			init_param_.b = 0.1;
 		}
 	
 		GumbelDistributionFitter::~GumbelDistributionFitter()
@@ -212,7 +212,7 @@ namespace OpenMS
 	
 			// build a formula with the fitted parameters for gnuplot
 			stringstream formula;
-			formula <<"f(x)=" << "(1/" << result.b <<") * " << "exp(-(x - " << result.a<< ")/"<< result.b <<") * exp(-1*exp(-(x-"<<result.a<<")/"<<result.b<<"))";
+			formula <<"f(x)=" << "(1/" << result.b <<") * " << "exp(( "<< result.a<< "- x)/"<< result.b <<") * exp(-exp(("<<result.a<<" - x)/"<<result.b<<"))";
 			gnuplot_formula_ = formula.str();
 			
 #ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
