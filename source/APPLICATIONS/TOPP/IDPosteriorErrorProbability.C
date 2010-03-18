@@ -46,17 +46,21 @@ using namespace std;
 	
 	@brief  Estimates posterior error probabilities.
 	
+	So far an estimation of the false score distribution with a gumbel distribution
+	and the correct score distribution with a gaussian distribution is performed. 
+	The probabilities are calculated using bayes law, similar to PeptideProphet.
+	
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 
-class TOPPIDFilter
+class TOPPIDPosteriorErrorProbability
 	: public TOPPBase
 {
  public:
-	TOPPIDFilter()
+	TOPPIDPosteriorErrorProbability()
 		: TOPPBase("IDPosteriorErrorProbability","Estimates posterior error probabilities using a mixture model.")
 	{
 		
