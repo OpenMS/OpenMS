@@ -89,7 +89,7 @@
   - @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications. 	 
 	
 	<b>Targeted Experiments</b>
-  - @subpage TOPP_InclusionExclusionlistCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
+  - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
   - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
   
   <b>Peptide Property Prediction</b>

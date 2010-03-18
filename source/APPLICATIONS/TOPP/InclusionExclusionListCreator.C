@@ -51,12 +51,9 @@ using namespace std;
    the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
 
    The rt window size can be specified via the rel_rt_window_size parameter, 
-	 then the window is [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt]. The default is rt in minutes, set the rt_in_seconds flag use seconds.
+	 then the window is [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt]. The default is rt in minutes, set the rt_in_seconds flag to use seconds.
 
    
-   @TODO Support traML...
-
-
    <B>The command line parameters of this tool are:</B>
    @verbinclude TOPP_InclusionExclusionListCreator.cli
 */
