@@ -300,6 +300,9 @@ namespace OpenMS
       void
       reportFailure_( char const * const message ) const;
 
+			/// Write info about hits in the whitelist
+			void writeWhitelistCases_(const std::string& prefix) const;
+
       /// Log and results output goes here
       std::ostream * log_dest_;
 

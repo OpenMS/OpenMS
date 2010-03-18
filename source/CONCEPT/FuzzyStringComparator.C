@@ -142,29 +142,7 @@ namespace OpenMS
 				prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
 				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
-			if ( !whitelist_cases_.empty() )
-			{
-				*log_dest_ <<
-					prefix << '\n' <<
-					prefix << "  whitelist cases:\n";
-				Size length = 0;
-				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
-							wlcit != whitelist_cases_.end();
-							++wlcit
-						)
-				{
-					if ( wlcit->first.size() > length) length = wlcit->first.size();
-				}
-				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
-							wlcit != whitelist_cases_.end();
-							++wlcit
-						)
-				{
-					*log_dest_ <<
-						prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) <<
-						std::setw(3) << std::right << wlcit->second << "x\n";
-				}
-			}
+			writeWhitelistCases_(prefix);
 
 			*log_dest_
 				<< prefix << "\n"
@@ -222,31 +200,9 @@ namespace OpenMS
 				prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
 				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
-				if ( !whitelist_cases_.empty() )
-				{
-					*log_dest_ <<
-						prefix << '\n' <<
-						prefix << "  whitelist cases:\n";
-					Size length = 0;
-					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
-								wlcit != whitelist_cases_.end();
-								++wlcit
-							)
-					{
-						if ( wlcit->first.size() > length) length = wlcit->first.size();
-					}
-					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
-								wlcit != whitelist_cases_.end();
-								++wlcit
-							)
-					{
-						*log_dest_ <<
-							prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) <<
-							std::setw(3) << std::right << wlcit->second << "x\n";
-					}
-				}
+			writeWhitelistCases_(prefix);
 
-				*log_dest_ << prefix << std::endl;
+			*log_dest_ << prefix << std::endl;
 
       if ( line_num_1_max_ == -1 && line_num_2_max_ == -1 )
       {
@@ -665,5 +621,33 @@ namespace OpenMS
 		return is_status_success_;
 
 	} // compareFiles()
+
+
+	void FuzzyStringComparator::writeWhitelistCases_(const std::string& prefix) const
+	{
+		if (!whitelist_cases_.empty())
+		{
+			*log_dest_ <<
+				prefix << '\n' <<
+				prefix << "  whitelist cases:\n";
+			Size length = 0;
+			for (std::map<String,UInt>::const_iterator wlcit = 
+						 whitelist_cases_.begin(); wlcit != whitelist_cases_.end(); 
+					 ++wlcit)
+			{
+				if (wlcit->first.size() > length) length = wlcit->first.size();
+			}
+			for (std::map<String, UInt>::const_iterator wlcit = 
+						 whitelist_cases_.begin(); wlcit != whitelist_cases_.end();
+					 ++wlcit)
+			{
+				*log_dest_ << 
+					prefix << "    " << std::setw(length+3) << std::left << 
+					( "\"" + wlcit->first + "\"" ) << std::setw(3) << std::right << 
+					wlcit->second << "x\n";
+			}
+		}
+	}
+
 
 } //namespace OpenMS
