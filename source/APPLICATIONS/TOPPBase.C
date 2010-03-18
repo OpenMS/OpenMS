@@ -156,15 +156,16 @@ namespace OpenMS
 		//register values
 		registerOptionsAndFlags_();
 		addEmptyLine_();
-		addText_("Common TOPP options:");
+    if (getToolList().has(tool_name_)) addText_("Common TOPP options:");
+    else addText_("Common UTIL options:");
 		registerStringOption_("ini","<file>","","Use the given TOPP INI file",false);
-		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false, true);
-		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
+		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false,true);
+		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false,true);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
 		registerStringOption_("write_ini","<file>","","Writes the default configuration file",false);
-		registerStringOption_("write_wsdl","<file>","","Writes the default WSDL file",false);
-		registerFlag_("no_progress","Disables progress logging to command line");
+		registerStringOption_("write_wsdl","<file>","","Writes the default WSDL file",false,true);
+		registerFlag_("no_progress","Disables progress logging to command line",true);
 		if (id_tag_support_)
 		{
 			registerStringOption_("id_pool","<file>",
@@ -173,7 +174,8 @@ namespace OpenMS
 														,false);
 		}
 		registerFlag_("test","Enables the test mode (needed for software testing only)", true);
-		registerFlag_("-help","Shows this help");
+		registerFlag_("-help","Shows options");
+    registerFlag_("-helphelp","Shows all options (including advanced)",false);
 
 		// prepare options and flags for command line parsing
 		Map<String,String> options;
@@ -227,7 +229,7 @@ namespace OpenMS
 		}
 
 		// '--help' given
-		if (param_cmdline_.exists("-help"))
+		if (param_cmdline_.exists("-help") || param_cmdline_.exists("-helphelp"))
 		{
 			printUsage_();
 			return EXECUTION_OK;
@@ -703,19 +705,25 @@ namespace OpenMS
 	void TOPPBase::printUsage_() const
 	{
 		//common output
-		cerr << endl
-	       << tool_name_ << " -- " << tool_description_ << endl
-	       << "Version: " << version_ << endl << endl
-	       << "Usage:" << endl
-				 << "  " << tool_name_ << " <options>" << endl
-				 << endl
-				 << "Options (mandatory options marked with '*'):" << endl;
+		cerr << "\n"
+	       << tool_name_ << " -- " << tool_description_ << "\n"
+	       << "Version: " << version_ << "\n" << "\n"
+	       << "Usage:" << "\n"
+				 << "  " << tool_name_ << " <options>" << "\n"
+				 << "\n"
+				 << "Options (mandatory options marked with '*'):" << "\n";
 
+    // show advanced options?
+    bool verbose = getFlag_("-helphelp");
+      
 		//determine max length of parameters (including argument) for indentation
 		UInt max_size = 0;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
-			max_size = max((UInt)max_size,(UInt)(it->name.size()+it->argument.size()+it->required));
+      if ((!it->advanced) || (it->advanced && verbose))
+      {
+			  max_size = max((UInt)max_size,(UInt)(it->name.size()+it->argument.size()+it->required));
+      }
 		}
 
 		//offset of the descriptions
@@ -723,6 +731,8 @@ namespace OpenMS
 
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
+      if (!((!it->advanced) || (it->advanced && verbose))) continue;
+
 			//NAME + ARGUMENT
 			String tmp = "  -";
 			tmp += it->name + " " + it->argument;
@@ -863,11 +873,11 @@ namespace OpenMS
 				tmp.fillRight(' ',indent);
 				cerr << tmp << it->second << endl;
 			}
-			cerr << endl
-					 << "You can write an example INI file using the '-write_ini' option." << endl
-					 << "Documentation of subsection parameters can be found in the" << endl
-					 << "doxygen documentation or the INIFileEditor." << endl
-					 << "Have a look at OpenMS/doc/index.html for more information." << endl;
+      cerr << "\n"
+					 << "You can write an example INI file using the '-write_ini' option." << "\n"
+					 << "Documentation of subsection parameters can be found in the" << "\n"
+					 << "doxygen documentation or the INIFileEditor." << "\n"
+					 << "Have a look at OpenMS/doc/index.html for more information." << "\n";
 		}
 		cerr << endl;
 	}
@@ -1876,7 +1886,7 @@ namespace OpenMS
 		//parameters
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
-			if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini" && it->name!="write_wsdl")
+			if (it->name!="ini" && it->name!="-help" && it->name!="-helphelp" && it->name!="instance" && it->name!="write_ini" && it->name!="write_wsdl")
 			{
 				String name = loc + it->name;
 				StringList tags;
