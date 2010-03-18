@@ -70,25 +70,31 @@ START_SECTION(void ProtXMLFile::load(const String& filename,  ProteinIdentificat
 	
 		// groups	
 		TEST_EQUAL(proteins.getProteinGroups().size(), 7);
-		TEST_EQUAL(proteins.getProteinGroups()[0].id, 1);
 		TEST_EQUAL(proteins.getProteinGroups()[0].probability, 0.9990);
-		TEST_EQUAL(proteins.getProteinGroups()[0].indices.size(), 1);
-
-		TEST_EQUAL(proteins.getProteinGroups()[3].indices.size(), 2);
-		Size i3[ 2 ] = { 3, 4 };
-    std::set< Size, std::less< Size > > indices_3( i3, i3 + 2 );
-		TEST_EQUAL(indices_3==proteins.getProteinGroups()[3].indices, true);
-
-		TEST_EQUAL(proteins.getProteinGroups()[6].id, 7);
+		TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 1);
+		TEST_EQUAL(proteins.getProteinGroups()[3].accessions.size(), 2);
+		TEST_EQUAL(proteins.getProteinGroups()[3].accessions[0], 
+							 "P01876|IGHA1_HUMAN");
+		TEST_EQUAL(proteins.getProteinGroups()[3].accessions[1], 
+							 "P01877|IGHA2_HUMAN");
 		TEST_EQUAL(proteins.getProteinGroups()[6].probability, 0.2026);
-		TEST_EQUAL(proteins.getProteinGroups()[6].indices.size(), 1);
-	
+		TEST_EQUAL(proteins.getProteinGroups()[6].accessions.size(), 1);
+
+		TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 7);
+		TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 1);
+		TEST_EQUAL(proteins.getIndistinguishableProteins()[3].accessions.size(), 2);
+		TEST_EQUAL(proteins.getIndistinguishableProteins()[3].accessions[0], 
+							 "P01876|IGHA1_HUMAN");
+		TEST_EQUAL(proteins.getIndistinguishableProteins()[3].accessions[1], 
+							 "P01877|IGHA2_HUMAN");
+		TEST_EQUAL(proteins.getIndistinguishableProteins()[6].accessions.size(), 1);
+
 		// proteins
 		TEST_EQUAL(proteins.getHits().size(), 9);
 		TEST_EQUAL(proteins.getHits()[0].getAccession(), "P02787|TRFE_HUMAN");
 		TEST_EQUAL(proteins.getHits()[0].getCoverage(), 8.6);
 		TEST_EQUAL(proteins.getHits()[0].getScore(), 0.9990);
-    //   .. this one is indistinguishable.. therefore should have minimal infos
+    // this one is indistinguishable... therefore it should have minimal infos
 		TEST_EQUAL(proteins.getHits()[6].getAccession(), "P00739|HPTR_HUMAN");
 		TEST_EQUAL(proteins.getHits()[6].getCoverage(), 0);
 		TEST_EQUAL(proteins.getHits()[6].getScore(), -1);

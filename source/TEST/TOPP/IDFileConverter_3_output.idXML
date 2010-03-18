@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
 <IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="/share/usr/bertsch/sequences/uniprot_sprot_human_55.4.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 	</SearchParameters>
 	<IdentificationRun date="0200-09-04T11:14:47" search_engine="proteinprophet" search_engine_version=" Insilicos_LabKey_C++ (TPP v3.5 SQUALL (pre-release) rev.4, Build 200806091442 (linux))" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<ProteinIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="P02787|TRFE_HUMAN" score="0.999000012874603" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="P02768|ALBU_HUMAN" score="0.996999979019165" sequence="" >
@@ -23,13 +23,20 @@
 			</ProteinHit>
 			<ProteinHit id="PH_8" accession="P04217|A1BG_HUMAN" score="0.202600002288818" sequence="" >
 			</ProteinHit>
-			<UserParam type="string" name="pgroup_0" value="1,0.999,0"/>
-			<UserParam type="string" name="pgroup_1" value="2,0.997,1"/>
-			<UserParam type="string" name="pgroup_2" value="3,0.9051,2"/>
-			<UserParam type="string" name="pgroup_3" value="4,0.4788,3,4"/>
-			<UserParam type="string" name="pgroup_4" value="5,0.2663,5,6"/>
-			<UserParam type="string" name="pgroup_5" value="6,0.2059,7"/>
-			<UserParam type="string" name="pgroup_6" value="7,0.2026,8"/>
+			<UserParam type="string" name="protein_group_0" value="0.999,PH_0"/>
+			<UserParam type="string" name="protein_group_1" value="0.997,PH_1"/>
+			<UserParam type="string" name="protein_group_2" value="0.9051,PH_2"/>
+			<UserParam type="string" name="protein_group_3" value="0.4788,PH_3,PH_4"/>
+			<UserParam type="string" name="protein_group_4" value="0.2663,PH_5,PH_6"/>
+			<UserParam type="string" name="protein_group_5" value="0.2059,PH_7"/>
+			<UserParam type="string" name="protein_group_6" value="0.2026,PH_8"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="0,PH_3,PH_4"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="0,PH_5,PH_6"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="0,PH_7"/>
+			<UserParam type="string" name="indistinguishable_proteins_6" value="0,PH_8"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<PeptideHit score="0.8633" sequence="MYLGYEYVTAIR" charge="2" protein_refs="PH_0" >
@@ -80,11 +87,11 @@
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.4788" sequence="QEPSQGTTTFAVTSILR" charge="2" protein_refs="PH_3" >
+			<PeptideHit score="0.4788" sequence="QEPSQGTTTFAVTSILR" charge="2" protein_refs="PH_3 PH_4" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.2663" sequence="SCAVAEYGVYVK" charge="2" protein_refs="PH_5" >
+			<PeptideHit score="0.2663" sequence="SCAVAEYGVYVK" charge="2" protein_refs="PH_5 PH_6" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>

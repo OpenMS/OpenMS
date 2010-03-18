@@ -39,7 +39,7 @@
 
 ///////////////////////////
 
-START_TEST(Identification, "$Id$")
+START_TEST(ProteinIdentification, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -80,12 +80,11 @@ START_SECTION((ProteinIdentification(const ProteinIdentification &source)))
 	ProteinIdentification::SearchParameters param;
 	param.db = "RefSeq";
 	ProteinIdentification::ProteinGroup g;
-	g.id = 123;
 	g.probability = 0.99;
-	g.indices.insert(0);
-	g.indices.insert(3);
-	hits.insertGroup(g);
-	hits.insertGroup(g);
+	g.accessions.push_back("protein0");
+	g.accessions.push_back("protein3");
+	hits.insertProteinGroup(g);
+	hits.insertProteinGroup(g);
 	hits.setSearchParameters(param);
 	
 	ProteinIdentification hits2(hits);
@@ -119,11 +118,10 @@ START_SECTION((ProteinIdentification& operator=(const ProteinIdentification& sou
 	hits.setSearchEngine("Mascot");
 	hits.setSearchEngineVersion("2.1");
 	ProteinIdentification::ProteinGroup g;
-	g.id = 123;
 	g.probability = 0.99;
-	g.indices.insert(0);
-	g.indices.insert(3);
-	hits.insertGroup(g);
+	g.accessions.push_back("protein0");
+	g.accessions.push_back("protein3");
+	hits.insertProteinGroup(g);
 	ProteinIdentification::SearchParameters param;
 	param.db = "RefSeq";
 	hits.setSearchParameters(param);
@@ -185,11 +183,10 @@ START_SECTION((bool operator == (const ProteinIdentification& rhs) const))
 	search1 = search2;
 
 	ProteinIdentification::ProteinGroup g;
-	g.id = 123;
 	g.probability = 0.99;
-	g.indices.insert(0);
-	g.indices.insert(3);
-	search2.insertGroup(g);
+	g.accessions.push_back("protein0");
+	g.accessions.push_back("protein3");
+	search2.insertProteinGroup(g);
 	TEST_EQUAL(search1 == search2, false)	
 	search1 = search2;
 
@@ -397,19 +394,16 @@ START_SECTION((void sort()))
 	hit.setAccession("FIRSTPROTEIN");
 	id.insertHit(hit);
 	
-	ProteinIdentification::ProteinGroup g;
-	g.id = 1;
-	g.probability = 0.99;
-	g.indices.insert(0);
-	g.indices.insert(3);
-	id.insertGroup(g);
-	g.id = 2;
-	g.probability = 0.96;
-	g.indices.clear();	
-	g.indices.insert(0);	
-	g.indices.insert(1);
-	g.indices.insert(2);
-	id.insertGroup(g);	
+	ProteinIdentification::ProteinGroup g1, g2;
+	g1.probability = 0.99;
+	g1.accessions.push_back("FIRSTPROTEIN");
+	g1.accessions.push_back("FOURTHPROTEIN");
+	id.insertProteinGroup(g1);
+	g2.probability = 0.96;
+	g2.accessions.push_back("FIRSTPROTEIN");
+	g2.accessions.push_back("SECONDPROTEIN");
+	g2.accessions.push_back("THIRDPROTEIN");
+	id.insertProteinGroup(g2);
 	
 	//higher score is better
 	id.sort();
@@ -422,24 +416,8 @@ START_SECTION((void sort()))
 	TEST_EQUAL(id.getHits()[2].getScore(), 23)
 
 	TEST_EQUAL(id.getProteinGroups().size(), 2);
-	g.id = 1;
-	g.probability = 0.99;
-	g.indices.clear();
-	g.indices.insert(0);
-	g.indices.insert(1);
-	//	std::cout << "\n\n AFTER SORT: ";	
-	//for (std::set<Size>::iterator it = id.getProteinGroups()[0].indices.begin(); it!=id.getProteinGroups()[0].indices.end();++it)
-	//	std::cout << *it << " ";
-	//std::cout << "\n";	
-	TEST_EQUAL(id.getProteinGroups()[0]== g, true);
-	
-	g.id = 2;
-	g.probability = 0.96;
-	g.indices.clear();	
-	g.indices.insert(1);
-	g.indices.insert(2);
-	g.indices.insert(3);
-	TEST_EQUAL(id.getProteinGroups()[1]== g, true);
+	TEST_EQUAL(id.getProteinGroups()[0]== g1, true);	
+	TEST_EQUAL(id.getProteinGroups()[1]== g2, true);
 
 	}
 	
@@ -472,29 +450,26 @@ END_SECTION
 START_SECTION((const vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups() const))
 	ProteinIdentification id;
 	ProteinIdentification::ProteinGroup g;
-	g.id = 123;
 	g.probability = 0.99;
-	g.indices.insert(0);
-	g.indices.insert(3);
-	id.insertGroup(g);
+	g.accessions.push_back("protein0");
+	g.accessions.push_back("protein3");
+	id.insertProteinGroup(g);
 	
 	TEST_EQUAL(id.getProteinGroups().size(), 1);
 	TEST_EQUAL(id.getProteinGroups()[0]==g, true);
 END_SECTION
 
 START_SECTION((vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups()))
-
 	ProteinIdentification id;
 	ProteinIdentification::ProteinGroup g;
-	g.id = 123;
 	g.probability = 0.99;
-	g.indices.insert(0);
-	g.indices.insert(3);
-	id.insertGroup(g);
+	g.accessions.push_back("protein0");
+	g.accessions.push_back("protein3");
+	id.insertProteinGroup(g);
 	
 	TEST_EQUAL(id.getProteinGroups().size(), 1);
-	TEST_EQUAL(id.getProteinGroups()[0]==g, true);
-	TEST_EQUAL(id.getProteinGroups()[0].id=3, 3);
+	TEST_EQUAL(id.getProteinGroups()[0]==g, true);  
+  TEST_EQUAL(id.getProteinGroups()[0].probability = 0.1, 0.1);
 END_SECTION
 
 
@@ -504,6 +479,36 @@ START_SECTION((void ProteinIdentification::insertGroup(const ProteinIdentificati
 END_SECTION
 
 
+START_SECTION((const vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getIndistinguishableProteins() const))
+	ProteinIdentification id;
+	ProteinIdentification::ProteinGroup g;
+	g.accessions.push_back("protein0");
+	g.accessions.push_back("protein3");
+	id.insertIndistinguishableProteins(g);
+	
+	TEST_EQUAL(id.getIndistinguishableProteins().size(), 1);
+	TEST_EQUAL(id.getIndistinguishableProteins()[0]==g, true);
+END_SECTION
+
+START_SECTION((vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getIndistinguishableProteins()))
+	ProteinIdentification id;
+	ProteinIdentification::ProteinGroup g;
+	g.probability = 0.99;
+	g.accessions.push_back("protein0");
+	g.accessions.push_back("protein3");
+	id.insertIndistinguishableProteins(g);
+	
+	TEST_EQUAL(id.getIndistinguishableProteins().size(), 1);
+	TEST_EQUAL(id.getIndistinguishableProteins()[0]==g, true);
+  id.getIndistinguishableProteins()[0].accessions.push_back("protein1");
+	TEST_EQUAL(id.getIndistinguishableProteins()[0].accessions.size(), 3);
+END_SECTION
+
+
+START_SECTION((void ProteinIdentification::insertIndistinguishableProteins(const ProteinIdentification::ProteinGroup& group)))
+	NOT_TESTABLE
+	//tested above
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

@@ -239,27 +239,14 @@ namespace OpenMS
 				os << "\t\t\t</ProteinHit>\n";
 			}
 			
-      //add ProteinGroup info to metavalues (hack)
-      std::vector< ProteinIdentification::ProteinGroup > groups = 	protein_ids[i].getProteinGroups();
-      MetaInfoInterface p = protein_ids[i];
-      for (Size g=0;g<groups.size();++g)
-      {
-        String name = "pgroup_" + String(g);
-         if (p.metaValueExists(name))
-         {
-            warning(LOAD, String("Metavalue '")+name+"' already exists in ProteinIdentification"+String(i)+". Overwriting...");
-         }
-         String indices;
-         for (std::set< Size >::const_iterator ind_it=groups[g].indices.begin();ind_it!=groups[g].indices.end();++ind_it)
-         {
-           if (ind_it!=groups[g].indices.begin()) indices += ",";
-           indices += String(*ind_it);
-         }
-         String value = groups[g].id + "," + String(groups[g].probability) + "," + indices;
-         p.setMetaValue(name, value);
-      }
+      // add ProteinGroup info to metavalues (hack)
+			MetaInfoInterface meta = protein_ids[i];
+			addProteinGroups_(meta, protein_ids[i].getProteinGroups(), 
+												"protein_group", accession_to_id);
+			addProteinGroups_(meta, protein_ids[i].getIndistinguishableProteins(), 
+												"indistinguishable_proteins", accession_to_id);
+			writeUserParam_("UserParam", os, meta, 3);
 
-			writeUserParam_("UserParam", os, p, 3);
 			os << "\t\t</ProteinIdentification>\n";
 
 			//write PeptideIdentifications
@@ -382,7 +369,7 @@ namespace OpenMS
 		String tag = sm_.convert(qname);
 		
 		//START
-		if (tag =="IdXML")
+		if (tag == "IdXML")
 		{
 			//check file version against schema version
 			String file_version="";
@@ -402,7 +389,7 @@ namespace OpenMS
 		}
 		
 		//SEARCH PARAMETERS
-		else if (tag =="SearchParameters")
+		else if (tag == "SearchParameters")
 		{
 			//store id
 			id_ =  attributeAsString_(attributes,"id");
@@ -459,13 +446,13 @@ namespace OpenMS
 			}
 			last_meta_ = &param_;	
 		}
-		else if (tag =="FixedModification")
+		else if (tag == "FixedModification")
 		{
 			param_.fixed_modifications.push_back(attributeAsString_(attributes,"name"));
 			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
 			last_meta_ = 0;
 		}
-		else if (tag =="VariableModification")
+		else if (tag == "VariableModification")
 		{
 			param_.variable_modifications.push_back(attributeAsString_(attributes,"name"));
 			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
@@ -473,7 +460,7 @@ namespace OpenMS
 		}
 		
 		// RUN
-		else if (tag =="IdentificationRun")
+		else if (tag == "IdentificationRun")
 		{
 			pep_id_ = PeptideIdentification();
 			prot_id_ = ProteinIdentification();
@@ -496,8 +483,8 @@ namespace OpenMS
 			prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes,"date"));
 		}
 		
-		//PROTE ProteinIdentification
-		else if (tag =="ProteinIdentification")
+		//PROTEINS
+		else if (tag == "ProteinIdentification")
 		{
 			prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
 			
@@ -514,7 +501,7 @@ namespace OpenMS
 
 			last_meta_ = &prot_id_;
 		}
-		else if (tag =="ProteinHit")
+		else if (tag == "ProteinHit")
 		{
 			prot_hit_ = ProteinHit();
 			String accession = attributeAsString_(attributes,"accession");
@@ -533,7 +520,7 @@ namespace OpenMS
 		}
 		
 		//PEPTIDES
-		else if (tag =="PeptideIdentification")
+		else if (tag == "PeptideIdentification")
 		{
 			// check whether a prot id has been given, add "empty" one to list else
 			if (!prot_id_in_run_)
@@ -581,7 +568,7 @@ namespace OpenMS
 			
 			last_meta_ = &pep_id_;
 		}
-		else if (tag =="PeptideHit")
+		else if (tag == "PeptideHit")
 		{
 			pep_hit_ = PeptideHit();
 			
@@ -633,7 +620,7 @@ namespace OpenMS
 		}
 		
 		//USERPARAM
-		else if (tag =="UserParam")
+		else if (tag == "UserParam")
 		{
 			if (last_meta_ == 0)
 			{
@@ -674,12 +661,12 @@ namespace OpenMS
 	{
 		String tag = sm_.convert(qname);
 		
-		//START
+		// START
 		if (tag =="IdXML")
 		{
 			prot_id_in_run_ = false;
 		}
-		///SEARCH PARAMETERS
+		// SEARCH PARAMETERS
 		else if (tag =="SearchParameters")
 		{
 			last_meta_ = 0;
@@ -691,36 +678,20 @@ namespace OpenMS
 		}
 		else if (tag =="VariableModification")
 		{
-			
 			last_meta_ = &param_;
 		}
-		//PROTE IDENTIFICATIONS
-		else if (tag =="ProteinIdentification")
+		// PROTEIN IDENTIFICATIONS
+		else if (tag == "ProteinIdentification")
 		{
       // post processing of ProteinGroups (hack)
-      Size g_id(0);
-      while (last_meta_->metaValueExists("pgroup_" + String(g_id)))
-      {
-        // convert to proper ProteinGroup
-        ProteinIdentification::ProteinGroup g;
-        StringList values;
-        String(last_meta_->getMetaValue("pgroup_" + String(g_id))).split(',', values);
-        if (values.size()<2) fatalError(LOAD, String("Invalid UserParam for ProteinGroups (not enough values)'"));
-        g.id = values[0];
-        g.probability = values[1].toDouble();
-        for (Size i_ind=2;i_ind<values.size();++i_ind)
-        {
-          g.indices.insert(values[i_ind].toInt());
-        }
-        last_meta_->removeMetaValue("pgroup_" + String(g_id));
-        prot_id_.insertGroup(g);
-        ++g_id;
-      }
+			getProteinGroups_(prot_id_.getProteinGroups(), "protein_group");
+			getProteinGroups_(prot_id_.getIndistinguishableProteins(), 
+												"indistinguishable_proteins");
+
 			prot_ids_->push_back(prot_id_);
 			prot_id_ = ProteinIdentification();
 			last_meta_  = 0;
 			prot_id_in_run_ = true;
-
 		}
 		else if (tag == "IdentificationRun")
 		{
@@ -728,23 +699,84 @@ namespace OpenMS
 			last_meta_ = 0;
 			prot_id_in_run_ = false;
 		}
-		else if (tag =="ProteinHit")
+		else if (tag == "ProteinHit")
 		{
 			prot_id_.insertHit(prot_hit_);
 			last_meta_ = &prot_id_;
 		}	
 		//PEPTIDES
-		else if (tag =="PeptideIdentification")
+		else if (tag == "PeptideIdentification")
 		{
 			pep_ids_->push_back(pep_id_);
 			pep_id_ = PeptideIdentification();
 			last_meta_  = 0;
 		}
-		else if (tag =="PeptideHit")
+		else if (tag == "PeptideHit")
 		{
 			pep_id_.insertHit(pep_hit_);
 			last_meta_ = &pep_id_;
 		}
 	}
+
+
+	void IdXMLFile::addProteinGroups_(
+		MetaInfoInterface& meta, const vector<ProteinIdentification::ProteinGroup>&
+		groups, const String& group_name, const map<String, UInt>& accession_to_id)
+	{
+		for (Size g = 0; g < groups.size(); ++g)
+		{
+			String name = group_name + "_" + String(g);
+			if (meta.metaValueExists(name))
+			{
+				warning(LOAD, String("Metavalue '") + name + "' already exists. Overwriting...");
+			}
+			String accessions;
+			for (StringList::ConstIterator acc_it = groups[g].accessions.begin(); 
+					 acc_it != groups[g].accessions.end(); ++acc_it)
+			{
+				if (acc_it != groups[g].accessions.begin()) accessions += ",";
+				map<String, UInt>::const_iterator pos = accession_to_id.find(*acc_it);
+				if (pos != accession_to_id.end())
+				{
+					accessions += "PH_" + String(pos->second);
+				}
+				else
+				{
+					fatalError(LOAD, String("Invalid protein reference '") + pos->first + "'" );
+				}
+			}
+			String value = String(groups[g].probability) + "," + accessions;
+			meta.setMetaValue(name, value);
+		}
+	}
+
+
+	void IdXMLFile::getProteinGroups_(vector<ProteinIdentification::ProteinGroup>&
+																		groups, const String& group_name)
+	{
+		groups.clear();
+		Size g_id = 0;
+		String current_meta = group_name + "_" + String(g_id);
+		while (last_meta_->metaValueExists(current_meta))
+		{
+			// convert to proper ProteinGroup
+			ProteinIdentification::ProteinGroup g;
+			StringList values;
+			String(last_meta_->getMetaValue(current_meta)).split(',', values);
+			if (values.size() < 2) 
+			{
+				fatalError(LOAD, String("Invalid UserParam for ProteinGroups (not enough values)'"));
+			}
+			g.probability = values[0].toDouble();
+			for (Size i_ind = 1; i_ind < values.size(); ++i_ind)
+			{
+				g.accessions.push_back(proteinid_to_accession_[values[i_ind]]);
+			}
+			groups.push_back(g);
+			last_meta_->removeMetaValue(current_meta);
+			current_meta = group_name + "_" + String(++g_id);
+		}
+	}
+
 
 } // namespace OpenMS

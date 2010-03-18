@@ -61,8 +61,6 @@ namespace OpenMS
 		
 			/// Constructor
 			IdXMLFile();
-		
-
 
 			/**
 				@brief Loads the identifications of an IdXML file without identifier
@@ -101,7 +99,13 @@ namespace OpenMS
 			
 			// Docu in base class
 			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-			
+
+			/// Add data from ProteinGroups to a MetaInfoInterface
+			void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name, const std::map<String, UInt>& accession_to_id);
+
+			/// Read and store ProteinGroup data
+			void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
+
 			/// @name members for loading data
 			//@{
 			/// Pointer to fill in protein identifications

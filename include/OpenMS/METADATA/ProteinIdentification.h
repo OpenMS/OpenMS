@@ -65,19 +65,16 @@ namespace OpenMS
 			*/
 			struct ProteinGroup
 			{
-				bool operator == (const ProteinGroup rhs) const
+				bool operator==(const ProteinGroup rhs) const
 				{
-					return (id == rhs.id &&
-									probability == rhs.probability &&
-									indices == rhs.indices);
+					return (probability == rhs.probability &&
+									accessions == rhs.accessions);
 				}
 			
-				/// id of the group
-				String id;
 				/// probability of this group
 				DoubleReal probability;
-				/// Indices to (indistinguishable) proteins belonging to the same group
-				std::set<Size> indices;
+				/// Accessions of (indistinguishable) proteins that belong to the same group
+				StringList accessions;
 			};
 			
 			/// Peak mass type
@@ -183,13 +180,22 @@ namespace OpenMS
 	    void insertHit(const ProteinHit& input);
 			/// Sets the peptide and protein hits
 	    void setHits(const std::vector<ProteinHit>& hits); 
+			/// Finds a protein hit by accession (returns past-the-end iterator if not found)
+			std::vector<ProteinHit>::iterator findHit(const String& accession);
 
 			/// returns the protein groups
 			const std::vector<ProteinGroup>& getProteinGroups() const;
 			/// returns the protein groups (mutable)
 			std::vector<ProteinGroup>& getProteinGroups();
 			/// appends a new protein group
-			void insertGroup (const ProteinGroup& group);
+			void insertProteinGroup (const ProteinGroup& group);
+
+			/// returns the indistinguishable proteins
+			const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
+			/// returns the indistinguishable proteins (mutable)
+			std::vector<ProteinGroup>& getIndistinguishableProteins();
+			/// appends new indistinguishable proteins
+			void insertIndistinguishableProteins(const ProteinGroup& group);
 
 			/// returns the peptide significance threshold value
 	    DoubleReal getSignificanceThreshold() const;
@@ -234,21 +240,6 @@ namespace OpenMS
 			//@}
 			
 	  protected:
-	  
-	  	template<class T, class PRED> 
-			struct ProteinCmp 
-			{
-				ProteinCmp(T arr, const PRED& func) : arr_(arr), func_(func) 
-				{}
-
-				bool operator()(const size_t a, const size_t b)
-				{
-					return func_(arr_[a], arr_[b]);
-				}
-				T arr_;
-				PRED func_;
-			};
-
 			///@name General information (search engine, parameters and DB)
 	  	//@{
 			String id_;
@@ -264,6 +255,8 @@ namespace OpenMS
 			bool higher_score_better_;
 		  std::vector<ProteinHit> protein_hits_; 
 			std::vector<ProteinGroup> protein_groups_;
+			/// indistinguishable proteins: @p accessions[0] is "group leader", @p probability is meaningless
+			std::vector<ProteinGroup> indistinguishable_proteins_;
 			DoubleReal protein_significance_threshold_;
 	    //@}
   };

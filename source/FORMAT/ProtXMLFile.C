@@ -86,17 +86,14 @@ namespace OpenMS
 		prot_id_ = 0;
 		pep_id_ = 0;
 		pep_hit_ = 0;
-		protein_name_to_index_.clear();
 		protein_group_ = ProteinGroup();
-		protein_tag_count_ = 0;
-		master_protein_index_=0;
 	}
   
 	void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{		
 		String tag = sm_.convert(qname);
 		
-		if (tag =="protein_summary_header")
+		if (tag == "protein_summary_header")
     {
       String db = attributeAsString_(attributes,"reference_database"); // e.g. "/share/usr/sequences/uniprot_sprot_human_55.4.fasta"
       String enzyme = attributeAsString_(attributes,"sample_enzyme");
@@ -105,10 +102,12 @@ namespace OpenMS
       // find a matching enzyme name
       sp.enzyme =  (ProteinIdentification::DigestionEnzyme) cvStringToEnum_(0, enzyme.toUpper(), "sample_enzyme",ProteinIdentification::UNKNOWN_ENZYME);
       prot_id_->setSearchParameters(sp);
+			prot_id_->setScoreType("ProteinProphet probability");
+			prot_id_->setHigherScoreBetter(true);
     }
 		// identifier for Protein & PeptideIdentification
 		//<program_details analysis="proteinprophet" time="2009-11-29T18:30:03"
-		if (tag =="program_details")
+		if (tag == "program_details")
 		{
 			String analysis = attributeAsString_(attributes,"analysis");
 			String time = attributeAsString_(attributes,"time");
@@ -125,53 +124,46 @@ namespace OpenMS
 			pep_id_->setIdentifier(id);
 		}
 
-		if (tag =="protein_group")
+		if (tag == "protein_group")
 		{
-      // we group all <protein>'s (indistinguishable or not) in our internal group structure
+      // we group all <protein>'s and <indistinguishable_protein>'s in our 
+			// internal group structure
 			protein_group_ = ProteinGroup();
-			protein_group_.id = attributeAsString_(attributes,"group_number");
 			protein_group_.probability = attributeAsDouble_(attributes,"probability");
-			protein_tag_count_ = 0;
 		}
-		else if (tag =="protein")
+		else if (tag == "protein")
 		{
-      // usually there will be just one <protein> per <protein_group>, but more are possible
-      // each <protein> is distinguishable from the other, we nevertheless group them
+      // usually there will be just one <protein> per <protein_group>, but more
+			// are possible; each <protein> is distinguishable from the other, we 
+			// nevertheless group them
 
-			++protein_tag_count_; // reset for each new protein_group
-
-
-			// see if the Protein is already known (just a precaution)
-			String protein_name = attributeAsString_(attributes,"protein_name");
-			registerProtein_(protein_name); // create new protein (if required)
-			
-			// remember last real protein
-			master_protein_index_ = protein_name_to_index_[protein_name];
+			String protein_name = attributeAsString_(attributes, "protein_name");
+			// open new "indistinguishable" group:
+			prot_id_->insertIndistinguishableProteins(ProteinGroup());
+			registerProtein_(protein_name); // create new protein
 
 			// fill protein with life
       DoubleReal pc_coverage;
-      if (optionalAttributeAsDouble_(pc_coverage, attributes,"percent_coverage"))
+      if (optionalAttributeAsDouble_(pc_coverage, attributes, "percent_coverage"))
       {
-			  prot_id_->getHits()[master_protein_index_].setCoverage(attributeAsDouble_(attributes,"percent_coverage"));
+			  prot_id_->getHits().back().setCoverage(attributeAsDouble_(attributes, "percent_coverage"));
       }
       else
       {
         LOG_WARN << "Required attribute 'percent_coverage' missing. Skipping over.\n";
       }
-			prot_id_->getHits()[master_protein_index_].setScore(attributeAsDouble_(attributes,"probability"));
+			prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
 			
 		}
-		else if (tag =="indistinguishable_protein")
+		else if (tag == "indistinguishable_protein")
 		{
-			// see if the Protein is already known (just a precaution)
-			String protein_name = attributeAsString_(attributes,"protein_name");
+			String protein_name = attributeAsString_(attributes, "protein_name");
 			registerProtein_(protein_name);
-			// score of group-leader might not be transferrable (due to protein-length etc),
-			// so we set it to -1
-			prot_id_->getHits()[protein_name_to_index_[protein_name]].setScore(-1);
-			
+			// score of group leader might not be transferrable (due to protein length
+			// etc.), so we set it to -1
+			prot_id_->getHits().back().setScore(-1);
 		}
-		else if (tag =="peptide")
+		else if (tag == "peptide")
 		{
 			// If a peptide is degenerate it will show in multiple groups, but have different statistics (e.g. 'nsp_adjusted_probability')
 			// We thus treat each instance as a separate peptide
@@ -182,11 +174,12 @@ namespace OpenMS
 			pep_hit_->setSequence(attributeAsString_(attributes,"peptide_sequence"));
 			pep_hit_->setCharge(attributeAsInt_(attributes,"charge"));
 			pep_hit_->setScore(attributeAsDouble_(attributes,"nsp_adjusted_probability"));
-			// even if the peptide is degenerate, we only store the protein it is found at 
-			// (for the other proteins, the peptides' attributes will be different)
-			pep_hit_->addProteinAccession(prot_id_->getHits()[master_protein_index_].getAccession());
-			pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes,"is_nondegenerate_evidence"))=="Y" ? 1 : 0);
-			pep_hit_->setMetaValue("is_contributing", String(attributeAsString_(attributes,"is_contributing_evidence"))=="Y" ? 1 : 0);
+
+			// add accessions of all indistinguishable proteins the peptide belongs to
+			ProteinIdentification::ProteinGroup& indist = prot_id_->getIndistinguishableProteins().back();
+			pep_hit_->setProteinAccessions(indist.accessions);
+			pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
+			pep_hit_->setMetaValue("is_contributing", String(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
 		}
 		else if (tag =="mod_aminoacid_mass")
 		{ 
@@ -243,7 +236,7 @@ namespace OpenMS
 		
 		if (tag == "protein_group")
 		{
-		  prot_id_->insertGroup(protein_group_);
+		  prot_id_->insertProteinGroup(protein_group_);
 		}
 		else if (tag =="peptide")
 		{
@@ -254,20 +247,13 @@ namespace OpenMS
 	
 	void ProtXMLFile::registerProtein_(const String& protein_name)
 	{
-			if (protein_name_to_index_.has(protein_name))
-			{// existing protein (dangerous)
-				std::cout << "ProtXMLFile parsing: protein '" << protein_name << "' already seen elsewhere in this document. Skipping creation, just referencing it. This might result in overwritten attributes!\n";
-			}
-			else
-			{// new protein
-				prot_id_->insertHit(ProteinHit());
-				protein_name_to_index_[protein_name] = prot_id_->getHits().size()-1;
-				prot_id_->getHits().back().setAccession(protein_name);
-			}
-			
-			// Add protein to group
-			protein_group_.indices.insert(protein_name_to_index_[protein_name]);
-
+		ProteinHit hit;
+		hit.setAccession(protein_name);
+		prot_id_->insertHit(hit);
+		// add protein to groups
+		protein_group_.accessions.push_back(protein_name);
+		prot_id_->getIndistinguishableProteins().back().accessions.push_back(
+			protein_name);
 	}
 	
 	void ProtXMLFile::matchModification_(const DoubleReal mass, const String& origin, String& modification_description)
