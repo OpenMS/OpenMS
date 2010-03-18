@@ -33,6 +33,7 @@
 #include <algorithm>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace std;
 using namespace OpenMS::Exception;
@@ -1205,6 +1206,68 @@ namespace OpenMS
 			if (!	pe.isValid(s))	throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": "+s);
 		}
 	}
+
+  void Param::update(const Param& old_version)
+  {
+		// augment
+		for(Param::ParamIterator it = old_version.begin(); it != old_version.end();++it)
+		{
+			if (this->exists(it.getName()))
+			{
+				if (it.getName().hasSuffix(":version"))
+				{	
+					if (this->getValue(it.getName()) != it->value)
+					{
+						LOG_WARN << "Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
+					}
+					continue;
+				}
+				// param 'type': do not override!
+				else if (it.getName().hasSuffix(":type"))
+				{	
+					if (this->getValue(it.getName()) != it->value)
+					{
+						LOG_WARN << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
+					}
+					continue;
+				}
+				
+				// all other parameters:
+				Param::ParamEntry entry = this->getEntry (it.getName());
+				if (entry.value.valueType() == it->value.valueType())
+				{
+					if (entry.value != it->value)
+					{
+						// check entry for consistency (in case restrictions have changed)							
+						entry.value = it->value;
+						String s;
+						if (entry.isValid(s))
+						{
+							// overwrite default value
+							LOG_WARN << "Overriding Default-Parameter " << it.getName() << " with new value " << it->value << "\n"; 
+							this->setValue(it.getName(),it->value, entry.description, this->getTags(it.getName()));
+						}
+						else
+						{
+							LOG_WARN << "Parameter " << it.getName() << " does not fit into new restriction settings! Ignoring..."; 
+						}
+					}
+					else
+					{
+						// value stayed the same .. nothing to be done
+					}
+				}
+				else
+				{
+					LOG_WARN << "Parameter " << it.getName() << " has changed value type! Ignoring...\n"; 
+				}
+			}
+			else
+			{
+				LOG_WARN << "Deprecated Parameter " << it.getName() << " given in old parameter file! Ignoring...\n"; 
+			}
+		}
+  }
 
 	void Param::setSectionDescription(const String& key, const String& description)
 	{

@@ -21,14 +21,17 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Marc Sturm $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -236,5 +239,75 @@ namespace OpenMS
 		QFileInfo fi(path.toQString());
 		return fi.isDir();
 	}
+
+  String File::getTempDirectory()
+  {
+    Param p = getSystemParameterDefaults_();
+    if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
+    {
+       return p.getValue("temp_dir");
+    }
+    return String(QDir::tempPath());
+  }
+
+  /// The current OpenMS user data path (for result files)
+  String File::getUserDirectory()
+  {
+    Param p = getSystemParameterDefaults_();
+    if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
+    {
+       return p.getValue("home_dir");
+    }
+    return String(QDir::homePath());
+  }
+
+  Param File::getSystemParameters_()
+  {
+    String filename = String(QDir::homePath()) + ".OpenMS/OpenMS.ini";
+    Param p;
+    if (!File::readable(filename))
+    { // create file
+      p = getSystemParameterDefaults_();
+      QDir qd;
+      if (!qd.exists(String(String(QDir::homePath()) + ".OpenMS/").toQString()))
+      {
+        qd.mkpath(String(String(QDir::homePath()) + ".OpenMS/").toQString());
+      }
+      p.store(filename);
+    }
+    else
+    {
+      p.load(filename);
+      // check version
+      if (!p.exists("version") || (p.getValue("version") != VersionInfo::getVersion()))
+      {
+			  if (!p.exists("version"))
+        {
+          LOG_WARN << "Broken file '"<< filename << "' discovered. The 'version' tag is missing.\n";
+        }
+        else // old version
+        {
+          LOG_WARN << "File '"<< filename << "' is deprecated.\n";
+        }
+        LOG_WARN << "Updating missing/wrong entries in '"<< filename << "' with defaults!\n";
+        p.update(getSystemParameterDefaults_());
+        p.store(filename);
+      }
+    }
+    return p;
+  }
+
+  Param File::getSystemParameterDefaults_()
+  {
+    Param p;
+    p.setValue("version", VersionInfo::getVersion());
+    p.setValue("home_dir", ""); // only active when user enters something in this value
+    p.setValue("temp_dir", ""); // only active when user enters something in this value
+    p.setValue("threads", 2);
+    // TODO: maybe we add -log, -debug.... or....
+
+    return p;
+  }
+
 
 } // namespace OpenMS

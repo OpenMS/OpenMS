@@ -385,7 +385,24 @@ namespace OpenMS
 				@exception Exception::InvalidParameter is thrown if errors occur during the check
 			*/
 			void checkDefaults(const String& name, const Param& defaults, const String& prefix="", std::ostream& os = std::cout) const;	
-			//@}
+			
+      
+      /**
+        @brief Rescue parameter <b>values</b> from @p old_version to current param
+
+        All parameters present in both param objects will be transferred into this object, given that:
+        - the name is equal
+        - the type is equal
+        - the restrictions are equal
+
+        Not transferred are parameters with name "version" (to preserve the new version) or "type" (to preserve layout).
+
+        @param old_version Old version of param, which contains the useful settings to be rescued
+
+      **/
+      void update(const Param& old_version);
+      
+      //@}
 			
 			///@name Restriction handling
 			//@{

@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Marc Sturm $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
 
@@ -30,13 +30,15 @@
 #define OPENMS_SYSTEM_FILE_H
 
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/config.h>
 
 
 namespace OpenMS
 {
-	class String;
 	
+  class TOPPBase;
+
 	/**
 		@brief Basic file handling operations.
 		
@@ -45,7 +47,9 @@ namespace OpenMS
 	class OPENMS_DLLAPI File
 	{
 		public:
-			
+	
+      friend TOPPBase;
+
 			/// Method used to test if a @p file exists.
 			static bool exists(const String& file);
 		
@@ -110,6 +114,21 @@ namespace OpenMS
 			
 			/// Returns the OpenMS data path (environment variable overwrites the default installation path)
 			static String getOpenMSDataPath();
+
+      /// The current OpenMS temporary data path (for temporary files)
+      static String getTempDirectory();
+
+      /// The current OpenMS user data path (for result files)
+      static String getUserDirectory();
+
+  private:
+      
+      /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
+      /// or create/repair it if required
+      static Param getSystemParameters_();
+
+      /// get defaults for the system's Temp-path, user home directory etc
+      static Param getSystemParameterDefaults_();
 	};
 
 }

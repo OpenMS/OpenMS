@@ -99,7 +99,7 @@ class TOPPOMSSAAdapter
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
       registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
       registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
-      registerInputFile_("database", "<fasta-file>", "", "NCBI formated fasta files. Only the basename should be given without .p* extensions, e.g. 'SwissProt.fasta'");
+      registerInputFile_("database", "<psq-file>", "", "NCBI formated fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'");
       vector<String> valid_strings;
       //valid_strings.push_back("ppm"); // ppm disabled, as OMSSA does not support this feature
       valid_strings.push_back("Da");
@@ -122,7 +122,7 @@ class TOPPOMSSAAdapter
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
 			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-			registerInputFile_("omssa_executable", "", "", "The 'omssacl' executable of the OMSSA installation", true);
+			registerInputFile_("omssa_executable", "", "", "The 'omssacl' executable of the OMSSA installation", false);
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 			
 			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
@@ -282,7 +282,6 @@ class TOPPOMSSAAdapter
 			//-fomx <Double> read in search result in .omx format (xml). 
 			//Iterative searching is the ability to re-search search results in hopes of increasing the number of spectra identified. To accomplish this, an iterative search may change search parameters, such as using a no-enzyme search, or restrict the sequence search library to sequences already hit.
 	
-			registerStringOption_("temp_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", false, true);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -347,7 +346,19 @@ class TOPPOMSSAAdapter
 				return ILLEGAL_PARAMETERS;
 			}
 			
-			parameters += " -d "  +  String(getStringOption_("database")); // getStringOption_("d");
+      String db_name = String(getStringOption_("database")).removeSuffix();
+      // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
+
+
+      if (db_name.suffix('.') != "psq")
+      {
+        writeLog_("Input database has invalid name. Make sure it ends with '.psq'. Got '" + database + "'. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+      }
+      db_name = db_name.substr(0,db_name.size()-4);
+
+			parameters += " -d "  +  db_name; // getStringOption_("d");
 			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
 			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
@@ -601,6 +612,10 @@ class TOPPOMSSAAdapter
 			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
 
 			String call = "\"" + omssa_executable + "\"" + " " + parameters;
+
+      // @todo find OMSSA if not given
+      // executable is stored in OpenMS_bin/share/OpenMS/3rdParty/OMSSA/omssacl(.exe)
+      // or PATH
 
 			writeDebug_(call, 5);
 			status = system(call.c_str());
