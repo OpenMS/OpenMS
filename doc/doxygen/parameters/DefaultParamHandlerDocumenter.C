@@ -145,11 +145,10 @@
 #include <OpenMS/SIMULATION/MSSim.h>
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
+#include <OpenMS/SIMULATION/EGHFitter1D.h>
+#include <OpenMS/SIMULATION/EGHModel.h>
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
-
-//#include <OpenMS/SIMULATION/MixtureModel.h>
-
 
 using namespace std;
 using namespace OpenMS;
@@ -398,6 +397,8 @@ int main (int argc , char** argv)
 	DOCME(TOPPViewBase)
 	DOCME(TOPPASBase)
 	DOCME(Fitter1D)
+	DOCME(EGHModel)
+	DOCME(EGHFitter1D)
 	
 	//////////////////////////////////
 	// More complicated cases
