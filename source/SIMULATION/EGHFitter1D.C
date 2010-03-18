@@ -277,14 +277,14 @@ namespace OpenMS
     for (Size i=0; i<set.size(); ++i) sum += set[i].getIntensity();
 
     // calculate the median
-    Size median = 0;
-    Real count = 0.0;
+    //Size median = 0;
+    //Real count = 0.0;
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
     for ( Size i = 0; i < set.size(); ++i )
     {
-      count += set[i].getIntensity();
-      if ( count <= sum / 2 ) median = i;
+      //count += set[i].getIntensity();
+      //if ( count <= sum / 2 ) median = i;
 
       if (set[i].getIntensity() > apex)
       {
@@ -295,15 +295,15 @@ namespace OpenMS
     }
 
     // calculate the height of the peak
-    height_ = set[median].getIntensity();
+    height_ = set[apex_rt].getIntensity();
 
     // calculate retention time
-    retention_ = set[median].getPos();
+    retention_ = set[apex_rt].getPos();
 
 
     // guess A / B for alpha = 0.5 -> left/right half max distance
 
-    Size i = median;
+    Size i = apex_rt;
     while(i > 0)
     {
       if(set[i].getIntensity() / height_ < 0.5) break;
@@ -311,7 +311,7 @@ namespace OpenMS
     }
     CoordinateType A = retention_ - set[i+1].getPos();
 
-    i = median;
+    i = apex_rt;
     while(i < set.size())
     {
       if(set[i].getIntensity() / height_ < 0.5) break;
