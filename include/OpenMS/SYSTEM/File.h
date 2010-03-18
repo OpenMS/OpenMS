@@ -48,7 +48,7 @@ namespace OpenMS
 	{
 		public:
 	
-      friend TOPPBase;
+      friend class TOPPBase;
 
 			/// Method used to test if a @p file exists.
 			static bool exists(const String& file);
