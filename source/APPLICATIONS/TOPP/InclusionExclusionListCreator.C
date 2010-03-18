@@ -26,9 +26,7 @@
 // --------------------------------------------------------------------------
 
 //#include <OpenMS/FORMAT/TraMLFile.h>
-//#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-//#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

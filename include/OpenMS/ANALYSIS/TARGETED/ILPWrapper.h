@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_ILPWRAPPER_H
-#define OPENMS_ANALYSIS_ID_ILPWRAPPER_H
+#ifndef OPENMS_ANALYSIS_TARGETED_ILPWRAPPER_H
+#define OPENMS_ANALYSIS_TARGETED_ILPWRAPPER_H
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 

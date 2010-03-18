@@ -26,8 +26,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_ANALYSIS_ID_PRECURSORIONSELECTION_H
-#define OPENMS_ANALYSIS_ID_PRECURSORIONSELECTION_H
+#ifndef OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTION_H
+#define OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTION_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
