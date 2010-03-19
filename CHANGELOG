@@ -4,41 +4,46 @@
 
 
 TOPP tools:
-- Resampler
-	- PNG image creation functionality removed and transferred to ImageCreator UTIL
-- FileMerger
-	- merges featureXML
+- ProteinQuantifier: computes protein/peptide abundances from annotated featureXML or consensusXML files
+- Resampler: PNG image creation functionality removed and transferred to ImageCreator UTIL
+- FileMerger: merges featureXML
+- SeedListGenerator: new option to use monoisotopic peptide mass instead of precursor m/z for seeds from idXML input
 - NEW: 
-	- GenericWrapper (e.g. to wrap ProteinProphet in TOPPAS)
+  - GenericWrapper (e.g. to wrap ProteinProphet in TOPPAS)
 - REMOVE:
-  - TextImporter was removed; the functionality was moved to FileConverter
+  - TextImporter (functionality moved to FileConverter)
   
 UTIL tools:
 - NEW:
-	- ImageCreator (creates PNG's from an MS map)
+  - ImageCreator: creates PNG's from MS maps
+  - IDSplitter: splits peptide/protein annotations off of data files (inverse operation as IDMapper)
 
 OpenMS library improvements:
 - read ProtXML files
+- support protein groups in ProteinIdentification/idXML
 - Line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
 
+TOPPView improvements:
+- basic visualization of peptide identifications in idXML
+
 TOPPAS improvements:
-- Added copy&paste for workflow items
-- Workflows can now include other workflows (File>Include)
-- Several bugfixes
+- added copy/paste for workflow items
+- workflows can now include other workflows (File>Include)
+- several bug fixes
 
 Changes to the Build System:
-- external code support for CMake 2.8; External Code using 
+- external code support for CMake 2.8: External Code using 
   "include (${OpenMS_USE_FILE})" in its CMakeLists.txt 
   cannot be configured against OpenMS 1.7, however, 
   only minor changes are required to fix this.
   See the documentation for "Programming with OpenMS".
 - nightly tests for external code
 - SVN revision used to build the lib is remembered (finer version tracking)
-- Nightly coverage builds
+- nightly coverage builds
 - GUI testing (experimental)
 - Visual Studio 2010 support
 
-BugFixes:
+Bug fixes:
 [new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.7]
 - #44   TOPPView warning "Cannot show projections!"
 - #73   Resampler: can't create PNGs with TOPPAS
