@@ -79,8 +79,8 @@ class TOPPFileConverter
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     String formats("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
 #ifdef USE_ANDIMS
-		setValidFormats_("in",StringList::create(formats + "cdf"));
-		setValidStrings_("in_type",StringList::create(formats + "cdf"));
+		setValidFormats_("in",StringList::create(formats + ",cdf"));
+		setValidStrings_("in_type",StringList::create(formats + ",cdf"));
 #else
 		setValidFormats_("in",StringList::create(formats));
 		setValidStrings_("in_type",StringList::create(formats));
