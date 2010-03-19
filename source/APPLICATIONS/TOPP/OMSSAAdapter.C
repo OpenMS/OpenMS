@@ -346,13 +346,13 @@ class TOPPOMSSAAdapter
 				return ILLEGAL_PARAMETERS;
 			}
 			
-      String db_name = String(getStringOption_("database")).removeSuffix();
+      String db_name = String(getStringOption_("database"));
       // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
 
       if (db_name.suffix('.') != "psq")
       {
-        writeLog_("Input database has invalid name. Make sure it ends with '.psq'. Got '" + database + "'. Aborting!");
+        writeLog_("Input database has invalid name. Make sure it ends with '.psq'. Got '" + db_name + "'. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
       }
