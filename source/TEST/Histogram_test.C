@@ -61,11 +61,11 @@ START_SECTION((Histogram(const Histogram& histogram)))
 	TEST_EQUAL(d == d2, true)
 END_SECTION
 
-START_SECTION((BinSizeType min() const))
+START_SECTION((BinSizeType minBound() const))
 	TEST_REAL_SIMILAR(d.minBound(), 0.0)
 END_SECTION
 
-START_SECTION((BinSizeType max() const))
+START_SECTION((BinSizeType maxBound() const))
 	TEST_REAL_SIMILAR(d.maxBound(), 10.0)
 END_SECTION
 
