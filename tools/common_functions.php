@@ -183,71 +183,18 @@ function parseMaintainerLine($line)
 }
 
 /**
-	@brief parses the member information form a file
+	@brief parses the member information form doxygen xml
 	
-	@param path The OpenMS path
-	@param header The header file name
+	@param class SimpleXML parsed doxygen file
+	@param members Array containing the information. This param is passed per reference, so that it will return changed
+	@param classname Name of the class that will be parsed
+	@param debug The debug level
 	
-	@return Returns the parses information
+	@return Nothing
 */
-function getClassInfo($bin_path,$header, $debug)
+function parseClassInfoFromXML($class, &$members, $classname ,$debug)
 {
-	$members = array(
-		"classname" => substr(basename($header),0,-2),
-		"public-long" => array(),
-		"public" => array(),
-		"non-public" => array(),
-		"variables" => array(),
-		);
-
-	######################## needed stuff ###############################
-	if (!file_exists("$bin_path/doc/xml_output/"))
-	{
-		print "Error: The directory '$bin_path/doc/xml_output/' is needed!\n";
-		print "       Please execute 'make doc_xml' first!\n";
-	}
 	
-	######################## load file ###############################
-	$paths = array(
-		"",
-		"Internal_1_1",
-		"Math_1_1",
-		"Logger_1_1"
-		);
-	
-	$found = false;
-	foreach ($paths as $p)
-	{
-		//find class
-		$tmp = "$bin_path/doc/xml_output/classOpenMS_1_1".$p.$members["classname"].".xml";
-		if (file_exists($tmp))
-		{
-			$class = simplexml_load_file($tmp);
-			$found = true;
-			break;
-		}
-		//find struct
-		else
-		{
-			$tmp = "$bin_path/doc/xml_output/structOpenMS_1_1".$p.$members["classname"].".xml";
-			if (file_exists($tmp))
-			{
-				$class = simplexml_load_file($tmp);
-				$found = true;
-				break;
-			}
-			
-		}
-	}
-	if (!$found)
-	{
-		print "Error: No XML file found for class '".$members["classname"]."'. Aborting!\n";
-		return $members;
-	}
-	
-	######################## parse ###############################
-	
-	$classname = substr($class->compounddef->compoundname,8);
 	foreach ($class->compounddef->sectiondef as $section)
 	{
 		foreach($section->memberdef as $member)
@@ -347,7 +294,117 @@ function getClassInfo($bin_path,$header, $debug)
 				$members["variables"][] = (string)$member->name;
 			}
 		}
+	}  
+}
+
+/**
+	@brief parses the member information form a file
+	
+	@param path The OpenMS path
+	@param header The header file name
+	
+	@return Returns the parses information
+*/
+function getClassInfo($bin_path,$header, $debug)
+{
+	$members = array(
+		"classname" => substr(basename($header),0,-2),
+		"public-long" => array(),
+		"public" => array(),
+		"non-public" => array(),
+		"variables" => array(),
+		"nested-classes" => array(),
+		);
+
+	######################## needed stuff ###############################
+	if (!file_exists("$bin_path/doc/xml_output/"))
+	{
+		print "Error: The directory '$bin_path/doc/xml_output/' is needed!\n";
+		print "       Please execute 'make doc_xml' first!\n";
 	}
+	
+	######################## load file ###############################
+	$paths = array(
+		"",
+		"Internal_1_1",
+		"Math_1_1",
+		"Logger_1_1"
+		);
+	
+	$found = false;
+	foreach ($paths as $p)
+	{
+		//find class
+		$tmp = "$bin_path/doc/xml_output/classOpenMS_1_1".$p.$members["classname"].".xml";
+		if (file_exists($tmp))
+		{
+			$class = simplexml_load_file($tmp);
+			$found = true;
+			break;
+		}
+		//find struct
+		else
+		{
+			$tmp = "$bin_path/doc/xml_output/structOpenMS_1_1".$p.$members["classname"].".xml";
+			if (file_exists($tmp))
+			{
+				$class = simplexml_load_file($tmp);
+				$found = true;
+				break;
+			}
+			
+		}
+	}
+	if (!$found)
+	{
+		print "Error: No XML file found for class '".$members["classname"]."'. Aborting!\n";
+		return $members;
+	}
+	
+	######################## parse ###############################
+	$classname = substr($class->compounddef->compoundname,8);
+	parseClassInfoFromXML($class, $members, $classname, $debug);
+	
+	############## inner class/struct check ######################
+	
+	if($class->compounddef->innerclass)
+	{
+	  if($debug>4) 
+	  {
+	    print "Need to deal with inner classes/structs for class $classname\n";
+	  }
+    foreach($class->compounddef->innerclass as $innerclass)
+    {
+      if($debug>4)
+      {
+        print "Handling $innerclass\n";
+      }
+      $filename = $innerclass["refid"];
+      $tmp = "$bin_path/doc/xml_output/".$filename.".xml";
+			if (file_exists($tmp))
+			{
+			  if($debug>4)
+			  {
+			    print "INFO: Load inner class data from ".$tmp."\n";
+			  }
+				$innerclass_xml = simplexml_load_file($tmp);
+				
+				# parse necessary information
+				$inner_classname = substr($innerclass_xml->compounddef->compoundname,8);
+        parseClassInfoFromXML($innerclass_xml, $members, $inner_classname, $debug);
+			}
+			else if($debug>4) // just for debugging
+			{
+		    print "WARNING: Load inner class data from ".$tmp." failed\n";
+			}        
+    }
+  
+	}
+	if($debug>4)
+	{
+	  var_dump($members);
+	}
+	
 	return $members;
 }
 
