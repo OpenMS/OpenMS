@@ -230,7 +230,7 @@ namespace OpenMS
 	}
 
 
-	bool IDMapper::mass_trace_comp_(const ConvexHull2D& first, 
+	bool IDMapper::massTraceComp_(const ConvexHull2D& first, 
 																	const ConvexHull2D& second)
 	{
 		DoubleReal first_mean = 0, second_mean = 0;

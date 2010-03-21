@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(ProtXMLFile, "$Id: $")
+START_TEST(ProtXMLFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ START_SECTION(~ProtXMLFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void ProtXMLFile::load(const String& filename,  ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids))
+START_SECTION(void load(const String &filename, ProteinIdentification &protein_ids, PeptideIdentification &peptide_ids))
 {
 	ProtXMLFile f;
 	ProteinIdentification proteins;
@@ -121,7 +121,7 @@ START_SECTION(void ProtXMLFile::load(const String& filename,  ProteinIdentificat
 }
 END_SECTION
 
-START_SECTION(void store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/))
+START_SECTION(void store(const String &filename, const ProteinIdentification &protein_ids, const PeptideIdentification &peptide_ids, const String &document_id=""))
 {
 	ProtXMLFile f;
 	ProteinIdentification proteins;

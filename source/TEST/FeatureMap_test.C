@@ -546,47 +546,6 @@ START_SECTION((void clear(bool clear_meta_data)))
 	TEST_EQUAL(map1==FeatureMap<>(),true)
 END_SECTION
 
-START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)())))
-	FeatureMap<> fm;
-	fm.ensureUniqueId();
-	Feature f1;
-	f1.ensureUniqueId();
-	fm.push_back(f1);
-	Feature f2;
-	f2.ensureUniqueId();
-	fm.push_back(f2);	
-
-	Feature f3;
-	fm.push_back(f3);	
-	
-	Feature f4;
-	f4.ensureUniqueId();
-	fm.push_back(f4);	
-
-	TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
-
-END_SECTION
-
-START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)() const ) const))
-	FeatureMap<> fm;
-	fm.ensureUniqueId();
-	Feature f1;
-	f1.ensureUniqueId();
-	fm.push_back(f1);
-	Feature f2;
-	f2.ensureUniqueId();
-	fm.push_back(f2);	
-
-	Feature f3;
-	fm.push_back(f3);	
-	
-	Feature f4;
-	f4.ensureUniqueId();
-	fm.push_back(f4);	
-
-	TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
-
-END_SECTION
 
 START_SECTION(([EXTRA] void uniqueIdToIndex()))
 {

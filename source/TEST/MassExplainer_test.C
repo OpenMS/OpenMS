@@ -70,7 +70,7 @@ START_SECTION((MassExplainer(Int q_min, Int q_max, Int max_span, DoubleReal thre
 }
 END_SECTION
 
-START_SECTION((MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp)))
+START_SECTION((MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp, Size max_neutrals)))
 {
 	MassExplainer::AdductsType va;
 	Adduct a1(2, 1, 123.12, "Na", -0.5,0);

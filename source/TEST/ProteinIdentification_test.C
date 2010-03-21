@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Maintainer: Nico Pfeifer, Chris Bielow $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -447,7 +447,7 @@ START_SECTION((void assignRanks()))
 END_SECTION
 
 
-START_SECTION((const vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups() const))
+START_SECTION((const vector<ProteinGroup>& getProteinGroups() const))
 	ProteinIdentification id;
 	ProteinIdentification::ProteinGroup g;
 	g.probability = 0.99;
@@ -459,7 +459,7 @@ START_SECTION((const vector<ProteinIdentification::ProteinGroup>& ProteinIdentif
 	TEST_EQUAL(id.getProteinGroups()[0]==g, true);
 END_SECTION
 
-START_SECTION((vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups()))
+START_SECTION((vector<ProteinGroup>& getProteinGroups()))
 	ProteinIdentification id;
 	ProteinIdentification::ProteinGroup g;
 	g.probability = 0.99;
@@ -473,13 +473,13 @@ START_SECTION((vector<ProteinIdentification::ProteinGroup>& ProteinIdentificatio
 END_SECTION
 
 
-START_SECTION((void ProteinIdentification::insertGroup(const ProteinIdentification::ProteinGroup& group)))
+START_SECTION((void insertGroup(const ProteinGroup& group)))
 	NOT_TESTABLE
 	//tested above
 END_SECTION
 
 
-START_SECTION((const vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getIndistinguishableProteins() const))
+START_SECTION((const vector<ProteinGroup>& getIndistinguishableProteins() const))
 	ProteinIdentification id;
 	ProteinIdentification::ProteinGroup g;
 	g.accessions.push_back("protein0");
@@ -490,7 +490,7 @@ START_SECTION((const vector<ProteinIdentification::ProteinGroup>& ProteinIdentif
 	TEST_EQUAL(id.getIndistinguishableProteins()[0]==g, true);
 END_SECTION
 
-START_SECTION((vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getIndistinguishableProteins()))
+START_SECTION((vector<ProteinGroup>& getIndistinguishableProteins()))
 	ProteinIdentification id;
 	ProteinIdentification::ProteinGroup g;
 	g.probability = 0.99;
@@ -505,7 +505,7 @@ START_SECTION((vector<ProteinIdentification::ProteinGroup>& ProteinIdentificatio
 END_SECTION
 
 
-START_SECTION((void ProteinIdentification::insertIndistinguishableProteins(const ProteinIdentification::ProteinGroup& group)))
+START_SECTION((void insertIndistinguishableProteins(const ProteinGroup& group)))
 	NOT_TESTABLE
 	//tested above
 END_SECTION

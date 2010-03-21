@@ -302,6 +302,26 @@ START_SECTION((const DoubleReal& getLogP() const))
 }
 END_SECTION
 
+START_SECTION((const DoubleReal& getRTShift() const))
+{
+  Compomer c(1,1,-123.12);
+  Adduct a(123, 43, 123.456f, "S", -0.3453, -10.12);  
+  c.add(a,0);
+	TEST_REAL_SIMILAR(c.getRTShift(), 435.16)
+}
+END_SECTION
+
+START_SECTION((StringList getLabels(const UInt side) const))
+{
+  Compomer c(1,1,-123.12);
+	TEST_EQUAL(c.getLabels(0).size(), 0)
+  Adduct a(123, 43, 123.456f, "S", -0.3453, -10.12, "testlabel");  
+  c.add(a,0);
+	TEST_EQUAL(c.getLabels(0).size(), 1)
+	TEST_EQUAL(c.getLabels(1).size(), 0)
+}
+END_SECTION
+
 START_SECTION((String getAdductsAsString() const))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);

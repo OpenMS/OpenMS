@@ -116,7 +116,7 @@ namespace OpenMS
 		defaults_.setValue("retention_max_diff_local", 1.0, "maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
 		/// TODO should be m/z ppm?!
     defaults_.setValue("mass_max_diff", 0.5, "maximum allowed mass difference between between two co-features");
-    defaults_.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Adducts used to explain mass differences in format: 'Element(+)*:Probability:[RTShift]', i.e. the number of '+' indicate the charge, e.g. 'Ca++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fourth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
+    defaults_.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Adducts used to explain mass differences in format: 'Element(+)*:Probability[:RTShift[:Label]]', i.e. the number of '+' indicate the charge, e.g. 'Ca++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fourth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 0, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
     
     defaults_.setValue("max_minority_bound", 2, "maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant. E.g. setting this to 2 will not allow an adduct composition of '1(H+),3(Na+)' if Na+ is the least probable adduct");
@@ -140,7 +140,7 @@ namespace OpenMS
   {
 		map_label_.clear();
 		map_label_inverse_.clear();
-		map_label_inverse_[param_.getValue("default_map_label")] = 0;
+		map_label_inverse_[param_.getValue("default_map_label")] = 0; // default virtual map (for unlabeled experiments)
 		map_label_[0] = param_.getValue("default_map_label");
   
 		if (param_.getValue("q_try") == "feature") q_try_=QFROMFEATURE;
@@ -151,8 +151,10 @@ namespace OpenMS
     StringList potential_adducts_s = param_.getValue("potential_adducts");
     potential_adducts_.clear();
 		
-		bool had_nonzero_RT = false;
+		bool had_nonzero_RT = false; // adducts with RT-shift > 0 ?
 		
+    // adducts might look like this: 
+    //   Element:Probability[:RTShift[:Label]]
     for (StringList::iterator it=potential_adducts_s.begin(); it != potential_adducts_s.end(); ++it)
     {
 			// skip disabled adducts

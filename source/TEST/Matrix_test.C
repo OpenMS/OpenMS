@@ -304,7 +304,7 @@ START_SECTION((template <int ROWS, int COLS> void setMatrix(const ValueType matr
 }
 END_SECTION
 
-START_SECTION((gsl_matrix * toGslMatrix()))
+START_SECTION((OPENMS_DLLAPI gsl_matrix * toGslMatrix()))
 {
 	Matrix<double> mi(2,3,6);
 	mi(1,2)=112;

@@ -221,7 +221,7 @@ namespace OpenMS
 								std::vector<ConvexHull2D>::iterator mono_it = 
 									min_element(f_it->getConvexHulls().begin(), 
 															f_it->getConvexHulls().end(),
-															IDMapper::mass_trace_comp_);
+															IDMapper::massTraceComp_);
 								box = mono_it->getBoundingBox();
 							}
 						}
@@ -388,7 +388,7 @@ namespace OpenMS
 			void getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, std::vector<DoubleReal>& mz_values) const;
 
 			/// "operator<" to compare mass traces (convex hulls) by mean m/z
-			static bool mass_trace_comp_(const ConvexHull2D& first, 
+			static bool massTraceComp_(const ConvexHull2D& first, 
 																	 const ConvexHull2D& second);
 
 			/// increase a bounding box by the given RT and m/z deltas

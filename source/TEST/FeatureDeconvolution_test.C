@@ -36,6 +36,37 @@
 #include <coin/CoinMessageHandler.hpp>
 ///////////////////////////
 
+
+namespace OpenMS
+{
+  class FeatureDeconvolutionTest
+    : public FeatureDeconvolution 
+  {
+  public:
+      /// List of adducts used to explain mass differences
+      MassExplainer::AdductsType getPotentialAdducts()
+      { return potential_adducts_;}
+      /// labeling table
+      Map<Size, String> getMapLabels()
+      { return map_label_;}
+
+      /// labeling table inverse
+      Map<String, Size> getMapLabelInverse()
+      { return map_label_inverse_;}
+
+			/// status of intensity filter for edges
+			bool isIntensityFilterEnabled()
+      { return enable_intensity_filter_;}
+
+			/// status of charge discovery
+			CHARGEMODE getChargeMode()
+      { return q_try_;}
+
+
+  };
+
+}
+
 using namespace OpenMS;
 using namespace std;
 
@@ -54,8 +85,91 @@ START_SECTION(~FeatureDeconvolution())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void updateMembers_())
-	NOT_TESTABLE
+START_SECTION([EXTRA](void updateMembers_()))
+	FeatureDeconvolutionTest fdt;
+	
+  Param p;
+	p.setValue("charge_min", 11, "minimal possible charge");
+  p.setValue("charge_max", 13, "maximal possible charge");
+  p.setValue("retention_max_diff", 1.0, "maximum allowed RT difference between any two features if their relation shall be determined");
+	p.setValue("retention_max_diff_local", 2.0, "maxi");
+	fdt.setParameters(p);
+  
+  {
+	MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
+  Map<Size, String> map = fdt.getMapLabels();
+  Map<String, Size> map_i = fdt.getMapLabelInverse();
+  bool b_filter = fdt.isIntensityFilterEnabled();
+  FeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
+
+	TEST_EQUAL(adducts.size(), 3)
+  TEST_EQUAL(adducts[0].getFormula(), "H1");
+  TEST_EQUAL(adducts[0].getRTShift(), 0);
+  TEST_EQUAL(adducts[0].getCharge(), 1);
+  TEST_REAL_SIMILAR(adducts[0].getLogProb(), log(0.7));
+  TEST_EQUAL(adducts[1].getFormula(), "Na1");
+  TEST_EQUAL(adducts[1].getRTShift(), 0);
+  TEST_EQUAL(adducts[1].getCharge(), 1);
+  TEST_REAL_SIMILAR(adducts[1].getLogProb(), log(0.1));
+  TEST_EQUAL(adducts[2].getFormula(), "(2)H4H-4");
+  TEST_EQUAL(adducts[2].getRTShift(), -2);
+  TEST_EQUAL(adducts[2].getCharge(), 0);
+  TEST_REAL_SIMILAR(adducts[2].getLogProb(), log(0.1));
+  TEST_EQUAL(cm, FeatureDeconvolution::QFROMFEATURE)
+  TEST_EQUAL(map.size(), 2)
+  TEST_EQUAL(map_i.size(), 2)
+  TEST_EQUAL(map[0], "decharged features");
+  TEST_EQUAL(map_i["decharged features"], 0);
+  TEST_EQUAL(map[1], "heavy");
+  TEST_EQUAL(map_i["heavy"], 1);
+  TEST_EQUAL(b_filter, false)
+  Param p_internal = fdt.getParameters();
+  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff"), 1.0);
+  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff_local"), 1.0);
+  }
+
+  // second param set
+	p.setValue("charge_min", 11, "minimal possible charge");
+  p.setValue("charge_max", 13, "maximal possible charge");
+  p.setValue("q_try", "heuristic", "Try dif");
+  p.setValue("potential_adducts", StringList::create("H+:0.9,Na++:0.1"));
+  p.setValue("retention_max_diff", 1.0, "maximum ");
+	p.setValue("retention_max_diff_local", 1.0, "maxim");
+  p.setValue("intensity_filter", "true", "Enable");
+  p.setValue("default_map_label", "mylabel", "Label");
+  p.setValue("retention_max_diff", 2.0, "maximum allowed RT difference between any two features if their relation shall be determined");
+	p.setValue("retention_max_diff_local", 5.0, "maxi");
+
+	fdt.setParameters(p);
+  {
+  MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
+  Map<Size, String> map = fdt.getMapLabels();
+  Map<String, Size> map_i = fdt.getMapLabelInverse();
+  bool b_filter = fdt.isIntensityFilterEnabled();
+  FeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
+
+	TEST_EQUAL(adducts.size(), 2)
+  TEST_EQUAL(adducts[0].getFormula(), "H1");
+  TEST_EQUAL(adducts[0].getRTShift(), 0);
+  TEST_EQUAL(adducts[0].getCharge(), 1);
+  TEST_REAL_SIMILAR(adducts[0].getLogProb(), log(0.9));
+  TEST_EQUAL(adducts[1].getFormula(), "Na1");
+  TEST_EQUAL(adducts[1].getRTShift(), 0);
+  TEST_EQUAL(adducts[1].getCharge(), 2);
+  TEST_REAL_SIMILAR(adducts[1].getLogProb(), log(0.1));
+
+  TEST_EQUAL(cm, FeatureDeconvolution::QHEURISTIC)
+  TEST_EQUAL(map.size(), 1)
+  TEST_EQUAL(map_i.size(), 1)
+  TEST_EQUAL(map[0], "mylabel");
+  TEST_EQUAL(map_i["mylabel"], 0);
+  TEST_EQUAL(b_filter, true)
+  Param p_internal = fdt.getParameters();
+  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff"), 2.0);
+  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff_local"), 2.0);
+
+  }
+
 END_SECTION
 
 START_SECTION(FeatureDeconvolution(const FeatureDeconvolution &source))

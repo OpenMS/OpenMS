@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl, Chris Bielow $
-// $Authors: $
+// $Authors: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_UNIQUEIDINDEXER_H

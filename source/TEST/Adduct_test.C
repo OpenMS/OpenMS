@@ -59,15 +59,19 @@ START_SECTION((Adduct(Int charge)))
 }
 END_SECTION
 
-START_SECTION((Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob)))
+START_SECTION((Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob, DoubleReal rt_shift, const String label="")))
 {
-	Adduct a(123, 43, 123.456f, "S", -0.3453, 0);
+	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43);
 	TEST_REAL_SIMILAR(a.getSingleMass(), 123.456);
 	TEST_EQUAL(a.getFormula()=="S1", true);
 	TEST_REAL_SIMILAR(a.getLogProb(), -0.3453);
-	
+  TEST_REAL_SIMILAR(a.getRTShift(), -10);
+  TEST_EQUAL(a.getLabel(), "");
+
+	Adduct a2(123, 43, 123.456f, "S", -0.3453, -10, "testlabel");
+  TEST_EQUAL(a2.getLabel(), "testlabel");	
 }
 END_SECTION
 
@@ -155,7 +159,7 @@ START_SECTION((void setFormula(const String &formula)))
 END_SECTION
 
 
-START_SECTION((Adduct operator *(Int m)))
+START_SECTION((Adduct operator *(const Int m)))
 {
 	Adduct a_p(123, 43, 123.456, "S", -0.3453, 0);
 	Adduct a = a_p*4;

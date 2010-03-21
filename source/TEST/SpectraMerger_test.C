@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(SpectraMerger, "$Id: SpectraMerger_test.C 6565 2010-01-23 17:21:27Z andreas_bertsch $")
+START_TEST(SpectraMerger, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
