@@ -592,7 +592,7 @@ class TOPPMascotAdapter
 															modified_peptides);																
 				}
 				
-				if (setByUser_("first_dim_rt"))
+				if (getFlag_("first_dim_rt"))
 				{
 					for (Size i = 0; i < identifications.size(); ++i)
 					{
