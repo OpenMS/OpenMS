@@ -77,7 +77,7 @@ START_SECTION((void generateSeedList(const MSExperiment<>& experiment, SeedList&
 END_SECTION
 
 
-START_SECTION((void generateSeedList(vector<PeptideIdentification>& peptides, SeedList& seeds, bool use_peptide_mass)))
+START_SECTION((void generateSeedList(vector<PeptideIdentification>& peptides, SeedList& seeds, bool use_peptide_mass = false)))
 {
 	vector<PeptideIdentification> peptides(3);
 	peptides[0].setMetaValue("RT", 1.1);
