@@ -76,8 +76,8 @@ namespace OpenMS
 			interdist_i.insert(std::make_pair( tree[i].right_child, std::numeric_limits<Real>::max() ));
 			cluster_with_interdist.insert(std::make_pair(tree[i].left_child,0));
 			cluster_with_interdist.insert(std::make_pair(tree[i].right_child,0));
-			intradist_i.insert(std::make_pair(tree[i].left_child,0.0));
-			intradist_i.insert(std::make_pair(tree[i].right_child,0.0));
+			intradist_i.insert(std::make_pair(tree[i].left_child,(Real)0.));
+			intradist_i.insert(std::make_pair(tree[i].right_child,(Real)0.));
 			if(tree[i].distance == -1)
 			{
 				break;

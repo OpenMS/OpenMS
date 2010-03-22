@@ -65,7 +65,7 @@ class TOPPSpectraMerger
 {
 	public:
 		TOPPSpectraMerger()
-			: TOPPBase("SpectraMerger","Merges either MS1 or MS2 spectra, increasing S/N ratios.", false)
+			: TOPPBase("SpectraMerger","Merges spectra (each MS level separately), increasing S/N ratios.", false)
 		{
 			
 		}
@@ -81,7 +81,7 @@ class TOPPSpectraMerger
 			registerStringOption_("merging_method", "<method>", "precursor_method", "Method of merging which should be used.");
 			setValidStrings_("merging_method", StringList::create("precursor_method,block_method"));
 
-			registerSubsection_("algorithm","Algorithm section for peak picking");
+			registerSubsection_("algorithm","Algorithm section for merging spectra");
 		}
 
 	 	Param getSubsectionDefaults_(const String& /*section*/) const

@@ -51,6 +51,9 @@ namespace OpenMS
   {
   public:
 
+    /// blocks of spectra (master-spectrum index to sacrifice-spectra(the ones being merged into the master-spectrum))
+    typedef Map<Size, std::vector<Size> > MergeBlocks;
+
 		// @name Constructors and Destructors
 		// @{
     /// default constructor
@@ -74,6 +77,49 @@ namespace OpenMS
 		/// 
 		template <typename MapType> void mergeSpectraBlockWise(MapType& exp)
 		{
+			IntList ms_levels = (IntList) (param_.getValue("block_method:ms_levels"));
+      Int rt_block_size(param_.getValue("block_method:rt_block_size"));
+
+      for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel<ms_levels.end(); ++it_mslevel)
+      {
+
+        MergeBlocks spectra_to_merge;
+        Size idx_block(0);
+        Size block_size_count(rt_block_size+1);
+        Size idx_spectrum(0);
+        for (MapType::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
+			  {
+				  if (it1->getMSLevel() != *it_mslevel)
+				  {
+					  continue;
+				  }
+				  
+          // block full
+          if (++block_size_count >= rt_block_size)
+          {
+            block_size_count=0;
+            idx_block = idx_spectrum;
+          }
+          else
+          {
+            spectra_to_merge[idx_block].push_back(idx_spectrum);
+          }
+          
+          ++idx_spectrum;
+        }
+        // check if last block had sacrifice spectra
+        if (block_size_count==0)
+        { //block just got initialized
+          spectra_to_merge[idx_block] = std::vector<Size>();
+        }
+
+        // merge spectra, remove all old MS spectra and add new consensus spectra
+        mergeSpectra(exp, spectra_to_merge, *it_mslevel);
+      }
+
+
+      exp.sortSpectra();
+
 			return;
 		}
 
@@ -82,8 +128,7 @@ namespace OpenMS
 		{
 			DoubleReal mz_tolerance(param_.getValue("precursor_method:mz_tolerance"));
 			DoubleReal rt_tolerance(param_.getValue("precursor_method:rt_tolerance"));
-			DoubleReal mz_binning_width(param_.getValue("mz_binning_width"));
-			//DoubleReal mz_binning_unit(param_.getValue("mz_binning_unit"));
+
 
 			typedef typename MapType::ConstIterator ConstExpIterator;
 			typedef typename MapType::SpectrumType SpectrumType;
@@ -132,8 +177,8 @@ namespace OpenMS
 	
 			// identify which spectra are merged 	
 			std::set<Size> used_spectra;
-			Map<Size, std::vector<Size> > spectra_to_merge;
-			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_by_idx.begin(); it != spectra_by_idx.end(); ++it)
+			MergeBlocks spectra_to_merge;
+			for (MergeBlocks::ConstIterator it = spectra_by_idx.begin(); it != spectra_by_idx.end(); ++it)
 			{
 				if (used_spectra.find(it->first) != used_spectra.end())
 				{
@@ -165,52 +210,92 @@ namespace OpenMS
 				}
 			}
 
-			// merge spectra
+      // merge spectra, remove all old MS2 spectra and add new consensus spectra
+      mergeSpectra(exp, spectra_to_merge, 2);
+
+      exp.sortSpectra();
+
+			return;
+		}
+
+
+		void mergeSpectraBlockWisePeakMap(PeakMap& exp);
+
+		/// merges spectra with similar precursors
+		void mergeSpectraPrecursorsPeakMap(PeakMap& exp);
+		// @}
+
+    protected:
+    
+    /**
+        @brief merges blocks of spectra of a certain level
+
+        Merges spectra belonging to the same block, setting their MS level to @p ms_level.
+        All old spectra of level @p ms_level are removed, and the new consensus spectra (one per block)
+        are added.
+        The resulting map is NOT sorted!
+
+    */
+    template <typename MapType>
+    void mergeSpectra(MapType& exp, const MergeBlocks& spectra_to_merge, const UInt ms_level)
+    {
+			DoubleReal mz_binning_width(param_.getValue("mz_binning_width"));
+			//DoubleReal mz_binning_unit(param_.getValue("mz_binning_unit"));
+
+      // merge spectra
 			MapType merged_spectra;
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
-				SpectrumType all_peaks = exp[it->first];			
+        MapType::SpectrumType all_peaks = exp[it->first];			
+        DoubleReal rt_average=all_peaks.getRT();
+
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
-					for (typename SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
+          rt_average+=exp[*sit].getRT();
+					for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
 					{
 						all_peaks.push_back(*pit);
 					}
 				}
 				all_peaks.sortByPosition();
+        rt_average/=it->second.size()+1;
 
-  			SpectrumType consensus_spec;
-		  	consensus_spec.setMSLevel(2);
-		  	Peak1D old_peak = *all_peaks.begin();
-				// TODO write this faster
-		  	for (typename SpectrumType::ConstIterator it = (++consensus_spec.begin()); it != consensus_spec.end(); ++it)
-		  	{
-		    	if (fabs(old_peak.getMZ() - it->getMZ()) < mz_binning_width) // TODO use unit
-		    	{
-		      	old_peak.setIntensity(old_peak.getIntensity() + it->getIntensity());
-		    	}
-   		 		else
-    			{
-      			consensus_spec.push_back(old_peak);
-     		 		old_peak = *it;
-    			}
-  			}
-				merged_spectra.push_back(consensus_spec);
+  			MapType::SpectrumType consensus_spec;
+        // todo: what about metainfo and precursor information?
+		  	consensus_spec.setMSLevel(ms_level);
+        consensus_spec.setRT(rt_average);
+
+        if (all_peaks.size()==0) continue;
+        else
+        {
+		  	  Peak1D old_peak = *all_peaks.begin();
+				  // TODO write this faster
+		  	  for (typename MapType::SpectrumType::ConstIterator it = (++all_peaks.begin()); it != all_peaks.end(); ++it)
+		  	  {
+		    	  if (fabs(old_peak.getMZ() - it->getMZ()) < mz_binning_width) // TODO use unit
+		    	  {
+		      	  old_peak.setIntensity(old_peak.getIntensity() + it->getIntensity());
+		    	  }
+   		 		  else
+    			  {
+      			  consensus_spec.push_back(old_peak);
+     		 		  old_peak = *it;
+    			  }
+  			  }
+          consensus_spec.push_back(old_peak); // store last peak
+
+				  merged_spectra.push_back(consensus_spec);
+        }
 			}
 
-			// remove level2 spectra and add consensus spectra
-			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<SpectrumType>(IntList::create("2"), true)), exp.end());
+			// remove level "X" spectra and add consensus spectra
+      exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
 
-			for (ConstExpIterator it = merged_spectra.begin(); it != merged_spectra.end(); ++it)
+			for (MapType::const_iterator it = merged_spectra.begin(); it != merged_spectra.end(); ++it)
 			{
 				exp.push_back(*it);
 			}
-			exp.sortSpectra();
-
-
-			return;
-		}
-		// @}
+    }
 	
   };
 	

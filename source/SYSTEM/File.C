@@ -254,24 +254,30 @@ namespace OpenMS
   String File::getUserDirectory()
   {
     Param p = getSystemParameterDefaults_();
+    String dir;
     if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
     {
-       return p.getValue("home_dir");
+      dir = p.getValue("home_dir");
     }
-    return String(QDir::homePath());
+    else
+    {
+      dir = String(QDir::homePath());
+    }
+    dir.ensureLastChar('/');
+    return dir;
   }
 
   Param File::getSystemParameters_()
   {
-    String filename = String(QDir::homePath()) + ".OpenMS/OpenMS.ini";
+    String filename = String(QDir::homePath()) + "/.OpenMS/OpenMS.ini";
     Param p;
     if (!File::readable(filename))
     { // create file
       p = getSystemParameterDefaults_();
       QDir qd;
-      if (!qd.exists(String(String(QDir::homePath()) + ".OpenMS/").toQString()))
+      if (!qd.exists(String(String(QDir::homePath()) + "/.OpenMS/").toQString()))
       {
-        qd.mkpath(String(String(QDir::homePath()) + ".OpenMS/").toQString());
+        qd.mkpath(String(String(QDir::homePath()) + "/.OpenMS/").toQString());
       }
       p.store(filename);
     }
