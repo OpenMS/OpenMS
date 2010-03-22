@@ -61,21 +61,29 @@ namespace OpenMS
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
 		}
 
+		std::vector< Real > average_silhouette_widths; //for each step from the average silhouette widths of the clusters
+		std::map<Size, Real > interdist_i; //for each element i holds the min. average intercluster distance in cluster containing i
+		std::map<Size, Size > cluster_with_interdist; //for each element i holds which cluster originated the min. intercluster distance
+		std::map<Size, Real > intradist_i; //for each element i holds the average intracluster distance in [i]
+
 		//initial leafs
 		std::set<Size> leafs;
 		for (Size i = 0; i < tree.size(); ++i)
 		{
 			leafs.insert(tree[i].left_child);
 			leafs.insert(tree[i].right_child);
+			interdist_i.insert(std::make_pair( tree[i].left_child, std::numeric_limits<Real>::max() ));
+			interdist_i.insert(std::make_pair( tree[i].right_child, std::numeric_limits<Real>::max() ));
+			cluster_with_interdist.insert(std::make_pair(tree[i].left_child,0));
+			cluster_with_interdist.insert(std::make_pair(tree[i].right_child,0));
+			intradist_i.insert(std::make_pair(tree[i].left_child,0.0));
+			intradist_i.insert(std::make_pair(tree[i].right_child,0.0));
 			if(tree[i].distance == -1)
 			{
 				break;
 			}
 		}
-		std::vector< Real > average_silhouette_widths; //for each step from the average silhouette widths of the clusters
-		std::map<Size, Real > interdist_i; //for each element i holds the min. average intercluster distance in cluster containing i
-		std::map<Size, Size > cluster_with_interdist; //for each element i holds which cluster originated the min. intercluster distance
-		std::map<Size, Real > intradist_i; //for each element i holds the average intracluster distance in [i]
+
 
 		//inital values for interdis_i and cluster_with_interdist
 		std::set<Size>::iterator it = leafs.begin();
