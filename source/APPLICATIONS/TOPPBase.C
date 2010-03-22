@@ -1834,13 +1834,13 @@ namespace OpenMS
 				String name = loc + it->name;
 				StringList tags;
 				if (it->advanced) tags.push_back("advanced");
-				if(it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST) tags.push_back("input file");
-				if(it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) tags.push_back("output file");
-				switch(it->type)
+				if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST) tags.push_back("input file");
+				if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) tags.push_back("output file");
+				switch (it->type)
 				{
 					case ParameterInformation::STRING:
 						tmp.setValue(name,(String)it->default_value, it->description, tags);
-						if (it->valid_strings.size()!=0)
+						if (it->valid_strings.size() != 0)
 						{
 							tmp.setValidStrings(name,it->valid_strings);
 						}
@@ -1950,9 +1950,28 @@ namespace OpenMS
 		// store "type" in INI-File (if given)
 		if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
 
+
+		// 2nd stage, use TOPP tool defaults from home (if existing)
+		Param tool_user_defaults(getToolUserDefaults_(tool_name_));
+		tmp.update(tool_user_defaults);				
+
+		// 3rd stage, use common.ini from library to overide settings 
+		Param system_defaults(File::getSystemParameters_());
+		tmp.update(system_defaults);
+
 		return tmp;
 	}
 
+	Param TOPPBase::getToolUserDefaults_(const String& tool_name) const
+	{
+		Param p;
+		String ini_name(File::getUserDirectory() + "/" + tool_name + ".ini");
+		if (File::readable(ini_name))
+		{
+			p.load(ini_name);
+		}
+		return p;
+	}
 
 	const DocumentIDTagger& TOPPBase::getDocumentIDTagger_() const
 	{

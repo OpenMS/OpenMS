@@ -412,6 +412,9 @@ namespace OpenMS
       
       /// Returns the default parameters
       Param getDefaultParameters_() const;
+
+			/// Returns the user defaults for the given tool, if any default parameters are stored in the users home
+			Param getToolUserDefaults_(const String& tool_name) const;
       //@}
 
     protected:
