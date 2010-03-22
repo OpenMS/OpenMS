@@ -69,7 +69,9 @@ namespace OpenMS
     SpectraMerger& operator=(const SpectraMerger& source);
 		// @}
 
-		///
+		// @name Merging functions
+		// @{
+		/// 
 		template <typename MapType> void mergeSpectraBlockWise(MapType& exp)
 		{
 			return;
@@ -106,18 +108,19 @@ namespace OpenMS
 				
 				DoubleReal precursor_mz1(it1->getPrecursors().begin()->getMZ());
 
-				Size count2(count1);
+				Size count2(count1 + 1);
 				for (ConstExpIterator it2 = it1 + 1; it2 != exp.end(); ++it2, ++count2)
 				{
 					if (it2->getMSLevel() == 1)
 					{
 						continue;
 					}
-					DoubleReal rt2(it2->getRT());
 					if (it1->getPrecursors().size() == 0)
         	{
 						continue;
         	}
+					
+					DoubleReal rt2(it2->getRT());
 					DoubleReal precursor_mz2(it2->getPrecursors().begin()->getMZ());
 					
 					if (fabs(precursor_mz1 - precursor_mz2) < mz_tolerance && fabs(rt1 - rt2) < rt_tolerance)
@@ -207,12 +210,6 @@ namespace OpenMS
 
 			return;
 		}
-
-
-		void mergeSpectraBlockWisePeakMap(PeakMap& exp);
-
-		/// merges spectra with similar precursors
-		void mergeSpectraPrecursorsPeakMap(PeakMap& exp);
 		// @}
 	
   };

@@ -32,6 +32,7 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -65,12 +66,18 @@ START_SECTION((SpectraMerger& operator=(const SpectraMerger& source)))
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 END_SECTION
 
-START_SECTION((template <typename ExperimentType> void mergeSpectraBlockWise(ExperimentType& spectrum)))
+START_SECTION((template <typename ExperimentType> void mergeSpectraBlockWise(ExperimentType& exp)))
 	// TODO
 END_SECTION
 
-START_SECTION((template <typename ExperimentType> void mergeSpectraPrecursors(ExperimentType& spectrum)))
-	// TODO
+START_SECTION((template <typename ExperimentType> void mergeSpectraPrecursors(ExperimentType& exp)))
+	PeakMap exp;
+	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_1.mzML"), exp);
+
+	SpectraMerger merger;
+	TEST_EQUAL(exp.size(), 20)
+	merger.mergeSpectraPrecursors(exp);
+	TEST_EQUAL(exp.size(), 10);
 END_SECTION
 
 delete e_ptr;
