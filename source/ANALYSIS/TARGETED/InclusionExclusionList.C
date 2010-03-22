@@ -41,15 +41,15 @@ namespace OpenMS
   }
     
 
-  void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
-  {
+//   void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
+//   {
 
-  }
+//   }
 
-  void InclusionExclusionList::loadTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp, Size missed_cleavages)
-  {
+//   void InclusionExclusionList::loadTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp, Size missed_cleavages)
+//   {
 
-  }
+//   }
 
 	void InclusionExclusionList::writeTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, String& out_path,IntList& charges,String rt_model_path,
 																						DoubleReal rel_rt_window_size,bool rt_in_seconds,Size missed_cleavages)

@@ -54,10 +54,10 @@ namespace OpenMS
     
     //@}
 
-    void loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
+//     void loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
 
-    void loadTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<IncludeExcludeTarget>& targets,
-                     TargetedExperiment& exp, Size missed_cleavages = 0);
+//     void loadTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<IncludeExcludeTarget>& targets,
+//                      TargetedExperiment& exp, Size missed_cleavages = 0);
 
 
 		/**
