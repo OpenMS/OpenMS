@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
-// $Authors: $
+// $Maintainer: Alexandra Zerck $
+// $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
