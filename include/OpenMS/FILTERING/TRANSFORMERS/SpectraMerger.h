@@ -87,7 +87,7 @@ namespace OpenMS
         Size idx_block(0);
         Size block_size_count(rt_block_size+1);
         Size idx_spectrum(0);
-        for (MapType::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
+        for (typename MapType::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
 			  {
 				  if (it1->getMSLevel() != *it_mslevel)
 				  {
@@ -246,7 +246,7 @@ namespace OpenMS
 			MapType merged_spectra;
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
-        MapType::SpectrumType all_peaks = exp[it->first];			
+        typename MapType::SpectrumType all_peaks = exp[it->first];			
         DoubleReal rt_average=all_peaks.getRT();
 
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
@@ -260,7 +260,7 @@ namespace OpenMS
 				all_peaks.sortByPosition();
         rt_average/=it->second.size()+1;
 
-  			MapType::SpectrumType consensus_spec;
+  			typename MapType::SpectrumType consensus_spec;
         // todo: what about metainfo and precursor information?
 		  	consensus_spec.setMSLevel(ms_level);
         consensus_spec.setRT(rt_average);
@@ -289,9 +289,9 @@ namespace OpenMS
 			}
 
 			// remove level "X" spectra and add consensus spectra
-      exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
+      exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
 
-			for (MapType::const_iterator it = merged_spectra.begin(); it != merged_spectra.end(); ++it)
+			for (typename MapType::const_iterator it = merged_spectra.begin(); it != merged_spectra.end(); ++it)
 			{
 				exp.push_back(*it);
 			}
