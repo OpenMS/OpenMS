@@ -271,7 +271,7 @@ class TOPPFileFilter
   			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(levels, true)), exp.end());
 
   			//remove by scan mode (might be a lot of spectra)
-  			bool rem_mode = getFlag_("remove_mode");
+  			bool rem_mode = setByUser_("remove_mode");
   			writeDebug_(String("Remove by mode: ") + String(rem_mode),3);
   			if (rem_mode)
   			{
@@ -287,7 +287,7 @@ class TOPPFileFilter
   			}
 
         //select by scan mode (might be a lot of spectra)
-        bool select_mode = getFlag_("select_mode");
+        bool select_mode = setByUser_("select_mode");
         writeDebug_(String("Select by mode: ") + String(rem_mode),3);
         if (select_mode)
         {
@@ -305,7 +305,7 @@ class TOPPFileFilter
 
 
   			//remove by activation mode (might be a lot of spectra)
-  			bool rem_activation = getFlag_("remove_activation");
+  			bool rem_activation = setByUser_("remove_activation");
   			writeDebug_(String("Remove scans with activation mode: ") + String(rem_activation),3);
   			if (rem_activation)
   			{
@@ -321,7 +321,7 @@ class TOPPFileFilter
   			}
 
 				//select by activation mode
-				bool select_activation = getFlag_("select_activation");
+				bool select_activation = setByUser_("select_activation");
 				writeDebug_(String("Selecting scans with activation mode: ") + String(select_activation), 3);
 				if (select_activation)
 				{
