@@ -55,18 +55,6 @@ START_SECTION(~InclusionExclusionList())
 }
 END_SECTION
 
-START_SECTION((void loadTargets(FeatureMap<> &map, std::vector< IncludeExcludeTarget > &targets, TargetedExperiment &exp)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((void loadTargets(std::vector< FASTAFile::FASTAEntry > &fasta_entries, std::vector< IncludeExcludeTarget > &targets, TargetedExperiment &exp, Size missed_cleavages=0)))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((void writeTargets(std::vector< FASTAFile::FASTAEntry > &fasta_entries, String &out_path, IntList &charges, String rt_model_path, DoubleReal rel_rt_window_size, bool rt_in_seconds, Size missed_cleavages=0)))
 {
 	// load data and write out file
