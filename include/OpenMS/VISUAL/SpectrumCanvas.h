@@ -240,25 +240,7 @@ namespace OpenMS
 		bool getLayerFlag(Size layer, LayerData::Flags f) const
 		{
 			OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::getLayerFlag() index overflow");
-			switch(f)
-			{
-				case LayerData::F_HULLS:
-					return layers_[layer].f1;
-				case LayerData::F_HULL:
-					return layers_[layer].f3;
-				case LayerData::F_UNASSIGNED:
-					return layers_[layer].f2;
-				case LayerData::P_PRECURSORS:
-					return layers_[layer].f1;
-				case LayerData::P_PROJECTIONS:
-					return layers_[layer].f2;
-				case LayerData::C_ELEMENTS:
-					return layers_[layer].f1;
-			  case LayerData::I_PEPTIDEMZ:
-					return layers_[layer].f1;
-			}
-			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
-			return false;
+			return layers_[layer].flags.test(f);
 		}
 		
 		/// sets a layer flag of the layer @p layer
@@ -266,32 +248,9 @@ namespace OpenMS
 		{
 			//abort if there are no layers
 			if (layers_.empty()) return;
-			
 			OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::setLayerFlag() index overflow");
-			switch(f)
-			{
-				case LayerData::F_HULLS:
-					layers_[layer].f1 = value;
-					break;
-				case LayerData::F_HULL:
-					layers_[layer].f3 = value;
-					break;
-				case LayerData::F_UNASSIGNED:
-					layers_[layer].f2 = value;
-					break;
-				case LayerData::P_PRECURSORS:
-					layers_[layer].f1 = value;
-					break;
-				case LayerData::P_PROJECTIONS:
-					layers_[layer].f2 = value;
-					break;
-				case LayerData::C_ELEMENTS:
-					layers_[layer].f1 = value;
-					break;
-			  case LayerData::I_PEPTIDEMZ:
-					layers_[current_layer_].f1 = value;
-					break;
-			}
+			
+			layers_[layer].flags.set(f, value);
 			update_buffer_ = true;
 			update();
 		}

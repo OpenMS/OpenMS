@@ -37,6 +37,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 
 #include <vector>
+#include <bitset>
 
 namespace OpenMS 
 {
@@ -69,9 +70,12 @@ namespace OpenMS
 			P_PRECURSORS,  ///< Peaks: Mark precursor peaks of MS/MS scans
 			P_PROJECTIONS, ///< Peaks: Show projections
 			C_ELEMENTS,    ///< Consensus features: Show elements
-			I_PEPTIDEMZ    ///< Identifications: m/z source
+			I_PEPTIDEMZ,   ///< Identifications: m/z source
+			SIZE_OF_FLAGS
 		};
-		
+		/// Actual state of each flag
+		std::bitset<SIZE_OF_FLAGS> flags;
+
 		///Label used in visualization
 		enum LabelType
 		{
@@ -95,7 +99,8 @@ namespace OpenMS
 		
 		/// Default constructor
 		LayerData()
-			: visible(true),
+			:	flags(),
+				visible(true),
 				flipped(false),
 				type(DT_UNKNOWN),
 				name(),
@@ -105,9 +110,6 @@ namespace OpenMS
 				consensus(),
 				peptides(),
 				current_spectrum(0),
-				f1(false),
-				f2(false),
-				f3(false),
 				param(),
 				gradient(),
 				filters(),
@@ -160,13 +162,6 @@ namespace OpenMS
 		std::vector<PeptideIdentification> peptides;
 		/// Index of the current spectrum (1d view)
 		Size current_spectrum;
-		
-		/// Flag one (Features: convex hulls, Peak: precursors, Consensus: elements, Identifications: m/z source)
-		bool f1;
-		/// Flag two (Features: numbers, Peak: projections, Consensus: -, Identifications: -)
-		bool f2;
-		/// Flag three (Features: convex hull, Peak: -, Consensus: -, Identifications: -)
-		bool f3;
 		
 		///Layer parameters
 		Param param;
