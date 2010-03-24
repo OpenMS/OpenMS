@@ -193,7 +193,7 @@ namespace OpenMS
 		{
 			inline bool operator () (const Peak1D& left, const Peak1D& right) const
 			{
-				return (left.getMZ() < right.getPos());
+				return (left.getMZ() < right.getMZ());
 			}
 			inline bool operator () ( Peak1D const & left, CoordinateType right ) const 
 			{

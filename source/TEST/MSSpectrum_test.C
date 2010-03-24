@@ -832,6 +832,17 @@ START_SECTION(void clear(bool clear_meta_data))
 	TEST_EQUAL(edit==MSSpectrum<>(),true)
 END_SECTION
 
+START_SECTION((bool operator()(const MSSpectrum &a, const MSSpectrum &b) const))
+  MSSpectrum<> s1;
+  s1.setRT(0.451);
+
+  MSSpectrum<> s2;
+  s2.setRT(0.5);
+
+  TEST_EQUAL(MSSpectrum<>::RTLess()(s1,s2), true);
+  TEST_EQUAL(MSSpectrum<>::RTLess()(s2,s1), false);
+  TEST_EQUAL(MSSpectrum<>::RTLess()(s2,s2), false);
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

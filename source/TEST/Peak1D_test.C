@@ -215,5 +215,115 @@ START_SECTION([EXTRA] struct IntensityLess)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
+// Nested stuff
+/////////////////////////////////////////////////////////////
+
+Peak1D p1;
+p1.setIntensity(10.0);
+p1.setMZ(10.0);
+Peak1D p2;
+p2.setIntensity(12.0);
+p2.setMZ(12.0);
+
+// IntensityLess
+START_SECTION((bool operator()(Peak1D const &left, Peak1D const &right) const))
+
+TEST_EQUAL(Peak1D::IntensityLess()(p1,p2), true)
+TEST_EQUAL(Peak1D::IntensityLess()(p2,p1), false)
+TEST_EQUAL(Peak1D::IntensityLess()(p2,p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(Peak1D const &left, IntensityType right) const))
+
+TEST_EQUAL(Peak1D::IntensityLess()(p1,p2.getIntensity()), true)
+TEST_EQUAL(Peak1D::IntensityLess()(p2,p1.getIntensity()), false)
+TEST_EQUAL(Peak1D::IntensityLess()(p2,p2.getIntensity()), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(IntensityType left, Peak1D const &right) const))
+
+TEST_EQUAL(Peak1D::IntensityLess()(p1.getIntensity(),p2), true)
+TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p1), false)
+TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(IntensityType left, IntensityType right) const))
+
+TEST_EQUAL(Peak1D::IntensityLess()(p1.getIntensity(),p2.getIntensity()), true)
+TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p1.getIntensity()), false)
+TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p2.getIntensity()), false)
+
+END_SECTION
+
+// MZLess
+START_SECTION((bool operator()(const Peak1D &left, const Peak1D &right) const))
+
+TEST_EQUAL(Peak1D::MZLess()(p1,p2), true)
+TEST_EQUAL(Peak1D::MZLess()(p2,p1), false)
+TEST_EQUAL(Peak1D::MZLess()(p2,p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(Peak1D const &left, CoordinateType right) const))
+
+TEST_EQUAL(Peak1D::MZLess()(p1,p2.getMZ()), true)
+TEST_EQUAL(Peak1D::MZLess()(p2,p1.getMZ()), false)
+TEST_EQUAL(Peak1D::MZLess()(p2,p2.getMZ()), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(CoordinateType left, Peak1D const &right) const))
+
+TEST_EQUAL(Peak1D::MZLess()(p1.getMZ(),p2), true)
+TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p1), false)
+TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(CoordinateType left, CoordinateType right) const))
+
+TEST_EQUAL(Peak1D::MZLess()(p1.getMZ(),p2.getMZ()), true)
+TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p1.getMZ()), false)
+TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p2.getMZ()), false)
+
+END_SECTION
+
+// PositionLess
+START_SECTION((bool operator()(const Peak1D &left, const Peak1D &right) const))
+
+TEST_EQUAL(Peak1D::PositionLess()(p1,p2), true)
+TEST_EQUAL(Peak1D::PositionLess()(p2,p1), false)
+TEST_EQUAL(Peak1D::PositionLess()(p2,p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(const Peak1D &left, const PositionType &right) const))
+
+TEST_EQUAL(Peak1D::PositionLess()(p1,p2.getPosition()), true)
+TEST_EQUAL(Peak1D::PositionLess()(p2,p1.getPosition()), false)
+TEST_EQUAL(Peak1D::PositionLess()(p2,p2.getPosition()), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(const PositionType &left, const Peak1D &right) const))
+
+TEST_EQUAL(Peak1D::PositionLess()(p1.getPosition(),p2), true)
+TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p1), false)
+TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(const PositionType &left, const PositionType &right) const))
+
+TEST_EQUAL(Peak1D::PositionLess()(p1.getPosition(),p2.getPosition()), true)
+TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p1.getPosition()), false)
+TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p2.getPosition()), false)
+
+END_SECTION
+
+/////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
