@@ -473,8 +473,8 @@ START_SECTION((vector<ProteinGroup>& getProteinGroups()))
 END_SECTION
 
 
-START_SECTION((void insertGroup(const ProteinGroup& group)))
-	NOT_TESTABLE
+START_SECTION((void insertProteinGroup(const ProteinGroup& group)))
+  NOT_TESTABLE
 	//tested above
 END_SECTION
 
@@ -509,6 +509,22 @@ START_SECTION((void insertIndistinguishableProteins(const ProteinGroup& group)))
 	NOT_TESTABLE
 	//tested above
 END_SECTION
+
+
+START_SECTION((vector<ProteinHit>::iterator findHit(const String& accession)))
+{
+	ProteinIdentification protein;
+	ProteinHit hit;
+	hit.setAccession("test1");
+	protein.insertHit(hit);
+	hit.setAccession("test2");
+	protein.insertHit(hit);
+	TEST_EQUAL(protein.findHit("test1")->getAccession(), "test1");
+	TEST_EQUAL(protein.findHit("test2")->getAccession(), "test2");
+	TEST_EQUAL(protein.findHit("test3") == protein.getHits().end(), true);
+}
+END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////
