@@ -469,39 +469,6 @@ TEST_EQUAL(Peak2D::RTLess()(p2.getRT(),p2.getRT()), false)
 
 END_SECTION
 
-// MZLess
-START_SECTION((bool operator()(const Peak2D &left, const Peak2D &right) const))
-
-TEST_EQUAL(Peak2D::MZLess()(p1,p2), true)
-TEST_EQUAL(Peak2D::MZLess()(p2,p1), false)
-TEST_EQUAL(Peak2D::MZLess()(p2,p2), false)
-
-END_SECTION
-
-START_SECTION((bool operator()(const Peak2D &left, const CoordinateType &right) const))
-
-TEST_EQUAL(Peak2D::MZLess()(p1,p2.getMZ()), true)
-TEST_EQUAL(Peak2D::MZLess()(p2,p1.getMZ()), false)
-TEST_EQUAL(Peak2D::MZLess()(p2,p2.getMZ()), false)
-
-END_SECTION
-
-START_SECTION((bool operator()(const CoordinateType &left, const Peak2D &right) const))
-
-TEST_EQUAL(Peak2D::MZLess()(p1.getMZ(),p2), true)
-TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p1), false)
-TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p2), false)
-
-END_SECTION
-
-START_SECTION((bool operator()(const CoordinateType &left, const CoordinateType &right) const))
-
-TEST_EQUAL(Peak2D::MZLess()(p1.getMZ(),p2.getMZ()), true)
-TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p1.getMZ()), false)
-TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p2.getMZ()), false)
-
-END_SECTION
-
 // PositionLess
 START_SECTION((bool operator()(const Peak2D &left, const Peak2D &right) const))
 
@@ -511,7 +478,7 @@ TEST_EQUAL(Peak2D::PositionLess()(p2,p2), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(const Peak2D &left, PositionType right) const))
+START_SECTION((bool operator()(const Peak2D &left, const PositionType &right) const))
 
 TEST_EQUAL(Peak2D::PositionLess()(p1,p2.getPosition()), true)
 TEST_EQUAL(Peak2D::PositionLess()(p2,p1.getPosition()), false)
@@ -519,7 +486,7 @@ TEST_EQUAL(Peak2D::PositionLess()(p2,p2.getPosition()), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(PositionType left, const Peak2D &right) const))
+START_SECTION((bool operator()(const PositionType &left, const Peak2D &right) const))
 
 TEST_EQUAL(Peak2D::PositionLess()(p1.getPosition(),p2), true)
 TEST_EQUAL(Peak2D::PositionLess()(p2.getPosition(),p1), false)
@@ -527,11 +494,44 @@ TEST_EQUAL(Peak2D::PositionLess()(p2.getPosition(),p2), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(PositionType left, PositionType right) const))
+START_SECTION((bool operator()(const PositionType &left, const PositionType &right) const))
 
 TEST_EQUAL(Peak2D::PositionLess()(p1.getPosition(),p2.getPosition()), true)
 TEST_EQUAL(Peak2D::PositionLess()(p2.getPosition(),p1.getPosition()), false)
 TEST_EQUAL(Peak2D::PositionLess()(p2.getPosition(),p2.getPosition()), false)
+
+END_SECTION
+
+// MZLess
+START_SECTION((bool operator()(const Peak2D &left, const Peak2D &right) const))
+
+TEST_EQUAL(Peak2D::MZLess()(p1,p2), true)
+TEST_EQUAL(Peak2D::MZLess()(p2,p1), false)
+TEST_EQUAL(Peak2D::MZLess()(p2,p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(const Peak2D &left, CoordinateType right) const))
+
+TEST_EQUAL(Peak2D::MZLess()(p1,p2.getMZ()), true)
+TEST_EQUAL(Peak2D::MZLess()(p2,p1.getMZ()), false)
+TEST_EQUAL(Peak2D::MZLess()(p2,p2.getMZ()), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(CoordinateType left, const Peak2D &right) const))
+
+TEST_EQUAL(Peak2D::MZLess()(p1.getMZ(),p2), true)
+TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p1), false)
+TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p2), false)
+
+END_SECTION
+
+START_SECTION((bool operator()(CoordinateType left, CoordinateType right) const))
+
+TEST_EQUAL(Peak2D::MZLess()(p1.getMZ(),p2.getMZ()), true)
+TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p1.getMZ()), false)
+TEST_EQUAL(Peak2D::MZLess()(p2.getMZ(),p2.getMZ()), false)
 
 END_SECTION
 
