@@ -840,23 +840,37 @@
 				if (in_array($testname,$files))
 				{
 					$out = array();
-					exec("svn proplist -v $src_path/$testname",$out);
-					$kw = false;
-					foreach ($out as $line)
+					// use xml output since svn 1.5 and 1.6 have different output formats 
+					// when used wo --xml
+					exec("svn proplist -v --xml $src_path/$testname",$out);
+					
+					// concat
+					$xml_out = ""; 
+					foreach($out as $line)
 					{
-						if (strpos($line,"svn:keywords")!==FALSE)
+						$xml_out .= $line."\n";
+					}
+					
+					$svn_xml = simplexml_load_string($xml_out);
+					$kw = false;
+					foreach($svn_xml->target as $target) 
+					{
+						foreach($target->property as $prop)
 						{
-							$kw = true;
-							if (strpos($line,"Id")===FALSE)
+							if($prop["name"] == "svn:keywords") 
 							{
-								realOutput("svn:keyword 'Id' not set for '$testname'",$user,$testname);
+								if (strpos($prop,"Id")!==FALSE)
+								{
+									$kw=true;
+									break;
+								}
 							}
 						}
 					}
-					if (!$kw)
-					{
-						realOutput("svn:keyword 'Id' not set for '$testname'",$user,$testname);
-					}
+          if (!$kw)
+          {
+            realOutput("svn:keyword 'Id' not set for '$testname'",$user,$testname);
+          }					
 				}	
 			}
 		}
