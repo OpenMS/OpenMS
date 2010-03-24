@@ -9,7 +9,7 @@
 ##  $2 -> target path
 ##  $3 -> install_name_tool
 
-for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork
+for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest
 do
     # copy Qt library
     cp -Rf $1/$lib.framework $2
