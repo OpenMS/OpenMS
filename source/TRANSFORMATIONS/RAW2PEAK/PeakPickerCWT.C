@@ -1645,7 +1645,7 @@ namespace OpenMS
 					}
 			}
 		// now sort the index_tic_vec according to tic and get the 3 highest spectra:
-		sort(index_tic_vec.begin(),index_tic_vec.end(),TICLess_());
+		sort(index_tic_vec.begin(),index_tic_vec.end(),PairComparatorSecondElement<std::pair<Size,DoubleReal> >());
 		std::vector<DoubleReal> estimated_widths;
 		for(Size s = 0; s < input.size()&& s < 3;++s)
 			{

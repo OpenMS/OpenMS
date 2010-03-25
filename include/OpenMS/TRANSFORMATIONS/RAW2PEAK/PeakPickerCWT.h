@@ -182,18 +182,6 @@ namespace OpenMS
       DPosition<1> centroid_position;
     };
 
-		/**
-			 @brief Class for comparison of SpectrumIndex-TIC-Pair needed for peak width estimation.
-    */
-		class OPENMS_DLLAPI TICLess_
-		{
-		public:
-			bool operator()(const std::pair<Size,DoubleReal>& a, const std::pair<Size,DoubleReal>& b)
-			{
-				return a.second < b.second;
-			}
-		};
-
 		
     /// Computes the peak's left and right area
     void getPeakArea_(const PeakArea_& area, double &area_left, double &area_right);
