@@ -37,17 +37,14 @@
 namespace OpenMS
 {   	
   /**
-    @brief Representation of a peptide/protein ProteinIdentification
+    @brief Representation of a protein identification run
     
-    This class stores the general information and the protein hits of an ProteinIdentification run.
+    This class stores the general information and the protein hits of a protein identification run.
     
-    The actual peptide hits are stored in PeptideIdentification instances that are part of 
-    spectra or features. 
+    The actual peptide hits are stored in PeptideIdentification instances that are part of spectra or features. 
     
-    In order to be able to connect the ProteinIdentification and the corresponding peptide identifications, both
-    classes have a string identifier. We recommend using the search engine name and the date as identifier.
-    Setting this identifier is especially important, when there are several ProteinIdentification runs for a map
-    i.e. several ProteinIdentification instances.
+    In order to be able to connect the ProteinIdentification and the corresponding peptide identifications, both classes have a string identifier. We recommend using the search engine name and the date as identifier.
+    Setting this identifier is especially important when there are several protein identification runs for a map, i.e. several ProteinIdentification instances.
 
     @todo Add MetaInfoInterface to modifications => update IdXMLFile and ProteinIdentificationVisualizer (Andreas)
      
@@ -71,7 +68,7 @@ namespace OpenMS
 									accessions == rhs.accessions);
 				}
 			
-				/// probability of this group
+				/// Probability of this group
 				DoubleReal probability;
 				/// Accessions of (indistinguishable) proteins that belong to the same group
 				StringList accessions;
@@ -154,15 +151,15 @@ namespace OpenMS
 			};
 	  	
 	  	
-	    /** @name constructors,destructors,assignment operator <br> */
+	    /** @name Constructors, destructors, assignment operator <br> */
 	    //@{
-	    /// default constructor
+	    /// Default constructor
 	    ProteinIdentification();
-	    /// destructor
+	    /// Destructor
 	    virtual ~ProteinIdentification();
-	    /// copy constructor
+	    /// Copy constructor
 	    ProteinIdentification(const ProteinIdentification& source);
-	    /// assignment operator
+	    /// Assignment operator
 	    ProteinIdentification& operator=(const ProteinIdentification& source);
 			/// Equality operator
 			bool operator == (const ProteinIdentification& rhs) const;		
@@ -172,34 +169,34 @@ namespace OpenMS
 
 	   	///@name Protein hit information
 	  	//@{	
-	    /// returns the protein hits
+	    /// Returns the protein hits
 	    const std::vector<ProteinHit>& getHits() const;
-	    /// returns the protein hits (mutable)
+	    /// Returns the protein hits (mutable)
 	    std::vector<ProteinHit>& getHits();
 			/// Appends a protein hit
 	    void insertHit(const ProteinHit& input);
-			/// Sets the peptide and protein hits
+			/// Sets the protein hits
 	    void setHits(const std::vector<ProteinHit>& hits); 
 			/// Finds a protein hit by accession (returns past-the-end iterator if not found)
 			std::vector<ProteinHit>::iterator findHit(const String& accession);
 
-			/// returns the protein groups
+			/// Returns the protein groups
 			const std::vector<ProteinGroup>& getProteinGroups() const;
-			/// returns the protein groups (mutable)
+			/// Returns the protein groups (mutable)
 			std::vector<ProteinGroup>& getProteinGroups();
-			/// appends a new protein group
+			/// Appends a new protein group
 			void insertProteinGroup (const ProteinGroup& group);
 
-			/// returns the indistinguishable proteins
+			/// Returns the indistinguishable proteins
 			const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
-			/// returns the indistinguishable proteins (mutable)
+			/// Returns the indistinguishable proteins (mutable)
 			std::vector<ProteinGroup>& getIndistinguishableProteins();
-			/// appends new indistinguishable proteins
+			/// Appends new indistinguishable proteins
 			void insertIndistinguishableProteins(const ProteinGroup& group);
 
-			/// returns the peptide significance threshold value
+			/// Returns the protein significance threshold value
 	    DoubleReal getSignificanceThreshold() const;
-			/// Sets the peptide significance threshold value
+			/// Sets the protein significance threshold value
 			void setSignificanceThreshold(DoubleReal value);
 	    /// Returns the protein score type
 	    const String& getScoreType() const;   
@@ -207,40 +204,40 @@ namespace OpenMS
 	    void setScoreType(const String& type);
 	    /// Returns true if a higher score represents a better score
 	    bool isHigherScoreBetter() const;   
-	    /// Sets the orientation of the score (higher is better?)
+	    /// Sets the orientation of the score (is higher better?)
 	    void setHigherScoreBetter(bool higher_is_better);
-			/// Sorts the peptide and protein hits according to their score
+			/// Sorts the protein hits according to their score
 			void sort();
-			/// Sorts the peptide hits by score and assigns ranks (best score has rank of 1)
+			/// Sorts the protein hits by score and assigns ranks (best score has rank 1)
 	    void assignRanks();
 			//@}
 
 	   	///@name General information
 	  	//@{
-			/// returns the date of the ProteinIdentification
+			/// Returns the date of the protein identification run
 	    const DateTime& getDateTime() const;
-			/// sets the date of the ProteinIdentification
+			/// Sets the date of the protein identification run
 	    void setDateTime(const DateTime& date);
-			/// sets the search engine type
+			/// Sets the search engine type
 			void setSearchEngine(const String& search_engine);
-			/// returns the type of search engine used
+			/// Returns the type of search engine used
 			const String& getSearchEngine() const;
-			/// sets the search engine version
+			/// Sets the search engine version
 			void setSearchEngineVersion(const String& search_engine_version);
-			/// returns the search engine version
+			/// Returns the search engine version
 			const String& getSearchEngineVersion() const;
-			/// sets the search parameters
+			/// Sets the search parameters
 			void setSearchParameters(const SearchParameters& search_parameters);
-			/// returns the search parameters 
+			/// Returns the search parameters 
 			const SearchParameters& getSearchParameters() const; 
-	    /// returns the identifier
+	    /// Returns the identifier
 	    const String& getIdentifier() const;
-	    /// sets the identifier
+	    /// Sets the identifier
 	    void setIdentifier(const String& id);
 			//@}
 			
 	  protected:
-			///@name General information (search engine, parameters and DB)
+			///@name General information (search engine, parameters and database)
 	  	//@{
 			String id_;
 			String search_engine_;
@@ -255,7 +252,7 @@ namespace OpenMS
 			bool higher_score_better_;
 		  std::vector<ProteinHit> protein_hits_; 
 			std::vector<ProteinGroup> protein_groups_;
-			/// indistinguishable proteins: @p accessions[0] is "group leader", @p probability is meaningless
+			/// Indistinguishable proteins: @p accessions[0] is "group leader", @p probability is meaningless
 			std::vector<ProteinGroup> indistinguishable_proteins_;
 			DoubleReal protein_significance_threshold_;
 	    //@}
