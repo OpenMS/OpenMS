@@ -142,26 +142,20 @@ namespace OpenMS
     Type type;
 
     /**
-    	 @brief Comparator for the width.
-
-    	 Lexicographical comparison from dimension 0 to dimension D is done.
+    	 @brief  Comparison of mz_positions.
     */
     class OPENMS_DLLAPI PositionLess
     {
 	    public:
 	
-	      PositionLess(Int i) : dimension_(i) {}
-	      PositionLess() : dimension_(-1) {}
-	      ~PositionLess() {}
+      PositionLess(){}
+      ~PositionLess() {}
 	
-	      inline bool operator () (const PeakShape& a, const PeakShape& b)
-	      {
-	        return (a.mz_position < b.mz_position);
-	      }
-	
-	    protected:
-	      Int dimension_;
-
+      inline bool operator () (const PeakShape& a, const PeakShape& b)
+      {
+        return (a.mz_position < b.mz_position);
+      }
+      
     };
 	protected:
 		/// Left peak endpoint in the data
