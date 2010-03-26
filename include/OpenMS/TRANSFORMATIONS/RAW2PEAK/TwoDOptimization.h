@@ -80,7 +80,7 @@ namespace OpenMS
 		: public DefaultParamHandler
 	{
 	public:
-
+   
 		/// Constructor
 		TwoDOptimization();
 
@@ -905,14 +905,14 @@ namespace OpenMS
 
 						IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
 																																						d.iso_map_iter->second.peaks.end(),
-																																						pair,PairComparatorSecondElement<IsotopeCluster::IndexPair>());
+																																						pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
 
 
 						// find the last entry with this rt-value
 						++pair.first;
 						IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks.begin(),
 																																						 d.iso_map_iter->second.peaks.end(),
-																																						 pair,PairComparatorSecondElement<IsotopeCluster::IndexPair>());
+																																						 pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
 
 						while(set_iter != set_iter2)
 							{
@@ -958,7 +958,7 @@ namespace OpenMS
 
 						set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
 																	 d.iso_map_iter->second.peaks.end(),
-																	 pair,PairComparatorSecondElement<IsotopeCluster::IndexPair>());
+																	 pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
 						Size p=0;
 						while(p < peak_shapes.size())
 							{
@@ -1029,7 +1029,7 @@ namespace OpenMS
 				pair.first =  iso_map_iter->second.peaks.begin()->first + i;
 				IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks.begin(),
 																												iso_map_iter->second.peaks.end(),
-																												pair,PairComparatorSecondElement<IsotopeCluster::IndexPair>());
+																												pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
 				
 				// consider a bit more of the signal to the left
 				first_peak_mz = (exp_it->begin() + set_iter->second)->getMZ() - 1;
@@ -1038,7 +1038,7 @@ namespace OpenMS
 				if(pair.first < iso_map_iter->second.peaks.size()-1) ++pair.first;
 				IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks.begin(),
                                                                          iso_map_iter->second.peaks.end(),
-                                                                         pair,PairComparatorSecondElement<IsotopeCluster::IndexPair>());
+                                                                         pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
 				if(set_iter2 != iso_map_iter->second.peaks.begin()) --set_iter2;
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 				
