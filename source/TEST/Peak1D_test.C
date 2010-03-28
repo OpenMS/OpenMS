@@ -169,50 +169,6 @@ START_SECTION((bool operator != (const Peak1D& rhs) const))
 	TEST_EQUAL(p1!=p2, false)
 END_SECTION
 
-START_SECTION([EXTRA] class PositionLess)
-	std::vector<Peak1D > v;
-	Peak1D p;
-	
-	p.getPosition()[0]=3.0;
-	v.push_back(p);
-
-	p.getPosition()[0]=2.0;
-	v.push_back(p);
-
-	p.getPosition()[0]=1.0;
-	v.push_back(p);
-	
-	std::sort(v.begin(), v.end(), Peak1D::PositionLess());
-	TEST_REAL_SIMILAR(v[0].getPosition()[0], 1.0)
-	TEST_REAL_SIMILAR(v[1].getPosition()[0], 2.0)
-	TEST_REAL_SIMILAR(v[2].getPosition()[0], 3.0)
-END_SECTION
-
-START_SECTION([EXTRA] struct IntensityLess)
-	std::vector<Peak1D > v;
-	Peak1D p;
-	
-	p.setIntensity(2.5f);
-	v.push_back(p);
-
-	p.setIntensity(3.5f);
-	v.push_back(p);
-
-	p.setIntensity(1.5f);
-	v.push_back(p);
-	
-	std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
-	TEST_REAL_SIMILAR(v[0].getIntensity(), 1.5)
-	TEST_REAL_SIMILAR(v[1].getIntensity(), 2.5)
-	TEST_REAL_SIMILAR(v[2].getIntensity(), 3.5)
-
-	v[0]=v[2];
-	v[2]=p;
-	std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
-	TEST_REAL_SIMILAR(v[0].getIntensity(), 1.5)
-	TEST_REAL_SIMILAR(v[1].getIntensity(), 2.5)
-	TEST_REAL_SIMILAR(v[2].getIntensity(), 3.5)
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 // Nested stuff
@@ -226,101 +182,162 @@ p2.setIntensity(12.0);
 p2.setMZ(12.0);
 
 // IntensityLess
-START_SECTION((bool operator()(Peak1D const &left, Peak1D const &right) const))
+START_SECTION(([Peak1D::IntensityLess] bool operator()(Peak1D const &left, Peak1D const &right) const))
 
-TEST_EQUAL(Peak1D::IntensityLess()(p1,p2), true)
-TEST_EQUAL(Peak1D::IntensityLess()(p2,p1), false)
-TEST_EQUAL(Peak1D::IntensityLess()(p2,p2), false)
+  std::vector<Peak1D > v;
+  Peak1D p;
+
+  p.setIntensity(2.5f);
+  v.push_back(p);
+
+  p.setIntensity(3.5f);
+  v.push_back(p);
+
+  p.setIntensity(1.5f);
+  v.push_back(p);
+
+  std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
+  TEST_REAL_SIMILAR(v[0].getIntensity(), 1.5)
+  TEST_REAL_SIMILAR(v[1].getIntensity(), 2.5)
+  TEST_REAL_SIMILAR(v[2].getIntensity(), 3.5)
+
+  v[0]=v[2];
+  v[2]=p;
+  std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
+  TEST_REAL_SIMILAR(v[0].getIntensity(), 1.5)
+  TEST_REAL_SIMILAR(v[1].getIntensity(), 2.5)
+  TEST_REAL_SIMILAR(v[2].getIntensity(), 3.5)
+
+  // some more
+  TEST_EQUAL(Peak1D::IntensityLess()(p1,p2), true)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2,p1), false)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2,p2), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(Peak1D const &left, IntensityType right) const))
+START_SECTION(([Peak1D::IntensityLess] bool operator()(Peak1D const &left, IntensityType right) const))
 
-TEST_EQUAL(Peak1D::IntensityLess()(p1,p2.getIntensity()), true)
-TEST_EQUAL(Peak1D::IntensityLess()(p2,p1.getIntensity()), false)
-TEST_EQUAL(Peak1D::IntensityLess()(p2,p2.getIntensity()), false)
-
-END_SECTION
-
-START_SECTION((bool operator()(IntensityType left, Peak1D const &right) const))
-
-TEST_EQUAL(Peak1D::IntensityLess()(p1.getIntensity(),p2), true)
-TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p1), false)
-TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p2), false)
+  TEST_EQUAL(Peak1D::IntensityLess()(p1,p2.getIntensity()), true)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2,p1.getIntensity()), false)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2,p2.getIntensity()), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(IntensityType left, IntensityType right) const))
+START_SECTION(([Peak1D::IntensityLess] bool operator()(IntensityType left, Peak1D const &right) const))
 
-TEST_EQUAL(Peak1D::IntensityLess()(p1.getIntensity(),p2.getIntensity()), true)
-TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p1.getIntensity()), false)
-TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p2.getIntensity()), false)
+  TEST_EQUAL(Peak1D::IntensityLess()(p1.getIntensity(),p2), true)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p1), false)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p2), false)
+
+END_SECTION
+
+START_SECTION(([Peak1D::IntensityLess] bool operator()(IntensityType left, IntensityType right) const))
+
+  TEST_EQUAL(Peak1D::IntensityLess()(p1.getIntensity(),p2.getIntensity()), true)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p1.getIntensity()), false)
+  TEST_EQUAL(Peak1D::IntensityLess()(p2.getIntensity(),p2.getIntensity()), false)
 
 END_SECTION
 
 // MZLess
-START_SECTION((bool operator()(const Peak1D &left, const Peak1D &right) const))
+START_SECTION(([Peak1D::MZLess] bool operator()(const Peak1D &left, const Peak1D &right) const))
 
-TEST_EQUAL(Peak1D::MZLess()(p1,p2), true)
-TEST_EQUAL(Peak1D::MZLess()(p2,p1), false)
-TEST_EQUAL(Peak1D::MZLess()(p2,p2), false)
+  std::vector<Peak1D > v;
+  Peak1D p;
+
+  p.setMZ(3.0);
+  v.push_back(p);
+
+  p.setMZ(2.0);
+  v.push_back(p);
+
+  p.setMZ(1.0);
+  v.push_back(p);
+
+  std::sort(v.begin(), v.end(), Peak1D::MZLess());
+  TEST_REAL_SIMILAR(v[0].getPosition()[0], 1.0)
+  TEST_REAL_SIMILAR(v[1].getPosition()[0], 2.0)
+  TEST_REAL_SIMILAR(v[2].getPosition()[0], 3.0)
+
+  //
+  TEST_EQUAL(Peak1D::MZLess()(p1,p2), true)
+  TEST_EQUAL(Peak1D::MZLess()(p2,p1), false)
+  TEST_EQUAL(Peak1D::MZLess()(p2,p2), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(Peak1D const &left, CoordinateType right) const))
+START_SECTION(([Peak1D::MZLess] bool operator()(Peak1D const &left, CoordinateType right) const))
 
-TEST_EQUAL(Peak1D::MZLess()(p1,p2.getMZ()), true)
-TEST_EQUAL(Peak1D::MZLess()(p2,p1.getMZ()), false)
-TEST_EQUAL(Peak1D::MZLess()(p2,p2.getMZ()), false)
-
-END_SECTION
-
-START_SECTION((bool operator()(CoordinateType left, Peak1D const &right) const))
-
-TEST_EQUAL(Peak1D::MZLess()(p1.getMZ(),p2), true)
-TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p1), false)
-TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p2), false)
+  TEST_EQUAL(Peak1D::MZLess()(p1,p2.getMZ()), true)
+  TEST_EQUAL(Peak1D::MZLess()(p2,p1.getMZ()), false)
+  TEST_EQUAL(Peak1D::MZLess()(p2,p2.getMZ()), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(CoordinateType left, CoordinateType right) const))
+START_SECTION(([Peak1D::MZLess] bool operator()(CoordinateType left, Peak1D const &right) const))
 
-TEST_EQUAL(Peak1D::MZLess()(p1.getMZ(),p2.getMZ()), true)
-TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p1.getMZ()), false)
-TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p2.getMZ()), false)
+  TEST_EQUAL(Peak1D::MZLess()(p1.getMZ(),p2), true)
+  TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p1), false)
+  TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p2), false)
+
+END_SECTION
+
+START_SECTION(([Peak1D::MZLess] bool operator()(CoordinateType left, CoordinateType right) const))
+
+  TEST_EQUAL(Peak1D::MZLess()(p1.getMZ(),p2.getMZ()), true)
+  TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p1.getMZ()), false)
+  TEST_EQUAL(Peak1D::MZLess()(p2.getMZ(),p2.getMZ()), false)
 
 END_SECTION
 
 // PositionLess
-START_SECTION((bool operator()(const Peak1D &left, const Peak1D &right) const))
+START_SECTION(([Peak1D::PositionLess] bool operator()(const Peak1D &left, const Peak1D &right) const))
 
-TEST_EQUAL(Peak1D::PositionLess()(p1,p2), true)
-TEST_EQUAL(Peak1D::PositionLess()(p2,p1), false)
-TEST_EQUAL(Peak1D::PositionLess()(p2,p2), false)
+  std::vector<Peak1D > v;
+  Peak1D p;
+
+  p.getPosition()[0]=3.0;
+  v.push_back(p);
+
+  p.getPosition()[0]=2.0;
+  v.push_back(p);
+
+  p.getPosition()[0]=1.0;
+  v.push_back(p);
+
+  std::sort(v.begin(), v.end(), Peak1D::PositionLess());
+  TEST_REAL_SIMILAR(v[0].getPosition()[0], 1.0)
+  TEST_REAL_SIMILAR(v[1].getPosition()[0], 2.0)
+  TEST_REAL_SIMILAR(v[2].getPosition()[0], 3.0)
+
+  //
+  TEST_EQUAL(Peak1D::PositionLess()(p1,p2), true)
+  TEST_EQUAL(Peak1D::PositionLess()(p2,p1), false)
+  TEST_EQUAL(Peak1D::PositionLess()(p2,p2), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(const Peak1D &left, const PositionType &right) const))
+START_SECTION(([Peak1D::PositionLess] bool operator()(const Peak1D &left, const PositionType &right) const))
 
-TEST_EQUAL(Peak1D::PositionLess()(p1,p2.getPosition()), true)
-TEST_EQUAL(Peak1D::PositionLess()(p2,p1.getPosition()), false)
-TEST_EQUAL(Peak1D::PositionLess()(p2,p2.getPosition()), false)
-
-END_SECTION
-
-START_SECTION((bool operator()(const PositionType &left, const Peak1D &right) const))
-
-TEST_EQUAL(Peak1D::PositionLess()(p1.getPosition(),p2), true)
-TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p1), false)
-TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p2), false)
+  TEST_EQUAL(Peak1D::PositionLess()(p1,p2.getPosition()), true)
+  TEST_EQUAL(Peak1D::PositionLess()(p2,p1.getPosition()), false)
+  TEST_EQUAL(Peak1D::PositionLess()(p2,p2.getPosition()), false)
 
 END_SECTION
 
-START_SECTION((bool operator()(const PositionType &left, const PositionType &right) const))
+START_SECTION(([Peak1D::PositionLess] bool operator()(const PositionType &left, const Peak1D &right) const))
 
-TEST_EQUAL(Peak1D::PositionLess()(p1.getPosition(),p2.getPosition()), true)
-TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p1.getPosition()), false)
-TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p2.getPosition()), false)
+  TEST_EQUAL(Peak1D::PositionLess()(p1.getPosition(),p2), true)
+  TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p1), false)
+  TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p2), false)
+
+END_SECTION
+
+START_SECTION(([Peak1D::PositionLess] bool operator()(const PositionType &left, const PositionType &right) const))
+
+  TEST_EQUAL(Peak1D::PositionLess()(p1.getPosition(),p2.getPosition()), true)
+  TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p1.getPosition()), false)
+  TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p2.getPosition()), false)
 
 END_SECTION
 

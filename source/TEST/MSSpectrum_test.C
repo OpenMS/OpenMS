@@ -832,7 +832,28 @@ START_SECTION(void clear(bool clear_meta_data))
 	TEST_EQUAL(edit==MSSpectrum<>(),true)
 END_SECTION
 
-START_SECTION((bool operator()(const MSSpectrum &a, const MSSpectrum &b) const))
+START_SECTION(([MSSpectrum::RTLess] bool operator()(const MSSpectrum &a, const MSSpectrum &b) const))
+  vector< MSSpectrum<> > v;
+
+	MSSpectrum<> sp1;
+	sp1.setRT(3.0f);
+	v.push_back(sp1);
+
+  MSSpectrum<> sp2;
+  sp2.setRT(2.0f);
+  v.push_back(sp2);
+
+  MSSpectrum<> sp3;
+  sp3.setRT(1.0f);
+  v.push_back(sp3);
+
+  std::sort(v.begin(),v.end(), MSSpectrum<>::RTLess());
+
+  TEST_REAL_SIMILAR(v[0].getRT(), 1.0);
+  TEST_REAL_SIMILAR(v[1].getRT(), 2.0);
+  TEST_REAL_SIMILAR(v[2].getRT(), 3.0);
+
+  ///
   MSSpectrum<> s1;
   s1.setRT(0.451);
 

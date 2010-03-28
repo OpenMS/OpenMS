@@ -97,7 +97,7 @@ START_SECTION((bool has(const Key& key) const))
 	TEST_EQUAL(hm.has(2), false)
 END_SECTION
 
-START_SECTION((IllegalKey(const char *file, int line, const char *function)))
+START_SECTION(([Map::IllegalKey] IllegalKey(const char *file, int line, const char *function)))
 	// already tested in const T & operator[](const Key &key) const
 	NOT_TESTABLE
 END_SECTION
