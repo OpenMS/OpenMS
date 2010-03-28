@@ -113,6 +113,9 @@ elseif (MSVC)
 	## minimal code rebuild
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gm /Zi")
 
+	## avoid "compiler out of heap space" warnings when compiling some (complicated) tests
+	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /zm2000")
+  
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
