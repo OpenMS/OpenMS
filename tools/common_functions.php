@@ -192,7 +192,7 @@ function parseMaintainerLine($line)
 	
 	@return Nothing
 */
-function parseClassInfoFromXML($class, &$members, $classname ,$debug)
+function parseClassInfoFromXML($class, &$members, $classname ,$debug, $isNested)
 {
 	
 	foreach ($class->compounddef->sectiondef as $section)
@@ -280,6 +280,17 @@ function parseClassInfoFromXML($class, &$members, $classname ,$debug)
 					# remove namespace stuff
 					$mem = strtr($mem,array($classname."::"=>""));
 					
+					# if it is a nested class, prefix the member name with the appropriate 
+					# name, to identify the corresponding names later
+					if($isNested) 
+					{
+					  $members["test-name"][]="[".$classname."] ".$mem;
+					}
+					else
+					{					
+					  $members["test-name"][]=$mem;
+					}
+					
 					$members["public-long"][]=$mem;
 					$members["public"][] = (string)$member->name;
 				}
@@ -313,7 +324,7 @@ function getClassInfo($bin_path,$header, $debug)
 		"public" => array(),
 		"non-public" => array(),
 		"variables" => array(),
-		"nested-classes" => array(),
+		"test-name" => array()
 		);
 
 	######################## needed stuff ###############################
@@ -363,7 +374,7 @@ function getClassInfo($bin_path,$header, $debug)
 	
 	######################## parse ###############################
 	$classname = substr($class->compounddef->compoundname,8);
-	parseClassInfoFromXML($class, $members, $classname, $debug);
+	parseClassInfoFromXML($class, $members, $classname, $debug, FALSE);
 	
 	############## inner class/struct check ######################
 	
@@ -391,7 +402,7 @@ function getClassInfo($bin_path,$header, $debug)
 				
 				# parse necessary information
 				$inner_classname = substr($innerclass_xml->compounddef->compoundname,8);
-        parseClassInfoFromXML($innerclass_xml, $members, $inner_classname, $debug);
+        parseClassInfoFromXML($innerclass_xml, $members, $inner_classname, $debug, TRUE);
 			}
 			else if($debug>4) // just for debugging
 			{

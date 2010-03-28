@@ -707,7 +707,7 @@ $GLOBALS["all_tests"] = array(
 					$tests2 = $tmp["tests"];
 
 					#compare declarations and tests
-					$out = compareDeclarationsAndTests($class_info["public-long"],$tests2);
+					$out = compareDeclarationsAndTests($class_info["test-name"],$tests2);
 
 					# remove methods that can be tested although they are not defined
 					$new_unknown = array();
