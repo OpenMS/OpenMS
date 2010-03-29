@@ -386,28 +386,31 @@ function getClassInfo($bin_path,$header, $debug)
 	  }
     foreach($class->compounddef->innerclass as $innerclass)
     {
-      if($debug>4)
-      {
-        print "Handling $innerclass\n";
-      }
-      $filename = $innerclass["refid"];
-      $tmp = "$bin_path/doc/xml_output/".$filename.".xml";
-			if (file_exists($tmp))
-			{
-			  if($debug>4)
-			  {
-			    print "INFO: Load inner class data from ".$tmp."\n";
-			  }
-				$innerclass_xml = simplexml_load_file($tmp);
-				
-				# parse necessary information
-				$inner_classname = substr($innerclass_xml->compounddef->compoundname,8);
-        parseClassInfoFromXML($innerclass_xml, $members, $inner_classname, $debug, TRUE);
-			}
-			else if($debug>4) // just for debugging
-			{
-		    print "WARNING: Load inner class data from ".$tmp." failed\n";
-			}        
+    	if($innerclass["prot"]=="public") // only check public inner classes
+    	{
+	      if($debug>4)
+	      {
+	        print "Handling $innerclass\n";
+	      }
+	      $filename = $innerclass["refid"];
+	      $tmp = "$bin_path/doc/xml_output/".$filename.".xml";
+				if (file_exists($tmp))
+				{
+				  if($debug>4)
+				  {
+				    print "INFO: Load inner class data from ".$tmp."\n";
+				  }
+					$innerclass_xml = simplexml_load_file($tmp);
+					
+					# parse necessary information
+					$inner_classname = substr($innerclass_xml->compounddef->compoundname,8);
+	        parseClassInfoFromXML($innerclass_xml, $members, $inner_classname, $debug, TRUE);
+				}
+				else if($debug>4) // just for debugging
+				{
+			    print "WARNING: Load inner class data from ".$tmp." failed\n";
+				}
+    	}
     }
   
 	}
