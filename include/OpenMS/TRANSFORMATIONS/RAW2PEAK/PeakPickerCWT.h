@@ -156,23 +156,18 @@ namespace OpenMS
 			 A regularData-Object which contents some additional useful informations
 			 for analysing peaks and their properties
     */
-    class OPENMS_DLLAPI PeakArea_
+    struct OPENMS_DLLAPI PeakArea_
     {
       typedef MSSpectrum<>::iterator PeakIterator;
 
-		public:
-      PeakArea_() : left(), max(), right(), left_behind_centroid()
-				{
-				}
-
       /** 
-					@brief Iterator defining a raw data peak.
+        @brief Iterator defining a raw data peak.
          
-					The left and right iterators delimit a range in the raw data which represents a raw peak.
-					They define the raw peak endpoints. Max points to the raw data point in [left, right] with the highest intensity, the 
-					maximum of the raw peak. 
+				The left and right iterators delimit a range in the raw data which represents a raw peak.
+				They define the raw peak endpoints. Max points to the raw data point in [left, right] with the highest intensity, the
+				maximum of the raw peak.
 				
-					Left_behind_centroid points to the raw data point next to the estimates centroid position.
+				Left_behind_centroid points to the raw data point next to the estimates centroid position.
       */
       PeakIterator left;
       PeakIterator max;
