@@ -348,6 +348,15 @@ START_SECTION(bool operator!=(const PeakShape &rhs) const)
 	TEST_EQUAL(p1!=p2,false)
 END_SECTION
 
+START_SECTION(([PeakShape::PositionLess] bool operator()(const PeakShape &a, const PeakShape &b)))
+  PeakShape p1(0.,123.,0.,0.,0.,PeakShape::LORENTZ_PEAK);
+  PeakShape p2(0.,124.,0.,0.,0.,PeakShape::LORENTZ_PEAK);
+  PeakShape::PositionLess comp;
+  TEST_EQUAL(comp(p1,p2),true);
+  TEST_EQUAL(comp(p2,p1),false);
+END_SECTION
+
+  
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

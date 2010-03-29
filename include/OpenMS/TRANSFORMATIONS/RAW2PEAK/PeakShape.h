@@ -148,9 +148,6 @@ namespace OpenMS
     {
 	    public:
 	
-      PositionLess(){}
-      ~PositionLess() {}
-	
       inline bool operator () (const PeakShape& a, const PeakShape& b)
       {
         return (a.mz_position < b.mz_position);
