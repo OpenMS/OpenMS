@@ -27,6 +27,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
+#include <cmath> // for "abs"
+#include <limits> // for "max"
+
 using namespace std;
 
 namespace OpenMS
@@ -40,16 +43,20 @@ namespace OpenMS
 		defaults_.setValue("num_breakpoints", 10, "Number of breakpoints of the cubic spline in the smoothing step.\nThe breakpoints are spaced uniformly on the retention time interval.\nMore breakpoints mean less smoothing.");
 		defaults_.setMinInt("num_breakpoints", 2);
 
-		defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to use in the alignment.\nSelect a value that allows only 'high confidence' matches.");
+		defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to be used in the alignment.\nSelect a value that allows only 'high confidence' matches.");
 
 		defaults_.setValue("min_run_occur", 2, "Minimum number of runs a peptide must occur in to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
 		defaults_.setMinInt("min_run_occur", 2);
 
-		defaults_.setValue("max_rt_shift", 0.5, "Maximum realistic RT difference for a peptide (median per run vs. median overall).\nPeptides with higher shifts are not used to compute the alignment.\nIf > 1, the final value in seconds; if <= 1, taken as a fraction of the total retention time range.");
+		defaults_.setValue("max_rt_shift", 0.5, "Maximum realistic RT difference for a peptide (median per run vs. median overall).\nPeptides with higher shifts are not used to compute the alignment.\nIf 0, no limit (disable filter); if > 1, the final value in seconds; if <= 1, taken as a fraction of the total retention time range.");
 		defaults_.setMinFloat("max_rt_shift", 0.0);
 		
 		defaults_.setValue("use_unassigned_peptides", "true", "Should unassigned peptide identifications be used when computing an alignment of feature maps?\nIf 'false', only peptide IDs assigned to features will be used.");
 		defaults_.setValidStrings("use_unassigned_peptides",
+															StringList::create("true,false"));
+
+		defaults_.setValue("use_feature_rt", "false", "When aligning feature maps, don't use the retention time of a peptide identification directly; instead, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to.\nIf different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.\nPrecludes 'use_unassigned_peptides'.");
+		defaults_.setValidStrings("use_feature_rt", 
 															StringList::create("true,false"));
 		defaultsToParam_();
 	}
@@ -216,13 +223,41 @@ namespace OpenMS
 	void MapAlignmentAlgorithmIdentification::getRetentionTimes_(
 		FeatureMap<>& features, SeqToList& rt_data)
 	{
+		bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
 		for (FeatureMap<>::Iterator feat_it = features.begin();
 				 feat_it != features.end(); ++feat_it)
 		{
-			getRetentionTimes_(feat_it->getPeptideIdentifications(), rt_data);
+			if (use_feature_rt)
+			{
+				// find the peptide ID closest in RT to the feature centroid:
+				String sequence;
+				DoubleReal rt_distance = numeric_limits<DoubleReal>::max();
+				bool any_good_hit = false;
+				for (vector<PeptideIdentification>::iterator pep_it =
+							 feat_it->getPeptideIdentifications().begin(); pep_it != 
+							 feat_it->getPeptideIdentifications().end(); ++pep_it)
+				{
+					if (hasGoodHit_(*pep_it))
+					{
+						any_good_hit = true;
+						DoubleReal current_distance = 
+							abs(double(pep_it->getMetaValue("RT")) - feat_it->getRT());
+						if (current_distance < rt_distance)
+						{
+							sequence = pep_it->getHits()[0].getSequence().toString();
+							rt_distance = current_distance;
+						}				
+					}
+				}
+				if (any_good_hit) rt_data[sequence] << feat_it->getRT();
+			}
+			else
+			{
+				getRetentionTimes_(feat_it->getPeptideIdentifications(), rt_data);
+			}
 		}
 
-		if (param_.getValue("use_unassigned_peptides").toBool())
+		if (!use_feature_rt && param_.getValue("use_unassigned_peptides").toBool())
 		{
 			getRetentionTimes_(features.getUnassignedPeptideIdentifications(),
 												 rt_data);
@@ -291,7 +326,11 @@ namespace OpenMS
 		computeMedians_(medians_per_seq, medians_overall);
 
 		DoubleReal max_rt_shift = param_.getValue("max_rt_shift");
-		if (max_rt_shift <= 1)
+		if (max_rt_shift == 0)
+		{
+			max_rt_shift = numeric_limits<DoubleReal>::max();
+		}
+		else if(max_rt_shift <= 1)
 		{ // compute max. allowed shift from overall retention time range:
 			DoubleReal rt_range, rt_min = medians_overall.begin()->second, 
 				rt_max = rt_min;
