@@ -146,11 +146,11 @@ namespace OpenMS
       DoubleReal pc_coverage;
       if (optionalAttributeAsDouble_(pc_coverage, attributes, "percent_coverage"))
       {
-			  prot_id_->getHits().back().setCoverage(attributeAsDouble_(attributes, "percent_coverage"));
+			  prot_id_->getHits().back().setCoverage(pc_coverage);
       }
       else
       {
-        LOG_WARN << "Required attribute 'percent_coverage' missing. Skipping over.\n";
+        LOG_WARN << "Required attribute 'percent_coverage' missing.\n";
       }
 			prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
 			
