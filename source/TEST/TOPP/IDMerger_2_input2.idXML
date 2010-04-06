@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:////OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="12protmixTW.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2005-05-22T15:28:33" search_engine="proteinprophet" search_engine_version=" Insilicos_LabKey_C++ (TPP v4.0 JETSTREAM rev 2, Build 200810230133 (linux))" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="gi|295721|emb|CAA68468.1|" score="0.980000019073486" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P11974|KPYM_RABIT" score="0.857200026512146" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P00432|CATA_BOVIN" score="0.849900007247925" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="gi|147905534|ref|NP_001079812.1|" score="0.845499992370605" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="sp|P00883|ALDOA_RABIT" score="0.772899985313416" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="gi|27805979|ref|NP_776803.1|" score="0.745000004768372" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="gi|63428|emb|CAA43320.1|" score="0.710399985313416" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="gi|1351907|sp|P02769.4|ALBU_BOVIN" score="0.467999994754791" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="gi|162805|gb|AAA30431.1|" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="sp|P00563|KCRM_RABIT" score="0" sequence="" >
+			</ProteinHit>
+			<UserParam type="string" name="protein_group_0" value="0.98,PH_0"/>
+			<UserParam type="string" name="protein_group_1" value="0.8572,PH_1"/>
+			<UserParam type="string" name="protein_group_2" value="0.8499,PH_2"/>
+			<UserParam type="string" name="protein_group_3" value="0.8455,PH_3"/>
+			<UserParam type="string" name="protein_group_4" value="0.7729,PH_4"/>
+			<UserParam type="string" name="protein_group_5" value="0.745,PH_5"/>
+			<UserParam type="string" name="protein_group_6" value="0.7104,PH_6"/>
+			<UserParam type="string" name="protein_group_7" value="0.468,PH_7"/>
+			<UserParam type="string" name="protein_group_8" value="0,PH_8"/>
+			<UserParam type="string" name="protein_group_9" value="0,PH_9"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="0,PH_3"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="0,PH_4"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="0,PH_5"/>
+			<UserParam type="string" name="indistinguishable_proteins_6" value="0,PH_6"/>
+			<UserParam type="string" name="indistinguishable_proteins_7" value="0,PH_7"/>
+			<UserParam type="string" name="indistinguishable_proteins_8" value="0,PH_8"/>
+			<UserParam type="string" name="indistinguishable_proteins_9" value="0,PH_9"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0.8836" sequence="DLTQQER" charge="1" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.6584" sequence="DSNVNWNNLK" charge="1" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.3091" sequence="RANVM(Oxidation)DYR" charge="1" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.2732" sequence="EFLGDK" charge="1" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.8572" sequence="EAEAAMFHRK" charge="1" protein_refs="PH_1" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.8499" sequence="DPASDQMK" charge="1" protein_refs="PH_2" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.7099" sequence="NPAGWAK" charge="1" protein_refs="PH_3" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.2732" sequence="WAGPDSETWR" charge="1" protein_refs="PH_3" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.2671" sequence="DDKSK" charge="1" protein_refs="PH_3" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.4882" sequence="AWGGKKENLK" charge="1" protein_refs="PH_4" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.3577" sequence="SKGGVVGIKVDK" charge="1" protein_refs="PH_4" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.3091" sequence="IVAPGK" charge="1" protein_refs="PH_4" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.745" sequence="LDQWLC(Carbamidomethyl)EKL" charge="1" protein_refs="PH_5" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.7104" sequence="IDTTGASC(Carbamidomethyl)R" charge="1" protein_refs="PH_6" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.1214" sequence="ILKNGWGDR" charge="1" protein_refs="PH_6" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="0"/>
+			</PeptideHit>
+			<PeptideHit score="0.468" sequence="DLGEEHFK" charge="1" protein_refs="PH_7" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.095" sequence="SLGKVGTR" charge="1" protein_refs="PH_7" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="0"/>
+			</PeptideHit>
+			<PeptideHit score="0.1507" sequence="EAM(Oxidation)APKHK" charge="1" protein_refs="PH_8" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="0"/>
+			</PeptideHit>
+			<PeptideHit score="0.095" sequence="VKEAM(Oxidation)APK" charge="1" protein_refs="PH_8" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="0"/>
+			</PeptideHit>
+			<PeptideHit score="0.0781" sequence="LAHLSK" charge="1" protein_refs="PH_9" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

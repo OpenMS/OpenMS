@@ -40,9 +40,11 @@ using namespace std;
 /**
 	@page TOPP_IDMerger IDMerger
 	
-	@brief Merges several IdXML files into one IdXML file.
+	@brief Merges several idXML files into one idXML file.
 	
-	You can merge an unlimited number of files into one IdXML file.
+	You can merge an unlimited number of files into one idXML file.
+
+	With the @p -pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). The @ref TOPP_IDFileConverter can be used to convert pepXML or protXML to idXML.
 	
 	This tool is typically applied before @ref TOPP_ConsensusID or @ref TOPP_IDMapper.
 
@@ -64,12 +66,95 @@ class TOPPIDMerger
 	}
 	
  protected:
+	void mergePepXMLProtXML_(StringList filenames, vector<ProteinIdentification>&
+													 proteins, vector<PeptideIdentification>& peptides)
+		{
+			IdXMLFile idxml;
+			idxml.load(filenames[0], proteins, peptides);
+			vector<ProteinIdentification> pepxml_proteins, protxml_proteins;
+			vector<PeptideIdentification> pepxml_peptides, protxml_peptides;
+
+			if (proteins[0].getProteinGroups().empty())
+			{	// first idXML contains data from the pepXML
+				proteins.swap(pepxml_proteins);
+				peptides.swap(pepxml_peptides);
+				idxml.load(filenames[1], protxml_proteins, protxml_peptides);
+				if (protxml_proteins[0].getProteinGroups().empty())
+				{
+					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
+				}
+			}
+			else
+			{ // first idXML contains data from the protXML
+				proteins.swap(protxml_proteins);
+				peptides.swap(protxml_peptides);
+				idxml.load(filenames[1], pepxml_proteins, pepxml_peptides);
+			}
+
+			if ((protxml_peptides.size() > 1) || (protxml_proteins.size() > 1))
+			{
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The idXML derived from a protXML file should contain only one 'ProteinIdentification' and one 'PeptideIdentification' instance.");
+			}
+
+			// peptide information comes from the pepXML (additional information in
+			// the protXML - adapted peptide hit score, "is_unique", "is_contributing"
+			// - is not transferred):
+			peptides.swap(pepxml_peptides);
+
+			// prepare scores and coverage values of protein hits from the protXML:
+			map<String, pair<DoubleReal, DoubleReal> > hit_values;
+			ProteinIdentification& protein = protxml_proteins[0];
+			for (vector<ProteinHit>::iterator hit_it = protein.getHits().begin();
+					 hit_it != protein.getHits().end(); ++hit_it)
+			{
+				hit_values[hit_it->getAccession()] = make_pair(hit_it->getScore(),
+																											 hit_it->getCoverage());
+			}
+			
+			// merge protein information:
+			proteins.swap(pepxml_proteins);
+			for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+					 prot_it != proteins.end(); ++prot_it)
+			{
+				prot_it->getProteinGroups() = protein.getProteinGroups();
+				prot_it->getIndistinguishableProteins() = 
+					protein.getIndistinguishableProteins();
+				// TODO: since a protXML file can integrate data from several protein
+				// identification runs, the protein groups/indistinguishable proteins
+				// that we write to one identification run could contain references to
+				// proteins that are not observed in this run, but in others; also, some
+				// protein hits without enough evidence may not occur in the protXML
+				// (thus also not in the protein groups) - clean this up?
+
+				prot_it->setScoreType(protein.getScoreType());
+				prot_it->setHigherScoreBetter(protein.isHigherScoreBetter());
+				prot_it->setSignificanceThreshold(protein.getSignificanceThreshold());
+
+				for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
+						 hit_it != prot_it->getHits().end(); ++hit_it)
+				{
+					map<String, pair<DoubleReal, DoubleReal> >::const_iterator pos = 
+						hit_values.find(hit_it->getAccession());
+					if (pos == hit_values.end())
+					{
+						hit_it->setScore(-1);
+					}
+					else
+					{
+						hit_it->setScore(pos->second.first);
+						hit_it->setCoverage(pos->second.second);
+					}
+				}
+			}
+		}
+
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"two or more input files separated by blank");
 		setValidFormats_("in",StringList::create("idXML"));
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("idXML"));
+		registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case.");
 	}
 	
 	ExitCodes main_(int , const char**)
@@ -87,33 +172,50 @@ class TOPPIDMerger
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
+
+		bool pepxml_protxml = getFlag_("pepxml_protxml");
+		if (pepxml_protxml && (file_names.size() != 2))
+		{
+			writeLog_("Exactly two filenames expected for option 'pepxml_protxml'. Aborting!");
+			printUsage_();
+			return ILLEGAL_PARAMETERS;
+		}
 				
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
+
 		vector<ProteinIdentification> protein_identifications;
 		vector<PeptideIdentification> identifications;
-		IdXMLFile().load(file_names[0], protein_identifications, identifications);
 
-		vector<String> used_ids;
-		for (Size i=1; i<file_names.size(); ++i)
+		if (pepxml_protxml)
 		{
-			vector<ProteinIdentification> additional_protein_identifications;
-			vector<PeptideIdentification> additional_identifications;
-			IdXMLFile().load(file_names[i], additional_protein_identifications, additional_identifications);
-			
-			for (Size i=0; i<additional_protein_identifications.size();++i)
+			mergePepXMLProtXML_(file_names, protein_identifications, identifications);
+		}
+		else
+		{
+			IdXMLFile().load(file_names[0], protein_identifications, identifications);
+
+			vector<String> used_ids;
+			for (Size i=1; i<file_names.size(); ++i)
 			{
-				if (find(used_ids.begin(), used_ids.end(), additional_protein_identifications[i].getIdentifier())!=used_ids.end())
-				{
-					writeLog_(String("Error: The idenitifier '") + additional_protein_identifications[i].getIdentifier() + "' was used before!");
-					return INCOMPATIBLE_INPUT_DATA;
-				}
-				used_ids.push_back(additional_protein_identifications[i].getIdentifier());
-			}
+				vector<ProteinIdentification> additional_protein_identifications;
+				vector<PeptideIdentification> additional_identifications;
+				IdXMLFile().load(file_names[i], additional_protein_identifications, additional_identifications);
 			
-			protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
-			identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
+				for (Size i=0; i<additional_protein_identifications.size();++i)
+				{
+					if (find(used_ids.begin(), used_ids.end(), additional_protein_identifications[i].getIdentifier())!=used_ids.end())
+					{
+						writeLog_(String("Error: The idenitifier '") + additional_protein_identifications[i].getIdentifier() + "' was used before!");
+						return INCOMPATIBLE_INPUT_DATA;
+					}
+					used_ids.push_back(additional_protein_identifications[i].getIdentifier());
+				}
+			
+				protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
+				identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
+			}
 		}
 															
 		//-------------------------------------------------------------
