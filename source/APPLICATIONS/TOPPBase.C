@@ -734,7 +734,7 @@ namespace OpenMS
 						if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
 								it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST) add = " formats";
 
-						addons.push_back(String("valid") + add + ": " + copy.concatenate(", "));
+						addons.push_back(String("valid") + add + ": " + copy.concatenate("/"));
 					}
 					break;
 				case ParameterInformation::INT:
