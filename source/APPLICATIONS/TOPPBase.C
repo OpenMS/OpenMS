@@ -723,36 +723,40 @@ namespace OpenMS
 				case ParameterInformation::OUTPUT_FILE_LIST:
 					if (it->valid_strings.size()!=0)
 					{
-						String tmp;
-						tmp.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
+						StringList copy = it->valid_strings;
+						for (StringList::iterator str_it = copy.begin(); 
+								 str_it != copy.end(); ++str_it)
+						{
+							str_it->quote();
+						}
 
 						String add = "";
 						if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
 								it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST) add = " formats";
 
-						addons.push_back(String("valid") + add + ": \"" + tmp + "\"");
+						addons.push_back(String("valid") + add + ": " + copy.concatenate(", "));
 					}
 					break;
 				case ParameterInformation::INT:
 				case ParameterInformation::INTLIST:
 						if (it->min_int!=-std::numeric_limits<Int>::max())
 					{
-						addons.push_back(String("min: '") + it->min_int + "'");
+						addons.push_back(String("min: \"") + it->min_int + "\"");
 					}
 					if (it->max_int!=std::numeric_limits<Int>::max())
 					{
-						addons.push_back(String("max: '") + it->max_int + "'");
+						addons.push_back(String("max: \"") + it->max_int + "\"");
 					}
 					break;
 				case ParameterInformation::DOUBLE:
 				case ParameterInformation::DOUBLELIST:
 					if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
 					{
-						addons.push_back(String("min: '") + it->min_float + "'");
+						addons.push_back(String("min: \"") + it->min_float + "\"");
 					}
 					if (it->max_float!=std::numeric_limits<DoubleReal>::max())
 					{
-						addons.push_back(String("max: '") + it->max_float + "'");
+						addons.push_back(String("max: \"") + it->max_float + "\"");
 					}
 					break;
 
