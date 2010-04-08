@@ -567,7 +567,7 @@ namespace OpenMS
 			connect(ts,SIGNAL(terminateCurrentPipeline()),p,SLOT(kill()));
 			
 			//enqueue process
-      std::cout << "Enqeue: " << name_ << " " << String(args.join(" ")) << std::endl;
+      std::cout << "Enqueue: " << name_ << " " << String(args.join(" ")) << std::endl;
 			ts->enqueueProcess(p, name_.toQString(), args);
 		}
 		
