@@ -34,18 +34,18 @@ namespace OpenMS
 
 	IDMapper::IDMapper()
   	: DefaultParamHandler("IDMapper"),
-  		rt_delta_(5.0),
-  		mz_delta_(1),
+  		rt_tolerance_(5.0),
+  		mz_tolerance_(20),
   		measure_(MEASURE_PPM)
   {
-		defaults_.setValue("rt_delta", rt_delta_, "allowed RT delta in seconds"); 
-		defaults_.setMinFloat("rt_delta", 0);
-		defaults_.setValue("mz_delta", mz_delta_, "allowed m/z delta in ppm or Da"); 
-		defaults_.setMinFloat("mz_delta", 0);
-		defaults_.setValue("mz_measure", "ppm", "unit of mz_delta (ppm or Da)"); 
+		defaults_.setValue("rt_tolerance", rt_tolerance_, "RT tolerance (in seconds) for the matching"); 
+		defaults_.setMinFloat("rt_tolerance", 0);
+		defaults_.setValue("mz_tolerance", mz_tolerance_, "m/z tolerance (in ppm or Da) for the matching"); 
+		defaults_.setMinFloat("mz_tolerance", 0);
+		defaults_.setValue("mz_measure", "ppm", "unit of 'mz_tolerance' (ppm or Da)"); 
 		defaults_.setValidStrings("mz_measure", StringList::create("ppm,Da"));
-		defaults_.setValue("mz_reference", "PrecursorMZ", "Method to determine m/z of identification"); 
-		defaults_.setValidStrings("mz_reference", StringList::create("PeptideMass,PrecursorMZ"));
+		defaults_.setValue("mz_reference", "precursor", "source of m/z values for peptide identifications"); 
+		defaults_.setValidStrings("mz_reference", StringList::create("precursor,peptide"));
 		
 		defaultsToParam_();  
   }
@@ -53,8 +53,8 @@ namespace OpenMS
 			
 	IDMapper::IDMapper(const IDMapper& cp)
 	: DefaultParamHandler(cp),
-		rt_delta_(cp.rt_delta_),
-  	mz_delta_(cp.mz_delta_),
+		rt_tolerance_(cp.rt_tolerance_),
+  	mz_tolerance_(cp.mz_tolerance_),
   	measure_(cp.measure_)
 	{
 		updateMembers_();
@@ -65,8 +65,8 @@ namespace OpenMS
 		if (this == &rhs) return *this;
 		
 		DefaultParamHandler::operator= (rhs);
-		rt_delta_=rhs.rt_delta_;
-  	mz_delta_=rhs.mz_delta_;
+		rt_tolerance_=rhs.rt_tolerance_;
+  	mz_tolerance_=rhs.mz_tolerance_;
   	measure_=rhs.measure_;
 		updateMembers_();
 		
@@ -75,8 +75,8 @@ namespace OpenMS
 
 	void IDMapper::updateMembers_()
 	{
-		rt_delta_ = param_.getValue("rt_delta");
-		mz_delta_ = param_.getValue("mz_delta");
+		rt_tolerance_ = param_.getValue("rt_tolerance");
+		mz_tolerance_ = param_.getValue("mz_tolerance");
 		measure_ = param_.getValue("mz_measure")=="ppm"? MEASURE_PPM : MEASURE_DA;
 	}	
 	
@@ -95,7 +95,7 @@ namespace OpenMS
 		// consensusMap -> {peptide_index}
 		std::vector < std::set< size_t> > mapping(map.size());
 
-		std::vector<DoubleReal> mz_values;
+		DoubleList mz_values;
 		DoubleReal rt_pep;
 		
 		//iterate over the peptide IDs
@@ -167,30 +167,30 @@ namespace OpenMS
 
 	}
 
-	DoubleReal IDMapper::getAbsoluteMZDelta_(const DoubleReal mz) const
+	DoubleReal IDMapper::getAbsoluteMZTolerance_(const DoubleReal mz) const
 	{
 		if (measure_==MEASURE_PPM)
 		{
-			return (mz * mz_delta_ / 1e6);
+			return (mz * mz_tolerance_ / 1e6);
 		} 
 		else if (measure_==MEASURE_DA)
 		{
-			return mz_delta_;
+			return mz_tolerance_;
 		}
-		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteDelta_(): illegal internal state of measure_!", String(measure_));
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
 	}
 
 	bool IDMapper::isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const
 	{
 		if (measure_==MEASURE_PPM)
 		{
-			return (fabs(rt_distance) <= rt_delta_) && (fabs((mz_theoretical*1e6-mz_observed*1e6)/mz_theoretical) <= mz_delta_);
+			return (fabs(rt_distance) <= rt_tolerance_) && (fabs((mz_theoretical*1e6-mz_observed*1e6)/mz_theoretical) <= mz_tolerance_);
 		} 
 		else if (measure_==MEASURE_DA)
 		{
-			return (fabs(rt_distance) <= rt_delta_) && (fabs(mz_theoretical-mz_observed) <= mz_delta_);
+			return (fabs(rt_distance) <= rt_tolerance_) && (fabs(mz_theoretical-mz_observed) <= mz_tolerance_);
 		}
-		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteDelta_(): illegal internal state of measure_!", String(measure_));
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
 	}
 
 	void IDMapper::checkHits_(const std::vector<PeptideIdentification>& ids) const
@@ -208,55 +208,75 @@ namespace OpenMS
 		}
 	}
 	
-	void IDMapper::getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, std::vector<DoubleReal>& mz_values) const
+	void IDMapper::getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, DoubleList& mz_values, bool use_avg_mass) const
 	{
 		mz_values.clear();
 		
 		rt_pep = id.getMetaValue("RT");
 		
 		// collect m/z values of pepId
-		if (param_.getValue("mz_reference")=="PrecursorMZ")
+		if (param_.getValue("mz_reference") == "precursor")
 		{ // use precursor m/z of pepId
 			mz_values.push_back(id.getMetaValue("MZ"));
 		}
-		else if (param_.getValue("mz_reference")=="PeptideMass")
+		else if (param_.getValue("mz_reference") == "peptide")
 		{ // use mass of each pepHit (assuming H+ adducts)
-			for (Size i_hit=0; i_hit< id.getHits().size(); ++i_hit)
+			for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin(); 
+					 hit_it != id.getHits().end(); ++hit_it)
 			{
-				Int charge = id.getHits()[i_hit].getCharge();
-				mz_values.push_back(id.getHits()[i_hit].getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge);
+				Int charge = hit_it->getCharge();
+				DoubleReal mass = use_avg_mass ? 
+					hit_it->getSequence().getAverageWeight(Residue::Full, charge) : 
+					hit_it->getSequence().getMonoWeight(Residue::Full, charge);
+				
+				mz_values << mass / (DoubleReal) charge;
 			}
 		}
 	}
 
 
-	bool IDMapper::massTraceComp_(const ConvexHull2D& first, 
-																	const ConvexHull2D& second)
-	{
-		DoubleReal first_mean = 0, second_mean = 0;
-		for (ConvexHull2D::PointArrayType::const_iterator it = 
-					 first.getPoints().begin(); it != first.getPoints().end(); ++it)
-		{
-			first_mean += it->getY();
-		}
-		first_mean /= first.getPoints().size();
-		for (ConvexHull2D::PointArrayType::const_iterator it = 
-					 second.getPoints().begin(); it != second.getPoints().end(); ++it)
-		{
-			second_mean += it->getY();
-		}
-		second_mean /= second.getPoints().size();
-		return first_mean < second_mean;
-	}
-	
-
 	void IDMapper::increaseBoundingBox_(DBoundingBox<2>& box)
 	{
-		DPosition<2> sub_min(rt_delta_, getAbsoluteMZDelta_(box.minPosition().getY())),
-			add_max(rt_delta_, getAbsoluteMZDelta_(box.maxPosition().getY()));
+		DPosition<2> sub_min(rt_tolerance_, 
+												 getAbsoluteMZTolerance_(box.minPosition().getY())),
+			add_max(rt_tolerance_, getAbsoluteMZTolerance_(box.maxPosition().getY()));
 
 		box.setMin(box.minPosition() - sub_min);
 		box.setMax(box.maxPosition() + add_max);
 	}
+
+
+	bool IDMapper::checkMassType_(const vector<DataProcessing>& processing) const
+	{
+		bool use_avg_mass = false;
+		String before;
+		for (vector<DataProcessing>::const_iterator proc_it = processing.begin(); 
+				 proc_it != processing.end(); ++proc_it)
+		{
+			if (proc_it->getSoftware().getName() == "FeatureFinder")
+			{
+				String reported_mz = proc_it->
+					getMetaValue("parameter: algorithm:feature:reported_mz");
+				if (reported_mz.empty()) continue; // parameter info not available
+				if (!before.empty() && (reported_mz != before))
+				{
+					LOG_WARN << "The m/z values reported for features in the input seem to be of different types (e.g. monoisotopic/average). They will all be compared against monoisotopic peptide masses, but the mapping results may not be meaningful in the end." << endl;
+					return false;
+				}
+				if (reported_mz == "average")
+				{
+					use_avg_mass = true;
+				}
+				else if (reported_mz == "maximum")
+				{
+					LOG_WARN << "For features, m/z values from the highest mass traces are reported. This type of m/z value is not available for peptides, so the comparison has to be done using average peptide masses." << endl;
+					use_avg_mass = true;
+				}
+				before = reported_mz;
+			}
+		}
+		return use_avg_mass;
+	}
+
 
 } // namespace OpenMS

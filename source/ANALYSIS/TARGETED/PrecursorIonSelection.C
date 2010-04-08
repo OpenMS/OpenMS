@@ -237,8 +237,8 @@ namespace OpenMS
 		// map ids on features 
 		IDMapper mapper;
 		Param p = mapper.getParameters();
-		p.setValue("rt_delta", 0.2);
-		p.setValue("mz_delta", 0.05);
+		p.setValue("rt_tolerance", 0.2);
+		p.setValue("mz_tolerance", 0.05);
 		p.setValue("mz_measure","Da");
 		mapper.setParameters(p);
 

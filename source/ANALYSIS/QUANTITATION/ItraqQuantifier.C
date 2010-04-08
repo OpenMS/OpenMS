@@ -459,8 +459,8 @@ namespace OpenMS
 			// annotate consensusMap with identifications
 			IDMapper mapper;
 			Param p = mapper.getParameters();
-			p.setValue("rt_delta", 0.005);
-			p.setValue("mz_delta", 0.0005);
+			p.setValue("rt_tolerance", 0.005);
+			p.setValue("mz_tolerance", 0.0005);
 			p.setValue("mz_measure","Da");
 			mapper.setParameters(p);
 			mapper.annotate(consensus_map_out, peptide_ids, protein_ids, false);

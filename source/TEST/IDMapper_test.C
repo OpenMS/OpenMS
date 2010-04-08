@@ -42,9 +42,9 @@ using namespace OpenMS;
 class IDMapper2 : public IDMapper
 {
 	public:
-		DoubleReal getAbsoluteMZDelta2_(const DoubleReal mz)
+		DoubleReal getAbsoluteMZTolerance2_(const DoubleReal mz)
 		{
-			return getAbsoluteMZDelta_(mz);
+			return getAbsoluteMZTolerance_(mz);
 		}
 
 		bool isMatch2_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed)
@@ -75,8 +75,8 @@ END_SECTION
 START_SECTION((IDMapper(const IDMapper& cp)))
 	IDMapper mapper;
 	Param p = mapper.getParameters();
-	p.setValue("rt_delta", 0.5);
-	p.setValue("mz_delta", 0.05);
+	p.setValue("rt_tolerance", 0.5);
+	p.setValue("mz_tolerance", 0.05);
 	p.setValue("mz_measure","ppm");
 	mapper.setParameters(p);
 	IDMapper m2(mapper);
@@ -88,8 +88,8 @@ END_SECTION
 START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
 	IDMapper mapper;
 	Param p = mapper.getParameters();
-	p.setValue("rt_delta", 0.5);
-	p.setValue("mz_delta", 0.05);
+	p.setValue("rt_tolerance", 0.5);
+	p.setValue("mz_tolerance", 0.05);
 	p.setValue("mz_measure","ppm");
 	mapper.setParameters(p);
 	IDMapper m2=mapper;
@@ -132,8 +132,8 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
 	//map
 	IDMapper mapper;
 	Param p = mapper.getParameters();
-	p.setValue("rt_delta", 0.5);
-	p.setValue("mz_delta", 0.05);
+	p.setValue("rt_tolerance", 0.5);
+	p.setValue("mz_tolerance", 0.05);
 	p.setValue("mz_measure","Da");
 	mapper.setParameters(p);
 			
@@ -173,8 +173,8 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	
 	IDMapper mapper;
 	Param p = mapper.getParameters();
-	p.setValue("rt_delta", 0.0);
-	p.setValue("mz_delta", 0.0);
+	p.setValue("rt_tolerance", 0.0);
+	p.setValue("mz_tolerance", 0.0);
 	p.setValue("mz_measure","Da");
 	mapper.setParameters(p);
 	
@@ -213,12 +213,12 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	//TEST MAPPING TO CENTROIDS
 	FeatureMap<> fm2;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm2);
-	p.setValue("rt_delta", 4.0);
-	p.setValue("mz_delta", 1.5);
+	p.setValue("rt_tolerance", 4.0);
+	p.setValue("mz_tolerance", 1.5);
 	p.setValue("mz_measure","Da");
 	mapper.setParameters(p);
 
-	mapper.annotate(fm2,identifications,protein_identifications, true);
+mapper.annotate(fm2,identifications,protein_identifications, true, true);
 	
 	//test protein ids
 	TEST_EQUAL(fm2.getProteinIdentifications().size(),1)
@@ -249,12 +249,12 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	
 	FeatureMap<> fm_ppm;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.featureXML"), fm_ppm);
-	p.setValue("rt_delta", 4.0);
-	p.setValue("mz_delta", 3.0);
+	p.setValue("rt_tolerance", 4.0);
+	p.setValue("mz_tolerance", 3.0);
 	p.setValue("mz_measure","ppm");
 	mapper.setParameters(p);
 
-	mapper.annotate(fm_ppm,identifications,protein_identifications, false);
+	mapper.annotate(fm_ppm,identifications,protein_identifications);
 	
 	//test peptide ids
 	TEST_EQUAL(fm_ppm[0].getPeptideIdentifications().size(),1)
@@ -289,7 +289,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 {
 	IDMapper mapper;
 	Param p = mapper.getParameters();
-	p.setValue("mz_delta", 0.01);
+	p.setValue("mz_tolerance", 0.01);
 	p.setValue("mz_measure","Da");
 	mapper.setParameters(p);
 	
@@ -328,23 +328,25 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 }
 END_SECTION
 
-START_SECTION([EXTRA] DoubleReal getAbsoluteMZDelta_(const DoubleReal mz) const)
+START_SECTION([EXTRA] DoubleReal getAbsoluteMZTolerance_(const DoubleReal mz) const)
 	IDMapper2 mapper;
-	TEST_REAL_SIMILAR(mapper.getAbsoluteMZDelta2_(1000), 0.001)
 	Param p = mapper.getParameters();
-	p.setValue("mz_delta", 3.0);
+  p.setValue("mz_tolerance", 1.0);
 	mapper.setParameters(p);
-	TEST_REAL_SIMILAR(mapper.getAbsoluteMZDelta2_(1000), 0.003)
+	TEST_REAL_SIMILAR(mapper.getAbsoluteMZTolerance2_(1000), 0.001)
+	p.setValue("mz_tolerance", 3.0);
+	mapper.setParameters(p);
+	TEST_REAL_SIMILAR(mapper.getAbsoluteMZTolerance2_(1000), 0.003)
 	p.setValue("mz_measure","Da");
 	mapper.setParameters(p);
-	TEST_REAL_SIMILAR(mapper.getAbsoluteMZDelta2_(1000), 3)
+	TEST_REAL_SIMILAR(mapper.getAbsoluteMZTolerance2_(1000), 3)
 END_SECTION
 
 START_SECTION([EXTRA] bool isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const)
 	IDMapper2 mapper;
 	TEST_EQUAL(mapper.isMatch2_(1, 1000, 1000.001), true)
 	Param p = mapper.getParameters();
-	p.setValue("mz_delta", 3.0);
+	p.setValue("mz_tolerance", 3.0);
 	mapper.setParameters(p);
 	TEST_EQUAL(mapper.isMatch2_(4, 1000, 1000.0028), true)
 	TEST_EQUAL(mapper.isMatch2_(4, 1000, 1000.004), false)

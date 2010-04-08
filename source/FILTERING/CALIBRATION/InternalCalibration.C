@@ -167,8 +167,8 @@ namespace OpenMS
     // map the reference ids onto the features
     IDMapper mapper;
     Param param;
-    param.setValue("rt_delta",(DoubleReal)param_.getValue("rt_tolerance"));
-    param.setValue("mz_delta",param_.getValue("mz_tolerance"));
+    param.setValue("rt_tolerance",(DoubleReal)param_.getValue("rt_tolerance"));
+    param.setValue("mz_tolerance",param_.getValue("mz_tolerance"));
     param.setValue("mz_measure",param_.getValue("mz_tolerance_unit"));
     mapper.setParameters(param);
     std::vector<ProteinIdentification> vec;
