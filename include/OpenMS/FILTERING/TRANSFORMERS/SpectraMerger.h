@@ -85,7 +85,7 @@ namespace OpenMS
 
         MergeBlocks spectra_to_merge;
         Size idx_block(0);
-        Size block_size_count(rt_block_size+1);
+        SignedSize block_size_count(rt_block_size+1);
         Size idx_spectrum(0);
         for (typename MapType::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
 			  {
