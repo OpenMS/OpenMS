@@ -102,7 +102,7 @@ START_SECTION(~<?php print $class; ?>())
 END_SECTION
 
 <?php
-foreach ($class_info["public-long"] as $c)
+foreach ($class_info["test-name"] as $c)
 {
 	if (trim($c) != $class_info["classname"]."()")
 	{
