@@ -38,6 +38,8 @@
 #endif
 #define VV_(bla) V_(""#bla": " << bla);
 
+using namespace std;
+
 namespace OpenMS
 {
 
@@ -90,6 +92,10 @@ namespace OpenMS
       "If charge states are different, distance is multiplied by this factor.  "
       "If set to 1, charge has no influence.");
     defaults_.setMinFloat("different_charge_penalty",1.);
+
+		defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
+		defaults_.setValidStrings("use_identifications", 
+															StringList::create("true,false"));
 
     Base::defaultsToParam_();
   }
@@ -191,7 +197,7 @@ namespace OpenMS
       DoubleReal left_intensity(left.getIntensity());
       if ( right_intensity == 0 || left_intensity == 0 )
       {
-        return std::numeric_limits<DoubleReal>::max();
+        return numeric_limits<DoubleReal>::max();
       }
       DoubleReal intensity_ratio;
       if ( left_intensity < right_intensity )
@@ -232,15 +238,16 @@ namespace OpenMS
     is_singleton[0].resize(input_maps[0].size(),true);
     is_singleton[1].resize(input_maps[1].size(),true);
 
+		bool use_IDs = String(param_.getValue("use_identifications")) == "true";
+
     // For each element in map 0, find its best friend in map 1
-    std::vector<UInt> best_companion_index_0(input_maps[0].size(), UInt(-1));
-    std::vector<DoubleReal> best_companion_distance_0(input_maps[0].size(), 0);
-    std::vector<DoubleReal> second_best_companion_distance_0(
-      input_maps[0].size(), 0);
+    vector<UInt> best_companion_index_0(input_maps[0].size(), UInt(-1));
+    vector<DoubleReal> best_companion_distance_0(input_maps[0].size());
+    vector<DoubleReal> second_best_companion_distance_0(input_maps[0].size());
     for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
     {
-      DoubleReal best_distance = std::numeric_limits<DoubleReal>::max();
-      DoubleReal second_best_distance = std::numeric_limits<DoubleReal>::max();
+      DoubleReal best_distance = numeric_limits<DoubleReal>::max();
+      DoubleReal second_best_distance = numeric_limits<DoubleReal>::max();
       for ( UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1 )
       {
         DoubleReal distance = distance_(input_maps[0][fi0], input_maps[1][fi1]);
@@ -256,14 +263,13 @@ namespace OpenMS
     }
 
     // For each element in map 1, find its best friend in map 0
-    std::vector<UInt> best_companion_index_1(input_maps[1].size(), UInt(-1));
-    std::vector<DoubleReal> best_companion_distance_1(input_maps[1].size(), 0);
-    std::vector<DoubleReal> second_best_companion_distance_1(
-      input_maps[1].size(), 0);
+    vector<UInt> best_companion_index_1(input_maps[1].size(), UInt(-1));
+    vector<DoubleReal> best_companion_distance_1(input_maps[1].size());
+    vector<DoubleReal> second_best_companion_distance_1(input_maps[1].size());
     for ( UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1 )
     {
-      DoubleReal best_distance = std::numeric_limits<DoubleReal>::max();
-      DoubleReal second_best_distance = std::numeric_limits<DoubleReal>::max();
+      DoubleReal best_distance = numeric_limits<DoubleReal>::max();
+      DoubleReal second_best_distance = numeric_limits<DoubleReal>::max();
       for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
       {
         DoubleReal distance = distance_(input_maps[0][fi0], input_maps[1][fi1]);
@@ -282,17 +288,21 @@ namespace OpenMS
     // element_pairs_->clear();
     for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
     {
-      // fi0 likes someone ...
-      if ( best_companion_distance_0[fi0] < 1. && best_companion_distance_0[fi0]
-          * second_nearest_gap_ <= second_best_companion_distance_0[fi0] )
+      if ((best_companion_distance_0[fi0] < 1) && 
+					(best_companion_distance_0[fi0] * second_nearest_gap_ <= 
+					 second_best_companion_distance_0[fi0]))
       {
-        // ... who likes him too ...
+				// fi0 likes someone ...
         UInt best_companion_of_fi0 = best_companion_index_0[fi0];
-        if ( best_companion_index_1[best_companion_of_fi0] == fi0
-            && best_companion_distance_1[best_companion_of_fi0]
-                * second_nearest_gap_
-                <= second_best_companion_distance_1[best_companion_of_fi0] )
-        {
+				if ((best_companion_index_1[best_companion_of_fi0] == fi0) &&
+            (best_companion_distance_1[best_companion_of_fi0] * 
+						 second_nearest_gap_ <= 
+						 second_best_companion_distance_1[best_companion_of_fi0]) &&
+						// check if peptide IDs match:
+						(!use_IDs || compatibleIDs_(input_maps[0][fi0],
+																				input_maps[1][best_companion_of_fi0])))
+				{
+					// ... who likes him too ...
           result_map.push_back(ConsensusFeature());
           ConsensusFeature & f = result_map.back();
 
@@ -346,5 +356,31 @@ namespace OpenMS
 
     return;
   }
+
+	
+	bool StablePairFinder::compatibleIDs_(const ConsensusFeature& feat1, 
+																				const ConsensusFeature& feat2) const
+	{
+		vector<PeptideIdentification> pep1 = feat1.getPeptideIdentifications(),
+			pep2 = feat2.getPeptideIdentifications();
+		// a feature without identifications always matches:
+		if (pep1.empty() || pep2.empty()) return true;
+		set<AASequence> best1, best2;
+		for (vector<PeptideIdentification>::iterator pep_it = pep1.begin();
+				 pep_it != pep1.end(); ++pep_it)
+		{
+			if (pep_it->getHits().empty()) continue; // shouldn't be the case
+			pep_it->sort();
+			best1.insert(pep_it->getHits()[0].getSequence());
+		}
+		for (vector<PeptideIdentification>::iterator pep_it = pep2.begin();
+				 pep_it != pep2.end(); ++pep_it)
+		{
+			if (pep_it->getHits().empty()) continue; // shouldn't be the case
+			pep_it->sort();
+			best2.insert(pep_it->getHits()[0].getSequence());
+		}
+		return (best1 == best2);
+	}
 
 }

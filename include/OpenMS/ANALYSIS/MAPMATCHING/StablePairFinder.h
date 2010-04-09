@@ -141,9 +141,16 @@ namespace OpenMS
       updateMembers_();
 
       /// Computes the distance for a pair of elements.
-      DoubleReal
-          distance_( ConsensusFeature const & left,
-                     ConsensusFeature const & right ) const;
+      DoubleReal distance_( ConsensusFeature const & left,
+														ConsensusFeature const & right ) const;
+
+			/**
+				 @brief Checks if the peptide IDs of two features are compatible.
+
+				 A feature without identification is always compatible. Otherwise, two features are compatible if the best peptide hits of their identifications have the same sequence.
+			*/
+			bool compatibleIDs_(const ConsensusFeature& feat1, 
+													const ConsensusFeature& feat2) const;
 
       /// Distances wrt RT and MZ are raised to this power, respectively.
       DoubleReal diff_exponent_[2];

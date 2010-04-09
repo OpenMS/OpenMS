@@ -420,6 +420,9 @@ add_test("TOPP_FeatureLinker_4" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA
 add_test("TOPP_FeatureLinker_4_out1" ${DIFF} -in1 FeatureLinker_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_4_output.consensusXML)
 add_test("TOPP_FeatureLinker_5" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_5_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_5_input.featureXML)
 add_test("TOPP_FeatureLinker_5_out1" ${DIFF} -in1 FeatureLinker_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_5_output.consensusXML)
+# test "use_identifications" option of "unlabeled" algorithm:
+add_test("TOPP_FeatureLinker_6" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_6_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_2_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input3.featureXML -out FeatureLinker_6_output.tmp)
+add_test("TOPP_FeatureLinker_6_out1" ${DIFF} -in1 FeatureLinker_6_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_6_output.consensusXML)
 
 ### IDMapper tests
 add_test("TOPP_IDMapper_1" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_1_input.idXML -mz_measure Da -mz_tolerance 1)
