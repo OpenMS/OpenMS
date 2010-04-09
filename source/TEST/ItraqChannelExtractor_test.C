@@ -59,9 +59,9 @@ END_SECTION
 START_SECTION((ItraqChannelExtractor(Int itraq_type)))
 {
   ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX);
-	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("113:myReference"));
+	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("113:liver,117:lung"));
   ItraqChannelExtractor ice2(ItraqChannelExtractor::FOURPLEX);
-	TEST_EQUAL((StringList) ice2.getParameters().getValue("channel_active"), StringList::create("114:myReference"));
+	TEST_EQUAL((StringList) ice2.getParameters().getValue("channel_active"), StringList::create("114:liver,117:lung"));
 }
 END_SECTION
 

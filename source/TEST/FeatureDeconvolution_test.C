@@ -93,6 +93,7 @@ START_SECTION([EXTRA](void updateMembers_()))
   p.setValue("charge_max", 13, "maximal possible charge");
   p.setValue("retention_max_diff", 1.0, "maximum allowed RT difference between any two features if their relation shall be determined");
 	p.setValue("retention_max_diff_local", 2.0, "maxi");
+  p.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Ad");
 	fdt.setParameters(p);
   
   {
@@ -204,6 +205,10 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 //_CrtSetDbgFlag(_CrtSetDbgFlag(0)|_CRTDBG_CHECK_ALWAYS_DF);
 
 	FeatureDeconvolution fd;
+  Param p;
+  p.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Ad");
+	fd.setParameters(p);
+
 	FeatureMap<> fm_in, fm_out;
 	ConsensusMap cm, cm2;
 	FeatureXMLFile fl;

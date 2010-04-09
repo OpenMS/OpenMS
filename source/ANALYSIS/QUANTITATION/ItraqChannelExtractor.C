@@ -314,10 +314,9 @@ namespace OpenMS
 	/// implemented for DefaultParamHandler
 	void ItraqChannelExtractor::updateMembers_()
 	{
-
 		// extract channel names
-		StringList channels = StringList(param_.getValue("channel_active"));
-		ItraqConstants::updateChannelMap(channels, channel_map_);
+    ItraqConstants::initChannelMap(itraq_type_, channel_map_);
+		ItraqConstants::updateChannelMap(StringList(param_.getValue("channel_active")), channel_map_);
 	}
 
 	/// initialize
