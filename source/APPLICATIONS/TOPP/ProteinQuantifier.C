@@ -29,11 +29,13 @@
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <numeric> // for 'accumulate'
+#include <numeric> // for "accumulate"
+#include <algorithm> // for "equal"
 
 using namespace OpenMS;
 using namespace std;
@@ -47,13 +49,15 @@ using namespace std;
 	
 	@brief Application to compute peptide and protein abundances from annotated feature/consensus maps.
 
-	(To produce annotated maps, use the IDMapper TOPP tool to annotate featureXML or consensusXML files with identifications from idXML files.)
+	(To produce annotated maps, use the @ref TOPP_IDMapper tool to annotate featureXML or consensusXML files with identifications from idXML files.)
 
 	Quantification is based on the intensity values of the features in the input. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.\n
 	The peptide-to-protein step implements a general version of the "top 3 approach" (but only for relative quantification) described in:\n
 	Silva <em>et al.</em>: "Absolute quantification of proteins by LCMSE: a virtue of parallel MS acquisition" (Mol. Cell. Proteomics, 2006).
 
-	Only features/feature groups with unambiguous peptide annotation are used for peptide quantification, and only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
+	Only features/feature groups with unambiguous peptide annotation are used for peptide quantification, and generally only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. As an exception to this rule, if ProteinProphet results for the whole sample set are provided with the @a protxml option, or are already included in a featureXML input, also groups of indistinguishable proteins will be quantified. The reported quantity then refers to the total for the whole group.
+
+	Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
 
 	More information below the parameter specification.
 
@@ -63,9 +67,11 @@ using namespace std;
 
 	The output files produced by this tool have a table format, with columns as described below:
 
-	<b>Protein output</b> (one protein per line):
-	- @b protein: Protein accession (as in the annotations in the input file).
-	- @b n_peptides: Number of proteotypic peptides observed for this protein across all samples. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @a top).
+	<b>Protein output</b> (one protein/set of indistinguishable proteins per line):
+	- @b protein: Protein accession(s) (as in the annotations in the input file; separated by "/" if more than one).
+	- @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
+	- @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
+	- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all samples. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @a top).
 	- @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_0", "abundance_1", etc.).
 
 	<b>Peptide output</b> (one peptide or - if @a filter_charge is set - one charge state of a peptide per line):
@@ -94,7 +100,8 @@ namespace OpenMS
 	public:
 		
 		TOPPProteinQuantifier() :
-			TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances")
+			TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances"),
+			proteins_()
       {
       }
 
@@ -120,6 +127,7 @@ namespace OpenMS
 		};
 		typedef map<String, protein_data> protein_quant; // by protein accession
 
+		ProteinIdentification proteins_; // protein information from protXML
 
 		/**
 			 @brief Compute the median of a list of values (possibly already sorted)
@@ -337,6 +345,50 @@ namespace OpenMS
 				}				
 			}
 
+
+		/**
+			 @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.
+
+			 @param pep_accessions Protein accessions of a peptide
+			 @param accession_to_leader Captures information about indistinguishable proteins (maps accession to accession of group leader)
+
+			 If there is no information about indistinguishable proteins (from protXML) available, a canonical accession exists only for proteotypic peptides - it's the single accession for this peptide.
+
+			 If the information is available, a peptide has a canonical accession if it maps only to proteins of one indistinguishable group. In this case, the canonical accession is that of the group leader.
+
+			 If there is no canonical accession, the empty string is returned.
+		*/
+		String getAccession_(const set<String>& pep_accessions, 
+												 map<String, String>& accession_to_leader)
+			{
+				if (accession_to_leader.empty())
+				{ 
+					// no info about indistinguishable proteins available
+					if (pep_accessions.size() == 1)	return *pep_accessions.begin();
+				}
+				else
+				{ 
+					// if all accessions belong to the same group of indistinguishable
+					// proteins, return accession of the group leader
+					StringList leaders;
+					for (set<String>::const_iterator it = pep_accessions.begin(); 
+							 it != pep_accessions.end(); ++it)
+					{
+						map<String, String>::const_iterator pos = 
+							accession_to_leader.find(*it);
+						if (pos != accession_to_leader.end()) leaders << pos->second;
+						// if the protein accession was not found, this is not an error:
+						// if there's not enough evidence for a protein, it won't occur in
+						// the protXML - so we also won't quantify it
+					}
+					if (leaders.empty()) return "";
+					bool all_equal = equal(leaders.begin(), --leaders.end(), 
+																 ++leaders.begin());
+					if (all_equal) return leaders[0];
+				}
+				return "";
+			}
+
 		
 		/**
 			 @brief Compute protein quantities.
@@ -346,12 +398,32 @@ namespace OpenMS
 		void quantifyProteins_(const peptide_quant& pep_quant, 
 													 protein_quant& prot_quant)
 			{
+				// if information about indistinguishable proteins is available, map
+				// each accession to the accession of the leader of its group of
+				// indistinguishable proteins:
+				map<String, String> accession_to_leader;
+				if (!proteins_.getIndistinguishableProteins().empty())
+				{
+					for (vector<ProteinIdentification::ProteinGroup>::iterator group_it = 
+								 proteins_.getIndistinguishableProteins().begin(); group_it !=
+								 proteins_.getIndistinguishableProteins().end(); ++group_it)
+					{
+						for (StringList::Iterator acc_it = group_it->accessions.begin();
+								 acc_it != group_it->accessions.end(); ++acc_it)
+						{
+							// each accession should only occur once, but we don't check...
+							accession_to_leader[*acc_it] = group_it->accessions[0];
+						}
+					}
+				}
+
 				for (peptide_quant::const_iterator pep_it = pep_quant.begin(); 
 						 pep_it != pep_quant.end(); ++pep_it)
 				{
-					if (pep_it->second.accessions.size() == 1) // proteotypic peptide
+					String accession = getAccession_(pep_it->second.accessions, 
+																					 accession_to_leader);
+					if (!accession.empty()) // proteotypic peptide
 					{
-						String accession = *(pep_it->second.accessions.begin());
 						for (sample_abundances::const_iterator tot_it = 
 									 pep_it->second.total_abundances.begin(); tot_it !=
 									 pep_it->second.total_abundances.end(); ++tot_it)
@@ -511,7 +583,7 @@ namespace OpenMS
 														const vector<UInt64> samples)
 			{
 				// write header:
-				out << "protein" << "n_peptides";
+				out << "protein" << "n_proteins" << "protein_score" << "n_peptides";
 				if (samples.size() <= 1)
 				{
 					out << "abundance";
@@ -525,6 +597,24 @@ namespace OpenMS
 				}
 				out << endl;
 
+				map<String, StringList> leader_to_accessions;
+				if (!proteins_.getIndistinguishableProteins().empty())
+				{
+					for (vector<ProteinIdentification::ProteinGroup>::iterator group_it = 
+								 proteins_.getIndistinguishableProteins().begin(); group_it !=
+								 proteins_.getIndistinguishableProteins().end(); ++group_it)
+					{
+						StringList& accessions = leader_to_accessions[group_it->
+																													accessions[0]];
+						accessions = group_it->accessions;
+						for (StringList::Iterator acc_it = accessions.begin(); 
+								 acc_it != accessions.end(); ++acc_it)
+						{
+							acc_it->substitute('/', '_'); // to allow concatenation later
+						}
+					}
+				}
+
 				bool include_fewer = getFlag_("include_fewer");
 				Size top = getIntOption_("top");
 				for (protein_quant::iterator q_it = quant.begin(); q_it != quant.end();
@@ -533,7 +623,25 @@ namespace OpenMS
 					Size n_peptide = q_it->second.abundances.size();
 					if (include_fewer || (n_peptide >= top))
 					{
-						out << q_it->first << n_peptide;
+						if (leader_to_accessions.empty())
+						{
+							out << q_it->first << 1;
+						}
+						else
+						{
+							out << leader_to_accessions[q_it->first].concatenate('/')
+									<< leader_to_accessions[q_it->first].size();
+						}
+						if (proteins_.getHits().empty())
+						{
+							out << 0;
+						}
+						else
+						{
+							vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
+							out << pos->getScore();
+						}
+						out << n_peptide;
 						for (vector<UInt64>::const_iterator samp_it = samples.begin(); 
 								 samp_it != samples.end(); ++samp_it)
 						{
@@ -607,8 +715,10 @@ namespace OpenMS
 				setValidStrings_("average", StringList::create("median,mean,sum"));
 				registerFlag_("include_fewer", "Include results for proteins with fewer than 'top' proteotypic peptides");
 				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
+				registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+				setValidFormats_("protxml", StringList::create("idXML"));
 				addEmptyLine_();
-        addText_("Options for consensusXML files:");
+        addText_("Additional options for consensusXML input:");
 				registerFlag_("normalize", "Scale peptide abundances so that medians of all samples are equal");
 				registerFlag_("fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
 				addEmptyLine_();
@@ -635,6 +745,8 @@ namespace OpenMS
 				else if (quoting == "double") quoting_method = String::DOUBLE;
 				else quoting_method = String::ESCAPE;
 
+				String protxml = getStringOption_("protxml");
+
 				bool normalize = false;
 				vector<UInt64> samples;
 				ConsensusMap::FileDescriptions files;
@@ -645,6 +757,12 @@ namespace OpenMS
 					FeatureMap<> features;
           FeatureXMLFile().load(in, features);
 					samples.push_back(0);
+
+					if (protxml.empty() && 
+							(features.getProteinIdentifications().size() == 1))
+					{
+						proteins_ = features.getProteinIdentifications()[0];
+					}
 
 					for (FeatureMap<>::Iterator feat_it = features.begin(); 
 							 feat_it != features.end(); ++feat_it)
@@ -658,15 +776,21 @@ namespace OpenMS
 
 				else // consensusXML
 				{
+					normalize = getFlag_("normalize");
 					ConsensusMap consensus;
           ConsensusXMLFile().load(in, consensus);
 
-					normalize = getFlag_("normalize");
 					files = consensus.getFileDescriptions(); 
 					for (ConsensusMap::FileDescriptions::Iterator file_it = files.begin();
 							 file_it != files.end(); ++file_it)
 					{
 						samples.push_back(file_it->first);
+					}
+
+					if (protxml.empty() && 
+							(consensus.getProteinIdentifications().size() == 1))
+					{
+						proteins_ = consensus.getProteinIdentifications()[0];
 					}
 
 					for (ConsensusMap::Iterator cons_it = consensus.begin(); 
@@ -680,6 +804,21 @@ namespace OpenMS
 						{
 							quantifyFeature_(*feat_it, hit, pep_quant);
 						}
+					}
+				}
+
+				if (!protxml.empty())
+				{
+					vector<ProteinIdentification> proteins;
+					vector<PeptideIdentification> peptides;
+					IdXMLFile().load(protxml, proteins, peptides);
+					if (proteins.size() == 1) 
+					{
+						proteins_ = proteins[0];
+					}
+					else
+					{
+						throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected a converted protXML file (with only one 'ProteinIdentification' instance) in file '" + protxml + "'");
 					}
 				}
 
