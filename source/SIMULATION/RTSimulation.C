@@ -207,7 +207,6 @@ namespace OpenMS {
       // remove invalid peptides & (later) display removed ones
       if (
           (predicted_retention_times[i] < 0.0) || // check for invalid RT
-          (predicted_retention_times[i]*RT_scale > total_gradient_time_) || // check for non observable
           (predicted_retention_times[i]*RT_scale > gradient_max_) ||  // check if RT is not in scan window
           (predicted_retention_times[i]*RT_scale < gradient_min_)     // check if RT is not in scan window
           )
@@ -425,7 +424,11 @@ namespace OpenMS {
 		total_gradient_time_ = param_.getValue("total_gradient_time");
 		gradient_min_ = param_.getValue("scan_window:min");
 		gradient_max_ = param_.getValue("scan_window:max");
-
+    if(gradient_max_ > total_gradient_time_)
+      {
+        LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
+      }
+    
     rt_sampling_rate_ = param_.getValue("sampling_rate");
 
     String column_preset = param_.getValue("column_condition:preset");
