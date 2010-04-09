@@ -653,6 +653,12 @@ namespace OpenMS
 		{
 			if (pep_begin->getHits().size() != 0)
 			{
+				if (!pep_begin->metaValueExists("RT") || 
+						!pep_begin->metaValueExists("MZ"))
+				{
+					// TODO: show error message here
+					continue;
+				}
 				DoubleReal rt = (DoubleReal) pep_begin->getMetaValue("RT");
 				if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1]) continue;				
 				DoubleReal mz = getIdentificationMZ_(layer_index, *pep_begin);
