@@ -150,7 +150,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_WARN << "Required attribute 'percent_coverage' missing.\n";
+        LOG_WARN << "Required attribute 'percent_coverage' missing\n";
       }
 			prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
 			
@@ -169,11 +169,19 @@ namespace OpenMS
 			// We thus treat each instance as a separate peptide
 			// todo/improvement: link them by a group in PeptideIdentification?!
 			
-			pep_hit_ = new PeptideHit;
-			
+			pep_hit_ = new PeptideHit;		
 			pep_hit_->setSequence(attributeAsString_(attributes,"peptide_sequence"));
-			pep_hit_->setCharge(attributeAsInt_(attributes,"charge"));
 			pep_hit_->setScore(attributeAsDouble_(attributes,"nsp_adjusted_probability"));
+
+			Int charge;
+			if (optionalAttributeAsInt_(charge, attributes, "charge"))
+			{
+				pep_hit_->setCharge(charge);
+			}
+			else
+			{
+        LOG_WARN << "Required attribute 'charge' missing\n";
+			}
 
 			// add accessions of all indistinguishable proteins the peptide belongs to
 			ProteinIdentification::ProteinGroup& indist = prot_id_->getIndistinguishableProteins().back();
