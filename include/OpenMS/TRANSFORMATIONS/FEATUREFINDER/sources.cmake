@@ -7,6 +7,7 @@ BaseModel.h
 BaseModel_impl.h
 BiGaussFitter1D.h
 BiGaussModel.h
+EGHTraceFitter.h
 EmgFitter1D.h
 EmgModel.h
 ExtendedIsotopeFitter1D.h
@@ -16,6 +17,7 @@ FeatureFinder.h
 FeatureFinderAlgorithm.h
 FeatureFinderAlgorithmIsotopeWavelet.h
 FeatureFinderAlgorithmPicked.h
+FeatureFinderAlgorithmPickedHelperStructs.h
 FeatureFinderAlgorithmSimple.h
 FeatureFinderAlgorithmSimplest.h
 FeatureFinderAlgorithmMRM.h
@@ -25,6 +27,7 @@ FeatureFinder_impl.h
 Fitter1D.h
 GaussFitter1D.h
 GaussModel.h
+GaussTraceFitter.h
 InterpolationModel.h
 IsotopeFitter1D.h
 IsotopeModel.h
@@ -42,6 +45,7 @@ ProductModel.h
 SeedListGenerator.h
 SimpleExtender.h
 SimpleSeeder.h
+TraceFitter.h
 )
 
 ### add path to the filenames

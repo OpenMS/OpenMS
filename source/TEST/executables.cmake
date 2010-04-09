@@ -176,7 +176,7 @@ set(format_executables_list
   TraMLFile_test
   TransformationXMLFile_test
   UnimodXMLFile_test
-	XMassFile_test
+  XMassFile_test
   XMLFile_test
   XMLValidator_test
   XTandemInfile_test
@@ -369,6 +369,7 @@ set(transformations_executables_list
   BiGaussModel_test
   ContinuousWaveletTransformNumIntegration_test
   ContinuousWaveletTransform_test
+  EGHTraceFitter_test
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test
@@ -376,6 +377,7 @@ set(transformations_executables_list
   FeaFiModule_test
   FeatureFinderAlgorithmIsotopeWavelet_test
   FeatureFinderAlgorithmMRM_test
+  FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithmSimple_test
   FeatureFinderAlgorithmSimplest_test
@@ -384,6 +386,7 @@ set(transformations_executables_list
   Fitter1D_test
   GaussFitter1D_test
   GaussModel_test
+  GaussTraceFitter_test
   InterpolationModel_test
   IsotopeFitter1D_test
   IsotopeModel_test
@@ -407,6 +410,7 @@ set(transformations_executables_list
   SimpleExtender_test
   SimpleSeeder_test
   TwoDOptimization_test
+	TraceFitter_test
 )
 
 set(simulation_executables_list

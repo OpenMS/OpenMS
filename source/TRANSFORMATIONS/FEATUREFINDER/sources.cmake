@@ -6,6 +6,7 @@ set(sources_list
 BaseModel.C
 BiGaussFitter1D.C
 BiGaussModel.C
+EGHTraceFitter.C
 EmgFitter1D.C
 EmgModel.C
 ExtendedIsotopeFitter1D.C
@@ -21,6 +22,7 @@ FeatureFinderAlgorithmMRM.C
 Fitter1D.C
 GaussFitter1D.C
 GaussModel.C
+GaussTraceFitter.C
 InterpolationModel.C
 IsotopeFitter1D.C
 IsotopeModel.C
@@ -37,6 +39,7 @@ ProductModel.C
 SeedListGenerator.C
 SimpleExtender.C
 SimpleSeeder.C
+TraceFitter.C
 )
 
 ### add path to the filenames
