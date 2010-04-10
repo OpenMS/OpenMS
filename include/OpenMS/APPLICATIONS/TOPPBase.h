@@ -570,7 +570,7 @@ namespace OpenMS
       void registerIntOption_( const String& name, const String& argument, Int default_value, const String& description, bool required = true, bool advanced = false );
 
       /**
-      	@brief Registers an a list of integer option.
+      	@brief Registers a list of integers option.
 
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -583,7 +583,7 @@ namespace OpenMS
       void registerIntList_( const String& name, const String& argument, IntList default_value, const String& description, bool required = true, bool advanced = false );
       
      /**
-      	@brief Registers an a list of double option.
+      	@brief Registers a list of doubles option.
 
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -595,7 +595,7 @@ namespace OpenMS
       void registerDoubleList_( const String& name, const String& argument, DoubleList default_value, const String& description, bool required = true, bool advanced = false );
       
      /**
-      	@brief Registers an a list of String option.
+      	@brief Registers a list of strings option.
 
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -607,7 +607,7 @@ namespace OpenMS
       void registerStringList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
 
      /**
-      	@brief Registers an a list of input files option.
+      	@brief Registers a list of input files option.
         
         A list of input files behaves like a StringList, but are automatically checked with inputFileWritable_()
 				when the option is accessed in the TOPP tool.
@@ -622,7 +622,7 @@ namespace OpenMS
       void registerInputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
 
      /**
-      	@brief Registers an a list of output files option.
+      	@brief Registers a list of output files option.
         
         A list of output files behaves like a StringList, but are automatically checked with outputFileWritable_()
 				when the option is accessed in the TOPP tool.
