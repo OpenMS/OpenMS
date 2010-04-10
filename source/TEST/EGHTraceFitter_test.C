@@ -287,8 +287,8 @@ END_SECTION
 START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces< PeakType > &traces)))
 {
   // fit was already done before
-  TEST_EQUAL(egh_trace_fitter.getCenter(),expected_x0)
-  TEST_EQUAL(egh_trace_fitter.getHeight(),expected_H)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(),expected_x0)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getHeight(),expected_H)
 }
 END_SECTION
 
@@ -369,7 +369,6 @@ END_SECTION
 START_SECTION((virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace< PeakType > const &trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)))
 {
   String formula = egh_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
-  std::cout << formula << std::endl;
   // should look like -- f(x)= 0 + (((4.5 + 3.93096e-15 * (x - 680.1 )) > 0) ? 8 * exp(-1 * (x - 680.1)**2 / ( 4.5 + 3.93096e-15 * (x - 680.1 ))) : 0) --
   TEST_EQUAL(formula.hasPrefix("f(x)= 0 + ((("), true)
   TEST_EQUAL(formula.hasSubstring(" )) > 0) ? "), true)
