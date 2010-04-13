@@ -74,11 +74,15 @@ namespace OpenMS
 			/// Average score algorithm
 			void average_(std::vector<PeptideIdentification>& ids);
       
-			/// Probability based algorithm
-			void probability_(std::vector<PeptideIdentification>& ids);
+			/// PEP based algorithm
+			void PEP_(std::vector<PeptideIdentification>& ids);
 
 			/// Majority vote
 			void majority_(std::vector<PeptideIdentification>& ids);
+//already done in APPLICATIONS/TOPP/ConsensusID.C
+			/// Merge peptide hits from different engines
+			void mapIdentifications_(std::vector<PeptideIdentification> & sorted_ids, const std::vector<PeptideIdentification>& ids);
+
   };
  
 } // namespace OpenMS

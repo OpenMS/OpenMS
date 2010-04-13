@@ -8,7 +8,7 @@ CaapConvert
 DeMeanderize
 DecoyDatabase
 Digestor
-Digestor_motif
+DigestorMotif
 ERPairFinder
 FFEval
 FuzzyDiff

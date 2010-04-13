@@ -131,10 +131,13 @@ class TOPPConsensusID
 				String document_id;
 				IdXMLFile().load(in,prot_ids, pep_ids, document_id);
 
-				//merge peptide ids by precursor position
-				vector<IDData> prec_data;
+				//merge peptide ids by precursor position Sven:Ideally one should merge all peptide hits form the the different peptide identifications and keep the the information on the identification runs as a meta value 
+				vector<IDData> prec_data,final;
 				for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
 				{
+					PeptideIdentification t;
+					t=*pep_id_it;
+					String scoring = (String)pep_id_it->getIdentifier();
 					DoubleReal rt = (DoubleReal)(pep_id_it->getMetaValue("RT"));
 					DoubleReal mz = (DoubleReal)(pep_id_it->getMetaValue("MZ"));
 					writeDebug_(String("  ID: ") + rt + " / " + mz, 4);
@@ -151,7 +154,20 @@ class TOPPConsensusID
 					if (pos != prec_data.end())
 					{
 						writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
-						pos->ids.push_back(*pep_id_it);
+						//write information on search engine
+						vector<PeptideHit> hits;
+						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+							{
+								PeptideHit hit = *pit;
+								if (hit.metaValueExists("scoring"))
+								{
+									String meta_value = (String)hit.getMetaValue("scoring");
+								}
+        						hit.setMetaValue("scoring", pep_id_it->getIdentifier());
+								hits.push_back(hit);
+      						}
+						t.setHits(hits);
+						pos->ids.push_back(t);
 					}
 					//insert new entry
 					else
@@ -159,16 +175,53 @@ class TOPPConsensusID
 						IDData tmp;
 						tmp.mz = mz;
 						tmp.rt = rt;
-						tmp.ids.push_back(*pep_id_it);
+						vector<PeptideHit> hits;
+						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+							{
+								PeptideHit hit = *pit;
+								if (hit.metaValueExists("scoring"))
+								{
+									String meta_value = (String)hit.getMetaValue("scoring");
+								}
+        						hit.setMetaValue("scoring", pep_id_it->getIdentifier());
+								hits.push_back(hit);
+      						}
+						t.setHits(hits);
+						tmp.ids.push_back(t);
 						prec_data.push_back(tmp);
 						writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
 					}
+				
 				}
+				//iterate over prec_data and write to final only one peptide identification per rt mz
+				
+				for(vector<IDData>::iterator fin = prec_data.begin(); fin != prec_data.end(); ++fin)
+				{
+					IDData tmp;
+					tmp.mz=fin->mz;
+					tmp.rt=fin->rt;
+					PeptideIdentification t;
+					vector<PeptideHit> P;
+					
+					for(vector<PeptideIdentification>::iterator tt = fin->ids.begin(); tt != fin->ids.end(); ++tt)
+					{
+						for (vector<PeptideHit>::const_iterator pit = tt->getHits().begin(); pit != tt->getHits().end();++pit)
+							{
+								P.push_back(*pit);
+							}	
+					}
+					t.setHits(P);
+					tmp.ids.push_back(t);
+					final.push_back(tmp);
+				}
+				
+				
+				///iterate over prec_data and write to final only one peptide identification per rt mz
 
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)prot_ids.size());
 				consensus.setParameters(alg_param);
-				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
+				for (vector<IDData>::iterator it = final.begin(); it!=final.end(); ++it)
 				{
 					writeDebug_(String("Calculating consensus for : ") + it->rt + " / " + it->mz + " #peptide ids: " + it->ids.size(), 4);
 					consensus.apply(it->ids);
@@ -176,7 +229,7 @@ class TOPPConsensusID
 
 				// writing output
 				pep_ids.clear();
-				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
+				for (vector<IDData>::iterator it = final.begin(); it!=final.end(); ++it)
 				{
 					pep_ids.push_back(it->ids[0]);
 					pep_ids.back().setMetaValue("RT",it->rt);

@@ -54,6 +54,7 @@
   
   <b>Peptide identification</b>
 	- @subpage UTILS_Digestor - Digests a protein database in-silico.
+		@subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
 	- @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
 	- @subpage UTILS_SequenceCoverageCalculator - Prints information about IdXML files.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from IdXML files.

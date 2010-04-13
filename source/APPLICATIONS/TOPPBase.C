@@ -2078,6 +2078,7 @@ namespace OpenMS
 		util_map["CVInspector"] = StringList::create("");
 		util_map["DecoyDatabase"] = StringList::create("");
 		util_map["Digestor"] = StringList::create("");
+		util_map["DigestorMotif"] = StringList::create("");
 		util_map["FFEval"] = StringList::create("");
 		util_map["FuzzyDiff"] = StringList::create("");
 		util_map["HistView"] = StringList::create("");
