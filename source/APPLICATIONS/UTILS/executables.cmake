@@ -19,6 +19,7 @@ IDSplitter
 IdXMLEvaluation
 ImageCreator
 LabeledEval
+MassCalculator
 MRMPairFinder
 MSSimulator
 MapAlignmentEvaluation

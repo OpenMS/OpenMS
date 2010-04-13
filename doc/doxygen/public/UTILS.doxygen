@@ -68,9 +68,10 @@
 
 	<b>Misc</b>
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
+	- @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
   - @subpage UTILS_HistView - A viewer for histograms.
   - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
-  - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.
+  - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for probabilistic network as input for AdvancedSpectrumGenerator.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
   - @subpage UTILS_UniqueIdAssigner - Assign new unique ids to FeatureXML or ConsensusXML files.
 	

@@ -497,3 +497,8 @@ add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_
 add_test("UTILS_IDSplitter_1" ${TOPP_BIN_PATH}/IDSplitter -test -in ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML -out IDSplitter_1_output1.tmp -id_out IDSplitter_1_output2.tmp)
 add_test("UTILS_IDSplitter_1_out1" ${DIFF} -in1 IDSplitter_1_output1.tmp -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.featureXML)
 add_test("UTILS_IDSplitter_1_out2" ${DIFF} -in1 IDSplitter_1_output2.tmp -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.idXML)
+
+add_test("UTILS_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DATA_DIR_TOPP}/MassCalculator_1_input.txt -out MassCalculator_1_output.tmp -charge 0 1 -format table -separator ,)
+add_test("UTILS_MassCalculator_1_out1" ${DIFF} -in1 MassCalculator_1_output.tmp -in2 ${DATA_DIR_TOPP}/MassCalculator_1_output.csv)
+add_test("UTILS_MassCalculator_2" ${TOPP_BIN_PATH}/MassCalculator -test -in "LDQWLC(Carbamidomethyl)EKL" "(Glu->pyro-Glu)EAM(Oxidation)APKHK" "RANVM(Oxidation)DYR" "FGVEQDVDMVFASFIR" -out MassCalculator_2_output.tmp -charge 1 2 3)
+add_test("UTILS_MassCalculator_2_out1" ${DIFF} -in1 MassCalculator_2_output.tmp -in2 ${DATA_DIR_TOPP}/MassCalculator_2_output.txt)

@@ -1,0 +1,4 @@
+LDQWLC(Carbamidomethyl)EKL: z=1 m=1204.6 m/z=1204.6, z=2 m=1205.61 m/z=602.805, z=3 m=1206.62 m/z=402.206
+(Glu->pyro-Glu)EAM(Oxidation)APKHK: z=1 m=909.461 m/z=909.461, z=2 m=910.468 m/z=455.234, z=3 m=911.476 m/z=303.825
+RANVM(Oxidation)DYR: z=1 m=1040.49 m/z=1040.49, z=2 m=1041.5 m/z=520.751, z=3 m=1042.51 m/z=347.503
+FGVEQDVDMVFASFIR: z=1 m=1859.9 m/z=1859.9, z=2 m=1860.91 m/z=930.453, z=3 m=1861.91 m/z=620.638
