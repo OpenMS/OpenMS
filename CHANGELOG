@@ -4,11 +4,13 @@
 
 
 TOPP tools:
-- ProteinQuantifier: computes protein/peptide abundances from annotated featureXML or consensusXML files
+- IDMapper: reworked parameter handling (please see the IDMapper documentation and update your INI files)
 - Resampler: PNG image creation functionality removed and transferred to ImageCreator UTIL
-- FileMerger: merges featureXML
+- FileMerger: can now merge featureXML
+- IDMerger: new option to integrate data from pepXML and protXML
 - SeedListGenerator: new option to use monoisotopic peptide mass instead of precursor m/z for seeds from idXML input
 - NEW: 
+  - ProteinQuantifier: computes protein/peptide abundances from annotated featureXML or consensusXML files
   - GenericWrapper (e.g. to wrap ProteinProphet in TOPPAS)
 - REMOVE:
   - TextImporter (functionality moved to FileConverter)
@@ -17,11 +19,12 @@ UTIL tools:
 - NEW:
   - ImageCreator: creates PNG's from MS maps
   - IDSplitter: splits peptide/protein annotations off of data files (inverse operation as IDMapper)
+  - MassCalculator: calculates masses and mass-to-charge ratios of peptide sequences
 
 OpenMS library improvements:
-- read ProtXML files
+- read protXML files
 - support protein groups in ProteinIdentification/idXML
-- Line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
+- line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
 
 TOPPView improvements:
 - basic visualization of peptide identifications in idXML
