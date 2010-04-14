@@ -226,7 +226,9 @@ namespace OpenMS
 			
 			//docu in base class
 			virtual void updateLayer_(Size i);
-			//docu in base class
+      ///Go forward in zoom history
+	    virtual void Spectrum1DCanvas::zoomForward_();
+      //docu in base class
 			virtual void translateLeft_();
 			//docu in base class
 			virtual void translateRight_();

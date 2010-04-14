@@ -749,13 +749,13 @@ namespace OpenMS
       Param const& getParam_() const;
 
       /**
-      	@brief Checks top-level entries of @p param according to the the information during registration
+      	@brief Checks top-level entries of @p param according to the information during registration
 
       	Only top-level entries and allowed subsections are checked.
       	Checking the content of the subsection is the duty of the algorithm it is passed to.
 
       	This method does not abort execution of the tool, but will warn the user through stderr!
-      	It is called automatically in the main method
+      	It is called automatically in the main method.
 
       	@param param Parameters to check
       	@param filename The source file name

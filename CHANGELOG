@@ -25,6 +25,7 @@ OpenMS library improvements:
 
 TOPPView improvements:
 - basic visualization of peptide identifications in idXML
+- zooming beyond the last zoom stack item using the mouse wheel or CTRL+
 
 TOPPAS improvements:
 - added copy/paste for workflow items

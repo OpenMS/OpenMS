@@ -687,7 +687,7 @@ namespace OpenMS
 		///Go backward in zoom history
 		void zoomBack_();
 		///Go forward in zoom history
-		void zoomForward_();
+		virtual void zoomForward_();
 		/// Add a visible area to the zoom stack
 		void zoomAdd_(const AreaType& area);
 		/// Clears the zoom stack and invalidates the current zoom position. After calling this, a valid zoom position has to be added immediately.

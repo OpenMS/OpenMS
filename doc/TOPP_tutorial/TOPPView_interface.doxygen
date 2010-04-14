@@ -30,19 +30,19 @@
 
 /**
 	@page TOPPView_introduction Introduction
-	
+
 	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzML, mzData, mzXML, ANDI/MS
 	  and several other text-based file formats. It also supports viewing data from an %OpenMS database.
-	 	
+
 	 	In each view, several datasets can be displayed using the layer concept. This allows visual comparison
 	 	of several datasets as well as displaying input data and output data of an algorithm together.
-	 	
+
 		TOPPView is intended for visual inspection of the data by experimentalists as well as for
 		analysis software by developers.
-		
+
 		@image html TOPPView_parts.png
 		@image latex TOPPView_parts.png "" width=14cm
-	
+
 		The above example image shows a 2D view of TOPPView (blue rectangle) and the corresponding
 		@ref TOPPView_modes (red rectangle). In the right dock area, you can see the @ref TOPPView_layers
 		(yellow rectangle), the @ref TOPPView_browser (magenta rectangle)
@@ -50,19 +50,19 @@
 		can be done using the tab bar (black rectangle).
 
 	@section TOPPView_layers Layers
-		
+
 		Each view of TOPPView supports several datasets, called layers. In the @a layer @a manager
-		(dock window in the upper right corner), layers can be hidden and shown using the checkbox in front of each layer name. 	
-		
+		(dock window in the upper right corner), layers can be hidden and shown using the check box in front of each layer name.
+
 		By clicking on a layer, this layer is selected, which is indicated by a blue background.
 		The selected layer can be manipulated using the @a Tools menu.
-		
+
 		Layers can be copied by dragging them to the tab bar. If the layer is dropped on a tab, it is added
 		to the corresponding window. If the layer is dropped on the tab bar but not on a tab, a new window
 		with that layer is added.
 
   @section TOPPView_browser Spectrum browser
-		
+
 		The spectra contained in a peak map can be browsed in the @a spectrum @a browser. It displays
 		a tree view of all spectra in the current layer, where a spectrum with MS level @a n is a child
 		of the spectrum with MS level @a n - @a 1 that contains its corresponding precursor peak.
@@ -76,34 +76,34 @@
 	@section TOPPView_filtering Data filtering
 
 		TOPPView allows filtering of the displayed peak data and feature data.
-		Peak data can be filtered according to intensity and metadata. Metadata
+		Peak data can be filtered according to intensity and meta data. Meta data
 		is arbitrary data the peak is annotated with.
-		Feature data can be filtered according to intensity, charge, quality and 
-		metadata.
-	
+		Feature data can be filtered according to intensity, charge, quality and
+		meta data.
+
 		Data filters are managed by a dock window.
 		Filters can be added, removed and edited through the context menu (right button mouse click)
 		of the data filters window. For convenience, filters can also be
-		edited by double-clicking them.	
+		edited by double-clicking them.
 
 	@section TOPPView_command_line Command line options
 
-    Several files can be opened in one layer from the command line by putting a 
+    Several files can be opened in one layer from the command line by putting a
     '+' character between the file names. The following command opens three
     files in three layers of the same window:
     @code TOPPView file1.mzML + file2.mzML + file3.mzML@endcode
     Without the '+' the files would be opened in three different windows.
-    
+
     The color gradient used to display a file can be changed by adding one of
-    several '@' commands. The following commad opens the file with a white-to-black
+    several '@' commands. The following command opens the file with a white-to-black
     gradient:
     @code TOPPView file1.mzML @bw@endcode
-    
+
     For more information on command line parameters call:
     @code TOPPView --help@endcode
 
 	@section TOPPView_help Looking for help?
-		
+
 		You can display a short help text for each button and dock window of TOPPView by
 		clicking on it in @a What's @a this? mode. @a What's @a this? mode can be entered
 		using the @a Help menu.
@@ -114,39 +114,41 @@
 
 //##############################################################################
 
-/**	
+/**
 	@page TOPPView_views The views
-	
+
 		TOPPView offers three types of views -- a 1D view for spectra, a 2D view for peak maps and
-		feature maps, and a 3D view for peak maps. All three views can be freely configured to suit 
+		feature maps, and a 3D view for peak maps. All three views can be freely configured to suit
 		the individual needs of the user.
 
 	@section TOPPView_views_use Basic use
-		
-		All three views share a similar interface. Three action modes are supported -- one for translation, 
+
+		All three views share a similar interface. Three action modes are supported -- one for translation,
 		one for zooming and one for measuring:
 		- Translate mode
 		  - It is activated by default.
 		  - Move the mouse while holding the mouse button down to translate the current view.
 		  - Arrow keys can be used to translate the view without entering translate mode.
 		- Zoom mode
-		  - It is activated using the CTRL key.
-		  - Mark an area in the current view to zoom to this area.
-		  - All previous zoom levels are stored in a zoom history. The zoom history can be traversed using CTRL+/CTRL- 
-		    or the mouses wheel.
+		  - All previous zoom levels are stored in a zoom history. The zoom history can be traversed using CTRL+/CTRL-
+		    or the mouse wheel (scroll up and down).
+      - Zooming into the data:
+		    - either mark an area in the current view with your mouse, while holding the left mouse button plus the @em CTRL key to zoom to this area.
+        - or use your mouse wheel to traverse the zoom history.
+        - if you have reached the end of the history and keep on pressing CTRL+ or scroll up, the current area will be enlarged by a factor of 1.25
 		  - Pressing the @em Backspace key resets the zoom and zoom history.
     - Measure mode
-      - It is activated using the SHIFT key.
-      - Press the left mouse button down while a peak is selected and drag the mouse to another peak to measure the distance 
+      - It is activated using the @em SHIFT key.
+      - Press the left mouse button down while a peak is selected and drag the mouse to another peak to measure the distance
         between peaks.
       - This mode is implemented in the 1D and 2D mode only.
-	
+
 	@section TOPPView_views_1d 1D view
-	
+
 		The 1D view is used to display raw spectra or peak spectra.
 		Raw data is displayed using a continuous line. Peak data is displayed using one stick per peak.
 		The color used for drawing the lines can be set for each layer individually. The 1D view offers
-		a mirror mode, where the window is vertically divided in halfs and individual layers can
+		a mirror mode, where the window is vertically divided in halves and individual layers can
 		be displayed either above or below the "mirror" axis in order to facilitate quick visual comparison
 		of spectra. When a mirror view is active, it is possible to perform a spectrum alignment of a
 		spectrum in the upper and one in the lower half, respectively. Moreover, spectra can be annotated
@@ -157,7 +159,7 @@
 		generated using the theoretical spectrum generator (@a Tools > @a Generate @a theoretical @a spectrum ).
 		The
 		mirror mode has been activated by right-clicking the layer containing the theoretical spectrum and
-		selecting @a Flip @a downwards from the layer context menu. A spectrum alignment between the two
+		selecting @a Flip @a downward from the layer context menu. A spectrum alignment between the two
 		spectra has been performed (@a Tools > @a Align @a spectra ). It is visualized by the red lines connecting
 		aligned peaks and can be reset through the context menu. Moreover, in the example, several
 		distances between abundant peaks have been measured and subsequently replaced by their corresponding
@@ -168,7 +170,7 @@
 		selecting @a Add @a label, respectively.
 		Multiple annotations can be selected by holding down the CTRL key while
 		clicking them. They can be moved around by dragging the mouse and deleted by pressing DEL.
-		
+
 		@image html TOPPView_1D.png
 		@image latex TOPPView_1D.png "" width=12cm
 
@@ -180,25 +182,25 @@
 			<LI> Add peak annotations or arbitrary text labels
 			<LI> Reset a performed alignment
 		</UL>
-		
+
 	@section TOPPView_views_2d 2D view
-	
+
 		The 2D view is used to display peak maps and feature maps in a top-down view with color-coded
-		intensities. Peaks and feature centroids are displayed as dots. For features, also 
+		intensities. Peaks and feature centroids are displayed as dots. For features, also
 		the overall convex hull and the convex hulls of individual mass traces can be displayed.
 		The color gradient used to encode for peak and feature intensities can be set for
 		each layer individually.
-		
+
 		The following example image shows a small section of a peak map and the detected features
 		in a second layer.
-		
+
 		@image html Spectrum2DWidget.png
 		@image latex Spectrum2DWidget.png "" width=8cm
-		
-		In addition to the normal top-down view, the 2D view can display the projections 
+
+		In addition to the normal top-down view, the 2D view can display the projections
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
 		of a feature without opening the data region in 3D view.
-		
+
 		Through the <B>context menu:</B> of the 2D view you can:
 		<UL>
 			<LI> View/edit meta data
@@ -208,18 +210,18 @@
 			<LI> Save the current layer data
 			<LI> Change display settings
 		</UL>
-		
-	
+
+
 	@section TOPPView_views_3d 3D view
-	
+
 		The 3D view can display peak maps only. Its primary use is the closer inspection of a small
 		region of the map, e.g. a single feature. In the 3D view slight intensity differences are
-		easier to recognize than in the 2D view. 
+		easier to recognize than in the 2D view.
 		The color gradient used to encode peak intensities, the width of the lines and the coloring
 		mode of the peaks can be set for each layer individually.
-		
+
 		The following example image shows a small region of a peak map:
-		
+
 		@image html Spectrum3DWidget.png
 		@image latex Spectrum3DWidget.png "" width=8cm
 
@@ -233,9 +235,9 @@
 
 //##############################################################################
 
-/**	
+/**
 	@page TOPPView_modes Display modes and view options
-	
+
 		All of the views support several display modes and view options.
 		Display modes determine how intensities are displayed. View options configure the view.
 
@@ -243,13 +245,13 @@
 		@image latex TOPPView_icons.png "" width=10cm
 
 	@section TOPPView_modes_display Display modes
-	
+
 		Intensity display modes determine the way peak intensities are displayed.
 	  <UL>
-	  	<LI><b>Linear:</b> 
+	  	<LI><b>Linear:</b>
 	  		@n Normal display mode.
-	    <LI><b>Percentage:</b> 
-	    	@n In this display mode the intensities of each dataset are normalized with the maximum 
+	    <LI><b>Percentage:</b>
+	    	@n In this display mode the intensities of each dataset are normalized with the maximum
 				intensity of the dataset. This is especially useful in order to visualize several datasets that have
 				large intensity differences. If only one dataset is opened it corresponds to the normal mode.
 	    <LI><b>Snap to maximum intensity:</b>
@@ -258,7 +260,7 @@
 		</UL>
 
 	@section TOPPView_modes_view View options
-	
+
 	  View options configure the view of the current layer.
 
  		<UL>
@@ -267,11 +269,11 @@
 	    <LI><b>2D (peaks):</b>
 	    	@n MS/MS precursor peaks can be highlighted.
 	    	@n Projections to m/z and RT axis can be shown.
-	    <LI><b>2D (features):</b> 
+	    <LI><b>2D (features):</b>
 	    	@n Overall convex hull of the features can be displayed.
 	    	@n Convex hulls of mass traces can be displayed (if available).
-	    	@n A feature identifier, consisting of the feature index and an )optional lable can be displayed.
-	    <LI><b>2D (consensus):</b> 
+	    	@n A feature identifier, consisting of the feature index and an )optional label can be displayed.
+	    <LI><b>2D (consensus):</b>
 	    	@n The elements of a consensus feature can be displayed.
 	    <LI><b>3D:</b>
 	    	@n Currently there are no options for 3D view.
@@ -280,25 +282,25 @@
 
 //##############################################################################
 
-/**	
+/**
 	@page TOPPView_analysis Data analysis
-	
+
 		TOPPView also offers limited data analysis capabilities for single layers, which will
 		be illustrated in the following sections. The functionality presented here
 		can be found in the @a Tools menu:
 
 		@image html TOPPView_tools_menu.png
 		@image latex TOPPView_tools_menu.png "" width=6cm
-	
+
 	@section TOPPView_tools TOPP tools
-	
+
 		Single TOPP tools can be applied to the data of the currently selected layer or to
 		the visible data of the current layer.
 		The following example image shows the TOPP tool dialog:
-		
+
 		@image html TOPPView_tools.png
 		@image latex TOPPView_tools.png "" width=8cm
-		
+
 		To apply a TOPP tool, do the following:
 		- Select a TOPP tool and if necessary a type.
 		- Specify the command line option of the tool, that takes the input file name.
@@ -306,16 +308,16 @@
 		- Set the algorithm parameters manually or load them from an INI file.
 
 	@section TOPPView_metadata Metadata
-	
-		One can access the metadata the layer is annotated with.
+
+		One can access the meta data the layer is annotated with.
 		This data comprises e.g. contact person, instrument description and sample description.
-		
+
 		@image html MetaDataBrowser.png
 		@image latex MetaDataBrowser.png "" width=12cm
-		
-		@note Identification data, e.g. from a Mascot run, can be annotated to the spectra or features, 
-		too. After annotation, this data is listed in the metadata as well.
-	
+
+		@note Identification data, e.g. from a Mascot run, can be annotated to the spectra or features,
+		too. After annotation, this data is listed in the meta data as well.
+
 	@section TOPPView_statistics Statistics
 
 		Statistics about peak/feature intensities and peak meta information can be displayed.
@@ -327,24 +329,24 @@
 
 //##############################################################################
 
-/**	
+/**
 	@page TOPPView_editing Data editing
-	
+
 		TOPPView also offers editing functionality for feature layers.
-		
+
 		After enabling the feature editing mode in the context menu of the feature layer, the following actions
-		can be perfomed:
+		can be performed:
 		- Features can be dragged with the mouse in order to change the m/z and RT position.
-		- The postion, intensity and charge of a feature can be edited by double-clicking a feature.
+		- The position, intensity and charge of a feature can be edited by double-clicking a feature.
 		- Features can be created by double-clicking the layer background.
-		- Features can be removed by selecting them and pressing the DEL key.			
+		- Features can be removed by selecting them and pressing the DEL key.
 */
 
 //##############################################################################
 
-/**	
+/**
 	@page TOPPView_hotkeys Hotkeys table
-	
+
 		<TABLE border=0>
 
 			<TR> <TD colspan=2><B>File handling</B></TD> </TR>
@@ -353,12 +355,13 @@
 			<TR> <TD>CTRL+W</TD> <TD>Close current window</TD> </TR>
 			<TR> <TD>CTRL+S</TD> <TD>Save current layer</TD> </TR>
 			<TR> <TD>CTRL+SHIFT+S</TD> <TD>Save visible data of current layer</TD> </TR>
-			
+
 			<TR> <TD colspan=2><B>Navigation in the data </B></TD> </TR>
 			<TR> <TD>CTRL</TD> <TD>Activate zoom mode</TD> </TR>
 			<TR> <TD>SHIFT</TD> <TD>Activate measurement mode</TD> </TR>
 			<TR> <TD>Arrow keys</TD> <TD>Translate currently shown data</TD> </TR>
 			<TR> <TD>CTRL+,CTRL-</TD> <TD>Move up and down in zoom history</TD> </TR>
+			<TR> <TD>mouse wheel</TD> <TD>Move up and down in zoom history</TD> </TR>
 			<TR> <TD>CTRL+G</TD> <TD>Goto dialog</TD> </TR>
 			<TR> <TD>Backspace</TD> <TD>Reset zoom</TD> </TR>
 			<TR> <TD>PageUp</TD> <TD>Select previous layer</TD> </TR>
@@ -372,7 +375,7 @@
 			<TR> <TD>S</TD> <TD>Intensity mode: Snap-to-maximum</TD> </TR>
 			<TR> <TD>I</TD> <TD>1D draw mode: peaks</TD> </TR>
 			<TR> <TD>R</TD> <TD>1D draw mode: raw data</TD> </TR>
-			
+
 			<TR> <TD colspan=2><B>Annotations in 1D view</B></TD> </TR>
 			<TR> <TD>CTRL+A</TD> <TD>Select all annotations of the current layer</TD> </TR>
 			<TR> <TD>DEL</TD> <TD>Delete all currently selected annotations</TD> </TR>
@@ -386,14 +389,14 @@
 			<TR> <TD>1</TD> <TD>Show precursor peaks (2D peak layer)</TD> </TR>
 			<TR> <TD>2</TD> <TD>Show projections (2D peak layer)</TD> </TR>
 			<TR> <TD>5</TD> <TD>Show overall convex hull (2D feature layer)</TD> </TR>
-			<TR> <TD>6</TD> <TD>Show adll convex hulls (2D feature layer)</TD> </TR>
+			<TR> <TD>6</TD> <TD>Show all convex hulls (2D feature layer)</TD> </TR>
 			<TR> <TD>7</TD> <TD>Show numbers and labels (2D feature layer)</TD> </TR>
 			<TR> <TD>9</TD> <TD>Show consensus elements (2D consensus layer)</TD> </TR>
 
 			<TR> <TD colspan=2><B>Help</B></TD> </TR>
 			<TR> <TD>F1</TD> <TD>Show TOPPView online tutorial</TD> </TR>
 			<TR> <TD>SHIFT+F1</TD> <TD>Activate <i>What's this?</i> mode</TD> </TR>
-			
-		</TABLE>	
-	
+
+		</TABLE>
+
 */
