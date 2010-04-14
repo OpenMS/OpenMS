@@ -330,7 +330,7 @@ namespace OpenMS
 		{
 			max_rt_shift = numeric_limits<DoubleReal>::max();
 		}
-		else if(max_rt_shift <= 1)
+		else if (max_rt_shift <= 1)
 		{ // compute max. allowed shift from overall retention time range:
 			DoubleReal rt_range, rt_min = medians_overall.begin()->second, 
 				rt_max = rt_min;
@@ -347,6 +347,7 @@ namespace OpenMS
 		// generate RT transformations:
 		// cout << "Generating RT transformations..." << endl;
 		Int num_breakpoints = param_.getValue("num_breakpoints");
+		LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
 		for (Size i = 0; i < size; ++i)
 		{
 			TransformationDescription::PairVector pairs;
@@ -368,7 +369,10 @@ namespace OpenMS
 			transforms[i].setName("b_spline");
 			transforms[i].setParam("num_breakpoints", num_breakpoints);
 			transforms[i].setPairs(pairs);
+			LOG_INFO << "- " << pairs.size() << " data points for sample " << i + 1
+							 << endl;
 		}
+		LOG_INFO << endl;
 	}
 
 } //namespace
