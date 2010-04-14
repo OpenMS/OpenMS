@@ -56,75 +56,60 @@ START_SECTION(SuffixArrayPeptideFinder(const String& filename, const String& met
 END_SECTION
 
 
+SuffixArrayPeptideFinder* sa_tryptic_seqan = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
+SuffixArrayPeptideFinder* sa_seqan = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
+
+
 START_SECTION(~SuffixArrayPeptideFinder())
 	delete ptr;
 END_SECTION
 
 START_SECTION(SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder &source))
-	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
-	ptr->setTolerance(0.1);
-	ptr->setNumberOfModifications(2);
-	SuffixArrayPeptideFinder * new_ptr = new SuffixArrayPeptideFinder (*ptr);
-	TEST_EQUAL (ptr->getNumberOfModifications(),new_ptr->getNumberOfModifications());
-	TEST_EQUAL (ptr->getTolerance(),new_ptr->getTolerance());
+	TEST_REAL_SIMILAR (sa_seqan->getTolerance(),0.5);
+	TEST_EQUAL (sa_seqan->getNumberOfModifications(),0);
+	sa_seqan->setTolerance(0.1);
+	sa_seqan->setNumberOfModifications(2);
+	SuffixArrayPeptideFinder * new_ptr = new SuffixArrayPeptideFinder (*sa_seqan);
+	TEST_EQUAL (sa_seqan->getNumberOfModifications(),new_ptr->getNumberOfModifications());
+	TEST_EQUAL (sa_seqan->getTolerance(),new_ptr->getTolerance());
 END_SECTION
 
 START_SECTION(DoubleReal getTolerance() const)
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
-	sa->setTolerance(0.1);
-	TEST_REAL_SIMILAR (sa->getTolerance(),0.1);
-	sa->setTolerance(0.5);
+	sa_seqan->setTolerance(0.1);
+	TEST_REAL_SIMILAR (sa_seqan->getTolerance(),0.1);
+	sa_seqan->setTolerance(0.5);
+	TEST_REAL_SIMILAR (sa_seqan->getTolerance(),0.5);
 END_SECTION
 
 START_SECTION(void setTolerance(const DoubleReal t))
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
-	sa->setTolerance(0.1);
-	TEST_REAL_SIMILAR (sa->getTolerance(),0.1);
-	sa->setTolerance(0.5);
-	TEST_EXCEPTION(Exception::InvalidValue,sa->setTolerance(-0.5));
+	TEST_EXCEPTION(Exception::InvalidValue,sa_seqan->setTolerance(-0.5));
 END_SECTION
 
 START_SECTION(void setNumberOfModifications(Size number_of_mods) const)
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_EQUAL (sa->getNumberOfModifications(),0);
-	sa->setNumberOfModifications(1);
-	TEST_EQUAL (sa->getNumberOfModifications(),1);
-	sa->setNumberOfModifications(0);
+	sa_tryptic_seqan->setNumberOfModifications(1);
+	TEST_EQUAL (sa_tryptic_seqan->getNumberOfModifications(),1);
+	sa_tryptic_seqan->setNumberOfModifications(0);
+	TEST_EQUAL (sa_tryptic_seqan->getNumberOfModifications(),0);
 END_SECTION
 
 START_SECTION(Size getNumberOfModifications() const)
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_EQUAL (sa->getNumberOfModifications(),0);
-	sa->setNumberOfModifications(1);
-	TEST_EQUAL (sa->getNumberOfModifications(),1);
-	sa->setNumberOfModifications(0);
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setTags(const std::vector< OpenMS::String > &tags))
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	std::vector<String> tags;
-	tags.push_back("AAA");
-	tags.push_back("ARA");
-	const std::vector<String> tags_c (tags);
-	sa->setTags(tags);
-	std::vector<String> res = sa->getTags();
-	TEST_EQUAL(res.at(0),tags.at(0));
-	TEST_EQUAL(res.at(1),tags.at(1));
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(const std::vector<OpenMS::String>& getTags())
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_EQUAL(sa->getTags().size(), 0);
-	TEST_EQUAL(sa->getUseTags(), false);
+	TEST_EQUAL(sa_tryptic_seqan->getTags().size(), 0);
+	TEST_EQUAL(sa_tryptic_seqan->getUseTags(), false);
 	std::vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const std::vector<String> tags_c (tags);
-	sa->setTags(tags);
-	TEST_EQUAL(sa->getUseTags(), true);
-	std::vector<String> res = sa->getTags();
+	sa_tryptic_seqan->setTags(tags);
+	TEST_EQUAL(sa_tryptic_seqan->getUseTags(), true);
+	std::vector<String> res = sa_tryptic_seqan->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
 END_SECTION
@@ -145,40 +130,22 @@ START_SECTION(void setUseTags(bool use_tags))
 END_SECTION
 
 START_SECTION(bool getUseTags())
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_EQUAL(sa->getUseTags(),false);
-	sa->setUseTags(1);
-	TEST_EQUAL(sa->getUseTags(),false);
-	std::vector<String> tags;
-	tags.push_back("AAA");
-	tags.push_back("ARA");
-	const std::vector<String> tags_c (tags);
-	sa->setTags(tags);
-	TEST_EQUAL(sa->getUseTags(),true);
-	sa->setUseTags(0);
-	TEST_EQUAL(sa->getUseTags(),false);
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setModificationOutputMethod(const String &s))
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
-	sa->setModificationOutputMethod ("stringChecked");
-	TEST_EQUAL(sa->getModificationOutputMethod(),"stringChecked");
-	sa->setModificationOutputMethod ("stringUnchecked");
-	TEST_EQUAL(sa->getModificationOutputMethod(),"stringUnchecked");
-	sa->setModificationOutputMethod ("mass");
-	TEST_EQUAL(sa->getModificationOutputMethod(),"mass");
-	TEST_EXCEPTION(Exception::InvalidValue,sa->setModificationOutputMethod ("bla"));
+	TEST_EQUAL(sa_seqan->getModificationOutputMethod(),"mass");
+	sa_seqan->setModificationOutputMethod ("stringChecked");
+	TEST_EQUAL(sa_seqan->getModificationOutputMethod(),"stringChecked");
+	sa_seqan->setModificationOutputMethod ("stringUnchecked");
+	TEST_EQUAL(sa_seqan->getModificationOutputMethod(),"stringUnchecked");
+	sa_seqan->setModificationOutputMethod ("mass");
+	TEST_EQUAL(sa_seqan->getModificationOutputMethod(),"mass");
+	TEST_EXCEPTION(Exception::InvalidValue,sa_seqan->setModificationOutputMethod ("bla"));
 END_SECTION
 
 START_SECTION(String getModificationOutputMethod())
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
-	TEST_EQUAL(sa->getModificationOutputMethod(),"mass");
-	sa->setModificationOutputMethod ("stringChecked");
-	TEST_EQUAL(sa->getModificationOutputMethod(),"stringChecked");
-	sa->setModificationOutputMethod ("stringUnchecked");
-	TEST_EQUAL(sa->getModificationOutputMethod(),"stringUnchecked");
-	sa->setModificationOutputMethod ("mass");
-	TEST_EQUAL(sa->getModificationOutputMethod(),"mass");
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const std::vector< DoubleReal > &spec)))
