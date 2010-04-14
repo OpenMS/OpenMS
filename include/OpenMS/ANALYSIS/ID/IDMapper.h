@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_IDMAPPER_H

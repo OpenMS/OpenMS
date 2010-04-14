@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -65,6 +65,10 @@ using namespace std;
 
 	<B>Annotation of consensus maps (consensusXML input):</B>\n
 	Peptide positions are always matched against centroid positions. By default, the consensus centroids are used. However, if @p use_subelements is set, the centroids of sub-features are considered instead. In this case, a peptide identification is mapped to a consensus feature if any of its sub-features matches.
+
+	@deprecated The parameter handling of this tool has been reworked. For greater consistency with other tools, the parameters @p rt_delta and @p mz_delta have been renamed to @p rt_tolerance and @p mz_tolerance. The possible values of the @p mz_reference parameter have also been renamed. The default value of @p mz_tolerance has been increased from 1 ppm to a more realistic 20 ppm.\n
+	Most importantly, the @p use_centroids parameter from previous versions has been split into two parameters, @p use_centroid_rt and @p use_centroid_mz. In OpenMS 1.6, peptide identifications would be matched only against monoisotopic mass traces of features if @p mz_reference was @p PeptideMass; otherwise, all mass traces would be used. This implicit behaviour has been abandoned, you can now explicitly control it with the @p use_centroid_mz parameter. @p use_centroid_mz does not take into account m/z deviations in the monoisotopic mass trace, but this can be compensated by increasing @p mz_tolerance. The new implementation should work correctly even if the monoisotopic mass trace itself was not detected.
+
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDMapper.cli
