@@ -345,7 +345,7 @@ namespace OpenMS
 		/**
 			@brief Add an identification data layer
 			
-			@param map Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
+			@param peptides Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
 			@return If a new layer was created
