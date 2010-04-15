@@ -52,9 +52,9 @@ START_SECTION(([EXTRA] ~ConvexHull2D()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((const PointArrayType& getPoints() const))
+START_SECTION((const PointArrayType& getHullPoints() const))
 	ConvexHull2D tmp;
-	TEST_EQUAL(tmp.getPoints().size(),0)
+	TEST_EQUAL(tmp.getHullPoints().size(),0)
 END_SECTION
 
 //do not change these definitions, they are used in many tests
@@ -76,54 +76,61 @@ vec2.push_back(p4);
 vec2.push_back(p5);
 vec2.push_back(p6);
 
-START_SECTION((ConvexHull2D& operator=(const PointArrayType& points)))
+START_SECTION(void setHullPoints(PointArrayType& points))
 	ConvexHull2D tmp;
 	vector<DPosition<2> > vec3;
 	vec3.push_back(p1);
-	tmp = vec3;
-	TEST_EQUAL(tmp.getPoints().size(),1)
+	tmp.setHullPoints(vec3);
+	TEST_EQUAL(tmp.getHullPoints().size(),1)
 
 	vec3.push_back(p2);
-	tmp = vec3;
-	TEST_EQUAL(tmp.getPoints().size(),2)
+	tmp.setHullPoints(vec3);
+	TEST_EQUAL(tmp.getHullPoints().size(),2)
 
 	vec3.push_back(p3);
-	tmp = vec3;
-	TEST_EQUAL(tmp.getPoints().size(),3)
+	tmp.setHullPoints(vec3);
+	TEST_EQUAL(tmp.getHullPoints().size(),3)
 
 	vec3.push_back(p5);
-	tmp = vec3;
-	TEST_EQUAL(tmp.getPoints().size(),3)	
-END_SECTION
-
-START_SECTION(ConvexHull2D(const PointArrayType& points))
-	vector<DPosition<2> > vec3;
-	vec3.push_back(p1);
-	vec3.push_back(p2);
-	vec3.push_back(p3);
-	vec3.push_back(p5);
-	ConvexHull2D tmp2(vec3);
-	TEST_EQUAL(tmp2.getPoints().size(),3)
+	tmp.setHullPoints(vec3);
+	TEST_EQUAL(tmp.getHullPoints().size(),4)	
 END_SECTION
 
 START_SECTION((ConvexHull2D& operator=(const ConvexHull2D& rhs)))
 	ConvexHull2D tmp,tmp2;
-	tmp = vec;
+	tmp.setHullPoints(vec);
 	tmp2 = tmp;
-	TEST_EQUAL(tmp2.getPoints().size(),3)
+	TEST_EQUAL(tmp2.getHullPoints().size(),3)
 END_SECTION
 
 START_SECTION((void clear()))
+	vector<DPosition<2> > vec3;
+	vec3.push_back(p1);
+	vec3.push_back(p2);
+	vec3.push_back(p3);
+	vec3.push_back(p5);
 	ConvexHull2D tmp;
-	tmp = vec;
+	tmp.setHullPoints(vec3);
+	TEST_EQUAL(tmp.getHullPoints().size(),4)
 	tmp.clear();
-	TEST_EQUAL(tmp.getPoints().size(),0)	
+	TEST_EQUAL(tmp.getHullPoints().size(),0)	
+	
+	tmp.addPoints(vec3);
+	TEST_EQUAL(tmp.getHullPoints().size(),4)
+	tmp.clear();
+	TEST_EQUAL(tmp.getHullPoints().size(),0)	
+
 END_SECTION
 
 START_SECTION((bool encloses(const PointType& point) const))
 	ConvexHull2D tmp;
-	tmp=vec2;
-	TEST_EQUAL(tmp.encloses(DPosition<2>(3.0,3.0)),false)
+	// setting hull points alone does not allow to query encloses()
+	tmp.setHullPoints(vec2);
+	TEST_EXCEPTION(Exception::NotImplemented, tmp.encloses(DPosition<2>(1.0,1.0)))
+
+	tmp.addPoints(vec);
+	tmp.addPoints(vec2);
+	TEST_EQUAL(tmp.encloses(DPosition<2>(3.0,3.0)),true)
 	TEST_EQUAL(tmp.encloses(DPosition<2>(0.0,0.0)),false)
 	TEST_EQUAL(tmp.encloses(DPosition<2>(6.0,0.0)),false)
 	TEST_EQUAL(tmp.encloses(DPosition<2>(0.0,6.0)),false)
@@ -131,23 +138,33 @@ START_SECTION((bool encloses(const PointType& point) const))
 	TEST_EQUAL(tmp.encloses(DPosition<2>(1.0,1.0)),true)
 	TEST_EQUAL(tmp.encloses(DPosition<2>(1.1,1.0)),true)
 	TEST_EQUAL(tmp.encloses(DPosition<2>(1.2,2.5)),true)
+	TEST_EQUAL(tmp.encloses(DPosition<2>(1.2,3.21)),false)
+	TEST_EQUAL(tmp.encloses(DPosition<2>(1.4,0.99)),false)
 	TEST_EQUAL(tmp.encloses(DPosition<2>(2.5,1.2)),true)
+	TEST_EQUAL(tmp.encloses(DPosition<2>(1.0,1.1)),true)
+	TEST_EQUAL(tmp.encloses(DPosition<2>(3.0,1.0)),true)
+	TEST_EQUAL(tmp.encloses(DPosition<2>(5.0,0.0)),true)
 END_SECTION
 
 START_SECTION((bool operator==(const ConvexHull2D& rhs) const))
 	ConvexHull2D tmp,tmp2;
-	tmp=vec2;
+	tmp.setHullPoints(vec2);
 	TEST_EQUAL(tmp==tmp2,false)
-	tmp2=vec;
+	tmp2.setHullPoints(vec);
 	TEST_EQUAL(tmp==tmp2,false)
-	tmp2=vec2;
+	tmp2.setHullPoints(vec2);
+	TEST_EQUAL(tmp==tmp2,true)
+	tmp2.addPoints(vec);
+	TEST_EQUAL(tmp==tmp2,false)
+	tmp.addPoints(vec);
 	TEST_EQUAL(tmp==tmp2,true)
 END_SECTION
 
 START_SECTION((DBoundingBox<2> getBoundingBox() const))
 	//empty
 	ConvexHull2D tmp2;
-	tmp2 = vec;
+	TEST_EQUAL(tmp2.getBoundingBox().isEmpty(), true);
+	tmp2.setHullPoints(vec);
 	DBoundingBox<2> bb2 = tmp2.getBoundingBox();
 	TEST_REAL_SIMILAR(bb2.minPosition()[0],1.0)
 	TEST_REAL_SIMILAR(bb2.minPosition()[1],0.0)
@@ -161,14 +178,14 @@ START_SECTION((DBoundingBox<2> getBoundingBox() const))
 	bb = tmp.getBoundingBox();
 	TEST_EQUAL(bb.isEmpty(),true)
 	
-	tmp = vec2;
+	tmp.setHullPoints(vec2);
 	bb = tmp.getBoundingBox();
 	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
 	TEST_REAL_SIMILAR(bb.minPosition()[1],1.0)
 	TEST_REAL_SIMILAR(bb.maxPosition()[0],3.0)
 	TEST_REAL_SIMILAR(bb.maxPosition()[1],3.0)
 
-	tmp = vec;
+	tmp.setHullPoints(vec);
 	bb = tmp.getBoundingBox();
 	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
 	TEST_REAL_SIMILAR(bb.minPosition()[1],0.0)
@@ -177,7 +194,7 @@ START_SECTION((DBoundingBox<2> getBoundingBox() const))
 
 	vector<DPosition<2> > vec3;
 	vec3.push_back(p1);
-	tmp = vec3;
+	tmp.setHullPoints(vec3);
 	bb = tmp.getBoundingBox();
 	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
 	TEST_REAL_SIMILAR(bb.minPosition()[1],2.0)
@@ -185,7 +202,7 @@ START_SECTION((DBoundingBox<2> getBoundingBox() const))
 	TEST_REAL_SIMILAR(bb.maxPosition()[1],2.0)
 
 	vec3.push_back(p2);
-	tmp = vec3;
+	tmp.setHullPoints(vec3);
 	bb = tmp.getBoundingBox();
 	TEST_REAL_SIMILAR(bb.minPosition()[0],1.0)
 	TEST_REAL_SIMILAR(bb.minPosition()[1],2.0)
@@ -195,10 +212,14 @@ END_SECTION
 
 START_SECTION((bool addPoint(const PointType& point)))
 	ConvexHull2D tmp;
-	tmp=vec2;
-	TEST_EQUAL(tmp.addPoint(DPosition<2>(1.5,1.5)),false)
-	TEST_EQUAL(tmp.addPoint(DPosition<2>(1.0,1.0)),false)
+	TEST_EQUAL(tmp.addPoint(DPosition<2>(1.5,1.5)),true)
+	TEST_EQUAL(tmp.addPoint(DPosition<2>(1.0,1.0)),true)
+	TEST_EQUAL(tmp.addPoint(DPosition<2>(1.0,1.5)),true)
+	TEST_EQUAL(tmp.addPoint(DPosition<2>(1.0,1.2)),false)
 	TEST_EQUAL(tmp.addPoint(DPosition<2>(3.0,2.5)),true)
+	TEST_EQUAL(tmp.addPoint(DPosition<2>(3.0,1.5)),true)
+	TEST_EQUAL(tmp.addPoint(DPosition<2>(3.0,2.5)),false)
+	TEST_EQUAL(tmp.addPoint(DPosition<2>(3.0,2.0)),false)
 	TEST_EQUAL(tmp.addPoint(DPosition<2>(0.5,0.5)),true)	
 END_SECTION
 

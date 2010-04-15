@@ -320,7 +320,7 @@ namespace OpenMS
 		}
 		else if (tag=="convexhull")
 		{
-			current_chull_ = ConvexHull2D();
+			current_chull_.clear();
 		}
 		else if (tag=="hullpoint")
 		{
@@ -674,11 +674,13 @@ namespace OpenMS
 		}
 		else if (tag=="hullpoint")
 		{
-			current_chull_.addPoint(hull_position_);
+			current_chull_.push_back(hull_position_);
 		}
 		else if (tag=="convexhull")
 		{
-			current_feature_->getConvexHulls().push_back(current_chull_);
+			ConvexHull2D hull;
+			hull.setHullPoints(current_chull_);
+			current_feature_->getConvexHulls().push_back(hull);
 		}
 		else if (tag=="subordinate")
 		{
@@ -796,13 +798,13 @@ namespace OpenMS
 			os << indent << "\t\t\t<convexhull nr=\"" << i << "\">\n";
 
 			ConvexHull2D current_hull = hulls[i];
-			Size hull_size	= current_hull.getPoints().size();
+			Size hull_size	= current_hull.getHullPoints().size();
 
 			for (Size j=0;j<hull_size;j++)
 			{
 				os << indent << "\t\t\t\t<hullpoint>\n";
 
-				DPosition<2> pos = current_hull.getPoints()[j];
+				DPosition<2> pos = current_hull.getHullPoints()[j];
 				Size pos_size = pos.size();
 				for (Size k=0; k<pos_size; k++)
 				{

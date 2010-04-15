@@ -107,6 +107,21 @@ namespace OpenMS
   };
 
 	template <typename InputPeakType>
+	bool enclosesBoundingBox(const Feature&f, typename MSExperiment<InputPeakType>::CoordinateType rt, typename MSExperiment<InputPeakType>::CoordinateType mz)
+	{
+		bool enclose_hit=false;
+		std::vector<ConvexHull2D> hulls = f.getConvexHulls();
+		for (Size i=0;i<hulls.size();++i)
+		{
+			if (hulls[i].getBoundingBox().encloses(rt, mz))
+			{
+				enclose_hit=true;
+			}
+		}
+		return enclose_hit;
+	}
+
+	template <typename InputPeakType>
 	void OfflinePrecursorIonSelection::getMassRanges(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
 																									 std::vector<std::vector<std::pair<Size,Size> > > & indices)
 	{
@@ -117,10 +132,8 @@ namespace OpenMS
 				for(Size rt = 0; rt < experiment.size();++rt)
 					{
 						// is scan relevant?
-						if(!features[f].encloses(experiment[rt].getRT(),features[f].getMZ()))
-							{
-								continue;
-							}
+						if (!enclosesBoundingBox<InputPeakType>(features[f],experiment[rt].getRT(),features[f].getMZ())) continue;
+
 						std::pair<Size,Size> start;
 						std::pair<Size,Size> end;
 						bool start_found = false;
@@ -129,7 +142,7 @@ namespace OpenMS
 						typename MSSpectrum<InputPeakType>::Iterator mz_end = mz_iter;
 						if(mz_iter == experiment[rt].end()) continue;
 						// check to the left
-						while(features[f].encloses(experiment[rt].getRT(),mz_iter->getMZ()))
+						while(enclosesBoundingBox<InputPeakType>(features[f],experiment[rt].getRT(),mz_iter->getMZ()))
 							{
 								start_found = true;
 								start.first = rt;
@@ -138,7 +151,7 @@ namespace OpenMS
 								--mz_iter;
 							}
 						// and now to the right
-						while(mz_end != experiment[rt].end() && features[f].encloses(experiment[rt].getRT(),mz_end->getMZ()))
+						while(mz_end != experiment[rt].end() && enclosesBoundingBox<InputPeakType>(features[f], experiment[rt].getRT(),mz_end->getMZ()))
 							{
 								end_found = true;
 								end.first = rt;

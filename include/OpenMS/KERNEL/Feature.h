@@ -73,112 +73,48 @@ namespace OpenMS
 		*/
 		//@{
 		/// Default constructor
-		Feature()
-			: RichPeak2D(),
-				overall_quality_(),
-				convex_hulls_(),
-				convex_hulls_modified_(true),
-				convex_hull_(),
-				charge_( 0 ),
-				subordinates_()
-		{
-			std::fill( qualities_, qualities_ + 2, 0 );
-		}
+		Feature();
 
 		/// Copy constructor
-		Feature( const Feature& feature )
-			: RichPeak2D( feature ),
-				overall_quality_( feature.overall_quality_ ),
-				model_desc_( feature.model_desc_ ),
-				convex_hulls_( feature.convex_hulls_ ),
-				convex_hulls_modified_(feature.convex_hulls_modified_),
-				convex_hull_( feature.convex_hull_ ),
-				charge_( feature.charge_ ),
-				identifications_( feature.identifications_ ),
-				subordinates_( feature.subordinates_ )
-		{
-			std::copy( feature.qualities_, feature.qualities_ + 2, qualities_ );
-		}
+		Feature( const Feature& feature );
 
 		/// Destructor
-		~Feature()
-		{
-		}
+		~Feature();
 		//@}
 
 		/// @name Model and Quality methods
 		//@{
 		/// Non-mutable access to the overall quality
-		QualityType getOverallQuality() const
-		{
-			return overall_quality_;
-		}
+		QualityType getOverallQuality() const;
 		/// Set the overall quality
-		void setOverallQuality( QualityType q )
-		{
-			overall_quality_ = q;
-		}
+		void setOverallQuality( QualityType q );
 
 		/// Non-mutable access to the quality in dimension c
-		QualityType getQuality( Size index ) const
-		{
-			OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(Size): index overflow!" );
-			return qualities_[ index ];
-		}
+		QualityType getQuality( Size index ) const;
 		/// Set the quality in dimension c
-		void setQuality( Size index, QualityType q )
-		{
-			OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(Size): index overflow!" );
-			qualities_[ index ] = q;
-		}
+		void setQuality( Size index, QualityType q );
 
 		/// Non-mutable access to the model description
-		const ModelDescription<2>& getModelDescription() const
-		{
-			return model_desc_;
-		}
+		const ModelDescription<2>& getModelDescription() const;
 		/// Mutable access to the model description
-		ModelDescription<2>& getModelDescription()
-		{
-			return model_desc_;
-		}
+		ModelDescription<2>& getModelDescription();
 		/// Set the model description
-		void setModelDescription( const ModelDescription<2>& q )
-		{
-			model_desc_ = q;
-		}
+		void setModelDescription( const ModelDescription<2>& q );
 		//@}
 
 		/// Non-mutable access to charge state
-		const ChargeType& getCharge() const
-		{
-			return charge_;
-		}
+		const ChargeType& getCharge() const;
 		/// Set charge state
-		void setCharge( const ChargeType& ch )
-		{
-			charge_ = ch;
-		}
+		void setCharge( const ChargeType& ch );
 
 		///@name Convex hulls and bounding box
 		//@{
 		/// Non-mutable access to the convex hulls
-		const std::vector<ConvexHull2D>& getConvexHulls() const
-		{
-			return convex_hulls_;
-		}
+		const std::vector<ConvexHull2D>& getConvexHulls() const;
 		/// Mutable access to the convex hulls of single mass traces
-		std::vector<ConvexHull2D>& getConvexHulls()
-		{
-			convex_hulls_modified_ = true;
-			return convex_hulls_;
-		}
+		std::vector<ConvexHull2D>& getConvexHulls();
 		/// Set the convex hulls of single mass traces
-		void setConvexHulls( const std::vector<ConvexHull2D>& hulls )
-		{
-			convex_hulls_modified_ = true;
-			convex_hulls_ = hulls;
-		}
+		void setConvexHulls( const std::vector<ConvexHull2D>& hulls );
 		/**
 		@brief Returns the overall convex hull of the feature (calculated from the convex hulls of the mass traces)
 
@@ -195,6 +131,7 @@ namespace OpenMS
 
 		/// Equality operator
 		bool operator == ( const Feature& rhs ) const;
+
 
 		/// Compare by getOverallQuality()
 		struct OverallQualityLess
@@ -219,41 +156,22 @@ namespace OpenMS
 		};
 
 		/// returns a const reference to the PeptideIdentification vector
-		const std::vector<PeptideIdentification>& getPeptideIdentifications() const
-		{
-			return identifications_;
-		};
+		const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
 		/// returns a mutable reference to the PeptideIdentification vector
-		std::vector<PeptideIdentification>& getPeptideIdentifications()
-		{
-			return identifications_;
-		};
+		std::vector<PeptideIdentification>& getPeptideIdentifications();
 
 		/// sets the PeptideIdentification vector
-		void setPeptideIdentifications( const std::vector<PeptideIdentification>& identifications )
-		{
-			identifications_ = identifications;
-		};
+		void setPeptideIdentifications( const std::vector<PeptideIdentification>& identifications );
 
 		/// immutable access to subordinate features
-		const std::vector<Feature>& getSubordinates() const
-		{
-			return subordinates_;
-		}
+		const std::vector<Feature>& getSubordinates() const;
 
 		/// mutable access to subordinate features
-		std::vector<Feature>& getSubordinates()
-		{
-			return subordinates_;
-		}
+		std::vector<Feature>& getSubordinates();
 
 		/// mutable access to subordinate features
-		void setSubordinates(const std::vector<Feature>& rhs)
-		{
-			subordinates_ = rhs;
-		}
-
+		void setSubordinates(const std::vector<Feature>& rhs);
 
     /**@brief Applies a member function of Type to the feature (including subordinates).
        The returned values are accumulated.

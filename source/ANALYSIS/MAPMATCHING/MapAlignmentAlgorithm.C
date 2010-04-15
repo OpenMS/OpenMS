@@ -178,7 +178,8 @@ namespace OpenMS
          )
      {
        // transform all hull point positions within convex hull
-       ConvexHull2D::PointArrayType & points = const_cast<ConvexHull2D::PointArrayType&>(chiter->getPoints());
+       ConvexHull2D::PointArrayType points = chiter->getHullPoints();
+			 chiter->clear();
        for ( ConvexHull2D::PointArrayType::iterator points_iter = points.begin();
              points_iter != points.end();
              ++points_iter
@@ -188,6 +189,7 @@ namespace OpenMS
          (*trafo.trafo_)(rt);
          (*points_iter)[Feature::RT] = rt;
        }
+			 chiter->setHullPoints(points);
      }
 
 		 // adapt RT values of annotated peptides:

@@ -362,7 +362,9 @@ namespace OpenMS
 								f.setRT((DoubleReal)model_rt->getParameters().getValue("emg:retention"));
 								f.setMZ((DoubleReal)first_it->getProduct().getMZ());
 								f.setIntensity(intensity_sum);
-								f.getConvexHulls().push_back(hull_points);
+								ConvexHull2D hull;
+								hull.addPoints(hull_points);
+								f.getConvexHulls().push_back(hull);
 								f.setMetaValue("MZ", (DoubleReal)first_it->getPrecursor().getMZ());
 
 

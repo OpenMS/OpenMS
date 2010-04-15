@@ -41,7 +41,7 @@ namespace OpenMS
 		in 2D and analogous points in higer dimensions.
 		
 		A range is a pair of positions in D-space represented by DPosition.
-		The two limiting points are accessed as min() and max().
+		The two limiting points are accessed as minPosition() and maxPosition().
 		
 		A range denotes a semi-open interval. A lower coordinate of each
 		dimension is part the range, the higher coordinate is not.

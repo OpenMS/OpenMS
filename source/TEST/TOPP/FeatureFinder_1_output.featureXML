@@ -7,25 +7,25 @@
 	</dataProcessing>
 	<featureList count="2">
 		<feature id="f_13229490167902618598">
-			<position dim="0">1244.76969314025</position>
-			<position dim="1">689.965454724992</position>
-			<intensity>3.07334e+06</intensity>
+			<position dim="0">1244.76969342323</position>
+			<position dim="1">689.965453874898</position>
+			<intensity>3.07334e+006</intensity>
 			<quality dim="0">0.994227625223958</quality>
-			<quality dim="1">0.991028886718137</quality>
-			<overallquality>0.975753287391151</overallquality>
+			<quality dim="1">0.991028851594883</quality>
+			<overallquality>0.975753237909818</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="cutoff" value="3378.68986153649"/>
+				<param name="cutoff" value="3378.68992448039"/>
 				<param name="RT" value="EmgModel"/>
 				<param name="MZ" value="IsotopeModel"/>
-				<param name="intensity_scaling" value="0.170114278793335"/>
+				<param name="intensity_scaling" value="0.1701143118617"/>
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
 				<param name="RT:intensity_scaling" value="1"/>
 				<param name="RT:bounding_box:min" value="1228.04967202543"/>
 				<param name="RT:bounding_box:max" value="1260.22032797457"/>
-				<param name="RT:statistics:variance" value="5.71262258476117"/>
-				<param name="RT:statistics:mean" value="1244.76969314025"/>
+				<param name="RT:statistics:variance" value="5.71262258476109"/>
+				<param name="RT:statistics:mean" value="1244.76969342323"/>
 				<param name="RT:emg:height" value="759131.625813022"/>
 				<param name="RT:emg:width" value="0.871416246308393"/>
 				<param name="RT:emg:symmetry" value="0.729910362819879"/>
@@ -34,7 +34,7 @@
 				<param name="MZ:cutoff" value="0"/>
 				<param name="MZ:interpolation_step" value="0.1"/>
 				<param name="MZ:intensity_scaling" value="1"/>
-				<param name="MZ:statistics:mean" value="690.374869910606"/>
+				<param name="MZ:statistics:mean" value="690.374869060512"/>
 				<param name="MZ:isotope:stdev" value="0.159999996423721"/>
 				<param name="MZ:isotope:maximum" value="4"/>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"/>
@@ -51,7 +51,27 @@
 					<hposition dim="1">690</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1239.9</hposition>
+					<hposition dim="1">690</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1240.54</hposition>
+					<hposition dim="1">689.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1241.18</hposition>
+					<hposition dim="1">689.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1241.81</hposition>
+					<hposition dim="1">689.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1242.5</hposition>
+					<hposition dim="1">689.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1243.14</hposition>
 					<hposition dim="1">689.799987792969</hposition>
 				</hullpoint>
 				<hullpoint>
@@ -59,8 +79,28 @@
 					<hposition dim="1">689.599975585938</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1244.42</hposition>
+					<hposition dim="1">689.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.07</hposition>
+					<hposition dim="1">689.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.77</hposition>
+					<hposition dim="1">689.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1246.43</hposition>
+					<hposition dim="1">689.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1247.09</hposition>
 					<hposition dim="1">689.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1247.75</hposition>
+					<hposition dim="1">689.799987792969</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1248.41</hposition>
@@ -75,7 +115,27 @@
 					<hposition dim="1">691</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1247.75</hposition>
+					<hposition dim="1">691.200012207031</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1247.09</hposition>
+					<hposition dim="1">691.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1246.43</hposition>
+					<hposition dim="1">691.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.77</hposition>
+					<hposition dim="1">691.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.07</hposition>
+					<hposition dim="1">691.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1244.42</hposition>
 					<hposition dim="1">691.599975585938</hposition>
 				</hullpoint>
 				<hullpoint>
@@ -83,35 +143,51 @@
 					<hposition dim="1">691.599975585938</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1243.14</hposition>
+					<hposition dim="1">691.400024414063</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1242.5</hposition>
+					<hposition dim="1">691.200012207031</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1241.81</hposition>
+					<hposition dim="1">691</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1241.18</hposition>
 					<hposition dim="1">691</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1240.54</hposition>
+					<hposition dim="1">690.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1239.9</hposition>
-					<hposition dim="1">690.400024414062</hposition>
+					<hposition dim="1">690.400024414063</hposition>
 				</hullpoint>
 			</convexhull>
 			<subordinate>
 				<feature id="f_13229490167902618598_5024549519481199379">
-					<position dim="0">1244.76969314025</position>
-					<position dim="1">690.002575026073</position>
-					<intensity>2.40527e+06</intensity>
+					<position dim="0">1244.76969342323</position>
+					<position dim="1">690.002574175979</position>
+					<intensity>2.40527e+006</intensity>
 					<quality dim="0">0.994227625223958</quality>
-					<quality dim="1">0.771332020644532</quality>
-					<overallquality>0.764123856544751</overallquality>
+					<quality dim="1">0.771331921545677</quality>
+					<overallquality>0.764123700568368</overallquality>
 					<charge>1</charge>
 					<model name="ProductModel2D">
-						<param name="cutoff" value="3378.68992872107"/>
+						<param name="cutoff" value="3378.68992448039"/>
 						<param name="RT" value="EmgModel"/>
 						<param name="MZ" value="IsotopeModel"/>
-						<param name="intensity_scaling" value="0.114139951765537"/>
+						<param name="intensity_scaling" value="0.114139984599063"/>
 						<param name="RT:cutoff" value="0"/>
 						<param name="RT:interpolation_step" value="0.1"/>
 						<param name="RT:intensity_scaling" value="1"/>
 						<param name="RT:bounding_box:min" value="1228.04967202543"/>
 						<param name="RT:bounding_box:max" value="1260.22032797457"/>
-						<param name="RT:statistics:variance" value="5.71262258476117"/>
-						<param name="RT:statistics:mean" value="1244.76969314025"/>
+						<param name="RT:statistics:variance" value="5.71262258476109"/>
+						<param name="RT:statistics:mean" value="1244.76969342323"/>
 						<param name="RT:emg:height" value="759131.625813022"/>
 						<param name="RT:emg:width" value="0.871416246308393"/>
 						<param name="RT:emg:symmetry" value="0.729910362819879"/>
@@ -120,7 +196,7 @@
 						<param name="MZ:cutoff" value="0"/>
 						<param name="MZ:interpolation_step" value="0.1"/>
 						<param name="MZ:intensity_scaling" value="1"/>
-						<param name="MZ:statistics:mean" value="690.404869910606"/>
+						<param name="MZ:statistics:mean" value="690.404869060512"/>
 						<param name="MZ:isotope:stdev" value="0.159999996423721"/>
 						<param name="MZ:isotope:maximum" value="4"/>
 						<param name="MZ:isotope:trim_right_cutoff" value="0.001"/>
@@ -137,7 +213,31 @@
 							<hposition dim="1">690</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1239.9</hposition>
+							<hposition dim="1">690</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1240.54</hposition>
+							<hposition dim="1">689.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1241.18</hposition>
+							<hposition dim="1">689.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1241.81</hposition>
+							<hposition dim="1">689.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1242.5</hposition>
+							<hposition dim="1">689.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1243.14</hposition>
+							<hposition dim="1">689.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1243.78</hposition>
 							<hposition dim="1">689.799987792969</hposition>
 						</hullpoint>
 						<hullpoint>
@@ -145,8 +245,24 @@
 							<hposition dim="1">689.599975585938</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1245.07</hposition>
+							<hposition dim="1">689.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1245.77</hposition>
+							<hposition dim="1">689.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1246.43</hposition>
 							<hposition dim="1">689.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1247.09</hposition>
+							<hposition dim="1">689.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1247.75</hposition>
+							<hposition dim="1">689.799987792969</hposition>
 						</hullpoint>
 						<hullpoint>
 							<hposition dim="0">1248.41</hposition>
@@ -161,6 +277,10 @@
 							<hposition dim="1">691</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1247.75</hposition>
+							<hposition dim="1">691.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1247.09</hposition>
 							<hposition dim="1">692</hposition>
 						</hullpoint>
@@ -169,16 +289,44 @@
 							<hposition dim="1">692.200012207031</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1245.77</hposition>
+							<hposition dim="1">692</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1245.07</hposition>
 							<hposition dim="1">692.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1244.42</hposition>
+							<hposition dim="1">692</hposition>
 						</hullpoint>
 						<hullpoint>
 							<hposition dim="0">1243.78</hposition>
 							<hposition dim="1">692</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1243.14</hposition>
+							<hposition dim="1">691.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1242.5</hposition>
+							<hposition dim="1">691.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1241.81</hposition>
+							<hposition dim="1">691</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1241.18</hposition>
 							<hposition dim="1">691</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1240.54</hposition>
+							<hposition dim="1">690.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.9</hposition>
+							<hposition dim="1">690</hposition>
 						</hullpoint>
 					</convexhull>
 				</feature>
@@ -187,34 +335,34 @@
 			<userParam type="string" name="spectrum_native_id" value="spectrum=34"/>
 		</feature>
 		<feature id="f_6211693768620736135">
-			<position dim="0">1245.33288591338</position>
-			<position dim="1">675.95836675251</position>
+			<position dim="0">1245.33288921993</position>
+			<position dim="1">675.958366875747</position>
 			<intensity>352634</intensity>
 			<quality dim="0">0.921795691871186</quality>
-			<quality dim="1">0.937817989167198</quality>
-			<overallquality>0.831088682829982</overallquality>
+			<quality dim="1">0.937817995453595</quality>
+			<overallquality>0.831088695029012</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="cutoff" value="484.64997764898"/>
+				<param name="cutoff" value="484.649989167228"/>
 				<param name="RT" value="EmgModel"/>
 				<param name="MZ" value="IsotopeModel"/>
-				<param name="intensity_scaling" value="0.280573844909668"/>
+				<param name="intensity_scaling" value="0.280573839607486"/>
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
 				<param name="RT:intensity_scaling" value="1"/>
-				<param name="RT:bounding_box:min" value="1222.05302191363"/>
-				<param name="RT:bounding_box:max" value="1270.40697808637"/>
-				<param name="RT:statistics:variance" value="21.3658979164236"/>
-				<param name="RT:statistics:mean" value="1245.33288591338"/>
+				<param name="RT:bounding_box:min" value="1222.05302191364"/>
+				<param name="RT:bounding_box:max" value="1270.40697808636"/>
+				<param name="RT:statistics:variance" value="21.3658979164127"/>
+				<param name="RT:statistics:mean" value="1245.33288921993"/>
 				<param name="RT:emg:height" value="63888.9165307657"/>
-				<param name="RT:emg:width" value="1.26608959800394"/>
-				<param name="RT:emg:symmetry" value="0.928486118961509"/>
+				<param name="RT:emg:width" value="1.26608959800395"/>
+				<param name="RT:emg:symmetry" value="0.928486118961518"/>
 				<param name="RT:emg:retention" value="1246.54718353987"/>
 				<param name="MZ:charge" value="2"/>
 				<param name="MZ:cutoff" value="0"/>
 				<param name="MZ:interpolation_step" value="0.1"/>
 				<param name="MZ:intensity_scaling" value="1"/>
-				<param name="MZ:statistics:mean" value="676.363372466332"/>
+				<param name="MZ:statistics:mean" value="676.363372589569"/>
 				<param name="MZ:isotope:stdev" value="0.159999996423721"/>
 				<param name="MZ:isotope:maximum" value="4"/>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"/>
@@ -231,12 +379,92 @@
 					<hposition dim="1">675.799987792969</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1236.61</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1237.27</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1237.93</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1238.58</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1239.26</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1239.9</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1240.54</hposition>
+					<hposition dim="1">676</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1241.18</hposition>
+					<hposition dim="1">676</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1241.81</hposition>
+					<hposition dim="1">676</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1242.5</hposition>
 					<hposition dim="1">675.599975585938</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1243.14</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1243.78</hposition>
+					<hposition dim="1">675.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1244.42</hposition>
+					<hposition dim="1">675.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.07</hposition>
+					<hposition dim="1">675.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.77</hposition>
+					<hposition dim="1">675.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1246.43</hposition>
+					<hposition dim="1">675.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1247.09</hposition>
+					<hposition dim="1">675.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1247.75</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1248.41</hposition>
 					<hposition dim="1">675.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1249.12</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1249.76</hposition>
+					<hposition dim="1">675.799987792969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1250.41</hposition>
+					<hposition dim="1">676</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1251.07</hposition>
@@ -252,10 +480,34 @@
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1249.76</hposition>
-					<hposition dim="1">677.400024414062</hposition>
+					<hposition dim="1">677.400024414063</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1249.12</hposition>
+					<hposition dim="1">677.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1248.41</hposition>
+					<hposition dim="1">677.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1247.75</hposition>
+					<hposition dim="1">677.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1247.09</hposition>
+					<hposition dim="1">677.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1246.43</hposition>
+					<hposition dim="1">677.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.77</hposition>
+					<hposition dim="1">677.599975585938</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1245.07</hposition>
 					<hposition dim="1">677.599975585938</hposition>
 				</hullpoint>
 				<hullpoint>
@@ -263,12 +515,52 @@
 					<hposition dim="1">677.599975585938</hposition>
 				</hullpoint>
 				<hullpoint>
+					<hposition dim="0">1243.78</hposition>
+					<hposition dim="1">677.400024414063</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1243.14</hposition>
+					<hposition dim="1">677.200012207031</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1242.5</hposition>
+					<hposition dim="1">677.200012207031</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1241.81</hposition>
+					<hposition dim="1">677.400024414063</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1241.18</hposition>
-					<hposition dim="1">677.400024414062</hposition>
+					<hposition dim="1">677.400024414063</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1240.54</hposition>
+					<hposition dim="1">677.200012207031</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1239.9</hposition>
+					<hposition dim="1">677</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1239.26</hposition>
+					<hposition dim="1">677</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1238.58</hposition>
+					<hposition dim="1">677</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1237.93</hposition>
+					<hposition dim="1">677</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1237.27</hposition>
 					<hposition dim="1">677</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1236.61</hposition>
+					<hposition dim="1">676.599975585938</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1235.92</hposition>
@@ -277,34 +569,34 @@
 			</convexhull>
 			<subordinate>
 				<feature id="f_6211693768620736135_2727934422266510952">
-					<position dim="0">1245.33288591338</position>
-					<position dim="1">676.001340982679</position>
+					<position dim="0">1245.33288921993</position>
+					<position dim="1">676.001341105916</position>
 					<intensity>273366</intensity>
 					<quality dim="0">0.921795691871186</quality>
-					<quality dim="1">0.788196973634593</quality>
-					<overallquality>0.73235548692323</overallquality>
+					<quality dim="1">0.788196979053379</quality>
+					<overallquality>0.732355471994141</overallquality>
 					<charge>1</charge>
 					<model name="ProductModel2D">
-						<param name="cutoff" value="484.649995752501"/>
+						<param name="cutoff" value="484.649989167228"/>
 						<param name="RT" value="EmgModel"/>
 						<param name="MZ" value="IsotopeModel"/>
-						<param name="intensity_scaling" value="0.187899723649025"/>
+						<param name="intensity_scaling" value="0.187899721027288"/>
 						<param name="RT:cutoff" value="0"/>
 						<param name="RT:interpolation_step" value="0.1"/>
 						<param name="RT:intensity_scaling" value="1"/>
-						<param name="RT:bounding_box:min" value="1222.05302191363"/>
-						<param name="RT:bounding_box:max" value="1270.40697808637"/>
-						<param name="RT:statistics:variance" value="21.3658979164236"/>
-						<param name="RT:statistics:mean" value="1245.33288591338"/>
+						<param name="RT:bounding_box:min" value="1222.05302191364"/>
+						<param name="RT:bounding_box:max" value="1270.40697808636"/>
+						<param name="RT:statistics:variance" value="21.3658979164127"/>
+						<param name="RT:statistics:mean" value="1245.33288921993"/>
 						<param name="RT:emg:height" value="63888.9165307657"/>
-						<param name="RT:emg:width" value="1.26608959800394"/>
-						<param name="RT:emg:symmetry" value="0.928486118961509"/>
+						<param name="RT:emg:width" value="1.26608959800395"/>
+						<param name="RT:emg:symmetry" value="0.928486118961518"/>
 						<param name="RT:emg:retention" value="1246.54718353987"/>
 						<param name="MZ:charge" value="1"/>
 						<param name="MZ:cutoff" value="0"/>
 						<param name="MZ:interpolation_step" value="0.1"/>
 						<param name="MZ:intensity_scaling" value="1"/>
-						<param name="MZ:statistics:mean" value="676.393372466332"/>
+						<param name="MZ:statistics:mean" value="676.393372589569"/>
 						<param name="MZ:isotope:stdev" value="0.159999996423721"/>
 						<param name="MZ:isotope:maximum" value="4"/>
 						<param name="MZ:isotope:trim_right_cutoff" value="0.001"/>
@@ -325,12 +617,88 @@
 							<hposition dim="1">675.799987792969</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1237.27</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1237.93</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1238.58</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.26</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.9</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1240.54</hposition>
+							<hposition dim="1">676</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1241.18</hposition>
+							<hposition dim="1">676</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1241.81</hposition>
+							<hposition dim="1">676</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1242.5</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1243.14</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1243.78</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1244.42</hposition>
 							<hposition dim="1">675.599975585938</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1245.07</hposition>
+							<hposition dim="1">675.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1245.77</hposition>
+							<hposition dim="1">675.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1246.43</hposition>
+							<hposition dim="1">675.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1247.09</hposition>
+							<hposition dim="1">675.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1247.75</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1248.41</hposition>
 							<hposition dim="1">675.599975585938</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1249.12</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1249.76</hposition>
+							<hposition dim="1">675.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1250.41</hposition>
+							<hposition dim="1">676</hposition>
 						</hullpoint>
 						<hullpoint>
 							<hposition dim="0">1251.07</hposition>
@@ -345,6 +713,10 @@
 							<hposition dim="1">677</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1249.76</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1249.12</hposition>
 							<hposition dim="1">678</hposition>
 						</hullpoint>
@@ -353,12 +725,76 @@
 							<hposition dim="1">678.200012207031</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1247.75</hposition>
+							<hposition dim="1">677.799987792969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1247.09</hposition>
+							<hposition dim="1">678</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1246.43</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1245.77</hposition>
+							<hposition dim="1">678</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1245.07</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1244.42</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1243.78</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1243.14</hposition>
 							<hposition dim="1">678</hposition>
 						</hullpoint>
 						<hullpoint>
+							<hposition dim="0">1242.5</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1241.81</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1241.18</hposition>
+							<hposition dim="1">676.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1240.54</hposition>
+							<hposition dim="1">677.200012207031</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.9</hposition>
+							<hposition dim="1">677</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.26</hposition>
+							<hposition dim="1">677</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1238.58</hposition>
+							<hposition dim="1">677</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1237.93</hposition>
+							<hposition dim="1">677</hposition>
+						</hullpoint>
+						<hullpoint>
 							<hposition dim="0">1237.27</hposition>
 							<hposition dim="1">677</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1236.61</hposition>
+							<hposition dim="1">676.200012207031</hposition>
 						</hullpoint>
 						<hullpoint>
 							<hposition dim="0">1235.92</hposition>

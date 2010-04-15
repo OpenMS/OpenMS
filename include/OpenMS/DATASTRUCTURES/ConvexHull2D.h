@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_DATASTRUCTURES_CONVEXHULL2D_H
@@ -31,26 +31,33 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
-#include <map>
-#include <cmath>
 
-#ifdef _MSC_VER // disable some CGAL warnings that distract from ours
-#	pragma warning( push ) // save warning state
-#	pragma warning( disable : 4244 )
-#endif
-#include <CGAL/Cartesian.h>
-#include <CGAL/convex_hull_2.h>
-#ifdef _MSC_VER
-#	pragma warning( pop )  // restore old warning state
-#endif
 
 
 namespace OpenMS
 {
 	/**	
-		@brief A 2-dimensional convex hull representation (conterclockwise)
+		@brief A 2-dimensional hull representation in [counter]clockwise direction - depending on axis labelling.
+
+		The current implementation does not guarantee to produce convex hulls.
+		It can still store 'old' convex hulls from featureXML without problems, but does not support the enclose() query in this case,
+		and you will get an exception. As an alternative, you can use my_hull.getBoundingBox().encloses(), which yields similar results,
+		and will always work.
+		
+		If you are creating new hull from peaks (eg during FeatureFinding), the generated hulls of a feature are defined as 
+		a range in m/z dimension for each RT scan (thus might be non-convex). This has the advantage that one can clearly see
+		where points range within each scan (although missing points within this range are still not shown).
+		When hulls are created like this, the encloses() function is supported, and works as expected, i.e.
+		for the shape defined by this hull (view it in TOPPView) it answers whether the point is inside the shape.
+
+		The outer hullpoints can be queried by getHullPoints().
+
+		@improvement For chromatograms we could postprocess the input and remove points in intermediate RT scans,
+		which are currently reported but make the number of points rather large.
 		
 		@ingroup Datastructures
 	*/
@@ -61,181 +68,56 @@ namespace OpenMS
 			typedef std::vector< PointType > PointArrayType;
 			typedef PointArrayType::size_type SizeType;
 			typedef PointArrayType::const_iterator PointArrayTypeConstIterator;
-			/// default constructor
-			ConvexHull2D()
-				: points_()
-			{
-			}
 
-			/// Constructor from point array
-			ConvexHull2D(const PointArrayType& points)
-			{
-				*this = points;
-			}
+			typedef Map<PointType::CoordinateType, DBoundingBox<1> > HullPointType;
+
+			/// default constructor
+			ConvexHull2D();
 			
 			/// assignment operator
-			ConvexHull2D& operator=(const ConvexHull2D& rhs)
-			{
-				if (&rhs == this) return *this;
-				
-				points_ = rhs.points_;
-				
-				return *this;
-			}
-			
-
-			///assignment operator from a vector of points
-			ConvexHull2D& operator=(const PointArrayType& points)
-			{
-				//init
-				points_.clear();
-				if (points.size()==0) return *this;
-				//convert input to cgal
-				std::vector<Point_2> cgal_points;
-				for (PointArrayTypeConstIterator it = points.begin(); it!=points.end(); ++it)
-	      {
-					cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
-	      }
-				//calculate convex hull
-				std::vector<Point_2> cgal_result;
-	  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
-	      // add the points
-				for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
-				{
-					points_.push_back( PointType(cit->x(),cit->y()) );			
-				} 	
-				return *this;
-			}
+			ConvexHull2D& operator=(const ConvexHull2D& rhs);
 
 			/// equality operator
-			bool operator==(const ConvexHull2D& rhs) const
-			{
-				// different size => return false
-				if (points_.size()!= rhs.points_.size()) return false;
-				
-				//different points now => return false
-				for (PointArrayTypeConstIterator it = rhs.points_.begin(); it !=	rhs.points_.end(); ++it)
-				{
-					if (find(points_.begin(),points_.end(),*it)==points_.end())
-					{
-						return false;
-					}
-				}
-				return true;
-			}
+			bool operator==(const ConvexHull2D& rhs) const;
 			
 			/// removes all points
-			void clear()
-			{
-				points_.clear();
-			}
+			void clear();
 
-			/// accessor for the points
-			const PointArrayType& getPoints() const
-			{
-				return points_;
-			}
+			/// accessor for the outer points
+			const PointArrayType& getHullPoints() const;
+
+			/// accessor for the outer(!) points (no checking is performed if this is actually a convex hull)
+			void setHullPoints(const PointArrayType& points);
 			
-			/// returns the bounding box of the convex hull points
-			DBoundingBox<2> getBoundingBox() const
-			{
-				DBoundingBox<2> bb;
-				
-				for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
-				{
-					bb.enlarge(*it);
-				}
-				
-				return bb;
-			}
+			/// returns the bounding box of the feature hull points
+			DBoundingBox<2> getBoundingBox() const;
 			
-			/// adds a point to the convex hull if it is not already contained. Returns if the point was added.
-			bool addPoint(const PointType& point)
-			{
-				if (!encloses(point))
-				{
-					points_.push_back(point);
-					//convert input to cgal
-					std::vector<Point_2> cgal_points;
-					for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
-		      {
-						cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
-		      }
-					//calculate convex hull
-					std::vector<Point_2> cgal_result;
-		  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
-		      // add the points
-		      points_.clear();
-					for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
-					{
-						points_.push_back( PointType(cit->x(),cit->y()) );			
-					}
-					return true;
-				}
-				return false;
-			}
-			
+			/// adds a point to the hull if it is not already contained. Returns if the point was added.
+			/// this will trigger recomputation of the outer hull points (thus points set with setHullPoints() will be lost)
+			bool addPoint(const PointType& point);
+
+			/// adds points to the hull if it is not already contained.
+			/// this will trigger recomputation of the outer hull points (thus points set with setHullPoints() will be lost)
+			void addPoints(const PointArrayType& points);
+
 			/** 
-				@brief returns if the @p point lies in the convex hull
+				@brief returns if the @p point lies in the feature hull
 			
-			   @bug Due to numerical instabilities, this test for inclusion might return false even if
-			        @p point is included  in the convex hull. As a preliminary workaround, we re-compute
-			        the convex hull. In the meantime the points_ variable
-			        is made mutable for the workaround. Undo that as soon as it is fixed. (Clemens)
+				This function is only supported if the hull is created using addPoint() or addPoints(),
+				but not then suing setHullPoints().
+				If you require the latter functionality, then augment this function.
+
+				@throws Exception::NotImplemented if only hull points (outer_points_), but no internal structure (map_points_) is given
 			**/
-			bool encloses(const PointType& point) const
-			{
-				if (!getBoundingBox().encloses(point))
-				{
-					return false;
-				}				
-				// re-calculate convex hull
-				std::vector<Point_2> cgal_points;
-				std::vector<Point_2> cgal_result;
-				
-				for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
-	      {
-					cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
-	      }
-				points_.clear();
-					
-				CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
-	      // add the points
-				for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
-				{
-					points_.push_back( PointType(cit->x(),cit->y()) );			
-				} 					
-				
-				//convert input to cgal
-				cgal_points.clear();
-				cgal_result.clear();
-				for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
-	      {
-					cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
-	      }
-				// add point to be tested
-	      cgal_points.push_back( Point_2(point[0],point[1]) ); 
-				
-				//calculate convex hull
-	  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
-				
-				//point added => return false
-				if (cgal_result.size()!=points_.size()) return false;
-				
-				//different points now => return false
-				for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
-				{
-					if (find(points_.begin(),points_.end(),PointType(cit->x(),cit->y()))==points_.end())
-					{
-						return false;
-					}
-				}
-	      return true;
-			}
+			bool encloses(const PointType& point) const;
 			
 		protected:
-			mutable PointArrayType points_;
-			typedef CGAL::Cartesian<DoubleReal>::Point_2 Point_2;
+			/// internal structure maintaining the hull and enabling queries to encloses()
+			HullPointType map_points_;
+
+			/// just the list of points of the outer hull (derived from map_points_ or given by user)
+			mutable PointArrayType outer_points_;
+
 	};
 } // namespace OPENMS
 

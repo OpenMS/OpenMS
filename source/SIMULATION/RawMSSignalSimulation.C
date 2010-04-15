@@ -338,8 +338,10 @@ namespace OpenMS {
     active_feature.setIntensity(intensity_sum);
     // store convex hull
     active_feature.getConvexHulls().clear();
-    // adding ALL points of the feature, the ConvexHull2D assignment operator will take care of the rest
-    active_feature.getConvexHulls().push_back(points);
+    // adding ALL points of the feature
+		ConvexHull2D hull;
+		hull.addPoints(points);
+    active_feature.getConvexHulls().push_back(hull);
 
   }
 

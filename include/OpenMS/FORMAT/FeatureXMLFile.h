@@ -120,7 +120,7 @@ namespace OpenMS
 	    //@{
 			ModelDescription<2>* model_desc_;
 			Param param_;
-			ConvexHull2D current_chull_;
+			ConvexHull2D::PointArrayType current_chull_;
 			DPosition<2> hull_position_;
 	    //@}
 

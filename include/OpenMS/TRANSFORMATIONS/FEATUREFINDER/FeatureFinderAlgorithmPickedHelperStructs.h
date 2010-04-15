@@ -85,7 +85,7 @@ namespace OpenMS
       ///Contained peaks (pair of RT and pointer to peak)
       std::vector<std::pair<DoubleReal, const PeakType*> > peaks;
 
-      ///determindes the convex hull of the trace
+      ///determines the convex hull of the trace
       ConvexHull2D getConvexhull() const
       {
         ConvexHull2D::PointArrayType hull_points(peaks.size());
@@ -94,7 +94,9 @@ namespace OpenMS
           hull_points[i][0] = peaks[i].first;
           hull_points[i][1] = peaks[i].second->getMZ();
         }
-        return hull_points;
+				ConvexHull2D hull;
+				hull.addPoints(hull_points);
+        return hull;
       }
 
       ///Sets the maximum to the highest contained peak of the trace

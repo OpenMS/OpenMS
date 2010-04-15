@@ -209,16 +209,15 @@ namespace OpenMS
 				for(Size s = 0; s < calibrated_feature_map[f].getConvexHulls().size();++s)
 					{
 						// convex hulls
-						std::vector<DPosition<2> > point_vec = calibrated_feature_map[f].getConvexHulls()[s].getPoints();
+						std::vector<DPosition<2> > point_vec = calibrated_feature_map[f].getConvexHulls()[s].getHullPoints();
 						calibrated_feature_map[f].getConvexHulls()[s].clear();
 						for(Size p = 0; p < point_vec.size(); ++p)
-							{
-								DoubleReal mz = point_vec[p][1];
-								trafo_.apply(mz);
-								point_vec[p][1] = mz;
-								calibrated_feature_map[f].getConvexHulls()[s].addPoint(point_vec[p]);
-							}
-						
+						{
+							DoubleReal mz = point_vec[p][1];
+							trafo_.apply(mz);
+							point_vec[p][1] = mz;
+						}
+						calibrated_feature_map[f].getConvexHulls()[s].setHullPoints(point_vec);						
 					}
 			}
   }

@@ -2167,7 +2167,7 @@ namespace OpenMS
 			av_RT /= (DoubleReal)c_box.size();
 
 			Feature c_feature;
-			c_conv_hull = point_set;
+			c_conv_hull.addPoints(point_set);
 			c_feature.setCharge (c_charge);
 			c_feature.setConvexHulls (std::vector<ConvexHull2D> (1, c_conv_hull));
 			

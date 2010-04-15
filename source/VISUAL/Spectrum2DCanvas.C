@@ -614,13 +614,15 @@ namespace OpenMS
 			{
 				//paint hull points
 				ConvexHull2D hull = i->getConvexHull();
+				ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
 				QPolygon points;
-				points.resize((int)hull.getPoints().size());
+				points.resize((int)ch_points.size());
 
 				UInt index=0;
 				QPoint pos;
 				//iterate over hull points
-				for(ConvexHull2D::PointArrayType::const_iterator it=hull.getPoints().begin(); it!=hull.getPoints().end(); ++it, ++index)
+
+				for(ConvexHull2D::PointArrayType::const_iterator it=ch_points.begin(); it!=ch_points.end(); ++it, ++index)
 				{
 					dataToWidget_(it->getY(), it->getX(),pos);
 					points.setPoint(index, pos);
@@ -685,11 +687,12 @@ namespace OpenMS
 		//iterate over all convex hulls
 		for (Size hull=0; hull<hulls.size(); ++hull)
 		{
-			points.resize((int)hulls[hull].getPoints().size());
+			ConvexHull2D::PointArrayType ch_points = hulls[hull].getHullPoints();
+			points.resize((int)ch_points.size());
 			UInt index=0;
 			QPoint pos;
 			//iterate over hull points
-			for(ConvexHull2D::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
+			for(ConvexHull2D::PointArrayType::const_iterator it=ch_points.begin(); it!=ch_points.end(); ++it, ++index)
 			{
 				dataToWidget_(it->getY(), it->getX(),pos);
 				points.setPoint(index, pos);

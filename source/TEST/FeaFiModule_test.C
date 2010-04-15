@@ -330,16 +330,17 @@ START_SECTION(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature
 	Feature f;
 	t.addConvexHull(set,f);
 	ConvexHull2D& hull = f.getConvexHulls()[0];
-	TEST_EQUAL(hull.getPoints().size(), 9);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.27, 691)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.93, 688.4)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1240.54, 687.6)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1252.39, 687.6)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1252.39, 693.8)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1251.73, 695.2)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1251.07, 695.4)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1239.9, 695.4)) != hull.getPoints().end(), true);
-	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.27, 692)) != hull.getPoints().end(), true);
+	ConvexHull2D::PointArrayType hullpoints = hull.getHullPoints();
+	TEST_EQUAL(hullpoints.size(), 30);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1237.27, 691)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1237.93, 688.4)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1240.54, 687.6)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1252.39, 687.6)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1252.39, 693.8)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1251.73, 695.2)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1251.07, 695.4)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1239.9, 695.4)) != hullpoints.end(), true);
+	TEST_EQUAL(find(hullpoints.begin(), hullpoints.end(), ConvexHull2D::PointType(1237.27, 692)) != hullpoints.end(), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

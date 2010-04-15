@@ -392,8 +392,8 @@ namespace OpenMS
 				points.push_back(tmp);
 			}
 			feature.getConvexHulls().resize(feature.getConvexHulls().size()+1);
-			// assignment operator computes convex hull
-			feature.getConvexHulls().back() = points;
+			// computes convex hull
+			feature.getConvexHulls().back().addPoints(points);
 		}
 
 	 protected:

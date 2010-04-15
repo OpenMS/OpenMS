@@ -178,28 +178,28 @@ START_SECTION((vector<ConvexHull2D>& getConvexHulls()))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	TEST_EQUAL(tmp.getConvexHulls().size(),2)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[0][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[0][1],2.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[1][0],3.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[1][1],4.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[0][0],0.5)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[0][1],0.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][1],1.0)
 END_SECTION
 
 START_SECTION((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	TEST_EQUAL(tmp.getConvexHulls().size(),2)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[0][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[0][1],2.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[1][0],3.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[0].getHullPoints()[1][1],4.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[0][0],0.5)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[0][1],0.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][0],1.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][1],1.0)
 END_SECTION
 
 START_SECTION((ConvexHull2D& getConvexHull() const))
@@ -214,14 +214,15 @@ START_SECTION((ConvexHull2D& getConvexHull() const))
 	TEST_REAL_SIMILAR(bb.maxPosition()[1],4.0)
 
 	//check the convex hull points
-	TEST_EQUAL(tmp.getConvexHull().getPoints().size(),3)
-	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[0][0],0.5)
-	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[0][1],0.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[1][0],3.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[1][1],4.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[2][0],1.0)
-	TEST_REAL_SIMILAR(tmp.getConvexHull().getPoints()[2][1],2.0)
-
+	TEST_EQUAL(tmp.getConvexHull().getHullPoints().size(),4)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[0][0],0.5)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[0][1],0.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[1][0],3.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[1][1],0.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[2][0],3.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[2][1],4.0)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[3][0],0.5)
+	TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[3][1],4.0)
 END_SECTION
 
 hulls[0].addPoint(DPosition<2>(3.0,2.0));
@@ -229,15 +230,20 @@ hulls[1].addPoint(DPosition<2>(2.0,1.0));
 
 START_SECTION((bool encloses(DoubleReal rt, DoubleReal mz) const))
 	Feature tmp;
+	TEST_EQUAL(tmp.getConvexHull().getBoundingBox().isEmpty(), true)
 	tmp.setConvexHulls(hulls);
 
 	TEST_EQUAL(tmp.encloses(0.0,0.0), false);
 	TEST_EQUAL(tmp.encloses(1.0,1.0), true);
 	TEST_EQUAL(tmp.encloses(2.0,0.5), false);
-	TEST_EQUAL(tmp.encloses(2.0,2.5), true);
+	TEST_EQUAL(tmp.encloses(2.0,3.001), false);
+	TEST_EQUAL(tmp.encloses(2.0,2.999), true);
 	TEST_EQUAL(tmp.encloses(2.0,3.5), false);
 	TEST_EQUAL(tmp.encloses(4.0,3.0), false);
 	TEST_EQUAL(tmp.encloses(1.5,1.5), false);
+	TEST_EQUAL(tmp.encloses(2.0,1.0), true);
+	TEST_EQUAL(tmp.encloses(0.5,0.0), true);
+	TEST_EQUAL(tmp.encloses(3.0,3.2), true);
 END_SECTION
 
 START_SECTION((const ChargeType& getCharge() const))
@@ -296,7 +302,7 @@ START_SECTION((Feature(const Feature &feature)))
 	q2 = copy_of_p.getQuality(1);
 	TEST_REAL_SIMILAR(q2, 0.2)
 	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
-	TEST_EQUAL(copy_of_p.getConvexHull().getPoints().size(),p.getConvexHull().getPoints().size())
+	TEST_EQUAL(copy_of_p.getConvexHull().getHullPoints().size(),p.getConvexHull().getHullPoints().size())
 	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 END_SECTION
 
@@ -338,7 +344,7 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
 	q2 = copy_of_p.getQuality(1);
 	TEST_REAL_SIMILAR(q2, 0.2)
 	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
-	TEST_EQUAL(copy_of_p.getConvexHull().getPoints().size(),p.getConvexHull().getPoints().size())
+	TEST_EQUAL(copy_of_p.getConvexHull().getHullPoints().size(),p.getConvexHull().getHullPoints().size())
 	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 END_SECTION
 
