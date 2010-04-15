@@ -5,7 +5,6 @@ set(directory source/ANALYSIS/MAPMATCHING)
 set(sources_list
 BaseGroupFinder.C
 BaseSuperimposer.C
-DelaunayPairFinder.C
 FeatureGroupingAlgorithm.C
 FeatureGroupingAlgorithmIdentification.C
 FeatureGroupingAlgorithmLabeled.C

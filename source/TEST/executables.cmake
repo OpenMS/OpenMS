@@ -311,7 +311,6 @@ set(analysis_executables_list
 	DeNovoIdentification_test
 	DeNovoIonScoring_test
 	DeNovoPostScoring_test
-	DelaunayPairFinder_test
 	FalseDiscoveryRate_test
 	FeatureDeconvolution_test
 	FeatureGroupingAlgorithmLabeled_test

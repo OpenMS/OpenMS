@@ -27,7 +27,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 
@@ -48,7 +47,6 @@ namespace OpenMS
 	void BaseGroupFinder::registerChildren()
   {
     Factory< BaseGroupFinder>::registerProduct(SimplePairFinder::   getProductName(), &SimplePairFinder::   create);
-    Factory< BaseGroupFinder>::registerProduct(DelaunayPairFinder:: getProductName(), &DelaunayPairFinder:: create);
     Factory< BaseGroupFinder>::registerProduct(LabeledPairFinder::  getProductName(), &LabeledPairFinder::  create);
     Factory< BaseGroupFinder>::registerProduct(StablePairFinder::   getProductName(), &StablePairFinder::   create);
   }
