@@ -240,19 +240,19 @@ namespace OpenMS
 	const std::vector<PeptideIdentification>& Feature::getPeptideIdentifications() const
 	{
 		return identifications_;
-	};
-
+	}
+  
 	/// returns a mutable reference to the PeptideIdentification vector
 	std::vector<PeptideIdentification>& Feature::getPeptideIdentifications()
 	{
 		return identifications_;
-	};
+	}
 
 	/// sets the PeptideIdentification vector
 	void Feature::setPeptideIdentifications( const std::vector<PeptideIdentification>& identifications )
 	{
 		identifications_ = identifications;
-	};
+	}
 
 	/// immutable access to subordinate features
 	const std::vector<Feature>& Feature::getSubordinates() const
