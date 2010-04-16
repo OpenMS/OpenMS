@@ -146,10 +146,10 @@ protected:
 	String getItem_(String& line, const String& skip=" \t,;")
 		{
 			Size pos = line.find_first_of(skip);
-			String prefix = line.substr(0, pos);
+			String prefix = string(line).substr(0, pos);
 			pos = line.find_first_not_of(skip, pos);
 			if (pos == string::npos) line = "";
-			else line = line.substr(pos);
+			else line = string(line).substr(pos);
 			return prefix;
 		}
 
