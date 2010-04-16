@@ -400,6 +400,30 @@ namespace OpenMS
 	}
 
 	
+	String String::substr(SignedSize start, Size n) const
+	{
+		Size begin, end;
+		if (start>=0)
+		{
+			begin = std::min(this->size(), Size(start));
+		}
+		else
+		{
+			begin = Size(std::max(SignedSize(0), SignedSize(this->size()) + start));
+		}
+
+		// now, "begin <= this->size()" must hold
+		end = begin + std::min(this->size() - begin, n);
+
+		// prevent errors
+		if (begin > end)
+		{
+			begin = end;
+		}
+		return String(this->begin() + begin, this->begin() + end);
+	}
+
+	
 	String String::substr(SignedSize start) const
 	{
 		SignedSize begin;

@@ -187,6 +187,7 @@ namespace OpenMS
 		  @exception Exception::ElementNotFound is thrown if @p delim is not found
 		*/
 		String suffix(char delim) const;
+
 		/**
 			@brief Returns a substring
 			
@@ -200,6 +201,14 @@ namespace OpenMS
 			         If a negative length is given, then that many characters will be omitted from the end of string.
 		*/
 		String substr(SignedSize start, SignedSize n) const;
+
+		/**
+			@brief Returns a substring (version for @p std::string compatibility)
+
+			This variant can accept @p std::string::npos (returned by some @p std::string methods) as its second argument. It behaves like @p substr(SignedSize, SignedSize) with a positive second argument.
+		*/
+		String substr(SignedSize start, Size n) const;
+
 		/**
 			@brief Returns the suffix of the string from position @p start
 

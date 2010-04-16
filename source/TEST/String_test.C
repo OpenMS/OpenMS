@@ -313,6 +313,27 @@ START_SECTION((String substr(SignedSize start, SignedSize n) const))
 	TEST_EQUAL(s.substr(-3,-1),"de")
 END_SECTION
 
+START_SECTION((String substr(SignedSize start, Size n) const))
+	String s("abcdef");
+	// make sure "string::npos" is represented correctly (for compatibility with
+	// standard C++ string methods):
+	TEST_EQUAL(s.substr(0, string::npos), s);
+	//std::string functionality
+	TEST_EQUAL(s.substr(0,4),"abcd");
+	TEST_EQUAL(s.substr(1,1),"b")
+	TEST_EQUAL(s.substr(1,3),"bcd")
+	TEST_EQUAL(s.substr(0,4),"abcd")
+	TEST_EQUAL(s.substr(0,6),"abcdef")
+	TEST_EQUAL(s.substr(5,1),"f")
+	TEST_EQUAL(s.substr(6,1),"")
+	TEST_EQUAL(s.substr(0,7),"abcdef")
+	//start negative
+	TEST_EQUAL(s.substr(-3,1),"d")
+	TEST_EQUAL(s.substr(-5,1),"b")
+	TEST_EQUAL(s.substr(-6,1),"a")
+	TEST_EQUAL(s.substr(-7,1),"a")
+END_SECTION
+
 START_SECTION((String substr(SignedSize start) const))
 	String s("abcdef");
 	TEST_EQUAL(s.substr(0),"abcdef");
