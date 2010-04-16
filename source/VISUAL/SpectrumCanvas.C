@@ -1190,10 +1190,7 @@ namespace OpenMS
 																									const PeptideIdentification& 
 																									peptide) const
 	{
-		bool peptide_mz = ((getLayer(layer_index).type == LayerData::DT_IDENT) && 
-											 (getLayerFlag(layer_index, LayerData::I_PEPTIDEMZ)));
-		
-		if (peptide_mz)
+		if (getLayerFlag(layer_index, LayerData::I_PEPTIDEMZ))
 		{
 			const PeptideHit& hit = peptide.getHits().front();
 			Int charge = hit.getCharge();

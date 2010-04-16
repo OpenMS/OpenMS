@@ -334,7 +334,7 @@ namespace OpenMS
 		projections_2d_->setShortcut(Qt::Key_2);
 
 		//--2D feature toolbar--
-    tool_bar_2d_feat_ = addToolBar("2D peak tool bar");
+    tool_bar_2d_feat_ = addToolBar("2D feature tool bar");
 
     dm_hull_2d_ = tool_bar_2d_feat_->addAction(QIcon(":/convexhull.png"),"Show feature convex hull");
     dm_hull_2d_->setCheckable(true);
@@ -348,28 +348,53 @@ namespace OpenMS
 		dm_hulls_2d_->setShortcut(Qt::Key_6);
     connect(dm_hulls_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
+		// feature labels:
 		dm_label_2d_ = new QToolButton(tool_bar_2d_feat_);
 		dm_label_2d_->setPopupMode(QToolButton::MenuButtonPopup);
 		QAction* action2 = new QAction(QIcon(":/labels.png"), "Show feature label", dm_label_2d_);
     action2->setCheckable(true);
-    action2->setWhatsThis("2D feature draw mode: Labels<BR><BR>The feature label is displayed next to the feature. <BR>(Hotkey: 7)");
+    action2->setWhatsThis("2D feature draw mode: Labels<BR><BR>Display different kinds of annotation next to features.<BR>(Hotkey: 7)");
 		action2->setShortcut(Qt::Key_7);
 		dm_label_2d_->setDefaultAction(action2);
 		tool_bar_2d_feat_->addWidget(dm_label_2d_);
     connect(dm_label_2d_, SIGNAL(triggered(QAction*)), this, SLOT(changeLabel(QAction*)));
 		//button menu
+		group_label_2d_ = new QActionGroup(dm_label_2d_);
 		QMenu* menu = new QMenu(dm_label_2d_);
-		for (Size i=0; i<LayerData::SIZE_OF_LABEL_TYPE; ++i)
+		for (Size i = 0; i < LayerData::SIZE_OF_LABEL_TYPE; ++i)
 		{
-			menu->addAction(QString(LayerData::NamesOfLabelType[i].c_str()));
+			QAction* temp = group_label_2d_->addAction(
+				QString(LayerData::NamesOfLabelType[i].c_str()));
+			temp->setCheckable(true);
+			if (i == 0) temp->setChecked(true);
+			menu->addAction(temp);
 		}
 		dm_label_2d_->setMenu(menu);
 
-		dm_unassigned_2d_ = tool_bar_2d_feat_->addAction(QIcon(":/unassigned.png"),"Show unassigned peptide identifications");
-    dm_unassigned_2d_->setCheckable(true);
-    dm_unassigned_2d_->setWhatsThis("2D feature draw mode: Unassigned peptides<BR><BR>Unassigned peptide identifications are displayed. <BR>(Hotkey: 8)");
-		dm_unassigned_2d_->setShortcut(Qt::Key_8);
-    connect(dm_unassigned_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+		// unassigned peptide identifications:
+		dm_unassigned_2d_ = new QToolButton(tool_bar_2d_feat_);
+		dm_unassigned_2d_->setPopupMode(QToolButton::MenuButtonPopup);
+		QAction* action_unassigned = new QAction(QIcon(":/unassigned.png"), "Show unassigned peptide identifications", dm_unassigned_2d_);
+    action_unassigned->setCheckable(true);
+    action_unassigned->setWhatsThis("2D feature draw mode: Unassigned peptide identifications<BR><BR>Show unassigned peptide identifications by precursor m/z or by peptide mass.<BR>(Hotkey: 8)");
+		action_unassigned->setShortcut(Qt::Key_8);
+		dm_unassigned_2d_->setDefaultAction(action_unassigned);
+		tool_bar_2d_feat_->addWidget(dm_unassigned_2d_);
+    connect(dm_unassigned_2d_, SIGNAL(triggered(QAction*)), this, SLOT(changeUnassigned(QAction*)));
+		//button menu
+		group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
+		menu = new QMenu(dm_unassigned_2d_);
+		StringList options = StringList::create(
+			"Don't show,Show by precursor m/z,Show by peptide mass");
+		for (StringList::iterator opt_it = options.begin(); opt_it != options.end();
+				 ++opt_it)
+		{
+			QAction* temp = group_unassigned_2d_->addAction(opt_it->toQString());
+			temp->setCheckable(true);
+			if (opt_it == options.begin()) temp->setChecked(true);
+			menu->addAction(temp);
+		}
+		dm_unassigned_2d_->setMenu(menu);
 
 		//--2D consensus toolbar--
     tool_bar_2d_cons_ = addToolBar("2D peak tool bar");
@@ -1272,11 +1297,58 @@ namespace OpenMS
 			if (active2DWindow_()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
 			{
 				active2DWindow_()->canvas()->setLabel(LayerData::L_INDEX);
+				dm_label_2d_->menu()->actions()[1]->setChecked(true);
 			}
 			else
 			{
 				active2DWindow_()->canvas()->setLabel(LayerData::L_NONE);
+				dm_label_2d_->menu()->actions()[0]->setChecked(true);
 			}
+		}
+
+		updateToolBar();
+	}
+
+	void TOPPViewBase::changeUnassigned(QAction* action)
+	{
+		bool set = false;
+
+		// mass reference is selected
+		if (action->text().toStdString() == "Don't show")
+		{
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+			set = true;
+		}
+		else if (action->text().toStdString() == "Show by precursor m/z")
+		{
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+			set = true;
+		}
+		else if (action->text().toStdString() == "Show by peptide mass")
+		{
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
+			set = true;
+		}
+
+		// button is simply pressed
+		if (!set)
+		{
+			bool previous = 
+				active2DWindow_()->canvas()->getLayerFlag(LayerData::F_UNASSIGNED);
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, 
+																								!previous);
+			if (previous) // now: don't show
+			{
+				dm_unassigned_2d_->menu()->actions()[0]->setChecked(true);
+			}
+			else // now: show by precursor
+			{
+				dm_unassigned_2d_->menu()->actions()[1]->setChecked(true);
+			}
+			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
 		}
 
 		updateToolBar();
@@ -1300,10 +1372,6 @@ namespace OpenMS
 			else if (action == dm_hull_2d_)
 			{
 		    win->canvas()->setLayerFlag(LayerData::F_HULL,on);
-			}
-			else if (action == dm_unassigned_2d_)
-			{
-		    win->canvas()->setLayerFlag(LayerData::F_UNASSIGNED,on);
 			}
 			//consensus features
 			else if (action == dm_elements_2d_)

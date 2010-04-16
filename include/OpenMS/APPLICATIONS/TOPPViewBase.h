@@ -40,6 +40,7 @@
 //QT
 #include <QtGui/QMainWindow>
 #include <QtGui/QButtonGroup>
+#include <QtGui/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 
@@ -287,6 +288,7 @@ namespace OpenMS
       void setIntensityMode(int);
       void changeLayerFlag(bool);
       void changeLabel(QAction*);
+			void changeUnassigned(QAction*);
       void resetZoom();
       void toggleProjections();
       //@}
@@ -379,7 +381,9 @@ namespace OpenMS
       QAction* dm_hull_2d_;
       QAction* dm_hulls_2d_;
       QToolButton* dm_label_2d_;
-      QAction* dm_unassigned_2d_;
+			QActionGroup* group_label_2d_;
+      QToolButton* dm_unassigned_2d_;
+			QActionGroup* group_unassigned_2d_;
       QAction* dm_elements_2d_;
       QAction* projections_2d_;
 			QAction* dm_ident_2d_;
