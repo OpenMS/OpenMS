@@ -51,29 +51,28 @@ namespace OpenMS
 
 	FileTypes::Type FileHandler::getTypeByFileName(const String& filename)
 	{
-		String tmp;
+		String basename = File::basename(filename), tmp;
 		try
 		{
-			tmp = filename.suffix('.');
+			tmp = basename.suffix('.');
 		}
 		// no '.' => unknown type
 		catch (Exception::ElementNotFound&)
 		{
       // last chance, Bruker fid file
-      if (filename.size() >= 3 && filename.suffix(3) == "fid")
+      if (basename == "fid")
       {
         return FileTypes::XMASS;
       }
 			return FileTypes::UNKNOWN;
 		}
-		tmp=tmp.toUpper();
+		tmp.toUpper();
     if (tmp == "BZ2" || tmp == "ZIP" || tmp == "GZ")
 		{
 			return getTypeByContent(filename);
 		}
 
     return nameToType(tmp);
-
 	}
 
 	FileTypes::Type FileHandler::nameToType(const String& name)

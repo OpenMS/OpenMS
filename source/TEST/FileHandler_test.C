@@ -94,6 +94,7 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
 	TEST_EQUAL(tmp.getTypeByFileName("test.png"), FileTypes::PNG)
+	TEST_EQUAL(tmp.getTypeByFileName("./foo.bar/XMass/fid"), FileTypes::XMASS);
 END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
