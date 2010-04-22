@@ -245,7 +245,6 @@ class TOPPIDPosteriorErrorProbability
 								{
 									hit->setMetaValue("Search engine score",hit->getScore());
 									hit->setScore(PEP_model.computeProbability(get_score_(*engine, *hit)));	
-									cout<<hit->getMetaValue("Search engine score")<<", "<<hit->getMetaValue("EValue")<<", "<<hit->getScore()<<endl;	
 								}
 								it->setHits(hits);
 							}
