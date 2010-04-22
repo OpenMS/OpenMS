@@ -37,7 +37,7 @@ namespace OpenMS
 	namespace Math
 	{
 		PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel()
-		: DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5)
+		: DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5),max_gumbel_(0),max_gauss_(0),smallest_score_(0)
   	{
 			defaults_.setValue("number_of_bins", 100, "Number of bins used for visualisation. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
 			defaults_.setValue("output_plots","false","If true every step of the EM-algorithm will be written to a file as a gnuplot formula",StringList::create("advanced"));
@@ -63,7 +63,7 @@ namespace OpenMS
 			// Initializing Parameters
 			//-------------------------------------------------------------
 			double minimum = x_scores[0];
-						for(std::vector< double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
+			for(std::vector< double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
 			{
 				if(minimum > *it)
 				{
@@ -286,35 +286,15 @@ namespace OpenMS
 				file.store(step + iter);				
 			}
 			//Compute probabilities
-			DoubleReal max_gumbel = exp(-1.0)/gumbel_fit_param_.b;
-			DoubleReal max_gauss = gauss_fit_param_.A;
+			max_gumbel_ = exp(-1.0)/gumbel_fit_param_.b;
+			max_gauss_ = gauss_fit_param_.A;
+			negative_prior_ = negative_prior;
+			smallest_score_ = minimum;
 			probs = probabilities.begin();
 			for(vector<double >::iterator it = x_scores.begin(); it < x_scores.end() ; ++it, ++probs)
 			{
-				DoubleReal the_x = *it + minimum + 0.001;
-				DoubleReal x_gumbel;
-				DoubleReal x_gauss;
-				if(the_x < gumbel_fit_param_.a)
-				{
-					x_gumbel = max_gumbel;	
-					x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
-
-				}
-				else if(the_x > gauss_fit_param_.x0)
-				{
-					DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);
-					x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
-					x_gauss = max_gauss;
-				}
-				else
-				{
-					DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);
-					x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
-					x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
-				}
-				*probs = (negative_prior*x_gumbel)/((negative_prior*x_gumbel) + (1-negative_prior)*x_gauss);					
+				*probs = 	computeProbability(*it);			
 			}
-			negative_prior_ = negative_prior;
 		}
 				
 		const String PosteriorErrorProbabilityModel::getGumbelGnuplotFormula() const
@@ -337,7 +317,33 @@ namespace OpenMS
 			stringstream formula;
 			formula << "h(x)=" << negative_prior<<"*"<< "(1/" << gumbel_fit_param_.b <<") * " << "exp(( "<< gumbel_fit_param_.a<< "- x)/"<< gumbel_fit_param_.b <<") * exp(-exp(("<<gumbel_fit_param_.a<<" - x)/"<<gumbel_fit_param_.b<<")) + "<<"(1-"<<negative_prior<<")*"<<gauss_fit_param_.A << " * exp(-(x - " << gauss_fit_param_.x0 << ") ** 2 / 2 / (" << gauss_fit_param_.sigma << ") ** 2)";
 			return formula.str();
-		}				
+		}	
+		
+		DoubleReal PosteriorErrorProbabilityModel::computeProbability(DoubleReal score)
+		{
+			DoubleReal the_x = score + smallest_score_ + 0.001;
+			DoubleReal x_gumbel;
+			DoubleReal x_gauss;
+			if(the_x < gumbel_fit_param_.a)
+			{
+				x_gumbel = max_gumbel_;	
+				x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
+			}
+			else if(the_x > gauss_fit_param_.x0)
+			{
+				DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);
+				x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
+				x_gauss = max_gauss_;
+			}
+			else
+			{
+				DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);
+				x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
+				x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
+			}
+			 return (negative_prior_*x_gumbel)/((negative_prior_*x_gumbel) + (1-negative_prior_)*x_gauss);		
+		}
+		
 	} //namespace Math
 } // namespace OpenMS
 

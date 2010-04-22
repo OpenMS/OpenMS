@@ -105,10 +105,14 @@ START_SECTION((void fit(std::vector<double>& x_scores, std::vector<double>& prob
 		if(score_vector[i] <= score_vector[j])
 		{
 			TEST_EQUAL(probabilities[i] >= probabilities[j],true)
+			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[i]), probabilities[i])
+			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[j]), probabilities[j])
 		}
 		else
 		{
 			TEST_EQUAL(probabilities[i] >= probabilities[j],true)
+			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[i]), probabilities[i])
+			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[j]), probabilities[j])
 		}
 	++i;
 	++j;
@@ -153,6 +157,12 @@ START_SECTION((const String getBothGnuplotFormula(double negative_prior) const))
 NOT_TESTABLE
 delete ptr;
 END_SECTION
+
+START_SECTION((DoubleReal PosteriorErrorProbabilityModel::computeProbability(DoubleReal score)))
+NOT_TESTABLE
+//tested in fit
+END_SECTION
+
 
 
 

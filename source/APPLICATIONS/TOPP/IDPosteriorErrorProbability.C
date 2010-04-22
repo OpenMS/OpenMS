@@ -48,6 +48,7 @@ using namespace std;
 	So far an estimation of the false score distribution with a gumbel distribution
 	and the correct score distribution with a gaussian distribution is performed. 
 	The probabilities are calculated using bayes law, similar to PeptideProphet.
+	At the moment, it is able to handle Xtandem, Mascot and OMSSA scores.
 	
 */
 
@@ -73,10 +74,11 @@ class TOPPIDPosteriorErrorProbability
 		registerOutputFile_("out","<file>","","output file ");
 	  setValidFormats_("out",StringList::create("idXML"));
 	  registerDoubleOption_("smallest_e_value","<value>",10e-20,"This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.",false,true);
+	  registerFlag_("split_charge", "blablub.The search enginge scores are splitted by charge if used. Thus, for each charge state a new model will be computed.");
 	  
 	  registerSubsection_("fit_algorithm", "Algorithm parameter subsection");
 		addEmptyLine_();	
-	}
+	}	
 	
 	//there is only one parameter at the moment
 	Param getSubsectionDefaults_(const String& /*section*/) const
@@ -85,6 +87,25 @@ class TOPPIDPosteriorErrorProbability
 		return pepm.getParameters();
 	}
 	
+	double get_score_(String& engine, const PeptideHit& hit)
+	{
+		if( engine == "OMSSA" )
+		{
+			return ((-1)* log10(max(hit.getScore(),smallest_e_value_)));
+		}
+		else if(engine.compare("XTandem") == 0)
+		{
+			return((-1)* log10(max((DoubleReal)hit.getMetaValue("E-Value"),smallest_e_value_)));
+		}
+		else if (engine == "MASCOT")
+		{
+			return((-1)* log10(max((DoubleReal)hit.getMetaValue("EValue"),smallest_e_value_)));
+		}
+		else
+		{		
+			throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No parameters for choosen search engine","The choosen search engine is currently not supported");
+		}
+	}
 
 	ExitCodes main_(int , const char**)
 	{
@@ -94,9 +115,9 @@ class TOPPIDPosteriorErrorProbability
 			
 		String inputfile_name = getStringOption_("in");			
 		String outputfile_name = getStringOption_("out");
-		DoubleReal smallest_e_value = getDoubleOption_("smallest_e_value");
+	  smallest_e_value_ = getDoubleOption_("smallest_e_value");
 		Param fit_algorithm = getParam_().copy("fit_algorithm:",true);
-	
+		bool split_charge = getFlag_("split_charge");
 		
 		//-------------------------------------------------------------
 		// reading input
@@ -105,94 +126,135 @@ class TOPPIDPosteriorErrorProbability
 		vector< ProteinIdentification > protein_ids;
 		vector< PeptideIdentification > peptide_ids;
 		file.load(inputfile_name, protein_ids, peptide_ids);
-		
+		vector<double> scores;
+		vector<double>probabilities;
+		PosteriorErrorProbabilityModel PEP_model;
+		PEP_model.setParameters(fit_algorithm);
+		StringList search_engines = StringList::create("XTandem,OMSSA,MASCOT");
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-		vector<double> score_vector_mascot;
-		vector<double> score_vector_omssa;
-		vector<double> score_vector_xtandem;
-		for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
+		
+		if(split_charge)
 		{
-			String engine  = prot_iter->getSearchEngine();
+			vector<Int> charges;
 			for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
 			{
-				if(prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+				vector<PeptideHit> hits = it->getHits();
+				for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
 				{
-					vector<PeptideHit> hits = it->getHits();
-					for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+					if(charges.end() == find(charges.begin(), charges.end(), hit->getCharge()))
 					{
-						if( engine == "OMSSA" )
-						{
-							score_vector_omssa.push_back((-1)* log10(max(hit->getScore(),smallest_e_value)));
-						}
-						else if(engine.compare("XTandem") == 0)
-						{
-							score_vector_xtandem.push_back((-1)* log10(max((DoubleReal)hit->getMetaValue("E-Value"),smallest_e_value)));
-						}
-						else if (engine.toUpper() == "MASCOT")
-						{
-							score_vector_mascot.push_back(hit->getScore() - (DoubleReal)hit->getMetaValue("identity_threshold"));
-						}
-						else
-						{
-							
-							throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No parameters for choosen search engine","The choosen search engine is currently not supported");
-						}
+						charges.push_back(hit->getCharge());
 					}
 				}
 			}
-		}
-		PosteriorErrorProbabilityModel PEP_model;
-		PEP_model.setParameters(fit_algorithm);
-		vector<double> probabilities_mascot;
-		PEP_model.fit(score_vector_mascot, probabilities_mascot);
-		vector<double> probabilities_omssa;
-		PEP_model.fit(score_vector_omssa, probabilities_omssa);
-		vector<double> probabilities_xtandem;
-		PEP_model.fit(score_vector_xtandem, probabilities_xtandem);		
-		
-		vector<double>::iterator prob_mascot = probabilities_mascot.begin();
-		vector<double>::iterator prob_omssa = probabilities_omssa.begin();
-		vector<double>::iterator prob_xtandem = probabilities_xtandem.begin();
-		for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
-		{
-			String engine  = prot_iter->getSearchEngine();		
-			for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
+			for(vector<Int>::iterator charge = charges.begin(); charge < charges.end(); ++charge)
 			{
-			if(prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+				for(StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
 				{
-					if( engine == "OMSSA" )
+					for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
 					{
-						vector<PeptideHit> hits = it->getHits();
-						for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
-						{	
-							hit->setMetaValue("PEP",*prob_omssa);
-							++prob_omssa;
+						String searchengine_toUpper =  prot_iter->getSearchEngine();
+						searchengine_toUpper.toUpper();
+						if(*engine == prot_iter->getSearchEngine() || *engine == searchengine_toUpper)
+						{
+							for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
+							{
+								if(prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+								{
+									vector<PeptideHit> hits = it->getHits();
+									for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+									{
+										if(hit->getCharge() == *charge)
+										{
+											scores.push_back(get_score_(*engine, *hit));
+										}
+									}
+								}
+							}
 						}
-						it->setHits(hits);						
 					}
-					else if(engine == "XTandem")
+					PEP_model.fit(scores, probabilities);
+					for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
 					{
-						vector<PeptideHit> hits = it->getHits();
-						for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
-						{	
-							hit->setMetaValue("PEP",*prob_xtandem);
-							++prob_xtandem;
+						String searchengine_toUpper =  prot_iter->getSearchEngine();
+						searchengine_toUpper.toUpper();
+						if(*engine == prot_iter->getSearchEngine() || *engine == searchengine_toUpper)
+						{
+							for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
+							{
+								if(prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+								{
+									vector<PeptideHit> hits = it->getHits();
+										for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+									{
+										if(hit->getCharge() == *charge)
+										{
+											hit->setMetaValue("Search engine score",hit->getScore());
+											hit->setScore(PEP_model.computeProbability(get_score_(*engine, *hit)));
+										}
+									}
+									it->setHits(hits);	
+								}
+								it->setScoreType("Posterior Error Probability");
+								it->setHigherScoreBetter(false);
+							}
 						}
-						it->setHits(hits);
-					}
-					else if (engine.toUpper() == "MASCOT")
+					}				
+					scores.clear();	
+				}				
+			}
+		}
+		else
+		{
+			for(StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
+			{
+				for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
+				{
+						String searchengine_toUpper =  prot_iter->getSearchEngine();
+						searchengine_toUpper.toUpper();
+						if(*engine == prot_iter->getSearchEngine() || *engine == searchengine_toUpper)
 					{
-						vector<PeptideHit> hits = it->getHits();
-						for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
-						{	
-							hit->setMetaValue("PEP",*prob_mascot);
-							++prob_mascot;
+						for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
+						{
+							if(prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+							{
+								vector<PeptideHit> hits = it->getHits();
+								for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+								{
+									scores.push_back(get_score_(*engine, *hit));
+								}
+							}
 						}
-						it->setHits(hits);
 					}
 				}
+				PEP_model.fit(scores, probabilities);
+				for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
+				{	
+						String searchengine_toUpper =  prot_iter->getSearchEngine();
+						searchengine_toUpper.toUpper();
+						if(*engine == prot_iter->getSearchEngine() || *engine == searchengine_toUpper)
+					{
+						for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
+						{
+							if(prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+							{
+								vector<PeptideHit> hits = it->getHits();
+								for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+								{
+									hit->setMetaValue("Search engine score",hit->getScore());
+									hit->setScore(PEP_model.computeProbability(get_score_(*engine, *hit)));	
+									cout<<hit->getMetaValue("Search engine score")<<", "<<hit->getMetaValue("EValue")<<", "<<hit->getScore()<<endl;	
+								}
+								it->setHits(hits);
+							}
+							it->setScoreType("Posterior Error Probability");
+							it->setHigherScoreBetter(false);
+						}
+					}
+				}				
+				scores.clear();	
 			}
 		}
 		//-------------------------------------------------------------
@@ -202,6 +264,8 @@ class TOPPIDPosteriorErrorProbability
 		file.store(outputfile_name, protein_ids, peptide_ids);
 		return EXECUTION_OK;
 	}
+	
+	DoubleReal smallest_e_value_;
 };
 
 
