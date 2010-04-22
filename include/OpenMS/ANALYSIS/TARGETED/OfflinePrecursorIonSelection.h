@@ -110,12 +110,13 @@ namespace OpenMS
 	bool enclosesBoundingBox(const Feature&f, typename MSExperiment<InputPeakType>::CoordinateType rt, typename MSExperiment<InputPeakType>::CoordinateType mz)
 	{
 		bool enclose_hit=false;
-		std::vector<ConvexHull2D> hulls = f.getConvexHulls();
+		const std::vector<ConvexHull2D>& hulls = f.getConvexHulls();
 		for (Size i=0;i<hulls.size();++i)
 		{
 			if (hulls[i].getBoundingBox().encloses(rt, mz))
 			{
 				enclose_hit=true;
+        return enclose_hit;
 			}
 		}
 		return enclose_hit;
