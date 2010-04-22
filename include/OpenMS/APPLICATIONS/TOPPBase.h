@@ -445,10 +445,10 @@ namespace OpenMS
       	To access the values of registered parameters in the main_ method use methods
       	getStringOption_ (also for input and output files), getDoubleOption_, getIntOption_,getStringList_(also for input and output file lists),getIntList_,getDoubleList_, and getFlag_.
 
-				The values of the certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_, 
+				The values of certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_, 
 				setMaxFloat_, setValidStrings_ and setValidFormats_.
 
-      	In order to format the help output the methods addEmptyLine_ and addText_ can be used.
+      	In order to format the help output, the methods addEmptyLine_ and addText_ can be used.
       */
       //@{
       /**

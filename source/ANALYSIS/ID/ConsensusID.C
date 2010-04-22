@@ -27,8 +27,8 @@
 
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <seqan/align.h>
-#include <seqan/graph_align.h> 
+#include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
+
 
 #include <map>
 #include <cmath>

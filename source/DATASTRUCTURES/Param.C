@@ -1065,7 +1065,6 @@ namespace OpenMS
 				}
 			}
 			//without argument
-
 			else if (options_without_argument.has(arg))
 			{
 				root_.insert(ParamEntry("",String("true"),""),options_without_argument.find(arg)->second);

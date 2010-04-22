@@ -153,9 +153,10 @@ namespace OpenMS
 		//parse command line
 		//----------------------------------------------------------
 
-		//register values
+		//register values from derived TOPP tool
 		registerOptionsAndFlags_();
 		addEmptyLine_();
+    //common section for all tools
     if (getToolList().has(tool_name_)) addText_("Common TOPP options:");
     else addText_("Common UTIL options:");
 		registerStringOption_("ini","<file>","","Use the given TOPP INI file",false);
@@ -178,6 +179,7 @@ namespace OpenMS
     registerFlag_("-helphelp","Shows all options (including advanced)",false);
 
 		// prepare options and flags for command line parsing
+    // 'parameters_' will contain every valid parametername
 		Map<String,String> options;
 		Map<String,String> flags;
 		Map<String,String> multi_options;

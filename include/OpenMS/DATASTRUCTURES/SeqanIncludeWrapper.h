@@ -39,6 +39,8 @@
 #endif
 
 #include <seqan/index.h>
+#include <seqan/align.h>
+#include <seqan/graph_align.h> 
 
 #ifdef _MSC_VER
 #	pragma warning( pop )  // restore old warning state

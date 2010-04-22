@@ -473,11 +473,13 @@ namespace OpenMS
 			/**
 				 @brief Parses command line arguments to specified key locations.
 				
+         Parses command line arguments to specified key locations and stores the result internally.
+
 				 @param argc argc variable from command line
-				 @param argv argv varaible from command line
+				 @param argv argv variable from command line
 				 @param options_with_one_argument a map of options that are followed by one argument (with key where they are stored)
-				 @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Present options are set to the the string 'true'.
-				 @param options_with_multiple_argument a map of options that are followed by several arguments(with key where they are stored)
+				 @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Options specified on the command line are set to the string 'true'.
+				 @param options_with_multiple_argument a map of options that are followed by several arguments (with key where they are stored)
 				 @param misc key where a StringList of all non-option arguments are stored
 				 @param unknown key where a StringList of all unknown options are stored
 				 
