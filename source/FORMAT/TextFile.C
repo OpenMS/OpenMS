@@ -119,11 +119,11 @@ namespace OpenMS
 			{
 				if (it->hasSuffix("\r\n"))
 				{
-					os << it->substr(0,-2)<< "\n";
+					os << it->chop(2)<< "\n";
 				}
 				else
 				{
-					os << it->substr(0,-1) << "\n";
+					os << it->chop(1) << "\n";
 				}
 			}
 			else

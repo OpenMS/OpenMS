@@ -142,7 +142,7 @@ namespace OpenMS
 			if (description!="")
 			{
 				description.substitute("#br#","\n");
-				descriptions_[path_.substr(0,-1)] = description;
+				descriptions_[path_.chop(1)] = description;
 			}
 		}
 		else if (element == "ITEMLIST")

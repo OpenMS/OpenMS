@@ -369,52 +369,22 @@ namespace OpenMS
 		return string::substr(++pos);
 	}
 
-	
-	String String::substr(SignedSize start, SignedSize n) const
+	String String::substr(size_t pos, size_t n) const
 	{
-		SignedSize begin, end;
-		if (start>=0)
-		{
-			begin = std::min(SignedSize(this->size()), start);
-		}
-		else
-		{
-			begin = std::max(SignedSize(0), SignedSize(this->size()) + start);
-		}
-
-		if (n>=0)
-		{
-			end = std::min(SignedSize(this->size()), begin + n);
-		}
-		else
-		{
-			end = std::max(SignedSize(0), SignedSize(this->size()) + n);
-		}
-
-		//prevent errors
-		if (begin>end)
-		{
-			begin = end;
-		}
-		return String(this->begin() + begin, this->begin() + end);
+		Size begin = std::min(pos, this->size());
+	  return (String) string::substr(begin,n);
 	}
 
-	
-	String String::substr(SignedSize start) const
+	String String::chop(Size n) const
 	{
-		SignedSize begin;
-		if (start>=0)
-		{
-			begin = std::min(SignedSize(this->size()), start);
-		}
-		else
-		{
-			begin = std::max(SignedSize(0), SignedSize(this->size())+start);
-		}
+	  Size end = 0;
+	  if(n < this->size())
+	  {
+	    end = this->size() - n;
+	  }
 
-		return String(this->begin() + begin,this->end());
+	  return String(this->begin(), this->begin() + end);
 	}
-
 	
 	String& String::trim()
 	{

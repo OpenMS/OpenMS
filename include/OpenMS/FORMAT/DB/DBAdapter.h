@@ -420,7 +420,8 @@ namespace OpenMS
 				query_eluents << ",'" << *eluents_it << "'";
 				query_eluents << "),";
 			}
-			result = db_con_.executeQuery(String(query_eluents.str()).substr(0,-1));
+			// remove last ","
+			result = db_con_.executeQuery(String(query_eluents.str()).chop(1));
 			eluents_id = db_con_.getAutoId();
 		}
 
@@ -435,7 +436,8 @@ namespace OpenMS
 				query_time << "," << *time_it;
 				query_time << "),";
 			}
-			result = db_con_.executeQuery(String(query_time.str()).substr(0,-1));
+			// remove last ","
+			result = db_con_.executeQuery(String(query_time.str()).chop(1));
 			time_id = db_con_.getAutoId();
 		}
 
@@ -460,7 +462,8 @@ namespace OpenMS
 				}
 				i++;
 			}
-			result = db_con_.executeQuery(String(query_percentages.str()).substr(0,-1));
+			// remove last ","
+			result = db_con_.executeQuery(String(query_percentages.str()).chop(1));
 		}
 
 		//----------------------------------------------------------------------------------------
@@ -798,7 +801,8 @@ namespace OpenMS
 					//mz
 					query << spec_it->getPosition() << "'),";
 				}
-				result = db_con_.executeQuery(String(query.str()).substr(0,-1));
+				// remove last ","
+				result = db_con_.executeQuery(String(query.str()).chop(1));
 			}
 			// We know that all inserted peaks have IDs beginning from last_insert_id() (= ID of first inserted entry
 			// of last insert operation), so we can insert Meta Information without actually fetching the ID
@@ -880,7 +884,8 @@ namespace OpenMS
 						break;
 					}
 				}
-				result = db_con_.executeQuery(String(query.str()).substr(0,-1));
+				// remove last ","
+				result = db_con_.executeQuery(String(query.str()).chop(1));
 			}
 
 

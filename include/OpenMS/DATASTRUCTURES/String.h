@@ -187,29 +187,30 @@ namespace OpenMS
 		  @exception Exception::ElementNotFound is thrown if @p delim is not found
 		*/
 		String suffix(char delim) const;
-		/**
-			@brief Returns a substring
-			
-			If start or end are out of bounds, they are automatically corrected - set to begin or end, respectively.
-			
-			If the end is positioned before the start an empty string is returned.
-			
-			@param start  start position of the substring.<br> 
-			              If start is negative, the returned string will start at the start'th character from the end of string.
-			@param n length of the substring.<br> 
-			         If a negative length is given, then that many characters will be omitted from the end of string.
-		*/
-		String substr(SignedSize start, SignedSize n) const;
-		/**
-			@brief Returns the suffix of the string from position @p start
 
-			If start is out of bounds, it is automatically corrected - set to begin or end, respectively.
-			
-			@param start  start position of the substring.<br> 
-			              If start is negative, the returned string will start at the start'th character from the end of string.
-		*/
-		String substr(SignedSize start) const;
-		
+		/**
+		 @brief Wrapper for the STL substr() method. Returns a String object with its contents initialized to a substring of the current object.
+
+		 @param pos Position of a character in the current string object to be used as starting character for the substring.
+		 If the @p pos is past the end of the string, it is set to the end of the string.
+
+		 @param n Length of the substring.
+		 If this value would make the substring to span past the end of the current string content, only those characters until the end of the string are used.
+		 npos is a static member constant value with the greatest possible value for an element of type size_t, therefore, when this value is used, all the
+		 characters between pos and the end of the string are used as the initialization substring.
+
+		 */
+		String substr(size_t pos = 0, size_t n = npos) const;
+
+		/**
+		  @brief Returns a substring where @p n characters were removed from the end of the string.
+
+      If @p n is greater than size(), the result is an empty string.
+
+		  @param n Number of characters that will be removed from the end of the string.
+		 */
+		String chop(Size n) const;
+
 		//@}
 		
 		

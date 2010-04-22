@@ -63,7 +63,7 @@ struct SubstringLess : public binary_function<pair<SignedSize,SignedSize> , pair
 	/**
 	@brief implementation of the '<' operator for two given substrings
 	@param left first substring
-	@param rigth second substring
+	@param right second substring
 	@return true if first substring '<' second substring	
 	*/
 	bool operator()( pair<SignedSize,SignedSize> left, pair<SignedSize,SignedSize> right) const
@@ -353,7 +353,7 @@ String SuffixArrayTrypticCompressed::toString()
 	ostringstream ss;
 	vector<pair<SignedSize,SignedSize> >::iterator it = indices_.begin();
 	for (;it!=indices_.end();++it)
-		{
+	{
 		SignedSize it_start = (*it).first;
 		SignedSize it_l = (*it).second;
 		ss<<s_.substr(it_start,it_l);

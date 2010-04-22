@@ -579,7 +579,7 @@ namespace OpenMS
 				{
 					pathname.resize(pathname.size() - it2->name.size() -1);
 				}
-				String real_pathname = pathname.substr(0,-1); //remove ':' at the end
+				String real_pathname = pathname.chop(1); //remove ':' at the end
 				if (real_pathname != "")
 				{
 					String description_old = "";
@@ -619,10 +619,10 @@ namespace OpenMS
 	{
 		if (prefix.hasSuffix(':')) //we have to delete one node only
 		{
-			ParamNode* node = root_.findParentOf(prefix.substr(0,-1));
+			ParamNode* node = root_.findParentOf(prefix.chop(1));
 			if (node!=0)
 			{
-				Param::ParamNode::NodeIterator it = node->findNode(node->suffix(prefix.substr(0,-1)));
+				Param::ParamNode::NodeIterator it = node->findNode(node->suffix(prefix.chop(1)));
 				if (it!=node->nodes.end())
 				{
 					node->nodes.erase(it);
@@ -680,7 +680,7 @@ namespace OpenMS
 			}
 			else
 			{
-				out.insert(*node,prefix.substr(0,-Int(node->name.size()+1)));
+				out.insert(*node,prefix.chop(node->name.size()+1));
 			}
 		}
 		else //we have to copy all entries and nodes starting with the right suffix
@@ -698,7 +698,7 @@ namespace OpenMS
 					}
 					else
 					{
-						out.insert(*it,prefix.substr(0,-Int(suffix.size())));
+						out.insert(*it,prefix.chop(suffix.size()));
 					}
 				}
 			}
@@ -714,7 +714,7 @@ namespace OpenMS
 					}
 					else
 					{
-						out.insert(*it,prefix.substr(0,-Int(suffix.size())));
+						out.insert(*it,prefix.chop(suffix.size()));
 					}
 				}
 			}
@@ -1130,7 +1130,7 @@ namespace OpenMS
  	{
 		for (Param::ParamIterator it = param.begin(); it!=param.end(); ++it)
 		{
-			String prefix = it.getName().substr(0,-Int(it->name.size()+1));
+			String prefix = it.getName().chop(it->name.size()+1);
 			if (prefix!="")
 			{
 				prefix += "|";

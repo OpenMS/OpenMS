@@ -370,7 +370,7 @@ class TOPPSILACAnalyzer
       String debug_trunk = in;
       if (in.has('.'))
       {
-        debug_trunk = in.substr(0,-SignedSize(in.suffix('.').length())-1);
+        debug_trunk = in.prefix(in.find_last_of('.'));
       }
 
       // number of clusters found for each charge state (filled with best_n, need to remember for gnuplot script)

@@ -177,7 +177,7 @@ namespace OpenMS {
   {
     Param p1;
 
-    SimIntensityType scale = active_feature.getIntensity();
+    SimIntensityType scale = active_feature.getIntensity() * 150;
 
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();

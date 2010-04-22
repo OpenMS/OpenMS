@@ -231,7 +231,7 @@ namespace OpenMS
 		if (!file.has('.')) return file;
 		
 		SignedSize ext_length = file.suffix('.').size() + 1;
-		return file.substr(0, - ext_length);
+		return file.chop(ext_length);
 	}
 
 	bool File::isDirectory(const String& path)

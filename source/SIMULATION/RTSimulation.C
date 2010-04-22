@@ -263,7 +263,7 @@ namespace OpenMS {
 			DoubleReal charge = 0;	
 			// C&N term charge contribution
 			if (q_nterm.has(seq[0])) charge +=  q_nterm[seq[0]];
-			if (q_cterm.has(seq.substr(-1))) charge +=  q_cterm[seq.substr(-1)];
+			if (q_cterm.has(seq.suffix(1))) charge +=  q_cterm[seq.suffix(1)];
 			
 			// sidechains ...
 			Map< String, Size > frequency_table;
@@ -534,11 +534,12 @@ namespace OpenMS {
   
   void RTSimulation::createExperiment_(MSSimExperiment & experiment, Size number_of_scans, DoubleReal rt_start)
   {
-    LOG_INFO << "Creating experiment with #" << number_of_scans << " scans ... ";
     experiment = MSSimExperiment();
 
     if (isRTColumnOn())
     {
+      LOG_INFO << "Creating experiment with #" << number_of_scans << " scans ... ";
+
       experiment.resize(number_of_scans);
 
       DoubleReal current_scan_rt = rt_start;
@@ -566,6 +567,8 @@ namespace OpenMS {
     }
     else
     {
+      LOG_INFO << "Creating experiment with a single scan ... ";
+
       experiment.resize(1);
       experiment[0].setRT(-1);
       experiment[0].setNativeID("spectrum=1");
