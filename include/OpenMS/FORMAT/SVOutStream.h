@@ -116,13 +116,15 @@ namespace OpenMS
 		bool modifyStrings(bool modify);
 
 		
-		/// Write a numeric value or "nan", if applicable (would not be needed for Linux)
+		/// Write a numeric value or "nan"/"inf"/"-inf", if applicable (would not be needed for Linux)
 		template <typename NumericT>
 		SVOutStream& writeValueOrNan(NumericT thing)
 			{
-				if (!(boost::math::isnan)(thing)) return operator<<(thing);
+				if ((boost::math::isfinite)(thing)) return operator<<(thing);
 				bool old = modifyStrings(false);
-				operator<<(nan_);
+				if ((boost::math::isnan)(thing)) operator<<(nan_);
+				else if (thing < 0) operator<<("-" + inf_);
+				else operator<<(inf_);
 				modifyStrings(old);
 				return *this;
 			}
@@ -136,6 +138,9 @@ namespace OpenMS
 
 		/// String to use for NaN values
 		String nan_;
+
+		/// String to use for Inf values
+		String inf_;
 		
 		/// String quoting method
 		String::QuotingMethod quoting_;

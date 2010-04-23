@@ -173,7 +173,10 @@ START_SECTION((template <typename NumericT> SVOutStream& writeValueOrNan(Numeric
 	out.writeValueOrNan(456);
 	out.writeValueOrNan(std::numeric_limits<double>::quiet_NaN());
 	out << endl;
-	TEST_EQUAL(strstr.str(), "123,3.14\n456,nan\n");
+	out.writeValueOrNan(1.0 / 0.0);
+	out.writeValueOrNan(-1.0 / 0.0);
+	out << endl;
+	TEST_EQUAL(strstr.str(), "123,3.14\n456,nan\ninf,-inf\n");
 }
 END_SECTION
 
