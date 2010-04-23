@@ -35,6 +35,7 @@ OpenMS library improvements:
   - added:
      String substr(size_t pos = 0, size_t n = npos) const;   
      String chop(Size n) const;
+- FeatureFinderAlgorithmPicked is now able to fit asymmetric retention time profiles 
 
 TOPPView improvements:
 - basic visualization of peptide identifications in idXML
