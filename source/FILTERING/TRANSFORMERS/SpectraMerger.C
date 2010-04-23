@@ -35,14 +35,14 @@ namespace OpenMS
     : DefaultParamHandler("SpectraMerger")
   {
     // common
-    defaults_.setValue("mz_binning_width", 10e-5, "Max m/z distance of two peaks to merged.", StringList::create("advanced"));
+    defaults_.setValue("mz_binning_width", 10e-5, "Max m/z distance of two peaks to be merged.", StringList::create("advanced"));
     defaults_.setMinFloat("mz_binning_width", 0);
 
-    defaults_.setValue("mz_binning_width_units", "Da", "Unit in which the distance between two peaks is given.", StringList::create("advanced"));
-    defaults_.setValidStrings("mz_binning_width_units", StringList::create("Da,ppm"));
+    defaults_.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", StringList::create("advanced"));
+    defaults_.setValidStrings("mz_binning_width_unit", StringList::create("Da,ppm"));
 
     // block merging
-		defaults_.setValue("block_method:ms_levels", IntList::create("1"), "Spectra of that MS levels are subject to be merged.");
+		defaults_.setValue("block_method:ms_levels", IntList::create("1"), "Merge spectra of this level.");
 		defaults_.setMinInt("block_method:ms_levels", 1);
     defaults_.setValue("block_method:rt_block_size", 5, "Number of scans to be summed up.");
     defaults_.setMinInt("block_method:rt_block_size", 1);

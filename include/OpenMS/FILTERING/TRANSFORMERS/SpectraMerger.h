@@ -89,22 +89,20 @@ namespace OpenMS
         Size idx_spectrum(0);
         for (typename MapType::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
 			  {
-				  if (it1->getMSLevel() != *it_mslevel)
+				  if (it1->getMSLevel() == *it_mslevel)
 				  {
-					  continue;
-				  }
-				  
-          // block full
-          if (++block_size_count >= rt_block_size)
-          {
-            block_size_count=0;
-            idx_block = idx_spectrum;
+            // block full
+            if (++block_size_count >= rt_block_size)
+            {
+              block_size_count=0;
+              idx_block = idx_spectrum;
+            }
+            else
+            {
+              spectra_to_merge[idx_block].push_back(idx_spectrum);
+            }
           }
-          else
-          {
-            spectra_to_merge[idx_block].push_back(idx_spectrum);
-          }
-          
+
           ++idx_spectrum;
         }
         // check if last block had sacrifice spectra
@@ -114,7 +112,7 @@ namespace OpenMS
         }
 
         // merge spectra, remove all old MS spectra and add new consensus spectra
-        mergeSpectra(exp, spectra_to_merge, *it_mslevel);
+        mergeSpectra_(exp, spectra_to_merge, *it_mslevel);
       }
 
 
@@ -126,6 +124,16 @@ namespace OpenMS
 		/// merges spectra with similar precursors
 		template <typename MapType> void mergeSpectraPrecursors(MapType& exp)
 		{
+    /**
+
+    idea: merge spectra with "similar" precursors to enhance S/N
+    method: either leave #spectra identical and add neighbouring spectra if within deltas
+            or do full clustering (single,complete linkage etc) and report only merged spectra
+               with each spectrum being added to one cluster exlcusively
+
+    untested and probably buggy code:
+
+
 			DoubleReal mz_tolerance(param_.getValue("precursor_method:mz_tolerance"));
 			DoubleReal rt_tolerance(param_.getValue("precursor_method:rt_tolerance"));
 
@@ -134,8 +142,10 @@ namespace OpenMS
 			typedef typename MapType::SpectrumType SpectrumType;
 			Map<Size, std::vector<Size> > spectra_by_idx;
 			Size count1(0);
+      // iterate over spectra
 			for (ConstExpIterator it1 = exp.begin(); it1 != exp.end(); ++it1, ++count1)
 			{
+        // only MS2 and above
 				if (it1->getMSLevel() == 1)
 				{
 					continue;
@@ -143,27 +153,22 @@ namespace OpenMS
 				DoubleReal rt1(it1->getRT());
 				if (it1->getPrecursors().size() == 0)
 				{
-					std::cerr << "SpectrumMerger::mergeSpectraPrecursors(): no precursor defined at spectrum: RT=" << rt1 << ", skipping!" << std::endl;
+					LOG_DEBUG << "SpectrumMerger::mergeSpectraPrecursors(): no precursor defined at spectrum: RT=" << rt1 << ", skipping!" << std::endl;
 					continue;
 				}
 				else if (it1->getPrecursors().size() > 1)
 				{
-					std::cerr << "SpectrumMerger::mergeSpectraPrecursors(): multiple precursors defined at spectrum RT=" << rt1 << ", using only first one!" << std::endl;
+					LOG_WARN << "SpectrumMerger::mergeSpectraPrecursors(): multiple precursors defined at spectrum RT=" << rt1 << ", using only first one!" << std::endl;
 				}
 				
 				DoubleReal precursor_mz1(it1->getPrecursors().begin()->getMZ());
 
+        // from current spectrum --> last spectrum
 				Size count2(count1 + 1);
 				for (ConstExpIterator it2 = it1 + 1; it2 != exp.end(); ++it2, ++count2)
 				{
-					if (it2->getMSLevel() == 1)
-					{
-						continue;
-					}
-					if (it1->getPrecursors().size() == 0)
-        	{
-						continue;
-        	}
+					if (it2->getMSLevel() == 1)	continue;
+					if (it1->getPrecursors().size() == 0)	continue;
 					
 					DoubleReal rt2(it2->getRT());
 					DoubleReal precursor_mz2(it2->getPrecursors().begin()->getMZ());
@@ -211,18 +216,16 @@ namespace OpenMS
 			}
 
       // merge spectra, remove all old MS2 spectra and add new consensus spectra
-      mergeSpectra(exp, spectra_to_merge, 2);
+      mergeSpectra_(exp, spectra_to_merge, 2);
 
       exp.sortSpectra();
+    
+    */
 
 			return;
 		}
 
 
-		void mergeSpectraBlockWisePeakMap(PeakMap& exp);
-
-		/// merges spectra with similar precursors
-		void mergeSpectraPrecursorsPeakMap(PeakMap& exp);
 		// @}
 
     protected:
@@ -237,26 +240,31 @@ namespace OpenMS
 
     */
     template <typename MapType>
-    void mergeSpectra(MapType& exp, const MergeBlocks& spectra_to_merge, const UInt ms_level)
+    void mergeSpectra_(MapType& exp, const MergeBlocks& spectra_to_merge, const UInt ms_level)
     {
 			DoubleReal mz_binning_width(param_.getValue("mz_binning_width"));
-			//DoubleReal mz_binning_unit(param_.getValue("mz_binning_unit"));
+			String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
 
       // merge spectra
 			MapType merged_spectra;
+      Size block_id=0;
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
+        //std::cerr << "block " << block_id++ << ": " << it->first << " -> ";
+        
         typename MapType::SpectrumType all_peaks = exp[it->first];			
         DoubleReal rt_average=all_peaks.getRT();
 
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
+          //std::cerr << *sit << " ";
           rt_average+=exp[*sit].getRT();
 					for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
 					{
 						all_peaks.push_back(*pit);
 					}
 				}
+        //std::cerr << "\n";
 				all_peaks.sortByPosition();
         rt_average/=it->second.size()+1;
 
@@ -269,10 +277,13 @@ namespace OpenMS
         else
         {
 		  	  Peak1D old_peak = *all_peaks.begin();
-				  // TODO write this faster
+          DoubleReal distance;
 		  	  for (typename MapType::SpectrumType::ConstIterator it = (++all_peaks.begin()); it != all_peaks.end(); ++it)
 		  	  {
-		    	  if (fabs(old_peak.getMZ() - it->getMZ()) < mz_binning_width) // TODO use unit
+            if (mz_binning_unit=="Da") distance=fabs(old_peak.getMZ() - it->getMZ());   //Da delta
+            else distance= fabs(old_peak.getMZ() - it->getMZ())*1e6 / old_peak.getMZ(); //ppm delta
+
+		    	  if (distance < mz_binning_width)
 		    	  {
 		      	  old_peak.setIntensity(old_peak.getIntensity() + it->getIntensity());
 		    	  }
