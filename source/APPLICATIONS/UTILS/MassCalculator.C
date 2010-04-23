@@ -104,7 +104,9 @@ protected:
 					 ++it)
 			{
 				DoubleReal mass = computeMass_(seq, *it);
-				sv_out << seq.toString() << *it << mass << (mass / *it) << endl;
+				sv_out << seq.toString() << *it << mass;
+				sv_out.writeValueOrNan(mass / *it);
+				sv_out << endl;
 			}
 		}
 
@@ -116,7 +118,9 @@ protected:
 			{
 				DoubleReal mass = computeMass_(seq, *it);
 				if (it != charges.begin()) *output_ << ", ";
-				*output_ << "z=" << *it << " m=" << mass << " m/z=" << (mass / *it);
+				*output_ << "z=" << *it << " m=" << mass << " m/z=";
+				if (*it != 0) *output_ << (mass / *it);
+				else *output_ << "inf";
 			}
 			*output_ << endl;
 		}
@@ -128,9 +132,10 @@ protected:
 					 ++it)
 			{
 				DoubleReal mass = computeMass_(seq, *it);
-				if (mz) mass = mass / *it;
 				if (it != charges.begin()) *output_ << " ";
-				*output_ << mass;
+				if (!mz) *output_ << mass;
+				else if (*it == 0) *output_ << "inf";
+				else *output_ << mass / *it;
 			}
 			*output_ << endl;
 		}
