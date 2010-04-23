@@ -255,7 +255,7 @@ namespace OpenMS
       T = gsl_multifit_fdfsolver_lmsder;
       s = gsl_multifit_fdfsolver_alloc(T, data_count, num_params);
       gsl_multifit_fdfsolver_set(s, &func, &x.vector);
-      size_t iter = 0;
+      Int iter = 0;
       do
       {
         iter++;

@@ -224,6 +224,9 @@ mts.push_back(mt1);
 mt2.updateMaximum();
 mts.push_back(mt2);
 
+// fix base line to 0 since we have no baseline here
+mts.baseline = 0.0;
+
 mts.max_trace = 0;
 
 /////////////////////////////////////////////////////////////
