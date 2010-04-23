@@ -4,15 +4,18 @@
 
 
 TOPP tools:
-- IDMapper: reworked parameter handling (please see the IDMapper documentation and update your INI files)
-- Resampler: PNG image creation functionality removed and transferred to ImageCreator UTIL
-- FileMerger: can now merge featureXML
-- IDMerger: new option to integrate data from pepXML and protXML
-- SeedListGenerator: new option to use monoisotopic peptide mass instead of precursor m/z for seeds from idXML input
+- TOPP tool categories have reorganized
+- MODIFIED:
+  - IDMapper: reworked parameter handling (please see the IDMapper documentation and update your INI files)
+  - Resampler: PNG image creation functionality removed and transferred to ImageCreator UTIL
+  - FileMerger: can now merge featureXML
+  - IDMerger: new option to integrate data from pepXML and protXML
+  - SeedListGenerator: new option to use monoisotopic peptide mass instead of precursor m/z for seeds from idXML input
 - NEW: 
   - ProteinQuantifier: computes protein/peptide abundances from annotated featureXML or consensusXML files
   - GenericWrapper (e.g. to wrap ProteinProphet in TOPPAS)
-- REMOVE:
+  - ConsensusID: [rewritten] combine several peptide search engine results to improve precision and recall
+- REMOVED:
   - TextImporter (functionality moved to FileConverter)
   
 UTIL tools:
@@ -25,6 +28,13 @@ OpenMS library improvements:
 - read protXML files
 - support protein groups in ProteinIdentification/idXML
 - line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
+- String Class
+  - removed:
+     String substr(SignedSize start, SignedSize n) const; 
+     String substr(SignedSize start) const; 
+  - added:
+     String substr(size_t pos = 0, size_t n = npos) const;   
+     String chop(Size n) const;
 
 TOPPView improvements:
 - basic visualization of peptide identifications in idXML
@@ -34,6 +44,7 @@ TOPPAS improvements:
 - added copy/paste for workflow items
 - workflows can now include other workflows (File>Include)
 - several bug fixes
+- Split TOPPAS in TOPPAS and PipelineExecute TOPP-tool
 
 Changes to the Build System:
 - external code support for CMake 2.8: External Code using 
@@ -49,25 +60,33 @@ Changes to the Build System:
 
 Bug fixes:
 [new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.7]
-- #44   TOPPView warning "Cannot show projections!"
-- #73   Resampler: can't create PNGs with TOPPAS
-- #74   Default parameters of PTModel cause infinite loop
-- #77   FuzzyDiff always returns 'true' when comparing any two PNG images
 - #23   implement protXML
+- #44   TOPPView warning "Cannot show projections!"
 - #46   All TOPP/UTILS segfault if /share is not found
 - #53   TOPPAS select directory has save as dialog
+- #54   TOPPAS select directory has save as dialog
+- #55   TOPPAS context menu "open in TOPPView" does not work under MacOSX
+- #58   Unit tests for nested classes
 - #59   Test of external Code
 - #61   automatic ini file Version number update
 - #62   nightly tests for external code
 - #63   rename methods named min() or max() to something else...
 - #69   FileMerger needs ability to merge featureXML
+- #73   Resampler: can't create PNGs with TOPPAS
+- #74   Default parameters of PTModel cause infinite loop
+- #77   FuzzyDiff always returns 'true' when comparing any two PNG images
+- #90   Quantification on protein level
 - #91   Simple FF crashes on very sparse data
 - #93   TOPPAS layer bug
+- #104  Split TOPPAS in TOPPAS and PipelineExecute TOPP-tool
 - #110  Copy&paste, include workflows in current window
 - #121  Tool categories and menu items in context menus have arbitrary order
 - #122  Projection view: mouse-over text on RT projection says "m/z"
+- #123  Reorganize TOPP tool categories
+- #124  TOPPAS fails to load files correctly
 - #133  Textexporter runs indefinitely when input has no IDs and -consensus_features is specified
 - #136  TOPPView: #of Isotopes in TheoreticalSpectrumGenerator not forwarded
+
 For more minor bugfixes visit the above URL.
 
 Detailed list of changes to specific OpenMS classes:
