@@ -28,7 +28,16 @@
 #include <OpenMS/METADATA/DocumentIDTagger.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
+
+#ifdef _MSC_VER // disable some seqan warnings that distract from ours
+#	pragma warning( push ) // save warning state
+#	pragma warning( disable : 4018 )
+#endif
 #include <boost/interprocess/sync/file_lock.hpp>
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#endif
+
 
 #include <algorithm>
 #include <fstream>

@@ -715,7 +715,7 @@ public:
 			// update cluster_id
 			//--------------------------------------------------------------
 			Int k = -1;
-			Int new_id = distance_matrix.dimensionsize()-1;
+			Int new_id = (Int) distance_matrix.dimensionsize()-1;
 			for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 			{
 				if (it->cluster_id != k) ++new_id;
@@ -724,7 +724,7 @@ public:
 			}
 			for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 			{
-				it->cluster_id = it->cluster_id - distance_matrix.dimensionsize();
+				it->cluster_id -= (Int) distance_matrix.dimensionsize();
 			}
 
 			//--------------------------------------------------------------
