@@ -1484,7 +1484,12 @@ namespace OpenMS
 			//for the command line a conversion is necessary
 			try
 			{
-				return tmp.toString().toInt();
+				Int value = tmp.toString().toInt();
+        if (String(value).size() != tmp.toString().trim().size())
+        {
+          throw Exception::ConversionError(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No proper int given!");
+        }
+        return value;
 			}
 			catch(Exception::ConversionError&)
 			{
@@ -1555,6 +1560,10 @@ namespace OpenMS
 				try
 				{
 					il[i] = sl[i].toInt();
+          if (String(il[i]).size() != sl[i].trim().size())
+          {
+            throw Exception::ConversionError(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No proper int given!");
+          }
 				}
 				catch(Exception::ConversionError&)
 				{
@@ -1645,7 +1654,7 @@ namespace OpenMS
 			}
 		}
 
-		// look up in common secion with tool name
+		// look up in common section with tool name
 		{
 			if (param_common_tool_.exists(key))
 			{
@@ -1654,7 +1663,7 @@ namespace OpenMS
 			}
 		}
 
-		// look up in common secion without tool name
+		// look up in common section without tool name
 		{
 			if (param_common_.exists(key))
 			{
