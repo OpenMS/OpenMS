@@ -58,20 +58,23 @@ namespace OpenMS
 	 		typedef ProteinHit HitType;
 			
 			/**
-				@brief Connects multiple proteins which are indistinguishable
+				@brief Bundles multiple (e.g. indistinguishable) proteins in a group
 			*/
 			struct ProteinGroup
 			{
+				/// Probability of this group
+				DoubleReal probability;
+				/// Accessions of (indistinguishable) proteins that belong to the same group
+				StringList accessions;
+
+				ProteinGroup(): probability(0.0), accessions()
+				{}
+
 				bool operator==(const ProteinGroup rhs) const
 				{
 					return (probability == rhs.probability &&
 									accessions == rhs.accessions);
 				}
-			
-				/// Probability of this group
-				DoubleReal probability;
-				/// Accessions of (indistinguishable) proteins that belong to the same group
-				StringList accessions;
 			};
 			
 			/// Peak mass type
