@@ -235,7 +235,7 @@ namespace OpenMS
 			/**
 				@name Sorting.
 
-				These simplified sorting methods are supported in addition to the standard sorting methods of std::vector.
+				These specialized sorting methods are supported in addition to the standard sorting methods of std::vector. All use stable sorting.
 			*/
 			//@{
 			/// Sorts the peaks according to ascending intensity.
@@ -243,30 +243,30 @@ namespace OpenMS
 			{
 				if (reverse)
 				{
-					std::sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess()));
+					std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess()));
 				}
 				else
 				{
-					std::sort(Base::begin(), Base::end(), ConsensusFeature::IntensityLess());
+					std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::IntensityLess());
 				}
 			}
 
 			/// Sorts the peaks to RT position.
 			void sortByRT()
 			{
-				std::sort(Base::begin(), Base::end(), ConsensusFeature::RTLess());
+				std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::RTLess());
 			}
 
 			/// Sorts the peaks to m/z position.
 			void sortByMZ()
 			{
-				std::sort(Base::begin(), Base::end(), ConsensusFeature::MZLess());
+				std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MZLess());
 			}
 
 			/// Lexicographically sorts the peaks by their position (First RT then m/z).
 			void sortByPosition()
 			{
-				std::sort(Base::begin(), Base::end(), ConsensusFeature::PositionLess());
+				std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::PositionLess());
 			}
 
 			/// Sorts the peaks according to ascending quality.
@@ -274,21 +274,21 @@ namespace OpenMS
 			{
 				if (reverse)
 				{
-					std::sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::QualityLess()));
+					std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::QualityLess()));
 				}
 				else
 				{
-					std::sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess());
+					std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess());
 				}
 			}
 
-			/// Does a stable sort with respect to the size (number of elements)
+			/// Sorts with respect to the size (number of elements)
 			void sortBySize()
 			{
 				std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::SizeLess()));
 			}
 
-			/// Does a stable sort with respect to the sets of maps covered by the consensus features (lexicographically).
+			/// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
 			void sortByMaps()
 			{
 				std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MapsLess());
