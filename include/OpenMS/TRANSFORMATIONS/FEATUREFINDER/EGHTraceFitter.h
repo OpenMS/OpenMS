@@ -412,7 +412,7 @@ namespace OpenMS
       TraceFitter<PeakType>::updateMembers_();
     }
 
-    void printState_(Int  iter, gsl_multifit_fdfsolver * s )
+    void printState_(SignedSize iter, gsl_multifit_fdfsolver * s )
     {
       LOG_DEBUG << "iter: " << iter << " "
           << "height: " << gsl_vector_get( s->x, 0 ) << " "

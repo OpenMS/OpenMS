@@ -201,7 +201,7 @@ namespace OpenMS
     /**
      *
      */
-    virtual void printState_(Int /* iter */, gsl_multifit_fdfsolver * /* s */)
+    virtual void printState_(SignedSize /* iter */, gsl_multifit_fdfsolver * /* s */)
     {
       throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -255,7 +255,7 @@ namespace OpenMS
       T = gsl_multifit_fdfsolver_lmsder;
       s = gsl_multifit_fdfsolver_alloc(T, data_count, num_params);
       gsl_multifit_fdfsolver_set(s, &func, &x.vector);
-      Int iter = 0;
+      SignedSize iter = 0;
       do
       {
         iter++;
@@ -278,7 +278,7 @@ namespace OpenMS
     /// Relative error
     DoubleReal epsilon_rel_;
     /// Maximum number of iterations
-    Size max_iterations_;
+    SignedSize max_iterations_;
     /// Current status of the gsl fitting
     Int gsl_status_;
   };
