@@ -173,8 +173,9 @@ START_SECTION((template <typename NumericT> SVOutStream& writeValueOrNan(Numeric
 	out.writeValueOrNan(456);
 	out.writeValueOrNan(std::numeric_limits<double>::quiet_NaN());
 	out << endl;
-	out.writeValueOrNan(1.0 / 0.0);
-	out.writeValueOrNan(-1.0 / 0.0);
+  DoubleReal zero=0.0; // do not directly divide by 0.0, as MSVC compiler will not allow this
+	out.writeValueOrNan(1.0 / zero);
+	out.writeValueOrNan(-1.0 / zero);
 	out << endl;
 	TEST_EQUAL(strstr.str(), "123,3.14\n456,nan\ninf,-inf\n");
 }
