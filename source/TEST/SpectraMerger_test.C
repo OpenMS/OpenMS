@@ -91,7 +91,6 @@ START_SECTION((template <typename ExperimentType> void mergeSpectraBlockWise(Exp
   TEST_REAL_SIMILAR(exp[1].getRT(),204.34075)
   TEST_EQUAL(exp[1].getMSLevel(), 2);
   TEST_EQUAL(exp[2].getMSLevel(), 1);
-  MzMLFile().store("c:/dev/test.mzML", exp);
   exp=exp2;
 
   p.setValue("block_method:rt_block_size", 4);
