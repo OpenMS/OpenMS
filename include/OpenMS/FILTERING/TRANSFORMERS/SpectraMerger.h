@@ -89,7 +89,7 @@ namespace OpenMS
         Size idx_spectrum(0);
         for (typename MapType::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
 			  {
-				  if (it1->getMSLevel() == *it_mslevel)
+				  if (Int(it1->getMSLevel()) == *it_mslevel)
 				  {
             // block full
             if (++block_size_count >= rt_block_size)
@@ -247,24 +247,21 @@ namespace OpenMS
 
       // merge spectra
 			MapType merged_spectra;
-      Size block_id=0;
+
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
-        //std::cerr << "block " << block_id++ << ": " << it->first << " -> ";
         
         typename MapType::SpectrumType all_peaks = exp[it->first];			
         DoubleReal rt_average=all_peaks.getRT();
 
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
-          //std::cerr << *sit << " ";
           rt_average+=exp[*sit].getRT();
 					for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
 					{
 						all_peaks.push_back(*pit);
 					}
 				}
-        //std::cerr << "\n";
 				all_peaks.sortByPosition();
         rt_average/=it->second.size()+1;
 
