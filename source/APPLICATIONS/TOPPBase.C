@@ -703,7 +703,7 @@ namespace OpenMS
 				case ParameterInformation::INTLIST:
 				case ParameterInformation::DOUBLELIST:
 					{
-						String tmp = it->default_value.toString();
+						String tmp = it->default_value.toString().substitute(", ", " ");
 						if (tmp!="" && tmp!="[]")
 						{
 							addons.push_back(String("default: \"") + tmp + "\"");
