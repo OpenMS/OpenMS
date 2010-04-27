@@ -40,6 +40,9 @@ namespace OpenMS
 		// set default parameter values
 		defaults_.setValue("signal_to_noise", 1.0, "Minimal signal-to-noise ratio for a peak to be picked.");
 		defaults_.setMinFloat("signal_to_noise", 0.0);
+
+		defaults_.setValue("ms1_only", "false", "If true, peak picking is only applied to MS1 scans. Other scans are copied to the output without changes.");
+		defaults_.setValidStrings("ms1_only", StringList::create("true,false"));
 		
 		// parameters for SNTestimator config ...
 

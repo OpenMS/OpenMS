@@ -274,14 +274,22 @@ namespace OpenMS
 			// resize output with respect to input
 			output.resize(input.size());
 			
+			bool ms1_only = param_.getValue("ms1_only").toBool();
 			Size progress = 0;
 
 			startProgress(0,input.size(),"picking peaks");
 			for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
+			{
+				if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+				{
+					output[scan_idx] = input[scan_idx];
+				}
+				else
 				{
 					pick(input[scan_idx], output[scan_idx]);
-					setProgress(++progress);
 				}
+				setProgress(++progress);
+			}
 			endProgress();
 			
 			return ;
