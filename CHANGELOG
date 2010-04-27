@@ -39,6 +39,7 @@ OpenMS library improvements:
 
 TOPPView improvements:
 - basic visualization of peptide identifications in idXML
+- when the amount of loaded data causes memory depletion, an error is issued and TOPPView does not crash (only a problem on 32bit systems)
 - zooming beyond the last zoom stack item using the mouse wheel or CTRL+
 
 TOPPAS improvements:

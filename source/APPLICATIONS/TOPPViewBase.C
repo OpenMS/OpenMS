@@ -1793,7 +1793,17 @@ namespace OpenMS
 		int index = current->text(1).toInt();
 
 		//add a copy of the current data as 1D view
-		LayerData cl = activeCanvas_()->getCurrentLayer();
+		LayerData cl;
+		try
+		{
+			cl = activeCanvas_()->getCurrentLayer();
+		}
+    catch(Exception::BaseException& e) // catch Out-Of-Memory Exceptions
+    {
+    	showLogMessage_(LS_ERROR,"Error while creating layer",e.what());
+      return;
+    }
+
 		addData_(cl.features, cl.consensus, cl.peptides, cl.peaks, LayerData::DT_PEAK, true, false, cl.filename, cl.name);
 
 		//set properties for the new 1D view
@@ -1903,7 +1913,16 @@ namespace OpenMS
 			if (selected!=0 && selected->text()=="Show in 1D view")
 			{
 				//add a copy of the current data as 1D view
-				LayerData cl = activeCanvas_()->getCurrentLayer();
+				LayerData cl;
+				try
+				{
+					cl = activeCanvas_()->getCurrentLayer();
+				}
+				catch(Exception::BaseException& e) // catch Out-Of-Memory Exceptions
+				{
+    			showLogMessage_(LS_ERROR,"Error while creating layer",e.what());
+					return;
+				}
 				addData_(cl.features, cl.consensus, cl.peptides, cl.peaks, LayerData::DT_PEAK, true, false, cl.filename, cl.name);
 
 				//set properties for the new 1D view
@@ -3266,62 +3285,70 @@ namespace OpenMS
 
 	void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
 	{
-		//NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
-		//decode data to get the row
-		//QByteArray encoded_data = data->data(data->formats()[0]);
-		//QDataStream stream(&encoded_data, QIODevice::ReadOnly);
-		//int row, col;
-		//stream >> row >> col;
-
-  	//set wait cursor
-  	setCursor(Qt::WaitCursor);
-
-		//determine where to copy the data
-		UInt new_id = 0;
-		if (id!=-1) new_id = id;
-
-		if (source == layer_manager_)
+		try
 		{
-			//only the selected row can be dragged => the source layer is the selected layer
-			const LayerData& layer = activeCanvas_()->getCurrentLayer();
+			//NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
+			//decode data to get the row
+			//QByteArray encoded_data = data->data(data->formats()[0]);
+			//QDataStream stream(&encoded_data, QIODevice::ReadOnly);
+			//int row, col;
+			//stream >> row >> col;
 
-			//copy the feature and peak data
-			FeatureMapType features = layer.features;
-			ExperimentType peaks = layer.peaks;
-			ConsensusMapType consensus = layer.consensus;
-			vector<PeptideIdentification> peptides = layer.peptides;
+  		//set wait cursor
+  		setCursor(Qt::WaitCursor);
 
-			//add the data
-			addData_(features, consensus, peptides, peaks, layer.type, false, false, layer.filename, layer.name, new_id);
-		}
-		else if (source == spectrum_selection_)
-		{
-			const LayerData& layer = activeCanvas_()->getCurrentLayer();
-			QTreeWidgetItem* item = spectrum_selection_->currentItem();
-			if (item != 0)
+			//determine where to copy the data
+			UInt new_id = 0;
+			if (id!=-1) new_id = id;
+
+			if (source == layer_manager_)
 			{
-				Size index = (Size)(item->text(3).toInt());
-				const ExperimentType::SpectrumType spectrum = layer.peaks[index];
-				ExperimentType new_exp;
-				new_exp.push_back(spectrum);
-				FeatureMapType f_dummy;
-				ConsensusMapType c_dummy;
-				vector<PeptideIdentification> p_dummy;
-				addData_(f_dummy, c_dummy, p_dummy, new_exp, LayerData::DT_CHROMATOGRAM, false, false, layer.filename, layer.name, new_id);
+				//only the selected row can be dragged => the source layer is the selected layer
+				const LayerData& layer = activeCanvas_()->getCurrentLayer();
+
+				//copy the feature and peak data
+				FeatureMapType features = layer.features;
+				ExperimentType peaks = layer.peaks;
+				ConsensusMapType consensus = layer.consensus;
+				vector<PeptideIdentification> peptides = layer.peptides;
+
+				//add the data
+				addData_(features, consensus, peptides, peaks, layer.type, false, false, layer.filename, layer.name, new_id);
 			}
-		}
-		else if (source == 0)
-		{
-			// drag source is external
-			if (data->hasUrls())
+			else if (source == spectrum_selection_)
 			{
-				QList<QUrl> urls = data->urls();
-				for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
+				const LayerData& layer = activeCanvas_()->getCurrentLayer();
+				QTreeWidgetItem* item = spectrum_selection_->currentItem();
+				if (item != 0)
 				{
-					addDataFile(it->toLocalFile(), false, true, "", new_id);
+					Size index = (Size)(item->text(3).toInt());
+					const ExperimentType::SpectrumType spectrum = layer.peaks[index];
+					ExperimentType new_exp;
+					new_exp.push_back(spectrum);
+					FeatureMapType f_dummy;
+					ConsensusMapType c_dummy;
+					vector<PeptideIdentification> p_dummy;
+					addData_(f_dummy, c_dummy, p_dummy, new_exp, LayerData::DT_CHROMATOGRAM, false, false, layer.filename, layer.name, new_id);
 				}
 			}
+			else if (source == 0)
+			{
+				// drag source is external
+				if (data->hasUrls())
+				{
+					QList<QUrl> urls = data->urls();
+					for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
+					{
+						addDataFile(it->toLocalFile(), false, true, "", new_id);
+					}
+				}
+			}
+		
 		}
+    catch(Exception::BaseException& e)
+    {
+    	showLogMessage_(LS_ERROR,"Error while creating layer",e.what());
+    }
 
 		//reset cursor
   	setCursor(Qt::ArrowCursor);
