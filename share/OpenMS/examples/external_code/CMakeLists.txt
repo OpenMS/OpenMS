@@ -10,7 +10,7 @@ set(my_executables
 ## list all classes here, which are required by your executables
 ## (all these classes will be linked into a library)
 set(my_sources
-	example_library_file.C
+	ExampleLibraryFile.C
 )
 
 ## find OpenMS configuration and register target "OpenMS" (our library)
@@ -40,7 +40,6 @@ if (OpenMS_FOUND)
     ## link executables against OpenMS
 	target_link_libraries(${i} OpenMS my_custom_lib)
   endforeach(i)
-
 
   
 else(OpenMS_FOUND)

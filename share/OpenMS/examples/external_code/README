@@ -1,6 +1,7 @@
 Example project for external code using OpenMS library and headers.
+You can modify the build system via CMakeLists.txt, to add more C++ classes, alter build flags etc...
 
-Usage: simply invoke Cmake on the CMakeLists.txt
+Usage: simply invoke CMake on the CMakeLists.txt
 
 e.g.
 cmake -G "Visual Studio 9 2008 Win64" .

@@ -1,5 +1,5 @@
 ### example CMakeLists.txt to develop programs using OpenMS
-project("OpenMS_external_code_test")
+project("OpenMS_ExternalCodeTest")
 cmake_minimum_required(VERSION 2.6)
 
 ## list all your executables here (a corresponding .C file should exist, e.g. Main.C)
@@ -10,7 +10,7 @@ set(my_executables
 ## list all classes here, which are required by your executables
 ## (all these classes will be linked into a library)
 set(my_sources
-	example_library_file.C
+	ExampleLibraryFile.C
 )
 
 ## find OpenMS configuration and register target "OpenMS" (our library)
