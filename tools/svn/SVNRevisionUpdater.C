@@ -111,8 +111,17 @@ int main( int argc, const char* argv[] )
 	// use svnversion command to get the current svn revision
 	string svn_revision;
 	getStdoutFromCommand(string("svnversion \"") + svn_dir + string("\" -n"), svn_revision);
+  if (svn_revision.find("svn: Der Client ist zu alt, um mit der Arbeitskopie") != string::npos)
+  {
+    std::cerr << "Your svn client cannot read the OpenMS repository: " << svn_revision << "\n"
+              << "Not altering the content of the file\n";
+    return 0;
+  }
+  
+
 	svn_revision = string("\"") + svn_revision + string("\"");
-	//std::cout << "DEBUG - got svn revision: " << svn_revision << endl;
+	
+  //std::cout << "DEBUG - got svn revision: " << svn_revision << endl;
 	
 	// extract svn revision from header and see if it needs updating
 	ifstream hfile (svn_header_file.c_str());
