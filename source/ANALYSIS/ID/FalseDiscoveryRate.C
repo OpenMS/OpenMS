@@ -536,7 +536,11 @@ namespace OpenMS
     {
       for (Size i = 0; i != target_scores.size(); ++i)
       {
-        if (i == 0 && j == 0)
+        if (decoy_scores.size()==0)
+        {
+          // set FDR to 0 (done below automatically)
+        }
+        else if (i == 0 && j == 0)
         {
           while (j != decoy_scores.size()
                  &&((target_scores[i] <= decoy_scores[j] && higher_score_better) ||
