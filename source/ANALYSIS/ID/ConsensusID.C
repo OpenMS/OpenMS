@@ -53,8 +53,6 @@ namespace OpenMS
 		defaults_.setMinInt("considered_hits",1);
 		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
 		defaults_.setMinInt("number_of_runs",0);
-		defaults_.setValue("mz_tolerance", 0.01, "give a a mz tolerance");
-		defaults_.setValue("rt_tolerance", 0.01, "give an rt tolerance");
 		defaults_.setValue("min_number_of_engines", 2, "The minimum number of search engines used to generate peptide lists");
 		defaults_.setMinInt("min_number_of_engines",2);
 //nice value for mz and RT tolerances 0.01
