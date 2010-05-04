@@ -72,6 +72,82 @@ namespace OpenMS
     trafo_ = 0;
   }
 
+	const String& TransformationDescription::getName() const
+	{
+		return name_;
+	}
+
+  void TransformationDescription::setName(const String& name)
+	{
+		delete trafo_;
+		trafo_ = 0;
+		name_ = name;
+	}
+		
+	const Param& TransformationDescription::getParameters() const
+	{
+		return param_;
+	}
+		
+	void TransformationDescription::setParameters(const Param& param)
+	{
+		delete trafo_;
+		trafo_ = 0;
+		param_ = param;
+	}
+		
+	const TransformationDescription::PairVector& TransformationDescription::getPairs() const
+	{
+		return pairs_;
+	}
+
+  TransformationDescription::PairVector& TransformationDescription::getPairs()
+	{
+		return pairs_;
+	}
+		
+	void TransformationDescription::setPairs(const TransformationDescription::PairVector& pairs)
+	{
+		pairs_ = pairs;
+	}
+
+  const DataValue& TransformationDescription::getParam(const String& name) const
+  {
+    return param_.getValue(name);
+  }
+
+  void TransformationDescription::setParam(const String& name, DoubleReal value)
+  {
+    delete trafo_;
+    trafo_ = 0;
+    param_.setValue(name,value);
+  }
+		
+	void TransformationDescription::setParam(const String& name, Int value)
+	{
+		delete trafo_;
+		trafo_ = 0;
+		param_.setValue(name,value);
+	}
+			
+  void TransformationDescription::setParam(const String& name, const String& value)
+  {
+    delete trafo_;
+    trafo_ = 0;
+    param_.setValue(name,value);
+  }
+
+	void TransformationDescription::apply(DoubleReal& value) const
+	{
+		// Initialize transformation (if unset).
+		if (!trafo_) init_();
+		//apply transformation
+		trafo_->operator()(value);
+	}
+
+
+//// internal structs
+
   struct TransformationDescription::None_ : TransformationDescription::Trafo_
   {
     None_(const TransformationDescription& rhs) :
@@ -80,8 +156,7 @@ namespace OpenMS
       return;
     }
 
-    virtual void
-    operator ()(DoubleReal&) const
+    virtual void operator ()(DoubleReal&) const
     {
       return;
     }
@@ -106,17 +181,16 @@ namespace OpenMS
       return;
     }
 
-    virtual void
-    operator ()(DoubleReal& value) const
+    virtual void operator ()(DoubleReal& value) const
     {
       value *= slope_;
       value += intercept_;
       return;
     }
 
-  protected:
-    DoubleReal slope_;
-    DoubleReal intercept_;
+    protected:
+      DoubleReal slope_;
+      DoubleReal intercept_;
   };
 
   struct TransformationDescription::InterpolatedLinear_ : TransformationDescription::Trafo_
@@ -158,8 +232,8 @@ namespace OpenMS
       return;
     }
 
-  protected:
-    PairVector pairs_;
+    protected:
+      PairVector pairs_;
   };
 
   struct TransformationDescription::BSpline_ : TransformationDescription::Trafo_

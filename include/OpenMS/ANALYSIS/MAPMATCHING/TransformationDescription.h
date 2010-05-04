@@ -45,10 +45,6 @@ namespace OpenMS
 	- interpolated_linear : Linear interpolation between pairs, extrapolation using first and last pair. At least two pairs must be given.
 	- b_spline : Smoothing cubic B-spline.
 		
-	Additionally corresponding coordinate pairs can be stored, e.g.
-	to describe transformations that cannot be expressed as a simple function.
-	When storing the pairs, but no function parameters, the name 'pairs' should be used.
-		
 	@ingroup MapAlignment
 	*/
 	class OPENMS_DLLAPI TransformationDescription
@@ -74,95 +70,46 @@ namespace OpenMS
 		void clear();
 			
 		///Returns the name
-		const String& getName() const
-		{
-			return name_;
-		}
+    const String& getName() const;
 		/// Sets the name
-		void setName(const String& name)
-		{
-			delete trafo_;
-			trafo_ = 0;
-			name_ = name;
-		}
+    void setName(const String& name);
 			
 		/// Non-mutable access to the parameters
-		const Param& getParameters() const
-		{
-			return param_;
-		}
+		const Param& getParameters() const;
 			
 		/// Sets the name
-		void setParameters(const Param& param)
-		{
-			delete trafo_;
-			trafo_ = 0;
-			param_ = param;
-		}
+		void setParameters(const Param& param);
 			
 		/// Returns the pairs
-		const PairVector& getPairs() const
-		{
-			return pairs_;
-		}
+		const PairVector& getPairs() const;
 		/// Returns the pairs
-		PairVector& getPairs()
-		{
-			return pairs_;
-		}
+    PairVector& getPairs();
 			
 		/// Sets the pairs
-		void setPairs(const PairVector& pairs)
-		{
-			pairs_ = pairs;
-		}
+		void setPairs(const PairVector& pairs);
 
     /**
     @brief Convenience method for const access to parameters
 
     @exception Exception::ElementNotFound is thrown if the parameter does not exist.
     */
-    const DataValue& getParam(const String& name) const
-    {
-      return param_.getValue(name);
-    }
+    const DataValue& getParam(const String& name) const;
 
     /// Convenience method to set double parameters
-    void setParam(const String& name, DoubleReal value)
-    {
-      delete trafo_;
-      trafo_ = 0;
-      param_.setValue(name,value);
-    }
+    void setParam(const String& name, DoubleReal value);
 			
 		/// Convenience method to set Int parameters
-		void setParam(const String& name, Int value)
-		{
-			delete trafo_;
-			trafo_ = 0;
-			param_.setValue(name,value);
-		}
+		void setParam(const String& name, Int value);
 				
     /// Convenience method to set String parameters
-    void setParam(const String& name, const String& value)
-    {
-      delete trafo_;
-      trafo_ = 0;
-      param_.setValue(name,value);
-    }
+    void setParam(const String& name, const String& value);
 
 		/**
 		@brief Apply the transformation to @p value.
 					 
 		@exception Exception::IllegalArgument is thrown if the transformation cannot be initialized according to the given name and parameters.
 		*/
-		void apply(DoubleReal& value) const
-		{
-			// Initialize transformation (if unset).
-			if (!trafo_) init_();
-			//apply transformation
-			trafo_->operator()(value);
-		}
+		void apply(DoubleReal& value) const;
 				
 	 protected:
 			
