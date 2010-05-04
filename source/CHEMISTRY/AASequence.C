@@ -830,12 +830,12 @@ namespace OpenMS
 			split.erase(split.begin());
 		}
 
-		// test the last split if there is a C-terminal modification
 		if (split.size() == 0)
 		{
 			return;
 		}
 
+		// test the last split if there is a C-terminal modification
 		String c_term = *(split.end() - 1);
 		Size c_term_mods = count(c_term.begin(), c_term.end(), '(');
 		if (c_term_mods > 0)

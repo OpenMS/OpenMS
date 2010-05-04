@@ -152,7 +152,7 @@ namespace OpenMS
 			/// sets the term specificity 
 			void setTermSpecificity(Term_Specificity term_spec);
 
-			/// sets the term specificity specified using a name
+			/// sets the terminal specificity using a name (valid: "C-term","N-term","none")
 			void setTermSpecificity(const String& name);
 			
 			/// returns terminal specificity
@@ -161,10 +161,10 @@ namespace OpenMS
 			/// returns the terminal specificity name which is set or given as parameter
 			String getTermSpecificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
 	
-			///	sets the origin 
+			///	sets the origin (ie amino acid)
 			void setOrigin(const String& origin);
 
-			/// returns the origin if set
+			/// returns the origin (ie amino acid) if set
 			const String& getOrigin() const;
 
 			/// classification as defined by the PSI-MOD
