@@ -92,10 +92,6 @@ elseif (MSVC)
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
 
-	## disable min and max macros by default
-	## see BOOST configs for more elaborate explanations
-	#add_definitions(/DNOMINMAX)
-
 	## xerces bug workaround
 	add_definitions(/DOPENMS_XERCESDLL)
 
@@ -108,6 +104,11 @@ elseif (MSVC)
 	## minimal code rebuild
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gm /Zi")
 
+  if (${OPENMS_64BIT_ARCHITECTURE} MATCHES "0")
+    ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
+  endif()
+    
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
