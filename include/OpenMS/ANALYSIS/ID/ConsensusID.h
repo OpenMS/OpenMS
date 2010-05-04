@@ -74,8 +74,11 @@ namespace OpenMS
 			/// Average score algorithm
 			void average_(std::vector<PeptideIdentification>& ids);
       
-			/// PEP based algorithm
-			void PEP_(std::vector<PeptideIdentification>& ids);
+			/// PEP and scoring matrix based algorithm
+			void PEPMatrix_(std::vector<PeptideIdentification>& ids);
+
+			/// PEP and ion similarity based algorithm
+			void PEPIons_(std::vector<PeptideIdentification>& ids);
 
 			/// Majority vote
 			void majority_(std::vector<PeptideIdentification>& ids);
