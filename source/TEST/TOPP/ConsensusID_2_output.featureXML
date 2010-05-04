@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2009-11-12T00:19:17" search_engine="OpenMS/ConsensusID" search_engine_version="1.6.0">
+	<IdentificationRun id="PI_0" date="2010-05-04T14:18:27" search_engine="OpenMS/ConsensusID" search_engine_version="1.7.0">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -35,14 +35,10 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_averaged (Mascot)" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="4.5" sequence="F" charge="0">
-					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="9"/>
 				</PeptideHit>
 				<PeptideHit score="2" sequence="A" charge="0">
-					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="1"/>
-					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="3"/>
 				</PeptideHit>
 				<PeptideHit score="1" sequence="E" charge="0">
-					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="2"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>
@@ -74,14 +70,10 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_averaged (Mascot)" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="3.5" sequence="H" charge="0">
-					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="7"/>
 				</PeptideHit>
 				<PeptideHit score="2" sequence="C" charge="0">
-					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="3"/>
-					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="1"/>
 				</PeptideHit>
 				<PeptideHit score="2" sequence="D" charge="0">
-					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="4"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>
