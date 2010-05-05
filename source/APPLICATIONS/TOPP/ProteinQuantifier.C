@@ -707,16 +707,19 @@ namespace OpenMS
       {
 				registerInputFile_("in", "<file>", "", "Input file");
 				setValidFormats_("in", StringList::create("featureXML,consensusXML"));
-        registerOutputFile_("out", "<file>", "", "Output file for protein abundances");
-				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
+				registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+				setValidFormats_("protxml", StringList::create("idXML"));
+        registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
+				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances\nEither 'out' or 'peptide_out' are required. They can be used together.", false);
+				addEmptyLine_();
+				// addText_("Either 'out' or 'peptide_out' are required. They can be used together.");
+				// addEmptyLine_();
 				registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
 				setMinInt_("top", 0);
 				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
 				setValidStrings_("average", StringList::create("median,mean,sum"));
 				registerFlag_("include_fewer", "Include results for proteins with fewer than 'top' proteotypic peptides");
 				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
-				registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
-				setValidFormats_("protxml", StringList::create("idXML"));
 				addEmptyLine_();
         addText_("Additional options for consensusXML input:");
 				registerFlag_("normalize", "Scale peptide abundances so that medians of all samples are equal");
@@ -734,6 +737,14 @@ namespace OpenMS
       {
 				String in = getStringOption_("in"), out = getStringOption_("out"), 
 					peptide_out = getStringOption_("peptide_out");
+
+				if (out.empty() && peptide_out.empty())
+				{
+					throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__,
+																										 __PRETTY_FUNCTION__, 
+																										 "out/peptide_out");				
+				}
+
 				FileTypes::Type in_type = FileHandler::getType(in);
 
 				String separator = getStringOption_("separator"), 
@@ -834,14 +845,16 @@ namespace OpenMS
 					writePeptideTable_(output, pep_quant, samples);
 					outstr.close();
 				}
-
-				protein_quant prot_quant;
-				quantifyProteins_(pep_quant, prot_quant);
-				ofstream outstr(out.c_str());
-				SVOutStream output(outstr, separator, replacement, quoting_method);
-				writeComments_(output, files);
-				writeProteinTable_(output, prot_quant, samples);
-				outstr.close();
+				if (!out.empty())
+				{
+					protein_quant prot_quant;
+					quantifyProteins_(pep_quant, prot_quant);
+					ofstream outstr(out.c_str());
+					SVOutStream output(outstr, separator, replacement, quoting_method);
+					writeComments_(output, files);
+					writeProteinTable_(output, prot_quant, samples);
+					outstr.close();
+				}
 
 				return EXECUTION_OK;				
 			}
