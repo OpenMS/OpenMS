@@ -286,7 +286,7 @@ namespace OpenMS
 				}
 				else
 				{
-					std::cerr << "Unexpected parameter value!" << std::endl;
+					std::cerr << "TOPPAS: Unexpected parameter value!" << std::endl;
 				}
 				io_infos.push_back(io_info);
 			}
@@ -451,7 +451,7 @@ namespace OpenMS
 				int param_index = (*it)->getTargetInParam();
 				if (param_index < 0)
 				{
-					std::cerr << "Input parameter index out of bounds!" << std::endl;
+					std::cerr << "TOPPAS: Input parameter index out of bounds!" << std::endl;
 					break;
 				}
 				args << "-"+(in_params[param_index].param_name).toQString();
@@ -462,7 +462,7 @@ namespace OpenMS
 					int out_param_index = (*it)->getSourceOutParam();
 					if (out_param_index < 0)
 					{
-						std::cerr << "Output parameter index out of bounds!" << std::endl;
+						std::cerr << "TOPPAS: Output parameter index out of bounds!" << std::endl;
 						break;
 					}
 					const QStringList& source_out_files = tv->current_output_files_[out_param_index];
@@ -475,7 +475,7 @@ namespace OpenMS
 					{
 						if (i >= source_out_files.size())
 						{
-							std::cerr << "Input list too short!" << std::endl;
+							std::cerr << "TOPPAS: Input list too short!" << std::endl;
 							break;
 						}
 						args << source_out_files[i];
@@ -496,7 +496,7 @@ namespace OpenMS
 					{
 						if (i >= input_files.size())
 						{
-							std::cerr << "Input list too short!" << std::endl;
+							std::cerr << "TOPPAS: Input list too short!" << std::endl;
 							break;
 						}
 						args << input_files[i];
@@ -516,7 +516,7 @@ namespace OpenMS
 					{
 						if (i >= input_files.size())
 						{
-							std::cerr << "Input list too short!" << std::endl;
+							std::cerr << "TOPPAS: Input list too short!" << std::endl;
 							break;
 						}
 						args << input_files[i];
@@ -548,7 +548,7 @@ namespace OpenMS
 						{
 							if (i >= output_files.size())
 							{
-								std::cerr << "Output list too short!" << std::endl;
+								std::cerr << "TOPPAS: Output list too short!" << std::endl;
 								break;
 							}
 							args << output_files[i];
@@ -567,7 +567,7 @@ namespace OpenMS
 			connect(ts,SIGNAL(terminateCurrentPipeline()),p,SLOT(kill()));
 			
 			//enqueue process
-      std::cout << "Enqueue: " << name_ << " " << String(args.join(" ")) << std::endl;
+			std::cout << "TOPPAS: Enqueue: " << name_ << " " << String(args.join(" ")) << std::endl;
 			ts->enqueueProcess(p, name_.toQString(), args);
 		}
 		
@@ -707,7 +707,7 @@ namespace OpenMS
 			int param_index = (*it)->getTargetInParam();
 			if (param_index < 0)
 			{
-				std::cerr << "Input parameter index out of bounds!" << std::endl;
+				std::cerr << "TOPPAS: Input parameter index out of bounds!" << std::endl;
 				break;
 			}
 			
@@ -733,7 +733,7 @@ namespace OpenMS
 					int out_param_index = (*it)->getSourceOutParam();
 					if (out_param_index < 0)
 					{
-						std::cerr << "Output parameter index out of bounds!" << std::endl;
+						std::cerr << "TOPPAS: Output parameter index out of bounds!" << std::endl;
 						break;
 					}
 					const QStringList& input_files = tv->current_output_files_[out_param_index];
@@ -907,7 +907,7 @@ namespace OpenMS
 		
 		if (!current_dir.mkpath(getOutputDir().toQString()))
 		{
-			std::cerr << "Could not create path " << getOutputDir() << std::endl;
+			std::cerr << "TOPPAS: Could not create path " << getOutputDir() << std::endl;
 		}
 		
 		foreach (const QStringList& files, current_output_files_)
@@ -919,7 +919,7 @@ namespace OpenMS
 				{
 					if (!current_dir.mkpath(dir))
 					{
-						std::cerr << "Could not create path " << String(dir) << std::endl;
+						std::cerr << "TOPPAS: Could not create path " << String(dir) << std::endl;
 					}
 				}
 			}
