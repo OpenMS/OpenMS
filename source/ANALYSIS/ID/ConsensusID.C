@@ -556,17 +556,17 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 									vector<UInt> tmp;
 									tmp.push_back(Ys);
 									tmp.push_back(Bs);
-									UInt SumTmp;
-									SumTmp=Bs+Ys;
+									UInt sum_tmp;
+									sum_tmp=Bs+Ys;
 										
 									//# matching ions/number of AASeqences(S1) 
 									DoubleReal c, b;
 									b=*( min_element( tmp.begin(), tmp.end() ) );
 									c = b/S1.size();
-									if(SumTmp > SumIonSeries & SumTmp >= 8)									
+									if((sum_tmp > SumIonSeries) && (sum_tmp >= 8))
 									{										
-										SumIonSeries=SumTmp;
-										//cout<<SumTmp;
+										SumIonSeries=sum_tmp;
+										//cout<<sum_tmp;
 										a=c;
 										IonSeries=Bs;
 										z=(double)tt->getScore()*a;
