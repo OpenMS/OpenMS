@@ -76,7 +76,7 @@ vec2.push_back(p4);
 vec2.push_back(p5);
 vec2.push_back(p6);
 
-START_SECTION(void setHullPoints(PointArrayType& points))
+START_SECTION(void setHullPoints(const PointArrayType& points))
 	ConvexHull2D tmp;
 	vector<DPosition<2> > vec3;
 	vec3.push_back(p1);

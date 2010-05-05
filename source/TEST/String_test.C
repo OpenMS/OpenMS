@@ -278,7 +278,7 @@ START_SECTION((String suffix(char delim) const))
 	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
 END_SECTION
 
-START_SECTION((String substr(size_t start, size_t n) const))
+START_SECTION((String substr(size_t pos=0, size_t n=npos) const))
 	String s("abcdef");
 	//std::string functionality
 	TEST_EQUAL(s.substr(0,4),"abcd");
