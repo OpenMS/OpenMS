@@ -158,6 +158,15 @@ namespace OpenMS
 		void computeTransformations_(std::vector<SeqToList>& rt_data,
 																 std::vector<TransformationDescription>&
 																 transforms, bool sorted = false);
+
+		/**
+			 @brief Check that parameter values are valid
+
+			 Currently only 'min_run_occur' is checked.
+
+			 @param runs Number of runs (input files) to be aligned
+		*/
+		void checkParameters_(const Size runs);
 			
 	 private:
 

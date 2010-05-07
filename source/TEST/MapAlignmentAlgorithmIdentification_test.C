@@ -102,7 +102,13 @@ START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<
 		TEST_REAL_SIMILAR(peptides[0][i].getMetaValue("RT"),
 											peptides[1][i].getMetaValue("RT"));
 	}
-	
+
+	// test parameter check:
+	params.setValue("min_run_occur", 3);
+	aligner->setParameters(params);
+	TEST_EXCEPTION(Exception::InvalidParameter, 
+								 aligner->alignPeptideIdentifications(peptides, transforms));
+
 }
 END_SECTION
 

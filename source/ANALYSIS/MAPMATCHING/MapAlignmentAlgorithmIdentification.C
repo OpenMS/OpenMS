@@ -66,11 +66,22 @@ namespace OpenMS
 	{
 	}
 
-	
+
+	void MapAlignmentAlgorithmIdentification::checkParameters_(const Size runs)
+	{
+		Size min_run_occur = param_.getValue("min_run_occur");
+		if (min_run_occur > runs)
+		{
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of parameter 'min_run_occur' (here: " + String(min_run_occur) + ") must not exceed the number of runs (here: " + String(runs) + ")");
+		}
+	}
+
+
 	void MapAlignmentAlgorithmIdentification::alignPeakMaps(
 		vector<MSExperiment<> >& maps,
 		vector<TransformationDescription>& transformations)
 	{
+		checkParameters_(maps.size());
 		startProgress(0, 3, "aligning peak maps");
 
 		score_threshold_ = param_.getValue("peptide_score_threshold");
@@ -95,6 +106,7 @@ namespace OpenMS
 		vector<FeatureMap<> >& maps,
 		vector<TransformationDescription>& transformations)
 	{
+		checkParameters_(maps.size());
 		startProgress(0, 3, "aligning feature maps");
 
 		score_threshold_ = param_.getValue("peptide_score_threshold");
@@ -119,6 +131,7 @@ namespace OpenMS
 		vector<vector<PeptideIdentification> >& maps,
 		vector<TransformationDescription>& transformations)
 	{
+		checkParameters_(maps.size());
 		startProgress(0, 3, "aligning peptide identifications");
 
 		score_threshold_ = param_.getValue("peptide_score_threshold");
