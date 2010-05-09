@@ -38,9 +38,6 @@ namespace OpenMS
    It offers a method to determine element pairs across two element maps.
    The corresponding features must be aligned, but may have small position deviations.
 
-   To speed up the search for element pairs and consensus elements, the %StablePairFinder
-   uses an "m/z sliding window algorithm" for the nearest neighbor search.
-
    Motivation and definition of the distance measure:
 
    The similarity value should express our confidence that one element might
@@ -48,7 +45,6 @@ namespace OpenMS
    maximal similarity is one.  Let \f$\Delta_\textit{RT}\f$ and
    \f$\Delta_\textit{MZ}\f$ be the absolute values of the RT and MZ differences
    in the data.  Then the similarity value is
-   TODO update formula in documentation!!
    \f[
    \frac{1}{
    \big( 1 + \Delta_\textit{RT} \cdot \textit{diff\_intercept\_RT} \big)^\textit{diff\_exponent\_RT}
@@ -56,6 +52,7 @@ namespace OpenMS
    \big( 1 + \Delta_\textit{MZ} \cdot \textit{diff\_intercept\_MZ} \big)^\textit{diff\_exponent\_MZ}
    }
    \f]
+   @todo update formula in documentation!
 
    Choosing <i>diff_exponent</i>: This parameter controls the growth rate of the
    penalty for differences.  It is for example possible to search for pairs
