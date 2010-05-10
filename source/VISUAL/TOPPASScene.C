@@ -631,7 +631,7 @@ namespace OpenMS
 		
 		//save file
 		save_param.store(file);
-		changed_ = false;
+		setChanged(false);
 		file_name_ = file;
 	}
 	
@@ -1193,7 +1193,7 @@ namespace OpenMS
 			(*it)->moveBy(dx,dy);
 		}
 		
-		changed_ = true;
+		setChanged(true);
 	}
 
 	void TOPPASScene::snapToGrid()
@@ -1259,7 +1259,16 @@ namespace OpenMS
 	
 	void TOPPASScene::setChanged(bool b)
 	{
-		changed_ = b;
+		if (changed_ != b)
+		{
+			changed_ = b;
+			emit mainWindowNeedsUpdate();
+		}
+	}
+	
+	bool TOPPASScene::wasChanged()
+	{
+		return changed_;
 	}
 	
 	bool TOPPASScene::isPipelineRunning()

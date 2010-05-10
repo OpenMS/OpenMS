@@ -420,6 +420,7 @@ namespace OpenMS
 				connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
 				connect (scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
 				connect (scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
+				connect (scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
 			}
 			else
 			{
@@ -464,6 +465,7 @@ namespace OpenMS
 		connect (ts, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
 		connect (ts, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
 		connect (ts, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+		connect (ts, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
   	showAsWindow_(tw, "(Untitled)");
   }
 	
@@ -526,7 +528,9 @@ namespace OpenMS
 				file_name += ".toppas";
 			}
 			w->getScene()->store(file_name);
-			tab_bar_->setTabText(tab_bar_->currentIndex(), File::basename(file_name).toQString());
+			QString caption = File::basename(file_name).toQString();
+			tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+			w->setWindowTitle(caption);
 		}
 	}
 	
@@ -614,7 +618,6 @@ namespace OpenMS
 		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
   }
 
-	
   void TOPPASBase::closeEvent(QCloseEvent* event)
   {
 		bool close = true;
@@ -853,7 +856,7 @@ namespace OpenMS
 			if (text=="&Run (F5)")
 			{
 				bool show = false;
-				if (tw && ts && !(ts->isPipelineRunning()))
+				if (ts && !(ts->isPipelineRunning()))
 				{
 					show = true;
 				}
@@ -862,7 +865,7 @@ namespace OpenMS
 			else if (text=="&Abort")
 			{
 				bool show = false;
-				if (tw && ts && ts->isPipelineRunning())
+				if (ts && ts->isPipelineRunning())
 				{
 					show = true;
 				}
@@ -870,18 +873,36 @@ namespace OpenMS
 			}
 			else if (text=="&Include")
 			{
-				bool show = tw && ts;
+				bool show = ts;
 				actions[i]->setEnabled(show);
 			}
 			else if (text=="&Load resource file")
 			{
-				bool show = tw && ts;
+				bool show = ts;
 				actions[i]->setEnabled(show);
 			}
 			else if (text=="Save &resource file")
 			{
-				bool show = tw && ts;
+				bool show = ts;
 				actions[i]->setEnabled(show);
+			}
+			else if (text=="&Save")
+			{
+				bool show = ts && ts->wasChanged();
+				actions[i]->setEnabled(show);
+			}
+		}
+		
+		if (ts)
+		{
+			QString title = tw->windowTitle();
+			bool asterisk_shown = title.startsWith("*");
+			bool changed = ts->wasChanged();
+			if (asterisk_shown ^ changed)
+			{
+				title = asterisk_shown ? title.right(title.size()-1) : QString("*") + title;
+				tw->setWindowTitle(title);
+				tab_bar_->setTabText(tab_bar_->currentIndex(), title);
 			}
 		}
   }
