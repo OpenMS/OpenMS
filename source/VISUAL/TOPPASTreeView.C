@@ -94,7 +94,12 @@ namespace OpenMS
 		QTreeWidget::keyPressEvent(e);
 		if (currentItem() && e->key() == Qt::Key_Return)
 		{
+			e->accept();
 			emit itemDoubleClicked(currentItem(), 0);
+		}
+		else
+		{
+			e->ignore();
 		}
 	}
 	

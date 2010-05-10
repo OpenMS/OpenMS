@@ -909,9 +909,20 @@ namespace OpenMS
 		log_->moveCursor(QTextCursor::End);
   }
 
-	void TOPPASBase::keyPressEvent(QKeyEvent* /*e*/)
+	void TOPPASBase::keyPressEvent(QKeyEvent* e)
 	{
- 		
+ 		if (e->key() == Qt::Key_F5)
+		{
+			TOPPASWidget* tw = activeWindow_();
+			if (!tw)
+			{	
+				e->ignore();
+				return;
+			}
+			TOPPASScene* ts = tw->getScene();
+			ts->runPipeline();
+			e->accept();
+		}
 	}
 	
 	void TOPPASBase::updateCurrentPath()

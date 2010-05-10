@@ -133,11 +133,6 @@ namespace OpenMS
 			scene_->removeSelected();
 			e->accept();
 		}
-		else if (e->key() == Qt::Key_F5)
-		{
-			scene_->runPipeline();
-			e->accept();
-		}
 		else if (e->key() == Qt::Key_Plus)
 		{
 			zoom(false);
@@ -147,6 +142,10 @@ namespace OpenMS
 		{
 			zoom(true);
 			e->accept();
+		}
+		else
+		{
+			e->ignore();
 		}
 	}
 	
