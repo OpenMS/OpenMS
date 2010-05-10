@@ -7,13 +7,15 @@ ClassTest.C
 Constants.C
 Exception.C
 FuzzyStringComparator.C
+LogStream.C
+LogConfigHandler.C
 ProgressLogger.C
 SingletonRegistry.C
-VersionInfo.C
-LogStream.C
+StreamHandler.C
 UniqueIdGenerator.C
 UniqueIdInterface.C
 UniqueIdIndexer.C
+VersionInfo.C
 )
 
 ### add path to the filenames

@@ -413,10 +413,10 @@ namespace OpenMS
 					- <b>%y</b>	message type ("Error", "Warning", "Information", "-")
 					- <b>%T</b> time (HH:MM:SS)
 					- <b>%t</b>  time in short format (HH:MM)
-					- <b>%D</b>	date (DD.MM.YYYY)
-					- <b>%d</b>  date in short format (DD.MM.)
-					- <b>%S</b> time and date (DD.MM.YYYY, HH:MM:SS)
-					- <b>%s</b>  time and date in short format (DD.MM., HH:MM)
+					- <b>%D</b>	date (YYYY/MM/DD)
+					- <b>%d</b>  date in short format (MM/DD)
+					- <b>%S</b> time and date (YYYY/MM/DD, HH:MM:SS)
+					- <b>%s</b>  time and date in short format (MM/DD, HH:MM)
 					- <b>%%</b>	percent sign (escape sequence)
 				
 		*/
@@ -469,18 +469,11 @@ namespace OpenMS
   #define LOG_DEBUG \
   Log_debug << __FILE__ << "(" << __LINE__ << "): "
 
-
-	/**
- Global static instance of a logstream.
-			This instance of LogStream is by default bound to <b>cout</b> <b>cerr</b> by calling
-			the default constructor.
-	*/
-
-	OPENMS_DLLAPI extern Logger::LogStream	Log_fatal;
-	OPENMS_DLLAPI extern Logger::LogStream  Log_error;
-	OPENMS_DLLAPI extern Logger::LogStream  Log_warn;
-	OPENMS_DLLAPI extern Logger::LogStream  Log_info;
-	OPENMS_DLLAPI extern Logger::LogStream  Log_debug;
+  OPENMS_DLLAPI extern Logger::LogStream Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
+  OPENMS_DLLAPI extern Logger::LogStream Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
+  OPENMS_DLLAPI extern Logger::LogStream Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
+  OPENMS_DLLAPI extern Logger::LogStream Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
+  OPENMS_DLLAPI extern Logger::LogStream Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream.
 
 } // namespace OpenMS
 

@@ -9,15 +9,17 @@ Exception.h
 Factory.h
 FactoryBase.h
 FuzzyStringComparator.h
+LogStream.h
+LogConfigHandler.h
 Macros.h
 ProgressLogger.h
 SingletonRegistry.h
+StreamHandler.h
 Types.h
-VersionInfo.h
-LogStream.h
 UniqueIdGenerator.h
 UniqueIdInterface.h
 UniqueIdIndexer.h
+VersionInfo.h
 )
 
 ### add path to the filenames

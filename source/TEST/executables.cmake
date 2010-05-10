@@ -5,7 +5,9 @@ set(concept_executables_list
 	Factory_test
 	FuzzyStringComparator_test
 	SingletonRegistry_test
+  StreamHandler_test
 	VersionInfo_test
+	LogConfigHandler_test
 	LogStream_test
 	UniqueIdGenerator_test
 	UniqueIdIndexer_test

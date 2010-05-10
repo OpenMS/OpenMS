@@ -39,6 +39,7 @@
 #include <cstring>
 #include <cstdio>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/StreamHandler.h>
 
 #define BUFFER_LENGTH 32768
 
@@ -346,22 +347,22 @@ namespace OpenMS
 						break;
 
 					case 'D':	// date: DD.MM.YYYY
-						strftime(buf, BUFFER_LENGTH - 1, "%d.%m.%Y", localtime(&time));
+						strftime(buf, BUFFER_LENGTH - 1, "%Y/%m/%d", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 'd':	// date: DD.MM.
-						strftime(buf, BUFFER_LENGTH - 1, "%d.%m.", localtime(&time));
+						strftime(buf, BUFFER_LENGTH - 1, "%m/%d", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 'S':	// time+date: DD.MM.YYYY, HH:MM:SS
-						strftime(buf, BUFFER_LENGTH - 1, "%d.%m.%Y, %H:%M:%S", localtime(&time));
+						strftime(buf, BUFFER_LENGTH - 1, "%Y/%m/%d, %H:%M:%S", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 's':	// time+date: DD.MM., HH:MM
-						strftime(buf, BUFFER_LENGTH - 1, "%d.%m., %H:%M", localtime(&time));
+						strftime(buf, BUFFER_LENGTH - 1, "%m/%d, %H:%M", localtime(&time));
 						result.append(buf);
 						break;
 
@@ -524,11 +525,14 @@ namespace OpenMS
 	
 	} // namespace Logger
 
+  // global StreamHandler
+  OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
+
 	// global default logstream
-	OPENMS_DLLAPI  Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
-	OPENMS_DLLAPI  Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
-	OPENMS_DLLAPI  Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
-	OPENMS_DLLAPI  Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
-	OPENMS_DLLAPI  Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), true);
+	OPENMS_DLLAPI Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
+	OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
+	OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
+	OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
+	OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), true);
 
 } // namespace OpenMS

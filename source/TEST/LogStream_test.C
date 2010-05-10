@@ -57,7 +57,7 @@ class TestTarget
 };
 
 
-START_TEST(LogStream, "$Id$")
+START_TEST(LogStream, "$Id: LogStream_test.C 6565 2010-01-23 17:21:27Z andreas_bertsch $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -204,13 +204,13 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	l1 << "  3." << endl;
 	l1.setPrefix( "%t"); //time in short format (HH:MM)
 	l1 << "  4." << endl;
-	l1.setPrefix("%D"); //date (DD.MM.YYYY)
+	l1.setPrefix("%D"); //date (YYYY/MM/DD)
 	l1 << "  5." << endl;
-	l1.setPrefix("%d"); // date in short format (DD.MM.)
+	l1.setPrefix("%d"); // date in short format (MM/DD)
 	l1 << "  6." << endl;
-	l1.setPrefix("%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
+	l1.setPrefix("%S"); //time and date (YYYY/MM/DD, HH:MM:SS)
 	l1 << "  7." << endl;
-	l1.setPrefix("%s"); //time and date in short format (DD.MM., HH:MM)
+	l1.setPrefix("%s"); //time and date in short format (MM/DD, HH:MM)
 	l1 << "  8." << endl;
 	l1.setPrefix("%%"); //percent sign (escape sequence)
 	l1 << "  9." << endl;
@@ -224,10 +224,10 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	regex_list.push_back("DEVELOPMENT  2\\.");
 	regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
 	regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+  5\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.  6\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+, [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\., [0-2][0-9]:[0-5][0-9]  8\\.");
+	regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9]  5\\.");
+	regex_list.push_back("[0-1][0-9]/[0-3][0-9]  6\\.");
+	regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+	regex_list.push_back("[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]  8\\.");
 	regex_list.push_back("%  9\\.");
 	regex_list.push_back(" 10\\.");
 
@@ -257,13 +257,13 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
   l1 << "  3." << endl;
   l1.setPrefix(stream_by_logger, "%t"); //time in short format (HH:MM)
   l1 << "  4." << endl;
-  l1.setPrefix(stream_by_logger, "%D"); //date (DD.MM.YYYY)
+  l1.setPrefix(stream_by_logger, "%D"); //date (YYYY/MM/DD)
   l1 << "  5." << endl;
-  l1.setPrefix(stream_by_logger, "%d"); // date in short format (DD.MM.)
+  l1.setPrefix(stream_by_logger, "%d"); // date in short format (MM/DD)
   l1 << "  6." << endl;
-  l1.setPrefix(stream_by_logger, "%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
+  l1.setPrefix(stream_by_logger, "%S"); //time and date (YYYY/MM/DD, HH:MM:SS)
   l1 << "  7." << endl;
-  l1.setPrefix(stream_by_logger, "%s"); //time and date in short format (DD.MM., HH:MM)
+  l1.setPrefix(stream_by_logger, "%s"); //time and date in short format (MM/DD, HH:MM)
   l1 << "  8." << endl;
   l1.setPrefix(stream_by_logger, "%%"); //percent sign (escape sequence)
   l1 << "  9." << endl;
@@ -277,12 +277,12 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
 
 	StringList regex_list;
 	regex_list.push_back("DEVELOPMENT  2\\.");
-	regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
-	regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+  5\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.  6\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+, [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
-	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\., [0-2][0-9]:[0-5][0-9]  8\\.");
+  regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
+  regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
+  regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9]  5\\.");
+  regex_list.push_back("[0-1][0-9]/[0-3][0-9]  6\\.");
+  regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+  regex_list.push_back("[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]  8\\.");
 	regex_list.push_back("%  9\\.");
 	regex_list.push_back(" 10\\.");
 	
