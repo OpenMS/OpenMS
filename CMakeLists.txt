@@ -104,7 +104,7 @@ elseif (MSVC)
 	## minimal code rebuild
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gm /Zi")
 
-  if (${OPENMS_64BIT_ARCHITECTURE} MATCHES "0")
+  if (NOT OPENMS_64BIT_ARCHITECTURE)
     ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
   endif()
@@ -972,5 +972,4 @@ else()
 
 
 endif()
-
 
