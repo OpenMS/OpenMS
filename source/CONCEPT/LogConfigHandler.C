@@ -336,7 +336,7 @@ namespace OpenMS
   void printStreamConfig_(std::ostream& os, const String & name, const std::set<String> & stream_names, const std::map<String,StreamHandler::StreamType> & stream_type_map)
   {
     os << name << endl;
-    for(std::set<String>::iterator it = stream_names.begin() ; it != stream_names.end() ; ++it)
+    for(std::set<String>::const_iterator it = stream_names.begin() ; it != stream_names.end() ; ++it)
     {
       os << "->" << "\t" << *it;
       // append stream type
