@@ -62,7 +62,7 @@ namespace OpenMS
    *
    * @ingroup Concept
    */
-  class StreamHandler
+  class OPENMS_DLLAPI StreamHandler
   {
   public:
     /**

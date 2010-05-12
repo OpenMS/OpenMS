@@ -43,7 +43,7 @@ namespace OpenMS
    *
    * @ingroup Concept
    */
-  class LogConfigHandler
+  class OPENMS_DLLAPI LogConfigHandler
   {
   public:
     
@@ -52,7 +52,7 @@ namespace OpenMS
     /**
      * @brief Translates the given list of parameter settings into a LogStream configuration
      * 
-     * If one of the passed configuration strings is not well formed a ParseError exception 
+     * If one of the passed configuration strings is not well formed a Exception::ParseError
      * will be thrown.
      * 
      * Each element in the string list should follow this naming convention
