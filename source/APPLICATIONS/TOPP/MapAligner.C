@@ -78,7 +78,7 @@ protected:
 	{
 		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
 		setValidFormats_("in",StringList::create("mzML,featureXML,idXML"));
-		registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",false);
+		registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",true);
 		setValidFormats_("out",StringList::create("mzML,featureXML,idXML"));
 		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
