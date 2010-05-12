@@ -59,6 +59,8 @@ namespace OpenMS
 		defaults_.setValidStrings("use_feature_rt", 
 															StringList::create("true,false"));
 		defaultsToParam_();
+
+		setLogType(CMD);
 	}
 
 	
