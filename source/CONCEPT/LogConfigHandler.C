@@ -89,9 +89,9 @@ namespace OpenMS
       StringList l;
       (*iter).split(' ', l, true);
       
-      if(l.size() < 2 || l.size() > 4)
+      if(l.size() < 2 || l.size() > 3)
       {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, (*iter), "Error while parsing logger config. Setting can only have two or three arguments.");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, (*iter), "Error while parsing logger config. Setting can only have 2 or 3 arguments.");
       }
 
       // we parse a command line here, so we append a FILE to each of the arguments
@@ -126,16 +126,6 @@ namespace OpenMS
       {
         // convenience variables
         const String& stream_name = commands[2];
-        const String& stream_type = commands[3];
-
-        // check if a stream with the same name, but different type was already registered
-        if(stream_type_map_.count(stream_name) != 0)
-        {
-          if(stream_type_map_[stream_name] != getStreamTypeByName_(stream_type))
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "A stream with the same name but different type was already registered.");
-          }
-        }
 
         // add the stream given by the 3rd argument to the defined log
         if(stream_name == "cout")
@@ -148,7 +138,23 @@ namespace OpenMS
         }
         else 
         {
-          StreamHandler::StreamType type = getStreamTypeByName_(stream_type);
+					if (commands.size() <= 3)
+					{	// write error to cerr and not a LogStream (because we're just configuring it...)
+						std::cerr << "Error during configuring logging: the command '" << (*iter) << "' requires 4 entries but has only " << commands.size() << "\n";
+						continue;
+					}
+					const String& stream_type = commands[3];
+						
+					// check if a stream with the same name, but different type was already registered
+					if(stream_type_map_.count(stream_name) != 0)
+					{
+						if(stream_type_map_[stream_name] != getStreamTypeByName_(stream_type))
+						{
+							throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "A stream with the same name but different type was already registered.");
+						}
+					}
+					
+					StreamHandler::StreamType type = getStreamTypeByName_(stream_type);
           Int status = STREAM_HANDLER.registerStream(type, stream_name);
 
           if(!status)
@@ -172,7 +178,6 @@ namespace OpenMS
       {
         // convenience variables
         const String& stream_name = commands[2];
-        const String& stream_type = commands[3];
 
         // add the stream given by the 3rd argument to the defined log
         if(stream_name == "cout")
@@ -185,6 +190,12 @@ namespace OpenMS
         }
         else 
         {
+					if (commands.size() <= 3)
+					{	// write error to cerr and not a LogStream (because we're just configuring it...)
+						std::cerr << "Error during configuring logging: the command '" << (*iter) << "' requires 4 entries but has only " << commands.size() << "\n";
+						continue;
+					}
+					const String& stream_type = commands[3];
           StreamHandler::StreamType type = getStreamTypeByName_(stream_type);
 
           // it is a file, get the ostream from the StreamHandler

@@ -52,21 +52,25 @@ namespace OpenMS
     /**
      * @brief Translates the given list of parameter settings into a LogStream configuration
      * 
-     * If one of the passed configuration strings is not well formed a Exception::ParseError
-     * will be thrown.
+     * Translates the given list of parameter settings into a LogStream configuration.
+		 * Usually this list stems from a command line call.
      * 
-     * Each element in the string list should follow this naming convention
+     * Each element in the stringlist should follow this naming convention
      * 
-     * LOG_NAME ACTION PARAMETER
+     * <LOG_NAME> <ACTION> <PARAMETER>
      * 
+		 * with
      * LOG_NAME: DEBUG,INFO,WARNING,ERROR,FATAL_ERROR
      * ACTION: add,remove,clear
-     * PARAMETER: for add/remove it is the stream name (cout, file name)
+     * PARAMETER: for 'add'/'remove' it is the stream name (cout, cerr or a filename), 'clear' does not require any further parameter
+		 *
+		 * Example:
+     * <code>DEBUG add debug.log</code><br>
+		 *
+     * This function will <b>not</b> apply to settings to the log handlers. Use configure() for that.
      * 
-     * @param setting String containing the configuration options
-     * 
+     * @param setting StringList containing the configuration options
      * @throw Exception::ParseError In case of an invalid configuration.
-     * 
      * @return Param object containing all settings, that can be applied using the LogConfigHandler::configure() method
      */
     Param parse(const StringList & setting);
@@ -74,12 +78,24 @@ namespace OpenMS
     /**
      * @brief Applies the given parameters (@p param) to the current configuration
      *
-     * A classical configuration would contain a list of settings e.g.
+		 * 
+     * <LOG_NAME> <ACTION> <PARAMETER> <STREAMTYPE>
+     * 
+     * LOG_NAME: DEBUG,INFO,WARNING,ERROR,FATAL_ERROR
+     * ACTION: add,remove,clear
+     * PARAMETER: for 'add'/'remove' it is the stream name (cout, cerr or a filename), 'clear' does not require any further parameter
+		 * STREAMTYPE: FILE, STRING (for a StringStream, which you can grab by this name using getStream() )
+		 *
+     * You cannot specify a file named "cout" or "cerr" even if you specify streamtype 'FILE' - the handler will mistake this for the 
+     * internal streams, but you can use "./cout" to print to a file named cout.
+		 *
+		 * A classical configuration would contain a list of settings e.g.
      *
      * <code>DEBUG add debug.log FILE</code><br>
-     * <code>INFO remove cout FILE</code><br>
+     * <code>INFO remove cout FILE</code> (FILE will be ignored)<br>
      * <code>INFO add string_stream1 STRING</code><br>
      *
+		 * @throw Exception::ElementNotFound If the LogStream (first argument) does not exist.
      * @throw Exception::FileNotWritable If a file (or stream) should be opened as log file (or stream) that is not accesible.
      * @throw Exception::IllegalArgument If a stream should be registered, that was already registered with a different type.
      */
