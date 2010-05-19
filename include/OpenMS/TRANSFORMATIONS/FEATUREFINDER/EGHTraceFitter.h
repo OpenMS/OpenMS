@@ -206,21 +206,10 @@ namespace OpenMS
       s1 = (-1 * (L * tau_) / 2) + s;
       s2 = (-1 * (L * tau_) / 2) - s;
 
-      // check if this is necessary
-      if((s1 > 0) && (s2 > 0))
-      {
-        throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-      }
-      else if(s1 > 0)
-      {
-        bounds.first = apex_rt_ + s2;
-        bounds.second = apex_rt_ + s1;
-      }
-      else
-      {
-        bounds.first = apex_rt_ + s1;
-        bounds.second = apex_rt_ + s2;
-      }
+      // the smaller one (should be < 0) = lower bound
+      bounds.first = apex_rt_ + std::min(s1,s2);
+      // bigger one (should be > 0) = upper bound
+      bounds.second = apex_rt_ + std::max(s1,s2);
 
       return bounds;
     }
