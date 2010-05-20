@@ -224,16 +224,16 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	regex_list.push_back("DEVELOPMENT  2\\.");
 	regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
 	regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
-	regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9]  5\\.");
+  regex_list.push_back("[0-9]+/[0-1][0-9]/[0-3][0-9]  5\\.");
 	regex_list.push_back("[0-1][0-9]/[0-3][0-9]  6\\.");
-	regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+  regex_list.push_back("[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
 	regex_list.push_back("[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]  8\\.");
 	regex_list.push_back("%  9\\.");
 	regex_list.push_back(" 10\\.");
 
 	int pos(0);
 	for (Size i=0;i<regex_list.size();++i)
-		{
+  {
 		QRegExp rx(regex_list[i].c_str());
 		QRegExpValidator v(rx, 0);
 		QString to_validate = to_validate_list[i].toQString();
@@ -279,9 +279,9 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
 	regex_list.push_back("DEVELOPMENT  2\\.");
   regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
   regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
-  regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9]  5\\.");
+  regex_list.push_back("[0-9]+/[0-1][0-9]/[0-3][0-9]  5\\.");
   regex_list.push_back("[0-1][0-9]/[0-3][0-9]  6\\.");
-  regex_list.push_back("[0-9]+/[0-3][0-9]/[0-1][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+  regex_list.push_back("[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
   regex_list.push_back("[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]  8\\.");
 	regex_list.push_back("%  9\\.");
 	regex_list.push_back(" 10\\.");

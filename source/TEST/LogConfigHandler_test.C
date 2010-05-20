@@ -114,7 +114,7 @@ START_SECTION((void configure(const Param &param)))
   int i = 1;
   for(StringList::ConstIterator it = info_warn_result.begin() ; it != info_warn_result.end(); ++it)
   {
-    QString pattern("\\[[0-9]+/[0-3][0-9]/[0-1][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] ");
+    QString pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] ");
     pattern.append(QString::number(i));
     QRegExp rx(pattern);
     QRegExpValidator v(rx, 0);
@@ -130,7 +130,7 @@ START_SECTION((void configure(const Param &param)))
 
   TEST_EQUAL(error_result.size(), 1)
 
-  QString pattern("\\[[0-9]+/[0-3][0-9]/[0-1][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
+  QString pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
   QRegExp rx(pattern);
   QRegExpValidator v(rx, 0);
   QString to_validate = error_result[0].toQString();
@@ -161,7 +161,7 @@ START_SECTION((ostream& getStream(const String &stream_name)))
   // check if everything landed in the stream we wanted
   int pos(0);
 
-  QString pattern("\\[[0-9]+/[0-3][0-9]/[0-1][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] getStream 1");
+  QString pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] getStream 1");
   QRegExp rx(pattern);
   QRegExpValidator v(rx, 0);
   QString to_validate = info_result[0].toQString();
