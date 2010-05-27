@@ -89,34 +89,46 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::setDefaultParams_()
   {
-		defaults_.setValue("enabled","true","Enable RAW signal simulation?");
+		defaults_.setValue("enabled","true","Enable RAW signal simulation? (select 'false' if you only need feature-maps)");
 		defaults_.setValidStrings("enabled", StringList::create("true,false"));
 		
-    // noise params
-    // m/z error
-    defaults_.setValue("mz:error_mean",0.0,"Average systematic m/z error (Da)");
-    defaults_.setValue("mz:error_stddev",0.0,"Standard deviation for m/z errors. Set to 0 to disable simulation of m/z errors.");
-
-    // mz sampling rate
-    defaults_.setValue("mz:sampling_rate",0.12,"MS hardware resolution (e.g. bin size in m/z).");
-
-    // intensity error
-    defaults_.setValue("int:error_mean",0,"Average systematic intensity error.");
-    defaults_.setValue("int:error_stddev",0.0,"Standard deviation for peak intensities (relative to peak height). Set to 0 to disable intensity errors.");
 
     // peak and instrument parameter
+    
+    // todo: specify as resolution!
     defaults_.setValue("peak_fwhm",0.5,"FWHM (full width at half maximum) of simulated peaks (Da).");
-
-    // shot noise
-    defaults_.setValue("noise:rate",0.0,"Poisson rate of shot noise per unit m/z. Set to 0 to disable simulation of shot noise.");
-    defaults_.setMinFloat("noise:rate",0.0);
-    defaults_.setValue("noise:int-mean",50.0,"Shot noise intensity mean (gaussian distributed).");
 
     // baseline
     defaults_.setValue("baseline:scaling",0.0,"Scale of baseline. Set to 0 to disable simulation of baseline.");
     defaults_.setMinFloat("baseline:scaling",0.0);
     defaults_.setValue("baseline:shape",0.5, "The baseline is modeled by an exponential probability density function (pdf) with f(x) = shape*e^(- shape*x)");
     defaults_.setMinFloat("baseline:shape",0.0);
+    // mz sampling rate
+    defaults_.setValue("mz:sampling_rate",0.12,"detector interval(e.g. bin size in m/z).");
+
+    // noise params
+
+    //TODO: prefix everything below with 'variation:' (as in RTSimulation) or think of a better name :)
+
+    // m/z error
+    defaults_.setValue("mz:error_stddev",0.0,"Standard deviation for m/z errors. Set to 0 to disable simulation of m/z errors.");
+    // todo: also plan for affine trafo (as in RT shift?)
+    defaults_.setValue("mz:error_mean",0.0,"Average systematic m/z error (Da)");
+
+
+    // intensity error
+    // todo: remove this (as we want scaling, no shift...)
+    defaults_.setValue("int:error_mean",0,"Average systematic intensity error.");
+    // todo: introduce scaling (on featuremap level)...
+    //defaults_.setValue("int:scale",1,"...");
+    //defaults_.setValue("int:scale_stddev",0,"...");
+    // todo: apply on each datapoint after features were sampled
+    defaults_.setValue("int:error_stddev",0.0,"Standard deviation for peak intensities (relative to peak height). Set to 0 to disable intensity errors.");
+
+    // shot noise
+    defaults_.setValue("noise:rate",0.0,"Poisson rate of shot noise per unit m/z. Set to 0 to disable simulation of shot noise.");
+    defaults_.setMinFloat("noise:rate",0.0);
+    defaults_.setValue("noise:int-mean",50.0,"Shot noise intensity mean (gaussian distributed).");
 
     defaultsToParam_();
   }
