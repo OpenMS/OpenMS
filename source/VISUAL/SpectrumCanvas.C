@@ -631,7 +631,7 @@ namespace OpenMS
 				}
 			}
 		}
-		//remove watchers that are not needed anymore
+		//remove watchers that are not needed anymore, i.e. no layer has that file loaded (we can stop watching)
   	if (updatable_layers==0)
   	{
   		watcher_->removeFile(filename);

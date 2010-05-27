@@ -2194,7 +2194,7 @@ namespace OpenMS
 			}
 			layer.consensus.updateRanges();
 		}
-		else if (layers_.back().type==LayerData::DT_CHROMATOGRAM) //chromatgram
+		else if (layers_.back().type==LayerData::DT_CHROMATOGRAM) //chromatogram
 		{
 			//TODO CHROM
 			try
