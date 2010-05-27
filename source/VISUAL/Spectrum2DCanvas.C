@@ -2154,7 +2154,7 @@ namespace OpenMS
 	{
 		LayerData& layer = getLayer_(i);
 
-		if (layers_.back().type==LayerData::DT_PEAK) //peak data
+		if (layer.type==LayerData::DT_PEAK) //peak data
 		{
 			try
 			{
@@ -2168,7 +2168,7 @@ namespace OpenMS
 			layer.peaks.sortSpectra(true);
 			layer.peaks.updateRanges(1);
 		}
-		else if (layers_.back().type==LayerData::DT_FEATURE) //feature data
+		else if (layer.type==LayerData::DT_FEATURE) //feature data
 		{
 			try
 			{
@@ -2181,7 +2181,7 @@ namespace OpenMS
 			}
 			layer.features.updateRanges();
 		}
-		else if (layers_.back().type==LayerData::DT_CONSENSUS)  //consensus feature data
+		else if (layer.type==LayerData::DT_CONSENSUS)  //consensus feature data
 		{
 			try
 			{
@@ -2194,7 +2194,7 @@ namespace OpenMS
 			}
 			layer.consensus.updateRanges();
 		}
-		else if (layers_.back().type==LayerData::DT_CHROMATOGRAM) //chromatogram
+		else if (layer.type==LayerData::DT_CHROMATOGRAM) //chromatgram
 		{
 			//TODO CHROM
 			try
@@ -2210,7 +2210,7 @@ namespace OpenMS
       layer.peaks.updateRanges(1);
 
 		}
-		else if (layers_.back().type == LayerData::DT_IDENT) // identifications
+		else if (layer.type == LayerData::DT_IDENT) // identifications
 		{
 			try
 			{

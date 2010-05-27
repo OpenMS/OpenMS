@@ -872,6 +872,8 @@ namespace OpenMS
 		
 		///Watcher that tracks file changes (in order to update the data in the viewer)
 		FileWatcher* watcher_;
+		///Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
+		Map<UInt,bool> watcher_msgbox_;
 		
 		///External context menu extension
 		QMenu* context_add_;

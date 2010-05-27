@@ -611,12 +611,20 @@ namespace OpenMS
 				}
 				else if ((String)(param_.getValue("on_file_change"))=="ask") //ask the user if the layer should be updated
 				{
+					if (watcher_msgbox_[j]==1)
+					{ // we already have a dialog for that opened... do not ask again
+						return;
+					}
+
+					// track that we will show the msgbox and we do not need to show it again if file changes once more and the dialog is still open
+					watcher_msgbox_[j]=1;
 					QMessageBox msg_box;
 					QAbstractButton* ok = msg_box.addButton(QMessageBox::Ok);
 					msg_box.addButton(QMessageBox::Cancel);
 					msg_box.setWindowTitle("Layer data changed");
 					msg_box.setText((String("The data file of layer '") + getLayer(j).filename + "' has changed.<BR>Update the layer?").toQString());
 					msg_box.exec();
+					watcher_msgbox_[j]=0;
 					if (msg_box.clickedButton() == ok)
 					{
 						update = true;
