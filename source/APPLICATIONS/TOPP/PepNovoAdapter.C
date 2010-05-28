@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
-// $Authors: $
+// $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
 
@@ -46,6 +46,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QDir>
+#include <QtCore/QProcess>
 
 #include <cstdlib>
 #include <vector>
@@ -337,8 +338,6 @@ class TOPPPepNovoAdapter
 				//-------------------------------------------------------------
 
 				String call;
-				call = pepnovo_executable;
-				//call.append("PepNovo_bin");
 				call.append(" -file " + inputfile_name);
 				call.append(" -model " + model_name);
 				if (pm_tolerance != -1 ) call.append(" -pm_tolerance " + String(pm_tolerance));
@@ -353,8 +352,7 @@ class TOPPPepNovoAdapter
 				writeLog_("Use this line to call PepNovo: ");
 				writeLog_(call);
 
-				Int status=system(call.c_str());
-
+   			Int status = QProcess::execute(pepnovo_executable.toQString(), QStringList(call.toQString())); // does automatic escaping etc...
 				if (status == 0)
 				{
           //if PepNovo finished succesfully use PepNovoOutfile to parse the results and generate idxml

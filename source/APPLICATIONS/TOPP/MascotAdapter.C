@@ -43,6 +43,7 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtCore/QProcess>
 
 using namespace OpenMS;
 using namespace std;
@@ -498,38 +499,29 @@ class TOPPMascotAdapter
 					// calling the Mascot process
 					writeDebug_("The Mascot process created the following output:", 1);
 
-					#ifdef OPENMS_WINDOWSPLATFORM
-					// the windows command separator is "&" for WinNT and upwards. For WinME and downwards it is "|", but Mascot requires WinNT+ anyways
-					call = QDir(mascot_cgi_dir.toQString()).absolutePath().left(2).toStdString() +
-								 " && cd \\ && cd \"." + QDir(mascot_cgi_dir.toQString()).absolutePath().mid(2).toStdString() + "\"" + 
-								 " && nph-mascot.exe 1 -commandline -f " +
+          QProcess qp;
+          qp.setWorkingDirectory(mascot_cgi_dir.toQString());
+					call = " 1 -commandline -f " +
 						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
 						mascot_data_dir + "/" + mascot_infile_name + 
+					#ifdef OPENMS_WINDOWSPLATFORM
 						" > " + tmp;
 					#else
-					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " +
-						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
-						mascot_data_dir + "/" + mascot_infile_name + 
 						" >> " + tmp + ";";
 					#endif
-					writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
-					status = system(call.c_str());
-					
+					writeDebug_("CALLING: nph-mascot.exe" + call + "\nCALL Done!    ", 10);
+          status = qp.execute("nph-mascot.exe", QStringList() << call.toQString());
 					if (status != 0)
 					{
 						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
-						//call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";";
-						//system(call.c_str());
 						QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
 
 					#ifdef OPENMS_WINDOWSPLATFORM
-					call = QDir(mascot_cgi_dir.toQString()).absolutePath().left(2).toStdString() +
-							" && cd \\ && cd \"." + QDir(mascot_cgi_dir.toQString()).absolutePath().mid(2).toStdString() + "\"" + 
-							"& perl export_dat.pl " +
+					call = String("perl export_dat.pl ") +
 					#else
-					call = "cd " + mascot_cgi_dir + "; ./export_dat_2.pl " +
+					call =  String("./export_dat_2.pl ") +
 					#endif
 						" do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
@@ -547,16 +539,12 @@ class TOPPMascotAdapter
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
 						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
 						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name;
-					cout << call << endl;
 					writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
-					status = system(call.c_str());
+          status = qp.execute(call.toQString());
 
 					if (status != 0)
 					{
 						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
-						//call = "rm " + mascot_data_dir + "/" 
-						//				+ mascot_infile_name + "; rm " + mascotXML_file_name + ";" + "; rm " + pepXML_file_name + ";";
-						//system(call.c_str());
 						QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
 						QFile(mascotXML_file_name.toQString()).remove();
 						QFile(pepXML_file_name.toQString()).remove();
@@ -612,10 +600,6 @@ class TOPPMascotAdapter
 					// Deletion of temporary Mascot files
 					if (!mascot_out)
 					{
-						//call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
-						//	+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-						//	+ "rm " + mascotXML_file_name + ";rm " + pepXML_file_name + ";";
-						//system(call.c_str());
 						QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
 						QFile(String(mascot_data_dir + "/" + mascot_outfile_name).toQString()).remove();
 						QFile(mascotXML_file_name.toQString()).remove();

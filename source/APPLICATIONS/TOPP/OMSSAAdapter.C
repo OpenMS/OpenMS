@@ -37,6 +37,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QFile>
+#include <QtCore/QProcess>
 
 using namespace OpenMS;
 using namespace std;
@@ -307,43 +308,23 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 		
 			// get version of OMSSA
-			String version_call = "\"" + omssa_executable + "\"" + " -version > " + unique_version_name;
-			int status = system(version_call.c_str());
+ 			int status = QProcess::execute(omssa_executable.toQString(), QStringList(String(" -version > " + unique_version_name).toQString())); // does automatic escaping etc...
+			String omssa_version;
 			if (status != 0)
 			{
 				writeLog_("Warning: unable to determine the version of OMSSA");
+			  TextFile text_file;
+			  text_file.load(unique_version_name);
+			  vector<String> version_split;
+			  text_file.concatenate().split(' ', version_split);
+			  if (version_split.size() == 2) omssa_version = version_split[1];
 			}
-			TextFile text_file;
-			text_file.load(unique_version_name);
-			vector<String> version_split;
-			text_file.concatenate().split(' ', version_split);
-
-			String omssa_version;
-			if (version_split.size() == 2)
-			{
-				omssa_version = version_split[1];
-			}
-
 			QFile(unique_version_name.toQString()).remove();
 
+
+      // parse arguments
 			inputfile_name = getStringOption_("in");			
-			writeDebug_(String("Input file: ") + inputfile_name, 1);
-			if (inputfile_name == "")
-			{
-				writeLog_("No input file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
-	
 			outputfile_name = getStringOption_("out");
-			writeDebug_(String("Output file: ") + outputfile_name, 1);
-			if (outputfile_name == "")
-			{
-				writeLog_("No output file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
-			
       String db_name = String(getStringOption_("database"));
       // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
@@ -609,15 +590,12 @@ class TOPPOMSSAAdapter
 			MascotInfile omssa_infile;
 			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
 
-			String call = "\"" + omssa_executable + "\"" + " " + parameters;
-
       // @todo find OMSSA if not given
       // executable is stored in OpenMS_bin/share/OpenMS/3rdParty/OMSSA/omssacl(.exe)
       // or PATH
 
 			writeDebug_(call, 5);
-			status = system(call.c_str());
-		
+			status = QProcess::execute(omssa_executable.toQString(), QStringList(parameters.toQString())); // does automatic escaping etc...
 			if (status != 0)
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");

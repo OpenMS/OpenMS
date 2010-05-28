@@ -38,6 +38,8 @@
 #include <cstdlib>
 #include <vector>
 
+#include <QtCore/QProcess>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -712,8 +714,7 @@ class TOPPInspectAdapter
 				writeLog_("Searching and generating minimised database for blind mode ...");
 				writeDebug_("The Inspect process created the following output:", 1);
 				String call;
-				call.append(inspect_directory);
-				call.append("inspect -r ");
+				call.append(" -r ");
 				call.append(inspect_directory);
 				call.append(" -i ");
 				call.append(inspect_input_filename);
@@ -723,8 +724,7 @@ class TOPPInspectAdapter
 				call.append(" -e ");
 				call.append(inspect_logfile);
 
-				Int status = system(call.c_str());
-
+        Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString())); // does automatic escaping etc...
 				if (status != 0)
 				{
 					string_buffer = TextFile(inspect_logfile).concatenate();
@@ -758,8 +758,7 @@ class TOPPInspectAdapter
 			if ( exit_code == EXECUTION_OK && inspect_in && inspect_out )
 			{
 				String call;
-				call.append(inspect_directory);
-				call.append("inspect -r ");
+				call.append(" -r ");
 				call.append(inspect_directory);
 				call.append(" -i ");
 				call.append(inspect_input_filename);
@@ -772,8 +771,7 @@ class TOPPInspectAdapter
 				writeLog_("Searching ...");
 				writeDebug_("The Inspect process created the following output:", 1);
 
-				Int status = system(call.c_str());
-
+        Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString())); // does automatic escaping etc...
 				if (status != 0)
 				{
 					string_buffer = TextFile(inspect_logfile).concatenate();
@@ -791,12 +789,8 @@ class TOPPInspectAdapter
 				if ( inspect_in ) // the version can only be retrieved by running inspect without parameters
 				{
 					// first get the InsPecT version
-					String call = inspect_directory;
-					call.append("inspect > ");
-					// writing the inspect output to a temporary file
-					call.append(inspect_logfile);
-					Int status = system(call.c_str());
-
+					String call = " > " + inspect_logfile ;
+          Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString())); // does automatic escaping etc...
 					if (status != 0)
 					{
 						string_buffer = TextFile(inspect_logfile).concatenate();

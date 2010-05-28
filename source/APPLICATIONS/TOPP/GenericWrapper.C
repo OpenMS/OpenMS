@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
+// $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <QtCore/QProcess>
 #include <typeinfo>
 
 using namespace OpenMS;
@@ -164,7 +165,7 @@ class TOPPGenericWrapper
       }
       writeDebug_("Expected internal output file: " + out_internal, 1);
 
-			Int status(system(call_hot.c_str()));
+      Int status = QProcess::execute(call_hot.toQString());
       if (status != 0)
       {
         writeLog_("Error: External program problem! (Details can be seen in the logfile: \"" + logfile + "\")");

@@ -277,7 +277,6 @@ class TOPPXTandemAdapter
 			//-------------------------------------------------------------
 
 			int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
-			
 			if (status != 0)
 			{
 				writeLog_("XTandem problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");

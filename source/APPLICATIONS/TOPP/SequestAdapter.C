@@ -1137,6 +1137,7 @@ class TOPPSequestAdapter
 
 					call.append(temp_data_directory_win + batch_filename + " && net use /delete " + temp_data_directory_win.substr(0,2) + " && logoff" +  "\" " + sequest_computer);
 					writeLog_("System call: " + call);
+          // todo: replace this by a call to QProcess::execute(<exe>,<args>), you can also use setWorkingDirectory() before
 					int status = system(call.c_str());
 
 					if ( status != 0 )
