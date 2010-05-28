@@ -594,7 +594,7 @@ class TOPPOMSSAAdapter
       // executable is stored in OpenMS_bin/share/OpenMS/3rdParty/OMSSA/omssacl(.exe)
       // or PATH
 
-			writeDebug_(call, 5);
+			writeDebug_("omssa_executable " + parameters, 5);
 			status = QProcess::execute(omssa_executable.toQString(), QStringList(parameters.toQString())); // does automatic escaping etc...
 			if (status != 0)
 			{
