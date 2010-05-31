@@ -78,7 +78,7 @@ if (DOXYGEN_FOUND)
 	add_custom_target(doc_internal
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-										COMMAND ${CMAKE_COMMAND} -E echo "Creating intenal html documentation";
+										COMMAND ${CMAKE_COMMAND} -E echo "Creating internal html documentation";
 										COMMAND ${CMAKE_COMMAND} -E echo "";   
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html 
 										COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile_internal

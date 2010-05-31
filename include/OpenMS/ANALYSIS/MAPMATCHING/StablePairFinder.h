@@ -61,11 +61,11 @@ namespace OpenMS
 
    \cdot
 
-   \textit{intensity\_ratio}^\textit{intensity\_exponent\
+   \textit{intensity\_ratio}^\textit{intensity\_exponent}
 
    \cdot
 
-   different\_charge\_penalty
+   \textit{different\_charge\_penalty}
 
    \f]
 
