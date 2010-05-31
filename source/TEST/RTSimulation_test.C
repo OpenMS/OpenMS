@@ -104,8 +104,8 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
   svm_params.setValue("scan_window:max",4000.0);
   svm_params.setValue("HPLC:model_file",OPENMS_GET_TEST_DATA_PATH("RTSimulation.svm"));
   svm_params.setValue("auto_scale", "true");
-  svm_params.setValue("rt_shift_mean", 0);
-  svm_params.setValue("rt_shift_stddev", 0);
+  svm_params.setValue("variation:affine_offset", 0);
+  svm_params.setValue("variation:feature_stddev", 0);
   
   svm_rt_sim.setParameters(svm_params);
   
@@ -157,8 +157,8 @@ START_SECTION(([EXTRA] Test MS Experiment Generation))
   svm_params.setValue("sampling_rate",5.0);
   svm_params.setValue("HPLC:model_file",OPENMS_GET_TEST_DATA_PATH("RTSimulation.svm"));
   svm_params.setValue("auto_scale", "true");
-  svm_params.setValue("rt_shift_mean", 0);
-  svm_params.setValue("rt_shift_stddev", 0);
+  svm_params.setValue("variation:affine_offset", 0);
+  svm_params.setValue("variation:feature_stddev", 0);
 
   svm_rt_sim.setParameters(svm_params);
 
@@ -246,8 +246,8 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
   abs_svm_params.setValue("scan_window:max",3000.0);
   abs_svm_params.setValue("HPLC:model_file",OPENMS_GET_TEST_DATA_PATH("RTSimulation_absolut_rt.model"));
   abs_svm_params.setValue("auto_scale", "false");
-  abs_svm_params.setValue("rt_shift_mean", 0);
-  abs_svm_params.setValue("rt_shift_stddev", 0);
+  abs_svm_params.setValue("variation:affine_offset", 0);
+  abs_svm_params.setValue("variation:feature_stddev", 0);
 
   rt_sim.setParameters(abs_svm_params);
 
