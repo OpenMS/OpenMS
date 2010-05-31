@@ -51,17 +51,17 @@ namespace OpenMS
 
     defaults_.setValue("diff_exponent:RT", 1.0,
       "RT differences are raised to this power", StringList::create("advanced"));
-    defaults_.setMinFloat("diff_exponent:RT",0.);
+    defaults_.setMinFloat("diff_exponent:RT",0.1);
 
     defaults_.setValue("diff_exponent:MZ", 2.0,
       "MZ differences are raised to this power", StringList::create("advanced"));
-    defaults_.setMinFloat("diff_exponent:MZ",0.);
+    defaults_.setMinFloat("diff_exponent:MZ",0.1);
 
     defaults_.setSectionDescription("diff_exponent",
       "Absolute position differences are raised to this power. "
         "E.g. 1 for 'linear' distance, 2 for 'quadratic' distance");
 
-    defaults_.setValue("intensity_exponent", 0.5,
+    defaults_.setValue("intensity_exponent", 0.0,
       "Intensity ratios are raised to this power.  "
         "If set to 0, intensities are not considered.", StringList::create(
         "advanced"));
@@ -71,9 +71,10 @@ namespace OpenMS
       "Maximal allowed distance in RT for a pair, when MZ is equal");
     defaults_.setMinFloat("max_pair_distance:RT",0.);
 
-    defaults_.setValue("max_pair_distance:MZ", 0.3,
-      "Maximal allowed distance in MZ for a pair, when RT is equal");
+    defaults_.setValue("max_pair_distance:MZ", 0.3, "Maximal allowed distance in MZ for a pair, when RT is equal [Unit defined by 'mz_unit']");
     defaults_.setMinFloat("max_pair_distance:MZ",0.);
+    defaults_.setValue("max_pair_distance:MZ_unit", "Da", "Unit of 'MZ' parameter");
+    defaults_.setValidStrings("max_pair_distance:MZ_unit",StringList::create("Da,ppm"));
 
     defaults_.setSectionDescription("max_pair_distance",
       "Maximal allowed distance for a pair. "
@@ -106,68 +107,15 @@ namespace OpenMS
     V_("@@@ StablePairFinder::updateMembers_()");
 
     diff_exponent_[RT] = (DoubleReal) param_.getValue("diff_exponent:RT");
-    ///@todo this cannot happen, as params are checked within param object
-    if ( diff_exponent_[RT] <= 0 )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
-        "exponent for RT distance must be > 0");
-    }
-    VV_(diff_exponent_[RT]);
-
     diff_exponent_[MZ] = (DoubleReal) param_.getValue("diff_exponent:MZ");
-    if ( diff_exponent_[MZ] <= 0 )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
-        "exponent for MZ distance must be > 0");
-    }
-    VV_(diff_exponent_[MZ]);
-
     intensity_exponent_ = (DoubleReal) param_.getValue("intensity_exponent");
-    if ( intensity_exponent_ < 0 )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
-        "exponent for intensity ratio must be >= 0");
-    }
-    VV_(intensity_exponent_);
-
-    max_pair_distance_[MZ] = (DoubleReal) param_.getValue(
-      "max_pair_distance:MZ");
-    if ( max_pair_distance_[MZ] < 0 )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
-        "max pair distance for MZ must be >= 0");
-    }
-    VV_(max_pair_distance_[MZ]);
+    max_pair_distance_[MZ] = (DoubleReal) param_.getValue("max_pair_distance:MZ");
     max_pair_distance_reciprocal_[MZ] = 1. / max_pair_distance_[MZ];
-    VV_(max_pair_distance_reciprocal_[MZ]);
-
-    max_pair_distance_[RT] = (DoubleReal) param_.getValue(
-      "max_pair_distance:RT");
-    if ( max_pair_distance_[RT] < 0 )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
-        "max pair distance for RT must be >= 0");
-    }
-    VV_(max_pair_distance_[RT]);
+    max_pair_distance_mz_as_Da_ = ((String) param_.getValue("max_pair_distance:MZ_unit")) == "Da";
+    max_pair_distance_[RT] = (DoubleReal) param_.getValue("max_pair_distance:RT");
     max_pair_distance_reciprocal_[RT] = 1. / max_pair_distance_[RT];
-    VV_(max_pair_distance_reciprocal_[RT]);
-
     different_charge_penalty_ = (DoubleReal) param_.getValue("different_charge_penalty");
-    if ( different_charge_penalty_ < 1. )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
-        "different_charge_penalty must be >= 1");
-    }
-    VV_(different_charge_penalty_);
-
     second_nearest_gap_ = (DoubleReal) param_.getValue("second_nearest_gap");
-    if ( second_nearest_gap_ <= 1 )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__,
-        "second_nearest_gap must be >= 1");
-    }
-    VV_(second_nearest_gap_);
-
     return;
   }
 
@@ -177,17 +125,32 @@ namespace OpenMS
   {
     // distance from position
     DPosition<2> position_difference = left.getPosition() - right.getPosition();
-    for ( UInt dimension = 0; dimension < 2; ++dimension )
+    // .. in RT
+    if ( position_difference[RT] < 0 )
     {
-      if ( position_difference[dimension] < 0 )
-      {
-        position_difference[dimension] = -position_difference[dimension];
-      }
-      position_difference[dimension]
-          *= max_pair_distance_reciprocal_[dimension];
-      position_difference[dimension] = pow(position_difference[dimension],
-        diff_exponent_[dimension]);
+      position_difference[RT] = -position_difference[RT];
     }
+    position_difference[RT] *= max_pair_distance_reciprocal_[RT];
+    position_difference[RT] = pow(position_difference[RT],diff_exponent_[RT]);
+
+    // .. in MZ
+    if ( position_difference[MZ] < 0 )
+    {
+      position_difference[MZ] = -position_difference[MZ];
+    }
+    if (max_pair_distance_mz_as_Da_)
+    {
+      // do nothing.. we already have distance in Da
+    }
+    else //PPM
+    {
+      // distance in PPM (with 'left' as reference point)
+      position_difference[MZ] /= left.getMZ();
+      position_difference[MZ] *= 1e6;
+    }
+    position_difference[MZ] *= max_pair_distance_reciprocal_[MZ];
+    position_difference[MZ] = pow(position_difference[MZ],diff_exponent_[MZ]);
+
     DoubleReal result = position_difference[RT] + position_difference[MZ];
     
     // distance from intensity
@@ -217,6 +180,7 @@ namespace OpenMS
     {
       result *= different_charge_penalty_;
     }
+
     return result;
   }
 
@@ -288,7 +252,7 @@ namespace OpenMS
     // element_pairs_->clear();
     for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
     {
-      if ((best_companion_distance_0[fi0] < 1) && 
+      if ((best_companion_distance_0[fi0] < 1) &&  // this is the distance cutoff
 					(best_companion_distance_0[fi0] * second_nearest_gap_ <= 
 					 second_best_companion_distance_0[fi0]))
       {

@@ -44,29 +44,36 @@ namespace OpenMS
    possibly be matched to the other.  Larger quality values are better, the
    maximal similarity is one.  Let \f$\Delta_\textit{RT}\f$ and
    \f$\Delta_\textit{MZ}\f$ be the absolute values of the RT and MZ differences
-   in the data.  Then the similarity value is
+   in the data (for m/z this might be given in ppm or Da - see parameters).
+   Then the distance value is
    \f[
-   \frac{1}{
-   \big( 1 + \Delta_\textit{RT} \cdot \textit{diff\_intercept\_RT} \big)^\textit{diff\_exponent\_RT}
+   \big(
+   \frac
+     {\Delta_\textit{RT}}
+     {\big( \textit{max\_pair\_distance:RT} \big)}
+   ^\textit{diff\_exponent\_RT}
+   +
+   \frac
+     {\Delta_\textit{MZ}}
+     {\big( \textit{max\_pair\_distance:MZ} \big)}
+   ^\textit{diff\_exponent\_MZ}
+   \big)
+
    \cdot
-   \big( 1 + \Delta_\textit{MZ} \cdot \textit{diff\_intercept\_MZ} \big)^\textit{diff\_exponent\_MZ}
-   }
+
+   \textit{intensity\_ratio}^\textit{intensity\_exponent\
+
+   \cdot
+
+   different\_charge\_penalty
+
    \f]
-   @todo update formula in documentation!
 
    Choosing <i>diff_exponent</i>: This parameter controls the growth rate of the
    penalty for differences.  It is for example possible to search for pairs
    using the absolute distance in RT (which should not be very susceptible to
    outliers) and the squared distance in MZ (where small difference occur
    frequently, but large differences indicate a mismatch).
-
-   Choosing <i>diff_intercept</i>: Since we are taking the reciprocal value ("1/..."),
-   we include an offset to avoid division by zero in case \f$\Delta=0\f$.  To
-   set this parameter, ask yourself: How much worse is a difference of 1
-   compared to no difference?
-
-   The following image illustrates the influence of these parameters:
-   \image html SimplePairFinder.png "Influence of the parameters intercept and exponent"
 
    Stability criterion:  The similarity of the second nearest neighbor must be
    smaller than the similarity of the nearest neighbor by a certain factor, see
@@ -157,6 +164,9 @@ namespace OpenMS
 
       /// Maximal distance of a matched pair, in both dimension RT and MZ.
       DoubleReal max_pair_distance_[2];
+
+      /// Unit of distance between two m/z values (Da or ppm)
+      bool max_pair_distance_mz_as_Da_;
 
       /// Reciprocal values of #max_pair_distance_ (which see).  ('*' is faster than '/'.)
       DoubleReal max_pair_distance_reciprocal_[2];
