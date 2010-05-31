@@ -76,7 +76,7 @@ namespace OpenMS {
     /// fill experiment with signals and noise
     void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
 
-  private:
+  protected:
     /// Default constructor
     RawMSSignalSimulation();
 
@@ -145,6 +145,9 @@ namespace OpenMS {
     /// Add shot noise to the experimet
     void addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit);
 
+    /// Add white noise to the experiment
+    void addWhiteNoise_(MSSimExperiment & experiment);
+
     /// Add a base line to the experiment
     void addBaseLine_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit);
 
@@ -162,15 +165,24 @@ namespace OpenMS {
 		/// Standard deviation of peak m/z error
 		SimCoordinateType mz_error_stddev_;
 
-		/// Mean of peak intensity error
-		SimIntensityType intensity_error_mean_;
-		/// Standard deviation of peak intensity error
-		SimIntensityType intensity_error_stddev_;
+    /**
+     * @brief Computes a rescaled feature intensity based on the set parameters for feature intensity scaling and the passed parameter @p natural_scaling_factor.
+     *
+     * @param feature_intensity Intensity of the current feature.
+     * @param natural_scaling_factor Additional scaling factor used by some of the sampling models.
+     *
+     * @return Rescaled feature intensity.
+     */
+    SimIntensityType getFeatureScaledIntensity_(const SimIntensityType feature_intensity, const SimIntensityType natural_scaling_factor);
+
+    /// Scaling factor of peak intensities
+    SimIntensityType intensity_scale_;
+    /// Standard deviation of peak intensity scaling
+    SimIntensityType intensity_scale_stddev_;
 
 	  /// Full width at half maximum of simulated peaks
 		SimCoordinateType peak_std_;
 
-  protected:
 		/// Random number generator
 		const gsl_rng* rnd_gen_;
   };
