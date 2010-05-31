@@ -136,7 +136,7 @@ namespace OpenMS
 				DoubleReal tmp = value;
 				if ((min_float!=-std::numeric_limits<DoubleReal>::max() && tmp < min_float) || (max_float!=std::numeric_limits<DoubleReal>::max() && tmp > max_float))
 				{
-					message = String("Invalid double parameter value '")+tmp+"' for parameter '"+name+"' given! The valid range is: ["+min_int+":"+max_int+"].";
+					message = String("Invalid double parameter value '")+tmp+"' for parameter '"+name+"' given! The valid range is: ["+min_float+":"+max_float+"].";
 					return false;
 			}
 			}
@@ -149,7 +149,7 @@ namespace OpenMS
 					dou_value = ls_value[i];
 					if ((min_float!=-std::numeric_limits<DoubleReal>::max() && dou_value < min_float) || (max_float!=std::numeric_limits<DoubleReal>::max() && dou_value > max_float))
 					{
-						message = String("Invalid double parameter value '")+dou_value+"' for parameter '"+name+"' given! The valid range is: ["+min_int+":"+max_int+"].";
+						message = String("Invalid double parameter value '")+dou_value+"' for parameter '"+name+"' given! The valid range is: ["+min_float+":"+max_float+"].";
 						return false;
 					}	
 				}
