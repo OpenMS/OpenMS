@@ -308,20 +308,29 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 		
 			// get version of OMSSA
- 			int status = QProcess::execute(omssa_executable.toQString(), QStringList(String(" -version > " + unique_version_name).toQString())); // does automatic escaping etc...
+      QProcess qp;
+      qp.start((omssa_executable + " -version").toQString(), QIODevice::ReadOnly); // does automatic escaping etc...
+      qp.waitForFinished();
+      String output (QString(qp.readAllStandardOutput ()));
 			String omssa_version;
-			if (status != 0)
+			if (qp.exitStatus() != 0)
 			{
 				writeLog_("Warning: unable to determine the version of OMSSA");
-			  TextFile text_file;
-			  text_file.load(unique_version_name);
-			  vector<String> version_split;
-			  text_file.concatenate().split(' ', version_split);
-			  if (version_split.size() == 2) omssa_version = version_split[1];
 			}
-			QFile(unique_version_name.toQString()).remove();
-
-
+      else
+      {
+ 			  vector<String> version_split;
+			  output.split(' ', version_split);
+			  if (version_split.size() == 2)
+        {
+          omssa_version = version_split[1];
+          writeDebug_("Setting OMSSA version to " + omssa_version, 1);
+        }
+        else
+        {
+          writeLog_("Warning: OMSSA version output (" + output + ") not formatted as expected!");
+        }
+      }
       // parse arguments
 			inputfile_name = getStringOption_("in");			
 			outputfile_name = getStringOption_("out");
@@ -595,7 +604,7 @@ class TOPPOMSSAAdapter
       // or PATH
 
 			writeDebug_("omssa_executable " + parameters, 5);
-			status = QProcess::execute(omssa_executable.toQString(), QStringList(parameters.toQString())); // does automatic escaping etc...
+      Int status = QProcess::execute(omssa_executable.toQString(), QStringList(parameters.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
 			if (status != 0)
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
