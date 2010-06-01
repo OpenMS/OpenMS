@@ -1874,5 +1874,20 @@ namespace OpenMS
 		}
 	}
 	
+	bool TOPPASScene::refreshParameters()
+	{
+		bool change = false;
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(*it);
+			if (ttv && ttv->refreshParameters())
+			{
+				change = true;
+			}
+		}
+		
+		return change;
+	}
+	
 } //namespace OpenMS
 

@@ -120,6 +120,7 @@ namespace OpenMS
 		file->addAction("&Include",this,SLOT(includeWorkflowDialog()), Qt::CTRL+Qt::Key_I);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
 		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+		file->addAction("Refresh &parameters",this,SLOT(refreshParameters()), Qt::CTRL+Qt::SHIFT+Qt::Key_P);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
 		file->addAction("&Load resource file",this,SLOT(loadResourceFileDialog()));
@@ -891,6 +892,11 @@ namespace OpenMS
 				bool show = ts && ts->wasChanged();
 				actions[i]->setEnabled(show);
 			}
+			else if (text=="Refresh &parameters")
+			{
+				bool show = ts && !(ts->isPipelineRunning());
+				actions[i]->setEnabled(show);
+			}
 		}
 		
 		if (ts)
@@ -1182,6 +1188,36 @@ namespace OpenMS
 		{
 			sndr->setClipboard(clipboard_);
 		}
+	}
+	
+	void TOPPASBase::refreshParameters()
+	{
+		TOPPASWidget* tw = activeWindow_();
+  	TOPPASScene* ts = 0;
+  	if (tw)
+  	{
+  		ts = tw->getScene();
+  	}
+  	if (!ts)
+  	{
+  		return;
+  	}
+  	
+  	if (!ts->refreshParameters())
+  	{
+  		QMessageBox::information(this, tr("Nothing to be done"),
+				tr("The parameters of the tools used in this workflow have not changed."));
+  		return;
+  	}
+  	
+  	ts->setChanged(true);
+		int ret = QMessageBox::information(tw, "Parameters updated!",
+						"The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
+						QMessageBox::Save | QMessageBox::Cancel);
+			if (ret == QMessageBox::Save)
+      {
+				saveAsFileDialog();
+			}
 	}
 } //namespace OpenMS
 

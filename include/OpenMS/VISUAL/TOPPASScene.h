@@ -185,6 +185,8 @@ namespace OpenMS
 			void createResources(TOPPASResources& resources);
 			///Returns whether the workflow has been changed since the latest "save"
 			bool wasChanged();
+			/// Refreshes the parameters of the TOPP tools in this workflow
+			bool refreshParameters();
 			
 		public slots:
 		

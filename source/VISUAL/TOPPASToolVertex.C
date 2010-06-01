@@ -51,10 +51,10 @@ namespace OpenMS
 			progress_color_(Qt::gray),
 			iteration_nr_(0),
 			input_list_length_(1)
-	{
+		{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
-		initParam_();
+		if (initParam_()) {}
 		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
 		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
 		connect (this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
@@ -74,7 +74,7 @@ namespace OpenMS
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
-		initParam_();
+		if (initParam_()) {}
 		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
 		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
 		connect (this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
@@ -121,7 +121,7 @@ namespace OpenMS
 		return *this;
 	}
 	
-	void TOPPASToolVertex::initParam_()
+	bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
 	{
 		Param tmp_param;
 		QString ini_file = QDir::tempPath() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
@@ -136,29 +136,48 @@ namespace OpenMS
 		{
 			call += " -type " + type_;
 		}
+		if (old_ini_file != "")
+		{
+			if (!File::exists(old_ini_file))
+			{
+				QMessageBox::critical(0,"Error",(String("Could not open '")+old_ini_file+"'!").c_str());
+				return false;
+			}
+			call += " -ini " + String(old_ini_file);
+		}
 		
 		if (system(call.c_str()) != 0)
 		{
 			QMessageBox::critical(0,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
-			return;
+			return false;
 		}
-		else if(!File::exists(ini_file))
+		if(!File::exists(ini_file))
 		{
 			QMessageBox::critical(0,"Error",(String("Could not open '")+ini_file+"'!").c_str());
-			return;
+			return false;
 		}
 		
 		tmp_param.load(String(ini_file).c_str());
 		param_=tmp_param.copy(name_+":1:",true);
-		param_.remove("log");
-		param_.remove("no_progress");
-		param_.remove("debug");
+		//param_.remove("log");
+		//param_.remove("no_progress");
+		//param_.remove("debug");
+		//// handled by TOPPAS anyway:
+		//param_.remove("type");
 		
-		// handled by TOPPAS anyway:
-		param_.remove("type");
-		
-		// remove tmp ini file
+		writeParam_(param_,ini_file);
+		bool changed = false;
+		if (old_ini_file != "")
+		{
+			//check if ini file has changed (quick & dirty by file size)
+			QFile q_ini(ini_file);
+			QFile q_old_ini(old_ini_file);
+			changed = q_ini.size() != q_old_ini.size();
+			QFile::remove(old_ini_file);
+		}
 		QFile::remove(ini_file);
+		
+		return changed;
 	}
 	
 	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
@@ -413,13 +432,7 @@ namespace OpenMS
 			ini_file += "_"+type_.toQString();
 		}
 		ini_file += ".ini";
-		
-		Param save_param;
-		save_param.setValue(name_+":1:toppas_dummy", DataValue("blub"));
-		save_param.insert(name_+":1:", param_);
-		save_param.remove(name_+":1:toppas_dummy");
-		save_param.setSectionDescription(name_+":1", "Instance '1' section for '"+name_+"'");
-		save_param.store(ini_file);
+		writeParam_(param_,ini_file);
 		
 		QStringList shared_args;
 		shared_args	<< "-ini"
@@ -1030,6 +1043,30 @@ namespace OpenMS
 		
 		__DEBUG_END_METHOD__
 	}
+
+	bool TOPPASToolVertex::refreshParameters()
+	{
+		QString old_ini_file = QDir::tempPath() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
+		if (type_ != "")
+		{
+			old_ini_file += type_.toQString() + "_";
+		}
+		old_ini_file += File::getUniqueName().toQString() + "_tmp_OLD.ini";
+		writeParam_(param_,old_ini_file);
+		
+		bool changed = initParam_(old_ini_file);
+		
+		return changed;
+	}
 	
+	void TOPPASToolVertex::writeParam_(const Param& param, const QString& ini_file)
+	{
+		Param save_param;
+		save_param.setValue(name_+":1:toppas_dummy", DataValue("blub"));
+		save_param.insert(name_+":1:", param);
+		save_param.remove(name_+":1:toppas_dummy");
+		save_param.setSectionDescription(name_+":1", "Instance '1' section for '"+name_+"'");
+		save_param.store(ini_file);
+	}
 }
 

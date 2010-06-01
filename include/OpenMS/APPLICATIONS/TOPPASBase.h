@@ -150,6 +150,8 @@ namespace OpenMS
 			void saveToClipboard(TOPPASScene* scene);
 			/// Sends the clipboard content to the sender of the connected signal
 			void sendClipboardContent();
+			/// Refreshes the parameters of the TOPP tools of the current workflow and stores an updated workflow including the current parameters
+			void refreshParameters();
 			
     protected slots:
 		

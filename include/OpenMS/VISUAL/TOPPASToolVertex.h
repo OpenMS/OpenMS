@@ -168,6 +168,8 @@ namespace OpenMS
 			void createDirs();			
 			/// Opens the files in TOPPView
 			void openInTOPPView();
+			/// Refreshes the parameters of this tool, returns if their has been a change
+			bool refreshParameters();
 
 		public slots:
 		
@@ -206,10 +208,12 @@ namespace OpenMS
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
 			//@}
 			
-			/// Initializes the parameters with standard values (from -write_ini)
-			void initParam_();
+			/// Initializes the parameters with standard values (from -write_ini), uses the parameters from the old_ini_file if given, returns if parameters have changed (if old_ini_file was given)
+			bool initParam_(const QString& old_ini_file = "");
 			/// Fills @p io_infos with the required input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
 			void getParameters_(QVector<IOInfo>& io_infos, bool input_params);
+			/// Writes @p param to the @p ini_file
+			void writeParam_(const Param& param, const QString& ini_file);
 			
 			/// The name of the tool
 			String name_;
