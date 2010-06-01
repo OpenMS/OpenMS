@@ -74,7 +74,7 @@ class TOPPIDPosteriorErrorProbability
 		registerOutputFile_("out","<file>","","output file ");
 	  setValidFormats_("out",StringList::create("idXML"));
 	  registerDoubleOption_("smallest_e_value","<value>",10e-20,"This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.",false,true);
-	  registerFlag_("split_charge", "blablub.The search enginge scores are splitted by charge if used. Thus, for each charge state a new model will be computed.");
+	  registerFlag_("split_charge", "The search enginge scores are splitted by charge if this flag is set. Thus, for each charge state a new model will be computed.");
 	  
 	  registerSubsection_("fit_algorithm", "Algorithm parameter subsection");
 		addEmptyLine_();	

@@ -242,6 +242,10 @@ namespace OpenMS
 					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
 					new_maxlike += log10(negative_prior*x_gauss2+(1-negative_prior)*x_gauss1);
 				}
+				if(isnan(new_maxlike - maxlike))
+				{
+					throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");					
+				}
         if(fabs(new_maxlike - maxlike) < 0.001)
         {
         	stop_em_init = true;      		
