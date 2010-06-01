@@ -144,26 +144,14 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
 		}
 
-		if(rt_in_seconds)
+    DoubleReal min_to_s_factor = rt_in_seconds ? (1/60) : 1;
+		for(Size f = 0; f < map.size(); ++f)
 		{
-			for(Size f = 0; f < map.size(); ++f)
-			{
-				DoubleReal rt_start =  map[f].getRT() - map[f].getRT() * rel_rt_window_size;
-				if(rt_start < 0.) rt_start = 0.;
-				
-				outs << map[f].getMZ() << "\t" << rt_start <<"\t"
-						 << map[f].getRT() * rel_rt_window_size + map[f].getRT() << "\n";
-			}
-		}
-		else
-		{
-			for(Size f = 0; f < map.size(); ++f)
-			{
-				DoubleReal rt_start = (map[f].getRT() - rel_rt_window_size * map[f].getRT())/60.;
-				if(rt_start < 0.) rt_start = 0.;
-				outs << map[f].getMZ() << "\t" << rt_start <<"\t"
-						 << (map[f].getRT() * rel_rt_window_size + map[f].getRT())/60. << "\n";
-			}
+			DoubleReal rt_start =  map[f].getRT() - map[f].getRT() * rel_rt_window_size;
+			if(rt_start < 0.) rt_start = 0.;
+			DoubleReal rt_end =  map[f].getRT() + map[f].getRT() * rel_rt_window_size;
+			
+			outs << map[f].getMZ() << "\t" << (rt_start*min_to_s_factor) <<"\t" << (rt_end*min_to_s_factor) << "\n";
 		}
 		outs.close();
 	}
@@ -177,6 +165,9 @@ namespace OpenMS
 		{
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
 		}
+
+    Size charge_invalid_count(0);
+
 		std::vector<PeptideIdentification>::const_iterator pep_id_iter = pep_ids.begin();
 		for(;pep_id_iter != pep_ids.end();++pep_id_iter)
 		{
@@ -206,7 +197,14 @@ namespace OpenMS
 			for(;pep_hit_iter != pep_id_iter->getHits().end();++pep_hit_iter)
 			{
 				Int charge = pep_hit_iter->getCharge();
-				bool charge_found = false;
+        if (charge == 0)
+        {
+          ++charge_invalid_count;
+          //fix charge
+          charge = 2;
+        }
+
+        bool charge_found = false;
 				for(Size c = 0; c < charges.size();++c)
 				{
 					DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full,charges[c])/(DoubleReal)charges[c];
@@ -216,13 +214,16 @@ namespace OpenMS
 						charge_found = true;
 					}
 				}
-				if(!charge_found)
+        if(!charge_found) // if not already done, consider annotated charge of peptide (unless its 0)
 				{
 					DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge;
 					outs << mz <<"\t"<<rt_start<<"\t"<<rt_stop<<"\n";
 				}
 			}
 		}
+    
+    if (charge_invalid_count>0) LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
+
 		outs.close();
 						
 	}

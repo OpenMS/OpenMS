@@ -73,6 +73,7 @@ namespace OpenMS
       PEPLIST,            ///< specArray file (.pepList)
       HARDKLOER,          ///< hardkloer file (.hardkloer)
       KROENIK,            ///< kroenik file (.kroenik)
+      FASTA,              ///< FASTA file (.fasta)
       EDTA,               ///< enhanced comma separated files (RT, m/z, Intensity, [meta])
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};

@@ -37,7 +37,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "edta"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -226,6 +226,15 @@ namespace OpenMS
 	
 		//OMSSAXML file
 		if (all_simple.hasSubstring("<MSResponse")) return FileTypes::OMSSAXML;
+
+    //FASTA file
+    // .. check this fairly early on, because other file formats might be less specific
+    Size comment_or_header_count(0);
+    {
+    Size i=0;
+    while (i<complete_file.size() && (complete_file[i].trim().hasPrefix(">") || complete_file[i].trim().hasPrefix("#"))) ++i;
+    if (i>0) return FileTypes::FASTA;
+    }
 
 		// PNG file (to be really correct, the first eight bytes of the file would
 		// have to be checked; see e.g. the wikipedia article)
