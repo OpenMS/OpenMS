@@ -1647,6 +1647,45 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
 END_SECTION
 
+START_SECTION((void update(const Param& old_version, const bool report_new_params=false)))
+	Param common;
+	common.setValue("float",1.0f,"float");	
+	common.setValue("float2",2.0f,"float2");
+	common.setValue("string","default string1","string");
+	common.setValue("string2","default string2","string2");
+	common.setValue("PATH:onlyfordescription",45.2);
+	
+	common.setValue("stringlist",StringList::create("a,b,c"),"stringlist");
+	common.setValue("stringlist2",StringList::create("d,e,f"),"stringlist2");
+	common.setValue("intlist",IntList::create("1,2,3"),"intlist");
+
+  // copy and alter
+  Param old = common;
+  old.setValue("recently_removed_float",1.1f,"float");  // should not make it into new param
+  old.setValue("old_type","a string","string");
+  old.setValue("some:version","1.2","old version");
+  old.setValue("some:type","unlabeled","type");
+	old.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
+	old.setValue("intlist",IntList::create("3"),"intlist");
+  
+  Param defaults = common;
+  defaults.setValue("old_type",3,"old_type has evolved from string to int"); // as type has changed, this value should be kept
+  defaults.setValue("some:version","1.9","new version"); // this value should be kept (due to its reserved name)
+  defaults.setValue("some:type","information","type");   // this value should be kept (due to its reserved name)
+  defaults.setValue("new_value",3,"new param not present in old");
+  
+  Param expected = defaults;
+	expected.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
+	expected.setValue("intlist",IntList::create("3"),"intlist");
+  
+  // update()
+  defaults.update(old);
+  
+  TEST_EQUAL(defaults,expected)
+  
+END_SECTION
+
+
 START_SECTION((ParamIterator begin() const))
 	NOT_TESTABLE
 END_SECTION

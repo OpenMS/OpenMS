@@ -400,7 +400,7 @@ namespace OpenMS
         @param old_version Old version of param, which contains the useful settings to be rescued
 
       **/
-      void update(const Param& old_version);
+      void update(const Param& old_version, const bool report_new_params=false);
       
       //@}
 			

@@ -1206,13 +1206,14 @@ namespace OpenMS
 		}
 	}
 
-  void Param::update(const Param& old_version)
+  void Param::update(const Param& old_version, const bool report_new_params)
   {
 		// augment
 		for(Param::ParamIterator it = old_version.begin(); it != old_version.end();++it)
 		{
 			if (this->exists(it.getName()))
 			{
+				// param 'version': do not override!
 				if (it.getName().hasSuffix(":version"))
 				{	
 					if (this->getValue(it.getName()) != it->value)
@@ -1243,12 +1244,12 @@ namespace OpenMS
 						if (entry.isValid(s))
 						{
 							// overwrite default value
-							LOG_WARN << "Overriding Default-Parameter " << it.getName() << " with new value " << it->value << "\n"; 
+							LOG_WARN << "Overriding Default-Parameter '" << it.getName() << "' with new value " << it->value << "\n"; 
 							this->setValue(it.getName(),it->value, entry.description, this->getTags(it.getName()));
 						}
 						else
 						{
-							LOG_WARN << "Parameter " << it.getName() << " does not fit into new restriction settings! Ignoring..."; 
+							LOG_WARN << "Parameter '" << it.getName() << "' does not fit into new restriction settings! Ignoring..."; 
 						}
 					}
 					else
@@ -1258,14 +1259,28 @@ namespace OpenMS
 				}
 				else
 				{
-					LOG_WARN << "Parameter " << it.getName() << " has changed value type! Ignoring...\n"; 
+					LOG_WARN << "Parameter '" << it.getName() << "' has changed value type! Ignoring...\n"; 
 				}
 			}
 			else
 			{
-				LOG_WARN << "Deprecated Parameter " << it.getName() << " given in old parameter file! Ignoring...\n"; 
+				LOG_WARN << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Ignoring...\n"; 
 			}
 		}
+
+    // print new parameters (unique to this Param, but not in old one)
+    if (report_new_params)
+    {
+      // list new parameters not known to old version (just nice to know)
+ 		  for(Param::ParamIterator it = this->begin(); it != this->end();++it)
+		  {
+			  if (!old_version.exists(it.getName()))
+        {
+          LOG_WARN << "Information: New Parameter '" << it.getName() << "' not contained in old parameter file.\n"; 
+        }
+      }
+    }
+
   }
 
 	void Param::setSectionDescription(const String& key, const String& description)

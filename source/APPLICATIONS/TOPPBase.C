@@ -284,8 +284,8 @@ namespace OpenMS
 				{
 					Param ini_params;
 					ini_params.load( (String)in_ini );
-
-          default_params.update(ini_params);
+          // update default params with old params given in -ini and be verbose
+          default_params.update(ini_params, true);
         }
 				outputFileWritable_(write_ini_file);
 				
