@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <gsl/gsl_statistics.h>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
 
@@ -242,7 +243,7 @@ namespace OpenMS
 					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
 					new_maxlike += log10(negative_prior*x_gauss2+(1-negative_prior)*x_gauss1);
 				}
-				if(isnan(new_maxlike - maxlike))
+        if(boost::math::isnan(new_maxlike - maxlike))
 				{
 					throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");					
 				}
