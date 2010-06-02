@@ -229,11 +229,20 @@ namespace OpenMS
 
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
-    Size comment_or_header_count(0);
     {
     Size i=0;
-    while (i<complete_file.size() && (complete_file[i].trim().hasPrefix(">") || complete_file[i].trim().hasPrefix("#"))) ++i;
-    if (i>0) return FileTypes::FASTA;
+    Size bigger_than=0;
+    while (i<complete_file.size())
+    {
+      if (complete_file[i].trim().hasPrefix(">")) 
+      {
+        ++bigger_than;
+        ++i;
+      }
+      else if (complete_file[i].trim().hasPrefix("#")) ++i;
+      else break;
+    }
+    if (bigger_than>0) return FileTypes::FASTA;
     }
 
 		// PNG file (to be really correct, the first eight bytes of the file would

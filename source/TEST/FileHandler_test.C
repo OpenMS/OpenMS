@@ -65,36 +65,67 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::DTA, tmp.nameToType("DTA"));
 	TEST_EQUAL(FileTypes::DTA2D, tmp.nameToType("DTA2D"));
 	TEST_EQUAL(FileTypes::MZDATA, tmp.nameToType("mzData"));
-	TEST_EQUAL(FileTypes::MZML, tmp.nameToType("mzML"));
 	TEST_EQUAL(FileTypes::MZXML, tmp.nameToType("mzXML"));
 	TEST_EQUAL(FileTypes::FEATUREXML, tmp.nameToType("FeatureXML"));
 	TEST_EQUAL(FileTypes::ANDIMS, tmp.nameToType("cdf"));
 	TEST_EQUAL(FileTypes::ANDIMS, tmp.nameToType("CdF"));
 	TEST_EQUAL(FileTypes::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
-	TEST_EQUAL(FileTypes::INI, tmp.nameToType("ini"));
+  TEST_EQUAL(FileTypes::MGF, tmp.nameToType("mgf"));
+  TEST_EQUAL(FileTypes::INI, tmp.nameToType("ini"));
 	TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
-	TEST_EQUAL(FileTypes::PNG, tmp.nameToType("PNG"));
+	TEST_EQUAL(FileTypes::MZML, tmp.nameToType("mzML"));
+  TEST_EQUAL(FileTypes::MS2, tmp.nameToType("ms2"));
+	TEST_EQUAL(FileTypes::PEPXML, tmp.nameToType("pepXML"));
+	TEST_EQUAL(FileTypes::PROTXML, tmp.nameToType("protXML"));
+	TEST_EQUAL(FileTypes::MZIDENTML, tmp.nameToType("mzIdentML"));
+	TEST_EQUAL(FileTypes::GELML, tmp.nameToType("GelML"));
+	TEST_EQUAL(FileTypes::TRAML, tmp.nameToType("TraML"));
+	TEST_EQUAL(FileTypes::MSP, tmp.nameToType("MSP"));
+	TEST_EQUAL(FileTypes::OMSSAXML, tmp.nameToType("OMSSAXML"));
+  TEST_EQUAL(FileTypes::PNG, tmp.nameToType("PNG"));
+  TEST_EQUAL(FileTypes::XMASS, tmp.nameToType("fid"));
+	TEST_EQUAL(FileTypes::TSV, tmp.nameToType("tsv"));
+	TEST_EQUAL(FileTypes::PEPLIST, tmp.nameToType("pepList"));
+	TEST_EQUAL(FileTypes::HARDKLOER, tmp.nameToType("hardkloer"));
+	TEST_EQUAL(FileTypes::KROENIK, tmp.nameToType("kroenik"));
+	TEST_EQUAL(FileTypes::FASTA, tmp.nameToType("fasta"));
+	TEST_EQUAL(FileTypes::EDTA, tmp.nameToType("edta"));
 END_SECTION
+
 
 START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileTypes::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileTypes::DTA)
-	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileTypes::MZDATA)
-	TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileTypes::MZML)
-	TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
-	TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.DTA2D"), FileTypes::DTA2D)
-	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileTypes::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileTypes::MZDATA)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileTypes::MZXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileTypes::FEATUREXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.cDf"), FileTypes::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileTypes::CONSENSUSXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.mGf"), FileTypes::MGF)
 	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
-	TEST_EQUAL(tmp.getTypeByFileName("test.png"), FileTypes::PNG)
+  TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileTypes::MZML)
+	TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
+	TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.mS2"), FileTypes::MS2)
+	TEST_EQUAL(tmp.getTypeByFileName("test.pepXML"), FileTypes::PEPXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.prOTXML"), FileTypes::PROTXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.mzIdentML"), FileTypes::MZIDENTML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.GELML"), FileTypes::GELML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.TRAML"), FileTypes::TRAML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.MSP"), FileTypes::MSP)
+	TEST_EQUAL(tmp.getTypeByFileName("test.OMSSAXML"), FileTypes::OMSSAXML)
+  TEST_EQUAL(tmp.getTypeByFileName("test.png"), FileTypes::PNG)
 	TEST_EQUAL(tmp.getTypeByFileName("./foo.bar/XMass/fid"), FileTypes::XMASS);
+	TEST_EQUAL(tmp.getTypeByFileName("test.TSV"), FileTypes::TSV)
+	TEST_EQUAL(tmp.getTypeByFileName("test.PEPLIST"), FileTypes::PEPLIST)
+	TEST_EQUAL(tmp.getTypeByFileName("test.HARDKLOER"), FileTypes::HARDKLOER)
+	TEST_EQUAL(tmp.getTypeByFileName("test.fasta"), FileTypes::FASTA)
+	TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
@@ -112,6 +143,7 @@ START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")), FileTypes::FASTA)
 
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION

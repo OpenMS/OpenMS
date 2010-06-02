@@ -144,7 +144,7 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
 		}
 
-    DoubleReal min_to_s_factor = rt_in_seconds ? (1/60) : 1;
+    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0) ;
 		for(Size f = 0; f < map.size(); ++f)
 		{
 			DoubleReal rt_start =  map[f].getRT() - map[f].getRT() * rel_rt_window_size;
