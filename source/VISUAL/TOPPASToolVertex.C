@@ -711,10 +711,12 @@ namespace OpenMS
 	{
 		QVector<IOInfo> in_params;
 		input_list_length_ = 1; // stays like that if -in param is not a list
+		bool found_in_parameter = false;
 		getInputParameters(in_params);
 		QStringList input_file_basenames;
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		
+		bool force = false;
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			int param_index = (*it)->getTargetInParam();
@@ -724,8 +726,9 @@ namespace OpenMS
 				break;
 			}
 			
-			if (in_params[param_index].param_name == "in")
+			if (in_params[param_index].param_name == "in" || force)
 			{
+				found_in_parameter = true;
 				in_parameter_has_list_type_ = (in_params[param_index].type == IOInfo::IOT_LIST);
 				
 				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
@@ -770,6 +773,13 @@ namespace OpenMS
 					}
 					break;
 				}
+			}
+			
+			//if last iteration and still no "in" parameter found, repeat last iteration and treat the edge as input parameter (dirty - TODO)
+			if (it == inEdgesEnd()-1 && !found_in_parameter)
+			{
+				--it;
+				force = true;
 			}
 		}
 		

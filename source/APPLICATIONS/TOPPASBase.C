@@ -1214,10 +1214,10 @@ namespace OpenMS
 		int ret = QMessageBox::information(tw, "Parameters updated!",
 						"The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
 						QMessageBox::Save | QMessageBox::Cancel);
-			if (ret == QMessageBox::Save)
-      {
-				saveAsFileDialog();
-			}
+		if (ret == QMessageBox::Save)
+		{
+			saveAsFileDialog();
+		}
 	}
 } //namespace OpenMS
 
