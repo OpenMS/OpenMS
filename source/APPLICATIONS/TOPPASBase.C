@@ -587,6 +587,7 @@ namespace OpenMS
     connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
 		connect(tw,SIGNAL(toolDroppedOnWidget(double,double)),this,SLOT(insertNewVertex_(double,double)));
+    connect(tw,SIGNAL(pipelineDroppedOnWidget(const String&, bool)),this,SLOT(openFile(const String&, bool)));
 	  tw->setWindowTitle(caption.toQString());
 
 		//add tab with id
@@ -598,7 +599,7 @@ namespace OpenMS
     //connect slots and sigals for removing the widget from the bar, when it is closed
     //- through the menu entry
     //- through the tab bar
-    //- thourgh the MDI close button
+    //- through the MDI close button
     connect(tw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
 
     tab_bar_->setCurrentId(tw->window_id);
@@ -718,6 +719,7 @@ namespace OpenMS
     {
       statusBar()->showMessage(msg.c_str(), time);
     }
+    QApplication::processEvents();
   }
 
 	void TOPPASBase::showCursorStatus(double /*x*/, double /*y*/)

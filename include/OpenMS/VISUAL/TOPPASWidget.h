@@ -72,13 +72,15 @@ namespace OpenMS
 		signals:
 		
 			/// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
-			void sendStatusMessage(std::string, OpenMS::UInt);
+			void sendStatusMessage(std::string message, OpenMS::UInt time);
 			/// Emitted when the cursor position changes (for displaying e.g. in status bar)
 			void sendCursorStatus(double x=0.0, double y=0.0);
 			/// Message about the destruction of this widget
 		  void aboutToBeDestroyed(int w_id);
 		  /// Emitted when a drop event occurs
 		  void toolDroppedOnWidget(double x = 0.0, double y = 0.0);
+		  /// Emitted when a drop event occurs
+      void pipelineDroppedOnWidget(const String& filename, bool new_window);
 		
 		protected:
 		

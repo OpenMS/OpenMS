@@ -82,11 +82,11 @@ namespace OpenMS
       void savePreferences();
 			/// loads the files and updates the splashscreen
 			void loadFiles(const StringList& list, QSplashScreen* splash_screen);
-			/// opens the file in a new window
-			void openFile(const String& file_name, bool in_new_window = true);
 
     public slots:
     	
+			/// opens the file in a new window
+			void openFile(const String& file_name, bool in_new_window = true);
     	/// shows the dialog for opening files
       void openFileDialog();
 			/// shows the dialog for opening example files

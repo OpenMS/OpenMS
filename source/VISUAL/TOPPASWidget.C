@@ -38,6 +38,7 @@
 #include <QtGui/QDragMoveEvent>
 #include <QtGui/QDropEvent>
 #include <QtCore/QMimeData>
+#include <QUrl>
 
 using namespace std;
 
@@ -100,8 +101,20 @@ namespace OpenMS
 	void TOPPASWidget::dropEvent(QDropEvent* event)
 	{
 		// TODO: test mime type/source? where?
-		QPointF scene_pos = mapToScene(event->pos());
-		emit toolDroppedOnWidget(scene_pos.x(), scene_pos.y());
+    //std::cerr << "Drop Event with data:\n  " << String( event->mimeData()->formats().join("\n  ")) << "\n\n";
+
+    if ( event->mimeData()->hasUrls() )
+    {
+      String filename = String(event->mimeData()->urls().front().toLocalFile());
+      emit sendStatusMessage("loading drop file '" + filename + "' (press CRTL while dropping to insert into current window)", 0);
+      // open pipeline in new window (or in current if CTRL is pressed)
+      emit pipelineDroppedOnWidget( filename , event->keyboardModifiers() != Qt::ControlModifier);
+    }
+    else
+    {
+  		QPointF scene_pos = mapToScene(event->pos());
+		  emit toolDroppedOnWidget(scene_pos.x(), scene_pos.y());
+    }
 		event->acceptProposedAction();
 	}
 	
