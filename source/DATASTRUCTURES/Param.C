@@ -931,13 +931,17 @@ namespace OpenMS
 			++it;
 		}
 		
-		//close remaining tags
-		const std::vector< ParamIterator::TraceInfo >& trace = it.getTrace();
-		for(std::vector< ParamIterator::TraceInfo >::const_iterator it2 = trace.begin(); it2!=trace.end(); ++it2)
-		{
-			indentation.resize(indentation.size()-2);
-			os << indentation << "</NODE>" << endl;	
-		}
+    // if we had tags ...
+    if (begin()!=end())
+    {
+		  //close remaining tags
+		  const std::vector< ParamIterator::TraceInfo >& trace = it.getTrace();
+		  for(std::vector< ParamIterator::TraceInfo >::const_iterator it2 = trace.begin(); it2!=trace.end(); ++it2)
+		  {
+			  indentation.resize(indentation.size()-2);
+			  os << indentation << "</NODE>" << endl;	
+		  }
+    }
 		
 		os << "</PARAMETERS>\n";
     os_.close();
