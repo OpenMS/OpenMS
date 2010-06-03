@@ -29,6 +29,7 @@
 #define OPENMS_FORMAT_DTAFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -99,31 +100,34 @@ namespace OpenMS
 					delimiter = ' ';
 				}
 				
+				line.split(delimiter,strings);
+				if (strings.size()!=2)
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\" (got  " + String(strings.size()) + ", expected 2 entries)" ,filename);
+				}
+				Precursor precursor;
+        DoubleReal mh_mass;
+        Int charge;
 				try
 				{
-					line.split(delimiter,strings);
-					if (strings.size()!=2)
-					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\" (got  " + String(strings.size()) + ", expected 2 entries)" ,filename);
-					}
-					Precursor precursor;
-					double mh_mass = strings[0].toDouble();
-					Int charge = strings[1].toInt();
-					if (charge != 0)
-					{
-						precursor.setMZ( (mh_mass - 1.0) / charge + 1.0);
-					}
-					else
-					{
-						precursor.setMZ( mh_mass );
-					}
-					precursor.setCharge(charge);
-					spectrum.getPrecursors().push_back(precursor);
+          // by convention the first line holds: singly protonated peptide mass, charge state
+				  mh_mass = strings[0].toDouble();
+					charge = strings[1].toInt();
 				}
 				catch(...)
 				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\"" ,filename);
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\": not a float number." ,filename);
 				}
+        if (charge != 0)
+				{
+					precursor.setMZ( (mh_mass - Constants::PROTON_MASS_U) / charge + Constants::PROTON_MASS_U);
+				}
+				else
+				{
+					precursor.setMZ( mh_mass );
+				}
+				precursor.setCharge(charge);
+				spectrum.getPrecursors().push_back(precursor);
 				
 		    while (getline(is,line,'\n'))
 		    {
@@ -141,21 +145,20 @@ namespace OpenMS
 						delimiter = ' ';
 					}
 		
+					line.split(delimiter,strings);
+					if (strings.size()!=2)
+					{
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\" (got  " + String(strings.size()) + ", expected 2 entries)" ,filename);
+					}				
 					try 
 					{
-						line.split(delimiter,strings);
-						if (strings.size()!=2)
-						{
-							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\" (got  " + String(strings.size()) + ", expected 2 entries)" ,filename);
-						}				
-						
 						//fill peak
 						p.setPosition((typename SpectrumType::PeakType::PositionType)strings[0].toDouble());
 						p.setIntensity((typename SpectrumType::PeakType::IntensityType)strings[1].toDouble());
 					} 
 					catch ( Exception::BaseException & /*e*/ )
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\"" ,filename);
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"")+line+"\": not a float number." ,filename);
 					}
 					spectrum.push_back(p);
 				}
