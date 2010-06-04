@@ -89,7 +89,7 @@ namespace OpenMS
 					This can either be the PSI-MOD identifier or every other unique
 					identifier which can be found in the PSI-MOD definitions file.
 
-					To search for more than one modification searchModifications can be used!
+					To search for more than one modification searchModifications() can be used!
 					
 					@exception ElementNotFound is thrown if no or more than one element is found
 			*/

@@ -331,7 +331,7 @@ namespace OpenMS
 		// mouse position relative to the diagram widget
 		QPoint p = e->pos();
 		PointType data_pos = widgetToData(p);				
-		emit sendCursorStatus( data_pos.getX() );
+		emit sendCursorStatus( data_pos.getX(), getCurrentLayer_().getCurrentSpectrum().getRT() );
 		
 		PeakIndex near_peak = findPeakAtPosition_(p);
 		

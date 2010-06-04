@@ -470,7 +470,7 @@ namespace OpenMS
 			/// set empirical formula of the residue (must be full, with N and C-terminus)
 			void setFormula(const EmpiricalFormula& formula);
 		
-			/// returns the empirical formula of thre residue
+			/// returns the empirical formula of the residue
 			EmpiricalFormula getFormula(ResidueType res_type = Full) const;
 	
 			/// sets average weight of the residue (must be full, with N and C-terminus)
