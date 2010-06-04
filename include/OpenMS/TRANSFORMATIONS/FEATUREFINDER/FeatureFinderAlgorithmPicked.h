@@ -663,11 +663,13 @@ namespace OpenMS
 
 						TraceFitter<PeakType> * fitter;
 
+            double egh_tau = 0;
 						// choose fitter
 						if(param_.getValue("feature:rt_shape") == "asymmetric")
 						{
 						  LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
 						  fitter = new EGHTraceFitter<PeakType>();
+              egh_tau = -1;
 						}
 						else
 						{
@@ -951,6 +953,11 @@ namespace OpenMS
 						{
 							f.setMetaValue("score_fit",fit_score);
 							f.setMetaValue("score_correlation",correlation);
+              if (egh_tau!=0)
+              {
+                egh_tau = (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getTau();
+                f.setMetaValue("EGH_tau",egh_tau);
+              }
 						}
 						f.setRT(fitter->getCenter());
 						

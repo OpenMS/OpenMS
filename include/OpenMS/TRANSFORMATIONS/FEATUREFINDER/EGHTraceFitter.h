@@ -113,6 +113,11 @@ namespace OpenMS
       return sigma_5_bound_.first;
     }
 
+    DoubleReal getTau() const
+    {
+      return tau_;
+    }
+
     DoubleReal getUpperRTBound() const
     {
       return sigma_5_bound_.second;
