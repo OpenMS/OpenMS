@@ -341,7 +341,7 @@ namespace OpenMS
         addEmptyLine_();
 
 				addText_("Options for featureXML files:");
-				registerFlag_("minimal", "Set this flag to write only what can be read again by TextImporter: RT, m/z, and intensity");
+				registerFlag_("minimal", "Set this flag to write only three attributes: RT, m/z, and intensity.");
 				addEmptyLine_();
 
         addText_("Options for idXML files:");

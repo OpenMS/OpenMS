@@ -49,7 +49,7 @@ using namespace std;
 	
 	In feature detection algorithms, an early step is generally to identify points of interest in the LC-MS map (so-called seeds) that may later be extended to features. If supported by the feature detection algorithm (currently only the "centroided" algorithm), user-supplied seed lists allow greater control over this process.
 
-	The SeedListGenerator can automatically create seed lists from a variety of sources. The lists are exported in featureXML format - suitable as input to FeatureFinder -, but can be converted to or from text formats (e.g. CSV) using the TextExporter (with "-minimal" option) and TextImporter tools.
+	The SeedListGenerator can automatically create seed lists from a variety of sources. The lists are exported in featureXML format - suitable as input to FeatureFinder -, but can be converted to or from text formats using the TextExporter (with "-minimal" option to convert to CSV) and FileConverter (to convert from CSV) tools.
 
 	What are possible use cases for custom seed lists?
 	- In analyses that can take into account only features with peptide annotations, it may be useful to focus directly on certain locations in the LC-MS map - on all MS2 precursors (mzML input), or on precursors whose fragment spectra could be matched to a peptide sequence (idXML input).
