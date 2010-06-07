@@ -32,6 +32,22 @@
 
 using namespace std;
 
+#ifdef OPENMS_BIG_ENDIAN
+  template<typename T> T ByteReverse(const T in)
+  {
+    T out;
+    const char* pin = (const char*) &in;
+    char* pout= (char*) (&out+1) - 1 ;
+
+    int i;
+    for(i= sizeof(T) ; i>0 ; --i)
+    {
+      *pout-- = *pin++ ;
+    }
+    return out ;
+  }
+#endif
+
 namespace OpenMS
 {
 	namespace Internal
@@ -55,23 +71,13 @@ namespace OpenMS
       Size FidHandler::getIntensity()
       {
         // intensity is coded in 32 bits little-endian integer format
-        Size c1 = get();
-        Size c2 = get();
-        Size c3 = get();
-        Size c4 = get();
-
-        Size value = c4;
-        value <<= 8;
-        value |= c3;
-        value <<= 8;
-        value |= c2;
-        value <<= 8;
-        value |= c1;
-    
-        index_++;
-        
-        return value;
+        Int32 result = 0;
+        read( (char*) &result, 4);
+        #ifdef OPENMS_BIG_ENDIAN
+          result = ByteReverse<Int32>(result);
+        #endif
+        index_++;        
+        return (result > 0) ? result : 0;
       }
 	} // namespace Internal
 } // namespace OpenMS
-
