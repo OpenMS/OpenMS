@@ -399,7 +399,7 @@ namespace OpenMS
 				//new scope to make local variables disappear
 				{
 					DoubleReal max_mass = map_.getMaxMZ()*charge_high;
-					Size num_isotopes = std::ceil(max_mass/mass_window_width_);
+					Size num_isotopes = std::ceil(max_mass/mass_window_width_) + 1;
 					ff_->startProgress(0, num_isotopes, "Precalculating isotope distributions");
 					
 					//reserve enough space
@@ -1311,7 +1311,10 @@ namespace OpenMS
 				//calculate index in the vector
 				Size index = (Size)std::floor(mass/mass_window_width_);
 				
-				if (index>=isotope_distributions_.size()) std::cout << "INDEX: " << index << " SIZE: " << isotope_distributions_.size() << std::endl;
+				if (index>=isotope_distributions_.size())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
+        }
 				
 				//Return distribution
 				return isotope_distributions_[index];
