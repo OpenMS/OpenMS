@@ -37,7 +37,6 @@
 	<H2 style="border-top:2px solid grey;">%OpenMS</H2>
 		<UL>
 
-
 			<LI><B>(Linux) When executing 'make test', all tests fail.</B><BR>
 			
 			Please check the LD_LIBRARY_PATH environment variable:
@@ -49,7 +48,20 @@
 		</UL>
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
-			<LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
+			<LI><B>I'm getting the error message "Unexpected internal error (unable to allocate enough memory (size = 0 bytes)"</B><BR>
+        Call "OpenMSInfo" and look at "OS Information". <BR>
+        If you are using the 32bit version of OpenMS, the data you are processing is probably too big (e.g. using RAW data files bigger than 1.5 GB as input, or many FeatureXML files etc).
+        You can now either:<br>
+        <UL>
+          <LI>switch to the 64bit Version of OpenMS. Be aware though that your Operating System also needs to have 64bit. Furthermore your PC should have sufficient RAM, to hold the data. Otherwise your harddrive will be used extensively for swapping and processing will take longer.
+          <LI>on 32bit Windows systems you can try the increase the allowed amount of memory from 2GB to 3GB by using the <it>"/3GB"</it> boot switch (boot.ini). This might already do
+    the trick. However, if your data again gets bigger, this solution will only help temporarily. Google "3GB windows". This trick does not depend on the amount of memory installed on your system! You can use it even if you have only 1GB or 2GB of RAM, although you hard drive will be used for swapping then.
+          <LI>on 32bit Linux systems: sorry, we cannot do anything. Use a 64bit system or reduce the amount of data.
+        </UL>
+        If you already have the 64bit version, you probably encountered a bug in our software. Please contact the mailing list (see OpenMS.de).
+
+
+      <LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
 				The Thermo interface expects an english locale setting. Otherwise it will silently forget to
 				return peak data. Set your locale to english and it should work.
 			
