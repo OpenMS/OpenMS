@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:////share/usr/bertsch/OpenMS_x86_64_sl5/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="18mix_SoCe_tar_dec" db_version="18Protein_SoCe_Tr_detergents_trace_target_decoy_20090803.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2009-10-06T16:17:27" search_engine="Mascot" search_engine_version="2.2.04" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="Q29443|TRFE_BOVIN" score="2177" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="tr|A9GC70|A9GC70_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="P00634|PPB_ECOLI" score="1919" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="P02769|ALBU_BOVIN" score="1375" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="P00722|BGAL_ECOLI" score="1131" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="P00432|CATA_BOVIN" score="907" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="P00489|PYGM_RABIT" score="859" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="P06278|AMY_BACLI" score="733" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="P46406|G3P_RABIT" score="682" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="P62739|ACTA_BOVIN" score="679" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="tr|A9FZB2|A9FZB2_SORC5rev" score="26" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="P00946|MANA_ECOLI" score="495" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="300.164093" RT="1437.53" >
+			<PeptideHit score="14.45" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_3" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="22"/>
+				<UserParam type="float" name="EValue" value="0.79432823472"/>
+			</PeptideHit>
+			<PeptideHit score="14.45" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_3" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="22"/>
+				<UserParam type="float" name="EValue" value="0.79432823472"/>
+			</PeptideHit>			
+			<PeptideHit score="1.64" sequence="WSDLHLK" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="22"/>
+				<UserParam type="float" name="EValue" value="0.34673685045"/>
+			</PeptideHit>
+			<PeptideHit score="1.64" sequence="WSDLHLK" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="22"/>
+				<UserParam type="float" name="EValue" value="0.34673685045"/>
+			</PeptideHit>
+			<PeptideHit score="0.43" sequence="GPFAHELK" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="22"/>
+				<UserParam type="float" name="EValue" value="0.30199517204"/>
+			</PeptideHit>
+			<PeptideHit score="0.43" sequence="GPFAHELK" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="22"/>
+				<UserParam type="float" name="EValue" value="0.30199517204"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="300.678009" RT="1575.38" >
+			<PeptideHit score="11.41" sequence="VSAAPR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.13182567386"/>
+			</PeptideHit>
+			<PeptideHit score="11.41" sequence="VSAAPR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.13182567386"/>
+			</PeptideHit>
+			<PeptideHit score="5.92" sequence="LSGAPR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.0457088189615"/>
+			</PeptideHit>
+			<PeptideHit score="5.92" sequence="LSGAPR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.0457088189615"/>
+			</PeptideHit>
+			<PeptideHit score="5.83" sequence="LSQPR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.0389045144994"/>
+			</PeptideHit>
+			<PeptideHit score="5.83" sequence="LSQPR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.0389045144994"/>
+			</PeptideHit>
+			<PeptideHit score="1.17" sequence="GSAIPR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.00851138038202"/>
+			</PeptideHit>
+			<PeptideHit score="1.17" sequence="GSAIPR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.00851138038202"/>
+			</PeptideHit>
+			<PeptideHit score="1.17" sequence="GSAPLR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.00831763771103"/>
+			</PeptideHit>
+			<PeptideHit score="1.17" sequence="GSAPLR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.00831763771103"/>
+			</PeptideHit>
+			<PeptideHit score="0.91" sequence="LTGGPR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.00691830970919"/>
+			</PeptideHit>
+			<PeptideHit score="0.91" sequence="LTGGPR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="20"/>
+				<UserParam type="float" name="EValue" value="0.00691830970919"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="301.8590088" RT="1754.8" >
+			<PeptideHit score="18.76" sequence="TKIPAVFK" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="0.0063095734448"/>
+			</PeptideHit>
+			<PeptideHit score="18.76" sequence="TKIPAVFK" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="0.0063095734448"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="303.184845" RT="1777.58" >
+			<PeptideHit score="31.53" sequence="MIFAGIKK" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="16"/>
+				<UserParam type="float" name="EValue" value="0.00144543977075"/>
+			</PeptideHit>
+			<PeptideHit score="31.53" sequence="MIFAGIKK" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="16"/>
+				<UserParam type="float" name="EValue" value="0.00144543977075"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="304.180542" RT="1485.47" >
+			<PeptideHit score="0.45" sequence="LTGQAKHR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="21"/>
+				<UserParam type="float" name="EValue" value="0.000223872113857"/>
+			</PeptideHit>
+			<PeptideHit score="0.45" sequence="LTGQAKHR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="21"/>
+				<UserParam type="float" name="EValue" value="0.000223872113857"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="307.4929504" RT="1417.29" >
+			<PeptideHit score="2.16" sequence="RM(Oxidation)EALER" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="19"/>
+				<UserParam type="float" name="EValue" value="7.58577575029e-05"/>
+			</PeptideHit>
+			<PeptideHit score="2.16" sequence="RM(Oxidation)EALER" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="19"/>
+				<UserParam type="float" name="EValue" value="7.58577575029e-05"/>
+			</PeptideHit>
+			<PeptideHit score="1.45" sequence="RMELESR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="19"/>
+				<UserParam type="float" name="EValue" value="3.0199517204e-5"/>
+			</PeptideHit>
+			<PeptideHit score="1.45" sequence="RMELESR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="19"/>
+				<UserParam type="float" name="EValue" value="3.0199517204e-5"/>
+			</PeptideHit>
+			<PeptideHit score="0.46" sequence="TMLASGNAR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="19"/>
+				<UserParam type="float" name="EValue" value="2.08929613085e-5"/>
+			</PeptideHit>
+			<PeptideHit score="0.46" sequence="TMLASGNAR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="19"/>
+				<UserParam type="float" name="identity_threshold" value="19"/>
+				<UserParam type="float" name="EValue" value="2.08929613085e-5"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="308.5265198" RT="1374.39" >
+			<PeptideHit score="21.2" sequence="IIAPPERK" charge="2" aa_before="K" aa_after="Y" protein_refs="PH_9" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="1e-5"/>
+			</PeptideHit>
+			<PeptideHit score="21.2" sequence="IIAPPERK" charge="3" aa_before="K" aa_after="Y" protein_refs="PH_9" >
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="1e-5"/>
+			</PeptideHit>
+			<PeptideHit score="5.7" sequence="LPSAPLAVR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="4.78630092323e-6"/>
+			</PeptideHit>
+			<PeptideHit score="5.7" sequence="LPSAPLAVR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="4.78630092323e-6"/>
+			</PeptideHit>
+			<PeptideHit score="5.25" sequence="ISPPAALVR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="2.08929613085e-6"/>
+			</PeptideHit>
+			<PeptideHit score="5.25" sequence="ISPPAALVR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="2.08929613085e-6"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="309.1685791" RT="3449.33" >
+			<PeptideHit score="17.01" sequence="LHQSDVAR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="26"/>
+				<UserParam type="float" name="EValue" value="1.17489755494e-6"/>
+			</PeptideHit>
+			<PeptideHit score="17.01" sequence="LHQSDVAR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="26"/>
+				<UserParam type="float" name="EValue" value="1.17489755494e-6"/>
+			</PeptideHit>
+			<PeptideHit score="1.93" sequence="AAGHAKGSAR" charge="2" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="26"/>
+				<UserParam type="float" name="EValue" value="2.39883291902e-07"/>
+			</PeptideHit>
+			<PeptideHit score="1.93" sequence="AAGHAKGSAR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="15"/>
+				<UserParam type="float" name="identity_threshold" value="26"/>
+				<UserParam type="float" name="EValue" value="2.39883291902e-07"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

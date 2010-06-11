@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: $
+// $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
@@ -90,7 +90,8 @@ namespace OpenMS
 			gauss_fit2.x0 = gsl_stats_mean(&probabilities[0], 1, ceil(0.5* probabilities.size())) + probabilities[0];
 			gauss_fit2.sigma = gauss_fit1.sigma;
 			gauss_fit2.A = 1	/sqrt(2*3.14159*pow(gauss_fit1.sigma,2));
-			DoubleReal maxlike(0); 					
+			DoubleReal maxlike(0); 				
+			
 			for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
 			{
 					DoubleReal the_x = *it;
@@ -159,7 +160,8 @@ namespace OpenMS
 				gauss_fit_param_ = gauss_fit1;
 				formula = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
 				file<<formula;
-				formula = getBothGnuplotFormula(negative_prior); 
+				negative_prior_ = negative_prior;
+				formula = getBothGnuplotFormula(); 
 				file<<formula;
 				file<<"plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, f(x) , g(x), h(x)";
 				file.store(step + iter);	
@@ -199,7 +201,7 @@ namespace OpenMS
 										
 				DoubleReal gauss1_mean = sum_gauss1_x0/one_minus_sum_posterior; 
 				DoubleReal gauss2_mean = sum_gauss2_x0/sum_posterior; 
-						
+
 				//new standard deviation
 				DoubleReal sum_gauss1_sigma(0),sum_gauss2_sigma(0);
 				for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
@@ -214,13 +216,18 @@ namespace OpenMS
 						
 				//update parameters
 				gauss_fit1.x0 = gauss1_mean;
-				gauss_fit1.sigma = sqrt(sum_gauss1_sigma/one_minus_sum_posterior); 
-				gauss_fit1.A = 1/sqrt(2*3.14159*pow(gauss_fit1.sigma,2));
+				if(sum_gauss1_sigma  != 0 && one_minus_sum_posterior != 0)
+				{
+					gauss_fit1.sigma = sqrt(sum_gauss1_sigma/one_minus_sum_posterior); 
+					gauss_fit1.A = 1/sqrt(2*3.14159*pow(gauss_fit1.sigma,2));
+				}
 						
 				gauss_fit2.x0 = gauss2_mean;
-				gauss_fit2.sigma = sqrt(sum_gauss2_sigma/sum_posterior);
-				gauss_fit2.A = 1/sqrt(2*3.14159*pow(gauss_fit2.sigma,2));
-
+				if(sum_gauss2_sigma  != 0 && sum_posterior != 0)
+				{
+					gauss_fit2.sigma = sqrt(sum_gauss2_sigma/sum_posterior);
+					gauss_fit2.A = 1/sqrt(2*3.14159*pow(gauss_fit2.sigma,2));
+				}
 				//compute new prior probabilities negative peptides	
 				sum_posterior = 0;
 				for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
@@ -243,6 +250,7 @@ namespace OpenMS
 					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
 					new_maxlike += log10(negative_prior*x_gauss2+(1-negative_prior)*x_gauss1);
 				}
+				
         if(boost::math::isnan(new_maxlike - maxlike))
 				{
 					throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");					
@@ -287,7 +295,9 @@ namespace OpenMS
 				file[1] = (output + iter + output_ending);
 				file[2] = getGumbelGnuplotFormula() + "*" + String(negative_prior);
 				file[3] = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
-				file[4] = getBothGnuplotFormula(negative_prior);
+				//this step is needed for getBothGnuplotFormula
+				negative_prior_ = negative_prior; 
+				file[4] = getBothGnuplotFormula();
 				file.store(step + iter);				
 			}
 			//Compute probabilities
@@ -317,10 +327,10 @@ namespace OpenMS
 			return formula.str();
 		}
 				
-		const String PosteriorErrorProbabilityModel::getBothGnuplotFormula(double negative_prior) const
+		const String PosteriorErrorProbabilityModel::getBothGnuplotFormula() const
 		{
 			stringstream formula;
-			formula << "h(x)=" << negative_prior<<"*"<< "(1/" << gumbel_fit_param_.b <<") * " << "exp(( "<< gumbel_fit_param_.a<< "- x)/"<< gumbel_fit_param_.b <<") * exp(-exp(("<<gumbel_fit_param_.a<<" - x)/"<<gumbel_fit_param_.b<<")) + "<<"(1-"<<negative_prior<<")*"<<gauss_fit_param_.A << " * exp(-(x - " << gauss_fit_param_.x0 << ") ** 2 / 2 / (" << gauss_fit_param_.sigma << ") ** 2)";
+			formula << "h(x)=" << negative_prior_<<"*"<< "(1/" << gumbel_fit_param_.b <<") * " << "exp(( "<< gumbel_fit_param_.a<< "- x)/"<< gumbel_fit_param_.b <<") * exp(-exp(("<<gumbel_fit_param_.a<<" - x)/"<<gumbel_fit_param_.b<<")) + "<<"(1-"<<negative_prior_<<")*"<<gauss_fit_param_.A << " * exp(-(x - " << gauss_fit_param_.x0 << ") ** 2 / 2 / (" << gauss_fit_param_.sigma << ") ** 2)";
 			return formula.str();
 		}	
 		
@@ -329,17 +339,20 @@ namespace OpenMS
 			DoubleReal the_x = score + smallest_score_ + 0.001;
 			DoubleReal x_gumbel;
 			DoubleReal x_gauss;
+			//the x value is smaller than the x value of gumbles peak. To ensure that the probabilies wont rise again use gumbels peak for computation
 			if(the_x < gumbel_fit_param_.a)
 			{
 				x_gumbel = max_gumbel_;	
 				x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
 			}
+			//same as above. Hovever, this time to ensure that probabilities wont drop again.
 			else if(the_x > gauss_fit_param_.x0)
 			{
 				DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);
 				x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
 				x_gauss = max_gauss_;
 			}
+			//if its in between use the normal formula
 			else
 			{
 				DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);

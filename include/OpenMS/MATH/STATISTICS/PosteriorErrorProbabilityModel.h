@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: $
+// $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_MATH_STATISTICS_POSTERIORERRORPROBABILITYMODEL_H
@@ -41,10 +41,10 @@ namespace OpenMS
 	  
 	  
 	  /** 
-	  	@brief Implements a mixture model for the inverse gumbel and the gauss distribution
+	  	@brief Implements a mixture model for the inverse gumbel and the gauss distribution.
 	
-	    This class fits a Gumbel distribution and a Gauss distribution to a number of data points.
-	    The result for each data point is stored in the second parameter of the fit function.
+	    This class fits a Gumbel distribution and a Gauss distribution to a set of data points.
+	    The computed probabilities can be 
 			GumbelDistributionFitResult and GaussFitResult store the parameter for the distributions.
 		
 	    The formula with the fitted parameters can be transformed into a
@@ -64,8 +64,14 @@ namespace OpenMS
 				///Destructor
 				virtual ~PosteriorErrorProbabilityModel(); 
 				
-				///fits the curves to the data points(x_scores) and writes the computed probabilites into the given vector (the second one).
-				void fit(std::vector<double>& x_scores, std::vector<double>& probabilities);
+				/**
+					@brief fits the distributions to the data points(x_scores) and writes the computed probabilites into the given vector (the second one).
+					@param x_scores a vector which holds the data points
+					@param probabilities a vector which holds the probability for each data point after running this function. If it has some content it will be overwritten.
+					@exception Exception::UnableToFit is thrown if fitting cannot be performed
+				*/
+				void fit(std::vector<double>& x_scores, std::vector<double>& probabilities);		
+				
 				
 				///returns estimated gauss parameters. Fit should be used before.
 				GaussFitter::GaussFitResult getGaussFitResult() const
@@ -79,6 +85,7 @@ namespace OpenMS
 					return gumbel_fit_param_;
 				}
 				
+				///returns the estimated negative prior.
 				DoubleReal getNegativePrior() const
 				{
 					return negative_prior_;
@@ -91,18 +98,18 @@ namespace OpenMS
 				const String getGaussGnuplotFormula() const;
 				
 				/// returns the gnuplot formula of the fitted mixture distribution.
-				const String getBothGnuplotFormula(double negative_prior) const;
+				const String getBothGnuplotFormula() const;
 				
 				/**
 					Returns the computed posterior error probability for a given score.
-					@note: fit has to be used before this function. Otherwise it will compute nonsense.
+					@note: fit has to be used before this function. Otherwise this function will compute nonsense.
 				*/
 				DoubleReal computeProbability(DoubleReal score);
 				
 			private:
 				/// assignment operator (not implemented)
 				PosteriorErrorProbabilityModel& operator = (const PosteriorErrorProbabilityModel& rhs);
-				///Copy constructor
+				///Copy constructor (not implemented)
 				PosteriorErrorProbabilityModel(const PosteriorErrorProbabilityModel& rhs);
 				///stores gumbel parameters
 				GumbelDistributionFitter::GumbelDistributionFitResult gumbel_fit_param_;
