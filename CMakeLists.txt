@@ -106,8 +106,8 @@ elseif (MSVC)
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
-	## minimal code rebuild
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gm /Zi")
+	## use multiple Cores (if available)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
   if (NOT OPENMS_64BIT_ARCHITECTURE)
     ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
