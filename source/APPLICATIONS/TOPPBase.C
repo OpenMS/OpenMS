@@ -978,9 +978,9 @@ namespace OpenMS
 	}
 
 
-	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
+	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced, const StringList& tags)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
 	}
 
 	void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
@@ -1073,7 +1073,7 @@ namespace OpenMS
 			if (p.type==ParameterInformation::INPUT_FILE)
 			{
 				writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
-				inputFileReadable_(tmp);
+				if (!p.tags.contains("skipexists")) inputFileReadable_(tmp);
 			}
 			else if (p.type==ParameterInformation::OUTPUT_FILE)
 			{

@@ -200,6 +200,9 @@ namespace OpenMS
         bool required;
         /// flag the indicates that the parameter is advanced (this is used for writing the INI file only)
         bool advanced;
+        /// StringList for special tags
+        StringList tags;
+
 				///@name Restrictions for different parameter types
 				//@{
 				std::vector<String> valid_strings;
@@ -210,7 +213,7 @@ namespace OpenMS
 				//@}
 				
         /// Constructor that takes all members in declaration order
-        ParameterInformation( const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv )
+        ParameterInformation( const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList() )
         	: name(n),
 	          type(t),
 	          default_value(def),
@@ -218,11 +221,12 @@ namespace OpenMS
 	          argument(arg),
 	          required(req),
 	          advanced(adv),
+            tags(tag_values),
 	          valid_strings(),
             min_int(-std::numeric_limits<Int>::max()),
         	  max_int(std::numeric_limits<Int>::max()),
         	  min_float(-std::numeric_limits<DoubleReal>::max()),
-        	  max_float(std::numeric_limits<DoubleReal>::max())        	
+        	  max_float(std::numeric_limits<DoubleReal>::max())
         {
         }
 
@@ -235,6 +239,7 @@ namespace OpenMS
             required(true),
         	  advanced(false),
             valid_strings(),
+            tags(),
             min_int(-std::numeric_limits<Int>::max()),
         	  max_int(std::numeric_limits<Int>::max()),
         	  min_float(-std::numeric_limits<DoubleReal>::max()),
@@ -252,12 +257,13 @@ namespace OpenMS
           description = rhs.description;
           argument = rhs.argument;
           required = rhs.required;
+          advanced = rhs.advanced;
+          tags == rhs.tags;
           valid_strings = rhs.valid_strings;
           min_int = rhs.min_int;
           max_int = rhs.max_int;
           min_float = rhs.min_float;
           max_float = rhs.max_float;
-          advanced = rhs.advanced;
           
           return *this;
         }
@@ -490,8 +496,10 @@ namespace OpenMS
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      	@param advanced A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
+                        Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
       */
-      void registerInputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false );
+      void registerInputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags=StringList() );
 
       /**
       	@brief Registers an output file option.

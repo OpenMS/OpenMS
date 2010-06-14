@@ -104,7 +104,7 @@ class TOPPPepNovoAdapter
 			registerOutputFile_("out", "<file>", "", "output file ");
 			setValidFormats_("out",StringList::create("idXML"));
 
-			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true);
+			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
 			registerStringOption_("temp_data_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", true);
       registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
       addEmptyLine_ ();
