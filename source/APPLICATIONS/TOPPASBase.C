@@ -795,7 +795,6 @@ namespace OpenMS
 		param_.setValue("preferences:version",VersionInfo::getVersion());
 
     Param save_param = param_.copy("preferences:");
-    save_param.insert("",param_.copy("tool_categories:"));
     
     try
     {
