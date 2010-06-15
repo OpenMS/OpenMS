@@ -35,6 +35,8 @@
 using namespace OpenMS;
 using namespace std;
 
+// TODO: include a more asymmetric trace in the test
+
 START_TEST(EGHTraceFitter, "$Id$")
 
 FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> mts;
@@ -245,6 +247,7 @@ egh_trace_fitter.fit(mts);
 DoubleReal expected_sigma = 1.5;
 DoubleReal expected_H = 10.0;
 DoubleReal expected_x0 = 680.1;
+DoubleReal expected_tau = 0.0;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -316,6 +319,12 @@ END_SECTION
 START_SECTION((DoubleReal getCenter() const ))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(), expected_x0)
+}
+END_SECTION
+
+START_SECTION((DoubleReal getTau() const ))
+{
+  TEST_REAL_SIMILAR(egh_trace_fitter.getTau(), expected_tau)
 }
 END_SECTION
 
