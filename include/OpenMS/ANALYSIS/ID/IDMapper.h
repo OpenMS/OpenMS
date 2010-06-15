@@ -217,20 +217,28 @@ namespace OpenMS
 				std::vector<std::vector<SignedSize> > hash_table;
 				// make sure the RT hash table has indices >= 0 and doesn't waste space
 				// in the beginning:
-				SignedSize offset;
+				SignedSize offset(0);
 
-				// std::cout << "Setting up hash table..." << std::endl;
-				offset = SignedSize(floor(min_rt));
-				hash_table.resize(SignedSize(floor(max_rt)) - offset + 1);			
-				for (Size index = 0; index < boxes.size(); ++index)
-				{
-					const DBoundingBox<2>& box = boxes[index];
-					for (SignedSize i = SignedSize(floor(box.minPosition().getX())); 
-							 i <= SignedSize(floor(box.maxPosition().getX())); ++i)
-					{
-						hash_table[i - offset].push_back(index);
-					}
-				}
+        if (map.size()>0)
+        {
+				  // std::cout << "Setting up hash table..." << std::endl;
+				  offset = SignedSize(floor(min_rt));
+          // this only works if features were found
+				  hash_table.resize(SignedSize(floor(max_rt)) - offset + 1);			
+				  for (Size index = 0; index < boxes.size(); ++index)
+				  {
+					  const DBoundingBox<2>& box = boxes[index];
+					  for (SignedSize i = SignedSize(floor(box.minPosition().getX())); 
+							   i <= SignedSize(floor(box.maxPosition().getX())); ++i)
+					  {
+						  hash_table[i - offset].push_back(index);
+					  }
+				  }
+        }
+        else
+        {
+          LOG_WARN << "IDMapper received an empty FeatureMap! All peptides are mapped as 'unassigned'!" << std::endl;
+        }
 		 
 				// for statistics:
 				Size matches_none = 0, matches_single = 0, matches_multi = 0;
@@ -319,6 +327,7 @@ namespace OpenMS
 								 << matches_single << "\n"
 								 << "Peptides assigned to multiple features: " 
 								 << matches_multi << std::endl;
+
 			}
 			
 			/**
