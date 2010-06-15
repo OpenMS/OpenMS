@@ -47,7 +47,7 @@ using namespace std;
 
 /*
 
-Description of the data stored in the itmes:
+Description of the data stored in the items:
 
             | Column 0  | Column 1    | Column 2 | Column 3         |
 ---------------------------------------------------------------------  

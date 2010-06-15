@@ -96,16 +96,9 @@ class TOPPOMSSAAdapter
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("idXML"));
 		
-			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
-      registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
-      registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
-      registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
+			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance in Dalton", false);
+      registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error in Dalton", false);
       registerInputFile_("database", "<psq-file>", "", "NCBI formated fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'");
-      vector<String> valid_strings;
-      //valid_strings.push_back("ppm"); // ppm disabled, as OMSSA does not support this feature
-      valid_strings.push_back("Da");
-      setValidStrings_("precursor_error_units", valid_strings);
-      setValidStrings_("fragment_error_units", valid_strings);
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
       registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
 			vector<String> all_mods;
