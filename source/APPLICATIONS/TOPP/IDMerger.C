@@ -207,7 +207,7 @@ class TOPPIDMerger
 				{
 					if (find(used_ids.begin(), used_ids.end(), additional_protein_identifications[i].getIdentifier())!=used_ids.end())
 					{
-						writeLog_(String("Error: The idenitifier '") + additional_protein_identifications[i].getIdentifier() + "' was used before!");
+						writeLog_(String("Error: The identifier '") + additional_protein_identifications[i].getIdentifier() + "' was used before!");
 						return INCOMPATIBLE_INPUT_DATA;
 					}
 					used_ids.push_back(additional_protein_identifications[i].getIdentifier());

@@ -2329,9 +2329,17 @@ namespace OpenMS
     {
     	bool error = false;
     	Param tmp;
-    	tmp.load(filename);
-    	//apply preferences if they are of the current TOPPView version
-    	if(tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
+      try
+      { // the file might be corrupt
+    	  tmp.load(filename);
+      }
+      catch (...)
+      {
+        error = true;
+      }
+      
+      //apply preferences if they are of the current TOPPView version
+    	if(!error && tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
     	{
     		try
     		{
@@ -2349,7 +2357,7 @@ namespace OpenMS
 			//set parameters to defaults when something is fishy with the parameters file
 			if (error)
 			{
-  			//reset parameters
+  			//reset parameters (they will be stored again when TOPPView quits)
   			setParameters(Param());
 
 				cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;

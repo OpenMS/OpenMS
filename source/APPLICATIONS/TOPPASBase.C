@@ -756,9 +756,17 @@ namespace OpenMS
     {
     	bool error = false;
     	Param tmp;
-    	tmp.load(filename);
+      try
+      { // the file might be corrupt
+    	  tmp.load(filename);
+      }
+      catch (...)
+      {
+        error = true;
+      }
+
     	//apply preferences if they are of the current TOPPAS version
-    	if(tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
+    	if(!error && tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
     	{
     		try
     		{
@@ -776,7 +784,7 @@ namespace OpenMS
 			//set parameters to defaults when something is fishy with the parameters file
 			if (error)
 			{
-  			//reset parameters
+  			//reset parameters (they will be stored again when TOPPAS quits)
   			setParameters(Param());
 
 				cerr << "The TOPPAS preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPAS version and will be replaced." << endl;
@@ -798,6 +806,10 @@ namespace OpenMS
     
     try
     {
+      // TODO: if closing multiple TOPPAS instances simultaneously, we might write to this file concurrently
+      //       thus destroying its integrity. Think about using boost filelocks
+      //       see OpenMS/METADATA/DocumentIDTagger.h for example
+      //       and also implement in TOPPView (and other GUI's which write to user directory)
       save_param.store(string(param_.getValue("PreferencesFile")));
     }
     catch(Exception::UnableToCreateFile& /*e*/)

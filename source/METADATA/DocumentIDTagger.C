@@ -22,14 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DocumentIDTagger.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 
-#ifdef _MSC_VER // disable some seqan warnings that distract from ours
+#ifdef _MSC_VER // disable some boost warnings that distract from ours
 #	pragma warning( push ) // save warning state
 #	pragma warning( disable : 4018 )
 #endif
@@ -119,7 +119,7 @@ namespace OpenMS
 	
 		// CREATE lock file!
 		// Hint: we create an independent lock file, because to remove one ID the pool is copied to another file 
-		//       which overwrites the original pool file. Additonally we want to atomically write to a log file.
+		//       which overwrites the original pool file. Additionally we want to atomically write to a log file.
 		//       So locking the pool file itself is a really bad idea!
 		String tmp_lock_file = String(IDPool_file + String(".lck"));
 		if (!File::exists(tmp_lock_file)) 
@@ -129,7 +129,7 @@ namespace OpenMS
 		}
 		boost::interprocess::file_lock flock(tmp_lock_file.c_str());
 
-		// this might thow an exception!
+		// this might throw an exception!
 		try {	flock.lock();} catch (exception /*e*/) {return false;}
 		// we have the lock!
 
