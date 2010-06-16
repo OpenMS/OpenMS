@@ -241,6 +241,8 @@ namespace OpenMS
   
   void ProteinIdentification::assignRanks()
   {
+    if (protein_hits_.size()==0) return;
+
 		UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();

@@ -88,7 +88,10 @@ protected:
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		String type = getStringOption_("type");
-		return Factory<FeatureGroupingAlgorithm>::create(type)->getParameters(); // TODO memory leak?
+    FeatureGroupingAlgorithm* algo = Factory<FeatureGroupingAlgorithm>::create(type);
+		Param p = algo->getParameters();
+    delete algo;
+    return p;
 	}
 
 	ExitCodes main_(int , const char**)
@@ -150,17 +153,32 @@ protected:
 			out_map.getFileDescriptions()[1].label = "heavy";
 		}
 
-		//group
+		// group
 		algorithm->group(maps,out_map);
 
     // assign unique ids
     out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-		//annotate output with data processing info
+		// annotate output with data processing info
 		addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
 		
-		//write output
+		// write output
 		ConsensusXMLFile().store(out,out_map);
+
+    // some statistics
+		map<Size,UInt> num_consfeat_of_size;
+		for ( ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit )
+		{
+			++num_consfeat_of_size[cmit->size()];
+		}
+
+		LOG_INFO << "Number of consensus features:" << endl;
+		for ( map<Size,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
+		{
+			LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
+		}
+		LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
+
 
 		return EXECUTION_OK;
 	}
