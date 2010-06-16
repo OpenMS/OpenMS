@@ -323,7 +323,7 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 		Map<AASequence,vector<DoubleReal> > scores;	
 
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
-        //UInt number_of_runs = (UInt)(param_.getValue("numberOfRuns"));
+    //UInt number_of_runs = (UInt)(param_.getValue("numberOfRuns"));
 			
 
 		String score_type = ids[0].getScoreType();
@@ -334,7 +334,7 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 #ifdef DEBUG_ID_CONSENSUS
 			cout << " - ID run" << endl;
 #endif
-	        //make sure that the ranks are present
+	    //make sure that the ranks are present
 			id->assignRanks();
 
 			//iterate over the hits 
@@ -355,77 +355,78 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 				//DoubleReal a_score=(double)hit->getMetaValue("PEP");
 				DoubleReal a_score=(double)hit->getScore();
 				DoubleReal a_sim=1;
-					
-					
-					set<String> myset;
-					for(vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
+				
+				
+				set<String> myset;
+				for(vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
+				{
+					if(myset.find(t->getMetaValue("scoring"))==myset.end() & hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
 					{
-						if(myset.find(t->getMetaValue("scoring"))==myset.end() & hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
+						DoubleReal z=0;
+						DoubleReal a=0;
+						
+						//find the same or most similar peptide sequence in lists from other search engines
+						for(vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
 						{
-							DoubleReal z=0;
-							DoubleReal a=0;
-							
-							//find the same or most similar peptide sequence in lists from other search engines
-							for(vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
+							PeptideHit k = *tt;
+							if (hit->getMetaValue("scoring") != t->getMetaValue("scoring") & tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
 							{
-								PeptideHit k = *tt;
-								if (hit->getMetaValue("scoring") != t->getMetaValue("scoring") & tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
-								{
-									//use SEQAN similarity scoring
-									AASequence S1,S2;
-									String SS1, SS2;
-									const char *pc1, *pc2;
-									DoubleReal c;
-									S1 =tt->getSequence();
-									SS1= S1.toUnmodifiedString(); 
-									pc1 = SS1.c_str();
-									S2 =hit->getSequence();
-									SS2= S2.toUnmodifiedString();
-									pc2 = SS2.c_str();
-									typedef::seqan::String< ::seqan::AminoAcid > TSequence;
-									TSequence seq1=pc1;
-									TSequence seq2=pc2;
-									::seqan::Score<int, ::seqan::Pam<> > pam(110, -10, -10);
-									::seqan::Align<TSequence, ::seqan::ArrayGaps> align, self1, self2;
-									::seqan::resize(rows(align), 2);
-									::seqan::resize(rows(self1), 2);
-									::seqan::resize(rows(self2), 2);
-									::seqan::assignSource(row(align, 0), seq1);
-									::seqan::assignSource(row(align, 1), seq2);
-									::seqan::assignSource(row(self1, 0), seq1);
-									::seqan::assignSource(row(self1, 1), seq1);
-									::seqan::assignSource(row(self2, 0), seq2);
-									::seqan::assignSource(row(self2, 1), seq2); 
-	
-									vector<DoubleReal> temp;
-									temp.push_back(globalAlignment(self1, pam, ::seqan::NeedlemanWunsch()));
-									temp.push_back(globalAlignment(self2, pam, ::seqan::NeedlemanWunsch()));
-									DoubleReal b;
-									c = (DoubleReal)globalAlignment(align, pam,::seqan::NeedlemanWunsch());
-									b = *( min_element( temp.begin(), temp.end() ) );
-									c=c/b;
-									if(c<0){c=0;}
-									if(c>a)									
-									{										
-										a=c;
-										//z=(double)tt->getMetaValue("PEP")*a;
-										z=(double)tt->getScore()*a;
-									}	
+								//use SEQAN similarity scoring
+								AASequence S1,S2;
+								String SS1, SS2;
+								const char *pc1, *pc2;
+								DoubleReal c;
+								S1 =tt->getSequence();
+								SS1= S1.toUnmodifiedString(); 
+								pc1 = SS1.c_str();
+								S2 =hit->getSequence();
+								SS2= S2.toUnmodifiedString();
+								pc2 = SS2.c_str();
+								typedef::seqan::String< ::seqan::AminoAcid > TSequence;
+								TSequence seq1=pc1;
+								TSequence seq2=pc2;
+								::seqan::Score<int, ::seqan::Pam<> > pam(110, -10, -10);
+								::seqan::Align<TSequence, ::seqan::ArrayGaps> align, self1, self2;
+								::seqan::resize(rows(align), 2);
+								::seqan::resize(rows(self1), 2);
+								::seqan::resize(rows(self2), 2);
+								::seqan::assignSource(row(align, 0), seq1);
+								::seqan::assignSource(row(align, 1), seq2);
+								::seqan::assignSource(row(self1, 0), seq1);
+								::seqan::assignSource(row(self1, 1), seq1);
+								::seqan::assignSource(row(self2, 0), seq2);
+								::seqan::assignSource(row(self2, 1), seq2); 
+
+								vector<DoubleReal> temp;
+								temp.push_back(globalAlignment(self1, pam, ::seqan::NeedlemanWunsch()));
+								temp.push_back(globalAlignment(self2, pam, ::seqan::NeedlemanWunsch()));
+								DoubleReal b;
+								c = (DoubleReal)globalAlignment(align, pam,::seqan::NeedlemanWunsch());
+								b = *( min_element( temp.begin(), temp.end() ) );
+								c=c/b;
+								if(c<0){c=0;}
+								if(c>a)									
+								{										
+									a=c;
+									//z=(double)tt->getMetaValue("PEP")*a;
+									z=(double)tt->getScore()*a;
 								}	
-							}
-							a_score+=z;
-							a_sim+=a;
-							myset.insert(t->getMetaValue("scoring"));
+							}	
 						}
+						a_score+=z;
+						a_sim+=a;
+						myset.insert(t->getMetaValue("scoring"));
 					}
-					//the meta value similarity corresponds to the sum of the similarities. Note that if similarity equals the number of search engines, the 
-					//same peptide has been assigned by all engines
-					::std::cout <<hit->getSequence()<<" a_score="<<a_score<<" a_sim="<< a_sim <<::std::endl;
-					vector<DoubleReal> ScoreSim;
-					ScoreSim.push_back(a_score/a_sim);
-					ScoreSim.push_back(a_sim);				
-					scores.insert(make_pair(hit->getSequence(),ScoreSim));
-					++hit_count;
+				}
+				//the meta value similarity corresponds to the sum of the similarities. Note that if similarity equals the number of search engines, the 
+				//same peptide has been assigned by all engines
+				::std::cout <<hit->getSequence()<<" a_score="<<a_score<<" a_sim="<< a_sim <<::std::endl;
+				vector<DoubleReal> ScoreSim;
+				ScoreSim.push_back(a_score/a_sim);
+				ScoreSim.push_back(a_sim);
+        ScoreSim.push_back(hit->getCharge()); // hack: preserve charge
+				scores.insert(make_pair(hit->getSequence(),ScoreSim));
+				++hit_count;
 			}
 		}
 
@@ -440,6 +441,7 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 			hit.setSequence(it->first);
 			hit.setScore(it->second[0]);
 			hit.setMetaValue("similarity", it->second[1]);
+      hit.setCharge(Int(it->second[2])); // hack: retrieve charge
 			ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
 			cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;

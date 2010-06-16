@@ -92,9 +92,9 @@ class TOPPConsensusID
 			setValidFormats_("out",StringList::create("idXML,featureXML,consensusXML"));
 
 			addEmptyLine_();
-			registerDoubleOption_("rt_delta","<value>",0.1, "Maximum allowed precursor RT deviation between identifications.", false);
+			registerDoubleOption_("rt_delta","<value>",0.1, "Maximum allowed precursor RT deviation [s] between identifications.", false);
 			setMinFloat_("rt_delta",0.0);
-			registerDoubleOption_("mz_delta","<value>",0.1, "Maximum allowed precursor m/z deviation between identifications.", false);
+			registerDoubleOption_("mz_delta","<value>",0.1, "Maximum allowed precursor m/z deviation [Da] between identifications.", false);
 			setMinFloat_("mz_delta",0.0);
 
 			registerSubsection_("algorithm","Consensus algorithm section");
@@ -135,8 +135,7 @@ class TOPPConsensusID
 				vector<IDData> prec_data,final;
 				for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
 				{
-					PeptideIdentification t;
-					t=*pep_id_it;
+					PeptideIdentification t = *pep_id_it;
 					String scoring = (String)pep_id_it->getIdentifier();
 					DoubleReal rt = (DoubleReal)(pep_id_it->getMetaValue("RT"));
 					DoubleReal mz = (DoubleReal)(pep_id_it->getMetaValue("MZ"));
@@ -150,23 +149,26 @@ class TOPPConsensusID
 						}
 						++pos;
 					}
-					//right position was found => append ids
+
+					//write information on search engine
+					vector<PeptideHit> hits;
+					for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+					{
+						PeptideHit hit = *pit;
+            // TODO: what is this good for?! nothing happens!
+						if (hit.metaValueExists("scoring"))
+						{
+							String meta_value = (String)hit.getMetaValue("scoring");
+						}
+    				hit.setMetaValue("scoring", pep_id_it->getIdentifier());
+						hits.push_back(hit);
+  				}
+					t.setHits(hits);
+
+          //right position was found => append ids
 					if (pos != prec_data.end())
 					{
 						writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
-						//write information on search engine
-						vector<PeptideHit> hits;
-						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
-							{
-								PeptideHit hit = *pit;
-								if (hit.metaValueExists("scoring"))
-								{
-									String meta_value = (String)hit.getMetaValue("scoring");
-								}
-        						hit.setMetaValue("scoring", pep_id_it->getIdentifier());
-								hits.push_back(hit);
-      						}
-						t.setHits(hits);
 						pos->ids.push_back(t);
 					}
 					//insert new entry
@@ -175,18 +177,6 @@ class TOPPConsensusID
 						IDData tmp;
 						tmp.mz = mz;
 						tmp.rt = rt;
-						vector<PeptideHit> hits;
-						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
-							{
-								PeptideHit hit = *pit;
-								if (hit.metaValueExists("scoring"))
-								{
-									String meta_value = (String)hit.getMetaValue("scoring");
-								}
-        						hit.setMetaValue("scoring", pep_id_it->getIdentifier());
-								hits.push_back(hit);
-      						}
-						t.setHits(hits);
 						tmp.ids.push_back(t);
 						prec_data.push_back(tmp);
 						writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
@@ -201,22 +191,19 @@ class TOPPConsensusID
 					tmp.mz=fin->mz;
 					tmp.rt=fin->rt;
 					PeptideIdentification t;
-					vector<PeptideHit> P;
+					vector<PeptideHit> p;
 					
 					for(vector<PeptideIdentification>::iterator tt = fin->ids.begin(); tt != fin->ids.end(); ++tt)
 					{
 						for (vector<PeptideHit>::const_iterator pit = tt->getHits().begin(); pit != tt->getHits().end();++pit)
-							{
-								P.push_back(*pit);
-							}	
+						{
+							p.push_back(*pit);
+						}	
 					}
-					t.setHits(P);
+					t.setHits(p);
 					tmp.ids.push_back(t);
 					final.push_back(tmp);
 				}
-				
-				
-				///iterate over prec_data and write to final only one peptide identification per rt mz
 
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)prot_ids.size());
