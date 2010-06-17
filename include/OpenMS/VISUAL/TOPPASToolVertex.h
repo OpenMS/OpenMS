@@ -239,6 +239,8 @@ namespace OpenMS
 			int input_list_length_;
 			/// Stores whether the "-in" parameter has list type
 			bool in_parameter_has_list_type_;
+			/// UID for output files
+			static UInt uid_;
 	};
 }
 

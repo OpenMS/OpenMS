@@ -38,10 +38,13 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
+#include <QtCore/QRegExp>
 #include <QtGui/QImage>
 
 namespace OpenMS
-{	
+{
+	UInt TOPPASToolVertex::uid_ = 1;
+	
 	TOPPASToolVertex::TOPPASToolVertex()
 		:	TOPPASVertex(),
 			name_(),
@@ -817,7 +820,7 @@ namespace OpenMS
 							+input_file_basenames.first()
 							+"_to_"
 							+input_file_basenames.last()
-							+"_merged_tmp";
+							+"_merged_tmp"+QString::number(uid_++);
 						current_output_files_[param_index].push_back(f);
 					}
 					else
@@ -831,10 +834,14 @@ namespace OpenMS
 								+out_params[param_index].param_name.toQString()
 								+QDir::separator()
 								+str;
-							if (!f.endsWith("_tmp"))
+							QRegExp rx("_tmp\\d+$");
+							int tmp_index = rx.indexIn(f);
+							std::cout << "tmp_index: " << tmp_index << std::endl;
+							if (tmp_index != -1)
 							{
-								f += "_tmp";
+								f = f.left(tmp_index);
 							}
+							f += "_tmp" + QString::number(uid_++);
 							current_output_files_[param_index].push_back(f);
 						}
 					}
@@ -982,6 +989,8 @@ namespace OpenMS
 			{
 				removeDirRecursively_(remove_dir);
 			}
+			// reset UID for tmp files
+			uid_ = 1;
 		}
 		
 		TOPPASVertex::reset(reset_all_files);
