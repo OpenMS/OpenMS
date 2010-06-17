@@ -65,7 +65,7 @@ class TOPPBaseTest
       registerFlag_("flag","flag description");
 
       //for testing write_ini parameter (and with it setDefaults)
-      registerStringList_("stringlist2","<stringlist>",StringList::create("1,2,3"),"stringlist with restrictions",false);
+      registerStringList_("stringlist2","<stringlist>",StringList::create("hopla,dude"),"stringlist with restrictions",false);
       vector<String> rest;
       rest.push_back("hopla");
       rest.push_back("dude");
@@ -393,7 +393,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
 	p2.setValue("TOPPBaseTest:1:test","false","Enables the test mode (needed for software testing only)");
 	//with restriction
-	p2.setValue("TOPPBaseTest:1:stringlist2",StringList::create("1,2,3"),"stringlist with restrictions");
+  p2.setValue("TOPPBaseTest:1:stringlist2",StringList::create("hopla,dude"),"stringlist with restrictions");
 	vector<String> rest;
 	rest.push_back("hopla");
 	rest.push_back("dude");

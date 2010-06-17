@@ -360,7 +360,7 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 				set<String> myset;
 				for(vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
 				{
-					if(myset.find(t->getMetaValue("scoring"))==myset.end() & hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
+          if(myset.find(t->getMetaValue("scoring"))==myset.end() && hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
 					{
 						DoubleReal z=0;
 						DoubleReal a=0;
@@ -369,7 +369,7 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 						for(vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
 						{
 							PeptideHit k = *tt;
-							if (hit->getMetaValue("scoring") != t->getMetaValue("scoring") & tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
+              if (hit->getMetaValue("scoring") != t->getMetaValue("scoring") && tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
 							{
 								//use SEQAN similarity scoring
 								AASequence S1,S2;
@@ -495,7 +495,7 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 					set<String> myset;
 					for(vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
 					{
-						if(myset.find(t->getMetaValue("scoring"))==myset.end() & hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
+            if(myset.find(t->getMetaValue("scoring"))==myset.end() && hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
 						{
 							DoubleReal z=0;
 							DoubleReal a=0;
@@ -506,7 +506,7 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 							for(vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
 							{
 								PeptideHit k = *tt;
-								if (hit->getMetaValue("scoring") != t->getMetaValue("scoring") & tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
+                if (hit->getMetaValue("scoring") != t->getMetaValue("scoring") && tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
 								{
 						
 
