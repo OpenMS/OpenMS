@@ -50,6 +50,11 @@ using namespace std;
 	You can combine several searches with @ref TOPP_IDMerger. Identification runs can be mapped
 	to featureXML and consensusXML with the @ref TOPP_IDMapper tool.
 
+  If you use @em PEPMatrix or @em PEPIons scoring, make sure to compute PosteriorErrorProbabilities (PEP's) first using the
+  TOPP tool of the same name. Alternatively you can compute q-values's using the FalseDiscoveryRate tool and apply ConsensusID on that.
+  The resulting peptide score for @em PEPMatrix or @em PEPIons scoring is the average of corresponding hits.
+  
+
 	For a detailed description of the algorithms and parameters see the documentation of
 	the %OpenMS ConsensusID class.
 

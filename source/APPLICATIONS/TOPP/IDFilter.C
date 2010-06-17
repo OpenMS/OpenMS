@@ -141,10 +141,10 @@ class TOPPIDFilter
 		registerDoubleOption_("pep_score","<score>", 0,"the score which should be reached by a peptide hit to be kept",false);	
 		registerDoubleOption_("prot_score","<score>", 0,"the score which should be reached by a protein hit to be kept",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
-		registerIntOption_("best_n_peptide_hits","<score>", 0, "If this value is set only the n highest scoring peptide hits are kept per spectrum.", false);
-		setMinInt_("best_n_peptide_hits", 1);
-		registerIntOption_("best_n_protein_hits","<score>", 0, "If this value is set only the n highest scoring protein hits are kept.", false);
-		setMinInt_("best_n_protein_hits", 1);
+		registerIntOption_("best_n_peptide_hits","<score>", 0, "If this value is set [>0] only the n highest scoring peptide hits are kept per spectrum.", false);
+		setMinInt_("best_n_peptide_hits", 0);
+		registerIntOption_("best_n_protein_hits","<score>", 0, "If this value is set [>0] only the n highest scoring protein hits are kept.", false);
+		setMinInt_("best_n_protein_hits", 0);
 		registerIntOption_("min_length","<property>", 6, "If this value is set only peptide hits with a length greater or equal this value are kept.", false);
 		setMinInt_("min_length", 1);
 		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"

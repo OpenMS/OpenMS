@@ -857,6 +857,11 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
+        if (!StringList(strings).contains(parameters_[i].default_value))
+        {
+          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+        }
+
 				parameters_[i].valid_strings = strings;
 				return;
 			}
@@ -867,10 +872,9 @@ namespace OpenMS
 
 	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats)
 	{
-		//check for commas
+		//check if formats are known
 		for (Size i=0; i<formats.size(); ++i)
 		{
-			/// @todo Check whether this can be done more elegantly (Andreas)
 			if (formats[i] != "fid")
 			{
 				if (FileHandler::getTypeByFileName(String(".")+formats[i])==FileTypes::UNKNOWN)
@@ -909,6 +913,10 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
+        if (Int(parameters_[i].default_value) < min)
+        {
+          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+        }
 				parameters_[i].min_int = min;
 				return;
 			}
@@ -929,6 +937,10 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
+        if (Int(parameters_[i].default_value) > max)
+        {
+          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+        }
 				parameters_[i].max_int = max;
 				return;
 			}
@@ -949,6 +961,10 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
+        if (DoubleReal(parameters_[i].default_value) < min)
+        {
+          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+        }
 				parameters_[i].min_float = min;
 				return;
 			}
@@ -969,6 +985,10 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
+        if (DoubleReal(parameters_[i].default_value) > max)
+        {
+          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+        }
 				parameters_[i].max_float = max;
 				return;
 			}
