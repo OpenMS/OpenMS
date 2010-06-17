@@ -193,8 +193,14 @@ namespace OpenMS
 		// use a copy for editing
 		Param edit_param(param_);
 		
-		// remove entries that are handled by edges already, user should not see them
 		QVector<Param::ParamEntry> hidden_entries;
+		// remove type (should not be edited)
+		if (edit_param.exists("type"))
+		{
+			hidden_entries.push_back(edit_param.getEntry("type"));
+			edit_param.remove("type");
+		}
+		// remove entries that are handled by edges already, user should not see them
 		QVector<IOInfo> input_infos;
 		getInputParameters(input_infos);
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
@@ -231,7 +237,7 @@ namespace OpenMS
 			}
 		}
 		
-		TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_);
+		TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, hidden_entries);
 		if (dialog.exec())
 		{
 			param_ = edit_param;

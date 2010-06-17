@@ -8,14 +8,14 @@
     <NODE name="0" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="data/merger_tutorial/rt_1.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_2.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_3.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_1.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_2.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_3.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="-240" type="float" description="" />
     </NODE>
-    <NODE name="1" description="">
+    <NODE name="8" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FileMerger" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
@@ -23,53 +23,56 @@
       <ITEM name="y_pos" value="120" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
-    <NODE name="2" description="">
+    <NODE name="5" description="">
       <ITEM name="toppas_type" value="merger" type="string" description="" />
       <ITEM name="x_pos" value="-360" type="float" description="" />
       <ITEM name="y_pos" value="120" type="float" description="" />
       <ITEM name="round_based" value="true" type="string" description="" />
     </NODE>
-    <NODE name="3" description="">
+    <NODE name="1" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="data/merger_tutorial/rt_4.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_5.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_6.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_4.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_5.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_6.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="-120" type="float" description="" />
     </NODE>
-    <NODE name="4" description="">
+    <NODE name="2" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="data/merger_tutorial/rt_10.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_11.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_12.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_10.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_11.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_12.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="180" type="float" description="" />
     </NODE>
-    <NODE name="5" description="">
+    <NODE name="9" description="">
       <ITEM name="toppas_type" value="merger" type="string" description="" />
       <ITEM name="x_pos" value="40" type="float" description="" />
       <ITEM name="y_pos" value="-60" type="float" description="" />
       <ITEM name="round_based" value="true" type="string" description="" />
     </NODE>
-    <NODE name="6" description="">
+    <NODE name="10" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FileMerger" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
@@ -77,42 +80,45 @@
       <ITEM name="y_pos" value="-60" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
-    <NODE name="7" description="">
+    <NODE name="11" description="">
       <ITEM name="toppas_type" value="merger" type="string" description="" />
       <ITEM name="x_pos" value="440" type="float" description="" />
       <ITEM name="y_pos" value="-60" type="float" description="" />
       <ITEM name="round_based" value="false" type="string" description="" />
     </NODE>
-    <NODE name="8" description="">
+    <NODE name="15" description="">
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
       <ITEM name="x_pos" value="640" type="float" description="" />
       <ITEM name="y_pos" value="320" type="float" description="" />
     </NODE>
-    <NODE name="9" description="">
+    <NODE name="3" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="data/merger_tutorial/rt_7.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_8.mzML"/>
-        <LISTITEM value="data/merger_tutorial/rt_9.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_7.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_8.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_9.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="60" type="float" description="" />
     </NODE>
-    <NODE name="10" description="">
+    <NODE name="6" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FileMerger" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
@@ -120,21 +126,24 @@
       <ITEM name="y_pos" value="-180" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
-    <NODE name="11" description="">
+    <NODE name="4" description="">
       <ITEM name="toppas_type" value="merger" type="string" description="" />
       <ITEM name="x_pos" value="-360" type="float" description="" />
       <ITEM name="y_pos" value="-180" type="float" description="" />
@@ -153,26 +162,29 @@
       <ITEM name="y_pos" value="-60" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
-    <NODE name="14" description="">
+    <NODE name="7" description="">
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
       <ITEM name="x_pos" value="-180" type="float" description="" />
       <ITEM name="y_pos" value="-380" type="float" description="" />
     </NODE>
-    <NODE name="15" description="">
+    <NODE name="14" description="">
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
       <ITEM name="x_pos" value="-180" type="float" description="" />
       <ITEM name="y_pos" value="320" type="float" description="" />
@@ -181,7 +193,7 @@
   <NODE name="edges" description="">
     <NODE name="0" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="1/5" type="string" description="" />
+        <ITEM name="" value="8/9" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="0" type="int" description="" />
@@ -192,7 +204,7 @@
     </NODE>
     <NODE name="1" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="6/7" type="string" description="" />
+        <ITEM name="" value="10/11" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="0" type="int" description="" />
@@ -203,7 +215,7 @@
     </NODE>
     <NODE name="2" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="0/11" type="string" description="" />
+        <ITEM name="" value="0/4" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -214,7 +226,7 @@
     </NODE>
     <NODE name="3" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="3/11" type="string" description="" />
+        <ITEM name="" value="1/4" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -225,7 +237,7 @@
     </NODE>
     <NODE name="4" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="9/2" type="string" description="" />
+        <ITEM name="" value="3/5" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -236,7 +248,7 @@
     </NODE>
     <NODE name="5" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="4/2" type="string" description="" />
+        <ITEM name="" value="2/5" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -247,7 +259,7 @@
     </NODE>
     <NODE name="6" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="10/5" type="string" description="" />
+        <ITEM name="" value="6/9" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="0" type="int" description="" />
@@ -258,7 +270,7 @@
     </NODE>
     <NODE name="7" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="6/12" type="string" description="" />
+        <ITEM name="" value="10/12" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="0" type="int" description="" />
@@ -269,7 +281,7 @@
     </NODE>
     <NODE name="8" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="5/6" type="string" description="" />
+        <ITEM name="" value="9/10" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -280,7 +292,7 @@
     </NODE>
     <NODE name="9" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="11/10" type="string" description="" />
+        <ITEM name="" value="4/6" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -291,7 +303,7 @@
     </NODE>
     <NODE name="10" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="2/1" type="string" description="" />
+        <ITEM name="" value="5/8" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -302,7 +314,7 @@
     </NODE>
     <NODE name="11" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="13/8" type="string" description="" />
+        <ITEM name="" value="13/15" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="0" type="int" description="" />
@@ -313,7 +325,7 @@
     </NODE>
     <NODE name="12" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="7/13" type="string" description="" />
+        <ITEM name="" value="11/13" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -324,7 +336,7 @@
     </NODE>
     <NODE name="13" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="1/15" type="string" description="" />
+        <ITEM name="" value="8/14" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="0" type="int" description="" />
@@ -335,7 +347,7 @@
     </NODE>
     <NODE name="14" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="10/14" type="string" description="" />
+        <ITEM name="" value="6/7" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="0" type="int" description="" />

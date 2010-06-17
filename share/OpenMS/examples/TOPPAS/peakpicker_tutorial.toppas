@@ -8,7 +8,7 @@
     <NODE name="0" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../peakpicker_tutorial_1.mzML"/>
+        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/peakpicker_tutorial_1.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-320" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />
@@ -23,10 +23,14 @@
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file" />
         <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="type" value="sgolay" type="string" description="smoothing filter type" restrictions="sgolay,gaussian" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm parameters section">
-          <ITEM name="frame_length" value="11" type="int" description="The number of subsequent peaks used for smoothing.#br#This number has to be uneven. If it is not, 1 will be added." />
+          <ITEM name="frame_length" value="11" type="int" description="The number of subsequent data points used for smoothing.#br#This number has to be uneven. If it is not, 1 will be added." />
           <ITEM name="polynomial_order" value="3" type="int" description="Order or the polynomial that is fitted." />
         </NODE>
       </NODE>
@@ -41,10 +45,13 @@
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file" />
         <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file" />
-        <ITEM name="struc_elem_length" value="3" type="float" description="Length of the structuring element." />
+        <ITEM name="struc_elem_length" value="3" type="float" description="Length of the structuring element (should be wider than maximal peak width - see documentation)." />
         <ITEM name="struc_elem_unit" value="Thomson" type="string" description="Unit of &apos;struc_elem_length&apos; parameter." restrictions="Thomson,DataPoints" />
         <ITEM name="method" value="tophat" type="string" description="The name of the morphological filter to be applied. If you are unsure, use the default." restrictions="identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
@@ -58,14 +65,19 @@
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input profile data file (valid formats: &apos;mzML&apos;)" tags="input file" />
         <ITEM name="out" value="" type="string" description="output peak file (valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="type" value="wavelet" type="string" description="peak detection algorithm type" restrictions="wavelet,high_res" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm parameters section">
           <ITEM name="signal_to_noise" value="1" type="float" description="Minimal signal to noise ratio for a peak to be picked." restrictions="0:" />
           <ITEM name="centroid_percentage" value="0.8" type="float" description="Percentage of the maximum height that the raw data points must exceed to be taken into account for the calculation of the centroid. If it is 1 the centroid position corresponds to the position of the highest intensity." tags="advanced" restrictions="0:1" />
           <ITEM name="peak_width" value="0.15" type="float" description="Approximate fwhm of the peaks." restrictions="0:" />
           <ITEM name="estimate_peak_width" value="false" type="string" description="Flag if the average peak width shall be estimated. Attention: when this flag is set, the peak_width is ignored." restrictions="true,false" />
-          <ITEM name="fwhm_bound_factor" value="0.7" type="float" description="Factor that calculates the minimal fwhm value from the peak_width." tags="advanced" restrictions="0:" />
+          <ITEM name="fwhm_lower_bound_factor" value="0.7" type="float" description="Factor that calculates the minimal fwhm value from the peak_width. All peaks with width smaller than fwhm_bound_factor * peak_width are discarded." tags="advanced" restrictions="0:" />
+          <ITEM name="fwhm_upper_bound_factor" value="20" type="float" description="Factor that calculates the maximal fwhm value from the peak_width. All peaks with width greater than fwhm_upper_bound_factor * peak_width are discarded." tags="advanced" restrictions="0:" />
           <ITEM name="optimization" value="no" type="string" description="If the peak parameters position, intensity and left/right widthshall be optimized set optimization to one_dimensional or two_dimensional." tags="advanced" restrictions="no,one_dimensional,two_dimensional" />
           <NODE name="thresholds" description="">
             <ITEM name="peak_bound" value="10" type="float" description="Minimal peak intensity." tags="advanced" restrictions="0:" />

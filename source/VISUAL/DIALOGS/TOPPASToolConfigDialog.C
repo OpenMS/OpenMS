@@ -45,12 +45,13 @@ using namespace std;
 namespace OpenMS
 {
 
-	TOPPASToolConfigDialog::TOPPASToolConfigDialog( QWidget * parent, Param& param, String default_dir, String tool_name, String tool_type )
+	TOPPASToolConfigDialog::TOPPASToolConfigDialog( QWidget * parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<Param::ParamEntry> hidden_entries)
 		: QDialog(parent),
 			param_(&param),
 			default_dir_(default_dir),
 			tool_name_(tool_name),
-			tool_type_(tool_type)
+			tool_type_(tool_type),
+			hidden_entries_(hidden_entries)
 	{
 		QGridLayout *main_grid=new QGridLayout(this);
 
@@ -126,9 +127,16 @@ namespace OpenMS
 		}
 		//Extract the required parameters
 		*param_=arg_param_.copy(tool_name_ + ":1:", true);
-		param_->remove("log");
-		param_->remove("no_progress");
-		param_->remove("debug");
+		//param_->remove("log");
+		//param_->remove("no_progress");
+		//param_->remove("debug");
+		
+		//remove parameters already explained by edges and the "type" parameter
+		foreach (const Param::ParamEntry& pe, hidden_entries_)
+		{
+			param_->remove(pe.name);
+		}
+		
 		//load data into editor
 		editor_->load(*param_);
 	}
@@ -148,7 +156,26 @@ namespace OpenMS
 		arg_param_.insert(tool_name_ + ":1:", *param_);
 		try
 		{
-			arg_param_.store(filename_.toStdString());
+			QString tmp_ini_file = QDir::tempPath() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
+			if (tool_type_ != "")
+			{
+				tmp_ini_file += tool_type_.toQString() + "_";
+			}
+			tmp_ini_file += File::getUniqueName().toQString() + "_tmp.ini";
+			//store current parameters
+			arg_param_.store(tmp_ini_file.toStdString());
+			//restore other parameters that might be missing
+			String call = tool_name_ + " -write_ini " + String(filename_);
+			if (tool_type_ != "")
+			{
+				call += " -type " + tool_type_ + " -ini " + String(tmp_ini_file);
+			}
+			
+			if (system(call.c_str()) != 0)
+			{
+				QMessageBox::critical(0,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
+				return;
+			}
 		}
 		catch(Exception::BaseException e)
 		{
