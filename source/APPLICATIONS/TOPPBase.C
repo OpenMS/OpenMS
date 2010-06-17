@@ -857,10 +857,16 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
-        // allow the empty string even if not in restrictions
-        if ((String(parameters_[i].default_value).size()>0) && (!StringList(strings).contains(parameters_[i].default_value)))
-        {
-          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+        StringList valids = strings;
+        StringList defaults;
+        if (parameters_[i].type==ParameterInformation::STRING) defaults.push_back(String(parameters_[i].default_value));
+        else defaults = parameters_[i].default_value;
+        for (Size j=0;j<defaults.size();++j)
+        {// allow the empty string even if not in restrictions
+          if (defaults[j].size()>0 && !valids.contains(defaults[j]))
+          {
+            throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          }
         }
 
 				parameters_[i].valid_strings = strings;
@@ -914,9 +920,15 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
-        if (Int(parameters_[i].default_value) < min)
+        IntList defaults;
+        if (parameters_[i].type==ParameterInformation::INT) defaults.push_back(Int(parameters_[i].default_value));
+        else defaults = parameters_[i].default_value;
+        for (Size j=0;j<defaults.size();++j)
         {
-          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          if (defaults[j] < min)
+          {
+            throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          }
         }
 				parameters_[i].min_int = min;
 				return;
@@ -938,9 +950,15 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
-        if (Int(parameters_[i].default_value) > max)
+        IntList defaults;
+        if (parameters_[i].type==ParameterInformation::INT) defaults.push_back(Int(parameters_[i].default_value));
+        else defaults = parameters_[i].default_value;
+        for (Size j=0;j<defaults.size();++j)
         {
-          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          if (defaults[j] > max)
+          {
+            throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          }
         }
 				parameters_[i].max_int = max;
 				return;
@@ -962,9 +980,15 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
-        if (DoubleReal(parameters_[i].default_value) < min)
+        DoubleList defaults;
+        if (parameters_[i].type==ParameterInformation::DOUBLE) defaults.push_back(DoubleReal(parameters_[i].default_value));
+        else defaults = parameters_[i].default_value;
+        for (Size j=0;j<defaults.size();++j)
         {
-          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          if (defaults[j] < min)
+          {
+            throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          }
         }
 				parameters_[i].min_float = min;
 				return;
@@ -986,9 +1010,15 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
-        if (DoubleReal(parameters_[i].default_value) > max)
+        DoubleList defaults;
+        if (parameters_[i].type==ParameterInformation::DOUBLE) defaults.push_back(DoubleReal(parameters_[i].default_value));
+        else defaults = parameters_[i].default_value;
+        for (Size j=0;j<defaults.size();++j)
         {
-          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          if (defaults[j] > max)
+          {
+            throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value "+String(parameters_[i].default_value) + " does not meet restrictions!");
+          }
         }
 				parameters_[i].max_float = max;
 				return;
