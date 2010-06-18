@@ -103,8 +103,8 @@ namespace OpenMS
 			int merge_counter_;
 			/// Is set to true while the parents are notified that this node has finished merging
 			bool currently_notifying_parents_;
-			/// The minimum length of all incoming lists
-			int min_input_list_length_;
+			/// The maximum length of all incoming lists
+			int max_input_list_length_;
 			/// Stores the last list of output files that was processed
 			QStringList last_output_files_;
 
