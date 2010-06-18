@@ -1,0 +1,45 @@
+/**
+  
+  @page known_dev_bugs Known Issues
+  
+  Have look at the Internal FAQ, if you cannot find your answer here. Write to the OpenMS mailing list, if the problem persists.
+  
+	@section known_issues_windows ... on Windows
+
+  <H3 style="border-top:2px solid grey;">... on Windows</H2>
+
+    <UL>
+        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinder) gives "Entry point not found"</B><BR>
+          This usually happens when your %PATH% contains multiple versions of DLL's on which TOPP/OpenMS depends.
+          Candidates are all QT (QtGui4.dll, QtCore4.dll, ...) or Xerces-C (xerces-c_3_0) libraries.
+          Usually other external programms (Miktex, Mendeley etc) put their own binary directory (which contains these inkompatible DLL's) before 
+          the contrib directory in your %PATH%.<br>
+          Solution: put the contrib directory at the very beginning of your %PATH%. The other tools should be unaffected as DLL's are first searched in the path of the executable (where their DLL's should be as well). We do that for %OpenMS as well, but only in the binary installer packages, not for the developer version.
+
+        <LI><B>Compiling the contrib or OpenMS, the windows.h header file seems to be missing!</B><BR>
+        Your error message might look like this:
+@code
+c:\dev\contrib_build\src\bzip2-1.0.5\bzlib.h(79) : fatal error C1083:
+Cannot open include file: 'windows.h': No such file or directory
+@endcode
+
+        This can happen if you are using the VS Express Edition or VS2008 on Win7 (other cases might be possible as well).
+        The reason is that your @em INCLUDE environment path does not contain the system header @em windows.h, which is required by the contrib and OpenMS.<BR>
+        Solution: You need to download the Microsoft SDK for Windows 7 (or whatever your OS is). Make sure to select "Header Files" Section during install and make sure that the SDK's include path is in your @em INCLUDE environment.
+
+
+          </UL>
+
+
+    
+	@section known_issues_linux ... on Linux/MacOS
+  
+    <UL>
+        <LI><B>none :)</B><BR>
+          ...
+    </UL>
+  
+
+
+
+*/

@@ -8,6 +8,8 @@
   installation procedure. It especially considers the installation
   of several libraries which are required by %OpenMS. Most of these 
   libraries are made available in our "contrib-package" (see below).
+  <br>
+  If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section (documentation), maybe the error is already known. If not, please write to the mailing list.
   
   <b>Required applications</b>
   

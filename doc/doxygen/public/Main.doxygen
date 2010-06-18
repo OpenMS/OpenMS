@@ -91,6 +91,7 @@
 				Misc:
 				<UL>
 					<LI> @subpage FAQ
+					<LI> @subpage known_dev_bugs
 					<LI> @subpage Contributing
 					<LI> @subpage ChangeLog
 				</UL>
