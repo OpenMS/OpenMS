@@ -46,6 +46,7 @@ namespace OpenMS
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 		connect (add_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (remove_button,SIGNAL(clicked()),this,SLOT(removeSelected()));
+		connect (remove_all_button,SIGNAL(clicked()),this,SLOT(removeAll()));
 		connect (edit_button,SIGNAL(clicked()),this,SLOT(editCurrentItem()));
 		connect (up_button,SIGNAL(clicked()),this,SLOT(moveCurrentItem()));
 		connect (down_button,SIGNAL(clicked()),this,SLOT(moveCurrentItem()));
@@ -67,6 +68,11 @@ namespace OpenMS
 		{
 			input_file_list->takeItem(input_file_list->row(item));
 		}
+	}
+	
+	void TOPPASInputFilesDialog::removeAll()
+	{
+		input_file_list->clear();
 	}
 	
 	void TOPPASInputFilesDialog::getFilenames(QStringList& files)

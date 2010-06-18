@@ -60,6 +60,8 @@ namespace OpenMS
 			void showFileDialog();
 			/// Removes all currently selected files from the list
 			void removeSelected();
+			/// Removes all files from the list
+			void removeAll();
 			/// Shows a TOPPASInputFileDialog which edits the current item
 			void editCurrentItem();
 			/// Moves the current item up/downwards
