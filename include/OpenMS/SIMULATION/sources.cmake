@@ -15,7 +15,6 @@ RTSimulation.h
 RawMSSignalSimulation.h
 RawTandemMSSignalSimulation.h
 SimTypes.h
-sources.cmake
 )
 
 ### add path to the filenames

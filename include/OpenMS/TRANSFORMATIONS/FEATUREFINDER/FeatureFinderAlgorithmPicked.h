@@ -46,6 +46,7 @@
 
 #include <numeric>
 #include <fstream>
+#include <algorithm>
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_vector.h>
@@ -81,7 +82,7 @@ namespace OpenMS
 			public FeatureFinderDefs
 	{
 		public:
-			///@name Type definitions
+      /// @name Type definitions
 			//@{
 			typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType;
 			typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::FeatureMapType FeatureMapType;
@@ -331,16 +332,12 @@ namespace OpenMS
 				//---------------------------------------------------------------------------
 				//new scope to make local variables disappear
 				{
-					ff_->startProgress(0, map_.size(), "Precalculating mass trace scores");
-					for (Size s=0; s<map_.size(); ++s)
+          Size end_iteration = map_.size() - std::min((Size) min_spectra_, map_.size());
+          ff_->startProgress(min_spectra_ , end_iteration, "Precalculating mass trace scores");
+          // skip first and last scans since we cannot extend the mass traces there
+          for (Size s=min_spectra_; s<=end_iteration; ++s)
 					{
-						ff_->setProgress(s);
-						//do nothing for the first few and last few spectra as the scans required to search for traces are missing
-						if (s<min_spectra_ || s>=map_.size()-min_spectra_)
-						{
-							continue;
-						}
-						
+						ff_->setProgress(s);						
 						const SpectrumType& spectrum = map_[s];
 						//iterate over all peaks of the scan
 						for (Size p=0; p<spectrum.size(); ++p)
@@ -520,16 +517,14 @@ namespace OpenMS
 					//Step 3.2:
 					//Find seeds for this charge
 					//-----------------------------------------------------------		
-					ff_->startProgress(0, map_.size(), String("Finding seeds for charge ")+String(c));
+          Size end_of_iteration = map_.size() - std::min((Size) min_spectra_ , map_.size());
+          ff_->startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ")+String(c));
 					DoubleReal min_seed_score = param_.getValue("seed:min_score");
-					for (Size s=0; s<map_.size(); ++s)
+          //do nothing for the first few and last few spectra as the scans required to search for traces are missing
+          for (Size s=min_spectra_; s<end_of_iteration; ++s)
 					{
 						ff_->setProgress(s);
-						//do nothing for the first few and last few spectra as the scans required to search for traces are missing
-						if (s<min_spectra_ || s>=map_.size()-min_spectra_)
-						{
-							continue;
-						}
+
 						//iterate over peaks
 						for (Size p=0; p<map_[s].size(); ++p)
 						{	
@@ -1192,7 +1187,7 @@ namespace OpenMS
 			/// User-specified seed list
 			FeatureMapType seeds_;
 		
-			///@name Members for parameters often needed in methods
+      /// @name Members for parameters often needed in methods
 			//@{
 			DoubleReal pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
 			DoubleReal trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
@@ -1211,8 +1206,8 @@ namespace OpenMS
 			DoubleReal max_feature_intersection_; ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
 			//@}
 
-			///@name Members for intensity significance estimation
-			//@{			
+      /// @name Members for intensity significance estimation
+      //@{
 			/// RT bin width
 			DoubleReal intensity_rt_step_;
 			/// m/z bin width
@@ -1224,7 +1219,7 @@ namespace OpenMS
 			///Vector of precalculated isotope distributions for several mass winows
 			std::vector< FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern > isotope_distributions_;
 
-			//Docu in base class
+      // Docu in base class
 			virtual void updateMembers_()
 			{
 				pattern_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
@@ -1244,7 +1239,7 @@ namespace OpenMS
 				max_feature_intersection_ = param_.getValue("feature:max_intersection");
 			}
 			
-			///Writes the abort reason to the log file and counts occurences for each reason
+      /// Writes the abort reason to the log file and counts occurences for each reason
 			void abort_(bool debug, const FeatureFinderAlgorithmPickedHelperStructs::Seed& seed, const String& reason)
 			{
 				log_ << "Abort: " << reason << std::endl;
@@ -1252,8 +1247,10 @@ namespace OpenMS
 				if (debug) abort_reasons_[seed] = reason;
 			}
 
-			///Calculates the intersection between features.
-			///The value is normalized by the size of the smaller feature, so it rages from 0 to 1.
+      /**
+       * Calculates the intersection between features.
+       * The value is normalized by the size of the smaller feature, so it rages from 0 to 1.
+       */
 			DoubleReal intersection_(const Feature& f1, const Feature& f2) const
 			{
 				//calculate the RT range sum of feature 1
@@ -1305,7 +1302,7 @@ namespace OpenMS
 				return overlap/std::min(s1,s2);
 			}
 			
-			///Returns the isotope distribution for a certain mass window
+      /// Returns the isotope distribution for a certain mass window
 			const FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern& getIsotopeDistribution_(DoubleReal mass) const
 			{
 				//calculate index in the vector
@@ -1413,7 +1410,7 @@ namespace OpenMS
 				return max_score;
 			}
 			
-			///Extends all mass traces of a isotope pattern in one step
+      /// Extends all mass traces of a isotope pattern in one step
 			void extendMassTraces_(const FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern& pattern, FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces, Size meta_index_overall) const
 			{
 				//find index of the trace with the maximum intensity
@@ -1840,9 +1837,19 @@ namespace OpenMS
 				return best_int_score;
 			}
 			
+      /**
+       * @brief Compute the intensity score for the peak @p peak in spectrum @p spectrum.
+       *
+       * The intensity score is computed by interpolating the score between the 4 nearest intensity
+       * bins. The scores from the different bins are weighted by the distance of the bin center to
+       * the peak.
+       *
+       * @param spectrum Index of the spectrum we are currently looking at
+       * @param peak Index of the peak that should be scored inside the spectrum @p spectrum
+       */
 			DoubleReal intensityScore_(Size spectrum, Size peak) const
 			{
-				//calculate (half) bin numbers
+        // calculate (half) bin numbers
 				DoubleReal intensity  = map_[spectrum][peak].getIntensity();
 				DoubleReal rt = map_[spectrum].getRT();
 				DoubleReal mz = map_[spectrum][peak].getMZ();
@@ -1850,7 +1857,7 @@ namespace OpenMS
 				DoubleReal mz_min = map_.getMinMZ();
 				UInt rt_bin = std::min(2*intensity_bins_-1,(UInt)std::floor((rt - rt_min) / intensity_rt_step_ * 2.0));
 				UInt mz_bin = std::min(2*intensity_bins_-1,(UInt)std::floor((mz - mz_min) / intensity_mz_step_ * 2.0));
-				//determine mz bins
+        // determine mz bins
 				UInt ml,mh;
 				if (mz_bin==0 || mz_bin==2*intensity_bins_-1)
 				{
@@ -1867,7 +1874,7 @@ namespace OpenMS
 					ml = mz_bin/2-1; 
 					mh = mz_bin/2;
 				}
-				//determine rt bins
+        // determine rt bins
 				UInt rl,rh;
 				if (rt_bin==0 || rt_bin==2*intensity_bins_-1)
 				{
@@ -1884,18 +1891,20 @@ namespace OpenMS
 					rl = rt_bin/2-1; 
 					rh = rt_bin/2;
 				}
-				//calculate distances to surrounding points (normalized to [0,1])
+        // calculate distances to surrounding bin centers (normalized to [0,1])
 				DoubleReal drl = std::fabs(rt_min+(0.5+rl)*intensity_rt_step_-rt)/intensity_rt_step_;
 				DoubleReal drh = std::fabs(rt_min+(0.5+rh)*intensity_rt_step_-rt)/intensity_rt_step_;
 				DoubleReal dml = std::fabs(mz_min+(0.5+ml)*intensity_mz_step_-mz)/intensity_mz_step_;
 				DoubleReal dmh = std::fabs(mz_min+(0.5+mh)*intensity_mz_step_-mz)/intensity_mz_step_;
-				//Calculate weights for the intensity scores (the nearer to better)
+        // Calculate weights for the intensity scores based on the distances to the
+        // bin center(the nearer to better)
 				DoubleReal d1 = std::sqrt(std::pow(1.0-drl,2.0)+std::pow(1.0-dml,2.0));
 				DoubleReal d2 = std::sqrt(std::pow(1.0-drh,2.0)+std::pow(1.0-dml,2.0));
 				DoubleReal d3 = std::sqrt(std::pow(1.0-drl,2.0)+std::pow(1.0-dmh,2.0));
 				DoubleReal d4 = std::sqrt(std::pow(1.0-drh,2.0)+std::pow(1.0-dmh,2.0));
 				DoubleReal d_sum = d1 + d2 + d3 + d4;				
-				//Final score
+        // Final score .. intensityScore in the surrounding bins, weighted by the distance of the
+        // bin center to the peak
 				DoubleReal final = intensityScore_(rl, ml, intensity)*(d1/d_sum)
 													+ intensityScore_(rh, ml, intensity)*(d2/d_sum)
 													+ intensityScore_(rl, mh, intensity)*(d3/d_sum)
@@ -1908,15 +1917,16 @@ namespace OpenMS
 
 			DoubleReal intensityScore_(Size rt_bin, Size mz_bin, DoubleReal intensity) const
 			{
-				//interpolate score value according to quantiles(20)
+        // interpolate score value according to quantiles(20)
 				const std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
+        // get iterator pointing to quantile that is >= intensity
 				std::vector<DoubleReal>::const_iterator it = std::lower_bound(quantiles20.begin(),quantiles20.end(),intensity);
-				//bigger than the biggest value => return 1.0
+        // bigger than the biggest value => return 1.0
 				if (it==quantiles20.end())
 				{
 					return 1.0;
 				}
-				//interpolate inside the bin
+        // interpolate inside the bin
 				DoubleReal bin_score = 0.0;
 				if (it==quantiles20.begin())
 				{
@@ -1924,15 +1934,18 @@ namespace OpenMS
 				}
 				else
 				{
+          // (intensity - vigintile_low) / (vigintile_high - vigintile_low)
 					bin_score = 0.05 * (intensity-*(it-1)) / (*it-*(it-1));
 				}
 				
-				DoubleReal final = bin_score + 0.05*((it - quantiles20.begin()) -1.0);
+        DoubleReal final = bin_score +
+                           0.05*((it - quantiles20.begin()) -1.0); // determine position of lower bound in the vector
 				
 				//fix numerical problems
 				if (final<0.0) final = 0.0;
 				if (final>1.0) final = 1.0;				
 				
+        // final = 1/20 * [ index(vigintile_low) + (intensity-vigintile_low) / (vigintile_high - vigintile_low) ]
 				return final;
 			}
 

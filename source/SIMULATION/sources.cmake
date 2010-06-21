@@ -14,7 +14,6 @@ PTMSimulation.C
 RTSimulation.C
 RawMSSignalSimulation.C
 RawTandemMSSignalSimulation.C
-sources.cmake
 )
 
 ### add path to the filenames
