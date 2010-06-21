@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knas_Daut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -68,10 +68,10 @@ namespace OpenMS
     defaults_.setMinFloat("intensity_exponent",0.);
 
     defaults_.setValue("max_pair_distance:RT", 100.0,
-      "Maximal allowed distance in RT for a pair, when MZ is equal");
+      "Maximal allowed distance in RT for a pair");
     defaults_.setMinFloat("max_pair_distance:RT",0.);
 
-    defaults_.setValue("max_pair_distance:MZ", 0.3, "Maximal allowed distance in MZ for a pair, when RT is equal [Unit defined by 'mz_unit']");
+    defaults_.setValue("max_pair_distance:MZ", 0.3, "Maximal allowed distance in MZ for a pair [Unit defined by 'mz_unit']");
     defaults_.setMinFloat("max_pair_distance:MZ",0.);
     defaults_.setValue("max_pair_distance:MZ_unit", "Da", "Unit of 'MZ' parameter");
     defaults_.setValidStrings("max_pair_distance:MZ_unit",StringList::create("Da,ppm"));
@@ -252,50 +252,44 @@ namespace OpenMS
     // element_pairs_->clear();
     for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
     {
-      if ((best_companion_distance_0[fi0] < 1) &&  // this is the distance cutoff
-					(best_companion_distance_0[fi0] * second_nearest_gap_ <= 
-					 second_best_companion_distance_0[fi0]))
-      {
-				// fi0 likes someone ...
+		// calculate separation between feature fi0 in map 0 and its best friend in map 1
+		DPosition<2> position_difference = input_maps[0][fi0].getPosition() - input_maps[1][best_companion_index_0[fi0]].getPosition();
+		if ( position_difference[RT] < 0 )
+		{
+			position_difference[RT] = -position_difference[RT];
+		}
+		if ( position_difference[MZ] < 0 )
+		{
+			position_difference[MZ] = -position_difference[MZ];
+		}
+		// The two features in map 0 and map 1 (fi0 and its best friend) should not be further apart then the user specified max_pair_distance.
+		if ((position_difference[RT] < max_pair_distance_[RT]) && (position_difference[MZ] < max_pair_distance_[MZ]))
+		{
+		// fi0 likes someone ...
         UInt best_companion_of_fi0 = best_companion_index_0[fi0];
-				if ((best_companion_index_1[best_companion_of_fi0] == fi0) &&
-            (best_companion_distance_1[best_companion_of_fi0] * 
-						 second_nearest_gap_ <= 
-						 second_best_companion_distance_1[best_companion_of_fi0]) &&
-						// check if peptide IDs match:
-						(!use_IDs || compatibleIDs_(input_maps[0][fi0],
-																				input_maps[1][best_companion_of_fi0])))
-				{
-					// ... who likes him too ...
-          result_map.push_back(ConsensusFeature());
-          ConsensusFeature & f = result_map.back();
+		if ((best_companion_index_1[best_companion_of_fi0] == fi0) && 
+			// check if peptide IDs match:
+			(!use_IDs || compatibleIDs_(input_maps[0][fi0], input_maps[1][best_companion_of_fi0])))
+		{
+			// ... who likes him too ...
+			result_map.push_back(ConsensusFeature());
+			ConsensusFeature & f = result_map.back();
 
-          f.insert(input_maps[0][fi0]);
-          f.getPeptideIdentifications().
-            insert( f.getPeptideIdentifications().end(),
-              input_maps[0][fi0].getPeptideIdentifications().begin(),
-              input_maps[0][fi0].getPeptideIdentifications().end()
-            );
+			f.insert(input_maps[0][fi0]);
+			f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),input_maps[0][fi0].getPeptideIdentifications().begin(),input_maps[0][fi0].getPeptideIdentifications().end());
 
-          f.insert(input_maps[1][best_companion_of_fi0]);
-          f.getPeptideIdentifications().
-            insert( f.getPeptideIdentifications().end(),
-              input_maps[1][best_companion_of_fi0].getPeptideIdentifications().begin(),
-              input_maps[1][best_companion_of_fi0].getPeptideIdentifications().end()
-            );
+			f.insert(input_maps[1][best_companion_of_fi0]);
+			f.getPeptideIdentifications().
+            insert( f.getPeptideIdentifications().end(),input_maps[1][best_companion_of_fi0].getPeptideIdentifications().begin(),input_maps[1][best_companion_of_fi0].getPeptideIdentifications().end());
 
-          f.computeConsensus();
-          DoubleReal quality = 1. - best_companion_distance_0[fi0];
-          DoubleReal quality0 = 1. - best_companion_distance_0[fi0]
-              * second_nearest_gap_ / second_best_companion_distance_0[fi0];
-          DoubleReal quality1 = 1.
-              - best_companion_distance_1[best_companion_of_fi0]
-                  * second_nearest_gap_
-                  / second_best_companion_distance_1[best_companion_of_fi0];
-          f.setQuality(quality*quality0*quality1); // TODO other formula?
+			f.computeConsensus();
+			DoubleReal quality = 1. - best_companion_distance_0[fi0];
+			DoubleReal quality0 = 1. - best_companion_distance_0[fi0] * second_nearest_gap_ / second_best_companion_distance_0[fi0];
+			DoubleReal quality1 = 1. - best_companion_distance_1[best_companion_of_fi0] * second_nearest_gap_ / second_best_companion_distance_1[best_companion_of_fi0];
+			f.setQuality(quality*quality0*quality1); // TODO other formula?
 
-          is_singleton[0][fi0] = false;
-          is_singleton[1][best_companion_of_fi0] = false;
+			is_singleton[0][fi0] = false;
+			is_singleton[1][best_companion_of_fi0] = false;
         }
       }
     }
@@ -322,23 +316,19 @@ namespace OpenMS
   }
 
 	
-	bool StablePairFinder::compatibleIDs_(const ConsensusFeature& feat1, 
-																				const ConsensusFeature& feat2) const
+	bool StablePairFinder::compatibleIDs_(const ConsensusFeature& feat1, const ConsensusFeature& feat2) const
 	{
-		vector<PeptideIdentification> pep1 = feat1.getPeptideIdentifications(),
-			pep2 = feat2.getPeptideIdentifications();
+		vector<PeptideIdentification> pep1 = feat1.getPeptideIdentifications(),pep2 = feat2.getPeptideIdentifications();
 		// a feature without identifications always matches:
 		if (pep1.empty() || pep2.empty()) return true;
 		set<AASequence> best1, best2;
-		for (vector<PeptideIdentification>::iterator pep_it = pep1.begin();
-				 pep_it != pep1.end(); ++pep_it)
+		for (vector<PeptideIdentification>::iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
 		{
 			if (pep_it->getHits().empty()) continue; // shouldn't be the case
 			pep_it->sort();
 			best1.insert(pep_it->getHits()[0].getSequence());
 		}
-		for (vector<PeptideIdentification>::iterator pep_it = pep2.begin();
-				 pep_it != pep2.end(); ++pep_it)
+		for (vector<PeptideIdentification>::iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
 		{
 			if (pep_it->getHits().empty()) continue; // shouldn't be the case
 			pep_it->sort();
