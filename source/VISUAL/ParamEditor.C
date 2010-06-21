@@ -28,6 +28,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/VISUAL/ListEditor.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QMessageBox>
 #include <QtGui/QComboBox>
@@ -73,6 +74,7 @@ namespace OpenMS
 			{
 				QString dtype = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
 				QString restrictions = index.sibling(index.row(),2).data(Qt::UserRole).toString();
+				QString value = index.sibling(index.row(),1).data(Qt::DisplayRole).toString();
 				if (dtype=="string" && restrictions!="") //Drop-down list for enums
 				{
 					QComboBox* editor = new QComboBox(parent);
@@ -86,17 +88,23 @@ namespace OpenMS
 				else if(dtype == "output file")
 				{
 					QLineEdit* editor = new QLineEdit(parent);
-					//editor->setReadOnly(true);
-					QString str = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
-					fileName_ = QFileDialog::getSaveFileName(editor,tr("Output File"),str);
+					QString dir="";// = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+          if (File::isDirectory(value) || File::writable(value))
+          {
+            dir = File::absolutePath(value).toQString();
+          }
+					fileName_ = QFileDialog::getSaveFileName(editor,tr("Output File"),dir);
 					return editor;
 				}
 				else if(dtype == "input file")
 				{
 					QLineEdit* editor = new QLineEdit(parent);
-					//editor->setReadOnly(true);
-					QString str = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
-					fileName_ = QFileDialog::getOpenFileName(editor,tr("Input File"),str);
+					QString dir="";// = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+          if (File::isDirectory(value) || File::exists(value))
+          {
+            dir = File::absolutePath(value).toQString();
+          }
+					fileName_ = QFileDialog::getOpenFileName(editor,tr("Input File"),dir);
 					return editor;
 				}
 				else if(dtype =="string list" || dtype =="int list" || dtype=="double list" || dtype =="input file list" || dtype =="output file list" ) // for lists
