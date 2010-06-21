@@ -256,7 +256,8 @@ namespace OpenMS
       s = gsl_multifit_fdfsolver_alloc(T, data_count, num_params);
       gsl_multifit_fdfsolver_set(s, &func, &x.vector);
       SignedSize iter = 0;
-      do
+      Int gsl_status_;
+			do
       {
         iter++;
         gsl_status_ = gsl_multifit_fdfsolver_iterate(s);
@@ -280,7 +281,7 @@ namespace OpenMS
     /// Maximum number of iterations
     SignedSize max_iterations_;
     /// Current status of the gsl fitting
-    Int gsl_status_;
+    //Int gsl_status_;
   };
 
 }

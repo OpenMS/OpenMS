@@ -335,12 +335,12 @@ namespace OpenMS
           Size end_iteration = map_.size() - std::min((Size) min_spectra_, map_.size());
           ff_->startProgress(min_spectra_ , end_iteration, "Precalculating mass trace scores");
           // skip first and last scans since we cannot extend the mass traces there
-          for (Size s=min_spectra_; s<=end_iteration; ++s)
+          for (Size s=min_spectra_; s<end_iteration; ++s)
 					{
 						ff_->setProgress(s);						
 						const SpectrumType& spectrum = map_[s];
 						//iterate over all peaks of the scan
-						for (Size p=0; p<spectrum.size(); ++p)
+            for (Size p=0; p<spectrum.size(); ++p)
 						{
 							std::vector<DoubleReal> scores;
 							scores.reserve(2*min_spectra_);
