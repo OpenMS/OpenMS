@@ -13,7 +13,7 @@
 				<ITEM name="3" value="0" type="float" />
 			</NODE>
 		</NODE>
-    <NODE name="Lihium">
+    <NODE name="Lithium">
       <ITEM name="Name" value="Lithium" type="string" />
       <ITEM name="Symbol" value="Li" type="string" />
       <ITEM name="AtomicNumber" value="3" type="int" />
