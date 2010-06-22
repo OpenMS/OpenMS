@@ -57,7 +57,7 @@ namespace OpenMS
       /// Destructor
       virtual ~IDFilter();
 
-      /// filters a ProteinIdentification or PeptideIdentification corresponding to the @p threshold_fraction
+      /// filters a ProteinIdentification or PeptideIdentification by only allowing peptides/proteins which reach a score above @p threshold_fraction * SignificanceThreshold
       template <class IdentificationType>
 			void filterIdentificationsByThreshold(const IdentificationType& identification, DoubleReal threshold_fraction, IdentificationType& filtered_identification)
 			{
@@ -141,14 +141,14 @@ namespace OpenMS
 				typedef typename IdentificationType::HitType HitType;
 				std::vector<HitType> temp_hits;
 				std::vector<HitType> filtered_hits;
-				IdentificationType temp_identification;
 				Size count = 0;
 				
-				temp_identification = identification;
-				filtered_identification = identification;
+				IdentificationType temp_identification = identification;
+				temp_identification.sort(); // .. by score
+
+        filtered_identification = identification;
 				filtered_identification.setHits(std::vector<HitType>());
 				
-				temp_identification.sort();
 				
 				typename std::vector<HitType>::const_iterator it = temp_identification.getHits().begin();
 				while(it != temp_identification.getHits().end()
@@ -170,9 +170,13 @@ namespace OpenMS
 			void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 
       /// filters a PeptideIdentification corresponding to the given proteins
+      /// PeptideHits with no matching @em proteins are removed.
+      /// Matching is done either based on accessions or on sequence (if no accessions are given, or @em no_protein_identifiers is set)
 			void filterIdentificationsByProteins(const PeptideIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, PeptideIdentification& filtered_identification, bool no_protein_identifiers = false);
 
-      /// filters a ProteinIdentification corresponding to the given proteins only proteins with the same accession
+      /// filters a ProteinIdentification corresponding to the given proteins
+      /// ProteinHits with no matching @em proteins are removed.
+      /// Matching is done based on accessions only
 			void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, ProteinIdentification& filtered_identification);
 																														
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
