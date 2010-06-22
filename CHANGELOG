@@ -6,6 +6,7 @@
 TOPP tools:
 - TOPP tool categories have reorganized
 - MODIFIED:
+  - IDFilter: reworked parameter names and documentation (please see the IDFilter documentation and update your INI files)
   - IDMapper: reworked parameter handling (please see the IDMapper documentation and update your INI files)
   - Resampler: PNG image creation functionality removed and transferred to ImageCreator UTIL
   - FileMerger: can now merge featureXML
