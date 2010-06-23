@@ -657,34 +657,21 @@ namespace OpenMS
 
             //------------------------------------------------------------------
 
-						TraceFitter<PeakType> * fitter;
+            //TODO try fit with baseline term once more
+            //baseline estimate
+            traces.updateBaseline();
+            traces.baseline = 0.75 * traces.baseline;
 
+            traces[traces.max_trace].updateMaximum();
+
+            // choose fitter
             double egh_tau = 0;
-						// choose fitter
-						if(param_.getValue("feature:rt_shape") == "asymmetric")
-						{
-						  LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
-						  fitter = new EGHTraceFitter<PeakType>();
-              egh_tau = -1;
-						}
-						else
-						{
-						  LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
-						  fitter = new GaussTraceFitter<PeakType>();
-						}
+            TraceFitter<PeakType> * fitter = chooseTraceFitter_(traces, egh_tau);
 
 						Param p;
 						p.setValue("max_iteration",max_iterations);
 						p.setValue("epsilon_abs",epsilon_abs);
 						p.setValue("epsilon_rel",epsilon_rel);
-
-
-			      //TODO try fit with baseline term once more
-			      //baseline estimate
-			      traces.updateBaseline();
-			      traces.baseline = 0.75 * traces.baseline;
-
-			      traces[traces.max_trace].updateMaximum();
 
 						fitter->setParameters(p);
 						fitter->fit(traces);
@@ -1914,6 +1901,30 @@ namespace OpenMS
 				OPENMS_POSTCONDITION(final<=1.0001, (String("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
 				return final;
 			}
+
+      /**
+       * @brief Choose a the best trace fitter for the current mass traces based on the user parameter
+       *        (symmetric, asymmetric) or based on an inspection of the mass trace (mixed)
+       *
+       * @param traces MassTraces that need to be fitted
+       *
+       * @return A pointer to the trace fitter that should be used.
+       */
+      TraceFitter<PeakType> * chooseTraceFitter_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces, double & tau)
+      {
+        // choose fitter
+        if(param_.getValue("feature:rt_shape") == "asymmetric")
+        {
+          LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
+          tau = -1.0;
+          return new EGHTraceFitter<PeakType>();
+        }
+        else // if(param_.getValue("feature:rt_shape") == "symmetric")
+        {
+          LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
+          return new GaussTraceFitter<PeakType>();
+        }
+      }
 
 			DoubleReal intensityScore_(Size rt_bin, Size mz_bin, DoubleReal intensity) const
 			{
