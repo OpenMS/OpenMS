@@ -67,6 +67,7 @@ namespace OpenMS
 
 		if (ids.size() == 0)
 		{
+      LOG_WARN << "No peptide identifications given to FalseDiscoveryRate! No calculation performed.\n";
 			return;
 		}
 
@@ -145,7 +146,7 @@ namespace OpenMS
 						if (!it->getHits()[i].metaValueExists("target_decoy"))
 						{
 							LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' first (run-id='" << it->getIdentifier() << ", rank=" << i+1 << " of " << it->getHits().size() << ")!" << endl;
-							continue;
+              throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Meta value 'target_decoy' does not exist!");
 						}
 
 						String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
@@ -237,7 +238,7 @@ namespace OpenMS
 	            if (!hits[i].metaValueExists("target_decoy"))
   	          {
     	          LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' first (run-id='" << it->getIdentifier() << ", rank=" << i+1 << " of " << hits.size() << ")!" << endl;
-      	        continue;
+                throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Meta value 'target_decoy' does not exist!");
         	    }
 
        	     	String target_decoy(hits[i].getMetaValue("target_decoy"));
@@ -397,7 +398,8 @@ namespace OpenMS
 	{
 		if (ids.size() == 0) 
 		{
-			return;
+      LOG_WARN << "No protein identifications given to FalseDiscoveryRate! No calculation performed.\n";
+      return;
 		}
 
 		vector<DoubleReal> target_scores, decoy_scores;
