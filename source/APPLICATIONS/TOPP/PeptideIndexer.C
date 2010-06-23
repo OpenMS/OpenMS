@@ -71,7 +71,7 @@ class TOPPPeptideIndexer
 			registerInputFile_("fasta", "<file>", "", "Input sequence database in fasta format.");
 			registerOutputFile_("out","<file>","","Output idXML file.");
 			setValidFormats_("in", StringList::create("IdXML"));
-			registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
+			registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended to the accession of the protein database to indicate a decoy protein.", false);
 			registerFlag_("write_protein_sequence", "If set, the protein sequences are added to the protein hits.");
 			registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
 		}

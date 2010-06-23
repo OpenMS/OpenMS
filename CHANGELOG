@@ -20,6 +20,8 @@ TOPP tools:
   - TextImporter (functionality moved to FileConverter)
   
 UTIL tools:
+- MODIFIED:
+  - DecoyDatabase now uses '_rev' as decoy string per default (before '_ref'), whereas '_rev' is required by PeptideIndexer per default
 - NEW:
   - ImageCreator: creates PNG's from MS maps
   - IDSplitter: splits peptide/protein annotations off of data files (inverse operation as IDMapper)
@@ -89,7 +91,7 @@ Bug fixes:
 - #124  TOPPAS fails to load files correctly
 - #133  Textexporter runs indefinitely when input has no IDs and -consensus_features is specified
 - #136  TOPPView: #of Isotopes in TheoreticalSpectrumGenerator not forwarded
-
+- #164  DecoyDatabase creates faulty protein names by default
 For more minor bugfixes visit the above URL.
 
 Detailed list of changes to specific OpenMS classes:

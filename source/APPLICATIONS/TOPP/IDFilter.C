@@ -171,8 +171,8 @@ class TOPPIDFilter
     setMinInt_("Best:n_protein_hits", 0);
     registerFlag_("Best:strict","Keep only the highest scoring peptide hit.\n"
 															"Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
-		registerIntOption_("min_length","<integer>", 1, "Keep only peptide hits with a length greater or equal this value.", false);
-		setMinInt_("min_length", 1);
+		registerIntOption_("min_length","<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
+		setMinInt_("min_length", 0);
 
     registerFlag_("unique","If a peptide hit occurs more than once, only one instance is kept.");
 		registerFlag_("unique_per_protein","Only peptides matching exactly one protein are kept.");
@@ -333,7 +333,7 @@ class TOPPIDFilter
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, true); 				
 			}
 			
-			if (setByUser_("min_length"))
+			if (min_length>0)
 			{
         LOG_INFO << "Filtering peptide length " <<  min_length << " ...\n";
 				PeptideIdentification temp_identification = filtered_identification;
@@ -342,7 +342,7 @@ class TOPPIDFilter
 																						 filtered_identification); 								
 			}
 
-			if (setByUser_("Score:pep"))
+			if (peptide_threshold_score!=0)
 			{
         LOG_INFO << "Filtering by peptide score > " << peptide_threshold_score << " ...\n";
 				PeptideIdentification temp_identification = filtered_identification;
@@ -371,7 +371,7 @@ class TOPPIDFilter
 		{
 			if (!protein_identifications[i].getHits().empty())
 			{
-        if (!setByUser_("Thresh:prot"))
+        if (protein_significance_threshold_fraction!=0)
 				{       
 					filtered_protein_identification = protein_identifications[i];
 				}
@@ -388,7 +388,7 @@ class TOPPIDFilter
 					filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
 				}
 
-				if (setByUser_("Score:prot"))
+				if (protein_threshold_score!=0)
 				{
           LOG_INFO << "Filtering by protein score > " << protein_threshold_score << " ...\n";
 					ProteinIdentification temp_identification = filtered_protein_identification;
@@ -466,6 +466,9 @@ class TOPPIDFilter
 			}
 		}
 		
+    // some stats
+    LOG_INFO << "Peptide Identifications remaining: " << filtered_peptide_identifications.size() << " / " << identifications.size() << "\n";
+    LOG_INFO << "Protein Identifications remaining: " << filtered_protein_identifications.size() << " / " << protein_identifications.size() << "\n";
 		
 		//-------------------------------------------------------------
 		// writing output
