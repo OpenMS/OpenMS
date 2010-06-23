@@ -1767,11 +1767,12 @@ namespace OpenMS
 		for (Param::ParamIterator it = param.begin(); it!=param.end(); ++it)
 		{
 			// subsections (do not check content, but warn if not registered)
-			if (it.getName().has(':'))
+			if (it.getName().has(':') &&
+          subsections_TOPP_.find(it.getName().prefix(':'))==subsections_TOPP_.end()  // not found in TOPP subsections
+         )
 			{
 				String sec = it.getName().prefix(':');
-				if (subsections_TOPP_.find(sec)==subsections_TOPP_.end()  // not found in TOPP subsections
-              && subsections_.find(sec)==subsections_.end())      // not found in normal subsections
+				if (subsections_.find(sec)==subsections_.end())      // not found in normal subsections
 				{
 					if (!(location == "common::" && sec==tool_name_) )
 					{
