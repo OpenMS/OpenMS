@@ -346,6 +346,9 @@ namespace OpenMS
       /// Storage location and description for allowed subsections
       std::map<String, String> subsections_;
 
+      /// Storage location and description for allowed subsections from TOPP tool's command-line parameters
+      std::map<String, String> subsections_TOPP_;
+
       /**
       	@name Internal parameter handling
        */
@@ -648,13 +651,25 @@ namespace OpenMS
       void registerFlag_( const String& name, const String& description, bool advanced = false );
 
       /**
-      	@brief Registers an allowed subsection in the INI file.
+      	@brief Registers an allowed subsection in the INI file (usually from OpenMS algorithms).
 
-      	Use this method to register subsections that are passed to algorithms
+      	Use this method to register subsections that are passed to algorithms.
 
       	@see checkParam_
       */
       void registerSubsection_( const String& name, const String& description );
+      
+      /**
+      	@brief Registers an allowed subsection in the INI file originating from the TOPP tool itself.
+
+      	Use this method to register subsections which is created by a commandline param (registered by e.g. registerDoubleOption_() )
+        and contains a ':' in its name. This is done to distinguish these parameters from normal subsections,
+        which are filled by calling 'getSubsectionDefaults_()'. This is not necessary for here.
+
+      	@see checkParam_
+      */
+      void registerTOPPSubsection_( const String& name, const String& description );
+
 
       /// Adds an empty line between registered variables in the documentation.
       void addEmptyLine_();

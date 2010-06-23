@@ -1766,11 +1766,12 @@ namespace OpenMS
 		//cout << endl << "--"<< location<< "--" << endl << param << endl << endl;
 		for (Param::ParamIterator it = param.begin(); it!=param.end(); ++it)
 		{
-			// subsections
+			// subsections (do not check content, but warn if not registered)
 			if (it.getName().has(':'))
 			{
 				String sec = it.getName().prefix(':');
-				if (subsections_.find(sec)==subsections_.end())
+				if (subsections_TOPP_.find(sec)==subsections_TOPP_.end()  // not found in TOPP subsections
+              && subsections_.find(sec)==subsections_.end())      // not found in normal subsections
 				{
 					if (!(location == "common::" && sec==tool_name_) )
 					{
@@ -1779,6 +1780,7 @@ namespace OpenMS
 				}
 				continue;
 			}
+      // normal parameter: check its value type
 			// if no such parameter is registered an exception is thrown
 			try
 			{
@@ -1811,19 +1813,19 @@ namespace OpenMS
 					case ParameterInformation::OUTPUT_FILE_LIST:
 						if (it->value.valueType()!=DataValue::STRING_LIST)
 						{
-							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
+							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string list'!");
 						}
 						break;
 					case ParameterInformation::INTLIST:
 						if (it->value.valueType()!=DataValue::INT_LIST)
 						{
-							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
+							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int list'!");
 						}
 						break;
 					case ParameterInformation::DOUBLELIST:
 						if (it->value.valueType()!=DataValue::DOUBLE_LIST)
 						{
-							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
+							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'double list'!");
 						}
 						break;
 					default:
@@ -1864,6 +1866,11 @@ namespace OpenMS
 	void TOPPBase::registerSubsection_(const String& name, const String& description)
 	{
 		subsections_[name] = description;
+	}
+
+	void TOPPBase::registerTOPPSubsection_(const String& name, const String& description)
+	{
+		subsections_TOPP_[name] = description;
 	}
 
 	void TOPPBase::parseRange_(const String& text, double& low, double& high) const
@@ -2004,6 +2011,11 @@ namespace OpenMS
 				tmp.insert(loc + it->first + ":",tmp2);
 				tmp.setSectionDescription(loc + it->first, it->second);
 			}
+		}
+		//subsections intrinsic to TOPP tool (i.e. a commandline param with a ':')
+		for(map<String,String>::const_iterator it = subsections_TOPP_.begin(); it!=subsections_TOPP_.end(); ++it)
+		{
+			tmp.setSectionDescription(loc + it->first, it->second);
 		}
 		
 		//set tool version
