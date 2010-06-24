@@ -825,14 +825,14 @@ namespace OpenMS
         @exception Exception::FileNotReadable is thrown if the file is not readable
         @exception Exception::FileEmpty is thrown if the file is empty
       */
-      void inputFileReadable_( const String& filename ) const;
+      void inputFileReadable_( const String& filename, const String& param_name) const;
 
       /**
-        @brief Checks if an output file is writable
+        @brief Checks if an output file is writeable
 
         @exception Exception::UnableToCreateFile is thrown if the file cannot be created
       */
-      void outputFileWritable_( const String& filename ) const;
+      void outputFileWritable_( const String& filename, const String& param_name) const;
       //@}
 
       /// Helper function that parses a range string ([a]:[b]) into two variables

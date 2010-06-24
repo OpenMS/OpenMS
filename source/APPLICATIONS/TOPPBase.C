@@ -287,7 +287,7 @@ namespace OpenMS
           // update default params with old params given in -ini and be verbose
           default_params.update(ini_params, true);
         }
-				outputFileWritable_(write_ini_file);
+				outputFileWritable_(write_ini_file,"write_ini");
 				
 				default_params.store(write_ini_file);
 				return EXECUTION_OK;
@@ -298,7 +298,7 @@ namespace OpenMS
 			if (param_cmdline_.exists("write_wsdl")) wsdl_file = param_cmdline_.getValue("write_wsdl");
 			if (wsdl_file != "")
 			{
-				outputFileWritable_(wsdl_file);
+				outputFileWritable_(wsdl_file,"write_wsdl");
 				ofstream os(wsdl_file.c_str());
 
 				//write header
@@ -1123,13 +1123,11 @@ namespace OpenMS
 			//check if files are readable/writeable
 			if (p.type==ParameterInformation::INPUT_FILE)
 			{
-				writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
-				if (!p.tags.contains("skipexists")) inputFileReadable_(tmp);
+				if (!p.tags.contains("skipexists")) inputFileReadable_(tmp, name);
 			}
 			else if (p.type==ParameterInformation::OUTPUT_FILE)
 			{
-				writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
-				outputFileWritable_(tmp);
+				outputFileWritable_(tmp, name);
 			}
 
 			//check restrictions
@@ -1146,8 +1144,7 @@ namespace OpenMS
 				}
 				else if (p.type==ParameterInformation::INPUT_FILE)
 				{
-					writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
-					inputFileReadable_(tmp);
+					if (!p.tags.contains("skipexists")) inputFileReadable_(tmp, name);
 
 					//create upper case list of valid formats
 					StringList formats = p.valid_strings;
@@ -1189,7 +1186,7 @@ namespace OpenMS
 				else if (p.type==ParameterInformation::OUTPUT_FILE)
 				{
 					writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
-					outputFileWritable_(tmp);
+					outputFileWritable_(tmp, name);
 
 					//create upper case list of valid formats
 					StringList formats = p.valid_strings;
@@ -1315,13 +1312,11 @@ namespace OpenMS
 				//check if files are readable/writeable
 				if (p.type==ParameterInformation::INPUT_FILE_LIST)
 				{
-					writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
-					inputFileReadable_(tmp);
+					inputFileReadable_(tmp, name);
 				}
 				else if (p.type==ParameterInformation::OUTPUT_FILE_LIST)
 				{
-					writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
-					outputFileWritable_(tmp);
+					outputFileWritable_(tmp, name);
 				}
 
 				//check restrictions
@@ -1338,8 +1333,7 @@ namespace OpenMS
 					}
 					else if (p.type==ParameterInformation::INPUT_FILE_LIST)
 					{
-						writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
-						inputFileReadable_(tmp);
+						inputFileReadable_(tmp, name);
 
 						//create upper case list of valid formats
 						StringList formats = p.valid_strings;
@@ -1381,7 +1375,7 @@ namespace OpenMS
 					else if (p.type==ParameterInformation::OUTPUT_FILE_LIST)
 					{
 						writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
-						outputFileWritable_(tmp);
+						outputFileWritable_(tmp, name);
 
 						//create upper case list of valid formats
 						StringList formats = p.valid_strings;
@@ -1840,26 +1834,37 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPBase::inputFileReadable_(const String& filename) const
+	void TOPPBase::inputFileReadable_(const String& filename, const String& param_name) const
 	{
-		if (!File::exists(filename))
-		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		}
-		if (!File::readable(filename))
-		{
-			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		}
-    if (!File::isDirectory(filename) && File::empty(filename))
+		writeDebug_( "Checking input file '" + filename + "'", 2 );
+    try 
     {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      if (!File::exists(filename))
+		  {
+			  throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		  }
+		  if (!File::readable(filename))
+		  {
+			  throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		  }
+      if (!File::isDirectory(filename) && File::empty(filename))
+      {
+        throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      }
+    }
+    catch (Exception::BaseException e)
+    {
+      LOG_ERROR << "Cannot read input file from parameter '-" << param_name << "'!\n";
+      throw e;
     }
 	}
 
-	void TOPPBase::outputFileWritable_(const String& filename) const
+	void TOPPBase::outputFileWritable_(const String& filename, const String& param_name) const
 	{
+		writeDebug_( "Checking output file '" + filename + "'", 2 );
 		if (!File::writable(filename))
 		{
+      LOG_ERROR << "Cannot write output file from parameter '-" << param_name << "'!\n";
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 	}
