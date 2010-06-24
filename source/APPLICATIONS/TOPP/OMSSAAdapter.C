@@ -52,17 +52,20 @@ using namespace std;
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
 
 	@em OMSSA must be installed on the system to be able to use the @em OMSSAAdapter. See pubchem.ncbi.nlm.nih.gov/omssa/
-	for further information on how to download and install @em OMSSA on your system. 
+	for further information on how to download and install @em OMSSA on your system. You might find that the latest OMSSA version
+  does not run on your system (to test this, run @em omssacl in your OMMSA/bin/ directory and see if it crashes). If you encounter
+  an error message, try another OMSSA version
 
-	Sequence databases in fasta format must be converted into the NCBI format before usable with omssa. Therefore, use the program formatdb
-	of the NCBI-tools suite, e.g. @em formatdb @em -i @em SwissProt.fasta. This will create additional files, which
-	will be used by @em OMSSA. The database option of the @em OMSSAAdapter should contain the basename without the different 
-	file endings created by formatdb (e.g. SwissProt.fasta).
+	Sequence databases in fasta format must be converted into the NCBI format before OMSSA can read them. Therefore, use the program formatdb
+	of the NCBI-tools suite (see ftp://ftp.ncbi.nlm.nih.gov/blast/executables/release/2.2.13/ for a working version).
+  The latest NCBI BLAST distribution does not contain the formatdb executable any longer!).
+  Use @em formatdb @em -i @em SwissProt_TargetAndDecoy.fasta @em -o to create
+  additional files, which	will be used by @em OMSSA. The database option of the @em OMSSAAdapter should contain the name of the psq file created by formatdb (e.g. SwissProt_TargetAndDecoy.fasta.psq).
 
 	The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
 	proteases can be found be executing @em omssacl @em -el.
 	
-	This wrapper has be tested successfully with OMSSA, version 2.x. 
+	This wrapper has been tested successfully with OMSSA, version 2.x. 
 
 	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 
@@ -108,7 +111,6 @@ class TOPPOMSSAAdapter
       registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("variable_modifications", all_mods);
 				
-			
 			addEmptyLine_();
 			addText_("OMSSA specific input options");
 			

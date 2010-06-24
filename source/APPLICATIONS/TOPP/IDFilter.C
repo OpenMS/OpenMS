@@ -91,7 +91,7 @@ using namespace std;
 			All peptides that are present in both files (in-file and exclusion peptides
 			file) will be dropped. Protein Hits are not affected.
 		</li>
-		<li>RT</b>:<br> To filter identifications according to their 
+		<li><b>RT</b>:<br> To filter identifications according to their 
 			predicted retention times you have to set 'RT:p_value' and/or 'RT:p_value_1st_dim' larger than 0, depending which RT
       dimension you want to filter.
 			This filter can only be applied to IdXML files produced by @ref TOPP_RTPredict.
@@ -105,7 +105,7 @@ using namespace std;
 		<li>
 			<b>Best:strict</b>:<br> Only the best hit of a spectrum is kept.
 			If there is more than one hit for a spectrum with the maximum score, then
-			none of the hits will be kept.
+			none of the hits will be kept. This is similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.
 		</li>
 	</ul>
 
@@ -260,13 +260,15 @@ class TOPPIDFilter
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-						
+
+    std::set<String> applied_filters;
+
 		// Filtering peptide identifications	according to set criteria
 		for (Size i = 0; i < identifications.size(); i++)
 		{
 			if (unique_per_protein)
 			{
-        LOG_INFO << "Filtering unique per proteins ...\n";
+        applied_filters.insert("Filtering unique per proteins ...\n");
 				vector<PeptideHit> hits;
 				for (vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); it != identifications[i].getHits().end(); ++it)
 				{
@@ -289,53 +291,53 @@ class TOPPIDFilter
 			else
 			{
 				filter.filterIdentificationsByThreshold(identifications[i], peptide_significance_threshold_fraction, filtered_identification);
-        LOG_INFO << "Filtering by peptide significance threshold ...\n";
+        applied_filters.insert("Filtering by peptide significance threshold ...\n");
 			}
 			if (sequences_file_name != "")
 			{
-        LOG_INFO << "Filtering by peptide sequence whitelisting ...\n";
+        applied_filters.insert("Filtering by peptide sequence whitelisting ...\n");
 				PeptideIdentification temp_identification = filtered_identification;				
 				filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification, no_protein_identifiers);
 			}
 
 			if (pv_rt_filtering>0)
 			{
-        LOG_INFO << "Filtering by RT p-value ...\n";
+        applied_filters.insert("Filtering by RT p-value ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByRTPValues(temp_identification, filtered_identification, pv_rt_filtering);																																
 			}
 
 			if (pv_rt_filtering_1st_dim>0)
 			{
-        LOG_INFO << "Filtering by RT p-value (first dimension) ...\n";
+        applied_filters.insert("Filtering by RT p-value (first dimension) ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByRTFirstDimPValues(temp_identification, filtered_identification, pv_rt_filtering_1st_dim);																																
 			}
 
 			if (exclusion_peptides_file_name != "")
 			{
-        LOG_INFO << "Filtering by exclusion peptide blacklisting...\n";
+        applied_filters.insert("Filtering by exclusion peptide blacklisting ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, filtered_identification); 				
 			}
 			
 			if (unique)
 			{
-        LOG_INFO << "Filtering by unique peptide ...\n";
+        applied_filters.insert("Filtering by unique peptide ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsUnique(temp_identification, filtered_identification); 				
 			}
 			
 			if (best_strict)
 			{
-        LOG_INFO << "Filtering by best hits only ...\n";
+        applied_filters.insert("Filtering by best hits only ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, true); 				
 			}
 			
 			if (min_length>0)
 			{
-        LOG_INFO << "Filtering peptide length " <<  min_length << " ...\n";
+        applied_filters.insert(String("Filtering peptide length ") +  min_length + "...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByLength(temp_identification,
 																						 min_length,
@@ -344,14 +346,14 @@ class TOPPIDFilter
 
 			if (peptide_threshold_score!=0)
 			{
-        LOG_INFO << "Filtering by peptide score > " << peptide_threshold_score << " ...\n";
+        applied_filters.insert(String("Filtering by peptide score > ") + peptide_threshold_score + " ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification); 				
 			}
 
 			if (best_n_peptide_hits != 0)
 			{
-        LOG_INFO << "Filtering by best n peptide hits ...\n";
+        applied_filters.insert("Filtering by best n peptide hits ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification); 				
 			}
@@ -377,27 +379,27 @@ class TOPPIDFilter
 				}
 				else
 				{
-          LOG_INFO << "Filtering by protein significance threshold fraction of " << protein_significance_threshold_fraction << " ...\n";
+          applied_filters.insert(String("Filtering by protein significance threshold fraction of ") + protein_significance_threshold_fraction + " ...\n");
 					filter.filterIdentificationsByThreshold(protein_identifications[i], protein_significance_threshold_fraction, filtered_protein_identification);
 				}
 			
 				if (sequences_file_name != "" && !no_protein_identifiers)
 				{
-          LOG_INFO << "Filtering by whitelisting protein accession from FASTA file ...\n";
+          applied_filters.insert("Filtering by whitelisting protein accession from FASTA file ...\n");
 					ProteinIdentification temp_identification = filtered_protein_identification;				
 					filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
 				}
 
 				if (protein_threshold_score!=0)
 				{
-          LOG_INFO << "Filtering by protein score > " << protein_threshold_score << " ...\n";
+          applied_filters.insert(String("Filtering by protein score > ") + protein_threshold_score + " ...\n");
 					ProteinIdentification temp_identification = filtered_protein_identification;
 					filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
 				}
 
 				if (best_n_protein_hits > 0)
 				{
-          LOG_INFO << "Filtering by best n protein hits ...\n";
+          applied_filters.insert("Filtering by best n protein hits ...\n");
 					ProteinIdentification temp_identification = filtered_protein_identification;
 					filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification); 				
 				}
@@ -466,6 +468,13 @@ class TOPPIDFilter
 			}
 		}
 		
+
+    // print the filters used:
+    for (std::set<String>::const_iterator it=applied_filters.begin();it!=applied_filters.end();++it)
+    {
+      LOG_INFO << *it;
+    }
+
     // some stats
     LOG_INFO << "Peptide Identifications remaining: " << filtered_peptide_identifications.size() << " / " << identifications.size() << "\n";
     LOG_INFO << "Protein Identifications remaining: " << filtered_protein_identifications.size() << " / " << protein_identifications.size() << "\n";
