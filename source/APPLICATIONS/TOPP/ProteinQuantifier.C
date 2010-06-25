@@ -451,7 +451,7 @@ namespace OpenMS
 				Size top = getIntOption_("top");
 				String average = getStringOption_("average");
 				bool include_fewer = getFlag_("include_fewer"), 
-					fix_peptides = getFlag_("fix_peptides");
+					fix_peptides = getFlag_("consensus:fix_peptides");
 
 				for (protein_quant::iterator prot_it = prot_quant.begin();
 						 prot_it != prot_quant.end(); ++prot_it)
@@ -641,34 +641,31 @@ namespace OpenMS
 
 					stats_.quant_proteins++;
 					Size n_peptide = q_it->second.abundances.size();
-					// if (include_fewer || (n_peptide >= top))
-					// {
-						if (leader_to_accessions.empty())
-						{
-							out << q_it->first << 1;
-						}
-						else
-						{
-							out << leader_to_accessions[q_it->first].concatenate('/')
-									<< leader_to_accessions[q_it->first].size();
-						}
-						if (proteins_.getHits().empty())
-						{
-							out << 0;
-						}
-						else
-						{
-							vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
-							out << pos->getScore();
-						}
-						out << n_peptide;
-						for (vector<UInt64>::const_iterator samp_it = samples.begin(); 
-								 samp_it != samples.end(); ++samp_it)
-						{
-							out << q_it->second.total_abundances[*samp_it];
-						}
-						out << endl;
-//					}
+					if (leader_to_accessions.empty())
+					{
+						out << q_it->first << 1;
+					}
+					else
+					{
+						out << leader_to_accessions[q_it->first].concatenate('/')
+								<< leader_to_accessions[q_it->first].size();
+					}
+					if (proteins_.getHits().empty())
+					{
+						out << 0;
+					}
+					else
+					{
+						vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
+						out << pos->getScore();
+					}
+					out << n_peptide;
+					for (vector<UInt64>::const_iterator samp_it = samples.begin(); 
+							 samp_it != samples.end(); ++samp_it)
+					{
+						out << q_it->second.total_abundances[*samp_it];
+					}
+					out << endl;
 				}
 			}
 
@@ -693,8 +690,8 @@ namespace OpenMS
 				flags << "filter_charge"; // also relevant for peptide output
 				if (files.size() > 1) // flags only for consensusXML input
 				{
-					flags << "normalize";
-					if (proteins) flags << "fix_peptides";
+					flags << "consensus:normalize";
+					if (proteins) flags << "consensus:fix_peptides";
 				}
 				for (StringList::Iterator it = flags.begin(); it != flags.end(); ++it)
 				{
@@ -810,6 +807,7 @@ namespace OpenMS
 				setValidFormats_("protxml", StringList::create("idXML"));
         registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
 				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances\nEither 'out' or 'peptide_out' are required. They can be used together.", false);
+
 				addEmptyLine_();
 				registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
 				setMinInt_("top", 0);
@@ -817,16 +815,20 @@ namespace OpenMS
 				setValidStrings_("average", StringList::create("median,mean,sum"));
 				registerFlag_("include_fewer", "Include results for proteins with fewer than 'top' proteotypic peptides");
 				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
+
 				addEmptyLine_();
         addText_("Additional options for consensusXML input:");
-				registerFlag_("normalize", "Scale peptide abundances so that medians of all samples are equal");
-				registerFlag_("fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
+				registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
+				registerFlag_("consensus:normalize", "Scale peptide abundances so that medians of all samples are equal");
+				registerFlag_("consensus:fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
+
 				addEmptyLine_();
 				addText_("Output formatting options:");
-				registerStringOption_("separator", "<string>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
-				registerStringOption_("quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
-				setValidStrings_("quoting", StringList::create("none,double,escape"));
-				registerStringOption_("replacement", "<string>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
+				registerTOPPSubsection_("format", "Output formatting options");
+				registerStringOption_("format:separator", "<string>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
+				registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
+				setValidStrings_("format:quoting", StringList::create("none,double,escape"));
+				registerStringOption_("format:replacement", "<string>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
       }
 
 		
@@ -844,9 +846,9 @@ namespace OpenMS
 
 				FileTypes::Type in_type = FileHandler::getType(in);
 
-				String separator = getStringOption_("separator"), 
-					replacement = getStringOption_("replacement"), 
-					quoting = getStringOption_("quoting");
+				String separator = getStringOption_("format:separator"), 
+					replacement = getStringOption_("format:replacement"), 
+					quoting = getStringOption_("format:quoting");
         if (separator == "") separator = "\t";
 				String::QuotingMethod quoting_method;
 				if (quoting == "none") quoting_method = String::NONE;
@@ -892,7 +894,7 @@ namespace OpenMS
 
 				else // consensusXML
 				{
-					normalize = getFlag_("normalize");
+					normalize = getFlag_("consensus:normalize");
 					ConsensusMap consensus;
           ConsensusXMLFile().load(in, consensus);
 
