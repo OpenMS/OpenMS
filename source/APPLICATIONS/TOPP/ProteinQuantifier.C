@@ -129,6 +129,19 @@ namespace OpenMS
 
 		ProteinIdentification proteins_; // protein information from protXML
 
+		/// Statistics for processing summary
+		struct statistics 
+		{
+			Size quant_proteins, too_few_peptides; // protein statistics
+			Size quant_peptides, total_peptides; // peptide statistics
+			// feature statistics:
+			Size quant_features, total_features, blank_features, ambig_features;
+			statistics(): quant_proteins(0), too_few_peptides(0), quant_peptides(0),
+										total_peptides(0), quant_features(0), total_features(0), 
+										blank_features(0), ambig_features(0) {}
+		} stats_; // for output in the end
+
+
 		/**
 			 @brief Compute the median of a list of values (possibly already sorted)
 
@@ -194,6 +207,7 @@ namespace OpenMS
 				{
 					return; // annotation for the feature ambiguous or missing
 				}
+				stats_.quant_features++;
 				const AASequence& seq = hit.getSequence();
 				quant[seq].abundances[feature.getCharge()][feature.getMapIndex()] += 
 					feature.getIntensity(); // new map element is initialized with 0
@@ -442,9 +456,10 @@ namespace OpenMS
 				for (protein_quant::iterator prot_it = prot_quant.begin();
 						 prot_it != prot_quant.end(); ++prot_it)
 				{
-					if (!include_fewer && (prot_it->second.abundances.size() < top))
+					if (prot_it->second.abundances.size() < top)
 					{
-						continue; // not enough proteotypic peptides
+						if (include_fewer) stats_.too_few_peptides++;
+						else continue; // not enough proteotypic peptides
 					}
 
 					vector<AASequence> peptides; // peptides selected for quantification
@@ -615,14 +630,19 @@ namespace OpenMS
 					}
 				}
 
-				bool include_fewer = getFlag_("include_fewer");
-				Size top = getIntOption_("top");
 				for (protein_quant::iterator q_it = quant.begin(); q_it != quant.end();
 						 ++q_it)
 				{
-					Size n_peptide = q_it->second.abundances.size();
-					if (include_fewer || (n_peptide >= top))
+					if (q_it->second.total_abundances.empty())
 					{
+						stats_.too_few_peptides++;
+						continue;
+					}
+
+					stats_.quant_proteins++;
+					Size n_peptide = q_it->second.abundances.size();
+					// if (include_fewer || (n_peptide >= top))
+					// {
 						if (leader_to_accessions.empty())
 						{
 							out << q_it->first << 1;
@@ -648,7 +668,7 @@ namespace OpenMS
 							out << q_it->second.total_abundances[*samp_it];
 						}
 						out << endl;
-					}
+//					}
 				}
 			}
 
@@ -702,6 +722,85 @@ namespace OpenMS
 				out.modifyStrings(old);
 			}
 
+
+		/// Collect peptide sequences of best hits from a list of peptide identifications.
+		void collectPeptideSequences_(vector<PeptideIdentification>& peptides,
+																	set<AASequence>& sequences)
+			{
+				for (vector<PeptideIdentification>::iterator pep_it = 
+							 peptides.begin(); pep_it != peptides.end(); ++pep_it)
+				{
+					if (!pep_it->getHits().empty())
+					{
+						pep_it->sort();
+						sequences.insert(pep_it->getHits()[0].getSequence());
+					}
+				}
+			}
+
+
+		/// Get the number of distinct identified peptides in a feature map.
+		Size countPeptides_(FeatureMap<>& features)
+			{
+				set<AASequence> sequences;
+				for (FeatureMap<>::Iterator feat_it = features.begin(); 
+						 feat_it != features.end(); ++feat_it)
+				{
+					collectPeptideSequences_(feat_it->getPeptideIdentifications(),
+																	 sequences);
+				}
+				collectPeptideSequences_(features.getUnassignedPeptideIdentifications(),
+																 sequences);
+
+				return sequences.size();
+			}
+
+
+		/// Get the number of distinct identified peptides in a consensus map.
+		Size countPeptides_(ConsensusMap& consensus)
+			{
+				set<AASequence> sequences;
+				for (ConsensusMap::Iterator cons_it = consensus.begin(); 
+						 cons_it != consensus.end(); ++cons_it)
+				{
+					collectPeptideSequences_(cons_it->getPeptideIdentifications(),
+																	 sequences);
+				}
+				collectPeptideSequences_(
+					consensus.getUnassignedPeptideIdentifications(), sequences);
+
+				return sequences.size();
+			}
+
+
+    /// Write processing statistics.
+		void writeStatistics_(Size n_samples)
+			{
+				stats_.ambig_features = stats_.total_features - stats_.blank_features - 
+					stats_.quant_features;
+				LOG_INFO << "\nProcessing summary - number of..." 
+								 << "\n...features: " << stats_.quant_features
+								 << " used for quantification, " << stats_.total_features 
+								 << " total (" << stats_.blank_features << " no annotation, "
+								 << stats_.ambig_features << " ambiguous annotation)"
+								 << "\n...peptides: "  << stats_.quant_peptides 
+								 << " quantified, " << stats_.total_peptides 
+								 << " identified (considering best hits only)";
+				if (!getStringOption_("out").empty())
+				{
+					bool include_fewer = getFlag_("include_fewer");
+					LOG_INFO << "\n...proteins/protein groups: " << stats_.quant_proteins
+									 << " quantified";
+					if (include_fewer) LOG_INFO << " (incl. ";
+					else LOG_INFO << ", ";
+					LOG_INFO << stats_.too_few_peptides << " with fewer than " 
+									 << getIntOption_("top") << " peptides";
+					if (include_fewer) LOG_INFO << ")";
+					else if (n_samples > 1) LOG_INFO << " in every sample";
+				}
+				LOG_INFO << endl;
+			}
+
 	
 		void registerOptionsAndFlags_()
       {
@@ -712,8 +811,6 @@ namespace OpenMS
         registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
 				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances\nEither 'out' or 'peptide_out' are required. They can be used together.", false);
 				addEmptyLine_();
-				// addText_("Either 'out' or 'peptide_out' are required. They can be used together.");
-				// addEmptyLine_();
 				registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
 				setMinInt_("top", 0);
 				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
@@ -762,7 +859,7 @@ namespace OpenMS
 				vector<UInt64> samples;
 				ConsensusMap::FileDescriptions files;
 				peptide_quant pep_quant;
-				
+
 				if (in_type == FileTypes::FEATUREXML)
 				{
 					FeatureMap<> features;
@@ -770,11 +867,13 @@ namespace OpenMS
 					samples.push_back(0);
 
 					if (protxml.empty() && 
-							(features.getProteinIdentifications().size() == 1))
+							(features.getProteinIdentifications().size() == 1) &&
+							(!features.getProteinIdentifications()[0].getHits().empty()))
 					{
 						proteins_ = features.getProteinIdentifications()[0];
 					}
 
+					stats_.total_features = features.size();
 					for (FeatureMap<>::Iterator feat_it = features.begin(); 
 							 feat_it != features.end(); ++feat_it)
 					{
@@ -782,7 +881,13 @@ namespace OpenMS
 							getAnnotation_(feat_it->getPeptideIdentifications());
 						FeatureHandle handle(0, *feat_it);
 						quantifyFeature_(handle, hit, pep_quant);
+						if (feat_it->getPeptideIdentifications().empty())
+						{
+							stats_.blank_features++;
+						}
 					}
+
+					stats_.total_peptides = countPeptides_(features);
 				}
 
 				else // consensusXML
@@ -799,7 +904,8 @@ namespace OpenMS
 					}
 
 					if (protxml.empty() && 
-							(consensus.getProteinIdentifications().size() == 1))
+							(consensus.getProteinIdentifications().size() == 1) &&
+							(!consensus.getProteinIdentifications()[0].getHits().empty()))
 					{
 						proteins_ = consensus.getProteinIdentifications()[0];
 					}
@@ -813,9 +919,16 @@ namespace OpenMS
 									 cons_it->getFeatures().begin(); feat_it !=
 									 cons_it->getFeatures().end(); ++feat_it)
 						{
+							stats_.total_features++;
 							quantifyFeature_(*feat_it, hit, pep_quant);
+							if (cons_it->getPeptideIdentifications().empty())
+							{
+								stats_.blank_features++;
+							}
 						}
 					}
+
+					stats_.total_peptides = countPeptides_(consensus);
 				}
 
 				if (!protxml.empty())
@@ -835,6 +948,7 @@ namespace OpenMS
 
 				quantifyPeptides_(pep_quant);
 				if (normalize) normalizePeptides_(pep_quant);
+				stats_.quant_peptides = pep_quant.size();
 
 				// output:
 				if (!peptide_out.empty())
@@ -855,6 +969,8 @@ namespace OpenMS
 					writeProteinTable_(output, prot_quant, samples);
 					outstr.close();
 				}
+
+				writeStatistics_(samples.size());
 
 				return EXECUTION_OK;				
 			}
