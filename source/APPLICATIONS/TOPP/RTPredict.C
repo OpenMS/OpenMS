@@ -244,7 +244,7 @@ class TOPPRTPredict
 			// additional parameters from additional files.
 			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
-				inputFileReadable_(svmfile_name + "_additional_parameters");
+				inputFileReadable_(svmfile_name + "_additional_parameters", "(none)");
 	
 				Param additional_parameters;
 				
@@ -411,7 +411,7 @@ class TOPPRTPredict
 
 				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
-					inputFileReadable_((svmfile_name + "_samples").c_str());
+					inputFileReadable_((svmfile_name + "_samples").c_str(), "(none)");
 	
 					training_samples.load(svmfile_name + "_samples");
 					svm.setTrainingSample(training_samples);				

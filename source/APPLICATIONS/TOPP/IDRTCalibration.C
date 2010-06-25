@@ -110,8 +110,6 @@ class TOPPIDRTCalibration
 		// testing whether input and output files are accessible
 		//-------------------------------------------------------------
 
-		inputFileReadable_(in_file);
-		
 		if (rt_calibrant_1_input > rt_calibrant_2_input)
 		{
 			DoubleReal temp = rt_calibrant_1_input;

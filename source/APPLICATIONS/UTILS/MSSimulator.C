@@ -256,9 +256,7 @@ class TOPPMSSimulator
 			//-------------------------------------------------------------
       
 			String inputfile_name = getStringOption_("in");			
-			inputFileReadable_(inputfile_name);
 			String outputfile_name = getStringOption_("out");	
-			outputFileWritable_(outputfile_name);
 
       MSSim ms_simulation;
       ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:",true));

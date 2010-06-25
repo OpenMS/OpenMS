@@ -229,7 +229,6 @@ protected:
 
 			if ((in.size() == 1) && File::exists(in[0]))
 			{
-				inputFileReadable_(in[0]);
 				readFile_(in[0], charges);
 			}
 			else
