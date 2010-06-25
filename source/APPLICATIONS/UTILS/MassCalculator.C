@@ -212,7 +212,7 @@ protected:
 			}
 			else
 			{
-				outputFileWritable_(out);
+				outputFileWritable_(out, "out");
 				outfile.open(out.c_str());
 				output_ = &outfile;
 			}
@@ -229,6 +229,7 @@ protected:
 
 			if ((in.size() == 1) && File::exists(in[0]))
 			{
+				inputFileReadable_(in[0], "in");
 				readFile_(in[0], charges);
 			}
 			else
