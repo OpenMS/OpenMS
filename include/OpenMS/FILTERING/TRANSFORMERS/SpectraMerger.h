@@ -122,8 +122,9 @@ namespace OpenMS
 		}
 
 		/// merges spectra with similar precursors
-		template <typename MapType> void mergeSpectraPrecursors(MapType& exp)
+		template <typename MapType> void mergeSpectraPrecursors(MapType& /*exp*/)
 		{
+      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     /**
 
     idea: merge spectra with "similar" precursors to enhance S/N

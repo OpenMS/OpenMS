@@ -153,7 +153,6 @@ class TOPPPrecursorMassCorrector
 			ProgressLogger progresslogger;
 			progresslogger.setLogType(log_type_);
 			progresslogger.startProgress(0, exp.size(), "Correcting precursor masses");
-			Size counter(0);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
 				progresslogger.setProgress(exp.end() - it);

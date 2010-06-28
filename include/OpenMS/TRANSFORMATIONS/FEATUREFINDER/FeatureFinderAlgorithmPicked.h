@@ -1910,7 +1910,7 @@ namespace OpenMS
        *
        * @return A pointer to the trace fitter that should be used.
        */
-      TraceFitter<PeakType> * chooseTraceFitter_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces, double & tau)
+      TraceFitter<PeakType> * chooseTraceFitter_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & /*traces*/, double & tau)
       {
         // choose fitter
         if(param_.getValue("feature:rt_shape") == "asymmetric")
