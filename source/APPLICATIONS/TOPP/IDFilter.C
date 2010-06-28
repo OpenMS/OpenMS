@@ -55,15 +55,15 @@ using namespace std;
 	<ul>
 
 		<li> 
-			<b>Score:pep</b>:<br> This parameter 
+			<b>score:pep</b>:<br> This parameter 
 			specifies which score a peptide hit should have to be kept.
 		</li> 
 		<li> 
-			<b>Score:prot</b>:<br> This parameter 
+			<b>score:prot</b>:<br> This parameter 
 			specifies which score a protein hit should have to be kept.
 		</li>
 		<li> 
-			<b>Thresh:pep</b>:<br> This parameter 
+			<b>thresh:pep</b>:<br> This parameter 
 			specifies which amount of the significance threshold should 
 			be reached by a peptide to be kept. If for example a peptide
 			has score 30 and the significance threshold is 40, the 
@@ -71,13 +71,13 @@ using namespace std;
 			threshold fraction is set to 0.75 or lower.
 		</li> 
 		<li> 
-			<b>Thresh:prot</b>:<br> This parameter 
+			<b>thresh:prot</b>:<br> This parameter 
 			behaves in the same way as the peptide significance threshold 
 			fraction parameter. The only difference is that it is used
 			to filter protein hits.
 		</li>
 		<li>
-			<b>WhiteList:proteins</b>:<br> If you know which proteins
+			<b>whitelist:proteins</b>:<br> If you know which proteins
 			are in the measured sample you can specify a FASTA file 
 			which contains the protein sequences of those proteins. All 
 			peptides which are not a substring of a protein contained
@@ -87,23 +87,23 @@ using namespace std;
       If you want filtering using the sequence alone, then use the flag @em WhiteList:by_seq_only.
 		</li>
 		<li>
-			<b>BlackList:peptides</b>:<br> For this option you specify an IdXML file.
+			<b>blacklist:peptides</b>:<br> For this option you specify an IdXML file.
 			All peptides that are present in both files (in-file and exclusion peptides
 			file) will be dropped. Protein Hits are not affected.
 		</li>
-		<li><b>RT</b>:<br> To filter identifications according to their 
-			predicted retention times you have to set 'RT:p_value' and/or 'RT:p_value_1st_dim' larger than 0, depending which RT
+		<li><b>rt</b>:<br> To filter identifications according to their 
+			predicted retention times you have to set 'rt:p_value' and/or 'rt:p_value_1st_dim' larger than 0, depending which RT
       dimension you want to filter.
 			This filter can only be applied to IdXML files produced by @ref TOPP_RTPredict.
 		</li>
 		<li>
-			<b>Best:n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept. If two hits have the same score, their order is random.
+			<b>best:n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept. If two hits have the same score, their order is random.
 		</li>
 		<li>
-			<b>Best:n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept. If two hits have the same score, their order is random.
+			<b>best:n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept. If two hits have the same score, their order is random.
 		</li>
 		<li>
-			<b>Best:strict</b>:<br> Only the best hit of a spectrum is kept.
+			<b>best:strict</b>:<br> Only the best hit of a spectrum is kept.
 			If there is more than one hit for a spectrum with the maximum score, then
 			none of the hits will be kept. This is similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.
 		</li>
@@ -138,38 +138,38 @@ class TOPPIDFilter
     addText_("To enable any of the filters below, just change their default value.\n");
     addText_("All active filters will be applied in order.\n");
 
-    registerTOPPSubsection_("Score", "Filtering by peptide score");
-    registerDoubleOption_("Score:pep","<score>", 0,"The score which should be reached by a peptide hit to be kept",false);	
-		registerDoubleOption_("Score:prot","<score>", 0,"The score which should be reached by a protein hit to be kept",false);
-    registerTOPPSubsection_("Thresh", "Filtering by significance threshold");
-    registerDoubleOption_("Thresh:pep","<fraction>",0.0,"Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.",false);	
-		registerDoubleOption_("Thresh:prot","<fraction>",0.0,"Keep a protein hit only if its score is above this fraction of the protein significance threshold.",false);	
+    registerTOPPSubsection_("score", "Filtering by peptide/protein score");
+    registerDoubleOption_("score:pep","<score>", 0,"The score which should be reached by a peptide hit to be kept",false);	
+		registerDoubleOption_("score:prot","<score>", 0,"The score which should be reached by a protein hit to be kept",false);
+    registerTOPPSubsection_("thresh", "Filtering by significance threshold");
+    registerDoubleOption_("thresh:pep","<fraction>",0.0,"Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.",false);	
+		registerDoubleOption_("thresh:prot","<fraction>",0.0,"Keep a protein hit only if its score is above this fraction of the protein significance threshold.",false);	
 
-    registerTOPPSubsection_("WhiteList", "Filtering by whitelisting (only instances also present in a whitelist file can pass)");
-    registerInputFile_("WhiteList:proteins","<file>","","filename of a FASTA file containing protein sequences.\n"
+    registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only instances also present in a whitelist file can pass)");
+    registerInputFile_("whitelist:proteins","<file>","","filename of a FASTA file containing protein sequences.\n"
 																											 "All peptides that are not a substring of a sequence in this file are removed\n"
                                                        "All proteins whose accession is not present in this file are removed.",false);
-		setValidFormats_("WhiteList:proteins",StringList::create("FASTA"));
-    registerFlag_("WhiteList:by_seq_only","Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
+		setValidFormats_("whitelist:proteins",StringList::create("FASTA"));
+    registerFlag_("whitelist:by_seq_only","Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
-    registerTOPPSubsection_("BlackList", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
-    registerInputFile_("BlackList:peptides","<file>","","Peptides having the same sequence as any peptide in this file will be filtered out\n",false);
-		setValidFormats_("BlackList:peptides",StringList::create("idXML"));
+    registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
+    registerInputFile_("blacklist:peptides","<file>","","Peptides having the same sequence as any peptide in this file will be filtered out\n",false);
+		setValidFormats_("blacklist:peptides",StringList::create("idXML"));
 		
-    registerTOPPSubsection_("RT", "Filtering by RT predicted by 'RTPredict'");
-    registerDoubleOption_("RT:p_value","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict.",false);
-    registerDoubleOption_("RT:p_value_1st_dim","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict for first dimension.",false);
-    setMinFloat_("RT:p_value",0);
-    setMaxFloat_("RT:p_value",1);
-    setMinFloat_("RT:p_value_1st_dim",0);
-    setMaxFloat_("RT:p_value_1st_dim",1);
+    registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
+    registerDoubleOption_("rt:p_value","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict.",false);
+    registerDoubleOption_("rt:p_value_1st_dim","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict for first dimension.",false);
+    setMinFloat_("rt:p_value",0);
+    setMaxFloat_("rt:p_value",1);
+    setMinFloat_("rt:p_value_1st_dim",0);
+    setMaxFloat_("rt:p_value_1st_dim",1);
 
-    registerTOPPSubsection_("Best", "Filtering best hits per spectrum (for peptides) or from proteins");
-    registerIntOption_("Best:n_peptide_hits","<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n>0).", false);
-    setMinInt_("Best:n_peptide_hits", 0);
-    registerIntOption_("Best:n_protein_hits","<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n>0).", false);
-    setMinInt_("Best:n_protein_hits", 0);
-    registerFlag_("Best:strict","Keep only the highest scoring peptide hit.\n"
+    registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
+    registerIntOption_("best:n_peptide_hits","<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n>0).", false);
+    setMinInt_("best:n_peptide_hits", 0);
+    registerIntOption_("best:n_protein_hits","<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n>0).", false);
+    setMinInt_("best:n_protein_hits", 0);
+    registerFlag_("best:strict","Keep only the highest scoring peptide hit.\n"
 															"Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
 		registerIntOption_("min_length","<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
 		setMinInt_("min_length", 0);
@@ -208,23 +208,23 @@ class TOPPIDFilter
 		String inputfile_name = getStringOption_("in");			
 		String outputfile_name = getStringOption_("out");
 		
-		DoubleReal peptide_significance_threshold_fraction = getDoubleOption_("Thresh:pep");
-		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("Thresh:prot");
-		DoubleReal peptide_threshold_score = getDoubleOption_("Score:pep");
-		DoubleReal protein_threshold_score = getDoubleOption_("Score:prot");
+		DoubleReal peptide_significance_threshold_fraction = getDoubleOption_("thresh:pep");
+		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("thresh:prot");
+		DoubleReal peptide_threshold_score = getDoubleOption_("score:pep");
+		DoubleReal protein_threshold_score = getDoubleOption_("score:prot");
 		
-		Int best_n_peptide_hits = getIntOption_("Best:n_peptide_hits");
-		Int best_n_protein_hits = getIntOption_("Best:n_protein_hits");
-		bool best_strict = getFlag_("Best:strict");
+		Int best_n_peptide_hits = getIntOption_("best:n_peptide_hits");
+		Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
+		bool best_strict = getFlag_("best:strict");
 		UInt min_length = getIntOption_("min_length");
 		
-    String sequences_file_name = getStringOption_("WhiteList:proteins").trim();
-		bool no_protein_identifiers = getFlag_("WhiteList:by_seq_only");
+    String sequences_file_name = getStringOption_("whitelist:proteins").trim();
+		bool no_protein_identifiers = getFlag_("whitelist:by_seq_only");
 		
-    String exclusion_peptides_file_name = getStringOption_("BlackList:peptides").trim();
+    String exclusion_peptides_file_name = getStringOption_("blacklist:peptides").trim();
 
-		DoubleReal pv_rt_filtering = getDoubleOption_("RT:p_value");
-		DoubleReal pv_rt_filtering_1st_dim = getDoubleOption_("RT:p_value_1st_dim");
+		DoubleReal pv_rt_filtering = getDoubleOption_("rt:p_value");
+		DoubleReal pv_rt_filtering_1st_dim = getDoubleOption_("rt:p_value_1st_dim");
 		
     bool unique = getFlag_("unique");
 		bool unique_per_protein = getFlag_("unique_per_protein");
@@ -476,8 +476,8 @@ class TOPPIDFilter
     }
 
     // some stats
-    LOG_INFO << "Peptide Identifications remaining: " << filtered_peptide_identifications.size() << " / " << identifications.size() << "\n";
-    LOG_INFO << "Protein Identifications remaining: " << filtered_protein_identifications.size() << " / " << protein_identifications.size() << "\n";
+    LOG_INFO << "Peptide identifications remaining: " << filtered_peptide_identifications.size() << " / " << identifications.size() << "\n";
+    LOG_INFO << "Protein identifications remaining: " << filtered_protein_identifications.size() << " / " << protein_identifications.size() << "\n";
 		
 		//-------------------------------------------------------------
 		// writing output
