@@ -588,6 +588,8 @@ if (OPENMS_HAS_SVNVERSION)
 	# build the updater executable
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/svn")
 	add_executable(SVNRevisionUpdater ${PROJECT_SOURCE_DIR}/tools/svn/SVNRevisionUpdater.C)
+	# need QtCore for RegEx
+	target_link_libraries(SVNRevisionUpdater ${QT_LIBRARIES})
 	get_target_property(SVNRevisionUpdater_LOCATION SVNRevisionUpdater LOCATION)
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin") ## reset output dir
 
