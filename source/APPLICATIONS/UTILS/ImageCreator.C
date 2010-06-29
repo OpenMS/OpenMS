@@ -159,11 +159,10 @@ class TOPPImageCreator
 		registerFlag_("log_intensity", "Apply logarithm to intensity values");
 		registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z).\n"
 															 "Per default, dimensions run bottom-up in RT and left-right in m/z.");
-		registerFlag_("precursors", "Mark locations of MS2 precursors.\n"
-									"Implied if 'precursor_color' or 'precursor_size' are set.");
-		registerStringOption_("precursor_color", "<color>", "#000000", "Color for precursor marks (color code or word, e.g. 'black')", false);
+		registerFlag_("precursors", "Mark locations of MS2 precursors.\n");
+		registerStringOption_("precursor_color", "<color>", "#000000", "Color for precursor marks (color code or word, e.g. 'black') (requires 'precursors' flag to be active)", false);
 		registerIntOption_("precursor_size", "<number>", 2,
-											 "Size of the precursor marks", false);
+											 "Size of the precursor marks (requires 'precursors' flag to be active)", false);
 		setMinInt_("precursor_size", 1);
 		setMaxInt_("precursor_size", 3);
 	}
@@ -291,8 +290,7 @@ class TOPPImageCreator
 			}
 		}
 
-		if (getFlag_("precursors") || setByUser_("precursor_color") ||
-				setByUser_("precursor_size"))
+    if (getFlag_("precursors"))
 		{
 			markMS2Locations_(exp, image, getFlag_("transpose"),
 											  getStringOption_("precursor_color").toQString(),

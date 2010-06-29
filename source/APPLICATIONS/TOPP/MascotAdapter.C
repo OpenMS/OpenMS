@@ -231,7 +231,7 @@ class TOPPMascotAdapter
 			registerDoubleOption_("pep_score", "<num>", 1, "peptide score", false);
 			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
-			registerDoubleOption_("first_dim_rt", "<num>", 0, "additional information which is added to every peptide identification", false);
+			registerDoubleOption_("first_dim_rt", "<num>", 0, "additional information which is added to every peptide identification as metavalue if set > 0", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
 			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
 			setValidStrings_("mass_type",StringList::create("Monoisotopic,Average"));
@@ -580,7 +580,7 @@ class TOPPMascotAdapter
 															modified_peptides);																
 				}
 				
-				if (setByUser_("first_dim_rt"))
+				if (first_dim_rt>0)
 				{
 					for (Size i = 0; i < identifications.size(); ++i)
 					{

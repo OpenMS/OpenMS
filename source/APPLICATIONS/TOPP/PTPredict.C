@@ -132,7 +132,7 @@ class TOPPPTPredict
 			// additional parameters from additional files.
 			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
-				inputFileReadable_(svmfile_name + "_additional_parameters","(none)");
+				inputFileReadable_(svmfile_name + "_additional_parameters", "svm_model (derived)");
 	
 				Param additional_parameters;
 				
@@ -222,7 +222,7 @@ class TOPPPTPredict
 						
 				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
-					inputFileReadable_((svmfile_name + "_samples").c_str(),"(none)");
+					inputFileReadable_((svmfile_name + "_samples").c_str(), "svm_model (derived)");
 	
 					training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
 					svm.setTrainingSample(training_data);

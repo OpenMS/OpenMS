@@ -690,8 +690,6 @@ namespace OpenMS
       /**
       	@brief Returns the value of a previously registered double option
 
-      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
-
 				@exception Exception::UnregisteredParameter is thrown if the parameter was not registered
 				@exception Exception::RequiredParameterNotGiven is if a required parameter is not present
 				@exception Exception::WrongParameterType is thrown if the parameter has the wrong type
@@ -701,8 +699,6 @@ namespace OpenMS
 
       /**
       	@brief Returns the value of a previously registered integer option
-
-      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
 
         @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
         @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
@@ -714,8 +710,6 @@ namespace OpenMS
       /**
       	@brief Returns the value of a previously registered StringList
 
-      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
-
         @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
         @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
         @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
@@ -725,8 +719,6 @@ namespace OpenMS
 
       /**
       	@brief Returns the value of a previously registered IntList
-
-      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
 
         @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
         @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
@@ -738,8 +730,6 @@ namespace OpenMS
       /**
       	@brief Returns the value of a previously registered DoubleList
 
-      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
-
         @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
         @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
         @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
@@ -749,13 +739,6 @@ namespace OpenMS
       
       ///Returns the value of a previously registered flag
       bool getFlag_( const String& name ) const;
-
-      /**
-        @brief Returns if an option was set by the user (needed to distinguish between user-set and default value)
-
-        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
-      */
-      bool setByUser_( const String& name ) const;
 
       /**
         @brief Finds the entry in the parameters_ array that has the name @p name
@@ -821,6 +804,11 @@ namespace OpenMS
       /**
         @brief Checks if an input file exists, is readable and is not empty
 
+        The @em filename is a URI to the file to be read and @em param_name gives the name of the parameter
+        , e.g. "in" which specified the filename (this is useful for error messages when the file cannot be read, so the
+        user can immediately see which parameter to change). If no parameter is responsible for the
+        name of the input file, then leave @em param_name empty.
+
         @exception Exception::FileNotFound is thrown if the file is not found
         @exception Exception::FileNotReadable is thrown if the file is not readable
         @exception Exception::FileEmpty is thrown if the file is empty
@@ -829,6 +817,11 @@ namespace OpenMS
 
       /**
         @brief Checks if an output file is writeable
+
+        The @em filename is a URI to the file to be written and @em param_name gives the name of the parameter
+        , e.g. "out" which specified the filename (this is useful for error messages when the file cannot be written, so the
+        user can immediately see which parameter to change). If no parameter is responsible for the
+        name of the output file, then leave @em param_name empty.
 
         @exception Exception::UnableToCreateFile is thrown if the file cannot be created
       */

@@ -1110,7 +1110,7 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		if (p.required && !setByUser_(name) )
+		if (p.required && getParam_(name).isEmpty() )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
@@ -1118,7 +1118,7 @@ namespace OpenMS
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
 		// if required or set by user, do some validity checks
-		if (p.required || ( setByUser_(name) && tmp!=p.default_value))
+		if (p.required || ( !getParam_(name).isEmpty() && tmp!=p.default_value))
 		{
 			//check if files are readable/writeable
 			if (p.type==ParameterInformation::INPUT_FILE)
@@ -1185,7 +1185,6 @@ namespace OpenMS
 				}
 				else if (p.type==ParameterInformation::OUTPUT_FILE)
 				{
-					writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
 					outputFileWritable_(tmp, name);
 
 					//create upper case list of valid formats
@@ -1208,34 +1207,6 @@ namespace OpenMS
 		return tmp;
 	}
 
-	bool TOPPBase::setByUser_(const String& name) const
-	{
-		//look up because of possible exception only
-		findEntry_(name);
-
-		if (param_cmdline_.exists(name))
-		{
-			return true;
-		}
-
-		if (param_instance_.exists(name))
-		{
-			return true;
-		}
-
-		if (param_common_tool_.exists(name))
-		{
-			return true;
-		}
-
-		if (param_common_.exists(name))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
 	DoubleReal TOPPBase::getDoubleOption_(const String& name) const
 	{
 		const ParameterInformation& p = findEntry_(name);
@@ -1243,7 +1214,7 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		if (p.required && !setByUser_(name) )
+    if (p.required && getParam_(name).isEmpty() )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
@@ -1251,7 +1222,7 @@ namespace OpenMS
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		//check if in valid range
-		if (p.required || ( setByUser_(name) && tmp!=(DoubleReal)p.default_value))
+		if (p.required || ( !getParam_(name).isEmpty() && tmp!=(DoubleReal)p.default_value))
 		{
 			if (tmp<p.min_float || tmp>p.max_float)
 			{
@@ -1269,7 +1240,7 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		if (p.required && !setByUser_(name) )
+		if (p.required && getParam_(name).isEmpty() )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
@@ -1277,7 +1248,7 @@ namespace OpenMS
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		//check if in valid range
-		if (p.required || ( setByUser_(name) && tmp!=(Int)p.default_value))
+		if (p.required || ( !getParam_(name).isEmpty() && tmp!=(Int)p.default_value))
 		{
 			if (tmp<p.min_int || tmp>p.max_int)
 			{
@@ -1295,7 +1266,7 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		if (p.required && !setByUser_(name) )
+		if (p.required && getParam_(name).isEmpty() )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
@@ -1307,7 +1278,7 @@ namespace OpenMS
 			writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
 			// if required or set by user, do some validity checks
-			if (p.required || ( setByUser_(name) && tmp_list!=p.default_value))
+			if (p.required || ( !getParam_(name).isEmpty()&&tmp_list!=p.default_value))
 			{
 				//check if files are readable/writeable
 				if (p.type==ParameterInformation::INPUT_FILE_LIST)
@@ -1374,7 +1345,6 @@ namespace OpenMS
 					}
 					else if (p.type==ParameterInformation::OUTPUT_FILE_LIST)
 					{
-						writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
 						outputFileWritable_(tmp, name);
 
 						//create upper case list of valid formats
@@ -1404,7 +1374,7 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		if (p.required && !setByUser_(name) )
+		if (p.required && getParam_(name).isEmpty() )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
@@ -1416,7 +1386,7 @@ namespace OpenMS
 			writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 			//check if in valid range
-			if (p.required || ( setByUser_(name) && tmp_list!=(DoubleList)p.default_value))
+			if (p.required || ( !getParam_(name).isEmpty() && tmp_list!=(DoubleList)p.default_value))
 			{
 				if (tmp<p.min_float || tmp>p.max_float)
 				{
@@ -1434,7 +1404,7 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		if (p.required && !setByUser_(name) )
+		if (p.required && getParam_(name).isEmpty() )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
@@ -1447,7 +1417,7 @@ namespace OpenMS
 			writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 			//check if in valid range
-			if (p.required || ( setByUser_(name) && tmp_list!=(IntList)p.default_value))
+			if (p.required || ( !getParam_(name).isEmpty() && tmp_list!=(IntList)p.default_value))
 			{
 				if (tmp<p.min_int || tmp>p.max_int)
 				{
@@ -1837,34 +1807,42 @@ namespace OpenMS
 	void TOPPBase::inputFileReadable_(const String& filename, const String& param_name) const
 	{
 		writeDebug_( "Checking input file '" + filename + "'", 2 );
-    try 
+
+    // prepare error message
+    String message;
+    if (param_name == "") message = "Cannot read input file!\n";
+    else message = "Cannot read input file given from parameter '-" + param_name + "'!\n";
+
+    // check file
+    if (!File::exists(filename))
+	  {
+      LOG_ERROR << message;
+		  throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+	  }
+	  if (!File::readable(filename))
+	  {
+      LOG_ERROR << message;
+		  throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+	  }
+    if (!File::isDirectory(filename) && File::empty(filename))
     {
-      if (!File::exists(filename))
-		  {
-			  throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		  }
-		  if (!File::readable(filename))
-		  {
-			  throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		  }
-      if (!File::isDirectory(filename) && File::empty(filename))
-      {
-        throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-      }
-    }
-    catch (Exception::BaseException e)
-    {
-      LOG_ERROR << "Cannot read input file from parameter '-" << param_name << "'!\n";
-      throw e;
+      LOG_ERROR << message;
+      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 	}
 
 	void TOPPBase::outputFileWritable_(const String& filename, const String& param_name) const
 	{
 		writeDebug_( "Checking output file '" + filename + "'", 2 );
-		if (!File::writable(filename))
+    
+    // prepare error message
+    String message;
+    if (param_name == "") message = "Cannot write output file!\n";
+    else message = "Cannot write output file given from parameter '-" + param_name + "'!\n";
+
+    if (!File::writable(filename))
 		{
-      LOG_ERROR << "Cannot write output file from parameter '-" << param_name << "'!\n";
+      LOG_ERROR << message;
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 	}

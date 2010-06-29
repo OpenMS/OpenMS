@@ -193,7 +193,6 @@ class TOPPMRMPairFinder
 
 			// collect the different MRM XIC pairs for each SILAC pair as quantlets
 			// then calculate the ratio over the quanlets and calculate some statistics
-			Size feature_counter(0);
 			FeatureMap<> all_features;
 			for (Map<DoubleReal, Map<DoubleReal, vector<SILAC_pair> > >::ConstIterator it1 = pairs.begin(); it1 != pairs.end(); ++it1)
 			{

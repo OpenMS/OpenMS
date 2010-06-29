@@ -70,7 +70,7 @@ using namespace std;
 
 
 	There are a number of parameters which
-	can be changed for the svm (specified in the ini file):
+	can be changed for the svm (specified in the ini file and command-line):
 	<ul>
 		<li>
 			svm_type: the type of the svm (can be NU_SVR or 
@@ -115,23 +115,10 @@ using namespace std;
 	parameter, the step size in which the parameters should be increased
 	and a final value for the particular parameter such that the tested
 	parameter is never bigger than the given final value. If you want
-	to perform a cross validation for example for the parameter c, you
-	have to specify <b>c_start</b>, <b>c_step_size</b> and <b>c_stop</b>
-	in the ini file. So if you want to perform a CV for c from 0.1 to 2
-	with step size 0.1 you include the following lines into your ini-file:
-	<ul>
-		<li>
-			@code <ITEM name="c_start" value="0.1" type="float"/> @endcode
-		</li>
-		<li>
-			@code <ITEM name="c_step_size" value="0.1" type="float"/> @endcode
-		</li>
-		<li>
-			@code <ITEM name="c_stop" value="2" type="float"/> @endcode
-		</li>
-	</ul>
-	If the CV should test additional parameters in a certain range 
-	you just include them analogously to the example above.
+	to perform a cross validation for example for the parameter c, 
+  To enable CV (across all 5 parameters) set @em skip_cv to false in the INI file.
+
+
 	Furthermore, you can specify the number of partitions for the CV with
 	<b>number_of_partitions</b> in the ini file and the number of runs
 	with <b>number_of_runs</b>.
@@ -181,7 +168,7 @@ class TOPPRTModel
 		{
 			registerInputFile_("in","<file>","","This is the name of the input file (RT prediction). It is assumed that the file type is IdXML. If it is just a textfile having a sequence and the corresponding rt per line, the 'textfile_input' flag has to be set.\n", false);
 			setValidFormats_("in",StringList::create("idXML"));
-			registerFlag_("textfile_input", "Has to be set if the input file is a textfile contatining a sequence with corresponding rt per line (separated by space).");
+			registerFlag_("textfile_input", "Has to be set if the input file is a textfile containing a sequence with corresponding rt per line (separated by space).");
 			registerInputFile_("in_positive","<file>","","input file with positive examples (peptide separation prediction)\n", false);
 			setValidFormats_("in_positive",StringList::create("idXML"));
 			registerInputFile_("in_negative","<file>","","input file with negative examples (peptide separation prediction)\n", false);
@@ -215,16 +202,20 @@ class TOPPRTModel
 			setMinInt_("number_of_runs", 1);
 			registerIntOption_("number_of_partitions","<int>",10,"number of CV partitions",false);
 			setMinInt_("number_of_partitions", 2);
+
 			registerIntOption_("degree_start","<int>",1,"starting point of degree",false);
 			setMinInt_("degree_start", 1);
 			registerIntOption_("degree_step_size","<int>",2,"step size point of degree",false);
 			registerIntOption_("degree_stop","<int>",4,"stopping point of degree",false);
-			registerDoubleOption_("p_start","<float>",1,"starting point of p",false);
+
+      registerDoubleOption_("p_start","<float>",1,"starting point of p",false);
 			registerDoubleOption_("p_step_size","<float>",10,"step size point of p",false);
 			registerDoubleOption_("p_stop","<float>",1000,"stopping point of p",false);
+
 			registerDoubleOption_("c_start","<float>",1,"starting point of c",false);
 			registerDoubleOption_("c_step_size","<float>",10,"step size of c",false);
 			registerDoubleOption_("c_stop","<float>",1000,"stopping point of c",false);
+
 			registerDoubleOption_("nu_start","<float>",0.3,"starting point of nu",false);
 			setMinFloat_("nu_start", 0);
 			setMaxFloat_("nu_start", 1);
@@ -232,10 +223,12 @@ class TOPPRTModel
 			registerDoubleOption_("nu_stop","<float>",0.7,"stopping point of nu",false);
 			setMinFloat_("nu_stop", 0);
 			setMaxFloat_("nu_stop", 1);
+
 			registerDoubleOption_("sigma_start","<float>",1,"starting point of sigma",false);
 			registerDoubleOption_("sigma_step_size","<float>",1.3,"step size of sigma",false);
 			registerDoubleOption_("sigma_stop","<float>",15,"stopping point of sigma",false);
-			registerFlag_("skip_cv", "Has to be set if the cv should be skipped and the model should just be trained with the specified parameters.");
+
+			registerFlag_("skip_cv", "Set to enable Cross-Validation or set to true if the model should just be trained with 1 set of specified parameters.");
 		}
 		
 	  void loadStringLabelLines_(String                		filename, 
@@ -358,6 +351,8 @@ class TOPPRTModel
 			textfile_input = getFlag_("textfile_input");
 			additive_cv = getFlag_("additive_cv");
 			skip_cv = getFlag_("skip_cv");
+      if (skip_cv) LOG_INFO << "Cross-validation disabled!\n";
+      else LOG_INFO << "Cross-validation enabled!\n";
 
 			Real total_gradient_time = getDoubleOption_("total_gradient_time");
 			max_std = getDoubleOption_("max_std");
@@ -443,10 +438,7 @@ class TOPPRTModel
 			{
 				svm.setParameter(SVMWrapper::DEGREE, getIntOption_("degree"));
 
-				if (setByUser_("degree_start") 
-						&& setByUser_("degree_step_size") 
-						&& setByUser_("degree_stop")
-						&& !skip_cv)
+				if (!skip_cv)
 				{
 					degree_start = getIntOption_("degree_start");
 					degree_step_size = getIntOption_("degree_step_size");
@@ -467,12 +459,9 @@ class TOPPRTModel
 			DoubleReal p_stop = 0.;
 			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
 			{							
-				if (setByUser_("p_start") 
-						&& setByUser_("p_step_size") 
-						&& setByUser_("p_stop")
-						&& !skip_cv)
+				if (!skip_cv)
 				{
-					p_start = getDoubleOption_("p_start");
+          p_start = getDoubleOption_("p_start");
 					p_step_size = getDoubleOption_("p_step_size");
 					if (!additive_cv && p_step_size <= 1)
 					{
@@ -490,10 +479,7 @@ class TOPPRTModel
 			DoubleReal c_step_size = 0.;
 			DoubleReal c_stop = 0.;
 
-			if (setByUser_("c_start") 
-					&& setByUser_("c_step_size") 
-					&& setByUser_("c_stop") 
-					&& !skip_cv)
+			if (!skip_cv)
 			{
 				c_start = getDoubleOption_("c_start");
 				c_step_size = getDoubleOption_("c_step_size");
@@ -512,67 +498,33 @@ class TOPPRTModel
 			DoubleReal nu_start = 0.;
 			DoubleReal nu_step_size = 0.;
 			DoubleReal nu_stop = 0.;
-			if (((svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR 
-					|| svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
-					&& !skip_cv)
+			if ( (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
+				&& !skip_cv)
 			{
-				if (setByUser_("nu_start") && setByUser_("nu_step_size") && setByUser_("nu_stop"))
+        nu_start = getDoubleOption_("nu_start");
+				nu_step_size = getDoubleOption_("nu_step_size");
+				if (!additive_cv && nu_step_size <= 1)
 				{
-					nu_start = getDoubleOption_("nu_start");
-					nu_step_size = getDoubleOption_("nu_step_size");
-					if (!additive_cv && nu_step_size <= 1)
-					{
-						writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					nu_stop = getDoubleOption_("nu_stop");
+					writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
+				nu_stop = getDoubleOption_("nu_stop");
 
-					start_values.insert(make_pair(SVMWrapper::NU, nu_start));
-					step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
-					end_values.insert(make_pair(SVMWrapper::NU, nu_stop));	
-				}			
+				start_values.insert(make_pair(SVMWrapper::NU, nu_start));
+				step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
+				end_values.insert(make_pair(SVMWrapper::NU, nu_stop));	
 			}
-			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO && setByUser_("border_length"))
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
  				border_length = getIntOption_("border_length");
  			}
- 			if (!setByUser_("border_length")
- 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
- 			{
-				writeLog_("No border length given for POBK. Aborting!");
-				return ILLEGAL_PARAMETERS;		
- 			}
-			svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
-			if (setByUser_("sigma"))
-			{
-	 			sigma = getDoubleOption_("sigma");
-	 		}
- 			if ((!setByUser_("sigma") && !setByUser_("sigma_start"))
- 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
- 			{
-				writeLog_("No sigma given for POBK. Aborting!");
-				return ILLEGAL_PARAMETERS;		
- 			}
- 			if (setByUser_("sigma"))
-			{
-				svm.setParameter(SVMWrapper::SIGMA, sigma);
-			}
-			else if (setByUser_("sigma_start"))
-			{
-				sigma = getDoubleOption_("sigma_start");
-				svm.setParameter(SVMWrapper::SIGMA, sigma);
-			}
 
-			if (setByUser_("k_mer_length"))
-			{
-	 			k_mer_length = getIntOption_("k_mer_length");
-			}
- 			if (!setByUser_("k_mer_length")
- 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
- 			{
-				writeLog_("No k-mer length given for POBK. Aborting!");
-				return ILLEGAL_PARAMETERS;		
- 			}
+      svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
+
+ 			sigma = getDoubleOption_("sigma");
+			svm.setParameter(SVMWrapper::SIGMA, sigma);
+
+      k_mer_length = getIntOption_("k_mer_length");
 
 			sigma_start = 0.;
 			sigma_step_size = 0.;
@@ -580,28 +532,23 @@ class TOPPRTModel
 			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO 
 					&& !skip_cv)
 			{
-				if (setByUser_("sigma_start") 
-						&& setByUser_("sigma_step_size") 
-						&& setByUser_("sigma_stop"))
+				sigma_start = getDoubleOption_("sigma_start");
+				sigma_step_size = getDoubleOption_("sigma_step_size");
+				if (!additive_cv && sigma_step_size <= 1)
 				{
-					sigma_start = getDoubleOption_("sigma_start");
-					sigma_step_size = getDoubleOption_("sigma_step_size");
-					if (!additive_cv && sigma_step_size <= 1)
-					{
-						writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					sigma_stop = getDoubleOption_("sigma_stop");
+					writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
+				sigma_stop = getDoubleOption_("sigma_stop");
 
-					start_values.insert(make_pair(SVMWrapper::SIGMA, sigma_start));
-					step_sizes.insert(make_pair(SVMWrapper::SIGMA, sigma_step_size));
-					end_values.insert(make_pair(SVMWrapper::SIGMA, sigma_stop));
-					
-					debug_string = "CV from sigma = " + String(sigma_start) +
-						 " to sigma = " + String(sigma_stop) + " with step size " + 
-						 String(sigma_step_size);
-					writeDebug_(debug_string, 1);			
-				}			
+				start_values.insert(make_pair(SVMWrapper::SIGMA, sigma_start));
+				step_sizes.insert(make_pair(SVMWrapper::SIGMA, sigma_step_size));
+				end_values.insert(make_pair(SVMWrapper::SIGMA, sigma_stop));
+				
+				debug_string = "CV from sigma = " + String(sigma_start) +
+					 " to sigma = " + String(sigma_stop) + " with step size " + 
+					 String(sigma_step_size);
+				writeDebug_(debug_string, 1);			
 			}
 			if (start_values.size() > 0)
 			{

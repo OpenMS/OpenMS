@@ -122,11 +122,6 @@ class TOPPBaseTest
       return getFlag_(name);
     }
 
-    bool setByUser(const String& name) const
-    {
-      return setByUser_(name);
-    }
-
     virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
     {
       return EXECUTION_OK;
@@ -142,9 +137,9 @@ class TOPPBaseTest
       inputFileReadable_(filename, param_name);
     }
 
-    void outputFileWritable(const String& filename) const
+    void outputFileWritable(const String& filename, const String& param_name) const
     {
-      outputFileWritable_(filename);
+      outputFileWritable_(filename, param_name);
     }
 
     void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
@@ -199,10 +194,6 @@ class TOPPBaseTestNOP
     String getStringOption(const String& name) const
     {
       return getStringOption_(name);
-    }
-    bool setByUser(const String& name) const
-    {
-      return setByUser_(name);
     }
 
     double getDoubleOption(const String& name) const
@@ -303,27 +294,6 @@ START_SECTION(([EXTRA]String const& getIniLocation_() const))
 	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
 END_SECTION
 
-START_SECTION([EXTRA] bool setByUser_(const String& name) const)
-	//default
-	TOPPBaseTest tmp;
-	TEST_EQUAL(tmp.setByUser("intoption"),false);
-
-	//command line
-	const char* string_cl[3] = {a1, a14, a16}; //command line: "TOPPBaseTest -intoption 4711"
-	TOPPBaseTest tmp2(3,string_cl);
-
-	TEST_EQUAL(tmp2.setByUser("intoption"),true);
-	TEST_EQUAL(tmp2.setByUser("stringoption"),false);
-	TEST_EQUAL(tmp2.setByUser("doubleoption"),false);
-
-	//ini file
-	const char* both_cl[3] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
-	TOPPBaseTest tmp3(3,both_cl);
-
-	TEST_EQUAL(tmp3.setByUser("intoption"),false);
-	TEST_EQUAL(tmp3.setByUser("stringoption"),true);
-	TEST_EQUAL(tmp3.setByUser("doubleoption"),false);
-END_SECTION
 
 START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	//default
@@ -465,7 +435,6 @@ START_SECTION(([EXTRA] String getIntList_(const String& name) const))
 	//missing required parameters
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp4(2,string_cl2);
-	TEST_EQUAL(false,tmp4.setByUser("intlist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getIntList("intlist"));
 END_SECTION
 
@@ -491,7 +460,6 @@ START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	//missing required parameters
 	const char* string_cl3[2] = {a1, a11};
 	TOPPBaseTestNOP tmp4(2,string_cl3);
-	TEST_EQUAL(false,tmp4.setByUser("doublelist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getDoubleList("doublelist"));
 END_SECTION
 
@@ -518,7 +486,6 @@ START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 	//missing required parameters
 	const char* string_cl3[2] = {a1, a11};
 	TOPPBaseTestNOP tmp4(2,string_cl3);
-	TEST_EQUAL(false,tmp4.setByUser("stringlist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getStringList("stringlist"));
 
 END_SECTION
@@ -543,12 +510,12 @@ START_SECTION(([EXTRA]void inputFileReadable_(const String& filename, const Stri
 	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"),"ini");
 END_SECTION
 
-START_SECTION(([EXTRA]void outputFileWritable_(const String& filename) const))
-	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().outputFileWritable("/this/file/cannot/be/written/does_not_exists.txt"));
+START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const String& param_name) const))
+	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().outputFileWritable("/this/file/cannot/be/written/does_not_exists.txt","someparam"));
 
 	String filename;
 	NEW_TMP_FILE(filename);
-	TOPPBaseTest().outputFileWritable(filename);
+	TOPPBaseTest().outputFileWritable(filename, "");
 	//Actually writing something to the file is not necessary, but on Mac all tmp files are called 'source_<line>.tmp'.
 	//So we have to make sure the file is empty. Otherwise the test might fail...
 	TextFile dummy;

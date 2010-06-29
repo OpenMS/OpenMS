@@ -176,7 +176,7 @@ class TOPPFileFilter
 
       //input file type
       FileTypes::Type in_type = FileHandler::getType(in);
-      writeDebug_(String("Input file type: ") + FileHandler::typeToName(in_type), 2);
+      writeDebug_("Input file type: " + FileHandler::typeToName(in_type), 2);
 
       if (in_type==FileTypes::UNKNOWN)
       {
@@ -227,14 +227,14 @@ class TOPPFileFilter
 					tmp += *it;
 				}
 
-				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
+				writeLog_("Invalid boundary '" + tmp + "' given. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 
 			//sort by RT and m/z
  			bool sort = getFlag_("sort");
-			writeDebug_(String("Sorting output data: ") + String(sort),3);
+			writeDebug_("Sorting output data: " + String(sort),3);
 
       if (in_type == FileTypes::MZML)
       {
@@ -271,15 +271,13 @@ class TOPPFileFilter
   			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(levels, true)), exp.end());
 
   			//remove by scan mode (might be a lot of spectra)
-  			bool rem_mode = setByUser_("remove_mode");
-  			writeDebug_(String("Remove by mode: ") + String(rem_mode),3);
-  			if (rem_mode)
+  			String remove_mode = getStringOption_("remove_mode");
+        if (!remove_mode.empty())
   			{
-  				String mode = getStringOption_("remove_mode");
-  				writeDebug_(String("Removing mode: ") + mode,3);
+  				writeDebug_("Removing mode: " + remove_mode,3);
   				for (Size i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
   				{
-  					if (InstrumentSettings::NamesOfScanMode[i]==mode)
+  					if (InstrumentSettings::NamesOfScanMode[i]==remove_mode)
   					{
   						exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i)), exp.end());
   					}
@@ -287,15 +285,13 @@ class TOPPFileFilter
   			}
 
         //select by scan mode (might be a lot of spectra)
-        bool select_mode = setByUser_("select_mode");
-        writeDebug_(String("Select by mode: ") + String(rem_mode),3);
-        if (select_mode)
+        String select_mode = getStringOption_("select_mode");
+        if (!select_mode.empty())
         {
-          String mode = getStringOption_("select_mode");
-          writeDebug_(String("Selecting mode: ") + mode,3);
+          writeDebug_("Selecting mode: " + select_mode,3);
           for (Size i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
           {
-            if (InstrumentSettings::NamesOfScanMode[i]==mode)
+            if (InstrumentSettings::NamesOfScanMode[i]==select_mode)
             {
               exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true)), exp.end());
             }
@@ -305,33 +301,29 @@ class TOPPFileFilter
 
 
   			//remove by activation mode (might be a lot of spectra)
-  			bool rem_activation = setByUser_("remove_activation");
-  			writeDebug_(String("Remove scans with activation mode: ") + String(rem_activation),3);
-  			if (rem_activation)
+  			String remove_activation = getStringOption_("remove_activation");
+        if (!remove_activation.empty())
   			{
-  				String mode = getStringOption_("remove_activation");
-  				writeDebug_(String("Removing scans with activation mode: ") + mode,3);
+  				writeDebug_("Removing scans with activation mode: " + remove_activation,3);
 					for (Size i=0; i<Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
   				{
-  					if (Precursor::NamesOfActivationMethod[i]==mode)
+  					if (Precursor::NamesOfActivationMethod[i]==remove_activation)
   					{
-							exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(mode))), exp.end());
+							exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(remove_activation))), exp.end());
   					}
   				}
   			}
 
 				//select by activation mode
-				bool select_activation = setByUser_("select_activation");
-				writeDebug_(String("Selecting scans with activation mode: ") + String(select_activation), 3);
-				if (select_activation)
+				String select_activation = getStringOption_("select_activation");
+        if (!select_activation.empty())
 				{
-					String mode = getStringOption_("select_activation");
-					writeDebug_(String("Selecting scans with activation mode: ") + mode, 3);
+					writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
 					for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
 					{
-						if (Precursor::NamesOfActivationMethod[i] == mode)
+						if (Precursor::NamesOfActivationMethod[i] == select_activation)
 						{
-							exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(mode),true)), exp.end());
+							exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(select_activation),true)), exp.end());
 						}
 					}
 				}

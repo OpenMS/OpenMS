@@ -244,8 +244,6 @@ class TOPPPTModel
 			DoubleReal sigma = 0.1;
 			UInt k_mer_length = 1;
 			Int border_length = 0;
-			UInt max_negative_count = 0;
-			UInt max_positive_count = 0;
 			bool non_redundant = false;
 			bool skip_cv = getFlag_("skip_cv");
 			
@@ -259,8 +257,8 @@ class TOPPPTModel
 
 			String outputfile_name = getStringOption_("out");
 
-			max_positive_count = getIntOption_("max_positive_count");
-			max_negative_count = getIntOption_("max_negative_count");
+			UInt max_positive_count = getIntOption_("max_positive_count");
+			UInt max_negative_count = getIntOption_("max_negative_count");
 
  			//SVM type
  			String type = getStringOption_("svm_type");
@@ -466,7 +464,7 @@ class TOPPPTModel
 			debug_string = String(training_labels.size()) + " positive sequences read";
 			writeDebug_(debug_string, 1);							
 
-			if (setByUser_("max_positive_count") && training_peptides.size() > max_positive_count)
+			if (training_peptides.size() > max_positive_count)
 			{
 				random_shuffle(training_peptides.begin(), training_peptides.end());
 				training_peptides.resize(max_positive_count, "");
@@ -513,7 +511,7 @@ class TOPPPTModel
 				debug_string = String(counter) + " negative sequences read";				
 			}
 			writeDebug_(debug_string, 1);							
-			if (setByUser_("max_negative_count") && temp_training_peptides.size() > max_negative_count)
+			if (temp_training_peptides.size() > max_negative_count)
 			{
 				random_shuffle(temp_training_peptides.begin(), temp_training_peptides.end());
 				temp_training_peptides.resize(max_negative_count, "");
