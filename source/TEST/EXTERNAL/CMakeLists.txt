@@ -16,7 +16,7 @@ set(my_sources
 ## find OpenMS configuration and register target "OpenMS" (our library)
 #find_package(OpenMS)
 ## if the above fails you can try:
-find_package(OpenMS PATHS "$ENV{OPENMS_BUILD_TREE}/cmake")
+find_package(OpenMS PATHS "$ENV{OPENMS_BUILD_TREE}/cmake" NO_CMAKE_PACKAGE_REGISTRY)
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
