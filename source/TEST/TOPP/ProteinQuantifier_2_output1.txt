@@ -1,5 +1,5 @@
 # Protein abundances computed from file 'source/TEST/TOPP/ProteinQuantifier_input.featureXML'
-# Parameters (relevant only): top=2, average=sum, include_fewer, filter_charge
+# Parameters (relevant only): top=2, average=sum, include_all, filter_charge
 "protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance"
 "Protein0"	1	0	3	9999
 "Protein1"	1	0	1	8888

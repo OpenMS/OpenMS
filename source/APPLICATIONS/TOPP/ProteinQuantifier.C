@@ -84,7 +84,7 @@ using namespace std;
 
 	In addition to the information above, consider this for parameter selection: With @a filter_charge and @a average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
 	Setting @a filter_charge may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
-	For @a average, there is a qualitative difference between @a mean/median and @a sum in the effect that missing peptide abundances have (only if @a include_fewer is set): @a mean and @a median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @a sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @a sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @a top), so results within a sample may become unproportional.
+	For @a average, there is a qualitative difference between @a mean/median and @a sum in the effect that missing peptide abundances have (only if @a include_all is set): @a mean and @a median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @a sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @a sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @a top), so results within a sample may become unproportional.
 
 */
 
@@ -450,7 +450,7 @@ namespace OpenMS
 
 				Size top = getIntOption_("top");
 				String average = getStringOption_("average");
-				bool include_fewer = getFlag_("include_fewer"), 
+				bool include_all = getFlag_("include_all"), 
 					fix_peptides = getFlag_("consensus:fix_peptides");
 
 				for (protein_quant::iterator prot_it = prot_quant.begin();
@@ -458,7 +458,7 @@ namespace OpenMS
 				{
 					if (prot_it->second.abundances.size() < top)
 					{
-						if (include_fewer) stats_.too_few_peptides++;
+						if (include_all) stats_.too_few_peptides++;
 						else continue; // not enough proteotypic peptides
 					}
 
@@ -495,7 +495,7 @@ namespace OpenMS
 					for (map<UInt64, DoubleList>::iterator ab_it = abundances.begin();
 							 ab_it != abundances.end(); ++ab_it)
 					{
-						if (!include_fewer && (ab_it->second.size() < top))
+						if (!include_all && (ab_it->second.size() < top))
 						{
 							continue; // not enough peptide abundances for this sample
 						}
@@ -685,7 +685,7 @@ namespace OpenMS
 				{
 					params = "top=" + String(getIntOption_("top")) + ", average=" + 
 						getStringOption_("average") + ", ";
-					flags << "include_fewer";
+					flags << "include_all";
 				}
 				flags << "filter_charge"; // also relevant for peptide output
 				if (files.size() > 1) // flags only for consensusXML input
@@ -785,14 +785,14 @@ namespace OpenMS
 								 << " identified (considering best hits only)";
 				if (!getStringOption_("out").empty())
 				{
-					bool include_fewer = getFlag_("include_fewer");
+					bool include_all = getFlag_("include_all");
 					LOG_INFO << "\n...proteins/protein groups: " << stats_.quant_proteins
 									 << " quantified";
-					if (include_fewer) LOG_INFO << " (incl. ";
+					if (include_all) LOG_INFO << " (incl. ";
 					else LOG_INFO << ", ";
 					LOG_INFO << stats_.too_few_peptides << " with fewer than " 
 									 << getIntOption_("top") << " peptides";
-					if (include_fewer) LOG_INFO << ")";
+					if (include_all) LOG_INFO << ")";
 					else if (n_samples > 1) LOG_INFO << " in every sample";
 				}
 				LOG_INFO << endl;
@@ -813,7 +813,7 @@ namespace OpenMS
 				setMinInt_("top", 0);
 				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
 				setValidStrings_("average", StringList::create("median,mean,sum"));
-				registerFlag_("include_fewer", "Include results for proteins with fewer than 'top' proteotypic peptides");
+				registerFlag_("include_all", "Include results for proteins with fewer than 'top' proteotypic peptides");
 				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
 
 				addEmptyLine_();

@@ -492,7 +492,7 @@ add_test("TOPP_IDPosteriorErrorProbability_6_out1" ${DIFF} -in1 IDPosteriorError
 add_test("TOPP_ProteinQuantifier_1" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_1_output1.tmp -peptide_out ProteinQuantifier_1_output2.tmp)
 add_test("TOPP_ProteinQuantifier_1_out1" ${DIFF} -in1 ProteinQuantifier_1_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output1.txt -whitelist "computed from file")
 add_test("TOPP_ProteinQuantifier_1_out2" ${DIFF} -in1 ProteinQuantifier_1_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output2.txt -whitelist "computed from file")
-add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_fewer -filter_charge -average sum)
+add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_all -filter_charge -average sum)
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ProteinQuantifier_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ProteinQuantifier_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file")
 
