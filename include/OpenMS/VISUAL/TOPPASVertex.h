@@ -183,6 +183,10 @@ namespace OpenMS
 			bool isAlreadyStarted();
 			/// Sets whether this node has already been started by an input file node
 			void setAlreadyStarted(bool b);
+			/// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
+			virtual void markUnreachable();
+			/// Returns whether this node is reachable
+			bool isReachable();
 		
 		public slots:
 		
@@ -238,6 +242,8 @@ namespace OpenMS
 			bool files_known_;
 			/// Stores if this node has already been started by an input file node
 			bool already_started_;
+			/// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
+			bool reachable_;
 			
 			#ifdef TOPPAS_DEBUG
 			// Indentation level for nicer debug output

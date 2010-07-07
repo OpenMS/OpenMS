@@ -51,7 +51,8 @@ namespace OpenMS
 			topo_nr_(0),
 			subtree_finished_(false),
 			files_known_(false),
-			already_started_(false)
+			already_started_(false),
+			reachable_(true)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -72,7 +73,8 @@ namespace OpenMS
 			topo_nr_(rhs.topo_nr_),
 			subtree_finished_(rhs.subtree_finished_),
 			files_known_(rhs.files_known_),
-			already_started_(rhs.already_started_)
+			already_started_(rhs.already_started_),
+			reachable_(rhs.reachable_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -99,6 +101,7 @@ namespace OpenMS
 		subtree_finished_ = rhs.subtree_finished_;
 		files_known_ = rhs.files_known_;
 		already_started_ = rhs.already_started_;
+		reachable_ = rhs.reachable_;
 		
 		setPos(rhs.pos());
 		
@@ -373,6 +376,7 @@ namespace OpenMS
 		sc_files_per_round_ = 0;
 		sc_files_total_ = 0;
 		sc_list_length_checked_ = false;
+		reachable_ = true;
 		if (reset_all_files)
 		{
 			files_known_ = false;
@@ -450,4 +454,21 @@ namespace OpenMS
 		already_started_ = b;
 	}
 	
+	void TOPPASVertex::markUnreachable()
+	{
+		reachable_ = false;
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			if (tv->reachable_)
+			{
+				tv->markUnreachable();
+			}
+		}
+	}
+	
+	bool TOPPASVertex::isReachable()
+	{
+		return reachable_;
+	}
 }

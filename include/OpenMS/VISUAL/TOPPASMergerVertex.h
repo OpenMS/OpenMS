@@ -94,6 +94,8 @@ namespace OpenMS
 			virtual bool isSubtreeFinished();
 			// documented in base class
 			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
+			// documented in base class
+			virtual void markUnreachable();
 			
 		protected:
 
@@ -107,6 +109,8 @@ namespace OpenMS
 			int max_input_list_length_;
 			/// Stores the last list of output files that was processed
 			QStringList last_output_files_;
+			// documented in base class
+			using TOPPASVertex::reachable_;
 
 			///@name reimplemented Qt events
       //@{

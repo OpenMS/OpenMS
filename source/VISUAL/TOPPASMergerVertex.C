@@ -215,9 +215,9 @@ namespace OpenMS
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 		  TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-		  if (tv && !tv->isFinished())
+		  if (tv && !tv->isFinished() && tv->isReachable())
 		  {
-		    // some tool that we depend on has not finished execution yet --> do not start yet
+		    // some (reachable) tool that we depend on has not finished execution yet --> do not start yet
 				__DEBUG_END_METHOD__
 		    return false;
 		  }
@@ -597,6 +597,25 @@ namespace OpenMS
 		
 		__DEBUG_END_METHOD__
 		return finished;
+	}
+	
+	void TOPPASMergerVertex::markUnreachable()
+	{
+		//only mark as unreachable if all inputs are unreachable. otherwise the dead inputs will just be ignored.
+		bool some_input_reachable_ = false;
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getSourceVertex();
+			if (tv->isReachable())
+			{
+				some_input_reachable_ = true;
+				break;
+			}
+		}
+		if (!some_input_reachable_)
+		{
+			TOPPASVertex::markUnreachable();
+		}
 	}
 
 }

@@ -1665,6 +1665,7 @@ namespace OpenMS
 			if (tv->inEdgesBegin() == tv->inEdgesEnd())
 			{
 				strange_vertices << QString::number(tv->getTopoNr());
+				tv->markUnreachable();
 			}
 		}
 		if (!strange_vertices.empty())

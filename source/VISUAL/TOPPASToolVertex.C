@@ -836,7 +836,7 @@ namespace OpenMS
 								+str;
 							QRegExp rx("_tmp\\d+$");
 							int tmp_index = rx.indexIn(f);
-							std::cout << "tmp_index: " << tmp_index << std::endl;
+							//std::cout << "tmp_index: " << tmp_index << std::endl;
 							if (tmp_index != -1)
 							{
 								f = f.left(tmp_index);
