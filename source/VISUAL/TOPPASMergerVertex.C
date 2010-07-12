@@ -98,6 +98,11 @@ namespace OpenMS
 			TOPPASVertex* source = (*it)->getSourceVertex();
 			int param_index = (*it)->getSourceOutParam();
 			
+			if (!source->isReachable())
+			{
+				continue;
+			}
+			
 			TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
 			if (source_tool)
 			{
