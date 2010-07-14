@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <numeric>
 #include <iostream>
@@ -697,11 +698,10 @@ namespace OpenMS
 																 								bool																				 mcc_as_performance_measure)
 	{
 		map<SVM_parameter_type, DoubleReal>::const_iterator start_values_iterator;
-		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
-		map<SVM_parameter_type, DoubleReal>::const_iterator end_values_iterator;
 		vector<pair<DoubleReal, Size> > combined_parameters;
-		DoubleReal cv_quality = 0.0;
 		combined_parameters.push_back(make_pair(1, 25));
+
+    DoubleReal cv_quality = 0.0;
 		for (Size i = 1; i < gauss_tables_.size(); ++i)
 		{
 			combined_parameters.push_back(make_pair(1, 25));
@@ -714,8 +714,7 @@ namespace OpenMS
 		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
 		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
 		Size actual_index = 0;
-		bool condition = false;
-		bool found = false;
+		bool found = false; // does a valid grid search cell (with a certain parameter combination) exist?
 		Size counter = 0;
 		vector<svm_problem*> partitions;
 		svm_problem** training_data;
@@ -741,38 +740,27 @@ namespace OpenMS
 		}   
 		
 		start_values_iterator = start_values_map.begin();
-		step_sizes_iterator = step_sizes_map.begin();
-		end_values_iterator = end_values_map.begin();
 
 		// Initializing the necessary variables
 		while(start_values_iterator != start_values_map.end())
 		{
 			actual_types[actual_index] = start_values_iterator->first;
-			start_values[actual_index] = start_values_iterator->second;
 			actual_values[actual_index] = start_values_iterator->second;
-			step_sizes_iterator = step_sizes_map.find(start_values_iterator->first);
-			if (step_sizes_iterator == step_sizes_map.end())
-			{
-				
-			}
-			else
-			{
-				step_sizes[actual_index] = step_sizes_iterator->second;
-			}
-			end_values_iterator = end_values_map.find(start_values_iterator->first);
-			if (end_values_iterator == end_values_map.end())
-			{
-				
-			}
-			else
-			{
-				end_values[actual_index] = end_values_iterator->second;
-			}			
-			start_values_iterator++;
+			start_values[actual_index] = start_values_iterator->second;
+
+      map<SVM_parameter_type, DoubleReal>::const_iterator it = step_sizes_map.find(start_values_iterator->first);
+			if (it == step_sizes_map.end()) throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No step size given for svm parameter grid search");
+			else step_sizes[actual_index] = it->second;
+
+      it = end_values_map.find(start_values_iterator->first);
+			if (it == end_values_map.end())  throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No end value given for svm parameter grid search");
+			else end_values[actual_index] = it->second;
+
+      start_values_iterator++;
 			actual_index++;
 		}
 
-		// for every 
+		// for every run (each run is identical, except for random partitioning of the data)
 		for (Size i = 0; i < number_of_runs; i++)
 		{
 			for (Size index = 0; index < start_values_map.size(); ++index)
@@ -794,25 +782,14 @@ namespace OpenMS
 			while(found)
 			{
 				// testing whether actual parameters are in the defined range
-				condition = true;	
-				actual_index = 0;
-				while(actual_index < start_values_map.size())
-				{			
-					if (actual_values[actual_index] > end_values[actual_index])
-					{
-						condition = false;
-					}
-					actual_index++;
-				}
-				// setting the actual parameters
-				actual_index = 0;
-				while(actual_index < start_values_map.size())
-				{
-					setParameter(actual_types[actual_index], actual_values[actual_index]);
-					
-					++actual_index;
-					
-				}
+				for (Size v=0; v<start_values_map.size(); ++v)
+        {
+    			// testing whether actual parameters are in the defined range
+	        if (actual_values[v] > end_values[v]) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"RTModel CV parameters are out of range!");
+
+  				// setting the actual parameters
+          setParameter(actual_types[v], actual_values[v]);
+        }
 
 				// evaluation of parameter performance
 				temp_performance = 0;
@@ -921,6 +898,7 @@ namespace OpenMS
 				}
 				else
 				{
+          OPENMS_PRECONDITION(counter==0, "THIS should never happen. Contact nico!");
 					performances[counter] = performances[counter] + temp_performance;
 					counter++;
 				}
@@ -1020,9 +998,9 @@ namespace OpenMS
 						run_performances_file << endl;
 					}
 				}
+			} // !output
 
-			}
-		}
+    } // ! number_of_runs
 		
 		// Determining the index for the maximum performance
 		for (Size i = 0; i < performances.size(); i++)
@@ -1190,13 +1168,13 @@ namespace OpenMS
 		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
 		map<SVM_parameter_type, DoubleReal>::const_iterator end_values_iterator;
 		vector<pair<DoubleReal, Size> > combined_parameters;
-		DoubleReal cv_quality = 0.0;
 		combined_parameters.push_back(make_pair(1, 25));
 		for (Size i = 1; i < gauss_tables_.size(); ++i)
 		{
 			combined_parameters.push_back(make_pair(1, 25));
 		}				
 		DoubleReal precision = 0.0001;
+		DoubleReal cv_quality = 0.0;
 		
 		DoubleReal* start_values = new DoubleReal[start_values_map.size()]();
 		DoubleReal* actual_values = new DoubleReal[start_values_map.size()]();
@@ -1204,7 +1182,6 @@ namespace OpenMS
 		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
 		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
 		Size actual_index = 0;
-		bool condition = false;
 		bool found = false;
 		Size counter = 0;
 		vector<SVMData> partitions;
@@ -1283,26 +1260,14 @@ namespace OpenMS
 			
 			while(found)
 			{
-				// testing whether actual parameters are in the defined range
-				condition = true;	
-				actual_index = 0;
-				while(actual_index < start_values_map.size())
-				{			
-					if (actual_values[actual_index] > end_values[actual_index])
-					{
-						condition = false;
-					}
-					actual_index++;
-				}
-				// setting the actual parameters
-				actual_index = 0;
-				while(actual_index < start_values_map.size())
-				{
-					setParameter(actual_types[actual_index], actual_values[actual_index]);
-					
-					++actual_index;
-					
-				}
+				for (Size v=0; v<start_values_map.size(); ++v)
+        {
+    			// testing whether actual parameters are in the defined range
+	        if (actual_values[v] > end_values[v]) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"RTModel CV parameters are out of range!");
+
+  				// setting the actual parameters
+          setParameter(actual_types[v], actual_values[v]);
+        }
 
 				// evaluation of parameter performance
 				temp_performance = 0;
