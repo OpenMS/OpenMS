@@ -206,6 +206,15 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 		If you choose another generator (e.g. Eclipse) you will find something equivalent.
 
 		In Visual Studio execute the 'targets' project, which will show you the most prominent targets.
+
+    Try to build the %OpenMS library - the target is called 'OpenMS'. This will create the %OpenMS dll. If you used the debug configuration it will be called
+    OpenMSd.dll, in release mode its called OpenMS.dll.<br>
+    As a last step you should add the location of the %OpenMS dll to your PATH environment. This is required for TOPP tools like TOPPAS, which might otherwise not
+    work. Also external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
+    configuration used you will find the dll in <OpenMS_build>/bin/Release or <OpenMS_build>/bin/Debug or just <OpenMS_build>/bin. In the same folder the
+    TOPP tools will reside once build (see next section).
+    Be aware that the order of directories in the PATH variable determines which dll or executable is used, if no absolute path was given when the executable was called.
+    So the PATH might need to be updated (add/delete/reorder entries) if you are working with multiple installations or configurations of %OpenMS.
 		
 		@section install_win_topp Building the TOPP tools
 
