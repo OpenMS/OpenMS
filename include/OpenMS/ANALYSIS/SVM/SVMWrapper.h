@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
-// $Authors: Nico Pfeifer $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_SVM_SVMWRAPPER_H
@@ -495,11 +495,11 @@ namespace OpenMS
         The result is returned in @p actual_values.
 
      */
-      bool SVMWrapper::nextGrid_(const std::vector<DoubleReal>& start_values, 
-                                 const std::vector<DoubleReal>& step_sizes,
-                                 const std::vector<DoubleReal>& end_values,
-                                 const bool additive_step_sizes,
-                                 std::vector<DoubleReal>& actual_values);
+      bool nextGrid_(const std::vector<DoubleReal>& start_values, 
+                     const std::vector<DoubleReal>& step_sizes,
+                     const std::vector<DoubleReal>& end_values,
+                     const bool additive_step_sizes,
+                     std::vector<DoubleReal>& actual_values);
 
 			Size getNumberOfEnclosedPoints_(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
