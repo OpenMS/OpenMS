@@ -32,7 +32,6 @@
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
-#include <OpenMS/SIMULATION/PTMSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
 //#define _DEBUG
@@ -144,15 +143,6 @@ namespace OpenMS {
     // debug
     verbosePrintFeatureMap(features_, "digested");
 
-		// add PTM's
-		PTMSimulation ptm_sim(rnd_gen);
-    
-    ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
-		ptm_sim.predictPTMs(features_);
-
-    // debug
-    verbosePrintFeatureMap(features_, "ptms added");
-
 		// RT prediction
 		RTSimulation rt_sim(rnd_gen);
 		rt_sim.setParameters(param_.copy("RTSimulation:",true));
@@ -219,7 +209,6 @@ namespace OpenMS {
   {
 		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
     defaults_.insert("PeptideDetectabilitySimulation:",DetectabilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
@@ -238,7 +227,7 @@ namespace OpenMS {
 		// here the globals params are listed that require to be in sync across several modules
 		// - first the global param name and following that the module names where this param occurs
 		// - Warning: the module params must have unchanged names and restrictions! (descriptions can differ though)
-		globals.push_back(StringList::create("iTRAQ,PostTranslationalModifications,RawTandemSignal:iTRAQ"));
+    globals.push_back(StringList::create("iTRAQ,RawTandemSignal:iTRAQ"));
 		globals.push_back(StringList::create("ionization_type,Ionization,RawTandemSignal"));
 		
 		String global_prefix = "Global";

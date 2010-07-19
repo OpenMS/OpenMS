@@ -10,7 +10,6 @@ EGHFitter1D.h
 IonizationSimulation.h
 IsotopeModelGeneral.h
 MSSim.h
-PTMSimulation.h
 RTSimulation.h
 RawMSSignalSimulation.h
 RawTandemMSSignalSimulation.h
