@@ -561,7 +561,10 @@ class TOPPPTModel
 						digest = parts[parts.size() - 1];
 					}
 				}				
+        SVMData dummy;
 				cv_quality = svm.performCrossValidation(encoded_training_sample,
+                                                dummy,
+                                                false,
 																								start_values,
 																	 							step_sizes,
 																	 							end_values,
