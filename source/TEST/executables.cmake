@@ -422,7 +422,6 @@ set(simulation_executables_list
   IonizationSimulation_test
   IsotopeModelGeneral_test
   MSSim_test
-  PTMSimulation_test
   RTSimulation_test
   RawMSSignalSimulation_test
 )
