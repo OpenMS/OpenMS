@@ -31,6 +31,8 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 
 #include <numeric>
 #include <iostream>
@@ -45,7 +47,18 @@ using namespace std;
 namespace OpenMS 
 {
 		
-	SVMWrapper::SVMWrapper() : param_(NULL), model_(NULL), sigma_(0), sigmas_(vector<DoubleReal>()), gauss_table_(), kernel_type_(PRECOMPUTED), border_length_(0), training_set_(NULL), training_problem_(NULL), training_data_(SVMData())
+	SVMWrapper::SVMWrapper() 
+    : ProgressLogger(),
+      param_(NULL),
+      model_(NULL),
+      sigma_(0),
+      sigmas_(vector<DoubleReal>()),
+      gauss_table_(),
+      kernel_type_(PRECOMPUTED),
+      border_length_(0),
+      training_set_(NULL),
+      training_problem_(NULL),
+      training_data_(SVMData())
 	{	
 	  param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
 	  initParameters_();
@@ -112,7 +125,6 @@ namespace OpenMS
 				{
 					SVMWrapper::calculateGaussTable(border_length_, sigma_, gauss_table_);
     		}
-				
 				break;
 			case(PROBABILITY):
 				if (value == 1 || value == 0)
@@ -127,20 +139,18 @@ namespace OpenMS
 	
 	Int SVMWrapper::getIntParameter(SVM_parameter_type type)
 	{
-	
 	    switch(type)
 	    {
 	    	case(KERNEL_TYPE):
-					if (param_->kernel_type != PRECOMPUTED)
-					{
-	    	    return param_->kernel_type;
-	    	    break;
-					}
-					else
-					{
-						return (Int)kernel_type_;
-						break;
-					}
+					  if (param_->kernel_type != PRECOMPUTED)
+					  {
+	    	      return param_->kernel_type;
+					  }
+					  else
+					  {
+						  return (Int)kernel_type_;
+					  }
+					  break;
 	    	case(SVM_TYPE):
 	    	    return param_->svm_type;
 	    	    break;
@@ -685,7 +695,14 @@ namespace OpenMS
 		}
 	}
 	
-	DoubleReal SVMWrapper::performCrossValidation(svm_problem*   															 problem,
+
+  /** 
+        NEW method:  
+  
+  */
+	DoubleReal SVMWrapper::performCrossValidation(svm_problem*   															 problem_ul,
+												                        const SVMData&		                           problem_l,
+												                        const bool                                   is_labeled,
 																 								const	map<SVM_parameter_type, DoubleReal>&   start_values_map,
 																 								const	map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
 																 								const	map<SVM_parameter_type, DoubleReal>&   end_values_map,
@@ -706,18 +723,19 @@ namespace OpenMS
 		{
 			combined_parameters.push_back(make_pair(1, 25));
 		}				
-		DoubleReal precision = 0.0001;
 		
-		DoubleReal* start_values = new DoubleReal[start_values_map.size()]();
-		DoubleReal* actual_values = new DoubleReal[start_values_map.size()]();
-		DoubleReal* step_sizes = new DoubleReal[start_values_map.size()]();
-		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
-		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
-		Size actual_index = 0;
+    std::vector<DoubleReal> start_values(start_values_map.size());
+		std::vector<DoubleReal> actual_values(start_values_map.size());
+		std::vector<DoubleReal> step_sizes(start_values_map.size());
+		std::vector<DoubleReal> end_values(start_values_map.size());
+		std::vector<SVM_parameter_type> actual_types(start_values_map.size());
+
 		bool found = false; // does a valid grid search cell (with a certain parameter combination) exist?
 		Size counter = 0;
-		vector<svm_problem*> partitions;
-		svm_problem** training_data;
+		vector<svm_problem*> partitions_ul;
+		svm_problem** training_data_ul;
+		vector<SVMData> partitions_l;
+		vector<SVMData> training_data_l;
 		DoubleReal temp_performance = 0;
 		vector<DoubleReal> predicted_labels;
 		vector<DoubleReal> real_labels;
@@ -726,7 +744,6 @@ namespace OpenMS
 		DoubleReal max = 0;
 		ofstream performances_file;
 		ofstream run_performances_file;
-		DoubleReal max_performance;
 		DoubleReal* best_values = new DoubleReal[start_values_map.size()]();
 		vector<DoubleReal>::iterator predicted_it;
 		vector<DoubleReal>::iterator real_it;
@@ -739,9 +756,10 @@ namespace OpenMS
 		  run_performances_file.open((performances_file_name + "_runs.txt").c_str(), ios_base::out);
 		}   
 		
-		start_values_iterator = start_values_map.begin();
 
-		// Initializing the necessary variables
+		// Initializing the grid search variables
+		Size actual_index = 0;
+		start_values_iterator = start_values_map.begin();
 		while(start_values_iterator != start_values_map.end())
 		{
 			actual_types[actual_index] = start_values_iterator->first;
@@ -760,6 +778,16 @@ namespace OpenMS
 			actual_index++;
 		}
 
+    // estimate number of training runs:
+    Size work_steps(0), work_steps_count(0);
+    while (nextGrid_(start_values, step_sizes, end_values, additive_step_sizes, actual_values)) ++work_steps;
+    //reset actual values:
+    actual_values = start_values;
+    LOG_INFO << "SVM-CrossValidation -- number of grid cells:" << work_steps << "\n";
+    
+    work_steps *= number_of_runs * number_of_partitions;
+    startProgress(0,work_steps,"SVM-CrossValidation");
+
 		// for every run (each run is identical, except for random partitioning of the data)
 		for (Size i = 0; i < number_of_runs; i++)
 		{
@@ -767,21 +795,23 @@ namespace OpenMS
 			{
 				best_values[index] = 0;
 			}
-			max_performance = 0;		
-			createRandomPartitions(problem, number_of_partitions, partitions);
+			DoubleReal max_performance = 0;		
+			if (is_labeled) createRandomPartitions(problem_l, number_of_partitions, partitions_l);
+      else createRandomPartitions(problem_ul, number_of_partitions, partitions_ul);
 	
 			counter = 0;
 			found = true;
 
-			training_data = new svm_problem*[number_of_partitions];
+		  if (is_labeled) training_data_l.resize(number_of_partitions, SVMData());
+		  else training_data_ul = new svm_problem*[number_of_partitions];
 			for (Size j = 0; j < number_of_partitions; j++)
 			{
-				training_data[j] = SVMWrapper::mergePartitions(partitions, j);
+				if (is_labeled) SVMWrapper::mergePartitions(partitions_l, j, training_data_l[j]);
+				else training_data_ul[j] = SVMWrapper::mergePartitions(partitions_ul, j);
 			}
 			
-			while(found)
+			while(found) // do grid search
 			{
-				// testing whether actual parameters are in the defined range
 				for (Size v=0; v<start_values_map.size(); ++v)
         {
     			// testing whether actual parameters are in the defined range
@@ -793,42 +823,56 @@ namespace OpenMS
 
 				// evaluation of parameter performance
 				temp_performance = 0;
+
+				vector<DoubleReal>::iterator it_start, it_end;
+
 				for (Size j = 0; j < number_of_partitions; j++)
 				{
-					if (train(training_data[j]))
+          setProgress(work_steps_count++);
+
+          bool success;
+          if (is_labeled) success=train(training_data_l[j]);
+          else success=train(training_data_ul[j]);
+
+					if (success)
 					{
-						predict(partitions[j], predicted_labels);
-						getLabels(partitions[j], real_labels);
+						if (is_labeled)
+						{	
+							predict(partitions_l[j], predicted_labels);
+							real_it = partitions_l[j].labels.begin();
+
+							it_start = partitions_l[j].labels.begin();
+							it_end = partitions_l[j].labels.end();
+						}
+						else
+						{
+							predict(partitions_ul[j], predicted_labels);
+							getLabels(partitions_ul[j], real_labels);
+							real_it = real_labels.begin();
+
+							it_start = real_labels.begin();
+							it_end = real_labels.end();
+						}
 												
 						predicted_it = predicted_labels.begin();
-						real_it = real_labels.begin();
 						
 						if (param_->svm_type == C_SVC || param_->svm_type == NU_SVC)
 						{
 							if (mcc_as_performance_measure)
 							{
 								temp_performance += 
-									OpenMS::Math::matthewsCorrelationCoefficient
-									( predicted_labels.begin(), predicted_labels.end(),
-										real_labels.begin(), real_labels.end()
-									);
+									OpenMS::Math::matthewsCorrelationCoefficient( predicted_labels.begin(), predicted_labels.end(),	it_start, it_end);
 							}
 							else
 							{
 								temp_performance +=
-									OpenMS::Math::classificationRate
-									( predicted_labels.begin(), predicted_labels.end(),
-										real_labels.begin(), real_labels.end()
-									);
+									OpenMS::Math::classificationRate( predicted_labels.begin(), predicted_labels.end(),	it_start, it_end);
 							}
 						}
 						else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
 						{
 							temp_performance +=
-								Math::pearsonCorrelationCoefficient
-								( predicted_labels.begin(), predicted_labels.end(),
-									real_labels.begin(), real_labels.end()
-								);
+								Math::pearsonCorrelationCoefficient( predicted_labels.begin(), predicted_labels.end(), it_start, it_end);
 						}
 						
 						if (param_->kernel_type == PRECOMPUTED)
@@ -879,7 +923,7 @@ namespace OpenMS
 					{
 						cout << "Training failed" << endl;
 					}
-				}
+				} // ! partitions
 
 				// storing performance for this parameter combination
 				temp_performance = temp_performance / number_of_partitions;
@@ -892,69 +936,36 @@ namespace OpenMS
 					}		
 				}
 								
-				if (i == 0)
+				if (i == 0) // 1st run, append performance for each parameter setting
 				{
 					performances.push_back(temp_performance);
 				}
-				else
+				else       // 2nd+ run, add performance (will be averaged later)
 				{
-          OPENMS_PRECONDITION(counter==0, "THIS should never happen. Contact nico!");
 					performances[counter] = performances[counter] + temp_performance;
 					counter++;
 				}
 
 				// trying to find new parameter combination
-				found = false;
-				actual_index = 0;
-				while(actual_index < start_values_map.size()
-							&& !found)
-				{
-					if (additive_step_sizes)
-					{			
-						if (actual_values[actual_index] + 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] + 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					else
-					{
-						if (actual_values[actual_index] * 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] * 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					actual_index++;
-				}
-			}
+        found = nextGrid_(start_values, step_sizes, end_values, additive_step_sizes, actual_values);
+			} // ! grid search
 			
-			for (Size k = 0; k < number_of_partitions; k++)
+			if (!is_labeled)
 			{
-				free(training_data[k]->x);
-				free(training_data[k]->y);
-				delete training_data[k];
+				for (Size k = 0; k < number_of_partitions; k++)
+				{
+					free(training_data_ul[k]->x);
+					free(training_data_ul[k]->y);
+					delete training_data_ul[k];
+				}
+				delete training_data_ul;
 			}
-			delete training_data;
+
 			if (output)
 			{
 				cout << "run finished, time elapsed since start: " << clock() 
-					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) 
-					<< endl << "performance of this run is: " << max_performance << " with parameters: ";
+					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) << endl
+					<< "performance of this run is: " << max_performance << " with parameters: ";
 				run_performances_file << max_performance << " ";
 				for (Size k = 0; k < start_values_map.size(); k++)
 				{
@@ -1000,7 +1011,7 @@ namespace OpenMS
 				}
 			} // !output
 
-    } // ! number_of_runs
+    } // ! number_of_runs "i"
 		
 		// Determining the index for the maximum performance
 		for (Size i = 0; i < performances.size(); i++)
@@ -1012,26 +1023,19 @@ namespace OpenMS
 			}
 		}
 
-		// Determining the best parameter combination		
-		start_values_iterator = start_values_map.begin();
-		actual_index = 0;
-		// resetting actual values to start values
-		while(start_values_iterator != start_values_map.end())
-		{
-			actual_values[actual_index] = start_values_iterator->second;
-			++actual_index;
-			++start_values_iterator;		
+		// Determining the best parameter combination (not necessarily the best single performance, rather average performance of a parameter
+    // setting over all runs
+    actual_index = 0;
+    // resetting actual values to start values (to determine the actual content of the grid cell, we only know its index 'max_index')
+    for (start_values_iterator = start_values_map.begin(); start_values_iterator != start_values_map.end(); ++start_values_iterator)
+    {
+			actual_values[actual_index++] = start_values_iterator->second;
 		}
 
-		actual_index = 0;
 		if (max_index == 0)
 		{
-			while(actual_index < start_values_map.size())
-			{
-				actual_values[actual_index] = start_values[actual_index];
-				++actual_index;
-			}
-		}
+      // do nothing, the initial parameters were the best
+    }
 		else
 		{
 			performances_file << "Best parameter combination *********************" << endl;
@@ -1039,43 +1043,9 @@ namespace OpenMS
 			found = true;
 			while(found)
 			{
-				found = false;
-				actual_index = 0;
-				while(actual_index < start_values_map.size()
-							&& !found && counter <= max_index)
-				{			
-					if (additive_step_sizes)
-					{			
-						if (actual_values[actual_index] + 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] + 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					else
-					{
-						if (actual_values[actual_index] * 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] * 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					actual_index++;
-				}
+        
+        if (counter <= max_index) found = nextGrid_(start_values, step_sizes, end_values, additive_step_sizes, actual_values);
+
 				performances_file	<< performances[counter]  / number_of_runs << ": ";
 				for (Size k = 0; k < start_values_map.size(); k++)
 				{
@@ -1142,484 +1112,41 @@ namespace OpenMS
 			actual_index++;
 		}
 				
-		delete start_values;
-		delete actual_values;
-		delete end_values;
-		delete step_sizes;
-		delete best_values;
-		
 		return cv_quality;
 		
 	}
 
-	DoubleReal SVMWrapper::performCrossValidation(const SVMData& 															 problem,
-																 								const	map<SVM_parameter_type, DoubleReal>&   start_values_map,
-																 								const	map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
-																 								const	map<SVM_parameter_type, DoubleReal>&   end_values_map,
-																 								Size 												   				 			 number_of_partitions,
-																 								Size 												   				 			 number_of_runs,
-																 								map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
-																 								bool																	 			 additive_step_sizes,
-																 								bool				 												   			 output,
-																 								String																 			 performances_file_name,
-																 								bool																				 mcc_as_performance_measure)
-	{
-		map<SVM_parameter_type, DoubleReal>::const_iterator start_values_iterator;
-		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
-		map<SVM_parameter_type, DoubleReal>::const_iterator end_values_iterator;
-		vector<pair<DoubleReal, Size> > combined_parameters;
-		combined_parameters.push_back(make_pair(1, 25));
-		for (Size i = 1; i < gauss_tables_.size(); ++i)
-		{
-			combined_parameters.push_back(make_pair(1, 25));
-		}				
-		DoubleReal precision = 0.0001;
-		DoubleReal cv_quality = 0.0;
-		
-		DoubleReal* start_values = new DoubleReal[start_values_map.size()]();
-		DoubleReal* actual_values = new DoubleReal[start_values_map.size()]();
-		DoubleReal* step_sizes = new DoubleReal[start_values_map.size()]();
-		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
-		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
-		Size actual_index = 0;
+  bool SVMWrapper::nextGrid_(const std::vector<DoubleReal>& start_values, 
+                             const std::vector<DoubleReal>& step_sizes,
+                             const std::vector<DoubleReal>& end_values,
+                             const bool additive_step_sizes,
+                             std::vector<DoubleReal>& actual_values)
+  {
 		bool found = false;
-		Size counter = 0;
-		vector<SVMData> partitions;
-		vector<SVMData> training_data;
-		DoubleReal temp_performance = 0;
-		vector<DoubleReal> predicted_labels;
-		vector<DoubleReal> real_labels;
-		vector<DoubleReal> performances;
-		Size max_index = 0;
-		DoubleReal max = 0;
-		ofstream performances_file;
-		ofstream run_performances_file;
-		DoubleReal max_performance;
-		DoubleReal* best_values = new DoubleReal[start_values_map.size()]();
-		vector<DoubleReal>::iterator predicted_it;
-		vector<DoubleReal>::iterator real_it;
-		
-		best_parameters.clear();
-		
-		if (output)
-		{
-		  performances_file.open(performances_file_name.c_str(), ios_base::out);
-		  run_performances_file.open((performances_file_name + "_runs.txt").c_str(), ios_base::out);
-		}   
-		
-		start_values_iterator = start_values_map.begin();
-		step_sizes_iterator = step_sizes_map.begin();
-		end_values_iterator = end_values_map.begin();
+		Size actual_index = 0;
+		DoubleReal precision = 0.0001;
 
-		// Initializing the necessary variables
-		while(start_values_iterator != start_values_map.end())
+    while(actual_index < start_values.size() && !found)
 		{
-			actual_types[actual_index] = start_values_iterator->first;
-			start_values[actual_index] = start_values_iterator->second;
-			actual_values[actual_index] = start_values_iterator->second;
-			step_sizes_iterator = step_sizes_map.find(start_values_iterator->first);
-			if (step_sizes_iterator == step_sizes_map.end())
+      DoubleReal new_value;
+			if (additive_step_sizes) new_value=actual_values[actual_index] + step_sizes[actual_index];
+      else new_value = actual_values[actual_index] * step_sizes[actual_index];
+		
+			if (new_value	<= end_values[actual_index] + precision)
 			{
-				
+				found = true;
+				actual_values[actual_index] = new_value;
 			}
 			else
-			{
-				step_sizes[actual_index] = step_sizes_iterator->second;
-			}
-			end_values_iterator = end_values_map.find(start_values_iterator->first);
-			if (end_values_iterator == end_values_map.end())
-			{
-				
-			}
-			else
-			{
-				end_values[actual_index] = end_values_iterator->second;
-			}			
-			start_values_iterator++;
-			actual_index++;
-		}
-
-		// for every 
-		for (Size i = 0; i < number_of_runs; i++)
-		{
-			for (Size index = 0; index < start_values_map.size(); ++index)
-			{
-				best_values[index] = 0;
-			}
-			max_performance = 0;		
-			createRandomPartitions(problem, number_of_partitions, partitions);
-	
-			counter = 0;
-			found = true;
-
-			training_data.resize(number_of_partitions, SVMData());
-			for (Size j = 0; j < number_of_partitions; j++)
-			{
-				SVMWrapper::mergePartitions(partitions, j, training_data[j]);
-			}
-			
-			while(found)
-			{
-				for (Size v=0; v<start_values_map.size(); ++v)
-        {
-    			// testing whether actual parameters are in the defined range
-	        if (actual_values[v] > end_values[v]) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"RTModel CV parameters are out of range!");
-
-  				// setting the actual parameters
-          setParameter(actual_types[v], actual_values[v]);
-        }
-
-				// evaluation of parameter performance
-				temp_performance = 0;
-				for (Size j = 0; j < number_of_partitions; j++)
-				{
-					if (train(training_data[j]))
-					{
-						predict(partitions[j], predicted_labels);
-												
-						predicted_it = predicted_labels.begin();
-						real_it = partitions[j].labels.begin();
-						
-						if (param_->svm_type == C_SVC || param_->svm_type == NU_SVC)
-						{
-							if (mcc_as_performance_measure)
-							{
-								temp_performance += 
-									OpenMS::Math::matthewsCorrelationCoefficient
-									( predicted_labels.begin(), predicted_labels.end(),
-										partitions[j].labels.begin(), partitions[j].labels.end()
-									);
-							}
-							else
-							{
-								temp_performance +=
-									OpenMS::Math::classificationRate
-									( predicted_labels.begin(), predicted_labels.end(),
-										partitions[j].labels.begin(), partitions[j].labels.end()
-									);
-							}
-						}
-						else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
-						{
-							temp_performance +=
-								Math::pearsonCorrelationCoefficient
-								( predicted_labels.begin(), predicted_labels.end(),
-									partitions[j].labels.begin(), partitions[j].labels.end()
-								);
-						}
-						
-						if (param_->kernel_type == PRECOMPUTED)
-						{
-							LibSVMEncoder::destroyProblem(training_problem_);
-						}
-
-						if (output && j == number_of_partitions - 1)
-						{
-							performances_file << temp_performance / (j + 1) << " ";
-							for (Size k = 0; k < start_values_map.size(); k++)
-							{
-								switch(actual_types[k])
-								{
-									case C:
-										performances_file << "C: " << actual_values[k];						
-										break;
-									case NU:
-										performances_file << "NU: " << actual_values[k];						
-										break;									
-									case DEGREE:
-										performances_file << "DEGREE: " << actual_values[k];						
-										break;																														
-									case P:
-										performances_file << "P: " << actual_values[k];						
-										break;																														
-									case GAMMA:										
-										performances_file << "GAMMA: " << actual_values[k];						
-										break;																														
-									case SIGMA:
-										performances_file << "SIGMA: " << actual_values[k];																										
-										break;																														
-									default:
-										break;																														
-								}
-								if (k < (start_values_map.size() - 1))
-								{
-									performances_file << " ";
-								}
-								else
-								{
-									performances_file << endl;
-								}
-							}
-						}
-					}
-					else
-					{
-						cout << "Training failed" << endl;
-					}
-				}
-
-				// storing performance for this parameter combination
-				temp_performance = temp_performance / number_of_partitions;
-				if (temp_performance > max_performance)
-				{
-					max_performance = temp_performance;
-					for (Size index = 0; index < start_values_map.size(); ++index)
-					{
-						best_values[index] = actual_values[index];
-					}		
-				}
-								
-				if (i == 0)
-				{
-					performances.push_back(temp_performance);
-				}
-				else
-				{
-					performances[counter] = performances[counter] + temp_performance;
-					counter++;
-				}
-
-				// trying to find new parameter combination
-				found = false;
-				actual_index = 0;
-				while(actual_index < start_values_map.size()
-							&& !found)
-				{
-					if (additive_step_sizes)
-					{			
-						if (actual_values[actual_index] + 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] + 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					else
-					{
-						if (actual_values[actual_index] * 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] * 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					actual_index++;
-				}
-			}
-			
-			if (output)
-			{
-				cout << "run finished, time elapsed since start: " << clock() 
-					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) 
-					<< endl << "performance of this run is: " << max_performance << " with parameters: ";
-				run_performances_file << max_performance << " ";
-				for (Size k = 0; k < start_values_map.size(); k++)
-				{
-					switch(actual_types[k])
-					{
-						case C:
-							cout << "C: " << best_values[k];						
-							run_performances_file << "C: " << best_values[k];						
-							break;
-						case NU:
-							cout << "NU: " << best_values[k];						
-							run_performances_file << "NU: " << best_values[k];						
-							break;									
-						case DEGREE:
-							cout << "DEGREE: " << best_values[k];						
-							run_performances_file << "DEGREE: " << best_values[k];						
-							break;																														
-						case P:
-							cout << "P: " << best_values[k];						
-							run_performances_file << "P: " << best_values[k];						
-							break;																														
-						case GAMMA:										
-							cout << "GAMMA: " << best_values[k];						
-							run_performances_file << "GAMMA: " << best_values[k];						
-							break;																														
-						case SIGMA:
-							cout << "SIGMA: " << best_values[k];						
-							run_performances_file << "SIGMA: " << best_values[k];																										
-							break;																														
-						default:
-							break;																														
-					}
-					if (k < (start_values_map.size() - 1))
-					{
-						cout << " ";
-						run_performances_file << " ";
-					}
-					else
-					{
-						cout << endl;
-						run_performances_file << endl;
-					}
-				}
-
-			}
-		}
-		
-		// Determining the index for the maximum performance
-		for (Size i = 0; i < performances.size(); i++)
-		{
-			if (performances[i] > max)
-			{
-				max_index = i;
-				max = performances[i];
-			}
-		}
-
-		// Determining the best parameter combination		
-		start_values_iterator = start_values_map.begin();
-		actual_index = 0;
-		// resetting actual values to start values
-		while(start_values_iterator != start_values_map.end())
-		{
-			actual_values[actual_index] = start_values_iterator->second;
-			++actual_index;
-			++start_values_iterator;		
-		}
-
-		actual_index = 0;
-		if (max_index == 0)
-		{
-			while(actual_index < start_values_map.size())
 			{
 				actual_values[actual_index] = start_values[actual_index];
-				++actual_index;
 			}
-		}
-		else
-		{
-			performances_file << "Best parameter combination *********************" << endl;
-			counter = 1;
-			found = true;
-			while(found)
-			{
-				found = false;
-				actual_index = 0;
-				while(actual_index < start_values_map.size()
-							&& !found && counter <= max_index)
-				{			
-					if (additive_step_sizes)
-					{			
-						if (actual_values[actual_index] + 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] + 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					else
-					{
-						if (actual_values[actual_index] * 
-								step_sizes[actual_index] 
-								<= end_values[actual_index] + precision)
-						{
-							found = true;
-							actual_values[actual_index] = actual_values[actual_index] * 
-																						step_sizes[actual_index];
-						}
-						else
-						{
-							actual_values[actual_index] = start_values[actual_index];
-						}
-					}
-					actual_index++;
-				}
-				performances_file	<< performances[counter]  / number_of_runs << ": ";
-				for (Size k = 0; k < start_values_map.size(); k++)
-				{
-					switch(actual_types[k])
-					{
-						case C:
-							performances_file << "C: " << actual_values[k];						
-							break;
-						case NU:
-							performances_file << "NU: " << actual_values[k];						
-							break;									
-						case DEGREE:
-							performances_file << "DEGREE: " << actual_values[k];						
-							break;																														
-						case P:
-							performances_file << "P: " << actual_values[k];						
-							break;																														
-						case GAMMA:										
-							performances_file << "GAMMA: " << actual_values[k];						
-							break;																														
-						case SIGMA:
-							performances_file << "SIGMA: " << actual_values[k];																										
-							break;																														
-						default:
-							break;
-					}																														
-					if (k < (start_values_map.size() - 1))
-					{
-						performances_file << ", ";
-					}
-					else
-					{
-						performances_file << endl;
-					}
-				}
-				// best parameter combination found
-				if (counter == max_index)
-				{
-					found = false;
-				}
-				counter++;
-			}
-			performances_file << "Best parameter combination ended****************" << endl;
-		}
-		
-		if (output)
-		{
-			performances_file.flush();
-			run_performances_file.flush();
-		  performances_file.close();
-		  run_performances_file.close();
-		}   
-		
-		for(actual_index = 0; actual_index < start_values_map.size(); actual_index++)
-		{
-			best_parameters.insert(make_pair(actual_types[actual_index], actual_values[actual_index]));
-		}
-		cv_quality = performances[max_index] / number_of_runs;
 
-		actual_index = 0;
-		while(actual_index < start_values_map.size())
-		{			
-			setParameter(actual_types[actual_index], actual_values[actual_index]);
 			actual_index++;
 		}
-				
-		delete start_values;
-		delete actual_values;
-		delete end_values;
-		delete step_sizes;
-		delete best_values;
-		
-		return cv_quality;
-		
-	}
+    
+    return found;
+  }
 
 	void SVMWrapper::predict(const std::vector<svm_node*>& vectors, vector<DoubleReal>& results)
 	{

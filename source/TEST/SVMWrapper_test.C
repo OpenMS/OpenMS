@@ -326,8 +326,22 @@ START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal si
   TEST_REAL_SIMILAR(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
+START_SECTION((DoubleReal performCrossValidation(svm_problem*   												  problem_ul,
+			            									    const SVMData&		                                problem_l,
+									                    	const bool                                        is_labeled,
+																 				const	std::map<SVM_parameter_type, DoubleReal>&   start_values_map,
+																 				const	std::map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
+																 				const	std::map<SVM_parameter_type, DoubleReal>&   end_values_map,
+																 				Size     												   				 		    number_of_partitions,
+																 				Size 												   				 			      number_of_runs,
+																 				std::map<SVM_parameter_type, DoubleReal>&  	      best_parameters,
+												 								bool																	 			 			additive_step_sizes = true,
+												 								bool				 												   			 			output = false,
+												 								String																 			 			performances_file_name = "performances.txt",
+												 								bool																				 			mcc_as_performance_measure = false) ))
+ 
+  {
+  map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
 	LibSVMEncoder encoder;
@@ -368,12 +382,13 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	step_sizes.insert(make_pair(SVMWrapper::DEGREE, 1));
 	end_values.insert(make_pair(SVMWrapper::DEGREE, 3));
 
-	cv_quality = svm.performCrossValidation(problem, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
+  SVMData problem_2;
+	cv_quality = svm.performCrossValidation(problem, problem_2, false, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
 	TEST_NOT_EQUAL(parameters.size(), 0)
-END_SECTION
-
-START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const std::map< SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="perfromances.txt", bool mcc_as_performance_measure=false)))
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
+}
+  // CV, method 2
+    
+  map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
 	LibSVMEncoder encoder;
@@ -417,7 +432,7 @@ START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const s
 	step_sizes.insert(make_pair(SVMWrapper::DEGREE, 1));
 	end_values.insert(make_pair(SVMWrapper::DEGREE, 3));
 
-	cv_quality = svm2.performCrossValidation(problem, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
+	cv_quality = svm2.performCrossValidation(0, problem, true, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
 	TEST_NOT_EQUAL(parameters.size(), 0)
 END_SECTION
 

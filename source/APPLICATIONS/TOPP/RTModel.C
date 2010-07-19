@@ -198,7 +198,7 @@ class TOPPRTModel
 			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied\nwith the step size to get the new value");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
-			registerIntOption_("number_of_runs","<int>",10,"number of runs for the CV",false);
+			registerIntOption_("number_of_runs","<int>",1,"number of runs for the CV (each run creates a new random partition of the data)",false);
 			setMinInt_("number_of_runs", 1);
 			registerIntOption_("number_of_partitions","<int>",10,"number of CV partitions",false);
 			setMinInt_("number_of_partitions", 2);
@@ -291,6 +291,7 @@ class TOPPRTModel
 		  vector< DoubleReal > training_retention_times;
 		  PeptideHit temp_peptide_hit;
 			SVMWrapper svm;
+      svm.setLogType(log_type_);
 			LibSVMEncoder encoder;
 			svm_problem* encoded_training_sample = 0;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
@@ -889,7 +890,9 @@ class TOPPRTModel
 						+ training_sample.labels.size() + " labels for training";
 					writeDebug_(debug_string, 1);
 					
-					cv_quality = svm.performCrossValidation(training_sample,
+					cv_quality = svm.performCrossValidation(encoded_training_sample,
+                                                training_sample,
+                                                true,
 																								start_values,
 																	 							step_sizes,
 																	 							end_values,
@@ -903,6 +906,8 @@ class TOPPRTModel
 				else
 				{				
 					cv_quality = svm.performCrossValidation(encoded_training_sample,
+                                                training_sample,
+                                                false,
 																								start_values,
 																	 							step_sizes,
 																	 							end_values,

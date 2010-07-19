@@ -31,6 +31,7 @@
 #include <svm.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -152,7 +153,8 @@ namespace OpenMS
 		loaded and we support also a new kernel function that was specially designed for learning with
 		small sequences of different lengths.
   */
-	class OPENMS_DLLAPI SVMWrapper
+  class OPENMS_DLLAPI SVMWrapper
+    : public ProgressLogger
 	{
 	 public:
 	
@@ -332,24 +334,22 @@ namespace OpenMS
 		    @brief Performs a CV for the data given by 'problem'
 		    
 		  */
-			DoubleReal performCrossValidation(svm_problem* problem, const std::map<SVM_parameter_type, DoubleReal>& start_values, const std::map<SVM_parameter_type, DoubleReal>& step_sizes, const std::map<SVM_parameter_type, DoubleReal>& end_values, Size number_of_partitions, Size number_of_runs, std::map<SVM_parameter_type, DoubleReal>& best_parameters, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt", bool mcc_as_performance_measure = false);
-																 					
-		  /**
-		    @brief Performs a CV for the data given by 'problem'
-		    
-		  */
-			DoubleReal performCrossValidation(const SVMData& 																		 problem,
-												 								const	std::map<SVM_parameter_type, DoubleReal>&    start_values_map,
-												 								const	std::map<SVM_parameter_type, DoubleReal>&    step_sizes_map,
-												 								const	std::map<SVM_parameter_type, DoubleReal>&    end_values_map,
-												 								Size 												   				 			 			 number_of_partitions,
-												 								Size 												   				 						 number_of_runs,
-												 								std::map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
-												 								bool																	 			 			 additive_step_sizes = true,
-												 								bool				 												   			 			 output = false,
-												 								String																 			 			 performances_file_name = "perfromances.txt",
-												 								bool																				 			 mcc_as_performance_measure = false);
-		  /**
+      DoubleReal performCrossValidation(svm_problem*   															      problem_ul,
+			            									    const SVMData&		                                problem_l,
+									                    	const bool                                        is_labeled,
+																 				const	std::map<SVM_parameter_type, DoubleReal>&   start_values_map,
+																 				const	std::map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
+																 				const	std::map<SVM_parameter_type, DoubleReal>&   end_values_map,
+																 				Size     												   				 		    number_of_partitions,
+																 				Size 												   				 			      number_of_runs,
+																 				std::map<SVM_parameter_type, DoubleReal>&  	      best_parameters,
+												 								bool																	 			 			additive_step_sizes = true,
+												 								bool				 												   			 			output = false,
+												 								String																 			 			performances_file_name = "performances.txt",
+												 								bool																				 			mcc_as_performance_measure = false);
+
+      
+      /**
 		    @brief Returns the probability parameter sigma of the fitted laplace model.		      
 		    
 		    The libsvm is used to fit a laplace model to the prediction values by performing
@@ -488,6 +488,19 @@ namespace OpenMS
 			void setWeights(const std::vector<Int>& weight_labels, const std::vector<DoubleReal>& weights);
 
 	 private:
+     /**
+        @brief: find next grid search parameter combination
+
+        The current grid cell is given in @p actual_values.
+        The result is returned in @p actual_values.
+
+     */
+      bool SVMWrapper::nextGrid_(const std::vector<DoubleReal>& start_values, 
+                                 const std::vector<DoubleReal>& step_sizes,
+                                 const std::vector<DoubleReal>& end_values,
+                                 const bool additive_step_sizes,
+                                 std::vector<DoubleReal>& actual_values);
+
 			Size getNumberOfEnclosedPoints_(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
 		  /**
