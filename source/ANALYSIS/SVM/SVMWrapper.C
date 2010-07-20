@@ -779,7 +779,7 @@ namespace OpenMS
 		}
 
     // estimate number of training runs:
-    Size work_steps(0), work_steps_count(0);
+    Size work_steps(1), work_steps_count(0);
     while (nextGrid_(start_values, step_sizes, end_values, additive_step_sizes, actual_values)) ++work_steps;
     //reset actual values:
     actual_values = start_values;
@@ -812,20 +812,19 @@ namespace OpenMS
 			
 			while(found) // do grid search
 			{
+ 				// setting svm parameters
 				for (Size v=0; v<start_values_map.size(); ++v)
         {
     			// testing whether actual parameters are in the defined range
 	        if (actual_values[v] > end_values[v]) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"RTModel CV parameters are out of range!");
-
-  				// setting the actual parameters
           setParameter(actual_types[v], actual_values[v]);
         }
 
-				// evaluation of parameter performance
 				temp_performance = 0;
 
 				vector<DoubleReal>::iterator it_start, it_end;
 
+        // loop over PARTITIONS
 				for (Size j = 0; j < number_of_partitions; j++)
 				{
           setProgress(work_steps_count++);
@@ -961,7 +960,8 @@ namespace OpenMS
 				delete training_data_ul;
 			}
 
-			if (output)
+			// not essential...
+      if (output)
 			{
 				cout << "run finished, time elapsed since start: " << clock() 
 					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) << endl
