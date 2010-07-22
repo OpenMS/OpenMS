@@ -98,22 +98,23 @@ namespace OpenMS {
 			return;
 		}
 
-		EnzymaticDigestion digestion;
-		digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
 
-    UInt min_peptide_length = param_.getValue("min_peptide_length");
-		UInt missed_cleavages   = param_.getValue("missed_cleavages");
-		
+    UInt min_peptide_length     = param_.getValue("min_peptide_length");
+    bool use_log_model          = param_.getValue("model") == "trained" ? true : false;
+		UInt missed_cleavages       = param_.getValue("model_naive:missed_cleavages");
+    DoubleReal cleave_threshold = param_.getValue("model_trained:threshold");
+    
+    EnzymaticDigestion digestion;
+    digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
+    digestion.setLogModelEnabled(use_log_model);
+    digestion.setLogThreshold(cleave_threshold);
+
 		std::vector<AASequence> digestion_products;
 
     // keep track of generated features
     std::map<AASequence, Feature> generated_features;
     
     // Iterate through ProteinHits in the FeatureMap and digest them
-		/*
-    for (SampleProteins::const_iterator protein = proteins.begin();
-         protein != proteins.end();
-         ++protein)*/
     for(std::vector<ProteinHit>::iterator protein_hit = feature_map.getProteinIdentifications()[0].getHits().begin();
         protein_hit != feature_map.getProteinIdentifications()[0].getHits().end();
         ++protein_hit)
@@ -125,7 +126,7 @@ namespace OpenMS {
 			// how many "atomic"(i.e. non-cleavable) peptides are created?
 			digestion.setMissedCleavages( 0 );
 			Size complete_digest_count = digestion.peptideCount(protein_hit->getSequence());
-			// compute average numer of "atomic" peptides summed from all digestion products
+			// compute average number of "atomic" peptides summed from all digestion products
 			Size number_atomic_whole = 0;
 			Size number_of_digestion_products = 0;
 			for (Size i=0; (i<=missed_cleavages) && (i<complete_digest_count);++i)
@@ -232,11 +233,20 @@ namespace OpenMS {
 		defaults_.setValidStrings("enzyme", enzymes);
 		
 		// cleavages
-		defaults_.setValue("missed_cleavages",1,"Maximum number of missed cleavages");
-    
+    defaults_.setValue("model", "trained", "The cleavage model to use for digestion. 'Trained' is based on a log likelihood model (see DOI:10.1021/pr060507u).");
+    defaults_.setValidStrings("model", StringList::create("trained,naive"));
+
+    defaults_.setValue("model_trained:threshold",0.25,"Model threshold for calling a cleavage. Higher values increase the number of cleavages. -2 will give no cleavages, +4 almost full cleavage.");
+    defaults_.setMinFloat("model_trained:threshold", -2);
+    defaults_.setMaxFloat("model_trained:threshold",  4);
+
+    defaults_.setValue("model_naive:missed_cleavages",1,"Maximum number of missed cleavages considered. All possible resulting peptides will be created.");
+    defaults_.setMinInt("model_naive:missed_cleavages",0);
+
 		// pep length
 		defaults_.setValue("min_peptide_length",3,"Minimum peptide length after digestion (shorter ones will be discarded)");
-    
+    defaults_.setMinInt("min_peptide_length",1);
+
 		defaultsToParam_();		    
   }
 }

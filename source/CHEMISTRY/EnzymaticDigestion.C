@@ -21,12 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <iostream>
 
 using namespace std;
@@ -37,17 +38,30 @@ namespace OpenMS
 	
 	EnzymaticDigestion::EnzymaticDigestion()
 		: missed_cleavages_(0),
-			enzyme_(TRYPSIN)
+			enzyme_(TRYPSIN),
+      use_log_model_(false),
+      log_model_threshold_(0.25),
+      model_data_()
 	{
-		
+		// load the cleavage model from disk (might throw exceptions)
+    TextFile tf;
+    tf.load(File::find("./CHEMISTRY/MissedCleavage.model"),true);
+    for (Size i=0; i < tf.size(); ++i)
+    {
+      if (tf[i].trim().hasPrefix("#")) continue; // skip comments
+      StringList components;
+      tf[i].split(' ', components);
+      if (components.size()!=4) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("split(' ',") + tf[i] + ")",String("Got ") + components.size() + " columns, expected 4!");
+      model_data_[BindingSite(components[0].toInt(),components[1].trim())] = CleavageModel(components[2].toDouble(),components[3].toDouble());
+    }
 	}
 	
-	Size EnzymaticDigestion::getMissedCleavages() const
+	SignedSize EnzymaticDigestion::getMissedCleavages() const
 	{
 		return missed_cleavages_;
 	}
 
-	void EnzymaticDigestion::setMissedCleavages(Size missed_cleavages)
+	void EnzymaticDigestion::setMissedCleavages(SignedSize missed_cleavages)
 	{
 		missed_cleavages_ = missed_cleavages;
 	}
@@ -60,6 +74,7 @@ namespace OpenMS
 	void EnzymaticDigestion::setEnzyme(Enzyme enzyme)
 	{
 		if (enzyme < SIZE_OF_ENZYMES) enzyme_ = enzyme;
+    else enzyme_ = SIZE_OF_ENZYMES;
 	}
 
 	EnzymaticDigestion::Enzyme EnzymaticDigestion::getEnzymeByName(const String& name)
@@ -68,21 +83,72 @@ namespace OpenMS
 		else return SIZE_OF_ENZYMES;
 	}
 
+
+	bool EnzymaticDigestion::isLogModelEnabled() const
+  {
+    return use_log_model_;
+  }
+
+  void EnzymaticDigestion::setLogModelEnabled(bool enabled)
+  {
+    use_log_model_ = enabled;
+  }
+
+  DoubleReal EnzymaticDigestion::getLogThreshold() const
+  {
+    return log_model_threshold_;
+  }
+			
+	void EnzymaticDigestion::setLogThreshold(DoubleReal threshold)
+  {
+    log_model_threshold_ = threshold;
+  }
+
 	void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator)
 	{
 		switch (enzyme_)
 		{
-			case TRYPSIN:	 
-				while (iterator != protein.end())
-				{
-					//R or K at the end and not P afterwards
-					if ((*iterator == 'R' || *iterator == 'K') && ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'))
-					{
-						++iterator;
-						return;
-					}
-					++iterator;
-				}
+			case TRYPSIN:
+        if (use_log_model_)
+        {
+          SignedSize pos = std::distance(AASequence::ConstIterator(protein.begin()), iterator) - 4; // start position in sequence
+          while (iterator != protein.end())
+          {
+            if (*iterator != 'R' && *iterator != 'K') // wait for R or K
+					  {
+						  ++iterator;
+              ++pos;
+						  continue;
+					  }
+            DoubleReal score_cleave = 0, score_missed = 0;
+            for (Size i=0;i<9;++i)
+            {
+              if ((pos+i>=0) && (pos+i<protein.size()))
+              {
+                CleavageModel p = model_data_[BindingSite(i,protein[pos+i].getOneLetterCode())]; // might not exists, but then its 0 by default
+                score_cleave += p.p_cleave;
+                score_missed += p.p_miss;
+              }
+            }
+            ++iterator;
+            ++pos;
+            if (score_missed - score_cleave > log_model_threshold_) return;
+          }
+
+        }
+        else // naive digestion
+        {
+				  while (iterator != protein.end())
+				  {
+					  //R or K at the end and not P afterwards
+					  if ((*iterator == 'R' || *iterator == 'K') && ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'))
+					  {
+						  ++iterator;
+						  return;
+					  }
+					  ++iterator;
+				  }
+        }
 				break;
 			default:
 				return;
@@ -91,16 +157,18 @@ namespace OpenMS
 	
 	Size EnzymaticDigestion::peptideCount(const AASequence& protein)
 	{
-		Size count = 1;
+		SignedSize count = 1;
 		AASequence::ConstIterator iterator = protein.begin();
 		while(nextCleavageSite_(protein,iterator), iterator != protein.end())
 		{
 			++count;
 		}
 		
+    if (use_log_model_) missed_cleavages_=0; // log model has missed cleavages build-in
+
 		//missed cleavages
 		Size sum = count;
-		for (Size i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
+		for (SignedSize i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
 		{
 			sum += count - i;
 		}
@@ -111,8 +179,10 @@ namespace OpenMS
 	void EnzymaticDigestion::digest(const AASequence& protein, std::vector<AASequence>& output)
 	{
 		//initialization
-		Size count = 1;
+		SignedSize count = 1;
 		output.clear();
+
+    if (use_log_model_) missed_cleavages_=0; // log model has missed cleavages build-in
 		
 		//missed cleavage iterators
 		vector<AASequence::ConstIterator> mc_iterators;
@@ -142,7 +212,7 @@ namespace OpenMS
 		{
 			//resize to number of fragments
 			Size sum = count;
-			for (Size i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
+			for (SignedSize i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				sum += count - i;
 			}
@@ -151,7 +221,7 @@ namespace OpenMS
 			
 			//generate fragments with missed cleavages
 			Size pos = count;
-			for (Size i = 1 ; ((i <= missed_cleavages_) && (count > i)); ++i)
+			for (SignedSize i = 1 ; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				vector<AASequence::ConstIterator>::const_iterator b = mc_iterators.begin();
 				vector<AASequence::ConstIterator>::const_iterator e = b+(i+1);

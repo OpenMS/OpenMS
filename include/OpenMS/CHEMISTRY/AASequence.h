@@ -94,6 +94,9 @@ namespace OpenMS
 				typedef Residue& 				reference;
 				typedef const Residue* 	const_pointer;
 				typedef std::vector<const Residue*>::difference_type difference_type;
+        typedef Residue value_type;
+        typedef const Residue* pointer;
+        typedef std::random_access_iterator_tag iterator_category;
 
 				/** @name Constructors and destructors
 				*/

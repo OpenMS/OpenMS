@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_ENZYMATICDIGESTION_H
@@ -39,6 +39,19 @@ namespace OpenMS
 	/**
 		 @brief Class for the enzymatic digestion of proteins
 		 
+     Digestion can be performed using simple regular expressions, 
+     e.g. [KR] | [^P]
+     for trypsin. Also missed cleavages can be modelled, i.e. adjacent peptides are not cleaved
+     due to enzyme malfunction/access restrictions. If @em n missed cleavages are given, all possible resulting
+     peptides (cleaved and uncleaved) with up to @em n missed cleavages are returned.
+     Thus @b no random selection of just @em n specific missed cleavage sites is performed.
+
+     An alternative model is also available, where the protein is cleaved only at positions where a cleavage model
+     trained on real data, exceeds a certain threshold. The model is published in 
+     Siepen et al. (2007), "Prediction of missed cleavage sites in tryptic peptides aids protein identification in proteomics.", doi: 10.1021/pr060507u
+     The model is only available for trypsin and ignores the missed cleavage setting. You should however use setLogThreshold()
+     to adjust FP vs FN rates. A higher threshold increases the number of cleavages predicted.
+
 		 @ingroup Chemistry
 	*/
 	class OPENMS_DLLAPI EnzymaticDigestion
@@ -58,10 +71,10 @@ namespace OpenMS
 			EnzymaticDigestion();
 			
 			/// Returns the number of missed cleavages for the digestion
-			Size getMissedCleavages() const;
+			SignedSize getMissedCleavages() const;
 
-			/// Sets the number of missed cleavages for the digestion (default is 0).
-			void setMissedCleavages(Size missed_cleavages);	
+			/// Sets the number of missed cleavages for the digestion (default is 0). This setting is ignored when log model is used.
+			void setMissedCleavages(SignedSize missed_cleavages);	
 
 			/// Returns the enzyme for the digestion
 			Enzyme getEnzyme() const;
@@ -78,12 +91,68 @@ namespace OpenMS
 			
 			/// Returns the number of peptides a digestion of @p protein would yield.
 			Size peptideCount(const AASequence& protein);
+
+      /// use trained model when digesting?
+			bool isLogModelEnabled() const;
+
+      /// enables/disabled the trained model
+			void setLogModelEnabled(bool enabled);
+		
+      /// Returns the threshold which needs to be exceeded to call a cleavage (only for the trained cleavage model on real data)
+			DoubleReal getLogThreshold() const;
 			
+			/// Sets the threshold which needs to be exceeded to call a cleavage (only for the trained cleavage model on real data)
+      /// Default is 0.25
+			void setLogThreshold(DoubleReal threshold);	    
+
 		protected:
 			/// Number of missed cleavages
-			Size missed_cleavages_;
+			SignedSize missed_cleavages_;
 			/// Used enzyme
 			Enzyme enzyme_;
+      /// use the log model or naive digestion (with missed cleavages)
+      bool use_log_model_;
+      /// Threshold to decide if position is cleaved or missed (only for the model)
+      DoubleReal log_model_threshold_;
+
+      // define a binding site by position and AA
+      struct BindingSite
+      {
+        Size position;
+        String AAname;
+        
+        BindingSite ()
+          : position(), AAname() {}
+
+        BindingSite (const Size& p, const String& name)
+          : position(p), AAname(name) {}
+
+        bool operator < (const BindingSite& rhs) const
+        {
+          return (position < rhs.position) || (AAname < rhs.AAname);
+        }
+
+        bool operator == (const BindingSite& rhs) const
+        {
+          return position==rhs.position && AAname==rhs.AAname;
+        }
+
+      };
+
+      // define the log likelihood for missed and cleavage model
+      struct CleavageModel
+      {
+        DoubleReal p_cleave;
+        DoubleReal p_miss;
+
+        CleavageModel()
+          : p_cleave(0), p_miss(0) {}
+        CleavageModel (const DoubleReal& p_c, const DoubleReal& p_m)
+          : p_cleave(p_c), p_miss(p_m) {}
+      };
+
+      /// Holds the cleavage model
+      Map<BindingSite, CleavageModel> model_data_;
 			
 			///moves the iterator @p it after the next cleavage site of the @p sequence
 			void nextCleavageSite_(const AASequence& sequence, AASequence::ConstIterator& iterator);
