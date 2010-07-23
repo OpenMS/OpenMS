@@ -121,7 +121,7 @@ namespace OpenMS
 						  continue;
 					  }
             DoubleReal score_cleave = 0, score_missed = 0;
-            for (Size i=0;i<9;++i)
+            for (SignedSize i=0;i<9;++i)
             {
               if ((pos+i>=0) && (pos+i<protein.size()))
               {
