@@ -14,10 +14,15 @@
 	<b>Problem</b>:<br>
 	During installation, an error message pops up, saying <i>The installation of the Visual Studio redistributable package ... failed. ..."</i>.<br>
 	<b>Solution</b>:<br>
-	Your user account does not have administator rights, which are required to install some Microsoft libraries required by OpenMS. 
-	Use an administator account	or ask your IT staff to install OpenMS for you.
-	
-	
-	
+  First of all, we'd like to stretch that is a problem of a Microsoft package - we cannot do anything about it.<br>
+  The error message will give you the location where the redistributable package was extracted to. Go to this folder and run the executable (usually named 'vcredist2008...') as an
+  administrator (right-click -> Run-As). You will likely receive an error message (this is also the reason why the OpenMS setup complained about it).
+  Now you have to find a solution yourself. If you're lucky the error message is instructive and the problem is easy to fix.<br>
+  For some messages we have a receipe:<br>
+  <ul>
+  <li>Error: "Error opening installation log file"<br>
+      Fix: the system environment variables might be messed up. There should be a %TMP% and a %TEMP% variable, and both should contain ONE(!) directory only, which exists and is writable. So open a command line and type "set". You can see the TMP and TEMP entries and check their content. Fix accordingly.
+  </ul>
+
 */
 
