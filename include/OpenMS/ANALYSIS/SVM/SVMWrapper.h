@@ -489,7 +489,7 @@ namespace OpenMS
 
 	 private:
      /**
-        @brief: find next grid search parameter combination
+        @brief find next grid search parameter combination
 
         The current grid cell is given in @p actual_values.
         The result is returned in @p actual_values.
@@ -508,6 +508,14 @@ namespace OpenMS
 		    
 		  */
 	    void initParameters_();
+
+      /**
+        @brief This function is passed to lib svm for output control
+
+        The intention is to discard the output, as we don't need it.
+
+      */
+      static void printToVoid(const char *s);
 
 	    svm_parameter* 												param_;  	       	    // the parameters for the svm
 	    svm_model*     												model_;   			      // the learnt svm discriminant

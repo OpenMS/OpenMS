@@ -729,11 +729,12 @@ namespace OpenMS
 		std::vector<DoubleReal> step_sizes(start_values_map.size());
 		std::vector<DoubleReal> end_values(start_values_map.size());
 		std::vector<SVM_parameter_type> actual_types(start_values_map.size());
+    std::vector<DoubleReal> best_values(start_values_map.size());
 
 		bool found = false; // does a valid grid search cell (with a certain parameter combination) exist?
 		Size counter = 0;
 		vector<svm_problem*> partitions_ul;
-		svm_problem** training_data_ul;
+		svm_problem** training_data_ul = NULL;
 		vector<SVMData> partitions_l;
 		vector<SVMData> training_data_l;
 		DoubleReal temp_performance = 0;
@@ -744,7 +745,6 @@ namespace OpenMS
 		DoubleReal max = 0;
 		ofstream performances_file;
 		ofstream run_performances_file;
-		DoubleReal* best_values = new DoubleReal[start_values_map.size()]();
 		vector<DoubleReal>::iterator predicted_it;
 		vector<DoubleReal>::iterator real_it;
 		
@@ -1241,8 +1241,16 @@ namespace OpenMS
 		param_->nr_weight = 0;	                       // for C_SVC
 		param_->weight_label = NULL;	                 // for C_SVC
 		param_->weight = NULL;                 				 // for C_SVC
+
+    // silence libsvm
+    svm_set_print_string_function(&printToVoid);
 	}
 	
+  void SVMWrapper::printToVoid(const char * /*s*/)
+  {
+	  return;
+  }
+
 	void SVMWrapper::setWeights(const vector<Int>& weight_labels, const vector<DoubleReal>& weights)
 	{
 		if (weight_labels.size() == weights.size() && weights.size() > 0)
