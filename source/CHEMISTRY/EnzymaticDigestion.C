@@ -123,7 +123,7 @@ namespace OpenMS
             DoubleReal score_cleave = 0, score_missed = 0;
             for (SignedSize i=0;i<9;++i)
             {
-              if ((pos+i>=0) && (pos+i<protein.size()))
+              if ((pos+i>=0) && (pos+i<(SignedSize)protein.size()))
               {
                 CleavageModel p = model_data_[BindingSite(i,protein[pos+i].getOneLetterCode())]; // might not exists, but then its 0 by default
                 score_cleave += p.p_cleave;
