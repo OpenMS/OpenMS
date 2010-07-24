@@ -129,7 +129,7 @@ namespace OpenMS
 
         bool operator < (const BindingSite& rhs) const
         {
-          return (position < rhs.position) || (AAname < rhs.AAname);
+          return (position < rhs.position) || ((position == rhs.position) && (AAname < rhs.AAname));
         }
 
         bool operator == (const BindingSite& rhs) const

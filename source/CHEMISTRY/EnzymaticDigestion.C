@@ -52,7 +52,9 @@ namespace OpenMS
       StringList components;
       tf[i].split(' ', components);
       if (components.size()!=4) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("split(' ',") + tf[i] + ")",String("Got ") + components.size() + " columns, expected 4!");
-      model_data_[BindingSite(components[0].toInt(),components[1].trim())] = CleavageModel(components[2].toDouble(),components[3].toDouble());
+      BindingSite bs(components[0].toInt(),components[1].trim());
+			CleavageModel cl(components[2].toDouble(),components[3].toDouble());
+			model_data_[bs] = cl;
     }
 	}
 	

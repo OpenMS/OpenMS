@@ -101,10 +101,14 @@ START_SECTION((void digest(FeatureMapSim & feature_map)))
   fm.setProteinIdentifications(vec_protIdent);
      
 	DigestSimulation a;
+	Param p;
+	p.setValue("model", "naive");
+	a.setParameters(p);
 	a.digest(fm);
 	  
 	TEST_EQUAL(fm.size(), 8) 
-	
+	ABORT_IF(fm.size()!=8)
+
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "ACDK")
 	TEST_EQUAL(fm[0].getIntensity(), 108)
 
