@@ -25,9 +25,11 @@ if (OpenMS_FOUND)
   include_directories(${OPENMS_INCLUDE_DIRS})
 
   
-  ## append precompiler macros specific to OpenMS
-  ## Warning: this could be harmful to your project. Check this
-  ## if problems occur
+  ## append precompiler macros and compiler flags specific to OpenMS
+  ## Warning: this could be harmful to your project. Check this if problems occur.
+  ## Also, use this to add your own compiler flags, e.g. for OpenMP support.
+  ## e.g. for Visual Studio use /openmp
+  ## set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS} /openmp")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
   add_definitions(${OPENMS_DEFINITIONS})
   

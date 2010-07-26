@@ -64,8 +64,9 @@ include (cmake/macros.cmake)
 ###    compiler flags																 ###
 ########################################################
 
-## fill this with compile flags that external projects should use as well
-set(CF_OPENMS_ADDCXX_FLAGS)
+## Fill this with compile flags that external projects should use as well
+## for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS 
+set(CF_OPENMS_ADDCXX_FLAGS) ## see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	if (MT_ENABLE_CUDA)
