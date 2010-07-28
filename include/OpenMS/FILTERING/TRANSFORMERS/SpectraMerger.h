@@ -273,7 +273,7 @@ namespace OpenMS
         if (all_peaks.size()==0) continue;
         else
         {
-          MapType::PeakType old_peak = *all_peaks.begin();
+          typename MapType::PeakType old_peak = *all_peaks.begin();
           DoubleReal distance;
 		  	  for (typename MapType::SpectrumType::ConstIterator it = (++all_peaks.begin()); it != all_peaks.end(); ++it)
 		  	  {
