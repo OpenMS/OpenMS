@@ -171,9 +171,18 @@ namespace OpenMS
     //guess sampling rate from two adjacent full scans:
     if (experiment.size()>=2) sampling_rate = experiment[1].getRT() - experiment[0].getRT();
 
-    // validate features Metavalues exist and are valid:
+    MSSimExperiment single_ms2_spectra;
+    single_ms2_spectra.resize(features.size());
+
+    // preparation & validation of input
     for (Size i_f=0;i_f<features.size();++i_f)
     {
+      // sample MS2 spectra for each feature
+      AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
+      adv_spec_gen.simulate(single_ms2_spectra[i_f], seq, rnd_gen_,features[i_f].getCharge());
+      single_ms2_spectra[i_f].setMSLevel(2);
+
+      // validate features Metavalues exist and are valid:
       if (!features[i_f].metaValueExists("elution_profile_bounds")
           ||
           !features[i_f].metaValueExists("elution_profile_intensities"))
@@ -189,6 +198,8 @@ namespace OpenMS
       const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
       OPENMS_PRECONDITION(elution_bounds[2] - elution_bounds[0] + 1 == elution_ints.size(), "Elution profile size does not match bounds");
     }
+
+    // creating the MS^E scan:
 
     for (Size i=0;i<experiment.size();++i)
     { // create MS2 for every MS scan
@@ -214,10 +225,7 @@ namespace OpenMS
       {
         Size i_f = features_fragmented[index];
         // create spectrum
-        // todo: we could do this once per feature and not for every scan ... would be a lot faster.. but realistic? Sandro??
-        AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
-        adv_spec_gen.simulate(MS2_spectra[index], seq, rnd_gen_,features[i_f].getCharge());
-        MS2_spectra[index].setMSLevel(2);
+        MS2_spectra[index] = single_ms2_spectra[i_f];
         MS2_spectra[index].setRT(experiment[i].getRT() + sampling_rate*(double(index+1) / double(features_fragmented.size()+2)));
         // adjust intensity of single MS2 spectra by feature intensity
         const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
