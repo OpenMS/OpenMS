@@ -74,7 +74,8 @@ namespace OpenMS
 		 *  @param solution_indices Indices of ILP variables that are in the optimal solution
      */
 		template <typename InputPeakType>
-    void createAndSolveILPForKnownLCMSMapFeatureBased(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
+    void createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<>& features,
+                                                      const MSExperiment<InputPeakType>& experiment,
 																											std::vector<IndexTriple >& variable_indices,
 																											std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																											std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin,
@@ -117,23 +118,27 @@ namespace OpenMS
 	protected:
 		
 		template <typename InputPeakType>
-		void getXIC_(std::vector<std::pair<Size,Size> >& end_points,
-								 std::vector<DoubleReal>& weights,MSExperiment<InputPeakType>& experiment,bool normalize);
+		void getXIC_(const std::vector<std::pair<Size,Size> >& end_points,
+								 std::vector<DoubleReal>& weights,
+                 const MSExperiment<InputPeakType>& experiment,
+                 const bool normalize);
 
 		/**
      *	@brief Calculates the XICs for all features.
      *	
      */
 		template <typename InputPeakType>
-		void calculateXICs_(std::vector<std::vector<DoubleReal> >& xics,FeatureMap<>& features,
-												MSExperiment<InputPeakType>& experiment,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
-												bool normalize);
+		void calculateXICs_(std::vector<std::vector<DoubleReal> >& xics,
+                        const FeatureMap<>& features,
+												const MSExperiment<InputPeakType>& experiment,
+                        const std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+												const bool normalize);
 		
 		/**
      *	@brief Creates and solves the ILP.
      *	
      */
-    void createAndSolveILP_(FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
+    void createAndSolveILP_(const FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
 														std::set<Int>& charges_set,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 														std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
 														UInt ms2_spectra_per_rt_bin,Size number_of_scans);
@@ -150,8 +155,10 @@ namespace OpenMS
   };
 
 	template <typename InputPeakType>
-	void ILPWrapper::getXIC_(std::vector<std::pair<Size,Size> >& end_points,
-													 std::vector<DoubleReal>& weights,MSExperiment<InputPeakType>& experiment,bool normalize)
+	void ILPWrapper::getXIC_(const std::vector<std::pair<Size,Size> >& end_points,
+													 std::vector<DoubleReal>& weights,
+                           const MSExperiment<InputPeakType>& experiment,
+                           const bool normalize)
 	{
 		DoubleReal max_weight = 0.;
 		weights.clear();
@@ -185,10 +192,11 @@ namespace OpenMS
 	}
 
 	template <typename InputPeakType>
-	void ILPWrapper::calculateXICs_(std::vector<std::vector<DoubleReal> >& xics,FeatureMap<>& features,
-																	MSExperiment<InputPeakType>& experiment,
-																	std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
-																	bool normalize)
+	void ILPWrapper::calculateXICs_(std::vector<std::vector<DoubleReal> >& xics,
+                                  const FeatureMap<>& features,
+																	const MSExperiment<InputPeakType>& experiment,
+																	const std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+																	const bool normalize)
 	{
 		xics.clear();
 		xics.resize(features.size());
@@ -199,7 +207,8 @@ namespace OpenMS
 	}
 
 	template <typename InputPeakType>
-	void ILPWrapper::createAndSolveILPForKnownLCMSMapFeatureBased(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
+	void ILPWrapper::createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<>& features,
+                                                                const MSExperiment<InputPeakType>& experiment,
 																																std::vector<IndexTriple>& variable_indices,
 																																std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																																std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin,

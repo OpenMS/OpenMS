@@ -69,8 +69,10 @@ namespace OpenMS
 			 @param feature_based If true the selection is feature based, if false it is scan based and the highest signals in each spectrum are chosen
 		 */
 		template <typename InputPeakType>
-		void makePrecursorSelectionForKnownLCMSMap(FeatureMap<>& features,MSExperiment< InputPeakType > & experiment,
-																							 MSExperiment< InputPeakType > & ms2,std::set<Int>& charges_set,
+		void makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
+                                               const MSExperiment< InputPeakType > & experiment,
+																							 MSExperiment< InputPeakType > & ms2,
+                                               std::set<Int>& charges_set,
 																							 bool feature_based);
 
 		/**
@@ -81,7 +83,8 @@ namespace OpenMS
 			 @param indices The boundaries of the features as indices in the raw data
 		*/
 		template <typename InputPeakType>
-		void getMassRanges(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
+		void getMassRanges(const FeatureMap<>& features,
+                       const MSExperiment<InputPeakType>& experiment,
 											 std::vector<std::vector<std::pair<Size,Size> > > & indices);
 
 	private:
@@ -90,10 +93,11 @@ namespace OpenMS
 
 		 */
 		template <typename InputPeakType>
-		void calculateXICs_(FeatureMap<> &features,std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
-												std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics,
-												MSExperiment<InputPeakType>& experiment,
-												std::set<Int>& charges_set);
+		void calculateXICs_(const FeatureMap<> &features,
+												const std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
+										    const MSExperiment<InputPeakType>& experiment,
+										    const std::set<Int>& charges_set,
+										    std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics);
 
 		/**
 			 @brief Eliminates overlapping peaks.
@@ -101,7 +105,7 @@ namespace OpenMS
 		 */
 		template <typename InputPeakType>		
 		void checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
-													MSExperiment<InputPeakType>&experiment);
+													const MSExperiment<InputPeakType>&experiment);
 
 		void updateExclusionList_(std::vector<std::pair<Size,Size> >& exclusion_list);
   };
@@ -123,7 +127,8 @@ namespace OpenMS
 	}
 
 	template <typename InputPeakType>
-	void OfflinePrecursorIonSelection::getMassRanges(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
+	void OfflinePrecursorIonSelection::getMassRanges(const FeatureMap<>& features,
+                                                   const MSExperiment<InputPeakType>& experiment,
 																									 std::vector<std::vector<std::pair<Size,Size> > > & indices)
 	{
 		for(Size f = 0; f < features.size();++f)
@@ -139,8 +144,8 @@ namespace OpenMS
 						std::pair<Size,Size> end;
 						bool start_found = false;
 						bool end_found = false;
-						typename MSSpectrum<InputPeakType>::Iterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
-						typename MSSpectrum<InputPeakType>::Iterator mz_end = mz_iter;
+						typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
+						typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
 						if(mz_iter == experiment[rt].end()) continue;
 						// check to the left
 						while(enclosesBoundingBox<InputPeakType>(features[f],experiment[rt].getRT(),mz_iter->getMZ()))
@@ -193,11 +198,12 @@ namespace OpenMS
 
 
 	template <typename InputPeakType>
-	void OfflinePrecursorIonSelection::calculateXICs_(FeatureMap<> &features,
-																										std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
-																										std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics,
-																										MSExperiment<InputPeakType>& experiment,
-																										std::set<Int>& charges_set)
+	void OfflinePrecursorIonSelection::calculateXICs_(const FeatureMap<> &features,
+																										const std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
+																										const MSExperiment<InputPeakType>& experiment,
+																										const std::set<Int>& charges_set,
+ 																										std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics)
+
 	{
 		xics.clear();
 		xics.resize(experiment.size());
@@ -231,8 +237,8 @@ namespace OpenMS
 
 
 	template <typename InputPeakType>
-	void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(FeatureMap<>& features,
-																																					 MSExperiment< InputPeakType > & experiment,
+	void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
+																																					 const MSExperiment< InputPeakType > & experiment,
 																																					 MSExperiment< InputPeakType > & ms2,
 																																					 std::set<Int>& charges_set,
 																																					 bool feature_based)
@@ -244,130 +250,130 @@ namespace OpenMS
 		DoubleReal rt_dist = 0.;
 		if(experiment.size()>1)
 		{
-				rt_dist = experiment[1].getRT()-experiment[0].getRT();
+			rt_dist = experiment[1].getRT()-experiment[0].getRT();
 		}
 		
 		// feature based selection (e.g. with LC-MALDI)
 		if(feature_based)
+		{
+			// create ILP
+			ILPWrapper ilp_wrapper;
+		
+			std::vector<IndexTriple> variable_indices;
+			std::vector<int> solution_indices;
+			ilp_wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(features, experiment,variable_indices,
+																															 indices,charges_set,
+																															 param_.getValue("ms2_spectra_per_rt_bin"),
+																															 solution_indices);
+
+			sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::IndexLess());
+#ifdef DEBUG_OPS
+			std::cout << "best_solution "<<std::endl;
+#endif
+			// print best solution
+			// create inclusion list
+			for(Size i = 0; i < solution_indices.size();++i)
 			{
-				// create ILP
-				ILPWrapper ilp_wrapper;
+				Size feature_index = variable_indices[solution_indices[i]].feature;
+				Size feature_scan_idx = variable_indices[solution_indices[i]].scan;
+				typename MSExperiment<InputPeakType>::ConstIterator scan = experiment.begin()+feature_scan_idx;
+				typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
+				Precursor p;
+				std::vector< Precursor > pcs;
+				p.setIntensity(features[feature_index].getIntensity());
+				p.setMZ(features[feature_index].getMZ());
+				p.setCharge(features[feature_index].getCharge());
+				pcs.push_back(p);
+				ms2_spec.setPrecursors(pcs);
+				ms2_spec.setRT(scan->getRT()+rt_dist/2.);
+				ms2_spec.setMSLevel(2);
+				// link ms2 spectrum with features overlapping its precursor
+				// Warning: this depends on the current order of features in the map
+				// Attention: make sure to name ALL features that overlap, not only one!
+				ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
+				ms2.push_back(ms2_spec);
+				std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
 			
-				std::vector<IndexTriple> variable_indices;
-				std::vector<int> solution_indices;
-				ilp_wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(features, experiment,variable_indices,
-																																 indices,charges_set,
-																																 param_.getValue("ms2_spectra_per_rt_bin"),
-																																 solution_indices);
-
-				sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::IndexLess());
-#ifdef DEBUG_OPS
-				std::cout << "best_solution "<<std::endl;
-#endif
-				// print best solution
-				// create inclusion list
-				for(Size i = 0; i < solution_indices.size();++i)
-					{
-						Size feature_index = variable_indices[solution_indices[i]].feature;
-						Size feature_scan_idx = variable_indices[solution_indices[i]].scan;
-						typename MSExperiment<InputPeakType>::iterator scan = experiment.begin()+feature_scan_idx;
-						typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
-						Precursor p;
-						std::vector< Precursor > pcs;
-						p.setIntensity(features[feature_index].getIntensity());
-						p.setMZ(features[feature_index].getMZ());
-						p.setCharge(features[feature_index].getCharge());
-						pcs.push_back(p);
-						ms2_spec.setPrecursors(pcs);
-						ms2_spec.setRT(scan->getRT()+rt_dist/2.);
-						ms2_spec.setMSLevel(2);
-						// link ms2 spectrum with features overlapping its precursor
-						// Warning: this depends on the current order of features in the map
-						// Attention: make sure to name ALL features that overlap, not only one!
-						ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
-						ms2.push_back(ms2_spec);
-						std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
-					
-					}
-#ifdef DEBUG_OPS
-				std::cout << solution_indices.size() << " out of " << features.size()
-									<< " precursors are in best solution.\n";
-#endif
 			}
+#ifdef DEBUG_OPS
+			std::cout << solution_indices.size() << " out of " << features.size()
+								<< " precursors are in best solution.\n";
+#endif
+		}
 		else // scan based selection (take the x highest signals for each spectrum)
-			{
+		{
 #ifdef DEBUG_OPS
-				std::cout << "scan based precursor selection"<<std::endl;
+			std::cout << "scan based precursor selection"<<std::endl;
 #endif
-				// if the highest signals for each scan shall be selected we don't need an ILP formulation
-				std::vector<std::vector<std::pair<Size,DoubleReal> > > xics;			
-				calculateXICs_(features,indices,xics,experiment,charges_set);
+			// if the highest signals for each scan shall be selected we don't need an ILP formulation
+			std::vector<std::vector<std::pair<Size,DoubleReal> > > xics;			
+			calculateXICs_(features,indices,experiment,charges_set,xics);
 
-				bool dynamic_exclusion = param_.getValue("use_dynamic_exclusion") == "true" ? true : false;
-				std::vector<std::pair<Size,Size> > exclusion_list;
-				Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("exclusion_time") /(DoubleReal) rt_dist));
-				// get best x signals for each scan
-				for(Size i = 0; i < experiment.size();++i)
+			bool dynamic_exclusion = param_.getValue("use_dynamic_exclusion") == "true" ? true : false;
+			std::vector<std::pair<Size,Size> > exclusion_list;
+			Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("exclusion_time") /(DoubleReal) rt_dist));
+			// get best x signals for each scan
+			for(Size i = 0; i < experiment.size();++i)
+			{
+				Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
+#ifdef DEBUG_OPS
+				std::cout << "scan "<<experiment[i].getRT() << ":";
+#endif
+				if(dynamic_exclusion) updateExclusionList_(exclusion_list);
+				for(Size j = 0; j < xics[i].size() && j < max_spec; ++j)
+				{
+					if(dynamic_exclusion)
 					{
-						Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
-#ifdef DEBUG_OPS
-						std::cout << "scan "<<experiment[i].getRT() << ":";
-#endif
-						if(dynamic_exclusion) updateExclusionList_(exclusion_list);
-						for(Size j = 0; j < xics[i].size() && j < max_spec; ++j)
-							{
-								if(dynamic_exclusion)
-									{
-										// check if feature is currently dynamically excluded
-										bool exclude = false;
-										for(Size excl_idx = 0; excl_idx < exclusion_list.size();++excl_idx)
-											{
-												if((xics[i].end()-1-j)->first == exclusion_list[excl_idx].first)
-													{
-														exclude = true;
-														break;
-													}
-											}
-										if(exclude)
-											{
-												++max_spec;
-												continue;
-											}
-									}
-								typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
-								Precursor p;
-								std::vector< Precursor > pcs;
-								p.setIntensity(features[(xics[i].end()-1-j)->first].getIntensity());
-								p.setMZ(features[(xics[i].end()-1-j)->first].getMZ());
-								p.setCharge(features[(xics[i].end()-1-j)->first].getCharge());
-								pcs.push_back(p);
-								ms2_spec.setPrecursors(pcs);
-								ms2_spec.setMSLevel(2);
-								ms2_spec.setRT(experiment[i].getRT() + (j+1)*rt_dist/(max_spec+1) );
-								ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String((xics[i].end()-1-j)->first)));
-								ms2.push_back(ms2_spec);
-								if(dynamic_exclusion)
-									{
-										//add feature to exclusion list
-										std::pair<Size,Size> pair(std::make_pair((xics[i].end()-1-j)->first,exclusion_specs+1));
-										exclusion_list.push_back(pair);
-									}
-								// link ms2 spectrum with features overlapping its precursor
-								// Warning: this depends on the current order of features in the map
-								// Attention: make sure to name ALL features that overlap, not only one!
-#ifdef DEBUG_OPS
-								std::cout << " MS2 spectra generated at: " << experiment[i].getRT() << " x " << p.getMZ()
-													<< " int: "<<(xics[i].end()-1-j)->second<< "\n";
-#endif
-							}
+						// check if feature is currently dynamically excluded
+						bool exclude = false;
+						for(Size excl_idx = 0; excl_idx < exclusion_list.size();++excl_idx)
+						{
+					    if((xics[i].end()-1-j)->first == exclusion_list[excl_idx].first)
+						  {
+							  exclude = true;
+							  break;
+						  }
+						}
+						if(exclude)
+						{
+							++max_spec;
+							continue;
+						}
 					}
+					typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
+					Precursor p;
+					std::vector< Precursor > pcs;
+					p.setIntensity(features[(xics[i].end()-1-j)->first].getIntensity());
+					p.setMZ(features[(xics[i].end()-1-j)->first].getMZ());
+					p.setCharge(features[(xics[i].end()-1-j)->first].getCharge());
+					pcs.push_back(p);
+					ms2_spec.setPrecursors(pcs);
+					ms2_spec.setMSLevel(2);
+					ms2_spec.setRT(experiment[i].getRT() + (j+1)*rt_dist/(max_spec+1) );
+					ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String((xics[i].end()-1-j)->first)));
+					ms2.push_back(ms2_spec);
+					if(dynamic_exclusion)
+					{
+						//add feature to exclusion list
+						std::pair<Size,Size> pair(std::make_pair((xics[i].end()-1-j)->first,exclusion_specs+1));
+						exclusion_list.push_back(pair);
+					}
+					// link ms2 spectrum with features overlapping its precursor
+					// Warning: this depends on the current order of features in the map
+					// Attention: make sure to name ALL features that overlap, not only one!
+#ifdef DEBUG_OPS
+					std::cout << " MS2 spectra generated at: " << experiment[i].getRT() << " x " << p.getMZ()
+										<< " int: "<<(xics[i].end()-1-j)->second<< "\n";
+#endif
+				}
 			}
+		}
 
 	}
 
 	template <typename InputPeakType>		
 	void OfflinePrecursorIonSelection::checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
-																											MSExperiment<InputPeakType>&experiment)
+																											const MSExperiment<InputPeakType>&experiment)
 	{
 		std::vector<std::vector<std::pair<Size,Size> > > checked_mass_ranges;
 		DoubleReal min_peak_distance = param_.getValue("min_peak_distance");
@@ -382,8 +388,8 @@ namespace OpenMS
 						////////////////////////////////////////////////////////////////////////
 						// check if other features overlap with this feature in the current scan
 						////////////////////////////////////////////////////////////////////////
-						InputPeakType & peak_left_border = experiment[s][mass_ranges[f][s_idx].second];
-						InputPeakType & peak_right_border = experiment[s][mass_ranges[f][s_idx+1].second];
+						const InputPeakType & peak_left_border = experiment[s][mass_ranges[f][s_idx].second];
+						const InputPeakType & peak_right_border = experiment[s][mass_ranges[f][s_idx+1].second];
 						for(Size fmr=0; fmr < mass_ranges.size();++fmr)
 							{
 								if(fmr == f) continue;
@@ -391,8 +397,8 @@ namespace OpenMS
 									{
 										if( mass_ranges[fmr][mr].first ==  s) // same spectrum
 											{
-												InputPeakType & tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
-												InputPeakType & tmp_peak_right = experiment[s][mass_ranges[fmr][mr+1].second];
+												const InputPeakType & tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
+												const InputPeakType & tmp_peak_right = experiment[s][mass_ranges[fmr][mr+1].second];
 #ifdef DEBUG_OPS
 												std::cout << tmp_peak_left.getMZ() << " < "
 																	<< peak_left_border.getMZ()-min_peak_distance << " && "

@@ -139,7 +139,7 @@ namespace OpenMS {
     /**
      @brief Add the correct Elution profile to the passed ProductModel
      */
-    void chooseElutionProfile_(EGHModel*& elutionmodel, const Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
+    void chooseElutionProfile_(EGHModel*& elutionmodel, Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
 
 
     /// Add shot noise to the experimet

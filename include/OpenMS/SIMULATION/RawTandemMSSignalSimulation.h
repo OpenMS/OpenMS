@@ -105,6 +105,10 @@ namespace OpenMS {
 		IsotopeMatrices isotope_corrections_;
 
   protected:
+    void generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
+
+    void generatePrecursorSpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
+
 		/// Random number generator
 		const gsl_rng* rnd_gen_;
   };

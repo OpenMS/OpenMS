@@ -28,6 +28,7 @@
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <gsl/gsl_blas.h>
 
 namespace OpenMS
@@ -86,8 +87,8 @@ namespace OpenMS
   {
 
 		// Tandem MS params
-		defaults_.setValue("enabled", "false", "Create Tandem-MS scans?"); 
-		defaults_.setValidStrings("enabled", StringList::create("true,false"));
+		defaults_.setValue("status", "disabled", "Create Tandem-MS scans?"); 
+		defaults_.setValidStrings("status", StringList::create("disabled,precursor,MS^E"));
 
 		//TODO: we should think of more ways to select precursors
 		defaults_.setValue("Precursor:charge_filter",IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation."); 
@@ -105,8 +106,8 @@ namespace OpenMS
 		defaults_.setMinFloat("Precursor:exclusion_time",0.);
 		
 		// sync'ed Param (also appears in IonizationSimulation)
-    defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
+    defaults_.setValue("ionization_type", "ESI", "Type of Ionization (ESI or MALDI)");
+    defaults_.setValidStrings("ionization_type", StringList::create("ESI,MALDI"));
 
 		// iTRAQ
 		defaults_.setValue("iTRAQ:iTRAQ", "off", "off,4plex or 8plex iTRAQ?");
@@ -156,17 +157,93 @@ namespace OpenMS
 
 	}
 
-  void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)
+  void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2)
   {
-		std::cout << "Tandem MS Simulation ...\n";
-		if (param_.getValue("enabled") == "false")
-		{
-			std::cout << " disabled\n";
-			return;
-		}
+    AdvancedTheoreticalSpectrumGenerator adv_spec_gen;
+    adv_spec_gen.loadProbabilisticModel();
+    Param p;
+    p.setValue("block_method:rt_block_size", features.size()); // merge all single spectra
+    p.setValue("block_method:ms_levels", IntList::create("2"));
+    SpectraMerger sm;
+    sm.setParameters(p);
 
-		// will hold the selected precursors
-		MSSimExperiment ms2;
+    DoubleReal sampling_rate = 1;
+    //guess sampling rate from two adjacent full scans:
+    if (experiment.size()>=2) sampling_rate = experiment[1].getRT() - experiment[0].getRT();
+
+    // validate features Metavalues exist and are valid:
+    for (Size i_f=0;i_f<features.size();++i_f)
+    {
+      if (!features[i_f].metaValueExists("elution_profile_bounds")
+          ||
+          !features[i_f].metaValueExists("elution_profile_intensities"))
+      {
+        throw Exception::ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,"MetaValue:elution_profile_***");
+      }
+      // check if values fit the experiment:
+      const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
+      OPENMS_PRECONDITION(elution_bounds[0] < experiment.size(), "Elution profile out of bounds (left)");
+      OPENMS_PRECONDITION(elution_bounds[2] < experiment.size(), "Elution profile out of bounds (right)");
+      OPENMS_PRECONDITION(experiment[elution_bounds[0]].getRT() == elution_bounds[1], "Elution profile RT shifted (left)");
+      OPENMS_PRECONDITION(experiment[elution_bounds[2]].getRT() == elution_bounds[3], "Elution profile RT shifted (right)");
+      const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
+      OPENMS_PRECONDITION(elution_bounds[2] - elution_bounds[0] + 1 == elution_ints.size(), "Elution profile size does not match bounds");
+    }
+
+    for (Size i=0;i<experiment.size();++i)
+    { // create MS2 for every MS scan
+      
+      // check which features elute in the current MS scan
+      std::vector <Size> features_fragmented;
+      for (Size i_f=0;i_f<features.size();++i_f)
+      {
+        const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
+        if ((elution_bounds[1] <= experiment[i].getRT()) && (experiment[i].getRT() <= elution_bounds[3]))
+        {
+          features_fragmented.push_back(i_f);
+        }
+      }
+
+      if (features_fragmented.size()==0) continue;
+
+      // now we have all features that elute in this scan -> create MS2 scans
+      MSExperiment<RichPeak1D> MS2_spectra;
+      MS2_spectra.resize(features_fragmented.size());
+
+      for (Size index=0;index<features_fragmented.size();++index)
+      {
+        Size i_f = features_fragmented[index];
+        // create spectrum
+        // todo: we could do this once per feature and not for every scan ... would be a lot faster.. but realistic? Sandro??
+        AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
+        adv_spec_gen.simulate(MS2_spectra[index], seq, rnd_gen_,features[i_f].getCharge());
+        MS2_spectra[index].setMSLevel(2);
+        MS2_spectra[index].setRT(experiment[i].getRT() + sampling_rate*(double(index+1) / double(features_fragmented.size()+2)));
+        // adjust intensity of single MS2 spectra by feature intensity
+        const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
+        const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
+        DoubleReal factor = elution_ints [i - elution_bounds[0] ];
+        for (MSSpectrum<RichPeak1D>::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
+        {
+          it->setIntensity(it->getIntensity() * factor);
+        }
+      }
+      
+      // debug: also add single spectra
+      for (Size ii=0;ii<MS2_spectra.size();++ii) ms2.push_back(MS2_spectra[ii]); // DEBUG
+
+      // merge all MS2 spectra 
+      sm.mergeSpectraBlockWise(MS2_spectra);
+      if (MS2_spectra.size()!=1) throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__,MS2_spectra.size() );
+      // store merged spectrum
+      ms2.push_back(MS2_spectra[0]);
+
+    }
+
+  }
+
+  void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2)
+  {
 		IntList qs = (IntList) param_.getValue("Precursor:charge_filter");
 		std::set<Int> qs_set(qs.begin(),qs.end());
 
@@ -176,11 +253,9 @@ namespace OpenMS
 		param.remove("charge_filter");
 		ps.setParameters(param);
 		// different selection strategies for MALDI and ESI
-		if((String)param_.getValue("ionization_type") == "ESI")
-			{
-				ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,false);
-			}
-		else ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,true);
+		bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";
+    ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,is_MALDI);
+
 		
 		//** actual MS2 signal **//
 		std::cout << "MS2 features selected: " << ms2.size() << "\n";
@@ -254,13 +329,39 @@ namespace OpenMS
 			gsl_matrix_free (itraq_intensity_observed);
 			gsl_matrix_free (itraq_intensity_sum);
 		}
+        
+  }
+
+  void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)
+  {
+		LOG_INFO << "Tandem MS Simulation ... ";
 		
+    // will hold the MS2 scans
+		MSSimExperiment ms2;
+
+    if (param_.getValue("status") == "disabled")
+		{
+			LOG_INFO << "disabled\n";
+			return;
+		}
+    else if (param_.getValue("status") == "precursor")
+		{
+			LOG_INFO << "precursor\n";
+      generatePrecursorSpectra_ (features, experiment, ms2);
+    }
+    else // MS^E
+    {
+			LOG_INFO << "MS^E\n";
+      generateMSESpectra_ (features, experiment, ms2);
+    }
 
 		// append MS2 to experiment
 		experiment.insert(experiment.end(), ms2.begin(), ms2.end());
 
   }
   
+
+
   Matrix<SimIntensityType> RawTandemMSSignalSimulation::getItraqIntensity_(const Feature & f) const
   {
 		StringList keys;

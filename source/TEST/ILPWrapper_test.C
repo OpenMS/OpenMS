@@ -58,7 +58,13 @@ START_SECTION(~ILPWrapper())
 END_SECTION
 
 
-START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnownLCMSMapFeatureBased(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, std::vector< int > &solution_indices)))
+START_SECTION((template <typename InputPeakType>
+    void createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<>& features,
+                                                      const MSExperiment<InputPeakType>& experiment,
+																											std::vector<IndexTriple >& variable_indices,
+																											std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+																											std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin,
+																											std::vector<int>& solution_indices)))
 {
 	std::set<Int> charges_set;
 	charges_set.insert(1);

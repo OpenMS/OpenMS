@@ -44,20 +44,15 @@ START_TEST(OfflinePrecursorIonSelection, "$Id$")
 
 OfflinePrecursorIonSelection* ptr = 0;
 START_SECTION(OfflinePrecursorIonSelection())
-{
 	ptr = new OfflinePrecursorIonSelection();
 	TEST_NOT_EQUAL(ptr, 0)
-}
 END_SECTION
 
 START_SECTION(~OfflinePrecursorIonSelection())
-{
 	delete ptr;
-}
 END_SECTION
 
 ptr = new OfflinePrecursorIonSelection();
-
 std::vector<PeptideIdentification> pep_ids;
 std::vector<ProteinIdentification> prot_ids;
 //IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_ids.IdXML"),prot_ids,pep_ids);
@@ -68,7 +63,12 @@ MSExperiment<> raw_data;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 
 
-START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
+START_SECTION((template <typename InputPeakType>
+		void makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
+                                               const MSExperiment< InputPeakType > & experiment,
+																							 MSExperiment< InputPeakType > & ms2,
+                                               std::set<Int>& charges_set,
+																							 bool feature_based)))
 {
 	MSExperiment<Peak1D> ms2;
 	std::set<Int> charges_set;
@@ -112,7 +112,10 @@ START_SECTION((template < typename InputPeakType > void makePrecursorSelectionFo
 }
 END_SECTION	     
 
-START_SECTION((template < typename InputPeakType > void getMassRanges(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
+START_SECTION((template <typename InputPeakType>
+		void getMassRanges(const FeatureMap<>& features,
+                       const MSExperiment<InputPeakType>& experiment,
+											 std::vector<std::vector<std::pair<Size,Size> > > & indices)))
 {
 	Param param;
 	param.setValue("exclude_overlapping_peaks","false");

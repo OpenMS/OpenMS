@@ -361,7 +361,7 @@ namespace OpenMS {
 
   }
 
-  void RawMSSignalSimulation::chooseElutionProfile_(EGHModel*& elutionmodel, const Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
+  void RawMSSignalSimulation::chooseElutionProfile_(EGHModel*& elutionmodel, Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
   {
       SimCoordinateType f_rt = feature.getRT();
 
@@ -389,10 +389,25 @@ namespace OpenMS {
 
       // find scan in experiment at which our elution starts
       MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
-      for ( Size i = 1; (i < data.size() - 1) && exp_it!=experiment.end(); ++i, ++exp_it )
+      DoubleList elution_intensities;
+      DoubleList elution_bounds;
+      elution_bounds.resize(4); // store min and max RT (in seconds and index terms)
+      elution_bounds[0] = std::distance(experiment.begin(), exp_it);
+      elution_bounds[1] = exp_it->getRT();
+      elution_bounds[2] = elution_bounds[0];
+      elution_bounds[3] = elution_bounds[1];
+
+      for ( Size i = 0; (i < data.size()) && exp_it!=experiment.end(); ++i, ++exp_it )
       { // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
         data[i] *= (DoubleReal) exp_it->getMetaValue("distortion");
+        // store elution profile in feature MetaValue
+        elution_intensities.push_back(data[i]);
+        elution_bounds[2] = std::distance(experiment.begin(), exp_it);
+        elution_bounds[3] = exp_it->getRT();
       }
+      // set elution profile details in feature -> used for MS^E precursor selection in tandemMS later
+      feature.setMetaValue("elution_profile_intensities", elution_intensities);
+      feature.setMetaValue("elution_profile_bounds", elution_bounds);
 
 
   }
