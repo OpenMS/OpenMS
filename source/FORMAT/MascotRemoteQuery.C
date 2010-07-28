@@ -398,18 +398,19 @@ void MascotRemoteQuery::httpDone(bool error)
 	}
 	else if (new_bytes.contains("Click here to see Search Report")) 
 	{
-		//Extract date and file from this...
-		int pos=0;
-		results_path_ = "";
+		//Extract filename from this...
+    //e.g. data might look like
+    // <A HREF="../cgi/master_results.pl?file=../data/20100728/F018032.dat">Click here to see Search Report</A>
 		QString response(new_bytes);
-		QRegExp rx("file=\\.\\./data/(\\d+)/(\\w+\\.dat)");
-		pos=rx.indexIn(response);
-		
-		//This will get the xml...
-		results_path_.append("/mascot/cgi/export_dat_2.pl?file=../data/");
-		results_path_.append(rx.cap(1));
-		results_path_.append("/");
-		results_path_.append(rx.cap(2));
+    
+		QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
+		rx.setMinimal(true);
+    rx.indexIn(response);
+
+		results_path_ = "";
+    results_path_.append("/mascot/cgi/export_dat_2.pl?file=");        
+    results_path_.append(rx.cap(1));
+    
 #ifdef MASCOTREMOTEQUERY_DEBUG
 		cerr << "Results path to export: " << results_path_.toStdString() << "\n";
 #endif
