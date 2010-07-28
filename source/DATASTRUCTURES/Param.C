@@ -1190,15 +1190,21 @@ namespace OpenMS
 			if (default_value->value.valueType()!=it->value.valueType())
 			{
 				String d_type;
-				if (default_value->value.valueType()==DataValue::STRING_VALUE || default_value->value.valueType()==DataValue::STRING_LIST) d_type = "string";
+				if (default_value->value.valueType()==DataValue::STRING_VALUE) d_type = "string";
+        if (default_value->value.valueType()==DataValue::STRING_LIST) d_type = "string list";
 				if (default_value->value.valueType()==DataValue::EMPTY_VALUE) d_type = "empty";
-				if (default_value->value.valueType()==DataValue::INT_VALUE || default_value->value.valueType()==DataValue::INT_LIST) d_type = "integer";
-				if (default_value->value.valueType()==DataValue::DOUBLE_VALUE || default_value->value.valueType()==DataValue::DOUBLE_LIST) d_type = "float";
+				if (default_value->value.valueType()==DataValue::INT_VALUE) d_type = "integer";
+        if (default_value->value.valueType()==DataValue::INT_LIST) d_type = "integer list";
+				if (default_value->value.valueType()==DataValue::DOUBLE_VALUE) d_type = "float";
+        if (default_value->value.valueType()==DataValue::DOUBLE_LIST) d_type = "float list";
 				String p_type;
-				if (it->value.valueType()==DataValue::STRING_VALUE || it->value.valueType()==DataValue::STRING_LIST) p_type = "string";
+				if (it->value.valueType()==DataValue::STRING_VALUE) p_type = "string";
+        if (it->value.valueType()==DataValue::STRING_LIST) p_type = "string list";
 				if (it->value.valueType()==DataValue::EMPTY_VALUE) p_type = "empty";
-				if (it->value.valueType()==DataValue::INT_VALUE || it->value.valueType()==DataValue::INT_LIST) p_type = "integer";
-				if (it->value.valueType()==DataValue::DOUBLE_VALUE || it->value.valueType()==DataValue::DOUBLE_LIST) p_type = "float";				
+				if (it->value.valueType()==DataValue::INT_VALUE) p_type = "integer";
+        if (it->value.valueType()==DataValue::INT_LIST) p_type = "integer list";
+				if (it->value.valueType()==DataValue::DOUBLE_VALUE) p_type = "float";
+        if (it->value.valueType()==DataValue::DOUBLE_LIST) p_type = "float list";
 
 				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Wrong parameter type '"+p_type+"' for "+d_type+" parameter '"+it.getName()+"' given!");
 			}

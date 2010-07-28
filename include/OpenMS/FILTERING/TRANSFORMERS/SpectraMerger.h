@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -39,9 +39,9 @@ namespace OpenMS
 {
 
 	/**	
-  	@brief SpectraMerger Bla
+  	@brief Merges blocks of MS or MS2 spectra
 		
-		@todo Add Logger compatibility (Andreas)
+    Parameter's are accessible via the DefaultParamHandler.
 
 		@htmlinclude OpenMS_SpectraMerger.parameters
 
@@ -125,8 +125,7 @@ namespace OpenMS
 		template <typename MapType> void mergeSpectraPrecursors(MapType& /*exp*/)
 		{
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    /**
-
+    /*
     idea: merge spectra with "similar" precursors to enhance S/N
     method: either leave #spectra identical and add neighbouring spectra if within deltas
             or do full clustering (single,complete linkage etc) and report only merged spectra
@@ -274,7 +273,7 @@ namespace OpenMS
         if (all_peaks.size()==0) continue;
         else
         {
-		  	  Peak1D old_peak = *all_peaks.begin();
+          MapType::PeakType old_peak = *all_peaks.begin();
           DoubleReal distance;
 		  	  for (typename MapType::SpectrumType::ConstIterator it = (++all_peaks.begin()); it != all_peaks.end(); ++it)
 		  	  {
