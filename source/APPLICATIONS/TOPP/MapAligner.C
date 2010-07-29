@@ -101,9 +101,9 @@ protected:
 		Param tmp = algo->getParameters();
 
 		// TODO  Remove this hack when StringList when become available in INIFileEditor.
-		if ( type == "apply_given_trafo")
+		if (type == "apply_given_trafo")
 		{
-			tmp.setValue("transformations",getStringList_("given_transformations"));
+			tmp.setValue("transformations", getStringList_("given_transformations"));
 		}
 
 		delete algo;
