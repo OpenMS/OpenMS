@@ -159,7 +159,7 @@ namespace OpenMS
 					}
 					catch(Exception::UnableToFit ex)
 					{
-						std::cout << "UnableToFit: " << ex.what() << std::endl;
+						//std::cout << "UnableToFit: " << ex.what() << std::endl;
 
 						// set unused flag for all data points
 						for (IndexSet::const_iterator it=region.begin(); it!=region.end(); ++it)
