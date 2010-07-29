@@ -50,12 +50,8 @@ namespace OpenMS {
   class OPENMS_DLLAPI RawTandemMSSignalSimulation
     : public DefaultParamHandler
   {
-
-		typedef ItraqConstants::ChannelInfo ChannelInfo;
-		typedef ItraqConstants::ChannelMapType ChannelMapType;
-		typedef ItraqConstants::IsotopeMatrices IsotopeMatrices;
-
   public:
+
     /** @name Constructors and Destructors
       */
     //@{
@@ -79,30 +75,6 @@ namespace OpenMS {
   private:
 		/// Default constructor (hidden)
     RawTandemMSSignalSimulation();
-
-		/// init object (members, defaults etc)
-		void init_();
-
-    /// Synchronize members with param class
-		void updateMembers_();
-
-    /// Set default parameters
-    void setDefaultParams_();
-
-		/// convert meta information from feature into intensity values for iTRAQ
-		Matrix<SimIntensityType> getItraqIntensity_(const Feature & f) const;
-
-		// Members:
-
-		/// set to either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
-		Int itraq_type_;
-		
-		/// map the channel-name (eg 114) onto its description and the centroid mass
-		/// the channel-name is also the id-string in the mapList section of the ConsensusMap
-		ChannelMapType channel_map_;	
-
-		/// Matrixes with isotope correction values (one for each plex-type)
-		IsotopeMatrices isotope_corrections_;
 
   protected:
     void generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);

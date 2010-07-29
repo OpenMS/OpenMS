@@ -5,6 +5,7 @@ set(directory include/OpenMS/SIMULATION/LABELING)
 set(sources_list_h
 BaseLabeler.h
 BaseLabeler_impl.h
+ITRAQLabeler.h
 LabelFreeLabeler.h
 O18Labeler.h
 )

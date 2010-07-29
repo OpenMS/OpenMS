@@ -31,17 +31,18 @@
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
 // include derived classes here
+#include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
 
 namespace OpenMS
 {
-  
+
     void BaseLabeler::registerChildren()
     {
-
         Factory< BaseLabeler >::registerProduct(LabelFreeLabeler::getProductName(), &LabelFreeLabeler::create);
         Factory< BaseLabeler >::registerProduct(O18Labeler::getProductName(), &O18Labeler::create);
+        Factory< BaseLabeler >::registerProduct(ITRAQLabeler::getProductName(), &ITRAQLabeler::create);
         return;
     }
 

@@ -47,7 +47,7 @@ namespace OpenMS
     /// destructor
     virtual ~O18Labeler();
 
-    /// create new GaussModel object (needed by Factory)
+    /// create new object (needed by Factory)
     static BaseLabeler* create()
     {
         return new O18Labeler();
@@ -56,7 +56,7 @@ namespace OpenMS
     /// name of the model (needed by Factory)
     static const String getProductName()
     {
-        return "18-O-Labeler";
+        return "o18";
     }
 
     // redeclaration of virtual methods

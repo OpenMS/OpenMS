@@ -110,12 +110,8 @@ class TOPPMSSimulator
 			addEmptyLine_();
   		addText_("- add '[# xx]' at the end of the > line to specify");
   		addText_("  xx total abundance units.");
-  		addText_("- add '[# xx, itraq113:yy, itraq115:zz]' to specify");
-  		addText_("  xx total abundance units and yy itraq(channel 113) units");
-  		addText_("  and zz itraq(channel 115) units. All Itraq is normalized");
-  		addText_("  to 1 and xx is distributed accordingly.");
 			addEmptyLine_();
-			addText_("e.g. >seq2 optional comment [#45, itraq119:20, itraq121:25]");
+			addText_("e.g. >seq2 optional comment [#45]");
 			addText_("     ASQKRPSQRHGSKYLATASTMDHARHGFLPRHRDTGILDSIGRFFGGDRGAPK");
 
 
@@ -159,8 +155,8 @@ class TOPPMSSimulator
         it->sequence.remove('B');
         it->sequence.remove('Z');
         
-        // Look for a relative quantity given in the first line of a FASTA entry
-				// e.g. [#120,itraq117:34,itraq119:23]
+        // Look for a relative quantity given in the comment line of a FASTA entry
+				// e.g. >BSA [#120]
 				index = (it->description).find("[#");
         // if found, extract and set relative quantity accordingly
         if (index != string::npos)

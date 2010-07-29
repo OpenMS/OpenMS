@@ -93,7 +93,16 @@ namespace OpenMS {
       feature_maps_(),
 			consensus_map_()
   {
-    setDefaultParams_();
+		// section params
+    defaults_.insert("Digestion:", DigestSimulation().getDefaults());
+    defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
+    defaults_.insert("PeptideDetectabilitySimulation:",DetectabilitySimulation().getDefaults());
+    defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
+    defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
+		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
+		//sync params (remove duplicates from modules and put them in a global module)
+		syncParams_(defaults_, true);
+    defaultsToParam_();
   }
 
   MSSim::~MSSim()
@@ -104,7 +113,7 @@ namespace OpenMS {
     Param tmp;
     tmp.insert("", this->param_); // get non-labeling options
 
-    if(labeling_name != "none")
+    if(labeling_name != "")
     {
       BaseLabeler* labeler = Factory<BaseLabeler>::create(labeling_name);
       tmp.insert("Labeling:", labeler->getDefaultParameters());
@@ -245,29 +254,12 @@ namespace OpenMS {
     feature_map.setProteinIdentifications(vec_protIdent);
 	}
 
-  void MSSim::setDefaultParams_()
-  {
-		// section params
-    defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
-    defaults_.insert("PeptideDetectabilitySimulation:",DetectabilitySimulation().getDefaults());
-    defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
-    defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
-		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
-
-		//sync params (remove duplicates from modules and put them in a global module)
-		syncParams_(defaults_, true);
-
-    defaultsToParam_();
-  }
-  
   void MSSim::syncParams_(Param& p, bool to_outer)
   {
 		std::vector<StringList> globals;
 		// here the globals params are listed that require to be in sync across several modules
 		// - first the global param name and following that the module names where this param occurs
 		// - Warning: the module params must have unchanged names and restrictions! (descriptions can differ though)
-    globals.push_back(StringList::create("iTRAQ,RawTandemSignal:iTRAQ"));
 		globals.push_back(StringList::create("ionization_type,Ionization,RawTandemSignal"));
 		
 		String global_prefix = "Global";

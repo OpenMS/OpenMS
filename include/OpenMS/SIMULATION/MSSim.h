@@ -99,9 +99,6 @@ namespace OpenMS
 		void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features);
 
   private:
-    /// Set default parameters
-    void setDefaultParams_();
-    
     /// Synchronize members with param class
 		void updateMembers_();        
     

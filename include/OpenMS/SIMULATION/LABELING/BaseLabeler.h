@@ -59,9 +59,9 @@ namespace OpenMS
     static void registerChildren();    
         
     /**
-      @brief Returns the default parameters. Reimplment
+      @brief Returns the default parameters. Reimplement
 
-      Reimplment if you derive a class and have to incoopreate sub-algorithm default parameters.
+      Reimplement if you derive a class and have to incoorporate sub-algorithm default parameters.
     */
     virtual Param getDefaultParameters() const
     {
@@ -94,37 +94,37 @@ namespace OpenMS
     /// Labeling between digestion and rt simulation
     virtual void postDigestHook(FeatureMapSimVector & /* features_to_simulate */)
     {
-      throw new Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     /// Labeling after rt simulation
     virtual void postRTHook(FeatureMapSimVector & /* features_to_simulate */)
     {
-      throw new Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     /// Labeling after detectability simulation
     virtual void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
     {
-      throw new Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     /// Labeling after ionization
     virtual void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */)
     {
-      throw new Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     /// Labeling after raw signal generation
     virtual void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */)
     {
-      throw new Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     /// Labeling after Tandem MS (e.g. iTRAQ)
     virtual void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */)
     {
-      throw new Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     //@}

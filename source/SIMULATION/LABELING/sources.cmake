@@ -4,6 +4,7 @@ set(directory source/SIMULATION/LABELING)
 ### list all header files of the directory here
 set(sources_list
 BaseLabeler.C
+ITRAQLabeler.C
 LabelFreeLabeler.C
 O18Labeler.C
 )
