@@ -123,7 +123,7 @@ namespace OpenMS {
   /**
    @brief Gets a feature map containing the peptides and predicts for those the retention times
    */
-  void RTSimulation::predictRT(FeatureMapSim & features, MSSimExperiment & experiment)
+  void RTSimulation::predictRT(FeatureMapSim & features)
   {
 
     predictFeatureRT_(features);
@@ -150,12 +150,7 @@ namespace OpenMS {
       it_f->setMetaValue("rt_bb_max",bb_max);
     }
 		
-    // this is a closed intervall (it includes gradient_min_ and gradient_max_)
-		Size number_of_scans = Size( (gradient_max_ - gradient_min_) / rt_sampling_rate_) + 1;
-
 		//else if (param_.getValue("rt_column") == "CE") number_of_scans = Size((features.getMax()[0]+gradient_front_offset_) / rt_sampling_rate_);
-     
-    createExperiment_(experiment, number_of_scans, gradient_min_);
 
   }
 
@@ -535,8 +530,11 @@ namespace OpenMS {
     return total_gradient_time_;
   }
   
-  void RTSimulation::createExperiment_(MSSimExperiment & experiment, Size number_of_scans, DoubleReal rt_start)
+  void RTSimulation::createExperiment(MSSimExperiment & experiment)
   {
+    // this is a closed intervall (it includes gradient_min_ and gradient_max_)
+    Size number_of_scans = Size( (gradient_max_ - gradient_min_) / rt_sampling_rate_) + 1;
+
     experiment = MSSimExperiment();
 
     if (isRTColumnOn())
@@ -545,7 +543,7 @@ namespace OpenMS {
 
       experiment.resize(number_of_scans);
 
-      DoubleReal current_scan_rt = rt_start;
+      DoubleReal current_scan_rt = gradient_min_;
       Size id = 1;
       for(MSSimExperiment::iterator exp_it = experiment.begin();
           exp_it != experiment.end();

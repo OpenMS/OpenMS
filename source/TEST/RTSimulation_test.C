@@ -122,7 +122,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 	}  
 
   MSSimExperiment experiment_rt;  
-  svm_rt_sim.predictRT(svm_rt_features, experiment_rt);
+  svm_rt_sim.predictRT(svm_rt_features);
 
 	TEST_EQUAL(svm_rt_features.size(), 4)
 		 
@@ -141,7 +141,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Test MS Experiment Generation))
+START_SECTION((void createExperiment(MSSimExperiment & experiment)))
 {
   // init rng
   gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
@@ -175,7 +175,8 @@ START_SECTION(([EXTRA] Test MS Experiment Generation))
   }
 
   MSSimExperiment experiment_rt;
-  svm_rt_sim.predictRT(svm_rt_features, experiment_rt);
+  svm_rt_sim.predictRT(svm_rt_features);
+  svm_rt_sim.createExperiment(experiment_rt);
 
   TEST_EQUAL(svm_rt_features.size(), 2)
 
@@ -220,7 +221,8 @@ START_SECTION(([EXTRA] Prediction Test - No RT column))
   }
 
   MSSimExperiment experiment_no_rt;
-  no_rt_sim.predictRT(no_rt_features, experiment_no_rt);
+  no_rt_sim.predictRT(no_rt_features);
+  no_rt_sim.createExperiment(experiment_no_rt);
   TEST_EQUAL(experiment_no_rt.size(), 1);
   for(FeatureMapSim::const_iterator fIt = no_rt_features.begin(); fIt != no_rt_features.end();
       ++fIt)
@@ -267,7 +269,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
   }
 
   MSSimExperiment experiment_rt;
-  rt_sim.predictRT(features, experiment_rt);
+  rt_sim.predictRT(features);
 
   TEST_EQUAL(features.size(), 3)
 

@@ -424,6 +424,8 @@ set(simulation_executables_list
   MSSim_test
   RTSimulation_test
   RawMSSignalSimulation_test
+	LabelFreeLabeler_test
+	O18Labeler_test
 )
 
 ############### GUI executables (require MOC) ########

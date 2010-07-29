@@ -34,6 +34,7 @@ include(source/TRANSFORMATIONS/RAW2PEAK/sources.cmake)
 include(source/COMPARISON/CLUSTERING/sources.cmake)
 include(source/COMPARISON/SPECTRA/sources.cmake)
 include(source/SIMULATION/sources.cmake)
+include(source/SIMULATION/LABELING/sources.cmake)
 include(source/VISUAL/DIALOGS/sources.cmake)
 include(source/VISUAL/VISUALIZER/sources.cmake)
 include(source/VISUAL/sources.cmake)
@@ -80,6 +81,7 @@ include (include/OpenMS/FILTERING/TRANSFORMERS/sources.cmake)
 include (include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
 include (include/OpenMS/TRANSFORMATIONS/RAW2PEAK/sources.cmake)
 include (include/OpenMS/SIMULATION/sources.cmake)
+include (include/OpenMS/SIMULATION/LABELING/sources.cmake)
 include (include/OpenMS/VISUAL/sources.cmake)						## MOC sources are included here
 include (include/OpenMS/VISUAL/DIALOGS/sources.cmake)   ## and here ...
 include (include/OpenMS/VISUAL/VISUALIZER/sources.cmake)## and here ...

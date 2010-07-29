@@ -77,7 +77,7 @@ namespace OpenMS
      @param features Feature map for which the retention times will be predicted
      @param experiment Experiment map which will be build from scratch
      */
-    void predictRT(FeatureMapSim & features, MSSimExperiment & experiment);
+    void predictRT(FeatureMapSim & features);
  
     /**
      @brief Set retention times randomly for given contaminants
@@ -94,6 +94,9 @@ namespace OpenMS
 
     SimCoordinateType getGradientTime() const;
 
+    /// Size experiment and assign retention time grid
+    void createExperiment(MSSimExperiment & experiment);
+
   private:
     /// Default constructor
     RTSimulation();
@@ -107,9 +110,6 @@ namespace OpenMS
     /// Predict all retention times based on a svm model
     void predictFeatureRT_(FeatureMapSim &);
   
-		/// Size experiment and assign retention time grid
-		void createExperiment_(MSSimExperiment & experiment, Size number_of_scans, DoubleReal rt_start);
-
 		/// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
 		void smoothRTDistortion_(MSSimExperiment & experiment);
 

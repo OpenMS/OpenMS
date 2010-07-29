@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
+#include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -2146,7 +2147,7 @@ namespace OpenMS
 		util_map["SequenceCoverageCalculator"] = StringList::create("");
 		util_map["XMLValidator"] = StringList::create("");
 		util_map["IdXMLEvaluation"] = StringList::create("");
-		util_map["MSSimulator"] = StringList::create("");
+    util_map["MSSimulator"] = Factory<BaseLabeler>::registeredProducts();
 		util_map["ERPairFinder"] = StringList::create("");
 		util_map["SpecLibCreator"] = StringList::create("");
 		util_map["SpectrumGeneratorNetworkTrainer"] = StringList::create("");

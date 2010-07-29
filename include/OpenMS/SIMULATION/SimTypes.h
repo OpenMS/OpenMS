@@ -59,14 +59,17 @@ namespace OpenMS
   /// Raw data point
 	typedef RichPeak1D SimPointType;
 	
-	/// stores abundance information supported by the simulator
-	typedef Map<String, SimIntensityType> FASTAEntryEnhanced;
+  /// Container for FASTAEntry & abundance information
+  typedef std::vector< std::pair<FASTAFile::FASTAEntry, SimIntensityType> > SampleProteins;
 
-	/// Container for FASTAEntry & addtional sim specific information
-	typedef std::vector< std::pair<FASTAFile::FASTAEntry, FASTAEntryEnhanced> > SampleProteins;
+  /// Container for multiple channels of SampleProteins
+  typedef std::vector< SampleProteins > SampleChannels;
 
 	/// Sim FeatureMap
 	typedef FeatureMap<> FeatureMapSim;
+
+  /// Sim FeatureMap Vector
+  typedef std::vector<FeatureMapSim> FeatureMapSimVector;
 
   /// Sim MSExperiment type
   typedef MSExperiment< SimPointType > MSSimExperiment;

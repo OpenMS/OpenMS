@@ -51,7 +51,6 @@ namespace OpenMS
    @see DetectabilitySimulation
    @see DigestSimulation
    @see IonizationSimulation
-   @see PTMSimulation
    @see RawMSSignalSimulation
    @see RTSimulation
    
@@ -68,23 +67,18 @@ namespace OpenMS
     /// Default constructor
     MSSim();
 
-    /// Copy constructor
-    MSSim(const MSSim& source);
-
     /// Destructor
     virtual ~MSSim();
     //@}
-
-    /// Assignment operator
-    MSSim& operator = (const MSSim& source);
 
     /**
      @brief General purpose function to simulate a mass spectrometry run
      
      @param rnd_gen GSL random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
+     @param labeling_type
      */   
-    void simulate(const gsl_rng* rnd_gen, const SampleProteins& peptides);
+    void simulate(const gsl_rng* rnd_gen, SampleChannels& peptides, const String& labeling_tpye);
 	
     /// Access the simulated experiment
     MSSimExperiment const & getExperiment() const;
@@ -95,7 +89,9 @@ namespace OpenMS
 		/// Access the charge consensus map of simulated features
 		ConsensusMap const & getSimulatedConsensus() const;
 		
-	protected:
+    /// Returns the default parameters for the labeling technique with name @p labeling_name
+    Param getParameters(const String& labeling_name) const;
+  protected:
 		/// handle global params
 		void syncParams_(Param& p, bool to_outer);
 		
@@ -111,7 +107,7 @@ namespace OpenMS
     
     MSSimExperiment experiment_;
     
-    FeatureMapSim features_;
+    FeatureMapSimVector feature_maps_;
 
 		ConsensusMap consensus_map_;
   };

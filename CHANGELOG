@@ -22,6 +22,7 @@ TOPP tools:
 UTIL tools:
 - MODIFIED:
   - DecoyDatabase now uses '_rev' as decoy string per default (before '_ref'), whereas '_rev' is required by PeptideIndexer per default
+  - MSSimulator provides a framework for the simulation of labeled data (#88)
 - NEW:
   - ImageCreator: creates PNG's from MS maps
   - IDSplitter: splits peptide/protein annotations off of data files (inverse operation as IDMapper)
@@ -38,7 +39,8 @@ OpenMS library improvements:
   - added:
      String substr(size_t pos = 0, size_t n = npos) const;   
      String chop(Size n) const;
-- FeatureFinderAlgorithmPicked is now able to fit asymmetric retention time profiles 
+- FeatureFinderAlgorithmPicked is now able to fit asymmetric retention time profiles (experimental)
+- added generic labeling framework to SIMULATION 
 
 TOPPView improvements:
 - basic visualization of peptide identifications in idXML

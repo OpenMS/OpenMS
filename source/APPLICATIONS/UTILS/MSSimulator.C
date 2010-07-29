@@ -97,10 +97,13 @@ class TOPPMSSimulator
     void registerOptionsAndFlags_()
     {
       // I/O settings
-      registerInputFile_("in","<file>","","Input protein sequences in FASTA format",true);
+      registerInputFileList_("in","<files>",StringList::create(""),"Input protein sequences in FASTA format",true,false);
       registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",true);
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
+
+      registerStringOption_("type","<name>","","Labeling type\n",true);
+      setValidStrings_("type", getUtilList()[toolName_()] );
 
 			addEmptyLine_();
   		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");
@@ -122,13 +125,14 @@ class TOPPMSSimulator
     Param getSubsectionDefaults_(const String& /*section*/) const
     { 
       Param tmp;
-      tmp.insert("MSSim:", MSSim().getParameters());      
+      String type = getStringOption_("type");
+      tmp.insert("MSSim:", MSSim().getParameters(type));
       return tmp;
     }
   
   
     // Load proteins from FASTA file
-    void loadFASTA_(const String& filename, const MSSim& mssim, SampleProteins & proteins )
+    void loadFASTA_(const String& filename, SampleProteins & proteins )
     {
       writeLog_(String("Loading sequence data from ") + filename +  String(" ..") );
       
@@ -141,23 +145,14 @@ class TOPPMSSimulator
            
       // add data from file to protein storage
       String::size_type index;
-      FASTAEntryEnhanced quant_info;
-
-			// test for valid iTRAQ-channels
-			String iTRAQ_status = mssim.getParameters().getValue("Global:iTRAQ");
-      ItraqConstants::ChannelMapType abundance_itraq;
-			if (iTRAQ_status!="off")
-			{
-				ItraqConstants::initChannelMap(iTRAQ_status=="4plex"? ItraqConstants::FOURPLEX : ItraqConstants::EIGHTPLEX, abundance_itraq);
-			}
-			//
-      ItraqConstants::ChannelMapType abundance_itraq_8;
-      ItraqConstants::initChannelMap(ItraqConstants::EIGHTPLEX, abundance_itraq_8);
-
-      
+            
       // re-parse fasta description to obtain quantitation info
       for (FASTAdata::iterator it = fastadata.begin(); it != fastadata.end(); ++it)
       {
+        // parsed abundance
+        SimIntensityType abundance = 100;
+
+
         // remove all ambiguous characters from FASTA entry
         // TODO: this is somehow problematic since we modfiy user input
         it->sequence.remove('X');
@@ -176,74 +171,16 @@ class TOPPMSSimulator
 					//std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
 					StringList abundances = StringList::create((it->description).substr(index+2,index_end-index-2));
 					if (abundances.size() == 0) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section is missing abundance value.");
-					quant_info["intensity"] = abundances[0].toDouble();
+          abundance = abundances[0].toDouble();
 					
+
 					if (abundances.size() > 1)
-					{	// additional abundances (e.g. iTRAQ) given...
-						
-						//TODO: normalize itraq to 1
-						SimIntensityType itraq_abundance_sum = 0;
-						for (Size i = 1; i < abundances.size(); ++i)
-						{
-							StringList parts;
-							abundances[i].split(':', parts);
-							if (parts.size()!=2)
-							{
-								throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; expected one semicolon ('" + abundances[i] + "')");
-							}
-							parts[0] = parts[0].trim();
-							parts[1] = parts[1].trim();
-							if (parts[0]==String::EMPTY || parts[1]==String::EMPTY)
-							{
-								throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; key or value is empty ('" + abundances[i] + "')");
-							}
-							
-							const string itraq_prefix = "itraq";
-							// iTRAQ specific stuff
-							if (parts[0].hasPrefix(itraq_prefix))
-							{
-								Int channel = parts[0].substr(itraq_prefix.length()).toInt();
-								if (abundance_itraq_8.find(channel) == abundance_itraq_8.end())
-								{
-									throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MSSimulator (line ") + __LINE__ + "): Invalid entry (" + it->identifier + ") in FASTA file; channel is not valid ('" + String(channel) + "')");
-								}
-								
-								if (abundance_itraq.find(channel) != abundance_itraq.end())
-								{	// current iTRAQ supports this channel --> save it
-									quant_info["intensity_itraq"+String(channel)]	= parts[1].toDouble();
-									itraq_abundance_sum += quant_info["intensity_itraq"+String(channel)];
-								}
-							}
-							// ICAT?! ...
-							/* else if (parts[0].hasPrefix("heavy"))  */
-							else
-							{
-								throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; quantitation method not supported (" + parts[0] + ")");
-							}							
-							
-							
-						} // ! abundance values
-						
-						if (itraq_abundance_sum>0) // signals found
-						{
-							// normalize iTRAQ abundances to 1 and distribute overall abundance onto channels
-							for (FASTAEntryEnhanced::iterator it_q = quant_info.begin(); it_q!=quant_info.end(); ++it_q)
-							{
-								if (it_q->first.hasPrefix("intensity_itraq"))
-								{
-									it_q->second = quant_info["intensity"] * (it_q->second / itraq_abundance_sum);
-								}
-							}
-						}
-						
+          {	// additional abundances (e.g. iTRAQ) given... this is not supported (new syntax required)
+            throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MSSimulator (line ") + __LINE__ + "): Invalid entry (" + it->identifier + ") in FASTA file.");
 					}
 		    }
-        else
-        {
-          quant_info["intensity"] = 100;
-        }
         
-        proteins.push_back(make_pair(*it, quant_info ));
+        proteins.push_back(make_pair(*it, abundance ));
       }
       
       writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
@@ -254,16 +191,22 @@ class TOPPMSSimulator
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-      
-			String inputfile_name = getStringOption_("in");			
+      String labeling_type = getStringOption_("type");
+
+      StringList input_files = getStringList_("in");
 			String outputfile_name = getStringOption_("out");	
 
       MSSim ms_simulation;
       ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:",true));
 			
       // read proteins 
-      SampleProteins proteins;
-      loadFASTA_(inputfile_name, ms_simulation, proteins);
+      SampleChannels channels;
+      for(Size i = 0 ; i < input_files.size() ; ++i)
+      {
+        SampleProteins proteins;
+        loadFASTA_(input_files[i], proteins);
+        channels.push_back(proteins);
+      }
       
       // initialize the random number generator
       gsl_rng_default_seed = time(0);
@@ -278,7 +221,7 @@ class TOPPMSSimulator
       StopWatch w;
 
       w.start();
-      ms_simulation.simulate(rnd_gen_, proteins);
+      ms_simulation.simulate(rnd_gen_, channels, labeling_type);
       w.stop();
 			writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));   	  	
       
