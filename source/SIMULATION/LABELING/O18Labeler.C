@@ -30,8 +30,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using std::vector;
-using std::pair;
-using std::set;
+
 
 namespace OpenMS
 {
@@ -127,13 +126,15 @@ namespace OpenMS
 
           // mono labeled
           addModificationToPeptideHit_(b1, "UniMod:258");
-          b1.setIntensity(total_intensity * 2.0 * (1 - labeling_efficiency));
+          b1.setIntensity(total_intensity * 2.0 * (1 - labeling_efficiency) * labeling_efficiency);
 
           final_feature_map.push_back(b1);
 
           // merge unlabeled with possible labeled feature
           // modify unlabeled intensity
           (*lf_iter).setIntensity(total_intensity * (1 - labeling_efficiency) * (1 - labeling_efficiency));
+
+          // all three partial intensities from above should add up to 1 now
 
           // generate consensus feature
           ConsensusFeature cf;
@@ -192,37 +193,6 @@ namespace OpenMS
     features_to_simulate.push_back(final_feature_map);
   }
 
-  void O18Labeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
-  {
-    std::vector<String> target_acc (target.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
-    std::vector<String> source_acc (source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
-
-    std::set<String> unique_acc;
-    std::pair<set<String>::iterator, bool> result;
-
-    for(vector<String>::iterator target_acc_iterator = target_acc.begin() ; target_acc_iterator != target_acc.end() ; ++target_acc_iterator)
-    {
-      unique_acc.insert(*target_acc_iterator);
-    }
-
-    for(vector<String>::iterator source_acc_iterator = source_acc.begin() ; source_acc_iterator != source_acc.end() ; ++source_acc_iterator)
-    {
-      result = unique_acc.insert(*source_acc_iterator);
-
-      if(result.second)
-      {
-        target_acc.push_back(*source_acc_iterator);
-      }
-    }
-
-    PeptideHit pepHit(target.getPeptideIdentifications()[0].getHits()[0]);
-    pepHit.setProteinAccessions(target_acc);
-
-    std::vector<PeptideHit> pepHits;
-    pepHits.push_back(pepHit);
-
-    target.getPeptideIdentifications()[0].setHits(pepHits);
-  }
 
   Feature O18Labeler::mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const
   {
@@ -232,8 +202,8 @@ namespace OpenMS
       // we only merge abundance and use feature from first map
       Feature new_f = unlabeled_features_index[unmodified_sequence];
 
-      new_f.setMetaValue("channel_1_intensity", new_f.getIntensity());
-      new_f.setMetaValue("channel_2_intensity", labeled_channel_feature.getIntensity());
+      new_f.setMetaValue(getChannelIntensityName(1), new_f.getIntensity());
+      new_f.setMetaValue(getChannelIntensityName(2), labeled_channel_feature.getIntensity());
 
       new_f.setIntensity(new_f.getIntensity() + labeled_channel_feature.getIntensity());
 

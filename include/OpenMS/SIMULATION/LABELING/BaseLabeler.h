@@ -130,6 +130,16 @@ namespace OpenMS
     //@}
 
     const ConsensusMap& getConsensus() const;
+
+    /**
+      @brief to ensure standardized metavalue names across labelers for channel intensity
+
+      Use this function to get the name of the metavalue which holds intensity for channel @p channel_index
+
+    */
+    String getChannelIntensityName(const Size channel_index) const;
+
+
   protected:
     /**
       @brief Creates an empty FeatureMap with the merged ProteinIdentifications from
@@ -139,6 +149,15 @@ namespace OpenMS
       @return           A FeatureMap containing all ProteinIdentifications of the input maps
       */
     FeatureMapSim mergeProteinIdentificationsMaps_(const FeatureMapSimVector & maps);
+
+    /**
+      @brief join all protein references of two features
+
+      When merging peptides from different channels, the protein accessions should remain intact.
+      Usually joining features is based on peptide sequence, so all protein hits should be valid.
+
+    */
+    void mergeProteinAccessions_(Feature& target, const Feature& source) const;
 
     ConsensusMap consensus_;    
   };

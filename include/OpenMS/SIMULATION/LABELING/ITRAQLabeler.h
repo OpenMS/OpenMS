@@ -84,8 +84,6 @@ namespace OpenMS
   protected:
     void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
 
-    void mergeProteinAccessions_(Feature& target, const Feature& source) const;
-
     Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const;
 
     /// Synchronize members with param class

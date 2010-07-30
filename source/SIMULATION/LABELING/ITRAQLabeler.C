@@ -118,236 +118,48 @@ namespace OpenMS
   }
 
   /// Labeling between digestion and rt simulation
+  /// Join all peptides with the same sequence into one feature
+  /// channels are retained via metavalues
   void ITRAQLabeler::postDigestHook(FeatureMapSimVector & features_to_simulate )
   {
-    SimIntensityType labeling_efficiency = param_.getValue("labeling_efficiency");
-
-    // index unlabeled map
-    // merge channel one and two into a single feature map
+    // merge channels into a single feature map
     FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
-    FeatureMapSim& unlabeled_features = features_to_simulate[0];
 
-    std::map<AASequence, Feature> unlabeled_features_index;
+    std::map<String, Size> peptide_to_feature;
 
-    for(FeatureMapSim::iterator unlabeled_features_iter = unlabeled_features.begin() ;
-        unlabeled_features_iter != unlabeled_features.end() ;
-        ++unlabeled_features_iter)
+    for (Size i=0;i<features_to_simulate.size();++i)
     {
-      (*unlabeled_features_iter).ensureUniqueId();
-      unlabeled_features_index.insert(std::make_pair(
-          (*unlabeled_features_iter).getPeptideIdentifications()[0].getHits()[0].getSequence()
-          ,
-          *unlabeled_features_iter
-          ));
-
-    }
-
-    // iterate over second map
-    FeatureMapSim& labeled_features = features_to_simulate[1];
-
-    for(FeatureMapSim::iterator lf_iter = labeled_features.begin() ; lf_iter != labeled_features.end() ; ++lf_iter)
-    {
-      AASequence unmodified_sequence = (*lf_iter).getPeptideIdentifications()[0].getHits()[0].getSequence();
-
-      // check if feature has tryptic c-terminus
-      PeptideHit ph = (*lf_iter).getPeptideIdentifications()[0].getHits()[0];
-      if(ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'R'
-         ||
-         ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'K')
+      for(FeatureMapSim::iterator it_f = features_to_simulate[i].begin() ;
+          it_f != features_to_simulate[i].end() ;
+          ++it_f)
       {
-        // this one will be modified since it shows a Trypsin-C-Term
-        // relevant unimod modifications are
-        // Label:18O(1) -- 258
-        // Label:18O(2) -- 193
-
-        if(labeling_efficiency != 1.0)
-        {                  
-          Feature b1(*lf_iter);
-          b1.ensureUniqueId();
-          Feature b2(*lf_iter);
-          b2.ensureUniqueId();
-
-          SimIntensityType total_intensity = (*lf_iter).getIntensity();
-
-          // dilabled
-          addModificationToPeptideHit_(b2,"UniMod:193");
-          b2.setIntensity(total_intensity * labeling_efficiency  * labeling_efficiency);
-
-          final_feature_map.push_back(b2);
-
-          // mono labeled
-          addModificationToPeptideHit_(b1, "UniMod:258");
-          b1.setIntensity(total_intensity * 2.0 * (1 - labeling_efficiency));
-
-          final_feature_map.push_back(b1);
-
-          // merge unlabeled with possible labeled feature
-          // modify unlabeled intensity
-          (*lf_iter).setIntensity(total_intensity * (1 - labeling_efficiency) * (1 - labeling_efficiency));
-
-          // generate consensus feature
-          ConsensusFeature cf;
-          // add mono and &dilabeled variant to ConsensusFeature
-          cf.insert(0, b1);
-          cf.insert(0, b2);
-
-          // merge unlabeled with unlabeled from other channel (if it exists)
-          Feature final_unlabeled_feature = mergeFeatures_(*lf_iter, unmodified_sequence, unlabeled_features_index);
-          final_unlabeled_feature.ensureUniqueId();
-          cf.insert(0,final_unlabeled_feature);
-
-          consensus_.push_back(cf);
-          final_feature_map.push_back(final_unlabeled_feature);
-
+        const String & seq = it_f->getPeptideIdentifications()[0].getHits()[0].getSequence().toString ();
+        Size f_index;
+        //check if we already have a feature for this peptide
+        if (peptide_to_feature.count(seq)>0)
+        {
+          f_index = peptide_to_feature[seq];
         }
         else
-        {
-          // generate labeled feature
-          // labeling_efficiency is 100% so we transform the complete
-          // feature in a dilabeled feature
-          addModificationToPeptideHit_(*lf_iter, "UniMod:193");
-          final_feature_map.push_back(*lf_iter);
-
-          // add corresponding feature if it exists
-          // and generate consensus feature for the unlabeled/labeled pair
-          if(unlabeled_features_index.count(unmodified_sequence) != 0)
-          {
-            ConsensusFeature cf;
-            final_feature_map.push_back(unlabeled_features_index[unmodified_sequence]);
-            (*lf_iter).ensureUniqueId();
-            cf.insert(0, *lf_iter);
-            cf.insert(0, unlabeled_features_index[unmodified_sequence]);
-
-            // remove unlabeled feature
-            unlabeled_features_index.erase(unmodified_sequence);
-
-            consensus_.push_back(cf);
-          }
+        { // create new feature
+          final_feature_map.push_back(*it_f);
+          // todo: modify with iTRAQ modification (needed for mass calc and MS/MS signal)
+          // ...
+          //
+          f_index=final_feature_map.size()-1;
+          // update map:
+          peptide_to_feature[seq]=f_index;
         }
+        // add intensity as metavalue
+        final_feature_map[f_index].setMetaValue(getChannelIntensityName(i), it_f->getIntensity());
+        // increase overall intensity
+        final_feature_map[f_index].setIntensity( final_feature_map[f_index].getIntensity() + it_f->getIntensity());
+        mergeProteinAccessions_(final_feature_map[f_index], *it_f);
       }
-      else
-      {
-        Feature final_feature = mergeFeatures_(*lf_iter, unmodified_sequence, unlabeled_features_index);
-        final_feature_map.push_back(final_feature);
-      }
-    }
-
-    // add remaining feature from first channel
-    for(std::map<AASequence, Feature>::iterator remaining_features_iter = unlabeled_features_index.begin() ; remaining_features_iter != unlabeled_features_index.end() ; ++remaining_features_iter)
-    {
-      final_feature_map.push_back(remaining_features_iter->second);
     }
 
     features_to_simulate.clear();
     features_to_simulate.push_back(final_feature_map);
-  }
-
-  void ITRAQLabeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
-  {
-    std::vector<String> target_acc (target.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
-    std::vector<String> source_acc (source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
-
-    std::set<String> unique_acc;
-    std::pair<set<String>::iterator, bool> result;
-
-    for(vector<String>::iterator target_acc_iterator = target_acc.begin() ; target_acc_iterator != target_acc.end() ; ++target_acc_iterator)
-    {
-      unique_acc.insert(*target_acc_iterator);
-    }
-
-    for(vector<String>::iterator source_acc_iterator = source_acc.begin() ; source_acc_iterator != source_acc.end() ; ++source_acc_iterator)
-    {
-      result = unique_acc.insert(*source_acc_iterator);
-
-      if(result.second)
-      {
-        target_acc.push_back(*source_acc_iterator);
-      }
-    }
-
-    PeptideHit pepHit(target.getPeptideIdentifications()[0].getHits()[0]);
-    pepHit.setProteinAccessions(target_acc);
-
-    std::vector<PeptideHit> pepHits;
-    pepHits.push_back(pepHit);
-
-    target.getPeptideIdentifications()[0].setHits(pepHits);
-  }
-
-  Feature ITRAQLabeler::mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const
-  {
-    // merge with feature from first map (if it exists)
-    if(unlabeled_features_index.count(unmodified_sequence) != 0)
-    {
-      // we only merge abundance and use feature from first map
-      Feature new_f = unlabeled_features_index[unmodified_sequence];
-
-      new_f.setMetaValue("channel_1_intensity", new_f.getIntensity());
-      new_f.setMetaValue("channel_2_intensity", labeled_channel_feature.getIntensity());
-
-      new_f.setIntensity(new_f.getIntensity() + labeled_channel_feature.getIntensity());
-
-      mergeProteinAccessions_(new_f, labeled_channel_feature);
-
-      // remove feature from index
-      unlabeled_features_index.erase(unmodified_sequence);
-
-      return new_f;
-    }
-    else
-    {
-      // simply add feature from labeled channel, since we
-      // have no corresponding feature in the unlabeled channel
-      return labeled_channel_feature;
-    }
-  }
-
-  void ITRAQLabeler::addModificationToPeptideHit_(Feature& feature, const String& modification) const
-  {
-    vector<PeptideHit> pepHits(feature.getPeptideIdentifications()[0].getHits());
-    AASequence modified_sequence(pepHits[0].getSequence());
-    //modified_sequence.setModification(modified_sequence.size() - 1, modification);
-    modified_sequence.setCTerminalModification(modification);
-    pepHits[0].setSequence(modified_sequence);
-    feature.getPeptideIdentifications()[0].setHits(pepHits);
-  }
-
-
-  Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f) const
-  {
-		StringList keys;
-		f.getKeys(keys);
-
-		// prepare map
-		Map <Int, SimIntensityType> channel_intensities;
-		std::vector< Matrix<Int> > channel_names(2);
-		channel_names[0].setMatrix<4,1>(ItraqConstants::CHANNELS_FOURPLEX);
-		channel_names[1].setMatrix<8,1>(ItraqConstants::CHANNELS_EIGHTPLEX);
-		for (Int i=0; i<ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i)
-		{
-			channel_intensities[channel_names[itraq_type_].getValue(i,0)] = 0;
-		}		
-		
-		// fill map with values present (all missing ones remain 0)
-		for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
-		{
-			if (!it_key->hasPrefix("intensity_itraq")) continue;
-			Int ch = it_key->substr(String("intensity_itraq").length()).toInt();
-			channel_intensities[ch] = f.getMetaValue(*it_key);
-			std::cout << "raw itraq intensity: " << ch << "->" << f.getMetaValue(*it_key) << "\n";
-		}	
-		
-		// fill the matrix
-		Matrix<SimIntensityType> m(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1, 0);
-		Size index=0;
-		for (Map <Int, SimIntensityType>::const_iterator it=channel_intensities.begin(); it!=channel_intensities.end(); ++it)
-		{
-			m.setValue(index ,0, it->second);
-			++index;
-		}
-
-		return m;
-		
   }
 
   /// Labeling between RT and Detectability
@@ -423,4 +235,55 @@ namespace OpenMS
 
       */
   }
+
+  // CUSTOM FUNCTIONS for iTRAQ:: //
+
+  void ITRAQLabeler::addModificationToPeptideHit_(Feature& feature, const String& modification) const
+  {
+    vector<PeptideHit> pepHits(feature.getPeptideIdentifications()[0].getHits());
+    AASequence modified_sequence(pepHits[0].getSequence());
+    //modified_sequence.setModification(modified_sequence.size() - 1, modification);
+    modified_sequence.setCTerminalModification(modification);
+    pepHits[0].setSequence(modified_sequence);
+    feature.getPeptideIdentifications()[0].setHits(pepHits);
+  }
+
+
+  Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f) const
+  {
+		StringList keys;
+		f.getKeys(keys);
+
+		// prepare map
+		Map <Int, SimIntensityType> channel_intensities;
+		std::vector< Matrix<Int> > channel_names(2);
+		channel_names[0].setMatrix<4,1>(ItraqConstants::CHANNELS_FOURPLEX);
+		channel_names[1].setMatrix<8,1>(ItraqConstants::CHANNELS_EIGHTPLEX);
+		for (Int i=0; i<ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i)
+		{
+			channel_intensities[channel_names[itraq_type_].getValue(i,0)] = 0;
+		}		
+		
+		// fill map with values present (all missing ones remain 0)
+		for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+		{
+			if (!it_key->hasPrefix("intensity_itraq")) continue;
+			Int ch = it_key->substr(String("intensity_itraq").length()).toInt();
+			channel_intensities[ch] = f.getMetaValue(*it_key);
+			std::cout << "raw itraq intensity: " << ch << "->" << f.getMetaValue(*it_key) << "\n";
+		}	
+		
+		// fill the matrix
+		Matrix<SimIntensityType> m(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1, 0);
+		Size index=0;
+		for (Map <Int, SimIntensityType>::const_iterator it=channel_intensities.begin(); it!=channel_intensities.end(); ++it)
+		{
+			m.setValue(index ,0, it->second);
+			++index;
+		}
+
+		return m;
+		
+  }
+
 } // namespace OpenMS

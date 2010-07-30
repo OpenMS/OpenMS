@@ -30,8 +30,17 @@
 
 #include <map>
 
+using std::vector;
+using std::pair;
+using std::set;
+
 namespace OpenMS
 {
+
+  String BaseLabeler::getChannelIntensityName(const Size channel_index) const
+  {
+    return String("channel_")+ String(channel_index) + "_intensity";
+  }
 
   FeatureMapSim BaseLabeler::mergeProteinIdentificationsMaps_(const FeatureMapSimVector &maps)
   {
@@ -77,6 +86,38 @@ namespace OpenMS
     final_map.setProteinIdentifications(protIdents);
 
     return final_map;
+  }
+
+  void BaseLabeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
+  {
+    std::vector<String> target_acc (target.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
+    std::vector<String> source_acc (source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
+
+    std::set<String> unique_acc;
+    std::pair<std::set<String>::iterator, bool> result;
+
+    for(vector<String>::iterator target_acc_iterator = target_acc.begin() ; target_acc_iterator != target_acc.end() ; ++target_acc_iterator)
+    {
+      unique_acc.insert(*target_acc_iterator);
+    }
+
+    for(vector<String>::iterator source_acc_iterator = source_acc.begin() ; source_acc_iterator != source_acc.end() ; ++source_acc_iterator)
+    {
+      result = unique_acc.insert(*source_acc_iterator);
+
+      if(result.second)
+      {
+        target_acc.push_back(*source_acc_iterator);
+      }
+    }
+
+    PeptideHit pepHit(target.getPeptideIdentifications()[0].getHits()[0]);
+    pepHit.setProteinAccessions(target_acc);
+
+    std::vector<PeptideHit> pepHits;
+    pepHits.push_back(pepHit);
+
+    target.getPeptideIdentifications()[0].setHits(pepHits);
   }
 
   const ConsensusMap& BaseLabeler::getConsensus() const
