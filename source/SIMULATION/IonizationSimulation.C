@@ -290,6 +290,9 @@ namespace OpenMS {
 							++undetected_features_count;
 							continue;
 						}
+
+            // ensure uniquenes
+            charged_feature.setUniqueId();
 						
 						copy_map.push_back(charged_feature);
 						// add to consensus
