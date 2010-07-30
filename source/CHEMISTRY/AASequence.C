@@ -842,8 +842,28 @@ namespace OpenMS
 		{
 			// now we have found a potential C-term modification
 			String mod;
-			mod = c_term.suffix('(');
-			mod = mod.prefix(')');
+
+      // we need to parse here since K(Label:18O(2)) .. will not be found
+      // correctly by prefix/suffix search
+      Size brackets = 0;
+      // we start at (end - 1) to skip trailing ')'
+      for(String::ConstReverseIterator rIt = (c_term.rbegin() + 1); rIt != c_term.rend() ; ++rIt)
+      {
+        if(*rIt == '(' && brackets==0)
+        {
+          break; // we reached beginning of mod
+        }
+        else if(*rIt == ')')
+        {
+          ++brackets;
+        }
+        else if(*rIt == '(')
+        {
+          --brackets;
+        }
+
+        mod = *rIt + mod;
+      }
 
 			try
 			{

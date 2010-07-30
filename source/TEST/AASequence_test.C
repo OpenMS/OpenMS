@@ -65,6 +65,12 @@ START_SECTION(AASequence(const String& rhs))
 	seq = String("AAA");
 	AASequence seq2("AAA");
 	TEST_EQUAL(seq, seq2);
+
+  // test complex term-mods
+  AASequence seq3("VPQVSTPTLVEVSRSLGK(Label:18O(2))");
+  AASequence seq4;
+  seq4 = "VPQVSTPTLVEVSRSLGK(Label:18O(2))";
+  TEST_EQUAL(seq3,seq4)
 END_SECTION
 
 START_SECTION(AASequence& operator = (const AASequence& rhs))
