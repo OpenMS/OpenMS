@@ -212,7 +212,7 @@ END_SECTION
 
 START_SECTION((static const String getProductName()))
 {
-  TEST_EQUAL(O18Labeler::getProductName(), "18-O-Labeler")
+  TEST_EQUAL(O18Labeler::getProductName(), "o18")
 }
 END_SECTION
 
