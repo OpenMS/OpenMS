@@ -43,13 +43,26 @@ using namespace std;
 /**
 	@page TOPP_IDPosteriorErrorProbability IDPosteriorErrorProbability
 	
-	@brief  Estimates posterior error probabilities.
+	@brief  Tool to estimate the probability of peptide hit to be incorrectly assigned.
 	
-	So far an estimation of the false score distribution with a gumbel distribution
-	and the correct score distribution with a gaussian distribution is performed. 
-	The probabilities are calculated using bayes law, similar to PeptideProphet.
+	By default an estimation is performed using the (inverse) gumbel distribution for incorrectly assigned sequences 
+	and a gaussian distribution for correctly assigned sequences. The probabilities are calculated using bayes law, similar to PeptideProphet.
+	Alternatively, a second gaussian distribution can be used for incorreclty assigned sequences.
 	At the moment, it is able to handle Xtandem, Mascot and OMSSA scores.
 	
+	In order to validate the computed probabilities one can adjust the fit_algorithm subsection. 
+	The easiest way to do this, is to create a default ini file with the parameter -write_ini <file_name>.
+	Secondly, it is suggested to open the created ini-file with the INIFileEditor. 
+	There are three parameters for the plot: 
+	The parameter output_plots is by default false. If set to true the plots will be created.
+	The scores are plotted in form of bins. Each bin represents a set of scores in a range of (highest_score - smallest_score)/number_of_bins (if all scores have positive values).
+	The middle point of the bin is the mean of the scores it represents.
+	Finally, the parameter output_name should be used to give the plot a unique name. The algorithm then creates two files. One with the binned scores and one with all steps of the estimation.
+	
+	The plots are saved in a gnuplot file. Therefore, to visualize the plots as a pdf one has to use gnuplot. e.g. gnuplot <filename>. This should output a file which contains all steps of the estimation.
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_IDPosteriorErrorProbability.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -61,7 +74,7 @@ class TOPPIDPosteriorErrorProbability
 {
  public:
 	TOPPIDPosteriorErrorProbability()
-		: TOPPBase("IDPosteriorErrorProbability","Estimates posterior error probabilities using a mixture model.")
+		: TOPPBase("IDPosteriorErrorProbability","Estimates peptide probabilities for a set of search engine scores using a mixture model.")
 	{
 		
 	}

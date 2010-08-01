@@ -28,8 +28,10 @@
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <algorithm>
 #include <gsl/gsl_statistics.h>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace std;
 
@@ -38,86 +40,323 @@ namespace OpenMS
 	namespace Math
 	{
 		PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel()
-		: DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5),max_gumbel_(0),max_gauss_(0),smallest_score_(0)
+		: DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5),max_incorrectly_(0),max_correctly_(0), smallest_score_(0)
   	{
 			defaults_.setValue("number_of_bins", 100, "Number of bins used for visualisation. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
 			defaults_.setValue("output_plots","false","If true every step of the EM-algorithm will be written to a file as a gnuplot formula",StringList::create("advanced"));
 			defaults_.setValidStrings("output_plots",StringList::create("true,false"));
 			defaults_.setValue("output_name","", "if output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name>step_* for each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123_ then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123_step_0, /usr/home/OMSSA123_step_1 ... will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123_' just OMSSA123_, the files will be written into the working directory.",StringList::create("advanced,output file"));
-			defaultsToParam_();			
+			defaults_.setValue("incorrectly_assigned","Gumbel", "if Gumbel, gumbel distribution is used to plot incorrectly assigned sequences. If Gauss, gauss distribution is used.",StringList::create("advanced"));
+			defaults_.setValidStrings("incorrectly_assigned",StringList::create("Gumbel,Gauss"));
+			defaultsToParam_();
+			calc_incorrect_ = &PosteriorErrorProbabilityModel::getGumbel;
+			calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
+			getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
+			getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
 		}
 		
 		PosteriorErrorProbabilityModel::~PosteriorErrorProbabilityModel()
 		{
 		}
 				
-		void PosteriorErrorProbabilityModel::fit( vector<double> & x_scores, vector<double>& probabilities)
+		void PosteriorErrorProbabilityModel::fit( std::vector<double>& search_engine_scores)
 		{	
-			if(x_scores.empty())
+			if(search_engine_scores.empty())
 			{
 				return;
 			}
-			
-			probabilities.clear();
-			probabilities.resize(x_scores.size());
 			//-------------------------------------------------------------
 			// Initializing Parameters
 			//-------------------------------------------------------------
-			double minimum = x_scores[0];
-			for(std::vector< double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
-			{
-				if(minimum > *it)
-				{
-					minimum = *it;
-				}
-			}
-			minimum = fabs(minimum);
-			vector< double>::iterator probs = probabilities.begin();
-			for(std::vector< double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
-			{
-				*probs = *it + minimum + 0.001;
-				++probs;
-			}
-			sort(probabilities.begin(),probabilities.end());		
-			DoubleReal negative_prior(0.5);
-					
-			GaussFitter::GaussFitResult	gauss_fit2,gauss_fit1;
-			int x_score_start = ceil(probabilities.size()*0.7);
-			gauss_fit1.x0 = gsl_stats_mean(&probabilities[x_score_start], 1, probabilities.size() -x_score_start) + probabilities[x_score_start];//(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2; 
-			gauss_fit1.sigma = gsl_stats_sd(&probabilities[0], 1, probabilities.size() - 1);//pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
-			gauss_fit1.A = 1	/sqrt(2*3.14159*pow(gauss_fit1.sigma,2));
-					
-			gauss_fit2.x0 = gsl_stats_mean(&probabilities[0], 1, ceil(0.5* probabilities.size())) + probabilities[0];
-			gauss_fit2.sigma = gauss_fit1.sigma;
-			gauss_fit2.A = 1	/sqrt(2*3.14159*pow(gauss_fit1.sigma,2));
-			DoubleReal maxlike(0); 				
+			sort(search_engine_scores.begin(),search_engine_scores.end());		
 			
-			for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
+			smallest_score_ = search_engine_scores[0];
+			vector<double> x_scores;
+			x_scores.resize(search_engine_scores.size());
+			std::vector< double>::iterator it = x_scores.begin();
+			for(std::vector< double>::iterator iti = search_engine_scores.begin(); iti < search_engine_scores.end(); ++it,++iti)
 			{
-					DoubleReal the_x = *it;
-					DoubleReal x_gauss2 = gauss_fit2.A * exp(-1.0 * pow(the_x - gauss_fit2.x0, 2) / (2 * pow(gauss_fit2.sigma, 2)));		
-					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
-					maxlike += log10(negative_prior*x_gauss2+(1-negative_prior)*x_gauss1);
+				*it = *iti + fabs(smallest_score_) + 0.001;
 			}
+			negative_prior_ = 0.5;
+			if(param_.getValue("incorrectly_assigned") == "Gumbel")
+			{
+				incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5* x_scores.size())) + x_scores[0];
+				incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);//pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+				incorrectly_assigned_fit_param_.A = 1	/sqrt(2*3.14159*pow(incorrectly_assigned_fit_param_.sigma,2));	
+				//TODO: compute directly with gauss. Workaround:
+				calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
+				getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
+			}
+			else if(param_.getValue("incorrectly_assigned") == "Gauss")
+			{
+				incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5* x_scores.size())) + x_scores[0];
+				incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);//pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+				incorrectly_assigned_fit_param_.A = 1	/sqrt(2*3.14159*pow(incorrectly_assigned_fit_param_.sigma,2));		
+				calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
+				getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
+			}
+			else
+			{
+				throw Exception::RequiredParameterNotGiven(__FILE__,	__LINE__,__PRETTY_FUNCTION__,"incorrectly_assigned");
+			}
+			getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
+			calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
+			int x_score_start = ceil(x_scores.size()*0.7);
+			correctly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() -x_score_start) + x_scores[x_score_start];//(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2; 
+			correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
+			correctly_assigned_fit_param_.A = 1	/sqrt(2*3.14159*pow(correctly_assigned_fit_param_.sigma,2));		
+
+			DoubleReal maxlike(0);
+			vector<DoubleReal> incorrect_density;
+			vector<DoubleReal> correct_density;
+			
+			fillDensities(x_scores,incorrect_density,correct_density);
+			
+			
+			maxlike = computeMaxLikelihood(incorrect_density,correct_density);
 			//-------------------------------------------------------------
 			// create files for output
 			//-------------------------------------------------------------
 			bool output_plots  = param_.getValue("output_plots").toBool();
-			String step;
-			int iter = 0;
-			String output;
-			String output_ending;
-			TextFile file;
+			TextFile* file = NULL;
 			if(output_plots)
 			{
+				file = InitPlots(x_scores);
+			}			
+			//-------------------------------------------------------------
+			// Estimate Parameters - EM algorithm
+			//-------------------------------------------------------------
+			bool stop_em_init = false;
+			do
+			{ 
+				//E-STEP
+				DoubleReal one_minus_sum_posterior = one_minus_sum_post(incorrect_density,correct_density);
+				DoubleReal sum_posterior = sum_post(incorrect_density,correct_density);
+				
+				//new mean				
+				DoubleReal sum_positive_x0 = sum_pos_x0(x_scores, incorrect_density,correct_density);
+				DoubleReal sum_negative_x0 = sum_neg_x0(x_scores, incorrect_density,correct_density);
+				
+				DoubleReal positive_mean = sum_positive_x0/one_minus_sum_posterior; 
+				DoubleReal negative_mean = sum_negative_x0/sum_posterior; 
+				
+				//new standard deviation
+				DoubleReal sum_positive_sigma = sum_pos_sigma(x_scores,incorrect_density,correct_density, positive_mean);
+				DoubleReal sum_negative_sigma = sum_neg_sigma(x_scores,incorrect_density,correct_density, negative_mean);
+				
+				//update parameters
+				correctly_assigned_fit_param_.x0 = positive_mean;
+				if(sum_positive_sigma  != 0 && one_minus_sum_posterior != 0)
+				{
+					correctly_assigned_fit_param_.sigma = sqrt(sum_positive_sigma/one_minus_sum_posterior); 
+					correctly_assigned_fit_param_.A = 1/sqrt(2*3.14159*pow(correctly_assigned_fit_param_.sigma,2));
+				}
+						
+				incorrectly_assigned_fit_param_.x0 = negative_mean;
+				if(sum_negative_sigma  != 0 && sum_posterior != 0)
+				{
+					incorrectly_assigned_fit_param_.sigma = sqrt(sum_negative_sigma/sum_posterior);
+					incorrectly_assigned_fit_param_.A = 1/sqrt(2*3.14159*pow(incorrectly_assigned_fit_param_.sigma,2));
+				}				
+
+					
+				//compute new prior probabilities negative peptides
+				fillDensities(x_scores,incorrect_density,correct_density);
+				sum_posterior = sum_post(incorrect_density,correct_density);
+				negative_prior_ = sum_posterior/x_scores.size();
+				
+				DoubleReal new_maxlike(computeMaxLikelihood(incorrect_density,correct_density));
+        if(boost::math::isnan(new_maxlike - maxlike))
+				{
+					throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");					
+				}
+        if(fabs(new_maxlike - maxlike) < 0.001)
+        {
+        	stop_em_init = true;
+        }
+				if(output_plots)
+				{
+					String formula1, formula2,formula3;
+					formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_)+ "* " + String(negative_prior_);//String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+					formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_)+ "* (1 - " + String(negative_prior_) + ")";//String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+					formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_,correctly_assigned_fit_param_);
+					(*file)<<("plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+				}
+				//update maximum likelihood
+				maxlike = new_maxlike;				
+			}while(!stop_em_init);
+			//-------------------------------------------------------------
+			// Finished fitting
+			//-------------------------------------------------------------			
+			//!!Workaround:
+			if(param_.getValue("incorrectly_assigned") == "Gumbel")
+			{
+				calc_incorrect_ = &PosteriorErrorProbabilityModel::getGumbel;
+			}
+			max_incorrectly_ = ((this)->*(calc_incorrect_))(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
+			max_correctly_ = ((this)->*(calc_correct_))(correctly_assigned_fit_param_.x0, correctly_assigned_fit_param_ );
+			if(output_plots)
+			{
+				String formula1, formula2,formula3;
+				formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_)+ "*" + String(negative_prior_);//String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+				formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_)+ "* (1 - " + String(negative_prior_) + ")";// String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+				formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_,correctly_assigned_fit_param_);
+				(*file)<<("plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+				file->store((String)param_.getValue("output_name"));				
+				delete file;
+			}
+		}
+		
+		void PosteriorErrorProbabilityModel::fit(  std::vector<double>& search_engine_scores, vector<double>& probabilities)
+		{	
+			fit(search_engine_scores);
+			probabilities.resize(search_engine_scores.size());
+			vector<double>::iterator probs =probabilities.begin();
+			for(vector<double>::iterator scores = search_engine_scores.begin(); scores != search_engine_scores.end(); ++scores, ++probs)
+			{
+				*probs = computeProbability(*scores);
+			}
+		}
+		
+		/*void InitParameters()
+		{
+			if Gauss Gauss then normal
+			if Gumbel Gauss then anders
+		}*/
+		
+		void PosteriorErrorProbabilityModel::fillDensities(vector<double>& x_scores,vector<DoubleReal>& incorrect_density,vector<DoubleReal>& correct_density)
+		{
+			if(incorrect_density.size() != x_scores.size())
+			{
+				incorrect_density.resize(x_scores.size());
+				correct_density.resize(x_scores.size());
+			}
+			vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
+			vector<DoubleReal>::iterator correct = correct_density.begin();
+			for(vector<double>::iterator scores = x_scores.begin(); scores != x_scores.end(); ++scores, ++incorrect, ++correct)
+			{
+				*incorrect = ((this)->*(calc_incorrect_))(*scores, incorrectly_assigned_fit_param_);
+				*correct = ((this)->*(calc_correct_))(*scores, correctly_assigned_fit_param_ );
+			}
+		}
+		
+		DoubleReal PosteriorErrorProbabilityModel::computeMaxLikelihood(vector<DoubleReal>& incorrect_density, vector<DoubleReal>& correct_density)
+		{
+			DoubleReal maxlike(0);
+			vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
+			for(vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end() ; ++correct, ++incorrect)
+			{
+				maxlike += log10(negative_prior_* (*incorrect) +(1-negative_prior_)* (*correct));
+			}
+			return maxlike;
+		}
+		DoubleReal PosteriorErrorProbabilityModel::one_minus_sum_post(vector<DoubleReal>& incorrect_density, vector<DoubleReal>& correct_density)
+		{
+			DoubleReal one_min(0);
+			vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
+			for(vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end() ; ++correct, ++incorrect)
+			{
+				one_min +=  1  - ((negative_prior_* (*incorrect) )/((negative_prior_* (*incorrect) ) + (1-negative_prior_)* (*correct) ));
+			}
+			return one_min;		
+		}
+
+		DoubleReal PosteriorErrorProbabilityModel::sum_post(vector<DoubleReal>& incorrect_density, vector<DoubleReal>& correct_density)
+		{
+			DoubleReal post(0);
+			vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
+			for(vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end() ; ++correct, ++incorrect)
+			{
+				post += ((negative_prior_* (*incorrect) )/((negative_prior_* (*incorrect) ) + (1-negative_prior_)* (*correct) ));
+			}
+			return post;		
+		}
+		
+		DoubleReal PosteriorErrorProbabilityModel::sum_pos_x0(vector<double>& x_scores, vector<DoubleReal>& incorrect_density, vector<DoubleReal>& correct_density)
+		{
+			DoubleReal pos_x0(0);
+			vector<double>::iterator the_x = x_scores.begin();
+			vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
+			for(vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end() ; ++correct, ++incorrect,++the_x)
+			{
+				pos_x0 += ((1  - ((negative_prior_* (*incorrect) )/((negative_prior_* (*incorrect) ) + (1-negative_prior_)* (*correct) )))* (*the_x) );
+			}
+			return pos_x0;	
+		}
+		
+		DoubleReal PosteriorErrorProbabilityModel::sum_neg_x0(vector<double>& x_scores, vector<DoubleReal>& incorrect_density, vector<DoubleReal>& correct_density)
+		{
+			DoubleReal neg_x0(0);
+			vector<double>::iterator the_x = x_scores.begin();
+			vector<DoubleReal>::iterator correct = correct_density.begin();
+			for(vector<DoubleReal>::iterator incorrect = incorrect_density.begin(); incorrect < incorrect_density.end() ; ++correct, ++incorrect,++the_x)
+			{
+				neg_x0 += ((((negative_prior_* (*incorrect) )/((negative_prior_* (*incorrect) ) + (1-negative_prior_)* (*correct) )))* (*the_x) );
+			}
+			return neg_x0;	
+		}		
+		
+		DoubleReal PosteriorErrorProbabilityModel::sum_pos_sigma(vector<double>& x_scores, vector<DoubleReal>& incorrect_density, vector<DoubleReal>& correct_density, DoubleReal positive_mean)
+		{
+			DoubleReal pos_sigma(0);
+			vector<double>::iterator the_x = x_scores.begin();
+			vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
+			for(vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end() ; ++correct, ++incorrect,++the_x)
+			{
+				pos_sigma += ((1  - ((negative_prior_* (*incorrect) )/((negative_prior_* (*incorrect) ) + (1-negative_prior_)* (*correct) )))*pow( (*the_x) - positive_mean,2));
+			}
+			return pos_sigma;
+		}
+		
+		DoubleReal PosteriorErrorProbabilityModel::sum_neg_sigma(vector<double>& x_scores, vector<DoubleReal>& incorrect_density, vector<DoubleReal>& correct_density, DoubleReal positive_mean)
+		{
+			DoubleReal neg_sigma(0);
+			vector<double>::iterator the_x = x_scores.begin();
+			vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
+			for(vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end() ; ++correct, ++incorrect,++the_x)
+			{
+				neg_sigma += ((((negative_prior_* (*incorrect) )/((negative_prior_* (*incorrect) ) + (1-negative_prior_)* (*correct) )))*pow( (*the_x) - positive_mean,2));
+			}
+			return neg_sigma;
+		}
+		DoubleReal PosteriorErrorProbabilityModel::computeProbability(DoubleReal score)
+		{
+			score = score + fabs(smallest_score_) + 0.001;
+			DoubleReal x_neg;
+			DoubleReal x_pos;
+			//the score is smaller than the peak of incorreclty assigned sequences. To ensure that the probabilies wont rise again use the incorrectly assigend peak for computation
+			if(score < incorrectly_assigned_fit_param_.x0)
+			{
+				x_neg = max_incorrectly_;	
+				x_pos = ((this)->*(calc_correct_))(score, correctly_assigned_fit_param_ );
+			}
+			//same as above. Hovever, this time to ensure that probabilities wont drop again.
+			else if(score > correctly_assigned_fit_param_.x0)
+			{
+				x_neg = ((this)->*(calc_incorrect_))(score, incorrectly_assigned_fit_param_);
+				x_pos = max_correctly_;
+			}
+			//if its in between use the normal formula
+			else
+			{
+				x_neg = ((this)->*(calc_incorrect_))(score, incorrectly_assigned_fit_param_);
+				x_pos = ((this)->*(calc_correct_))(score, correctly_assigned_fit_param_ );
+			}
+			 return (negative_prior_*x_neg)/((negative_prior_*x_neg) + (1-negative_prior_)*x_pos);		
+		}		
+		TextFile* PosteriorErrorProbabilityModel::InitPlots(vector<double> & x_scores)
+		{		
+				TextFile* file = new TextFile;
+				String output;
 				std::vector<DPosition<2> > points;
 				DPosition<2> temp;
-				double dividing_score = probabilities.back()/(Int)param_.getValue("number_of_bins");
+				double dividing_score = x_scores.back() /(Int)param_.getValue("number_of_bins");
 				temp.setX(dividing_score/2);
 				temp.setY(0);
 				points.push_back(temp);
 				double temp_divider = dividing_score;
-				for(std::vector< double>::iterator it = probabilities.begin(); it < probabilities.end(); ++it)
+				for(std::vector< double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
 				{
 					if(temp_divider - *it >= 0)
 					{
@@ -134,7 +373,7 @@ namespace OpenMS
 
 				for(vector<DPosition<2> >::iterator it = points.begin(); it < points.end(); ++it)
 				{
-					it->setY( it->getY()/( probabilities.size() * dividing_score));
+					it->setY( it->getY()/( x_scores.size() * dividing_score));
 				}
 					
 				TextFile data_points;
@@ -146,222 +385,37 @@ namespace OpenMS
 					data_points<<temp;
 				}
 				data_points.store((String)param_.getValue("output_name") + "scores.txt");
-					
-				step = (String)param_.getValue("output_name") + "step_";
-				output = "set output \""+ (String)param_.getValue("output_name") +"step_";
-				output_ending = ".pdf\"";
-				iter = 0;
-				file<<"set terminal pdf";	
-				file<<(output + iter + output_ending);
-				gauss_fit_param_ = gauss_fit2;
-				String formula;
-				formula =  "f(x)=" + String(gauss_fit_param_.A) +" * exp(-(x - " + String(gauss_fit_param_.x0) + ") ** 2 / 2 / (" + String(gauss_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior);
-				file << formula;
-				gauss_fit_param_ = gauss_fit1;
-				formula = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
-				file<<formula;
-				negative_prior_ = negative_prior;
-				formula = getBothGnuplotFormula(); 
-				file<<formula;
-				file<<"plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, f(x) , g(x), h(x)";
-				file.store(step + iter);	
-			}
-			//-------------------------------------------------------------
-			// Estimate Parameters
-			//-------------------------------------------------------------					
-			bool stop_em_init = false;
-			do
-			{ 
-				//E-STEP
-				
-				//sum new posterior probability
-				DoubleReal sum_posterior(0), one_minus_sum_posterior(0);
-				for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end(); ++it)
-				{
-					DoubleReal the_x = *it;
-					DoubleReal x_gauss2 = gauss_fit2.A * exp(-1.0 * pow(the_x - gauss_fit2.x0, 2) / (2 * pow(gauss_fit2.sigma, 2)));		
-					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
-					sum_posterior += (negative_prior*x_gauss2)/((negative_prior*x_gauss2) + (1-negative_prior)*x_gauss1);
-					one_minus_sum_posterior += 1  - ((negative_prior*x_gauss2)/((negative_prior*x_gauss2) + (1-negative_prior)*x_gauss1));
-				}		
-				//M-STEP
-					
-				//new mean
-				DoubleReal sum_gauss1_x0(0),sum_gauss2_x0(0);
-				for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
-				{
-					DoubleReal the_x = *it;
-					DoubleReal x_gauss2 = gauss_fit2.A * exp(-1.0 * pow(the_x - gauss_fit2.x0, 2) / (2 * pow(gauss_fit2.sigma, 2)));		
-					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
-							
-					sum_gauss1_x0 += ((1  - ((negative_prior*x_gauss2)/((negative_prior*x_gauss2) + (1-negative_prior)*x_gauss1)))*the_x);
-					sum_gauss2_x0 += (((negative_prior*x_gauss2)/((negative_prior*x_gauss2) + (1-negative_prior)*x_gauss1))*the_x);
-				}
-
-										
-				DoubleReal gauss1_mean = sum_gauss1_x0/one_minus_sum_posterior; 
-				DoubleReal gauss2_mean = sum_gauss2_x0/sum_posterior; 
-
-				//new standard deviation
-				DoubleReal sum_gauss1_sigma(0),sum_gauss2_sigma(0);
-				for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
-				{
-					DoubleReal the_x = *it;
-					DoubleReal x_gauss2 = gauss_fit2.A * exp(-1.0 * pow(the_x - gauss_fit2.x0, 2) / (2 * pow(gauss_fit2.sigma, 2)));		
-					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
-							
-					sum_gauss1_sigma += ((1  - ((negative_prior*x_gauss2)/((negative_prior*x_gauss2) + (1-negative_prior)*x_gauss1)))*pow(the_x - gauss1_mean,2));
-					sum_gauss2_sigma += (((negative_prior*x_gauss2)/((negative_prior*x_gauss2) + (1-negative_prior)*x_gauss1))*pow(the_x - gauss2_mean,2));
-				}					
-						
-				//update parameters
-				gauss_fit1.x0 = gauss1_mean;
-				if(sum_gauss1_sigma  != 0 && one_minus_sum_posterior != 0)
-				{
-					gauss_fit1.sigma = sqrt(sum_gauss1_sigma/one_minus_sum_posterior); 
-					gauss_fit1.A = 1/sqrt(2*3.14159*pow(gauss_fit1.sigma,2));
-				}
-						
-				gauss_fit2.x0 = gauss2_mean;
-				if(sum_gauss2_sigma  != 0 && sum_posterior != 0)
-				{
-					gauss_fit2.sigma = sqrt(sum_gauss2_sigma/sum_posterior);
-					gauss_fit2.A = 1/sqrt(2*3.14159*pow(gauss_fit2.sigma,2));
-				}
-				//compute new prior probabilities negative peptides	
-				sum_posterior = 0;
-				for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
-				{
-					DoubleReal the_x = *it;
-					DoubleReal x_gauss2 = gauss_fit2.A * exp(-1.0 * pow(the_x - gauss_fit2.x0, 2) / (2 * pow(gauss_fit2.sigma, 2)));		
-					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
-					sum_posterior += (negative_prior*x_gauss2)/((negative_prior*x_gauss2) + (1-negative_prior)*x_gauss1);
-				}
-						
-				negative_prior = sum_posterior/probabilities.size();
-						
-           	
-        //compute new maximum likelihood
-        DoubleReal new_maxlike(0);
-        for(vector<double >::const_iterator it = probabilities.begin(); it < probabilities.end() ; ++it)
-				{
-					DoubleReal the_x = *it;
-					DoubleReal x_gauss2 = gauss_fit2.A * exp(-1.0 * pow(the_x - gauss_fit2.x0, 2) / (2 * pow(gauss_fit2.sigma, 2)));		
-					DoubleReal x_gauss1 = gauss_fit1.A * exp(-1.0 * pow(the_x - gauss_fit1.x0, 2) / (2 * pow(gauss_fit1.sigma, 2)));
-					new_maxlike += log10(negative_prior*x_gauss2+(1-negative_prior)*x_gauss1);
-				}
-				
-        if(boost::math::isnan(new_maxlike - maxlike))
-				{
-					throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");					
-				}
-        if(fabs(new_maxlike - maxlike) < 0.001)
-        {
-        	stop_em_init = true;      		
-        }
-				if(output_plots)
-				{
-					++iter;
-					file[1] = (output + iter + output_ending);
-					gauss_fit_param_ = gauss_fit2;
-					String formula;
-					formula =  "f(x)=" + String(gauss_fit_param_.A) + " * exp(-(x - " + String(gauss_fit_param_.x0) + ") ** 2 / 2 / (" + String(gauss_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior);
-					file[2] = formula;
-					gauss_fit_param_ = gauss_fit1;
-					file[3] = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")"; 
-					formula = "h(x)=" + String(negative_prior)+"*" + String(gauss_fit2.A) + " * exp(-(x - " + String(gauss_fit2.x0) + ") ** 2 / 2 / (" + String(gauss_fit2.sigma) + ") ** 2)"+ " + "+"(1-"+String(negative_prior) + ")*" + String(gauss_fit1.A) + " * exp(-(x - " + String(gauss_fit1.x0) + ") ** 2 / 2 / (" + String(gauss_fit1.sigma) + ") ** 2)";
-					file[4] = formula;
-					file.store(step + iter);
-				}
-				//update maximum likelihood
-				maxlike = new_maxlike;
-			}while(!stop_em_init);									
-					
-			if(gauss_fit1.x0 <= gauss_fit2.x0)
-			{
-				gauss_fit_param_ = gauss_fit2;
-				gumbel_fit_param_.b =gauss_fit1.sigma;// 6*gauss_fit1.sigma/pow(3.14,2);
-				gumbel_fit_param_.a = gauss_fit1.x0; // gauss_fit1.x0 + 0.57722* 1/(3.14*sqrt(6*gumbel_fit_param_.b));                         
-			}
-			else
-			{
-				gauss_fit_param_ = gauss_fit1;
-				gumbel_fit_param_.b =gauss_fit2.sigma; //6*gauss_fit2.sigma/pow(3.14,2);
-				gumbel_fit_param_.a =gauss_fit2.x0; //gauss_fit2.x0 + 0.57722* 1/(3.14*sqrt(6*gumbel_fit_param_.b));
-			}
-			if(output_plots)
-			{
-				++iter;			
-				file[1] = (output + iter + output_ending);
-				file[2] = getGumbelGnuplotFormula() + "*" + String(negative_prior);
-				file[3] = getGaussGnuplotFormula()+ "* (1 - " + String(negative_prior) + ")";
-				//this step is needed for getBothGnuplotFormula
-				negative_prior_ = negative_prior; 
-				file[4] = getBothGnuplotFormula();
-				file.store(step + iter);				
-			}
-			//Compute probabilities
-			max_gumbel_ = exp(-1.0)/gumbel_fit_param_.b;
-			max_gauss_ = gauss_fit_param_.A;
-			negative_prior_ = negative_prior;
-			smallest_score_ = minimum;
-			probs = probabilities.begin();
-			for(vector<double >::iterator it = x_scores.begin(); it < x_scores.end() ; ++it, ++probs)
-			{
-				*probs = 	computeProbability(*it);			
-			}
+				output = "set output \""+ (String)param_.getValue("output_name") +".ps\"";
+				(*file)<<"set terminal postscript";	
+				(*file)<<(output);
+				String formula1, formula2;
+				formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_)+ "* " + String(negative_prior_);//String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+				formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_)+ "* (1 - " + String(negative_prior_) + ")";//String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+				(*file)<< ("plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, " + formula1 + " , " + formula2);
+				return file;
 		}
-				
-		const String PosteriorErrorProbabilityModel::getGumbelGnuplotFormula() const
+
+		const String PosteriorErrorProbabilityModel::getGumbelGnuplotFormula(const GaussFitter::GaussFitResult& params) const
 		{
 			// build a formula with the fitted parameters for gnuplot
 			stringstream formula;
-			formula <<"f(x)=" << "(1/" << gumbel_fit_param_.b <<") * " << "exp(( "<< gumbel_fit_param_.a<< "- x)/"<< gumbel_fit_param_.b <<") * exp(-exp(("<<gumbel_fit_param_.a<<" - x)/"<<gumbel_fit_param_.b<<"))";
+			formula << "(1/" << params.sigma <<") * " << "exp(( "<< params.x0<< "- x)/"<< params.sigma <<") * exp(-exp(("<<params.x0<<" - x)/"<<params.sigma<<"))";
 			return  formula.str();
 		}
 				
-		const String PosteriorErrorProbabilityModel::getGaussGnuplotFormula() const
+		const String PosteriorErrorProbabilityModel::getGaussGnuplotFormula(const GaussFitter::GaussFitResult& params) const
 		{
 			stringstream formula;
-			formula << "g(x)=" << gauss_fit_param_.A << " * exp(-(x - " << gauss_fit_param_.x0 << ") ** 2 / 2 / (" << gauss_fit_param_.sigma << ") ** 2)";
+			formula << params.A << " * exp(-(x - " << params.x0 << ") ** 2 / 2 / (" << params.sigma << ") ** 2)";
 			return formula.str();
 		}
-				
-		const String PosteriorErrorProbabilityModel::getBothGnuplotFormula() const
+		
+		const String PosteriorErrorProbabilityModel::getBothGnuplotFormula(const GaussFitter::GaussFitResult& incorrect,const GaussFitter::GaussFitResult& correct) const
 		{
 			stringstream formula;
-			formula << "h(x)=" << negative_prior_<<"*"<< "(1/" << gumbel_fit_param_.b <<") * " << "exp(( "<< gumbel_fit_param_.a<< "- x)/"<< gumbel_fit_param_.b <<") * exp(-exp(("<<gumbel_fit_param_.a<<" - x)/"<<gumbel_fit_param_.b<<")) + "<<"(1-"<<negative_prior_<<")*"<<gauss_fit_param_.A << " * exp(-(x - " << gauss_fit_param_.x0 << ") ** 2 / 2 / (" << gauss_fit_param_.sigma << ") ** 2)";
+			formula << negative_prior_<<"*"<<  ((this)->*(getNegativeGnuplotFormula_))(incorrect) <<" + (1-"<<negative_prior_<<")*"<< ((this)->*(getPositiveGnuplotFormula_))(correct);
 			return formula.str();
 		}	
-		
-		DoubleReal PosteriorErrorProbabilityModel::computeProbability(DoubleReal score)
-		{
-			DoubleReal the_x = score + smallest_score_ + 0.001;
-			DoubleReal x_gumbel;
-			DoubleReal x_gauss;
-			//the x value is smaller than the x value of gumbles peak. To ensure that the probabilies wont rise again use gumbels peak for computation
-			if(the_x < gumbel_fit_param_.a)
-			{
-				x_gumbel = max_gumbel_;	
-				x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
-			}
-			//same as above. Hovever, this time to ensure that probabilities wont drop again.
-			else if(the_x > gauss_fit_param_.x0)
-			{
-				DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);
-				x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
-				x_gauss = max_gauss_;
-			}
-			//if its in between use the normal formula
-			else
-			{
-				DoubleReal z = exp((gumbel_fit_param_.a - the_x)/gumbel_fit_param_.b);
-				x_gumbel = (z*exp(-1* z))/gumbel_fit_param_.b;				
-				x_gauss = gauss_fit_param_.A * exp(-1.0 * pow(the_x - gauss_fit_param_.x0, 2) / (2 * pow(gauss_fit_param_.sigma, 2)));
-			}
-			 return (negative_prior_*x_gumbel)/((negative_prior_*x_gumbel) + (1-negative_prior_)*x_gauss);		
-		}
-		
 	} //namespace Math
 } // namespace OpenMS
 
