@@ -69,12 +69,23 @@ class TOPPMassCalculator
 public:
 
 	TOPPMassCalculator()
-		: TOPPBase("MassCalculator", "Calculates masses and mass-to-charge ratios of peptide sequences", false), use_avg_mass_(false), output_(0), format_()
+		: TOPPBase("MassCalculator", "Calculates masses and mass-to-charge ratios of peptide sequences", false), use_avg_mass_(false), output_(0), format_(), res_type_(Residue::Full)
 		{
+			for (Size i = 0; i < Residue::SizeOfResidueType; i++)
+			{
+				Residue::ResidueType res_type = Residue::ResidueType(i);
+				res_type_names_[getResidueTypeName(res_type)] = res_type;
+			}
 		}
 
 
 protected:
+
+	bool use_avg_mass_;
+	ostream* output_; // pointer to output stream (stdout or file)
+	String format_, separator_;
+	Residue::ResidueType res_type_;
+	map<String, Residue::ResidueType> res_type_names_;
 
 	void registerOptionsAndFlags_()
 		{
@@ -84,17 +95,15 @@ protected:
 			registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
 			setValidStrings_("format", StringList::create("list,table,mass_only,mz_only"));
 			registerFlag_("average_mass", "Compute average (instead of monoisotopic) peptide masses");
+			registerStringOption_("fragment_type", "<choice>", "full", "For what type of sequence/fragment the mass should be computed\n", false);
+			setValidStrings_("fragment_type", StringList::create("full,internal,N-terminal,C-terminal,a-ion,b-ion,c-ion,x-ion,y-ion,z-ion"));
 			registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
 		}
-
-	bool use_avg_mass_;
-	ostream* output_; // pointer to output stream (stdout or file)
-	String format_, separator_;
 	
 	DoubleReal computeMass_(const AASequence& seq, Int charge) const
 		{
-			if (use_avg_mass_) return seq.getAverageWeight(Residue::Full, charge);
-			else return seq.getMonoWeight(Residue::Full, charge);
+			if (use_avg_mass_) return seq.getAverageWeight(res_type_, charge);
+			else return seq.getMonoWeight(res_type_, charge);
 		}
 
 	void writeTable_(const AASequence& seq, const set<Int>& charges)
@@ -204,6 +213,7 @@ protected:
 			IntList charge_list = getIntList_("charge");
 			set<Int> charges(charge_list.begin(), charge_list.end());
 			use_avg_mass_ = getFlag_("average_mass");
+			res_type_ = res_type_names_[getStringOption_("fragment_type")];
 
 			ofstream outfile;
 			if (out.empty())

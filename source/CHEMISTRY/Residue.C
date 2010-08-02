@@ -160,6 +160,14 @@ namespace OpenMS
 		String ion("-ion");
 		switch (res_type)
 		{
+  		case Residue::Full:
+	  		return "full";
+		  case Residue::Internal:
+			  return "internal";
+		  case Residue::NTerminal:
+			  return "N-terminal";
+		  case Residue::CTerminal:
+			  return "C-terminal";
 			case Residue::AIon:
 				return "a" + ion;
 			case Residue::BIon:
@@ -169,9 +177,9 @@ namespace OpenMS
 			case Residue::CIonMinusOne:
 				return "c-1" + ion;
 			case Residue::CIonPlusOne:
-				return "c." + ion;
+				return "c+1" + ion;
 			case Residue::CIonPlusTwo:
-				return "c.." + ion;
+				return "c+2" + ion;
 			case Residue::XIon:
 				return "x" + ion;
 			case Residue::YIon:
@@ -181,9 +189,9 @@ namespace OpenMS
 			case Residue::ZIonMinusOne:
 				return "z-1" + ion;
 			case Residue::ZIonPlusOne:
-				return "z." + ion;
+				return "z+1" + ion;
 			case Residue::ZIonPlusTwo:
-				return "z.." + ion;
+				return "z+2" + ion;
 			default:
 				cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
 		}

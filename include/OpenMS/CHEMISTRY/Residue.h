@@ -363,7 +363,8 @@ namespace OpenMS
 				ZIonMinusOne, // C-alpha/carbonyl carbon bond
 				ZIon,  // C-alpha/carbonyl carbon bond
 				ZIonPlusOne,  // C-alpha/carbonyl carbon bond
-				ZIonPlusTwo  // C-alpha/carbonyl carbon bond
+				ZIonPlusTwo,  // C-alpha/carbonyl carbon bond
+				SizeOfResidueType
 
 				/// @todo add c+1, z+1, z+2 ion types (Andreas)
 			};
