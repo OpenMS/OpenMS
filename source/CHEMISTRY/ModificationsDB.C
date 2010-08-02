@@ -145,7 +145,7 @@ namespace OpenMS
 		// either the mod is restricted to specific amino acid, or unspecific a the terminus
 		if (term_spec == ResidueModification::ANYWHERE && ResidueDB::getInstance()->getResidue(residue_name) == 0)
 		{
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, residue_name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Retrieving residue failed.", residue_name);
 		}
 
 		String res = residue_name;
@@ -157,7 +157,7 @@ namespace OpenMS
 		searchModifications(mods, res, mod_name, term_spec);
     if (mods.size() == 0)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Retrieving the modification failed. Its not available for the current residue '" + String(residue_name) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
     }
     if (mods.size() > 1)
     {

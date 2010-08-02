@@ -29,7 +29,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <gsl/gsl_blas.h>
+
 
 namespace OpenMS
 {

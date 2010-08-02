@@ -224,12 +224,11 @@ namespace OpenMS
 
   void O18Labeler::addModificationToPeptideHit_(Feature& feature, const String& modification) const
   {
-    vector<PeptideHit> pepHits(feature.getPeptideIdentifications()[0].getHits());
-    AASequence modified_sequence(pepHits[0].getSequence());
-    //modified_sequence.setModification(modified_sequence.size() - 1, modification);
+    vector<PeptideHit> pep_hits(feature.getPeptideIdentifications()[0].getHits());
+    AASequence modified_sequence(pep_hits[0].getSequence());
     modified_sequence.setCTerminalModification(modification);
-    pepHits[0].setSequence(modified_sequence);
-    feature.getPeptideIdentifications()[0].setHits(pepHits);
+    pep_hits[0].setSequence(modified_sequence);
+    feature.getPeptideIdentifications()[0].setHits(pep_hits);
   }
 
   /// Labeling between RT and Detectability

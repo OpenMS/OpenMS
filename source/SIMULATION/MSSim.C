@@ -100,6 +100,9 @@ namespace OpenMS {
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
     defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
 		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
+
+    subsections_.push_back("Labeling");
+
 		//sync params (remove duplicates from modules and put them in a global module)
 		syncParams_(defaults_, true);
     defaultsToParam_();
@@ -230,6 +233,8 @@ namespace OpenMS {
 
     labeler->postRawTandemMSHook(feature_maps_,experiment_);
 
+    LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
+
   }
 
 	void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map)
@@ -307,7 +312,7 @@ namespace OpenMS {
 
   FeatureMapSim const & MSSim::getSimulatedFeatures() const
   {
-    // TODO: this should be checked somehow
+    OPENMS_PRECONDITION(feature_maps_.size()==1, "More than one feature map remains after simulation. The channels should however be merged by now. Check!")
     return feature_maps_[0];
   }
 

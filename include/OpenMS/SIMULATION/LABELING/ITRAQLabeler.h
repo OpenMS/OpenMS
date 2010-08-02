@@ -82,7 +82,21 @@ namespace OpenMS
     void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */);
 
   protected:
-    void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
+    
+    /**
+      @brief Modify the first peptide hit of the feature with a modification at @p pos
+
+    */
+    void addModificationToPeptideHit_(Feature& feature, const String& modification, const Size& pos) const;
+
+    /**
+      @brief tag a feature with iTRAQ modifications
+
+      This might produce several features, due to incomplete labeling of "Y" residues.
+      The resulting features are exact copies, except for their intensity and modification state.
+
+    */
+    void labelPeptide_(const Feature& feature, FeatureMapSim& result) const;
 
     Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const;
 
@@ -104,6 +118,9 @@ namespace OpenMS
 
 		/// Matrixes with isotope correction values (one for each plex-type)
 		IsotopeMatrices isotope_corrections_;
+
+    /// efficiency of "Y" labeling
+    DoubleReal y_labeling_efficiency_;
 
   };
 } // namespace OpenMS
