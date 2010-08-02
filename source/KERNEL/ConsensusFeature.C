@@ -251,6 +251,48 @@ namespace OpenMS
     setCharge(charge_most_frequent);
     return;
   }
+
+	void ConsensusFeature::computeMonoisotopicConsensus()
+	{
+		// for computing average rt position, minimal m/z position and intensity
+		DoubleReal rt=0.0;
+		DoubleReal mz=std::numeric_limits<DoubleReal>::max();
+		DoubleReal intensity=0.0;
+
+		// The most frequent charge state wins.  Tie breaking prefers smaller charge.
+		std::map<Int,UInt> charge_occ;
+		Int charge_most_frequent = 0;
+		UInt charge_most_frequent_occ = 0;
+
+		for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+		{
+			rt += it->getRT();
+			if (it->getMZ() < mz)
+				mz=it->getMZ();
+			intensity += it->getIntensity();
+			const Int it_charge = it->getCharge();
+			const UInt it_charge_occ = ++charge_occ[it_charge];
+			if ( it_charge_occ > charge_most_frequent_occ )
+			{
+				charge_most_frequent_occ = it_charge_occ;
+				charge_most_frequent = it_charge;
+			}
+			else
+			{
+				if ( it_charge_occ >= charge_most_frequent_occ && abs(it_charge) < abs(charge_most_frequent) )
+				{
+					charge_most_frequent = it_charge;
+				}
+			}
+		}
+
+		// compute the position and intensity
+		setRT(rt / size());
+		setMZ(mz);
+		setIntensity(intensity / size());
+		setCharge(charge_most_frequent);
+		return;
+	}
   
   void ConsensusFeature::computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging)
   {
