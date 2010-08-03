@@ -220,7 +220,7 @@ namespace OpenMS
 			
 			// add up signal of all features
 			// TODO: take care of actual position of feature relative to precursor!
-      OPENMS_PRECONDITION(it->getMetaValue("parent_feature_ids"),"Meta value 'parent_feature_ids' missing in ITRAQLabeler::postRawTandemMSHook()!")
+      OPENMS_PRECONDITION(it->metaValueExists("parent_feature_ids"),"Meta value 'parent_feature_ids' missing in ITRAQLabeler::postRawTandemMSHook()!")
 			IntList parent_fs = (IntList) it->getMetaValue("parent_feature_ids");
 			for (Size i_f=0; i_f < parent_fs.size(); ++i_f)
 			{
