@@ -268,7 +268,6 @@ namespace OpenMS {
     // add CH and new intensity to feature
     double i=active_feature.getIntensity();
     samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
-    std::cerr << "before " << i << "  after: " << active_feature.getIntensity() << "\n";
 
   }
 
@@ -316,10 +315,9 @@ namespace OpenMS {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
 
-    LOG_DEBUG << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
+    LOG_INFO << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
 
     SimIntensityType intensity_sum = 0.0;
-    SimPointType point;
     vector< DPosition<2> > points;
     
     Int start_scan = exp_iter - experiment.begin();
@@ -333,25 +331,23 @@ namespace OpenMS {
 			
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
-
+        SimPointType point;
         point.setMZ(mz);
         point.setIntensity( pm.getIntensity( DPosition<2>( rt, mz) ) );
 
-        if ( point.getIntensity() > 10.0)
-        {
-          // add gaussian distributed m/z error
-          double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
-          point.setMZ( point.getMZ() + mz_err );
+        // add gaussian distributed m/z error
+        double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
+        point.setMZ( point.getMZ() + mz_err );
 
-          intensity_sum += point.getIntensity();
-          points.push_back( DPosition<2>( rt, mz) );		// store position
-          exp_iter->push_back(point);
-
-          //update last scan affected
-          end_scan = exp_iter - experiment.begin();
-        }
+        intensity_sum += point.getIntensity();
+        points.push_back( DPosition<2>( rt, mz) );		// store position
+        exp_iter->push_back(point);
       }
+      //update last scan affected
+      end_scan = exp_iter - experiment.begin();
     }
+
+    OPENMS_POSTCONDITION(end_scan  != -5, "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");
 
     active_feature.setQuality(0,start_scan);
     active_feature.setQuality(1,end_scan);
