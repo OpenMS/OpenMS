@@ -66,7 +66,7 @@ START_SECTION((SpectraMerger& operator=(const SpectraMerger& source)))
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 END_SECTION
 
-START_SECTION((template <typename ExperimentType> void mergeSpectraBlockWise(ExperimentType& exp)))
+START_SECTION((template < typename MapType > void mergeSpectraBlockWise(MapType &exp)))
 	PeakMap exp, exp2;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_2.mzML"), exp);
 	TEST_EQUAL(exp.size(), 144)
@@ -101,7 +101,7 @@ START_SECTION((template <typename ExperimentType> void mergeSpectraBlockWise(Exp
 
 END_SECTION
 
-START_SECTION((template <typename ExperimentType> void mergeSpectraPrecursors(ExperimentType& exp)))
+START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType &)))
 	PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_1.mzML"), exp);
 

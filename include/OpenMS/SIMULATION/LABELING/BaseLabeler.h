@@ -45,10 +45,8 @@ namespace OpenMS
   {
   public:
 
-    BaseLabeler()
-      : DefaultParamHandler("BaseLabeler")
-    {
-    }
+    /// constructor
+    BaseLabeler();
 
     /// destructor
     virtual ~BaseLabeler()

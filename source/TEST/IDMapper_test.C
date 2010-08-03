@@ -159,7 +159,7 @@ END_SECTION
 
 
 
-START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureType> &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification >& protein_ids, bool use_centroids=false)))
+START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))
 	//load id data
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;

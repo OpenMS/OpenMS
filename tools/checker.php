@@ -637,7 +637,7 @@ $GLOBALS["all_tests"] = array(
 					{
 						if (!file_exists($src_path."/include/OpenMS/".substr($f,7,-2).".h"))
 						{
-							realOutput("Outdated source file '$f'",$user,$f);
+							realOutput("Outdated source file '$f' (no header)",$user,$f);
 						}
 					}
 				}

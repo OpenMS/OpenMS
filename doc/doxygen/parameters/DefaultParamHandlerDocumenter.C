@@ -149,6 +149,8 @@
 #include <OpenMS/SIMULATION/RTSimulation.h>
 #include <OpenMS/SIMULATION/EGHFitter1D.h>
 #include <OpenMS/SIMULATION/EGHModel.h>
+#include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
+#include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 
@@ -268,14 +270,19 @@ void writeParameters(const String& class_name, const Param& param)
 		if (it->tags.count("advanced")==1) style = "i";
 
 		//final output
-		f <<"<tr><td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td><td style=\"vertical-align:top\">" << type << "</td><td style=\"vertical-align:top\">" << value <<  "</td><td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td></tr>" << endl;
+		f << "<tr>\n"
+      << "  <td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td>\n"
+      << "  <td style=\"vertical-align:top\">" << type << "</td><td style=\"vertical-align:top\">" << value <<  "</td>\n"
+      << "  <td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td>\n"
+      << "</tr>\n";
 	}
-	f << "</table>" << endl;
-	f << endl << "<b>Note:</b>" << endl;
-	f << "<UL>" << endl;
-	f << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << endl;
-	f << "  <LI> Advanced parameter names are italic." << endl;
-	f << "</UL>" << endl;
+	f << "</table>" << "\n";
+	f << "\n" << "<b>Note:</b>" << "\n";
+	f << "<UL>" << "\n";
+	f << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n";
+	f << "  <LI> Advanced parameter names are italic." << "\n";
+	f << "</UL>" << "\n";
+  f.close();
 }
 
 //**********************************************************************************
@@ -401,6 +408,8 @@ int main (int argc , char** argv)
 	DOCME(Fitter1D)
 	DOCME(EGHModel)
 	DOCME(EGHFitter1D)
+  DOCME(O18Labeler)
+  DOCME(ITRAQLabeler)
 	
 	//////////////////////////////////
 	// More complicated cases

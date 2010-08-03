@@ -265,7 +265,11 @@ namespace OpenMS {
     SimCoordinateType mz_end = isomodel->getInterpolation().supportMax();
 
     // add peptide to global MS map
+    // add CH and new intensity to feature
+    double i=active_feature.getIntensity();
     samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
+    std::cerr << "before " << i << "  after: " << active_feature.getIntensity() << "\n";
+
   }
 
 
@@ -299,9 +303,10 @@ namespace OpenMS {
 
 
   void RawMSSignalSimulation::samplePeptideModel2D_(const ProductModel<2> & pm,
-                                    const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
-                                    SimCoordinateType rt_start, SimCoordinateType rt_end,
-                                    MSSimExperiment & experiment, Feature & active_feature)
+                                                    const SimCoordinateType mz_start,
+                                                    const SimCoordinateType mz_end,
+                                                    SimCoordinateType rt_start, SimCoordinateType rt_end,
+                                                    MSSimExperiment & experiment, Feature & active_feature)
   {
     if (rt_start <=0) rt_start = 0;
 
@@ -408,8 +413,6 @@ namespace OpenMS {
       // set elution profile details in feature -> used for MS^E precursor selection in tandemMS later
       feature.setMetaValue("elution_profile_intensities", elution_intensities);
       feature.setMetaValue("elution_profile_bounds", elution_bounds);
-
-
   }
 
   void RawMSSignalSimulation::chooseElutionProfile_(EmgModel*& elutionmodel, const Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
@@ -621,9 +624,9 @@ namespace OpenMS {
   SimIntensityType RawMSSignalSimulation::getFeatureScaledIntensity_(const SimIntensityType feature_intensity, const SimIntensityType natural_scaling_factor)
   {
     SimIntensityType intensity = feature_intensity * natural_scaling_factor * intensity_scale_;
-
-    // add some
-    intensity = gsl_ran_gaussian(rnd_gen_, intensity_scale_stddev_ * intensity) + intensity;
+    
+    // add some noise
+    intensity += gsl_ran_gaussian(rnd_gen_, intensity_scale_stddev_ * intensity);
 
     return intensity;
   }

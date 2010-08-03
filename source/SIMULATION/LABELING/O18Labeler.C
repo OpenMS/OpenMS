@@ -37,6 +37,7 @@ namespace OpenMS
   O18Labeler::O18Labeler()
     : BaseLabeler()
   {
+    setName("O18Labeler");
     defaults_.setValue("labeling_efficiency", 1.0, "Describes the distribution of the labeled peptide over the different states (unlabeled, mono- and dilabeled)");
     defaults_.setMinFloat("labeling_efficiency", 0.0);
     defaults_.setMaxFloat("labeling_efficiency", 1.0);

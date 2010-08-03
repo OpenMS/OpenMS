@@ -34,7 +34,11 @@ namespace OpenMS
 {
 
   /**
-  @brief Abstract base class for all kinds of labeling techniques
+    @brief Simulate O-18 experiments
+
+    Add modified features to MS1 scans.
+
+		@htmlinclude OpenMS_O18Labeler.parameters
   */
   class OPENMS_DLLAPI O18Labeler
     : public BaseLabeler

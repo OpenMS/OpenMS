@@ -37,6 +37,11 @@ using std::set;
 namespace OpenMS
 {
 
+  BaseLabeler::BaseLabeler()
+    : DefaultParamHandler("BaseLabeler")
+  {
+  }
+
   String BaseLabeler::getChannelIntensityName(const Size channel_index) const
   {
     return String("channel_")+ String(channel_index) + "_intensity";

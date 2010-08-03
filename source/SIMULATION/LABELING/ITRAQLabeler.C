@@ -41,7 +41,10 @@ namespace OpenMS
 		  itraq_type_(),
 		  channel_map_(),
 		  isotope_corrections_()
+
   {
+    setName("ITRAQLabeler");
+
 		// this needs to come first!
 		isotope_corrections_.resize(2);
 		isotope_corrections_[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);

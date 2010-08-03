@@ -50,7 +50,7 @@ START_SECTION([EXTRA] ~EnzymaticDigestion())
 	delete e_ptr;
 END_SECTION
 
-START_SECTION((Size getMissedCleavages() const ))
+START_SECTION((SignedSize getMissedCleavages() const ))
 	TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(),0)
 END_SECTION
 
@@ -58,7 +58,7 @@ START_SECTION((Enzyme getEnzyme() const))
 	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::TRYPSIN)
 END_SECTION
 
-START_SECTION((void setMissedCleavages(Size missed_cleavages)))
+START_SECTION((void setMissedCleavages(SignedSize missed_cleavages)))
 	EnzymaticDigestion ed;
 	ed.setMissedCleavages(5);
 	TEST_EQUAL(ed.getMissedCleavages(),5)

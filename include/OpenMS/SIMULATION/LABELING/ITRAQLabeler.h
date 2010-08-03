@@ -35,7 +35,12 @@ namespace OpenMS
 {
 
   /**
-  @brief Abstract base class for all kinds of labeling techniques
+    @brief Simulate iTRAQ experiments
+
+    Adds reporter ion intensities to MS/MS scans. 
+    Supports custom channel allocation and isotope matrices.
+
+		@htmlinclude OpenMS_ITRAQLabeler.parameters
   */
   class OPENMS_DLLAPI ITRAQLabeler
     : public BaseLabeler

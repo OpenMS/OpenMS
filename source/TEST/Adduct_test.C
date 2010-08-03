@@ -151,15 +151,28 @@ START_SECTION((const String& getFormula() const))
 END_SECTION
 
 START_SECTION((void setFormula(const String &formula)))
-{
 	Adduct a;
 	a.setFormula("S");
   TEST_EQUAL(a.getFormula()=="S1", true);
-}
+END_SECTION
+
+START_SECTION((const DoubleReal& getRTShift() const))
+	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
+  TEST_REAL_SIMILAR(a.getRTShift(), -10);
+	Adduct a1(123, 43, 123.456f, "S", -0.3453, 11);
+  TEST_REAL_SIMILAR(a1.getRTShift(), 11);
+END_SECTION
+
+START_SECTION((const String& getLabel() const ))
+	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
+  TEST_EQUAL(a.getLabel(), "");
+	Adduct a1(123, 43, 123.456f, "S", -0.3453, 11, "mylabel");
+  TEST_EQUAL(a1.getLabel(), "mylabel");
 END_SECTION
 
 
-START_SECTION((Adduct operator *(const Int m)))
+
+START_SECTION((Adduct operator *(const Int m) const))
 {
 	Adduct a_p(123, 43, 123.456, "S", -0.3453, 0);
 	Adduct a = a_p*4;
