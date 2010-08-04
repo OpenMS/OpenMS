@@ -828,7 +828,7 @@ namespace OpenMS
 			n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
 
 			split.erase(split.begin());
-		}
+    }
 
 		if (split.size() == 0)
 		{
@@ -946,11 +946,29 @@ namespace OpenMS
 				sequence.clear();
 				cerr << "AASequence: cannot parse residue with name: '" << name << "' from sequence '" << peptide << "'" << endl;
 				return;
-			}
-			if (mod != "")
+			}      
+      if (mod != "" && i>0)
 			{
 				sequence.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
 			}
+      else if (mod != "" && i==0)
+      {
+        std::set< const ResidueModification * >mod_candidates;        
+        ModificationsDB::getInstance()->searchModifications(mod_candidates, res_ptr->getOneLetterCode(), mod, ResidueModification::ANYWHERE);
+        if(!mod_candidates.empty())
+        {          
+          sequence.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
+        }
+        else
+        {
+          ModificationsDB::getInstance()->searchTerminalModifications(mod_candidates, mod, ResidueModification::N_TERM);
+          if(!mod_candidates.empty())
+          {
+            n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
+            sequence.push_back(res_ptr);
+          }
+        }
+      }
 			else
 			{
 				if (tag != "")
