@@ -410,9 +410,14 @@ namespace OpenMS
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
+    if(index == size())
+    {
+      return *this;  
+    }
 		AASequence seq;
+    seq.n_term_mod_=n_term_mod_;
 		for (Size i=0;i<index;++i)
-		{
+		{        
 			seq.peptide_.push_back(peptide_[i]);
 		}
 		return seq;
