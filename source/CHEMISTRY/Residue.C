@@ -155,7 +155,7 @@ namespace OpenMS
 		return name_;
 	}
 
-	String getResidueTypeName(Residue::ResidueType res_type)
+	String Residue::getResidueTypeName(const Residue::ResidueType res_type)
 	{
 		String ion("-ion");
 		switch (res_type)

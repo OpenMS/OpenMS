@@ -847,7 +847,7 @@ namespace OpenMS
       // correctly by prefix/suffix search
       Size brackets = 0;
       // we start at (end - 1) to skip trailing ')'
-      for(String::ConstReverseIterator rIt = (c_term.rbegin() + 1); rIt != c_term.rend() ; ++rIt)
+      for(String::ReverseIterator rIt = (c_term.rbegin() + 1); rIt != c_term.rend() ; ++rIt)
       {
         if(*rIt == '(' && brackets==0)
         {

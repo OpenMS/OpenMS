@@ -74,7 +74,7 @@ public:
 			for (Size i = 0; i < Residue::SizeOfResidueType; i++)
 			{
 				Residue::ResidueType res_type = Residue::ResidueType(i);
-				res_type_names_[getResidueTypeName(res_type)] = res_type;
+				res_type_names_[Residue::getResidueTypeName(res_type)] = res_type;
 			}
 		}
 

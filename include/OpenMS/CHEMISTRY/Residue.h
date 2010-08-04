@@ -369,6 +369,10 @@ namespace OpenMS
 				/// @todo add c+1, z+1, z+2 ion types (Andreas)
 			};
 			//@}
+
+	    /// returns the ion name given as a residue type
+	    static String getResidueTypeName(const ResidueType res_type);
+
 			
 			/** @name Constructors
 			*/
@@ -644,8 +648,6 @@ namespace OpenMS
 	
 	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Residue& residue);
 
-	/// returns the ion name given as a residue type
-	String getResidueTypeName(Residue::ResidueType res_type);
 }
 
 #endif
