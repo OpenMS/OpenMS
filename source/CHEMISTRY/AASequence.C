@@ -429,7 +429,12 @@ namespace OpenMS
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
+    if(index == size())
+    {
+      return *this;  
+    }
 		AASequence seq;
+    seq.c_term_mod_=c_term_mod_;
 		for (Size i=size()-index;i!=size();++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
@@ -448,6 +453,8 @@ namespace OpenMS
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index+num, size());
 		}
 		AASequence seq;
+    if (index == 0) seq.n_term_mod_=n_term_mod_;
+    if (index + num == this->size()) seq.c_term_mod_=c_term_mod_;
 		for (Size i = index; i != index + num; ++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
@@ -516,36 +523,7 @@ namespace OpenMS
 	bool AASequence::hasSubsequence(const String& sequence) const
 	{
 		AASequence aa_seq(sequence);
-		vector<const Residue*> seq = aa_seq.peptide_;
-		if (seq.size() == 0)
-		{
-			return true;
-		}
-		else
-		{
-			if (seq.size() <= peptide_.size())
-			{
-				for (Size i=0;i!=peptide_.size();++i)
-				{
-					Size j=0;
-					for (;j+i!=peptide_.size() && j!=seq.size();++j)
-					{
-						if (peptide_[j+i] == seq[j])
-						{
-							if (j == seq.size()-1)
-							{
-								return true;
-							}
-						}
-						else
-						{
-							break;
-						}
-					}	
-				}
-			}
-		}
-		return false;
+		return hasSubsequence(aa_seq);
 	}
 	
 	bool AASequence::hasPrefix(const AASequence& sequence) const
@@ -558,6 +536,8 @@ namespace OpenMS
 		{
 			return false;
 		}
+    if (sequence.n_term_mod_!=n_term_mod_) return false;
+    if (sequence.size()==peptide_.size() && sequence.c_term_mod_!=c_term_mod_) return false;
 		for (Size i=0;i!=sequence.size();++i)
 		{
 			if (sequence.peptide_[i] != peptide_[i])
@@ -584,7 +564,9 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (Size i=0;i!=sequence.size();++i)
+    if (sequence.c_term_mod_!=c_term_mod_) return false;
+    if (sequence.size()==peptide_.size() && sequence.n_term_mod_!=n_term_mod_) return false;
+    for (Size i=0;i!=sequence.size();++i)
 		{
 			if (sequence.peptide_[sequence.size()-1-i] != peptide_[size()-1-i])
 			{
