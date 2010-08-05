@@ -421,9 +421,6 @@ START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT 
 	MSExperiment< > exp;
 	String type;
 
-	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("InspectOutfile_version_file.txt")), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_version_file.txt"," in: Could not determine type of the file. Aborting!"))
-	
 	// test the actual program
 	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("../TOPP/Inspect.mzXML"));
 	TEST_STRING_EQUAL(type, "mzXML")
@@ -431,19 +428,63 @@ START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT 
 	TEST_STRING_EQUAL(type, "mzData")
 END_SECTION
 
-START_SECTION(void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) )
+START_SECTION(bool getSearchEngineAndVersion(const String& cmd_output, ProteinIdentification& protein_identification) )
 	ProteinIdentification protein_identification;
-
-	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSearchEngineAndVersion("a", protein_identification), "the file 'a' could not be found")
 
 	protein_identification.setHits(vector< ProteinHit >());
 	
-	
+  String output = "\
+InsPecT vesrion 20060907\
+  Interpretation of Peptides with Post-translational Modifications.\
+  Copyright 2006, The Regents of the University of California\
+  [See Docs directory for usage manual and copyright information]\
+\
+\
+Sample command-line:\
+Inspect.exe -i Foo.in -o Foo.txt -e ErrorsFoo.txt\
+Command-line arguments:\
+ -i InputFileName: Path to a config file specifying search parameters.\
+ -o OutputFileName: Output file for match results.  If not\
+          specified, output goes to stdout.\
+ -e ErrorFileName: Output file for errors and warnings, if any.  If not\
+          specified, any errors go to Inspect.err; if there are no errors.\
+          or warnings reported, this file will be erased at end of run.\
+ -r ResourceDir: Directory for resource files (such \
+     as AminoAcidMasses.txt).  Defaults to current directory. \
+  Consult the documentation (Inspect.html) for further details.\
+";
+
 	// test the actual program
-	file.getSearchEngineAndVersion(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_version_file.txt"), protein_identification);
+	TEST_EQUAL(file.getSearchEngineAndVersion(output, protein_identification), true);
 	TEST_STRING_EQUAL(protein_identification.getSearchEngine(), "InsPecT");
 	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "20060907");
+
+  output = "\
+InsPecT version 20100331\
+  Interpretation of Peptides with Post-translational Modifications.\
+  Copyright 2007,2008,2009 The Regents of the University of California\
+  [See Docs directory for usage manual and copyright information]\
+\
+\
+Sample command-line:\
+Inspect.exe -i Foo.in -o Foo.txt -e ErrorsFoo.txt\
+Command-line arguments:\
+ -i InputFileName: Path to a config file specifying search parameters.\
+ -o OutputFileName: Output file for match results.  If not\
+          specified, output goes to stdout.\
+ -e ErrorFileName: Output file for errors and warnings, if any.  If not\
+          specified, any errors go to Inspect.err; if there are no errors.\
+          or warnings reported, this file will be erased at end of run.\
+ -r ResourceDir: Directory for resource files (such\
+     as AminoAcidMasses.txt).  Defaults to current directory.\
+ -a AminoAcidMassesFile: Specify a file containing non-standard amino acid masses.\
+  Consult the documentation (Inspect.html) for further details.";
+
+	// test the actual program
+	TEST_EQUAL(file.getSearchEngineAndVersion(output, protein_identification), true);
+	TEST_STRING_EQUAL(protein_identification.getSearchEngine(), "InsPecT");
+	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "20100331");
+
 END_SECTION
 
 START_SECTION(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, Size &number_of_columns))

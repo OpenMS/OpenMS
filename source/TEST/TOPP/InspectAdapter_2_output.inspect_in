@@ -10,5 +10,5 @@ maxptmsize,250
 PM_tolerance,1
 IonTolerance,0.5
 multicharge,1
-instrument,Instrument_TEST
+instrument,QTOF
 TagCount,3

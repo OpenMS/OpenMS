@@ -982,9 +982,9 @@ namespace OpenMS
 	  protein_identification.setSearchEngineVersion("unknown");
 		// searching for something like this: InsPecT version 20060907, InsPecT version 20100331
     QString response(cmd_output.toQString()); 
-    QRegExp rx("InsPecT version (\\d+)"); 
+    QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
     if (rx.indexIn(response) == -1) return false;
-	  protein_identification.setSearchEngineVersion(String(rx.cap(1)));
+	  protein_identification.setSearchEngineVersion(String(rx.cap(2)));
     return true;
 	}
 	

@@ -1055,10 +1055,10 @@ int main(int argc, char **argv)																		\
 					TEST::failed_lines_list.push_back(TEST::test_line);                            \
 					break;																												\
 			case 1:																														\
-					std__cout << " +  line " << TEST::test_line <<								\
+          /* this is actually what we want to get:  */                   \
+          std__cout << " +  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): OK" << std::endl;																	      \
-					TEST::failed_lines_list.push_back(TEST::test_line);                            \
 					break;																												\
 			case 2:																														\
 					std__cout << " -  line " << TEST::test_line <<								\
