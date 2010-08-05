@@ -479,21 +479,27 @@ namespace OpenMS
 			bool has(const String& name) const;
 			
 			/// returns true if the peptide contains the given peptide
+      /// @hint c-term and n-term mods are ignored
 			bool hasSubsequence(const AASequence& peptide) const;
 
 			/// returns true if the peptide contains the given peptide
+      /// @hint c-term and n-term mods are ignored
 			bool hasSubsequence(const String& peptide) const;
 			
 			/// returns true if the peptide has the given prefix
+      /// n-term mod is also checked (c-term as well, if prefix is of same length)
 			bool hasPrefix(const AASequence& peptide) const;
 			
 			/// returns true if the peptide has the given prefix
+      /// n-term mod is also checked (c-term as well, if prefix is of same length)
 			bool hasPrefix(const String& peptide) const;
 
 			/// returns true if the peptide has the given suffix
+      /// c-term mod is also checked (n-term as well, if suffix is of same length)
 			bool hasSuffix(const AASequence& peptide) const;
 			
 			/// returns true if the peptide has the given suffix
+      /// c-term mod is also checked (n-term as well, if suffix is of same length)
 			bool hasSuffix(const String& peptide) const;
 
 			/// predicate which is true if the peptide is N-term modified
