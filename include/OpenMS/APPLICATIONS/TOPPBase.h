@@ -41,6 +41,7 @@
 #include <OpenMS/METADATA/DocumentIDTagger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 #include <fstream>

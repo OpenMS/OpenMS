@@ -146,11 +146,12 @@ namespace OpenMS
 				fh.loadExperiment(in_filename, exp, in_type);
 			}
 
-			/** get the search engine and its version from a file with the output of InsPecT without parameters
+			/** 
+          get the search engine and its version from the output of the InsPecT executable without parameters
 
-					@throw Exception::FileNotFound
+					returns true on success, false otherwise
 			*/
-			void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification);
+			bool getSearchEngineAndVersion(const String& cmd_output, ProteinIdentification& protein_identification);
 
 			/** read the header of an inspect output file and retrieve various informations
 					@throw Exception::ParseError

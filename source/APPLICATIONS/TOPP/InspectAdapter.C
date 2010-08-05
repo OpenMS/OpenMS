@@ -137,6 +137,7 @@ class TOPPInspectAdapter
 			registerStringOption_("instrument", "<i>", "", "the instrument that was used to measure the spectra\n"
 																										 "(If set to QTOF, uses a QTOF-derived fragmentation model,\n"
 																										 "and does not attempt to correct the parent mass.)", false);
+      setValidStrings_("instrument",StringList::create("ESI-ION-TRAP,QTOF,FT-Hybrid"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
 			registerFlag_("list_modifications", "show a list of the available modifications");
@@ -724,7 +725,7 @@ class TOPPInspectAdapter
 				call.append(" -e ");
 				call.append(inspect_logfile);
 
-        Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString())); // does automatic escaping etc...
+        Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
 				if (status != 0)
 				{
 					string_buffer = TextFile(inspect_logfile).concatenate();
@@ -771,7 +772,7 @@ class TOPPInspectAdapter
 				writeLog_("Searching ...");
 				writeDebug_("The Inspect process created the following output:", 1);
 
-        Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString())); // does automatic escaping etc...
+        Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
 				if (status != 0)
 				{
 					string_buffer = TextFile(inspect_logfile).concatenate();
@@ -789,18 +790,19 @@ class TOPPInspectAdapter
 				if ( inspect_in ) // the version can only be retrieved by running inspect without parameters
 				{
 					// first get the InsPecT version
-					String call = " > " + inspect_logfile ;
-          Int status = QProcess::execute((inspect_directory+"inspect").toQString(), QStringList(call.toQString())); // does automatic escaping etc...
-					if (status != 0)
-					{
-						string_buffer = TextFile(inspect_logfile).concatenate();
-						writeLog_("Inspect problem: " + string_buffer + ". Aborting!");
+          QProcess builder;
+          builder.start((inspect_directory+"inspect").toQString(), QStringList()); // does automatic escaping etc...
+					
+          if (!builder.waitForFinished(-1))
+          {
+						writeLog_("Inspect problem: " + String(QString(builder.readAll())) + ". Aborting!");
 						exit_code = EXTERNAL_PROGRAM_ERROR;
 					}
 					else
 					{
-						// set the search engine and its version and the score type
-						inspect_outfile.getSearchEngineAndVersion(inspect_logfile, protein_identification);
+            QString output = builder.readAll();
+            // set the search engine and its version and the score type
+            if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) LOG_WARN << "Could not read version of InsPecT from:\n" << output << "\n\n";
 					}
 				}
 				else protein_identification.setSearchEngine("InsPecT");

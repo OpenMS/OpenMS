@@ -973,40 +973,19 @@ namespace OpenMS
 		return wanted_records;
 	}
 
-	void
+	bool
 	InspectOutfile::getSearchEngineAndVersion(
-		const String& inspect_output_without_parameters_filename,
+		const String& cmd_output,
 		ProteinIdentification& protein_identification)
 	{
-		ifstream inspect_output_without_parameters(inspect_output_without_parameters_filename.c_str());
-		if (!inspect_output_without_parameters)
-		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_without_parameters_filename);
-		}
-		
-		// searching for something like this: InsPecT vesrion 20060907
-		String line;
-		vector< String > substrings;
-		while (getline(inspect_output_without_parameters, line))
-		{
-			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
-			line.trim();
-			if ( line.empty() ) continue;
-			
-			line.split(' ', substrings);
-			if ( substrings.size() != 3 ) continue;
-			line = substrings[0];
-			line.toLower();
-			if ( line.hasPrefix("inspect") )
-			{
-				protein_identification.setSearchEngine(substrings[0]);
-				protein_identification.setSearchEngineVersion(substrings[2]);
-				return;
-			}
-		}
-		
-		inspect_output_without_parameters.close();
-		inspect_output_without_parameters.clear();
+	  protein_identification.setSearchEngine("InsPecT");
+	  protein_identification.setSearchEngineVersion("unknown");
+		// searching for something like this: InsPecT version 20060907, InsPecT version 20100331
+    QString response(cmd_output.toQString()); 
+    QRegExp rx("InsPecT version (\\d+)"); 
+    if (rx.indexIn(response) == -1) return false;
+	  protein_identification.setSearchEngineVersion(String(rx.cap(1)));
+    return true;
 	}
 	
 	void
