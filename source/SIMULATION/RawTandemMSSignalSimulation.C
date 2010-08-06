@@ -188,7 +188,7 @@ namespace OpenMS
 		ps.setParameters(param);
 		// different selection strategies for MALDI and ESI
 		bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";
-    ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,is_MALDI);
+    ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);
 
 		
 		//** actual MS2 signal **//
@@ -198,17 +198,13 @@ namespace OpenMS
 		adv_spec_gen.loadProbabilisticModel();
 		for (Size i = 0; i < ms2.size(); ++i)
     {
-		  //RichPeakSpectrum ms2_tmp(ms2[i].size());
 		  IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
-//		  for(Size pk=0; pk<ms2[i].size();++pk)
-//		    ms2_tmp[pk]=ms2[i][pk];
 		  for(Size id =0; id<ids.size();++id)
 		  {
 		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
-		    adv_spec_gen.simulate(ms2[i], seq, rnd_gen_,1);
+		    adv_spec_gen.simulate(ms2[i], seq, rnd_gen_, features[ids[id]].getCharge());
+        // todo: rescale intensities! according to region within in the 2D Model of the feature
       }
-//		  for(Size pk=0; pk<ms2[i].size();++pk)
-//		    ms2[i][pk]=ms2_tmp[pk];
     }
 
   }

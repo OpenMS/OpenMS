@@ -78,7 +78,7 @@ namespace OpenMS
      @param peptides List of peptides and abundances that will be simulated
      @param labeling_type
      */   
-    void simulate(const gsl_rng* rnd_gen, SampleChannels& peptides, const String& labeling_tpye);
+    void simulate(gsl_rng* const rnd_gen, SampleChannels& peptides, const String& labeling_tpye);
 	
     /// Access the simulated experiment
     MSSimExperiment const & getExperiment() const;

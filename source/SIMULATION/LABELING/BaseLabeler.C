@@ -38,7 +38,8 @@ namespace OpenMS
 {
 
   BaseLabeler::BaseLabeler()
-    : DefaultParamHandler("BaseLabeler")
+    : DefaultParamHandler("BaseLabeler"),
+      rng_(0)
   {
   }
 

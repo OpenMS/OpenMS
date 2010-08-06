@@ -125,7 +125,7 @@ namespace OpenMS {
     return tmp;
   }
 
-  void MSSim::simulate(const gsl_rng* rnd_gen, SampleChannels& channels, const String &labeling_name)
+  void MSSim::simulate(gsl_rng* const rnd_gen, SampleChannels& channels, const String &labeling_name)
   {
     // TODO: add method to read contaminants
     // TODO: add method to select contaminants
@@ -144,6 +144,7 @@ namespace OpenMS {
     BaseLabeler* labeler = Factory<BaseLabeler>::create(labeling_name);
     Param labeling_parameters = param_.copy("Labeling:",true);
     labeler->setParameters(labeling_parameters);
+    labeler->setRnd(rnd_gen);
 
     // check parameters ..
     labeler->preCheck(param_);

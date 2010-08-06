@@ -55,7 +55,35 @@ namespace OpenMS {
   DigestSimulation::~DigestSimulation()
   {
 	}
-  
+
+  void DigestSimulation::setDefaultParams_()
+  {
+		// supported enzymes
+		StringList enzymes;
+		enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
+		for (UInt i=0;i<EnzymaticDigestion::SIZE_OF_ENZYMES;++i) enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
+		enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
+		defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'none' to skip digestion)");
+		defaults_.setValidStrings("enzyme", enzymes);
+		
+		// cleavages
+    defaults_.setValue("model", "trained", "The cleavage model to use for digestion. 'Trained' is based on a log likelihood model (see DOI:10.1021/pr060507u).");
+    defaults_.setValidStrings("model", StringList::create("trained,naive"));
+
+    defaults_.setValue("model_trained:threshold",0.50,"Model threshold for calling a cleavage. Higher values increase the number of cleavages. -2 will give no cleavages, +4 almost full cleavage.");
+    defaults_.setMinFloat("model_trained:threshold", -2);
+    defaults_.setMaxFloat("model_trained:threshold",  4);
+
+    defaults_.setValue("model_naive:missed_cleavages",1,"Maximum number of missed cleavages considered. All possible resulting peptides will be created.");
+    defaults_.setMinInt("model_naive:missed_cleavages",0);
+
+		// pep length
+		defaults_.setValue("min_peptide_length",3,"Minimum peptide length after digestion (shorter ones will be discarded)");
+    defaults_.setMinInt("min_peptide_length",1);
+
+		defaultsToParam_();		    
+  }
+
   void DigestSimulation::digest(FeatureMapSim & feature_map)
   {
 		if ((String)param_.getValue("enzyme") == String("none"))
@@ -221,32 +249,5 @@ namespace OpenMS {
     }
 
   }
-  
-  void DigestSimulation::setDefaultParams_()
-  {
-		// supported enzymes
-		StringList enzymes;
-		enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
-		for (UInt i=0;i<EnzymaticDigestion::SIZE_OF_ENZYMES;++i) enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
-		enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
-		defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'none' to skip digestion)");
-		defaults_.setValidStrings("enzyme", enzymes);
-		
-		// cleavages
-    defaults_.setValue("model", "trained", "The cleavage model to use for digestion. 'Trained' is based on a log likelihood model (see DOI:10.1021/pr060507u).");
-    defaults_.setValidStrings("model", StringList::create("trained,naive"));
 
-    defaults_.setValue("model_trained:threshold",0.25,"Model threshold for calling a cleavage. Higher values increase the number of cleavages. -2 will give no cleavages, +4 almost full cleavage.");
-    defaults_.setMinFloat("model_trained:threshold", -2);
-    defaults_.setMaxFloat("model_trained:threshold",  4);
-
-    defaults_.setValue("model_naive:missed_cleavages",1,"Maximum number of missed cleavages considered. All possible resulting peptides will be created.");
-    defaults_.setMinInt("model_naive:missed_cleavages",0);
-
-		// pep length
-		defaults_.setValue("min_peptide_length",3,"Minimum peptide length after digestion (shorter ones will be discarded)");
-    defaults_.setMinInt("min_peptide_length",1);
-
-		defaultsToParam_();		    
-  }
 }

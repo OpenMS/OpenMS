@@ -64,7 +64,7 @@ namespace OpenMS
 		StringList isotopes = ItraqConstants::getIsotopeMatrixAsStringList(itraq_type_, isotope_corrections_);
 		defaults_.setValue("isotope_correction_values", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
 
-    defaults_.setValue("Y_contamination", 0.0, "Efficiency of labeling tyrosine ('Y') residues. 0=off, 1=full labeling"); 
+    defaults_.setValue("Y_contamination", 0.3, "Efficiency of labeling tyrosine ('Y') residues. 0=off, 1=full labeling"); 
 		defaults_.setMinFloat ("Y_contamination", 0.0);
 		defaults_.setMaxFloat ("Y_contamination", 1.0);
 		
@@ -200,7 +200,9 @@ namespace OpenMS
   void ITRAQLabeler::postRawTandemMSHook(FeatureMapSimVector & fm, MSSimExperiment & exp)
   {
     //std::cout << "Matrix used: \n" << ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_) << "\n\n";
-				
+		
+    DoubleReal rep_shift = param_.getValue("reporter_mass_shift");
+
     OPENMS_PRECONDITION(fm.size()==1, "More than one feature map given in ITRAQLabeler::postRawTandemMSHook()!")
 		gsl_matrix* channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_).toGslMatrix();
 		gsl_matrix* itraq_intensity_observed = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_],1).toGslMatrix();
@@ -219,13 +221,13 @@ namespace OpenMS
 			gsl_matrix_scale (itraq_intensity_sum, 0);
 			
 			// add up signal of all features
-			// TODO: take care of actual position of feature relative to precursor!
       OPENMS_PRECONDITION(it->metaValueExists("parent_feature_ids"),"Meta value 'parent_feature_ids' missing in ITRAQLabeler::postRawTandemMSHook()!")
 			IntList parent_fs = (IntList) it->getMetaValue("parent_feature_ids");
 			for (Size i_f=0; i_f < parent_fs.size(); ++i_f)
 			{
 				// apply isotope matrix to active channels
 				gsl_matrix* row = getItraqIntensity_(fm[0][i_f]).toGslMatrix();
+  			// TODO: rescale intensities according to actual position of feature relative to precursor!
 				// row * channel_frequency = observed iTRAQ intensities
 				gsl_blas_dgemm (CblasNoTrans, CblasNoTrans,
 												1.0, channel_frequency, row,
@@ -239,8 +241,9 @@ namespace OpenMS
 			for (Int i_channel=0; i_channel< ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i_channel)
 			{
 				MSSimExperiment::SpectrumType::PeakType p;
-				// dummy
-				p.setMZ(channel_names[itraq_type_].getValue(i_channel,0) + 0.1);
+				// random shift of +-rep_shift around exact position
+        DoubleReal rnd_shift = gsl_rng_uniform(rng_) * 2 * rep_shift - rep_shift;
+				p.setMZ(channel_names[itraq_type_].getValue(i_channel,0) + 0.1 + rnd_shift);
 				p.setIntensity(gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
 				std::cout << "inserted iTRAQ peak: " << p << "\n";
 				it->push_back(p);
@@ -318,39 +321,23 @@ namespace OpenMS
 
   Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f) const
   {
-		StringList keys;
-		f.getKeys(keys);
-
-		// prepare map
-		Map <Int, SimIntensityType> channel_intensities;
-		std::vector< Matrix<Int> > channel_names(2);
-		channel_names[0].setMatrix<4,1>(ItraqConstants::CHANNELS_FOURPLEX);
-		channel_names[1].setMatrix<8,1>(ItraqConstants::CHANNELS_EIGHTPLEX);
-		for (Int i=0; i<ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i)
-		{
-			channel_intensities[channel_names[itraq_type_].getValue(i,0)] = 0;
-		}		
-		
 		// fill map with values present (all missing ones remain 0)
-		for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
-		{
-			if (!it_key->hasPrefix("intensity_itraq")) continue;
-			Int ch = it_key->substr(String("intensity_itraq").length()).toInt();
-			channel_intensities[ch] = f.getMetaValue(*it_key);
-			std::cout << "raw itraq intensity: " << ch << "->" << f.getMetaValue(*it_key) << "\n";
-		}	
-		
-		// fill the matrix
 		Matrix<SimIntensityType> m(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1, 0);
-		Size index=0;
-		for (Map <Int, SimIntensityType>::const_iterator it=channel_intensities.begin(); it!=channel_intensities.end(); ++it)
-		{
-			m.setValue(index ,0, it->second);
-			++index;
-		}
+    Size ch=0, ch_internal=0;
+		for (ChannelMapType::ConstIterator it=channel_map_.begin();it!=channel_map_.end();++it) 
+    {
+      SimIntensityType intensity=0;
+      if (it->second.active)
+      {
+        OPENMS_PRECONDITION(f.metaValueExists(getChannelIntensityName(ch_internal)), "ITRAQLabeler::getItraqIntensity_() is missing a channel intensity meta-value!");
+        intensity = (DoubleReal) f.getMetaValue(getChannelIntensityName(ch_internal));
+        ++ch_internal;
+      }
+      m.setValue(ch, 0, intensity);
+      ++ch;
+    }
 
-		return m;
-		
+    return m;
   }
 
 } // namespace OpenMS

@@ -53,7 +53,7 @@ START_SECTION(~MSSim())
 }
 END_SECTION
 
-START_SECTION((void simulate(const gsl_rng *rnd_gen, const SampleProteins &peptides)))
+START_SECTION((void simulate(gsl_rng * const rnd_gen, const SampleProteins &peptides)))
 {
   // TODO
 #if 0 // core from old LCMSSim_test

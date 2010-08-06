@@ -34,6 +34,10 @@
 
 #include <OpenMS/SIMULATION/SimTypes.h>
 
+// GSL includes (random number generation)
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
 namespace OpenMS
 {
 
@@ -64,6 +68,11 @@ namespace OpenMS
     virtual Param getDefaultParameters() const
     {
       return this->defaults_;
+    }
+
+    virtual void setRnd(gsl_rng * const rng)
+    {
+      rng_ = rng;
     }
 
     /**
@@ -157,7 +166,10 @@ namespace OpenMS
     */
     void mergeProteinAccessions_(Feature& target, const Feature& source) const;
 
-    ConsensusMap consensus_;    
+    ConsensusMap consensus_;
+
+    gsl_rng *rng_;
+
   };
 } // namespace OpenMS
 
