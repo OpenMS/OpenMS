@@ -221,106 +221,24 @@
       <umod:mod title="Amidated" full_name="Amidation" username_of_poster="unimod"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
-                date_time_modified="2006-10-14 08:10:18"
+                date_time_modified="2010-06-28 10:52:25"
                 approved="1"
                 record_id="2">
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Artefact"
+                           spec_group="2">
+            <umod:misc_notes>MS/MS experiments of mass spectrometric c-ions (MS^3) can be used for protein identification by library searching. T3-sequencing is such a technique (see reference). Search engines must recognize this as a virtual modification.</umod:misc_notes>
+         </umod:specificity>
          <umod:specificity hidden="0" site="C-term" position="Protein C-term"
                            classification="Post-translational"
                            spec_group="1"/>
-         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Artefact"
-                           spec_group="2"/>
          <umod:delta mono_mass="-0.984016" avge_mass="-0.9848" composition="H N O(-1)">
             <umod:element symbol="H" number="1"/>
             <umod:element symbol="N" number="1"/>
             <umod:element symbol="O" number="-1"/>
          </umod:delta>
+         <umod:alt_name>Top-Down sequencing c-type fragment ion</umod:alt_name>
          <umod:xref>
-            <umod:text>AA0100</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0099</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0098</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0097</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0096</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0095</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0094</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0093</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0092</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0091</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0090</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0089</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0081</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0082</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0083</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0084</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0085</umod:text>
-            <umod:source>RESID</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>AA0086</umod:text>
+            <umod:text>AA0088</umod:text>
             <umod:source>RESID</umod:source>
             <umod:url/>
          </umod:xref>
@@ -330,13 +248,103 @@
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>AA0088</umod:text>
+            <umod:text>AA0086</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0085</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0084</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0083</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0082</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0081</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0089</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0090</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0091</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0092</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0093</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0094</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0095</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0096</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0097</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0098</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0099</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>AA0100</umod:text>
             <umod:source>RESID</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
             <umod:text>AMID</umod:text>
             <umod:source>FindMod</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>14588022</umod:text>
+            <umod:source>PubMed PMID</umod:source>
             <umod:url/>
          </umod:xref>
       </umod:mod>
@@ -420,9 +428,17 @@
       <umod:mod title="Carbamyl" full_name="Carbamylation" username_of_poster="unimod"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
-                date_time_modified="2006-11-14 11:09:40"
+                date_time_modified="2010-03-03 15:36:53"
                 approved="0"
                 record_id="5">
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
+                           spec_group="8"/>
+         <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative"
+                           spec_group="7"/>
+         <umod:specificity hidden="1" site="M" position="Anywhere" classification="Artefact"
+                           spec_group="5"/>
+         <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative"
+                           spec_group="6"/>
          <umod:specificity hidden="1" site="C" position="Anywhere" classification="Artefact"
                            spec_group="4"/>
          <umod:specificity hidden="1" site="R" position="Anywhere" classification="Artefact"
@@ -431,8 +447,6 @@
                            spec_group="2"/>
          <umod:specificity hidden="0" site="K" position="Anywhere" classification="Multiple"
                            spec_group="1"/>
-         <umod:specificity hidden="1" site="M" position="Anywhere" classification="Artefact"
-                           spec_group="5"/>
          <umod:delta mono_mass="43.005814" avge_mass="43.0247" composition="H C N O">
             <umod:element symbol="H" number="1"/>
             <umod:element symbol="C" number="1"/>
@@ -440,12 +454,12 @@
             <umod:element symbol="O" number="1"/>
          </umod:delta>
          <umod:xref>
-            <umod:text>AA0343</umod:text>
-            <umod:source>RESID</umod:source>
+            <umod:text>Smyth; Carbamylation of amino and tyrosine hydroxyl groups. J Biol Chem 242, 1579-1591 (1967)</umod:text>
+            <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>12203680</umod:text>
+            <umod:text>10978403</umod:text>
             <umod:source>PubMed PMID</umod:source>
             <umod:url/>
          </umod:xref>
@@ -455,14 +469,24 @@
             <umod:url/>
          </umod:xref>
          <umod:xref>
+            <umod:text>AA0343</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>Stark; Modification of proteins with cyanate. Meth Enz 25B, 579-584 (1972)</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>12203680</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
             <umod:text>IonSource carbamylation tutorial</umod:text>
             <umod:source>Misc. URL</umod:source>
             <umod:url>http://www.ionsource.com/Card/carbam/carbam.htm</umod:url>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>10978403</umod:text>
-            <umod:source>PubMed PMID</umod:source>
-            <umod:url/>
          </umod:xref>
          <umod:misc_notes>Carbamylation is an irreversible process of non-enzymatic modification of proteins by the breakdown products of urea isocyanic acid reacts with the N-term of a proteine or side chains of lysine and arginine residues</umod:misc_notes>
       </umod:mod>
@@ -1631,7 +1655,7 @@
       <umod:mod title="Trimethyl" full_name="tri-Methylation" username_of_poster="unimod"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
-                date_time_modified="2006-10-18 14:31:46"
+                date_time_modified="2010-05-18 11:57:20"
                 approved="1"
                 record_id="37">
          <umod:specificity hidden="1" site="A" position="Protein N-term"
@@ -1646,9 +1670,14 @@
             <umod:element symbol="C" number="3"/>
          </umod:delta>
          <umod:xref>
-            <umod:text>12590383</umod:text>
-            <umod:source>PubMed PMID</umod:source>
+            <umod:text>J. Hirota et. al., Rapid Commun. Mass Spectrom., 17 371-6 (2003)</umod:text>
+            <umod:source>Journal</umod:source>
             <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>Role of arginine and its methylated derivatives in cancer biology and treatment</umod:text>
+            <umod:source>Misc. URL</umod:source>
+            <umod:url>http://www.cancerci.com/content/1/1/3</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>AA0074</umod:text>
@@ -1661,13 +1690,8 @@
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>Role of arginine and its methylated derivatives in cancer biology and treatment</umod:text>
-            <umod:source>Misc. URL</umod:source>
-            <umod:url>http://www.cancerci.com/content/1/1/3</umod:url>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>J. Hirota et. al., Rapid Commun. Mass Spectrom., 17 371-6 (2003)</umod:text>
-            <umod:source>Journal</umod:source>
+            <umod:text>12590383</umod:text>
+            <umod:source>PubMed PMID</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
@@ -1675,7 +1699,11 @@
             <umod:source>FindMod</umod:source>
             <umod:url/>
          </umod:xref>
-         <umod:misc_notes>RESID gives the delta as 43 Da?</umod:misc_notes>
+         <umod:xref>
+            <umod:text>Explanation of why RESID gives the delta as 43 Da</umod:text>
+            <umod:source>Misc. URL</umod:source>
+            <umod:url>http://www.ebi.ac.uk/RESID/faq.html#q12</umod:url>
+         </umod:xref>
       </umod:mod>
       <umod:mod title="Methylthio" full_name="Beta-methylthiolation"
                 username_of_poster="unimod"
@@ -2991,11 +3019,13 @@
                 username_of_poster="fatcat"
                 group_of_poster="users"
                 date_time_posted="2004-08-12 20:04:01"
-                date_time_modified="2006-10-15 18:30:52"
+                date_time_modified="2010-02-25 10:49:55"
                 approved="1"
                 record_id="256">
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="Other" spec_group="2"/>
          <umod:specificity hidden="1" site="H" position="Anywhere" classification="Other" spec_group="1"/>
+         <umod:specificity hidden="1" site="N-term" position="Protein N-term" classification="Other"
+                           spec_group="3"/>
          <umod:delta mono_mass="40.031300" avge_mass="40.0639" composition="H(4) C(3)">
             <umod:element symbol="H" number="4"/>
             <umod:element symbol="C" number="3"/>
@@ -3409,11 +3439,13 @@
       <umod:mod title="Delta:H(2)C(2)" full_name="Acetaldehyde +26" username_of_poster="fatcat"
                 group_of_poster="users"
                 date_time_posted="2004-08-12 20:01:03"
-                date_time_modified="2006-10-14 19:44:29"
+                date_time_modified="2010-02-25 10:49:11"
                 approved="1"
                 record_id="254">
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="Other" spec_group="2"/>
          <umod:specificity hidden="1" site="H" position="Anywhere" classification="Other" spec_group="1"/>
+         <umod:specificity hidden="1" site="N-term" position="Protein N-term" classification="Other"
+                           spec_group="3"/>
          <umod:delta mono_mass="26.015650" avge_mass="26.0373" composition="H(2) C(2)">
             <umod:element symbol="H" number="2"/>
             <umod:element symbol="C" number="2"/>
@@ -3951,11 +3983,10 @@
             <umod:element symbol="K" number="1"/>
          </umod:delta>
       </umod:mod>
-      <umod:mod title="Thioacyl" full_name="thioacylation of primary amines (N-term and Lys)"
-                username_of_poster="rabah"
+      <umod:mod title="Thioacyl" full_name="3-sulfanylpropanoyl" username_of_poster="rabah"
                 group_of_poster="users"
                 date_time_posted="2003-06-05 13:38:19"
-                date_time_modified="2006-10-16 12:37:13"
+                date_time_modified="2010-03-22 13:33:17"
                 approved="1"
                 record_id="126">
          <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Other"
@@ -3967,17 +3998,6 @@
             <umod:element symbol="O" number="1"/>
             <umod:element symbol="S" number="1"/>
          </umod:delta>
-         <umod:alt_name>3,3-Dithio-bis-(sulfosuccinimidyl)propionate</umod:alt_name>
-         <umod:xref>
-            <umod:text>Lomant, A.J. and Fairbanks, G., J.Mol. Biol. 104, 243-261 (1976)</umod:text>
-            <umod:source>Journal</umod:source>
-            <umod:url/>
-         </umod:xref>
-         <umod:xref>
-            <umod:text>Lee,W.T. and Conrad, D.H. 1985, J. Immunol. 134:518</umod:text>
-            <umod:source>Journal</umod:source>
-            <umod:url/>
-         </umod:xref>
          <umod:xref>
             <umod:text>11710128</umod:text>
             <umod:source>PubMed PMID</umod:source>
@@ -3989,10 +4009,21 @@
             <umod:url/>
          </umod:xref>
          <umod:xref>
+            <umod:text>Lomant, A.J. and Fairbanks, G., J.Mol. Biol. 104, 243-261 (1976)</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>Lee,W.T. and Conrad, D.H. 1985, J. Immunol. 134:518</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
             <umod:text>957432</umod:text>
             <umod:source>PubMed PMID</umod:source>
             <umod:url/>
          </umod:xref>
+         <umod:misc_notes>Reduced product of reaction with 3,3-Dithio-bis-(sulfosuccinimidyl)propionate. Note that name thioacyl is misleading and subject to change in a future revision.</umod:misc_notes>
       </umod:mod>
       <umod:mod title="Fluoro" full_name="fluorophenylalanine replacement of phenylalanine"
                 username_of_poster="jschulte"
@@ -4281,27 +4312,29 @@
                 username_of_poster="suckau"
                 group_of_poster="users"
                 date_time_posted="2003-09-02 16:17:09"
-                date_time_modified="2006-10-14 07:46:22"
-                approved="1"
+                date_time_modified="2010-06-08 14:19:03"
+                approved="0"
                 record_id="140">
          <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Other"
                            spec_group="1">
-            <umod:misc_notes>Virtual Modification  for MS/MS of a-type ions</umod:misc_notes>
+            <umod:misc_notes>Virtual Modification  for MS/MS of a-type ions
+
+corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          </umod:specificity>
-         <umod:delta mono_mass="-29.002740" avge_mass="-29.0180" composition="H(-1) C(-1) O(-1)">
-            <umod:element symbol="H" number="-1"/>
+         <umod:delta mono_mass="-46.005479" avge_mass="-46.0254" composition="H(-2) C(-1) O(-2)">
+            <umod:element symbol="H" number="-2"/>
             <umod:element symbol="C" number="-1"/>
-            <umod:element symbol="O" number="-1"/>
+            <umod:element symbol="O" number="-2"/>
          </umod:delta>
          <umod:alt_name>Decarboxylation of C-terminus as reaction inside the mass spectrometer</umod:alt_name>
          <umod:xref>
-            <umod:text>14588022</umod:text>
-            <umod:source>PubMed PMID</umod:source>
+            <umod:text>D. Suckau, A. Resemann, Anal. Chem., 75(21):5817-24 (2003)</umod:text>
+            <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>D. Suckau, A. Resemann, Anal. Chem., 75(21):5817-24 (2003)</umod:text>
-            <umod:source>Journal</umod:source>
+            <umod:text>14588022</umod:text>
+            <umod:source>PubMed PMID</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:misc_notes>MS/MS experiments of mass spectrometric a-ions (MS^3) can be used for protein identification by library searching. T3-sequencing is such a technique (see reference). Search engines must recognize this \'virtual modification\' for this purpose.</umod:misc_notes>
@@ -6127,32 +6160,81 @@
          </umod:xref>
          <umod:misc_notes>Potential protein modification when using AEBSF (Pefabloc) as a serine protease inhibitor.</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="Ethanolyl" full_name="Ethanolation of Cys" username_of_poster="knierman"
+      <umod:mod title="Ethanolyl" full_name="Ethanolation" username_of_poster="knierman"
                 group_of_poster="users"
                 date_time_posted="2005-01-11 04:26:47"
-                date_time_modified="2006-10-16 10:01:41"
+                date_time_modified="2010-04-28 18:12:10"
                 approved="1"
                 record_id="278">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="2">
+            <umod:misc_notes>reduced form of oxidation product</umod:misc_notes>
+         </umod:specificity>
          <umod:specificity hidden="0" site="C" position="Anywhere" classification="Chemical derivative"
                            spec_group="1">
             <umod:misc_notes>from reaction of SH group with iodoethanol</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative"
+                           spec_group="3">
+            <umod:misc_notes>reduced form of oxidation product</umod:misc_notes>
          </umod:specificity>
          <umod:delta mono_mass="44.026215" avge_mass="44.0526" composition="H(4) C(2) O">
             <umod:element symbol="H" number="4"/>
             <umod:element symbol="C" number="2"/>
             <umod:element symbol="O" number="1"/>
          </umod:delta>
-         <umod:xref>
-            <umod:text>Anal Biochem. 2004 Oct 1;333(1):174-81</umod:text>
-            <umod:source>Journal</umod:source>
-            <umod:url/>
-         </umod:xref>
+         <umod:alt_name>Hydroxy ethyl</umod:alt_name>
          <umod:xref>
             <umod:text>15351294</umod:text>
             <umod:source>PubMed PMID</umod:source>
             <umod:url/>
          </umod:xref>
-         <umod:misc_notes>A simplified procedure for the reduction and alkylation of cysteine residues in proteins prior to proteolytic digestion and mass spectral analysis. Hale JE, Butler JP, Gelfanova V, You JS, Knierman MD.</umod:misc_notes>
+         <umod:xref>
+            <umod:text>J Biol Chem. 1995 Apr 28;270(17):10017-26.</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>A simplified procedure for the reduction and alkylation of cysteine residues in proteins prior to proteolytic digestion and mass spectral analysis. Hale JE, Butler JP, Gelfanova V, You JS, Knierman MD. Anal Biochem. 2004 Oct 1;333(1):174-81</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>7730303</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="Label:13C(6)15N(2)+Dimethyl"
+                full_name="Dimethyl 13C(6)15N(2) Silac label"
+                username_of_poster="glick2"
+                group_of_poster=""
+                date_time_posted="2010-05-09 10:57:55"
+                date_time_modified="2010-05-14 16:20:12"
+                approved="0"
+                record_id="987">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Isotopic label"
+                           spec_group="1">
+            <umod:misc_notes>SILAC+PTM</umod:misc_notes>
+         </umod:specificity>
+         <umod:delta mono_mass="36.045499" avge_mass="35.9959"
+                     composition="H(4) C(-4) 13C(6) N(-2) 15N(2)">
+            <umod:element symbol="H" number="4"/>
+            <umod:element symbol="C" number="-4"/>
+            <umod:element symbol="13C" number="6"/>
+            <umod:element symbol="N" number="-2"/>
+            <umod:element symbol="15N" number="2"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>SILAC Introduction</umod:text>
+            <umod:source>Misc. URL</umod:source>
+            <umod:url>http://www.pil.sdu.dk/silac_intro.htm</umod:url>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>DIMETH</umod:text>
+            <umod:source>FindMod</umod:source>
+            <umod:url/>
+         </umod:xref>
       </umod:mod>
       <umod:mod title="HMVK"
                 full_name="Michael addition of hydroxymethylvinyl ketone to cysteine"
@@ -7097,17 +7179,17 @@
                 username_of_poster="lmschopfer"
                 group_of_poster="users"
                 date_time_posted="2005-05-19 22:01:37"
-                date_time_modified="2008-10-26 21:43:45"
+                date_time_modified="2010-02-24 20:54:27"
                 approved="0"
                 record_id="325">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="4"/>
          <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative"
                            spec_group="3"/>
          <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
                            spec_group="2"/>
          <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative"
                            spec_group="1"/>
-         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
-                           spec_group="4"/>
          <umod:delta mono_mass="572.316129" avge_mass="572.7405"
                      composition="H(49) C(27) N(4) O(5) P S">
             <umod:element symbol="H" number="49"/>
@@ -7119,18 +7201,23 @@
          </umod:delta>
          <umod:alt_name>O-ethyl-N-(biotinamidopentyl)decanamido phosphonate</umod:alt_name>
          <umod:xref>
-            <umod:text>Schopfer, Champion, Tamblyn, Thompson and Lockridge;  Characteristic mass spectral fragments of the organophosphorus agent FP-biotin and FP-biotinylated peptides from trypsin and bovine albumin (Tyr410).  Anal Biochem 345, 122-132 (2005)</umod:text>
+            <umod:text>Liu, Patricelli and Cravatt; Activity-based protein profiling:  The serine hydrolases.  Proc Natl Acad Sci USA 96, 14694-14699 (1999)</umod:text>
             <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>Liu, Patricelli and Cravatt; Activity-based protein profiling:  The serine hydrolases.  Proc Natl Acad Sci USA 96, 14694-14699 (1999)</umod:text>
+            <umod:text>Schopfer, Champion, Tamblyn, Thompson and Lockridge;  Characteristic mass spectral fragments of the organophosphorus agent FP-biotin and FP-biotinylated peptides from trypsin and bovine albumin (Tyr410).  Anal Biochem 345, 122-132 (2005)</umod:text>
             <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
             <umod:text>10611275</umod:text>
             <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>Grigoryan, Li, Xue, Grigoryan, Schopfer and Lockridge; Mass spectral characterization of organophosphate-labeled lysine in peptides.  Analytical Biochemistry 394, 92-100 (2009)</umod:text>
+            <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:misc_notes>FP-biotin was designed to label the active site serine of serine esterases/proteases.</umod:misc_notes>
@@ -7299,17 +7386,17 @@
                 username_of_poster="lmschopfer"
                 group_of_poster="users"
                 date_time_posted="2005-09-14 18:05:04"
-                date_time_modified="2008-10-26 21:45:07"
+                date_time_modified="2010-02-24 20:53:53"
                 approved="0"
                 record_id="362">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="4"/>
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
+                           spec_group="3"/>
          <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative"
                            spec_group="2"/>
          <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative"
                            spec_group="1"/>
-         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
-                           spec_group="3"/>
-         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
-                           spec_group="4"/>
          <umod:delta mono_mass="164.060231" avge_mass="164.1394" composition="H(13) C(6) O(3) P">
             <umod:element symbol="H" number="13"/>
             <umod:element symbol="C" number="6"/>
@@ -7318,6 +7405,11 @@
          </umod:delta>
          <umod:xref>
             <umod:text>Main; Mode of action of anticholinesterases.  Pharmac Ther 6, 579-628 (1979)</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>Grigoryan, Li, Xue, Grigoryan, Schopfer and Lockridge; Mass spectral characterization of organophosphate-labeled lysine in peptides.  Analytical Biochemistry 394, 92-100 (2009)</umod:text>
             <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
@@ -8664,22 +8756,26 @@
       <umod:mod title="Sulfide" full_name="persulfide" username_of_poster="unimod"
                 group_of_poster="admin"
                 date_time_posted="2005-10-15 17:22:45"
-                date_time_modified="2006-10-15 18:05:03"
+                date_time_modified="2010-02-14 11:06:23"
                 approved="1"
                 record_id="421">
          <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational"
                            spec_group="1"/>
+         <umod:specificity hidden="1" site="D" position="Anywhere" classification="Post-translational"
+                           spec_group="2">
+            <umod:misc_notes>beta-thiolation</umod:misc_notes>
+         </umod:specificity>
          <umod:delta mono_mass="31.972071" avge_mass="32.0650" composition="S">
             <umod:element symbol="S" number="1"/>
          </umod:delta>
          <umod:xref>
-            <umod:text>CYSP</umod:text>
-            <umod:source>FindMod</umod:source>
+            <umod:text>AA0269</umod:text>
+            <umod:source>RESID</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>AA0269</umod:text>
-            <umod:source>RESID</umod:source>
+            <umod:text>CYSP</umod:text>
+            <umod:source>FindMod</umod:source>
             <umod:url/>
          </umod:xref>
       </umod:mod>
@@ -9754,11 +9850,17 @@
       <umod:mod title="Label:2H(4)" full_name="4,4,5,5-D4 Lysine" username_of_poster="yunwah"
                 group_of_poster="users"
                 date_time_posted="2006-02-20 11:44:19"
-                date_time_modified="2006-10-17 11:52:44"
+                date_time_modified="2010-06-04 15:12:04"
                 approved="0"
                 record_id="481">
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="Isotopic label"
                            spec_group="1"/>
+         <umod:specificity hidden="1" site="F" position="Anywhere" classification="Isotopic label"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Isotopic label"
+                           spec_group="3">
+            <umod:misc_notes>Cambridge Labs DLM-451</umod:misc_notes>
+         </umod:specificity>
          <umod:delta mono_mass="4.025107" avge_mass="4.0246" composition="H(-4) 2H(4)">
             <umod:element symbol="H" number="-4"/>
             <umod:element symbol="2H" number="4"/>
@@ -13264,15 +13366,19 @@
                 username_of_poster="lmschopfer"
                 group_of_poster=""
                 date_time_posted="2007-01-09 21:44:04"
-                date_time_modified="2008-10-26 21:44:29"
+                date_time_modified="2010-04-05 21:32:59"
                 approved="0"
                 record_id="725">
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
+                           spec_group="3"/>
          <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative"
                            spec_group="2"/>
          <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative"
                            spec_group="1"/>
-         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
-                           spec_group="3"/>
+         <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative"
+                           spec_group="6"/>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative"
+                           spec_group="5"/>
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
                            spec_group="4"/>
          <umod:delta mono_mass="136.028931" avge_mass="136.0862" composition="H(9) C(4) O(3) P">
@@ -13281,6 +13387,11 @@
             <umod:element symbol="O" number="3"/>
             <umod:element symbol="P" number="1"/>
          </umod:delta>
+         <umod:xref>
+            <umod:text>Grigoryan, Li, Xue, Grigoryan, Schopfer and Lockridge; Mass spectral characterization of organophosphate-labeled lysine in peptides.  Analytical Biochemistry 394, 92-100 (2009)</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
          <umod:xref>
             <umod:text>Fidder, Hulst, Noort, Ruiter, van der Schans, Benschop and Langenberg; Retrospective detection of exposure to organophosphorus anti-cholinesterases:  Mass spectrometric analysis of phosphylated human butyrylcholinestease.  Chem. Res. Toxicol. 15, 582-590 (2002)</umod:text>
             <umod:source>Journal</umod:source>
@@ -13318,15 +13429,19 @@
                 username_of_poster="lmschopfer"
                 group_of_poster=""
                 date_time_posted="2007-01-10 16:04:46"
-                date_time_modified="2007-01-13 21:06:41"
+                date_time_modified="2010-04-29 08:38:50"
                 approved="0"
                 record_id="727">
-         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
-                           spec_group="3"/>
          <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative"
                            spec_group="2"/>
          <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative"
                            spec_group="1"/>
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="5"/>
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
+                           spec_group="3"/>
+         <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative"
+                           spec_group="4"/>
          <umod:delta mono_mass="162.080967" avge_mass="162.1666" composition="H(15) C(7) O(2) P">
             <umod:element symbol="H" number="15"/>
             <umod:element symbol="C" number="7"/>
@@ -13480,7 +13595,7 @@
          </umod:delta>
          <umod:misc_notes>Carbodiimide mediated blocking of free carboxylic acids (Asp/Glu sidechains and C-termini) with ethanolamine; reaction yields an amide-bond between the carboxylic acid of the peptide/protein and the primary amine of ethanolamine; reaction irreversibly modifies carboxylic acids. Shown above is the composition of the mass adduct, after substraction of water.</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="TMT6plex" full_name="Sixplex Tandem Mass Tag"
+      <umod:mod title="TMT6plex" full_name="Sixplex Tandem Mass Tag®"
                 username_of_poster="JUergen.schaefer"
                 group_of_poster=""
                 date_time_posted="2007-03-01 13:44:23"
@@ -13501,13 +13616,13 @@
             <umod:element symbol="O" number="2"/>
          </umod:delta>
          <umod:alt_name>Tandem Mass Tag sixplex labelling kit Proteome Sciences</umod:alt_name>
-         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:xref>
             <umod:text>Juergen.Schaefer@Proteomics.com</umod:text>
             <umod:source>Other</umod:source>
             <umod:url/>
          </umod:xref>
-         <umod:misc_notes>Sixplex-TMT reagents 6TMT-126, 6TMT-127, 6TMT-128, 6TMT-129, 6TMT-130, 6TMT-131 Masses of the TMT fragment ions to be quantified:126.1283 127.1316 128.1350 129.1383 130.1417 131.1387</umod:misc_notes>
+         <umod:misc_notes>Sixplex-TMT® reagents 6TMT-126, 6TMT-127, 6TMT-128, 6TMT-129, 6TMT-130, 6TMT-131 Masses of the TMT® fragment ions to be quantified:126.1283 127.1316 128.1350 129.1383 130.1417 131.1387</umod:misc_notes>
       </umod:mod>
       <umod:mod title="DTT_C" full_name="Dithiothreitol (DTT) on Cys"
                 username_of_poster="stephenaw777"
@@ -13542,7 +13657,7 @@
          </umod:xref>
          <umod:misc_notes>When the beta-elimination and Michael addition of dithiothreitol (DTT) (BEMAD) reaction is used with alkylated cysteine a sulfur group is lost leaving the addition of approximately 120.2 in the chemical reaction.</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="TMT2plex" full_name="Duplex Tandem Mass Tag"
+      <umod:mod title="TMT2plex" full_name="Duplex Tandem Mass Tag®"
                 username_of_poster="JUergen.schaefer"
                 group_of_poster=""
                 date_time_posted="2007-03-01 13:53:36"
@@ -13561,20 +13676,20 @@
             <umod:element symbol="N" number="2"/>
             <umod:element symbol="O" number="2"/>
          </umod:delta>
-         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:alt_name>Tandem Mass Tag Duplex labelling kit Proteome Sciences</umod:alt_name>
          <umod:xref>
             <umod:text>Juergen.Schaefer@Proteomics.com</umod:text>
             <umod:source>Other</umod:source>
             <umod:url/>
          </umod:xref>
-         <umod:misc_notes>Duplex-TMT reagents 2TMT-126, 2TMT-127 Masses of the TMT fragment ions to be quantified: 126.1283 127.1316</umod:misc_notes>
+         <umod:misc_notes>Duplex-TMT® reagents 2TMT-126, 2TMT-127 Masses of the TMT® fragment ions to be quantified: 126.1283 127.1316</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="TMT" full_name="Native Tandem Mass Tag"
+      <umod:mod title="TMT" full_name="Native Tandem Mass Tag®"
                 username_of_poster="JUergen.schaefer"
                 group_of_poster=""
                 date_time_posted="2007-03-02 09:29:50"
-                date_time_modified="2007-03-03 18:21:42"
+                date_time_modified="2010-02-17 19:57:34"
                 approved="0"
                 record_id="739">
          <umod:specificity hidden="0" site="N-term" position="Any N-term"
@@ -13588,7 +13703,7 @@
             <umod:element symbol="N" number="2"/>
             <umod:element symbol="O" number="2"/>
          </umod:delta>
-         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:xref>
             <umod:text>Juergen.Schaefer@Proteomics.com</umod:text>
             <umod:source>Other</umod:source>
@@ -14155,7 +14270,7 @@
                 username_of_poster="timothyr"
                 group_of_poster=""
                 date_time_posted="2008-02-06 09:33:39"
-                date_time_modified="2008-02-15 05:34:31"
+                date_time_modified="2010-07-14 23:15:49"
                 approved="0"
                 record_id="822">
          <umod:specificity hidden="1" site="G" position="Any C-term" classification="Post-translational"
@@ -14166,6 +14281,11 @@
             <umod:element symbol="O" number="-2"/>
          </umod:delta>
          <umod:alt_name>Amidation requires presence of glycine at peptide terminus</umod:alt_name>
+         <umod:xref>
+            <umod:text>Richmond, T., Baggerman, G., Vandekerckhove, T., Menschaert, G., Husson, S., Verleyen, P., Schoofs, L., Van Criekinge, W. (2008). Bioinformatic Strategies for More Complete and Accurate Identification of Neuropeptides. . ASMS Conference on Mass Spectrometry. Denver, Colorado, USA, June 1-5 2008.</umod:text>
+            <umod:source>Other</umod:source>
+            <umod:url/>
+         </umod:xref>
          <umod:xref>
             <umod:text>Bradbury, A.F. and D.G. Smyth, Peptide amidation. Trends Biochem Sci, 1991. 16(3): p. 112-5.</umod:text>
             <umod:source>Journal</umod:source>
@@ -15250,11 +15370,11 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          </umod:xref>
       </umod:mod>
       <umod:mod title="4AcAllylGal"
-                full_name="2,3,4,6-tetra-O-Acetyl-1-allyl-a-D-galactopyranoside modification of cysteine"
+                full_name="2,3,4,6-tetra-O-Acetyl-1-allyl-alpha-D-galactopyranoside modification of cysteine"
                 username_of_poster="paolo.nanni"
                 group_of_poster=""
                 date_time_posted="2009-03-06 16:08:43"
-                date_time_modified="2009-03-13 15:50:46"
+                date_time_modified="2010-02-02 14:27:07"
                 approved="0"
                 record_id="901">
          <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative"
@@ -15264,6 +15384,11 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
             <umod:element symbol="C" number="17"/>
             <umod:element symbol="O" number="9"/>
          </umod:delta>
+         <umod:xref>
+            <umod:text>19798718</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
          <umod:xref>
             <umod:text>18275052</umod:text>
             <umod:source>PubMed PMID</umod:source>
@@ -15360,7 +15485,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
                 username_of_poster="zientek"
                 group_of_poster=""
                 date_time_posted="2009-04-21 18:11:24"
-                date_time_modified="2009-10-21 00:17:49"
+                date_time_modified="2010-03-02 20:53:08"
                 approved="0"
                 record_id="907">
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="O-linked glycosylation"
@@ -15722,7 +15847,7 @@ J. Am. Chem. Soc., 2009, 131 (20), pp 6900–6901</umod:text>
                 username_of_poster="oosula"
                 group_of_poster=""
                 date_time_posted="2009-09-24 16:11:11"
-                date_time_modified="2009-10-02 18:31:38"
+                date_time_modified="2010-02-02 18:25:30"
                 approved="0"
                 record_id="932">
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="Other" spec_group="1">
@@ -15889,19 +16014,18 @@ J. Am. Chem. Soc., 2009, 131 (20), pp 6900–6901</umod:text>
          </umod:delta>
          <umod:alt_name>Label:15N(2)2H(9)</umod:alt_name>
       </umod:mod>
-      <umod:mod title="LG-anhydrolactam-K"
-                full_name="Levuglandinyl-lysine anhydrolactam adduct"
+      <umod:mod title="LG-anhydrolactam" full_name="Levuglandinyl-lysine anhydrolactam adduct"
                 username_of_poster="wridenour"
                 group_of_poster=""
                 date_time_posted="2010-01-12 01:08:28"
-                date_time_modified="2010-01-18 19:37:10"
+                date_time_modified="2010-02-01 09:12:29"
                 approved="0"
                 record_id="946">
-         <umod:specificity hidden="0" site="N-term" position="Any N-term"
+         <umod:specificity hidden="1" site="N-term" position="Any N-term"
                            classification="Post-translational"
-                           spec_group="0"/>
-         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational"
-                           spec_group="0"/>
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational"
+                           spec_group="1"/>
          <umod:delta mono_mass="314.188195" avge_mass="314.4186" composition="H(26) C(20) O(3)">
             <umod:element symbol="H" number="26"/>
             <umod:element symbol="C" number="20"/>
@@ -15915,18 +16039,18 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
             <umod:url>10413514</umod:url>
          </umod:xref>
       </umod:mod>
-      <umod:mod title="LG-pyrrole-K" full_name="Levuglandinyl-lysine pyrrole adduct"
+      <umod:mod title="LG-pyrrole" full_name="Levuglandinyl-lysine pyrrole adduct"
                 username_of_poster="wridenour"
                 group_of_poster=""
                 date_time_posted="2010-01-12 01:12:38"
-                date_time_modified="2010-01-18 19:38:01"
+                date_time_modified="2010-02-01 09:11:56"
                 approved="0"
                 record_id="947">
-         <umod:specificity hidden="0" site="N-term" position="Any N-term"
+         <umod:specificity hidden="1" site="N-term" position="Any N-term"
                            classification="Post-translational"
-                           spec_group="0"/>
-         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational"
-                           spec_group="0"/>
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational"
+                           spec_group="1"/>
          <umod:delta mono_mass="316.203845" avge_mass="316.4345" composition="H(28) C(20) O(3)">
             <umod:element symbol="H" number="28"/>
             <umod:element symbol="C" number="20"/>
@@ -15940,19 +16064,18 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
             <umod:url>10413514</umod:url>
          </umod:xref>
       </umod:mod>
-      <umod:mod title="LG-anhyropyrrole-K"
-                full_name="Levuglandinyl-lysine anhyropyrrole adduct"
+      <umod:mod title="LG-anhyropyrrole" full_name="Levuglandinyl-lysine anhyropyrrole adduct"
                 username_of_poster="wridenour"
                 group_of_poster=""
                 date_time_posted="2010-01-12 01:14:46"
-                date_time_modified="2010-01-18 19:36:04"
+                date_time_modified="2010-02-01 09:11:30"
                 approved="0"
                 record_id="948">
-         <umod:specificity hidden="0" site="N-term" position="Any N-term"
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="N-term" position="Any N-term"
                            classification="Post-translational"
-                           spec_group="0"/>
-         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational"
-                           spec_group="0"/>
+                           spec_group="2"/>
          <umod:delta mono_mass="298.193280" avge_mass="298.4192" composition="H(26) C(20) O(2)">
             <umod:element symbol="H" number="26"/>
             <umod:element symbol="C" number="20"/>
@@ -16111,6 +16234,572 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
             <umod:element symbol="H" number="-2"/>
             <umod:element symbol="Mg" number="1"/>
          </umod:delta>
+      </umod:mod>
+      <umod:mod title="2-succinyl" full_name="S-(2-succinyl) cysteine"
+                username_of_poster="BThomas"
+                group_of_poster=""
+                date_time_posted="2010-01-26 09:57:53"
+                date_time_modified="2010-02-26 10:20:23"
+                approved="0"
+                record_id="957">
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="117.018784" avge_mass="117.0801" composition="H(5) C(4) O(4)">
+            <umod:element symbol="H" number="5"/>
+            <umod:element symbol="C" number="4"/>
+            <umod:element symbol="O" number="4"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>18448829</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="Propargylamine" full_name="propargylamine"
+                username_of_poster="ywswansea"
+                group_of_poster=""
+                date_time_posted="2010-01-26 14:37:33"
+                date_time_modified="2010-02-01 09:26:28"
+                approved="0"
+                record_id="958">
+         <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="C-term" position="Any C-term"
+                           classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative"
+                           spec_group="3"/>
+         <umod:delta mono_mass="37.031634" avge_mass="37.0632" composition="H(3) C(3) N O(-1)">
+            <umod:element symbol="H" number="3"/>
+            <umod:element symbol="C" number="3"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="O" number="-1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="Phosphopropargyl" full_name="phospho-propargylamine"
+                username_of_poster="ywswansea"
+                group_of_poster=""
+                date_time_posted="2010-01-26 14:42:08"
+                date_time_modified="2010-02-01 09:25:52"
+                approved="0"
+                record_id="959">
+         <umod:specificity hidden="1" site="T" position="Anywhere" classification="Multiple"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Multiple"
+                           spec_group="3"/>
+         <umod:specificity hidden="1" site="S" position="Anywhere" classification="Multiple"
+                           spec_group="1"/>
+         <umod:delta mono_mass="116.997965" avge_mass="117.0431" composition="H(4) C(3) N O(2) P">
+            <umod:element symbol="H" number="4"/>
+            <umod:element symbol="C" number="3"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="O" number="2"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="SUMO2135" full_name="SUMOylation by SUMO-1 after tryptic cleavage"
+                username_of_poster="oosula"
+                group_of_poster=""
+                date_time_posted="2010-02-02 18:17:15"
+                date_time_modified="2010-02-14 11:28:47"
+                approved="0"
+                record_id="960">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Other" spec_group="1"/>
+         <umod:delta mono_mass="2135.920496" avge_mass="2137.2343"
+                     composition="H(137) C(90) N(21) O(37) S">
+            <umod:element symbol="H" number="137"/>
+            <umod:element symbol="C" number="90"/>
+            <umod:element symbol="N" number="21"/>
+            <umod:element symbol="O" number="37"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:alt_name>ELGMEEEDVIEVYQEQTGG</umod:alt_name>
+      </umod:mod>
+      <umod:mod title="SUMO3549" full_name="SUMOylation by SUMO-2/3 after tryptic cleavage"
+                username_of_poster="oosula"
+                group_of_poster=""
+                date_time_posted="2010-02-02 18:21:23"
+                date_time_modified="2010-02-14 11:27:47"
+                approved="0"
+                record_id="961">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Other" spec_group="1"/>
+         <umod:delta mono_mass="3549.536568" avge_mass="3551.6672"
+                     composition="H(224) C(150) N(38) O(60) S">
+            <umod:element symbol="H" number="224"/>
+            <umod:element symbol="C" number="150"/>
+            <umod:element symbol="N" number="38"/>
+            <umod:element symbol="O" number="60"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:alt_name>FDGQPINETDTPAQLEMEDEDTIDVFQQQTGG</umod:alt_name>
+      </umod:mod>
+      <umod:mod title="Chlorpyrifos"
+                full_name="O,O-diethyl o-3,5,6-trichloro-2-pyridyl phosphorothioate"
+                username_of_poster="lmschopfer"
+                group_of_poster=""
+                date_time_posted="2010-02-24 20:59:41"
+                date_time_modified="2010-04-05 21:28:28"
+                approved="0"
+                record_id="975">
+         <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
+                           spec_group="3"/>
+         <umod:delta mono_mass="153.013912" avge_mass="153.1598" composition="H(10) C(4) O(2) P S">
+            <umod:element symbol="H" number="10"/>
+            <umod:element symbol="C" number="4"/>
+            <umod:element symbol="O" number="2"/>
+            <umod:element symbol="P" number="1"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="BITC" full_name="Benzyl isothiocyanate" username_of_poster="miyoshin"
+                group_of_poster=""
+                date_time_posted="2010-03-09 09:42:12"
+                date_time_modified="2010-04-05 21:26:31"
+                approved="0"
+                record_id="978">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="N-term" position="Any N-term"
+                           classification="Chemical derivative"
+                           spec_group="3"/>
+         <umod:delta mono_mass="149.029920" avge_mass="149.2129" composition="H(7) C(8) N S">
+            <umod:element symbol="H" number="7"/>
+            <umod:element symbol="C" number="8"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="Carbofuran"
+                full_name="2,3-dihydro-2,2-dimethyl-7-benzofuranol N-methyl carbamate"
+                username_of_poster="lmschopfer"
+                group_of_poster=""
+                date_time_posted="2010-02-24 21:10:32"
+                date_time_modified="2010-04-05 21:27:53"
+                approved="0"
+                record_id="977">
+         <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="58.029289" avge_mass="58.0593" composition="H(4) C(2) N O">
+            <umod:element symbol="H" number="4"/>
+            <umod:element symbol="C" number="2"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="O" number="1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>Li, Ricordel, Tong, Schopfer, Baud, Megarbane, Maury, Masson and Lockridge; Carbofuran poisoning detected by mass spectrometry of butyrylcholinesterase adduct in human serum.  J Applied Toxicol 29, 149-155 (2009)</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="PEITC" full_name="Phenethyl isothiocyanate"
+                username_of_poster="miyoshin"
+                group_of_poster=""
+                date_time_posted="2010-03-09 10:06:18"
+                date_time_modified="2010-04-05 21:26:00"
+                approved="0"
+                record_id="979">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="N-term" position="Any N-term"
+                           classification="Chemical derivative"
+                           spec_group="3"/>
+         <umod:delta mono_mass="163.045570" avge_mass="163.2395" composition="H(9) C(9) N S">
+            <umod:element symbol="H" number="9"/>
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="thioacylPA" full_name="membrane protein extraction"
+                username_of_poster="tmiwamoto"
+                group_of_poster=""
+                date_time_posted="2010-02-05 06:00:39"
+                date_time_modified="2010-04-05 21:31:02"
+                approved="0"
+                record_id="967">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="159.035399" avge_mass="159.2062" composition="H(9) C(6) N O(2) S">
+            <umod:element symbol="H" number="9"/>
+            <umod:element symbol="C" number="6"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="O" number="2"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="maleimide3" full_name="maleimide-3-saccharide"
+                username_of_poster="hooverdm"
+                group_of_poster=""
+                date_time_posted="2010-02-12 17:23:33"
+                date_time_modified="2010-04-05 21:30:05"
+                approved="0"
+                record_id="971">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational"
+                           spec_group="2"/>
+         <umod:delta mono_mass="969.366232" avge_mass="969.8975"
+                     composition="H(59) C(37) N(7) O(23)">
+            <umod:element symbol="H" number="59"/>
+            <umod:element symbol="C" number="37"/>
+            <umod:element symbol="N" number="7"/>
+            <umod:element symbol="O" number="23"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>18925771</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:misc_notes>Created for Bindu Abraham 12/22/09</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="maleimide5" full_name="maleimide-5-saccharide"
+                username_of_poster="hooverdm"
+                group_of_poster=""
+                date_time_posted="2010-02-12 17:25:52"
+                date_time_modified="2010-04-05 21:29:47"
+                approved="0"
+                record_id="972">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational"
+                           spec_group="1"/>
+         <umod:delta mono_mass="1293.471879" avge_mass="1294.1787"
+                     composition="H(79) C(49) N(7) O(33)">
+            <umod:element symbol="H" number="79"/>
+            <umod:element symbol="C" number="49"/>
+            <umod:element symbol="N" number="7"/>
+            <umod:element symbol="O" number="33"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>18925771</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:misc_notes>Created for Bindu Abraham 12/22/09</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="Puromycin" full_name="Puromycin" username_of_poster="hooverdm"
+                group_of_poster=""
+                date_time_posted="2010-02-12 20:50:31"
+                date_time_modified="2010-04-12 15:38:52"
+                approved="0"
+                record_id="973">
+         <umod:specificity hidden="1" site="C-term" position="Any C-term"
+                           classification="Co-translational"
+                           spec_group="1"/>
+         <umod:delta mono_mass="453.212452" avge_mass="453.4943" composition="H(27) C(22) N(7) O(4)">
+            <umod:element symbol="H" number="27"/>
+            <umod:element symbol="C" number="22"/>
+            <umod:element symbol="N" number="7"/>
+            <umod:element symbol="O" number="4"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>10666460</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:misc_notes>Created for Michael (Brad) Strader 2/12/10</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="glucosone" full_name="Condensation product of glucosone"
+                username_of_poster="kimzey"
+                group_of_poster=""
+                date_time_posted="2010-03-31 00:28:53"
+                date_time_modified="2010-04-05 21:25:21"
+                approved="0"
+                record_id="981">
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Other" spec_group="1"/>
+         <umod:delta mono_mass="160.037173" avge_mass="160.1247" composition="H(8) C(6) O(5)">
+            <umod:element symbol="H" number="8"/>
+            <umod:element symbol="C" number="6"/>
+            <umod:element symbol="O" number="5"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>glucosone</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url>http://pubs.acs.org/doi/full/10.1021/jf9019085</umod:url>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="Label:13C(6)+Dimethyl" full_name="Dimethyl 13C(6) Silac label"
+                username_of_poster="glick2"
+                group_of_poster=""
+                date_time_posted="2010-05-09 10:48:19"
+                date_time_modified="2010-05-14 16:19:43"
+                approved="0"
+                record_id="986">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Isotopic label"
+                           spec_group="1">
+            <umod:misc_notes>SILAC+PTM</umod:misc_notes>
+         </umod:specificity>
+         <umod:delta mono_mass="34.051429" avge_mass="34.0091" composition="H(4) C(-4) 13C(6)">
+            <umod:element symbol="H" number="4"/>
+            <umod:element symbol="C" number="-4"/>
+            <umod:element symbol="13C" number="6"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>DIMETH</umod:text>
+            <umod:source>FindMod</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>SILAC introduction</umod:text>
+            <umod:source>Misc. URL</umod:source>
+            <umod:url>http://www.pil.sdu.dk/silac_intro.htm</umod:url>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>Stable-isotope dimethyl labeling for quantitative proteomics</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url>http://www.ncbi.nlm.nih.gov/pubmed/14670044?dopt=AbstractPlus</umod:url>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="cysTMT" full_name="Native cysteine-reactive Tandem Mass Tag®"
+                username_of_poster="jorogers6"
+                group_of_poster=""
+                date_time_posted="2010-04-22 21:57:44"
+                date_time_modified="2010-04-28 18:04:40"
+                approved="0"
+                record_id="984">
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="299.166748" avge_mass="299.4322"
+                     composition="H(25) C(14) N(3) O(2) S">
+            <umod:element symbol="H" number="25"/>
+            <umod:element symbol="C" number="14"/>
+            <umod:element symbol="N" number="3"/>
+            <umod:element symbol="O" number="2"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:xref>
+            <umod:text>John.C.Rogers@thermo.com</umod:text>
+            <umod:source>Other</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:misc_notes>This modification describes the native cysteine-reactive cysTMT Reagent without isotopic label. Upon CID, this reagent releases a reporter ion of 126.127725 (monoisotopic mass).</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="cysTMT6plex" full_name="cysteine-reactive Sixplex Tandem Mass Tag®"
+                username_of_poster="jorogers6"
+                group_of_poster=""
+                date_time_posted="2010-04-22 22:05:46"
+                date_time_modified="2010-04-22 22:06:15"
+                approved="0"
+                record_id="985">
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Isotopic label"
+                           spec_group="1"/>
+         <umod:delta mono_mass="304.177202" avge_mass="304.3962"
+                     composition="H(25) C(10) 13C(4) N(2) 15N O(2) S">
+            <umod:element symbol="H" number="25"/>
+            <umod:element symbol="C" number="10"/>
+            <umod:element symbol="13C" number="4"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="15N" number="1"/>
+            <umod:element symbol="O" number="2"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:xref>
+            <umod:text>John.C.Rogers@thermo.com</umod:text>
+            <umod:source>Other</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:misc_notes>This modification describes the isobaric sixplex cysteine-reactive cysTMT6 Reagents with isotopic labels. Upon CID, these reagents release reporter ions of 126.127725, 127.131079, 128.134433, 129.137787, 130.141141, and 131.138176 (monoisotopic mass).</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="ISD_z+2_ion" full_name="ISD (z+2)-series" username_of_poster="suckau"
+                group_of_poster=""
+                date_time_posted="2010-06-08 09:42:52"
+                date_time_modified="2010-06-28 10:47:55"
+                approved="0"
+                record_id="991">
+         <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Artefact"
+                           spec_group="1">
+            <umod:misc_notes>this is a "virtual modification", as it only accounts for the structure of the MS/MS fragment as it occurs in Top-Down MS/MS analyses. This must be accounted for in MS³-analysis of z+2 ions</umod:misc_notes>
+         </umod:specificity>
+         <umod:delta mono_mass="-15.010899" avge_mass="-15.0146" composition="H(-1) N(-1)">
+            <umod:element symbol="H" number="-1"/>
+            <umod:element symbol="N" number="-1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="Ammonium" full_name="replacement of proton with ammonium ion"
+                username_of_poster="BThomas"
+                group_of_poster=""
+                date_time_posted="2010-05-18 10:32:03"
+                date_time_modified="2010-06-04 15:08:34"
+                approved="0"
+                record_id="989">
+         <umod:specificity hidden="1" site="E" position="Anywhere" classification="Artefact"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="D" position="Anywhere" classification="Artefact"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Artefact"
+                           spec_group="1"/>
+         <umod:delta mono_mass="17.026549" avge_mass="17.0305" composition="H(3) N">
+            <umod:element symbol="H" number="3"/>
+            <umod:element symbol="N" number="1"/>
+         </umod:delta>
+         <umod:misc_notes>sometimes observed after elution of phosphopeptides from TiO2 with ammonium hydroxide</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="BHAc" full_name="N-biotinyl-6-aminohexanoyl"
+                username_of_poster="natfre08"
+                group_of_poster=""
+                date_time_posted="2010-07-13 14:38:17"
+                date_time_modified="2010-08-02 17:37:08"
+                approved="0"
+                record_id="998">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="339.161662" avge_mass="339.4530"
+                     composition="H(25) C(16) N(3) O(3) S">
+            <umod:element symbol="H" number="25"/>
+            <umod:element symbol="C" number="16"/>
+            <umod:element symbol="N" number="3"/>
+            <umod:element symbol="O" number="3"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>Patricelli et al. (2007). Functional Interrogation of the Kinome Using Nucleotide Acyl Phosphates. Biochemistry, 46, 350-358.</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url>http://pubs.acs.org/doi/abs/10.1021/bi062142x</umod:url>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="Biotin-maleimide" full_name="maleimide biotinylated"
+                username_of_poster="mpcusack"
+                group_of_poster=""
+                date_time_posted="2010-06-10 07:50:00"
+                date_time_modified="2010-06-28 18:46:35"
+                approved="0"
+                record_id="993">
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="449.173290" avge_mass="449.5239"
+                     composition="H(27) C(20) N(5) O(5) S">
+            <umod:element symbol="H" number="27"/>
+            <umod:element symbol="C" number="20"/>
+            <umod:element symbol="N" number="5"/>
+            <umod:element symbol="O" number="5"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>Datasheet for Sigma Aldrich product.</umod:text>
+            <umod:source>Other</umod:source>
+            <umod:url>http://www.sigmaaldrich.com/catalog/DataSheetPage.do?brandKey=SIGMA&amp;symbol=B1267</umod:url>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>15449375</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="Label:15N(1)" full_name="SILAS 15N(1)" username_of_poster="ppicotti"
+                group_of_poster=""
+                date_time_posted="2010-06-22 14:52:08"
+                date_time_modified="2010-06-28 10:44:16"
+                approved="0"
+                record_id="994">
+         <umod:specificity hidden="1" site="E" position="Anywhere" classification="Isotopic label"
+                           spec_group="13"/>
+         <umod:specificity hidden="1" site="D" position="Anywhere" classification="Isotopic label"
+                           spec_group="12"/>
+         <umod:specificity hidden="1" site="L" position="Anywhere" classification="Isotopic label"
+                           spec_group="11"/>
+         <umod:specificity hidden="1" site="I" position="Anywhere" classification="Isotopic label"
+                           spec_group="10"/>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Isotopic label"
+                           spec_group="9"/>
+         <umod:specificity hidden="1" site="T" position="Anywhere" classification="Isotopic label"
+                           spec_group="8"/>
+         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Isotopic label"
+                           spec_group="7"/>
+         <umod:specificity hidden="1" site="P" position="Anywhere" classification="Isotopic label"
+                           spec_group="6"/>
+         <umod:specificity hidden="1" site="S" position="Anywhere" classification="Isotopic label"
+                           spec_group="5"/>
+         <umod:specificity hidden="1" site="A" position="Anywhere" classification="Isotopic label"
+                           spec_group="4"/>
+         <umod:specificity hidden="1" site="G" position="Anywhere" classification="Isotopic label"
+                           spec_group="3"/>
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Isotopic label"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="F" position="Anywhere" classification="Isotopic label"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="M" position="Anywhere" classification="Isotopic label"
+                           spec_group="14"/>
+         <umod:delta mono_mass="0.997035" avge_mass="0.9934" composition="N(-1) 15N">
+            <umod:element symbol="N" number="-1"/>
+            <umod:element symbol="15N" number="1"/>
+         </umod:delta>
+         <umod:alt_name>Metabolic labeling with ammonium sulfate (15N)</umod:alt_name>
+         <umod:xref>
+            <umod:text>19664813</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="Label:15N(2)" full_name="SILAS 15N(2)" username_of_poster="ppicotti"
+                group_of_poster=""
+                date_time_posted="2010-06-22 15:29:02"
+                date_time_modified="2010-06-28 10:41:43"
+                approved="0"
+                record_id="995">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Isotopic label"
+                           spec_group="3"/>
+         <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Isotopic label"
+                           spec_group="2"/>
+         <umod:specificity hidden="1" site="N" position="Anywhere" classification="Isotopic label"
+                           spec_group="1"/>
+         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Isotopic label"
+                           spec_group="4"/>
+         <umod:delta mono_mass="1.994070" avge_mass="1.9868" composition="N(-2) 15N(2)">
+            <umod:element symbol="N" number="-2"/>
+            <umod:element symbol="15N" number="2"/>
+         </umod:delta>
+         <umod:alt_name>Metabolic labeling with ammonium sulfate (15N)</umod:alt_name>
+         <umod:xref>
+            <umod:text>19664813</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="Label:15N(3)" full_name="SILAS 15N(3)" username_of_poster="ppicotti"
+                group_of_poster=""
+                date_time_posted="2010-06-22 15:30:28"
+                date_time_modified="2010-06-28 10:36:50"
+                approved="0"
+                record_id="996">
+         <umod:specificity hidden="1" site="H" position="Anywhere" classification="Isotopic label"
+                           spec_group="1"/>
+         <umod:delta mono_mass="2.991105" avge_mass="2.9802" composition="N(-3) 15N(3)">
+            <umod:element symbol="N" number="-3"/>
+            <umod:element symbol="15N" number="3"/>
+         </umod:delta>
+         <umod:alt_name>Metabolic labeling with ammonium sulfate (15N)</umod:alt_name>
+         <umod:xref>
+            <umod:text>19664813</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+      <umod:mod title="sulfo+amino" full_name="aminotyrosine with sulfation"
+                username_of_poster="huidouzi"
+                group_of_poster=""
+                date_time_posted="2010-06-23 18:50:14"
+                date_time_modified="2010-06-28 10:29:52"
+                approved="0"
+                record_id="997">
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="94.967714" avge_mass="95.0778" composition="H N O(3) S">
+            <umod:element symbol="H" number="1"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="O" number="3"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:alt_name>amino_sulfate</umod:alt_name>
       </umod:mod>
    </umod:modifications>
    <umod:amino_acids>
@@ -16463,4 +17152,3 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
       </umod:brick>
    </umod:mod_bricks>
 </umod:unimod>
-
