@@ -269,16 +269,22 @@ START_SECTION(Size size() const)
 END_SECTION
 
 START_SECTION(AASequence getPrefix(Size index) const)
-  AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("DFPIANGER");
+  AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("DFPIANGER"), seq4("(TMT6plex)DFPIANGER"), seq5("DFPIANGER(Label:18O(2))"), seq6("DFPIANGERR(Label:18O(2))");
 	TEST_EQUAL(seq2, seq1.getPrefix(3));
 	TEST_EQUAL(seq3, seq1.getPrefix(9));
+  TEST_NOT_EQUAL(seq4.getPrefix(3), seq1.getPrefix(3))
+  TEST_NOT_EQUAL(seq5.getPrefix(9), seq1.getPrefix(9))
+  TEST_EQUAL(seq6.getPrefix(9), seq1.getPrefix(9))
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getPrefix(10))
 END_SECTION
 
 START_SECTION(AASequence getSuffix(Size index) const)
-  AASequence seq1("DFPIANGER"), seq2("GER"), seq3("DFPIANGER");
+  AASequence seq1("DFPIANGER"), seq2("GER"), seq3("DFPIANGER"), seq4("DFPIANGER(Label:18O(2))"), seq5("(TMT6plex)DFPIANGER"), seq6("(TMT6plex)DDFPIANGER");
 	TEST_EQUAL(seq2, seq1.getSuffix(3));
 	TEST_EQUAL(seq3, seq1.getSuffix(9));
+  TEST_NOT_EQUAL(seq4.getSuffix(3), seq1.getSuffix(3))
+  TEST_NOT_EQUAL(seq5.getSuffix(9), seq1.getSuffix(9))
+  TEST_EQUAL(seq6.getSuffix(9), seq1.getSuffix(9))
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getSuffix(10))
 END_SECTION
 
@@ -317,29 +323,41 @@ START_SECTION(bool hasSubsequence(const String& peptide) const)
 END_SECTION
 
 START_SECTION(bool hasPrefix(const AASequence& peptide) const)
-  AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("AIN");
+  AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("AIN"), seq4("(TMT6plex)DFP"), seq5("DFPIANGER(Label:18O(2))"), seq6("DFP(Label:18O(2))");
 	TEST_EQUAL(seq1.hasPrefix(seq2), true)
 	TEST_EQUAL(seq1.hasPrefix(seq3), false)
+  TEST_EQUAL(seq1.hasPrefix(seq4), false)
+  TEST_EQUAL(seq1.hasPrefix(seq5), false)
+  TEST_EQUAL(seq1.hasPrefix(seq6), true)
 END_SECTION
 
 START_SECTION(bool hasPrefix(const String& peptide) const)
   AASequence seq1("DFPIANGER");
-	String seq2("DFP"), seq3("AIN"), seq4("BLUBB");
+  String seq2("DFP"), seq3("AIN"), seq4("(TMT6plex)DFP"), seq5("DFPIANGER(Label:18O(2))"), seq6("DFP(Label:18O(2))");;
 	TEST_EQUAL(seq1.hasPrefix(seq2), true)
 	TEST_EQUAL(seq1.hasPrefix(seq3), false)
+  TEST_EQUAL(seq1.hasPrefix(seq4), false)
+  TEST_EQUAL(seq1.hasPrefix(seq5), false)
+  TEST_EQUAL(seq1.hasPrefix(seq6), true)
 END_SECTION
 
 START_SECTION(bool hasSuffix(const AASequence& peptide) const)
-  AASequence seq1("DFPIANGER"), seq2("GER"), seq3("AIN");
+  AASequence seq1("DFPIANGER"), seq2("GER"), seq3("AIN"), seq4("GER(Label:18O(2))"), seq5("(TMT6plex)DFPIANGER"), seq6("(TMT6plex)GER");
   TEST_EQUAL(seq1.hasSuffix(seq2), true)
   TEST_EQUAL(seq1.hasSuffix(seq3), false) 
+  TEST_EQUAL(seq1.hasSuffix(seq4), false)
+  TEST_EQUAL(seq1.hasSuffix(seq5), false)
+  TEST_EQUAL(seq1.hasSuffix(seq6), true)
 END_SECTION
 
 START_SECTION(bool hasSuffix(const String& peptide) const)
   AASequence seq1("DFPIANGER");
-  String seq2("GER"), seq3("AIN"), seq4("BLUBB");
+  String seq2("GER"), seq3("AIN"), seq4("GER(Label:18O(2))"), seq5("(TMT6plex)DFPIANGER"), seq6("(TMT6plex)GER");
   TEST_EQUAL(seq1.hasSuffix(seq2), true)
   TEST_EQUAL(seq1.hasSuffix(seq3), false)
+  TEST_EQUAL(seq1.hasSuffix(seq4), false)
+  TEST_EQUAL(seq1.hasSuffix(seq5), false)
+  TEST_EQUAL(seq1.hasSuffix(seq6), true)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
