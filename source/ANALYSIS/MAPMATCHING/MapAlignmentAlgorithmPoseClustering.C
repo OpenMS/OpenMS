@@ -28,6 +28,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <gsl/gsl_fit.h>
 
@@ -38,7 +41,7 @@ namespace OpenMS
 {
 
 	MapAlignmentAlgorithmPoseClustering::MapAlignmentAlgorithmPoseClustering()
-		: MapAlignmentAlgorithm()
+		: MapAlignmentAlgorithm(), reference_index_(0), reference_file_()
 	{
 		setName("MapAlignmentAlgorithmPoseClustering");
 
@@ -46,16 +49,21 @@ namespace OpenMS
 		defaults_.insert("pairfinder:",StablePairFinder().getParameters());
 		defaults_.setValue("symmetric_regression","true","If true, linear regression will be based on (y-x) versus (x+y).\nIf false, a \"standard\" linear regression will be performed for y versus x.");
 		defaults_.setValidStrings("symmetric_regression",StringList::create("true,false"));
-		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps.  For using all peaks, set this to -1.");
-		defaults_.setMinInt("max_num_peaks_considered",-1);
-    defaults_.setValue("reference_map_index",-1,"The index of the reference map, in the range [0:#maps-1].  If set to -1, the map with the most peaks/features is automatically taken as the reference map.");
-    defaults_.setMinInt("reference_map_index",-1);
+		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps. To use all peaks, set this to '-1'.");
+		defaults_.setMinInt("max_num_peaks_considered", -1);
 		//TODO 'max_num_peaks_considered' should apply to peaks and features!! (Clemens)
 		defaultsToParam_();
 	}
 
 	MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering()
 	{
+	}
+
+	void MapAlignmentAlgorithmPoseClustering::setReference(Size reference_index, const String& reference_file)
+	{
+		reference_index_ = reference_index;
+		// can't load the file yet because we don't know if the type will match:
+		reference_file_ = reference_file;
 	}
 
 	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps, std::vector<TransformationDescription>& transformations)
@@ -67,23 +75,39 @@ namespace OpenMS
 		const Int max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
-		//define reference map (the one with most peaks)
-		Size reference_map_index = 0;
-		Size max_count = 0;
-		for (Size m=0; m<maps.size(); ++m)
+		// reference map:
+		Size reference_index = reference_index_ - 1; // local index is 0-based
+		if (!reference_file_.empty())
 		{
-			// initialize getSize() by calling updateRanges()
-			maps[m].updateRanges(1);
-			if (maps[m].getSize()>max_count)
+			if (FileHandler::getType(reference_file_) != FileTypes::MZML)
 			{
-				max_count = maps[m].getSize();
-				reference_map_index = m;
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "reference file must be of type mzML in this case (same as input)");
+			}
+			maps.resize(maps.size() + 1);
+			MzMLFile().load(reference_file_, maps.back());
+			reference_index = maps.size() - 1;
+		}
+		else if (reference_index_ == 0) // no reference given
+		{
+			// use map with highest number of peaks as reference:
+			Size max_count = 0;
+			for (Size m = 0; m < maps.size(); ++m)
+			{
+				// initialize getSize() by calling updateRanges()
+				maps[m].updateRanges(1);
+				if (maps[m].getSize() > max_count)
+				{
+					max_count = maps[m].getSize();
+					reference_index = m;
+				}
 			}
 		}
 
-    // build a consensus map of the elements of the reference map (take the 400 highest peaks)
+		startProgress(0, 10 * maps.size(), "aligning peak maps");
+
+    // build a consensus map of the elements of the reference map (take the highest peaks)
     std::vector<ConsensusMap> input(2);
-		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0], max_num_peaks_considered );
+		ConsensusMap::convert(reference_index, maps[reference_index], input[0], max_num_peaks_considered);
 
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer superimposer;
@@ -94,14 +118,17 @@ namespace OpenMS
 
 		for (Size i = 0; i < maps.size(); ++i)
 		{
-			if (i != reference_map_index)
+			setProgress(10*i);
+			if (i != reference_index)
 			{
 				// build scene_map
 				ConsensusMap::convert( i, maps[i], input[1], max_num_peaks_considered );
+				setProgress(10*i+1);
 
 				// run superimposer to find the global transformation
 	      std::vector<TransformationDescription> si_trafos;
 	      superimposer.run(input, si_trafos);
+				setProgress(10*i+2);
 
 				//apply transformation to consensus feature and contained feature handles
 				for (Size j=0; j<input[1].size(); ++j)
@@ -114,16 +141,18 @@ namespace OpenMS
 					//Set RT of consensus feature handles
 					input[1][j].begin()->asMutable().setRT(rt);
 				}
+				setProgress(10*i+3);
 
 	      //run pairfinder fo find pairs
 				ConsensusMap result;
 				pairfinder.run(input,result);
+				setProgress(10*i+4);
 
 				// calculate the local transformation
 				TransformationDescription trafo;
 				try
 				{
-					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
+					trafo = calculateRegression_(i,reference_index,result,symmetric_regression);
 				}
 				catch (Exception::Precondition & /*exception*/ ) // TODO is there a better way to deal with this situation?
 				{
@@ -132,7 +161,7 @@ namespace OpenMS
 					trafo.setParam("slope",1.0);
 					trafo.setParam("intercept",0.0);
 				}
-
+				setProgress(10*i+5);
 
 				// combine the two transformations
 				transformations[i].setName("linear");
@@ -146,10 +175,20 @@ namespace OpenMS
 					transformations[i].apply(rt);
 					maps[i][j].setRT(rt);
 				}
+				
+				setProgress(10*i+6);
 			}
 		}
-		// set no transformation for reference map
-		transformations[reference_map_index].setName("none");
+		
+		if (reference_file_.empty())
+		{
+			// set no transformation for reference map:
+			transformations[reference_index].setName("none");
+		}
+		else maps.resize(maps.size() - 1);
+
+		setProgress(10*maps.size());
+		endProgress();
 	}
 
 
@@ -159,42 +198,39 @@ namespace OpenMS
 		transformations.clear();
 		transformations.resize(maps.size());
 
-		startProgress(0, 10 * maps.size(),"aligning feature maps");
-
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
-		// define reference map (the one with most peaks)
-    const Int reference_map_index_signed = param_.getValue("reference_map_index");
-		Size reference_map_index = 0;
-    if ( reference_map_index_signed == -1 )
+		// reference map:
+		Size reference_index = reference_index_ - 1; // local index is 0-based
+		if (!reference_file_.empty())
+		{
+			if (FileHandler::getType(reference_file_) != FileTypes::FEATUREXML)
+			{
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "reference file must be of type featureXML in this case (same as input)");
+			}
+			maps.resize(maps.size() + 1);
+			FeatureXMLFile().load(reference_file_, maps.back());
+			reference_index = maps.size() - 1;
+		}
+    else if (reference_index_ == 0) // no reference given
     {
-      // compute reference_map_index
+			// use map with highest number of features as reference:
       Size max_count = 0;
-      for ( Size m = 0; m < maps.size(); ++m )
+      for (Size m = 0; m < maps.size(); ++m)
       {
-        if ( maps[m].size() > max_count )
+        if (maps[m].size() > max_count)
         {
           max_count = maps[m].size();
-          reference_map_index = m;
+          reference_index = m;
         }
       }
     }
-    else
-    {
-      if ( reference_map_index_signed >= 0 && reference_map_index_signed < (Int) maps.size() )
-      {
-        reference_map_index = (Size) reference_map_index_signed;
-      }
-      else
-      {
-        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("reference_map_index ")+reference_map_index+" must be in the range [-1:#maps-1]");
-      }
-    }
 
+		startProgress(0, 10 * maps.size(), "aligning feature maps");
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
     std::vector<ConsensusMap> input(2);
-		ConsensusMap::convert(reference_map_index, maps[reference_map_index], input[0]);
+		ConsensusMap::convert(reference_index, maps[reference_index], input[0]);
 
 		// init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer superimposer;
@@ -208,7 +244,7 @@ namespace OpenMS
     for (Size i = 0; i < maps.size(); ++i)
 		{
 			setProgress(10*i);
-			if (i != reference_map_index)
+			if (i != reference_index)
 			{
 				ConsensusMap::convert(i,maps[i],input[1]);
 				setProgress(10*i+1);
@@ -231,14 +267,13 @@ namespace OpenMS
 	      //run pairfinder to find pairs
 				ConsensusMap result;
 				pairfinder.run(input, result);
-
 				setProgress(10*i+4);
 
 				// calculate the small local transformation
 				TransformationDescription trafo;
 				try
 				{
-					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
+					trafo = calculateRegression_(i,reference_index,result,symmetric_regression);
 				}
 				catch (Exception::Precondition& /*exception*/ ) // TODO is there a better way to deal with this situation?
 				{
@@ -247,7 +282,6 @@ namespace OpenMS
 					trafo.setParam("slope",1.0);
 					trafo.setParam("intercept",0.0);
 				}
-
 				setProgress(10*i+5);
 
 				// combine the two transformations
@@ -272,12 +306,15 @@ namespace OpenMS
 				setProgress(10*i+6);
 			}
 		}
-		//set no transformation for reference map
-		transformations[reference_map_index].setName("none");
+		if (reference_file_.empty())
+		{
+			//set no transformation for reference map:
+			transformations[reference_index].setName("none");
+		}
+		else maps.resize(maps.size() - 1);
 
 		setProgress(10*maps.size());
 		endProgress();
-		return;
 	}
 
 	TransformationDescription MapAlignmentAlgorithmPoseClustering::calculateRegression_(Size const index_x_map, Size const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const

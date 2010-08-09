@@ -66,6 +66,9 @@ namespace OpenMS
 		// Docu in base class
 		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
 
+		// Docu in base class
+		virtual void setReference(Size reference_index=0, const String& reference_file="");
+
 		/// Creates a new instance of this class (for Factory)
 		static MapAlignmentAlgorithm* create()
 		{
@@ -79,6 +82,12 @@ namespace OpenMS
 		}
 
 	 protected:
+
+		/// Index of input file to use as reference (1-based!)
+		Size reference_index_;
+
+		/// Path to external reference file
+		String reference_file_;
 
 		/**
 			@brief This will compute a linear regression based on all consensus

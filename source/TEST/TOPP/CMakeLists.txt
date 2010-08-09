@@ -247,9 +247,16 @@ add_test("TOPP_MapAligner_6_out2" ${DIFF} -in1 MapAligner_6_trafo2.tmp -in2 ${DA
 add_test("TOPP_MapAligner_7" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_7_input1.featureXML ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out MapAligner_7_output1.tmp MapAligner_7_output2.tmp)
 add_test("TOPP_MapAligner_7_out1" ${DIFF} -in1 MapAligner_7_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_7_output1.featureXML)
 add_test("TOPP_MapAligner_7_out2" ${DIFF} -in1 MapAligner_7_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_7_output2.featureXML)
-# "identification" algorithm with "reference" option:
-add_test("TOPP_MapAligner_8" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_8_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_7_input1.featureXML -out MapAligner_8_output1.tmp)
+# "identification" algorithm with "reference:file" option:
+add_test("TOPP_MapAligner_8" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_7_input1.featureXML -out MapAligner_8_output1.tmp -reference:file ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML)
 add_test("TOPP_MapAligner_8_out1" ${DIFF} -in1 MapAligner_8_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_8_output1.featureXML)
+# "identification" algorithm with "reference:index" option:
+add_test("TOPP_MapAligner_9" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML ${DATA_DIR_TOPP}/MapAligner_7_input1.featureXML -out MapAligner_9_output1.tmp MapAligner_9_output2.tmp -reference:index 1)
+add_test("TOPP_MapAligner_9_out1" ${DIFF} -in1 MapAligner_9_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_9_output1.featureXML)
+add_test("TOPP_MapAligner_9_out2" ${DIFF} -in1 MapAligner_9_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_8_output1.featureXML)
+add_test("TOPP_MapAligner_10" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_7_input1.featureXML ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out MapAligner_10_output1.tmp MapAligner_10_output2.tmp -reference:index 2)
+add_test("TOPP_MapAligner_10_out1" ${DIFF} -in1 MapAligner_10_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_8_output1.featureXML)
+add_test("TOPP_MapAligner_10_out2" ${DIFF} -in1 MapAligner_10_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_9_output1.featureXML)
 
 ### MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)

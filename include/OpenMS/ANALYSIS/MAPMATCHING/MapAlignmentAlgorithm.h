@@ -79,6 +79,22 @@ namespace OpenMS
 		*/
 		virtual void alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&);
 
+		/**
+			 @brief Define a reference for the alignment
+			 
+			 @param reference_index Index of input file to use as reference (1-based!)
+			 @param reference_file Path to external reference file
+
+			 @exception Exception::InvalidParameter is thrown if the algorithm does not support references
+			*/
+		virtual void setReference(Size reference_index=0,
+															const String& reference_file="")
+		{
+			if (reference_index || !reference_file.empty())
+			{
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This algorithm does not support a reference for the alignment.");
+			}
+		}
 
     /// Applies the <i>given</i> transformations to peak maps
     static void transformPeakMaps( std::vector< MSExperiment<> >& maps, const std::vector<TransformationDescription>& given_trafos );

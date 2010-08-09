@@ -70,6 +70,10 @@ namespace OpenMS
 		virtual void alignPeptideIdentifications(
 			std::vector<std::vector<PeptideIdentification> >&,
 			std::vector<TransformationDescription>&);
+
+		// Docu in base class
+		virtual void setReference(Size reference_index=0, 
+															const String& reference_file="");
 		
 		/// Creates a new instance of this class (for Factory)
 		static MapAlignmentAlgorithm* create()
@@ -90,6 +94,9 @@ namespace OpenMS
 		
 		/// Type to store one representative retention time per peptide sequence
 		typedef std::map<String, DoubleReal> SeqToValue;
+
+		/// Index of input file to use as reference (1-based!)
+		Size reference_index_;
 
 		/// Reference retention times (per peptide sequence)
 		SeqToValue reference_;

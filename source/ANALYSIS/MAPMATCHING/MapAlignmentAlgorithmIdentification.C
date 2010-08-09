@@ -40,18 +40,16 @@ namespace OpenMS
 {
 
 	MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification()
-		: MapAlignmentAlgorithm(), reference_()
+		: MapAlignmentAlgorithm(), reference_index_(0), reference_()
 	{
 		setName("MapAlignmentAlgorithmIdentification");
-
-		defaults_.setValue("reference", "", "Optional: File (mzML/featureXML/idXML) to use as reference for the alignment. If given, all input files are aligned to this reference, instead of to a consensus time scale. Only peptides present in the reference will be considered for the alignment.");
 
 		defaults_.setValue("num_breakpoints", 10, "Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing.");
 		defaults_.setMinInt("num_breakpoints", 2);
 
 		defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to be used in the alignment.\nSelect a value that allows only 'high confidence' matches.");
 
-		defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if given) a peptide must occur in to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
+		defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if any) a peptide must occur in to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
 		defaults_.setMinInt("min_run_occur", 2);
 
 		defaults_.setValue("max_rt_shift", 0.5, "Maximum realistic RT difference for a peptide (median per run vs. median overall). Peptides with higher shifts (outliers) are not used to compute the alignment.\nIf 0, no limit (disable filter); if > 1, the final value in seconds; if <= 1, taken as a fraction of the total retention time range.");
@@ -65,8 +63,6 @@ namespace OpenMS
 		defaults_.setValidStrings("use_feature_rt", 
 															StringList::create("true,false"));
 		defaultsToParam_();
-
-		setLogType(CMD);
 	}
 
 	
@@ -75,46 +71,37 @@ namespace OpenMS
 	}
 
 
-	void MapAlignmentAlgorithmIdentification::checkParameters_(const Size runs)
-	{
-		Size min_run_occur = param_.getValue("min_run_occur");
-		if (!String(param_.getValue("reference")).empty()) min_run_occur--;
-		if (min_run_occur > runs)
-		{
-			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of parameter 'min_run_occur' (here: " + String(min_run_occur) + ") must not exceed the number of runs (here: " + String(runs) + ")");
-		}
-	}
-
-
-	void MapAlignmentAlgorithmIdentification::getReference_()
+	void MapAlignmentAlgorithmIdentification::setReference(
+		Size reference_index, const String& reference_file)
 	{
 		reference_.clear();
-		String filename = param_.getValue("reference");
-		if (filename.empty()) return; // no reference given
-		// TODO: check if file is readable?
+		reference_index_ = reference_index;
+		// reference is one of the input files, or no reference given:
+		if (reference_index_ || reference_file.empty()) return;
 
+		// reference is external file:
 		LOG_DEBUG << "Extracting reference RT data..." << endl;
 		SeqToList rt_data;
 		bool sorted = true;
-		FileTypes::Type filetype = FileHandler::getType(filename);
+		FileTypes::Type filetype = FileHandler::getType(reference_file);
 		if (filetype == FileTypes::MZML)
 		{
 			MSExperiment<> experiment;
-			MzMLFile().load(filename, experiment);
+			MzMLFile().load(reference_file, experiment);
 			getRetentionTimes_(experiment, rt_data);
 			sorted = false;
 		}
 		else if (filetype == FileTypes::FEATUREXML)
 		{
 			FeatureMap<> features;
-			FeatureXMLFile().load(filename, features);
+			FeatureXMLFile().load(reference_file, features);
 			getRetentionTimes_(features, rt_data);
 		}
 		else if (filetype == FileTypes::IDXML)
 		{
 			vector<ProteinIdentification> proteins;
 			vector<PeptideIdentification> peptides;
-			IdXMLFile().load(filename, proteins, peptides);
+			IdXMLFile().load(reference_file, proteins, peptides);
 			getRetentionTimes_(peptides, rt_data);
 		}
 
@@ -128,20 +115,40 @@ namespace OpenMS
 	}
 
 
+	void MapAlignmentAlgorithmIdentification::checkParameters_(Size runs)
+	{
+		Size min_run_occur = param_.getValue("min_run_occur");
+		// reference is not counted as a regular run:
+		if (!reference_.empty()) runs++;
+		if (min_run_occur > runs)
+		{
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of parameter 'min_run_occur' (here: " + String(min_run_occur) + ") must not exceed the number of runs incl. reference (here: " + String(runs) + ")");
+		}
+	}
+
+
 	void MapAlignmentAlgorithmIdentification::alignPeakMaps(
 		vector<MSExperiment<> >& maps,
 		vector<TransformationDescription>& transformations)
 	{
 		checkParameters_(maps.size());
 		startProgress(0, 3, "aligning peak maps");
-		getReference_();
+
+		if (reference_index_) // reference is one of the input files
+		{
+			SeqToList rt_data;
+			getRetentionTimes_(maps[reference_index_ - 1], rt_data);
+			computeMedians_(rt_data, reference_, false);			
+		}
 
 		score_threshold_ = param_.getValue("peptide_score_threshold");
 		
-		vector<SeqToList> rt_data(maps.size());
-		for (Size i = 0; i < maps.size(); ++i)
+		// one set of RT data for each input map, except reference:
+		vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
+		for (Size i = 0, j = 0; i < maps.size(); ++i)
 		{
-			getRetentionTimes_(maps[i], rt_data[i]);
+			if (i == reference_index_ - 1) continue; // skip reference map, if any
+			getRetentionTimes_(maps[i], rt_data[j++]);
 		}
 		setProgress(1);
 
@@ -160,14 +167,22 @@ namespace OpenMS
 	{
 		checkParameters_(maps.size());
 		startProgress(0, 3, "aligning feature maps");
-		getReference_();
+		
+		if (reference_index_) // reference is one of the input files
+		{
+			SeqToList rt_data;
+			getRetentionTimes_(maps[reference_index_ - 1], rt_data);
+			computeMedians_(rt_data, reference_, true);			
+		}
 
 		score_threshold_ = param_.getValue("peptide_score_threshold");
 		
-		vector<SeqToList> rt_data(maps.size());
-		for (Size i = 0; i < maps.size(); ++i)
+		// one set of RT data for each input map, except reference:
+		vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
+		for (Size i = 0, j = 0; i < maps.size(); ++i)
 		{
-			getRetentionTimes_(maps[i], rt_data[i]);
+			if (i == reference_index_ - 1) continue; // skip reference map, if any
+			getRetentionTimes_(maps[i], rt_data[j++]);
 		}
 		setProgress(1);
 
@@ -186,14 +201,22 @@ namespace OpenMS
 	{
 		checkParameters_(maps.size());
 		startProgress(0, 3, "aligning peptide identifications");
-		getReference_();
+
+		if (reference_index_) // reference is one of the input files
+		{
+			SeqToList rt_data;
+			getRetentionTimes_(maps[reference_index_ - 1], rt_data);
+			computeMedians_(rt_data, reference_, true);			
+		}
 
 		score_threshold_ = param_.getValue("peptide_score_threshold");
 		
-		vector<SeqToList> rt_data(maps.size());
-		for (Size i = 0; i < maps.size(); ++i)
+		// one set of RT data for each input map, except reference:
+		vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
+		for (Size i = 0, j = 0; i < maps.size(); ++i)
 		{
-			getRetentionTimes_(maps[i], rt_data[i]);
+			if (i == reference_index_ - 1) continue; // skip reference map, if any
+			getRetentionTimes_(maps[i], rt_data[j++]);
 		}
 		setProgress(1);
 
@@ -349,7 +372,8 @@ namespace OpenMS
 	{
 		Size size = rt_data.size();
 		transforms.clear();
-		transforms.resize(size);
+		// potentially need one additional transformation for the reference map:
+		transforms.resize(size + bool(reference_index_));
 		
 		// filter RT data (remove peptides that elute in several fractions):
 		// TODO
@@ -438,12 +462,21 @@ namespace OpenMS
 		LOG_DEBUG << "Generating RT transformations..." << endl;
 		Int num_breakpoints = param_.getValue("num_breakpoints");
 		LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
-		for (Size i = 0; i < size; ++i)
+		for (Size i = 0, offset = 0; i < size + 1; ++i)
 		{
+			if (i == reference_index_ - 1)
+			{
+				// if one of the input maps was used as reference, it has been skipped 
+				// so far - now we have to consider it again:
+				transforms[i].setName("none");
+				LOG_INFO << "- 0 data points for sample " << i + 1 << " (reference)\n";
+				offset = 1;
+			}
+			if (i >= size) break;
 			TransformationDescription::PairVector pairs;
 			// to be useful for the alignment, a peptide sequence has to occur in the
 			// current run ("medians_per_run[i]"), but also in at least one other run
-			// ("medians_overall")
+			// ("medians_overall"):
 			for (SeqToValue::iterator med_it = medians_per_run[i].begin();
 					 med_it != medians_per_run[i].end(); ++med_it)
 			{
@@ -454,13 +487,14 @@ namespace OpenMS
 					pairs.push_back(make_pair(med_it->second, pos->second));
 				}
 			}
-		
+
 			// maybe TODO: check "pairs.size()" here and abort if not enough data?
-			transforms[i].setName("b_spline");
-			transforms[i].setParam("num_breakpoints", num_breakpoints);
-			transforms[i].setPairs(pairs);
-			LOG_INFO << "- " << pairs.size() << " data points for sample " << i + 1
-							 << endl;
+			Size trafo_index = i + offset;				
+			transforms[trafo_index].setName("b_spline");
+			transforms[trafo_index].setParam("num_breakpoints", num_breakpoints);
+			transforms[trafo_index].setPairs(pairs);
+			LOG_INFO << "- " << pairs.size() << " data points for sample " 
+							 << trafo_index + 1 << "\n";
 		}
 		LOG_INFO << endl;
 	}

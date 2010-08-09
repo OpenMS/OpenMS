@@ -81,15 +81,23 @@ protected:
 		registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",true);
 		setValidFormats_("out",StringList::create("mzML,featureXML,idXML"));
 		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
+		setValidFormats_("transformations", StringList::create("trafoXML"));
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
-		setValidStrings_("type", getToolList()[toolName_()] );
-
-		// TODO  Remove this hack when StringList when become available in INIFileEditor.  Transformations should be specified in algorithm section.
-		registerInputFileList_("given_transformations","<files>",StringList(),"given transformations separated by blanks.",false);
+		setValidStrings_("type", getToolList()[toolName_()]);
+		// TODO  Remove this hack when StringList becomes available in INIFileEditor. Transformations should be specified in algorithm section.
+		registerInputFileList_("given_transformations","<files>",StringList(),"Transformations to apply by the 'apply_given_trafo' algorithm",false);
 		setValidFormats_("given_transformations",StringList::create("trafoXML"));
 
+		addEmptyLine_();
+		addText_("Options to define a reference file (currently only supported by the algorithms 'identification' and 'pose_clustering_affine'):");
+		registerTOPPSubsection_("reference", "Options to define a reference file (currently only supported by the algorithms 'identification' and 'pose_clustering_affine')");
+		registerInputFile_("reference:file", "<file>", "", "File to use as reference (for the 'pose_clustering_affine' algorithm, same file format as input files required)\n", false);
+		setValidFormats_("reference:file", StringList::create("mzML,featureXML,idXML"));
+		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.)", false);
+		setMinInt_("reference:index", 0);
+
     addEmptyLine_();
-		addText_("This tool takes N input files, aligns them and writes them to the output files.");
+		addText_("This tool takes a number of input files, aligns them and writes the results to the output files.");
 
 		registerSubsection_("algorithm","Algorithm parameters section");
 	}
@@ -151,6 +159,19 @@ protected:
 				return ILLEGAL_PARAMETERS;
 			}
 		}
+		// check reference parameters:
+		Size reference_index = getIntOption_("reference:index");
+		String reference_file = getStringOption_("reference:file");
+		if (reference_index && !reference_file.empty())
+		{
+			writeLog_("Error: 'reference:index' and 'reference:file' cannot be used together");
+			return ILLEGAL_PARAMETERS;
+		}
+		if (reference_index > ins.size())
+		{
+			writeLog_("Error: 'reference:index' must not be higher than the number of input files");
+			return ILLEGAL_PARAMETERS;
+		}
 
     //-------------------------------------------------------------
     // set up alignment algorithm
@@ -168,6 +189,8 @@ protected:
 		alignment->setParameters(alignment_param);
 		alignment->setLogType(log_type_);
 
+		// pass the reference parameters on to the algorithm:
+		alignment->setReference(reference_index, reference_file);
 
     //-------------------------------------------------------------
     // perform peak alignment
