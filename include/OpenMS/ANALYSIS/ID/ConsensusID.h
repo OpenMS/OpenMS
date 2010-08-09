@@ -80,6 +80,9 @@ namespace OpenMS
 			/// PEP and ion similarity based algorithm
 			void PEPIons_(std::vector<PeptideIdentification>& ids);
 
+			/// use minimal PEP score
+			void Minimum_(std::vector<PeptideIdentification>& ids);
+
 			/// Majority vote
 			void majority_(std::vector<PeptideIdentification>& ids);
 //already done in APPLICATIONS/TOPP/ConsensusID.C

@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Sven Nahnsen $
+// $Authors: Sven Nahnsen and others$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -49,11 +49,6 @@ using namespace std;
 	The input file can contain several searches, e.g. from several identification engines.
 	You can combine several searches with @ref TOPP_IDMerger. Identification runs can be mapped
 	to featureXML and consensusXML with the @ref TOPP_IDMapper tool.
-
-  If you use @em PEPMatrix or @em PEPIons scoring, make sure to compute PosteriorErrorProbabilities (PEP's) first using the
-  TOPP tool of the same name. Alternatively you can compute q-values's using the FalseDiscoveryRate tool and apply ConsensusID on that.
-  The resulting peptide score for @em PEPMatrix or @em PEPIons scoring is the average of corresponding hits.
-  
 
 	For a detailed description of the algorithms and parameters see the documentation of
 	the %OpenMS ConsensusID class.
@@ -97,10 +92,13 @@ class TOPPConsensusID
 			setValidFormats_("out",StringList::create("idXML,featureXML,consensusXML"));
 
 			addEmptyLine_();
-			registerDoubleOption_("rt_delta","<value>",0.1, "Maximum allowed precursor RT deviation [s] between identifications.", false);
+			registerDoubleOption_("rt_delta","<value>",0.1, "Maximum allowed precursor RT deviation between identifications.", false);
 			setMinFloat_("rt_delta",0.0);
-			registerDoubleOption_("mz_delta","<value>",0.1, "Maximum allowed precursor m/z deviation [Da] between identifications.", false);
+			registerDoubleOption_("mz_delta","<value>",0.1, "Maximum allowed precursor m/z deviation between identifications.", false);
 			setMinFloat_("mz_delta",0.0);
+			registerIntOption_("min_length","<value>",6, "Minimum of length of peptides for final consensus list", false);
+			setMinInt_("min_length",1);
+			registerFlag_("first_only", "if set, only the first hit will be used, if the score if the best hit differs from the other scores (used to avoid unspecific scoring)");
 
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
@@ -110,9 +108,11 @@ class TOPPConsensusID
 			String in = getStringOption_("in");
 			FileTypes::Type in_type = FileHandler::getType(in);
 			String out = getStringOption_("out");
+			bool first_only(getFlag_("first_only"));
 
 			DoubleReal rt_delta = getDoubleOption_("rt_delta");
 			DoubleReal mz_delta = getDoubleOption_("mz_delta");
+			UInt min_length = getIntOption_("min_length");
 
 			//----------------------------------------------------------------
 			//set up ConsensusID
@@ -140,7 +140,8 @@ class TOPPConsensusID
 				vector<IDData> prec_data,final;
 				for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
 				{
-					PeptideIdentification t = *pep_id_it;
+					PeptideIdentification t;
+					t=*pep_id_it;
 					String scoring = (String)pep_id_it->getIdentifier();
 					DoubleReal rt = (DoubleReal)(pep_id_it->getMetaValue("RT"));
 					DoubleReal mz = (DoubleReal)(pep_id_it->getMetaValue("MZ"));
@@ -154,26 +155,37 @@ class TOPPConsensusID
 						}
 						++pos;
 					}
-
-					//write information on search engine
-					vector<PeptideHit> hits;
-					for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
-					{
-						PeptideHit hit = *pit;
-            // TODO: what is this good for?! nothing happens!
-						if (hit.metaValueExists("scoring"))
-						{
-							String meta_value = (String)hit.getMetaValue("scoring");
-						}
-    				hit.setMetaValue("scoring", pep_id_it->getIdentifier());
-						hits.push_back(hit);
-  				}
-					t.setHits(hits);
-
-          //right position was found => append ids
+					//right position was found => append ids
 					if (pos != prec_data.end())
 					{
 						writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
+						//write information on search engine
+						vector<PeptideHit> hits;
+						DoubleReal h=0;
+						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+							{
+								PeptideHit hit = *pit;
+								vector<PeptideHit>::const_iterator tip=pit+1;
+								if(hit.getSequence().size()>=min_length)
+								{
+									if(fabs(pit->getScore()-h)<0.5 && pit != t.getHits().begin())
+									{
+										break;
+									}
+									if (hit.metaValueExists("scoring"))
+									{
+										String meta_value = (String)hit.getMetaValue("scoring");
+									}
+									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
+									hits.push_back(hit);
+									if(first_only)
+									{
+										break;
+									}
+								}
+      					h=pit->getScore();
+								}
+						t.setHits(hits);
 						pos->ids.push_back(t);
 					}
 					//insert new entry
@@ -182,6 +194,26 @@ class TOPPConsensusID
 						IDData tmp;
 						tmp.mz = mz;
 						tmp.rt = rt;
+						vector<PeptideHit> hits;
+						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+							{
+								PeptideHit hit = *pit;
+								vector<PeptideHit>::const_iterator tip=pit+1;
+								if(hit.getSequence().size()>=min_length)
+								{
+									if (hit.metaValueExists("scoring"))
+									{
+										String meta_value = (String)hit.getMetaValue("scoring");
+									}
+									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
+									hits.push_back(hit);
+									if(first_only)
+									{
+										break;
+									}
+								}
+      				}
+						t.setHits(hits);
 						tmp.ids.push_back(t);
 						prec_data.push_back(tmp);
 						writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
@@ -196,19 +228,22 @@ class TOPPConsensusID
 					tmp.mz=fin->mz;
 					tmp.rt=fin->rt;
 					PeptideIdentification t;
-					vector<PeptideHit> p;
+					vector<PeptideHit> P;
 					
 					for(vector<PeptideIdentification>::iterator tt = fin->ids.begin(); tt != fin->ids.end(); ++tt)
 					{
 						for (vector<PeptideHit>::const_iterator pit = tt->getHits().begin(); pit != tt->getHits().end();++pit)
-						{
-							p.push_back(*pit);
-						}	
+							{
+								P.push_back(*pit);
+							}	
 					}
-					t.setHits(p);
+					t.setHits(P);
 					tmp.ids.push_back(t);
 					final.push_back(tmp);
 				}
+				
+				
+				///iterate over prec_data and write to final only one peptide identification per rt mz
 
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)prot_ids.size());
