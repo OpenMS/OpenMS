@@ -368,19 +368,19 @@ START_SECTION((void computeMonoisotopicConsensus()))
   ConsensusFeature cons;
   //one point
   cons.insert(2,tmp_feature);
-	cons.computeConsensus();
+	cons.computeMonoisotopicConsensus();
 	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
 	TEST_REAL_SIMILAR(cons.getRT(),1.0)
 	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
 	//two points
   cons.insert(4,tmp_feature2);
-	cons.computeConsensus();
+	cons.computeMonoisotopicConsensus();
 	TEST_REAL_SIMILAR(cons.getIntensity(),250.0)
 	TEST_REAL_SIMILAR(cons.getRT(),1.5)
 	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
 	//three points
   cons.insert(6,tmp_feature3);
-	cons.computeConsensus();
+	cons.computeMonoisotopicConsensus();
 	TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
 	TEST_REAL_SIMILAR(cons.getRT(),2.0)
 	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
