@@ -1911,8 +1911,18 @@ namespace OpenMS
 							{
 								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
+								if (!it->description.empty()) 
+								{
+									// if there's no whitespace at the end of the description,
+									// insert a space before "(valid formats: ...)":
+									char c = *(--it->description.end()); // last character
+									if ((c != ' ') && (c != '\t') && (c != '\n'))
+									{
+										formats = " " + formats;
+									}
+								}
 							}
-							tmp.setValue(name,(String)it->default_value, it->description + formats, tags);
+							tmp.setValue(name, (String)it->default_value, it->description + formats, tags);
 						}
 						break;
 					case ParameterInformation::DOUBLE:
@@ -1949,6 +1959,16 @@ namespace OpenMS
 							{
 								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
+								if (!it->description.empty()) 
+								{
+									// if there's no whitespace at the end of the description,
+									// insert a space before "(valid formats: ...)":
+									char c = *(--it->description.end()); // last character
+									if ((c != ' ') && (c != '\t') && (c != '\n'))
+									{
+										formats = " " + formats;
+									}
+								}
 							}
 							tmp.setValue(name,(StringList)it->default_value, it->description + formats, tags);
 						}
