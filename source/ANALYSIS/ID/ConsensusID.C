@@ -90,7 +90,7 @@ namespace OpenMS
 	ConsensusID::ConsensusID()
 		: DefaultParamHandler("ConsensusID")
 	{
-		defaults_.setValue("algorithm","ranked","Algorithm used for the consensus scoring.\n"
+		defaults_.setValue("algorithm","PEPMatrix","Algorithm used for the consensus scoring.\n"
 											 "merge -- merges the runs with respect to their score. The score is not modified. Make sure to use PeptideIdentifications with the same score type only!\n"
 										   "ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
 										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!\n"
@@ -104,9 +104,9 @@ defaults_.setValidStrings("algorithm",StringList::create("ranked,merge,average,P
 		defaults_.setMinInt("number_of_runs",0);
 		defaults_.setValue("min_number_of_engines", 2, "The minimum number of search engines used to generate peptide lists");
 		defaults_.setMinInt("min_number_of_engines",2);
-		defaults_.setValue("penalty", 10, "Give the gap opening and extension penalty for the PEPMatrix algorithm as a positive integer (used for the PEPMatrix algorithm)");
-		//enable if you want to use different PAM matrices
-		//defaults_.setValue("PAM", 110, "Give a value indicating your PAM matrix of choice (used for the PEPMatrix algorithm");
+		defaults_.setValue("opening_penalty", 1, "Give the gap opening penalty for the PEPMatrix algorithm as a positive integer (used for the PEPMatrix algorithm)");
+		defaults_.setValue("extension_penalty", 1, "Give the gap extension penalty for the PEPMatrix algorithm as a positive integer (used for the PEPMatrix algorithm)");
+		defaults_.setValue("PAM", 110, "Give a value indicating your PAM matrix of choice (used for the PEPMatrix algorithm");
 		defaults_.setValue("common", 0.9, "Similarity threshold to accepted best score, if spectrum was given the same sequence by all engines. Every value greater than 1 will disable this option. Set to 0 to assign the best score from any search engine as the consensus score");	
 		defaults_.setMinFloat("common",0);
 		defaults_.setMaxFloat("common",2);
@@ -383,9 +383,9 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
         //UInt number_of_runs = (UInt)(param_.getValue("numberOfRuns"));
-		UInt penalty = (UInt)param_.getValue("penalty");
-		//enable if you want to use different PAM matrices 
-		//UInt PAM = (UInt)param_.getValue("PAM");
+		UInt opening_penalty = (UInt)param_.getValue("opening_penalty");
+		UInt extension_penalty = (UInt)param_.getValue("extension_penalty");
+		UInt PAM = (UInt)param_.getValue("PAM");
 		DoubleReal common = (double)param_.getValue("common");
 			
 
@@ -421,7 +421,10 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 				DoubleReal NumberAnnots=1;
 
 
-					
+
+/////////////////////////Definition of PAM30MS matrix///////////////////////
+
+/////////////////////////Definition of PAM30MS matrix///////////////////////					
 					
 					set<String> myset;
 					for(vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
@@ -453,16 +456,15 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 									typedef::seqan::String< ::seqan::AminoAcid > TSequence;
 									TSequence seq1=pc1;
 									TSequence seq2=pc2;
-/////////////////////////introduce scoring with PAM30MS
+												//introduce scoring with PAM30MS
 									typedef int TValue;
 	    							typedef::seqan::Score<TValue, ::seqan::ScoreMatrix< ::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
-									TScoringScheme pam30msScoring(-penalty,-penalty);
+									TScoringScheme pam30msScoring(-1, -1);
 									::seqan::setDefaultScoreMatrix(pam30msScoring, ::seqan::PAM30MS());
-/////////////////////////introduce scoring with PAM30MS
-									
-//You can also use normal mutation based matrices, such as BLOSUM or the normal PAM matrix
+												//introduce scoring with PAM30MS				
+												//You can also use normal mutation based matrices, such as BLOSUM or the normal PAM matrix
 									//::seqan::Blosum62 pam(-1,-1);
-									//::seqan::Score<int, ::seqan::Pam<> > pam(30, -penalty, -penalty);
+									//::seqan::Score<int, ::seqan::Pam<> > pam(30, -10000, -10000);
 									::seqan::Align<TSequence, ::seqan::ArrayGaps> align, self1, self2;
 									::seqan::resize(rows(align), 2);
 									::seqan::resize(rows(self1), 2);
@@ -530,7 +532,7 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 		ids.clear();
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_PEPMatrix (") + score_type +")");
-		ids[0].setHigherScoreBetter(higher_better);
+		ids[0].setHigherScoreBetter(FALSE);
 		for (Map<AASequence,vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
@@ -707,7 +709,7 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 		ids.clear();
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_PEPIons (") + score_type +")");
-		ids[0].setHigherScoreBetter(higher_better);
+		ids[0].setHigherScoreBetter(FALSE);
 		for (Map<AASequence,vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
@@ -766,7 +768,7 @@ void ConsensusID::Minimum_(vector<PeptideIdentification>& ids)
 		ids.clear();
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_Minimum(") + score_type +")");
-		ids[0].setHigherScoreBetter(higher_better);
+		ids[0].setHigherScoreBetter(FALSE);
 
 		for (Map<AASequence,DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{

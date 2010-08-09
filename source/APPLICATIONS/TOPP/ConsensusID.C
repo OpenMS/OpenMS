@@ -98,7 +98,7 @@ class TOPPConsensusID
 			setMinFloat_("mz_delta",0.0);
 			registerIntOption_("min_length","<value>",6, "Minimum of length of peptides for final consensus list", false);
 			setMinInt_("min_length",1);
-			registerFlag_("use_all_hits", "if set, only all hits will be used, if the score if the best hit differs from the other scores (used to avoid unspecific scoring)");
+			registerFlag_("first_only", "if set, only the first hit will be used, if the score if the best hit differs from the other scores (used to avoid unspecific scoring)");
 
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
@@ -108,7 +108,7 @@ class TOPPConsensusID
 			String in = getStringOption_("in");
 			FileTypes::Type in_type = FileHandler::getType(in);
 			String out = getStringOption_("out");
-			bool use_all_hits (getFlag_("use_all_hits"));
+			bool first_only(getFlag_("first_only"));
 
 			DoubleReal rt_delta = getDoubleOption_("rt_delta");
 			DoubleReal mz_delta = getDoubleOption_("mz_delta");
@@ -161,14 +161,14 @@ class TOPPConsensusID
 						writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
 						//write information on search engine
 						vector<PeptideHit> hits;
-						DoubleReal h=0;
+						DoubleReal h=1;
 						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
 							{
 								PeptideHit hit = *pit;
 								vector<PeptideHit>::const_iterator tip=pit+1;
 								if(hit.getSequence().size()>=min_length)
 								{
-									if(fabs(pit->getScore()-h)>0.5 && pit != t.getHits().begin())
+									if(fabs(pit->getScore()-h)<0.5 && pit != t.getHits().begin())
 									{
 										break;
 									}
@@ -178,7 +178,7 @@ class TOPPConsensusID
 									}
 									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
 									hits.push_back(hit);
-									if(!use_all_hits)
+									if(first_only)
 									{
 										break;
 									}
@@ -207,7 +207,7 @@ class TOPPConsensusID
 									}
 									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
 									hits.push_back(hit);
-									if(!use_all_hits)
+									if(first_only)
 									{
 										break;
 									}
