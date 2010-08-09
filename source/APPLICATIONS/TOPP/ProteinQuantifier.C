@@ -79,7 +79,7 @@ using namespace std;
 	- @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
 	- @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
 	- @b charge: Charge state quantified in this line. "0" (for "all charges") unless @a filter_charge was set.
-	- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_0", "abundance_1", etc.). Also for consensusXML, the reported values are already normalized if @a normalize was set.
+	- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_0", "abundance_1", etc.). Also for consensusXML, the reported values are already normalized if @a consensus:normalize was set.
 
 
 	In addition to the information above, consider this for parameter selection: With @a filter_charge and @a average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
@@ -142,6 +142,39 @@ namespace OpenMS
 		} stats_; // for output in the end
 
 
+		void registerOptionsAndFlags_()
+      {
+				registerInputFile_("in", "<file>", "", "Input file");
+				setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+				registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+				setValidFormats_("protxml", StringList::create("idXML"));
+        registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
+				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances\nEither 'out' or 'peptide_out' are required. They can be used together.", false);
+
+				addEmptyLine_();
+				registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
+				setMinInt_("top", 0);
+				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
+				setValidStrings_("average", StringList::create("median,mean,sum"));
+				registerFlag_("include_all", "Include results for proteins with fewer than 'top' proteotypic peptides");
+				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
+
+				addEmptyLine_();
+        addText_("Additional options for consensusXML input:");
+				registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
+				registerFlag_("consensus:normalize", "Scale peptide abundances so that medians of all samples are equal");
+				registerFlag_("consensus:fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
+
+				addEmptyLine_();
+				addText_("Output formatting options:");
+				registerTOPPSubsection_("format", "Output formatting options");
+				registerStringOption_("format:separator", "<string>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
+				registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
+				setValidStrings_("format:quoting", StringList::create("none,double,escape"));
+				registerStringOption_("format:replacement", "<string>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
+      }
+
+		
 		/**
 			 @brief Compute the median of a list of values (possibly already sorted)
 
@@ -799,39 +832,6 @@ namespace OpenMS
 			}
 
 	
-		void registerOptionsAndFlags_()
-      {
-				registerInputFile_("in", "<file>", "", "Input file");
-				setValidFormats_("in", StringList::create("featureXML,consensusXML"));
-				registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
-				setValidFormats_("protxml", StringList::create("idXML"));
-        registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
-				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances\nEither 'out' or 'peptide_out' are required. They can be used together.", false);
-
-				addEmptyLine_();
-				registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
-				setMinInt_("top", 0);
-				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
-				setValidStrings_("average", StringList::create("median,mean,sum"));
-				registerFlag_("include_all", "Include results for proteins with fewer than 'top' proteotypic peptides");
-				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
-
-				addEmptyLine_();
-        addText_("Additional options for consensusXML input:");
-				registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
-				registerFlag_("consensus:normalize", "Scale peptide abundances so that medians of all samples are equal");
-				registerFlag_("consensus:fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
-
-				addEmptyLine_();
-				addText_("Output formatting options:");
-				registerTOPPSubsection_("format", "Output formatting options");
-				registerStringOption_("format:separator", "<string>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
-				registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
-				setValidStrings_("format:quoting", StringList::create("none,double,escape"));
-				registerStringOption_("format:replacement", "<string>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
-      }
-
-		
 		ExitCodes main_(int, const char**)
       {
 				String in = getStringOption_("in"), out = getStringOption_("out"), 
