@@ -531,7 +531,6 @@ void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_PEPMatrix (") + score_type +")");
 		ids[0].setHigherScoreBetter(higher_better);
-		ids[0].setHigherScoreBetter(FALSE);
 		for (Map<AASequence,vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
@@ -708,7 +707,7 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 		ids.clear();
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_PEPIons (") + score_type +")");
-		ids[0].setHigherScoreBetter(FALSE);
+		ids[0].setHigherScoreBetter(higher_better);
 		for (Map<AASequence,vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
@@ -767,7 +766,7 @@ void ConsensusID::Minimum_(vector<PeptideIdentification>& ids)
 		ids.clear();
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_Minimum(") + score_type +")");
-		ids[0].setHigherScoreBetter(FALSE);
+		ids[0].setHigherScoreBetter(higher_better);
 
 		for (Map<AASequence,DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
