@@ -1,47 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="file:///some/path/to/IdXML.xsl?>
+<?xml-stylesheet type="text/xsl" href="file:////share/usr/nahnsen/OpenMS_dev/OpenMS_new/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
 <IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="Dummy" db_version="1.1" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >
+	<SearchParameters id="SP_0" db="/nfs/wsi/bs/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.01" peak_mass_tolerance="0.5" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<SearchParameters id="SP_1" db="Dummy" db_version="1.2" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >
+	<SearchParameters id="SP_1" db="/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.pro" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2005-01-27T17:47:39" search_engine="Mascot" search_engine_version="" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+	<SearchParameters id="SP_2" db="ECOlL" db_version="Ecoli_K12_TaxID_83333.proteomes.decoy.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2010-05-04T15:18:29" search_engine="Mascot" search_engine_version="2.2.04" search_parameters_ref="SP_2" >
+				<PeptideIdentification score_type="Mascot" higher_score_better="false" significance_threshold="18" MZ="329.702331542969" RT="2862.1334" >
+			<PeptideHit score="0.850044625120082" sequence="KNGLAR" charge="2" >
+				<UserParam type="float" name="Search engine score" value="11.92"/>
+				<UserParam type="float" name="homology_threshold" value="0"/>
+				<UserParam type="float" name="identity_threshold" value="18"/>
+				<UserParam type="float" name="EValue" value="0.21"/>
+			</PeptideHit>
+	</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2010-05-04T07:26:55" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="false" significance_threshold="0" >
 		</ProteinIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1" RT="1" >
-			<PeptideHit score="1" sequence="A" charge="0" >
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="329.702667236328" RT="388.8026" >
+			<PeptideHit score="0.992869422338667" sequence="LAVLDK" charge="2" aa_before="K" aa_after="V" >
+				<UserParam type="float" name="Search engine score" value="13408.3100151565"/>
 			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="2" RT="2" >
-			<PeptideHit score="2" sequence="E" charge="0" >
+			<PeptideHit score="0.994052680224135" sequence="NQIRK" charge="2" aa_before="R" aa_after="E" >
+				<UserParam type="float" name="Search engine score" value="91487.8168705884"/>
 			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3" RT="3" >
-			<PeptideHit score="3" sequence="C" charge="0" >
+			<PeptideHit score="0.994052680224135" sequence="QINRK" charge="2" aa_before="R" aa_after="T" >
+				<UserParam type="float" name="Search engine score" value="91487.8168705884"/>
 			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="4" RT="4" >
-			<PeptideHit score="4" sequence="D" charge="0" >
+			<PeptideHit score="0.994052680224135" sequence="LQNRK" charge="2" aa_before="K" aa_after="N" >
+				<UserParam type="float" name="Search engine score" value="91487.8168705884"/>
+			</PeptideHit>
+			<PeptideHit score="0.99407252157917" sequence="IVADIK" charge="2" aa_before="R" aa_after="E" >
+				<UserParam type="float" name="Search engine score" value="94609.2531034104"/>
+			</PeptideHit>
+			<PeptideHit score="0.994188790189742" sequence="LNQGVK" charge="2" aa_before="K" aa_after="L" >
+				<UserParam type="float" name="Search engine score" value="115288.263609623"/>
+			</PeptideHit>
+			<PeptideHit score="0.994189260051603" sequence="AVQGRK" charge="2" aa_before="K" aa_after="K" >
+				<UserParam type="float" name="Search engine score" value="115380.841816585"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
-	<IdentificationRun date="2005-01-27T17:47:41" search_engine="Mascot" search_engine_version="" search_parameters_ref="SP_1" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-		</ProteinIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1" RT="1" >
-			<PeptideHit score="3" sequence="A" charge="0" >
-			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="2" RT="2" >
-			<PeptideHit score="2" sequence="E" charge="0" >
-			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3" RT="3" >
-			<PeptideHit score="1" sequence="C" charge="0" >
-			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="4" RT="4" >
-			<PeptideHit score="4" sequence="D" charge="0" >
+	<IdentificationRun date="2010-05-03T19:50:18" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_1" >
+	<PeptideIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" MZ="329.702667236328" RT="388.8026" >
+			<PeptideHit score="0.924125509644609" sequence="AAVRGGK" charge="2" aa_before="R" aa_after="G" >
+				<UserParam type="float" name="Search engine score" value="16"/>
+				<UserParam type="float" name="E-Value" value="4"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
