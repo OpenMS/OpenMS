@@ -45,10 +45,9 @@ using namespace std;
 
 	@brief Groups corresponding features in one map or across maps.
 
-	This tool provides several algorithms for grouping corresponding features in isotope-labeled
-	and label-free experiments.
+	This tool provides several algorithms for grouping corresponding features in isotope-labeled and label-free experiments.
 
-	It takes one or several feaure maps and stores the corresponding features in a ConsensusXML files.
+	It takes one or several feature maps (featureXML files) and stores the corresponding features in a consensus map (consensusXML file).
 
 	It is assumed that major retention time distortions are corrected before applying this tool.
 	Please use @ref TOPP_MapAligner to do that on the peak or feature level.
@@ -80,7 +79,7 @@ protected:
 		registerOutputFile_("out","<file>","","Output file",true);
 		setValidFormats_("out",StringList::create("consensusXML"));
 		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
-		setValidStrings_("type", getToolList()[toolName_()] );
+		setValidStrings_("type", getToolList()[toolName_()]);
 
 		registerSubsection_("algorithm","Algorithm parameters section");
 	}

@@ -424,17 +424,20 @@ add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer.tmp -in2 ${DATA_
 add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -in1 SILACAnalyzer_vis.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_triple.featureXML)
 
 ### FeatureLinker tests
+# "labeled" algorithm:
 add_test("TOPP_FeatureLinker_1" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_1_input.featureXML)
 add_test("TOPP_FeatureLinker_1_out1" ${DIFF} -in1 FeatureLinker_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_1_output.consensusXML)
+# "unlabeled" algorithm:
 add_test("TOPP_FeatureLinker_2" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_2_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input3.featureXML)
 add_test("TOPP_FeatureLinker_2_out1" ${DIFF} -in1 FeatureLinker_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_2_output.consensusXML)
 add_test("TOPP_FeatureLinker_3" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_3_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input3.featureXML)
 add_test("TOPP_FeatureLinker_3_out1" ${DIFF} -in1 FeatureLinker_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_3_output.consensusXML)
 add_test("TOPP_FeatureLinker_4" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_4_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_4_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_4_input2.featureXML)
 add_test("TOPP_FeatureLinker_4_out1" ${DIFF} -in1 FeatureLinker_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_4_output.consensusXML)
+# "labeled" algorithm:
 add_test("TOPP_FeatureLinker_5" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_5_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_5_input.featureXML)
 add_test("TOPP_FeatureLinker_5_out1" ${DIFF} -in1 FeatureLinker_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_5_output.consensusXML)
-# test "use_identifications" option of "unlabeled" algorithm:
+# "unlabeled" algorithm with "use_identifications" option:
 add_test("TOPP_FeatureLinker_6" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_6_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_2_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input3.featureXML -out FeatureLinker_6_output.tmp)
 add_test("TOPP_FeatureLinker_6_out1" ${DIFF} -in1 FeatureLinker_6_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_6_output.consensusXML)
 

@@ -33,6 +33,8 @@
 namespace OpenMS
 {
   /**
+	 @deprecated Deprecated in OpenMS 1.7.
+
    @brief A map feature grouping algorithm for identified features.
 
    It takes many maps and searches for corresponding features.

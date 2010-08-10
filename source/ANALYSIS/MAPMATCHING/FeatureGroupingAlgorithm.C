@@ -37,7 +37,8 @@ namespace OpenMS
 	//register products here
 	void FeatureGroupingAlgorithm::registerChildren()
 	{
-		Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmIdentification::getProductName(), &FeatureGroupingAlgorithmIdentification::create );
+		// deprecated:
+		// Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmIdentification::getProductName(), &FeatureGroupingAlgorithmIdentification::create );
 		Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmLabeled::getProductName(), &FeatureGroupingAlgorithmLabeled::create );
 		Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmUnlabeled::getProductName(), &FeatureGroupingAlgorithmUnlabeled::create );
 	}
