@@ -7,7 +7,7 @@
           <xs:sequence>
             <xs:element name="in" default="[]">
               <xs:annotation>
-                <xs:documentation>input files separated by blanks(valid formats: 'featureXML')</xs:documentation>
+                <xs:documentation>input files separated by blanks (valid formats: 'featureXML')</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:stringlist">
