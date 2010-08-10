@@ -39,6 +39,8 @@ namespace OpenMS
 	/**
 		@brief FeatureFinderAlgorithm implementation using the Simple* modules.
 
+		@deprecated Deprecated in OpenMS 1.7.
+
     SimpleSeeder, SimpleExtender, ModelFitter (using BiGaussModel in RT dimension and IsotopeModel (charge does not equal zero) or GaussModel in dimension of mz).
 
     @htmlinclude OpenMS_FeatureFinderAlgorithmSimplest.parameters

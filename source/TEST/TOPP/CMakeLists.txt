@@ -80,13 +80,17 @@ add_test("TOPP_DTAExtractor_3" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP
 add_test("TOPP_DTAExtractor_3_out1" ${DIFF} -in1 DTAExtractor_RT140_MZ5.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_3_output.dta)
 
 ### FeatureFinder tests
-add_test("TOPP_FeatureFinder_1" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
-add_test("TOPP_FeatureFinder_1_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_1_output.featureXML)
-add_test("TOPP_FeatureFinder_2" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
-add_test("TOPP_FeatureFinder_2_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_2_output.featureXML)
+# "simple" algorithm: deprecated
+# add_test("TOPP_FeatureFinder_1" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
+# add_test("TOPP_FeatureFinder_1_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_1_output.featureXML)
+# "simplest" algorithm: deprecated
+# add_test("TOPP_FeatureFinder_2" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
+# add_test("TOPP_FeatureFinder_2_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_2_output.featureXML)
+# "centroided" algorithm:
 add_test("TOPP_FeatureFinder_4" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_4_input.mzML -out FeatureFinder.tmp)
 add_test("TOPP_FeatureFinder_4_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_4_output.featureXML)
-add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -test -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinder_5.ini -out FeatureFinder.tmp)
+# "mrm" algorithm:
+add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -test -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinder_5_parameters.ini -out FeatureFinder.tmp)
 add_test("TOPP_FeatureFinder_5_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_5_output.featureXML)
 
 ### FileConverter tests

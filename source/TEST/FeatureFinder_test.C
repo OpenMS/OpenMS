@@ -109,7 +109,7 @@ END_SECTION
 START_SECTION((Param getParameters(const String& algorithm_name) const))
 	FeatureFinder ff;
 	TEST_EQUAL(ff.getParameters("none")==Param(),true)
-	TEST_EQUAL(ff.getParameters("simple")==Param(),false)
+	TEST_EQUAL(ff.getParameters("centroided")==Param(),false)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

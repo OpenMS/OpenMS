@@ -42,16 +42,17 @@ namespace OpenMS
 
 	template<class PeakType, class FeatureType> void FeatureFinderAlgorithm<PeakType,FeatureType>::registerChildren()
 	{
-		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-			(
-			 FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::getProductName(),
-			 &FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::create
-			);
-		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-			(
-			 FeatureFinderAlgorithmSimple<PeakType,FeatureType>::getProductName(),
-			 &FeatureFinderAlgorithmSimple<PeakType,FeatureType>::create
-			);
+		// deprecated:
+		// Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
+		// 	(
+		// 	 FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::getProductName(),
+		// 	 &FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::create
+		// 	);
+		// Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
+		// 	(
+		// 	 FeatureFinderAlgorithmSimple<PeakType,FeatureType>::getProductName(),
+		// 	 &FeatureFinderAlgorithmSimple<PeakType,FeatureType>::create
+		// 	);
 		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
 			(
 			 FeatureFinderAlgorithmPicked<PeakType,FeatureType>::getProductName(),
