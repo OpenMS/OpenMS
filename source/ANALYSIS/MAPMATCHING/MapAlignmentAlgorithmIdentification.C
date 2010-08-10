@@ -399,7 +399,8 @@ namespace OpenMS
 		Size min_run_occur = param_.getValue("min_run_occur");
 		// get reference retention time scale: either directly from reference file,
 		// or compute consensus time scale
-		if (!reference_.empty()) // reference file given
+		bool reference_given = !reference_.empty(); // reference file given
+		if (reference_given)
 		{
 			// remove peptides that don't occur in enough runs:
 			LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
@@ -497,6 +498,8 @@ namespace OpenMS
 							 << trafo_index + 1 << "\n";
 		}
 		LOG_INFO << endl;
+
+		if (!reference_given) reference_.clear(); // delete temporary reference
 	}
 
 } //namespace
