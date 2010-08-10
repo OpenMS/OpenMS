@@ -65,9 +65,6 @@ namespace OpenMS
 			///Not implemented
 			ConsensusID& operator = (const ConsensusID&);
 			
-			/// Merge algorithm
-			void merge_(std::vector<PeptideIdentification>& ids);
-			
 			/// Ranked algorithm
 			void ranked_(std::vector<PeptideIdentification>& ids);
 			

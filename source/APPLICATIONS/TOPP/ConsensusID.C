@@ -98,7 +98,7 @@ class TOPPConsensusID
 			setMinFloat_("mz_delta",0.0);
 			registerIntOption_("min_length","<value>",6, "Minimum of length of peptides for final consensus list", false);
 			setMinInt_("min_length",1);
-			registerFlag_("first_only", "if set, only the first hit will be used, if the score if the best hit differs from the other scores (used to avoid unspecific scoring)");
+			registerFlag_("use_all_hits","If 'true' not only the first hit, but all are used (peptides only)");
 
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
@@ -108,7 +108,7 @@ class TOPPConsensusID
 			String in = getStringOption_("in");
 			FileTypes::Type in_type = FileHandler::getType(in);
 			String out = getStringOption_("out");
-			bool first_only(getFlag_("first_only"));
+			bool use_all_hits(getFlag_("use_all_hits"));
 
 			DoubleReal rt_delta = getDoubleOption_("rt_delta");
 			DoubleReal mz_delta = getDoubleOption_("mz_delta");
@@ -178,7 +178,7 @@ class TOPPConsensusID
 									}
 									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
 									hits.push_back(hit);
-									if(first_only)
+									if(!use_all_hits)
 									{
 										break;
 									}
@@ -207,7 +207,7 @@ class TOPPConsensusID
 									}
 									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
 									hits.push_back(hit);
-									if(first_only)
+									if(!use_all_hits)
 									{
 										break;
 									}
