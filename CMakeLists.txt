@@ -974,8 +974,8 @@ else()
 	## Note: export_build_settings and
 	##       export_library_dependencies are deprecated and should not be used
 	if ("${INSTALL_PREFIX}" STREQUAL ".")
-		string(COMPARE LESS ${CMAKE_MINOR_VERSION} "8" CMAKE_DEPRECATED_VERSION)
-		if (${CMAKE_DEPRECATED_VERSION})
+		set(CVERSION "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
+		if (CVERSION VERSION_LESS "2.8.0")
 			message(STATUS "Cannot register OpenMS with CMake! For external code, set the path to OpenMS during find_package() manually.")
 		else()
 			## register OpenMS with CMake so that it can be found easily
