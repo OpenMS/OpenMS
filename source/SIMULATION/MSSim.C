@@ -36,13 +36,15 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
-#define _DEBUG
+#ifdef _DEBUG
+#define OPENMS_DEBUG_SIM_
+#endif
 
 namespace OpenMS {
 
   void verbosePrintFeatureMap(FeatureMapSimVector feature_maps, String stage)
   {
-#ifdef _DEBUG
+#ifdef OPENMS_DEBUG_SIM_
     std::cout << "############## DEBUG (" << stage << ") -- FEATURE MAPS ##############" << std::endl;
 
     Size map_count = 1;
@@ -83,7 +85,7 @@ namespace OpenMS {
     }
     std::cout << "############## END DEBUG -- FEATURE MAPS ##############" << std::endl;
 #else
-		if (feature_map.size()==0) std::cout << stage; // just to avoid warnings of unused parameters
+		if (feature_maps.size()==0) std::cout << stage; // just to avoid warnings of unused parameters
 #endif
   }
 
@@ -95,8 +97,8 @@ namespace OpenMS {
   {
 		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
-    defaults_.insert("PeptideDetectabilitySimulation:",DetectabilitySimulation().getDefaults());
+    defaults_.insert("RT:",RTSimulation(NULL).getDefaults());
+    defaults_.insert("Detectability:",DetectabilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
     defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
 		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
@@ -180,7 +182,7 @@ namespace OpenMS {
 
 		// RT prediction
 		RTSimulation rt_sim(rnd_gen);
-		rt_sim.setParameters(param_.copy("RTSimulation:",true));
+		rt_sim.setParameters(param_.copy("RT:",true));
     for(FeatureMapSimVector::iterator map_iterator = feature_maps_.begin() ; map_iterator != feature_maps_.end() ; ++map_iterator)
     {
       rt_sim.predictRT(*map_iterator);
@@ -195,7 +197,7 @@ namespace OpenMS {
 
 		// Detectability prediction
 		DetectabilitySimulation dt_sim;
-		dt_sim.setParameters(param_.copy("PeptideDetectabilitySimulation:",true));
+		dt_sim.setParameters(param_.copy("Detectability:",true));
     for(FeatureMapSimVector::iterator map_iterator = feature_maps_.begin() ; map_iterator != feature_maps_.end() ; ++map_iterator)
     {
       dt_sim.filterDetectability(*map_iterator);
