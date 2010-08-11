@@ -2954,7 +2954,7 @@ namespace OpenMS
 		// set visible aree to visible area in 2D view
     w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
 		// set relative (%) view of visible area
-		w->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+    w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
 
 		String caption = layer.name;
 		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
