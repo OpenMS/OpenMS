@@ -88,6 +88,15 @@ START_SECTION((static void registerChildren()))
 }
 END_SECTION
 
+START_SECTION((virtual void setReference(Size, const String&)))
+{
+	MapAlignmentAlgorithm ma;
+	ma.setReference(); // no exception, nothing happens
+	TEST_EXCEPTION(Exception::InvalidParameter, ma.setReference(1));
+	TEST_EXCEPTION(Exception::InvalidParameter, ma.setReference(0, "test"));
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
