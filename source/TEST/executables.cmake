@@ -380,8 +380,8 @@ set(transformations_executables_list
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  FeatureFinderAlgorithmSimple_test
-  FeatureFinderAlgorithmSimplest_test
+  # deprecated: FeatureFinderAlgorithmSimple_test
+  # deprecated: FeatureFinderAlgorithmSimplest_test
   FeatureFinderAlgorithm_test
   FeatureFinder_test
   Fitter1D_test
