@@ -4,24 +4,27 @@
 
 
 TOPP tools:
-- TOPP tool categories have reorganized
+- TOPP tool categories have been reorganized
 - MODIFIED:
   - IDFilter: reworked parameter names and documentation (please see the IDFilter documentation and update your INI files)
   - IDMapper: reworked parameter handling (please see the IDMapper documentation and update your INI files)
-  - Resampler: PNG image creation functionality removed and transferred to ImageCreator UTIL
   - FileMerger: can now merge featureXML
   - IDMerger: new option to integrate data from pepXML and protXML
+  - MapAligner: improved handling of reference files, added several options to the "identification" algorithm
   - SeedListGenerator: new option to use monoisotopic peptide mass instead of precursor m/z for seeds from idXML input
+  - Resampler: PNG image creation functionality removed and transferred to ImageCreator UTIL
+  - FeatureFinder: deprecated algorithms "simple" and "simplest"
+  - FeatureLinker: deprected algorithm "identification"
 - NEW: 
-  - ProteinQuantifier: computes protein/peptide abundances from annotated featureXML or consensusXML files
-  - GenericWrapper (e.g. to wrap ProteinProphet in TOPPAS)
+  - ProteinQuantifier: compute protein/peptide abundances from annotated featureXML or consensusXML files
+  - GenericWrapper: wrap external programs (e.g. ProteinProphet) in TOPPAS
   - ConsensusID: [rewritten] combine several peptide search engine results to improve precision and recall
 - REMOVED:
   - TextImporter (functionality moved to FileConverter)
   
 UTIL tools:
 - MODIFIED:
-  - DecoyDatabase now uses '_rev' as decoy string per default (before '_ref'), whereas '_rev' is required by PeptideIndexer per default
+  - DecoyDatabase now uses "_rev" as decoy string by default (previously: "_ref"), as required by PeptideIndexer by default
   - MSSimulator provides a framework for the simulation of labeled data (#88)
 - NEW:
   - ImageCreator: creates PNG's from MS maps
@@ -32,7 +35,7 @@ OpenMS library improvements:
 - read protXML files
 - support protein groups in ProteinIdentification/idXML
 - line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
-- String Class
+- String class:
   - removed:
      String substr(SignedSize start, SignedSize n) const; 
      String substr(SignedSize start) const; 
@@ -51,14 +54,11 @@ TOPPAS improvements:
 - added copy/paste for workflow items
 - workflows can now include other workflows (File>Include)
 - several bug fixes
-- Split TOPPAS in TOPPAS and PipelineExecute TOPP-tool
+- split TOPPAS in TOPPAS and PipelineExecute TOPP-tool
 
 Changes to the Build System:
-- external code support for CMake 2.8: External Code using 
-  "include (${OpenMS_USE_FILE})" in its CMakeLists.txt 
-  cannot be configured against OpenMS 1.7, however, 
-  only minor changes are required to fix this.
-  See the documentation for "Programming with OpenMS".
+- external code support for CMake 2.8:
+  External code using "include (${OpenMS_USE_FILE})" in its CMakeLists.txt cannot be configured against OpenMS 1.7, however, only minor changes are required to fix this. See the documentation for "Programming with OpenMS".
 - nightly tests for external code
 - SVN revision used to build the lib is remembered (finer version tracking)
 - nightly coverage builds
