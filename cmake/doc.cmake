@@ -175,6 +175,7 @@ endif()
 if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 	#######################################################################
 	# doc_tutorials target
+	set(DOC_TUTORIALS_ACTIVE TRUE)
 	add_custom_target(doc_tutorials
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -210,6 +211,7 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 										COMMENT "Build the OpenMS/TOPP pdf tutorial"
 										VERBATIM)
 else()
-	Message(STATUS "Doxygen or Latex missing. Disabling 'tutorials' target!")
+	set(DOC_TUTORIALS_ACTIVE FALSE)
+	Message(STATUS "Doxygen or Latex missing. Disabling 'doc_tutorials' target!")
 endif()
 
