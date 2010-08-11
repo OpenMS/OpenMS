@@ -117,11 +117,11 @@ endforeach(UTIL_exe ${UTILS_executables})
 install(DIRECTORY share/
 	DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share
 	COMPONENT share
-	REGEX ".svn" EXCLUDE)
+	PATTERN ".svn" EXCLUDE)
 
 # install the documentation and the tutorials
 install(FILES     ${PROJECT_BINARY_DIR}/doc/index.html      		DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ RENAME OpenMSAndTOPPDocumentation.html COMPONENT doc)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            		DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ COMPONENT doc REGEX ".svn" EXCLUDE)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            		DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ COMPONENT doc PATTERN ".svn" EXCLUDE)
 install(FILES 		${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ COMPONENT doc)
 install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ COMPONENT doc)
 
