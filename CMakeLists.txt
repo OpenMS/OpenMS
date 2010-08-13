@@ -123,7 +123,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 
 
 #########################################################
-#            Mac OS X DEPLOYMENT TARGET                 #
+#                SOME MAC OS X STUFF                    #
 #########################################################
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -138,6 +138,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   find_library(CARBON NAMES Carbon)
   find_package(OpenGL)
   set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
+
+  # force cmake > 2.8.1 to avoid bugs with OSX_DEPLOYMENT_TARGET
+  cmake_minimum_required(VERSION 2.8.1 FATAL_ERROR)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ##### Parallelization things
