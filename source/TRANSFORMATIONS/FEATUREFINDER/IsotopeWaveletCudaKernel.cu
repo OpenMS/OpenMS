@@ -31,6 +31,8 @@
 //http://courses.ece.uiuc.edu/ece498/al1/mps/MP5-TopWinners/kaatz/MP5-parallel_sort.zip
 //**************************
 
+using namespace std;
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 
