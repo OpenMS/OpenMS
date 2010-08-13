@@ -40,7 +40,8 @@ namespace OpenMS
 {
 
 	MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification()
-		: MapAlignmentAlgorithm(), reference_index_(0), reference_()
+		: MapAlignmentAlgorithm(), reference_index_(0), reference_(),
+			score_threshold_(0.0)
 	{
 		setName("MapAlignmentAlgorithmIdentification");
 
@@ -124,6 +125,9 @@ namespace OpenMS
 		{
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of parameter 'min_run_occur' (here: " + String(min_run_occur) + ") must not exceed the number of runs incl. reference (here: " + String(runs) + ")");
 		}
+		
+		score_threshold_ = param_.getValue("peptide_score_threshold");
+		
 	}
 
 
@@ -141,8 +145,6 @@ namespace OpenMS
 			computeMedians_(rt_data, reference_, false);			
 		}
 
-		score_threshold_ = param_.getValue("peptide_score_threshold");
-		
 		// one set of RT data for each input map, except reference:
 		vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
 		for (Size i = 0, j = 0; i < maps.size(); ++i)
@@ -172,11 +174,9 @@ namespace OpenMS
 		{
 			SeqToList rt_data;
 			getRetentionTimes_(maps[reference_index_ - 1], rt_data);
-			computeMedians_(rt_data, reference_, true);			
+			computeMedians_(rt_data, reference_, true);
 		}
 
-		score_threshold_ = param_.getValue("peptide_score_threshold");
-		
 		// one set of RT data for each input map, except reference:
 		vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
 		for (Size i = 0, j = 0; i < maps.size(); ++i)
@@ -209,8 +209,6 @@ namespace OpenMS
 			computeMedians_(rt_data, reference_, true);			
 		}
 
-		score_threshold_ = param_.getValue("peptide_score_threshold");
-		
 		// one set of RT data for each input map, except reference:
 		vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
 		for (Size i = 0, j = 0; i < maps.size(); ++i)
@@ -274,8 +272,7 @@ namespace OpenMS
 			return false;
 		peptide.sort();
 		DoubleReal score = peptide.getHits().begin()->getScore();
-		if (peptide.isHigherScoreBetter())
-			return score >= score_threshold_;
+		if (peptide.isHigherScoreBetter()) return score >= score_threshold_;
 		return score <= score_threshold_;
 	}
 
