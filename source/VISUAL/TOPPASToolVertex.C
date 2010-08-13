@@ -431,7 +431,7 @@ namespace OpenMS
 		createDirs();
 		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		QString ini_file = ts->getOutDir()
+		QString ini_file = File::getTempDirectory().toQString()
 							+QDir::separator()
 							+getOutputDir().toQString()
 							+QDir::separator()
@@ -811,7 +811,7 @@ namespace OpenMS
 					// check if tool consumes list and outputs single file (such as IDMerger or FileMerger)
 					if (in_parameter_has_list_type_ && out_params[param_index].type == IOInfo::IOT_FILE)
 					{
-						QString f = ts->getOutDir()
+						QString f = File::getTempDirectory().toQString()
 							+QDir::separator()
 							+getOutputDir().toQString()
 							+QDir::separator()
@@ -827,7 +827,7 @@ namespace OpenMS
 					{
 						foreach (const QString& str, input_file_basenames)
 						{
-							QString f = ts->getOutDir()
+							QString f = File::getTempDirectory().toQString()
 								+QDir::separator()
 								+getOutputDir().toQString()
 								+QDir::separator()
@@ -939,7 +939,7 @@ namespace OpenMS
 	void TOPPASToolVertex::createDirs()
 	{
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		QDir current_dir(ts->getOutDir());
+		QDir current_dir(File::getTempDirectory().toQString());
 		
 		if (!current_dir.mkpath(getOutputDir().toQString()))
 		{
@@ -984,7 +984,7 @@ namespace OpenMS
 		if (reset_all_files)
 		{
 			all_written_output_files_.clear();
-			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+			QString remove_dir = File::getTempDirectory().toQString() + QDir::separator() + getOutputDir().toQString();
 			if (File::exists(remove_dir))
 			{
 				removeDirRecursively_(remove_dir);
