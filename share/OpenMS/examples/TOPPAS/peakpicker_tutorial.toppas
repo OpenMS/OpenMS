@@ -8,7 +8,7 @@
     <NODE name="0" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/peakpicker_tutorial_1.mzML"/>
+        <LISTITEM value="../peakpicker_tutorial_1.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-320" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />

@@ -8,9 +8,9 @@
     <NODE name="0" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/BSA/BSA1.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/BSA/BSA2.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/BSA/BSA3.mzML"/>
+        <LISTITEM value="../BSA/BSA1.mzML"/>
+        <LISTITEM value="../BSA/BSA2.mzML"/>
+        <LISTITEM value="../BSA/BSA3.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-140" type="float" description="" />
       <ITEM name="y_pos" value="-160" type="float" description="" />
@@ -84,9 +84,9 @@
     <NODE name="2" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/BSA/BSA1_OMSSA.idXML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/BSA/BSA2_OMSSA.idXML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/BSA/BSA3_OMSSA.idXML"/>
+        <LISTITEM value="../BSA/BSA1_OMSSA.idXML"/>
+        <LISTITEM value="../BSA/BSA2_OMSSA.idXML"/>
+        <LISTITEM value="../BSA/BSA3_OMSSA.idXML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="60" type="float" description="" />
       <ITEM name="y_pos" value="-160" type="float" description="" />
