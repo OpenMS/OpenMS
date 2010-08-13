@@ -54,12 +54,6 @@ START_SECTION(~O18Labeler())
 }
 END_SECTION
 
-START_SECTION((virtual ~O18Labeler()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((void preCheck(Param &param) const ))
 {
   Param p;

@@ -1243,10 +1243,10 @@ namespace OpenMS
 		param_->weight = NULL;                 				 // for C_SVC
 
     // silence libsvm
-    svm_set_print_string_function(&printToVoid);
+    svm_set_print_string_function(&printToVoid_);
 	}
 	
-  void SVMWrapper::printToVoid(const char * /*s*/)
+  void SVMWrapper::printToVoid_(const char * /*s*/)
   {
 	  return;
   }

@@ -326,19 +326,7 @@ START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal si
   TEST_REAL_SIMILAR(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(svm_problem*   												  problem_ul,
-			            									    const SVMData&		                                problem_l,
-									                    	const bool                                        is_labeled,
-																 				const	std::map<SVM_parameter_type, DoubleReal>&   start_values_map,
-																 				const	std::map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
-																 				const	std::map<SVM_parameter_type, DoubleReal>&   end_values_map,
-																 				Size     												   				 		    number_of_partitions,
-																 				Size 												   				 			      number_of_runs,
-																 				std::map<SVM_parameter_type, DoubleReal>&  	      best_parameters,
-												 								bool																	 			 			additive_step_sizes = true,
-												 								bool				 												   			 			output = false,
-												 								String																 			 			performances_file_name = "performances.txt",
-												 								bool																				 			mcc_as_performance_measure = false) ))
+START_SECTION((DoubleReal performCrossValidation(svm_problem *problem_ul, const SVMData &problem_l, const bool is_labeled, const std::map< SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false) ))
  
   {
   map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;

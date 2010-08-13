@@ -82,7 +82,7 @@ START_SECTION((RTSimulation& operator=(const RTSimulation &source)))
 }
 END_SECTION
 
-START_SECTION(( void predictRT(FeatureMapSim & features, MSSimExperiment & experiment) ))
+START_SECTION(( void predictRT(FeatureMapSim &features) ))
 {
   // is fully tested by the different EXTRA tests for HPLC w absolut, HPLC w relative, none HPLC (and hopefully soon CE)
   NOT_TESTABLE

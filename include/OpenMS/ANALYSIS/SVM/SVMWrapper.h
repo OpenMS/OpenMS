@@ -515,7 +515,7 @@ namespace OpenMS
         The intention is to discard the output, as we don't need it.
 
       */
-      static void printToVoid(const char * /*s*/);
+      static void printToVoid_(const char * /*s*/);
 
 	    svm_parameter* 												param_;  	       	    // the parameters for the svm
 	    svm_model*     												model_;   			      // the learnt svm discriminant

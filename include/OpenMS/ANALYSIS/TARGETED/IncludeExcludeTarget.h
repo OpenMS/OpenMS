@@ -25,8 +25,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MRM_INCLUDEEXCLUDETARGET_H
-#define OPENMS_ANALYSIS_MRM_INCLUDEEXCLUDETARGET_H
+#ifndef OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H
+#define OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
@@ -175,5 +175,5 @@ namespace OpenMS
 	};
 }
 
-#endif // OPENMS_ANALYSIS_MRM_INCLUDEEXCLUDETARGET_H
+#endif // OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H
 

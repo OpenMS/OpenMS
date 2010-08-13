@@ -119,7 +119,7 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector<PeptideIdentification>& ids)))
+START_SECTION((void apply(std::vector< PeptideIdentification > &id)))
 {
 	vector<ProteinIdentification> prot_ids;
   vector<PeptideIdentification> pep_ids;
