@@ -290,7 +290,7 @@ START_SECTION((String substr(size_t pos=0, size_t n=npos) const))
 	TEST_EQUAL(s.substr(6,1),"")
 	TEST_EQUAL(s.substr(0,7),"abcdef")
 	
-	TEST_EQUAL(s.substr(0,std::string::npos), "abcdef")
+	TEST_EQUAL(s.substr(0,String::npos), "abcdef")
 
 	// check with defaults
 	TEST_EQUAL(s.substr(0),"abcdef");
@@ -842,7 +842,7 @@ START_SECTION((String operator+ (const String& s) const))
 END_SECTION
 
 START_SECTION((String operator+ (const std::string& s) const))
-	TEST_EQUAL(fixed + std::string("bla4"), "testbla4")
+TEST_EQUAL(fixed.operator+(std::string("bla4")), "testbla4")
 END_SECTION
 
 

@@ -177,7 +177,7 @@ namespace OpenMS
 		{
 			if (no_protein_identifiers || accession_sequences=="*")
 			{ // filter by sequence alone if no protein accesssions are available
-		  	if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != string::npos)
+		  	if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != String::npos)
 		  	{
 		  		filtered_peptide_hits.push_back(identification.getHits()[i]);
 		  	}
@@ -188,7 +188,7 @@ namespace OpenMS
 						ac_it != identification.getHits()[i].getProteinAccessions().end();
 						++ac_it)
 				{
-		  		if (accession_sequences.find("*" + *ac_it) != string::npos)
+		  		if (accession_sequences.find("*" + *ac_it) != String::npos)
 		  		{
 		  			filtered_peptide_hits.push_back(identification.getHits()[i]);
             break; // we found a matching protein, the peptide is valid -> exit
@@ -221,7 +221,7 @@ namespace OpenMS
 		
 		for (Size i = 0; i < identification.getHits().size(); i++)
 		{
-	  	if (accession_sequences.find("*" + identification.getHits()[i].getAccession()) != string::npos)
+	  	if (accession_sequences.find("*" + identification.getHits()[i].getAccession()) != String::npos)
 	  	{
 	  		filtered_protein_hits.push_back(identification.getHits()[i]);
 	  	}

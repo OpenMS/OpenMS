@@ -48,7 +48,7 @@ namespace OpenMS
   void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
   {
   	String temp = "";
-  	string::size_type position = string::npos;
+  	string::size_type position = String::npos;
   	
   	data.clear();  	  	
  
@@ -76,7 +76,7 @@ namespace OpenMS
 					{
 						FASTAEntry entry;
 						position = tag.find_first_of(" \v\t");
-						if (position == string::npos)
+						if (position == String::npos)
 						{
 							entry.identifier = tag;
 							entry.description = "";
@@ -107,7 +107,7 @@ namespace OpenMS
 		{
 			FASTAEntry entry;
 			position = tag.find_first_of(" \v\t");
-			if (position == string::npos)
+			if (position == String::npos)
 			{
 				entry.identifier = tag;
 				entry.description = "";

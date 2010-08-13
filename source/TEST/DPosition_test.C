@@ -31,6 +31,8 @@
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
+#include <iterator>
+
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;

@@ -48,7 +48,7 @@ SVOutStream::SVOutStream(ostream& out, const String& sep,
 
 SVOutStream& SVOutStream::operator<<(String str)
 {
-	if (str.find('\n') != string::npos)
+	if (str.find('\n') != String::npos)
 	{
 		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "argument must not contain newline characters");
 	}

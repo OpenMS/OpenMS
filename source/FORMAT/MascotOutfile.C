@@ -233,10 +233,10 @@ namespace OpenMS
 	  	while(it != f.end())
 	  	{
 	  		// search for first "
-	  		if ((tag_start = (*it).find('"')) != string::npos)
+	  		if ((tag_start = (*it).find('"')) != String::npos)
 	  		{
 	  			// search for second "
-		  		if ((tag_end = (*it).find('"', tag_start + 1)) != string::npos)
+		  		if ((tag_end = (*it).find('"', tag_start + 1)) != String::npos)
 		  		{
 		  			temp_identifier = (*it).substr(tag_start + 1, tag_end - tag_start - 1);
 						temp_scores.clear();

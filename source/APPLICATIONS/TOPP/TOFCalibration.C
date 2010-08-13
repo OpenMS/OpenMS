@@ -196,8 +196,6 @@ class TOPPTOFCalibration
 
 		mz_data_file.store(out,ms_exp_raw);
 
-    std::cout << string::npos << "\n";
-
     return EXECUTION_OK;
   }
 };
