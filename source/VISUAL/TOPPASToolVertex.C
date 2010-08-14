@@ -723,7 +723,6 @@ namespace OpenMS
 		bool found_in_parameter = false;
 		getInputParameters(in_params);
 		QStringList input_file_basenames;
-		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		
 		bool force = false;
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
@@ -927,7 +926,17 @@ namespace OpenMS
 	
 	String TOPPASToolVertex::getOutputDir()
 	{
-		String dir = String("TOPPAS_tmp")+String(QDir::separator())+get3CharsNumber_(topo_nr_)+"_"+getName();
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		String workflow_dir = File::removeExtension(File::basename(ts->getSaveFileName()));
+		if (workflow_dir == "")
+		{
+			workflow_dir = "Untitled_workflow";
+		}
+		String dir = String("TOPPAS_tmp")+
+			String(QDir::separator())+
+			workflow_dir+
+			String(QDir::separator())+
+			get3CharsNumber_(topo_nr_)+"_"+getName();
 		if (getType() != "")
 		{
 			dir += "_"+getType();
@@ -938,7 +947,6 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::createDirs()
 	{
-		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		QDir current_dir(File::getTempDirectory().toQString());
 		
 		if (!current_dir.mkpath(getOutputDir().toQString()))
