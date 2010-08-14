@@ -2130,7 +2130,7 @@ namespace OpenMS
 		tools_map["SILACAnalyzer"] = StringList::create("");
 		tools_map["SILACAnalyzer2"] = StringList::create("");
 		tools_map["SeedListGenerator"] = StringList::create("");
-		tools_map["SequestAdapter"] = StringList::create("");
+		//tools_map["SequestAdapter"] = StringList::create("");
 		tools_map["SpecLibSearcher"] = StringList::create("");
 		tools_map["SpectraFilter"] = Factory<PreprocessingFunctor>::registeredProducts();
 		tools_map["TOFCalibration"] = StringList::create("");

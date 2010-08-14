@@ -54,7 +54,7 @@ Resampler
 SILACAnalyzer
 SILACAnalyzer2
 SeedListGenerator
-SequestAdapter
+#SequestAdapter
 SpecLibSearcher
 SpectraFilter
 TOFCalibration

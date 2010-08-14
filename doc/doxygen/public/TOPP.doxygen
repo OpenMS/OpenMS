@@ -71,7 +71,6 @@
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot.
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot.
   - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA.
-  - @subpage TOPP_SequestAdapter - Identifies MS/MS spectra using Sequest.
   - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem.
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo.
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
