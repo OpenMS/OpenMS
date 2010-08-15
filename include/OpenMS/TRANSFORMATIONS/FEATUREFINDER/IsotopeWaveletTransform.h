@@ -164,7 +164,7 @@ namespace OpenMS
 					};
 
 					/** Returns a pointer to the reference spectrum. */
-					inline MSSpectrum<PeakType>* getRefSpectrum ()
+					inline const MSSpectrum<PeakType>* getRefSpectrum ()
 					{
 						return (reference_);
 					};
