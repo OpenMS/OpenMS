@@ -121,6 +121,17 @@ START_SECTION((ConsensusMap const & getSimulatedConsensus() const))
 }
 END_SECTION
 
+START_SECTION((Param getParameters(const String &labeling_name) const))
+{
+  MSSim mssim;
+  Param p = mssim.getParameters(""); // testing without labeling
+  TEST_EQUAL(p.exists("Labeling"), false) // should not contain any labeling params
+
+  p = mssim.getParameters("o18");
+  TEST_EQUAL(p.exists("Labeling:labeling_efficiency"), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
