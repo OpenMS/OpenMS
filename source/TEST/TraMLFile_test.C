@@ -51,14 +51,14 @@ START_SECTION((~TraMLFile()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void load(const String& filename, MRMexperiment& exp)))
+START_SECTION((void load(const String& filename, TargetedExperiment &id)))
 	TraMLFile file;
 	TargetedExperiment exp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp);
 
 END_SECTION
 
-START_SECTION((void store(const String& filename, const TargetedExperiment& exp) const))
+START_SECTION((void store(const String &filename, const TargetedExperiment &id) const))
 	TraMLFile file;
 	
 	{
@@ -121,7 +121,7 @@ START_SECTION((void store(const String& filename, const TargetedExperiment& exp)
 */
 END_SECTION
 
-START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
+START_SECTION([EXTRA] bool isValid(const String& filename, std::ostream& os = std::cerr))
 	std::string tmp_filename;
   TraMLFile file;
   TargetedExperiment e;

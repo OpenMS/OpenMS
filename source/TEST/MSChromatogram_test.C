@@ -838,6 +838,24 @@ START_SECTION((DoubleReal getMZ() const))
 	TEST_REAL_SIMILAR(tmp.getMZ(), 0.1)
 END_SECTION
 
+START_SECTION(([MSChromatogram::MZLess] bool operator()(const MSChromatogram &a, const MSChromatogram &b) const))
+{
+    MSChromatogram<> a;
+    Product pa;
+    pa.setMZ(1000.0);
+    a.setProduct(pa);
+
+    MSChromatogram<> b;
+    Product pb;
+    pb.setMZ(1000.1);
+    b.setProduct(pb);
+
+    TEST_EQUAL(MSChromatogram<>::MZLess().operator ()(a,b), true)
+    TEST_EQUAL(MSChromatogram<>::MZLess().operator ()(b,a), false)
+
+    TEST_EQUAL(MSChromatogram<>::MZLess().operator ()(a,a), false)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
