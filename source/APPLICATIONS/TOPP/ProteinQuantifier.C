@@ -142,37 +142,33 @@ namespace OpenMS
 		} stats_; // for output in the end
 
 
-		void registerOptionsAndFlags_()
-      {
-				registerInputFile_("in", "<file>", "", "Input file");
-				setValidFormats_("in", StringList::create("featureXML,consensusXML"));
-				registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
-				setValidFormats_("protxml", StringList::create("idXML"));
-        registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
-				registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances\nEither 'out' or 'peptide_out' are required. They can be used together.", false);
+	  void registerOptionsAndFlags_()
+    {
+		  registerInputFile_("in", "<file>", "", "Input file");
+		  setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+		  registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+		  setValidFormats_("protxml", StringList::create("idXML"));
+      registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
+		  registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances\nEither 'out' or 'peptide_out' are required. They can be used together.", false);
 
-				addEmptyLine_();
-				registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
-				setMinInt_("top", 0);
-				registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
-				setValidStrings_("average", StringList::create("median,mean,sum"));
-				registerFlag_("include_all", "Include results for proteins with fewer than 'top' proteotypic peptides");
-				registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
+		  addEmptyLine_();
+		  registerIntOption_("top", "<number>", 3, "Calculate protein abundance from this number of proteotypic peptides (best first; '0' for all)", false);
+		  setMinInt_("top", 0);
+		  registerStringOption_("average", "<method>", "median", "Averaging method used to compute protein abundances from peptide abundances", false);
+		  setValidStrings_("average", StringList::create("median,mean,sum"));
+		  registerFlag_("include_all", "Include results for proteins with fewer than 'top' proteotypic peptides");
+		  registerFlag_("filter_charge", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
 
-				addEmptyLine_();
-        addText_("Additional options for consensusXML input:");
-				registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
-				registerFlag_("consensus:normalize", "Scale peptide abundances so that medians of all samples are equal");
-				registerFlag_("consensus:fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
+		  registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
+		  registerFlag_("consensus:normalize", "Scale peptide abundances so that medians of all samples are equal");
+		  registerFlag_("consensus:fix_peptides", "Use the same peptides for protein quantification across all samples.\nThe 'top' peptides that occur each in the highest number of samples are selected (breaking ties by total abundance),\nbut there is no guarantee that these will be the best co-ocurring peptides.");
 
-				addEmptyLine_();
-				addText_("Output formatting options:");
-				registerTOPPSubsection_("format", "Output formatting options");
-				registerStringOption_("format:separator", "<string>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
-				registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
-				setValidStrings_("format:quoting", StringList::create("none,double,escape"));
-				registerStringOption_("format:replacement", "<string>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
-      }
+		  registerTOPPSubsection_("format", "Output formatting options");
+		  registerStringOption_("format:separator", "<string>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
+		  registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
+		  setValidStrings_("format:quoting", StringList::create("none,double,escape"));
+		  registerStringOption_("format:replacement", "<string>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
+    }
 
 		
 		/**

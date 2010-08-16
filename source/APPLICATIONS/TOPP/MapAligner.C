@@ -88,8 +88,6 @@ protected:
 		registerInputFileList_("given_transformations","<files>",StringList(),"Transformations to apply by the 'apply_given_trafo' algorithm",false);
 		setValidFormats_("given_transformations",StringList::create("trafoXML"));
 
-		addEmptyLine_();
-		addText_("Options to define a reference file (currently only supported by the algorithms 'identification' and 'pose_clustering_affine'):");
 		registerTOPPSubsection_("reference", "Options to define a reference file (currently only supported by the algorithms 'identification' and 'pose_clustering_affine')");
 		registerInputFile_("reference:file", "<file>", "", "File to use as reference (for the 'pose_clustering_affine' algorithm, same file format as input files required)\n", false);
 		setValidFormats_("reference:file", StringList::create("mzML,featureXML,idXML"));

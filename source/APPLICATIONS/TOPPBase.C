@@ -675,9 +675,27 @@ namespace OpenMS
 		//offset of the descriptions
 		UInt offset = 6 + max_size;
 
+    //keep track of the current subsection we are in, to display the subsection help when a new section starts
+    String current_TOPP_subsection("");
+
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
       if (!((!it->advanced) || (it->advanced && verbose))) continue;
+
+      //new subsection?
+      if (it->name.has(':') && current_TOPP_subsection != it->name.prefix(':'))
+      {
+        current_TOPP_subsection = it->name.prefix(':');
+        map<String,String>::const_iterator it = subsections_TOPP_.find(current_TOPP_subsection);
+        if (it==subsections_TOPP_.end()) throw Exception::ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,"'"+current_TOPP_subsection+"' (TOPP subsection not registered)");
+        cerr << "\n"; // print newline for new subsection
+        cerr << it->second << ":\n"; // print subsection description
+      }
+      else if ((!it->name.has(':')) && current_TOPP_subsection.size()>0)
+      { // subsection ended and normal parameters start again
+        current_TOPP_subsection="";
+        cerr << "\n"; // print newline to separate ending subsection
+      }
 
 			//NAME + ARGUMENT
 			String tmp = "  -";
@@ -786,12 +804,12 @@ namespace OpenMS
 			{
 				vector<String>::iterator it2 = parts.begin();
 				it2->firstToUpper();
-				cerr << tmp << *it2 << endl;
+				cerr << tmp << *it2 << "\n";
 				it2++;
 				for (; (it2+1)!=parts.end(); ++it2)
 				{
 					if (it->type != ParameterInformation::TEXT) cerr << String(offset,' ');
-					cerr << *it2 << endl;
+					cerr << *it2 << "\n";
 				}
 				if (it->type != ParameterInformation::TEXT)
 				{
@@ -801,7 +819,7 @@ namespace OpenMS
 				cerr << *it2;
 			}
 
-			cerr << endl;
+			cerr << "\n";
 		}
 
 		if (subsections_.size()!=0)
@@ -815,13 +833,13 @@ namespace OpenMS
 			indent += 6;
 
 			//output
-			cerr << endl
-					 << "The following configuration subsections are valid:" << endl;
+			cerr << "\n"
+					 << "The following configuration subsections are valid:" << "\n";
 			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
 				String tmp = String(" - ") + it->first;
 				tmp.fillRight(' ',indent);
-				cerr << tmp << it->second << endl;
+				cerr << tmp << it->second << "\n";
 			}
       cerr << "\n"
 					 << "You can write an example INI file using the '-write_ini' option." << "\n"
