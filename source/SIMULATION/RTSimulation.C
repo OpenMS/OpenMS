@@ -203,9 +203,19 @@ namespace OpenMS {
 	      predicted_retention_times[i] *= total_gradient_time_;
 	    }
       
+      //overwrite RT (if given by user)
+      if (features[i].metaValueExists("rt"))
+      {
+        predicted_retention_times[i] = features[i].getMetaValue("rt");
+      }
       // add variation
       SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_ft_stddev) + rt_offset;
-      features[i].setRT(predicted_retention_times[i]*rt_scale + rt_error);
+      predicted_retention_times[i] = predicted_retention_times[i]*rt_scale + rt_error;
+      //overwrite RT [no randomization] (if given by user)
+      if (features[i].metaValueExists("RT"))
+      {
+        predicted_retention_times[i] = features[i].getMetaValue("RT");
+      }
 
       // remove invalid peptides & (later) display removed ones
       if (
@@ -218,6 +228,7 @@ namespace OpenMS {
 				continue;
       }
       
+      features[i].setRT(predicted_retention_times[i]);
 			fm_tmp.push_back(features[i]);
     }
     

@@ -87,6 +87,13 @@ namespace OpenMS
     return *this;
   }
 	
+  // assignment operator for MetaInfoInterface
+  ProteinHit& ProteinHit::operator= (const MetaInfoInterface& source)
+  {
+    MetaInfoInterface::operator=(source);
+    return *this;
+  }
+
 	// equality operator
 	bool ProteinHit::operator == (const ProteinHit& rhs) const	
 	{

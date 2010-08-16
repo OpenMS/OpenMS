@@ -115,7 +115,6 @@ namespace OpenMS {
 				protein_hit->getKeys(keys);
 				for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
 				{
-					if (!it_key->hasPrefix("intensity")) continue;
 					f.setMetaValue(*it_key, protein_hit->getMetaValue(*it_key)); 
 				}
 			        

@@ -93,14 +93,17 @@ namespace OpenMS
 	
 			/// copy constructor
 	    ProteinHit(const ProteinHit& source);
-					
+
 			/// destructor
 	    virtual ~ProteinHit();
 	    //@}
-	    
+
 			/// assignment operator
 	    ProteinHit& operator=(const ProteinHit& source);
-			
+
+      /// assignment for MetaInfo
+      ProteinHit& operator= (const MetaInfoInterface& source);
+
 			/// Equality operator
 			bool operator == (const ProteinHit& rhs) const;
 			

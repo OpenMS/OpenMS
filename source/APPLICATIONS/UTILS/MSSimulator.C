@@ -31,7 +31,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <OpenMS/SIMULATION/MSSim.h>
@@ -108,11 +107,16 @@ class TOPPMSSimulator
 			addEmptyLine_();
   		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");
 			addEmptyLine_();
-  		addText_("- add '[# xx]' at the end of the > line to specify");
-  		addText_("  xx total abundance units.");
+      addText_("- add '[# <key>=<value> #]' at the end of the > line to specify");
+  		addText_("  - intensity");
+  		addText_("  For RT control (disable digestion, to make this work!)");
+  		addText_("  - rt (subjected to small local error by randomization)");
+  		addText_("  - RT (used as is without local error)");
 			addEmptyLine_();
-			addText_("e.g. >seq2 optional comment [#45]");
-			addText_("     ASQKRPSQRHGSKYLATASTMDHARHGFLPRHRDTGILDSIGRFFGGDRGAPK");
+      addText_("e.g. >seq1 optional comment [# intensity=567.4 #]");
+			addText_("     ASQYLATARHGFLPRHRDTGILP");
+      addText_("e.g. >seq2 optional comment [# intensity=117.4, RT=405.3 #]");
+			addText_("     QKRPSQRHGLATARHGTGGGDRA");
 
 
       registerSubsection_("algorithm","Algorithm parameters section");    
@@ -142,18 +146,19 @@ class TOPPMSSimulator
       // add data from file to protein storage
       String::size_type index;
             
+      StringList valid_meta_values=StringList::create("intensity,RT,rt");
       // re-parse fasta description to obtain quantitation info
       for (FASTAdata::iterator it = fastadata.begin(); it != fastadata.end(); ++it)
       {
-        // parsed abundance
-        SimIntensityType abundance = 100;
-
-
         // remove all ambiguous characters from FASTA entry
         // TODO: this is somehow problematic since we modfiy user input
         it->sequence.remove('X');
         it->sequence.remove('B');
         it->sequence.remove('Z');
+
+        // parsed abundance
+        MetaInfoInterface data;
+        data.setMetaValue("intensity", 100.0);
         
         // Look for a relative quantity given in the comment line of a FASTA entry
 				// e.g. >BSA [#120]
@@ -161,22 +166,31 @@ class TOPPMSSimulator
         // if found, extract and set relative quantity accordingly
         if (index != string::npos)
         {
-					String::size_type index_end = (it->description).find(']', index);
-					if (index_end == string::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
+          String::size_type index_end = (it->description).find("#]", index);
+          if (index_end == string::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag '#]'.");
 					
 					//std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
-					StringList abundances = StringList::create((it->description).substr(index+2,index_end-index-2));
-					if (abundances.size() == 0) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section is missing abundance value.");
-          abundance = abundances[0].toDouble();
-					
-
-					if (abundances.size() > 1)
-          {	// additional abundances (e.g. iTRAQ) given... this is not supported (new syntax required)
-            throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MSSimulator (line ") + __LINE__ + "): Invalid entry (" + it->identifier + ") in FASTA file.");
+          StringList meta_values = StringList::create((it->description).substr(index+2,index_end-index-3).removeWhitespaces(),',');
+          for (Size i=0;i<meta_values.size();++i)
+          {
+            StringList components;
+            meta_values[i].split('=',components);
+					  if (components.size() != 2) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' is missing an assignment ('=').");
+            // check if component is known
+            if (!valid_meta_values.contains(components[0])) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' has an unsupported meta value.");
+            
+            if (components[0]== "intensity" || String(components[0]).toUpper()=="RT")
+            {
+              data.setMetaValue(components[0], components[1].toDouble());
+            }
+            else
+            {
+              data.setMetaValue(components[0], components[1]);
+            }
 					}
 		    }
         
-        proteins.push_back(make_pair(*it, abundance ));
+        proteins.push_back(make_pair(*it, data ));
       }
       
       writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));

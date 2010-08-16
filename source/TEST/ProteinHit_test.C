@@ -106,6 +106,23 @@ START_SECTION(ProteinHit& operator=(const ProteinHit& source))
 	TEST_EQUAL(hit.getCoverage(), 123.123)
 END_SECTION
 
+START_SECTION(ProteinHit& operator= (const MetaInfoInterface& source))
+	ProteinHit hit(score, rank, accession, sequence);
+	hit.setCoverage(123.123);
+  MetaInfoInterface meta;
+	meta.setMetaValue("label",17);
+	
+	hit = meta;
+	
+	TEST_EQUAL(hit.getScore(), score)
+	TEST_EQUAL(hit.getRank(), rank)
+	TEST_EQUAL(hit.getAccession(), accession)
+	TEST_EQUAL(hit.getSequence(), sequence)
+	TEST_EQUAL(hit.getCoverage(), 123.123)
+	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
+END_SECTION
+
+
 START_SECTION(bool operator == (const ProteinHit& rhs) const)
   ProteinHit hit, hit2;
   TEST_EQUAL(hit==hit2,true);

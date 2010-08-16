@@ -46,6 +46,7 @@ namespace OpenMS {
     std::cout << "############## DEBUG (" << stage << ") -- FEATURE MAPS ##############" << std::endl;
 
     Size map_count = 1;
+    StringList keys;
     for(FeatureMapSimVector::iterator map_iter = feature_maps.begin() ; map_iter != feature_maps.end() ; ++map_iter)
     {
       std::cout << "FEATURE MAP #" << map_count << std::endl;
@@ -63,12 +64,14 @@ namespace OpenMS {
           feat != (*map_iter).end();
           ++feat)
       {
+        (*feat).getKeys (keys);
         std::cout << " RT: " << (*feat).getRT()
                   << " MZ: " << (*feat).getMZ()
                   << " INT: " << (*feat).getIntensity()
                   << " CHARGE: " << (*feat).getCharge()
                   << " Det: " << (*feat).getMetaValue("detectibility")
-                  << " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence () .toString() << ::std::endl;
+                  << " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence () .toString()
+                  << " Meta: " << keys.concatenate(",") << ::std::endl;
         std::cout << "derived from protein(s): ";
         for(std::vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
             it != (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
@@ -83,7 +86,7 @@ namespace OpenMS {
     }
     std::cout << "############## END DEBUG -- FEATURE MAPS ##############" << std::endl;
 #else
-		if (feature_map.size()==0) std::cout << stage; // just to avoid warnings of unused parameters
+		if (feature_maps.size()==0) std::cout << stage; // just to avoid warnings of unused parameters
 #endif
   }
 
@@ -95,8 +98,8 @@ namespace OpenMS {
   {
 		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
-    defaults_.insert("PeptideDetectabilitySimulation:",DetectabilitySimulation().getDefaults());
+    defaults_.insert("RT:",RTSimulation(NULL).getDefaults());
+    defaults_.insert("Detectability:",DetectabilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
     defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
 		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
@@ -180,7 +183,7 @@ namespace OpenMS {
 
 		// RT prediction
 		RTSimulation rt_sim(rnd_gen);
-		rt_sim.setParameters(param_.copy("RTSimulation:",true));
+		rt_sim.setParameters(param_.copy("RT:",true));
     for(FeatureMapSimVector::iterator map_iterator = feature_maps_.begin() ; map_iterator != feature_maps_.end() ; ++map_iterator)
     {
       rt_sim.predictRT(*map_iterator);
@@ -195,7 +198,7 @@ namespace OpenMS {
 
 		// Detectability prediction
 		DetectabilitySimulation dt_sim;
-		dt_sim.setParameters(param_.copy("PeptideDetectabilitySimulation:",true));
+		dt_sim.setParameters(param_.copy("Detectability:",true));
     for(FeatureMapSimVector::iterator map_iterator = feature_maps_.begin() ; map_iterator != feature_maps_.end() ; ++map_iterator)
     {
       dt_sim.filterDetectability(*map_iterator);
@@ -246,12 +249,13 @@ namespace OpenMS {
 
 		for (SampleProteins::const_iterator it=proteins.begin(); it!=proteins.end(); ++it)
 		{
-      std::cout << (it->first).identifier << " " << (it->first).sequence << " " << (it->second) << ::std::endl;
       // add new ProteinHit to ProteinIdentification
       ProteinHit protHit(0.0, 1, (it->first).identifier, (it->first).sequence);
+      // copy all meta values from FASTA file parsing
+      protHit=(it->second);
+      // additional meta values:
       protHit.setMetaValue("description", it->first.description);
-      // add intensity
-      protHit.setMetaValue("intensity", it->second);
+      std::cout << protHit.getAccession() << " " << protHit.getSequence() << " " << double(protHit.getMetaValue("intensity")) << ::std::endl;
       protIdent.insertHit(protHit);
 
 		}

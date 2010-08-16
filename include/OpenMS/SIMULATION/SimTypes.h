@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 // GSL includes (random number generation)
 #include <gsl/gsl_rng.h>
@@ -60,7 +61,7 @@ namespace OpenMS
 	typedef RichPeak1D SimPointType;
 	
   /// Container for FASTAEntry & abundance information
-  typedef std::vector< std::pair<FASTAFile::FASTAEntry, SimIntensityType> > SampleProteins;
+  typedef std::vector< std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > SampleProteins;
 
   /// Container for multiple channels of SampleProteins
   typedef std::vector< SampleProteins > SampleChannels;
