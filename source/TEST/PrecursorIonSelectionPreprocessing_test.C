@@ -77,7 +77,7 @@ START_SECTION((const std::map<String,std::vector<DoubleReal> >& getProtMasses() 
 	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 
-START_SECTION((const std::vector<DoubleReal> & getMasses(String acc) consti))
+START_SECTION((const std::vector<DoubleReal> & getMasses(String acc) const))
 	const std::vector<DoubleReal>& pep_masses= ptr->getMasses("P01008");
 	TEST_EQUAL(pep_masses.size(), 14)
 	TEST_REAL_SIMILAR(pep_masses[0],1356.68332791328)

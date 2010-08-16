@@ -94,7 +94,41 @@ START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnow
 }
 END_SECTION
 		
-	      
+START_SECTION(([ILPWrapper::IndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+{
+  ILPWrapper::IndexTriple a,b;
+  a.variable = 1;
+  b.variable = 2;
+
+  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(a,b), true )
+  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(b,a), false )
+  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(a,a), false )
+}
+END_SECTION
+
+START_SECTION(([ILPWrapper::ScanLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+{
+  ILPWrapper::IndexTriple a,b;
+  a.scan = 1;
+  b.scan = 2;
+
+  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(a,b), true )
+  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(b,a), false )
+  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(a,a), false )
+}
+END_SECTION
+
+START_SECTION(([ILPWrapper::VariableIndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+{
+  ILPWrapper::IndexTriple a,b;
+  a.variable = 1;
+  b.variable = 2;
+
+  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(a,b), true )
+  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(b,a), false )
+  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(a,a), false )
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
