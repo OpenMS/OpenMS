@@ -32,6 +32,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
+#include <math.h>
 #include <fstream>
 
 using namespace OpenMS;
@@ -73,7 +74,7 @@ START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getTransIntens
 	TEST_EQUAL (test2->getTransIntensity(0), 0)
 END_SECTION
 
-START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal setTransIntensity (const UInt i, const DoubleReal intens))
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] void setTransIntensity (const UInt i, const DoubleReal intens))
 	test2->setTransIntensity(0,-1);
 	TEST_EQUAL (test2->getTransIntensity(0), -1)
 END_SECTION
