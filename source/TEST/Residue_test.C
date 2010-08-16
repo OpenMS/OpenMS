@@ -780,5 +780,26 @@ START_SECTION((bool isInResidueSet(const String &residue_set)))
 	TEST_EQUAL(e_ptr->isInResidueSet("rs4"), false)
 END_SECTION
 
+START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
+{
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Full), "full")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Internal), "internal")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::NTerminal), "N-terminal")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CTerminal), "C-terminal")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::AIon), "a-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::BIon), "b-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIon), "c-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIonMinusOne), "c-1-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIonPlusOne), "c+1-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIonPlusTwo), "c+2-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::XIon), "x-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::YIon), "y-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIon), "z-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIonMinusOne), "z-1-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIonPlusOne), "z+1-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIonPlusTwo), "z+2-ion")
+}
+END_SECTION
+
 END_TEST
 

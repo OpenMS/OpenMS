@@ -248,6 +248,29 @@ START_SECTION((char getAAAfter() const))
 	TEST_EQUAL(hit.getAAAfter(), 'R')
 END_SECTION
 
+START_SECTION(([PeptideHit::ScoreLess] template < typename Arg > bool operator()(const Arg &a, const Arg &b)))
+{
+  PeptideHit a,b;
+  a.setScore(10);
+  b.setScore(20);
+
+  TEST_EQUAL(PeptideHit::ScoreLess().operator()(a,b), true)
+  TEST_EQUAL(PeptideHit::ScoreLess().operator()(b,a), false)
+  TEST_EQUAL(PeptideHit::ScoreLess().operator()(a,a), false)
+}
+END_SECTION
+
+START_SECTION(([PeptideHit::ScoreMore] template < typename Arg > bool operator()(const Arg &a, const Arg &b)))
+{
+  PeptideHit a,b;
+  a.setScore(20);
+  b.setScore(10);
+
+  TEST_EQUAL(PeptideHit::ScoreMore().operator()(a,b), true)
+  TEST_EQUAL(PeptideHit::ScoreMore().operator()(b,a), false)
+  TEST_EQUAL(PeptideHit::ScoreMore().operator()(a,a), false)
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
