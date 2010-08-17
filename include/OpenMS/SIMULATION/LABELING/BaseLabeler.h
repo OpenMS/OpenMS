@@ -44,7 +44,7 @@ namespace OpenMS
   /**
   @brief Abstract base class for all kinds of labeling techniques
   */
-  class BaseLabeler
+  class OPENMS_DLLAPI BaseLabeler
     : public DefaultParamHandler
   {
   public:
