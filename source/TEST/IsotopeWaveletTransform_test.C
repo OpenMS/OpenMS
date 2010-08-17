@@ -63,11 +63,11 @@ START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getRT () const
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getMZ (const UInt i) const)
-	TEST_EQUAL (trunc(test2->getMZ(0)*10), 14200)
+	TEST_EQUAL ((int)(test2->getMZ(0)*10), 14200)
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getRefIntensity (const UInt i) const)
-	TEST_EQUAL (trunc(test2->getRefIntensity(0)*100), 39)
+	TEST_EQUAL ((int)(test2->getRefIntensity(0)*100), 39)
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getTransIntensity (const UInt i) const)
@@ -96,19 +96,19 @@ START_SECTION([IsotopeWaveletTransform::TransSpectrum] const MSSpectrum<PeakType
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator MZBegin (const DoubleReal mz) const)
-	TEST_EQUAL(trunc(test2->MZBegin(1420)->getMZ()*10), 14200)
+	TEST_EQUAL((int)(test2->MZBegin(1420)->getMZ()*10), 14200)
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator MZEnd (const DoubleReal mz) const)
-	TEST_EQUAL(trunc(test2->MZEnd(1420.01)->getMZ()*100), 142001)
+	TEST_EQUAL((int)(test2->MZEnd(1420.01)->getMZ()*100), 142001)
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator begin () const)
-	TEST_EQUAL(trunc(test2->begin()->getMZ()*10), 14200)
+	TEST_EQUAL((int)(test2->begin()->getMZ()*10), 14200)
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator end () const)
-	TEST_EQUAL(trunc((--test2->end())->getMZ()*10), 14349)
+	TEST_EQUAL((int)((--test2->end())->getMZ()*10), 14349)
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] virtual ~TransSpectrum())
