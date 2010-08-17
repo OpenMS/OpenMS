@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-// 
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace OpenMS 
+namespace OpenMS
 {
 	IDDecoyProbability::IDDecoyProbability()
 		: DefaultParamHandler("IDDecoyProbability")
@@ -63,7 +63,7 @@ namespace OpenMS
 	}
 
 	void IDDecoyProbability::apply(vector<PeptideIdentification>& ids)
-	{	
+	{
 		DoubleReal lower_score_better_default_value_if_zero((DoubleReal)param_.getValue("lower_score_better_default_value_if_zero"));
 		DoubleReal lower_score_better_default_value_if_zero_exp = pow((DoubleReal)10.0, -lower_score_better_default_value_if_zero);
     vector<DoubleReal> rev_scores, fwd_scores, all_scores;
@@ -97,7 +97,7 @@ namespace OpenMS
 					if (target_decoy == "target")
 					{
           	fwd_scores.push_back(score);
-					} 
+					}
 					else if (target_decoy == "decoy")
 					{
 						rev_scores.push_back(score);
@@ -133,7 +133,7 @@ namespace OpenMS
        		DoubleReal score = pit->getScore();
 
 					pit->setMetaValue(score_type+"_Score", score);
-					
+
        		if (!it->isHigherScoreBetter())
        		{
 						if (score < lower_score_better_default_value_if_zero_exp)
@@ -223,7 +223,7 @@ namespace OpenMS
 		String rev_filename = param_.getValue("rev_filename");
 		generateDistributionImage_(rev_scores_normalized, gdf.getGnuplotFormula(), rev_filename);
 #endif
-		
+
   	// generate diffs of distributions
   	// get the fwd and rev distribution, apply all_trafo and calculate the diff
 		vector<Size> fwd_bins(number_of_bins, 0), rev_bins(number_of_bins, 0);
@@ -238,7 +238,7 @@ namespace OpenMS
       	max_bin = fwd_bins[bin];
     	}
   	}
-		
+
 		Size max_reverse_bin(0), max_reverse_bin_value(0);
 		//min = rev_trafo.min_score;
 		//diff = rev_trafo.diff_score;
@@ -260,7 +260,7 @@ namespace OpenMS
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "Trying to get diff scores" << endl;
 #endif
-		
+
   	// get diff of fwd and rev
   	for (Size i = 0; i < number_of_bins; ++i)
   	{
@@ -295,14 +295,14 @@ namespace OpenMS
 			gauss_x0 += pos.getX() * pos.getY();
 			norm_factor += pos.getY();
 
-			
+
     	diff_data.push_back(pos);
   	}
 
 		DoubleReal gauss_sigma(0);
 		gauss_x0 /= (DoubleReal)diff_data.size();
 		gauss_x0 /= norm_factor;
-		
+
 		for (Size i = 0; i <= number_of_bins; ++i)
 		{
 			gauss_sigma += fabs(gauss_x0 - (DoubleReal)i / (DoubleReal)number_of_bins);
@@ -310,8 +310,8 @@ namespace OpenMS
 
 		gauss_sigma /= (DoubleReal)diff_data.size();
 
-	
-		
+
+
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "setting initial parameters: " << endl;
 #endif
@@ -324,7 +324,7 @@ namespace OpenMS
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "Initial Gauss guess: A=" << gauss_A << ", x0=" << gauss_x0 << ", sigma=" << gauss_sigma << endl;
 #endif
-  	
+
 		Math::GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
 
 		// fit failed?
@@ -341,7 +341,7 @@ namespace OpenMS
 		if (gf.getGnuplotFormula() == "")
 		{
 			String formula("f(x)=" + String(gauss_A) + " * exp(-(x - " + String(gauss_x0) + ") ** 2 / 2 / (" + String(gauss_sigma) + ") ** 2)");
-			generateDistributionImage_(diff_scores, formula, fwd_filename); 
+			generateDistributionImage_(diff_scores, formula, fwd_filename);
 		}
 		else
 		{
@@ -352,7 +352,7 @@ namespace OpenMS
 #ifdef IDDECOYPROBABILITY_DEBUG
 		//all_trafo.diff_score + all_trafo.min_score
 		String gauss_formula("f(x)=" + String(result_gauss.A / all_trafo.max_intensity) + " * exp(-(x - " + String(result_gauss.x0 * all_trafo.diff_score + all_trafo.min_score) + ") ** 2 / 2 / (" + String(result_gauss.sigma * all_trafo.diff_score)   + ") ** 2)");
-		
+
 		String b_str(result_gamma.b), p_str(result_gamma.p);
 		String gamma_formula = "g(x)=(" + b_str + " ** " + p_str + ") / gamma(" + p_str + ") * x ** (" + p_str + " - 1) * exp(- " + b_str + " * x)";
 
@@ -383,13 +383,13 @@ namespace OpenMS
 				id.setHigherScoreBetter(true);
 				id.setScoreType(id.getScoreType() + "_DecoyProbability");
 				id.setHits(hits);
-				
+
 				new_prob_ids.push_back(id);
 			}
 		}
 		ids = new_prob_ids;
 	}
-	
+
 	// normalize the bins to [0, 1]
 	void IDDecoyProbability::normalizeBins_(const vector<DoubleReal>& scores, vector<DoubleReal>& binned, Transformation_& trafo)
 	{
@@ -411,7 +411,7 @@ namespace OpenMS
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "Range is [" << min << ", " << max << "]" << endl;
 #endif
-		
+
   	// perform the binning
   	DoubleReal diff = max - min;
   	Size max_bin_number(0);
@@ -420,7 +420,7 @@ namespace OpenMS
   	{
     	Size bin = (Size)((*it - min) / diff * (DoubleReal)(number_of_bins - 1));
       binned[bin] += 1;
-    	
+
 			if (binned[bin] > max_bin)
     	{
       	max_bin = binned[bin];
@@ -456,7 +456,7 @@ namespace OpenMS
 	{
   	DoubleReal rho_rev(0), rho_fwd(0);
 		Size number_of_bins(param_.getValue("number_of_bins"));
-	
+
   	// first transform the score into a background distribution density value
   	DoubleReal score_rev_trans = (score - gamma_trafo.min_score) / gamma_trafo.diff_score;
   	if (score_rev_trans < gamma_trafo.max_intensity_bin/(DoubleReal)number_of_bins)
@@ -474,7 +474,7 @@ namespace OpenMS
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "score=" << score << ", score_rev_trans=" << score_rev_trans << ", score_fwd_trans=" << score_fwd_trans << ", rho_rev=" << rho_rev << ", gauss_trafor.max_score=" << gauss_trafo.max_score;
 #endif
-	
+
   	if (score_fwd_trans < result_gauss.x0)
   	{
 #ifdef IDDECOYPROBABILITY_DEBUG
@@ -486,12 +486,12 @@ namespace OpenMS
 		{
 			rho_fwd = 1;
 		}
-		
+
 
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "rho_fwd=" << rho_fwd << endl;
 #endif
-		
+
   	// calc P using Bayes theorem
   	return rho_fwd / (rho_fwd + rho_rev);
 	}
@@ -499,49 +499,62 @@ namespace OpenMS
 	void IDDecoyProbability::generateDistributionImage_(const vector<DoubleReal>& ids, const String& formula, const String& filename)
 	{
 		Size number_of_bins(param_.getValue("number_of_bins"));
-		
-  	// write distribution to file
-  	ofstream o((filename + "_dist_tmp.dat").c_str());
-  	for (Size i = 0; i < number_of_bins; ++i)
-  	{
-    	o << (DoubleReal)i / (DoubleReal)number_of_bins << " " << ids[i] << endl;
-  	}
-  	o.close();
 
-  	ofstream os((filename + "_gnuplot.gpl").c_str());
-  	os << "set terminal png" << endl;
-  	os << "set output '" << filename << "_distribution.png'" << endl;
-  	os << formula << endl;
-  	os << "plot f(x), '" << filename << "_dist_tmp.dat' w boxes" << endl;
-  	os.close();
+		// write distribution to file
+		ofstream o((filename + "_dist_tmp.dat").c_str());
+		for (Size i = 0; i < number_of_bins; ++i)
+		{
+			o << (DoubleReal)i / (DoubleReal)number_of_bins << " " << ids[i] << endl;
+		}
+		o.close();
 
-  	system(("gnuplot " + filename + "_gnuplot.gpl").c_str());
+		ofstream os((filename + "_gnuplot.gpl").c_str());
+		os << "set terminal png" << endl;
+		os << "set output '" << filename << "_distribution.png'" << endl;
+		os << formula << endl;
+		os << "plot f(x), '" << filename << "_dist_tmp.dat' w boxes" << endl;
+		os.close();
+
+		int syscalret = system(("gnuplot " + filename + "_gnuplot.gpl").c_str());
+#ifdef IDDECOYPROBABILITY_DEBUG
+		if(syscalret!=0)
+		{
+			cerr << "gnuplot system call failed!" << endl;
+		}
+#endif
+
 
   	return;
-	}	
+	}
 
 	void IDDecoyProbability::generateDistributionImage_(const vector<DoubleReal>& all_ids, const Transformation_& all_trans, const String& fwd_formula, const String& rev_formula, const String& filename)
 	{
 		Size number_of_bins(param_.getValue("number_of_bins"));
 
 		ofstream all_output((filename + "_all_tmp.dat").c_str());
-    for (Size i = 0; i < number_of_bins; ++i)
-    {
-      all_output << (DoubleReal)i / (DoubleReal)number_of_bins * all_trans.diff_score + all_trans.min_score << " " << all_ids[i] / all_trans.max_intensity << endl;
-    }
-    all_output.close();
+		for (Size i = 0; i < number_of_bins; ++i)
+		{
+			all_output << (DoubleReal)i / (DoubleReal)number_of_bins * all_trans.diff_score + all_trans.min_score << " " << all_ids[i] / all_trans.max_intensity << endl;
+		}
+		all_output.close();
 
-    ofstream os((filename + "_both_gnuplot.gpl").c_str());
-    os << "set terminal png" << endl;
-    os << "set output '" << filename << "_both_distributions.png'" << endl;
-    os << fwd_formula << endl;
+		ofstream os((filename + "_both_gnuplot.gpl").c_str());
+		os << "set terminal png" << endl;
+		os << "set output '" << filename << "_both_distributions.png'" << endl;
+		os << fwd_formula << endl;
 		os << rev_formula << endl;
-    //os << "plot f(x), '" << filename << "_fwd_tmp.dat' w boxes, g(x), '" << filename << "_rev_tmp.dat' w boxes, '" << filename << "_all_tmp.dat' w i" << endl;
+		//os << "plot f(x), '" << filename << "_fwd_tmp.dat' w boxes, g(x), '" << filename << "_rev_tmp.dat' w boxes, '" << filename << "_all_tmp.dat' w i" << endl;
 		os << "plot f(x), g(x), '" << filename << "_all_tmp.dat' w i" << endl;
-    os.close();
+		os.close();
 
-    system(("gnuplot " + filename + "_both_gnuplot.gpl").c_str());
+		int syscalret = system(("gnuplot " + filename + "_both_gnuplot.gpl").c_str());
+#ifdef IDDECOYPROBABILITY_DEBUG
+		if(syscalret!=0)
+		{
+			cerr << "gnuplot system call failed!" << endl;
+		}
+#endif
 
-    return;
+		return;
 	}
 } // namespace OpenMS

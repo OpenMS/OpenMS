@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -39,11 +39,11 @@ class QString;
 namespace OpenMS
 {
 	class DataValue;
-	/**	
+	/**
 		@brief A more convenient string class.
-		
+
 		It is based on std::string but adds a lot of methods for convenience.
-		
+
 		@ingroup Datastructures
 	*/
 	class String:
@@ -53,10 +53,10 @@ namespace OpenMS
 
 		/// Empty string for comparisons
 		OPENMS_DLLAPI static const String EMPTY;
-		
+
 		/** @name Type definitions
 		*/
-		//@{	
+		//@{
 		/// Iterator
 		typedef iterator	Iterator;
 		/// Const Iterator
@@ -70,9 +70,9 @@ namespace OpenMS
 
 		/// How to handle embedded quotes when quoting strings
 		enum QuotingMethod {NONE, ESCAPE, DOUBLE};
-		
-		//@}		
-		
+
+		//@}
+
 		/**	@name Constructors
 		*/
 		//@{
@@ -95,7 +95,7 @@ namespace OpenMS
 		String(InputIterator first, InputIterator last)
 		: std::string(first,last)
 		{
-			
+
 		}
 		/// Constructor from an integer
 		OPENMS_DLLAPI String(int i);
@@ -150,7 +150,7 @@ namespace OpenMS
 		  @exception Exception::IndexOverflow is thrown if @p length is bigger than the size
 		*/
 		OPENMS_DLLAPI String prefix(SizeType length) const;
-		
+
 		/**
 		  @brief returns the suffix of length @p length
 
@@ -165,7 +165,7 @@ namespace OpenMS
 		  @exception Exception::IndexOverflow is thrown if @p length is bigger than the size
 		*/
 		OPENMS_DLLAPI String prefix(Int length) const;
-		
+
 		/**
 		  @brief returns the suffix of length @p length
 
@@ -173,14 +173,14 @@ namespace OpenMS
 		  @exception Exception::IndexOverflowis thrown if @p length is bigger than the size
 		*/
 		OPENMS_DLLAPI String suffix(Int length) const;
-		
+
 		/**
 		  @brief returns the prefix up to the first occurence of char @p delim (excluding it)
 
 		  @exception Exception::ElementNotFound is thrown if @p delim is not found
 		*/
 		OPENMS_DLLAPI String prefix(char delim) const;
-		
+
 		/**
 		  @brief returns the suffix up to the last occurence of char @p delim (excluding it)
 
@@ -212,17 +212,17 @@ namespace OpenMS
 		OPENMS_DLLAPI String chop(Size n) const;
 
 		//@}
-		
-		
-		/** 
+
+
+		/**
 			@name Mutators
-			
+
 			All these methods return a reference to the string in order to make them chainable
 		*/
 		//@{
 		/// inverts the direction of the string
 		OPENMS_DLLAPI String& reverse();
-		
+
 		/// removes whitespaces (space, tab, line feed, carriage return) at the beginning and the end of the string
 		OPENMS_DLLAPI String& trim();
 
@@ -245,19 +245,19 @@ namespace OpenMS
 			 @see quote()
 		*/
 		OPENMS_DLLAPI String& unquote(char q = '"', QuotingMethod method = ESCAPE);
-		
+
 		/// merges subsequent whitespaces to one blank character
 		OPENMS_DLLAPI String& simplify();
-		
+
 		///Adds @p c on the left side until the size of the string is @p size
 		OPENMS_DLLAPI String& fillLeft(char c, UInt size);
-		
+
 		///Adds @p c on the right side until the size of the string is @p size
 		OPENMS_DLLAPI String& fillRight(char c, UInt size);
 
 		///Converts the string to uppercase
 		OPENMS_DLLAPI String& toUpper();
-		
+
 		///Converts the string to lowercase
 		OPENMS_DLLAPI String& toLower();
 
@@ -286,10 +286,10 @@ namespace OpenMS
 
 		/**
 			@brief Conversion to int
-		
+
 			This method extracts only the integral part of the string.
 			If you want the result rounded, use toFloat() and round the result.
-			
+
 			@exception Exception::ConversionError is thrown if the string could not be converted to int
 		*/
 		OPENMS_DLLAPI Int toInt() const;
@@ -386,37 +386,37 @@ namespace OpenMS
 		OPENMS_DLLAPI static String number(DoubleReal d, UInt n);
 		/**
 			@brief Returns a string with at maximum @p n characters for @p d
-		
+
 			If @p d is larger, scientific notation is used.
 		*/
 		OPENMS_DLLAPI static String numberLength(DoubleReal d, UInt n);
 
-		
+
 		/**
 			@brief Splits a string into @p substrings using @p splitter as delimiter
-			
+
 			If @p splitter is not found, the whole string is put into @p substrings.
 			If @p splitter is empty, the string is split into individual characters.
 			If the invoking string is empty, @p substrings will also be empty.
-			
+
 			@p quote_protect (default: false) can be used to split only between quoted
 			blocks e.g. ' "a string" , "another string with , in it" '
 			results in only two substrings (with double quotation marks @em removed).
 			Every returned substring is trimmed and then (if present) has surrounding quotation marks removed.
-			
+
 			@return @e true if one or more splits occurred, @e false otherwise
-			
+
 			@see concatenate().
 		*/
 		OPENMS_DLLAPI bool split(const char splitter, std::vector<String>& substrings, bool quote_protect=false) const;
 
 		/**
 			@brief Splits a string into @p substrings using @p splitter (the whole string) as delimiter
-			
+
 			If @p splitter is not found,  the whole string is put into @p substrings.
 			If @p splitter is empty, the string is split into individual characters.
 			If the invoking string is empty, @p substrings will also be empty.
-			
+
 			@return @e true if one or more splits occurred, @e false otherwise
 
 			@see concatenate().
@@ -427,14 +427,14 @@ namespace OpenMS
 			@brief Splits a string into @p substrings using @p splitter (the whole string) as delimiter, but does not split within quoted substrings
 
 			A "quoted substring" has the format as produced by @p quote(q, method), where @p q is the quoting character and @p method defines the handling of embedded quotes. Substrings will not be "unquoted" or otherwise processed.
-			
+
 			If @p splitter is not found,  the whole string is put into @p substrings.
-			If @p splitter or the invoking string is empty, @p substrings will also be empty.		
-			
+			If @p splitter or the invoking string is empty, @p substrings will also be empty.
+
 			@return @e true if one or more splits occurred, @e false otherwise
-			
+
 			@exception Exception::ConversionError is thrown if quotation marks are not balanced
-			
+
 			@see concatenate(), quote().
 		*/
 		OPENMS_DLLAPI bool split_quoted(const String& splitter,	std::vector<String>& substrings,
@@ -454,16 +454,16 @@ namespace OpenMS
 				std::string::clear();
 				return;
 			}
-		
+
 			std::string::operator=(*first);
 			for (StringIterator it = ++first; it != last; ++it)
 			{
 				std::string::operator+=( glue + (*it));
 			}
 		}
-		
+
 	};
-	
+
 } // namespace OPENMS
 
 #endif // OPENMS_DATASTRUCTURES_HASHMAP_H
