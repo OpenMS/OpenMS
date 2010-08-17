@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -411,6 +411,57 @@ START_SECTION(([EXTRA]meta info with assignment))
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 END_SECTION
 
+START_SECTION(([Feature::OverallQualityLess] bool operator () ( Feature const & left, Feature const & right ) const))
+	Feature f1, f2;
+	f1.setOverallQuality(0.94);
+	f2.setOverallQuality(0.78);
+	Feature::OverallQualityLess oql;
+	
+	TEST_EQUAL(oql(f1,f2), 0);
+	TEST_EQUAL(oql(f2,f1), 1);
+END_SECTION
+
+START_SECTION(([Feature::OverallQualityLess] bool operator () ( Feature const & left, QualityType right ) const))
+	Feature f1, f2;
+	f1.setOverallQuality(0.94);
+	f2.setOverallQuality(0.78);
+	
+	Feature::QualityType rhs = f1.getOverallQuality();
+	
+	Feature::OverallQualityLess oql;
+	
+	TEST_EQUAL(oql(f1,rhs), 0);
+	TEST_EQUAL(oql(f2,rhs), 1);
+END_SECTION
+
+START_SECTION(([Feature::OverallQualityLess] bool operator () ( QualityType left, Feature const & right ) const))
+	Feature f1, f2;
+	f1.setOverallQuality(0.94);
+	f2.setOverallQuality(0.78);
+	
+	Feature::QualityType lhs = f2.getOverallQuality();
+	
+	Feature::OverallQualityLess oql;
+	
+	TEST_EQUAL(oql(lhs,f2), 0);
+	TEST_EQUAL(oql(lhs,f1), 1);
+END_SECTION
+
+START_SECTION(([Feature::OverallQualityLess] bool operator () ( QualityType left, QualityType right ) const))
+	Feature f1, f2;
+	f1.setOverallQuality(0.94);
+	f2.setOverallQuality(0.78);
+	
+	Feature::QualityType lhs = f1.getOverallQuality();
+	Feature::QualityType rhs = f2.getOverallQuality();
+	
+	Feature::OverallQualityLess oql;
+	
+	TEST_EQUAL(oql(lhs,rhs), 0);
+	TEST_EQUAL(oql(rhs,lhs), 1);
+END_SECTION
+
+
 START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
 	Feature tmp;
 	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
@@ -450,6 +501,26 @@ START_SECTION((void setSubordinates(const std::vector<Feature>& rhs)))
 {
 	// see below
 	NOT_TESTABLE;
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction( Size (Type::*member_function)() )))
+{
+	Feature f;
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
+	
+	f.setUniqueId();
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 0);
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction( Size (Type::*member_function)() const) const))
+{
+	Feature f;
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
+	
+	f.setUniqueId();
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 0);
 }
 END_SECTION
 
