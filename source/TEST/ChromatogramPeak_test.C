@@ -217,7 +217,164 @@ START_SECTION([EXTRA] struct IntensityLess)
   TEST_REAL_SIMILAR(v[2].getIntensity(), 3.5)
 END_SECTION
 
+START_SECTION(([ChromatogramPeak::IntensityLess] bool operator()(ChromatogramPeak const &left, ChromatogramPeak const &right) const))
+{
+  ChromatogramPeak left,right;
+  left.setIntensity(10.0);
+  right.setIntensity(20.0);
 
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::IntensityLess] bool operator()(ChromatogramPeak const &left, IntensityType right) const))
+{
+  ChromatogramPeak left;
+  left.setIntensity(10.0);
+
+  ChromatogramPeak::IntensityType right;
+  right = 20.0;
+
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::IntensityLess] bool operator()(IntensityType left, ChromatogramPeak const &right) const))
+{
+  ChromatogramPeak::IntensityType left;
+  left = 10.0;
+
+  ChromatogramPeak right;
+  right.setIntensity(20.0);
+
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::IntensityLess] bool operator()(IntensityType left, IntensityType right) const))
+{
+  ChromatogramPeak::IntensityType left,right;
+  left = 10.0;
+  right = 20.0;
+
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::IntensityLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::PositionLess] bool operator()(const ChromatogramPeak &left, const ChromatogramPeak &right) const))
+{
+  ChromatogramPeak left,right;
+  left.setPosition(10.0);
+  right.setPosition(20.0);
+
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::PositionLess] bool operator()(const ChromatogramPeak &left, const PositionType &right) const))
+{
+  ChromatogramPeak left;
+  left.setPosition(10.0);
+
+  ChromatogramPeak::PositionType right;
+  right = 20.0;
+
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::PositionLess] bool operator()(const PositionType &left, const ChromatogramPeak &right) const))
+{
+  ChromatogramPeak::PositionType left;
+  left = 10.0;
+  ChromatogramPeak right;
+  right.setPosition(20.0);
+
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::PositionLess] bool operator()(const PositionType &left, const PositionType &right) const))
+{
+  ChromatogramPeak::PositionType left,right;
+  left = 10.0;
+  right = 20.0;
+
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::PositionLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::RTLess] bool operator()(const ChromatogramPeak &left, const ChromatogramPeak &right) const))
+{
+  ChromatogramPeak left;
+  left.setRT(10.0);
+
+  ChromatogramPeak right;
+  right.setRT(20.0);
+
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::RTLess] bool operator()(ChromatogramPeak const &left, CoordinateType right) const))
+{
+  ChromatogramPeak left;
+  left.setRT(10.0);
+
+  ChromatogramPeak::CoordinateType right;
+  right = 20.0;
+
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::RTLess] bool operator()(CoordinateType left, ChromatogramPeak const &right) const))
+{
+  ChromatogramPeak::CoordinateType left;
+  left = 10.0;
+
+  ChromatogramPeak right;
+  right.setRT(20.0);
+
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,left), false)
+}
+END_SECTION
+
+START_SECTION(([ChromatogramPeak::RTLess] bool operator()(CoordinateType left, CoordinateType right) const))
+{
+  ChromatogramPeak::CoordinateType left;
+  left = 10.0;
+
+  ChromatogramPeak::CoordinateType right;
+  right = 20.0;
+
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,right), true)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(right,left), false)
+  TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,left), false)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
