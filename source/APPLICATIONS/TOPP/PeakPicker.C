@@ -41,8 +41,7 @@ using namespace std;
 /**
 	@page TOPP_PeakPicker PeakPicker
 
-	@brief A tool for peak detection in profile data
-	Executes the peak picking algorithm as described by Lange et al. (2006) Proc. PSB-06.
+	@brief A tool for peak detection in profile data. Executes the peak picking with selected algorithms choosable: @ref OpenMS::PeakPickerCWT "wavelet" (described in Lange et al. (2006) Proc. PSB-06) and @ref OpenMS::PeakPickerHiRes "high_res".
 <CENTER>
 	<table>
 		<tr>
@@ -61,18 +60,16 @@ using namespace std;
 </CENTER>
 	The conversion of the ''raw'' ion count data acquired
 	by the machine into peak lists for further processing
-	is usually called peak picking. Our algorithm is independent
-	of the underlying machine or ionization method, and is able
-	to resolve highly convoluted and asymmetric signals.
-	The method uses the multiscale nature of spectrometric data by
-	first detecting the mass peaks in the wavelet-transformed signal
-	before a given asymmetric peak function is fitted to the profile data.
-	In case of low-resoluted data, an optional step for the separation of
-	overlapping peaks can be added.
-	In an optional third stage, the resulting fit can be further improved using
-	techniques from nonlinear optimization.
+	is usually called peak picking. The choice of the algorithm
+	should mainly depend on the resolution of the data.
+	As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
+	algorithm is fit for high resolution data whereas in case
+	of low-resoluted data the @ref OpenMS::PeakPickerCWT "wavelet"
+	algorithm offers the ability to resolve highly convoluted
+	and asymmetric signals, separation of overlapping peaks
+	and nonlinear optimization.
 
-	How to find @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
+	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PeakPicker.cli
