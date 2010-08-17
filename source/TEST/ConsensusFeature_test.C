@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -69,6 +69,143 @@ tmp_feature3.setRT(3);
 tmp_feature3.setMZ(4);
 tmp_feature3.setIntensity(400.0f);
 tmp_feature3.setUniqueId(7);
+
+
+START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const))
+	ConsensusFeature c1, c2;
+	c1.setQuality(0.94);
+	c2.setQuality(0.78);
+	ConsensusFeature::QualityLess ql;
+	
+	TEST_EQUAL(ql(c1,c2), 0);
+	TEST_EQUAL(ql(c2,c1), 1);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( ConsensusFeature const & left, QualityType right ) const))
+	ConsensusFeature c1, c2;
+	c1.setQuality(0.94);
+	c2.setQuality(0.78);
+	
+	ConsensusFeature::QualityType rhs = c1.getQuality();
+	
+	ConsensusFeature::QualityLess ql;
+	
+	TEST_EQUAL(ql(c1,rhs), 0);
+	TEST_EQUAL(ql(c2,rhs), 1);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( QualityType left, ConsensusFeature const & right ) const))
+	ConsensusFeature c1, c2;
+	c1.setQuality(0.94);
+	c2.setQuality(0.78);
+	
+	ConsensusFeature::QualityType lhs = c2.getQuality();
+	
+	ConsensusFeature::QualityLess ql;
+	
+	TEST_EQUAL(ql(lhs,c2), 0);
+	TEST_EQUAL(ql(lhs,c1), 1);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( QualityType left, QualityType right ) const))
+	ConsensusFeature c1, c2;
+	c1.setQuality(0.94);
+	c2.setQuality(0.78);
+	
+	ConsensusFeature::QualityType lhs = c1.getQuality();
+	ConsensusFeature::QualityType rhs = c2.getQuality();
+	
+	ConsensusFeature::QualityLess ql;
+	
+	TEST_EQUAL(ql(lhs,rhs), 0);
+	TEST_EQUAL(ql(rhs,lhs), 1);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const))
+	ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+		
+	ConsensusFeature c2(tmp_feature2);
+	c2.insert(1,tmp_feature2);
+	
+	ConsensusFeature::SizeLess sl;
+	
+	TEST_EQUAL(sl(c1,c2), 0);
+	TEST_EQUAL(sl(c2,c1), 1);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( ConsensusFeature const & left, UInt64 const & right ) const))
+	ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+	
+	ConsensusFeature c2(tmp_feature);
+	c2.insert(1,tmp_feature);
+	c2.insert(2,tmp_feature2);
+	c2.insert(3,tmp_feature3);
+	
+	UInt64 rhs_size = c2.size();
+	
+	ConsensusFeature::SizeLess sl;
+	
+	TEST_EQUAL(sl(c1,rhs_size), 1);
+	TEST_EQUAL(sl(c2,rhs_size), 0);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( UInt64 const & left, ConsensusFeature const & right ) const))
+	ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+	
+	ConsensusFeature c2(tmp_feature);
+	c2.insert(1,tmp_feature);
+	c2.insert(2,tmp_feature2);
+	c2.insert(3,tmp_feature3);
+	
+	UInt64 lhs_size = c1.size();
+	
+	ConsensusFeature::SizeLess sl;
+	
+	TEST_EQUAL(sl(lhs_size, c1), 0);
+	TEST_EQUAL(sl(lhs_size, c2), 1);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( const UInt64 & left, const UInt64 & right ) const))
+	ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+	
+	ConsensusFeature c2(tmp_feature);
+	c2.insert(1,tmp_feature);
+	c2.insert(2,tmp_feature2);
+	c2.insert(3,tmp_feature3);
+	
+	UInt64 lhs_size = c1.size(), rhs_size = c2.size();
+	
+	ConsensusFeature::SizeLess sl;
+	
+	TEST_EQUAL(sl(lhs_size, rhs_size), 1);
+	TEST_EQUAL(sl(rhs_size, lhs_size), 0);
+END_SECTION
+
+START_SECTION(([ConsensusFeature::MapsLess] bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const))
+	ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+	
+	ConsensusFeature c2(tmp_feature);
+	c2.insert(3,tmp_feature);
+	c2.insert(4,tmp_feature2);
+	c2.insert(5,tmp_feature3);
+	
+	ConsensusFeature::MapsLess ml;
+	
+	TEST_EQUAL(ml(c1,c1), 0);
+	TEST_EQUAL(ml(c1,c2), 1);
+	TEST_EQUAL(ml(c2,c1), 0);
+	TEST_EQUAL(ml(c2,c2), 0);
+END_SECTION
 
 START_SECTION((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
   ConsensusFeature cons(tmp_feature);
@@ -197,7 +334,7 @@ START_SECTION((ConsensusFeature(UInt64 map_index, const Feature &element)))
   TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
-START_SECTION((ConsensusFeature(UInt64 map_index, const Peak2D &element)))
+START_SECTION((ConsensusFeature(UInt64 map_index, const Peak2D &element, UInt64 element_index)))
   Peak2D f;
   f.setIntensity(-17);
   const Peak2D& f_cref = f;
@@ -386,7 +523,7 @@ START_SECTION((void computeMonoisotopicConsensus()))
 	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
 END_SECTION
 
-START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm)))
+START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging=false)))
   
   DoubleReal proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
   DoubleReal natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
