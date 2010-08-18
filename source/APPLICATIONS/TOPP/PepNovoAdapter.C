@@ -99,7 +99,7 @@ class TOPPPepNovoAdapter
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file ");
-			setValidFormats_("in",StringList::create("mzXML"));
+      setValidFormats_("in",StringList::create("mzXML"));
 
 			registerOutputFile_("out", "<file>", "", "output file ");
 			setValidFormats_("out",StringList::create("idXML"));
@@ -148,39 +148,15 @@ class TOPPPepNovoAdapter
 
 			inputfile_name = getStringOption_("in");
 			writeDebug_(String("Input file: ") + inputfile_name, 1);
-			if (inputfile_name == "")
-			{
-				writeLog_("No input file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			outputfile_name = getStringOption_("out");
 			writeDebug_(String("Output file: ") + outputfile_name, 1);
-			if (outputfile_name == "")
-			{
-				writeLog_("No output file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			model_directory = getStringOption_("model_directory");
 			writeDebug_(String("model directory: ") + model_directory, 1);
-			if (model_directory == "")
-			{
-				writeLog_("No model directory specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			String model_name = getStringOption_("model");
 			writeDebug_(String("model directory: ") + model_name, 1);
-			if (model_name == "")
-			{
-				writeLog_("No model specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			DoubleReal fragment_tolerance = getDoubleOption_("fragment_tolerance");
 			if(fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
@@ -205,13 +181,15 @@ class TOPPPepNovoAdapter
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
+      String digest = getStringOption_("digest");
+      Size num_solutions=getIntOption_("num_solutions");
 
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
 
 			// only load msLevel 2
-			MzXMLFile mzdata_infile;
+      MzXMLFile mzdata_infile;
 			mzdata_infile.getOptions().addMSLevel(2);
 			mzdata_infile.setLogType(log_type_);
 			mzdata_infile.load(inputfile_name, exp);
@@ -336,24 +314,26 @@ class TOPPPepNovoAdapter
 				//-------------------------------------------------------------
 				// (3) running program according to parameters
 				//-------------------------------------------------------------
+        QStringList arguments;
 
-				String call;
-				call.append(" -file " + inputfile_name);
-				call.append(" -model " + model_name);
-				if (pm_tolerance != -1 ) call.append(" -pm_tolerance " + String(pm_tolerance));
-				if (fragment_tolerance != -1 ) call.append(" -fragment_tolerance " + String(fragment_tolerance));
-				if (!ptm_command.empty()) call.append(" -PTMs " + ptm_command);
-				call.append(" -digest "+ getStringOption_("digest"));
-				call.append(" -num_solutions " + String(getIntOption_("num_solutions")));
-				if(tag_length!=-1)call.append(" -tag_length " + String(tag_length));
-				call.append(" -model_dir " + tmp_models_dir);
-				call.append(String(" > ") + temp_pepnovo_outfile);
+        arguments<<"-file" << inputfile_name.toQString();
+        arguments<<"-model" << model_name.toQString();
+        if (pm_tolerance != -1 ) arguments<<"-pm_tolerance"<<String(pm_tolerance).toQString();
+        if (fragment_tolerance != -1 ) arguments<<"-fragment_tolerance" <<String(fragment_tolerance).toQString();
+        if (!ptm_command.empty()) arguments<<"-PTMs" <<ptm_command.toQString();
+        arguments<<"-digest" << digest.toQString();
+        arguments<<"-num_solutions" << String(num_solutions).toQString();
+        if(tag_length!=-1)arguments<<"-tag_length" << String(tag_length).toQString();
+        arguments<<"-model_dir" << tmp_models_dir.toQString();
+        //arguments<<">" << temp_pepnovo_outfile.toQString();
 
 				writeLog_("Use this line to call PepNovo: ");
-				writeLog_(call);
-
-   			Int status = QProcess::execute(pepnovo_executable.toQString(), QStringList(call.toQString())); // does automatic escaping etc...
-				if (status == 0)
+        writeLog_(arguments.join(" "));
+        QProcess process;
+        process.setStandardOutputFile(temp_pepnovo_outfile.toQString());
+        process.setStandardErrorFile(temp_pepnovo_outfile.toQString());
+        process.start(pepnovo_executable.toQString(), arguments); // does automatic escaping etc...
+        if (process.waitForFinished(-1))
 				{
           //if PepNovo finished succesfully use PepNovoOutfile to parse the results and generate idxml
           std::vector< PeptideIdentification > peptide_identifications;
@@ -368,7 +348,8 @@ class TOPPPepNovoAdapter
           prot_ids.push_back(protein_identification);
           IdXMLFile().store(outputfile_name,prot_ids, peptide_identifications);
         }
-				//remove the temporary files
+
+        //remove the temporary files
 				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
         {
           if(qdir_temp.cd(*file_it))
@@ -386,12 +367,12 @@ class TOPPPepNovoAdapter
             qdir_temp.remove(*file_it);
           }
         }
-				qdir_temp.cdUp();
+        qdir_temp.cdUp();
 				qdir_temp.rmdir("Models");
 
-				if(status == 0)
+        if(process.exitStatus() == 0)
 				{
-				  qdir_temp.remove("tmp_pepnovo_out.txt");
+					qdir_temp.remove("tmp_pepnovo_out.txt");
 				  return EXECUTION_OK;
 				}
 				else

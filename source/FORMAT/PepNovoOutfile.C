@@ -46,7 +46,7 @@ namespace OpenMS
 	PepNovoOutfile::~PepNovoOutfile() {}
 
 	PepNovoOutfile& PepNovoOutfile::operator=(const PepNovoOutfile&)
-	{
+																					 {
 		return *this;
 	}
 
@@ -56,14 +56,14 @@ namespace OpenMS
 	}
 
 	void
-	PepNovoOutfile::load(
-		const string& result_filename,
-		vector< PeptideIdentification >&	peptide_identifications,
-		ProteinIdentification& protein_identification,
-		const DoubleReal& score_threshold,
-		const map< String, pair<DoubleReal, DoubleReal> >& pnovoid_to_rt_mz,
-		const map<String, String>& pnovo_modkey_to_mod_id
-		)
+			PepNovoOutfile::load(
+					const string& result_filename,
+					vector< PeptideIdentification >&	peptide_identifications,
+					ProteinIdentification& protein_identification,
+					const DoubleReal& score_threshold,
+					const map< String, pair<DoubleReal, DoubleReal> >& pnovoid_to_rt_mz,
+					const map<String, String>& pnovo_modkey_to_mod_id
+					)
 	{
 		// generally used variables
 		vector< String > substrings;
@@ -71,13 +71,13 @@ namespace OpenMS
 		PeptideHit peptide_hit;
 
 		String
-			line,
-			score_type,
-			version,
-			identifier,
-			filename,
-			sequence,
-			sequence_with_mods;
+				line,
+				score_type,
+				version,
+				identifier,
+				filename,
+				sequence,
+				sequence_with_mods;
 
 		DateTime datetime = DateTime::now(); // there's no date given from PepNovo
 		protein_identification.setDateTime(datetime);
@@ -116,13 +116,20 @@ namespace OpenMS
 		  //cout<<*mod_it<<endl;
 		  if(pnovo_modkey_to_mod_id.find(*mod_it)!=pnovo_modkey_to_mod_id.end())
 		  {
-		    //cout<<keys_to_id.find(*mod_it)->second<<endl;
-		    ResidueModification tmp_mod =ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
-		    mod_mask_map[*mod_it]=tmp_mod.getOrigin()+"("+tmp_mod.getId()+")";
+				//cout<<keys_to_id.find(*mod_it)->second<<endl;
+				ResidueModification tmp_mod =ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
+				if(mod_it->prefix(1)=="^" || mod_it->prefix(1)=="'$")
+				{
+					mod_mask_map[*mod_it]="("+tmp_mod.getId()+")";
+				}
+				else
+				{
+					mod_mask_map[*mod_it]=tmp_mod.getOrigin()+"("+tmp_mod.getId()+")";
+				}
 		  }
 		  else
 		  {
-        if(mod_it->prefix(1)!=String('^') && mod_it->prefix(1)!=String('$'))
+				if(mod_it->prefix(1)!="^" && mod_it->prefix(1)!="$")
         {
           mod_mask_map[*mod_it]=mod_it->prefix(1)+"["+mod_it->substr(1)+"]";
           //cout<<mod_mask_map[*mod_it]<<endl;
@@ -215,92 +222,99 @@ namespace OpenMS
 							peptide_hit.setMetaValue("C-Gap", substrings[columns["C-Gap"]].toFloat());
 							peptide_hit.setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
 							sequence = substrings[columns["Sequence"]];
+
+
 							for(map<String, String>::iterator mask_it=mod_mask_map.begin(); mask_it!=mod_mask_map.end(); ++mask_it)
 							{
-							  //cout<<mask_it->first<<" "<<mask_it->second<<endl;
-							  sequence.substitute(mask_it->first, mask_it->second);
+								if(mask_it->first.hasPrefix("^") && sequence.hasSubstring(mask_it->first))
+								{
+									sequence.substitute(mask_it->first, "");
+									sequence=mask_it->second+sequence;
+								}
+								//cout<<mask_it->first<<" "<<mask_it->second<<endl;
+								sequence.substitute(mask_it->first, mask_it->second);
 							}
 							peptide_hit.setSequence(sequence);
 							peptide_identification.insertHit(peptide_hit);
 						}
 					}
-				}
-			}
-		}
-		if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
-		
-		result_file.close();
-		result_file.clear();
-	}
-
-	void
-	PepNovoOutfile::getSearchEngineAndVersion(
-		const String& pepnovo_output_without_parameters_filename,
-		ProteinIdentification& protein_identification)
-	{
-		ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
-		if (!pepnovo_output_without_parameters)
-		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, pepnovo_output_without_parameters_filename);
-		}
-
-		ProteinIdentification::SearchParameters search_param;
-		// searching for something like this: PepNovo v1.03
-		String line;
-		vector< String > substrings;
-		while (getline(pepnovo_output_without_parameters, line))
-		{
-			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
-			line.trim();
-			if ( line.empty() ) continue;
-			if (line.hasPrefix("PepNovo"))
-			{
-			  line.split(',', substrings);
-			  if(substrings.size()==2)//previous version of PepNovo
-			  {
-			    protein_identification.setSearchEngine(substrings[0].trim());
-			    protein_identification.setSearchEngineVersion(substrings[1].trim());//else something is strange and we use defaults later
-			  }
-			  else
-			  {
-			    line.split(' ', substrings);
-			    if(substrings.size()==3)
-			    {
-			      protein_identification.setSearchEngine(substrings[0].trim());
-			      protein_identification.setSearchEngineVersion(substrings[2].trim());//else something is strange and we use defaults later
-			    }
-			  }
-			}
-			if (line.hasPrefix("PM"))
-      {
-			  line.split(' ', substrings);
-        search_param.precursor_tolerance=substrings.back().toFloat();
+        }
       }
-			if (line.hasPrefix("Fragment"))
+    }  
+    if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
+
+    result_file.close();
+    result_file.clear();
+}
+
+void
+    PepNovoOutfile::getSearchEngineAndVersion(
+        const String& pepnovo_output_without_parameters_filename,
+        ProteinIdentification& protein_identification)
+{
+  ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
+  if (!pepnovo_output_without_parameters)
+  {
+    throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, pepnovo_output_without_parameters_filename);
+  }
+
+  ProteinIdentification::SearchParameters search_param;
+  // searching for something like this: PepNovo v1.03
+  String line;
+  vector< String > substrings;
+  while (getline(pepnovo_output_without_parameters, line))
+  {
+    if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
+    line.trim();
+    if ( line.empty() ) continue;
+    if (line.hasPrefix("PepNovo"))
+    {
+      line.split(',', substrings);
+      if(substrings.size()==2)//previous version of PepNovo
+      {
+        protein_identification.setSearchEngine(substrings[0].trim());
+        protein_identification.setSearchEngineVersion(substrings[1].trim());//else something is strange and we use defaults later
+      }
+      else
       {
         line.split(' ', substrings);
-        search_param.peak_mass_tolerance=substrings.back().toFloat();
-      }
-			if (line.hasPrefix("PTM"))
-      {
-        line.split(':', substrings);
-        substrings.erase(substrings.begin());
-        for(vector<String>::iterator ptm_it=substrings.begin(); ptm_it!=substrings.end();++ptm_it)
+        if(substrings.size()==3)
         {
-          ptm_it->trim();
+          protein_identification.setSearchEngine(substrings[0].trim());
+          protein_identification.setSearchEngineVersion(substrings[2].trim());//else something is strange and we use defaults later
         }
-        if(!substrings.empty() && substrings[0]!="None")
-		{
-		search_param.variable_modifications=substrings;
-		}
       }
-			if(line.hasPrefix(">>"))
-			{
-			  break;
-			}
-		}
-		protein_identification.setSearchParameters(search_param);
+    }
+    if (line.hasPrefix("PM"))
+    {
+      line.split(' ', substrings);
+      search_param.precursor_tolerance=substrings.back().toFloat();
+    }
+    if (line.hasPrefix("Fragment"))
+    {
+      line.split(' ', substrings);
+      search_param.peak_mass_tolerance=substrings.back().toFloat();
+    }
+    if (line.hasPrefix("PTM"))
+    {
+      line.split(':', substrings);
+      substrings.erase(substrings.begin());
+      for(vector<String>::iterator ptm_it=substrings.begin(); ptm_it!=substrings.end();++ptm_it)
+      {
+        ptm_it->trim();
+      }
+      if(!substrings.empty() && substrings[0]!="None")
+      {
+        search_param.variable_modifications=substrings;
+      }
+    }
+    if(line.hasPrefix(">>"))
+    {
+      break;
+    }
   }
+  protein_identification.setSearchParameters(search_param);
+}
 
 
 
