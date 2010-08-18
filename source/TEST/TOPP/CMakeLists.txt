@@ -224,6 +224,7 @@ add_test("TOPP_IDFilter_7" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilt
 add_test("TOPP_IDFilter_7_out1" ${DIFF} -in1 IDFilter_7_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_7_output.idXML)
 
 ### MapAligner tests
+# "pose_clustering_affine" algorithm:
 add_test("TOPP_MapAligner_1" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_1_input1.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input2.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input3.featureXML)
 add_test("TOPP_MapAligner_1_out1" ${DIFF} -in1 MapAligner_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output1.featureXML)
 add_test("TOPP_MapAligner_1_out2" ${DIFF} -in1 MapAligner_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output2.featureXML)
@@ -235,15 +236,18 @@ add_test("TOPP_MapAligner_2" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_T
 add_test("TOPP_MapAligner_2_out1" ${DIFF} -in1 MapAligner_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output1.mzML)
 add_test("TOPP_MapAligner_2_out2" ${DIFF} -in1 MapAligner_2_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output2.mzML)
 add_test("TOPP_MapAligner_2_out3" ${DIFF} -in1 MapAligner_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output3.mzML)
+# "spectrum_alignment" algorithm:
 add_test("TOPP_MapAligner_3" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_3_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_3_input1.mzML ${DATA_DIR_TOPP}/MapAligner_3_input2.mzML ${DATA_DIR_TOPP}/MapAligner_3_input3.mzML)
 add_test("TOPP_MapAligner_3_out1" ${DIFF} -in1 MapAligner_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output1.mzML)
 add_test("TOPP_MapAligner_3_out2" ${DIFF} -in1 MapAligner_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output2.mzML)
 add_test("TOPP_MapAligner_3_out3" ${DIFF} -in1 MapAligner_3_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output3.mzML)
+# "apply_given_trafo" algorithm:
 add_test("TOPP_MapAligner_4" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML -given_transformations ${DATA_DIR_TOPP}/MapAligner_4_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAligner_4_trafo2.trafoXML -out MapAligner_4_output1.tmp MapAligner_4_output2.tmp)
 add_test("TOPP_MapAligner_4_out1" ${DIFF} -in1 MapAligner_4_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output1.featureXML)
 add_test("TOPP_MapAligner_4_out2" ${DIFF} -in1 MapAligner_4_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output2.featureXML)
 add_test("TOPP_MapAligner_5" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_5_input.mzML -given_transformations ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
 add_test("TOPP_MapAligner_5_out1" ${DIFF} -in1 MapAligner_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_5_output.mzML)
+# "pose_clustering_affine" algorithm with "symmetric_regression" option:
 add_test("TOPP_MapAligner_6" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_6_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_6_input1.featureXML ${DATA_DIR_TOPP}/MapAligner_6_input2.featureXML -out MapAligner_6_output1.tmp MapAligner_6_output2.tmp -transformations MapAligner_6_trafo1.tmp MapAligner_6_trafo2.tmp)
 add_test("TOPP_MapAligner_6_out1" ${DIFF} -in1 MapAligner_6_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_6_trafo1.trafoXML)
 add_test("TOPP_MapAligner_6_out2" ${DIFF} -in1 MapAligner_6_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_6_trafo2.trafoXML)
@@ -261,6 +265,10 @@ add_test("TOPP_MapAligner_9_out2" ${DIFF} -in1 MapAligner_9_output2.tmp -in2 ${D
 add_test("TOPP_MapAligner_10" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_7_input1.featureXML ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out MapAligner_10_output1.tmp MapAligner_10_output2.tmp -reference:index 2)
 add_test("TOPP_MapAligner_10_out1" ${DIFF} -in1 MapAligner_10_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_8_output1.featureXML)
 add_test("TOPP_MapAligner_10_out2" ${DIFF} -in1 MapAligner_10_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_9_output1.featureXML)
+# "pose_clustering_affine" algorithm with "reference:file" option:
+add_test("TOPP_MapAligner_11" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_1_input2.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input3.featureXML -out MapAligner_11_output1.tmp MapAligner_11_output2.tmp -transformations -reference:file ${DATA_DIR_TOPP}/MapAligner_1_input1.featureXML)
+add_test("TOPP_MapAligner_11_out1" ${DIFF} -in1 MapAligner_11_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output2.featureXML)
+add_test("TOPP_MapAligner_11_out2" ${DIFF} -in1 MapAligner_11_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output3.featureXML)
 
 ### MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)
