@@ -47,10 +47,10 @@ using namespace OpenMS;
 	
 	@brief Trainer for probabilistic network as input for AdvancedSpectrumGenerator.
 	
-  This application requires a list of annotated spectra and generates a bayesian network
+	This application requires a list of annotated spectra and generates a Bayesian network
   with tree structure. For each pair of ion types (i.e. a,b,c,x,y,z + losses) the mutual
   information is computed. Finally the application computes a spanning tree that maximizes
-  the total mutual information content. In the resulting bayesian network the probability
+  the total mutual information content. In the resulting Bayesian network the probability
   for each ion type to occur with a certain intensity depends only on his parent ion type
   in the tree.
 	
@@ -79,7 +79,7 @@ using namespace OpenMS;
 
     public:
       SpectrumGeneratorNetworkTrainer() :
-        TOPPBase("SpectrumGeneratorNetworkTrainer", "Trainer for Probabilistic network as input for AdvancedSpectrumGenerator", false)
+        TOPPBase("SpectrumGeneratorNetworkTrainer", "Trainer for probabilistic network as input for AdvancedSpectrumGenerator", false)
       {
       }
 
@@ -87,7 +87,7 @@ using namespace OpenMS;
       void registerOptionsAndFlags_()
       {
         // I/O settings
-        registerInputFile_("in_spectra", "<file>", "", "Input Training Spectra in mzData", true);
+        registerInputFile_("in_spectra", "<file>", "", "Input training spectra in mzData", true);
         registerInputFile_("in_identifications", "<file>", "", "Input file with corresponding sequences in IdXML", "", true);
         registerOutputFile_("out_network_model", "<file>", "", "Output model of probabilistic network as textfile", true);
 
