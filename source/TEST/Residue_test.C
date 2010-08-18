@@ -708,7 +708,7 @@ START_SECTION(DoubleReal getPkc() const)
 END_SECTION
 
 START_SECTION(DoubleReal getPiValue() const)
-	TEST_REAL_SIMILAR(e_ptr->getPiValue(), 4837.25)
+	TEST_REAL_SIMILAR(db->getResidue("A")->getPiValue(), 6.11)
 END_SECTION
 
 START_SECTION(void setSideChainBasicity(DoubleReal gb_sc))
