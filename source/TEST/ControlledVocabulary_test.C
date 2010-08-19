@@ -169,6 +169,110 @@ START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& pare
 	TEST_EQUAL(terms.find("OpenMS:5") == terms.end(), false)
 END_SECTION
 
+
+ControlledVocabulary::CVTerm * cvterm;
+
+START_SECTION(([ControlledVocabulary::CVTerm] CVTerm()))
+{
+  cvterm = new ControlledVocabulary::CVTerm();
+  TEST_NOT_EQUAL(cvterm, 0)
+}
+END_SECTION
+
+
+START_SECTION(([ControlledVocabulary::CVTerm] static String getXRefTypeName(XRefType type)))
+{  
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_STRING), "xsd:string")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_INTEGER), "xsd:integer")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DECIMAL), "xsd:decimal")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER), "xsd:negativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER), "xsd:positiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER), "xsd:nonNegativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER), "xsd:nonPositiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_BOOLEAN), "xsd:boolean")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DATE), "xsd:date")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_ANYURI), "xsd:anyURI")
+}
+END_SECTION
+
+START_SECTION(([ControlledVocabulary::CVTerm] CVTerm(const CVTerm &rhs)))
+{  
+  ControlledVocabulary::CVTerm a;
+
+  a.name = "test_cvterm";
+  a.id = "test_id";
+  a.parents.insert("test_parent");
+  a.children.insert("test_children");
+  a.obsolete = true;
+  a.description = "test_description";
+  a.synonyms = StringList::create("test,synonyms");
+  a.unparsed = StringList::create("test,unparsed");
+  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_binary = StringList::create("test,xref_binary");
+  a.units.insert("units");
+
+  ControlledVocabulary::CVTerm b(a);
+
+  TEST_STRING_EQUAL(b.name,a.name)
+  TEST_STRING_EQUAL(b.id,a.id)
+  TEST_EQUAL(b.parents == a.parents, true)
+  TEST_EQUAL(b.children == a.children, true)
+  TEST_EQUAL(b.obsolete, a.obsolete)
+  TEST_STRING_EQUAL(b.description,a.description)
+  TEST_EQUAL(b.synonyms, a.synonyms)
+  TEST_EQUAL(b.unparsed, a.unparsed)
+  TEST_EQUAL(b.xref_type == a.xref_type, true)
+  TEST_EQUAL(b.xref_binary, a.xref_binary)
+  TEST_EQUAL(b.units == a.units, true)
+}
+END_SECTION
+
+START_SECTION(([ControlledVocabulary::CVTerm] CVTerm& operator=(const CVTerm &rhs)))
+{
+  ControlledVocabulary::CVTerm a,b;
+
+  a.name = "test_cvterm";
+  a.id = "test_id";
+  a.parents.insert("test_parent");
+  a.children.insert("test_children");
+  a.obsolete = true;
+  a.description = "test_description";
+  a.synonyms = StringList::create("test,synonyms");
+  a.unparsed = StringList::create("test,unparsed");
+  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_binary = StringList::create("test,xref_binary");
+  a.units.insert("units");
+
+  b = a;
+
+  TEST_STRING_EQUAL(b.name,a.name)
+  TEST_STRING_EQUAL(b.id,a.id)
+  TEST_EQUAL(b.parents == a.parents, true)
+  TEST_EQUAL(b.children == a.children, true)
+  TEST_EQUAL(b.obsolete, a.obsolete)
+  TEST_STRING_EQUAL(b.description,a.description)
+  TEST_EQUAL(b.synonyms, a.synonyms)
+  TEST_EQUAL(b.unparsed, a.unparsed)
+  TEST_EQUAL(b.xref_type == a.xref_type, true)
+  TEST_EQUAL(b.xref_binary, a.xref_binary)
+  TEST_EQUAL(b.units == a.units, true)
+
+  a = a;
+
+  TEST_STRING_EQUAL(a.name,a.name)
+  TEST_STRING_EQUAL(a.id,a.id)
+  TEST_EQUAL(a.parents == a.parents, true)
+  TEST_EQUAL(a.children == a.children, true)
+  TEST_EQUAL(a.obsolete, a.obsolete)
+  TEST_STRING_EQUAL(a.description,a.description)
+  TEST_EQUAL(a.synonyms, a.synonyms)
+  TEST_EQUAL(a.unparsed, a.unparsed)
+  TEST_EQUAL(a.xref_type == a.xref_type, true)
+  TEST_EQUAL(a.xref_binary, a.xref_binary)
+  TEST_EQUAL(a.units == a.units, true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
