@@ -41,11 +41,18 @@ START_TEST(ClusterFunctor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((ClusterFunctor()))
+START_SECTION(ClusterFunctor())
 {
   NOT_TESTABLE
 }
 END_SECTION
+
+START_SECTION(~ClusterFunctor())
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
 
 START_SECTION((ClusterFunctor(const ClusterFunctor &source)))
 {

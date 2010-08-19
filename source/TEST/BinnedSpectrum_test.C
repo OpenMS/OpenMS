@@ -220,6 +220,17 @@ START_SECTION((bool checkCompliance(const BinnedSpectrum &bs) const ))
 }
 END_SECTION
 
+START_SECTION(([BinnedSpectrum::NoSpectrumIntegrated] NoSpectrumIntegrated(const char *file, int line, const char *function, const char *message="BinnedSpectrum hasn't got a PeakSpectrum to base on yet")))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(([BinnedSpectrum::NoSpectrumIntegrated] virtual ~NoSpectrumIntegrated()))
+{
+  NOT_TESTABLE
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

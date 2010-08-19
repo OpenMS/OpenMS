@@ -94,6 +94,18 @@ START_SECTION((static const String getProductName()))
 }
 END_SECTION
 
+START_SECTION(([BinnedSpectrumCompareFunctor::IncompatibleBinning] IncompatibleBinning(const char *file, int line, const char *function, const char *message="compared spectra have different settings in binsize and/or binspread")))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(([BinnedSpectrumCompareFunctor::IncompatibleBinning] virtual ~IncompatibleBinning()))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
