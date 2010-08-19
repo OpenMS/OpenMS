@@ -41,7 +41,13 @@ using namespace std;
 /**
 	@page TOPP_ProteinInference ProteinInference
 
-	@brief Computes a protein identification based on the FDRs of peptides.
+	@brief Computes a protein identification based on the number of identified peptides.
+
+  Computes a protein identification based on the number of identified peptides.
+  The peptide list should be prefiltered using the FalseDiscoveryRate + IDFilter tools, to 
+  remove bad identifications.
+
+	@note This tool is experimental!
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ProteinInference.cli
@@ -55,7 +61,7 @@ class TOPPProteinInference
 {
 	public:
 		TOPPProteinInference()
-			: TOPPBase("ProteinInference","Protein inference based on FDRs of peptides.")
+			: TOPPBase("ProteinInference","Protein inference based on the number of identified peptides.")
 		{
 		}
 
