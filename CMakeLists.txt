@@ -129,12 +129,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	message(STATUS "Setting CMAKE_OSX_DEPLOYMENT_TARGET to 10.5")
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE INTERNAL "Set OS X Deployment Target to 10.5 to build packages compatible to leopard" FORCE )
-  # some additional cxx flags, necessary to build with cmake 2.8.1
-  set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isysroot /Developer/SDKs/MacOSX10.5.sdk")
-  set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -isysroot /Developer/SDKs/MacOSX10.5.sdk")
-  set ( CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} -isysroot /Developer/SDKs/MacOSX10.5.sdk")
-
-  # due to some awkward updates of cmake in the 2.8.x series we need to add the following
+  # force 10.5 SDK 
+  set (CMAKE_OSX_SYSROOT "/Developer/SDKs/MacOSX10.5.sdk") 
+	# due to some awkward updates of cmake in the 2.8.x series we need to add the following
   find_library(CARBON NAMES Carbon)
   find_package(OpenGL)
   set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
