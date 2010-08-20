@@ -1649,8 +1649,8 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::contextMenuEvent(QContextMenuEvent* e)
 	{
-		//Abort of there are no layers
-		if (layers_.empty()) return;
+                //Abort if there are no layers
+                if (layers_.empty()) return;
 
 		DoubleReal rt = widgetToData_(e->pos())[1];
 
