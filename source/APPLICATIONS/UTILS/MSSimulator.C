@@ -100,6 +100,7 @@ class TOPPMSSimulator
       registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",true);
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
+      registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)",false);
 
       registerStringOption_("type","<name>","","Labeling type\n",true);
       setValidStrings_("type", getUtilList()[toolName_()] );
@@ -248,10 +249,17 @@ class TOPPMSSimulator
       String cxml_out = getStringOption_("out_cm");
 			if (cxml_out != "" && File::writable(cxml_out))
 			{
-				writeLog_(String("Storing simulated consensus features in: ") + cxml_out);
-				ConsensusXMLFile().store(cxml_out, ms_simulation.getSimulatedConsensus());
+        writeLog_(String("Storing charged consensus features in: ") + cxml_out);
+        ConsensusXMLFile().store(cxml_out, ms_simulation.getChargeConsensus());
 			}
       
+      String lcxml_out = getStringOption_("out_lcm");
+      if(lcxml_out != "" && File::writable(lcxml_out))
+      {
+        writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
+        ConsensusXMLFile().store(lcxml_out, ms_simulation.getLabelingConsensus());
+      }
+
       // free random number generator
       gsl_rng_free(rnd_gen_);
       

@@ -144,13 +144,13 @@ namespace OpenMS {
         7. generate MS2 signals for selected features
      */
 
-    BaseLabeler* labeler = Factory<BaseLabeler>::create(labeling_name);
+    laberler_ = Factory<BaseLabeler>::create(labeling_name);
     Param labeling_parameters = param_.copy("Labeling:",true);
-    labeler->setParameters(labeling_parameters);
-    labeler->setRnd(rnd_gen);
+    laberler_->setParameters(labeling_parameters);
+    laberler_->setRnd(rnd_gen);
 
     // check parameters ..
-    labeler->preCheck(param_);
+    laberler_->preCheck(param_);
 
 		// re-distribute synced parameters:
 		syncParams_(param_, false);
@@ -165,7 +165,7 @@ namespace OpenMS {
     }
 
     // Call setUpHook
-    labeler->setUpHook(feature_maps_);
+    laberler_->setUpHook(feature_maps_);
 
 		// digest
     DigestSimulation digest_sim;
@@ -176,7 +176,7 @@ namespace OpenMS {
     }
 
     // post digest labeling
-    labeler->postDigestHook(feature_maps_);
+    laberler_->postDigestHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "digested");
@@ -191,7 +191,7 @@ namespace OpenMS {
     rt_sim.createExperiment(experiment_);
 
     // post rt sim labeling
-    labeler->postRTHook(feature_maps_);
+    laberler_->postRTHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "RT sim done");
@@ -205,7 +205,7 @@ namespace OpenMS {
     }
 
     // post detectability labeling
-    labeler->postDetectabilityHook(feature_maps_);
+    laberler_->postDetectabilityHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "DT sim done");
@@ -216,7 +216,7 @@ namespace OpenMS {
     ion_sim.ionize(feature_maps_.front(), consensus_map_, experiment_);
 
     // post ionization labeling
-    labeler->postIonizationHook(feature_maps_);
+    laberler_->postIonizationHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "ION sim done");
@@ -226,7 +226,7 @@ namespace OpenMS {
     raw_sim.generateRawSignals(feature_maps_.front(), experiment_);
 
     // post raw sim labeling
-    labeler->postRawMSHook(feature_maps_);
+    laberler_->postRawMSHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "RawSignal sim done");
@@ -235,7 +235,7 @@ namespace OpenMS {
     raw_tandemsim.setParameters(param_.copy("RawTandemSignal:", true));
     raw_tandemsim.generateRawTandemSignals(feature_maps_.front(), experiment_);
 
-    labeler->postRawTandemMSHook(feature_maps_,experiment_);
+    laberler_->postRawTandemMSHook(feature_maps_,experiment_);
 
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
 
@@ -321,11 +321,15 @@ namespace OpenMS {
     return feature_maps_[0];
   }
 
-  ConsensusMap const & MSSim::getSimulatedConsensus() const
+  ConsensusMap const & MSSim::getChargeConsensus() const
   {
 		return consensus_map_;
   }
   
+  ConsensusMap const & MSSim::getLabelingConsensus() const
+  {
+    return laberler_->getConsensus();
+  }
  
 
 }

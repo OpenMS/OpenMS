@@ -31,6 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
 namespace OpenMS
 {
@@ -87,9 +88,12 @@ namespace OpenMS
     FeatureMapSim const & getSimulatedFeatures() const;
 
 		/// Access the charge consensus map of simulated features
-		ConsensusMap const & getSimulatedConsensus() const;
+    ConsensusMap const & getChargeConsensus() const;
 		
-    /// Returns the default parameters for the labeling technique with name @p labeling_name
+    /// Access the labeling consensus map of simulated features
+    ConsensusMap const & getLabelingConsensus() const;
+
+    /// Returns the default parameters for simulation including the labeling technique with name @p labeling_name
     Param getParameters(const String& labeling_name) const;
   protected:
 		/// handle global params
@@ -107,6 +111,9 @@ namespace OpenMS
     FeatureMapSimVector feature_maps_;
 
 		ConsensusMap consensus_map_;
+
+    /// Labeling functionality
+    BaseLabeler * laberler_;
   };
 
 }
