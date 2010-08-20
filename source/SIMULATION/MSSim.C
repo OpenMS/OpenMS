@@ -94,7 +94,8 @@ namespace OpenMS {
     : DefaultParamHandler("MSSim"),
 			experiment_(),
       feature_maps_(),
-			consensus_map_()
+      consensus_map_(),
+      laberler_(0)
   {
 		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
@@ -112,7 +113,9 @@ namespace OpenMS {
   }
 
   MSSim::~MSSim()
-  {}
+  {
+    delete laberler_;
+  }
 
   Param MSSim::getParameters(const String &labeling_name) const
   {
