@@ -138,6 +138,7 @@ protected:
         if(!incl_charges.empty())
         {
           writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input.");
+					return ILLEGAL_PARAMETERS;
         }        
 
         // convert to targeted experiment
@@ -198,7 +199,7 @@ protected:
         if(!excl_charges.empty())
         {
           writeLog_("Warning: 'exclusion_charges' parameter is not honored for featureXML input.");
-          return MISSING_PARAMETERS;
+          return ILLEGAL_PARAMETERS;
         }
 
         // load feature map
@@ -257,7 +258,7 @@ protected:
         }
         std::vector<FASTAFile::FASTAEntry> entries;
         // load fasta-file
-        FASTAFile().load(include,entries);
+        FASTAFile().load(exclude,entries);
         // convert to targeted experiment for traML output
 				//            list.loadTargets(entries,excl_targets,exp,missed_cleavages);
 				// else for tab-delimited output

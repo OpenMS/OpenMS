@@ -523,6 +523,19 @@ add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ProteinQuantifier_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ProteinQuantifier_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file")
 
+### InclusionExclusionListCreator tests
+add_test("TOPP_InclusionExclusionListCreator_1" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_1_output.tmp)
+add_test("TOPP_InclusionExclusionListCreator_1_out1" ${DIFF} -in1 InclusionExclusionListCreator_1_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_1_output.txt )
+add_test("TOPP_InclusionExclusionListCreator_2" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_2_output.tmp -rel_rt_window_size 0.5)
+add_test("TOPP_InclusionExclusionListCreator_2_out1" ${DIFF} -in1 InclusionExclusionListCreator_2_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_2_output.txt)
+add_test("TOPP_InclusionExclusionListCreator_3" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.fasta -out InclusionExclusionListCreator_3_output.tmp -inclusion_charges 1 2 -rt_model InclusionExclusionListCreator_rt.model)
+add_test("TOPP_InclusionExclusionListCreator_3_out1" ${DIFF} -in1 InclusionExclusionListCreator_3_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_3_output.txt)
+add_test("TOPP_InclusionExclusionListCreator_4" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.fasta -out InclusionExclusionListCreator_4_output.tmp -exclusion_charges 1 2 -rt_model InclusionExclusionListCreator_rt.model -missed_cleavages 1 -rt_in_seconds)
+add_test("TOPP_InclusionExclusionListCreator_4_out1" ${DIFF} -in1 InclusionExclusionListCreator_4_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_4_output.txt)
+add_test("TOPP_InclusionExclusionListCreator_5" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.IdXML -out InclusionExclusionListCreator_5_output.tmp -exclusion_charges 1 2 -rt_model InclusionExclusionListCreator_rt.model)
+add_test("TOPP_InclusionExclusionListCreator_5_out1" ${DIFF} -in1 InclusionExclusionListCreator_5_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_5_output.txt)
+
+
 
 ### UTILS tests (if this becomes too much, we should create a separate directory)
 add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.png -width 20 -height 15)
