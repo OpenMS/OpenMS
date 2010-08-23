@@ -146,6 +146,7 @@ class TOPPCompNovo
 				// set the options
 				comp_novo_id.setParameters(type_param);
 				comp_novo_id.getIdentifications(pep_ids, exp);
+				type_param=comp_novo_id.getParameters();
 			}
 			else
 			{
@@ -154,6 +155,7 @@ class TOPPCompNovo
 					CompNovoIdentificationCID comp_novo_id;
 					comp_novo_id.setParameters(type_param);
 					comp_novo_id.getIdentifications(pep_ids, exp);
+					type_param=comp_novo_id.getParameters();
 				}
 			}
 
