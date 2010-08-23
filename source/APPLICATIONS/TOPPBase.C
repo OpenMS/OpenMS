@@ -1470,9 +1470,7 @@ namespace OpenMS
 	{
 		if (debug_level_>=(Int)min_level)
 		{
-			cout << text << endl;
-			enableLogging_();
-			log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text<< endl;
+			writeLog_(text);
 		}
 	}
 
@@ -1724,20 +1722,11 @@ namespace OpenMS
 			if(param_cmdline_.exists("log")) log_destination = param_cmdline_.getValue("log");
 			if ( log_destination!="" )
 			{
-				log_.open("TOPP.log", ofstream::out | ofstream::app);
-				if (debug_level_>=1)
-				{
-					cout << "Writing to 'TOPP.log'" << endl;
-					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to 'TOPP.log'"<< endl;
-				}
-			}
-			else
-			{
 				log_.open( log_destination.c_str(), ofstream::out | ofstream::app);
 				if (debug_level_>=1)
 				{
-					cout << "Writing to '" << log_destination << '\'' << endl;
-					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  endl;
+					cout << "Writing to '" << log_destination << '\'' << "\n";
+					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
 				}
 			}
 		}
