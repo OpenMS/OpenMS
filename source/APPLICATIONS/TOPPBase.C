@@ -86,9 +86,8 @@ namespace OpenMS
 
 	TOPPBase::~TOPPBase()
   {
-  	//delete TOPP.log and custom log file if they are empty
+  	//delete log file if empty
   	StringList log_files;
-  	log_files << "TOPP.log";
   	if (!getParam_("log").isEmpty()) log_files << (String)(getParam_("log"));
 		for (Size i=0; i< log_files.size(); ++i)
 		{
@@ -161,7 +160,7 @@ namespace OpenMS
     if (getToolList().has(tool_name_)) addText_("Common TOPP options:");
     else addText_("Common UTIL options:");
 		registerStringOption_("ini","<file>","","Use the given TOPP INI file",false);
-		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false,true);
+		registerStringOption_("log","<file>","","Name of log file (created only when specified)",false,true);
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false,true);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
