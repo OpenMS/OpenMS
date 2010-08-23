@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -46,10 +46,23 @@ using namespace std;
 	@brief Allows to add up several spectra.
 
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraMerger \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+		</tr>
+	</table>
+</CENTER>
 
   This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above)<br>
   or<br>
-  merge scans which stem from similar precursors (for MS2 and above).
+  merge scans which stem from similar precursors (for MS2 and above) (the latter is <b>currently disabled</b>).
 
   In any case, the number of scans will be reduced.
 

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch, Chris Bielow $
+// $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -45,8 +45,26 @@ using namespace std;
 	@page TOPP_FileConverter FileConverter
 
 	@brief Converts between different MS file formats.
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FileConverter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_GenericWrapper (e.g. for calling external converters) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on the output format</td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzXML) </td>
+		</tr>
+	</table>
+</CENTER>
 
-	This converter tries to determine the file type from the file extension or from the first few lines
+  Convert between MS file formats. This tool can used to convert a dataset, so it can be used as input to other TOPP tools
+  , as these usually only support mzML (for traceability).
+	The input and output file type are determined from the file extension, or from the first few lines
 	of the file. If file type determination is not possible, you have to give the input or output file type explicitly.
 
 	During some conversion operations information is lost, e.g. when converting featureXML to mzData.

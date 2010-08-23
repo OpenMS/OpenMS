@@ -44,6 +44,19 @@ using namespace std;
    @page TOPP_Decharger Decharger
 
    @brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Decharger \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinQuantifier</td>
+		</tr>
+	</table>
+</CENTER>
 
    The Decharger uses an ILP approach to group charge variants of the same peptide, which
    usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,

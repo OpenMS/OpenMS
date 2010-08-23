@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch, Chris Bielow $
+// $Maintainer: Clemens Groepl, Chris Bielow $
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow, Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -54,6 +54,19 @@ using namespace std;
 
  @brief This application converts several %OpenMS XML formats
  (namely featureXML, consensusXML and idXML) to text files.
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ TextExporter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any TOPP tool producing (featureXML, consensusXML and idXML, e.g. @ref TOPP_ProteinInference) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools (MS Excel, OpenOffice, Notepad)</td>
+		</tr>
+	</table>
+</CENTER>
 
  The primary goal of this tool is to create a readable format
  for Excel and OpenOffice.

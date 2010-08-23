@@ -46,12 +46,26 @@ using namespace std;
 	@brief Extracts and normalizes iTRAQ information from an MS experiment.
 	
 	@experimental This tool has not been tested thoroughly and might behave not as expected!
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ ITRAQAnalyzer \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper</td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+		</tr>
+	</table>
+</CENTER>
 
 	Provide an idXML file that you obtained from the same data (e.g. by using InspectAdapter) 
 	to have protein ratios reported, instead of peptide ratios.
 	
-	@warning This tool is still in experimental status.
-
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ITRAQAnalyzer.cli
 */

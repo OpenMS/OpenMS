@@ -75,8 +75,8 @@ using namespace std;
 	@verbinclude TOPP_PeakPicker.cli
 
 	For the parameters of the algorithm section see the algorithms documentation: @n
-		@ref OpenMS::PeakPickerCWT "wavelet" - see parameters documentation ibidem @n
-		@ref OpenMS::PeakPickerHiRes "high_res" - @htmlinclude OpenMS_PeakPickerHiRes.parameters
+		@ref OpenMS::PeakPickerCWT "wavelet" @n
+		@ref OpenMS::PeakPickerHiRes "high_res" @n
 
 	In the following table you, can find example values of the most important algorithm parameters for
 	different instrument types. @n These parameters are not valid for all instruments of that type,
@@ -93,7 +93,7 @@ using namespace std;
 			<td>0</td>
 		</tr>
 		<tr>
-		<td BGCOLOR="#EBEBEB"><b>peak_width</b></td>
+		<td BGCOLOR="#EBEBEB"><b>peak_width ("wavelet" only)</b></td>
 			<td>0.1</td>
 			<td>0.012</td>
 		</tr>
