@@ -32,7 +32,7 @@
 
 using namespace std;
 //#define PIS_DEBUG
-#undef PIS_DEBUG
+//#undef PIS_DEBUG
 namespace OpenMS
 {
 	PrecursorIonSelection::PrecursorIonSelection()
@@ -498,8 +498,8 @@ namespace OpenMS
 		// TODO: wirklich mit deltas? oder lieber ueber convex hulls? Anm v. Chris: IDMapper benutzt CH's + Deltas wenn CH vorhanden sind
 		IDMapper mapper;
 		Param p = mapper.getParameters();
-		p.setValue("rt_delta", 0.2);
-		p.setValue("mz_delta", 0.05);
+		p.setValue("rt_tolerance", 0.2);
+		p.setValue("mz_tolerance", 0.05);
 		p.setValue("mz_measure","Da");
 		mapper.setParameters(p);
 		mapper.annotate(features,filtered_pep_ids,prot_ids,true);
