@@ -40,6 +40,7 @@ int main (int , char** )
 	map<String,StringList> topp_tools = TOPPBase::getToolList();
 	topp_tools["TOPPView"] = StringList();
 	topp_tools["TOPPAS"] = StringList();
+  bool errors_occured = false;
 	for (map<String,StringList>::const_iterator it=topp_tools.begin(); it!=topp_tools.end(); ++it)
 	{
 		//start process
@@ -47,11 +48,23 @@ int main (int , char** )
 		process.setProcessChannelMode(QProcess::MergedChannels);
 		process.start((it->first + " --help").toQString());
 		process.waitForFinished();
-		//write output
-		ofstream f((String("output/TOPP_") + it->first + ".cli").c_str());
-		f << QString(process.readAllStandardOutput()).toStdString();
+
+    ofstream f((String("output/TOPP_") + it->first + ".cli").c_str());
+    if(process.error() != QProcess::UnknownError)
+    {
+      // error while generation cli docu
+      f << "Errors occured while generating the command line documentation for " << it->first << "!" << endl;
+      f << "Please check your PATH variable if it contains the path to the " << it->first << " executable." << endl;
+      errors_occured |= true;
+    }
+    else
+    {
+      // write output
+      f << QString(process.readAllStandardOutput()).toStdString();
+    }
+    f.close();
 	}
-	
+
 	//UTILS
 	map<String,StringList> util_tools = TOPPBase::getUtilList();
 	for (map<String,StringList>::const_iterator it=util_tools.begin(); it!=util_tools.end(); ++it)
@@ -63,9 +76,32 @@ int main (int , char** )
 		process.waitForFinished();
 		//write output
 		ofstream f((String("output/UTILS_") + it->first + ".cli").c_str());
-		f << QString(process.readAllStandardOutput()).toStdString();
-	}
-	
-  return 0;
+    if(process.error() != QProcess::UnknownError)
+    {
+      // error while generation cli docu
+      f << "Errors occured while generating the command line documentation for " << it->first << endl;
+      f << "Please check your PATH variable if it contains the path to the " << it->first << " executable." << endl;
+      errors_occured |= true;
+    }
+    else
+    {
+      // write output
+      f << QString(process.readAllStandardOutput()).toStdString();
+    }
+    f.close();
+  }
+
+
+  if(errors_occured)
+  {
+    // errors occured while generating the TOPP CLI docu .. tell the user
+    cerr << "Errors occured while generating the command line documentation for some of the " << endl;
+    cerr << "TOPP tools/UTILS. Please check your PATH variable if it contains the TOPP tool directory." << endl;
+    return EXIT_SUCCESS;
+  }
+  else
+  {
+    return EXIT_FAILURE;
+  }
 }
 
