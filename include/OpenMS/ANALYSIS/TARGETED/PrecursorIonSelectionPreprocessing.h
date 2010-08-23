@@ -110,13 +110,15 @@ namespace OpenMS
 		/// get the rt-weight for the proposed peptide and its measured rt
 		DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt);
 
-		void setFixedModifications(StringList& modifications);
+		
 	protected:
 		/// saves the preprocessed db
 		void savePreprocessedDB_(String db_path,String path);
 		void savePreprocessedDBWithRT_(String db_path,String path);
 		/// loads the preprocessed db
 		void loadPreprocessedDB_(String path);
+		void setFixedModifications_(StringList& modifications);
+
 
 		/// all tryptic masses of the distinct peptides in the database
 		std::vector<DoubleReal> masses_;
