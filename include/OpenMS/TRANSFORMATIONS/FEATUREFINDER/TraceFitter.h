@@ -95,15 +95,6 @@ namespace OpenMS
     {
     }
 
-    /*
-     * factory stuff needs review
-    void registerChildren()
-    {
-      Factory< TraceFitter<PeakType> >::registerProduct(EGHTraceFitter<PeakType>::getProductName(), &EGHTraceFitter<PeakType>::create);
-      Factory< TraceFitter<PeakType> >::registerProduct(GaussTraceFitter<PeakType>::getProductName(), &GaussTraceFitter<PeakType>::create);
-    }
-    */
-
     /**
      * Main method of the TraceFitter which triggers the actual fitting.
      */
@@ -229,7 +220,6 @@ namespace OpenMS
         Int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
         Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J))
     {
-
       const gsl_multifit_fdfsolver_type *T;
       gsl_multifit_fdfsolver *s;
 

@@ -129,7 +129,7 @@ namespace OpenMS
       return (5.0*sigma_ > max_rt_span*region_rt_span_);
     }
 
-    virtual bool checkMinimalRTSpan(std::pair<DoubleReal,DoubleReal> const & rt_bounds, const DoubleReal min_rt_span)
+    bool checkMinimalRTSpan(std::pair<DoubleReal,DoubleReal> const & rt_bounds, const DoubleReal min_rt_span)
     {
       return (rt_bounds.second-rt_bounds.first) < (min_rt_span * 5.0 * sigma_);
     }
@@ -139,12 +139,12 @@ namespace OpenMS
       return trace.theoretical_int *  height_ * exp(-0.5 * pow(trace.peaks[k].first - x0_, 2) / pow(sigma_, 2) );
     }
 
-    virtual DoubleReal getFeatureIntensityContribution()
+    DoubleReal getFeatureIntensityContribution()
     {
       return 2.5 * height_ * sigma_;
     }
 
-    virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const & trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
+    String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const & trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
     {
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
