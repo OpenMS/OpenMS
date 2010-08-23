@@ -75,6 +75,31 @@ namespace OpenMS
   /// Sim MSExperiment type
   typedef MSExperiment< SimPointType > MSSimExperiment;
 
+  struct SimRandomNumberGenerator
+  {
+    gsl_rng* biological_rng;
+    gsl_rng* technical_rng;
+
+    SimRandomNumberGenerator()
+      : biological_rng(0),
+      technical_rng(0)
+    {
+    }
+
+    ~SimRandomNumberGenerator()
+    {
+      if(biological_rng != 0)
+      {
+        delete biological_rng;
+      }
+
+      if(technical_rng != 0)
+      {
+        delete technical_rng;
+      }
+    }
+  };
+
 }
 
 #endif
