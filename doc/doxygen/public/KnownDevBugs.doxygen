@@ -35,8 +35,13 @@ Cannot open include file: 'windows.h': No such file or directory
 	@section known_issues_linux ... on Linux/MacOS
   
     <UL>
-        <LI><B>none :)</B><BR>
-          ...
+        <LI><B>Contrib fails to compile on Ubuntu 10.04</B><BR>
+        Your error message might look like:
+	@code
+	gzip: stdin: invalid compressed data--crc error 
+	@endcode
+        This happens with a buggy version of gzip in Ubuntu 10.04. <BR>>
+        To solve this issue update gzip using lucid-proposed (see https://wiki.ubuntu.com/Testing/EnableProposed)
     </UL>
   
 
