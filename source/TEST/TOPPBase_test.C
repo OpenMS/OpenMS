@@ -357,7 +357,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:doublelist",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
 	p2.setValue("TOPPBaseTest:1:stringlist",StringList::create("abc,def,ghi,jkl"),"stringlist description");
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
-	p2.setValue("TOPPBaseTest:1:log","TOPP.log","Location of the log file");
+  p2.setValue("TOPPBaseTest:1:log","","Name of log file (created only when specified)");
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
 	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool");
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
