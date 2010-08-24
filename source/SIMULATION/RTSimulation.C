@@ -93,8 +93,8 @@ namespace OpenMS {
 	}
 
   
-  RTSimulation::RTSimulation(const gsl_rng * random_generator)
-    : DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
+  RTSimulation::RTSimulation(const SimRandomNumberGenerator& random_generator)
+    : DefaultParamHandler("RTSimulation"), rnd_gen_(&random_generator)
   {
     setDefaultParams_();
     updateMembers_();
@@ -131,8 +131,9 @@ namespace OpenMS {
     for(FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
         ++it_f)
     {
-			double symmetry = gsl_ran_flat (rnd_gen_, symmetry_down_, symmetry_up_);
-			double width = gsl_ran_flat (rnd_gen_, 5, 15);
+      // TODO: revise the process of rt shape generation
+      double symmetry = gsl_ran_flat (rnd_gen_->technical_rng, symmetry_down_, symmetry_up_);
+      double width = gsl_ran_flat (rnd_gen_->technical_rng, 5, 15);
 			// TODO: maybe this would be a better solution ..
 			//double width = 1;
       it_f->setMetaValue("rt_symmetry", symmetry);
@@ -209,7 +210,7 @@ namespace OpenMS {
         predicted_retention_times[i] = features[i].getMetaValue("rt");
       }
       // add variation
-      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_ft_stddev) + rt_offset;
+      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_->technical_rng, rt_ft_stddev) + rt_offset;
       predicted_retention_times[i] = predicted_retention_times[i]*rt_scale + rt_error;
       //overwrite RT [no randomization] (if given by user)
       if (features[i].metaValueExists("RT"))
@@ -410,7 +411,7 @@ namespace OpenMS {
     {
 
       // assign random retention time
-      SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_, 0, total_gradient_time_);
+      SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_->technical_rng, 0, total_gradient_time_);
       contaminants[i].setRT(retention_time);
     }
   }
@@ -567,7 +568,7 @@ namespace OpenMS {
         (*exp_it).setNativeID(spec_id);
 
         // dice & store distortion
-        DoubleReal distortion = exp(gsl_ran_flat (rnd_gen_, -distortion_, +distortion_));
+        DoubleReal distortion = exp(gsl_ran_flat (rnd_gen_->technical_rng, -distortion_, +distortion_));
         (*exp_it).setMetaValue("distortion", distortion);
 
         // TODO (for CE) store peak broadening parameter

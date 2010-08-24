@@ -31,10 +31,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-
 namespace OpenMS {
 
   /**
@@ -56,7 +52,7 @@ namespace OpenMS {
       */
     //@{
     /// Constructor taking a random generator
-    RawTandemMSSignalSimulation(const gsl_rng * random_generator);
+    RawTandemMSSignalSimulation(const SimRandomNumberGenerator& rng);
 
     /// Copy constructor
     RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation& source);
@@ -82,7 +78,7 @@ namespace OpenMS {
     void generatePrecursorSpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
 
 		/// Random number generator
-		const gsl_rng* rnd_gen_;
+    SimRandomNumberGenerator const * rnd_gen_;
   };
 
 }

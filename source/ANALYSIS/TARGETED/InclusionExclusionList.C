@@ -64,7 +64,8 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
 		}
 
-		RTSimulation rt_sim(NULL);
+    SimRandomNumberGenerator rnd_gen;
+    RTSimulation rt_sim(rnd_gen);
 		Param rt_param;
 		rt_param.setValue("HPLC:model_file",rt_model_path);
 		rt_sim.setParameters(rt_param);

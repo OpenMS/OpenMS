@@ -99,11 +99,11 @@ namespace OpenMS {
   {
 		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("RT:",RTSimulation(NULL).getDefaults());
+    defaults_.insert("RT:",RTSimulation(SimRandomNumberGenerator()).getDefaults());
     defaults_.insert("Detectability:",DetectabilitySimulation().getDefaults());
-    defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
-    defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
-		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
+    defaults_.insert("Ionization:",IonizationSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("RawSignal:",RawMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
 
     subsections_.push_back("Labeling");
 
@@ -131,7 +131,7 @@ namespace OpenMS {
     return tmp;
   }
 
-  void MSSim::simulate(gsl_rng* const rnd_gen, SampleChannels& channels, const String &labeling_name)
+  void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels& channels, const String &labeling_name)
   {
     // TODO: add method to read contaminants
     // TODO: add method to select contaminants

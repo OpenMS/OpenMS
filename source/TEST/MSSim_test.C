@@ -53,7 +53,7 @@ START_SECTION(~MSSim())
 }
 END_SECTION
 
-START_SECTION((void simulate(gsl_rng * const rnd_gen, const SampleProteins &peptides)))
+START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SampleChannels &peptides, const String &labeling_tpye)))
 {
   // TODO
 #if 0 // core from old LCMSSim_test
@@ -115,7 +115,13 @@ START_SECTION((FeatureMapSim const& getSimulatedFeatures() const ))
 }
 END_SECTION
 
-START_SECTION((ConsensusMap const & getSimulatedConsensus() const))
+START_SECTION((ConsensusMap const& getChargeConsensus() const ))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((ConsensusMap const& getLabelingConsensus() const ))
 {
   // TODO
 }

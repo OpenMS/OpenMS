@@ -399,7 +399,8 @@ namespace OpenMS
 					{
 						std::cout << distance(sequences_.begin(),seq_it)<<" peptides done."<<std::endl;
 						// now make RTPrediction using the RTSimulation class of the simulator
-						RTSimulation rt_sim(NULL);
+            SimRandomNumberGenerator rnd_gen;
+            RTSimulation rt_sim(rnd_gen);
 						rt_sim.setParameters(rt_param);
 						std::vector<DoubleReal> rts;
 						std::vector<DoubleReal> rts2;

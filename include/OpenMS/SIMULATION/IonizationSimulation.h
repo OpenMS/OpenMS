@@ -33,10 +33,6 @@
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-
 // STL includes
 #include <set>
 
@@ -72,7 +68,7 @@ namespace OpenMS {
       */
     //@{
     /// 
-    IonizationSimulation(const gsl_rng* );
+    IonizationSimulation(const SimRandomNumberGenerator& );
     
     /// Copy constructor
     IonizationSimulation(const IonizationSimulation& source);
@@ -174,7 +170,7 @@ namespace OpenMS {
 		
   protected:
 		/// Random number generator
-		const gsl_rng* rnd_gen_;
+    SimRandomNumberGenerator const * rnd_gen_;
   };
 
 }

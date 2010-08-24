@@ -70,9 +70,9 @@ namespace OpenMS
       return this->defaults_;
     }
 
-    virtual void setRnd(gsl_rng * const rng)
+    virtual void setRnd(const SimRandomNumberGenerator& rng)
     {
-      rng_ = rng;
+      rng_ = &rng;
     }
 
     /**
@@ -168,7 +168,7 @@ namespace OpenMS
 
     ConsensusMap consensus_;
 
-    gsl_rng *rng_;
+    SimRandomNumberGenerator const * rng_;
 
   };
 } // namespace OpenMS

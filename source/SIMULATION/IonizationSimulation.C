@@ -33,7 +33,7 @@
 namespace OpenMS {
 
 
-  IonizationSimulation::IonizationSimulation(const gsl_rng * random_generator)
+  IonizationSimulation::IonizationSimulation(const SimRandomNumberGenerator& random_generator)
     : DefaultParamHandler("IonizationSimulation"),
 			ionization_type_(),
 			basic_residues_(),
@@ -41,8 +41,8 @@ namespace OpenMS {
 			esi_impurity_probabilities_(),
 			esi_adducts_(),
 			max_adduct_charge_(),
-			maldi_probabilities_(),
-			rnd_gen_(random_generator)
+      maldi_probabilities_(),
+      rnd_gen_(&random_generator)
   {
     setDefaultParams_();
     updateMembers_();
@@ -56,8 +56,8 @@ namespace OpenMS {
 			esi_impurity_probabilities_(source.esi_impurity_probabilities_),
 			esi_adducts_(source.esi_adducts_ ),
 			max_adduct_charge_(source.max_adduct_charge_ ),
-			maldi_probabilities_(source.maldi_probabilities_),
-			rnd_gen_(source.rnd_gen_)
+      maldi_probabilities_(source.maldi_probabilities_),
+      rnd_gen_(source.rnd_gen_)
   {
     //updateMembers_();  
   }
@@ -234,7 +234,7 @@ namespace OpenMS {
 				{
 					// currently we might also loose some molecules here (which is ok?)
 					// sample charge state from binomial
-					UInt charge = gsl_ran_binomial(rnd_gen_,esi_probability_,basic_residues_c);
+          UInt charge = gsl_ran_binomial(rnd_gen_->technical_rng,esi_probability_,basic_residues_c);
 
 					if (charge==0)
 					{
@@ -245,7 +245,7 @@ namespace OpenMS {
 					// distribute charges across adduct types
 					for (UInt charge_site=0;charge_site<charge;++charge_site)
 					{
-						Size adduct_index = gsl_ran_discrete (rnd_gen_, gsl_ran_lookup_esi_charge_impurity);
+            Size adduct_index = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
 						cmp.add(esi_adducts_[adduct_index],Compomer::RIGHT);
 					}
 
@@ -368,7 +368,7 @@ namespace OpenMS {
 				for(Int j = 0; j < abundance ; ++j)
 				{
 					// sample charge from discrete distribution
-					Size charge = gsl_ran_discrete (rnd_gen_, gsl_ran_lookup_maldi) + 1;
+          Size charge = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_maldi) + 1;
 
 					// add 1 to abundance of sampled charge state
 					++charge_states[ charge ];

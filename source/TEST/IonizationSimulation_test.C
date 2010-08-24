@@ -41,6 +41,7 @@ START_TEST(IonizationSimulation, "$Id$")
 
 IonizationSimulation* ptr = 0;
 const unsigned long rnd_gen_seed = 1;
+SimRandomNumberGenerator empty_rnd_gen;
 
 START_SECTION(IonizationSimulation())
 {
@@ -48,9 +49,9 @@ START_SECTION(IonizationSimulation())
 }
 END_SECTION
 
-START_SECTION((IonizationSimulation(const gsl_rng *)))
+START_SECTION((IonizationSimulation(const SimRandomNumberGenerator& )))
 {
-  ptr = new IonizationSimulation(NULL);
+  ptr = new IonizationSimulation(empty_rnd_gen);
   TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
@@ -63,7 +64,7 @@ END_SECTION
 
 START_SECTION((IonizationSimulation(const IonizationSimulation &source)))
 {
-  IonizationSimulation source(NULL);
+  IonizationSimulation source(empty_rnd_gen);
   Param p = source.getParameters();
   p.setValue("ionization_type","MALDI");
   source.setParameters(p);
@@ -76,7 +77,7 @@ END_SECTION
 
 START_SECTION((IonizationSimulation& operator=(const IonizationSimulation &source)))
 {
-  IonizationSimulation ion_sim1(NULL);
+  IonizationSimulation ion_sim1(empty_rnd_gen);
   IonizationSimulation ion_sim2(ion_sim1);
   
 	Param p = ion_sim1.getParameters();
@@ -91,8 +92,12 @@ END_SECTION
 START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consensus, MSSimExperiment &experiment)))
 {
   // init rng 
-  gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen, rnd_gen_seed);
+  SimRandomNumberGenerator rnd_gen;
+
+  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
   
   // testing ESI
   IonizationSimulation esi_sim(rnd_gen);
@@ -209,14 +214,15 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   }
   
   
-  // reinit rnd_gen
-  gsl_rng_free (rnd_gen);
+  SimRandomNumberGenerator rnd_gen_maldi;
 
-  rnd_gen = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen, rnd_gen_seed);
-  
+  rnd_gen_maldi.biological_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen_maldi.biological_rng, rnd_gen_seed);
+  rnd_gen_maldi.technical_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen_maldi.technical_rng, rnd_gen_seed);
+
   // testing MALDI
-  IonizationSimulation maldi_sim(rnd_gen);
+  IonizationSimulation maldi_sim(rnd_gen_maldi);
   Param maldi_param = maldi_sim.getParameters();
   maldi_param.setValue("ionization_type","MALDI");
   maldi_param.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1"));
@@ -268,9 +274,6 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   {
     std::cout << (*fmIt).getCharge() << " " << (*fmIt).getIntensity() << " " << (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << std::endl;
   }
-  
-  // free resources
-  gsl_rng_free (rnd_gen);
 }
 END_SECTION
 

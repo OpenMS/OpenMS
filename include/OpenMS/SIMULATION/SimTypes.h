@@ -81,8 +81,14 @@ namespace OpenMS
     gsl_rng* technical_rng;
 
     SimRandomNumberGenerator()
-      : biological_rng(0),
-      technical_rng(0)
+      : biological_rng(NULL),
+      technical_rng(NULL)
+    {
+    }
+
+    SimRandomNumberGenerator(const SimRandomNumberGenerator& other)
+      : biological_rng(other.biological_rng),
+      technical_rng(other.technical_rng)
     {
     }
 
@@ -90,13 +96,21 @@ namespace OpenMS
     {
       if(biological_rng != 0)
       {
-        delete biological_rng;
+        gsl_rng_free( biological_rng );
       }
 
       if(technical_rng != 0)
       {
-        delete technical_rng;
+        gsl_rng_free( technical_rng );
       }
+    }
+
+    SimRandomNumberGenerator& operator = (const SimRandomNumberGenerator& source)
+    {
+      this->biological_rng = source.biological_rng;
+      this->technical_rng = source.technical_rng;
+
+      return *this;
     }
   };
 

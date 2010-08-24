@@ -34,9 +34,9 @@
 namespace OpenMS
 {
 
-  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const gsl_rng * random_generator)
+  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const SimRandomNumberGenerator& rng)
   : DefaultParamHandler("RawTandemMSSignalSimulation"),
-		rnd_gen_(random_generator)
+    rnd_gen_(&rng)
   {
 		// Tandem MS params
 		defaults_.setValue("status", "disabled", "Create Tandem-MS scans?"); 
@@ -105,7 +105,7 @@ namespace OpenMS
     {
       // sample MS2 spectra for each feature
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
-      adv_spec_gen.simulate(single_ms2_spectra[i_f], seq, rnd_gen_,features[i_f].getCharge());
+      adv_spec_gen.simulate(single_ms2_spectra[i_f], seq, rnd_gen_->biological_rng,features[i_f].getCharge());
       single_ms2_spectra[i_f].setMSLevel(2);
 
       // validate features Metavalues exist and are valid:
@@ -202,7 +202,7 @@ namespace OpenMS
 		  for(Size id =0; id<ids.size();++id)
 		  {
 		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
-		    adv_spec_gen.simulate(ms2[i], seq, rnd_gen_, features[ids[id]].getCharge());
+        adv_spec_gen.simulate(ms2[i], seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
         // todo: rescale intensities! according to region within in the 2D Model of the feature
       }
     }

@@ -128,6 +128,11 @@ class TOPPMSSimulator
       Param tmp;
       String type = getStringOption_("type");
       tmp.insert("MSSim:", MSSim().getParameters(type));
+      tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
+      tmp.setValidStrings("RandomNumberGenerators:biological",StringList::create("reproducible,random"));
+      tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
+      tmp.setValidStrings("RandomNumberGenerators:technical",StringList::create("reproducible,random"));
+      tmp.setSectionDescription("RandomNumberGenerators", "Parameters for generating the random aspects (e.g. noise) in the simulated data. The generation is separated into two parts, the technical part, like noise in the raw signal, and the biological part, like systematic deviations in the predicted retention times.");
       return tmp;
     }
   
@@ -218,11 +223,32 @@ class TOPPMSSimulator
         loadFASTA_(input_files[i], proteins);
         channels.push_back(proteins);
       }
-      
-      // initialize the random number generator
-      gsl_rng_default_seed = time(0);
-      gsl_rng* rnd_gen_ = gsl_rng_alloc(gsl_rng_mt19937);
-      
+
+      // initialize the random number generators
+      SimRandomNumberGenerator rnd_gen;
+
+      rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
+      if(getParam_().getValue("RandomNumberGenerators:biological") == "random")
+      {
+        gsl_rng_set(rnd_gen.biological_rng, time(0));
+      }
+      else
+      {
+        // use gsl default seed to get reproducible exeperiments
+        gsl_rng_set(rnd_gen.biological_rng, 0);
+      }
+
+      rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
+      if(getParam_().getValue("RandomNumberGenerators:technical") == "random")
+      {
+        gsl_rng_set(rnd_gen.technical_rng, time(0));
+      }
+      else
+      {
+        // use gsl default seed to get reproducible exeperiments
+        gsl_rng_set(rnd_gen.technical_rng, 0);
+      }
+
       // read contaminants
 
       // select contaminants?? -> should this be done by MSSim??
@@ -232,7 +258,7 @@ class TOPPMSSimulator
       StopWatch w;
 
       w.start();
-      ms_simulation.simulate(rnd_gen_, channels, labeling_type);
+      ms_simulation.simulate(rnd_gen, channels, labeling_type);
       w.stop();
 			writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));   	  	
       
@@ -260,9 +286,6 @@ class TOPPMSSimulator
         ConsensusXMLFile().store(lcxml_out, ms_simulation.getLabelingConsensus());
       }
 
-      // free random number generator
-      gsl_rng_free(rnd_gen_);
-      
 			return EXECUTION_OK;
 		}
 };

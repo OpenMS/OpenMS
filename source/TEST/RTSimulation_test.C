@@ -41,9 +41,11 @@ START_TEST(RTSimulation, "$Id$")
 
 const unsigned long rnd_gen_seed = 1;
 RTSimulation* ptr = 0;
-START_SECTION((RTSimulation(const gsl_rng *random_generator)))
+SimRandomNumberGenerator empty_rnd_gen;
+
+START_SECTION((RTSimulation(const SimRandomNumberGenerator& random_generator)))
 {
-	ptr = new RTSimulation(NULL);
+  ptr = new RTSimulation(empty_rnd_gen);
 	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
@@ -56,7 +58,7 @@ END_SECTION
 
 START_SECTION((RTSimulation(const RTSimulation &source)))
 {
-  RTSimulation source(NULL);
+  RTSimulation source(empty_rnd_gen);
   Param p = source.getParameters();
   p.setValue("total_gradient_time",4000.0);
   source.setParameters(p);
@@ -69,7 +71,7 @@ END_SECTION
 
 START_SECTION((RTSimulation& operator=(const RTSimulation &source)))
 {
-  RTSimulation source(NULL);
+  RTSimulation source(empty_rnd_gen);
   RTSimulation target(source);
   
   Param p = source.getParameters();
@@ -82,7 +84,7 @@ START_SECTION((RTSimulation& operator=(const RTSimulation &source)))
 }
 END_SECTION
 
-START_SECTION(( void predictRT(FeatureMapSim & features, MSSimExperiment & experiment) ))
+START_SECTION(( void predictRT(FeatureMapSim & features) ))
 {
   // is fully tested by the different EXTRA tests for HPLC w absolut, HPLC w relative, none HPLC (and hopefully soon CE)
   NOT_TESTABLE
@@ -92,8 +94,13 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 {
   // init rng
-  gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen, rnd_gen_seed);
+  // init rng
+  SimRandomNumberGenerator rnd_gen;
+
+  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -144,8 +151,12 @@ END_SECTION
 START_SECTION((void createExperiment(MSSimExperiment & experiment)))
 {
   // init rng
-  gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen, rnd_gen_seed);
+  SimRandomNumberGenerator rnd_gen;
+
+  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -198,8 +209,12 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - No RT column))
 {
   // init rng
-  gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen, rnd_gen_seed);
+  SimRandomNumberGenerator rnd_gen;
+
+  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // no rt scan
   RTSimulation no_rt_sim(rnd_gen);
@@ -235,8 +250,12 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
 {
   // init rng
-  gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen, rnd_gen_seed);
+  SimRandomNumberGenerator rnd_gen;
+
+  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // absolut rt values
   // rt svm
@@ -301,7 +320,7 @@ END_SECTION
 
 START_SECTION((bool isRTColumnOn() const ))
 {
-  RTSimulation rt_sim(NULL);
+  RTSimulation rt_sim(empty_rnd_gen);
 
   Param p = rt_sim.getParameters();
   p.setValue("rt_column","HPLC");
@@ -318,7 +337,7 @@ END_SECTION
 
 START_SECTION((SimCoordinateType getGradientTime() const ))
 {
-  RTSimulation rt_sim(NULL);
+  RTSimulation rt_sim(empty_rnd_gen);
   
   Param p = rt_sim.getParameters();
   p.setValue("total_gradient_time",1000.0);

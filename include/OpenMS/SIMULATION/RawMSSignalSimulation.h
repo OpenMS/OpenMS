@@ -37,10 +37,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-
 namespace OpenMS {
 
   /**
@@ -62,7 +58,7 @@ namespace OpenMS {
       */
     //@{
     /// Constructor taking a random generator
-    RawMSSignalSimulation(const gsl_rng * random_generator);
+    RawMSSignalSimulation(const SimRandomNumberGenerator& rng);
 
     /// Copy constructor
     RawMSSignalSimulation(const RawMSSignalSimulation& source);
@@ -184,7 +180,7 @@ namespace OpenMS {
 		SimCoordinateType peak_std_;
 
 		/// Random number generator
-		const gsl_rng* rnd_gen_;
+    SimRandomNumberGenerator const * rnd_gen_;
   };
 
 }

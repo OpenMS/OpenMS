@@ -39,9 +39,9 @@ namespace OpenMS {
   /**
    * TODO: review baseline and noise code
    */
-  RawMSSignalSimulation::RawMSSignalSimulation(const gsl_rng * random_generator)
+  RawMSSignalSimulation::RawMSSignalSimulation(const SimRandomNumberGenerator& rng)
   : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
-  intensity_scale_(), intensity_scale_stddev_(), peak_std_(), rnd_gen_(random_generator)
+  intensity_scale_(), intensity_scale_stddev_(), peak_std_(), rnd_gen_(&rng)
   {
     setDefaultParams_();
     updateMembers_();
@@ -290,7 +290,7 @@ namespace OpenMS {
       if ( point.getIntensity() > 10.0)
       {
         // add gaussian distributed m/z error
-        double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
+        double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
         point.setMZ( point.getMZ() + mz_err );
 
         intensity_sum += point.getIntensity();
@@ -336,7 +336,7 @@ namespace OpenMS {
         point.setIntensity( pm.getIntensity( DPosition<2>( rt, mz) ) );
 
         // add gaussian distributed m/z error
-        double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
+        double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
         point.setMZ( point.getMZ() + mz_err );
 
         intensity_sum += point.getIntensity();
@@ -477,14 +477,14 @@ namespace OpenMS {
 
       for (Size j=0;j<num_intervals;++j)
       {
-        UInt counts = gsl_ran_poisson ( rnd_gen_, rate);
+        UInt counts = gsl_ran_poisson ( rnd_gen_->technical_rng, rate);
         SimCoordinateType mz_lw = j * interval_size + minimal_mz_measurement_limit;
         SimCoordinateType mz_up = (j+1) * interval_size + minimal_mz_measurement_limit;
 
         for (UInt c=0; c<counts;++c)
         {
-          SimCoordinateType mz  = gsl_ran_flat(rnd_gen_, mz_lw, mz_up );
-          SimCoordinateType it = gsl_ran_exponential(rnd_gen_,it_mean);
+          SimCoordinateType mz  = gsl_ran_flat(rnd_gen_->technical_rng, mz_lw, mz_up );
+          SimCoordinateType it = gsl_ran_exponential(rnd_gen_->technical_rng,it_mean);
           point.setIntensity(it);
           point.setMZ(mz);
           experiment[i].push_back(point);
@@ -530,7 +530,7 @@ namespace OpenMS {
     {
       for(MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin() ; peak_it != (*spectrum_it).end() ; ++peak_it)
       {
-        SimIntensityType intensity = peak_it->getIntensity() + gsl_ran_gaussian(rnd_gen_, white_noise_stddev * peak_it->getIntensity()) + white_noise_mean;
+        SimIntensityType intensity = peak_it->getIntensity() + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev * peak_it->getIntensity()) + white_noise_mean;
         peak_it->setIntensity( (intensity > 0.0 ? intensity : 0.0) );
       }
     }
@@ -622,7 +622,7 @@ namespace OpenMS {
     SimIntensityType intensity = feature_intensity * natural_scaling_factor * intensity_scale_;
     
     // add some noise
-    intensity += gsl_ran_gaussian(rnd_gen_, intensity_scale_stddev_ * intensity);
+    intensity += gsl_ran_gaussian(rnd_gen_->technical_rng, intensity_scale_stddev_ * intensity);
 
     return intensity;
   }

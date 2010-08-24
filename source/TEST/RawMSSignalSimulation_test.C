@@ -40,9 +40,12 @@ START_TEST(RawMSSignalSimulation, "$Id$")
 /////////////////////////////////////////////////////////////
 
 RawMSSignalSimulation* ptr = 0;
-START_SECTION((RawMSSignalSimulation(const gsl_rng *random_generator)))
+SimRandomNumberGenerator empty_rnd_gen;
+const unsigned long rnd_gen_seed = 1;
+
+START_SECTION((RawMSSignalSimulation(const SimRandomNumberGenerator &rng)))
 {
-	ptr = new RawMSSignalSimulation(NULL);
+  ptr = new RawMSSignalSimulation(empty_rnd_gen);
 	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
@@ -55,7 +58,7 @@ END_SECTION
 
 START_SECTION((RawMSSignalSimulation(const RawMSSignalSimulation &source)))
 {
-  RawMSSignalSimulation source(NULL);
+  RawMSSignalSimulation source(empty_rnd_gen);
   Param p = source.getParameters();
   p.setValue("peak_fwhm",0.3);
   source.setParameters(p);
@@ -67,7 +70,7 @@ END_SECTION
 
 START_SECTION((RawMSSignalSimulation& operator=(const RawMSSignalSimulation &source)))
 {
-  RawMSSignalSimulation source(NULL);
+  RawMSSignalSimulation source(empty_rnd_gen);
   RawMSSignalSimulation target(source);
   
   Param p = source.getParameters();

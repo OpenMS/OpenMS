@@ -242,7 +242,7 @@ namespace OpenMS
 			{
 				MSSimExperiment::SpectrumType::PeakType p;
 				// random shift of +-rep_shift around exact position
-        DoubleReal rnd_shift = gsl_rng_uniform(rng_) * 2 * rep_shift - rep_shift;
+        DoubleReal rnd_shift = gsl_rng_uniform(rng_->technical_rng) * 2 * rep_shift - rep_shift;
 				p.setMZ(channel_names[itraq_type_].getValue(i_channel,0) + 0.1 + rnd_shift);
 				p.setIntensity(gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
 				std::cout << "inserted iTRAQ peak: " << p << "\n";

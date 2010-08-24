@@ -28,10 +28,6 @@
 #ifndef OPENMS_SIMULATION_RTSIMULATION_H
 #define OPENMS_SIMULATION_RTSIMULATION_H
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
@@ -59,7 +55,7 @@ namespace OpenMS
     //@{
 
     /// Constructor taking a random generator
-    RTSimulation(const gsl_rng * random_generator);
+    RTSimulation(const SimRandomNumberGenerator& random_generator);
     
     /// Copy constructor
     RTSimulation(const RTSimulation& source);
@@ -146,7 +142,7 @@ namespace OpenMS
     
   protected:  
 		/// Random number generator
-		const gsl_rng* rnd_gen_;    
+    SimRandomNumberGenerator const * rnd_gen_;
     
     /// Synchronize members with param class
 		void updateMembers_();
