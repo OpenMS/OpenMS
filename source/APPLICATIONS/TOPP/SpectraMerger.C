@@ -91,7 +91,7 @@ class TOPPSpectraMerger
 			registerOutputFile_("out","<file>","","Output mzML file.");
 			setValidFormats_("in", StringList::create("mzML"));
 
-			registerStringOption_("merging_method", "<method>", "precursor_method", "Method of merging which should be used.");
+			registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.");
 			setValidStrings_("merging_method", StringList::create("precursor_method,block_method"));
 
 			registerSubsection_("algorithm","Algorithm section for merging spectra");

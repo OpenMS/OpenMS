@@ -53,8 +53,9 @@ using namespace std;
   You must provide the command line to call the tool, which should contain the placeholders
   <b>$in</b> and <b>$out</b>, which will be substituted by the given input and output name given to this tool.
 
-  Example:
-    ProteinProphet $in $out
+  Example <b>call</b> statements:<br>
+    - ProteinProphet $in $out<br>
+    - msConvert $in --mzML -o /network/tmp/<br>
 
   Some external tools do not offer an output parameter (e.g. msConvert from the ProteoWizard suite).
   Thus you cannot specify $out in the command line.
@@ -107,9 +108,7 @@ class TOPPGenericWrapper
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	//setValidFormats_("out",StringList::create("mzML"));
 			registerStringOption_("call", "<call>", "", "Command line which calls the external tool, e.g. 'ProteinProphet $in $out'");
-			registerStringList_("output_forwarding", "<expression>", StringList(), "mapping which allows to bind the callee's output to the '-out' parameter, in case the outfile cannot be explicitly created (msConvert for example), e.g. 'base:$in','suffix:mzML'. The callee's output will be renamed to the '-out' param.", false);
-
-			addEmptyLine_();
+			registerStringList_("output_forwarding", "<expression>", StringList(), "mapping which allows to bind the callee's output to the '-out' parameter,\nin case the outfile cannot be explicitly created (msConvert for example),\ne.g. 'base:$in','suffix:mzML'. The callee's output will be renamed to the '-out' param.", false);
 		}
 		
 		ExitCodes main_(int , const char**)

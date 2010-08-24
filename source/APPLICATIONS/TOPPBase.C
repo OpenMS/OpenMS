@@ -2142,6 +2142,7 @@ namespace OpenMS
 		tools_map["TextExporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
 		tools_map["SILACAnalyzer"] = StringList::create("double,triple");
+		tools_map["SpectraMerger"] = StringList::create("");
     tools_map["PrecursorMassCorrector"] = StringList::create("");
     tools_map["GenericWrapper"] = StringList::create("");
     tools_map["ProteinInference"] = StringList::create("");

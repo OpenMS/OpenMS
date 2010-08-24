@@ -55,7 +55,7 @@ int main (int , char** )
       // error while generation cli docu
       f << "Errors occured while generating the command line documentation for " << it->first << "!" << endl;
       f << "Please check your PATH variable if it contains the path to the " << it->first << " executable." << endl;
-      errors_occured |= true;
+      errors_occured = true;
     }
     else
     {
@@ -81,7 +81,7 @@ int main (int , char** )
       // error while generation cli docu
       f << "Errors occured while generating the command line documentation for " << it->first << endl;
       f << "Please check your PATH variable if it contains the path to the " << it->first << " executable." << endl;
-      errors_occured |= true;
+      errors_occured = true;
     }
     else
     {
@@ -97,11 +97,11 @@ int main (int , char** )
     // errors occured while generating the TOPP CLI docu .. tell the user
     cerr << "Errors occured while generating the command line documentation for some of the " << endl;
     cerr << "TOPP tools/UTILS. Please check your PATH variable if it contains the TOPP tool directory." << endl;
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
   }
   else
   {
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 }
 

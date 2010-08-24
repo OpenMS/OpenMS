@@ -62,11 +62,13 @@ using namespace std;
 	The meta information that is valid for the whole experiment (e.g. MS instrument and sample)
 	is taken from the first file.
 
-	The retention times for the individual scans are taken from 
-  the input file meta data (e.g. mzML)
-  , from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
-  , as a list (one RT for each file)
-  , or are auto-generated (starting at 1 with 1 second increment).
+	The retention times for the individual scans are taken from either:
+  <ul>
+  <li>the input file meta data (e.g. mzML)
+  <li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
+  <li>as a list (one RT for each file)
+  <li>or are auto-generated (starting at 1 with 1 second increment).
+  </ul>
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileMerger.cli

@@ -46,6 +46,7 @@
   - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.
+  - @subpage TOPP_SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
 
   <b>Signal Processing and Preprocessing</b>
