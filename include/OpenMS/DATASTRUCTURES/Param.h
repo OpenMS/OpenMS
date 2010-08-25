@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -71,6 +71,9 @@ namespace OpenMS
 				ParamEntry();
 				/// Constructor with name, description, value and advanced flag
 				ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t=StringList());
+				/// Destructor
+				~ParamEntry();
+				
 				/// Check if 'value' fulfills restrictions
 				bool isValid(String& message) const;
 				/// Equality operator (only name and value are compared)
@@ -110,6 +113,8 @@ namespace OpenMS
 				ParamNode();						
 				///Constructor with name and description
 				ParamNode(const String& n, const String& d);
+				/// Destructor
+				~ParamNode();
 				///Equality operator (name, entries and subnodes are compared)
 				bool operator==(const ParamNode& rhs) const;
 				
@@ -184,6 +189,8 @@ namespace OpenMS
 					ParamIterator();
 					///Constructor for begin iterator
 					ParamIterator(const Param::ParamNode& root);
+					///Destructor
+					~ParamIterator();
 					///Dereferencing
 			    const Param::ParamEntry& operator*();
 			    ///Dereferencing
