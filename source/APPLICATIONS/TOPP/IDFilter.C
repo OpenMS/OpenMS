@@ -394,7 +394,6 @@ class TOPPIDFilter
 		{
 			if (!protein_identifications[i].getHits().empty())
 			{
-				cout <<                    protein_significance_threshold_fraction << endl;
 				if (protein_significance_threshold_fraction==0)
 				{
 					filtered_protein_identification = protein_identifications[i];
