@@ -43,11 +43,25 @@ using namespace std;
 
 	@brief Computes a protein identification based on the number of identified peptides.
 
-  Computes a protein identification based on the number of identified peptides.
-  The peptide list should be prefiltered using the FalseDiscoveryRate + IDFilter tools, to 
-  remove bad identifications.
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ ProteinInterference \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+		</tr>
+	</table>
+</CENTER>
 
-	@note This tool is experimental!
+	This tool counts the peptide sequences that match a protein accession. From this count	for all protein hits in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in general to remove bad identifications.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ProteinInference.cli
@@ -140,18 +154,18 @@ class TOPPProteinInference
 			}
 
 			writeDebug_("Peptides from " + String(acc_peptides.size()) + " recorded.", 1);
-	
-			// for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides 
+
+			// for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
 			set<String> accepted_proteins;
 			vector<ProteinHit> accepted_protein_hits;
 			for (Map<String, ProteinHit>::ConstIterator it1 = acc_to_protein_hit.begin(); it1 != acc_to_protein_hit.end(); ++it1)
 			{
 				if (acc_peptides.has(it1->first))
-				{	
+				{
 					Size num_peps(0);
 					for (Map<Size, set<String> >::ConstIterator it2 = acc_peptides[it1->first].begin(); it2 != acc_peptides[it1->first].end(); ++it2)
 					{
-						num_peps += it2->second.size();	
+						num_peps += it2->second.size();
 					}
 
 					if (num_peps >= min_peptides_per_protein)
@@ -197,7 +211,7 @@ class TOPPProteinInference
           for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
           {
             if (accepted_proteins.find(*it3) != accepted_proteins.end())
-            { 
+            {
 						valid_accessions.push_back(*it3);
             }
           }
@@ -205,7 +219,7 @@ class TOPPProteinInference
 				}
 				it1->setHits(peptide_ids);
       }
-			
+
 			DateTime now = DateTime::now();
 			String identifier(now.get() + "_TOPPProteinInference");
 			for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
