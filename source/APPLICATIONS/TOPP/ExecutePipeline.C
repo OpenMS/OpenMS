@@ -77,20 +77,20 @@ class TOPPExecutePipeline
 		QString toppas_file = getStringOption_("in").toQString();
 		QString out_dir_name = getStringOption_("out_dir").toQString();
 		QString resource_file = getStringOption_("resource_file").toQString();
-		
+
 		QApplication a(argc, const_cast<char**>(argv), false);
 		TOPPASScene ts(0, QDir::tempPath()+QDir::separator(), false);
 		a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()));
 		a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()));
 		ts.load(toppas_file);
-		
+
 		if (resource_file != "")
 		{
 			TOPPASResources resources;
 			resources.load(resource_file);
 			ts.loadResources(resources);
 		}
-		
+
 		if (out_dir_name != "")
 		{
 			if (QDir::isRelativePath(out_dir_name))
@@ -112,23 +112,23 @@ class TOPPExecutePipeline
 		{
       QFileInfo fi(ts.getSaveFileName().toQString());
       out_dir_name = QDir::cleanPath( ts.getOutDir() + QDir::separator() + String(fi.baseName()).toQString() + QDir::separator() );
-			cout << "No output directory specified. Using the user's home directory (" << out_dir_name << ")" << endl;
+			cout << "No output directory specified. Using the user's home directory (" << out_dir_name.toStdString() << ")" << endl;
       ts.setOutDir(out_dir_name);
       QDir qd;
       if (!(qd.exists(out_dir_name) || qd.mkdir(out_dir_name)) || !File::writable(out_dir_name + "test_file_in_the_current_directory"))
 			{
-				cerr << "You do not have permission to write to " << out_dir_name << endl;
+				cerr << "You do not have permission to write to " << out_dir_name.toStdString() << endl;
 				return CANNOT_WRITE_OUTPUT_FILE;
 			}
 		}
-		
+
 		ts.runPipeline();
-		
+
 		if (a.exec() == 0)
 		{
 			return EXECUTION_OK;
 		}
-		
+
 		return UNKNOWN_ERROR;
 	}
 
