@@ -52,8 +52,21 @@ using namespace std;
 
 /**
 	@page TOPP_FileInfo FileInfo
+	@brief Shows basic information about the data in a OpenMS readable file.
 
-	@brief Shows basic information about the data in a file.
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileInfo \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+		</tr>
+	</table>
+</CENTER>
 
 	This tool can show basic information about the data in several peak, feature and consensus feature files. It can
 	- show information about the data range of a file (m/z, RT, intensity)
@@ -64,6 +77,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileInfo.cli
+
+	In order to enrich the resulting data of your anaysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:
@@ -78,7 +93,7 @@ namespace OpenMS
 		vector<ProteinIdentification> proteins;
 		vector<PeptideIdentification> peptides;
 	};
-	
+
 	/// A little helper class to gather (and dump) some statistics from a vector<double>.  Uses statistical functions implemented in GSL.
 	struct SomeStatistics
 	{
@@ -100,7 +115,7 @@ namespace OpenMS
 		}
 		double mean, variance, min, lowerq, median, upperq, max;
 	};
-	
+
 	/// Write SomeStatistics to a stream.
 	static ostream& operator << (ostream& os, const SomeStatistics& rhs)
 	{
@@ -295,7 +310,7 @@ class TOPPFileInfo
 					}
 				}
 			}
-			
+
 			return EXECUTION_OK;
 		}
 
@@ -307,7 +322,7 @@ class TOPPFileInfo
 		{
 			FeatureXMLFile().load(in,feat);
 			feat.updateRanges();
-			
+
 			os << "Number of features: " << feat.size() << endl
 				 << endl
 				 << "Ranges:" << endl
@@ -346,7 +361,7 @@ class TOPPFileInfo
 				os << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
 			}
 			os << "  total:      " << setw(6) << cons.size() << endl << endl;
-			
+
 			os << "Ranges:" << endl
 				 << "  retention time:  " << String::number(cons.getMin()[Peak2D::RT],2) << " : " << String::number(cons.getMax()[Peak2D::RT],2) << endl
 				 << "  mass-to-charge:  " << String::number(cons.getMin()[Peak2D::MZ],2) << " : " << String::number(cons.getMax()[Peak2D::MZ],2) << endl
@@ -376,10 +391,10 @@ class TOPPFileInfo
 			Size protein_hit_count = 0;
 			vector<String> peptides;
 			vector<String> proteins;
-			
+
 			// reading input
 			IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
-						
+
 			// calculations
 			for (Size i = 0; i < id_data.peptides.size(); ++i)
 			{
@@ -396,7 +411,7 @@ class TOPPFileInfo
 						}
 					}
 				}
-			} 
+			}
 			for (Size i = 0; i < id_data.proteins.size(); ++i)
 			{
 				++runs_count;
@@ -410,7 +425,7 @@ class TOPPFileInfo
 					}
 				}
 			}
-			
+
 			os << "Number of runs: " << runs_count << endl;
 			os << "Number of protein hits: " << protein_hit_count << endl;
 			os << "Number of unique protein hits: " << proteins.size() << endl;
@@ -419,12 +434,12 @@ class TOPPFileInfo
 			os << "Number of peptide hits: " << peptide_hit_count << endl;
 			os << "Number of unique peptide hits: " << peptides.size() << endl;
 		}
-		
+
 		else if (in_type == FileTypes::PEPXML)
 		{
 			os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << endl;
 		}
-		
+
 		else //peaks
 		{
 			if (! fh.loadExperiment(in,exp,in_type,log_type_) )
@@ -473,7 +488,7 @@ class TOPPFileInfo
 			//basic info
 			exp.updateRanges();
 			vector<UInt> levels = exp.getMSLevels();
-		
+
 			os << "Number of spectra: "	<< exp.size() << endl;
 			os << "Number of peaks:   " << exp.getSize() << endl
 				 << endl
@@ -482,7 +497,7 @@ class TOPPFileInfo
 				 << "  mass-to-charge:  " << String::number(exp.getMinMZ(),2) << " : " << String::number(exp.getMaxMZ(),2) << endl
 				 << "  intensity:       " << String::number(exp.getMinInt(),2) << " : " << String::number(exp.getMaxInt(),2) << endl
 				 << endl;
-				 
+
 			os << "MS levels: ";
 			if (levels.size()!=0)
 			{
@@ -563,7 +578,7 @@ class TOPPFileInfo
 			if (exp.getChromatograms().size() != 0)
 			{
 				os << "Number of chromatograms: "	<< exp.getChromatograms().size() << endl;
-				
+
 				Size num_chrom_peaks(0);
 				Map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
 				for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
@@ -595,7 +610,7 @@ class TOPPFileInfo
 						case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:                   os << "   Absorption chromatogram:                   " << it->second << endl; break;
 						case ChromatogramSettings::EMISSION_CHROMATOGRAM:                     os << "   Emission chromatogram:                     " << it->second << endl; break;
 						default: 								                                              os << "   Unknown chromatogram:                      " << it->second << endl;
-					
+
 					}
 				}
 				if (getFlag_("d") && chrom_types.has(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM))
@@ -822,7 +837,7 @@ class TOPPFileInfo
 			os << endl
 				 << "-- Data processing information --" << endl
 				 << endl;
-			
+
 			//get data processing info
 			vector<DataProcessing> dp;
 			if (in_type==FileTypes::FEATUREXML) //features
@@ -839,7 +854,7 @@ class TOPPFileInfo
 			else if (in_type == FileTypes::PEPXML)
 			{
 				// TODO
-			}		
+			}
 			else //peaks
 			{
 				if (exp.size()!=0)
@@ -848,7 +863,7 @@ class TOPPFileInfo
 					dp = exp[0].getDataProcessing();
 				}
 			}
-			
+
 			//print data
 			if (dp.size()==0)
 			{
