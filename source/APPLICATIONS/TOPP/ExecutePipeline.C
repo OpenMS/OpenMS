@@ -68,7 +68,7 @@ class TOPPExecutePipeline
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in", "<file>", "", "The workflow to be executed (valid formats: \"toppas\")");
-		registerStringOption_ ("out_dir", "<directory>", "", "The directory where the output files will be written", false);
+    registerStringOption_ ("out_dir", "<directory>", "", "Directory for output files (default: user's home directory)", false);
 		registerStringOption_ ("resource_file", "<file>", "", "A TOPPAS resource file (*.trf) specifying the files this workflow is to be applied to", false);
 	}
 
@@ -97,7 +97,7 @@ class TOPPExecutePipeline
 			{
 				out_dir_name = QDir::currentPath() + QDir::separator() + out_dir_name;
 			}
-			
+      out_dir_name = QDir::cleanPath(out_dir_name);
 			if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
 			{
 				ts.setOutDir(out_dir_name);
@@ -110,11 +110,14 @@ class TOPPExecutePipeline
 		}
 		else
 		{
-			cout << "No output directory specified. Using current directory." << endl;
-			
-			if (!File::writable("test_file_in_the_current_directory"))
+      QFileInfo fi(ts.getSaveFileName().toQString());
+      out_dir_name = QDir::cleanPath( ts.getOutDir() + QDir::separator() + String(fi.baseName()).toQString() + QDir::separator() );
+			cout << "No output directory specified. Using the user's home directory (" << out_dir_name << ")" << endl;
+      ts.setOutDir(out_dir_name);
+      QDir qd;
+      if (!(qd.exists(out_dir_name) || qd.mkdir(out_dir_name)) || !File::writable(out_dir_name + "test_file_in_the_current_directory"))
 			{
-				cout << "You do not have permission to write in the current directory." << endl;
+				cerr << "You do not have permission to write to " << out_dir_name << endl;
 				return CANNOT_WRITE_OUTPUT_FILE;
 			}
 		}
