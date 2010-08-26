@@ -339,7 +339,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		In order to improve the identification accuracy, several identification engines
 		can be used and a consensus identification can be calculated from the results.
 		The image below shows an example where Mascot and OMSSA results are fed to
-		the @b ConsensusID tool.
+		the @b ConsensusID tool (ConsensusID is currently usable for Mascot, OMSSA and XTandem).
 
 		@image html TOPP_consensus_id.png
 		@image latex TOPP_consensus_id.png "" width=14cm

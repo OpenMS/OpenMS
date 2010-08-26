@@ -45,7 +45,8 @@ using namespace std;
 /**
 	@page UTILS_DigestorMotif DigestorMotif
 
-	@brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. At the moment only trypsin is supported.
+	@brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. It will also produce peptide statistics given the mass 
+	accuracy of the instrument. You can extract peptides with specific motifs,e.g. onyl cysteine containing peptides for ICAT experiments. At the moment only trypsin is supported.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_DigestorMotif.cli
