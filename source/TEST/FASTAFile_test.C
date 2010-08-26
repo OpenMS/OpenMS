@@ -60,6 +60,27 @@ FASTAFile file;
 vector< FASTAFile::FASTAEntry > sequences;
 vector< FASTAFile::FASTAEntry >::const_iterator sequences_iterator;
 FASTAFile::FASTAEntry temp_entry;
+
+START_SECTION([FASTAFile::FASTAEntry] FASTAEntry())
+	FASTAFile::FASTAEntry * ptr_e;
+	ptr_e = new FASTAFile::FASTAEntry();
+	TEST_EQUAL(ptr_e == 0, false)
+END_SECTION
+
+START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String seq))
+FASTAFile::FASTAEntry entry("ID", "DESC", "DAVLDELNER");
+TEST_EQUAL(entry.identifier, "ID")
+TEST_EQUAL(entry.description, "DESC")
+TEST_EQUAL(entry.sequence, "DAVLDELNER")
+END_SECTION
+
+START_SECTION([FASTAFile::FASTAEntry] bool operator==(const FASTAEntry &rhs) const)
+FASTAFile::FASTAEntry entry1("ID", "DESC", "DAVLDELNER");
+FASTAFile::FASTAEntry entry2("ID", "DESC", "DAVLDELNER");
+FASTAFile::FASTAEntry entry3("ID2", "DESC", "DAVLDELNER");
+TEST_EQUAL(entry1==entry2, true)
+TEST_EQUAL(entry1==entry3, false)
+END_SECTION
 	
 temp_entry.identifier = String("P68509|1433F_BOVIN");
 temp_entry.description = String("This is the description of the first protein");
