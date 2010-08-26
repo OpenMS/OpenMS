@@ -93,7 +93,7 @@ namespace OpenMS
 		defaults_.setValue("algorithm","PEPMatrix","Algorithm used for the consensus scoring.\n"
 										   "ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
 										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!\n"
-										   "PEPMatrix -- calculates a consensus score based on posterior error probabilities and scoring matrices for siimilarity. Make sure to use PeptideIdentifications with score types converted to PEPs only!\n"
+										   "PEPMatrix -- calculates a consensus score based on posterior error probabilities and scoring matrices for siimilarity. This algorithm uses the PAM30MS matrix to score sequences not listed by all engines. Make sure to use PeptideIdentifications with score types converted to PEPs only!\n"
 											"PEPIons -- calculates a consensus score based on posterior error probabilities and fragment ion siimilarity. Make sure to use PeptideIdentifications with score types converted to PEPs only!\n"
 												"Minimum -- calculates a consensus score based on the minimal score. Make sure to use PeptideIdentifications with score types converted to PEPs only!\n");
 defaults_.setValidStrings("algorithm",StringList::create("ranked,average,PEPMatrix,PEPIons,Minimum"));

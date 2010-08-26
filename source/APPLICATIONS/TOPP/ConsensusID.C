@@ -48,7 +48,11 @@ using namespace std;
 
 	The input file can contain several searches, e.g. from several identification engines.
 	You can combine several searches with @ref TOPP_IDMerger. Identification runs can be mapped
-	to featureXML and consensusXML with the @ref TOPP_IDMapper tool.
+	to featureXML and consensusXML with the @ref TOPP_IDMapper tool. Before running the 
+	@ref TOPP_ConsensusID using the PEPMatrix or the PEPIons algorithm, posterior error probabilities (PEPs)
+	need to be calculated using the @ref TOPP_IDPosteriorErrorProbability tool. For the statistical
+	assessment of the results it is recommended to use target-decoy databases for peptide identifications.
+	The false discovery rates (FDRs) can be calcultated using the @ref TOPP_FalseDiscoveryRate tool.
 
 	For a detailed description of the algorithms and parameters see the documentation of
 	the %OpenMS ConsensusID class.
