@@ -45,7 +45,31 @@ using namespace std;
 	@page TOPP_GenericWrapper GenericWrapper
 	
 	@brief Allows generically the wrapping of external tools.
-	
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any file the external tool can read </td>
+			<td VALIGN="middle" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool reading the output format </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter (to produce pepXML) </td>
+			<td VALIGN="middle" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper (ProteinProphet) \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter (protXML to idXML) </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> RAW file </td>
+			<td VALIGN="middle" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper (msConvert) \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool accepting mzML </td>
+		</tr>
+    
+	</table>
+</CENTER>
 
   This tool is solely a wrapper to call external (non-OpenMS) executables/scripts.
   The input is forwarded to the external tool, and the resulting output is
