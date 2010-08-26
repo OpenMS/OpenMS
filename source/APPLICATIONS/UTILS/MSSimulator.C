@@ -101,7 +101,8 @@ class TOPPMSSimulator
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
       registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)",false);
-
+      registerOutputFile_("out_cntm","<file>","","output (simulated MS map) in featureXML format (contaminants)",false);
+      
       registerStringOption_("type","<name>","","Labeling type\n",true);
       setValidStrings_("type", getUtilList()[toolName_()] );
 
@@ -266,25 +267,32 @@ class TOPPMSSimulator
       MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
       
       String fxml_out = getStringOption_("out_fm");
-			if (fxml_out != "" && File::writable(fxml_out))
+			if (fxml_out != "")
 			{
 				writeLog_(String("Storing simulated features in: ") + fxml_out);
 				FeatureXMLFile().store(fxml_out, ms_simulation.getSimulatedFeatures());
 			}
 
       String cxml_out = getStringOption_("out_cm");
-			if (cxml_out != "" && File::writable(cxml_out))
+			if (cxml_out != "")
 			{
         writeLog_(String("Storing charged consensus features in: ") + cxml_out);
         ConsensusXMLFile().store(cxml_out, ms_simulation.getChargeConsensus());
 			}
       
       String lcxml_out = getStringOption_("out_lcm");
-      if(lcxml_out != "" && File::writable(lcxml_out))
+      if(lcxml_out != "")
       {
         writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
         ConsensusXMLFile().store(lcxml_out, ms_simulation.getLabelingConsensus());
       }
+
+      String cntxml_out = getStringOption_("out_cntm");
+			if (cntxml_out != "")
+			{
+				writeLog_(String("Storing simulated contaminant features in: ") + cntxml_out);
+				FeatureXMLFile().store(cntxml_out, ms_simulation.getContaminants());
+			}
 
 			return EXECUTION_OK;
 		}

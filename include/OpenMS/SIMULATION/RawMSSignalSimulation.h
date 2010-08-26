@@ -70,7 +70,7 @@ namespace OpenMS {
     RawMSSignalSimulation& operator = (const RawMSSignalSimulation& source);
 
     /// fill experiment with signals and noise
-    void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
+    void generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, FeatureMapSim & contaminants);
 
   protected:
     /// Default constructor
@@ -130,13 +130,12 @@ namespace OpenMS {
     /**
      @brief Add the correct Elution profile to the passed ProductModel
      */
-    void chooseElutionProfile_(EmgModel*& elutionmodel, const Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
-
-    /**
-     @brief Add the correct Elution profile to the passed ProductModel
-     */
     void chooseElutionProfile_(EGHModel*& elutionmodel, Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
 
+    /**
+     @brief build contaminant feature map
+    */
+    void createContaminants_(FeatureMapSim & contaminants, MSSimExperiment & exp);
 
     /// Add shot noise to the experimet
     void addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit);
@@ -181,6 +180,22 @@ namespace OpenMS {
 
 		/// Random number generator
     SimRandomNumberGenerator const * rnd_gen_;
+
+    enum IONIZATIONMETHOD {IM_ESI=0,IM_MALDI=1,IM_ALL=2};
+    enum PROFILESHAPE {RT_RECTANGULAR, RT_GAUSSIAN};
+
+    struct ContaminantInfo
+    {
+      String name;
+      EmpiricalFormula sf;
+      DoubleReal rt_start, rt_end, intensity;
+      Int q;
+      PROFILESHAPE shape;
+      IONIZATIONMETHOD im;
+    };
+
+    std::vector<ContaminantInfo> contaminants_;
+
   };
 
 }

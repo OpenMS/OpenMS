@@ -95,7 +95,7 @@ namespace OpenMS {
 			experiment_(),
       feature_maps_(),
       consensus_map_(),
-      laberler_(0)
+      labeler_(0)
   {
 		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
@@ -114,7 +114,7 @@ namespace OpenMS {
 
   MSSim::~MSSim()
   {
-    delete laberler_;
+    delete labeler_;
   }
 
   Param MSSim::getParameters(const String &labeling_name) const
@@ -133,9 +133,6 @@ namespace OpenMS {
 
   void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels& channels, const String &labeling_name)
   {
-    // TODO: add method to read contaminants
-    // TODO: add method to select contaminants
-
     /*
       General progress should be
         1. Digest Proteins
@@ -146,14 +143,29 @@ namespace OpenMS {
         6. select features for MS2
         7. generate MS2 signals for selected features
      */
+    
+    // instanciate and pass params before doing any actual work
+    // ... this way, each module can throw an Exception when the parameters
+    // ... do not fit, and the users gets an immediate feedback
+    DigestSimulation digest_sim;
+    digest_sim.setParameters(param_.copy("Digestion:",true));
+		RTSimulation rt_sim(rnd_gen);
+		rt_sim.setParameters(param_.copy("RT:",true));
+		DetectabilitySimulation dt_sim;
+		dt_sim.setParameters(param_.copy("Detectability:",true));
+    IonizationSimulation ion_sim(rnd_gen);
+    ion_sim.setParameters(param_.copy("Ionization:", true));
+    RawMSSignalSimulation raw_sim(rnd_gen);
+    raw_sim.setParameters(param_.copy("RawSignal:", true));
 
-    laberler_ = Factory<BaseLabeler>::create(labeling_name);
+
+    labeler_ = Factory<BaseLabeler>::create(labeling_name);
     Param labeling_parameters = param_.copy("Labeling:",true);
-    laberler_->setParameters(labeling_parameters);
-    laberler_->setRnd(rnd_gen);
+    labeler_->setParameters(labeling_parameters);
+    labeler_->setRnd(rnd_gen);
 
     // check parameters ..
-    laberler_->preCheck(param_);
+    labeler_->preCheck(param_);
 
 		// re-distribute synced parameters:
 		syncParams_(param_, false);
@@ -168,25 +180,21 @@ namespace OpenMS {
     }
 
     // Call setUpHook
-    laberler_->setUpHook(feature_maps_);
+    labeler_->setUpHook(feature_maps_);
 
 		// digest
-    DigestSimulation digest_sim;
-    digest_sim.setParameters(param_.copy("Digestion:",true));
     for(FeatureMapSimVector::iterator map_iterator = feature_maps_.begin() ; map_iterator != feature_maps_.end() ; ++map_iterator)
     {
       digest_sim.digest(*map_iterator);
     }
 
     // post digest labeling
-    laberler_->postDigestHook(feature_maps_);
+    labeler_->postDigestHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "digested");
 
 		// RT prediction
-		RTSimulation rt_sim(rnd_gen);
-		rt_sim.setParameters(param_.copy("RT:",true));
     for(FeatureMapSimVector::iterator map_iterator = feature_maps_.begin() ; map_iterator != feature_maps_.end() ; ++map_iterator)
     {
       rt_sim.predictRT(*map_iterator);
@@ -194,42 +202,36 @@ namespace OpenMS {
     rt_sim.createExperiment(experiment_);
 
     // post rt sim labeling
-    laberler_->postRTHook(feature_maps_);
+    labeler_->postRTHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "RT sim done");
 
 		// Detectability prediction
-		DetectabilitySimulation dt_sim;
-		dt_sim.setParameters(param_.copy("Detectability:",true));
     for(FeatureMapSimVector::iterator map_iterator = feature_maps_.begin() ; map_iterator != feature_maps_.end() ; ++map_iterator)
     {
       dt_sim.filterDetectability(*map_iterator);
     }
 
     // post detectability labeling
-    laberler_->postDetectabilityHook(feature_maps_);
+    labeler_->postDetectabilityHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "DT sim done");
 
     // at this point all feature maps should be combined to one?
-    IonizationSimulation ion_sim(rnd_gen);
-    ion_sim.setParameters(param_.copy("Ionization:", true));
     ion_sim.ionize(feature_maps_.front(), consensus_map_, experiment_);
 
     // post ionization labeling
-    laberler_->postIonizationHook(feature_maps_);
+    labeler_->postIonizationHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "ION sim done");
 
-    RawMSSignalSimulation raw_sim(rnd_gen);
-    raw_sim.setParameters(param_.copy("RawSignal:", true));
-    raw_sim.generateRawSignals(feature_maps_.front(), experiment_);
+    raw_sim.generateRawSignals(feature_maps_.front(), experiment_, contaminants_map_);
 
     // post raw sim labeling
-    laberler_->postRawMSHook(feature_maps_);
+    labeler_->postRawMSHook(feature_maps_);
 
     // debug
     verbosePrintFeatureMap(feature_maps_, "RawSignal sim done");
@@ -238,7 +240,7 @@ namespace OpenMS {
     raw_tandemsim.setParameters(param_.copy("RawTandemSignal:", true));
     raw_tandemsim.generateRawTandemSignals(feature_maps_.front(), experiment_);
 
-    laberler_->postRawTandemMSHook(feature_maps_,experiment_);
+    labeler_->postRawTandemMSHook(feature_maps_,experiment_);
 
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
 
@@ -273,7 +275,7 @@ namespace OpenMS {
 		// here the globals params are listed that require to be in sync across several modules
 		// - first the global param name and following that the module names where this param occurs
 		// - Warning: the module params must have unchanged names and restrictions! (descriptions can differ though)
-		globals.push_back(StringList::create("ionization_type,Ionization,RawTandemSignal"));
+		globals.push_back(StringList::create("ionization_type,Ionization,RawSignal,RawTandemSignal"));
 		
 		String global_prefix = "Global";
 		// remove or add local params
@@ -329,9 +331,14 @@ namespace OpenMS {
 		return consensus_map_;
   }
   
+  FeatureMapSim const & MSSim::getContaminants() const
+  {
+		return contaminants_map_;
+  }
+
   ConsensusMap const & MSSim::getLabelingConsensus() const
   {
-    return laberler_->getConsensus();
+    return labeler_->getConsensus();
   }
  
 

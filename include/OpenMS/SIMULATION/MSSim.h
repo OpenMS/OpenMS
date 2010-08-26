@@ -89,7 +89,10 @@ namespace OpenMS
 
 		/// Access the charge consensus map of simulated features
     ConsensusMap const & getChargeConsensus() const;
-		
+
+		/// Access the contaminants feature mapmap of simulated features
+    FeatureMapSim const & getContaminants() const;
+
     /// Access the labeling consensus map of simulated features
     ConsensusMap const & getLabelingConsensus() const;
 
@@ -112,8 +115,10 @@ namespace OpenMS
 
 		ConsensusMap consensus_map_;
 
+    FeatureMapSim contaminants_map_;
+
     /// Labeling functionality
-    BaseLabeler * laberler_;
+    BaseLabeler * labeler_;
   };
 
 }

@@ -682,7 +682,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, split, symbol);
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'"+split+"'", "'"+symbol+"'");
 			}
 		}
 			
