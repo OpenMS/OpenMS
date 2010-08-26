@@ -44,7 +44,9 @@ using namespace std;
 /**
 	@page TOPP_PeptideIndexer PeptideIndexer
 	
-	@brief Refreshes the protein references for all peptide hits.
+	@brief Refreshes the protein references for all peptide hits. Each peptide hit is annotated by a target_decoy string, 
+	indicating if the peptide sequence is found in a 'target', a 'decoy' or in both 'target+decoy' protein. This information is 
+	crucial for the @ref TOPP_FalseDiscoveryRate tool. 
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PeptideIndexer.cli
