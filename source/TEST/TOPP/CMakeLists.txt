@@ -31,6 +31,118 @@ set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
 add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -write_wsdl WSDL_out.tmp)
 add_test("TOPP_WSDL_1_out1" ${DIFF} -in1 WSDL_out.tmp -in2 ${DATA_DIR_TOPP}/WSDL_out.wsdl)
 
+### test if -write_ini works (TODO: configure names of TOPP tools and types automatically)
+set(TOPP_INI_TOOLS
+AdditiveSeries
+BaselineFilter
+"CompNovo -type CompNovo"
+ConsensusID
+DBExporter
+DBImporter
+DTAExtractor
+Decharger
+ExecutePipeline
+FalseDiscoveryRate
+"FeatureFinder -type centroided"
+"FeatureLinker -type unlabeled"
+FileConverter
+FileFilter
+FileInfo
+FileMerger
+GenericWrapper
+IDDecoyProbability
+IDPosteriorErrorProbability
+IDFileConverter
+IDFilter
+IDMapper
+IDMerger
+IDRTCalibration
+#INIFileEditor
+"ITRAQAnalyzer -type 4plex"
+InspectAdapter
+InternalCalibration
+"MapAligner -type pose_clustering_affine"
+MapNormalizer
+MascotAdapter
+MascotAdapterOnline
+"NoiseFilter -type sgolay"
+OMSSAAdapter
+PILISIdentification
+PILISModel
+PTModel
+PTPredict
+"PeakPicker -type wavelet"
+PepNovoAdapter
+PeptideIndexer
+PrecursorIonSelector
+PrecursorMassCorrector
+ProteinInference
+ProteinQuantifier
+RTModel
+RTPredict
+Resampler
+"SILACAnalyzer -type double"
+SeedListGenerator
+SequestAdapter
+SpecLibSearcher
+"SpectraFilter -type BernNorm"
+TOFCalibration
+#TOPPAS
+#TOPPView
+TextExporter
+XTandemAdapter
+InclusionExclusionListCreator
+SpectraMerger
+
+### UTILS ####
+CVInspector
+CaapConvert
+DeMeanderize
+DecoyDatabase
+Digestor
+DigestorMotif
+ERPairFinder
+FFEval
+FuzzyDiff
+#HistView (not derived from TOPPBase)
+IDExtractor
+IDMassAccuracy
+IDSplitter
+IdXMLEvaluation
+ImageCreator
+LabeledEval
+MassCalculator
+MRMPairFinder
+"MSSimulator -type o18"
+MapAlignmentEvaluation
+OpenMSInfo
+SemanticValidator
+SequenceCoverageCalculator
+SpecLibCreator
+SpectrumGeneratorNetworkTrainer
+#UniqueIdAssigner (not derived from TOPPBase)
+XMLValidator
+
+)
+#####
+## one test for each TOPP tool, checking -write_ini functionality:
+#####
+
+foreach (i ${TOPP_INI_TOOLS})
+  string(REGEX MATCH "^(.*) (.*) (.*)" has_type ${i}) ## search for +3 components in TOPP name (when it has a -type)
+  if (has_type STREQUAL "") ##regex did not match
+    add_test("TOPPWRITEINI_${i}" ${i} -write_ini "${i}.ini")  
+  else() ## regex matched
+    set(toolname ${CMAKE_MATCH_1})
+    set(args ${CMAKE_MATCH_2} ${CMAKE_MATCH_3})
+    add_test("TOPPWRITEINI_${toolname}" ${toolname} ${args} -write_ini "${toolname}.ini")
+  endif()
+endforeach(i)
+
+
+##############################################################################################################################################################################
+###### TOPP tests  ############
+##############################################################################################################################################################################
 
 ### AdditiveSeries tests
 add_test("TOPP_AdditiveSeries_1" ${TOPP_BIN_PATH}/AdditiveSeries -in ${DATA_DIR_TOPP}/AdditiveSeries_1_feat11.featureXML ${DATA_DIR_TOPP}/AdditiveSeries_1_feat20.featureXML ${DATA_DIR_TOPP}/AdditiveSeries_1_feat22.featureXML ${DATA_DIR_TOPP}/AdditiveSeries_1_feat34.featureXML -ini ${DATA_DIR_TOPP}/AdditiveSeries_1_parameters.ini)

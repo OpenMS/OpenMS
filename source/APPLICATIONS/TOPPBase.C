@@ -175,7 +175,7 @@ namespace OpenMS
 														String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")"
 														,false);
 		}
-		registerFlag_("test","Enables the test mode (needed for software testing only)", true);
+		registerFlag_("test","Enables the test mode (needed for internal use only)", true);
 		registerFlag_("-help","Shows options");
     registerFlag_("-helphelp","Shows all options (including advanced)",false);
 
@@ -313,7 +313,7 @@ namespace OpenMS
 
 				//write types (forward declaration for readablility only. Could be defined in the message as well.
 				Param param = getDefaultParameters_();
-				param = param.copy(tool_name_ + ":1:",true);
+				param = param.copy(tool_name_ + ":" + String(instance_number_) + ":",true);
 				for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
 				{
 					//find out if the value is restricted
@@ -470,14 +470,20 @@ namespace OpenMS
 					writeDebug_( "INI file: " + (String)value_ini, 1 );
 					writeDebug_( "INI location: " + getIniLocation_(), 1);
 					param_inifile_.load( (String)value_ini );
-					param_instance_ = param_inifile_.copy( getIniLocation_(), true);
-					writeDebug_("Parameters from instance section:",param_instance_,2);
-					param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true );
-					writeDebug_("Parameters from common section with tool name:",param_common_tool_,2);
-					param_common_ = param_inifile_.copy( "common:", true );
-					writeDebug_("Parameters from common section without tool name:",param_common_,2);
-				}
-				param_ = param_cmdline_;
+        }
+        else
+        { // fill param with default values:
+          param_inifile_ = this->getDefaultParameters_();
+        }
+        // dissect INI file params:
+				param_instance_ = param_inifile_.copy( getIniLocation_(), true);
+				writeDebug_("Parameters from instance section:",param_instance_,2);
+				param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true );
+				writeDebug_("Parameters from common section with tool name:",param_common_tool_,2);
+				param_common_ = param_inifile_.copy( "common:", true );
+				writeDebug_("Parameters from common section without tool name:",param_common_,2);
+
+        param_ = param_cmdline_;
 				writeDebug_("Applying defaults to instance section:",param_common_,2);
 				param_.setDefaults( param_instance_ );
 				writeDebug_("Applying defaults to common section with tool name:",param_common_,2);
@@ -832,10 +838,10 @@ namespace OpenMS
 		cerr << endl;
 	}
 
-
 	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
+    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringOption param with a non-empty default is forbidden!", default_value);
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
 	}
 
 	void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
@@ -1032,46 +1038,62 @@ namespace OpenMS
 
 	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced, const StringList& tags)
 	{
+    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFile param with a non-empty default is forbidden!", default_value);
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
 	}
 
 	void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
 	{
+    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFile param with a non-empty default is forbidden!", default_value);
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
 	}
 
 	void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required, bool advanced)
 	{
+    if (required && !boost::math::isnan(default_value)) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required Int param with a non-quiet_NaN default is forbidden!", String(default_value));
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced));
 	}
 
 	void TOPPBase::registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required, bool advanced)
 	{
+    if (required)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param as 'required' is not possible, as Int's do not support NAN's, and thus we cannot distinguish whether values from INI files are actually set or not!", String(default_value));
+    }
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, default_value, description, required, advanced));
 	}
 
 	void TOPPBase::registerOutputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced )
 	{
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFileList param with a non-empty default is forbidden!", default_value.concatenate(","));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::OUTPUT_FILE_LIST,argument,default_value,description,required,advanced));
 	}
 
 	void TOPPBase::registerInputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced )
 	{
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param with a non-empty default is forbidden!", default_value.concatenate(","));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::INPUT_FILE_LIST,argument,default_value,description,required,advanced));
 	}
 
 	void TOPPBase::registerStringList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
 	{
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringList param with a non-empty default is forbidden!", default_value.concatenate(","));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::STRINGLIST,argument,default_value,description,required,advanced));
 	}
 
 	void TOPPBase::registerIntList_( const String& name, const String& argument, IntList default_value, const String& description, bool required, bool advanced )
 	{
+    stringstream ss;
+    ss << default_value;
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required IntList param with a non-empty default is forbidden!",  String(ss.str()) );
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::INTLIST,argument,default_value,description,required,advanced));
 	}
 
 	void TOPPBase::registerDoubleList_( const String& name, const String& argument, DoubleList default_value, const String& description, bool required, bool advanced)
 	{
+    stringstream ss;
+    ss << default_value;
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required DoubleList param with a non-empty default is forbidden!", String(ss.str()));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::DOUBLELIST,argument,default_value,description,required,advanced));
 	}
 
@@ -1111,11 +1133,15 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		if (p.required && getParam_(name).isEmpty() )
+		if (p.required && getParam_(name).isEmpty())
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 		String tmp = getParamAsString_(name, p.default_value);
+		if (p.required && tmp == p.default_value)
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
 		// if required or set by user, do some validity checks
@@ -1220,6 +1246,10 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 		double tmp = getParamAsDouble_(name, (DoubleReal)p.default_value);
+    if (p.required && boost::math::isnan(tmp ))
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		//check if in valid range
@@ -1246,6 +1276,7 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 		Int tmp = getParamAsInt_(name, (Int)p.default_value);
+    // not checking if NAN here (as done with DoubleReal, as NAN is not supported for Int)
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		//check if in valid range
@@ -1272,10 +1303,14 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 		StringList tmp_list = getParamAsStringList_(name, (StringList)p.default_value);
-		String tmp;
-		for(StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+		if (p.required && tmp_list.size()==0)
 		{
-			tmp = *it;
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+
+    for(StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+		{
+			String tmp(*it);
 			writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
 			// if required or set by user, do some validity checks
@@ -1380,6 +1415,10 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 		DoubleList tmp_list = getParamAsDoubleList_(name, (DoubleList)p.default_value);
+		if (p.required && tmp_list.size()==0)
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
 		DoubleReal tmp;
 		for(DoubleList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
 		{
@@ -1410,6 +1449,10 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 		IntList tmp_list = getParamAsIntList_(name, (IntList)p.default_value);
+		if (p.required && tmp_list.size()==0)
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
 
 		Int tmp;
 		for(IntList::iterator it = tmp_list.begin(); it < tmp_list.end();++it)
@@ -1883,7 +1926,7 @@ namespace OpenMS
 	Param TOPPBase::getDefaultParameters_() const
 	{
 		Param tmp;
-		String loc = tool_name_ + ":1:";
+		String loc = tool_name_ + ":" + String(instance_number_) + ":";
 		//parameters
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
@@ -2028,7 +2071,7 @@ namespace OpenMS
 		
 		//descriptions
 		tmp.setSectionDescription(tool_name_, tool_description_);
-		tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
+		tmp.setSectionDescription(tool_name_ + ":" + String(instance_number_), String("Instance '") + String(instance_number_) + "' section for '" + tool_name_ + "'");
 
 		// store "type" in INI-File (if given)
 		if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));

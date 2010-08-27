@@ -169,7 +169,7 @@ class TOPPBaseTestNOP
 {
   public:
     TOPPBaseTestNOP()
-      : TOPPBase("TOPPBaseTest", "A test class with non-optional parameters", false)
+      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
     {
       main(0,0);
     }
@@ -182,13 +182,13 @@ class TOPPBaseTestNOP
 
     virtual void registerOptionsAndFlags_()
     {
-      registerStringOption_("stringoption","<string>","string default","string description");
-      registerIntOption_("intoption","<int>",4711,"int description");
-      registerDoubleOption_("doubleoption","<double>",0.4711,"double description");
+      registerStringOption_("stringoption","<string>","","string description");
+      registerIntOption_("intoption","<int>",0,"int description",false);
+      registerDoubleOption_("doubleoption","<double>",std::numeric_limits<double>::quiet_NaN(),"double description");
       registerFlag_("flag","flag description");
-      registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description");
-      registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description");
-      registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
+      registerStringList_("stringlist","<stringlist>",StringList::create(""),"stringlist description");
+      registerIntList_("intlist","<intlist>",IntList::create(""),"intlist description");
+      registerDoubleList_("doublelist","<doublelist>",DoubleList::create(""),"doubelist description");
     }
 
     String getStringOption(const String& name) const
@@ -393,9 +393,7 @@ START_SECTION(([EXTRA]String getIntOption_(const String& name) const))
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getIntOption("imleeewenit"));
 
 	//missing required parameters
-	const char* string_cl2[2] = {a1, a11};
-	TOPPBaseTestNOP tmp3(2,string_cl2);
-	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getIntOption("intoption"));
+	//-> not testable, as ints cannot be made 'required' (no NAN supported)
 END_SECTION
 
 START_SECTION(([EXTRA]String getDoubleOption_(const String& name) const))
