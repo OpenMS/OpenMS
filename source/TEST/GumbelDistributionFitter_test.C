@@ -157,6 +157,31 @@ END_SECTION
 START_SECTION((GumbelDistributionFitter& operator = (const GumbelDistributionFitter& rhs)))
 NOT_TESTABLE
 END_SECTION
+GumbelDistributionFitter::GumbelDistributionFitResult* p = 0;
+START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult()))
+p =  new GumbelDistributionFitter::GumbelDistributionFitResult;
+TEST_NOT_EQUAL(ptr, 0)
+TEST_REAL_SIMILAR(p->a, 1.0)
+TEST_REAL_SIMILAR(p->b, 2.0)
+END_SECTION
+
+START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult(const GumbelDistributionFitter::GumbelDistributionFitResult& rhs)))
+p-> a = 5.0;
+p->b = 4.0;
+GumbelDistributionFitter::GumbelDistributionFitResult obj(*p);
+TEST_REAL_SIMILAR(obj.a, 5.0)
+TEST_REAL_SIMILAR(obj.b, 4.0)
+END_SECTION
+
+START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult& operator = (const GumbelDistributionFitter::GumbelDistributionFitResult& rhs)))
+p-> a = 3.0;
+p->b = 2.2;
+GumbelDistributionFitter::GumbelDistributionFitResult obj = *p;
+TEST_REAL_SIMILAR(obj.a, 3.0)
+TEST_REAL_SIMILAR(obj.b, 2.2)
+END_SECTION
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
