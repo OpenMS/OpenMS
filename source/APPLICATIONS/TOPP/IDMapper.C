@@ -46,7 +46,7 @@ using namespace std;
 /**
 	@page TOPP_IDMapper IDMapper
 
-	Assigns protein/peptide identifications to features or consensus features.
+	@brief Assigns protein/peptide identifications to features or consensus features.
 
 	<CENTER>
 	<table>

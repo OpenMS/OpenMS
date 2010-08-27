@@ -41,12 +41,11 @@ using namespace std;
 	@page TOPP_DTAExtractor DTAExtractor
 
 	@brief Extracts scans of an mzML file to several files in DTA format.
-
 <CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ DTAExtractor \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ DTAExtractor \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>

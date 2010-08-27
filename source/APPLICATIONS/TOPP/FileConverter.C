@@ -62,8 +62,8 @@ using namespace std;
 	</table>
 </CENTER>
 
-  Convert between MS file formats. This tool can used to convert a dataset, so it can be used as input to other TOPP tools
-  , as these usually only support mzML (for traceability).
+	Convert between MS file formats. This tool can used to convert a dataset, so it can be used as input to other TOPP tools
+	, as these usually only support mzML (for traceability).
 	The input and output file type are determined from the file extension, or from the first few lines
 	of the file. If file type determination is not possible, you have to give the input or output file type explicitly.
 
@@ -183,7 +183,7 @@ class TOPPFileConverter
       }
 		}
 		else if (in_type == FileTypes::FEATUREXML ||
-             in_type == FileTypes::TSV || 
+             in_type == FileTypes::TSV ||
              in_type == FileTypes::PEPLIST ||
              in_type == FileTypes::KROENIK ||
              in_type == FileTypes::EDTA)
@@ -221,7 +221,7 @@ class TOPPFileConverter
 		{
 			//annotate output with data processing info
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZDATA));
-			
+
 			MzDataFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
@@ -231,7 +231,7 @@ class TOPPFileConverter
 		{
 			//annotate output with data processing info
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZXML));
-			
+
 			MzXMLFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
@@ -241,7 +241,7 @@ class TOPPFileConverter
 		{
 			//add data processing entry
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-			
+
 			DTA2DFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
@@ -251,7 +251,7 @@ class TOPPFileConverter
 		{
 			//add data processing entry
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-				
+
 			MascotGenericFile f;
 			Param p(f.getParameters());
 			p.setValue("peaklists_only", "true");
@@ -261,7 +261,7 @@ class TOPPFileConverter
 		else if (out_type == FileTypes::FEATUREXML)
 		{
 		  if ( in_type == FileTypes::FEATUREXML ||
-           in_type == FileTypes::TSV || 
+           in_type == FileTypes::TSV ||
            in_type == FileTypes::PEPLIST ||
            in_type == FileTypes::KROENIK ||
            in_type == FileTypes::EDTA)

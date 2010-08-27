@@ -55,6 +55,20 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via Mascot.
 
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MascotAdapterOnline \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+		</tr>
+	</table>
+</CENTER>
+
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra. It communicates with the Mascot server
 	over the network and is not needed to be called from same machine.
@@ -65,6 +79,11 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MascotAdapterOnline.cli
+
+	For the parameters of the algorithm section see the algorithms documentation: @n
+	@ref OpenMS::MascotRemoteQuery "Mascot_server" @n
+	@ref OpenMS::MascotGenericFile "Mascot_parameters" @n
+
 */
 
 // We do not want this class to show up in the docu:

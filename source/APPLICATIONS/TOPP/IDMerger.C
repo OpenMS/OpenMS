@@ -39,17 +39,34 @@ using namespace std;
 
 /**
 	@page TOPP_IDMerger IDMerger
-	
-	@brief Merges several idXML files into one idXML file.
-	
-	You can merge an unlimited number of files into one idXML file.
 
-	With the @p -pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). The @ref TOPP_IDFileConverter can be used to convert pepXML or protXML to idXML.
-	
-	This tool is typically applied before @ref TOPP_ConsensusID or @ref TOPP_IDMapper.
+	@brief Merges several idXML files into one idXML file.
+
+	<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDMerger \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
+		</tr>
+	</table>
+	</CENTER>
+
+	You can merge an unlimited number of files into one idXML file. The @ref TOPP_IDFileConverter can be used to convert pepXML or protXML to idXML.
+	The peptide hits and protein hits of the input files will then be written into a single output file.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDMerger.cli
+
+	With the @p -pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!).
+
 */
 
 // We do not want this class to show up in the docu:
@@ -62,9 +79,9 @@ class TOPPIDMerger
 	TOPPIDMerger()
 		: TOPPBase("IDMerger","Merges several protein/peptide identification files into one file.")
 	{
-			
+
 	}
-	
+
  protected:
 	void mergePepXMLProtXML_(StringList filenames, vector<ProteinIdentification>&
 													 proteins, vector<PeptideIdentification>& peptides)
@@ -110,14 +127,14 @@ class TOPPIDMerger
 				hit_values[hit_it->getAccession()] = make_pair(hit_it->getScore(),
 																											 hit_it->getCoverage());
 			}
-			
+
 			// merge protein information:
 			proteins.swap(pepxml_proteins);
 			for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
 					 prot_it != proteins.end(); ++prot_it)
 			{
 				prot_it->getProteinGroups() = protein.getProteinGroups();
-				prot_it->getIndistinguishableProteins() = 
+				prot_it->getIndistinguishableProteins() =
 					protein.getIndistinguishableProteins();
 				// TODO: since a protXML file can integrate data from several protein
 				// identification runs, the protein groups/indistinguishable proteins
@@ -133,7 +150,7 @@ class TOPPIDMerger
 				for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
 						 hit_it != prot_it->getHits().end(); ++hit_it)
 				{
-					map<String, pair<DoubleReal, DoubleReal> >::const_iterator pos = 
+					map<String, pair<DoubleReal, DoubleReal> >::const_iterator pos =
 						hit_values.find(hit_it->getAccession());
 					if (pos == hit_values.end())
 					{
@@ -156,16 +173,16 @@ class TOPPIDMerger
 		setValidFormats_("out",StringList::create("idXML"));
 		registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case.");
 	}
-	
+
 	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-	
+
 		StringList file_names = getStringList_("in");
 		String out = getStringOption_("out");
-		
+
 		if (file_names.size() < 2)
 		{
 			writeLog_("Less than two filenames given. Aborting!");
@@ -180,7 +197,7 @@ class TOPPIDMerger
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
-				
+
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
@@ -202,7 +219,7 @@ class TOPPIDMerger
 				vector<ProteinIdentification> additional_protein_identifications;
 				vector<PeptideIdentification> additional_identifications;
 				IdXMLFile().load(file_names[i], additional_protein_identifications, additional_identifications);
-			
+
 				for (Size i=0; i<additional_protein_identifications.size();++i)
 				{
 					if (find(used_ids.begin(), used_ids.end(), additional_protein_identifications[i].getIdentifier())!=used_ids.end())
@@ -212,18 +229,18 @@ class TOPPIDMerger
 					}
 					used_ids.push_back(additional_protein_identifications[i].getIdentifier());
 				}
-			
+
 				protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
 				identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
 			}
 		}
-															
+
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-			
+
 		IdXMLFile().store(out, protein_identifications, identifications);
-			
+
 		return EXECUTION_OK;
 	}
 };
