@@ -200,7 +200,8 @@ svn propset svn:eol-style native MyClass.C
 
 	    <LI><b>How do I add a new TOPP test?</b><BR>
         <OL>
-          <LI> Add commands to @em %OpenMS/source/TEST/TOPP/CMakeLists.txt
+          <LI> Add commands to @em %OpenMS/source/TEST/TOPP/CMakeLists.txt (where it fits alphabetically) and also add its name to the tools list at the top of the file, so
+          that the '-write_ini' functionality can be tested.
         </OL>
 
 	    <LI><b>How do I add a new GUI test (for QT Gui classes) for the class <TT>MyClass</TT>?</b><BR>

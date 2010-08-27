@@ -1,6 +1,13 @@
 #
 # README:
 #
+# This file contains the declarations of all TOPP/UTILS tests that are executed by CTest
+#
+# In order to add a test do the following:
+# - add the name of the tool to the ALL_WRITEINI_TOOLS list (see below), in order to check -write_ini functionality
+# - add specific tests for your tool (this usually involves FuzzyDiff) - see below for examples
+# - for UTILS we do not require any tests, but you are encouraged to provide them!
+#
 # Test names (the first argument of 'add_test') must be distinct.
 # If not, the first definition of the test is overwritten!
 #
@@ -32,7 +39,7 @@ add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -write_wsdl WSDL_out.tmp)
 add_test("TOPP_WSDL_1_out1" ${DIFF} -in1 WSDL_out.tmp -in2 ${DATA_DIR_TOPP}/WSDL_out.wsdl)
 
 ### test if -write_ini works (TODO: configure names of TOPP tools and types automatically)
-set(TOPP_INI_TOOLS
+set(ALL_WRITEINI_TOOLS
 AdditiveSeries
 BaselineFilter
 "CompNovo -type CompNovo"
@@ -128,7 +135,7 @@ XMLValidator
 ## one test for each TOPP tool, checking -write_ini functionality:
 #####
 
-foreach (i ${TOPP_INI_TOOLS})
+foreach (i ${ALL_WRITEINI_TOOLS})
   string(REGEX MATCH "^(.*) (.*) (.*)" has_type ${i}) ## search for +3 components in TOPP name (when it has a -type)
   if (has_type STREQUAL "") ##regex did not match
     add_test("TOPPWRITEINI_${i}" ${i} -write_ini "${i}.ini")  
