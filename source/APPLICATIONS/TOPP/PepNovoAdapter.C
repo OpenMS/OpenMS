@@ -65,6 +65,21 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via PepNovo.
 
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PepNovoAdapter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzXML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+		</tr>
+	</table>
+</CENTER>
+
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra.
 
@@ -106,31 +121,31 @@ class TOPPPepNovoAdapter
 
 			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
 			registerStringOption_("temp_data_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", true);
-      registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
+			registerStringOption_("model_directory", "<file>", " ", "Mame of the directory where the model files are kept.",true);
       addEmptyLine_ ();
       addText_("PepNovo Parameters");
-			registerFlag_("correct_pm", "find optimal precursor mass and charge values.");
-			registerFlag_("use_spectrum_charge", "do not correct charge");
-			registerFlag_("use_spectrum_mz", "do not correct the precursor m/z value that appears in the file.");
-			registerFlag_("no_quality_filter", "do not remove low quality spectra.");
-			registerDoubleOption_("fragment_tolerance", "<Float>", -1.0, "the fragment tolerance (between 0 and 0.75 Da. Set to -1.0 to use model's default setting)", false, false);
-			registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "the precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
-			registerStringOption_("model", "<file>", "CID_IT_TRYP", "name of the model that should be used", false);
+      registerFlag_("correct_pm", "Find optimal precursor mass and charge values.");
+      registerFlag_("use_spectrum_charge", "Do not correct charge");
+      registerFlag_("use_spectrum_mz", "Do not correct the precursor m/z value that appears in the file.");
+      registerFlag_("no_quality_filter", "Do not remove low quality spectra.");
+      registerDoubleOption_("fragment_tolerance", "<Float>", -1.0, "The fragment tolerance (between 0 and 0.75 Da. Set to -1.0 to use model's default setting)", false, false);
+      registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "The precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
+      registerStringOption_("model", "<file>", "CID_IT_TRYP", "Name of the model that should be used", false);
 
-			registerStringOption_("digest", "", "TRYPSIN", "enzyme used for digestion (default TRYPSIN)", false);
+			registerStringOption_("digest", "", "TRYPSIN", "Enzyme used for digestion (default TRYPSIN)", false);
 			setValidStrings_("digest", StringList::create("TRYPSIN,NON_SPECIFIC"));
 
-			registerIntOption_("tag_length", "<num>", -1, "returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
+			registerIntOption_("tag_length", "<num>", -1, "Returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
 
-			registerIntOption_("num_solutions", "<num>", 20, "number of solutions to be computed", false);
+			registerIntOption_("num_solutions", "<num>", 20, "Number of solutions to be computed", false);
 			setMinInt_("num_solutions",1);
 			setMaxInt_("num_solutions",2000);
 
 			std::vector<String>all_possible_modifications;
 			ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
-			registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
+			registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "List of fixed modifications", false);
 			setValidStrings_("fixed_modifications", all_possible_modifications);
-			registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
+			registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "List of variable modifications", false);
 			setValidStrings_("variable_modifications", all_possible_modifications);
 		}
 
@@ -321,6 +336,10 @@ class TOPPPepNovoAdapter
         if (pm_tolerance != -1 ) arguments<<"-pm_tolerance"<<String(pm_tolerance).toQString();
         if (fragment_tolerance != -1 ) arguments<<"-fragment_tolerance" <<String(fragment_tolerance).toQString();
         if (!ptm_command.empty()) arguments<<"-PTMs" <<ptm_command.toQString();
+        if(getFlag_("correct_pm")) arguments<<"-correct_pm";
+        if(getFlag_("use_spectrum_charge")) arguments<<"-use_spectrum_charge";
+        if(getFlag_("use_spectrum_mz")) arguments<<"-use_spectrum_mz";
+        if(getFlag_("no_quality_filter")) arguments<<"-no_quality_filter";
         arguments<<"-digest" << digest.toQString();
         arguments<<"-num_solutions" << String(num_solutions).toQString();
         if(tag_length!=-1)arguments<<"-tag_length" << String(tag_length).toQString();

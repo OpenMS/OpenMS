@@ -81,15 +81,15 @@ END_SECTION
 
 START_SECTION([DeNovoIonScoring::IonScore] IonScore(const IonScore &rhs))
   NOT_TESTABLE
-END_TEST
+END_SECTION
 
 START_SECTION([DeNovoIonScoring::IonScore] virtual ~IonScore())
   NOT_TESTABLE
-END_TEST
+END_SECTION
 
 START_SECTION([DeNovoIonScoring::IonScore] IonScore& operator=(const IonScore &rhs))
   NOT_TESTABLE
-END_TEST
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////
