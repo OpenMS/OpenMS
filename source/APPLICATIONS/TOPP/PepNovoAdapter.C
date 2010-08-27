@@ -65,7 +65,6 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via PepNovo.
 
-
 <CENTER>
 	<table>
 		<tr>
