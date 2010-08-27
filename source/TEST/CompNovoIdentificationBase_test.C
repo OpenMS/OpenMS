@@ -101,7 +101,7 @@ START_SECTION([CompNovoIdentificationBase::Permut] virtual ~Permut())
 END_SECTION
 
 START_SECTION([CompNovoIdentificationBase::Permut] void setPermut(const std::set< String >::const_iterator &it))
-	std::set<String>::const_iterator it_zero = 0;
+	std::set<String>::const_iterator it_zero;
 	CompNovoIdentificationBase::Permut perm(it_zero, 50.0);
 	perm.setPermut(it);
 	TEST_EQUAL(*perm.getPermut(), "TESTSTRING");
