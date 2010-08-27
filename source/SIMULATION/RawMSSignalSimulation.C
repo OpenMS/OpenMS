@@ -504,7 +504,7 @@ namespace OpenMS {
       
       // ... create contaminants...
       FeatureMapSim::FeatureType feature;
-      feature.setRT( (contaminants_[i].rt_end-contaminants_[i].rt_start)/2 );
+      feature.setRT( (contaminants_[i].rt_end+contaminants_[i].rt_start)/2 );
       feature.setMZ( contaminants_[i].sf.getMonoWeight() );
       feature.setIntensity(contaminants_[i].intensity);
       if (contaminants_[i].shape == RT_RECTANGULAR)
