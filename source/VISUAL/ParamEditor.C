@@ -627,10 +627,12 @@ namespace OpenMS
 						}
 						if (irest!="")
 						{
-						  if (irest.size() > 255)
-						    irest = irest.prefix(251) + "...";
-						  
-							item->setText(3, irest.toQString());
+							String r_text=irest;
+						  if (r_text.size() > 255)
+							{	// truncate restriction text, as some QT versions (4.6 & 4.7) will crash if text is too long
+								r_text = irest.prefix(251) + "...";
+							}
+							item->setText(3, r_text.toQString());
 						}
 						item->setData(2,Qt::UserRole,irest.toQString());
 					}
