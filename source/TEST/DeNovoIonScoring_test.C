@@ -75,6 +75,22 @@ START_SECTION((virtual void getIonScores(std::vector< std::vector< IonScore > > 
 }
 END_SECTION
 
+START_SECTION([DeNovoIonScoring::IonScore] IonScore())
+  NOT_TESTABLE
+END_SECTION
+
+START_SECTION([DeNovoIonScoring::IonScore] IonScore(const IonScore &rhs))
+  NOT_TESTABLE
+END_TEST
+
+START_SECTION([DeNovoIonScoring::IonScore] virtual ~IonScore())
+  NOT_TESTABLE
+END_TEST
+
+START_SECTION([DeNovoIonScoring::IonScore] IonScore& operator=(const IonScore &rhs))
+  NOT_TESTABLE
+END_TEST
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

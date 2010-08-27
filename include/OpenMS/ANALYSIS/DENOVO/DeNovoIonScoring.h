@@ -44,15 +44,15 @@ namespace OpenMS
   class OPENMS_DLLAPI DeNovoIonScoring
   	: public DefaultParamHandler
   {
-  	public:
-	
-			/** @brief IonScore 
+  	public:	
+      /** @brief IonScore
 
 					IonScore describes the likelihood of position to be prefix residue masses (in case of 
 					an b-ion centric algorithm). 
 			*/
 			class IonScore
 			{
+			 public:
         /// score 
         DoubleReal score;
 
