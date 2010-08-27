@@ -55,7 +55,7 @@ START_SECTION((virtual ~GumbelDistributionFitter()))
 }
 END_SECTION
 
-START_SECTION((GumbelDistributionFitResult GumbelDistributionFitter::fit(std::vector< DPosition< 2 > >& points)))
+START_SECTION((GumbelDistributionFitResult fit(std::vector<DPosition<2> >& points)))
 {
 
 		DPosition<2> pos;
@@ -130,7 +130,7 @@ START_SECTION((GumbelDistributionFitResult GumbelDistributionFitter::fit(std::ve
 }
 END_SECTION
 
-START_SECTION((void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult& result)))
+START_SECTION((void setInitialParameters(const GumbelDistributionFitResult& result)))
 {
   GumbelDistributionFitter f1;
   GumbelDistributionFitter::GumbelDistributionFitResult result;
@@ -140,7 +140,7 @@ START_SECTION((void GumbelDistributionFitter::setInitialParameters(const GumbelD
 }
 END_SECTION
 
-START_SECTION((const String& GumbelDistributionFitter::getGnuplotFormula() const ))
+START_SECTION((const String& getGnuplotFormula() const ))
 {
   String formula = ptr->getGnuplotFormula();
 	// f(x)=(1/1) * exp(-(x - 1)/1) * exp(-1 * exp(-(x-1)/1))
@@ -150,6 +150,13 @@ START_SECTION((const String& GumbelDistributionFitter::getGnuplotFormula() const
 }
 END_SECTION
 
+START_SECTION((GumbelDistributionFitter(const GumbelDistributionFitter& rhs)))
+NOT_TESTABLE
+END_SECTION
+
+START_SECTION((GumbelDistributionFitter& operator = (const GumbelDistributionFitter& rhs)))
+NOT_TESTABLE
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

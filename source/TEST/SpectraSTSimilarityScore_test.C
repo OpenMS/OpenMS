@@ -241,11 +241,70 @@ NOT_TESTABLE
 END_SECTION
 
 START_SECTION(DoubleReal dot_bias(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2, DoubleReal dot_product=-1) const)
+	PeakSpectrum s1,s2;
+	Peak1D peak;
+	peak.setIntensity(1);
+	peak.setMZ(1);
+	s1.push_back(peak);
+		peak.setIntensity(0);
+	peak.setMZ(2);
+	s1.push_back(peak);
+		peak.setIntensity(2);
+	peak.setMZ(3);
+	s1.push_back(peak);
+		peak.setIntensity(3);
+	peak.setMZ(4);
+	s1.push_back(peak);
 	
+		peak.setIntensity(0);
+	peak.setMZ(1);
+	s2.push_back(peak);
+		peak.setIntensity(4);
+	peak.setMZ(2);
+	s2.push_back(peak);
+		peak.setIntensity(5);
+	peak.setMZ(3);
+	s2.push_back(peak);
+		peak.setIntensity(6);
+	peak.setMZ(4);
+	s2.push_back(peak);
+		peak.setIntensity(0);
+	peak.setMZ(5);
+	s2.push_back(peak);
+	BinnedSpectrum bin(1,1,s1);
+
+	BinnedSpectrum bin2(1,1,s2);
+
+		
+	TEST_REAL_SIMILAR(ptr->dot_bias(bin,bin2,1), 98.585 );
+	TEST_REAL_SIMILAR(ptr->dot_bias(bin2,bin,1), 98.585);
 END_SECTION
 START_SECTION(BinnedSpectrum transform(const PeakSpectrum& spec))
-
-
+	PeakSpectrum s1;
+	Peak1D peak;
+	peak.setIntensity(1);
+	peak.setMZ(1);
+	s1.push_back(peak);
+		peak.setIntensity(0);
+	peak.setMZ(2);
+	s1.push_back(peak);
+		peak.setIntensity(2);
+	peak.setMZ(3);
+	s1.push_back(peak);
+		peak.setIntensity(3);
+	peak.setMZ(4);
+	s1.push_back(peak);
+	BinnedSpectrum bin = ptr->transform(s1);
+	
+	SparseVector<Real>::SparseVectorIterator iter = bin.getBins().begin();
+	TEST_REAL_SIMILAR((DoubleReal)*iter,0.1205);
+		iter++;
+	TEST_REAL_SIMILAR((DoubleReal)*iter,0.3614);
+		iter++;
+			TEST_REAL_SIMILAR((DoubleReal)*iter,0.602);
+		iter++;
+			TEST_REAL_SIMILAR((DoubleReal)*iter,0.602);
+	delete ptr;
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

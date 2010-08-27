@@ -43,23 +43,23 @@ using namespace std;
 /**
 	@page TOPP_IDPosteriorErrorProbability IDPosteriorErrorProbability
 	
-	@brief  Tool to estimate the probability of peptide hit to be incorrectly assigned.
+	@brief  Tool to estimate the probability of peptide hits to be incorrectly assigned.
 	
 	By default an estimation is performed using the (inverse) gumbel distribution for incorrectly assigned sequences 
-	and a gaussian distribution for correctly assigned sequences. The probabilities are calculated using bayes law, similar to PeptideProphet.
+	and a gaussian distribution for correctly assigned sequences. The probabilities are calculated by using bayes law, similar to PeptideProphet.
 	Alternatively, a second gaussian distribution can be used for incorreclty assigned sequences.
-	At the moment, it is able to handle Xtandem, Mascot and OMSSA scores.
+	At the moment, IDPosteriorErrorProbability is able to handle Xtandem, Mascot and OMSSA scores.
 	
 	In order to validate the computed probabilities one can adjust the fit_algorithm subsection. 
-	The easiest way to do this, is to create a default ini file with the parameter -write_ini <file_name>.
-	Secondly, it is suggested to open the created ini-file with the INIFileEditor. 
+	The easiest way, is to create a default ini file with the parameter -write_ini file_name.
+	Afterwards, it is suggested to open the created ini-file with INIFileEditor. 
 	There are three parameters for the plot: 
-	The parameter output_plots is by default false. If set to true the plots will be created.
+	The parameter output_plots is by default false. If set to true the plot will be created.
 	The scores are plotted in form of bins. Each bin represents a set of scores in a range of (highest_score - smallest_score)/number_of_bins (if all scores have positive values).
-	The middle point of the bin is the mean of the scores it represents.
-	Finally, the parameter output_name should be used to give the plot a unique name. The algorithm then creates two files. One with the binned scores and one with all steps of the estimation.
+	The midpoint of the bin is the mean of the scores it represents.
+	Finally, the parameter output_name should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
 	
-	The plots are saved in a gnuplot file. Therefore, to visualize the plots as a pdf one has to use gnuplot. e.g. gnuplot <filename>. This should output a file which contains all steps of the estimation.
+	Actually, the plots are saved as a gnuplot file. Therefore, to visualize the plots one has to use gnuplot, e.g. gnuplot file_name. This should output a postscript file which contains all steps of the estimation.
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDPosteriorErrorProbability.cli
@@ -74,7 +74,7 @@ class TOPPIDPosteriorErrorProbability
 {
  public:
 	TOPPIDPosteriorErrorProbability()
-		: TOPPBase("IDPosteriorErrorProbability","Estimates peptide probabilities for a set of search engine scores using a mixture model.")
+		: TOPPBase("IDPosteriorErrorProbability","Estimates probabilities for incorreclty assigned peptide sequences and a set of search engine scores using a mixture model.")
 	{
 		
 	}

@@ -47,7 +47,7 @@ namespace OpenMS
 	
 	    This class fits either a Gumbel distribution and a Gauss distribution to a set of data points or two Gaussian distributions using the EM algorithm.
 	    One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
-			@Note All paaremters are stored in GaussFitResult. In the case of the gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
+			@note All paremters are stored in GaussFitResult. In the case of the gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
 			
 			@ingroup Math
 		*/
@@ -172,5 +172,5 @@ namespace OpenMS
 	}
 }
 
-#endif
+#endif // OPENMS_MATH_STATISTICS_POSTERIORERRORPROBABILITYMODEL_H
 
