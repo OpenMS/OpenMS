@@ -27,14 +27,14 @@
 
 /**
   @page TOPP_documentation TOPP documentation
-  
+
   'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
-  
+
   <BR>
-  
+
  	The TOPP tools are divided into several subgroups:
- 	
+
   <b>File Handling</b>
 <!--  %% removed from Docu (still available in TOPP) because of lack of usage/support
   - @subpage TOPP_DBExporter - Exports data from an %OpenMS database to a file.
@@ -78,7 +78,7 @@
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
-  
+
   <b>Protein/Peptide Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
@@ -89,14 +89,16 @@
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
-  - @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications.
+<!--  %% removed from Docu (still available in TOPP) because of operability
+- @subpage TOPP_PILISIdentification - Trains the PILIS model using a given set of spectra and identifications.
+- @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications.
+-->
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
-  
-	
-	<b>Targeted Experiments</b>
+
+  <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
   - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
-  
+
   <b>Peptide Property Prediction</b>
   - @subpage TOPP_PTModel - Trains a model for the prediction of proteotypic peptides from a training set.
   - @subpage TOPP_PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel.
@@ -114,5 +116,5 @@
 
   <b>Misc</b>
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
-	- @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
+  - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
 */

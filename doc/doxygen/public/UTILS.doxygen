@@ -54,7 +54,7 @@
 
   <b>Peptide identification</b>
 	- @subpage UTILS_Digestor - Digests a protein database in-silico.
-	-@subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
+	- @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
 	- @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
 	- @subpage UTILS_SequenceCoverageCalculator - Prints information about IdXML files.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from IdXML files.
@@ -69,7 +69,9 @@
 	<b>Misc</b>
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
 	- @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
+<!--  %% removed from Docu (still available in TOPP) because of lack of usage/support
   - @subpage UTILS_HistView - A viewer for histograms.
+-->
   - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
   - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for probabilistic network as input for AdvancedSpectrumGenerator.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.

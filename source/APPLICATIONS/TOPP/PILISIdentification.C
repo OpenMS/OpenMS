@@ -41,22 +41,40 @@ using namespace std;
 
 /**
 	@page TOPP_PILISIdentification PILISIdentification
-	
-	@brief Performs an ProteinIdentification with PILIS
 
-	The PILISIdentification TOPP tool performs a ProteinIdentification run with 
-	the PILIS ProteinIdentification engine. As input the file given in the in 
+	@brief Performs an ProteinIdentification with PILIS
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+
+	<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PILISIdentification \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PILISModel </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
+		</tr>
+	</table>
+	</CENTER>
+
+	The PILISIdentification TOPP tool performs a ProteinIdentification run with
+	the PILIS ProteinIdentification engine. As input the file given in the in
 	parameters is used. The identifications are written into an IdXML
-	file given in the out parameter. Additionally the model_file must be 
+	file given in the out parameter. Additionally the model_file must be
 	specified. To perform a search also a peptide database file should be
-	used,given in the peptide_db_file parameter. This should contain a 
-	peptide in a separate line, either only the sequence or additionally 
+	used,given in the peptide_db_file parameter. This should contain a
+	peptide in a separate line, either only the sequence or additionally
 	with weight and charge in the second and third column.
-	
-	@todo Check for missing precursors (Andreas)
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PILISIdentification.cli
+
+	@todo Check for missing precursors (Hiwi)
 */
 
 
@@ -71,7 +89,7 @@ class TOPPPILISIdentification
 			: TOPPBase("PILISIdentification", "performs a peptide/protein identification with the PILIS engine")
 		{
 		}
-	
+
 	protected:
 
 		void registerOptionsAndFlags_()
@@ -89,10 +107,10 @@ class TOPPPILISIdentification
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
 			registerIntOption_("max_pre_candidates", "<int>", 200, "number of candidates that are used for precise scoring", false);
 			registerIntOption_("max_candidates", "<int>", 20, "number of candidates that are reported by PILIS", false);
-      registerDoubleOption_("upper_mz", "<double>", 2000.0, "bla", false);
-			registerDoubleOption_("lower_mz", "<double>", 200.0, "bla", false);
+			registerDoubleOption_("upper_mz", "<double>", 2000.0, "upper mz interval endpoint", false);
+			registerDoubleOption_("lower_mz", "<double>", 200.0, "lower mz interval endpoint", false);
 			registerStringOption_("fixed_modifications", "<mods>", "", "monoisotopic_mass@residues e.g.: 57.021464@C", false);
-	
+
 			addEmptyLine_();
 			addText_("Parameters of PILISModel");
 			registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "bla", false);
@@ -111,21 +129,21 @@ class TOPPPILISIdentification
 
 			addEmptyLine_();
 			addText_("Parameters of PILISScoring");
-			registerFlag_("use_local_scoring", "bla");
-			registerFlag_("do_not_use_evalue_scoring", "bla");
+			registerFlag_("use_local_scoring", "...");
+			registerFlag_("do_not_use_evalue_scoring", "...");
 			registerIntOption_("survival_function_bin_size", "<int>", 20, "bla", false);
 			registerDoubleOption_("global_linear_fitting_threshold", "<double>", 0.1, "bla", false);
 			registerDoubleOption_("local_linear_fitting_threshold", "<double>", 0.5, "bla", false);
 
 			addEmptyLine_();
 		}
-		
+
 		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-	
+
 			//input/output files
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
@@ -140,11 +158,11 @@ class TOPPPILISIdentification
       f.load(in, exp);
 
 			writeDebug_("Data set contains " + String(exp.size()) + " spectra", 1);
-			
+
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-		
+
 			writeDebug_("Reading model file", 2);
 
 			// create model an set the given options
@@ -170,14 +188,14 @@ class TOPPPILISIdentification
 
 			writeDebug_("Reading sequence db", 2);
 
-			// create sequence db 
+			// create sequence db
 			SuffixArrayPeptideFinder*  sapf = new SuffixArrayPeptideFinder(getStringOption_("peptide_db_file"), "trypticCompressed");
 			sapf->setTolerance(getDoubleOption_("precursor_mass_tolerance"));
 			sapf->setNumberOfModifications(0);
 			sapf->setUseTags(false);
 
 			//exp.resize(50); // TODO
-			
+
 			UInt max_charge(3), min_charge(1); // TODO
 			vector<double> pre_weights;
 			for (RichPeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
@@ -208,7 +226,7 @@ class TOPPPILISIdentification
 
 			// create ProteinIdentification and set the options
 			PILISIdentification PILIS_id;
-			
+
 			PILIS_id.setModel(model);
 
 			Param id_param(PILIS_id.getParameters());
@@ -237,7 +255,7 @@ class TOPPPILISIdentification
 					PeptideIdentification id;
 
 					map<String, UInt> cand;
-				
+
 					for (UInt z = min_charge; z <= max_charge; ++z)
 					{
 						double pre_weight = (it->getPrecursors()[0].getMZ()* (double)z) - (double)z;
@@ -264,14 +282,14 @@ class TOPPPILISIdentification
 							{
 								continue;
 							}
-									
+
 							cand[seq] = z;
 						}
 					}
 
 					cerr << "#cand=" << cand.size() << endl;
 					PILIS_id.getIdentification(cand, id, *it);
-		
+
 					id.setMetaValue("RT", it->getRT());
 					id.setMetaValue("MZ", it->getPrecursors()[0].getMZ());
 
@@ -295,7 +313,7 @@ class TOPPPILISIdentification
 				scoring_param.setValue("global_linear_fitting_threshold", getDoubleOption_("global_linear_fitting_threshold"));
 				scoring_param.setValue("local_linear_fitting_threshold", getDoubleOption_("local_linear_fitting_threshold"));
 				scoring.setParameters(scoring_param);
-	
+
 				scoring.getScores(ids);
 			}
 
@@ -310,7 +328,7 @@ class TOPPPILISIdentification
 					ids[i].setHits(hits);
 				}
 			}
-			
+
 			delete model;
 
 
@@ -320,7 +338,7 @@ class TOPPPILISIdentification
 
 			DateTime now;
 			now.now();
-			
+
 			String date_string;
 			//now.get(date_string); // @todo Fix it (Andreas)
 			String identifier("PILIS_"+date_string);
@@ -364,7 +382,7 @@ class TOPPPILISIdentification
 			vector<ProteinIdentification> protein_identifications;
 			protein_identifications.push_back(protein_identification);
 			IdXMLFile().store(out, protein_identifications, ids);
-			
+
 			return EXECUTION_OK;
 		}
 };

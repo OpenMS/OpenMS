@@ -115,7 +115,7 @@ namespace OpenMS
 				{
 					types.push_back("");
 				}
-				
+
 				for (StringList::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
 					String type_arg ="";
@@ -123,7 +123,7 @@ namespace OpenMS
 					{
 						 type_arg = "-type " + *sit;
 					}
-					QStringList args; 
+					QStringList args;
 					args << type_arg.toQString() << " -write_ini " << tmp_file.toQString();
 					if (QProcess::execute(call.toQString(), args) == 0)
 					{
@@ -288,7 +288,7 @@ namespace OpenMS
           default_params.update(ini_params, true);
         }
 				outputFileWritable_(write_ini_file,"write_ini");
-				
+
 				default_params.store(write_ini_file);
 				return EXECUTION_OK;
 			}
@@ -446,7 +446,7 @@ namespace OpenMS
 				//end
 				os << "</wsdl:definitions>" << endl;
 				os.close();
-				
+
 				//validate written file
 				XMLValidator validator;
 				if (!validator.isValid(wsdl_file,File::find("SCHEMAS/WSDL_20030211.xsd")))
@@ -488,7 +488,7 @@ namespace OpenMS
 				checkParam_(param_instance_, (String)value_ini, getIniLocation_());
 				checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
 				checkParam_(param_common_, (String)value_ini, "common:" );
-				
+
 				//check if the version of the parameters file matches the version of this tool
 				String file_version = "";
 				if (param_inifile_.exists(tool_name_ + ":version"))
@@ -660,7 +660,7 @@ namespace OpenMS
 
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
-      
+
 		//determine max length of parameters (including argument) for indentation
 		UInt max_size = 0;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
@@ -744,7 +744,7 @@ namespace OpenMS
 					if (it->valid_strings.size()!=0)
 					{
 						StringList copy = it->valid_strings;
-						for (StringList::iterator str_it = copy.begin(); 
+						for (StringList::iterator str_it = copy.begin();
 								 str_it != copy.end(); ++str_it)
 						{
 							str_it->quote();
@@ -1841,7 +1841,7 @@ namespace OpenMS
 	void TOPPBase::outputFileWritable_(const String& filename, const String& param_name) const
 	{
 		writeDebug_( "Checking output file '" + filename + "'", 2 );
-    
+
     // prepare error message
     String message;
     if (param_name == "") message = "Cannot write output file!\n";
@@ -1917,7 +1917,7 @@ namespace OpenMS
 							{
 								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
-								if (!it->description.empty()) 
+								if (!it->description.empty())
 								{
 									// if there's no whitespace at the end of the description,
 									// insert a space before "(valid formats: ...)":
@@ -1965,7 +1965,7 @@ namespace OpenMS
 							{
 								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
-								if (!it->description.empty()) 
+								if (!it->description.empty())
 								{
 									// if there's no whitespace at the end of the description,
 									// insert a space before "(valid formats: ...)":
@@ -2028,10 +2028,10 @@ namespace OpenMS
 		{
 			tmp.setSectionDescription(loc + it->first, it->second);
 		}
-		
+
 		//set tool version
 		tmp.setValue(tool_name_ + ":version", VersionInfo::getVersion(), "Version of the tool that generated this parameters file.", StringList::create("advanced"));
-		
+
 		//descriptions
 		tmp.setSectionDescription(tool_name_, tool_description_);
 		tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
@@ -2042,9 +2042,9 @@ namespace OpenMS
 
 		// 2nd stage, use TOPP tool defaults from home (if existing)
 		Param tool_user_defaults(getToolUserDefaults_(tool_name_));
-		tmp.update(tool_user_defaults);				
+		tmp.update(tool_user_defaults);
 
-		// 3rd stage, use OpenMS.ini from library to override settings 
+		// 3rd stage, use OpenMS.ini from library to override settings
 		Param system_defaults(File::getSystemParameters_());
     // this currently writes to the wrong part of the ini-file (revise) or remove altogether:
     //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
@@ -2122,6 +2122,7 @@ namespace OpenMS
 		tools_map["MascotAdapterOnline"] = StringList::create("");
 		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
 		tools_map["OMSSAAdapter"] = StringList::create("");
+		tools_map["PILISIdentification"] = StringList::create("");
 		tools_map["PILISModel"] = StringList::create("");
 		tools_map["PTModel"] = StringList::create("");
 		tools_map["PTPredict"] = StringList::create("");
@@ -2143,10 +2144,10 @@ namespace OpenMS
 		tools_map["XTandemAdapter"] = StringList::create("");
 		tools_map["SILACAnalyzer"] = StringList::create("double,triple");
 		tools_map["SpectraMerger"] = StringList::create("");
-    tools_map["PrecursorMassCorrector"] = StringList::create("");
-    tools_map["GenericWrapper"] = StringList::create("");
-    tools_map["ProteinInference"] = StringList::create("");
-    tools_map["InclusionExclusionListCreator"] = StringList::create("");
+		tools_map["PrecursorMassCorrector"] = StringList::create("");
+		tools_map["GenericWrapper"] = StringList::create("");
+		tools_map["ProteinInference"] = StringList::create("");
+		tools_map["InclusionExclusionListCreator"] = StringList::create("");
 
 		return tools_map;
 	}
@@ -2182,7 +2183,7 @@ namespace OpenMS
 		util_map["ImageCreator"] = StringList::create("");
 		util_map["IDSplitter"] = StringList::create("");
 		util_map["MassCalculator"] = StringList::create("");
-		
+
 		return util_map;
 	}
 
