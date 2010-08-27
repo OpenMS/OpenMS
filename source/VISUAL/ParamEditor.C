@@ -627,6 +627,9 @@ namespace OpenMS
 						}
 						if (irest!="")
 						{
+						  if (irest.size() > 255)
+						    irest = irest.prefix(251) + "...";
+						  
 							item->setText(3, irest.toQString());
 						}
 						item->setData(2,Qt::UserRole,irest.toQString());
