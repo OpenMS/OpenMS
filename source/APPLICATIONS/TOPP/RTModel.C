@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -46,19 +46,18 @@ using namespace std;
 /**
 	@page TOPP_RTModel RTModel
 	
-	@brief Used to train a prediction model for peptide retention 
-				 time prediction or peptide separation prediction.
+	@brief Used to train a model for peptide retention time prediction or peptide separation prediction.
 
 	For retention time prediction, a support vector machine is 
 	trained with peptide sequences and their measured retention 
 	times.
-	For peptide separation prediction two files have to be given.
+	For peptide separation prediction, two files have to be given:
 	One file contains the positive examples (the peptides which
-	are collected) and one file contains the negative peptides
+	are collected) and the other contains the negative examples
 	(the flowthrough peptides).
 	
-	This methods and applications of this model are described 
-	in several publications:
+	These methods and applications of this model are described 
+	in the following publications:
 
 	Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
 	Statistical learning of peptide retention behavior in chromatographic separations: A new kernel-based approach for computational proteomics.
@@ -68,9 +67,8 @@ using namespace std;
 	Improving Peptide Identification in Proteome Analysis by a Two-Dimensional Retention Time Filtering Approach
 	J. Proteome Res. 2009, 8(8):4109-15
 
-
 	There are a number of parameters which
-	can be changed for the svm (specified in the ini file and command-line):
+	can be changed for the svm (specified in the ini file and command line):
 	<ul>
 		<li>
 			svm_type: the type of the svm (can be NU_SVR or 
@@ -78,9 +76,9 @@ using namespace std;
 			prediction)
 		</li>
 		<li>
-			kernel_type: the kernel function (can be POLY for the 
-				polynomial kernel or LINEAR for the linear kernel, or 
-				SVMWrapper::OLIGO for our POBK (recommended))
+			kernel_type: the kernel function (e.g., POLY for the 
+				polynomial kernel, LINEAR for the linear kernel or RBF for the gaussian kernel); we recommend 
+				SVMWrapper::OLIGO for our paired oligo-border kernel (POBK)
 		</li>
 		<li>
 			border_length: border length for the POBK
@@ -109,14 +107,13 @@ using namespace std;
 	<br>
 	
 	The last five parameters (sigma, degree, c, nu and p)
-	can be used in a 
-	cross validation (CV) to find the best parameters according to the 
+	can be used in a cross validation (CV) to find the best parameters according to the 
 	training set. Therefore you have to specify the start value of a
 	parameter, the step size in which the parameters should be increased
 	and a final value for the particular parameter such that the tested
 	parameter is never bigger than the given final value. If you want
-	to perform a cross validation for example for the parameter c, 
-  To enable CV (across all 5 parameters) set @em skip_cv to false in the INI file.
+	to perform a cross validation for example for the parameter c, enable CV (across all 5 parameters) and 
+	set @em skip_cv to <b>false</b> in the INI file. This can be easily done with using the INIFileEditor.
 
 
 	Furthermore, you can specify the number of partitions for the CV with

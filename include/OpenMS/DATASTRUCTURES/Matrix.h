@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -337,7 +337,17 @@ namespace OpenMS
 		 *  @note Works only for Matrix<double> and Matrix<float>
 		 *	@note Clean up the gsl_matrix using gsl_matrix_free (gsl_matrix * m)
 		 */
-		gsl_matrix* toGslMatrix();
+		gsl_matrix* toGslMatrix() {
+		  gsl_matrix* m_ptr = gsl_matrix_alloc(rows_, cols_);
+	  
+		  for ( size_type i = 0; i < this->rows_; ++i ) {
+		    for ( size_type j = 0; j < this->cols_; ++j ) {
+		      gsl_matrix_set (m_ptr, i, j, (double) (*this)(i,j));
+		    }
+		  }
+		  
+		  return m_ptr; 
+		}
 
 	protected:
 
@@ -351,8 +361,8 @@ namespace OpenMS
 
 	}; // class Matrix
 
-	template<> OPENMS_DLLAPI gsl_matrix* Matrix<double>::toGslMatrix();
-	template<> OPENMS_DLLAPI gsl_matrix* Matrix<float>::toGslMatrix();
+	// template<> OPENMS_DLLAPI gsl_matrix* Matrix<double>::toGslMatrix();
+	// template<> OPENMS_DLLAPI gsl_matrix* Matrix<float>::toGslMatrix();
 
 	/**@brief Print the contents to a stream.
 

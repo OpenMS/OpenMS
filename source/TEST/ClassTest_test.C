@@ -111,10 +111,11 @@ START_SECTION("TOLERANCE_RELATIVE()")
 }
 END_SECTION
 
-START_SECTION("NEW_TMP_FILE")
+START_SECTION("NEW_TMP_FILE()")
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	TEST::this_test = (tmp_filename != "");
+	TEST_EQUAL(tmp_filename != "", true);
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR()")
@@ -818,10 +819,12 @@ START_SECTION("__PRETTY_FUNCTION__")
 		std::string f_dummy(double, float,int,unsigned,long,unsigned long,char) { return __PRETTY_FUNCTION__; }
 	} dummy;
 	STATUS("\n\n\tExample for usage of __PRETTY_FUNCTION__ inside a member function of a nested class in main():\n\t" << dummy.f_dummy(0,0,0,0,0,0,0) << '\n')
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION("STATUS")
 	STATUS("status message")
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION("TEST_FILE_EQUAL")
@@ -829,6 +832,7 @@ START_SECTION("TEST_FILE_EQUAL")
 END_SECTION
 
 START_SECTION("ABORT_IF")
+	TEST_EQUAL(1, 1)
 	ABORT_IF(true)
 	TEST_EQUAL(1, 0)
 END_SECTION

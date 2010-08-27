@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Maintainer: Erhan Kenar $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
@@ -44,34 +44,29 @@ using namespace std;
 /**
 	@page TOPP_PTModel PTModel
 	
-	@brief Used to train a prediction model for the prediction
-					of proteotypic peptides.
+	@brief Used to train a model for the prediction of proteotypic peptides.
 	
-	Two input files have to be given.
-	One file contains the positive examples (the peptides which
-	are proteotypic) and one file contains the negative peptides
-	(the non proteotypic peptides).
+	The input consists of two files: One file contains the positive examples (the peptides which
+	are proteotypic) and the other contains the negative examples (the nonproteotypic peptides).
 	
 	Parts of this model has been described in the publication
 
 	Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gr&ouml;pl, Oliver Kohlbacher and Knut Reinert
-	LC-MSsim - a simulation software for Liquid ChromatographyMass Spectrometry data
+	LC-MSsim - a simulation software for Liquid Chromatography Mass Spectrometry data
 	BMC Bioinformatics 2008, 9:423.
 
-	There are a number of parameters which
-	can be changed for the svm (specified in the ini file):
+	There are a number of parameters which can be changed for the svm (specified in the ini file):
 	<ul>
 		<li>
-			kernel_type: the kernel function (can be POLY for the 
-				polynomial kernel or LINEAR for the linear kernel, or 
-				SVMWrapper::OLIGO for our POBK (recommended))
+			kernel_type: the kernel function (e.g., POLY for the 
+				polynomial kernel, LINEAR for the linear kernel or RBF for the gaussian kernel); we recommend 
+				SVMWrapper::OLIGO for our paired oligo-border kernel (POBK)
 		</li>
 		<li>
 			border_length: border length for the POBK
 		</li>
 		<li>
-			k_mer_length: length of the signals considered in the 
-			POBK
+			k_mer_length: length of the signals considered in the POBK
 		</li>
 		<li>
 			sigma: the amount of positional smoothing for the POBK
@@ -87,30 +82,18 @@ using namespace std;
 		</li>
 	</ul>
 	
-	<br>
-	
 	The last five parameters (sigma, degree, c, nu and p)
-	can be used in a 
-	cross validation (CV) to find the best parameters according to the 
-	training set. Therefore you have to specify the start value of a
+	are used in a cross validation (CV) to find the best parameters according to the 
+	training set. Thus, you have to specify the start value of a
 	parameter, the step size in which the parameters should be increased
 	and a final value for the particular parameter such that the tested
 	parameter is never bigger than the given final value. If you want
-	to perform a cross validation for example for the parameter c, you
+	to perform a cross validation, for example, for the parameter c, you
 	have to specify <b>c_start</b>, <b>c_step_size</b> and <b>c_stop</b>
-	in the ini file. So if you want to perform a CV for c from 0.1 to 2
-	with step size 0.1 you include the following lines into your ini-file:
-	<ul>
-		<li>
-			@code <ITEM name="c_start" value="0.1" type="float"/> @endcode
-		</li>
-		<li>
-			@code <ITEM name="c_step_size" value="0.1" type="float"/> @endcode
-		</li>
-		<li>
-			@code <ITEM name="c_stop" value="2" type="float"/> @endcode
-		</li>
-	</ul>
+	in the ini file. Let's say you want to perform a CV for c from 0.1 to 2
+	with step size 0.1. Open up your ini-file with INIFileEditor and modify the fields
+	c_start, c_step_size, and c_stop accordingly.
+	
 	If the CV should test additional parameters in a certain range 
 	you just include them analogously to the example above.
 	Furthermore, you can specify the number of partitions for the CV with
@@ -123,7 +106,7 @@ using namespace std;
 	<ol>
 		<li> 
 			Set the parameters of the svm: The PTModel application will train 
-			the svm with the training data and store the svm model
+			the svm with the training data and store the svm model.
 		</li>
 		<li>
 			Give a range of parameters for which a CV should be performed:

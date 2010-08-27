@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -48,13 +48,12 @@ using namespace std;
 	@brief This application is used to predict the likelihood 
 				 of peptides to be proteotypic.
 	
-	This method has been described in the publication
-  Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gr&ouml;pl, Oliver Kohlbacher and Knut Reinert
-  LC-MSsim - a simulation software for Liquid ChromatographyMass Spectrometry data
+	This method has been described in the publication 
+	
+	Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gr&ouml;pl, Oliver Kohlbacher and Knut Reinert LC-MSsim - a simulation software for Liquid ChromatographyMass Spectrometry data
   BMC Bioinformatics 2008, 9:423.
 
-	The input of this application 
-	is an svm model and an IdXML
+	The input of this application is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
 	This file should have been produced by the @ref TOPP_PTModel application.
