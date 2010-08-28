@@ -42,10 +42,9 @@ using namespace std;
 
 /**
 	@page TOPP_ITRAQAnalyzer ITRAQAnalyzer
-	
+
 	@brief Extracts and normalizes iTRAQ information from an MS experiment.
-	
-	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
 <CENTER>
 	<table>
 		<tr>
@@ -63,9 +62,11 @@ using namespace std;
 	</table>
 </CENTER>
 
-	Provide an idXML file that you obtained from the same data (e.g. by using InspectAdapter) 
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
+	Provide an idXML file that you obtained from the same data (e.g. by using InspectAdapter)
 	to have protein ratios reported, instead of peptide ratios.
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ITRAQAnalyzer.cli
 */
@@ -94,12 +95,12 @@ class TOPPITRAQAnalyzer
 		setValidFormats_("out",StringList::create("consensusXML"));
 
 		registerInputFile_ ("idxml", "<file>", "", "!not supported yet! idXML file with peptide identifications from tandemMS of the -in file", false, false);
-		
+
 		addEmptyLine_();
 		//addText_("Note: We highly recommend providing an idXML file with identifications. This enables ITRAQAnalyzer to report protein ratios!");
 
   	registerSubsection_("algorithm","Algorithm parameters section");
-			
+
 			// report ProteinIDs for Peptides: Mascot, OpenSource: XTandem, OMSA
 			//--> filter for search engine!
 			// to-check: SEQUEST?
@@ -116,7 +117,7 @@ class TOPPITRAQAnalyzer
 		tmp.setValue ("MetaInformation:Program", "OpenMS::ITRAQAnalyzer", "", StringList::create("advanced"));
 	  return tmp;
 	}
-	
+
  	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
@@ -125,7 +126,7 @@ class TOPPITRAQAnalyzer
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
 		String idxml = getStringOption_("idxml");
-		
+
 		Int itraq_type = (getStringOption_("type")=="4plex" ?  ItraqQuantifier::FOURPLEX : ItraqQuantifier::EIGHTPLEX );
 		//-------------------------------------------------------------
 		// loading input
@@ -145,13 +146,13 @@ class TOPPITRAQAnalyzer
 		ConsensusMap consensus_map_raw, consensus_map_quant;
 		// extract raw signals
 		itraq_ce.run(exp, consensus_map_raw);
-		
+
 		// do normalization
 		Param quant_param(getParam_().copy("algorithm:Quantification:",true));
 		ItraqQuantifier itraq_quant(itraq_type, quant_param);
 
 		// TODO: allow multiple input files and do statistics on labelling efficiency etc...
-		
+
 		if (File::readable(idxml))
 		{
 			IdXMLFile f;
@@ -165,7 +166,7 @@ class TOPPITRAQAnalyzer
 		{
 			itraq_quant.run(consensus_map_raw, consensus_map_quant);
 		}
-		
+
 
 		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the programm to quit then)
 		if (getStringOption_("id_pool").trim().length()>0) getDocumentIDTagger_().tag(consensus_map_raw);
@@ -179,10 +180,10 @@ class TOPPITRAQAnalyzer
 
 
 		//-------------------------------------------------------------
-		// writing output 
+		// writing output
 		//-------------------------------------------------------------
 		ConsensusXMLFile cm_file;
-		
+
 		//annotate output with data processing info
 		addDataProcessing_(consensus_map_raw, getProcessingInfo_(DataProcessing::QUANTITATION));
 		addDataProcessing_(consensus_map_quant, getProcessingInfo_(DataProcessing::QUANTITATION));

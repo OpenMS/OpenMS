@@ -43,23 +43,24 @@ using namespace std;
 
 	@brief Computes a protein identification based on the number of identified peptides.
 
-	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 <CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ ProteinInterference \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ ProteinInterference \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_MascotAdapter (or other ID engines)</td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
 		</tr>
 	</table>
 </CENTER>
+
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
 	This tool counts the peptide sequences that match a protein accession. From this count	for all protein hits in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in general to remove bad identifications.
 

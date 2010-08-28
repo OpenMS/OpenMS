@@ -51,8 +51,22 @@ using namespace std;
 
 /**
   @page TOPP_SpecLibSearcher SpecLibSearcher
- 
+
   @brief Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpecLibSearcher \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_SpecLibCreator </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+		</tr>
+	</table>
+</CENTER>
 
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
 
@@ -71,7 +85,7 @@ class TOPPSpecLibSearcher
 		: TOPPBase("SpecLibSearcher","Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.")
 		{
 		}
-		
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
@@ -83,7 +97,7 @@ class TOPPSpecLibSearcher
 			registerDoubleOption_("precursor_mass_tolerance","<tolerance>",3,"Precursor mass tolerance, (Th)",false);
 			registerIntOption_("round_precursor_to_integer","<number>",10,"many precursor m/z multipling number lead to the same number; are packed in the same vector for faster search.Should be higher for high-resolution data",false,true);
 		//	registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);
-			
+
    //   registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
      // registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
      // vector<String> valid_strings;
@@ -95,11 +109,11 @@ class TOPPSpecLibSearcher
      registerStringOption_("compare_function","<string>","ZhangSimilarityScore","function for similarity comparisson",false);
      PeakSpectrumCompareFunctor::registerChildren();
      setValidStrings_("compare_function",Factory<PeakSpectrumCompareFunctor>::registeredProducts());
-		 registerIntOption_("top_hits","<number>",10,"save the first <number> top hits. For all type -1",false);	
-     addEmptyLine_();    
+		 registerIntOption_("top_hits","<number>",10,"save the first <number> top hits. For all type -1",false);
+     addEmptyLine_();
      addText_("Filtering options. Most are especially useful when the query spectra are raw.");
-     registerIntOption_("min_peaks","<number>",5, "required mininum number of peaks for a query spectrum",false);     
-     registerDoubleOption_("remove_peaks_below_threshold","<threshold>",2.01,"All peaks of a query spectrum with intensities below <threshold> will be zeroed.",false);    
+     registerIntOption_("min_peaks","<number>",5, "required mininum number of peaks for a query spectrum",false);
+     registerDoubleOption_("remove_peaks_below_threshold","<threshold>",2.01,"All peaks of a query spectrum with intensities below <threshold> will be zeroed.",false);
      registerIntOption_("max_peaks","<number>",150,"Use only the top <number> of peaks.",false);
      registerIntOption_("cut_peaks_below","<number>",1000,"Remove all peaks which are lower than 1/<number> of the highest peaks. Default equals all peaks which are lower than 0.001 of the maximum intensity peak",false);
 
@@ -108,18 +122,18 @@ class TOPPSpecLibSearcher
      	registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("fixed_modifications", all_mods);
 
-			registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);	
+			registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("variable_modifications", all_mods);
 			addEmptyLine_();
 			addText_("");
 		}
-		
+
 		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-		
+
 			StringList in_spec = getStringList_("in");
 			StringList out = getStringList_("out");
 			String in_lib = getStringOption_("lib");
@@ -138,7 +152,7 @@ class TOPPSpecLibSearcher
 			if(top_hits < -1 )
 			{
 				writeLog_("top_hits (should be  >= -1 )");
-				return ILLEGAL_PARAMETERS;				
+				return ILLEGAL_PARAMETERS;
 			}
 			//-------------------------------------------------------------
 			// loading input
@@ -150,21 +164,21 @@ class TOPPSpecLibSearcher
 			}
 
 			time_t prog_time = time(NULL);
-			MSPFile spectral_library;			
+			MSPFile spectral_library;
 			RichPeakMap query, library;
 			//spectrum which will be identified
 			MzDataFile spectra;
 			spectra.setLogType(log_type_);
-			
+
 			time_t start_build_time = time(NULL);
 			//-------------------------------------------------------------
 			//building map for faster search
 			//-------------------------------------------------------------
-						
+
 			//library containing already identified peptide spectra
-			vector< PeptideIdentification > ids;			
+			vector< PeptideIdentification > ids;
 			spectral_library.load(in_lib,ids,library);
-			
+
 			map<Size, vector<PeakSpectrum> > MSLibrary;
 			{
 			RichPeakMap::iterator s;
@@ -176,7 +190,7 @@ class TOPPSpecLibSearcher
 				Size MZ_multi = (Size)precursor_MZ*precursor_mass_multiplier;
 				map<Size,vector<PeakSpectrum> >::iterator found;
 				found = MSLibrary.find(MZ_multi);
-				
+
 				PeakSpectrum librar;
 				bool variable_modifications_ok = true;
 				bool fixed_modifications_ok = true;
@@ -186,14 +200,14 @@ class TOPPSpecLibSearcher
 				{
 					for(Size i = 0; i< aaseq.size(); ++i)
 					{
-						const	Residue& mod  = aaseq.getResidue(i);					
+						const	Residue& mod  = aaseq.getResidue(i);
 						for(Size s = 0; s < fixed_modifications.size();++s)
 						{
 						 if(mod.getOneLetterCode() ==mdb->getModification(fixed_modifications[s]).getOrigin() && fixed_modifications[s] != mod.getModification())
 						 {
 							 fixed_modifications_ok = false;
 								break;
-							}	
+							}
 						}
 					}
 				}
@@ -204,14 +218,14 @@ class TOPPSpecLibSearcher
 					{
 						if(aaseq.isModified(i))
 						{
-							const	Residue& mod  = aaseq.getResidue(i);			
+							const	Residue& mod  = aaseq.getResidue(i);
 							for(Size s = 0; s < variable_modifications.size();++s)
 							{
 								if(mod.getOneLetterCode() ==mdb->getModification(variable_modifications[s]).getOrigin() && variable_modifications[s] != mod.getModification())
 								{
 									variable_modifications_ok = false;
 									break;
-								}	
+								}
 							}
 						}
 					}
@@ -219,9 +233,9 @@ class TOPPSpecLibSearcher
 				if(variable_modifications_ok && fixed_modifications_ok)
 				{
 					PeptideIdentification& translocate_pid = *i;
-					librar.getPeptideIdentifications().push_back(translocate_pid);		
+					librar.getPeptideIdentifications().push_back(translocate_pid);
 					librar.setPrecursors(s->getPrecursors());
-					//library entry transformation 
+					//library entry transformation
 					for(UInt l = 0; l< s->size(); ++l)
 					{
 						Peak1D peak;
@@ -240,7 +254,7 @@ class TOPPSpecLibSearcher
 							peak.setMZ((*s)[l].getMZ());
 							peak.setPosition((*s)[l].getPosition());
 							librar.push_back(peak);
-						}	
+						}
 					}
 					if(found != MSLibrary.end())
 					{
@@ -283,7 +297,7 @@ class TOPPSpecLibSearcher
 				prot_id.setSearchParameters(searchparam);
 				/***********SEARCH**********/
 				for(UInt j = 0; j < query.size(); ++j)
-				{	
+				{
 					//Set identifier for each identifications
 					PeptideIdentification pid;
 					pid.setIdentifier("test");
@@ -291,7 +305,7 @@ class TOPPSpecLibSearcher
 					ProteinHit pr_hit;
 					pr_hit.setAccession(j);
 					prot_id.insertHit(pr_hit);
-					//RichPeak1D to Peak1D transformation for the compare function query 
+					//RichPeak1D to Peak1D transformation for the compare function query
 					PeakSpectrum quer;
 					bool peak_ok = true;
 					query[j].sortByIntensity(true);
@@ -322,8 +336,8 @@ class TOPPSpecLibSearcher
 					}
 					DoubleReal query_MZ = query[j].getPrecursors()[0].getMZ();
 					if(peak_ok)
-					{	
-						bool charge_one = false; 
+					{
+						bool charge_one = false;
 						Int percent = (Int)Math::round((query[j].size()/100.0) * 3.0);
 						Int margin  = (Int)Math::round((query[j].size()/100.0)* 1.0);
 						for(vector<RichPeak1D>::iterator peak = query[j].end()-1; percent >= 0; --peak , --percent)
@@ -336,7 +350,7 @@ class TOPPSpecLibSearcher
 						if(percent > margin)
 						{
 							charge_one = true;
-						}					
+						}
 						Real min_MZ = (query_MZ - precursor_mass_tolerance) *precursor_mass_multiplier;
 						Real max_MZ = (query_MZ + precursor_mass_tolerance) *precursor_mass_multiplier;
 						for(Size mz = (Size)min_MZ; mz <= ((Size)max_MZ)+1; ++mz)
@@ -363,7 +377,7 @@ class TOPPSpecLibSearcher
 												double dot_bias = sp->dot_bias(quer_bin,librar_bin,score);
 												hit.setMetaValue("DOTBIAS",dot_bias);
 											}
-											else 
+											else
 											{
 												if(compare_function =="CompareFouriertransform")
 												{
@@ -373,7 +387,7 @@ class TOPPSpecLibSearcher
 												}
 												score = (*comparor)(quer,librar);
 											}
-											
+
 											DataValue RT(library[i].getRT());
 											DataValue MZ(library[i].getPrecursors()[0].getMZ());
 											hit.setMetaValue("RT",RT);
@@ -392,7 +406,7 @@ class TOPPSpecLibSearcher
 						{
 							if(!pid.empty() && !pid.getHits().empty())
 							{
-								vector<PeptideHit> final_hits;					
+								vector<PeptideHit> final_hits;
 								final_hits.resize(pid.getHits().size());
 								SpectraSTSimilarityScore* sp= static_cast<SpectraSTSimilarityScore*>(comparor);
 								Size runner_up = 1;
@@ -402,7 +416,7 @@ class TOPPSpecLibSearcher
 									{
 										break;
 									}
-								} 
+								}
 								double delta_D = sp->delta_D(pid.getHits()[0].getScore(), pid.getHits()[runner_up].getScore());
 								for(Size s = 0; s < pid.getHits().size();++s)
 								{
@@ -410,7 +424,7 @@ class TOPPSpecLibSearcher
 									final_hits[s].setMetaValue("delta D",delta_D);
 									final_hits[s].setMetaValue("dot product",pid.getHits()[s].getScore());
 									final_hits[s].setScore(sp->compute_F(pid.getHits()[s].getScore(),delta_D,pid.getHits()[s].getMetaValue("DOTBIAS")));
-									
+
 									//final_hits[s].removeMetaValue("DOTBIAS");
 							}
 							pid.setHits(final_hits);
@@ -431,7 +445,7 @@ class TOPPSpecLibSearcher
 					}
 					peptide_ids.push_back(pid);
 				}
-				protein_ids.push_back(prot_id);			
+				protein_ids.push_back(prot_id);
 				//-------------------------------------------------------------
 				// writing output
 				//-------------------------------------------------------------
@@ -444,7 +458,7 @@ class TOPPSpecLibSearcher
 			cout<<"Total time: "<<difftime(end_time,prog_time)<<" secconds\n";
 			return EXECUTION_OK;
 		}
-		
+
 	};
 
 

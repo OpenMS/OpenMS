@@ -48,8 +48,22 @@ using namespace std;
 
 /**
 	@page TOPP_OMSSAAdapter OMSSAAdapter
-	
+
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OMSSAAdapter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+		</tr>
+	</table>
+</CENTER>
 
 	@em OMSSA must be installed on the system to be able to use the @em OMSSAAdapter. See pubchem.ncbi.nlm.nih.gov/omssa/
 	for further information on how to download and install @em OMSSA on your system. You might find that the latest OMSSA version
@@ -64,13 +78,13 @@ using namespace std;
 
 	The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
 	proteases can be found be executing @em omssacl @em -el.
-	
-	This wrapper has been tested successfully with OMSSA, version 2.x. 
 
-	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
+	This wrapper has been tested successfully with OMSSA, version 2.x.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_OMSSAAdapter.cli
+
+	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -85,20 +99,20 @@ class TOPPOMSSAAdapter
 			: TOPPBase("OMSSAAdapter","Annotates MS/MS spectra using OMSSA.")
 		{
 		}
-	
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
 
 			addEmptyLine_();
 			addText_("Common Identification engine options");
-									
-						
+
+
 			registerInputFile_("in", "<file>", "", "input file ");
 			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("idXML"));
-		
+
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance in Dalton", false);
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error in Dalton", false);
       registerInputFile_("database", "<psq-file>", "", "NCBI formated fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'");
@@ -110,17 +124,17 @@ class TOPPOMSSAAdapter
 			setValidStrings_("fixed_modifications", all_mods);
       registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("variable_modifications", all_mods);
-				
+
 			addEmptyLine_();
 			addText_("OMSSA specific input options");
-			
+
 			//Sequence library
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
 			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
       registerInputFile_("omssa_executable", "", "", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
-			
+
 			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
 			//registerStringOption_("omssa_out_format", "<type>", "", "Specifies the output format of OMSSA, if not given the format will be estimated", false);
 
@@ -137,20 +151,20 @@ class TOPPOMSSAAdapter
 			// input options are not all necessary as TOPP tools only accept mzML
 			registerIntOption_("hs", "<Integer>", 4, "the minimum number of m/z values a spectrum must have to be searched", false, true);
 			//registerStringOption_("pm", "<file>", "", "search parameter input in xml format", false);
-			
+
 			//Output results
 			//-o <String> filename for text asn.1 formatted search results
 			//-ob <String> filename for binary asn.1 formatted search results
 			//-ox <String> filename for xml formatted search results
 			//-oc <String> filename for comma separated value (excel .csv) formatted search results
-			// output options of OMSSA are not necessary 
-			
+			// output options of OMSSA are not necessary
+
 			//The following options output the search parameters and search spectra in the output results. This is necessary for viewing result in the OMSSA browser:
 			//-w include spectra and search params in search results
 
 			//To turn off informational messages (but not error messages), use:
 			//-ni don't print informational messages
- 
+
 			//Mass type and tolerance
 			//-to <Real> product ion mass tolerance in Da
 			//-te <Real> precursor ion mass tolerance in Da
@@ -158,7 +172,7 @@ class TOPPOMSSAAdapter
 			//registerDoubleOption_("to", "<Real>", 0.8, "product ion mass tolerance in Da", false);
 			//registerDoubleOption_("te", "<Real>", 2.0, "precursor ion mass tolerance in Da", false);
 			registerIntOption_("tez", "<Integer>", 1, "scaling of precursor mass tolerance with charge (0 = none, 1= linear)", false, true);
-			
+
 			//A precursor ion is the ion before fragmentation and the product ions are the ions generated after fragmentation. These values are specified in Daltons +/- the measured value, e.g. a value of 2.0 means +/- 2.0 Daltons of the measured value.
 			//The tez value allows you to specify how the mass tolerance scales with the charge of the precursor. For example, you may search a precursor assuming that it has a charge state of 2+ and 3+. If you set tez to 1, then the mass tolerance for the +2 charge state will be 2 times the precursor mass tolerance, and for the 3+ charge state it will be 3 times the precursor mass tolerance. If you set tez to 0, the mass tolerance will always be equal to the precursor mass tolerance, irrespective of charge state.
 
@@ -166,7 +180,7 @@ class TOPPOMSSAAdapter
 			//-tem <Integer> precursor ion search type, with 0 = monoisotopic, 1 = average, 2 = monoisotopic N15, 3 = exact.
 			registerIntOption_("tom", "<Integer>", 0, "product ion search type, with 0 = monoisotopic, 1 = average, 2 = monoisotopic N15, 3 = exact", false, true);
 			registerIntOption_("tem", "<Integer>", 0, "precursor ion search type, with 0 = monoisotopic, 1 = average, 2 = monoisotopic N15, 3 = exact", false, true);
-			
+
 			//Monoisotopic searching searches spectral peaks that correspond to peptides consisting entirely of carbon-12. Average mass searching searches on the average natural isotopic mass of peptides. Exact mass searches on the most abundant isotopic peak for a given mass range.
 
 			//-tex <Double> threshold in Da above which the mass of a neutron should be added in an exact mass search.
@@ -188,12 +202,12 @@ class TOPPOMSSAAdapter
 			//Determination of precursor charge and product ion charges.  Presently, OMSSA estimates which precursors are 1+.  All other precursors are searched with charge from the minimum to maximum precursor charge specified.
 			//-zl <Integer> minimum precursor charge to search when not 1+
 			//-zh <Integer> maximum precursor charge to search when not 1+
-			//-zt <Integer> minimum precursor charge to start considering multiply charged products 
-			//-z1 <Double> the fraction of peaks below the precursor used to determine if the spectrum is charge +1 
+			//-zt <Integer> minimum precursor charge to start considering multiply charged products
+			//-z1 <Double> the fraction of peaks below the precursor used to determine if the spectrum is charge +1
 			//-zc <Integer> should charge +1 be determined algorithmically (1=yes)
 			//-zcc <Integer> how should precursor charges be determined? (1=believe the input file,2=use the specified range)
 			//-zoh <Integer> set the maximum product charge to search
-			
+
 			//registerIntOption_("zl", "<Integer>", 1, "minimum precursor charge to search when not 1+", false);
 			//registerIntOption_("zh", "<Integer>", 3, "maximum precursor charge to search when not 1+", false);
 			registerIntOption_("zt", "<Integer>", 3, "minimum precursor charge to start considering multiply charged products", false, true);
@@ -213,24 +227,24 @@ class TOPPOMSSAAdapter
 			registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (trypsin is the default)", false);
 			registerIntOption_("no", "<Integer>", 4, "minimum size of peptides for no-enzyme and semi-tryptic searches", false, true);
 			registerIntOption_("nox", "<Integer>", 40, "maximum size of peptides for no-enzyme and semi-tryptic searches", false, true);
-			
+
 			//Ions to search
 			//OMSSA searches two ions series, both of which can be specified.  Normally one of the ion series specified is a forward ion series and the other is a reverse ion series.
 			//-il print a list of ions and their corresponding id number
-			//-i comma delimited list of id numbers of ions to search 
-			//-sp <Integer> number of product ions to search 
+			//-i comma delimited list of id numbers of ions to search
+			//-sp <Integer> number of product ions to search
 			//-sb1 <Integer> should first forward (e.g. b1) product ions be searched (1 = no, 0 = yes)
 			//-sct <Integer> should c terminus ions (e.g. y1) be searched (1 = no, 0 = yes)
 			registerStringOption_("i", "<Num>,<Num>,<Num>", "1,4", "comma delimited list of id numbers of ions to search", false, true);
 			registerIntOption_("sp", "<Integer>", 100, "number of product ions to search", false, true);
 			registerIntOption_("sb1", "<Integer>", 1, "should first forward (e.g. b1) product ions be searched (1 = no, 0 = yes)", false, true);
 			registerIntOption_("sct", "<Integer>", 0, "should c terminus ions (e.g. y1) be searched (1 = no, 0 = yes)", false, true);
-			
+
 			//Taxonomy
 			//By default, OMSSA searches without limiting by taxonomy.  By specifying an NCBI taxonomy id, you can limit your search to a particular organism.  The taxonomy id can by found by searching the NCBI tax browser (enter the scientific name of the organism of interest in the search box and then click the correct search result and then the scientific name in the taxonomy browser to get the numeric taxonomy id).
 			//-x comma delimited list of NCBI taxonomy ids to search (0 = all.  This is the default)
 			registerStringOption_("x", "<Num>,<Num>,<Num>", "0", "comma delimited list of NCBI taxonomy ids to search (0 = all.  This is the default)", false, true);
-			
+
 			//Search heuristic parameters
 			//These are options that can speed up the search.  They can result in decreased sensitivity
 			//-hm <Integer> the minimum number of m/z matches a sequence library peptide must have for the hit to the peptide to be recorded
@@ -253,8 +267,8 @@ class TOPPOMSSAAdapter
 			//registerStringOption_("mv", "<Num>,<Num>,<Num>", "", "comma delimited list of id numbers for variable modifications", false);
 			// TODO -ml
 			//registerStringOption_("mux", "<file>", "", "use the given file which contains user modifications in OMSSA modifications xml format", false);
-			
-			
+
+
 			//To add your own user defined modifications, edit the usermod0-29 entries in the mods.xml file. If it is common modification, please contact NCBI so that it can be added to the standard list.
 			//To reduce the combinatorial expansion that results when specifying multiple variable modifications, you can put an upper bound on the number of mass ladders generated per peptide using the -mm option.  The ladders are generated in the order of the least number of modification to the most number of modifications.
 			//-mm <Integer> the maximum number of mass ladders to generate per database peptide
@@ -264,7 +278,7 @@ class TOPPOMSSAAdapter
 			//OMSSA treats cleavage of the initial methionine in each protein record as a variable modification by default. To turn off this behavior use the command line option
 			//-mnm n-term methionine should not be cleaved
 			registerFlag_("mnm", "n-term methionine should not be cleaved", true);
-			
+
 			//Iterative searching
 			//-is <Double> evalue threshold to include a sequence in the iterative search, 0 = all
 			//-ir <Double> evalue threshold to replace a hit, 0 = only if better
@@ -272,12 +286,12 @@ class TOPPOMSSAAdapter
 			registerDoubleOption_("is", "<Real>", 0.0, "evalue threshold to include a sequence in the iterative search, 0 = all", false, true);
 			registerDoubleOption_("ir", "<Real>", 0.0, "evalue threshold to replace a hit, 0 = only if better", false, true);
 			registerDoubleOption_("ii", "<Real>", 0.0, "evalue threshold to iteratively search a spectrum again, 0 = always", false, true);
-		
 
-			//-foms <String> read in search result in .oms format (binary asn.1). 
-			//-fomx <Double> read in search result in .omx format (xml). 
+
+			//-foms <String> read in search result in .oms format (binary asn.1).
+			//-fomx <Double> read in search result in .omx format (xml).
 			//Iterative searching is the ability to re-search search results in hopes of increasing the number of spectra identified. To accomplish this, an iterative search may change search parameters, such as using a no-enzyme search, or restrict the sequence search library to sequences already hit.
-	
+
 		}
 
 		ExitCodes main_(int , const char**)
@@ -290,7 +304,7 @@ class TOPPOMSSAAdapter
 			String inputfile_name;
 			String outputfile_name;
 			PeakMap map;
-			
+
 			String parameters;
 			String unique_name = File::getUniqueName(); // body for the tmp files
 			String unique_input_name = unique_name + "_OMSSA.mgf";
@@ -301,7 +315,7 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-		
+
 			// get version of OMSSA
       QProcess qp;
       qp.start((omssa_executable + " -version").toQString(), QIODevice::ReadOnly); // does automatic escaping etc...
@@ -327,7 +341,7 @@ class TOPPOMSSAAdapter
         }
       }
       // parse arguments
-			inputfile_name = getStringOption_("in");			
+			inputfile_name = getStringOption_("in");
 			outputfile_name = getStringOption_("out");
       String db_name = String(getStringOption_("database"));
       // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
@@ -366,11 +380,11 @@ class TOPPOMSSAAdapter
 			parameters += " -v " +   String(getIntOption_("v"));
 			parameters += " -e " +   String(getIntOption_("e"));
 			parameters += " -tez " + String(getIntOption_("tez"));
-			
+
 
 			parameters += " -tom " + String(getIntOption_("tom"));
 			parameters += " -tem " + String(getIntOption_("tem"));
-			
+
 			parameters += " -mm " + String(getIntOption_("mm"));
 			parameters += " -is " + String(getDoubleOption_("is"));
 			parameters += " -ir " + String(getDoubleOption_("ir"));
@@ -382,7 +396,7 @@ class TOPPOMSSAAdapter
 				parameters += " -mnm ";
 			}
 
-			parameters += " -fm " + unique_input_name; 
+			parameters += " -fm " + unique_input_name;
 			parameters += " -ox " + unique_output_name;
 
 			if (getIntOption_("debug") == 0)
@@ -419,7 +433,7 @@ class TOPPOMSSAAdapter
         	}
       	}
     	}
-  
+
 			writeDebug_("Evaluating modifications", 1);
 			ModificationDefinitionsSet mod_set(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
 			writeDebug_("Setting modifications", 1);
@@ -458,7 +472,7 @@ class TOPPOMSSAAdapter
 					parameters += " -mf " + mod_list;
 				}
 			}
-			
+
 			if (getStringList_("variable_modifications").size() != 0)
 			{
 				set<String> mod_names = mod_set.getVariableModificationNames();
@@ -491,10 +505,10 @@ class TOPPOMSSAAdapter
 				if (mod_list != "")
 				{
 					parameters += " -mv " + mod_list;
-				}				
+				}
 			}
 
-			// write unknown modifications to user mods file	
+			// write unknown modifications to user mods file
 			if (user_mods.size() != 0)
 			{
 				writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
@@ -525,7 +539,7 @@ class TOPPOMSSAAdapter
 					    8 modcpaa	-  at the C terminus of a peptide at particular amino acids
 					    9 modmax	-  the max number of modification types
 					*/
-					
+
 					ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
 					String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
 					if (ts == ResidueModification::ANYWHERE)
@@ -555,7 +569,7 @@ class TOPPOMSSAAdapter
 						}
 					}
 					out << "\t</MSModSpec_type>" << endl;
-					
+
 					out << "\t<MSModSpec_name>" << it->second << "</MSModSpec_name>" << endl;
 					out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffMonoMass()  << "</MSModSpec_monomass>" << endl;
 					out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffAverageMass() << "</MSModSpec_averagemass>" << endl;
@@ -582,14 +596,14 @@ class TOPPOMSSAAdapter
 			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> peptide_ids;
 			mzml_infile.load(inputfile_name, map);
-			
+
 			writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
-			
+
 			vector<ProteinIdentification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-	
+
 			writeDebug_("Storing input file: " + unique_input_name, 5);
 			MascotInfile omssa_infile;
 			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
@@ -603,7 +617,7 @@ class TOPPOMSSAAdapter
 			if (status != 0)
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
-				
+
 				QFile(unique_input_name.toQString()).remove();
 				QFile(unique_output_name.toQString()).remove();
 				if (user_mods.size() != 0)
@@ -680,7 +694,7 @@ class TOPPOMSSAAdapter
 			// handle the search parameters
 			ProteinIdentification::SearchParameters search_parameters;
 			search_parameters.db = getStringOption_("database");
-			//search_parameters.db_version = 
+			//search_parameters.db_version =
 			search_parameters.taxonomy = getStringOption_("x");
 			search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
 			ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
@@ -700,7 +714,7 @@ class TOPPOMSSAAdapter
 			search_parameters.fixed_modifications = getStringList_("fixed_modifications");
 			search_parameters.variable_modifications = getStringList_("variable_modifications");
 			ProteinIdentification::DigestionEnzyme enzyme = ProteinIdentification::TRYPSIN;
-				
+
 			UInt e(getIntOption_("e"));
 			if (e != 0)
 			{
@@ -712,7 +726,7 @@ class TOPPOMSSAAdapter
 			search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
 			search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
 
-				
+
 			protein_identification.setSearchParameters(search_parameters);
 			protein_identification.setSearchEngineVersion(omssa_version);
 			protein_identification.setSearchEngine("OMSSA");
@@ -721,10 +735,10 @@ class TOPPOMSSAAdapter
 			// writing output
 			//-------------------------------------------------------------
 
-			protein_identifications.push_back(protein_identification); 
+			protein_identifications.push_back(protein_identification);
 			IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
-			
-			return EXECUTION_OK;	
+
+			return EXECUTION_OK;
 		}
 };
 

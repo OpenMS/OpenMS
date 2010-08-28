@@ -38,7 +38,7 @@ using namespace std;
 
 /**
 	@page TOPP_CompNovo CompNovo
-	
+
 	@brief Performs a peptide/protein identification with the CompNovo engine.
 
 <CENTER>
@@ -55,21 +55,23 @@ using namespace std;
 	</table>
 </CENTER>
 
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+
 	The CompNovo engine can operate in CID/ETD mode where the ETD spectra of the
 	same precursor are used to support the de novo identification. In CID mode
 	all spectra are assumed to be CID spectra only.
 
 	The details are described in the publication:
- 
-	Andreas Bertsch, Andreas Leinenbach, Anton Pervukhin, Markus Lubeck, 
-	Ralf Hartmer,	Carsten Baessmann, Yasser A Elnakady, Rolf M&uuml;ller, 
+
+	Andreas Bertsch, Andreas Leinenbach, Anton Pervukhin, Markus Lubeck,
+	Ralf Hartmer,	Carsten Baessmann, Yasser A Elnakady, Rolf M&uuml;ller,
 	Sebastian B&ouml;cker, Christian G Huber and Oliver Kohlbacher (2009)
-	"De novo peptide sequencing by tandem MS using complementary CID and 
+	"De novo peptide sequencing by tandem MS using complementary CID and
 	electron transfer dissociation"
 	Electrophoresis, 30(21):3736-3747. (PubMed ID: 19862751)
 
 	@experimental This implementation may contain bugs!
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_CompNovo.cli
 */
@@ -86,7 +88,7 @@ class TOPPCompNovo
 			: TOPPBase("CompNovo", "Performs a de novo peptide identification using the CompNovo engine.")
 		{
 		}
-	
+
 	protected:
 
 		Param getSubsectionDefaults_(const String& /*section*/) const
@@ -102,7 +104,7 @@ class TOPPCompNovo
 			}
 			return CompNovoIdentification().getDefaults();
     }
-		
+
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file in mzML format", true);
@@ -117,13 +119,13 @@ class TOPPCompNovo
 			registerSubsection_("algorithm","Algorithm section");
 			addEmptyLine_();
 		}
-		
+
 		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-	
+
 			//input/output files
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
@@ -145,14 +147,14 @@ class TOPPCompNovo
       f.load(in, exp);
 
 			writeDebug_("Data set contains " + String(exp.size()) + " spectra", 1);
-			
+
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-		
+
 			vector<PeptideIdentification> pep_ids;
 			Param type_param = getParam_().copy("algorithm:",true);
-		
+
 			if (type == "CompNovo")
 			{
 		  	CompNovoIdentification comp_novo_id;
@@ -215,7 +217,7 @@ class TOPPCompNovo
 			prot_ids.push_back(prot_id);
 
   		IdXMLFile().store(out, prot_ids, pep_ids);
-	
+
 			return EXECUTION_OK;
 		}
 };

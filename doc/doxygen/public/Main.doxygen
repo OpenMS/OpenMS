@@ -47,7 +47,7 @@
 
 		<TR>
 			<TD valign="top">
-				
+
 				<BR>
 				Installation instructions:
 				<UL>
@@ -55,14 +55,14 @@
 					<LI> @subpage install_mac_bin
 					<LI> @subpage install_win_bin
 				</UL>
-				
+
 				Documentation:
 				<UL>
-				  <LI> @subpage TOPP_tutorial 
+				  <LI> @subpage TOPP_tutorial
 				  <LI> @subpage TOPP_documentation
 				  <LI> @subpage UTILS
 				</UL>
-				
+
 				Misc:
 				<UL>
 					<LI> @subpage FAQ
@@ -70,28 +70,28 @@
 					<LI> @subpage ChangeLog
 				</UL>
 			</TD>
-			
+
 			<TD>
 				<BR>
 				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert in 2003.
-			
+
 				Currently the main developers of %OpenMS are:
 				<UL>
-					<LI style="margin-top: 3px;"> Sandro Andreotti @n <i> DeNovo identification, simulation</i>
 					<LI style="margin-top: 3px;"> Stephan Aiche @n <i> Mac port, simulation, build system</i>
+					<LI style="margin-top: 3px;"> Sandro Andreotti @n <i> DeNovo identification, simulation</i>
 					<LI style="margin-top: 3px;"> Chris Bielow @n <i> Windows port, iTRAQ quantitation, decharging, simulation, build system</i>
 					<LI style="margin-top: 3px;"> Rene Hussong @n <i> feature finding, parallel computing</i>
 					<LI style="margin-top: 3px;"> Johannes Junker @n <i> TOPPAS </i>
 					<LI style="margin-top: 3px;"> Erhan Kenar @n <i> metabolomics </i>
 					<LI style="margin-top: 3px;"> Lars Nilse @n <i> SILAC quantitation </i>
-					<LI style="margin-top: 3px;"> Mathias Walzer @n <i> clustering </i>
+					<LI style="margin-top: 3px;"> Mathias Walzer @n <i> peptide identification, clustering </i>
 					<LI style="margin-top: 3px;"> Hendrik Weisser @n <i> protein identification, map alignment </i>
 					<LI style="margin-top: 3px;"> Alexandra Zerck @n <i> precursor selection, calibration</i>
-				</UL>			
+				</UL>
 			</TD>
-      
+
 			<TD valign="top">
-				
+
 				<BR>
 				Installation instructions:
 				<UL>
@@ -99,14 +99,14 @@
 					<LI> @subpage install_mac
 					<LI> @subpage install_win
 				</UL>
-				
+
 				Documentation:
 				<UL>
 				  <LI> @subpage OpenMS_tutorial
 				  <LI> @subpage coding_conventions
 					<LI> @subpage external_code
 				</UL>
-				
+
 				Misc:
 				<UL>
 					<LI> @subpage FAQ
@@ -114,7 +114,7 @@
 					<LI> @subpage Contributing
 					<LI> @subpage ChangeLog
 				</UL>
-				
+
 				@if INTERNAL_INFO
 				Internal:
 				<UL>
