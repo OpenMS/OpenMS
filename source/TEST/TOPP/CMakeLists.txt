@@ -138,11 +138,11 @@ XMLValidator
 foreach (i ${ALL_WRITEINI_TOOLS})
   string(REGEX MATCH "^(.*) (.*) (.*)" has_type ${i}) ## search for +3 components in TOPP name (when it has a -type)
   if (has_type STREQUAL "") ##regex did not match
-    add_test("TOPPWRITEINI_${i}" ${i} -write_ini "${i}.ini")  
+    add_test("TOPPWRITEINI_${i}" ${TOPP_BIN_PATH}/${i} -write_ini "${i}.ini")  
   else() ## regex matched
     set(toolname ${CMAKE_MATCH_1})
     set(args ${CMAKE_MATCH_2} ${CMAKE_MATCH_3})
-    add_test("TOPPWRITEINI_${toolname}" ${toolname} ${args} -write_ini "${toolname}.ini")
+    add_test("TOPPWRITEINI_${toolname}" ${TOPP_BIN_PATH}/${toolname} ${args} -write_ini "${toolname}.ini")
   endif()
 endforeach(i)
 
