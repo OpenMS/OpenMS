@@ -45,27 +45,29 @@ using namespace std;
 	<CENTER>
 	<table>
 		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
 			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDMerger \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
 		</tr>
 		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
 		</tr>
 	</table>
 	</CENTER>
 
-	You can merge an unlimited number of files into one idXML file. The @ref TOPP_IDFileConverter can be used to convert pepXML or protXML to idXML.
-	The peptide hits and protein hits of the input files will then be written into a single output file.
+	The peptide hits and protein hits of the input files will be written into the single output file. In general, the number of idXML files that can be merged into one file is not limited.
+
+	With the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!).
+pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
+
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDMerger.cli
-
-	With the @p -pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!).
 
 */
 

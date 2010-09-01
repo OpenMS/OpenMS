@@ -57,12 +57,12 @@ using namespace std;
 <CENTER>
 	<table>
 		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
 			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ TextExporter \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any TOPP tool producing (featureXML, consensusXML and idXML, e.g. @ref TOPP_ProteinInference) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> almost any TOPP tool </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools (MS Excel, OpenOffice, Notepad)</td>
 		</tr>
 	</table>

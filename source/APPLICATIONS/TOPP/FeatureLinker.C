@@ -45,14 +45,34 @@ using namespace std;
 
 	@brief Groups corresponding features in one map or across maps.
 
-	This tool provides several algorithms for grouping corresponding features in isotope-labeled and label-free experiments.
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FeatureLinker \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinQuantifier </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_MapAligner </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SeedListGenerator </td>
+		</tr>
+	</table>
+</CENTER>
 
-	It takes one or several feature maps (featureXML files) and stores the corresponding features in a consensus map (consensusXML file).
 
-	It is assumed that major retention time distortions are corrected before applying this tool.
-	Please use @ref TOPP_MapAligner to do that on the peak or feature level.
+	This tool provides algorithms for grouping corresponding features in @ref OpenMS::FeatureGroupingAlgorithmLabeled "isotope-labeled" and @ref OpenMS::FeatureGroupingAlgorithmUnlabeled "label-free" experiments. (Click on the links for detailed information including algorithm-specific parameters.)
 
-	In order to create feature data from peak data use the @ref TOPP_FeatureFinder.
+	FeatureLinker takes one or several feature maps (featureXML files) and stores the corresponding features in a consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using the @ref TOPP_FeatureFinder.
+
+	It is assumed that major retention time distortions are corrected before applying this tool. Use @ref TOPP_MapAligner to do that on the peak or feature level.
+
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FeatureLinker.cli
