@@ -41,29 +41,55 @@ using namespace std;
 
 /**
 	@page TOPP_FeatureFinder FeatureFinder
-	
-	@brief The feature detection application (quantitation)
-	
-	This module identifies "features" in a LC/MS map.
-	
-	By feature, we understand a peptide in a MS sample that
+
+	@brief The feature detection application for quantitation.
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinder \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAligner </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_SeedListGenerator </td>
+		</tr>
+	</table>
+</CENTER>
+
+	This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
 	reveals a characteristic isotope distribution. The algorithm
 	computes positions in rt and m/z dimension and a charge estimate
 	of each peptide.
-	
-	The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>. 
-  In the next step, we iteratively fit a model of the isotope profile and the retention time to
-  these data points. Data points with a low probability under this model are removed from the
-  feature region. The intensity of the feature is then given by the sum of the data points included
-  in its regions.
-  
-  How to find suitable parameters and details of the different algorithms implemented are described 
-	in the TOPP tutorial.
-	
-	Note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend 
+
+	The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
+	In the next step, we iteratively fit a model of the isotope profile and the retention time to
+	these data points. Data points with a low probability under this model are removed from the
+	feature region. The intensity of the feature is then given by the sum of the data points included
+	in its regions.
+
+	How to find suitable parameters and details of the different algorithms implemented are described
+	in the @ref TOPP_example_featuredetection "TOPP tutorial".
+
+	@note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend
 	to use a noise or intensity filter to remove spurious points first and to speed-up the feature detection process.
-  
-	In the following table you can find example values of the most important parameters for 
+
+	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_FeatureFinder.cli
+
+	For the parameters of the algorithm section see the algorithms documentation: @n
+		@ref OpenMS::FeatureFinderAlgorithmPicked "centroided" @n
+		@ref OpenMS::FeatureFinderAlgorithmIsotopeWavelet "isotope_wavelet" @n
+		@ref OpenMS::FeatureFinderAlgorithmMRM "mrm" @n
+
+	In the following table you can find example values of the most important parameters for
 	different instrument types. @n These parameters are not valid for all instruments of that type,
 	but can be used as a starting point for finding suitable parameters.
 
@@ -90,13 +116,8 @@ using namespace std;
 			<td>0.005</td>
 		</tr>
 	</table>
-	
-	For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPicker.
-	
-	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_FeatureFinder.cli
+	For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPicker.
 */
 
 // We do not want this class to show up in the docu:
@@ -110,7 +131,7 @@ class TOPPFeatureFinder
 		: TOPPBase("FeatureFinder","Detects two-dimensional features in LC-MS data.")
 	{
 	}
-	
+
  protected:
 	void registerOptionsAndFlags_()
 	{
@@ -124,7 +145,7 @@ class TOPPFeatureFinder
 		setValidStrings_("type", getToolList()[toolName_()] );
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
-						 "They are set in the 'algorithm' section of the INI file.\n");	
+						 "They are set in the 'algorithm' section of the INI file.\n");
 
 		registerSubsection_("algorithm","Algorithm section");
 	}
@@ -138,32 +159,32 @@ class TOPPFeatureFinder
 	ExitCodes main_(int , const char**)
 	{
 		//input file names and types
-		String in = getStringOption_("in");	
+		String in = getStringOption_("in");
 		String out = getStringOption_("out");
 
 		Param feafi_param = getParam_().copy("algorithm:",true);
 
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
-				
+
 		String type = getStringOption_("type");
-		
+
 		//setup of FeatureFinder
 		FeatureFinder ff;
 		ff.setLogType(log_type_);
-		
+
 		//reading input data
 		PeakMap exp;
 		MzMLFile f;
 		f.setLogType(log_type_);
 		PeakFileOptions options;
-		
+
 		//load seeds
 		FeatureMap<> seeds;
 		if (getStringOption_("seeds")!="")
 		{
 			FeatureXMLFile().load(getStringOption_("seeds"),seeds);
 		}
-		
+
 		if (type != "mrm")
 		{
 			//prevent loading of fragment spectra
@@ -190,7 +211,7 @@ class TOPPFeatureFinder
 		//running algorithm
 		ff.run(type, exp, features, feafi_param, seeds);
 
-    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+		features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
 		//-------------------------------------------------------------
 		// writing files
@@ -200,8 +221,8 @@ class TOPPFeatureFinder
 		addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
 		FeatureXMLFile map_file;
-		map_file.store(out,features);			
-			
+		map_file.store(out,features);
+
 		return EXECUTION_OK;
 	}
 };

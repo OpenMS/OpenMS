@@ -73,9 +73,12 @@ using namespace std;
 
 	It is assumed that major retention time distortions are corrected before applying this tool. Use @ref TOPP_MapAligner to do that on the peak or feature level.
 
-
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FeatureLinker.cli
+
+	For the parameters of the algorithm section see the algorithms documentation: @n
+		@ref OpenMS::FeatureGroupingAlgorithmUnlabeled "algorithm unlabeled" @n
+		@ref OpenMS::FeatureGroupingAlgorithmLabeled "algorithm labeled" @n
 */
 
 // We do not want this class to show up in the docu:
@@ -107,10 +110,10 @@ protected:
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		String type = getStringOption_("type");
-    FeatureGroupingAlgorithm* algo = Factory<FeatureGroupingAlgorithm>::create(type);
+		FeatureGroupingAlgorithm* algo = Factory<FeatureGroupingAlgorithm>::create(type);
 		Param p = algo->getParameters();
-    delete algo;
-    return p;
+		delete algo;
+		return p;
 	}
 
 	ExitCodes main_(int , const char**)
@@ -180,7 +183,7 @@ protected:
 
 		// annotate output with data processing info
 		addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
-		
+
 		// write output
 		ConsensusXMLFile().store(out,out_map);
 
