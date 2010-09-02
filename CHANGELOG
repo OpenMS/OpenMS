@@ -43,7 +43,7 @@ OpenMS library improvements:
      String substr(size_t pos = 0, size_t n = npos) const;   
      String chop(Size n) const;
 - FeatureFinderAlgorithmPicked is now able to fit asymmetric retention time profiles (experimental)
-- added generic labeling framework to SIMULATION 
+- added generic labeling framework to SIMULATION (#88) (experimental)
 
 TOPPView improvements:
 - basic visualization of peptide identifications in idXML
@@ -64,36 +64,65 @@ Changes to the Build System:
 - nightly coverage builds
 - GUI testing (experimental)
 - Visual Studio 2010 support
+- building on Mac OS X requires CMake 2.8.1 due to bugs in CMake < 2.8.1 
 
 Bug fixes:
 [new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.7]
-- #23   implement protXML
-- #44   TOPPView warning "Cannot show projections!"
-- #46   All TOPP/UTILS segfault if /share is not found
-- #53   TOPPAS select directory has save as dialog
-- #54   TOPPAS select directory has save as dialog
-- #55   TOPPAS context menu "open in TOPPView" does not work under MacOSX
-- #58   Unit tests for nested classes
-- #59   Test of external Code
-- #61   automatic ini file Version number update
-- #62   nightly tests for external code
-- #63   rename methods named min() or max() to something else...
-- #69   FileMerger needs ability to merge featureXML
-- #73   Resampler: can't create PNGs with TOPPAS
-- #74   Default parameters of PTModel cause infinite loop
-- #77   FuzzyDiff always returns 'true' when comparing any two PNG images
-- #90   Quantification on protein level
-- #91   Simple FF crashes on very sparse data
-- #93   TOPPAS layer bug
-- #104  Split TOPPAS in TOPPAS and PipelineExecute TOPP-tool
-- #110  Copy&paste, include workflows in current window
-- #121  Tool categories and menu items in context menus have arbitrary order
-- #122  Projection view: mouse-over text on RT projection says "m/z"
-- #123  Reorganize TOPP tool categories
-- #124  TOPPAS fails to load files correctly
-- #133  Textexporter runs indefinitely when input has no IDs and -consensus_features is specified
-- #136  TOPPView: #of Isotopes in TheoreticalSpectrumGenerator not forwarded
-- #164  DecoyDatabase creates faulty protein names by default
+-	#23	  implement protXML
+-	#44  	TOPPView warning "Cannot show projections!"
+-	#46  	All TOPP/UTILS segfault if /share is not found
+-	#53  	TOPPAS select directory has save as dialog
+-	#54  	TOPPAS select directory has save as dialog
+-	#56  	TOPPAS context menu "open in TOPPView" does not work under MacOSX
+-	#58  	Unit tests for nested classes
+-	#59  	Test of external Code
+-	#61  	automatic ini file Version number update
+-	#62  	nightly tests for external code
+-	#63  	rename methods named min() or max() to something else...
+-	#64  	TOPPView - update_layer reload is incomplete
+-	#69  	FileMerger needs ability to merge featureXML
+-	#73  	Resampler: can't create PNGs with TOPPAS
+-	#74  	Default parameters of PTModel cause infinite loop
+-	#76  	Add deployment target for compatibility with older MacOSX versions
+-	#77  	FuzzyDiff always returns 'true' when comparing any two PNG images
+-	#81  	Terminal modification with residue specificity
+-	#85	  IDMapper will crash on negative RT's or big deltas
+-	#87  	Gzipped files work as input, but arrow stays red
+-	#88  	Implement Labeling Framework for MSSimulator
+-	#90	  Quantification on protein level
+-	#91	  Simple FF crashes on very sparse data
+-	#92	  Encoding of XML files (invalid multcharacter)
+-	#93	  TOPPAS layer bug
+-	#98	  display RT value when viewing 1D data
+-	#104	Split TOPPAS in TOPPAS and PipelineExecute TOPP-tool
+-	#110	"Copy&paste, include workflows in current window"
+-	#121	Tool categories and menu items in context menus have arbitrary order
+-	#122	Projection view: mouse-over text on RT projection says "m/z"
+-	#123	Reorganize TOPP tool categories
+-	#124	TOPPAS fails to load files correctly
+-	#127	catch out-of-memory exceptions in TOPPView
+-	#131	TOPP input files check too restrictive...
+-	#132	check all system calls
+-	#133	Textexporter runs indefinitely when input has no IDs and -consensus_features as output
+-	#134	[Windows] failure of TOPP tools in TOPPAS due to _out and _temp directory not writeable
+-	#136	TOPPView: #of Isotopes in TheoreticalSpectrumGenerator not forwarded
+-	#137	Implement asymmetric elution profile shapes for model fitting in FeatureFinderAlgorithmPicked
+-	#141	CMake 2.8.1 causes linker errors on Mac OS 10.6.3
+-	#143	Incompatibility between String and string methods
+-	#147	Internal Compiler Error with gcc 4.3
+-	#152	Remove/hide deprecated algorithms
+-	#154	Update TOPPAS workflows params
+-	#155	linking OpenMS.so using a relative contrib directory fails
+-	#156	use MSBuild instead of devenv for contrib building on Windows
+-	#158	FeatureFinder (centroided) might crash on certain input
+-	#159	IDMapper will crash when given empty FeatureMap
+-	#161	TOPPAS Output file naming can lead to wrong "merge all" behaviour
+-	#163	rework IDFilter
+-	#164	DecoyDatabase creates faulty protein names by default
+-	#170	TheoreticalSpectrumGenerator computes wrong prefix/suffix masses
+-	#171	Remove/hide entire deprecated tools
+-	#175	Internal Compiler error in BaseModel/FeatureFinder
+-	#182	INIFileEditor crashes upon execution
 For more minor bugfixes visit the above URL.
 
 Detailed list of changes to specific OpenMS classes:
@@ -105,6 +134,13 @@ Detailed list of changes to specific OpenMS classes:
 - DIntervalBase  
   - min() renamed to minPosition()
   - max() renamed to maxPosition()
+- String
+  - removed:
+     String substr(SignedSize start, SignedSize n) const; 
+     String substr(SignedSize start) const; 
+  - added:
+     String substr(size_t pos = 0, size_t n = npos) const;   
+     String chop(Size n) const;
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.6                                      ----
