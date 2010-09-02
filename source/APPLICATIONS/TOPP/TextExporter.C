@@ -91,7 +91,7 @@ namespace OpenMS
 		out << charge;
 	}
 
-	
+
 	// stream output operator for FeatureHandle
 	SVOutStream& operator<<(SVOutStream& out, const FeatureHandle& feature)
 	{
@@ -133,7 +133,7 @@ namespace OpenMS
 		}
 		if (!cf) out << endl;
 		out.modifyStrings(old);
-	}	
+	}
 
 
 	// write the header for run data
@@ -162,7 +162,7 @@ namespace OpenMS
 				<< hit.getSequence();
 		return out;
 	}
-	
+
 
 	// stream output operator for SearchParameters
 	SVOutStream& operator<<(SVOutStream& out,
@@ -220,7 +220,7 @@ namespace OpenMS
 		return out;
 	}
 
-	
+
   // write a protein identification to the output stream
 	void write_protein_id(SVOutStream& out, const ProteinIdentification& pid)
 	{
@@ -241,7 +241,7 @@ namespace OpenMS
 			out << "PROTEIN" << *hit_it << endl;
 		}
 	}
-	
+
 
 	// write the header for peptide data
 	void write_peptide_header(SVOutStream& out, const String& what = "PEPTIDE",
@@ -270,8 +270,8 @@ namespace OpenMS
 		return out;
 	}
 
-	
-  // write a protein identification to the output stream	
+
+  // write a protein identification to the output stream
 	void write_peptide_id(SVOutStream& out, const PeptideIdentification& pid,
 												const String& what = "PEPTIDE",
 												bool incl_pep_misc = true, bool incl_accessions = false,
@@ -327,7 +327,7 @@ namespace OpenMS
 		}
 	}
 
-	
+
 	class TOPPTextExporter : public TOPPBase
   {
 	public:
@@ -338,7 +338,7 @@ namespace OpenMS
 
 	protected:
 
-		
+
 		void registerOptionsAndFlags_()
       {
         registerInputFile_("in", "<file>", "", "Input file ");
@@ -401,7 +401,7 @@ namespace OpenMS
 				String::QuotingMethod quoting_method;
 				if (quoting == "none") quoting_method = String::NONE;
 				else if (quoting == "double") quoting_method = String::DOUBLE;
-				else quoting_method = String::ESCAPE;		
+				else quoting_method = String::ESCAPE;
 
         // input file type
         FileTypes::Type in_type = FileHandler::getType(in);
@@ -430,7 +430,7 @@ namespace OpenMS
 
 					bool minimal = getFlag_("minimal");
 					no_ids |= minimal; // "minimal" implies "no_ids"
-					
+
 					// write header:
 					output.modifyStrings(false);
 					if (!no_ids) output << "#FEATURE" << "rt";
@@ -438,7 +438,7 @@ namespace OpenMS
 					output << "mz" << "intensity";
 					if (!minimal)
 					{
-						output << "charge" << "overall_quality" << "rt_quality" 
+						output << "charge" << "overall_quality" << "rt_quality"
 									 << "mz_quality" << "rt_start" << "rt_end";
 					}
 					output << endl;
@@ -456,7 +456,7 @@ namespace OpenMS
             output << citer->getRT() << citer->getMZ() << citer->getIntensity();
 						if (!minimal)
 						{
-							output << citer->getCharge() << citer->getOverallQuality() 
+							output << citer->getCharge() << citer->getOverallQuality()
 										 << citer->getQuality(0) << citer->getQuality(1);
 
 							if (citer->getConvexHulls().size() > 0)
@@ -484,7 +484,7 @@ namespace OpenMS
 					if (!no_ids) // unassigned peptide IDs
 					{
 						for (vector<PeptideIdentification>::const_iterator pit =
-									 feature_map.getUnassignedPeptideIdentifications().begin(); 
+									 feature_map.getUnassignedPeptideIdentifications().begin();
 								 pit != feature_map.getUnassignedPeptideIdentifications().end();
 								 ++pit)
 						{
@@ -494,7 +494,7 @@ namespace OpenMS
 
 					outstr.close();
 				}
-				
+
         else if (in_type == FileTypes::CONSENSUSXML)
         {
           String consensus_centroids = getStringOption_("consensus_centroids");
@@ -575,9 +575,9 @@ namespace OpenMS
 
 						SVOutStream output(consensus_elements_file, sep, replacement,
 															 quoting_method);
-						
+
 						write_consensus_header(output, "Elements", in, date_time_now);
-						
+
             for (ConsensusMap::const_iterator cmit = consensus_map.begin();
 								 cmit != consensus_map.end(); ++cmit)
             {
@@ -608,7 +608,7 @@ namespace OpenMS
 
 						SVOutStream output(consensus_features_file, sep, replacement,
 															 quoting_method);
-						
+
 						std::map<Size,Size> map_id_to_map_num;
             std::vector<Size> map_num_to_map_id;
             std::vector<FeatureHandle> feature_handles;
@@ -632,7 +632,7 @@ namespace OpenMS
 						map<String, Size> prot_runs;
 						Size max_prot_run = 0;
 						StringList comments;
-						if (!no_ids) 
+						if (!no_ids)
             {
 							String pep_line = "Protein identification runs associated with peptide/protein columns below: ";
 							for (vector<ProteinIdentification>::const_iterator prot_it =
@@ -644,7 +644,7 @@ namespace OpenMS
 								// add to comment:
 								if (max_prot_run > 0) pep_line += ", ";
 								pep_line += String(max_prot_run) + ": '" + run_id + "'";
-								
+
 								map<String, Size>::iterator pos = prot_runs.find(run_id);
 								if (pos != prot_runs.end())
 								{
@@ -678,10 +678,10 @@ namespace OpenMS
 											 << "protein_" + String(i)
 											 << "n_diff_proteins_" + String(i);
 							}
-						}					
+						}
             output << endl;
 						output.modifyStrings(true);
-						
+
             for (ConsensusMap::const_iterator cmit = consensus_map.begin();
 								 cmit != consensus_map.end(); ++cmit)
             {
@@ -715,11 +715,11 @@ namespace OpenMS
 									for (vector<PeptideHit>::const_iterator hit_it = pep_it->
 												 getHits().begin(); hit_it != pep_it->getHits().end();
 											 ++hit_it)
-									{							
+									{
 										peptides_by_source[index].insert(hit_it->getSequence().
 																										 toString());
 										proteins_by_source[index].insert(
-											hit_it->getProteinAccessions().begin(), 
+											hit_it->getProteinAccessions().begin(),
 											hit_it->getProteinAccessions().end());
 									}
 								}
@@ -727,23 +727,23 @@ namespace OpenMS
 									begin(), prot_it = proteins_by_source.begin();
 								for (; pep_it != peptides_by_source.end(); ++pep_it, ++prot_it)
 								{
-									StringList seqs(vector<String>(pep_it->begin(), 
-																								 pep_it->end())), 
+									StringList seqs(vector<String>(pep_it->begin(),
+																								 pep_it->end())),
 										accs(vector<String>(prot_it->begin(), prot_it->end()));
 									for (StringList::iterator acc_it = accs.begin();
 											 acc_it != accs.end(); ++acc_it)
 									{
 										acc_it->substitute('/', '_');
 									}
-									output << seqs.concatenate("/") << seqs.size() 
+									output << seqs.concatenate("/") << seqs.size()
 												 << accs.concatenate("/") << accs.size();
 								}
-							}					
+							}
               output << endl;
             }
             consensus_features_file.close();
           }
-					
+
           // -------------------------------------------------------------------
 
           if (!out.empty())
@@ -858,7 +858,7 @@ namespace OpenMS
 							{
 								write_protein_id(output, *it);
 							}
-						 
+
               // unassigned peptides
 							for (vector<PeptideIdentification>::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
 							{
@@ -899,14 +899,14 @@ namespace OpenMS
 											 cmit->getPeptideIdentifications().begin(); pit !=
 											 cmit->getPeptideIdentifications().end(); ++pit)
                 {
-									write_peptide_id(output, *pit);								
+									write_peptide_id(output, *pit);
                 }
               }
             }
           }
           return EXECUTION_OK;
         }
-				
+
         else if (in_type == FileTypes::IDXML)
         {
           vector<ProteinIdentification> prot_ids;
@@ -934,7 +934,7 @@ namespace OpenMS
             String actual_id = it->getIdentifier();
 
             if (!getFlag_("peptides_only"))	write_protein_id(output, *it);
-				
+
             if (!getFlag_("proteins_only"))
             {
               // slight improvement on big idXML files with many different runs:
@@ -959,14 +959,14 @@ namespace OpenMS
               }
             }
           }
-					
+
           txt_out.close();
         }
 				else if (in_type == FileTypes::MZML)
 				{
 					PeakMap exp;
 					FileHandler().loadExperiment(in, exp);
-					
+
 					ofstream outstr(out.c_str());
 					SVOutStream output(outstr, sep, replacement, quoting_method);
 					output.modifyStrings(false);
@@ -984,7 +984,7 @@ namespace OpenMS
 					}
 					outstr.close();
 				}
-				
+
         return EXECUTION_OK;
       }
   };

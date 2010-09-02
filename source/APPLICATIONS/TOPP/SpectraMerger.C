@@ -42,10 +42,9 @@ using namespace std;
 
 /**
 	@page TOPP_SpectraMerger SpectraMerger
-	
+
 	@brief Allows to add up several spectra.
 
-	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 <CENTER>
 	<table>
 		<tr>
@@ -59,6 +58,8 @@ using namespace std;
 		</tr>
 	</table>
 </CENTER>
+
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
   This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above)<br>
   or<br>
@@ -80,9 +81,9 @@ class TOPPSpectraMerger
 		TOPPSpectraMerger()
 			: TOPPBase("SpectraMerger","Merges spectra (each MS level separately), increasing S/N ratios.", false)
 		{
-			
+
 		}
-	
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
@@ -100,7 +101,7 @@ class TOPPSpectraMerger
 	 	Param getSubsectionDefaults_(const String& /*section*/) const
   	{
     	return SpectraMerger().getParameters();
-  	}	
+  	}
 
 		ExitCodes main_(int , const char**)
 		{
@@ -109,7 +110,7 @@ class TOPPSpectraMerger
 			//-------------------------------------------------------------
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
-			String merging_method(getStringOption_("merging_method"));			
+			String merging_method(getStringOption_("merging_method"));
 
 			//-------------------------------------------------------------
 			// reading input
@@ -124,13 +125,13 @@ class TOPPSpectraMerger
 
 			//-------------------------------------------------------------
 			// calculations
-			//-------------------------------------------------------------					
+			//-------------------------------------------------------------
 
 			SpectraMerger merger;
 			merger.setParameters(getParam_().copy("algorithm:",true));
 			if (merging_method == "precursor_method")
 			{
-				merger.mergeSpectraPrecursors(exp);				
+				merger.mergeSpectraPrecursors(exp);
 			}
 			else if (merging_method == "block_method")
 			{
@@ -140,10 +141,10 @@ class TOPPSpectraMerger
 			//-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-		
+
 
 			fh.storeExperiment(out, exp, log_type_);
-	
+
 			return EXECUTION_OK;
 		}
 };
@@ -154,7 +155,7 @@ int main( int argc, const char** argv )
 	TOPPSpectraMerger tool;
 	return tool.main(argc,argv);
 }
-  
+
 /// @endcond
 
 

@@ -39,9 +39,23 @@ using namespace std;
 
 /**
 	@page TOPP_BaselineFilter BaselineFilter
-	
+
 	@brief Executes the top-hat filter to remove the baseline of an MS experiment.
-	
+
+	<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ BaselineFilter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilter </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker (or other ID engines) </td>
+		</tr>
+	</table>
+	</CENTER>
+
 	This nonlinear filter, known as the top-hat operator in morphological
 	mathematics (see Soille, ''Morphological Image Analysis''), is independent
 	of the underlying baseline shape.  It is able to detect an over brightness
@@ -50,14 +64,12 @@ using namespace std;
 	The size the structuring element (here a flat line) being conditioned by the
 	width of the lineament (in our case the maximum width of a mass
 	spectrometric peak) to be detected.
-	
-	Before baseline filtering the @ref TOPP_NoiseFilter is often applied.
-		
-	@note The length (given in Thomson) of the structuring element should be wider than the
-	maximum peak width in the raw data.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_BaselineFilter.cli
+
+	@note The length (given in Thomson) of the structuring element should be wider than the
+	maximum peak width in the raw data.
 */
 
 // We do not want this class to show up in the docu:
@@ -87,7 +99,7 @@ class TOPPBaselineFilter
       addEmptyLine_();
 			addText_("Note: The top-hat filter works only on roughly uniform data (to generate equally-spaced data you can use the Resampler tool!)");
 	}
-  
+
  	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
@@ -126,19 +138,19 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		MorphologicalFilter morph_filter;
     morph_filter.setLogType(log_type_);
-    
+
     Param parameters;
     parameters.setValue("struc_elem_length",getDoubleOption_("struc_elem_length"));
     parameters.setValue("struc_elem_unit",getStringOption_("struc_elem_unit"));
     parameters.setValue("method",getStringOption_("method"));
-    
+
     morph_filter.setParameters(parameters);
 		morph_filter.filterExperiment( ms_exp );
 
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-		
+
 		//annotate output with data processing info
 		addDataProcessing_(ms_exp, getProcessingInfo_(DataProcessing::BASELINE_REDUCTION));
 

@@ -43,19 +43,19 @@ using namespace std;
 
 /**
 	@page TOPP_NoiseFilter NoiseFilter
-	
+
 	@brief  Executes a Savitzky Golay or a Gaussian filter to reduce the noise in an MS experiment.
-	
+
 <CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ NoiseFilter \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ NoiseFilter \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_BaselineFilter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PeakPicker</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker</td>
 		</tr>
 	</table>
 </CENTER>
@@ -69,7 +69,7 @@ using namespace std;
 
 	The Gaussian is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
 	sharp cutoffs, and low passband ripple.
-	
+
 
 	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
 	      The Gaussian filter works for uniform as well as for non-uniform data.
@@ -113,12 +113,12 @@ class TOPPNoiseFilter
       				 "      The Gaussian filter works for uniform as well as for non-uniform data.");
     	registerSubsection_("algorithm","Algorithm parameters section");
     }
-    
+
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
 			String type = getStringOption_("type");
 			Param tmp;
-			
+
 			if (type == "sgolay")
       {
         tmp = SavitzkyGolayFilter().getDefaults();
@@ -153,7 +153,7 @@ class TOPPNoiseFilter
 			{
 				writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
 			}
-			
+
 			//check if spectra are sorted
 			for (Size i=0; i< exp.size(); ++i)
 			{
@@ -170,14 +170,14 @@ class TOPPNoiseFilter
     	Param filter_param = getParam_().copy("algorithm:",true);
 			writeDebug_("Parameters passed to filter", filter_param,3);
       if (type == "sgolay")
-      {	
+      {
   			SavitzkyGolayFilter sgolay;
         sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
 				sgolay.filterExperiment(exp);
       }
       else if (type == "gaussian")
-      {	
+      {
         GaussFilter gauss;
         gauss.setLogType(log_type_);
         gauss.setParameters(filter_param);

@@ -38,8 +38,22 @@ using namespace std;
 
 /**
 	@page TOPP_MapNormalizer MapNormalizer
-	
+
 	@brief Normalizes peak intensities to the percentage of the maximum intensity in the HPLC-MS map.
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapNormalizer \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+		</tr>
+	</table>
+</CENTER>
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MapNormalizer.cli
@@ -55,9 +69,9 @@ class TOPPMapNormalizer
 		TOPPMapNormalizer()
 			: TOPPBase("MapNormalizer","Normalizes peak intensities in an MS run.")
 		{
-			
+
 		}
-	
+
 	protected:
 
 		void registerOptionsAndFlags_()
@@ -67,33 +81,33 @@ class TOPPMapNormalizer
 			registerOutputFile_("out","<file>","","output file ");
 	  	setValidFormats_("out",StringList::create("mzML"));
 		}
-	
+
 		ExitCodes main_(int , const char**)
 		{
 
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-	
+
 			String in = getStringOption_("in");
 			String out = getStringOption_("out");
-			
+
 			//-------------------------------------------------------------
 			// loading input
 			//-------------------------------------------------------------
-			
+
 			MSExperiment<Peak1D> exp;
 			MzMLFile f;
-			f.load(in,exp);						
-		
+			f.load(in,exp);
+
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-			
+
 			//determine maximum peak
 			exp.updateRanges();
 			DoubleReal max = exp.getMaxInt() / 100.0;
-			
+
 			for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it!= exp.end(); ++it)
 			{
 				if (it->getMSLevel() < 2)
@@ -105,7 +119,7 @@ class TOPPMapNormalizer
 				}
 			}
 
-	
+
 			/// @todo add chromatogram support for normalization, e.g. for MRM stuff (Andreas)
 		  /*
 			vector<MSChromatogram<> > chroms = exp.getChromatograms();
@@ -128,16 +142,16 @@ class TOPPMapNormalizer
 
 			exp.setChromatograms(chroms);
 		  */
-			
+
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-			
+
 			//annotate output with data processing info
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::NORMALIZATION));
-			
+
 			f.store(out,exp);
-			
+
 			return EXECUTION_OK;
 		}
 };

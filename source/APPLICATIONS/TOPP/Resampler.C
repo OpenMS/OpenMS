@@ -48,8 +48,22 @@ using namespace std;
 
 	@brief Resampler can be used to transform an LC/MS map into a resampled map.
 
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Resampler \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+		</tr>
+	</table>
+</CENTER>
+
 	When writing an peak file, all spectra are resampled with a new sampling
-	rate.  The number of spectra does not change.
+	rate. The number of spectra does not change.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_Resampler.cli
@@ -115,7 +129,7 @@ class TOPPResampler
     //annotate output with data processing info
 		addDataProcessing_(exp,
 											 getProcessingInfo_(DataProcessing::DATA_PROCESSING));
-    
+
     //store output
 		f.store(out, exp);
 
