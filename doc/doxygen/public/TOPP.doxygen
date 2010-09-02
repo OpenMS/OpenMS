@@ -46,6 +46,7 @@
   - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.
+  - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
 
@@ -83,17 +84,16 @@
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
   - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
-  - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
+  - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
 <!--  %% removed from Docu (still available in TOPP) because of operability
 - @subpage TOPP_PILISIdentification - Trains the PILIS model using a given set of spectra and identifications.
 - @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications.
 -->
-  - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
 
   <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.

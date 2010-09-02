@@ -35,16 +35,39 @@ using namespace std;
 
 /**
 	@page TOPP_IDDecoyProbability IDDecoyProbability
-	
+
 	@brief Tool to estimate probability of peptide hits
 
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDDecoyProbability \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
+		</tr>
+	</table>
+</CENTER>
+
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
 	So far an estimation of the false score distribution with a gamma distribution
-	and the correct score distribution with a gaussian distribution is performed. 
+	and the correct score distribution with a gaussian distribution is performed.
 	The probabilities are calculated using bayes law, similar to PeptideProphet.
 	This implementation is much simpler than that of PeptideProphet.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDDecoyProbability.cli
+
+	For the parameters of the algorithm section see the algorithms documentation: @n
+		@ref OpenMS::IDDecoyProbability "decoy_algorithm" @n
+
 */
 
 
@@ -59,7 +82,7 @@ class TOPPIDDecoyProbability
 			: TOPPBase("IDDecoyProbability", "Estimates peptide probabilities using a decoy search strategy.")
 		{
 		}
-	
+
 	protected:
 
 		void registerOptionsAndFlags_()
@@ -70,7 +93,7 @@ class TOPPIDDecoyProbability
 			registerOutputFile_("out", "<file>", "", "Identification output with forward scores converted to probabilities");
 
 			registerSubsection_("decoy_algorithm", "Algorithm parameter subsection");
-			addEmptyLine_();		
+			addEmptyLine_();
 		}
 
 		Param getSubsectionDefaults_(const String& /*section*/) const
@@ -78,13 +101,13 @@ class TOPPIDDecoyProbability
 			IDDecoyProbability decoy_prob;
 			return decoy_prob.getParameters();
 		}
-		
+
 		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-	
+
       //input/output files
       // either fwd_in and rev_in must be given or just the in which contains results of a search against a concatenated target decoy sequence db
       String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
@@ -115,7 +138,7 @@ class TOPPIDDecoyProbability
       //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
-				
+
 			IDDecoyProbability decoy_prob;
 			Param decoy_param = getParam_().copy("decoy_algorithm:",true);
 			decoy_prob.setParameters(decoy_param);
@@ -127,14 +150,14 @@ class TOPPIDDecoyProbability
 				String document_id;
 				IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
 				IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
-			
+
       	//-------------------------------------------------------------
       	// calculations
       	//-------------------------------------------------------------
-			
+
 				writeDebug_("Starting calculations", 1);
 				decoy_prob.apply(out_pep, fwd_pep, rev_pep);
-			
+
 				//-------------------------------------------------------------
 				// writing output
 				//-------------------------------------------------------------
@@ -151,7 +174,7 @@ class TOPPIDDecoyProbability
 				decoy_prob.apply(pep_ids);
 				IdXMLFile().store(out, prot_ids, pep_ids);
 			}
-			
+
 			return EXECUTION_OK;
 		}
 };

@@ -43,7 +43,7 @@ using namespace std;
 
 /**
 	@page TOPP_IDFileConverter IDFileConverter
-	
+
 	@brief Converts identification engine file formats.
 
 <CENTER>
@@ -55,7 +55,7 @@ using namespace std;
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> TPP tools: PeptideProphet, ProteinProphet </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> ProteinProphet\n(for conversion from idXML to pepXML) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> TPP tools: ProteinProphet\n(for conversion from idXML to pepXML) </td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Sequest protein identification engine </td>
@@ -67,10 +67,10 @@ using namespace std;
 Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be represented in the simpler idXML format.
 
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant information for the use of ProteinProphet.
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDFileConverter.cli
-	
+
 */
 
 // We do not want this class to show up in the docu:
