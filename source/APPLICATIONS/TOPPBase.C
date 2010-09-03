@@ -86,9 +86,8 @@ namespace OpenMS
 
 	TOPPBase::~TOPPBase()
   {
-  	//delete TOPP.log and custom log file if they are empty
+  	//delete log file if empty
   	StringList log_files;
-  	log_files << "TOPP.log";
   	if (!getParam_("log").isEmpty()) log_files << (String)(getParam_("log"));
 		for (Size i=0; i< log_files.size(); ++i)
 		{
@@ -116,7 +115,7 @@ namespace OpenMS
 				{
 					types.push_back("");
 				}
-				
+
 				for (StringList::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
 					String type_arg ="";
@@ -124,7 +123,7 @@ namespace OpenMS
 					{
 						 type_arg = "-type " + *sit;
 					}
-					QStringList args; 
+					QStringList args;
 					args << type_arg.toQString() << " -write_ini " << tmp_file.toQString();
 					if (QProcess::execute(call.toQString(), args) == 0)
 					{
@@ -161,7 +160,7 @@ namespace OpenMS
     if (getToolList().has(tool_name_)) addText_("Common TOPP options:");
     else addText_("Common UTIL options:");
 		registerStringOption_("ini","<file>","","Use the given TOPP INI file",false);
-		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false,true);
+		registerStringOption_("log","<file>","","Name of log file (created only when specified)",false,true);
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false,true);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
@@ -289,7 +288,7 @@ namespace OpenMS
           default_params.update(ini_params, true);
         }
 				outputFileWritable_(write_ini_file,"write_ini");
-				
+
 				default_params.store(write_ini_file);
 				return EXECUTION_OK;
 			}
@@ -447,7 +446,7 @@ namespace OpenMS
 				//end
 				os << "</wsdl:definitions>" << endl;
 				os.close();
-				
+
 				//validate written file
 				XMLValidator validator;
 				if (!validator.isValid(wsdl_file,File::find("SCHEMAS/WSDL_20030211.xsd")))
@@ -495,7 +494,7 @@ namespace OpenMS
 				checkParam_(param_instance_, (String)value_ini, getIniLocation_());
 				checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
 				checkParam_(param_common_, (String)value_ini, "common:" );
-				
+
 				//check if the version of the parameters file matches the version of this tool
 				String file_version = "";
 				if (param_inifile_.exists(tool_name_ + ":version"))
@@ -667,7 +666,7 @@ namespace OpenMS
 
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
-      
+
 		//determine max length of parameters (including argument) for indentation
 		UInt max_size = 0;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
@@ -681,9 +680,27 @@ namespace OpenMS
 		//offset of the descriptions
 		UInt offset = 6 + max_size;
 
+    //keep track of the current subsection we are in, to display the subsection help when a new section starts
+    String current_TOPP_subsection("");
+
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
       if (!((!it->advanced) || (it->advanced && verbose))) continue;
+
+      //new subsection?
+      if (it->name.has(':') && current_TOPP_subsection != it->name.prefix(':'))
+      {
+        current_TOPP_subsection = it->name.prefix(':');
+        map<String,String>::const_iterator it = subsections_TOPP_.find(current_TOPP_subsection);
+        if (it==subsections_TOPP_.end()) throw Exception::ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,"'"+current_TOPP_subsection+"' (TOPP subsection not registered)");
+        cerr << "\n"; // print newline for new subsection
+        cerr << it->second << ":\n"; // print subsection description
+      }
+      else if ((!it->name.has(':')) && current_TOPP_subsection.size()>0)
+      { // subsection ended and normal parameters start again
+        current_TOPP_subsection="";
+        cerr << "\n"; // print newline to separate ending subsection
+      }
 
 			//NAME + ARGUMENT
 			String tmp = "  -";
@@ -733,7 +750,7 @@ namespace OpenMS
 					if (it->valid_strings.size()!=0)
 					{
 						StringList copy = it->valid_strings;
-						for (StringList::iterator str_it = copy.begin(); 
+						for (StringList::iterator str_it = copy.begin();
 								 str_it != copy.end(); ++str_it)
 						{
 							str_it->quote();
@@ -792,12 +809,12 @@ namespace OpenMS
 			{
 				vector<String>::iterator it2 = parts.begin();
 				it2->firstToUpper();
-				cerr << tmp << *it2 << endl;
+				cerr << tmp << *it2 << "\n";
 				it2++;
 				for (; (it2+1)!=parts.end(); ++it2)
 				{
 					if (it->type != ParameterInformation::TEXT) cerr << String(offset,' ');
-					cerr << *it2 << endl;
+					cerr << *it2 << "\n";
 				}
 				if (it->type != ParameterInformation::TEXT)
 				{
@@ -807,7 +824,7 @@ namespace OpenMS
 				cerr << *it2;
 			}
 
-			cerr << endl;
+			cerr << "\n";
 		}
 
 		if (subsections_.size()!=0)
@@ -821,13 +838,13 @@ namespace OpenMS
 			indent += 6;
 
 			//output
-			cerr << endl
-					 << "The following configuration subsections are valid:" << endl;
+			cerr << "\n"
+					 << "The following configuration subsections are valid:" << "\n";
 			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
 				String tmp = String(" - ") + it->first;
 				tmp.fillRight(' ',indent);
-				cerr << tmp << it->second << endl;
+				cerr << tmp << it->second << "\n";
 			}
       cerr << "\n"
 					 << "You can write an example INI file using the '-write_ini' option." << "\n"
@@ -1495,9 +1512,7 @@ namespace OpenMS
 	{
 		if (debug_level_>=(Int)min_level)
 		{
-			cout << text << endl;
-			enableLogging_();
-			log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text<< endl;
+			writeLog_(text);
 		}
 	}
 
@@ -1749,20 +1764,11 @@ namespace OpenMS
 			if(param_cmdline_.exists("log")) log_destination = param_cmdline_.getValue("log");
 			if ( log_destination!="" )
 			{
-				log_.open("TOPP.log", ofstream::out | ofstream::app);
-				if (debug_level_>=1)
-				{
-					cout << "Writing to 'TOPP.log'" << endl;
-					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to 'TOPP.log'"<< endl;
-				}
-			}
-			else
-			{
 				log_.open( log_destination.c_str(), ofstream::out | ofstream::app);
 				if (debug_level_>=1)
 				{
-					cout << "Writing to '" << log_destination << '\'' << endl;
-					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  endl;
+					cout << "Writing to '" << log_destination << '\'' << "\n";
+					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
 				}
 			}
 		}
@@ -1878,7 +1884,7 @@ namespace OpenMS
 	void TOPPBase::outputFileWritable_(const String& filename, const String& param_name) const
 	{
 		writeDebug_( "Checking output file '" + filename + "'", 2 );
-    
+
     // prepare error message
     String message;
     if (param_name == "") message = "Cannot write output file!\n";
@@ -1954,7 +1960,7 @@ namespace OpenMS
 							{
 								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
-								if (!it->description.empty()) 
+								if (!it->description.empty())
 								{
 									// if there's no whitespace at the end of the description,
 									// insert a space before "(valid formats: ...)":
@@ -2002,7 +2008,7 @@ namespace OpenMS
 							{
 								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
-								if (!it->description.empty()) 
+								if (!it->description.empty())
 								{
 									// if there's no whitespace at the end of the description,
 									// insert a space before "(valid formats: ...)":
@@ -2065,10 +2071,10 @@ namespace OpenMS
 		{
 			tmp.setSectionDescription(loc + it->first, it->second);
 		}
-		
+
 		//set tool version
 		tmp.setValue(tool_name_ + ":version", VersionInfo::getVersion(), "Version of the tool that generated this parameters file.", StringList::create("advanced"));
-		
+
 		//descriptions
 		tmp.setSectionDescription(tool_name_, tool_description_);
 		tmp.setSectionDescription(tool_name_ + ":" + String(instance_number_), String("Instance '") + String(instance_number_) + "' section for '" + tool_name_ + "'");
@@ -2079,9 +2085,9 @@ namespace OpenMS
 
 		// 2nd stage, use TOPP tool defaults from home (if existing)
 		Param tool_user_defaults(getToolUserDefaults_(tool_name_));
-		tmp.update(tool_user_defaults);				
+		tmp.update(tool_user_defaults);
 
-		// 3rd stage, use OpenMS.ini from library to override settings 
+		// 3rd stage, use OpenMS.ini from library to override settings
 		Param system_defaults(File::getSystemParameters_());
     // this currently writes to the wrong part of the ini-file (revise) or remove altogether:
     //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
@@ -2159,6 +2165,7 @@ namespace OpenMS
 		tools_map["MascotAdapterOnline"] = StringList::create("");
 		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
 		tools_map["OMSSAAdapter"] = StringList::create("");
+		tools_map["PILISIdentification"] = StringList::create("");
 		tools_map["PILISModel"] = StringList::create("");
 		tools_map["PTModel"] = StringList::create("");
 		tools_map["PTPredict"] = StringList::create("");
@@ -2171,20 +2178,19 @@ namespace OpenMS
 		tools_map["RTPredict"] = StringList::create("");
 		tools_map["Resampler"] = StringList::create("");
 		tools_map["SILACAnalyzer"] = StringList::create("");
-		tools_map["SILACAnalyzer2"] = StringList::create("");
 		tools_map["SeedListGenerator"] = StringList::create("");
-		tools_map["SequestAdapter"] = StringList::create("");
+		//tools_map["SequestAdapter"] = StringList::create("");
 		tools_map["SpecLibSearcher"] = StringList::create("");
 		tools_map["SpectraFilter"] = Factory<PreprocessingFunctor>::registeredProducts();
 		tools_map["TOFCalibration"] = StringList::create("");
 		tools_map["TextExporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
 		tools_map["SILACAnalyzer"] = StringList::create("double,triple");
-		tools_map["SILACAnalyzer2"] = StringList::create("double,triple");
-    tools_map["PrecursorMassCorrector"] = StringList::create("");
-    tools_map["GenericWrapper"] = StringList::create("");
-    tools_map["ProteinInference"] = StringList::create("");
-    tools_map["InclusionExclusionListCreator"] = StringList::create("");
+		tools_map["SpectraMerger"] = StringList::create("");
+		tools_map["PrecursorMassCorrector"] = StringList::create("");
+		tools_map["GenericWrapper"] = StringList::create("");
+		tools_map["ProteinInference"] = StringList::create("");
+		tools_map["InclusionExclusionListCreator"] = StringList::create("");
 
 		return tools_map;
 	}
@@ -2220,7 +2226,7 @@ namespace OpenMS
 		util_map["ImageCreator"] = StringList::create("");
 		util_map["IDSplitter"] = StringList::create("");
 		util_map["MassCalculator"] = StringList::create("");
-		
+
 		return util_map;
 	}
 

@@ -109,19 +109,57 @@ END_SECTION
 
 
 
-START_SECTION([EXTRA]UInt IndexConverter::operator(const UInt &type_id_a, const UInt &intensity_level_a, const UInt &intensity_level_parent, const UInt &number_intensity_levels))
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::IndexConverter] UInt operator()(const UInt &type_id_a, const UInt &intensity_level_a, const UInt &intensity_level_parent, const UInt &number_intensity_levels))
   AdvancedTheoreticalSpectrumGenerator::IndexConverter ind_conv;
   TEST_EQUAL(ind_conv(10,3,2,5), 263)
 END_SECTION
 
+AdvancedTheoreticalSpectrumGenerator::IonType* ptr_t = 0;
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::IonType] IonType())
+ptr_t = new AdvancedTheoreticalSpectrumGenerator::IonType();
+TEST_NOT_EQUAL(ptr_t, 0)
+delete ptr_t;
+END_SECTION
+
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::IonType] IonType(Residue::ResidueType residue, EmpiricalFormula loss, Int charge))
+AdvancedTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+TEST_EQUAL(type.residue, Residue::BIon)
+TEST_EQUAL(type.loss, EmpiricalFormula(""))
+TEST_EQUAL(type.charge, 2)
+END_SECTION
+
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::IonType] IonType(const IonType &rhs))
+AdvancedTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+AdvancedTheoreticalSpectrumGenerator::IonType copy(type);
+TEST_EQUAL(type.residue, copy.residue)
+TEST_EQUAL(type.charge, copy.charge)
+TEST_EQUAL(type.loss, copy.loss)
+END_SECTION
+
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::IonType] IonType& operator=(const IonType &rhs))
+AdvancedTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+AdvancedTheoreticalSpectrumGenerator::IonType copy;
+copy=type;
+TEST_EQUAL(type.residue, copy.residue)
+TEST_EQUAL(type.charge, copy.charge)
+TEST_EQUAL(type.loss, copy.loss)
+END_SECTION
+
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::IonType] bool operator<(const IonType &rhs))
+AdvancedTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+AdvancedTheoreticalSpectrumGenerator::IonType type2(Residue::YIon, EmpiricalFormula(""), 2);
+TEST_EQUAL(type<type2, true)
+END_SECTION
+
+
 AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork * tan_ptr = 0;
 
-START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork())
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork] TreeAugmentedNetwork())
 tan_ptr = new AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork();
 TEST_NOT_EQUAL(tan_ptr, 0)
 END_SECTION
 
-START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::~TreeAugmentedNetwork())
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork] ~TreeAugmentedNetwork())
   delete tan_ptr;
 END_SECTION
 
@@ -143,10 +181,15 @@ edges.push_back(e5);
 edges.push_back(e6);
 tan_ptr = new AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(edges);
 
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork] TreeAugmentedNetwork(std::vector< TanEdge > edges_in))
+TEST_EQUAL(tan_ptr->edges_.size(), 6)
+TEST_EQUAL(tan_ptr->edges_[0].score, -2.0)
+END_SECTION
+
 std::vector<Int>has_parent;
 std::vector<UInt>dfs_order;
 
-START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork void generateTree(std::vector<Int> &tree_structure))
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork] void generateTree(std::vector<Int> &tree_structure))
 tan_ptr->generateTree(has_parent);
 TEST_EQUAL(has_parent.size(), 5)
 
@@ -165,7 +208,11 @@ TEST_EQUAL(dfs_order[2], 3)
 TEST_EQUAL(dfs_order[3], 2)
 END_SECTION
 
-START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork & rhs))
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork] void getDFSOrder(std::vector< UInt > &ordered_nodes) const)
+NOT_TESTABLE //already tested in previous test
+END_SECTION
+
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork] TreeAugmentedNetwork(const TreeAugmentedNetwork &t_aug))
 AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork copy(*tan_ptr);
 std::vector<Int>copy_has_parent;
 std::vector<UInt>copy_dfs_order;
@@ -182,7 +229,7 @@ for(Size i=0; i<copy_dfs_order.size();++i)
   TEST_EQUAL(copy_dfs_order[i], dfs_order[i]);
 END_SECTION
 
-START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork operator =(const AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork & rhs))
+START_SECTION([AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork] TreeAugmentedNetwork& operator =(const TreeAugmentedNetwork &t_aug))
 AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork copy;
 copy=*tan_ptr;
 

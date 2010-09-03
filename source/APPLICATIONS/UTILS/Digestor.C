@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Chris Bielow $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -44,10 +44,25 @@ using namespace std;
 	@page UTILS_Digestor Digestor
 	
 	@brief Digests a protein database in-silico.
-	
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Digestor \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none (FASTA input) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter (peptide blacklist)</td>
+		</tr>
+	</table>
+</CENTER>
+
 	This application is used to digest a protein database to get all
 	peptides given a cleavage enzyme. At the moment only trypsin is supported.
-		
+	
+  The output can be used as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_Digestor.cli
 */
@@ -69,11 +84,14 @@ class TOPPDigestor
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file");
+      setValidFormats_("in",StringList::create("FASTA"));
 			registerOutputFile_("out","<file>","","output file (peptides)\n");
-			registerIntOption_("missed_cleavages","<number>",1,"the number of allowed missed cleavages", false);
+      setValidFormats_("out",StringList::create("idXML"));
+
+      registerIntOption_("missed_cleavages","<number>",1,"the number of allowed missed cleavages", false);
+			setMinInt_("missed_cleavages", 0);
 			registerIntOption_("min_length","<number>",6,"minimum length of peptide", false);
 			registerStringOption_("enzyme","<string>","Trypsin","the digestion enzyme", false);
-			setMinInt_("missed_cleavages", 0);
 		}
 
 		ExitCodes main_(int , const char**)

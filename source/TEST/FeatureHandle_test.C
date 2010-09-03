@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ START_SECTION((Int getCharge() const))
 }
 END_SECTION
 
-START_SECTION((FeatureHandle(UInt64 map_index, UInt64 element_index, const Peak2D &point)))
+START_SECTION((FeatureHandle(UInt64 map_index, const Peak2D &point, UInt64 element_index)))
   ElementType e;
   FeatureHandle it(1,e,2);
 
@@ -183,6 +183,7 @@ START_SECTION((bool operator==(const FeatureHandle &i) const))
   TEST_EQUAL(it1 == it2, true)
 END_SECTION
 
+#if 0
 START_SECTION((UInt64 getUniqueId() const))
   ElementType e;
   e.setUniqueId(2);
@@ -190,6 +191,7 @@ START_SECTION((UInt64 getUniqueId() const))
 
   TEST_EQUAL(it.getUniqueId() == 2, true)
 END_SECTION
+#endif 
 
 START_SECTION((UInt64 getMapIndex() const))
   ElementType e;
@@ -199,6 +201,7 @@ START_SECTION((UInt64 getMapIndex() const))
   TEST_EQUAL(it.getMapIndex() == 1, true)
 END_SECTION
 
+#if 0
 START_SECTION((void setUniqueId(UInt64 e)))
   FeatureHandle it;
   it.setMapIndex(555);
@@ -206,6 +209,7 @@ START_SECTION((void setUniqueId(UInt64 e)))
 
   TEST_EQUAL(it.getUniqueId() == 2, true)
 END_SECTION
+#endif
 
 START_SECTION((void setMapIndex(UInt64 i)))
   FeatureHandle it;
@@ -213,6 +217,19 @@ START_SECTION((void setMapIndex(UInt64 i)))
   it.setUniqueId(77);
 
   TEST_EQUAL(it.getMapIndex() == 2, true)
+END_SECTION
+
+START_SECTION(([FeatureHandle::IndexLess] bool operator()(FeatureHandle const &left, FeatureHandle const &right) const))
+  FeatureHandle lhs, rhs;
+  lhs.setMapIndex(2);
+  lhs.setUniqueId(77);
+  rhs.setMapIndex(4);
+  lhs.setUniqueId(29);
+
+  FeatureHandle::IndexLess il;
+  
+  TEST_EQUAL(il(lhs, rhs), 1);
+  TEST_EQUAL(il(rhs, lhs), 0);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -31,7 +31,8 @@ namespace OpenMS
 {
 	Matrix<int>    default_matrix_int;
 	Matrix<double> default_matrix_double;
-	
+		
+	#if 0
 	template<>
 	gsl_matrix* Matrix<double>::toGslMatrix()
 	{
@@ -59,5 +60,6 @@ namespace OpenMS
 	  }
 		return m_ptr;
 	}
+	#endif
 		
 }

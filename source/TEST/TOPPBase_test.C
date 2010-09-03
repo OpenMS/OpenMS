@@ -242,13 +242,50 @@ START_SECTION((virtual ~TOPPBase()))
 	delete ptr;
 END_SECTION
 
+START_SECTION((void checkTOPPIniFile(const String &tool_path)))
+  // does this anything? (ek)
+  NOT_TESTABLE
+END_SECTION
+
 START_SECTION((static Map<String,StringList> getToolList()))
 	TEST_EQUAL(TOPPBaseTest::getToolList().has("FileInfo"),true)
 	TEST_EQUAL(TOPPBaseTest::getToolList().has("ImaginaryTool"),false)
 	TEST_EQUAL(TOPPBaseTest::getToolList()["FileInfo"].empty(),true)
 	TEST_EQUAL(TOPPBaseTest::getToolList()["FeatureFinder"].empty(),false)
-
 END_SECTION
+
+START_SECTION((static Map<String,StringList> getUtilList()))
+	TEST_EQUAL(TOPPBaseTest::getUtilList().has("MapAlignmentEvaluation"),true)
+	TEST_EQUAL(TOPPBaseTest::getUtilList().has("SomeCoolUtil"),false)
+	TEST_EQUAL(TOPPBaseTest::getUtilList()["MSSimulator"].empty(),false)
+	TEST_EQUAL(TOPPBaseTest::getUtilList()["ImageCreator"].empty(),true)
+END_SECTION
+
+TOPPBase::ParameterInformation* pi_ptr = 0;
+
+START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation()))
+    pi_ptr = new TOPPBase::ParameterInformation();
+    TEST_NOT_EQUAL(pi_ptr, 0)
+END_SECTION
+
+TOPPBase::ParameterInformation pi("Temperatur", TOPPBase::ParameterInformation::DOUBLE, "sehr hoch", "ganz hoch", "eine Art Beschreibung", true, false);
+
+START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation(const String &n, ParameterTypes t, const String &arg, const DataValue &def, const String &desc, bool req, bool adv, const StringList &tag_values=StringList())))
+  TEST_EQUAL(pi.name, "Temperatur");
+  TEST_EQUAL(pi.type, TOPPBase::ParameterInformation::DOUBLE);
+  TEST_EQUAL(pi.default_value, "ganz hoch");
+  TEST_EQUAL(pi.required, true);
+END_SECTION
+
+START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation& operator=(const ParameterInformation &rhs)))
+  TOPPBase::ParameterInformation assign_to = pi;
+  
+  TEST_EQUAL(assign_to.name, "Temperatur");
+  TEST_EQUAL(assign_to.type, TOPPBase::ParameterInformation::DOUBLE);
+  TEST_EQUAL(assign_to.default_value, "ganz hoch");
+  TEST_EQUAL(assign_to.required, true);
+END_SECTION
+
 
 START_SECTION((ExitCodes main(int argc, const char**argv)))
 	NOT_TESTABLE
@@ -284,6 +321,7 @@ const char* a18 ="-intlist";
 const char* a19 ="-doublelist";
 const char* a20 ="0.411";
 const char* a21 = "-write_ini";
+
 START_SECTION(([EXTRA]String const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
@@ -357,7 +395,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:doublelist",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
 	p2.setValue("TOPPBaseTest:1:stringlist",StringList::create("abc,def,ghi,jkl"),"stringlist description");
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
-	p2.setValue("TOPPBaseTest:1:log","TOPP.log","Location of the log file");
+  p2.setValue("TOPPBaseTest:1:log","","Name of log file (created only when specified)");
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
 	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool");
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");

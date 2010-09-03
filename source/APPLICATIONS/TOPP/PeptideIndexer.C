@@ -43,9 +43,27 @@ using namespace std;
 
 /**
 	@page TOPP_PeptideIndexer PeptideIndexer
-	
-	@brief Refreshes the protein references for all peptide hits.
-		
+
+	@brief Refreshes the protein references for all peptide hits from a idXML file.
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PeptideIndexer \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
+		</tr>
+	</table>
+</CENTER>
+
+	Each peptide hit is annotated by a target_decoy string,
+	indicating if the peptide sequence is found in a 'target', a 'decoy' or in both 'target+decoy' protein. This information is
+	crucial for the @ref TOPP_FalseDiscoveryRate tool.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PeptideIndexer.cli
 */
@@ -60,9 +78,9 @@ class TOPPPeptideIndexer
 		TOPPPeptideIndexer()
 			: TOPPBase("PeptideIndexer","Refreshes the protein references for all peptide hits.", false)
 		{
-			
+
 		}
-	
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
@@ -87,7 +105,7 @@ class TOPPPeptideIndexer
 			bool write_protein_sequence(getFlag_("write_protein_sequence"));
 			bool keep_unreferenced_proteins(getFlag_("keep_unreferenced_proteins"));
 			String decoy_string(getStringOption_("decoy_string"));
-			
+
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
@@ -95,27 +113,27 @@ class TOPPPeptideIndexer
 			// we stream the Fasta file
 			vector<FASTAFile::FASTAEntry> proteins;
 			FASTAFile().load(fasta, proteins);
-	
+
 			vector<ProteinIdentification> prot_ids;
 			vector<PeptideIdentification> pep_ids;
 			IdXMLFile().load(in, prot_ids, pep_ids);
 
 			//-------------------------------------------------------------
 			// calculations
-			//-------------------------------------------------------------					
+			//-------------------------------------------------------------
 
-		
-			writeDebug_("Collecting peptides...", 1);	
+
+			writeDebug_("Collecting peptides...", 1);
 			// collect the peptides in a Seqan StringSet
 			seqan::StringSet<seqan::String<char> > needle;
 
 			// store for each run the protein idx and number of peptides that hit this protein
-			Map<String, Map<Size, Size> > prot_idx_hits;			
-			
+			Map<String, Map<Size, Size> > prot_idx_hits;
+
 			// map the number of the peptide to the corresponding iterator in vector<PeptideHits>
 			Size needle_count = (numeric_limits<Size>::max)();
 			Map<String, Size> peptide_to_idx;
-			
+
 			for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 			{
 				String run_id = it1->getIdentifier();
@@ -125,12 +143,12 @@ class TOPPPeptideIndexer
 					it2->setProteinAccessions(vector<String>());
 					String seq = it2->getSequence().toUnmodifiedString();
 					seqan::appendValue(needle, seq.c_str());
-					
+
 					peptide_to_idx[seq] = ++needle_count;
 				}
 			}
-			
-			
+
+
 			// read and concatenate all proteins
 			seqan::String<char> all_protein_sequences;
 			// build map accessions to proteins
@@ -154,9 +172,9 @@ class TOPPPeptideIndexer
 			}
 
 			// Aho Corasick Call
-			seqan::Finder<seqan::String<char>  > finder(all_protein_sequences); 
-			seqan::Pattern<seqan::StringSet<seqan::String<char> >, seqan::AhoCorasick > pattern(needle); 
-			
+			seqan::Finder<seqan::String<char>  > finder(all_protein_sequences);
+			seqan::Pattern<seqan::StringSet<seqan::String<char> >, seqan::AhoCorasick > pattern(needle);
+
 			seqan::String<seqan::Pair<Size, Size> > pat_hits;
 			Map<Size, vector<Size> > peptide_to_indices;
 			writeDebug_("Finding peptide/protein matches...", 1);
@@ -177,9 +195,9 @@ class TOPPPeptideIndexer
 					it2->setProteinAccessions(vector<String>());
 					String seq = it2->getSequence().toUnmodifiedString();
 
-					
+
 					//seqan::Pair<Size> hits;
-					//hits = seqan::equalRangeSA(all_protein_sequences, suffix_array, seq.c_str()); 
+					//hits = seqan::equalRangeSA(all_protein_sequences, suffix_array, seq.c_str());
 
 
 					for (vector<Size>::const_iterator it = peptide_to_indices[peptide_to_idx[seq]].begin(); it != peptide_to_indices[peptide_to_idx[seq]].end(); ++it)
@@ -199,7 +217,7 @@ class TOPPPeptideIndexer
 								prot_idx_hits[run_id][prot_idx] = 1;
 							}
 						}
-						else 
+						else
 						{
 							prot_idx_hits[run_id][prot_idx] = 1;
 						}
@@ -252,7 +270,7 @@ class TOPPPeptideIndexer
 				it1->setHits(hits);
 			}
 
-			// all peptides contain the correct protein hit references, now update the protein hits 
+			// all peptides contain the correct protein hit references, now update the protein hits
 			vector<ProteinIdentification> new_prot_ids;
 			for (vector<ProteinIdentification>::iterator it1 = prot_ids.begin(); it1 != prot_ids.end(); ++it1)
 			{
@@ -313,13 +331,13 @@ class TOPPPeptideIndexer
 				new_prot_ids.push_back(new_prot_id);
 			}
 			writeDebug_("Ended reindexing", 1);
-			
+
 			//-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-		
+
 			IdXMLFile().store(out, new_prot_ids, pep_ids);
-	
+
 			return EXECUTION_OK;
 		}
 };
@@ -330,7 +348,7 @@ int main( int argc, const char** argv )
 	TOPPPeptideIndexer tool;
 	return tool.main(argc,argv);
 }
-  
+
 /// @endcond
 
 

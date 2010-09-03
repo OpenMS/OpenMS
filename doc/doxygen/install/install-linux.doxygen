@@ -1,13 +1,19 @@
 /**
   
-  @page install_linux Installation on Linux
+  @page install_linux Building OpenMS on Linux
   
   @section install_linux_read Read this section first!
   
   This document addresses %OpenMS users and explains the
-  installation procedure. It especially considers the installation
-  of several libraries which are required by %OpenMS. Most of these 
-  libraries are made available in our "contrib-package" (see below).
+  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
+	encouraged to <b>download the binary installer</b>
+	(see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
+	instead of building %OpenMS from sources. 
+  Be aware though that we do not provide binary installers for every linux distribution.
+  For more information read the install instructions for the TOPP binaries.
+
+	This document especially considers the installation
+  of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
   <br>
   If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section (documentation), maybe the error is already known. If not, please write to the mailing list.
   
@@ -26,7 +32,7 @@
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
     - doxygen (We recommend version 1.5.4)
-    - pdflatex
+    - pdflatex or texlive or texlive-full
 
   Depending on your linux distribution, you might have to install the following packages:
   

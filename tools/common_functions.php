@@ -444,6 +444,9 @@ function parseTestFile($filename)
 			{
 				$function = trim(substr($function,1,-1));
 			}
+			# ignore OPENMS_DLLAPI
+			$function=str_replace("OPENMS_DLLAPI ", "", $function);
+			
 			# ignore extra function tests
 			if (!beginsWith($function,"[EXTRA]"))
 			{

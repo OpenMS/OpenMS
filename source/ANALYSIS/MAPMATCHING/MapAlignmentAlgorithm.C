@@ -76,7 +76,14 @@ namespace OpenMS
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}
 
-
+	void MapAlignmentAlgorithm::setReference(Size reference_index,
+																					 const String& reference_file)
+	{
+		if (reference_index || !reference_file.empty())
+		{
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This algorithm does not support a reference for the alignment.");
+		}
+	}
 
   void MapAlignmentAlgorithm::transformPeakMaps( std::vector< MSExperiment<> >& maps,
                                                                 const  std::vector<TransformationDescription>& given_trafos

@@ -43,11 +43,14 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page UTILS_Digestor DigestorMotif
-	
-	@brief This application is used to digest a protein database to get all
-				 peptides given a cleavage enzyme. At the moment only trypsin is supported.
-	
+	@page UTILS_DigestorMotif DigestorMotif
+
+	@brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. It will also produce peptide statistics given the mass 
+	accuracy of the instrument. You can extract peptides with specific motifs,e.g. onyl cysteine containing peptides for ICAT experiments. At the moment only trypsin is supported.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_DigestorMotif.cli
+
 */
 
 // We do not want this class to show up in the docu:
@@ -60,9 +63,9 @@ class TOPPDigestorMotif
 		TOPPDigestorMotif()
 			: TOPPBase("DigestorMotif","digests a protein database in-silico",false)
 		{
-			
+
 		}
-	
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
@@ -100,41 +103,41 @@ class TOPPDigestorMotif
 			EmpiricalFormula EF;
 			UInt zero_count;
 			ProteinIdentification::SearchParameters search_parameters;
-			
+
 			protein_identifications.push_back(ProteinIdentification());
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-			inputfile_name = getStringOption_("in");			
+			inputfile_name = getStringOption_("in");
 			outputfile_name = getStringOption_("out");
 			min_size = getIntOption_("min_length");
 			mass_acc = getIntOption_("mass_accuracy");
 			out_opt = getIntOption_("out_option");
 			missed_cleavages = getIntOption_("missed_cleavages");
 			AASequence M = getStringOption_("motif");
-			
+
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			
+
 
 			file.load(inputfile_name, protein_data);
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-		
+
 			// This should be updated if more cleavage enzymes are available
 			digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
 			search_parameters.enzyme = ProteinIdentification::TRYPSIN;
 			digestor.setMissedCleavages(missed_cleavages);
-			
+
 			protein_accessions.resize(1, String(""));
 			for(UInt i = 0; i < protein_data.size(); ++i)
 			{
 				protein_accessions[0] = protein_data[i].identifier;
 				temp_protein_hit.setSequence(protein_data[i].sequence);
 				temp_protein_hit.setAccession(protein_accessions[0]);
-				
+
 				digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
 				temp_peptide_hit.setProteinAccessions(protein_accessions);
 				for(UInt j = 0; j < temp_peptides.size(); ++j)
@@ -153,7 +156,7 @@ class TOPPDigestorMotif
 			DateTime date_time;
 			String date_time_string = "";
 			date_time.now();
-			
+
 			date_time_string = date_time.get();
 			protein_identifications[0].setSearchParameters(search_parameters);
 			protein_identifications[0].setDateTime(date_time);
@@ -165,7 +168,7 @@ class TOPPDigestorMotif
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-  			
+
 		  ofstream fp_out(outputfile_name.c_str());
 		  if(out_opt==2)
       {
@@ -188,7 +191,7 @@ class TOPPDigestorMotif
 			  for(UInt i = 0; i < protein_data.size(); ++i)
 			  {
 				  protein_accessions[0] = protein_data[i].identifier;
-				  temp_protein_hit.setAccession(protein_accessions[0]);				
+				  temp_protein_hit.setAccession(protein_accessions[0]);
 				  digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
 				  temp_peptide_hit.setProteinAccessions(protein_accessions);
 				  for(UInt j = 0; j < temp_peptides.size(); ++j)
@@ -301,7 +304,7 @@ class TOPPDigestorMotif
 			    }
 			    cout<<PROTEINS.size()<<endl<<pro_count<<endl;
 		    }
-  		
+
 			  if(out_opt != 2)
         {
 			    mass_iter = 0;
@@ -329,7 +332,7 @@ int main( int argc, const char** argv )
 	TOPPDigestorMotif tool;
 	return tool.main(argc,argv);
 }
-  
+
 /// @endcond
 
 

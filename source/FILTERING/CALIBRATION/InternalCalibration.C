@@ -42,7 +42,7 @@ namespace OpenMS
 		defaults_.setValue("mz_tolerance_unit","Da","Unit for mz_tolerance.");
 		defaults_.setValidStrings("mz_tolerance_unit",StringList::create("Da,ppm"));
     defaults_.setValue("rt_tolerance",10,"Allowed tolerance between peak and reference rt.");
-		defaults_.setValue("hires:percentage",30,"Percentage of spectra a signal has to appear in to be considered as background signal.");
+		//		defaults_.setValue("hires:percentage",30,"Percentage of spectra a signal has to appear in to be considered as background signal.");
 		defaultsToParam_();
 	}
 	

@@ -312,7 +312,7 @@ namespace OpenMS
 		Size copied_index = 0;
 		string result("");
 
-		while ((index = prefix.find("%", index)) != string::npos) 
+		while ((index = prefix.find("%", index)) != String::npos) 
 		{
 			// append any constant parts of the string to the result
 			if (copied_index < index) 

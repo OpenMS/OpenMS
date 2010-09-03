@@ -162,7 +162,7 @@ protected:
 			Size pos = line.find_first_of(skip);
 			String prefix = line.substr(0, pos);
 			pos = line.find_first_not_of(skip, pos);
-			if (pos == string::npos) line = "";
+			if (pos == String::npos) line = "";
 			else line = line.substr(pos);
 			return prefix;
 		}

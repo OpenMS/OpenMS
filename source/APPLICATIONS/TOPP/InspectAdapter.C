@@ -52,6 +52,20 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via Inspect.
 
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ InspectAdapter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+		</tr>
+	</table>
+</CENTER>
+
 	@experimental This tool has not been tested thoroughly and might behave not as expected!
 
 	This wrapper application serves for getting peptide peptide_identifications
@@ -288,7 +302,7 @@ class TOPPInspectAdapter
 				files[logfile] = (writable | delete_afterwards);
 			}
 			else files[logfile] = writable;
-			
+
 			inspect_in = getFlag_("inspect_in");
 			inspect_out = getFlag_("inspect_out");
 
@@ -424,13 +438,13 @@ class TOPPInspectAdapter
 					// get the single databases
 					string_buffer.split(',', trie_database_filenames);
 					if ( trie_database_filenames.empty() ) trie_database_filenames.push_back(string_buffer);
-					
+
 					// the database files have to be readable, (by the way changing the names using the absolute path)
 					for ( vector< String >::iterator trie_database_filenames_it = trie_database_filenames.begin(); trie_database_filenames_it != trie_database_filenames.end(); ++trie_database_filenames_it )
 					{
 						*trie_database_filenames_it = File::absolutePath(*trie_database_filenames_it);
 						files[*trie_database_filenames_it] = readable;
-						
+
 						// get the according index file
 						if ( trie_database_filenames_it->hasSuffix(".trie") ) string_buffer = trie_database_filenames_it->substr(0, trie_database_filenames_it->length()-4) + "index";
 						else string_buffer = *trie_database_filenames_it + "index";
@@ -696,7 +710,7 @@ class TOPPInspectAdapter
 					{
 						inspect_outfile.compressTrieDB(*trie_database_filenames_it, *index_filenames_itt, wanted_records, trie_database_filename,  index_filename, (trie_database_filenames_it != trie_database_filenames.begin()) );
 					}
-					
+
 					// converting and merging the other databases (all but the first database are appended)
 					for ( vector< String >::const_iterator sequence_database_filenames_it = sequence_database_filenames.begin(); sequence_database_filenames_it != sequence_database_filenames.end(); ++sequence_database_filenames_it )
 					{
@@ -730,7 +744,7 @@ class TOPPInspectAdapter
 				{
 					string_buffer = TextFile(inspect_logfile).concatenate();
 					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
-					
+
 					exit_code = EXTERNAL_PROGRAM_ERROR;
 				}
 
@@ -792,7 +806,7 @@ class TOPPInspectAdapter
 					// first get the InsPecT version
           QProcess builder;
           builder.start((inspect_directory+"inspect").toQString(), QStringList()); // does automatic escaping etc...
-					
+
           if (!builder.waitForFinished(-1))
           {
 						writeLog_("Inspect problem: " + String(QString(builder.readAll())) + ". Aborting!");
@@ -844,7 +858,7 @@ class TOPPInspectAdapter
 					}
 				}
 			}
-			
+
 			// if an external program error occured, the logfile must not be deleted
 			if ( exit_code == EXTERNAL_PROGRAM_ERROR )
 			{

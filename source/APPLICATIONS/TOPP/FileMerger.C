@@ -45,12 +45,30 @@ using namespace std;
 	@page TOPP_FileMerger FileMerger
 
 	@brief Merges several files into an mzML file.
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileMerger \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter) </td>
+		</tr>
+	</table>
+</CENTER>
 
 	The meta information that is valid for the whole experiment (e.g. MS instrument and sample)
 	is taken from the first file.
 
-	The retention times for the individual scans are taken from the input file meta data,
-	from the input file names or are auto-generated.
+	The retention times for the individual scans are taken from either:
+  <ul>
+  <li>the input file meta data (e.g. mzML)
+  <li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
+  <li>as a list (one RT for each file)
+  <li>or are auto-generated (starting at 1 with 1 second increment).
+  </ul>
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileMerger.cli

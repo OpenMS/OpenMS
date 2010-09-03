@@ -32,6 +32,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
+#include <math.h>
 #include <fstream>
 
 using namespace OpenMS;
@@ -43,7 +44,79 @@ MSExperiment<> map;
 MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test.mzData"), map);
 map.updateRanges();
 IsotopeWaveletTransform<Peak1D>* iw = NULL;
+IsotopeWaveletTransform<Peak1D>::TransSpectrum* test2 = NULL;
 MSSpectrum<Peak1D>* spec = new MSSpectrum<Peak1D> (map[0]);
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] TransSpectrum())
+	IsotopeWaveletTransform<Peak1D>::TransSpectrum test;
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] TransSpectrum(const MSSpectrum<PeakType>* reference))
+	test2 = new IsotopeWaveletTransform<Peak1D>::TransSpectrum (spec);
+	const MSSpectrum<Peak1D>* ref = test2->getRefSpectrum();
+	TEST_NOT_EQUAL (ref, NULL)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getRT () const)
+	TEST_EQUAL (test2->getRT(), 100.00)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getMZ (const UInt i) const)
+	TEST_EQUAL ((int)(test2->getMZ(0)*10), 14200)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getRefIntensity (const UInt i) const)
+	TEST_EQUAL ((int)(test2->getRefIntensity(0)*100), 39)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getTransIntensity (const UInt i) const)
+	TEST_EQUAL (test2->getTransIntensity(0), 0)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] void setTransIntensity (const UInt i, const DoubleReal intens))
+	test2->setTransIntensity(0,-1);
+	TEST_EQUAL (test2->getTransIntensity(0), -1)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] Size size() const)
+	TEST_EQUAL (test2->size(), spec->size())
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] const MSSpectrum<PeakType>* getRefSpectrum ())
+	const MSSpectrum<Peak1D>* ref = test2->getRefSpectrum();
+	TEST_EQUAL (ref, spec)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] const MSSpectrum<PeakType>* getRefSpectrum () const)
+	const IsotopeWaveletTransform<Peak1D>::TransSpectrum* test3 = new IsotopeWaveletTransform<Peak1D>::TransSpectrum (spec);
+	const MSSpectrum<Peak1D>* ref = test3->getRefSpectrum();
+	TEST_EQUAL (ref, spec)
+	delete (test3);
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator MZBegin (const DoubleReal mz) const)
+	TEST_EQUAL((int)(test2->MZBegin(1420)->getMZ()*10), 14200)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator MZEnd (const DoubleReal mz) const)
+	TEST_EQUAL((int)(test2->MZEnd(1420.01)->getMZ()*100), 142001)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator begin () const)
+	TEST_EQUAL((int)(test2->begin()->getMZ()*10), 14200)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::const_iterator end () const)
+	TEST_EQUAL((int)((--test2->end())->getMZ()*10), 14349)
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] virtual ~TransSpectrum())
+	delete(test2);
+END_SECTION
+
+
+
 
 START_SECTION(IsotopeWaveletTransform(const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size=0))
 	iw = new IsotopeWaveletTransform<Peak1D> (map[0].begin()->getMZ(), (map[0].end()-1)->getMZ(), 1);

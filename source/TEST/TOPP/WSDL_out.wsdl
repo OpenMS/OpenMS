@@ -76,9 +76,9 @@
                 <xs:documentation>the RT unit of the plot</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="log" type="xs:string" default="TOPP.log">
+            <xs:element name="log" type="xs:string" default="">
               <xs:annotation>
-                <xs:documentation>Location of the log file</xs:documentation>
+                <xs:documentation>Name of log file (created only when specified)</xs:documentation>
               </xs:annotation>
             </xs:element>
             <xs:element name="debug" type="xs:integer" default="0">

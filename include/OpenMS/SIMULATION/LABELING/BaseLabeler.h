@@ -44,7 +44,7 @@ namespace OpenMS
   /**
   @brief Abstract base class for all kinds of labeling techniques
   */
-  class BaseLabeler
+  class OPENMS_DLLAPI BaseLabeler
     : public DefaultParamHandler
   {
   public:
@@ -84,7 +84,7 @@ namespace OpenMS
       */
     virtual void preCheck(Param &) const
     {
-      throw new Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     /** 
@@ -95,7 +95,7 @@ namespace OpenMS
     /// Hook to prepare the simulation process
     virtual void setUpHook(FeatureMapSimVector & /* features */)
     {
-
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
     /// Labeling between digestion and rt simulation

@@ -58,13 +58,7 @@ START_SECTION(~ILPWrapper())
 END_SECTION
 
 
-START_SECTION((template <typename InputPeakType>
-    void createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<>& features,
-                                                      const MSExperiment<InputPeakType>& experiment,
-																											std::vector<IndexTriple >& variable_indices,
-																											std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
-																											std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin,
-																											std::vector<int>& solution_indices)))
+START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, std::vector< int > &solution_indices)))
 {
 	std::set<Int> charges_set;
 	charges_set.insert(1);
@@ -100,7 +94,41 @@ START_SECTION((template <typename InputPeakType>
 }
 END_SECTION
 		
-	      
+START_SECTION(([ILPWrapper::IndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+{
+  ILPWrapper::IndexTriple a,b;
+  a.variable = 1;
+  b.variable = 2;
+
+  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(a,b), true )
+  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(b,a), false )
+  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(a,a), false )
+}
+END_SECTION
+
+START_SECTION(([ILPWrapper::ScanLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+{
+  ILPWrapper::IndexTriple a,b;
+  a.scan = 1;
+  b.scan = 2;
+
+  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(a,b), true )
+  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(b,a), false )
+  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(a,a), false )
+}
+END_SECTION
+
+START_SECTION(([ILPWrapper::VariableIndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+{
+  ILPWrapper::IndexTriple a,b;
+  a.variable = 1;
+  b.variable = 2;
+
+  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(a,b), true )
+  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(b,a), false )
+  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(a,a), false )
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

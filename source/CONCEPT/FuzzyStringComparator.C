@@ -234,8 +234,8 @@ namespace OpenMS
 					++slit
 				)
 		{
-			if ( line_str_1.find(*slit)!=std::string::npos &&
-					 line_str_2.find(*slit)!=std::string::npos
+			if ( line_str_1.find(*slit)!=String::npos &&
+					 line_str_2.find(*slit)!=String::npos
 				 )
 			{
 				++whitelist_cases_[*slit];

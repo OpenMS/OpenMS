@@ -59,6 +59,12 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentAlgorithmPoseClustering::getProductName(), "pose_clustering_affine")
 END_SECTION
 
+START_SECTION((virtual void setReference(Size, const String&)))
+{
+	NOT_TESTABLE; // only some internal variables are set
+}
+END_SECTION
+
 START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
 {
   // Tested extensively in TEST/TOPP.  See MapAligner_test.

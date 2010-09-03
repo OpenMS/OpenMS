@@ -53,6 +53,7 @@ START_SECTION(~ClusterFunctor())
 }
 END_SECTION
 
+
 START_SECTION((ClusterFunctor(const ClusterFunctor &source)))
 {
   NOT_TESTABLE
@@ -79,6 +80,18 @@ START_SECTION((static void registerChildren()))
 	TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cfp) , 0)
   cfp = Factory<ClusterFunctor>::create("CompleteLinkage");
 	TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cfp) , 0)
+}
+END_SECTION
+
+START_SECTION(([ClusterFunctor::InsufficientInput] InsufficientInput(const char *file, int line, const char *function, const char *message="not enough data points to cluster anything")))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(([ClusterFunctor::InsufficientInput] virtual ~InsufficientInput()))
+{
+  NOT_TESTABLE
 }
 END_SECTION
 

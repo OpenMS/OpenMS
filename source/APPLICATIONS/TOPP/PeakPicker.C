@@ -40,52 +40,67 @@ using namespace std;
 
 /**
 	@page TOPP_PeakPicker PeakPicker
-	
-	@brief A tool for peak detection in profile data
-	
-	Executes the peak picking algorithm as described by Lange et al. (2006) Proc. PSB-06.
-	
+
+	@brief A tool for peak detection in profile data. Executes the peak picking with selected algorithms choosable: @ref OpenMS::PeakPickerCWT "wavelet" (described in Lange et al. (2006) Proc. PSB-06) and @ref OpenMS::PeakPickerHiRes "high_res".
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PeakPicker \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilter </td>
+		</tr>
+	</table>
+</CENTER>
 	The conversion of the ''raw'' ion count data acquired
 	by the machine into peak lists for further processing
-	is usually called peak picking. Our algorithm is independent
-	of the underlying machine or ionization method, and is able
-	to resolve highly convoluted and asymmetric signals.
-	The method uses the multiscale nature of spectrometric data by
-	first detecting the mass peaks in the wavelet-transformed signal
-	before a given asymmetric peak function is fitted to the profile data.
-	In case of low-resoluted data, an optional step for the separation of
-	overlapping peaks can be added.
-	In an optional third stage, the resulting fit can be further improved using
-	techniques from nonlinear optimization.
-	
-	How to find @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial. 
-	
-	In the following table you, can find example values of the most important parameters for 
+	is usually called peak picking. The choice of the algorithm
+	should mainly depend on the resolution of the data.
+	As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
+	algorithm is fit for high resolution data whereas in case
+	of low-resoluted data the @ref OpenMS::PeakPickerCWT "wavelet"
+	algorithm offers the ability to resolve highly convoluted
+	and asymmetric signals, separation of overlapping peaks
+	and nonlinear optimization.
+
+	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_PeakPicker.cli
+
+	For the parameters of the algorithm section see the algorithms documentation: @n
+		@ref OpenMS::PeakPickerCWT "wavelet" @n
+		@ref OpenMS::PeakPickerHiRes "high_res" @n
+
+	In the following table you, can find example values of the most important algorithm parameters for
 	different instrument types. @n These parameters are not valid for all instruments of that type,
 	but can be used as a starting point for finding suitable parameters.
 	<table>
-		<tr>
+		<tr BGCOLOR="#EBEBEB">
 			<td>&nbsp;</td>
 			<td><b>Q-TOF</b></td>
 			<td><b>LTQ Orbitrap</b></td>
 		</tr>
 		<tr>
-			<td><b>signal_to_noise</b></td>
+			<td BGCOLOR="#EBEBEB"><b>signal_to_noise</b></td>
 			<td>2</td>
 			<td>0</td>
 		</tr>
 		<tr>
-		<td><b>peak_width</b></td>
+		<td BGCOLOR="#EBEBEB"><b>peak_width ("wavelet" only)</b></td>
 			<td>0.1</td>
 			<td>0.012</td>
 		</tr>
 	</table>
-	
+
 	In order to impove the results of the peak detection on low resolution data @ref TOPP_NoiseFilter and @ref TOPP_BaselineFilter can be applied.
 	For high resolution data this is not necessary.
-	
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PeakPicker.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -114,12 +129,12 @@ class TOPPPeakPicker
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
   	registerSubsection_("algorithm","Algorithm parameters section");
   }
-  
+
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		String type = getStringOption_("type");
 		Param tmp;
-		
+
 		if (type == "wavelet")
     {
       tmp = PeakPickerCWT().getDefaults();
@@ -150,7 +165,7 @@ class TOPPPeakPicker
     mz_data_file.setLogType(log_type_);
     MSExperiment<Peak1D > ms_exp_raw;
     mz_data_file.load(in,ms_exp_raw);
-		
+
 		//check for peak type (profile data required)
 		if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
 		{
@@ -171,19 +186,19 @@ class TOPPPeakPicker
     // pick
     //-------------------------------------------------------------
     MSExperiment<> ms_exp_peaks;
-    
-		Param pepi_param = getParam_().copy("algorithm:",true);		
+
+		Param pepi_param = getParam_().copy("algorithm:",true);
 		writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
-		
+
     if (type == "wavelet")
-    {	
+    {
     	PeakPickerCWT pp;
       pp.setLogType(log_type_);
 			pp.setParameters(pepi_param);
 			pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
     }
     else if (type == "high_res")
-    {	
+    {
     	PeakPickerHiRes pp;
       pp.setLogType(log_type_);
 			pp.setParameters(pepi_param);
@@ -193,12 +208,12 @@ class TOPPPeakPicker
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-		
+
 		//annotate output with data processing info
 		addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
 		mz_data_file.store(out,ms_exp_peaks);
-		
+
 		return EXECUTION_OK;
 	}
 };

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--Copyright (C) 2002-2006 Unimod; this information may be copied, distributed and/or-->
 <!--modified under certain conditions, but it comes WITHOUT ANY WARRANTY; see the-->
 <!--accompanying Design Science License for more details-->
@@ -13595,7 +13595,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          </umod:delta>
          <umod:misc_notes>Carbodiimide mediated blocking of free carboxylic acids (Asp/Glu sidechains and C-termini) with ethanolamine; reaction yields an amide-bond between the carboxylic acid of the peptide/protein and the primary amine of ethanolamine; reaction irreversibly modifies carboxylic acids. Shown above is the composition of the mass adduct, after substraction of water.</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="TMT6plex" full_name="Sixplex Tandem Mass Tag®"
+      <umod:mod title="TMT6plex" full_name="Sixplex Tandem Mass Tag"
                 username_of_poster="JUergen.schaefer"
                 group_of_poster=""
                 date_time_posted="2007-03-01 13:44:23"
@@ -13616,13 +13616,13 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
             <umod:element symbol="O" number="2"/>
          </umod:delta>
          <umod:alt_name>Tandem Mass Tag sixplex labelling kit Proteome Sciences</umod:alt_name>
-         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:xref>
             <umod:text>Juergen.Schaefer@Proteomics.com</umod:text>
             <umod:source>Other</umod:source>
             <umod:url/>
          </umod:xref>
-         <umod:misc_notes>Sixplex-TMT® reagents 6TMT-126, 6TMT-127, 6TMT-128, 6TMT-129, 6TMT-130, 6TMT-131 Masses of the TMT® fragment ions to be quantified:126.1283 127.1316 128.1350 129.1383 130.1417 131.1387</umod:misc_notes>
+         <umod:misc_notes>Sixplex-TMT reagents 6TMT-126, 6TMT-127, 6TMT-128, 6TMT-129, 6TMT-130, 6TMT-131 Masses of the TMT fragment ions to be quantified:126.1283 127.1316 128.1350 129.1383 130.1417 131.1387</umod:misc_notes>
       </umod:mod>
       <umod:mod title="DTT_C" full_name="Dithiothreitol (DTT) on Cys"
                 username_of_poster="stephenaw777"
@@ -13657,7 +13657,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          </umod:xref>
          <umod:misc_notes>When the beta-elimination and Michael addition of dithiothreitol (DTT) (BEMAD) reaction is used with alkylated cysteine a sulfur group is lost leaving the addition of approximately 120.2 in the chemical reaction.</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="TMT2plex" full_name="Duplex Tandem Mass Tag®"
+      <umod:mod title="TMT2plex" full_name="Duplex Tandem Mass Tag"
                 username_of_poster="JUergen.schaefer"
                 group_of_poster=""
                 date_time_posted="2007-03-01 13:53:36"
@@ -13676,16 +13676,16 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
             <umod:element symbol="N" number="2"/>
             <umod:element symbol="O" number="2"/>
          </umod:delta>
-         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:alt_name>Tandem Mass Tag Duplex labelling kit Proteome Sciences</umod:alt_name>
          <umod:xref>
             <umod:text>Juergen.Schaefer@Proteomics.com</umod:text>
             <umod:source>Other</umod:source>
             <umod:url/>
          </umod:xref>
-         <umod:misc_notes>Duplex-TMT® reagents 2TMT-126, 2TMT-127 Masses of the TMT® fragment ions to be quantified: 126.1283 127.1316</umod:misc_notes>
+         <umod:misc_notes>Duplex-TMT reagents 2TMT-126, 2TMT-127 Masses of the TMT fragment ions to be quantified: 126.1283 127.1316</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="TMT" full_name="Native Tandem Mass Tag®"
+      <umod:mod title="TMT" full_name="Native Tandem Mass Tag"
                 username_of_poster="JUergen.schaefer"
                 group_of_poster=""
                 date_time_posted="2007-03-02 09:29:50"
@@ -13703,7 +13703,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
             <umod:element symbol="N" number="2"/>
             <umod:element symbol="O" number="2"/>
          </umod:delta>
-         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:xref>
             <umod:text>Juergen.Schaefer@Proteomics.com</umod:text>
             <umod:source>Other</umod:source>
@@ -16558,7 +16558,7 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
             <umod:url>http://www.ncbi.nlm.nih.gov/pubmed/14670044?dopt=AbstractPlus</umod:url>
          </umod:xref>
       </umod:mod>
-      <umod:mod title="cysTMT" full_name="Native cysteine-reactive Tandem Mass Tag®"
+      <umod:mod title="cysTMT" full_name="Native cysteine-reactive Tandem Mass Tag"
                 username_of_poster="jorogers6"
                 group_of_poster=""
                 date_time_posted="2010-04-22 21:57:44"
@@ -16575,7 +16575,7 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
             <umod:element symbol="O" number="2"/>
             <umod:element symbol="S" number="1"/>
          </umod:delta>
-         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:xref>
             <umod:text>John.C.Rogers@thermo.com</umod:text>
             <umod:source>Other</umod:source>
@@ -16583,7 +16583,7 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
          </umod:xref>
          <umod:misc_notes>This modification describes the native cysteine-reactive cysTMT Reagent without isotopic label. Upon CID, this reagent releases a reporter ion of 126.127725 (monoisotopic mass).</umod:misc_notes>
       </umod:mod>
-      <umod:mod title="cysTMT6plex" full_name="cysteine-reactive Sixplex Tandem Mass Tag®"
+      <umod:mod title="cysTMT6plex" full_name="cysteine-reactive Sixplex Tandem Mass Tag"
                 username_of_poster="jorogers6"
                 group_of_poster=""
                 date_time_posted="2010-04-22 22:05:46"
@@ -16602,7 +16602,7 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
             <umod:element symbol="O" number="2"/>
             <umod:element symbol="S" number="1"/>
          </umod:delta>
-         <umod:alt_name>Tandem Mass Tag® and TMT® are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
+         <umod:alt_name>Tandem Mass Tag and TMT are registered Trademarks of Proteome Sciences plc.</umod:alt_name>
          <umod:xref>
             <umod:text>John.C.Rogers@thermo.com</umod:text>
             <umod:source>Other</umod:source>

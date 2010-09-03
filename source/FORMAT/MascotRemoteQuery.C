@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <QtGui/QTextDocument>
 #include <iostream>
 
@@ -257,30 +259,22 @@ void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
 }
 
 
-void MascotRemoteQuery::httpDataReadProgress(int 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-bytes_read
+void MascotRemoteQuery::httpDataReadProgress(int bytes_read, int bytes_total)
+#else
+void MascotRemoteQuery::httpDataReadProgress(int /*bytes_read*/, int /*bytes_total*/)
 #endif
-, int 
-#ifdef MASCOTREMOTEQUERY_DEBUG
-bytes_total
-#endif
-)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << "\n";
 #endif
 }
 
-void MascotRemoteQuery::httpDataSendProgress(int 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-bytes_sent
+void MascotRemoteQuery::httpDataSendProgress(int bytes_sent, int bytes_total)
+#else
+void MascotRemoteQuery::httpDataSendProgress(int /*bytes_sent*/, int /*bytes_total*/)
 #endif
-, int 
-#ifdef MASCOTREMOTEQUERY_DEBUG
-bytes_total
-#endif
-)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDataSendProgress(): " << bytes_sent << " bytes of " << bytes_total << " sent." << "\n";
@@ -294,7 +288,6 @@ void MascotRemoteQuery::httpRequestStarted(int
 requestId
 #endif
 )
-
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cout<<"Request started: "<<requestId<<"\n";
@@ -322,6 +315,13 @@ void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_h
 	cerr <<  response_header.toString().toStdString() << "\n";
 	cerr << "ended" << "\n";
 #endif
+
+	if (response_header.statusCode() >= 400)
+	{
+		error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + response_header.statusCode() + "': " + response_header.reasonPhrase() + "\nTry accessing the server\n  " + (String)param_.getValue("hostname") + "/" + (String)param_.getValue("server_path") + "\n from your browser and check if it works fine.";
+		emit done();
+	}
+
 
 	//Get session and username and so on...
 	if (response_header.hasKey("Set-Cookie")) 
@@ -429,7 +429,6 @@ void MascotRemoteQuery::httpDone(bool error)
 	} 
 	else 
 	{	
-	
 		// check whether Mascot responded using an error code e.g. [M00440], pipe through results else
 		QString response_text = new_bytes;
 		QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");

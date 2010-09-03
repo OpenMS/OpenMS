@@ -129,6 +129,17 @@ START_SECTION((virtual void alignFeatureMaps(std::vector<FeatureMap<> >&, std::v
 END_SECTION
 
 
+START_SECTION((virtual void setReference(Size, const String&)))
+{
+	MapAlignmentAlgorithm* aligner = Factory<MapAlignmentAlgorithm>::create(
+		"identification");
+	aligner->setReference(1); // nothing happens
+	TEST_EXCEPTION(Exception::FileNotFound, 
+								 aligner->setReference(0, "not-a-real-file.idXML"));
+}
+END_SECTION
+
+
 // can't test protected methods...
 
 // START_SECTION((DoubleReal median_(DoubleList&, bool)))

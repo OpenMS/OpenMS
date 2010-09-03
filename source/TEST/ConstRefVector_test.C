@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -99,6 +99,515 @@ Peak1D peak3;
 peak3.setPosition(10.5);
 peak3.setIntensity(0.01f);
 
+// ConstRefVectorConstIterator tests added (ek)
+ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> *c_ptr = 0;
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator()))
+  c_ptr = new ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D>();
+  TEST_NOT_EQUAL(c_ptr, 0)
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ~ConstRefVectorConstIterator()))
+  delete c_ptr;
+END_SECTION
+
+std::vector<Peak1D*> p_vec;
+p_vec.push_back(&peak1);
+p_vec.push_back(&peak2);
+p_vec.push_back(&peak3);
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator(const typename std::vector< ValueType * > *vec, unsigned int position)))  
+  const std::vector<Peak1D*> p_vec_const(p_vec);
+  
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec_const, 1);
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator(typename std::vector< ValueType * > *vec, unsigned int position)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator(const ConstRefVectorConstIterator &it)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> copy_it(tmp_c_it);
+  
+  TEST_REAL_SIMILAR(copy_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(copy_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator& operator=(const ConstRefVectorConstIterator &rhs)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+  
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> assign_it;
+  assign_it = tmp_c_it;
+  
+  TEST_REAL_SIMILAR(assign_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(assign_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] bool operator<(const ConstRefVectorConstIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+
+  TEST_EQUAL(tmp_c_it1 < tmp_c_it2, 1);
+  TEST_EQUAL(tmp_c_it2 < tmp_c_it1, 0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] bool operator>(const ConstRefVectorConstIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+
+  TEST_EQUAL(tmp_c_it1 > tmp_c_it2, 0);
+  TEST_EQUAL(tmp_c_it2 > tmp_c_it1, 1);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] bool operator<=(const ConstRefVectorConstIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it3(&p_vec, 2);
+
+  TEST_EQUAL(tmp_c_it1 <= tmp_c_it2, 1);
+  TEST_EQUAL(tmp_c_it2 <= tmp_c_it3, 1);
+  TEST_EQUAL(tmp_c_it2 <= tmp_c_it1, 0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] bool operator>=(const ConstRefVectorConstIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it3(&p_vec, 0);
+
+  TEST_EQUAL(tmp_c_it1 >= tmp_c_it2, 0);
+  TEST_EQUAL(tmp_c_it2 >= tmp_c_it1, 1);
+  TEST_EQUAL(tmp_c_it3 >= tmp_c_it1, 1);
+END_SECTION
+
+std::vector<Peak1D*> p_vec2;
+p_vec2.push_back(&peak1);
+  
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] bool operator==(const ConstRefVectorConstIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it3(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it4(&p_vec2, 0);
+  
+  TEST_EQUAL(tmp_c_it1 == tmp_c_it2, 0);
+  TEST_EQUAL(tmp_c_it2 == tmp_c_it3, 0);
+  TEST_EQUAL(tmp_c_it3 == tmp_c_it1, 1);
+  TEST_EQUAL(tmp_c_it4 == tmp_c_it1, 0);
+  TEST_EQUAL(tmp_c_it4 == tmp_c_it3, 0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] bool operator!=(const ConstRefVectorConstIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it3(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it4(&p_vec2, 0);
+  
+  TEST_EQUAL(tmp_c_it1 != tmp_c_it2, 1);
+  TEST_EQUAL(tmp_c_it2 != tmp_c_it3, 1);
+  TEST_EQUAL(tmp_c_it3 != tmp_c_it1, 0);
+  TEST_EQUAL(tmp_c_it4 != tmp_c_it1, 1);
+  TEST_EQUAL(tmp_c_it4 != tmp_c_it3, 1);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator& operator++()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  ++tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  ++tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator operator++(int)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  tmp_c_it++;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  tmp_c_it++;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator& operator--()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  --tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  --tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator operator--(int)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  tmp_c_it--;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  tmp_c_it--;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator operator-(difference_type n) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  unsigned int diff = 2;
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> result_it = tmp_c_it - diff;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  TEST_REAL_SIMILAR(result_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(result_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator operator+(difference_type n) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  unsigned int diff = 2;
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> result_it = tmp_c_it + diff;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  TEST_REAL_SIMILAR(result_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(result_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator& operator-=(difference_type n)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  unsigned int diff = 2;
+  tmp_c_it -= diff;
+  
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator& operator+=(difference_type n)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  unsigned int diff = 2;
+  tmp_c_it += diff;
+  
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] reference operator*()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 1);
+  Peak1D orig_peak((*tmp_c_it));
+  
+  TEST_REAL_SIMILAR(orig_peak.getMZ(), tmp_c_it->getMZ());
+  TEST_REAL_SIMILAR(orig_peak.getIntensity(), tmp_c_it->getIntensity());
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] pointer operator->()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+
+  DoubleReal mz = tmp_c_it->getMZ();
+  DoubleReal Int = tmp_c_it->getIntensity();
+  
+  TEST_REAL_SIMILAR(mz, 10.5);
+  TEST_REAL_SIMILAR(Int, 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] pointer operator->() const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D> tmp_c_it(&p_vec, 2);
+
+  DoubleReal mz = tmp_c_it->getMZ();
+  DoubleReal Int = tmp_c_it->getIntensity();
+  
+  TEST_REAL_SIMILAR(mz, 10.5);
+  TEST_REAL_SIMILAR(Int, 0.01);
+END_SECTION
+
+///////////////////////////////////////////
+// ConstRefVectorIterator tests added (ek)
+///////////////////////////////////////////
+
+ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> *m_ptr = 0;
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator()))
+  m_ptr = new ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D>();
+  TEST_NOT_EQUAL(c_ptr, 0)
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ~ConstRefVectorIterator()))
+  delete m_ptr;
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator(typename std::vector< ValueType * > *vec, unsigned int position)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator(const ConstRefVectorIterator &it)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> copy_it(tmp_c_it);
+  
+  TEST_REAL_SIMILAR(copy_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(copy_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator& operator=(const ConstRefVectorIterator &rhs)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+  
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> assign_it;
+  assign_it = tmp_c_it;
+  
+  TEST_REAL_SIMILAR(assign_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(assign_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] bool operator<(const ConstRefVectorIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+
+  TEST_EQUAL(tmp_c_it1 < tmp_c_it2, 1);
+  TEST_EQUAL(tmp_c_it2 < tmp_c_it1, 0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] bool operator>(const ConstRefVectorIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+
+  TEST_EQUAL(tmp_c_it1 > tmp_c_it2, 0);
+  TEST_EQUAL(tmp_c_it2 > tmp_c_it1, 1);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] bool operator<=(const ConstRefVectorIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it3(&p_vec, 2);
+
+  TEST_EQUAL(tmp_c_it1 <= tmp_c_it2, 1);
+  TEST_EQUAL(tmp_c_it2 <= tmp_c_it3, 1);
+  TEST_EQUAL(tmp_c_it2 <= tmp_c_it1, 0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] bool operator>=(const ConstRefVectorIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it3(&p_vec, 0);
+
+  TEST_EQUAL(tmp_c_it1 >= tmp_c_it2, 0);
+  TEST_EQUAL(tmp_c_it2 >= tmp_c_it1, 1);
+  TEST_EQUAL(tmp_c_it3 >= tmp_c_it1, 1);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] bool operator==(const ConstRefVectorIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it3(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it4(&p_vec2, 0);
+  
+  TEST_EQUAL(tmp_c_it1 == tmp_c_it2, 0);
+  TEST_EQUAL(tmp_c_it2 == tmp_c_it3, 0);
+  TEST_EQUAL(tmp_c_it3 == tmp_c_it1, 1);
+  TEST_EQUAL(tmp_c_it4 == tmp_c_it1, 0);
+  TEST_EQUAL(tmp_c_it4 == tmp_c_it3, 0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] bool operator!=(const ConstRefVectorIterator &it) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it1(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it2(&p_vec, 2);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it3(&p_vec, 0);
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it4(&p_vec2, 0);
+  
+  TEST_EQUAL(tmp_c_it1 != tmp_c_it2, 1);
+  TEST_EQUAL(tmp_c_it2 != tmp_c_it3, 1);
+  TEST_EQUAL(tmp_c_it3 != tmp_c_it1, 0);
+  TEST_EQUAL(tmp_c_it4 != tmp_c_it1, 1);
+  TEST_EQUAL(tmp_c_it4 != tmp_c_it3, 1);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator& operator++()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  ++tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  ++tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator operator++(int)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  tmp_c_it++;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  tmp_c_it++;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator& operator--()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  --tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  --tmp_c_it;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator operator--(int)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  tmp_c_it--;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 0.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.5);
+  
+  tmp_c_it--;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator operator-(difference_type n) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  unsigned int diff = 2;
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> result_it = tmp_c_it - diff;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  TEST_REAL_SIMILAR(result_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(result_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator operator+(difference_type n) const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  unsigned int diff = 2;
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> result_it = tmp_c_it + diff;
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  TEST_REAL_SIMILAR(result_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(result_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator& operator-=(difference_type n)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+  
+  unsigned int diff = 2;
+  tmp_c_it -= diff;
+  
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator& operator+=(difference_type n)))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 0);
+ 
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 2.0);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 1.0);
+  
+  unsigned int diff = 2;
+  tmp_c_it += diff;
+  
+  TEST_REAL_SIMILAR(tmp_c_it->getMZ(), 10.5);
+  TEST_REAL_SIMILAR(tmp_c_it->getIntensity(), 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] reference operator*()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 1);
+  Peak1D orig_peak((*tmp_c_it));
+  
+  TEST_REAL_SIMILAR(orig_peak.getMZ(), tmp_c_it->getMZ());
+  TEST_REAL_SIMILAR(orig_peak.getIntensity(), tmp_c_it->getIntensity());
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] pointer operator->()))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+
+  DoubleReal mz = tmp_c_it->getMZ();
+  DoubleReal Int = tmp_c_it->getIntensity();
+  
+  TEST_REAL_SIMILAR(mz, 10.5);
+  TEST_REAL_SIMILAR(Int, 0.01);
+END_SECTION
+
+START_SECTION(([ConstRefVector::ConstRefVectorIterator] pointer operator->() const))
+  ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D> tmp_c_it(&p_vec, 2);
+
+  DoubleReal mz = tmp_c_it->getMZ();
+  DoubleReal Int = tmp_c_it->getIntensity();
+  
+  TEST_REAL_SIMILAR(mz, 10.5);
+  TEST_REAL_SIMILAR(Int, 0.01);
+END_SECTION
+
+
+////////////////////////////////
 START_SECTION((size_type size() const))
   TEST_EQUAL(pl.size(), 0)
 

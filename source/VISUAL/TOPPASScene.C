@@ -58,7 +58,7 @@ namespace OpenMS
 			file_name_(),
 			tmp_path_(tmp_path),
 			gui_(gui),
-			out_dir_(QDir::currentPath()),
+			out_dir_(File::getUserDirectory().toQString()),
 			changed_(false),
 			running_(false),
 			user_specified_out_dir_(false),

@@ -58,12 +58,12 @@ START_SECTION((virtual ~PosteriorErrorProbabilityModel()))
 }
 END_SECTION
 
-START_SECTION((void fit(std::vector<double>& x_scores)))
+START_SECTION((void fit( std::vector<double>& search_engine_scores)))
 NOT_TESTABLE
 //tested below
 END_SECTION
 
-START_SECTION((void fit(std::vector<double>& x_scores, std::vector<double>& probabilites)))
+START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<double>& probabilities)))
 	ptr = new PosteriorErrorProbabilityModel();
 {
 	vector<double> score_vector;
@@ -234,7 +234,7 @@ START_SECTION((GaussFitter::GaussFitResult getCorrectlyAssignedFitResult() const
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult getIncorrectlyAssignedFitResult() const))
+START_SECTION((GaussFitter::GaussFitResult getIncorrectlyAssignedFitResult() const))
 //tested in fit
 NOT_TESTABLE
 END_SECTION
@@ -261,12 +261,12 @@ String gauss = ptr->getGaussGnuplotFormula(ptr->getCorrectlyAssignedFitResult())
 	TEST_EQUAL(gauss.hasSubstring(") ** 2)"), true)
 END_SECTION
 
-START_SECTION((const String getBothGnuplotFormula(double negative_prior) const))
+START_SECTION((const String getBothGnuplotFormula(const GaussFitter::GaussFitResult& incorrect, const GaussFitter::GaussFitResult& correct) const))
 NOT_TESTABLE
 delete ptr;
 END_SECTION
 
-START_SECTION((DoubleReal PosteriorErrorProbabilityModel::computeProbability(DoubleReal score)))
+START_SECTION((DoubleReal computeProbability(DoubleReal score)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION

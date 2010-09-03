@@ -52,11 +52,25 @@ using namespace std;
 
 /**
 	@page TOPP_XTandemAdapter XTandemAdapter
-	
+
 	@brief Identifies peptides in MS/MS spectra via XTandem.
 
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ XTandemAdapter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+		</tr>
+	</table>
+</CENTER>
+
 	@em X!Tandem must be installed before this wrapper can be used. This wrapper
-	has been successfully tested with several versions of X!Tandem. 
+	has been successfully tested with several versions of X!Tandem.
   The last known version to work is 2009-04-01. We encountered problems with
   later versions (namely 2010-01-01).
 
@@ -64,8 +78,8 @@ using namespace std;
 	tool of @em X!Tandem. It is contained in the "bin" folder of the @em X!Tandem installation.
 	Refer to the docu of @em X!Tandem for further information about settings.
 
-	The major part of the setting can be directly adjusted using the "default_input.xml" of 
-	@em X!Tandem. An example of that file is contained in the "bin" folder of the 
+	The major part of the setting can be directly adjusted using the "default_input.xml" of
+	@em X!Tandem. An example of that file is contained in the "bin" folder of the
 	@em X!Tandem installation. The parameters "default_input_file" must point to a valid
 	file. Parameters set by this wrapper overwrite the default settings given in the file.
 
@@ -85,7 +99,7 @@ class TOPPXTandemAdapter
 			: TOPPBase("XTandemAdapter","Annotates MS/MS spectra using XTandem.")
 		{
 		}
-	
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
@@ -97,14 +111,14 @@ class TOPPXTandemAdapter
 							 "are converted from the X!Tandem format into the idXML format.");
 			addEmptyLine_();
 			addText_("Common Identification engine options");
-			
+
 			registerInputFile_("in", "<file>", "", "input file ");
       setValidFormats_("in",StringList::create("mzML"));
       registerOutputFile_("out", "<file>", "", "output file ");
       setValidFormats_("out",StringList::create("idXML"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
 			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
-			
+
 			registerStringOption_("precursor_error_units", "<unit>", "ppm", "parent monoisotopic mass error units", false);
       registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
 			registerInputFile_("database", "<file>", "", "FASTA file or related which contains the sequences", true);
@@ -115,7 +129,7 @@ class TOPPXTandemAdapter
       setValidStrings_("fragment_error_units", valid_strings);
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor charge", false);
 			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum precursor charge", false);
-			
+
 			registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			vector<String> all_mods;
 			ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -123,11 +137,11 @@ class TOPPXTandemAdapter
       registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("variable_modifications", all_mods);
 			registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
-	
+
 			addEmptyLine_();
 			addText_("X!Tandem specific options");
 			registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
-			registerInputFile_("default_input_file", "<file>", "", "default parameters input file, if not given default parameters are used", false);			
+			registerInputFile_("default_input_file", "<file>", "", "default parameters input file, if not given default parameters are used", false);
 			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
 			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
@@ -148,12 +162,12 @@ class TOPPXTandemAdapter
 			String inputfile_name;
 			String outputfile_name;
 			PeakMap exp;
-		
+
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-			
-			inputfile_name = getStringOption_("in");			
+
+			inputfile_name = getStringOption_("in");
 			writeDebug_(String("Input file: ") + inputfile_name, 1);
 			if (inputfile_name == "")
 			{
@@ -161,7 +175,7 @@ class TOPPXTandemAdapter
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-	
+
 			outputfile_name = getStringOption_("out");
 			writeDebug_(String("Output file: ") + outputfile_name, 1);
 			if (outputfile_name == "")
@@ -169,8 +183,8 @@ class TOPPXTandemAdapter
 				writeLog_("No output file specified. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
-			}				
-	
+			}
+
       // write input xml file
 			String parameters;
 			XTandemInfile infile;
@@ -187,7 +201,7 @@ class TOPPXTandemAdapter
 			String tandem_input_filename(temp_directory + unique_name + "_tandem_input_file.mzData");
 			String tandem_output_filename(temp_directory + unique_name + "_tandem_output_file.xml");
 			String tandem_taxonomy_filename(temp_directory + unique_name + "_tandem_taxonomy_file.xml");
-	
+
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
@@ -206,7 +220,7 @@ class TOPPXTandemAdapter
 				it->setNativeID(native_id++);
 			}
 
-			// We store the file in mzData file format, because mgf file somehow produce in most 
+			// We store the file in mzData file format, because mgf file somehow produce in most
 			// of the cases ids with charge 2+. We do not use the input file of this TOPP-tools
 			// because XTandem sometimes stumbles over misleading substrings in the filename,
 			// e.g. mzXML ...
@@ -216,9 +230,9 @@ class TOPPXTandemAdapter
 			infile.setInputFilename(tandem_input_filename);
 			infile.setOutputFilename(tandem_output_filename);
 
-			
+
 			String fasta_file(getStringOption_("database"));
-			
+
 			ofstream tax_out(tandem_taxonomy_filename.c_str());
 			tax_out << "<?xml version=\"1.0\"?>" << endl;
 			tax_out << "\t<bioml label=\"x! taxon-to-file matching list\">" << endl;
@@ -238,7 +252,7 @@ class TOPPXTandemAdapter
 			{
 				infile.setPrecursorMassErrorUnit(XTandemInfile::PPM);
 			}
-			
+
 			if (getStringOption_("fragment_error_units") == "Da")
 			{
 				infile.setFragmentMassErrorUnit(XTandemInfile::DALTONS);
@@ -270,7 +284,7 @@ class TOPPXTandemAdapter
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
 			infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
 			infile.write(input_filename);
-			
+
 			vector<ProteinIdentification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
@@ -302,7 +316,7 @@ class TOPPXTandemAdapter
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
 			}
 			tandem_output.load(temp_directory + files[0], protein_id, peptide_ids);
-			
+
 			// now put the RTs into the peptide_ids from the spectrum ids
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
 			{
@@ -325,7 +339,7 @@ class TOPPXTandemAdapter
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-	
+
 			// handle the search parameters
       ProteinIdentification::SearchParameters search_parameters;
       search_parameters.db = getStringOption_("database");
@@ -344,17 +358,17 @@ class TOPPXTandemAdapter
       protein_id.setSearchEngine("XTandem");
 
 			protein_ids.push_back(protein_id);
-			
+
 			IdXMLFile id_output;
 			id_output.store(outputfile_name, protein_ids, peptide_ids);
 
-			/// Deletion of temporary files	
+			/// Deletion of temporary files
 			QFile(input_filename.toQString()).remove();
 			QFile((temp_directory + files[0]).toQString()).remove();
 			QFile(tandem_input_filename.toQString()).remove();
 			QFile(tandem_taxonomy_filename.toQString()).remove();
-			
-			return EXECUTION_OK;	
+
+			return EXECUTION_OK;
 		}
 };
 

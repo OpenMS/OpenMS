@@ -2936,19 +2936,19 @@ namespace OpenMS
 
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
-		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+            const LayerData& layer = activeCanvas_()->getCurrentLayer();
 
-		//copy spectrum
-		ExperimentType exp = layer.peaks;
+            //copy spectrum
+            ExperimentType exp = layer.peaks;
 
-		//open new 1D widget
-		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
+            //open new 1D widget
+            Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
 
-    //add data
-    if (!w->canvas()->addLayer(exp) || (Size)index >= w->canvas()->getCurrentLayer().peaks.size())
-  	{
+            //add data
+            if (!w->canvas()->addLayer(exp) || (Size)index >= w->canvas()->getCurrentLayer().peaks.size())
+            {
   		return;
-  	}
+            }
 
 		w->canvas()->activateSpectrum(index);
 		// set visible aree to visible area in 2D view
@@ -2956,14 +2956,25 @@ namespace OpenMS
 		// set relative (%) view of visible area
     w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
 
-		String caption = layer.name;
-		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+            //for MS1 spectra set visible area to visible area in 2D view.
+            UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
+            if (ms_level == 1)
+            {
+                // set visible aree to visible area in 2D view
+                w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
+            }
 
-    showAsWindow_(w,caption);
-    updateLayerBar();
-    updateSpectrumBar();
-		updateFilterBar();
-		updateMenu();
+            // set relative (%) view of visible area
+            w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+
+            String caption = layer.name;
+            w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+
+            showAsWindow_(w,caption);
+            updateLayerBar();
+            updateSpectrumBar();
+            updateFilterBar();
+            updateMenu();
 	}
 
 	void TOPPViewBase::showAboutDialog()

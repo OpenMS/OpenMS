@@ -42,27 +42,47 @@ using namespace std;
 
 /**
 	@page TOPP_IDPosteriorErrorProbability IDPosteriorErrorProbability
-	
-	@brief  Tool to estimate the probability of peptide hit to be incorrectly assigned.
-	
-	By default an estimation is performed using the (inverse) gumbel distribution for incorrectly assigned sequences 
-	and a gaussian distribution for correctly assigned sequences. The probabilities are calculated using bayes law, similar to PeptideProphet.
+
+	@brief  Tool to estimate the probability of peptide hits to be incorrectly assigned.
+
+	<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ IDPosteriorErrorProbability \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+		</tr>
+	</table>
+	</CENTER>
+
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
+	By default an estimation is performed using the (inverse) gumbel distribution for incorrectly assigned sequences
+	and a gaussian distribution for correctly assigned sequences. The probabilities are calculated by using bayes law, similar to PeptideProphet.
 	Alternatively, a second gaussian distribution can be used for incorreclty assigned sequences.
-	At the moment, it is able to handle Xtandem, Mascot and OMSSA scores.
-	
-	In order to validate the computed probabilities one can adjust the fit_algorithm subsection. 
-	The easiest way to do this, is to create a default ini file with the parameter -write_ini <file_name>.
-	Secondly, it is suggested to open the created ini-file with the INIFileEditor. 
-	There are three parameters for the plot: 
-	The parameter output_plots is by default false. If set to true the plots will be created.
+	At the moment, IDPosteriorErrorProbability is able to handle Xtandem, Mascot and OMSSA scores.
+
+	In order to validate the computed probabilities one can adjust the fit_algorithm subsection.
+	The easiest way, is to create a default ini file with the parameter -write_ini file_name.
+	Afterwards, it is suggested to open the created ini-file with INIFileEditor.
+	There are three parameters for the plot:
+	The parameter output_plots is by default false. If set to true the plot will be created.
 	The scores are plotted in form of bins. Each bin represents a set of scores in a range of (highest_score - smallest_score)/number_of_bins (if all scores have positive values).
-	The middle point of the bin is the mean of the scores it represents.
-	Finally, the parameter output_name should be used to give the plot a unique name. The algorithm then creates two files. One with the binned scores and one with all steps of the estimation.
-	
-	The plots are saved in a gnuplot file. Therefore, to visualize the plots as a pdf one has to use gnuplot. e.g. gnuplot <filename>. This should output a file which contains all steps of the estimation.
-	
+	The midpoint of the bin is the mean of the scores it represents.
+	Finally, the parameter output_name should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
+
+	Actually, the plots are saved as a gnuplot file. Therefore, to visualize the plots one has to use gnuplot, e.g. gnuplot file_name. This should output a postscript file which contains all steps of the estimation.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDPosteriorErrorProbability.cli
+
+	For the parameters of the algorithm section see the algorithms documentation: @n
+		@ref OpenMS::Math::PosteriorErrorProbabilityModel "fit_algorithm" @n
+
 */
 
 // We do not want this class to show up in the docu:
@@ -74,11 +94,11 @@ class TOPPIDPosteriorErrorProbability
 {
  public:
 	TOPPIDPosteriorErrorProbability()
-		: TOPPBase("IDPosteriorErrorProbability","Estimates peptide probabilities for a set of search engine scores using a mixture model.")
+		: TOPPBase("IDPosteriorErrorProbability","Estimates probabilities for incorreclty assigned peptide sequences and a set of search engine scores using a mixture model.")
 	{
-		
+
 	}
-	
+
  protected:
 	void registerOptionsAndFlags_()
 	{
@@ -88,18 +108,18 @@ class TOPPIDPosteriorErrorProbability
 	  setValidFormats_("out",StringList::create("idXML"));
 	  registerDoubleOption_("smallest_e_value","<value>",10e-20,"This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.",false,true);
 	  registerFlag_("split_charge", "The search enginge scores are splitted by charge if this flag is set. Thus, for each charge state a new model will be computed.");
-	  
+
 	  registerSubsection_("fit_algorithm", "Algorithm parameter subsection");
-		addEmptyLine_();	
-	}	
-	
+		addEmptyLine_();
+	}
+
 	//there is only one parameter at the moment
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		PosteriorErrorProbabilityModel pepm;
 		return pepm.getParameters();
 	}
-	
+
 	double get_score_(String& engine, const PeptideHit& hit)
 	{
 		if( engine == "OMSSA" )
@@ -115,7 +135,7 @@ class TOPPIDPosteriorErrorProbability
 			return((-1)* log10(max((DoubleReal)hit.getMetaValue("EValue"),smallest_e_value_)));
 		}
 		else
-		{		
+		{
 			throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No parameters for choosen search engine","The choosen search engine is currently not supported");
 		}
 	}
@@ -125,13 +145,13 @@ class TOPPIDPosteriorErrorProbability
 		//-------------------------------------------------------------
 		// parsing parameters
 		//-------------------------------------------------------------
-			
-		String inputfile_name = getStringOption_("in");			
+
+		String inputfile_name = getStringOption_("in");
 		String outputfile_name = getStringOption_("out");
 	  smallest_e_value_ = getDoubleOption_("smallest_e_value");
 		Param fit_algorithm = getParam_().copy("fit_algorithm:",true);
 		bool split_charge = getFlag_("split_charge");
-		
+
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
@@ -147,7 +167,7 @@ class TOPPIDPosteriorErrorProbability
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-		
+
 		if(split_charge)
 		{
 			vector<Int> charges;
@@ -208,15 +228,15 @@ class TOPPIDPosteriorErrorProbability
 											hit->setScore(PEP_model.computeProbability(get_score_(*engine, *hit)));
 										}
 									}
-									it->setHits(hits);	
+									it->setHits(hits);
 								}
 								it->setScoreType("Posterior Error Probability");
 								it->setHigherScoreBetter(false);
 							}
 						}
-					}				
-					scores.clear();	
-				}				
+					}
+					scores.clear();
+				}
 			}
 		}
 		else
@@ -244,7 +264,7 @@ class TOPPIDPosteriorErrorProbability
 				}
 				PEP_model.fit(scores, probabilities);
 				for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
-				{	
+				{
 						String searchengine_toUpper =  prot_iter->getSearchEngine();
 						searchengine_toUpper.toUpper();
 						if(*engine == prot_iter->getSearchEngine() || *engine == searchengine_toUpper)
@@ -257,7 +277,7 @@ class TOPPIDPosteriorErrorProbability
 								for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
 								{
 									hit->setMetaValue("Search engine score",hit->getScore());
-									hit->setScore(PEP_model.computeProbability(get_score_(*engine, *hit)));	
+									hit->setScore(PEP_model.computeProbability(get_score_(*engine, *hit)));
 								}
 								it->setHits(hits);
 							}
@@ -265,18 +285,18 @@ class TOPPIDPosteriorErrorProbability
 							it->setHigherScoreBetter(false);
 						}
 					}
-				}				
-				scores.clear();	
+				}
+				scores.clear();
 			}
 		}
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-	
+
 		file.store(outputfile_name, protein_ids, peptide_ids);
 		return EXECUTION_OK;
 	}
-	
+
 	DoubleReal smallest_e_value_;
 };
 

@@ -31,23 +31,23 @@
 	<TABLE width="100%" bgcolor="#e8eef2" border="0">
 		<TR>
 			<TD width="33%" bgcolor="#cccccc">
-				<H3>TOPP</H3>
+				<H3>The %OpenMS Proteomics Pipeline (TOPP)</H3>
 				Information for TOPP users.
-				<BR>&nbsp;
-			</TD>
-			<TD width="33%" bgcolor="#cccccc">
-				<H3>%OpenMS</H3>
-				Information for software development based on %OpenMS.
 				<BR>&nbsp;
 			</TD>
 			<TD width="33%" bgcolor="#cccccc" valign="top">
 				<H3>Developers</H3>
 			</TD>
+			<TD width="33%" bgcolor="#cccccc">
+				<H3>%OpenMS library</H3>
+				Information for software developers for/using %OpenMS.
+				<BR>&nbsp;
+			</TD>
 		</TR>
 
 		<TR>
 			<TD valign="top">
-				
+
 				<BR>
 				Installation instructions:
 				<UL>
@@ -55,14 +55,14 @@
 					<LI> @subpage install_mac_bin
 					<LI> @subpage install_win_bin
 				</UL>
-				
+
 				Documentation:
 				<UL>
-				  <LI> @subpage TOPP_tutorial 
+				  <LI> @subpage TOPP_tutorial
 				  <LI> @subpage TOPP_documentation
 				  <LI> @subpage UTILS
 				</UL>
-				
+
 				Misc:
 				<UL>
 					<LI> @subpage FAQ
@@ -70,9 +70,28 @@
 					<LI> @subpage ChangeLog
 				</UL>
 			</TD>
-				
+
+			<TD>
+				<BR>
+				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert in 2003.
+
+				Currently the main developers of %OpenMS are:
+				<UL>
+					<LI style="margin-top: 3px;"> Stephan Aiche @n <i> Mac port, simulation, build system</i>
+					<LI style="margin-top: 3px;"> Sandro Andreotti @n <i> DeNovo identification, simulation</i>
+					<LI style="margin-top: 3px;"> Chris Bielow @n <i> Windows port, iTRAQ quantitation, decharging, simulation, build system</i>
+					<LI style="margin-top: 3px;"> Rene Hussong @n <i> feature finding, parallel computing</i>
+					<LI style="margin-top: 3px;"> Johannes Junker @n <i> TOPPAS </i>
+					<LI style="margin-top: 3px;"> Erhan Kenar @n <i> metabolomics </i>
+					<LI style="margin-top: 3px;"> Lars Nilse @n <i> SILAC quantitation </i>
+					<LI style="margin-top: 3px;"> Mathias Walzer @n <i> peptide identification, clustering </i>
+					<LI style="margin-top: 3px;"> Hendrik Weisser @n <i> protein quantification, map alignment </i>
+					<LI style="margin-top: 3px;"> Alexandra Zerck @n <i> precursor selection, calibration</i>
+				</UL>
+			</TD>
+
 			<TD valign="top">
-				
+
 				<BR>
 				Installation instructions:
 				<UL>
@@ -80,14 +99,14 @@
 					<LI> @subpage install_mac
 					<LI> @subpage install_win
 				</UL>
-				
+
 				Documentation:
 				<UL>
 				  <LI> @subpage OpenMS_tutorial
 				  <LI> @subpage coding_conventions
 					<LI> @subpage external_code
 				</UL>
-				
+
 				Misc:
 				<UL>
 					<LI> @subpage FAQ
@@ -95,7 +114,7 @@
 					<LI> @subpage Contributing
 					<LI> @subpage ChangeLog
 				</UL>
-				
+
 				@if INTERNAL_INFO
 				Internal:
 				<UL>
@@ -104,23 +123,7 @@
 				</UL>
 				@endif
 			</TD>
-			
-			<TD>
-				<BR>
-				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert in 2003.
-			
-				Currently the main developers of %OpenMS are:
-				<UL>
-					<LI style="margin-top: 3px;"> Stephan Aiche @n <i> Mac port, simulation</i>
-					<LI style="margin-top: 3px;"> Andreas Bertsch @n <i> protein/peptide identification</i>
-					<LI style="margin-top: 3px;"> Chris Bielow @n <i> iTRAQ quantitation, decharging, Windows port, simulation</i>
-					<LI style="margin-top: 3px;"> Clemens Gr&ouml;pl @n <i> quantitation, map alignment</i>
-					<LI style="margin-top: 3px;"> Rene Hussong @n <i> signal processing, pattern recognition</i>
-					<LI style="margin-top: 3px;"> Nico Pfeifer @n <i> protein/peptide identification, prediction of peptide properties</i>
-					<LI style="margin-top: 3px;"> Marc Sturm @n <i> software design, file formats, visualization, quantitation</i>
-					<LI style="margin-top: 3px;"> Alexandra Zerck @n <i> signal processing, calibration</i>
-				</UL>			
-			</TD>
+
 		</TR>
 
 

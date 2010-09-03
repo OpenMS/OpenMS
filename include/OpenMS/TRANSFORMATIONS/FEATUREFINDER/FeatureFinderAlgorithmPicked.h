@@ -94,7 +94,14 @@ namespace OpenMS
 			using FeatureFinderAlgorithm<PeakType, FeatureType>::features_;
 			using FeatureFinderAlgorithm<PeakType, FeatureType>::ff_;
 			using FeatureFinderAlgorithm<PeakType, FeatureType>::defaults_;
-
+				
+		protected:
+      typedef FeatureFinderAlgorithmPickedHelperStructs::Seed Seed;
+      typedef typename FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> MassTrace;
+      typedef typename FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> MassTraces;      
+      typedef FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
+      typedef FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
+      
 		public:			
 			/// default constructor 
 			FeatureFinderAlgorithmPicked() 
@@ -212,6 +219,13 @@ namespace OpenMS
 				UInt max_iterations = param_.getValue("fit:max_iterations");
 				DoubleReal epsilon_abs = param_.getValue("fit:epsilon_abs");
 				DoubleReal epsilon_rel = param_.getValue("fit:epsilon_rel");
+				
+        // initialize trace fitter parameters here to avoid
+        // bug https://sourceforge.net/apps/trac/open-ms/ticket/147
+        Param trace_fitter_params;
+        trace_fitter_params.setValue("max_iteration",max_iterations);
+        trace_fitter_params.setValue("epsilon_abs",epsilon_abs);
+        trace_fitter_params.setValue("epsilon_rel",epsilon_rel);			
 				
 				//copy the input map
 				map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
@@ -471,7 +485,7 @@ namespace OpenMS
 					UInt meta_index_overall = 3 + charge_count + c - charge_low;
 					
 					Size feature_candidates = 0;
-					std::vector<FeatureFinderAlgorithmPickedHelperStructs::Seed> seeds;
+					std::vector<Seed> seeds;
 					
 					//-----------------------------------------------------------
 					//Step 3.1: Precalculate IsotopePattern score
@@ -486,12 +500,12 @@ namespace OpenMS
 							DoubleReal mz = spectrum[p].getMZ();
 							
 							//get isotope distribution for this mass
-							const FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(mz*c);
+							const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(mz*c);
 							//determine highest peak in isopope distribution
 							Size max_isotope = std::max_element(isotopes.intensity.begin(), isotopes.intensity.end()) - isotopes.intensity.begin();
 							//Look up expected isotopic peaks (in the current spectrum or adjacent spectra)
 							Size peak_index = spectrum.findNearest(mz-((DoubleReal)(isotopes.size()+1)/c));
-							FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern pattern(isotopes.size());
+							IsotopePattern pattern(isotopes.size());
 							for (Size i=0; i<isotopes.size(); ++i)
 							{
 								DoubleReal isotope_pos = mz + ((DoubleReal)i-max_isotope)/c;
@@ -537,7 +551,7 @@ namespace OpenMS
 								//automatic seeds: overall score greater than the min seed score
 								if (!user_seeds && overall_score>=min_seed_score)
 								{
-								  FeatureFinderAlgorithmPickedHelperStructs::Seed seed;
+								  Seed seed;
 									seed.spectrum = s;
 									seed.peak = p;
 									seed.intensity = map_[s][p].getIntensity();								
@@ -554,7 +568,7 @@ namespace OpenMS
 										if (it->getMZ()>map_[s][p].getMZ() + user_mz_tol) break;
 										if (fabs(it->getMZ()-map_[s][p].getMZ())<user_mz_tol && fabs(it->getRT()-map_[s].getRT())<user_rt_tol)
 										{
-										  FeatureFinderAlgorithmPickedHelperStructs::Seed seed;
+										  Seed seed;
 											seed.spectrum = s;
 											seed.peak = p;
 											seed.intensity = map_[s][p].getIntensity();								
@@ -621,7 +635,7 @@ namespace OpenMS
 						
 						//----------------------------------------------------------------
 						//Find best fitting isotope pattern for this charge (using averagine)
-						FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern best_pattern(0);
+						IsotopePattern best_pattern(0);
 						DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
 						if (isotope_fit_quality<min_isotope_fit_)
 						{
@@ -631,7 +645,7 @@ namespace OpenMS
 						
 						//extend the convex hull in RT dimension (starting from the trace peaks)
 						log_ << "Collecting mass traces" << std::endl;
-						FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> traces;
+						MassTraces traces;
 						traces.reserve(best_pattern.peak.size());
 						extendMassTraces_(best_pattern, traces, meta_index_overall);
 
@@ -668,12 +682,7 @@ namespace OpenMS
             double egh_tau = 0;
             TraceFitter<PeakType> * fitter = chooseTraceFitter_(traces, egh_tau);
 
-						Param p;
-						p.setValue("max_iteration",max_iterations);
-						p.setValue("epsilon_abs",epsilon_abs);
-						p.setValue("epsilon_rel",epsilon_rel);
-
-						fitter->setParameters(p);
+						fitter->setParameters(trace_fitter_params);
 						fitter->fit(traces);
 
 #if 0
@@ -701,7 +710,7 @@ namespace OpenMS
 						//Step 3.3.3:
 						//Crop feature according to RT fit (2.5*sigma) and remove badly fitting traces
 						//------------------------------------------------------------------
-            FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> new_traces;
+            MassTraces new_traces;
             cropFeature_(fitter,traces,new_traces);
 
 						//------------------------------------------------------------------
@@ -934,7 +943,7 @@ namespace OpenMS
 					FeatureMap<> abort_map;
 					abort_map.reserve(abort_reasons_.size());
 					Size counter = 0;
-					for (typename std::map<FeatureFinderAlgorithmPickedHelperStructs::Seed, String>::iterator it2=abort_reasons_.begin(); it2!=abort_reasons_.end(); ++it2, ++counter)
+					for (typename std::map<Seed, String>::iterator it2=abort_reasons_.begin(); it2!=abort_reasons_.end(); ++it2, ++counter)
 					{
 						Feature f;
 						f.setRT(map_[it2->first.spectrum].getRT());
@@ -979,7 +988,7 @@ namespace OpenMS
 			/// Array of abort reasons
 			std::map<String, UInt> aborts_;
 			/// Array of abort reasons
-			std::map<FeatureFinderAlgorithmPickedHelperStructs::Seed, String> abort_reasons_;
+			std::map<Seed, String> abort_reasons_;
 			/// User-specified seed list
 			FeatureMapType seeds_;
 		
@@ -1013,7 +1022,7 @@ namespace OpenMS
 			//@}
 
 			///Vector of precalculated isotope distributions for several mass winows
-			std::vector< FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern > isotope_distributions_;
+			std::vector< TheoreticalIsotopePattern > isotope_distributions_;
 
       // Docu in base class
 			virtual void updateMembers_()
@@ -1036,7 +1045,7 @@ namespace OpenMS
 			}
 			
       /// Writes the abort reason to the log file and counts occurences for each reason
-			void abort_(bool debug, const FeatureFinderAlgorithmPickedHelperStructs::Seed& seed, const String& reason)
+			void abort_(bool debug, const Seed& seed, const String& reason)
 			{
 				log_ << "Abort: " << reason << std::endl;
 				aborts_[reason]++;
@@ -1099,7 +1108,7 @@ namespace OpenMS
 			}
 			
       /// Returns the isotope distribution for a certain mass window
-			const FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern& getIsotopeDistribution_(DoubleReal mass) const
+			const TheoreticalIsotopePattern& getIsotopeDistribution_(DoubleReal mass) const
 			{
 				//calculate index in the vector
 				Size index = (Size)std::floor(mass/mass_window_width_);
@@ -1120,11 +1129,11 @@ namespace OpenMS
 				@param charge The charge of the pattern 
 				@param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
 			*/
-			DoubleReal findBestIsotopeFit_(const FeatureFinderAlgorithmPickedHelperStructs::Seed& center, UInt charge, FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern& best_pattern) const
+			DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern) const
 			{
 				log_ << "Testing isotope patterns for charge " << charge << ": " << std::endl;			
 				const SpectrumType& spectrum = map_[center.spectrum];
-				const FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ()*charge);
+				const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ()*charge);
 				log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ()<< ")" << std::endl;
 				
 				//Find m/z boundaries of search space (linear search as this is local and we have the center already)
@@ -1152,7 +1161,7 @@ namespace OpenMS
 				{
 					//find isotope peaks for the current start peak
 					Size peak_index = start;
-					FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern pattern(isotopes.size());
+					IsotopePattern pattern(isotopes.size());
 					log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
 					for (Size iso=0; iso<isotopes.size(); ++iso)
 					{
@@ -1207,7 +1216,7 @@ namespace OpenMS
 			}
 			
       /// Extends all mass traces of a isotope pattern in one step
-			void extendMassTraces_(const FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern& pattern, FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces, Size meta_index_overall) const
+			void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces, Size meta_index_overall) const
 			{
 				//find index of the trace with the maximum intensity
 				DoubleReal max_int =  0.0;
@@ -1230,7 +1239,7 @@ namespace OpenMS
 				log_ << " - Trace " << max_trace_index << " (maximum intensity)" << std::endl;
 				log_ << "   - extending from: " << map_[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
 				//initialize the trace and extend
-				FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> max_trace;
+				MassTrace max_trace;
 				max_trace.peaks.push_back(std::make_pair(start_rt,start_peak));
 				extendMassTrace_(max_trace, start_index, start_mz, false, meta_index_overall);
 				extendMassTrace_(max_trace, start_index, start_mz, true, meta_index_overall);
@@ -1255,7 +1264,7 @@ namespace OpenMS
 						traces.max_trace = traces.size()-1;
 						continue;
 					}
-					FeatureFinderAlgorithmPickedHelperStructs::Seed starting_peak;
+					Seed starting_peak;
 					starting_peak.spectrum = pattern.spectrum[p];
 					starting_peak.peak = pattern.peak[p];
 					if (pattern.peak[p]==-2)
@@ -1300,7 +1309,7 @@ namespace OpenMS
 					
 					//------------------------------------------------------------------
 					//Extend seed to a mass trace
-					FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> trace;
+					MassTrace trace;
 					const PeakType* seed = &(map_[starting_peak.spectrum][starting_peak.peak]);
 					//initialize trace with seed data and extend
 					trace.peaks.push_back(std::make_pair(map_[starting_peak.spectrum].getRT(),seed));
@@ -1337,7 +1346,7 @@ namespace OpenMS
 				
 				@note this method assumes that it extends from a local maximum.
 			*/
-			void extendMassTrace_(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, SignedSize spectrum_index, DoubleReal mz, bool inc_rt, Size meta_index_overall, DoubleReal min_rt=0.0, DoubleReal max_rt = 0.0) const
+			void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, DoubleReal mz, bool inc_rt, Size meta_index_overall, DoubleReal min_rt=0.0, DoubleReal max_rt = 0.0) const
 			{
 				//Reverse peaks if we run the method for the second time (to keep them in chronological order)
 				if (inc_rt)
@@ -1448,7 +1457,7 @@ namespace OpenMS
 				@param debug Flag that turn on debug info
 				@param peak_index starting index of the search (to avoid multiple binary searches)
 			*/
-			void findIsotope_(DoubleReal pos, Size spectrum_index, FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern& pattern, Size pattern_index, bool debug, Size& peak_index) const
+			void findIsotope_(DoubleReal pos, Size spectrum_index, IsotopePattern& pattern, Size pattern_index, bool debug, Size& peak_index) const
 			{
 				if (debug) log_ << "   - Isotope " << pattern_index << ": "; 				
 				
@@ -1543,7 +1552,7 @@ namespace OpenMS
 			}
 
 			/// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
-			DoubleReal isotopeScore_(const FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern& isotopes, FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern& pattern, bool consider_mz_distances, bool debug) const
+			DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances, bool debug) const
 			{
 				if (debug) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << std::endl;
 				//Abort if a core peak is missing
@@ -1719,7 +1728,7 @@ namespace OpenMS
        *
        * @return A pointer to the trace fitter that should be used.
        */
-      TraceFitter<PeakType> * chooseTraceFitter_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & /*traces*/, double & tau)
+      TraceFitter<PeakType> * chooseTraceFitter_(MassTraces & /*traces*/, double & tau)
       {
         // choose fitter
         if(param_.getValue("feature:rt_shape") == "asymmetric")
@@ -1783,8 +1792,8 @@ namespace OpenMS
        * @param new_traces Mass traces created by cropping the original mass traces.
        */
       void cropFeature_(TraceFitter<PeakType> * fitter,
-                        FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces,
-                        FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & new_traces)
+                        MassTraces & traces,
+                        MassTraces & new_traces)
       {
         DoubleReal low_bound = fitter->getLowerRTBound();
         DoubleReal high_bound = fitter->getUpperRTBound();
@@ -1792,10 +1801,10 @@ namespace OpenMS
         log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
         for (Size t=0; t< traces.size(); ++t)
         {
-          FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = traces[t];
+          MassTrace& trace = traces[t];
           log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")" << std::endl;
 
-          FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> new_trace;
+          MassTrace new_trace;
           //compute average relative deviation and correlation
           DoubleReal deviation = 0.0;
           std::vector<DoubleReal> v_theo, v_real;
@@ -1829,14 +1838,14 @@ namespace OpenMS
           {
             if (t<traces.max_trace)
             {
-              new_traces = FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>();
+              new_traces = MassTraces();
               log_ << "     - removed this and previous traces due to bad fit" << std::endl;
               new_traces.clear(); //remove earlier traces
               continue;
             }
             else if (t==traces.max_trace)
             {
-              new_traces = FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>();
+              new_traces = MassTraces();
               log_ << "     - aborting (max trace was removed)" << std::endl;
               break;
             }
@@ -1883,7 +1892,7 @@ namespace OpenMS
        * @return true if the feature is valid
        */
       bool checkFeatureQuality_(TraceFitter<PeakType> * fitter,
-                                FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & feature_traces,
+                                MassTraces & feature_traces,
                                 const DoubleReal & seed_mz, const DoubleReal & min_feature_score,
                                 String & error_msg, DoubleReal & fit_score, DoubleReal & correlation, DoubleReal & final_score)
       {
@@ -1933,7 +1942,7 @@ namespace OpenMS
           DoubleReal deviation = 0.0;
           for (Size t=0; t< feature_traces.size(); ++t)
           {
-            FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = feature_traces[t];
+            MassTrace& trace = feature_traces[t];
             for (Size k=0; k<trace.peaks.size(); ++k)
             {
               // was DoubleReal theo = new_traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
@@ -1976,8 +1985,8 @@ namespace OpenMS
        * @param path The path where to put the debug files (default is debug/features)
        */
       void writeFeatureDebugInfo_(TraceFitter<PeakType> * fitter,
-                                  const FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces,
-                                  const FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & new_traces,
+                                  const MassTraces & traces,
+                                  const MassTraces & new_traces,
                                   bool feature_ok, const String error_msg, const DoubleReal final_score, const Int plot_nr, const PeakType & peak,
                                   const String path  = "debug/features/")
       {

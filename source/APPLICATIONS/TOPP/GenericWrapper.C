@@ -43,9 +43,32 @@ using namespace std;
 
 /**
 	@page TOPP_GenericWrapper GenericWrapper
-	
+
 	@brief Allows generically the wrapping of external tools.
-	
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ GenericWrapper \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any file the external tool can read </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool reading the output format </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter (to produce pepXML) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper (ProteinProphet) \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter (protXML to idXML) </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> RAW file </td>
+			<td VALIGN="middle" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper (msConvert) \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool accepting mzML </td>
+		</tr>
+
+	</table>
+</CENTER>
 
   This tool is solely a wrapper to call external (non-OpenMS) executables/scripts.
   The input is forwarded to the external tool, and the resulting output is
@@ -53,13 +76,14 @@ using namespace std;
   You must provide the command line to call the tool, which should contain the placeholders
   <b>$in</b> and <b>$out</b>, which will be substituted by the given input and output name given to this tool.
 
-  Example:
-    ProteinProphet $in $out
+  Example <b>call</b> statements:<br>
+    - ProteinProphet $in $out<br>
+    - msConvert $in --mzML -o /network/tmp/<br>
 
   Some external tools do not offer an output parameter (e.g. msConvert from the ProteoWizard suite).
   Thus you cannot specify $out in the command line.
-  Instead, you can specify a set of rules via the '-output_forwarding' parameter that tell this wrapper what the name of output-file 
-  will be once the external tool is finished. This is used to derive the generated filename and copy it 
+  Instead, you can specify a set of rules via the '-output_forwarding' parameter that tell this wrapper what the name of output-file
+  will be once the external tool is finished. This is used to derive the generated filename and copy it
   to the location specified by '-out'.<br>
   Supported commands are:<br>
   path:&lt;value&gt;       The path<br>
@@ -78,9 +102,9 @@ using namespace std;
 
   Example:<br>
   <tt>GenericWrapper -in /home/user/myfile.raw -out /network/converted/myfile.mzML -call "msConvert $in --mzML -o /network/tmp/" -output_forwarding "/network/tmp/" "prefix:$in" ".mzML"</tt><br>
-  This tells GenericWrapper to expect an output file which has just a changed suffix named mzML. It will thus expect 
+  This tells GenericWrapper to expect an output file which has just a changed suffix named mzML. It will thus expect
   a file named '/network/tmp/myfile.mzML' which it will move to '/network/converted/myfile.mzML'.
-  
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_GenericWrapper.cli
 */
@@ -97,7 +121,7 @@ class TOPPGenericWrapper
 			: TOPPBase("GenericWrapper", "Allows the generic wrapping of external tools.")
 		{
 		}
-	
+
 	protected:
 
 		void registerOptionsAndFlags_()
@@ -107,24 +131,22 @@ class TOPPGenericWrapper
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	//setValidFormats_("out",StringList::create("mzML"));
 			registerStringOption_("call", "<call>", "", "Command line which calls the external tool, e.g. 'ProteinProphet $in $out'");
-			registerStringList_("output_forwarding", "<expression>", StringList(), "mapping which allows to bind the callee's output to the '-out' parameter, in case the outfile cannot be explicitly created (msConvert for example), e.g. 'base:$in','suffix:mzML'. The callee's output will be renamed to the '-out' param.", false);
-
-			addEmptyLine_();
+			registerStringList_("output_forwarding", "<expression>", StringList(), "mapping which allows to bind the callee's output to the '-out' parameter,\nin case the outfile cannot be explicitly created (msConvert for example),\ne.g. 'base:$in','suffix:mzML'. The callee's output will be renamed to the '-out' param.", false);
 		}
-		
+
 		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-	
+
 			//input/output files
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
 			String call(getStringOption_("call"));
       StringList rename_rules(getStringList_("output_forwarding"));
 			String logfile(getStringOption_("log"));
-		
+
       //-------------------------------------------------------------
       // call external program
       //-------------------------------------------------------------

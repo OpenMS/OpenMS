@@ -171,10 +171,10 @@ class TOPPMSSimulator
 				// e.g. >BSA [#120]
 				index = (it->description).find("[#");
         // if found, extract and set relative quantity accordingly
-        if (index != string::npos)
+        if (index != String::npos)
         {
-          String::size_type index_end = (it->description).find("#]", index);
-          if (index_end == string::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag '#]'.");
+					String::size_type index_end = (it->description).find(']', index);
+					if (index_end == String::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
 					
 					//std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
           StringList meta_values = StringList::create((it->description).substr(index+2,index_end-index-3).removeWhitespaces(),',');

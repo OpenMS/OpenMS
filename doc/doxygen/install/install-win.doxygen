@@ -1,15 +1,16 @@
 /**
 
-	@page install_win Installation on Windows
+	@page install_win Building OpenMS on Windows
 
   @section install_win_read Read this section first!
 
 
   This document addresses %OpenMS users and explains the
-  installation procedure. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
+  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
 	encouraged to <b>download the windows binary installer</b>
 	(see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
-	instead of building %OpenMS from sources. For more information read the install instructions for the TOPP binaries.
+	instead of building %OpenMS from sources.
+  For more information read the install instructions for the TOPP binaries.
 
 	This document especially considers the installation
   of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
@@ -31,10 +32,11 @@
 
 <b>Pre-Requisites (Software)</b>
   <UL>
-    <LI>have a Visual Studio 2005/2008/2010 installed (2003 is not supported)
+    <LI>have a Visual Studio 2005/2008/2010 installed (The C++ Express editions should work as well, we tested VSE2008). VS2003 is not supported!
+    <br>64-bit tools are not available on Visual C++ Express Edition by default. To enable 64-bit tools on Visual C++ Express Edition, install the .NET Framework SDK in addition to Visual C++ Express Edition.
     <br> If you work with VS 2008, installation of the Service Pack 1 (SP1) is required,
     otherwise VS might crash during the compilation of the contrib package (i.e. imslib will not compile).
-    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org) - for VS2010 you'll need CMake 2.9 or later.
+    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org) - for VS2010 you'll need CMake 2.8.2 or later.
     <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
     Installing svnversion.exe allows to include the current svn repository revision into the TOPP binaries' help message, which can ease debugging.
@@ -82,7 +84,7 @@
 	@subsection install_win_contrib Contrib installation
 		In order to make the
 		installation of the remaining required libraries easier, we composed a
-		"contrib-package" containing the libraries GSL, CGAL, libSVM, SeqAn, XERCES-C, COIN-OR, ZLib and bz2Lib.
+		"contrib-package" containing the libraries Boost, GSL, CGAL, libSVM, SeqAn, COINOR, imslib, zlib, libbz2 and XERCES-C.
 		<br>ANDI/MS and NetCDF are currently only included in the Linux version. We are working on a patch of those external libaries for Windows.
 		This contrib package has several advantages over manual installation
 		<ul>

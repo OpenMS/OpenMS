@@ -43,15 +43,31 @@ using namespace std;
 
    @brief A tool for creating inclusion and/or exclusion lists for LC-MS/MS.
 
+	<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ InclusionExclusionListCreator \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder </td>
+		</tr>
+	</table>
+	</CENTER>
+
    Currently this tool can create tab-delimited inclusion or exclusion lists (m/z, RT start, RT stop).
 	 The input can either be peptide identifications from previous runs, a feature map or a FASTA-file with proteins.
 	 Inclusion and exclusion charges can be specified for FASTA and IdXML input. If no charges are specified in the case of peptide id input, only
    the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
 
-   The rt window size can be specified via the rel_rt_window_size parameter, 
+   The rt window size can be specified via the rel_rt_window_size parameter,
 	 then the window is [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt]. The default is rt in minutes, set the rt_in_seconds flag to use seconds.
 
-   
    <B>The command line parameters of this tool are:</B>
    @verbinclude TOPP_InclusionExclusionListCreator.cli
 */
@@ -78,7 +94,7 @@ protected:
     registerInputFile_("exclude","<file>", "", "exclusion list input file in featureXML, IdXML or fasta format.",false);
     setValidFormats_("exclude",StringList::create("featureXML,IdXML,fasta"));
     registerOutputFile_("out", "<file>", "", "output file (tab delimited).");
-    //in fasta or featureXML  
+    //in fasta or featureXML
     registerIntList_("inclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the inclusion list compounds, space separated.",false);
     registerIntList_("exclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the exclusion list compounds (for idXML and FASTA input), space separated.",false);
     registerIntOption_("missed_cleavages","<int>",0,"Number of missed cleavages used for protein digestion.\n",false);
@@ -117,7 +133,7 @@ protected:
       writeLog_("Error: Currently only inclusion OR exclusion, both will be possible with the traML output coming soon");
       return ILLEGAL_PARAMETERS;
     }
-    
+
     //-------------------------------------------------------------
     // loading input: inclusion list part
     //-------------------------------------------------------------
@@ -134,11 +150,12 @@ protected:
         // load feature map
         FeatureMap<> map;
         FeatureXMLFile().load(include,map);
-        
+
         if(!incl_charges.empty())
         {
           writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input.");
-        }        
+					return ILLEGAL_PARAMETERS;
+        }
 
         // convert to targeted experiment
 				// for traML output
@@ -183,7 +200,7 @@ protected:
           return CANNOT_WRITE_OUTPUT_FILE;
 				}
       }
-      
+
 			//        exp.setIncludeTargets(incl_targets);
     }
     //-------------------------------------------------------------
@@ -192,19 +209,19 @@ protected:
     if(exclude != "")
     {
       FileTypes::Type ex_type = fh.getType(exclude);
-      //        std::vector<IncludeExcludeTarget> excl_targets;    
+      //        std::vector<IncludeExcludeTarget> excl_targets;
       if(ex_type == FileTypes::FEATUREXML)
       {
         if(!excl_charges.empty())
         {
           writeLog_("Warning: 'exclusion_charges' parameter is not honored for featureXML input.");
-          return MISSING_PARAMETERS;
+          return ILLEGAL_PARAMETERS;
         }
 
         // load feature map
         FeatureMap<> map;
         FeatureXMLFile().load(exclude,map);
-        
+
         // convert to targeted experiment if traML output is selected
 				//            list.loadTargets(map,excl_targets,exp);
 				// else write tab-delimited file directly
@@ -233,12 +250,12 @@ protected:
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 				catch(Exception::InvalidSize)
-				{																			 
+				{
 					writeLog_("Error: Peptide identification contains several hits. Use IDFilter to filter for significant peptide hits.");
 					return ILLEGAL_PARAMETERS;
 				}
 				catch(Exception::MissingInformation)
-				{												
+				{
 					writeLog_("Error: Peptide identification contains no RT information.");
 					return ILLEGAL_PARAMETERS;
 				}
@@ -257,7 +274,7 @@ protected:
         }
         std::vector<FASTAFile::FASTAEntry> entries;
         // load fasta-file
-        FASTAFile().load(include,entries);
+        FASTAFile().load(exclude,entries);
         // convert to targeted experiment for traML output
 				//            list.loadTargets(entries,excl_targets,exp,missed_cleavages);
 				// else for tab-delimited output
@@ -271,13 +288,13 @@ protected:
           return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
-//      exp.setExcludeTargets(excl_targets);    
+//      exp.setExcludeTargets(excl_targets);
     }
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
-   
+
     //TraMLFile().store(out, exp);
 
     return EXECUTION_OK;

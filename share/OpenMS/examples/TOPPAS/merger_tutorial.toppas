@@ -8,9 +8,9 @@
     <NODE name="0" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_1.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_2.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_3.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_1.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_2.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_3.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="-240" type="float" description="" />
@@ -49,9 +49,9 @@
     <NODE name="1" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_4.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_5.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_6.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_4.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_5.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_6.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="-120" type="float" description="" />
@@ -59,9 +59,9 @@
     <NODE name="2" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_10.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_11.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_12.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_10.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_11.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_12.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="180" type="float" description="" />
@@ -111,9 +111,9 @@
     <NODE name="3" description="">
       <ITEM name="toppas_type" value="input file list" type="string" description="" />
       <ITEMLIST name="file_names" type="string" description="">
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_7.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_8.mzML"/>
-        <LISTITEM value="../../../../../../../../../../../share/usr/junker/OpenMS/share/OpenMS/examples/TOPPAS/data/merger_tutorial/rt_9.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_7.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_8.mzML"/>
+        <LISTITEM value="data/merger_tutorial/rt_9.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
       <ITEM name="y_pos" value="60" type="float" description="" />

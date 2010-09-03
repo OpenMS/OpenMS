@@ -39,12 +39,26 @@ using namespace std;
 
 /**
 	@page TOPP_IDRTCalibration IDRTCalibration
-	
-	@brief Can be used to calibrate RTs of peptide hits linearly to standards.
-	
+
+	@brief Can be used to calibrate the RTs of peptide hits linearly to standards.
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ IDRTCalibration \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer (or other tools operating @n with identifications (in idXML format))</td>
+		</tr>
+	</table>
+</CENTER>
+
 	This tool can be used to linearly align RTs of the IdXML-File to a reference. If only calibrant_1_input and
   calibrant_2_input are given, the first calibrant will result at RT 0.1 and calibrant_2_input will be at 0.9.
-	If one wants to align the RTs of this IdXML file to the IDs of a reference file one can also give the RTs 
+	If one wants to align the RTs of this IdXML file to the IDs of a reference file one can also give the RTs
 	of the same calibrant in the reference file (calibrant_1_reference, calibrant_2_reference). If these calibrants
 	are given, the linear transformation (shift and scale) will be calculated such that calibrant_1_input will
 	be at the same RT as calibrant_1_reference and calibrant_2_input will
@@ -65,9 +79,9 @@ class TOPPIDRTCalibration
 	TOPPIDRTCalibration()
 		: TOPPBase("IDRTCalibration","Can be used to calibrate RTs of peptide hits linearly to standards.")
 	{
-			
+
 	}
-	
+
  protected:
 	void registerOptionsAndFlags_()
 	{
@@ -75,18 +89,18 @@ class TOPPIDRTCalibration
 		setValidFormats_("in",StringList::create("idXML"));
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("idXML"));
-		registerDoubleOption_("calibrant_1_reference","<RT>",0.1,"The RT of the first calibrant in the reference file", false);	
-		registerDoubleOption_("calibrant_2_reference","<RT>",0.9,"The RT of the second calibrant in the reference file", false);	
-		registerDoubleOption_("calibrant_1_input","<RT>",0.0,"The RT of the first calibrant in the input file");	
-		registerDoubleOption_("calibrant_2_input","<RT>",0.0,"The RT of the second calibrant in the input file");	
+		registerDoubleOption_("calibrant_1_reference","<RT>",0.1,"The RT of the first calibrant in the reference file", false);
+		registerDoubleOption_("calibrant_2_reference","<RT>",0.9,"The RT of the second calibrant in the reference file", false);
+		registerDoubleOption_("calibrant_1_input","<RT>",0.0,"The RT of the first calibrant in the input file");
+		registerDoubleOption_("calibrant_2_input","<RT>",0.0,"The RT of the second calibrant in the input file");
 	}
-	
+
 	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-	
+
 		String in_file = getStringOption_("in");
 		String out_file = getStringOption_("out");
 
@@ -94,7 +108,7 @@ class TOPPIDRTCalibration
 		DoubleReal rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");
 		DoubleReal rt_calibrant_1_reference =  getDoubleOption_("calibrant_1_reference");
 		DoubleReal rt_calibrant_2_reference =  getDoubleOption_("calibrant_2_reference");
-		
+
 		if (rt_calibrant_1_input == rt_calibrant_2_input)
 		{
 			cout << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
@@ -105,7 +119,7 @@ class TOPPIDRTCalibration
 			cout << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
 			return ILLEGAL_PARAMETERS;
 		}
-		
+
 		//-------------------------------------------------------------
 		// testing whether input and output files are accessible
 		//-------------------------------------------------------------
@@ -142,15 +156,15 @@ class TOPPIDRTCalibration
 				identifications[i].setMetaValue("RT", temp_rt);
 			}
 		}
-																				
+
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-			
-		file.store(out_file, 
-							protein_identifications, 
+
+		file.store(out_file,
+							protein_identifications,
 							identifications);
-			
+
 		return EXECUTION_OK;
 	}
 };

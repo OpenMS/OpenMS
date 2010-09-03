@@ -41,7 +41,20 @@ using namespace std;
 	@page UTILS_MapAlignmentEvaluation MapAlignmentEvaluation
 		
 	@brief Evaluates alignment results against a ground truth.
-	
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignmentEvaluationAlgorithm \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none (text output)</td>
+		</tr>
+  </table>
+</CENTER>
+
 	This tool implements the evaluation measures published in\n
 	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements",\n
 	Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375.\n
@@ -74,7 +87,6 @@ protected:
 		setValidFormats_("in",StringList::create("consensusXML"));
 		registerInputFile_("gt","<file>","","input file: ground truth",true);
 		setValidFormats_("gt",StringList::create("consensusXML"));
-		//registerOutputFile_("out","<file>","","output file ");
 		registerStringOption_("type","<name>","","Caap Evaluation type",true);
 		StringList types = Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts();
 		types.push_back("F1");

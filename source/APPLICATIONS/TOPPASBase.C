@@ -222,9 +222,10 @@ namespace OpenMS
 		defaults_.setValue("tool_categories:Resampler", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:SILACAnalyzer", "Quantitation", "The category of the tool");
 		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:SequestAdapter", "Protein/peptide Identification", "The category of the tool");
+		//defaults_.setValue("tool_categories:SequestAdapter", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:SpecLibSearcher", "Protein/peptide Identification", "The category of the tool");
 		defaults_.setValue("tool_categories:SpectraFilter", "Signal processing and preprocessing", "The category of the tool");
+		defaults_.setValue("tool_categories:SpectraMerger", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:TOFCalibration", "Signal processing and preprocessing", "The category of the tool");
 		defaults_.setValue("tool_categories:TextExporter", "File Handling", "The category of the tool");
 		defaults_.setValue("tool_categories:XTandemAdapter", "Protein/peptide Identification", "The category of the tool");

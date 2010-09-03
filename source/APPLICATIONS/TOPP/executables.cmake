@@ -52,9 +52,8 @@ RTModel
 RTPredict
 Resampler
 SILACAnalyzer
-SILACAnalyzer2
 SeedListGenerator
-SequestAdapter
+#SequestAdapter
 SpecLibSearcher
 SpectraFilter
 TOFCalibration

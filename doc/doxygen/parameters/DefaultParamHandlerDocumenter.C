@@ -63,6 +63,7 @@
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
+#include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -320,7 +321,7 @@ int main (int argc , char** argv)
 	DOCME(ComplementFilter);
 	DOCME(ComplementMarker);
 	DOCME(ConsensusID);
-  DOCME(DetectabilitySimulation);
+	DOCME(DetectabilitySimulation);
 	DOCME(DigestSimulation);
 	DOCME(EmgFitter1D);
 	DOCME(EmgModel);
@@ -351,7 +352,7 @@ int main (int argc , char** argv)
 	DOCME(LmaIsotopeFitter1D);
 	DOCME(LmaIsotopeModel);
 	DOCME(MSPFile);
-  DOCME(MSSim);
+	DOCME(MSSim);
 	DOCME(MapAlignmentAlgorithmPoseClustering);
 	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
 	DOCME(MapAlignmentAlgorithmApplyGivenTrafo);
@@ -387,30 +388,31 @@ int main (int argc , char** argv)
 	DOCME(PrecursorIonSelection);
 	DOCME(PrecursorIonSelectionPreprocessing);
 	DOCME(MorphologicalFilter);
-	DOCME(CompNovoIonScoring)
-	DOCME(CompNovoIonScoringCID)
-	DOCME(CompNovoIdentification)
-	DOCME(CompNovoIdentificationCID)
-	DOCME(MassDecompositionAlgorithm)
-	DOCME(PILISModel)
-	DOCME(MRMFragmentSelection)
-	DOCME(PILISCrossValidation)
-	DOCME(ProtonDistributionModel)
-	DOCME(MascotRemoteQuery)
-	DOCME(MascotGenericFile)
-	DOCME(PILISNeutralLossModel)
-	DOCME(PILISModelGenerator)
-	DOCME(AdvancedTheoreticalSpectrumGenerator)
-	DOCME(FeatureGroupingAlgorithmIdentification)
-	DOCME(OfflinePrecursorIonSelection)
-	DOCME(TOPPViewBase)
-	DOCME(TOPPASBase)
-	DOCME(Fitter1D)
-	DOCME(EGHModel)
-	DOCME(EGHFitter1D)
-  DOCME(O18Labeler)
-  DOCME(ITRAQLabeler)
-	
+	DOCME(CompNovoIonScoring);
+	DOCME(CompNovoIonScoringCID);
+	DOCME(CompNovoIdentification);
+	DOCME(CompNovoIdentificationCID);
+	DOCME(MassDecompositionAlgorithm);
+	DOCME(PILISModel);
+	DOCME(MRMFragmentSelection);
+	DOCME(PILISCrossValidation);
+	DOCME(ProtonDistributionModel);
+	DOCME(MascotRemoteQuery);
+	DOCME(MascotGenericFile);
+	DOCME(PILISNeutralLossModel);
+	DOCME(PILISModelGenerator);
+	DOCME(AdvancedTheoreticalSpectrumGenerator);
+	DOCME(FeatureGroupingAlgorithmIdentification);
+	DOCME(OfflinePrecursorIonSelection);
+	DOCME(TOPPViewBase);
+	DOCME(TOPPASBase);
+	DOCME(Fitter1D);
+	DOCME(EGHModel);
+	DOCME(EGHFitter1D);
+	DOCME(O18Labeler);
+	DOCME(ITRAQLabeler);
+	DOCME(Math::PosteriorErrorProbabilityModel);
+
 	//////////////////////////////////
 	// More complicated cases
 	//////////////////////////////////
@@ -429,13 +431,13 @@ int main (int argc , char** argv)
 	DOCME2(Spectrum1DCanvas,Spectrum1DCanvas(Param(),0));
 	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));
-  DOCME2(IonizationSimulation, IonizationSimulation(NULL));
-  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(NULL));
+	DOCME2(IonizationSimulation, IonizationSimulation(NULL));
+	DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(NULL));
 	DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(NULL))
 	DOCME2(RTSimulation, RTSimulation(NULL))
 	DOCME2(TraceFitter,(TraceFitter<Peak1D>()))
 	DOCME2(GaussTraceFitter,(GaussTraceFitter<Peak1D>()))
-  DOCME2(EGHTraceFitter,(EGHTraceFitter<Peak1D>()))
-  
+	DOCME2(EGHTraceFitter,(EGHTraceFitter<Peak1D>()))
+
   return 0;
 }

@@ -134,7 +134,17 @@ START_SECTION((void reset()))
   TEST_EQUAL(ptr->getPeptideProteinCounter().size(),0)
 END_SECTION
 
-	
+START_SECTION(([PrecursorIonSelection::TotalScoreMore] bool operator()(Feature const &left, Feature const &right) const ))
+{
+  Feature a,b;
+  a.setMetaValue("msms_score",200.0);
+  b.setMetaValue("msms_score",100.0);
+
+  TEST_EQUAL(PrecursorIonSelection::TotalScoreMore().operator ()(a,b), true)
+  TEST_EQUAL(PrecursorIonSelection::TotalScoreMore().operator ()(b,a), false)
+  TEST_EQUAL(PrecursorIonSelection::TotalScoreMore().operator ()(a,a), false)
+}
+END_SECTION
 	
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

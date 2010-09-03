@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Sandro Andreotti $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -67,6 +67,58 @@ START_SECTION((CompNovoIdentificationBase& operator=(const CompNovoIdentificatio
 {
 	NOT_TESTABLE
 }
+END_SECTION
+
+
+std::set<String>str_set;
+str_set.insert("TESTSTRING");
+std::set<String>::const_iterator it = str_set.begin();
+
+
+START_SECTION([CompNovoIdentificationBase::Permut] Permut(const std::set< String >::const_iterator &permut, DoubleReal s))
+	CompNovoIdentificationBase::Permut perm(it, 50.0);
+	TEST_EQUAL(perm.getScore(), 50.0)
+	TEST_EQUAL(*perm.getPermut(), "TESTSTRING")
+END_SECTION
+
+START_SECTION([CompNovoIdentificationBase::Permut] Permut(const Permut &rhs))
+	CompNovoIdentificationBase::Permut perm(it, 50.0);
+	CompNovoIdentificationBase::Permut copy(perm);
+	TEST_EQUAL(perm.getScore(), copy.getScore())
+	TEST_EQUAL(*perm.getPermut(), *copy.getPermut())
+END_SECTION
+
+START_SECTION([CompNovoIdentificationBase::Permut] Permut& operator=(const Permut &rhs))
+	CompNovoIdentificationBase::Permut perm(it, 50.0);
+	CompNovoIdentificationBase::Permut copy(it, 0.0);
+	copy=perm;
+	TEST_EQUAL(perm.getScore(), copy.getScore())
+END_SECTION
+
+START_SECTION([CompNovoIdentificationBase::Permut] virtual ~Permut())
+	CompNovoIdentificationBase::Permut * ptr = new CompNovoIdentificationBase::Permut(it, 50.0);
+	delete ptr;
+END_SECTION
+
+START_SECTION([CompNovoIdentificationBase::Permut] void setPermut(const std::set< String >::const_iterator &it))
+	std::set<String>::const_iterator it_zero;
+	CompNovoIdentificationBase::Permut perm(it_zero, 50.0);
+	perm.setPermut(it);
+	TEST_EQUAL(*perm.getPermut(), "TESTSTRING");
+END_SECTION
+
+START_SECTION([CompNovoIdentificationBase::Permut] void setScore(DoubleReal score))
+	CompNovoIdentificationBase::Permut perm(it, 50.0);
+	perm.setScore(0.0);
+	TEST_EQUAL(perm.getScore(), 0.0)
+END_SECTION
+
+START_SECTION([CompNovoIdentificationBase::Permut] DoubleReal getScore() const)
+	NOT_TESTABLE //already tested above
+END_SECTION
+
+START_SECTION([CompNovoIdentificationBase::Permut] const std::set<String>::const_iterator& getPermut() const)
+	NOT_TESTABLE //already tested above
 END_SECTION
 
 

@@ -53,7 +53,7 @@ namespace OpenMS
 			cid_(0)
   {
   	cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
-  }	
+  }
 
 	MzIdentMLHandler::~MzIdentMLHandler()
 	{
@@ -90,7 +90,7 @@ namespace OpenMS
 		static const XMLCh* s_value = xercesc::XMLString::transcode("value");
     static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
     static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-    static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+    //~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
     static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
 
 
@@ -100,7 +100,7 @@ namespace OpenMS
       optionalAttributeAsString_(value, attributes, s_value);
       optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
       optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);
-      handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, attributes, cv_ref, unit_accession);
+      handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), /* attributeAsString_(attributes, s_name), value, */ attributes, cv_ref/*,  unit_accession */);
 			return;
 		}
 
@@ -120,8 +120,8 @@ namespace OpenMS
 			if (optionalAttributeAsString_(name, attributes, "name"))
 			{
 				// TODO save name in AASequence
-			}		
-	
+			}
+
 			return;
 		}
 
@@ -143,15 +143,15 @@ namespace OpenMS
 
 			// monoisotopic mass delta attribute (opt)
 			// TODO
-			
+
 			// residues attribute (opt)
-			// TODO			
+			// TODO
 			return;
 		}
 
 		if (tag_ == "SpectrumIdentificationList")
 		{
-			
+
 			return;
 		}
 
@@ -175,7 +175,7 @@ namespace OpenMS
 			{
 				current_id_hit_.setCalculatedMassToCharge(double_value);
 			}
-			
+
 			Int int_value(0);
 			if (optionalAttributeAsInt_(int_value, attributes, "chargeState"))
 			{
@@ -191,7 +191,7 @@ namespace OpenMS
 			{
 				current_id_hit_.setCalculatedMassToCharge(double_value);
 			}
-			
+
 			String string_value("");
 			if (optionalAttributeAsString_(string_value, attributes, "name"))
 			{
@@ -282,7 +282,7 @@ namespace OpenMS
 		error(LOAD, "MzIdentMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring.");
 	}
 
-	void MzIdentMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref, const String& unit_accession)	
+	void MzIdentMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* , const String& unit_accession */)
 	{
 		if (parent_tag == "Modification")
 		{
@@ -298,7 +298,7 @@ namespace OpenMS
 					String residues;
 					if (optionalAttributeAsString_(residues, attributes, "residues"))
 					{
-						
+
 					}
 					if (loc == 0)
 					{

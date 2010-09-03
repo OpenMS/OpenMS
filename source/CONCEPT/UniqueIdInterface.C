@@ -37,17 +37,6 @@ UniqueIdInterface::setUniqueId(const String & rhs)
   clearUniqueId();
 
   String::size_type last_underscore = rhs.rfind('_');
-  // Note: String::npos is usually defined as size_t(-1).
-  // In any case, the condition of the next if() statement evaluates to a constant
-  // and can be "compiled away".
-  if ( String::npos + 1 != 0 )
-  {
-    if ( last_underscore == String::npos )
-    {
-      last_underscore = -1;
-    }
-  }
-  // For the next line to be correct in case rhs contains no '_', it is necessary that npos+1==0;
 	String s=rhs.substr(last_underscore + 1);
 
 	for (String::const_iterator s_i=s.begin();s_i<s.end();++s_i)

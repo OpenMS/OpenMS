@@ -36,13 +36,15 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
-#define _DEBUG
+#ifdef _DEBUG
+#define OPENMS_DEBUG_SIM_
+#endif
 
 namespace OpenMS {
 
   void verbosePrintFeatureMap(FeatureMapSimVector feature_maps, String stage)
   {
-#ifdef _DEBUG
+#ifdef OPENMS_DEBUG_SIM_
     std::cout << "############## DEBUG (" << stage << ") -- FEATURE MAPS ##############" << std::endl;
 
     Size map_count = 1;

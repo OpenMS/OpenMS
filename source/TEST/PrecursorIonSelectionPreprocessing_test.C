@@ -77,7 +77,7 @@ START_SECTION((const std::map<String,std::vector<DoubleReal> >& getProtMasses() 
 	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 
-START_SECTION((const std::vector<DoubleReal> & getMasses(String acc)))
+START_SECTION((const std::vector<DoubleReal> & getMasses(String acc) const))
 	const std::vector<DoubleReal>& pep_masses= ptr->getMasses("P01008");
 	TEST_EQUAL(pep_masses.size(), 14)
 	TEST_REAL_SIMILAR(pep_masses[0],1356.68332791328)
@@ -135,6 +135,23 @@ END_SECTION
 
 START_SECTION(DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt))
 	TEST_REAL_SIMILAR(rt_pt_pp.getRTWeight("P01008",1,831.),99.999)
+END_SECTION
+
+START_SECTION((const std::map<String, std::vector<DoubleReal> >& getProteinRTMap() const))
+  const std::map<String, std::vector<DoubleReal> >& rt_map = rt_pt_pp.getProteinRTMap();
+  TEST_REAL_SIMILAR(rt_map.find("P01008")->second[1],831.46429)
+  TEST_EQUAL(rt_map.size(),3);
+END_SECTION
+
+START_SECTION((const std::map<String, std::vector<DoubleReal> >& getProteinPTMap() const))
+  const std::map<String, std::vector<DoubleReal> >& pt_map = rt_pt_pp.getProteinPTMap();
+  TEST_REAL_SIMILAR(pt_map.find("P01008")->second[1],0.0402)
+  TEST_EQUAL(pt_map.size(),3);
+END_SECTION
+
+START_SECTION((const std::map<String, std::vector<String> >& getProteinPeptideSequenceMap() const))
+const std::map<String, std::vector<String> >& map = rt_pt_pp.getProteinPeptideSequenceMap();
+   TEST_EQUAL(map.size(),0);
 END_SECTION
 
 	

@@ -39,19 +39,21 @@ using namespace std;
 
 /**
 	@page TOPP_INIFileEditor INIFileEditor
-	
+
 	@brief Can be used to visually edit INI files of TOPP tools.
-	
+
 	The values can be edited by double-clicking or pressing F2.
-	
+
 	The documentation of each value is shown in the text area on the bottom of the widget.
-	
+
 	@image html INIFileEditor.png
+
+	More information about TOPPAS can be found in the @ref TOPP_tutorial.
 */
 
 int main(int argc, const char** argv)
 {
-	
+
 	Map<String,String> option_lists;
 	Map<String,String> options;
 	options["-print"] = "print";
@@ -59,7 +61,7 @@ int main(int argc, const char** argv)
 	flags["--help"] = "help";
 	Param param;
 	param.parseCommandLine(argc, argv, options, flags, option_lists);
-	
+
 	//catch command line errors
 	if (param.exists("help") //help requested
 		  || argc>3 //too many arguments
@@ -79,7 +81,7 @@ int main(int argc, const char** argv)
 				 << endl;
 		return 0;
 	}
-	
+
 	//print a ini file as text
 	if (param.exists("print"))
 	{
@@ -97,10 +99,10 @@ int main(int argc, const char** argv)
 			LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
 			LOG_ERROR << e << "\n";
 		}
-		
+
 		return 0;
 	}
-	
+
 	//Create window
 	QApplication app(argc,const_cast<char**>(argv));
 
@@ -119,14 +121,14 @@ int main(int argc, const char** argv)
   }
 
 	INIFileEditorWindow editor_window;
-	
+
 	//Open passed file
 	if (argc==2)
 	{
 		//cout << "OPEN: "  << argv[1] << endl;
 		editor_window.openFile(argv[1]);
 	}
-	
+
 	editor_window.show();
 	return app.exec();
 }

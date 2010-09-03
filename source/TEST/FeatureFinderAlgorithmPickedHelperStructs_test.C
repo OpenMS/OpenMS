@@ -40,20 +40,6 @@ START_TEST(FeatureFinderAlgorithmPickedHelperStructs, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(FeatureFinderAlgorithmPickedHelperStructs())
-{
-  // FeatureFinderAlgorithmPickedHelperStructs is just a wrapper
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION(~FeatureFinderAlgorithmPickedHelperStructs())
-{
-  // FeatureFinderAlgorithmPickedHelperStructs is just a wrapper
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern] IsotopePattern(Size size)))
 {
   const Size expected_size = 10;
@@ -115,7 +101,20 @@ mt1.peaks.push_back(std::make_pair(679.8 , &p1_10));
 
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] ConvexHull2D getConvexhull() const ))
 {
-  // TODO
+  ConvexHull2D ch = mt1.getConvexhull();
+
+  DPosition<2> point;
+  point[0] = 679.8;
+  point[1] = p1_10.getMZ();
+
+  TEST_EQUAL(ch.encloses(point),true);
+
+  point[1] = p1_10.getMZ() + 1.0;
+  TEST_EQUAL(ch.encloses(point),false);
+
+  point[1] = p1_10.getMZ();
+  point[0] = 679.9;
+  TEST_EQUAL(ch.encloses(point),false);
 }
 END_SECTION
 
@@ -129,7 +128,27 @@ END_SECTION
 
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] DoubleReal getAvgMZ() const ))
 {
-  // TODO
+  // getAvgMZ computes intensity weighted avg of the mass trace
+  TEST_EQUAL(mt1.getAvgMZ(), 1000)
+
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt_avg;
+
+  Peak1D pAvg1;
+  pAvg1.setMZ(10.5);
+  pAvg1.setIntensity(1000);
+  mt_avg.peaks.push_back(std::make_pair(100.0, &pAvg1));
+
+  Peak1D pAvg2;
+  pAvg2.setMZ(10.0);
+  pAvg2.setIntensity(100);
+  mt_avg.peaks.push_back(std::make_pair(100.0, &pAvg2));
+
+  Peak1D pAvg3;
+  pAvg3.setMZ(9.5);
+  pAvg3.setIntensity(10);
+  mt_avg.peaks.push_back(std::make_pair(100.0, &pAvg3));
+
+  TEST_REAL_SIMILAR(mt_avg.getAvgMZ(), 10.4459)
 }
 END_SECTION
 
@@ -169,12 +188,6 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] Size getP
 }
 END_SECTION
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance)))
-{
-  // TODO
-}
-END_SECTION
-
 FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt2;
 mt2.theoretical_int = 0.2;
 
@@ -192,6 +205,21 @@ p2_6.setMZ(1001);
 mt2.peaks.push_back(std::make_pair(678.6, &p2_6));
 
 mt.push_back(mt2);
+
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance)))
+{
+  // isValid checks if if we have enough traces
+  FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> invalid_traces;
+  invalid_traces.push_back(mt1);
+
+  TEST_EQUAL(invalid_traces.isValid(600.0, 0.03), false) // contains only one mass trace
+
+  // and if the given seed is inside one of the mass traces
+  TEST_EQUAL(mt.isValid(1000.0, 0.00), true)
+  TEST_EQUAL(mt.isValid(1001.003, 0.03), true)
+  TEST_EQUAL(mt.isValid(1002, 0.003), false)
+}
+END_SECTION
 
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] Size getTheoreticalmaxPosition() const ))
 {

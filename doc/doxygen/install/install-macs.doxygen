@@ -1,13 +1,19 @@
 /**
  	
-	@page install_mac Installation on Mac OS X
+	@page install_mac Building OpenMS on Mac OS X
 
   @section install_mac_read Read this section first!
   
   This document addresses %OpenMS users and explains the
-  installation procedure. It especially considers the installation
-  of several libraries which are required by %OpenMS. Most of these 
-  libraries are made available in our "contrib-package" (see below).
+  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
+	encouraged to <b>download the binary installer</b>
+	(see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
+	instead of building %OpenMS from sources. 
+  Be aware though that we do not provide binary installers for every MacOS version.
+  For more information read the install instructions for the TOPP binaries.
+
+	This document especially considers the installation
+  of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
   <br>
   If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section (documentation), maybe the error is already known. If not, please write to the mailing list.
   
@@ -15,11 +21,9 @@
   
   In order to compile %OpenMS, several applications need to be installed:
    - XCode (version 3.0 or higher) is required to build %OpenMS (the current version can be obtained from <a href="http://developer.apple.com/technology/xcode.html" target="_new">http://developer.apple.com/technology/xcode.html</a>)
-   - CMake (version 2.6 or higher) is required to configure and build the package 
+   - CMake (version 2.8.1 or higher) is required to configure and build the package 
 	 - Qt4 (version 4.4. or higher)  containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://www.qtsoftware.com/" target="_new">http://www.qtsoftware.com/</a>)
-
-	 @note On SnowLeoard (10.6) is no stable Qt version available, the Cocoa 4.5.3 dmg package seems to work (<a href="http://get.qt.nokia.com/qt/source/qt-mac-cocoa-opensource-4.5.3.dmg" target="_new">link</a>).
-	   
+  
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
     - doxygen (We recommend version 1.5.4)
@@ -182,4 +186,6 @@
  </code>
  
  to the CMake call.
+
+ @note On Mac OS X 10.6 (Snow Leopard) 64bit is the default architecture.
 */

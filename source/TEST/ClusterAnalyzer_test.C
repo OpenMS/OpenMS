@@ -213,7 +213,7 @@ START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< Size > 
 }
 END_SECTION
 
-START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< BinaryTreeNode > > &trees, std::vector< BinaryTreeNode > &tree)))
+START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< BinaryTreeNode > > &subtrees, std::vector< BinaryTreeNode > &tree)))
 {
 	std::vector< std::vector< BinaryTreeNode > > c_ts(4),ts;
   std::vector< BinaryTreeNode > trunk;

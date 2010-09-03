@@ -50,19 +50,34 @@ typedef Feature::CoordinateType CoordinateType;
 
 /**
 	@page TOPP_AdditiveSeries AdditiveSeries
-	
+
 	@brief Computes an additive series to quantify a peptide in a set of samples.
-	
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ AdditiveSeries \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
+		</tr>
+	</table>
+</CENTER>
 	This module computes an additive series for an absolute
 	quantification of a peptide in a set of samples. The
 	output consists of a GNUplot script which can be used
 	to visualize the results and some XML output for further processing.
-	
+
 	In this version, the application computes the additive
 	series as a ratio of the intensities of two different peptides.
 	One of these peptides serves as internal standard for
 	calibration.
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_AdditiveSeries.cli
 */
@@ -94,14 +109,14 @@ class AdditiveSeries
 		registerDoubleOption_("feature_mz","<mz>",0.0, "m/z position of the feature");
 		registerDoubleOption_("standard_rt","<rt>",0.0, "RT position of the standard");
 		registerDoubleOption_("standard_mz","<mz>",0.0, "m/z position of the standard");
-		
+
 		addEmptyLine_();
 		addText_("  GNUplot options:");
 		registerFlag_("write_gnuplot_output","Flag that activates the GNUplot output");
 		registerStringOption_("out_gp","<name>","","base file name (3 files with different extensions are created)",false);
 		registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
 		registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
-		
+
 		registerSubsection_("in","Input featureXML section");
 		registerSubsection_("concentrations","Spiked concentrations section");
 	}
@@ -114,7 +129,7 @@ class AdditiveSeries
 			tmp.setValue("1","data/file1.xml");
 			tmp.setValue("2","data/file2.xml");
 			tmp.setValue("3","data/file3.xml");
-			return tmp;			
+			return tmp;
 		}
 		else if (section=="concentrations")
 		{
@@ -122,9 +137,9 @@ class AdditiveSeries
 			tmp.setValue("1",1.0);
 			tmp.setValue("2",2.0);
 			tmp.setValue("3",3.0);
-			return tmp;	
+			return tmp;
 		}
-		return Param();	
+		return Param();
 	}
 
 
@@ -136,15 +151,15 @@ class AdditiveSeries
 										CoordinateType tol_mz, CoordinateType tol_rt,
 										DPosition<2> fpos1, DPosition<2> fpos2)
 	{
-		
+
 		if (!File::exists(filename) )
 		{
 			cout << "File " << filename << " not found. " << endl;
 			return false;
 		}
-		
+
 		cout << "Reading from " << filename << endl;
-		
+
 		FeatureXMLFile map_file;
 		FeatureMap<> map;
 		map_file.load(filename,map);
@@ -157,7 +172,7 @@ class AdditiveSeries
 		{
 
 // 			cout << "Read: " << *iter << endl;
-			
+
 			if ( (iter->getRT() <  fpos1[Feature::RT] + tol_rt) &&
 					 (iter->getRT() >  fpos1[Feature::RT] - tol_rt) &&
 					 (iter->getMZ() <  fpos1[Feature::MZ] + tol_mz) &&
@@ -174,7 +189,7 @@ class AdditiveSeries
 				{
 					feat1 = &(*iter);
 				}
-				// 				f1_sum += iter->getIntensity(); 
+				// 				f1_sum += iter->getIntensity();
 
 			}
 
@@ -194,14 +209,14 @@ class AdditiveSeries
 				{
 					feat2 = &(*iter);
 				}
-					
-				// 				f2_sum += iter->getIntensity(); 
+
+				// 				f2_sum += iter->getIntensity();
 			}
 
 			iter++;
 		}	// end of while
 
-		if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0) 
+		if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0)
 		{
 			cout << "Feature 1: " << *feat1 << endl;
 			cout << "Feature 2: " << *feat2 << endl;
@@ -209,13 +224,13 @@ class AdditiveSeries
 			intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
 
 			return true;
-		} 
+		}
 		if (!feat1)
 			writeDebug_(String("Feature 1 was not found. "),1);
-			
-		if (!feat2) 
+
+		if (!feat2)
 			writeDebug_(String("Feature 2 was not found. "),1);
-		
+
 		return false;
 	}
 
@@ -373,7 +388,7 @@ class AdditiveSeries
 
 		// fetching list of files
 		StringList files = getStringList_("in");
-		
+
 		//vector<String> files;
 		//Param file_param = add_param.copy("files:",true);
 		//Param::ParamIterator pit = file_param.begin();
@@ -420,10 +435,10 @@ class AdditiveSeries
 
 		cout << "Found feature pairs: " <<  intensities.size() << endl;
 		cout << "Spiked concentrations: " << sp_concentrations.size() << endl;
-		
+
 		if (intensities.size() == 0 || sp_concentrations.size() == 0 )
 		{
-			
+
 			writeLog_("Did not find any data. Aborting!");
 			return ILLEGAL_PARAMETERS;
 		}

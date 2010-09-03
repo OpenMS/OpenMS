@@ -45,41 +45,64 @@ using namespace std;
 
 /**
 	@page TOPP_IDFilter IDFilter
-	
-	@brief Filters ProteinIdentification engine results by different criteria.
-	
+
+	@brief Filters protein identification engine results by different criteria.
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=5> \f$ \longrightarrow \f$ IDFilter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinInference </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+		</tr>
+	</table>
+</CENTER>
+
 	This tool is used to filter the identifications found by
-	a peptide/protein identification tool like Mascot&copy;. The identifications 
-	can be filtered by different criteria.
-	
+	a peptide/protein identification tool like Mascot. Different filters can be applied:
+
 	<ul>
 
-		<li> 
-			<b>score:pep</b>:<br> This parameter 
+		<li>
+			<b>score:pep</b>:<br> This parameter
 			specifies which score a peptide hit should have to be kept.
-		</li> 
-		<li> 
-			<b>score:prot</b>:<br> This parameter 
+		</li>
+		<li>
+			<b>score:prot</b>:<br> This parameter
 			specifies which score a protein hit should have to be kept.
 		</li>
-		<li> 
-			<b>thresh:pep</b>:<br> This parameter 
-			specifies which amount of the significance threshold should 
+		<li>
+			<b>thresh:pep</b>:<br> This parameter
+			specifies which amount of the significance threshold should
 			be reached by a peptide to be kept. If for example a peptide
-			has score 30 and the significance threshold is 40, the 
-			peptide will only be kept by the filter if the significance 
+			has score 30 and the significance threshold is 40, the
+			peptide will only be kept by the filter if the significance
 			threshold fraction is set to 0.75 or lower.
-		</li> 
-		<li> 
-			<b>thresh:prot</b>:<br> This parameter 
-			behaves in the same way as the peptide significance threshold 
+		</li>
+		<li>
+			<b>thresh:prot</b>:<br> This parameter
+			behaves in the same way as the peptide significance threshold
 			fraction parameter. The only difference is that it is used
 			to filter protein hits.
 		</li>
 		<li>
 			<b>whitelist:proteins</b>:<br> If you know which proteins
-			are in the measured sample you can specify a FASTA file 
-			which contains the protein sequences of those proteins. All 
+			are in the measured sample you can specify a FASTA file
+			which contains the protein sequences of those proteins. All
 			peptides which are not a substring of a protein contained
 			in the sequences file will be filtered out. The filtering is based on the
       protein identifiers attached to the peptide hits. Protein Hits not matching
@@ -91,7 +114,7 @@ using namespace std;
 			All peptides that are present in both files (in-file and exclusion peptides
 			file) will be dropped. Protein Hits are not affected.
 		</li>
-		<li><b>rt</b>:<br> To filter identifications according to their 
+		<li><b>rt</b>:<br> To filter identifications according to their
 			predicted retention times you have to set 'rt:p_value' and/or 'rt:p_value_1st_dim' larger than 0, depending which RT
       dimension you want to filter.
 			This filter can only be applied to IdXML files produced by @ref TOPP_RTPredict.
@@ -124,9 +147,9 @@ class TOPPIDFilter
 	TOPPIDFilter()
 		: TOPPBase("IDFilter","Filters results from protein or peptide identification engines based on different criteria.")
 	{
-		
+
 	}
-	
+
  protected:
 	void registerOptionsAndFlags_()
 	{
@@ -139,11 +162,11 @@ class TOPPIDFilter
     addText_("All active filters will be applied in order.\n");
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score");
-    registerDoubleOption_("score:pep","<score>", 0,"The score which should be reached by a peptide hit to be kept",false);	
+    registerDoubleOption_("score:pep","<score>", 0,"The score which should be reached by a peptide hit to be kept",false);
 		registerDoubleOption_("score:prot","<score>", 0,"The score which should be reached by a protein hit to be kept",false);
     registerTOPPSubsection_("thresh", "Filtering by significance threshold");
-    registerDoubleOption_("thresh:pep","<fraction>",0.0,"Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.",false);	
-		registerDoubleOption_("thresh:prot","<fraction>",0.0,"Keep a protein hit only if its score is above this fraction of the protein significance threshold.",false);	
+    registerDoubleOption_("thresh:pep","<fraction>",0.0,"Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.",false);
+		registerDoubleOption_("thresh:prot","<fraction>",0.0,"Keep a protein hit only if its score is above this fraction of the protein significance threshold.",false);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only instances also present in a whitelist file can pass)");
     registerInputFile_("whitelist:proteins","<file>","","filename of a FASTA file containing protein sequences.\n"
@@ -155,7 +178,7 @@ class TOPPIDFilter
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
     registerInputFile_("blacklist:peptides","<file>","","Peptides having the same sequence as any peptide in this file will be filtered out\n",false);
 		setValidFormats_("blacklist:peptides",StringList::create("idXML"));
-		
+
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict.",false);
     registerDoubleOption_("rt:p_value_1st_dim","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict for first dimension.",false);
@@ -176,18 +199,18 @@ class TOPPIDFilter
 
     registerFlag_("unique","If a peptide hit occurs more than once, only one instance is kept.");
 		registerFlag_("unique_per_protein","Only peptides matching exactly one protein are kept.");
-    
+
     //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
 	}
 
 	ExitCodes main_(int , const char**)
 	{
-	
+
 		//-------------------------------------------------------------
 		// variables
 		//-------------------------------------------------------------
-			
+
 		IDFilter filter;
 		IdXMLFile IdXML_file;
 		vector<ProteinIdentification> protein_identifications;
@@ -199,46 +222,46 @@ class TOPPIDFilter
 		ProteinIdentification filtered_protein_identification;
 		vector< FASTAFile::FASTAEntry > sequences;
 		set<String> exclusion_peptides;
-		
-		
+
+
 		//-------------------------------------------------------------
 		// parsing parameters
 		//-------------------------------------------------------------
-			
-		String inputfile_name = getStringOption_("in");			
+
+		String inputfile_name = getStringOption_("in");
 		String outputfile_name = getStringOption_("out");
-		
+
 		DoubleReal peptide_significance_threshold_fraction = getDoubleOption_("thresh:pep");
 		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("thresh:prot");
 		DoubleReal peptide_threshold_score = getDoubleOption_("score:pep");
 		DoubleReal protein_threshold_score = getDoubleOption_("score:prot");
-		
+
 		Int best_n_peptide_hits = getIntOption_("best:n_peptide_hits");
 		Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
 		bool best_strict = getFlag_("best:strict");
 		UInt min_length = getIntOption_("min_length");
-		
+
     String sequences_file_name = getStringOption_("whitelist:proteins").trim();
 		bool no_protein_identifiers = getFlag_("whitelist:by_seq_only");
-		
+
     String exclusion_peptides_file_name = getStringOption_("blacklist:peptides").trim();
 
 		DoubleReal pv_rt_filtering = getDoubleOption_("rt:p_value");
 		DoubleReal pv_rt_filtering_1st_dim = getDoubleOption_("rt:p_value_1st_dim");
-		
+
     bool unique = getFlag_("unique");
 		bool unique_per_protein = getFlag_("unique_per_protein");
-	
+
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
-	
+
 
 		if (sequences_file_name != "")
 		{
-			FASTAFile().load(sequences_file_name,sequences);				
+			FASTAFile().load(sequences_file_name,sequences);
 		}
-		
+
     // preprocessing
 		if (exclusion_peptides_file_name  != "")
 		{
@@ -252,8 +275,8 @@ class TOPPIDFilter
 				{
 					exclusion_peptides.insert(it->getSequence().toString());
 				}
-			} 
-		}												 
+			}
+		}
 		String document_id;
 		IdXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 
@@ -296,7 +319,7 @@ class TOPPIDFilter
 			if (sequences_file_name != "")
 			{
         applied_filters.insert("Filtering by peptide sequence whitelisting ...\n");
-				PeptideIdentification temp_identification = filtered_identification;				
+				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification, no_protein_identifiers);
 			}
 
@@ -304,58 +327,58 @@ class TOPPIDFilter
 			{
         applied_filters.insert("Filtering by RT p-value ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
-				filter.filterIdentificationsByRTPValues(temp_identification, filtered_identification, pv_rt_filtering);																																
+				filter.filterIdentificationsByRTPValues(temp_identification, filtered_identification, pv_rt_filtering);
 			}
 
 			if (pv_rt_filtering_1st_dim>0)
 			{
         applied_filters.insert("Filtering by RT p-value (first dimension) ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
-				filter.filterIdentificationsByRTFirstDimPValues(temp_identification, filtered_identification, pv_rt_filtering_1st_dim);																																
+				filter.filterIdentificationsByRTFirstDimPValues(temp_identification, filtered_identification, pv_rt_filtering_1st_dim);
 			}
 
 			if (exclusion_peptides_file_name != "")
 			{
         applied_filters.insert("Filtering by exclusion peptide blacklisting ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
-				filter.filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, filtered_identification); 				
+				filter.filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, filtered_identification);
 			}
-			
+
 			if (unique)
 			{
         applied_filters.insert("Filtering by unique peptide ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
-				filter.filterIdentificationsUnique(temp_identification, filtered_identification); 				
+				filter.filterIdentificationsUnique(temp_identification, filtered_identification);
 			}
-			
+
 			if (best_strict)
 			{
         applied_filters.insert("Filtering by best hits only ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
-				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, true); 				
+				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, true);
 			}
-			
+
 			if (min_length>0)
 			{
         applied_filters.insert(String("Filtering peptide length ") +  min_length + "...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByLength(temp_identification,
 																						 min_length,
-																						 filtered_identification); 								
+																						 filtered_identification);
 			}
 
 			if (peptide_threshold_score!=0)
 			{
-        applied_filters.insert(String("Filtering by peptide score > ") + peptide_threshold_score + " ...\n");
+				applied_filters.insert(String("Filtering by peptide score > ") + peptide_threshold_score + " ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
-				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification); 				
+				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification);
 			}
 
 			if (best_n_peptide_hits != 0)
 			{
         applied_filters.insert("Filtering by best n peptide hits ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
-				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification); 				
+				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification);
 			}
 
 			if(!filtered_identification.getHits().empty())
@@ -367,26 +390,26 @@ class TOPPIDFilter
 				filtered_peptide_identifications.push_back(tmp);
 			}
 		}
-						
+
 		// Filtering protein identifications	according to set criteria
 		for (Size i = 0; i < protein_identifications.size(); i++)
 		{
 			if (!protein_identifications[i].getHits().empty())
 			{
-        if (protein_significance_threshold_fraction!=0)
-				{       
+				if (protein_significance_threshold_fraction==0)
+				{
 					filtered_protein_identification = protein_identifications[i];
 				}
 				else
 				{
-          applied_filters.insert(String("Filtering by protein significance threshold fraction of ") + protein_significance_threshold_fraction + " ...\n");
+					applied_filters.insert(String("Filtering by protein significance threshold fraction of ") + protein_significance_threshold_fraction + " ...\n");
 					filter.filterIdentificationsByThreshold(protein_identifications[i], protein_significance_threshold_fraction, filtered_protein_identification);
 				}
-			
+
 				if (sequences_file_name != "" && !no_protein_identifiers)
 				{
           applied_filters.insert("Filtering by whitelisting protein accession from FASTA file ...\n");
-					ProteinIdentification temp_identification = filtered_protein_identification;				
+					ProteinIdentification temp_identification = filtered_protein_identification;
 					filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
 				}
 
@@ -394,18 +417,18 @@ class TOPPIDFilter
 				{
           applied_filters.insert(String("Filtering by protein score > ") + protein_threshold_score + " ...\n");
 					ProteinIdentification temp_identification = filtered_protein_identification;
-					filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
+					filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification);
 				}
 
 				if (best_n_protein_hits > 0)
 				{
           applied_filters.insert("Filtering by best n protein hits ...\n");
 					ProteinIdentification temp_identification = filtered_protein_identification;
-					filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification); 				
+					filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification);
 				}
-				
+
 				ProteinIdentification temp_identification = filtered_protein_identification;
-				filter.removeUnreferencedProteinHits(temp_identification, filtered_peptide_identifications, filtered_protein_identification); 								
+				filter.removeUnreferencedProteinHits(temp_identification, filtered_peptide_identifications, filtered_protein_identification);
 
 				if(!(filtered_protein_identification.getHits().empty()))
 				{
@@ -467,7 +490,7 @@ class TOPPIDFilter
 				}
 			}
 		}
-		
+
 
     // print the filters used:
     for (std::set<String>::const_iterator it=applied_filters.begin();it!=applied_filters.end();++it)
@@ -478,11 +501,11 @@ class TOPPIDFilter
     // some stats
     LOG_INFO << "Peptide identifications remaining: " << filtered_peptide_identifications.size() << " / " << identifications.size() << "\n";
     LOG_INFO << "Protein identifications remaining: " << filtered_protein_identifications.size() << " / " << protein_identifications.size() << "\n";
-		
+
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-	
+
 		IdXML_file.store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
 
 		return EXECUTION_OK;

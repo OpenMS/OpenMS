@@ -63,12 +63,7 @@ MSExperiment<> raw_data;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 
 
-START_SECTION((template <typename InputPeakType>
-		void makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
-                                               const MSExperiment< InputPeakType > & experiment,
-																							 MSExperiment< InputPeakType > & ms2,
-                                               std::set<Int>& charges_set,
-																							 bool feature_based)))
+START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
 {
 	MSExperiment<Peak1D> ms2;
 	std::set<Int> charges_set;
@@ -112,10 +107,7 @@ START_SECTION((template <typename InputPeakType>
 }
 END_SECTION	     
 
-START_SECTION((template <typename InputPeakType>
-		void getMassRanges(const FeatureMap<>& features,
-                       const MSExperiment<InputPeakType>& experiment,
-											 std::vector<std::vector<std::pair<Size,Size> > > & indices)))
+START_SECTION((template < typename InputPeakType > void getMassRanges(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
 {
 	Param param;
 	param.setValue("exclude_overlapping_peaks","false");

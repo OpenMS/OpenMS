@@ -55,7 +55,7 @@ START_SECTION((virtual ~GumbelDistributionFitter()))
 }
 END_SECTION
 
-START_SECTION((GumbelDistributionFitResult GumbelDistributionFitter::fit(std::vector< DPosition< 2 > >& points)))
+START_SECTION((GumbelDistributionFitResult fit(std::vector<DPosition<2> >& points)))
 {
 
 		DPosition<2> pos;
@@ -130,7 +130,7 @@ START_SECTION((GumbelDistributionFitResult GumbelDistributionFitter::fit(std::ve
 }
 END_SECTION
 
-START_SECTION((void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult& result)))
+START_SECTION((void setInitialParameters(const GumbelDistributionFitResult& result)))
 {
   GumbelDistributionFitter f1;
   GumbelDistributionFitter::GumbelDistributionFitResult result;
@@ -140,7 +140,7 @@ START_SECTION((void GumbelDistributionFitter::setInitialParameters(const GumbelD
 }
 END_SECTION
 
-START_SECTION((const String& GumbelDistributionFitter::getGnuplotFormula() const ))
+START_SECTION((const String& getGnuplotFormula() const ))
 {
   String formula = ptr->getGnuplotFormula();
 	// f(x)=(1/1) * exp(-(x - 1)/1) * exp(-1 * exp(-(x-1)/1))
@@ -149,6 +149,38 @@ START_SECTION((const String& GumbelDistributionFitter::getGnuplotFormula() const
 	TEST_EQUAL(formula.hasSubstring(" - x)/"), true)
 }
 END_SECTION
+
+START_SECTION((GumbelDistributionFitter(const GumbelDistributionFitter& rhs)))
+NOT_TESTABLE
+END_SECTION
+
+START_SECTION((GumbelDistributionFitter& operator = (const GumbelDistributionFitter& rhs)))
+NOT_TESTABLE
+END_SECTION
+GumbelDistributionFitter::GumbelDistributionFitResult* p = 0;
+START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult()))
+p =  new GumbelDistributionFitter::GumbelDistributionFitResult;
+TEST_NOT_EQUAL(ptr, 0)
+TEST_REAL_SIMILAR(p->a, 1.0)
+TEST_REAL_SIMILAR(p->b, 2.0)
+END_SECTION
+
+START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult(const GumbelDistributionFitter::GumbelDistributionFitResult& rhs)))
+p-> a = 5.0;
+p->b = 4.0;
+GumbelDistributionFitter::GumbelDistributionFitResult obj(*p);
+TEST_REAL_SIMILAR(obj.a, 5.0)
+TEST_REAL_SIMILAR(obj.b, 4.0)
+END_SECTION
+
+START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult& operator = (const GumbelDistributionFitter::GumbelDistributionFitResult& rhs)))
+p-> a = 3.0;
+p->b = 2.2;
+GumbelDistributionFitter::GumbelDistributionFitResult obj = *p;
+TEST_REAL_SIMILAR(obj.a, 3.0)
+TEST_REAL_SIMILAR(obj.b, 2.2)
+END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////

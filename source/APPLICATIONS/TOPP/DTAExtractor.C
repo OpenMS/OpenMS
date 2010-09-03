@@ -39,11 +39,23 @@ using namespace std;
 
 /**
 	@page TOPP_DTAExtractor DTAExtractor
-	
+
 	@brief Extracts scans of an mzML file to several files in DTA format.
-	
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ DTAExtractor \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+		</tr>
+	</table>
+</CENTER>
+
 	The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
-	
 	You can limit the exported spectra by m/z range, retention time range or MS level.
 
 	<B>The command line parameters of this tool are:</B>
@@ -51,7 +63,7 @@ using namespace std;
 */
 
 // We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES 
+/// @cond TOPPCLASSES
 
 class TOPPDTAExtractor
 	: public TOPPBase
@@ -60,7 +72,7 @@ class TOPPDTAExtractor
 		TOPPDTAExtractor()
 			: TOPPBase("DTAExtractor","Extracts spectra of an MS run file to several files in DTA format.")
 		{
-			
+
 		}
 
 	protected:
@@ -74,40 +86,40 @@ class TOPPDTAExtractor
 			registerStringOption_("rt","[min]:[max]",":","retention time range of spectra to extract", false);
 			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
 		}
-	
+
 		ExitCodes main_(int , const char**)
 		{
 
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-	
+
 			String in = getStringOption_("in");
-			String out = getStringOption_("out");			
+			String out = getStringOption_("out");
 
 			//ranges
 			String mz, rt, tmp;
 			double mz_l, mz_u, rt_l, rt_u;
-			vector<UInt> levels;			
+			vector<UInt> levels;
 			//initialize ranges
 			mz_l = rt_l = -1 * numeric_limits<double>::max();
 			mz_u = rt_u = numeric_limits<double>::max();
-			
+
 			rt = getStringOption_("rt");
 			mz = getStringOption_("mz");
 			String level = getStringOption_("level");
-			
+
 			//convert bounds to numbers
 			try
 			{
 				//rt
 				parseRange_(rt,rt_l,rt_u);
-				writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u),1);	
-				
+				writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u),1);
+
 				//mz
 				parseRange_(mz,mz_l,mz_u);
-				writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u),1);	
-				
+				writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u),1);
+
 				//levels
 				tmp = level;
 				if (level.has(',')) //several levels given
@@ -123,38 +135,38 @@ class TOPPDTAExtractor
 				{
 					levels.push_back(level.toInt());
 				}
-				
+
 				String tmp3("MS levels: ");
 				tmp3 = tmp3 + *(levels.begin());
 				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
 				{
 					tmp3 = tmp3 + ", " + *it;
 				}
-				writeDebug_(tmp3,1);	
+				writeDebug_(tmp3,1);
 			}
 			catch(Exception::ConversionError& /*e*/)
 			{
 				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
 				printUsage_();
-				return ILLEGAL_PARAMETERS;			
+				return ILLEGAL_PARAMETERS;
 			}
-			
+
 			//-------------------------------------------------------------
 			// loading input
 			//-------------------------------------------------------------
-			
+
 			MSExperiment<Peak1D> exp;
 			MzMLFile f;
 			f.setLogType(log_type_);
 			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
-			f.load(in,exp);						
+			f.load(in,exp);
 
 			DTAFile dta;
-		
+
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-			
+
 			for (MSExperiment<Peak1D>::iterator it = exp.begin(); it!= exp.end(); ++it)
 			{
 				//check for MS-level
@@ -167,7 +179,7 @@ class TOPPDTAExtractor
 					}
 				}
 				if (!in_level_range) continue;
-				
+
 				//store spectra
 				if (it->getMSLevel()>1)
 				{
@@ -176,7 +188,7 @@ class TOPPDTAExtractor
 					if (mz_value<mz_l || mz_value>mz_u)
 					{
 						continue;
-					}		
+					}
 					dta.store(out+"_RT"+String(it->getRT())+"_MZ"+String(mz_value)+".dta", *it);
 				}
 				else
@@ -184,7 +196,7 @@ class TOPPDTAExtractor
 					dta.store(out+"_RT"+String(it->getRT())+".dta", *it);
 				}
 			}
-			
+
 			return EXECUTION_OK;
 		}
 };

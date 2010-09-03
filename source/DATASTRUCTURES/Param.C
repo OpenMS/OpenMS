@@ -79,6 +79,10 @@ namespace OpenMS
 		}
 	}
 	
+	Param::ParamEntry::~ParamEntry()
+	{
+	}
+	
 	bool Param::ParamEntry::isValid(String& message) const
 	{
 			if (value.valueType()==DataValue::STRING_VALUE)
@@ -181,6 +185,10 @@ namespace OpenMS
 		{
 			cerr << "Error ParamNode name must not contain ':' characters!" << endl;
 		}
+	}
+
+	Param::ParamNode::~ParamNode()
+	{
 	}
 
 	bool Param::ParamNode::operator==(const ParamNode& rhs) const
@@ -1339,6 +1347,10 @@ namespace OpenMS
 		//find first entry
 		stack_.push_back(root_);
 		operator++();
+	}
+	
+	Param::ParamIterator::~ParamIterator()
+	{
 	}
 	
 	const Param::ParamEntry& Param::ParamIterator::operator*()

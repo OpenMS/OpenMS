@@ -43,23 +43,46 @@ using namespace std;
 
 /**
 	@page TOPP_NoiseFilter NoiseFilter
-	
+
 	@brief  Executes a Savitzky Golay or a Gaussian filter to reduce the noise in an MS experiment.
-	
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ NoiseFilter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker</td>
+		</tr>
+	</table>
+</CENTER>
+
+
 	The idea of the Savitzky Golay filter is to find filter-coefficients
 	that preserve higher moments, which means to approximate the underlying
 	function within the moving window by a polynomial of higher order
 	(typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
 	''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
-	
+
 	The Gaussian is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
 	sharp cutoffs, and low passband ripple.
-	
+
+
 	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
 	      The Gaussian filter works for uniform as well as for non-uniform data.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_NoiseFilter.cli
+
+	<B>The algorithm parameters for the Savitzky Golay filter are:</B>
+@htmlinclude OpenMS_SavitzkyGolayFilter.parameters
+
+	<B>The algorithm parameters for the Gaussian filter are:</B>
+@htmlinclude OpenMS_GaussFilter.parameters
+
 */
 
 // We do not want this class to show up in the docu:
@@ -90,12 +113,12 @@ class TOPPNoiseFilter
       				 "      The Gaussian filter works for uniform as well as for non-uniform data.");
     	registerSubsection_("algorithm","Algorithm parameters section");
     }
-    
+
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
 			String type = getStringOption_("type");
 			Param tmp;
-			
+
 			if (type == "sgolay")
       {
         tmp = SavitzkyGolayFilter().getDefaults();
@@ -130,7 +153,7 @@ class TOPPNoiseFilter
 			{
 				writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
 			}
-			
+
 			//check if spectra are sorted
 			for (Size i=0; i< exp.size(); ++i)
 			{
@@ -147,14 +170,14 @@ class TOPPNoiseFilter
     	Param filter_param = getParam_().copy("algorithm:",true);
 			writeDebug_("Parameters passed to filter", filter_param,3);
       if (type == "sgolay")
-      {	
+      {
   			SavitzkyGolayFilter sgolay;
         sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
 				sgolay.filterExperiment(exp);
       }
       else if (type == "gaussian")
-      {	
+      {
         GaussFilter gauss;
         gauss.setLogType(log_type_);
         gauss.setParameters(filter_param);

@@ -123,21 +123,21 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 
 
 #########################################################
-#            Mac OS X DEPLOYMENT TARGET                 #
+#                SOME MAC OS X STUFF                    #
 #########################################################
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	message(STATUS "Setting CMAKE_OSX_DEPLOYMENT_TARGET to 10.5")
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE INTERNAL "Set OS X Deployment Target to 10.5 to build packages compatible to leopard" FORCE )
-  # some additional cxx flags, necessary to build with cmake 2.8.1
-  set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isysroot /Developer/SDKs/MacOSX10.5.sdk")
-  set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -isysroot /Developer/SDKs/MacOSX10.5.sdk")
-  set ( CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} -isysroot /Developer/SDKs/MacOSX10.5.sdk")
-
-  # due to some awkward updates of cmake in the 2.8.x series we need to add the following
+  # force 10.5 SDK 
+  set (CMAKE_OSX_SYSROOT "/Developer/SDKs/MacOSX10.5.sdk") 
+	# due to some awkward updates of cmake in the 2.8.x series we need to add the following
   find_library(CARBON NAMES Carbon)
   find_package(OpenGL)
   set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
+
+  # force cmake > 2.8.1 to avoid bugs with OSX_DEPLOYMENT_TARGET
+  cmake_minimum_required(VERSION 2.8.1 FATAL_ERROR)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ##### Parallelization things
@@ -570,7 +570,19 @@ include(cmake/doc.cmake)
 ########################################################
 
 #package type
-set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): 'none', 'rpm', 'deb', 'dmg' or 'nsis'")
+set(VALID_PACKAGE_TYPES "none" "rpm" "deb" "dmg")
+set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+# check build type
+list(FIND VALID_PACKAGE_TYPES ${PACKAGE_TYPE} list_pos)
+if( ${list_pos} EQUAL -1 )
+	message(STATUS "The PACKAGE_TYPE ${PACKAGE_TYPE} is invalid")
+	message(STATUS "Valid PACKAGE_TYPEs are:")
+	foreach( BT ${VALID_PACKAGE_TYPES} )
+		message(STATUS " * ${BT}")
+	endforeach()
+	message(FATAL_ERROR "Aborting ...")
+endif()
+
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
@@ -913,43 +925,10 @@ MESSAGE(STATUS "")
 MESSAGE(STATUS "-----------------------------------------------------------------")
 MESSAGE(STATUS "")
 
-##### install/copy (cpack mainly) #####
-
-if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
-
-	# general definitions
-	set(CPACK_PACKAGE_NAME "OpenMS")
-	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
-	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-	set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_VERSION_MAJOR "${OPENMS_PACKAGE_VERSION_MAJOR}")
-	set(CPACK_PACKAGE_VERSION_MINOR "${OPENMS_PACKAGE_VERSION_MINOR}")
-	set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
-	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
-  set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
-	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
-	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
-
-	# install routines for MacOSX
-	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-		include(cmake/package_dragndrop_dmg.cmake)
-	endif()
-
-	if("${PACKAGE_TYPE}" STREQUAL "rpm")
-		include(cmake/package_rpm.cmake)
-	endif()
-
-	if("${PACKAGE_TYPE}" STREQUAL "deb")
-		include(cmake/package_deb.cmake)
-	endif()
-
-else()
-
 ######################################################
 #### build settings and configs for external code ####
 ######################################################
-
+if ("${PACKAGE_TYPE}" STREQUAL "none")
 	## grep definitions (-D<XXX>) that were set using 'add_definitions()'
 	get_property(OPENMS_CMP_DEFS DIRECTORY . PROPERTY COMPILE_DEFINITIONS)
 	## convert to CXX flags
@@ -987,6 +966,36 @@ else()
 		include(cmake/install.cmake)
 	endif()
 
+else()
+######################################################
+####          install/copy (cpack mainly)         ####
+######################################################
+	## general definitions
+	set(CPACK_PACKAGE_NAME "OpenMS")
+	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
+	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
+	set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+	set(CPACK_PACKAGE_VERSION_MAJOR "${OPENMS_PACKAGE_VERSION_MAJOR}")
+	set(CPACK_PACKAGE_VERSION_MINOR "${OPENMS_PACKAGE_VERSION_MINOR}")
+	set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
+	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
+  set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
+	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
+	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
+
+	# install routines for MacOSX
+	if("${PACKAGE_TYPE}" STREQUAL "dmg")
+		include(cmake/package_dragndrop_dmg.cmake)
+	endif()
+
+	if("${PACKAGE_TYPE}" STREQUAL "rpm")
+		include(cmake/package_rpm.cmake)
+	endif()
+
+	if("${PACKAGE_TYPE}" STREQUAL "deb")
+		include(cmake/package_deb.cmake)
+	endif()
 
 endif()
 

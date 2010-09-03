@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -42,14 +42,28 @@ using namespace std;
 
 /**
 	@page TOPP_SpectraMerger SpectraMerger
-	
+
 	@brief Allows to add up several spectra.
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraMerger \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+		</tr>
+	</table>
+</CENTER>
 
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
   This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above)<br>
   or<br>
-  merge scans which stem from similar precursors (for MS2 and above).
+  merge scans which stem from similar precursors (for MS2 and above) (the latter is <b>currently disabled</b>).
 
   In any case, the number of scans will be reduced.
 
@@ -67,9 +81,9 @@ class TOPPSpectraMerger
 		TOPPSpectraMerger()
 			: TOPPBase("SpectraMerger","Merges spectra (each MS level separately), increasing S/N ratios.", false)
 		{
-			
+
 		}
-	
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
@@ -78,7 +92,7 @@ class TOPPSpectraMerger
 			registerOutputFile_("out","<file>","","Output mzML file.");
 			setValidFormats_("in", StringList::create("mzML"));
 
-			registerStringOption_("merging_method", "<method>", "precursor_method", "Method of merging which should be used.");
+			registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.");
 			setValidStrings_("merging_method", StringList::create("precursor_method,block_method"));
 
 			registerSubsection_("algorithm","Algorithm section for merging spectra");
@@ -87,7 +101,7 @@ class TOPPSpectraMerger
 	 	Param getSubsectionDefaults_(const String& /*section*/) const
   	{
     	return SpectraMerger().getParameters();
-  	}	
+  	}
 
 		ExitCodes main_(int , const char**)
 		{
@@ -96,7 +110,7 @@ class TOPPSpectraMerger
 			//-------------------------------------------------------------
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
-			String merging_method(getStringOption_("merging_method"));			
+			String merging_method(getStringOption_("merging_method"));
 
 			//-------------------------------------------------------------
 			// reading input
@@ -111,13 +125,13 @@ class TOPPSpectraMerger
 
 			//-------------------------------------------------------------
 			// calculations
-			//-------------------------------------------------------------					
+			//-------------------------------------------------------------
 
 			SpectraMerger merger;
 			merger.setParameters(getParam_().copy("algorithm:",true));
 			if (merging_method == "precursor_method")
 			{
-				merger.mergeSpectraPrecursors(exp);				
+				merger.mergeSpectraPrecursors(exp);
 			}
 			else if (merging_method == "block_method")
 			{
@@ -127,10 +141,10 @@ class TOPPSpectraMerger
 			//-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-		
+
 
 			fh.storeExperiment(out, exp, log_type_);
-	
+
 			return EXECUTION_OK;
 		}
 };
@@ -141,7 +155,7 @@ int main( int argc, const char** argv )
 	TOPPSpectraMerger tool;
 	return tool.main(argc,argv);
 }
-  
+
 /// @endcond
 
 

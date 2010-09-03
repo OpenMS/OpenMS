@@ -336,7 +336,7 @@ START_SECTION((bool checkMaximalRTSpan(const DoubleReal max_rt_span)))
   // 5.0 * sigma_ > max_rt_span * region_rt_span_
 
   DoubleReal region_rt_span = mt1.peaks[mt1.peaks.size() - 1].first - mt1.peaks[0].first;
-  DoubleReal max_rt_span = 5.0*gaussian_trace_fitter.getSigma() / region_rt_span;
+  DoubleReal max_rt_span = 5.0*gaussian_trace_fitter.getSigma() / region_rt_span + 0.00000000000001; // we add some small number to overcome precision problems on 32-bit machines
 
   TEST_EQUAL(gaussian_trace_fitter.checkMaximalRTSpan(max_rt_span), false);
   max_rt_span -= 0.1; // accept only smaller regions

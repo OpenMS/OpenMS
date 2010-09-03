@@ -44,21 +44,36 @@ using namespace std;
 
 /**
 	@page TOPP_PILISModel PILISModel
-	
-	@brief Can be used to train the PILIS model with a given set of spectra an identifications
 
-	This tool can be used in three different variants, 'training', 'cross_validation' and 
+	@brief Can be used to train the PILIS model with a given set of spectra and identifications
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+
+	<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PILISModel \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PILISIdentification </td>
+		</tr>
+	</table>
+	</CENTER>
+
+	This tool can be used in three different variants, 'training', 'cross_validation' and
 	'generation'.
 
 	'training' mode:
-	In training mode, the parameters for the fragmentation model needs to be set. Via 
+	In training mode, the parameters for the fragmentation model needs to be set. Via
 	the -write_ini command line switch an ini file can be created, edited to the needs
-	and used afterwards. Additionally, the spectra should be given as MSP file, which 
+	and used afterwards. Additionally, the spectra should be given as MSP file, which
 	already contains identifications or as mzML files. When using mzML files, idXML files
 	must be used to get the peptide sequence information for the spectra.
 	The tool trains then a model using the spectra and the peptides and writes it to
 	the file given in the parameter 'trained_model_file'. Additionally, a model can
-	be given as starting point via the parameter 'model_file'. With the min_charge and 
+	be given as starting point via the parameter 'model_file'. With the min_charge and
 	max_charge parameters, the peptides can be restricted to the specified charge range.
 
 	'cross_validation' mode:
@@ -66,17 +81,15 @@ using namespace std;
 	The ini file contains for each parameter that can be optimized a flag, whether it
 	should be used, a min value, a max value and a step size. These parameters are used
 	to perform a grid search on the parameter. The result is a model with best performing
-	parameter set. More on the cross validation can be found at the docu of the 
+	parameter set. More on the cross validation can be found at the docu of the
 	PILISCrossValidation class.
 
 	'generation' mode:
 	This mode is used to generate spectra. A list of peptide must be given as
 	idXML files. The peptides are used to generate spectra. Additionally a model file
-	must be given, which contains the fragmentation model and its parameters. If a 
-	peptide has charge 0, spectra for all charges from 'min_charge' to 'max_charge' 
+	must be given, which contains the fragmentation model and its parameters. If a
+	peptide has charge 0, spectra for all charges from 'min_charge' to 'max_charge'
 	are generated.
-
-	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PILISModel.cli
@@ -94,8 +107,8 @@ void getUniquePeptides(vector<PILISCrossValidation::Peptide>& peptides)
   for (vector<PILISCrossValidation::Peptide>::const_iterator it = peptides.begin(); it != peptides.end(); ++it)
   {
     sorted[it->sequence][it->charge].push_back(*it);
-  } 
-  
+  }
+
 	// TODO set tic_filter option
   TICFilter tic_filter;
   for (Map<AASequence, Map<Size, vector<PILISCrossValidation::Peptide> > >::ConstIterator it1 = sorted.begin(); it1 != sorted.end(); ++it1)
@@ -132,7 +145,7 @@ class TOPPPILISModel
 			: TOPPBase("PILISModel", "Used to trained the PILIS model with a given set of spectra an identifications")
 		{
 		}
-	
+
 	protected:
 
 		void registerOptionsAndFlags_()
@@ -148,14 +161,14 @@ class TOPPPILISModel
 			registerOutputFile_("trained_model_file", "<file>", "", "The output file of the trained model, used in training mode.", false);
 			registerOutputFile_("spectra_library_file", "<MSP-file>", "", "If this tool is used in generation mode, the spectral library is written into this MSP-file.", false);
 			setValidFormats_("spectra_library_file", StringList::create("MSP"));
-		
+
 			// options
 			registerStringOption_("type", "<usage-type>", "", "This parameter determines whether the model is used in 'training', 'cross_validation' or 'generation' mode.\n'training' is simply to train the model with the given spectra, using the parameters set in the ini file\n'cross_validation' performs a cross_validation using the identifications and the spectra, to find optimal parameters for the model\n'generation' generates a spectral library using a given model", true);
 			setValidStrings_("type", StringList::create("training,cross_validation,generation"));
 
 			registerIntOption_("min_charge", "<charge>", 1, "The minimal charge state used for training (other peptides are ignored) and for 'generation' mode if peptides have charge 0.", false);
 			setMinInt_("min_charge", 1);
-			registerIntOption_("max_charge", "<charge>", 3, "The maximal charge state used for training (other peptides are ignored) and for 'generation' mode if peptides have charge 0.", false); 
+			registerIntOption_("max_charge", "<charge>", 3, "The maximal charge state used for training (other peptides are ignored) and for 'generation' mode if peptides have charge 0.", false);
 			setMinInt_("max_charge", 1);
 			registerFlag_("score_filtering", "If this flag is enabled the used spectra for training or cross validation are filtered using the 'score_treshold' parameter.");
 			registerDoubleOption_("score_threshold", "<score>", 0, "The score threshold that must be passed in order to be used for training if 'score_filtering' is enabled.", false);
@@ -202,7 +215,7 @@ class TOPPPILISModel
       	p.setValue("charge_remote_threshold_max", 0.8, "Maximal value of the 'charge_remote_threshold' parameter.", StringList::create("advanced"));
       	p.setValue("charge_remote_threshold_step_size", 0.1, "Step size for increasing the parameter 'charge_remote_threshold' during the grid search.", StringList::create("advanced"));
 
-				// charge_directed_threshold	
+				// charge_directed_threshold
 	      p.setValue("grid_search_charge_directed_threshold", "true", "Enables the grid search for the parameter 'charge_directed_threshold'.", StringList::create("advanced"));
         p.setValidStrings("grid_search_charge_directed_threshold", StringList::create("true,false"));
         p.setValue("charge_directed_threshold_min", 0.0, "Minimal value of the 'charge_directed_threshold' parameter.", StringList::create("advanced"));
@@ -320,7 +333,7 @@ class TOPPPILISModel
 					writeLog_("For 'training' mode spectra and identifications are needed.");
 					return INCOMPATIBLE_INPUT_DATA;
 				}
-			} 
+			}
 			else if (type == "cross_validation")
 			{
 				if (in.size() == 0)
@@ -328,7 +341,7 @@ class TOPPPILISModel
 					writeLog_("For 'cross_validation' mode spectra and identification are needed.");
 					return INCOMPATIBLE_INPUT_DATA;
 				}
-			} 
+			}
 			else if (type == "generation")
 			{
 				// TODO
@@ -348,7 +361,7 @@ class TOPPPILISModel
 
 			//bool duplicates_by_tic(getFlag_("duplicates_by_tic"));
 			//bool base_model_from_file(getFlag_("base_model_from_file"));
-		
+
       // create model, either read from a model file, or initialize with default parameters
       PILISModel model;
       if (model_file != "")
@@ -418,7 +431,7 @@ class TOPPPILISModel
 
 			if (id_in.size() != 0 && in.size() != 0)
 			{
-				// map the 
+				// map the
 				if (id_in.size() != in.size())
 				{
 					writeLog_("If in parameter contains mzML files and id_in contains idXML files, the number should be equal to allow mapping of the identification to the spectra");
@@ -435,7 +448,7 @@ class TOPPPILISModel
 
 			// get the peptides and spectra
 			vector<PILISCrossValidation::Peptide> peptides;
-			
+
 			for (vector<RichPeakMap>::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
 			{
 				for (RichPeakMap::ConstIterator it2 = it1->begin(); it2 != it1->end(); ++it2)
@@ -462,7 +475,7 @@ class TOPPPILISModel
 						continue;
 					}
 
-					if (score_filtering && 
+					if (score_filtering &&
 							((hit.getScore() < score_threshold && it2->getPeptideIdentifications().begin()->isHigherScoreBetter()) ||
 							(hit.getScore() > score_threshold && !it2->getPeptideIdentifications().begin()->isHigherScoreBetter())))
 					{
@@ -485,7 +498,7 @@ class TOPPPILISModel
 				}
 			}
 
-		
+
 			getUniquePeptides(peptides);
 			writeDebug_("Number of (unique) peptides for training: " + String(peptides.size()), 1);
 
@@ -535,7 +548,7 @@ class TOPPPILISModel
 						{
 							continue;
 						}
-						
+
 						writeDebug_("Optimizing parameter '" + *it + "'", 1);
 
 						model.setParameters(optimal_param);
@@ -566,7 +579,7 @@ class TOPPPILISModel
 						Int charge = hit.getCharge();
 						if (charge != 0)
 						{
-							RichPeakSpectrum spec;	
+							RichPeakSpectrum spec;
 							model.getSpectrum(spec, hit.getSequence(), charge);
 							spec.getPeptideIdentifications().push_back(*it2);
 							exp.push_back(spec);
@@ -577,7 +590,7 @@ class TOPPPILISModel
 							{
 								RichPeakSpectrum spec;
 								model.getSpectrum(spec, hit.getSequence(), z);
-								
+
 								PeptideIdentification id = *it2;
 								vector<PeptideHit> hits = it2->getHits();
 								hits.begin()->setCharge(z);

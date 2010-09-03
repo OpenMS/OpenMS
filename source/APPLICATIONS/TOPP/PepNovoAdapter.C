@@ -65,6 +65,20 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via PepNovo.
 
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PepNovoAdapter \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzXML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+		</tr>
+	</table>
+</CENTER>
+
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra.
 
@@ -99,38 +113,38 @@ class TOPPPepNovoAdapter
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file ");
-			setValidFormats_("in",StringList::create("mzXML"));
+      setValidFormats_("in",StringList::create("mzXML"));
 
 			registerOutputFile_("out", "<file>", "", "output file ");
 			setValidFormats_("out",StringList::create("idXML"));
 
 			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
 			registerStringOption_("temp_data_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", true);
-      registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
+			registerStringOption_("model_directory", "<file>", " ", "Mame of the directory where the model files are kept.",true);
       addEmptyLine_ ();
       addText_("PepNovo Parameters");
-			registerFlag_("correct_pm", "find optimal precursor mass and charge values.");
-			registerFlag_("use_spectrum_charge", "do not correct charge");
-			registerFlag_("use_spectrum_mz", "do not correct the precursor m/z value that appears in the file.");
-			registerFlag_("no_quality_filter", "do not remove low quality spectra.");
-			registerDoubleOption_("fragment_tolerance", "<Float>", -1.0, "the fragment tolerance (between 0 and 0.75 Da. Set to -1.0 to use model's default setting)", false, false);
-			registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "the precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
-			registerStringOption_("model", "<file>", "CID_IT_TRYP", "name of the model that should be used", false);
+      registerFlag_("correct_pm", "Find optimal precursor mass and charge values.");
+      registerFlag_("use_spectrum_charge", "Do not correct charge");
+      registerFlag_("use_spectrum_mz", "Do not correct the precursor m/z value that appears in the file.");
+      registerFlag_("no_quality_filter", "Do not remove low quality spectra.");
+      registerDoubleOption_("fragment_tolerance", "<Float>", -1.0, "The fragment tolerance (between 0 and 0.75 Da. Set to -1.0 to use model's default setting)", false, false);
+      registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "The precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
+      registerStringOption_("model", "<file>", "CID_IT_TRYP", "Name of the model that should be used", false);
 
-			registerStringOption_("digest", "", "TRYPSIN", "enzyme used for digestion (default TRYPSIN)", false);
+			registerStringOption_("digest", "", "TRYPSIN", "Enzyme used for digestion (default TRYPSIN)", false);
 			setValidStrings_("digest", StringList::create("TRYPSIN,NON_SPECIFIC"));
 
-			registerIntOption_("tag_length", "<num>", -1, "returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
+			registerIntOption_("tag_length", "<num>", -1, "Returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
 
-			registerIntOption_("num_solutions", "<num>", 20, "number of solutions to be computed", false);
+			registerIntOption_("num_solutions", "<num>", 20, "Number of solutions to be computed", false);
 			setMinInt_("num_solutions",1);
 			setMaxInt_("num_solutions",2000);
 
 			std::vector<String>all_possible_modifications;
 			ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
-			registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
+			registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "List of fixed modifications", false);
 			setValidStrings_("fixed_modifications", all_possible_modifications);
-			registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
+			registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "List of variable modifications", false);
 			setValidStrings_("variable_modifications", all_possible_modifications);
 		}
 
@@ -148,39 +162,15 @@ class TOPPPepNovoAdapter
 
 			inputfile_name = getStringOption_("in");
 			writeDebug_(String("Input file: ") + inputfile_name, 1);
-			if (inputfile_name == "")
-			{
-				writeLog_("No input file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			outputfile_name = getStringOption_("out");
 			writeDebug_(String("Output file: ") + outputfile_name, 1);
-			if (outputfile_name == "")
-			{
-				writeLog_("No output file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			model_directory = getStringOption_("model_directory");
 			writeDebug_(String("model directory: ") + model_directory, 1);
-			if (model_directory == "")
-			{
-				writeLog_("No model directory specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			String model_name = getStringOption_("model");
 			writeDebug_(String("model directory: ") + model_name, 1);
-			if (model_name == "")
-			{
-				writeLog_("No model specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 
 			DoubleReal fragment_tolerance = getDoubleOption_("fragment_tolerance");
 			if(fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
@@ -205,13 +195,15 @@ class TOPPPepNovoAdapter
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
+      String digest = getStringOption_("digest");
+      Size num_solutions=getIntOption_("num_solutions");
 
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
 
 			// only load msLevel 2
-			MzXMLFile mzdata_infile;
+      MzXMLFile mzdata_infile;
 			mzdata_infile.getOptions().addMSLevel(2);
 			mzdata_infile.setLogType(log_type_);
 			mzdata_infile.load(inputfile_name, exp);
@@ -336,24 +328,30 @@ class TOPPPepNovoAdapter
 				//-------------------------------------------------------------
 				// (3) running program according to parameters
 				//-------------------------------------------------------------
+        QStringList arguments;
 
-				String call;
-				call.append(" -file " + inputfile_name);
-				call.append(" -model " + model_name);
-				if (pm_tolerance != -1 ) call.append(" -pm_tolerance " + String(pm_tolerance));
-				if (fragment_tolerance != -1 ) call.append(" -fragment_tolerance " + String(fragment_tolerance));
-				if (!ptm_command.empty()) call.append(" -PTMs " + ptm_command);
-				call.append(" -digest "+ getStringOption_("digest"));
-				call.append(" -num_solutions " + String(getIntOption_("num_solutions")));
-				if(tag_length!=-1)call.append(" -tag_length " + String(tag_length));
-				call.append(" -model_dir " + tmp_models_dir);
-				call.append(String(" > ") + temp_pepnovo_outfile);
+        arguments<<"-file" << inputfile_name.toQString();
+        arguments<<"-model" << model_name.toQString();
+        if (pm_tolerance != -1 ) arguments<<"-pm_tolerance"<<String(pm_tolerance).toQString();
+        if (fragment_tolerance != -1 ) arguments<<"-fragment_tolerance" <<String(fragment_tolerance).toQString();
+        if (!ptm_command.empty()) arguments<<"-PTMs" <<ptm_command.toQString();
+        if(getFlag_("correct_pm")) arguments<<"-correct_pm";
+        if(getFlag_("use_spectrum_charge")) arguments<<"-use_spectrum_charge";
+        if(getFlag_("use_spectrum_mz")) arguments<<"-use_spectrum_mz";
+        if(getFlag_("no_quality_filter")) arguments<<"-no_quality_filter";
+        arguments<<"-digest" << digest.toQString();
+        arguments<<"-num_solutions" << String(num_solutions).toQString();
+        if(tag_length!=-1)arguments<<"-tag_length" << String(tag_length).toQString();
+        arguments<<"-model_dir" << tmp_models_dir.toQString();
+        //arguments<<">" << temp_pepnovo_outfile.toQString();
 
 				writeLog_("Use this line to call PepNovo: ");
-				writeLog_(call);
-
-   			Int status = QProcess::execute(pepnovo_executable.toQString(), QStringList(call.toQString())); // does automatic escaping etc...
-				if (status == 0)
+        writeLog_(arguments.join(" "));
+        QProcess process;
+        process.setStandardOutputFile(temp_pepnovo_outfile.toQString());
+        process.setStandardErrorFile(temp_pepnovo_outfile.toQString());
+        process.start(pepnovo_executable.toQString(), arguments); // does automatic escaping etc...
+        if (process.waitForFinished(-1))
 				{
           //if PepNovo finished succesfully use PepNovoOutfile to parse the results and generate idxml
           std::vector< PeptideIdentification > peptide_identifications;
@@ -368,7 +366,8 @@ class TOPPPepNovoAdapter
           prot_ids.push_back(protein_identification);
           IdXMLFile().store(outputfile_name,prot_ids, peptide_identifications);
         }
-				//remove the temporary files
+
+        //remove the temporary files
 				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
         {
           if(qdir_temp.cd(*file_it))
@@ -386,12 +385,12 @@ class TOPPPepNovoAdapter
             qdir_temp.remove(*file_it);
           }
         }
-				qdir_temp.cdUp();
+        qdir_temp.cdUp();
 				qdir_temp.rmdir("Models");
 
-				if(status == 0)
+        if(process.exitStatus() == 0)
 				{
-				  qdir_temp.remove("tmp_pepnovo_out.txt");
+					qdir_temp.remove("tmp_pepnovo_out.txt");
 				  return EXECUTION_OK;
 				}
 				else

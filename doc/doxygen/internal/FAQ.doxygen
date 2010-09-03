@@ -568,11 +568,12 @@ svn propset svn:eol-style native MyClass.C
 
 				<LI><B>How are the binary release packages for different Linux distributions created?</B>
 					<OL>
+						<LI> Prerequisites: make sure the 'rpm' or respective package creation utilities are installed.
 						<LI> Check out the release branch and contrib
 						<LI> Build the contrib libraries
-						<LI> Copy the documentation (HTML folder and PDF tutorials) to the @em doc folder.
 						<LI> Configure %OpenMS using
 						     @n <code>&gt; cmake -D INSTALL_PREFIX=/usr -D PACKAGE_TYPE=rpm/deb ...</code>
+						<LI> Build OpenMS: <tt>make TOPP UTILS doc doc_tutorials</tt>
 						<LI> Build the package using <tt>make package</tt>
 						<LI> Rename the package to this naming schema:
 								 @n OpenMS-&lt;version&gt;-&lt;package-nr&gt;_&lt;dist&gt;-&lt;dist-version&gt;_&lt;dist-arch&gt;.&lt;rpm/deb&gt;

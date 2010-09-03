@@ -3,6 +3,7 @@
   @page install_linux_bin Installation on Linux
   
 	There are binary packages for several Linux distributions. Please obtain the package for your distribution from http://www.OpenMS.de .
+  The TOPP documentation can be found in <tt>/usr/share/OpenMS/doc</tt> afterwards.
 	
 	If there is no binary package for your distribution, you have to build %OpenMS from the source package. For instructions see @subpage install_linux .
 

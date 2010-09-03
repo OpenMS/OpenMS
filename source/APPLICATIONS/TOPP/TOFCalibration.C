@@ -43,6 +43,24 @@ using namespace std;
 	@page TOPP_TOFCalibration TOFCalibration
 	
 	@brief Performs an external calibration for tof spectra.
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ TOFCalibration \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_InternalCalibration </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker </td>
+		</tr>
+	</table>
+</CENTER>
+
 	
 	Given one or more calibrant spectra containing flight times, the instrument's calibration constants and the
 	expected masses the quadratic function y_i = a + b*x_i + c*x_i^2 is fitted, where x_i is the ith flight time.
@@ -55,6 +73,7 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_TOFCalibration.cli
+
 */
 
 // We do not want this class to show up in the docu:
@@ -195,8 +214,6 @@ class TOPPTOFCalibration
 		addDataProcessing_(ms_exp_raw, getProcessingInfo_(DataProcessing::CALIBRATION));
 
 		mz_data_file.store(out,ms_exp_raw);
-
-    std::cout << string::npos << "\n";
 
     return EXECUTION_OK;
   }

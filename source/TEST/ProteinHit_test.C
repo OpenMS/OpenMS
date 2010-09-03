@@ -240,6 +240,30 @@ START_SECTION(void setCoverage(const DoubleReal coverage))
 	TEST_EQUAL(hit.getCoverage(), 123.123)
 END_SECTION
 
+START_SECTION(([ProteinHit::ScoreLess] template < typename Arg > bool operator()(const Arg &a, const Arg &b)))
+{
+  ProteinHit a,b;
+  a.setScore(10);
+  b.setScore(20);
+
+  TEST_EQUAL(ProteinHit::ScoreLess().operator()(a,b), true)
+  TEST_EQUAL(ProteinHit::ScoreLess().operator()(b,a), false)
+  TEST_EQUAL(ProteinHit::ScoreLess().operator()(a,a), false)
+}
+END_SECTION
+
+START_SECTION(([ProteinHit::ScoreMore] template < typename Arg > bool operator()(const Arg &a, const Arg &b)))
+{
+  ProteinHit a,b;
+  a.setScore(20);
+  b.setScore(10);
+
+  TEST_EQUAL(ProteinHit::ScoreMore().operator()(a,b), true)
+  TEST_EQUAL(ProteinHit::ScoreMore().operator()(b,a), false)
+  TEST_EQUAL(ProteinHit::ScoreMore().operator()(a,a), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

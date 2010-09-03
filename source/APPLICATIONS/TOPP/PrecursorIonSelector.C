@@ -41,7 +41,21 @@ using namespace OpenMS;
 	@page TOPP_PrecursorIonSelector PrecursorIonSelector
 	
 	@brief A tool for precursor ion selection based on identification results.
-	
+
+	<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PrecursorIonSelector \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+		</tr>
+	</table>
+</CENTER>
+
 	This tool provides a precursor ion selection based on previous MS/MS
 	identifications.
 
@@ -69,6 +83,9 @@ using namespace OpenMS;
 		</tr>
 	</table>
 
+	This method is described in: Zerck, A.  and Nordhoff, E.  and Resemann, A.  and Mirgorodskaya, E.  and Suckau, D.  and Reinert, K.  and Lehrach, H.  and Gobom, J.:
+  An iterative strategy for precursor ion selection for LC-MS/MS based shotgun proteomics, J Prot Res, 2009, 8 (7), 3239-3251.
+
 	Given the feature map of the LC-MS run and the identification results
 	the tool determines the next precursors. The precursors are ranked
 	depending on the chosen strategy.
@@ -79,6 +96,10 @@ using namespace OpenMS;
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PrecursorIonSelector.cli
+
+	For the parameters of the algorithm section see the algorithm's documentation: @n
+		@ref OpenMS::PrecursorIonSelection @n
+	
 */
 
 // We do not want this class to show up in the docu:

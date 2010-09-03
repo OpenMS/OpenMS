@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Sandro Andreotti $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -69,6 +69,28 @@ START_SECTION((CompNovoIonScoringBase& operator=(const CompNovoIonScoringBase &s
 }
 END_SECTION
 
+CompNovoIonScoringBase::IonScore * ptr;
+START_SECTION([CompNovoIonScoringBase::IonScore] IonScore())
+	ptr=new CompNovoIonScoringBase::IonScore();
+	TEST_NOT_EQUAL(ptr,0)
+END_SECTION
+
+START_SECTION([CompNovoIonScoringBase::IonScore] IonScore(const IonScore &rhs))
+	CompNovoIonScoringBase::IonScore ion_score;
+	ion_score.s_bion=5.0;
+	TEST_EQUAL(CompNovoIonScoringBase::IonScore(ion_score).s_bion, 5.0)
+END_SECTION
+
+START_SECTION([CompNovoIonScoringBase::IonScore] IonScore& operator=(const IonScore &rhs))
+	CompNovoIonScoringBase::IonScore ion_score, copy;
+	ion_score.s_bion=5.0;
+	copy = ion_score;
+	TEST_EQUAL(copy.s_bion, ion_score.s_bion)
+END_SECTION
+
+START_SECTION([CompNovoIonScoringBase::IonScore] virtual ~IonScore())
+	delete ptr;
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Sandro Andreotti $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -73,6 +73,22 @@ START_SECTION((virtual void getIonScores(std::vector< std::vector< IonScore > > 
 {
   NOT_TESTABLE
 }
+END_SECTION
+
+START_SECTION([DeNovoIonScoring::IonScore] IonScore())
+  NOT_TESTABLE
+END_SECTION
+
+START_SECTION([DeNovoIonScoring::IonScore] IonScore(const IonScore &rhs))
+  NOT_TESTABLE
+END_SECTION
+
+START_SECTION([DeNovoIonScoring::IonScore] virtual ~IonScore())
+  NOT_TESTABLE
+END_SECTION
+
+START_SECTION([DeNovoIonScoring::IonScore] IonScore& operator=(const IonScore &rhs))
+  NOT_TESTABLE
 END_SECTION
 
 
