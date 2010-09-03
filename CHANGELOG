@@ -20,6 +20,7 @@ TOPP tools:
   - ProteinQuantifier: compute protein/peptide abundances from annotated featureXML or consensusXML files
   - GenericWrapper: wrap external programs (e.g. ProteinProphet) in TOPPAS
   - ConsensusID: [rewritten] combine several peptide search engine results to improve precision and recall
+  - InclusionExclusionListCreator: creates inclusion or exclusion lists for MS/MS based on identifications, feature maps or protein databases
 - REMOVED:
   - TextImporter (functionality moved to FileConverter)
 
