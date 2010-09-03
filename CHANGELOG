@@ -37,13 +37,6 @@ OpenMS library improvements:
 - read protXML files
 - support protein groups in ProteinIdentification/idXML
 - line numbers in errors of Textbased files (most formats: dta, dta2D, FASTAFile, PepNovoOutfile, MascotGenericFile, MS2File, MSPFile, OMSSACSVFile, TextImporter (csv, msInspect, SpecArray?, Kroenik))
-- String class:
-  - removed:
-     String substr(SignedSize start, SignedSize n) const;
-     String substr(SignedSize start) const;
-  - added:
-     String substr(size_t pos = 0, size_t n = npos) const;
-     String chop(Size n) const;
 - FeatureFinderAlgorithmPicked is now able to fit asymmetric retention time profiles (experimental)
 - added generic labeling framework to SIMULATION (#88) (experimental)
 
@@ -68,7 +61,7 @@ Changes to the Build System:
 - Visual Studio 2010 support
 - building on Mac OS X requires CMake 2.8.1 due to bugs in CMake < 2.8.1
 
-Bug fixes:
+Fixed Issues:
 [new tracker: http://sourceforge.net/apps/trac/open-ms/query?status=closed&group=resolution&milestone=Release+1.7]
 -	#23	  implement protXML
 -	#44  	TOPPView warning "Cannot show projections!"
