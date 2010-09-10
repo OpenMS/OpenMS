@@ -152,7 +152,7 @@ namespace OpenMS {
   void RawMSSignalSimulation::updateMembers_()
   {
     // convert from resolution @ 400th --> FWHM
-    DoubleReal tmp = 400.00 / (double) param_.getValue("resolution");
+    DoubleReal tmp = 40000 / (double) param_.getValue("resolution"); // TODO .. why is this buggy
     peak_std_     = (tmp / 2.355);			// Approximation for Gaussian-shaped signals
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
@@ -238,9 +238,11 @@ namespace OpenMS {
     }
     else
     {
-      for(Size idx=0; idx<features.size(); ++idx)
+      for(FeatureMap< >::iterator feature_it = features.begin();
+          feature_it != features.end();
+          ++feature_it)
       {
-        add2DSignal_(features[idx], experiment);
+        add2DSignal_(*feature_it, experiment);
       }
       // build contaminant feature map & add raw signal
       createContaminants_(c_map, experiment);
@@ -399,9 +401,18 @@ namespace OpenMS {
 			
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
+        ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) );
+
+        if(intensity == 0)
+        {
+          continue;
+        }
+
         SimPointType point;
         point.setMZ(mz);
-        point.setIntensity( pm.getIntensity( DPosition<2>( rt, mz) ) );
+        point.setIntensity( intensity );
+
+        //LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
 
         // add gaussian distributed m/z error
         double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
@@ -461,7 +472,7 @@ namespace OpenMS {
       //----------------------------------------------------------------------
 
       // Hack away constness :-P   We know what we want.
-      EmgModel::ContainerType &data = const_cast<EGHModel::ContainerType &>(elutionmodel->getInterpolation().getData());
+      EGHModel::ContainerType &data = const_cast<EGHModel::ContainerType &>(elutionmodel->getInterpolation().getData());
 
       SimCoordinateType rt_em_start = elutionmodel->getInterpolation().supportMin();
 
@@ -555,9 +566,12 @@ namespace OpenMS {
         {
           SimCoordinateType mz  = gsl_ran_flat(rnd_gen_->technical_rng, mz_lw, mz_up );
           SimCoordinateType it = gsl_ran_exponential(rnd_gen_->technical_rng,it_mean);
-          point.setIntensity(it);
-          point.setMZ(mz);
-          experiment[i].push_back(point);
+          if(it > 0.0)
+          {
+            point.setIntensity(it);
+            point.setMZ(mz);
+            experiment[i].push_back(point);
+          }
         }
 
       }
@@ -601,11 +615,13 @@ namespace OpenMS {
       for(MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin() ; peak_it != (*spectrum_it).end() ; ++peak_it)
       {
         SimIntensityType intensity = peak_it->getIntensity() + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev * peak_it->getIntensity()) + white_noise_mean;
-        peak_it->setIntensity( (intensity > 0.0 ? intensity : 0.0) );
+        peak_it->setIntensity( (intensity > 0.0 ? intensity : 1.0) );
       }
     }
   }
 
+  // TODO: add instrument specific sampling technique
+  // TODO: add instrument specific fwhm ~ mass relation
   void RawMSSignalSimulation::compressSignals_(MSSimExperiment & experiment)
   {
 		// assume we changed every scan a priori
@@ -692,6 +708,8 @@ namespace OpenMS {
     SimIntensityType intensity = feature_intensity * natural_scaling_factor * intensity_scale_;
     
     // add some noise
+    // TODO: variables model für den intensitäts-einfluss
+    // e.g. sqrt(intensity) || ln(intensity)
     intensity += gsl_ran_gaussian(rnd_gen_->technical_rng, intensity_scale_stddev_ * intensity);
 
     return intensity;

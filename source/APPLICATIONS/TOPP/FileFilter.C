@@ -500,7 +500,10 @@ class TOPPFileFilter
 			consensus_map_filtered.updateRanges();
 
 			// sort if desired
-			if (sort) consensus_map.sortByPosition();
+      if (sort)
+      {
+        consensus_map_filtered.sortByPosition();
+      }
 
 			//-------------------------------------------------------------
 			// writing output

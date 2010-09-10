@@ -31,6 +31,9 @@
 
 using std::vector;
 
+// TODO: change postRawHook to FeatureMapSim?
+// TODO: implement correct consensus in postRaw
+
 
 namespace OpenMS
 {
@@ -192,6 +195,12 @@ namespace OpenMS
 
     features_to_simulate.clear();
     features_to_simulate.push_back(final_feature_map);
+
+    consensus_.setProteinIdentifications(final_feature_map.getProteinIdentifications());
+    ConsensusMap::FileDescription map_description;
+    map_description.label = "Simulation (Labeling Consensus)";
+    map_description.size = features_to_simulate.size();
+    consensus_.getFileDescriptions()[0] = map_description;
   }
 
 

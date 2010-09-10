@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -98,7 +98,7 @@ protected:
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
-		setValidFormats_("in",StringList::create("featureXML"));
+		setValidFormats_("in",StringList::create("featureXML,consensusXML"));
 		registerOutputFile_("out","<file>","","Output file",true);
 		setValidFormats_("out",StringList::create("consensusXML"));
 		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
@@ -131,12 +131,27 @@ protected:
 		// check for valid input
 		//-------------------------------------------------------------
 		//check if all input files have the correct type
-		for (Size i=0;i<ins.size();++i)
+		FileTypes::Type file_type= FileHandler::getType(ins[0]);
+		if (type=="unlabeled_qt")
 		{
-			if (FileHandler::getType(ins[i])!=FileTypes::FEATUREXML)
+			for (Size i=0;i<ins.size();++i)
 			{
-				writeLog_("Error: All input files must be of type FeatureXML!");
-				return ILLEGAL_PARAMETERS;
+				if (FileHandler::getType(ins[i])!=file_type)
+				{
+					writeLog_("Error: All input files must be of same type!");
+					return ILLEGAL_PARAMETERS;
+				}
+			}
+		}
+		else
+		{
+			for (Size i=0;i<ins.size();++i)
+			{
+				if (FileHandler::getType(ins[i])!=FileTypes::FEATUREXML)
+				{
+					writeLog_("Error: All input files must be of type FeatureXML!");
+					return ILLEGAL_PARAMETERS;
+				}
 			}
 		}
 
@@ -152,34 +167,57 @@ protected:
     // perform grouping
     //-------------------------------------------------------------
 		//load input
-		std::vector< FeatureMap<> > maps(ins.size());
-		FeatureXMLFile f;
-		for (Size i=0; i<ins.size(); ++i)
+
+		ConsensusMap out_map;
+		if (file_type==FileTypes::FEATUREXML)
 		{
-	    f.load(ins[i], maps[i]);
+			std::vector< FeatureMap<> > maps(ins.size());
+			FeatureXMLFile f;
+			for (Size i=0; i<ins.size(); ++i)
+			{
+				f.load(ins[i], maps[i]);
+			}
+			for (Size i=0; i<ins.size(); ++i)
+			{
+				out_map.getFileDescriptions()[i].filename = ins[i];
+				out_map.getFileDescriptions()[i].size = maps[i].size();
+				out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
+			}
+			//Exception for 'labeled' algorithms: copy file descriptions
+			if (type=="labeled")
+			{
+				out_map.getFileDescriptions()[1] = out_map.getFileDescriptions()[0];
+				out_map.getFileDescriptions()[0].label = "light";
+				out_map.getFileDescriptions()[1].label = "heavy";
+			}
+			// group
+			algorithm->group(maps,out_map);
+		}
+		else
+		{
+			std::vector<ConsensusMap> maps(ins.size());
+			ConsensusXMLFile f;
+			for (Size i=0; i<ins.size(); ++i)
+			{
+				f.load(ins[i], maps[i]);
+			}
+			if (out_map.getFileDescriptions().empty())
+			{
+				for (Size i=0; i<ins.size(); ++i)
+				{
+					out_map.getFileDescriptions()[i].filename = ins[i];
+					out_map.getFileDescriptions()[i].size = maps[i].size();
+					out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
+				}
+			}
+			// group
+			algorithm->group(maps,out_map);
 		}
 
 		//set file names
-		ConsensusMap out_map;
-		for (Size i=0; i<ins.size(); ++i)
-		{
-			out_map.getFileDescriptions()[i].filename = ins[i];
-			out_map.getFileDescriptions()[i].size = maps[i].size();
-			out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
-		}
-		//Exception for 'labeled' algorithms: copy file descriptions
-		if (type=="labeled")
-		{
-			out_map.getFileDescriptions()[1] = out_map.getFileDescriptions()[0];
-			out_map.getFileDescriptions()[0].label = "light";
-			out_map.getFileDescriptions()[1].label = "heavy";
-		}
 
-		// group
-		algorithm->group(maps,out_map);
-
-    // assign unique ids
-    out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+		// assign unique ids
+		out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
 		// annotate output with data processing info
 		addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
@@ -187,7 +225,7 @@ protected:
 		// write output
 		ConsensusXMLFile().store(out,out_map);
 
-    // some statistics
+		// some statistics
 		map<Size,UInt> num_consfeat_of_size;
 		for ( ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit )
 		{

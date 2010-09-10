@@ -28,9 +28,8 @@
 #ifndef OPENMS_KERNEL_FEATURE_H
 #define OPENMS_KERNEL_FEATURE_H
 
-#include <OpenMS/KERNEL/RichPeak2D.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 
 namespace OpenMS
@@ -58,17 +57,9 @@ namespace OpenMS
 	@ingroup Kernel
 	*/
 	class OPENMS_DLLAPI Feature
-		: public RichPeak2D
+		: public BaseFeature
 	{
 	 public:
-		///@name Type definitions
-		//@{
-		///Type of the quality values
-		typedef	 DoubleReal QualityType;
-		///Charge type
-		typedef Int ChargeType;
-		//@}
-
 		/** @name Constructors and Destructor
 		*/
 		//@{
@@ -82,7 +73,7 @@ namespace OpenMS
 		~Feature();
 		//@}
 
-		/// @name Model and Quality methods
+		/// @name Model and quality methods
 		//@{
 		/// Non-mutable access to the overall quality
 		QualityType getOverallQuality() const;
@@ -94,6 +85,9 @@ namespace OpenMS
 		/// Set the quality in dimension c
 		void setQuality( Size index, QualityType q );
 
+		/// Compare by quality
+		typedef QualityLess OverallQualityLess;
+
 		/// Non-mutable access to the model description
 		const ModelDescription<2>& getModelDescription() const;
 		/// Mutable access to the model description
@@ -101,11 +95,6 @@ namespace OpenMS
 		/// Set the model description
 		void setModelDescription( const ModelDescription<2>& q );
 		//@}
-
-		/// Non-mutable access to charge state
-		const ChargeType& getCharge() const;
-		/// Set charge state
-		void setCharge( const ChargeType& ch );
 
 		///@name Convex hulls and bounding box
 		//@{
@@ -131,38 +120,6 @@ namespace OpenMS
 
 		/// Equality operator
 		bool operator == ( const Feature& rhs ) const;
-
-
-		/// Compare by getOverallQuality()
-		struct OverallQualityLess
-			: std::binary_function < Feature, Feature, bool >
-		{
-			bool operator () ( Feature const & left, Feature const & right ) const
-			{
-				return ( left.getOverallQuality() < right.getOverallQuality() );
-			}
-			bool operator () ( Feature const & left, QualityType right ) const
-			{
-				return ( left.getOverallQuality() < right );
-			}
-			bool operator () ( QualityType left, Feature const & right ) const
-			{
-				return ( left < right.getOverallQuality() );
-			}
-			bool operator () ( QualityType left, QualityType right ) const
-			{
-				return ( left < right );
-			}
-		};
-
-		/// returns a const reference to the PeptideIdentification vector
-		const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
-
-		/// returns a mutable reference to the PeptideIdentification vector
-		std::vector<PeptideIdentification>& getPeptideIdentifications();
-
-		/// sets the PeptideIdentification vector
-		void setPeptideIdentifications( const std::vector<PeptideIdentification>& identifications );
 
 		/// immutable access to subordinate features
 		const std::vector<Feature>& getSubordinates() const;
@@ -212,9 +169,6 @@ namespace OpenMS
 
 	 protected:
 
-		/// Overall quality measure of the feature
-		QualityType overall_quality_;
-
 		/// Quality measures for each dimension
 		QualityType qualities_[ 2 ];
 
@@ -229,12 +183,6 @@ namespace OpenMS
 
 		/// Overall convex hull of the feature
 		mutable ConvexHull2D convex_hull_;
-
-		/// Charge of the peptide represented by this feature.  The default value is 0, which represents an unknown charge state.
-		ChargeType charge_;
-
-		/// Peptide PeptideIdentifications belonging to the feature
-		std::vector<PeptideIdentification> identifications_;
 
 		/// subordinate features (e.g. features that the ModelFitter discarded due to inferior quality)
 		std::vector<Feature> subordinates_;

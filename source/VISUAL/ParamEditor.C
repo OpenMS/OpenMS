@@ -156,7 +156,8 @@ namespace OpenMS
 					{
 						if(str == "" && (dtype == "int" || dtype == "float"))
 						{
-							static_cast<QLineEdit*>(editor)->setText("0");
+              if (dtype == "int") static_cast<QLineEdit*>(editor)->setText("0");
+              else if (dtype == "float") static_cast<QLineEdit*>(editor)->setText("nan");
 						}
 						else
 						{
@@ -221,9 +222,10 @@ namespace OpenMS
 						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 						fileName_ = "\0";
 					}
-					else if(static_cast<QLineEdit*>(editor)->text() == "" &&(dtype == "int" || dtype == "float"))//numeric
-					{
-						new_value = QVariant("0");
+					else if(static_cast<QLineEdit*>(editor)->text() == "" && ((dtype == "int") || (dtype == "float"))) //numeric
+          {
+            if (dtype == "int") new_value = QVariant("0");
+            else if (dtype == "float") new_value = QVariant("nan");
 					}
 					else
 					{

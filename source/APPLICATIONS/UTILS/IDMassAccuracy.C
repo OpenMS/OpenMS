@@ -97,17 +97,17 @@ class TOPPIDMassAccuracy
 			registerInputFileList_("id_in", "<file list>", StringList(), "Input idXML file list, containing the identifications.");
 
 			registerOutputFile_("precursor_out","<file>","","Output file which contains the deviations from the precursors", false, false);
-			registerStringList_("precursor_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file");
+			registerStringList_("precursor_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);
 			setValidStrings_("precursor_columns", StringList::create("MassDifference"));
 			registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
 			
 			registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
-			registerStringList_("fragment_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file");
+			registerStringList_("fragment_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);
 			setValidStrings_("fragment_columns", StringList::create("MassDifference"));
 			registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");
 			
 			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Maximal fragment mass tolerance which is allowed for MS/MS spectra, used for the calculation of matching ions.", false, false);
-			registerStringOption_("separator", "<character>", "	", "character which should be used to separate the columns in the output files");
+			registerStringOption_("separator", "<character>", "	", "character which should be used to separate the columns in the output files", false);
 
 			registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
 			setMinInt_("number_of_bins", 10);

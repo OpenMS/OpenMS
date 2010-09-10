@@ -722,6 +722,8 @@ namespace OpenMS
 	
 	Real String::toFloat() const
 	{
+    if (*this=="nan") return std::numeric_limits<Real>::quiet_NaN();
+
     std::stringstream ss(c_str());
     Real ret;
     if (!(ss >> ret)) throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string '")+*this+"' to a float value");
@@ -731,6 +733,8 @@ namespace OpenMS
 	
 	DoubleReal String::toDouble() const
 	{
+    if (*this=="nan") return std::numeric_limits<DoubleReal>::quiet_NaN();
+
     std::stringstream ss(c_str());
     DoubleReal ret;
     if (!(ss >> ret)) throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string '")+*this+"' to a double value");

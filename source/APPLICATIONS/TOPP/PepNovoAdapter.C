@@ -120,7 +120,7 @@ class TOPPPepNovoAdapter
 
 			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
 			registerStringOption_("temp_data_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", true);
-			registerStringOption_("model_directory", "<file>", " ", "Mame of the directory where the model files are kept.",true);
+			registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
       addEmptyLine_ ();
       addText_("PepNovo Parameters");
       registerFlag_("correct_pm", "Find optimal precursor mass and charge values.");

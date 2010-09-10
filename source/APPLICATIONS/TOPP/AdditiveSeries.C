@@ -105,10 +105,10 @@ class AdditiveSeries
 
 		addEmptyLine_();
 		addText_("  Feature/standard position:");
-		registerDoubleOption_("feature_rt","<rt>",0.0, "RT position of the feature");
-		registerDoubleOption_("feature_mz","<mz>",0.0, "m/z position of the feature");
-		registerDoubleOption_("standard_rt","<rt>",0.0, "RT position of the standard");
-		registerDoubleOption_("standard_mz","<mz>",0.0, "m/z position of the standard");
+		registerDoubleOption_("feature_rt","<rt>",std::numeric_limits<double>::quiet_NaN(), "RT position of the feature");
+		registerDoubleOption_("feature_mz","<mz>",std::numeric_limits<double>::quiet_NaN(), "m/z position of the feature");
+		registerDoubleOption_("standard_rt","<rt>",std::numeric_limits<double>::quiet_NaN(), "RT position of the standard");
+		registerDoubleOption_("standard_mz","<mz>",std::numeric_limits<double>::quiet_NaN(), "m/z position of the standard");
 
 		addEmptyLine_();
 		addText_("  GNUplot options:");

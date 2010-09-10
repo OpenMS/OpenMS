@@ -19,11 +19,15 @@ DateTime.C
 DefaultParamHandler.C
 DistanceMatrix.C
 DoubleList.C
+GridElement.C
+GridFeature.C
+HashGrid.C
 IntList.C
 Map.C
 MassExplainer.C
 Matrix.C
 Param.C
+QTCluster.C
 SparseVector.C
 String.C
 StringList.C

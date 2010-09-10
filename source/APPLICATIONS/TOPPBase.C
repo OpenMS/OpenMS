@@ -251,7 +251,6 @@ namespace OpenMS
 		// test if unknown options were given
 		if (param_cmdline_.exists("unknown"))
 		{
-
 			writeLog_(String("Unknown option(s) '") + getParamAsString_("unknown") + "' given. Aborting!");
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
@@ -272,26 +271,24 @@ namespace OpenMS
 #endif
 
 			// '-write_ini' given
-			String write_ini_file("");
-			if (param_cmdline_.exists("write_ini")) write_ini_file = param_cmdline_.getValue("write_ini");
-			if (write_ini_file != "")
-			{
-				Param default_params = getDefaultParameters_();
-				// check if augmentation with -ini param is needed
-				DataValue in_ini;
-				if (param_cmdline_.exists("ini")) in_ini = param_cmdline_.getValue("ini");
-				if (!in_ini.isEmpty())
-				{
-					Param ini_params;
-					ini_params.load( (String)in_ini );
+			if (param_cmdline_.exists("write_ini"))
+      {
+        String write_ini_file = param_cmdline_.getValue("write_ini");
+			  outputFileWritable_(write_ini_file,"write_ini");
+			  Param default_params = getDefaultParameters_();
+			  // check if augmentation with -ini param is needed
+			  DataValue in_ini;
+			  if (param_cmdline_.exists("ini")) in_ini = param_cmdline_.getValue("ini");
+			  if (!in_ini.isEmpty())
+			  {
+				  Param ini_params;
+				  ini_params.load( (String)in_ini );
           // update default params with old params given in -ini and be verbose
           default_params.update(ini_params, true);
         }
-				outputFileWritable_(write_ini_file,"write_ini");
-
-				default_params.store(write_ini_file);
-				return EXECUTION_OK;
-			}
+			  default_params.store(write_ini_file);
+			  return EXECUTION_OK;
+      }
 
 			// '-write_wsdl' given
 			String wsdl_file("");
@@ -616,7 +613,9 @@ namespace OpenMS
 		}
 		catch(Exception::RequiredParameterNotGiven& e)
 		{
-			writeLog_(String("Error: The required parameter '") + e.what() + "' was not given!");
+      String what = e.what();
+      if (!what.hasPrefix("'")) what = "'"+what+"'";
+      writeLog_(String("Error: The required parameter ") + what + " was not given or is empty!");
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return MISSING_PARAMETERS;
 		}
@@ -857,7 +856,7 @@ namespace OpenMS
 
 	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
 	{
-    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringOption param with a non-empty default is forbidden!", default_value);
+    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringOption param ("+name+") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
 	}
 
@@ -1055,19 +1054,22 @@ namespace OpenMS
 
 	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced, const StringList& tags)
 	{
-    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFile param with a non-empty default is forbidden!", default_value);
+    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFile param ("+name+") with a non-empty default is forbidden!", default_value);
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
 	}
 
 	void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
 	{
-    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFile param with a non-empty default is forbidden!", default_value);
+    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFile param ("+name+") with a non-empty default is forbidden!", default_value);
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
 	}
 
 	void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required, bool advanced)
 	{
-    if (required && !boost::math::isnan(default_value)) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required Int param with a non-quiet_NaN default is forbidden!", String(default_value));
+    if (required && !boost::math::isnan(default_value))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required Double param (" + name + ") with a non-quiet_NaN default is forbidden! Use 'std::numeric_limits<double>::quiet_NaN()' as default value to fix!", String(default_value));
+    }
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced));
 	}
 
@@ -1075,26 +1077,26 @@ namespace OpenMS
 	{
     if (required)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param as 'required' is not possible, as Int's do not support NAN's, and thus we cannot distinguish whether values from INI files are actually set or not!", String(default_value));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden! (there is no value to indicate its missing)!", String(default_value));
     }
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, default_value, description, required, advanced));
 	}
 
 	void TOPPBase::registerOutputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced )
 	{
-    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFileList param with a non-empty default is forbidden!", default_value.concatenate(","));
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFileList param ("+name+") with a non-empty default is forbidden!", default_value.concatenate(","));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::OUTPUT_FILE_LIST,argument,default_value,description,required,advanced));
 	}
 
 	void TOPPBase::registerInputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced )
 	{
-    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param with a non-empty default is forbidden!", default_value.concatenate(","));
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param ("+name+") with a non-empty default is forbidden!", default_value.concatenate(","));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::INPUT_FILE_LIST,argument,default_value,description,required,advanced));
 	}
 
 	void TOPPBase::registerStringList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
 	{
-    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringList param with a non-empty default is forbidden!", default_value.concatenate(","));
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringList param ("+name+") with a non-empty default is forbidden!", default_value.concatenate(","));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::STRINGLIST,argument,default_value,description,required,advanced));
 	}
 
@@ -1102,7 +1104,7 @@ namespace OpenMS
 	{
     stringstream ss;
     ss << default_value;
-    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required IntList param with a non-empty default is forbidden!",  String(ss.str()) );
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required IntList param ("+name+") with a non-empty default is forbidden!",  String(ss.str()) );
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::INTLIST,argument,default_value,description,required,advanced));
 	}
 
@@ -1110,7 +1112,7 @@ namespace OpenMS
 	{
     stringstream ss;
     ss << default_value;
-    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required DoubleList param with a non-empty default is forbidden!", String(ss.str()));
+    if (required && default_value.size()>0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required DoubleList param ("+name+") with a non-empty default is forbidden!", String(ss.str()));
 		parameters_.push_back(ParameterInformation(name,ParameterInformation::DOUBLELIST,argument,default_value,description,required,advanced));
 	}
 
@@ -1150,14 +1152,19 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
+    String message = "'"+name+"'";
+    if (p.valid_strings.size()>0)
+    {
+      message += " [valid: " + StringList(p.valid_strings).concatenate(", ") + "]";
+    }
 		if (p.required && getParam_(name).isEmpty())
 		{
-			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, message);
 		}
 		String tmp = getParamAsString_(name, p.default_value);
 		if (p.required && tmp == p.default_value)
 		{
-			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, message);
 		}
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
@@ -1181,8 +1188,7 @@ namespace OpenMS
 				{
 					if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
 					{
-						String valid_strings = "";
-						valid_strings.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"', '");
+            String valid_strings = StringList(p.valid_strings).concatenate("', '");
 						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
 					}
 				}
@@ -1975,7 +1981,7 @@ namespace OpenMS
 						}
 						break;
 					case ParameterInformation::DOUBLE:
-						tmp.setValue(name,(DoubleReal)it->default_value, it->description, tags);
+            tmp.setValue(name, it->default_value, it->description, tags);
 						if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
 						{
 							tmp.setMinFloat(name, it->min_float);

@@ -126,42 +126,6 @@ START_SECTION((void setModelDescription(const ModelDescription< 2 > &q)))
 	TEST_EQUAL(p.getModelDescription().getName(), "")
 END_SECTION
 
-START_SECTION([EXTRA](IntensityType getIntensity() const))
-	const Feature p;
-	TEST_REAL_SIMILAR(p.getIntensity(), 0.0)
-END_SECTION
-
-START_SECTION([EXTRA](const PositionType& getPosition() const))
-	const Feature	p;
-	TEST_REAL_SIMILAR(p.getPosition()[0], 0.0)
-	TEST_REAL_SIMILAR(p.getPosition()[1], 0.0)
-END_SECTION
-
-START_SECTION([EXTRA](IntensityType& getIntensity()))
-	Feature p;
-	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
-	p.setIntensity(123.456f);
-	TEST_REAL_SIMILAR(p.getIntensity(), 123.456f)
-	p.setIntensity(-0.12345f);
-	TEST_REAL_SIMILAR(p.getIntensity(), -0.12345f)
-	p.setIntensity(0.0f);
-	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
-END_SECTION
-
-START_SECTION([EXTRA](PositionType& getPosition()))
-	Feature::PositionType pos;
-	Feature p;
-	pos = p.getPosition();
-	TEST_REAL_SIMILAR(pos[0], 0.0)
-	TEST_REAL_SIMILAR(pos[1], 0.0)
-	pos[0] = 1.0;
-	pos[1] = 2.0;
-	p.setPosition(pos);
-	Feature::PositionType pos2(p.getPosition());
-	TEST_REAL_SIMILAR(pos2[0], 1.0)
-	TEST_REAL_SIMILAR(pos2[1], 2.0)
-END_SECTION
-
 //do not change these datastructures, they are used in the following tests...
 std::vector< ConvexHull2D > hulls(2);
 hulls[0].addPoint(DPosition<2>(1.0,2.0));
@@ -244,23 +208,6 @@ START_SECTION((bool encloses(DoubleReal rt, DoubleReal mz) const))
 	TEST_EQUAL(tmp.encloses(2.0,1.0), true);
 	TEST_EQUAL(tmp.encloses(0.5,0.0), true);
 	TEST_EQUAL(tmp.encloses(3.0,3.2), true);
-END_SECTION
-
-START_SECTION((const ChargeType& getCharge() const))
-{
-	Feature const tmp;
-	TEST_EQUAL(tmp.getCharge(),0);
-	// continued in setCharge()
-}
-END_SECTION
-
-START_SECTION((void setCharge(const ChargeType &ch)))
-{
-	Feature tmp;
-	TEST_EQUAL(tmp.getCharge(),0);
-	tmp.setCharge(17);
-	TEST_EQUAL(tmp.getCharge(),17);
-}
 END_SECTION
 
 START_SECTION((Feature(const Feature &feature)))
@@ -440,7 +387,6 @@ START_SECTION(([Feature::OverallQualityLess] bool operator () ( QualityType left
 	f2.setOverallQuality(0.78);
 	
 	Feature::QualityType lhs = f2.getOverallQuality();
-	
 	Feature::OverallQualityLess oql;
 	
 	TEST_EQUAL(oql(lhs,f2), 0);
@@ -454,39 +400,10 @@ START_SECTION(([Feature::OverallQualityLess] bool operator () ( QualityType left
 	
 	Feature::QualityType lhs = f1.getOverallQuality();
 	Feature::QualityType rhs = f2.getOverallQuality();
-	
 	Feature::OverallQualityLess oql;
 	
 	TEST_EQUAL(oql(lhs,rhs), 0);
 	TEST_EQUAL(oql(rhs,lhs), 1);
-END_SECTION
-
-
-START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
-	Feature tmp;
-	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
-	TEST_EQUAL(vec.size(),0);
-END_SECTION
-
-START_SECTION((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
-	Feature tmp;
-	vector<PeptideIdentification> vec;
-
-	tmp.setPeptideIdentifications(vec);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),0);
-
-	PeptideIdentification dbs;
-	vec.push_back(dbs);
-	tmp.setPeptideIdentifications(vec);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-END_SECTION
-
-START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
-	Feature tmp;
-	vector<PeptideIdentification> vec;
-
-	tmp.getPeptideIdentifications().resize(1);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
 END_SECTION
 
 
@@ -501,26 +418,6 @@ START_SECTION((void setSubordinates(const std::vector<Feature>& rhs)))
 {
 	// see below
 	NOT_TESTABLE;
-}
-END_SECTION
-
-START_SECTION((template < typename Type > Size applyMemberFunction( Size (Type::*member_function)() )))
-{
-	Feature f;
-	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
-	
-	f.setUniqueId();
-	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 0);
-}
-END_SECTION
-
-START_SECTION((template < typename Type > Size applyMemberFunction( Size (Type::*member_function)() const) const))
-{
-	Feature f;
-	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
-	
-	f.setUniqueId();
-	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 0);
 }
 END_SECTION
 
@@ -569,6 +466,26 @@ START_SECTION((const std::vector<Feature>& getSubordinates() const))
 	TEST_NOT_EQUAL(f1_cpy2.getSubordinates().empty(),true);
 	f2.setSubordinates(f1_cpy2.getSubordinates());
 	TEST_EQUAL(f2,f1_cpy2);
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction( Size (Type::*member_function)() )))
+{
+	Feature f;
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
+	
+	f.setUniqueId();
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 0);
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction( Size (Type::*member_function)() const) const))
+{
+	Feature f;
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 1);
+	
+	f.setUniqueId();
+	TEST_EQUAL(f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId), 0);
 }
 END_SECTION
 

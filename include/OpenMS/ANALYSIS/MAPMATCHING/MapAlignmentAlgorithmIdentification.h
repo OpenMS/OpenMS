@@ -67,6 +67,10 @@ namespace OpenMS
 																	std::vector<TransformationDescription>&);
 
 		// Docu in base class
+		virtual void alignConsensusMaps(std::vector<ConsensusMap>&,
+																		std::vector<TransformationDescription>&);
+
+		// Docu in base class
 		virtual void alignPeptideIdentifications(
 			std::vector<std::vector<PeptideIdentification> >&,
 			std::vector<TransformationDescription>&);
@@ -107,8 +111,8 @@ namespace OpenMS
 		/**
 			 @brief Compute the median of a list of values
 			 
-			 @param values input values (will be sorted)
-			 @param sorted are values already sorted? (sorting step can be saved)
+			 @param values Input values (will be sorted)
+			 @param sorted Are values already sorted? (sorting step can be saved)
 			 
 			 @throw Exception::IllegalArgument if the input list is empty
 		*/
@@ -132,8 +136,8 @@ namespace OpenMS
 		/**
 			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs
 
-			 @param peptides input peptide IDs (lists of peptide hits will be sorted)
-			 @param rt_data lists of RT values for diff. peptide sequences (output)
+			 @param peptides Input peptide IDs (lists of peptide hits will be sorted)
+			 @param rt_data Lists of RT values for diff. peptide sequences (output)
 		*/
 		void getRetentionTimes_(std::vector<PeptideIdentification>& peptides,
 														SeqToList& rt_data);
@@ -142,19 +146,27 @@ namespace OpenMS
 			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs annotated to spectra
 
 			 @param experiment Input map for RT data
-			 @param rt_data lists of RT values for diff. peptide sequences (output)
+			 @param rt_data Lists of RT values for diff. peptide sequences (output)
 		*/
 		void getRetentionTimes_(MSExperiment<>& experiment, SeqToList& rt_data);
 
 		/**
-			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs annotated to features
+			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs contained in feature maps or consensus maps
 
-			 Depending on global parameter @p use_unassigned_peptides, unassigned peptide IDs may be used in addition to assigned IDs
+			 The following global flags (mutually exclusive) influence the processing:\n
+			 Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
+			 Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
 
 			 @param features Input features for RT data
-			 @param rt_data lists of RT values for diff. peptide sequences (output)
+			 @param unassigned List of unassigned peptide IDs
+			 @param rt_data Lists of RT values for diff. peptide sequences (output)
 		*/
-		void getRetentionTimes_(FeatureMap<>& features, SeqToList& rt_data);
+		// void getRetentionTimes_(std::vector<BaseFeature*>& features, 
+		// 												std::vector<PeptideIdentification>& unassigned, 
+		// 												SeqToList& rt_data);
+		template <typename MapType> void getRetentionTimes_(MapType& features,
+																												SeqToList& rt_data);
+
 
 		/**
 			 @brief Compute retention time transformations from RT data grouped by peptide sequence
@@ -182,6 +194,24 @@ namespace OpenMS
 			 If a reference file is supplied via the @p reference parameter, extract retention time information and store it in #reference_.
 		*/
 		void getReference_();
+
+		/**
+			 @brief Align feature maps or consensus maps
+
+			 Helper function containing common functionality for alignFeatureMaps and alignConsensusMaps.
+		*/
+		template <typename MapType> void alignFeatureOrConsensusMaps_(
+			std::vector<MapType>& maps, std::vector<TransformationDescription>& 
+			transformations);
+		
+		/**
+			 @brief Transform a feature maps or consensus maps to a list of (pointers to) BaseFeatures.
+
+			 @param features Feature map or consensus map
+			 @param base_features List of pointers to base features (output)
+		*/
+		// template <typename MapType> void getBaseFeatures_(
+		// 	MapType& features, std::vector<BaseFeature*>& base_features);
 
 	 private:
 

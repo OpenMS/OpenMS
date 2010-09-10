@@ -71,56 +71,6 @@ tmp_feature3.setIntensity(400.0f);
 tmp_feature3.setUniqueId(7);
 
 
-START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const))
-	ConsensusFeature c1, c2;
-	c1.setQuality(0.94);
-	c2.setQuality(0.78);
-	ConsensusFeature::QualityLess ql;
-	
-	TEST_EQUAL(ql(c1,c2), 0);
-	TEST_EQUAL(ql(c2,c1), 1);
-END_SECTION
-
-START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( ConsensusFeature const & left, QualityType right ) const))
-	ConsensusFeature c1, c2;
-	c1.setQuality(0.94);
-	c2.setQuality(0.78);
-	
-	ConsensusFeature::QualityType rhs = c1.getQuality();
-	
-	ConsensusFeature::QualityLess ql;
-	
-	TEST_EQUAL(ql(c1,rhs), 0);
-	TEST_EQUAL(ql(c2,rhs), 1);
-END_SECTION
-
-START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( QualityType left, ConsensusFeature const & right ) const))
-	ConsensusFeature c1, c2;
-	c1.setQuality(0.94);
-	c2.setQuality(0.78);
-	
-	ConsensusFeature::QualityType lhs = c2.getQuality();
-	
-	ConsensusFeature::QualityLess ql;
-	
-	TEST_EQUAL(ql(lhs,c2), 0);
-	TEST_EQUAL(ql(lhs,c1), 1);
-END_SECTION
-
-START_SECTION(([ConsensusFeature::QualityLess] bool operator () ( QualityType left, QualityType right ) const))
-	ConsensusFeature c1, c2;
-	c1.setQuality(0.94);
-	c2.setQuality(0.78);
-	
-	ConsensusFeature::QualityType lhs = c1.getQuality();
-	ConsensusFeature::QualityType rhs = c2.getQuality();
-	
-	ConsensusFeature::QualityLess ql;
-	
-	TEST_EQUAL(ql(lhs,rhs), 0);
-	TEST_EQUAL(ql(rhs,lhs), 1);
-END_SECTION
-
 START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const))
 	ConsensusFeature c1(tmp_feature);
 	c1.insert(1, tmp_feature);
@@ -270,9 +220,9 @@ START_SECTION((void insert(UInt64 map_index, const Peak2D &element, UInt64 eleme
 
 END_SECTION
 
-START_SECTION((void insert(UInt64 map_index, const ConsensusFeature &element)))
+START_SECTION((void insert(UInt64 map_index, const BaseFeature &element)))
   ConsensusFeature cf;
-  ConsensusFeature el;
+  BaseFeature el;
   for ( UInt i = 0; i < 3; ++i )
   {
     el.setRT(i*77.7);
@@ -285,13 +235,11 @@ START_SECTION((void insert(UInt64 map_index, const ConsensusFeature &element)))
     TEST_EQUAL(cf.begin()->getMapIndex(),10-i);
     TEST_EQUAL(cf.begin()->getUniqueId(),i+1000);
   }
-
 END_SECTION
 
 
 START_SECTION((ConsensusFeature(const Peak2D &point)))
-
-  ConsensusFeature cons(tmp_feature);
+  ConsensusFeature cons(static_cast<Peak2D>(tmp_feature));
   TEST_REAL_SIMILAR(cons.getRT(),1.0)
   TEST_REAL_SIMILAR(cons.getMZ(),2.0)
   TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
@@ -300,28 +248,53 @@ END_SECTION
 
 START_SECTION((ConsensusFeature(const RichPeak2D &point)))
 
-  ConsensusFeature cons(tmp_feature);
+  ConsensusFeature cons(static_cast<RichPeak2D>(tmp_feature));
   TEST_REAL_SIMILAR(cons.getRT(),1.0)
   TEST_REAL_SIMILAR(cons.getMZ(),2.0)
   TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
   TEST_EQUAL(cons.empty(), true)
 END_SECTION
 
-START_SECTION((ConsensusFeature(const Feature &feature)))
-  Feature f;
+START_SECTION((ConsensusFeature(const BaseFeature &feature)))
+  BaseFeature f;
   f.setCharge(-17);
   f.setRT(44324.6);
   f.setMZ(867.4);
   f.setUniqueId(23);
-  const Feature& f_cref = f;
-  ConsensusFeature cf(99,f_cref);
+  f.getPeptideIdentifications().resize(1);
+  const BaseFeature& f_cref = f;
+  ConsensusFeature cf(f_cref);
 
   TEST_EQUAL(cf.getRT(),44324.6);
   TEST_EQUAL(cf.getMZ(),867.4);
   TEST_EQUAL(cf.getCharge(),-17);
+  TEST_EQUAL(cf.getPeptideIdentifications().size(), 1);
+  TEST_EQUAL(cf.empty(), true);
 END_SECTION
 
-START_SECTION((ConsensusFeature(UInt64 map_index, const Feature &element)))
+START_SECTION((ConsensusFeature(UInt64 map_index, const BaseFeature& element)))
+{
+	BaseFeature f;
+  f.setCharge(-17);
+  f.setRT(44324.6);
+  f.setMZ(867.4);
+	f.setIntensity(1000);
+  f.setUniqueId(23);
+	f.getPeptideIdentifications().resize(1);
+	ConsensusFeature cf(99, f);
+
+  TEST_EQUAL(cf.getRT(),44324.6);
+  TEST_EQUAL(cf.getMZ(),867.4);
+  TEST_EQUAL(cf.getCharge(),-17);
+  TEST_EQUAL(cf.getPeptideIdentifications().size(), 1);
+	ConsensusFeature::HandleSetType::const_iterator it = cf.begin();
+  TEST_EQUAL(it->getMapIndex(), 99)
+  TEST_EQUAL(it->getUniqueId(), 23)
+  TEST_EQUAL(it->getIntensity(), 1000)
+}
+END_SECTION
+
+START_SECTION([EXTRA](ConsensusFeature(UInt64 map_index, const Feature &element)))
  	ConsensusFeature cons(1,tmp_feature);
   cons.setUniqueId(3);
 
@@ -346,7 +319,7 @@ START_SECTION((ConsensusFeature(UInt64 map_index, const Peak2D &element, UInt64 
   TEST_EQUAL(it->getIntensity(),-17);
 END_SECTION
 
-START_SECTION((ConsensusFeature(UInt64 map_index, const ConsensusFeature &element)))
+START_SECTION([EXTRA](ConsensusFeature(UInt64 map_index, const ConsensusFeature &element)))
   ConsensusFeature f;
   f.setUniqueId(23);
   f.setIntensity(-17);
@@ -426,9 +399,9 @@ START_SECTION((void insert(const FeatureHandle &handle)))
   TEST_EQUAL(it==cons.end(), true)
 END_SECTION
 
-START_SECTION((void insert(UInt64 map_index, const Feature &element)))
+START_SECTION((void insert(UInt64 map_index, const BaseFeature &element)))
   ConsensusFeature cons;
-  cons.insert(2,tmp_feature);
+  cons.insert(2, tmp_feature);
 
   ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
   TEST_EQUAL(it->getMapIndex(),2)
@@ -436,46 +409,6 @@ START_SECTION((void insert(UInt64 map_index, const Feature &element)))
   TEST_EQUAL(it->getIntensity(),200)
   ++it;
   TEST_EQUAL(it==cons.end(),true)
-END_SECTION
-
-START_SECTION((QualityType getQuality() const))
-	ConsensusFeature cons;
-	TEST_EQUAL(cons.getQuality(),0.0)
-END_SECTION
-
-START_SECTION((void setQuality(QualityType quality)))
-	ConsensusFeature cons;
-	cons.setQuality(4.5);
-	TEST_REAL_SIMILAR(cons.getQuality(),4.5);
-END_SECTION
-
-START_SECTION((Int getCharge() const))
-  ConsensusFeature const cons;
-  TEST_EQUAL(cons.getCharge(),0);
-END_SECTION
-
-START_SECTION((void setCharge(Int charge)))
-  ConsensusFeature cons;
-  cons.setCharge(-567);
-  TEST_EQUAL(cons.getCharge(),-567);
-END_SECTION
-
-START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
-  ConsensusFeature const cons;
-  TEST_EQUAL(cons.getPeptideIdentifications().size(),0);
-END_SECTION
-
-START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
-  ConsensusFeature cons;
-  cons.getPeptideIdentifications().resize(9);
-  TEST_EQUAL(cons.getPeptideIdentifications().size(),9);
-END_SECTION
-
-START_SECTION((void setPeptideIdentifications(const std::vector< PeptideIdentification > &peptide_identifications)))
-  ConsensusFeature cons;
-  std::vector<PeptideIdentification> pi(99);
-  cons.setPeptideIdentifications(pi);
-  TEST_EQUAL(cons.getPeptideIdentifications().size(),99);
 END_SECTION
 
 
@@ -598,6 +531,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

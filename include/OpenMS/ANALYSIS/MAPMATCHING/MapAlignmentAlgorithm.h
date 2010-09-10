@@ -32,6 +32,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -73,6 +74,13 @@ namespace OpenMS
 		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
 
 		/**
+		@brief Aligns consensus maps
+
+		@exception Exception::NotImplemented is thrown if an algorithm cannot align consensus maps
+		*/
+		virtual void alignConsensusMaps(std::vector<ConsensusMap>&, std::vector<TransformationDescription>&);
+
+		/**
 		@brief Aligns peptide identifications
 
 		@exception Exception::NotImplemented is thrown if an algorithm cannot align peptide identifications
@@ -95,6 +103,9 @@ namespace OpenMS
     /// Applies the <i>given</i> transformations to feature maps
     static void transformFeatureMaps( std::vector< FeatureMap<> >& maps, const std::vector<TransformationDescription>& given_trafos );
 
+    /// Applies the <i>given</i> transformations to consensus maps
+    static void transformConsensusMaps( std::vector<ConsensusMap>& maps, const std::vector<TransformationDescription>& given_trafos );
+
     /// Applies the <i>given</i> transformations to peptide identifications
     static void transformPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >& maps, const std::vector<TransformationDescription>& given_trafos );
 
@@ -104,6 +115,9 @@ namespace OpenMS
 
     /// Applies the <i>given</i> transformations to a single feature map
     static void transformSingleFeatureMap( FeatureMap<>& fmap, const TransformationDescription& trafo );
+
+    /// Applies the <i>given</i> transformations to a single consensus map
+    static void transformSingleConsensusMap( ConsensusMap& cmap, const TransformationDescription& trafo );
 
     /// Applies the <i>given</i> transformations to a single peptide identification
     static void transformSinglePeptideIdentification( std::vector< PeptideIdentification >& pepids, const TransformationDescription& trafo );
@@ -115,9 +129,17 @@ namespace OpenMS
 
    protected:
 
-		/// for internal use only!
-    static void applyToFeature_( const std::vector<Feature>::iterator &iter,
-                                 const TransformationDescription& trafo );
+		/// apply a transformation to a feature
+    static void applyToFeature_(Feature& feature,
+																const TransformationDescription& trafo);
+
+		/// apply a transformation to a basic feature
+    static void applyToBaseFeature_(BaseFeature& feature,
+																		const TransformationDescription& trafo);
+
+		/// apply a transformation to a consensus feature
+    static void applyToConsensusFeature_(ConsensusFeature& feature, const 
+																				 TransformationDescription& trafo);
 
 	 private:
 		/// Copy constructor is not implemented -> private

@@ -71,6 +71,11 @@ namespace OpenMS
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}
 
+	void MapAlignmentAlgorithm::alignConsensusMaps(std::vector<ConsensusMap>&, std::vector<TransformationDescription>&)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
+	}
+
 	void MapAlignmentAlgorithm::alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
@@ -154,7 +159,7 @@ namespace OpenMS
      trafo.init_();
      for ( std::vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end(); ++fmit )
      {
-       applyToFeature_(fmit, trafo);
+       applyToFeature_(*fmit, trafo);
      }
 		 
 		 // adapt RT values of unassigned peptides:
@@ -167,22 +172,17 @@ namespace OpenMS
      return;
    }
 
-
-   void MapAlignmentAlgorithm::applyToFeature_( const std::vector<Feature>::iterator &iter, const TransformationDescription& trafo )
+   void MapAlignmentAlgorithm::applyToFeature_(
+		 Feature& feature, const TransformationDescription& trafo)
    {
      // V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::applyToFeature_()");
 
-     // transform feature position
-     DoubleReal rt = iter->getRT();
-     (*trafo.trafo_)(rt);
-     iter->setRT(rt);
+		 applyToBaseFeature_(feature, trafo);
 
      // loop over all convex hulls
-     std::vector<ConvexHull2D> & convex_hulls = iter->getConvexHulls();
+     std::vector<ConvexHull2D> & convex_hulls = feature.getConvexHulls();
      for ( std::vector<ConvexHull2D>::iterator chiter = convex_hulls.begin();
-           chiter!= convex_hulls.end();
-           ++chiter
-         )
+           chiter!= convex_hulls.end(); ++chiter )
      {
        // transform all hull point positions within convex hull
        ConvexHull2D::PointArrayType points = chiter->getHullPoints();
@@ -199,24 +199,94 @@ namespace OpenMS
 			 chiter->setHullPoints(points);
      }
 
-		 // adapt RT values of annotated peptides:
-		 if (!iter->getPeptideIdentifications().empty())
-		 {
-			 transformSinglePeptideIdentification(iter->getPeptideIdentifications(),
-																						trafo);
-		 }
-		 
      // recurse into subordinates
-     for ( std::vector<Feature>::iterator subiter = iter->getSubordinates().begin();
-           subiter != iter->getSubordinates().end();
-           ++subiter )
+     for (std::vector<Feature>::iterator subiter = feature.getSubordinates().begin(); subiter != feature.getSubordinates().end(); ++subiter )
      {
-       applyToFeature_(subiter,trafo);
+       applyToFeature_(*subiter,trafo);
      }
 
      return;
    }
 
+
+  void MapAlignmentAlgorithm::transformConsensusMaps(
+		std::vector<ConsensusMap>& maps, 
+		const std::vector<TransformationDescription>& given_trafos)
+   {
+     V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformConsensusMaps()");
+
+     if ( given_trafos.size() != maps.size() )
+     {
+       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MapAlignmentAlgorithm expects one given transformation (got: ") + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal");
+     }
+
+     for (UInt index = 0; index < maps.size(); ++index)
+     {
+       ConsensusMap & cm = maps[index];
+       const TransformationDescription& td = given_trafos[index];
+       transformSingleConsensusMap(cm, td);
+     }
+
+     return;
+   }
+
+	void MapAlignmentAlgorithm::transformSingleConsensusMap(
+		ConsensusMap& cmap, const TransformationDescription& trafo)
+	{
+		trafo.init_();
+		for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end(); 
+				 ++cmit)
+		{
+			applyToConsensusFeature_(*cmit, trafo);
+		}
+		
+		// adapt RT values of unassigned peptides:
+		if (!cmap.getUnassignedPeptideIdentifications().empty())
+		{
+			transformSinglePeptideIdentification(
+				cmap.getUnassignedPeptideIdentifications(), trafo);
+		}
+		
+		return;
+	}
+
+
+	void MapAlignmentAlgorithm::applyToBaseFeature_(
+		BaseFeature& feature, const TransformationDescription& trafo)
+	{
+		// transform feature position:
+		DoubleReal rt = feature.getRT();
+		(*trafo.trafo_)(rt);
+		feature.setRT(rt);
+
+		// adapt RT values of annotated peptides:
+		if (!feature.getPeptideIdentifications().empty())
+		{
+			transformSinglePeptideIdentification(feature.getPeptideIdentifications(),
+																					 trafo);
+		}
+	}
+
+
+	void MapAlignmentAlgorithm::applyToConsensusFeature_(
+		ConsensusFeature& feature, const TransformationDescription& trafo )
+	{
+		// V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::applyToFeature_()");
+
+		applyToBaseFeature_(feature, trafo);
+		
+		// apply to grouped features (feature handles):
+		for (ConsensusFeature::HandleSetType::iterator it = 
+					 feature.getFeatures().begin(); it != feature.getFeatures().end();
+				 ++it)
+		{
+			DoubleReal rt = it->getRT();
+			(*trafo.trafo_)(rt);
+			it->asMutable().setRT(rt);
+		}
+
+		return;
+	}
 
 
    void MapAlignmentAlgorithm::transformPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >& maps,

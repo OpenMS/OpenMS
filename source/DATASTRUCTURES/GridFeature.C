@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,23 +21,41 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Steffen Sass $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/DATASTRUCTURES/GridFeature.h>
 
 namespace OpenMS
 {
-  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
-  {
-    os  << "---------- FeatureHandle -----------------\n"
-		    << "RT: " << cons.getRT()<< std::endl
-		    << "m/z: " << cons.getMZ()<< std::endl
-		    << "Intensity: " << cons.getIntensity() << std::endl
-		    << "Map Index: " << cons.getMapIndex() << std::endl
-		    << "Element Id: " << cons.getUniqueId() << std::endl;
-    return os;
-  }
-} 
+
+GridFeature::GridFeature(const std::vector<std::vector<BaseFeature> >& input_maps,Size map_index,Size feature_index) : GridElement(input_maps[map_index][feature_index].getRT(),input_maps[map_index][feature_index].getMZ()),map_index_(map_index),feature_index_(feature_index), input_maps_(input_maps) {
+	// TODO Auto-generated constructor stub
+
+}
+
+GridFeature::~GridFeature() {
+	// TODO Auto-generated destructor stub
+}
+
+BaseFeature GridFeature::getFeature() const
+{
+	return input_maps_[map_index_][feature_index_];
+}
+
+Size GridFeature::getMapIndex()
+{
+	return map_index_;
+}
+Size GridFeature::getFeatureIndex()
+{
+	return feature_index_;
+}
+
+Int GridFeature::getID()
+{
+	return feature_index_;
+}
+
+}

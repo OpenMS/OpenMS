@@ -45,7 +45,8 @@ using namespace std;
 	@page TOPP_FileConverter FileConverter
 
 	@brief Converts between different MS file formats.
-<CENTER>
+
+	<CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
@@ -60,15 +61,17 @@ using namespace std;
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzXML) </td>
 		</tr>
 	</table>
-</CENTER>
+	</CENTER>
 
-	Convert between MS file formats. This tool can used to convert a dataset, so it can be used as input to other TOPP tools
-	, as these usually only support mzML (for traceability).
-	The input and output file type are determined from the file extension, or from the first few lines
-	of the file. If file type determination is not possible, you have to give the input or output file type explicitly.
+  The main use of this tool is to convert data from external sources to the formats used by OpenMS/TOPP. Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML, the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and supports traceability of analysis steps.)
 
-	During some conversion operations information is lost, e.g. when converting featureXML to mzData.
-	In these cases a warning is shown.
+	Many different format conversions are supported, and some may be more useful than others. Depending on the file formats involved, information can be lost during conversion, e.g. when converting	featureXML to mzData. In such cases a warning is shown.
+
+	The input and output file types are determined from	the file extensions or from the first few lines of the files. If file type determination is not possible, the input or output file type has to be given explicitly.
+
+	Conversion with the same output as input format is supported. In some cases, this can be helpful to remove errors from files, to update file formats to new versions, or to check whether information is lost upon reading or writing.
+
+	See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileConverter.cli
@@ -104,10 +107,11 @@ class TOPPFileConverter
 		setValidStrings_("in_type",StringList::create(formats));
 #endif
 
+		formats = "mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML";
 		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
+		setValidFormats_("out",StringList::create(formats));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("out_type",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
+		setValidStrings_("out_type",StringList::create(formats));
 	}
 
 	ExitCodes main_(int , const char**)
@@ -175,7 +179,8 @@ class TOPPFileConverter
 		{
 			ConsensusXMLFile().load(in,cm);
 			cm.sortByPosition();
-      if ( out_type != FileTypes::FEATUREXML )
+      if ((out_type != FileTypes::FEATUREXML) && 
+					(out_type != FileTypes::CONSENSUSXML))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
@@ -190,7 +195,8 @@ class TOPPFileConverter
 		{
 			fh.loadFeatures(in,fm,in_type);
       fm.sortByPosition();
-		  if ( out_type != FileTypes::FEATUREXML )
+		  if ((out_type != FileTypes::FEATUREXML) && 
+					(out_type != FileTypes::CONSENSUSXML))
 		  {
 	      // You will lose information and waste memory. Enough reasons to issue a warning!
 		    writeLog_("Warning: Converting features to peaks. You will lose information!");
@@ -207,104 +213,98 @@ class TOPPFileConverter
 		//-------------------------------------------------------------
 
 		writeDebug_(String("Writing output file"), 1);
+
 		if (out_type == FileTypes::MZML)
 		{
 			//add data processing entry
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+																								 CONVERSION_MZML));
 			MzMLFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertSpectraToChromatograms(exp, true);
 			f.store(out,exp);
 		}
+
 		else if (out_type == FileTypes::MZDATA)
 		{
 			//annotate output with data processing info
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZDATA));
-
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+																								 CONVERSION_MZDATA));
 			MzDataFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
 			f.store(out,exp);
 		}
+
 		else if (out_type == FileTypes::MZXML)
 		{
 			//annotate output with data processing info
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZXML));
-
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+																								 CONVERSION_MZXML));
 			MzXMLFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
 			f.store(out,exp);
 		}
+
 		else if (out_type == FileTypes::DTA2D)
 		{
 			//add data processing entry
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+																								 FORMAT_CONVERSION));
 			DTA2DFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
 			f.store(out,exp);
 		}
+
 		else if (out_type == FileTypes::MGF)
 		{
 			//add data processing entry
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+																								 FORMAT_CONVERSION));
 			MascotGenericFile f;
 			Param p(f.getParameters());
 			p.setValue("peaklists_only", "true");
 			f.setParameters(p);
 			f.store(out, exp);
 		}
+
 		else if (out_type == FileTypes::FEATUREXML)
 		{
-		  if ( in_type == FileTypes::FEATUREXML ||
-           in_type == FileTypes::TSV ||
-           in_type == FileTypes::PEPLIST ||
-           in_type == FileTypes::KROENIK ||
-           in_type == FileTypes::EDTA)
+		  if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
+					(in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK) ||
+					(in_type == FileTypes::EDTA))
 		  {
 		    fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-		    //add data processing entry
-        addDataProcessing_(fm, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-
-	      FeatureXMLFile().store(out,fm);
 		  }
-		  else if ( in_type == FileTypes::CONSENSUSXML )
+		  else if (in_type == FileTypes::CONSENSUSXML)
 		  {
-		    fm.resize(cm.size());
-		    // fm.MetaInfoInterface::operator=(cm); // not available ...
-		    fm.DocumentIdentifier::operator=(cm);
-		    fm.UniqueIdInterface::operator=(cm);
-		    fm.setProteinIdentifications(cm.getProteinIdentifications());
-        fm.setUnassignedPeptideIdentifications(cm.getUnassignedPeptideIdentifications());
-		    for ( Size i = 0; i < cm.size(); ++i )
-		    {
-		      Feature & f = fm[i];
-		      const ConsensusFeature & c = cm[i];
-		      f.RichPeak2D::operator=(c);
-		      f.setCharge(c.getCharge());
-		      f.setOverallQuality(c.getQuality());
-		      f.setPeptideIdentifications(c.getPeptideIdentifications());
-		    }
+				fm.resize(cm.size());
+				// fm.MetaInfoInterface::operator=(cm); // not available ...
+				fm.DocumentIdentifier::operator=(cm);
+				fm.UniqueIdInterface::operator=(cm);
+				fm.setProteinIdentifications(cm.getProteinIdentifications());
+				fm.setUnassignedPeptideIdentifications(cm.getUnassignedPeptideIdentifications());
+				for ( Size i = 0; i < cm.size(); ++i )
+				{
+					Feature & f = fm[i];
+					const ConsensusFeature & c = cm[i];
+					f.RichPeak2D::operator=(c);
+					f.setCharge(c.getCharge());
+					f.setOverallQuality(c.getQuality());
+					f.setPeptideIdentifications(c.getPeptideIdentifications());
+				}
 
-		    // TODO Discuss this: Arguably we do NOT want to assign new unique ids?
-		    // fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-        //add data processing entry
-        addDataProcessing_(fm, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-
-		    FeatureXMLFile().store(out,fm);
+				// TODO Discuss: Arguably we do NOT want to assign new unique ids?
+				// fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 		  }
-		  else // not loaded as featureMap or consensusMap
+		  else // not loaded as feature map or consensus map
 		  {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
         writeLog_("Warning: Converting peaks to features will lead to incomplete features!");
-        FeatureMapType feature_map;
-        feature_map.reserve(exp.getSize());
+				fm.clear();
+        fm.reserve(exp.getSize());
         typedef FeatureMapType::FeatureType FeatureType;
         FeatureType feature;
         feature.setQuality(0,1); // override default
@@ -324,17 +324,37 @@ class TOPPFileConverter
             feature.setMZ(peak1_iter->getMZ());
             feature.setIntensity(peak1_iter->getIntensity());
             feature.setUniqueId();
-            feature_map.push_back(feature);
+            fm.push_back(feature);
           }
         }
-        feature_map.updateRanges();
-
-        //add data processing entry
-        addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
-
-        FeatureXMLFile().store(out,feature_map);
+        fm.updateRanges();
 		  }
+			
+			addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
+																								FORMAT_CONVERSION));
+			FeatureXMLFile().store(out, fm);
 		}
+
+		else if (out_type == FileTypes::CONSENSUSXML)
+		{
+		  if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
+					(in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK) ||
+					(in_type == FileTypes::EDTA))
+		  {
+		    fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+				ConsensusMap::convert(0, fm, cm);
+		  }
+			// nothing to do for consensusXML input
+		  else // experimental data
+		  {
+				ConsensusMap::convert(0, exp, cm, exp.size());
+			}
+
+			addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
+																								FORMAT_CONVERSION));
+			ConsensusXMLFile().store(out, cm);
+		}
+
 		else
 		{
 			writeLog_("Unknown output file type given. Aborting!");

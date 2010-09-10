@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,23 +21,63 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Steffen Sass $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
+
+#ifndef OPENMS_DATASTRUCTURES_GRIDELEMENT_H
+#define OPENMS_DATASTRUCTURES_GRIDELEMENT_H
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 
 namespace OpenMS
 {
-  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
-  {
-    os  << "---------- FeatureHandle -----------------\n"
-		    << "RT: " << cons.getRT()<< std::endl
-		    << "m/z: " << cons.getMZ()<< std::endl
-		    << "Intensity: " << cons.getIntensity() << std::endl
-		    << "Map Index: " << cons.getMapIndex() << std::endl
-		    << "Element Id: " << cons.getUniqueId() << std::endl;
-    return os;
-  }
-} 
+
+/**
+		@brief Base class of all elements, which can be stored in a HashGrid.
+
+		All GridElements must have an m/z and RT value, as well as an unique identifier.
+		@see HashGrid
+		@ingroup Datastructures
+	*/
+
+class OPENMS_DLLAPI GridElement {
+public :
+/**
+		@brief default constructor
+	*/
+GridElement();
+/** @brief copy constructor
+
+			@param source  this GridElement will be copied
+		*/
+	GridElement(const GridElement& copy);
+/**
+		@brief m/z value of the element
+	*/
+	DoubleReal mz;
+/**
+		@brief RT value of the element
+	*/
+	DoubleReal rt;
+
+	/**
+	 * @brief detailed constructor
+	 * @param rt RT value of the element
+	 * @param mz m/z value of the element
+	 */
+	GridElement(DoubleReal rt_, DoubleReal mz_);
+/**
+		@brief gets the id of the element
+	*/
+
+	virtual Int getID() =0;
+
+};
+}
+
+
+
+#endif /* GRIDELEMENT_H_ */

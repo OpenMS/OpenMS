@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -35,78 +34,30 @@
 namespace OpenMS
 {
 	ConsensusFeature::ConsensusFeature()
-		: RichPeak2D(),
-			HandleSetType(),
-			quality_(0.0),
-			charge_(0),
-			peptide_identifications_()
+		: BaseFeature(), HandleSetType()
 	{
 	}
 
 	ConsensusFeature::ConsensusFeature(const ConsensusFeature& rhs)
-		: RichPeak2D(rhs),
-			HandleSetType(rhs),
-			quality_(rhs.quality_),
-			charge_(rhs.charge_),
-			peptide_identifications_(rhs.peptide_identifications_)
+		: BaseFeature(rhs), HandleSetType(rhs)
 	{
 	}
 
-	ConsensusFeature::ConsensusFeature(const RichPeak2D& point)
-		: RichPeak2D(point),
-			HandleSetType(),
-			quality_(0.0),
-			charge_(0),
-			peptide_identifications_()
-	{
-	}
-
-	ConsensusFeature::ConsensusFeature(const Peak2D& point)
-		: RichPeak2D(point),
-			HandleSetType(),
-			quality_(0.0),
-			charge_(0),
-			peptide_identifications_()
-	{
-	}
-
-	ConsensusFeature::ConsensusFeature(const Feature& feature)
-		: RichPeak2D(feature),
-			HandleSetType(),
-			quality_(0.0),
-			charge_(0),
-			peptide_identifications_(feature.getPeptideIdentifications())
+	ConsensusFeature::ConsensusFeature(const BaseFeature& feature)
+		: BaseFeature(feature), HandleSetType()
 	{
 	}
 
 	ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D& element, UInt64 element_index)
-		: RichPeak2D(element),
-			HandleSetType(),
-			quality_(0.0),
-			charge_(0),
-			peptide_identifications_()
+		: BaseFeature(element), HandleSetType()
 	{
-		insert(map_index,element,element_index);
+		insert(map_index, element, element_index);
 	}
 
-	ConsensusFeature::ConsensusFeature(UInt64 map_index, const Feature& element)
-		: RichPeak2D(element),
-			HandleSetType(),
-			quality_(element.getOverallQuality()),
-			charge_(element.getCharge()),
-			peptide_identifications_()
+	ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature& element)
+		: BaseFeature(element), HandleSetType()
 	{
-		insert(map_index,element);
-	}
-
-	ConsensusFeature::ConsensusFeature(UInt64 map_index, const ConsensusFeature& element)
-		: RichPeak2D(element),
-			HandleSetType(),
-			quality_(element.getQuality()),
-			charge_(element.getCharge()),
-			peptide_identifications_()
-	{
-		insert(map_index,element);
+		insert(FeatureHandle(map_index,element));
 	}
 
 	ConsensusFeature& ConsensusFeature::operator=(const ConsensusFeature& rhs)
@@ -114,10 +65,7 @@ namespace OpenMS
 		if (&rhs==this) return *this;
 
 		HandleSetType::operator=(rhs);
-		RichPeak2D::operator=(rhs);
-		quality_ = rhs.quality_;
-		charge_ = rhs.charge_;
-		peptide_identifications_ =  rhs.peptide_identifications_;
+		BaseFeature::operator=(rhs);
 
 		return *this;
 	}
@@ -148,16 +96,10 @@ namespace OpenMS
 		insert(FeatureHandle(map_index,element,element_index));
 	}
 
-	void ConsensusFeature::insert(UInt64 map_index, const Feature& element)
+	void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
 	{
 		insert(FeatureHandle(map_index,element));
-		peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
-	}
-
-	void ConsensusFeature::insert(UInt64 map_index, const ConsensusFeature& element)
-	{
-		insert(FeatureHandle(map_index,element));
-		peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
+		peptides_.insert(peptides_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
 	}
 
 	const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
@@ -165,26 +107,6 @@ namespace OpenMS
 		return *this;
 	}
 
-	ConsensusFeature::QualityType ConsensusFeature::getQuality() const
-	{
-		return quality_;
-	}
-
-	void ConsensusFeature::setQuality(ConsensusFeature::QualityType quality)
-	{
-		quality_ = quality;
-	}
-	
-	void ConsensusFeature::setCharge(Int charge)
-	{
-		charge_ = charge;
-	}
-	
-	Int ConsensusFeature::getCharge() const
-	{
-		return charge_;
-	}
-	
 	DRange<2> ConsensusFeature::getPositionRange() const
 	{
 		DPosition<2> min = DPosition<2>::maxPositive();
@@ -343,21 +265,6 @@ namespace OpenMS
     setCharge(0);
     return;
   }  
-
-	const std::vector<PeptideIdentification>& ConsensusFeature::getPeptideIdentifications() const
-	{
-		return peptide_identifications_;
-	}
-
-	std::vector<PeptideIdentification>& ConsensusFeature::getPeptideIdentifications()
-	{
-		return peptide_identifications_;
-	}
-
-	void ConsensusFeature::setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_identifications )
-	{
-		peptide_identifications_ = peptide_identifications;
-	}
 
   std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons)
   {

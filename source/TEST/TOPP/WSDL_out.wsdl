@@ -30,22 +30,22 @@
                 <xs:documentation>Tolerance in RT dimension</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="feature_rt" type="xs:double" default="0">
+            <xs:element name="feature_rt" type="xs:double" default="nan">
               <xs:annotation>
                 <xs:documentation>RT position of the feature</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="feature_mz" type="xs:double" default="0">
+            <xs:element name="feature_mz" type="xs:double" default="nan">
               <xs:annotation>
                 <xs:documentation>m/z position of the feature</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="standard_rt" type="xs:double" default="0">
+            <xs:element name="standard_rt" type="xs:double" default="nan">
               <xs:annotation>
                 <xs:documentation>RT position of the standard</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="standard_mz" type="xs:double" default="0">
+            <xs:element name="standard_mz" type="xs:double" default="nan">
               <xs:annotation>
                 <xs:documentation>m/z position of the standard</xs:documentation>
               </xs:annotation>
@@ -104,7 +104,7 @@
             </xs:element>
             <xs:element name="test" default="false">
               <xs:annotation>
-                <xs:documentation>Enables the test mode (needed for software testing only)</xs:documentation>
+                <xs:documentation>Enables the test mode (needed for internal use only)</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">

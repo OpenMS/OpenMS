@@ -37,7 +37,7 @@ namespace OpenMS
 
 	/**
 		@brief Base class for all feature grouping algorithms
-		
+
 		These algorithms group corresponding features in one map or across maps.
 	*/
 	class OPENMS_DLLAPI FeatureGroupingAlgorithm
@@ -50,18 +50,21 @@ namespace OpenMS
 			/// Destructor
 			virtual ~FeatureGroupingAlgorithm();
 
-			///Applies the algorithm. The feature in the input @p maps are grouped and the output is written to the consensus map @p out
+			///Applies the algorithm. The features in the input @p maps are grouped and the output is written to the consensus map @p out
 			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)=0;
+
+			///Applies the algorithm. The consensus features in the input @p maps are grouped and the output is written to the consensus map @p out
+			virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out);
 
 			/// Register all derived classes in this method
 			static void registerChildren();
-		
+
 		private:
 			///Copy constructor is not implemented -> private
 			FeatureGroupingAlgorithm(const FeatureGroupingAlgorithm& );
 			///Assignment operator is not implemented -> private
 			FeatureGroupingAlgorithm& operator=(const FeatureGroupingAlgorithm& );
-			
+
 	};
 
 } // namespace OpenMS

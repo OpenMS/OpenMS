@@ -76,12 +76,16 @@ namespace OpenMS
       virtual ~FeatureDeconvolution();
       //@}    
 
-      /// compute a zero-charge feature map from a set of charged features (@p map)
-			/// i.e. find putative ChargePairs, then score them and hand over to ILP
-			/// @param fm_in  Input feature-map
-			/// @param fm_out Output feature-map (sorted by position and augmented with user params)
-			/// @param cons_map   [out] Output of grouped features belonging to a charge group
-			/// @param cons_map_p [out] Output of paired features connected by an egde
+      /**
+				 @brief Compute a zero-charge feature map from a set of charged features
+				 
+				 Find putative ChargePairs, then score them and hand over to ILP.
+
+				 @param fm_in  Input feature-map
+				 @param fm_out Output feature-map (sorted by position and augmented with user params)
+				 @param cons_map   [out] Output of grouped features belonging to a charge group
+				 @param cons_map_p [out] Output of paired features connected by an egde
+			*/
       void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, ConsensusMap &cons_map, ConsensusMap &cons_map_p);
 
     protected:

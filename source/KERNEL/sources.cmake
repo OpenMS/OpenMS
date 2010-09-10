@@ -4,6 +4,7 @@ set(directory source/KERNEL)
 ### list all filenames of the directory here
 set(sources_list
 AreaIterator.C
+BaseFeature.C
 ConsensusFeature.C
 ConsensusMap.C
 DPeak.C

@@ -73,17 +73,14 @@ namespace OpenMS
       setUniqueId(element_index);
 		}
 
-		/// Constructor from map index and Feature
-		FeatureHandle(UInt64 map_index, const Feature& point)
+		/// Constructor from map index and basic feature
+		FeatureHandle(UInt64 map_index, const BaseFeature& point)
 			: Peak2D(point),
 			  UniqueIdInterface(point),
 				map_index_(map_index),
 				charge_(point.getCharge())
 		{
 		}
-
-		/// Constructor from map index and ConsensusFeature
-		FeatureHandle(UInt64 map_index, const ConsensusFeature& point);
 
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)

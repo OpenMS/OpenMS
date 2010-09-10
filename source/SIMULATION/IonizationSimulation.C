@@ -107,7 +107,7 @@ namespace OpenMS {
 		}
 
 		ConsensusMap::FileDescription map_description;
-		map_description.label = "Simulation";
+    map_description.label = "Simulation (Charge Consensus)";
 		map_description.size = features.size();
 		charge_consensus.getFileDescriptions()[0] = map_description;
   }

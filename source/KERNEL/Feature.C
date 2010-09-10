@@ -37,12 +37,10 @@ namespace OpenMS
 	//@{
 	/// Default constructor
 	Feature::Feature()
-		: RichPeak2D(),
-			overall_quality_(),
+		: BaseFeature(),
 			convex_hulls_(),
 			convex_hulls_modified_(true),
 			convex_hull_(),
-			charge_( 0 ),
 			subordinates_()
 	{
 		std::fill( qualities_, qualities_ + 2, 0 );
@@ -50,14 +48,11 @@ namespace OpenMS
 
 	/// Copy constructor
 	Feature::Feature( const Feature& feature )
-		: RichPeak2D( feature ),
-			overall_quality_( feature.overall_quality_ ),
+		: BaseFeature( feature ),
 			model_desc_( feature.model_desc_ ),
 			convex_hulls_( feature.convex_hulls_ ),
 			convex_hulls_modified_(feature.convex_hulls_modified_),
 			convex_hull_( feature.convex_hull_ ),
-			charge_( feature.charge_ ),
-			identifications_( feature.identifications_ ),
 			subordinates_( feature.subordinates_ )
 	{
 		std::copy( feature.qualities_, feature.qualities_ + 2, qualities_ );
@@ -74,24 +69,24 @@ namespace OpenMS
 	/// Non-mutable access to the overall quality
 	Feature::QualityType Feature::getOverallQuality() const
 	{
-		return overall_quality_;
+		return quality_;
 	}
 	/// Set the overall quality
 	void Feature::setOverallQuality( Feature::QualityType q )
 	{
-		overall_quality_ = q;
+		quality_ = q;
 	}
 
 	/// Non-mutable access to the quality in dimension c
 	Feature::QualityType Feature::getQuality( Size index ) const
 	{
-		OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(Size): index overflow!" );
+		OPENMS_PRECONDITION( index < 2, "Feature<2>::getQuality(Size): index overflow!" );
 		return qualities_[ index ];
 	}
 	/// Set the quality in dimension c
 	void Feature::setQuality( Size index, Feature::QualityType q )
 	{
-		OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(Size): index overflow!" );
+		OPENMS_PRECONDITION( index < 2, "Feature<2>::setQuality(Size): index overflow!" );
 		qualities_[ index ] = q;
 	}
 
@@ -111,17 +106,6 @@ namespace OpenMS
 		model_desc_ = q;
 	}
 	//@}
-
-	/// Non-mutable access to charge state
-	const Feature::ChargeType& Feature::getCharge() const
-	{
-		return charge_;
-	}
-	/// Set charge state
-	void Feature::setCharge( const Feature::ChargeType& ch )
-	{
-		charge_ = ch;
-	}
 
 	///@name Convex hulls and bounding box
 	//@{
@@ -209,15 +193,12 @@ namespace OpenMS
 	{
 		if (this==&rhs) return *this;
 		
-		RichPeak2D::operator=(rhs);
-		overall_quality_  			= rhs.overall_quality_;
+		BaseFeature::operator=(rhs);
 		copy(rhs.qualities_,rhs.qualities_+2,qualities_);
 		model_desc_							= rhs.model_desc_;
 		convex_hulls_						= rhs.convex_hulls_;
 		convex_hulls_modified_	= rhs.convex_hulls_modified_;
 		convex_hull_      			= rhs.convex_hull_;
-		charge_       					= rhs.charge_;
-		identifications_				= rhs.identifications_;
 		subordinates_						= rhs.subordinates_;
 		
 		return *this;
@@ -225,34 +206,13 @@ namespace OpenMS
 
 	bool Feature::operator == (const Feature& rhs) const
 	{
-		return (RichPeak2D::operator == (rhs) 
-						&& (overall_quality_   == rhs.overall_quality_)
-						&& (charge_ == rhs.charge_)
+		return (BaseFeature::operator == (rhs) 
 						&& equal(qualities_, qualities_+2, rhs.qualities_)
 						&& (model_desc_ == rhs.model_desc_)
 						&& (convex_hulls_ == rhs.convex_hulls_)
-						&& (subordinates_  == rhs.subordinates_))
-            ;
+						&& (subordinates_  == rhs.subordinates_));
 	}
 
-
-	/// returns a const reference to the PeptideIdentification vector
-	const std::vector<PeptideIdentification>& Feature::getPeptideIdentifications() const
-	{
-		return identifications_;
-	}
-  
-	/// returns a mutable reference to the PeptideIdentification vector
-	std::vector<PeptideIdentification>& Feature::getPeptideIdentifications()
-	{
-		return identifications_;
-	}
-
-	/// sets the PeptideIdentification vector
-	void Feature::setPeptideIdentifications( const std::vector<PeptideIdentification>& identifications )
-	{
-		identifications_ = identifications;
-	}
 
 	/// immutable access to subordinate features
 	const std::vector<Feature>& Feature::getSubordinates() const

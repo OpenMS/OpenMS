@@ -29,7 +29,7 @@
 #define OPENMS_KERNEL_CONSENSUSFEATURE_H
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/KERNEL/RichPeak2D.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -37,8 +37,6 @@
 
 namespace OpenMS
 {
-	class PeptideIdentification;
-
 	/**
 		@brief A 2-dimensional consensus feature.
 
@@ -52,37 +50,14 @@ namespace OpenMS
 		@ingroup Kernel
 	*/
 	class OPENMS_DLLAPI ConsensusFeature
-		: public RichPeak2D,
+		: public BaseFeature,
 			public std::set<FeatureHandle, FeatureHandle::IndexLess>
 	{
 	 public:
 		///Type definitions
 		//@{
-		typedef DoubleReal QualityType;
 		typedef std::set<FeatureHandle, FeatureHandle::IndexLess> HandleSetType;
 		//@}
-
-		/// Compare by getQuality()
-		struct QualityLess
-			: std::binary_function < ConsensusFeature, ConsensusFeature, bool >
-		{
-			inline bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const
-			{
-				return ( left.getQuality() < right.getQuality() );
-			}
-			inline bool operator () ( ConsensusFeature const & left, QualityType const & right ) const
-			{
-				return ( left.getQuality() < right );
-			}
-			inline bool operator () ( QualityType const & left, ConsensusFeature const & right ) const
-			{
-				return ( left< right.getQuality() );
-			}
-			inline bool operator () ( QualityType const & left, QualityType const & right ) const
-			{
-				return ( left < right );
-			}
-		};
 
 		/// Compare by size(), the number of consensus elements
 		struct SizeLess
@@ -125,37 +100,23 @@ namespace OpenMS
 		/// Copy constructor
 		ConsensusFeature(const ConsensusFeature& rhs);
 
-		/// Constructor from raw data point
-		ConsensusFeature(const RichPeak2D& point);
-
-		///Constructor from Peak2D
-		ConsensusFeature(const Peak2D& point);
-
-		///Constructor from Feature
-		ConsensusFeature(const Feature& feature);
+		/// Constructor from basic feature
+		ConsensusFeature(const BaseFeature& feature);
 
 		/**
 			@brief Constructor with map and element index for a singleton consensus
-			feature. Sets the consensus feature position and intensity to the values
-			of @p element as well.
+			feature.
+
+			Sets the consensus feature position and intensity to the values of @p element as well.
 		*/
 		ConsensusFeature(UInt64 map_index, const Peak2D& element, UInt64 element_index);
 
-
 		/**
-			@brief Constructor with map index for a singleton consensus
-			feature. Sets the consensus feature position, intensity, charge and quality to the values
-			of @p element as well.
-		*/
-		ConsensusFeature(UInt64 map_index, const Feature& element);
+			@brief Constructor with map index for a singleton consensus	feature.
 
-		/**
-			@brief Constructor with map index for a singleton consensus
-			feature. Sets the consensus feature position, intensity, charge and quality to the values
-			of @p element as well.
+			Sets the consensus feature position, intensity, charge, quality, and peptide identifications to the values of @p element as well.
 		*/
-		ConsensusFeature(UInt64 map_index, const ConsensusFeature& element);
-
+		ConsensusFeature(UInt64 map_index, const BaseFeature& element);
 
 		/// Assignment operator
 		ConsensusFeature& operator=(const ConsensusFeature& rhs);
@@ -189,14 +150,7 @@ namespace OpenMS
 
 			@exception Exception::InvalidValue is thrown if a handle with the same map index and unique id already exists.
 		*/
-		void insert(UInt64 map_index, const Feature& element);
-
-		/**
-			@brief Creates a FeatureHandle and adds it
-
-			@exception Exception::InvalidValue is thrown if a handle with the same map index and unique id already exists.
-		*/
-		void insert(UInt64 map_index, const ConsensusFeature& element);
+		void insert(UInt64 map_index, const BaseFeature& element);
 
 		/// Non-mutable access to the contained feature handles
 		const HandleSetType& getFeatures() const;
@@ -204,16 +158,6 @@ namespace OpenMS
 
 		///@name Accessors
 		//@{
-		/// Returns the quality
-		QualityType getQuality() const;
-		/// Sets the quality
-		void setQuality(QualityType quality);
-
-		/// Sets the charge
-		void setCharge(Int charge);
-		/// Returns the charge
-		Int getCharge() const;
-
 		/// Returns the position range of the contained elements
 		DRange<2> getPositionRange() const;
 		/// Returns the intensity range of the contained elements
@@ -258,25 +202,6 @@ namespace OpenMS
        @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
 		void computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging=false);
-
-		/// returns a const reference to the PeptideIdentification vector
-		const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
-
-		/// returns a mutable reference to the PeptideIdentification vector
-		std::vector<PeptideIdentification>& getPeptideIdentifications();
-
-		/// sets the PeptideIdentification vector
-		void setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_identifications );
-
-	 protected:
-		/// Quality of the consensus feature
-		QualityType quality_;
-
-		/// Charge of the consensus feature
-		Int charge_;
-
-		/// Peptide identifications belonging to the consensus feature
-		std::vector<PeptideIdentification> peptide_identifications_;
 
 	};
 

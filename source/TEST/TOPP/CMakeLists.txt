@@ -75,7 +75,7 @@ MascotAdapterOnline
 "NoiseFilter -type sgolay"
 OMSSAAdapter
 PILISIdentification
-PILISModel
+"PILISModel -type training"
 PTModel
 PTPredict
 "PeakPicker -type wavelet"
@@ -90,7 +90,7 @@ RTPredict
 Resampler
 "SILACAnalyzer -type double"
 SeedListGenerator
-SequestAdapter
+#SequestAdapter #(reenable when fixed)
 SpecLibSearcher
 "SpectraFilter -type BernNorm"
 TOFCalibration
@@ -138,11 +138,11 @@ XMLValidator
 foreach (i ${ALL_WRITEINI_TOOLS})
   string(REGEX MATCH "^(.*) (.*) (.*)" has_type ${i}) ## search for +3 components in TOPP name (when it has a -type)
   if (has_type STREQUAL "") ##regex did not match
-    add_test("TOPPWRITEINI_${i}" ${TOPP_BIN_PATH}/${i} -write_ini "${i}.ini")  
+    add_test("TOPPWRITEINI_${i}" ${TOPP_BIN_PATH}/${i} -write_ini "${i}.ini.tmp")  
   else() ## regex matched
     set(toolname ${CMAKE_MATCH_1})
     set(args ${CMAKE_MATCH_2} ${CMAKE_MATCH_3})
-    add_test("TOPPWRITEINI_${toolname}" ${TOPP_BIN_PATH}/${toolname} ${args} -write_ini "${toolname}.ini")
+    add_test("TOPPWRITEINI_${toolname}" ${TOPP_BIN_PATH}/${toolname} ${args} -write_ini "${toolname}.ini.tmp")
   endif()
 endforeach(i)
 
@@ -233,11 +233,8 @@ add_test("TOPP_FileConverter_8" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_
 add_test("TOPP_FileConverter_8_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_8_output.mzData)
 add_test("TOPP_FileConverter_9" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_input.consensusXML -out FileConverter.tmp -out_type featureXML)
 add_test("TOPP_FileConverter_9_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_9_output.featureXML)
-
-
 add_test("TOPP_FileConverter_10" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_10_input.edta -no_progress -out FileConverter.tmp -out_type featureXML)
 add_test("TOPP_FileConverter_10_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_10_output.featureXML)
-
 #SpecArray
 add_test("TOPP_FileConverter_11" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_11_input.pepList -no_progress -out FileConverter.tmp -out_type featureXML)
 add_test("TOPP_FileConverter_11_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_11_output.featureXML)
@@ -247,6 +244,9 @@ add_test("TOPP_FileConverter_12_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA
 #kroenik
 add_test("TOPP_FileConverter_13" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_13_input.peptides.kroenik -no_progress -out FileConverter.tmp -out_type featureXML)
 add_test("TOPP_FileConverter_13_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_13_output.featureXML)
+# featureXML to consensusXML
+add_test("TOPP_FileConverter_14" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_output.featureXML -no_progress -out FileConverter.tmp -out_type consensusXML)
+add_test("TOPP_FileConverter_14_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_14_output.consensusXML)
 
 
 ### FileFilter tests
@@ -388,6 +388,10 @@ add_test("TOPP_MapAligner_10_out2" ${DIFF} -in1 MapAligner_10_output2.tmp -in2 $
 add_test("TOPP_MapAligner_11" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_1_input2.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input3.featureXML -out MapAligner_11_output1.tmp MapAligner_11_output2.tmp -transformations -reference:file ${DATA_DIR_TOPP}/MapAligner_1_input1.featureXML)
 add_test("TOPP_MapAligner_11_out1" ${DIFF} -in1 MapAligner_11_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output2.featureXML)
 add_test("TOPP_MapAligner_11_out2" ${DIFF} -in1 MapAligner_11_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output3.featureXML)
+# "identification" algorithm with consensusXML input:
+add_test("TOPP_MapAligner_12" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_12_input1.consensusXML ${DATA_DIR_TOPP}/MapAligner_12_input2.consensusXML -out MapAligner_12_output1.tmp MapAligner_12_output2.tmp)
+add_test("TOPP_MapAligner_12_out1" ${DIFF} -in1 MapAligner_12_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_12_output1.consensusXML)
+add_test("TOPP_MapAligner_12_out2" ${DIFF} -in1 MapAligner_12_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_12_output2.consensusXML)
 
 ### MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)

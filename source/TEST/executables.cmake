@@ -95,6 +95,7 @@ set(system_executables_list
 
 set(kernel_executables_list
 	AreaIterator_test
+	BaseFeature_test
 	ChromatogramPeak_test
 	ChromatogramTools_test
 	ComparatorUtils_test

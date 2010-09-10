@@ -757,6 +757,7 @@ namespace OpenMS
         }
 
         ConsensusFeature cf(fm_out[f0_idx]);
+				cf.setQuality(0.0);
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
         cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
@@ -817,6 +818,7 @@ namespace OpenMS
 				// DEBUG
 #ifdef DC_DEVEL						
 				ConsensusFeature cf(fm_out[f0_idx]);
+				cf.setQuality(0.0);
 				cf.insert(0, fm_out[f0_idx].getUniqueId(), fm_out[f0_idx]);
 				cf.insert(0 ,fm_out[f1_idx].getUniqueId(), fm_out[f1_idx]);
         cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
@@ -910,6 +912,7 @@ namespace OpenMS
 			fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 			
       ConsensusFeature cf(f_single);
+			cf.setQuality(0.0);
       cf.setUniqueId();
       cf.insert(0, f_single);
 

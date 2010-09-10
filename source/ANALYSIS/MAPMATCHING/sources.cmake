@@ -8,6 +8,7 @@ BaseSuperimposer.C
 FeatureGroupingAlgorithm.C
 FeatureGroupingAlgorithmIdentification.C
 FeatureGroupingAlgorithmLabeled.C
+FeatureGroupingAlgorithmQT.C
 FeatureGroupingAlgorithmUnlabeled.C
 LabeledPairFinder.C
 MapAlignmentAlgorithm.C
@@ -20,6 +21,7 @@ MapAlignmentEvaluationAlgorithmPrecision.C
 MapAlignmentEvaluationAlgorithmRecall.C
 PoseClusteringAffineSuperimposer.C
 PoseClusteringShiftSuperimposer.C
+QTPairFinder.C
 SimplePairFinder.C
 StablePairFinder.C
 TransformationDescription.C

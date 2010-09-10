@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,23 +21,29 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Steffen Sass $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
+
+#include <OpenMS/DATASTRUCTURES/GridElement.h>
 
 namespace OpenMS
 {
-  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
-  {
-    os  << "---------- FeatureHandle -----------------\n"
-		    << "RT: " << cons.getRT()<< std::endl
-		    << "m/z: " << cons.getMZ()<< std::endl
-		    << "Intensity: " << cons.getIntensity() << std::endl
-		    << "Map Index: " << cons.getMapIndex() << std::endl
-		    << "Element Id: " << cons.getUniqueId() << std::endl;
-    return os;
-  }
-} 
+
+GridElement::GridElement() {}
+GridElement::GridElement(const GridElement& copy)
+{
+	mz = copy.mz;
+	rt = copy.rt;
+}
+GridElement::GridElement(DoubleReal rt_, DoubleReal mz_)
+{
+	mz = mz_;
+	rt = rt_;
+}
+}
+
+
+
+
