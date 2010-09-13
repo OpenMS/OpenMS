@@ -147,8 +147,11 @@ namespace OpenMS
 		QPen pen(color_);
 		if (isSelected())
 		{
-			pen.setWidth(2);
-		}
+      pen.setWidth(3);
+    } else
+    {
+      pen.setWidth(2);
+    }
 		painter->setPen(pen);
 		
 		painter->drawLine(startPos(),endPos());
@@ -575,7 +578,7 @@ namespace OpenMS
 		EdgeStatus es = getEdgeStatus();
 		if (es == ES_VALID)
 		{
-			setColor(Qt::green);
+      setColor(Qt::darkGreen);
 		}
 		else if (es == ES_NOT_READY_YET)
 		{

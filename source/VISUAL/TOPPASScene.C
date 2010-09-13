@@ -174,7 +174,7 @@ namespace OpenMS
 				bool ev = isEdgeAllowed_(hover_edge_->getSourceVertex(), target);
 				if (ev)
 				{
-					hover_edge_->setColor(Qt::green);
+          hover_edge_->setColor(Qt::darkGreen);
 				}
 				else
 				{
