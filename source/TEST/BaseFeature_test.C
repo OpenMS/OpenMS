@@ -33,7 +33,7 @@
 
 ///////////////////////////
 
-START_TEST(BaseFeature, "$Id: BaseFeature_test.C 7353 2010-09-07 21:18:31Z hendrikweisser $")
+START_TEST(BaseFeature, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -238,7 +238,7 @@ START_SECTION(([EXTRA]meta info with assignment))
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 END_SECTION
 
-START_SECTION(([BaseFeature::QualityLess] bool operator()(const BaseFeature& left, const BaseFeature& right) const))
+START_SECTION(([BaseFeature::QualityLess] bool operator()(BaseFeature const &left, BaseFeature const &right) const ))
 	BaseFeature f1, f2;
 	f1.setQuality(0.94);
 	f2.setQuality(0.78);
@@ -248,7 +248,7 @@ START_SECTION(([BaseFeature::QualityLess] bool operator()(const BaseFeature& lef
 	TEST_EQUAL(oql(f2, f1), 1);
 END_SECTION
 
-START_SECTION(([BaseFeature::QualityLess] bool operator()(const BaseFeature& left, const QualityType& right) const))
+START_SECTION(([BaseFeature::QualityLess] bool operator()(BaseFeature const &left, const QualityType &right) const ))
 	BaseFeature f1, f2;
 	f1.setQuality(0.94);
 	f2.setQuality(0.78);
@@ -270,7 +270,7 @@ START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType& lef
 	TEST_EQUAL(oql(lhs,f1), 1);
 END_SECTION
 
-START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType& left, const QualityType& right) const))
+START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType &left, BaseFeature const &right) const ))
 	BaseFeature f1, f2;
 	f1.setQuality(0.94);
 	f2.setQuality(0.78);
