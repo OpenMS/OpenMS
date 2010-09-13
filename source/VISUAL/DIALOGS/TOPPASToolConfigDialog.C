@@ -44,7 +44,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
 	TOPPASToolConfigDialog::TOPPASToolConfigDialog( QWidget * parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<Param::ParamEntry> hidden_entries)
 		: QDialog(parent),
 			param_(&param),
@@ -53,28 +52,31 @@ namespace OpenMS
 			tool_type_(tool_type),
 			hidden_entries_(hidden_entries)
 	{
-		QGridLayout *main_grid=new QGridLayout(this);
+    QGridLayout *main_grid = new QGridLayout(this);
 
 		//Add advanced mode check box		
-		editor_=new ParamEditor(this);
+    editor_ = new ParamEditor(this);
 		main_grid->addWidget(editor_,0,0,1,1);		
 		
 		QHBoxLayout* hbox = new QHBoxLayout;
-		QPushButton* load_button=new QPushButton(tr("&Load"));
+    QPushButton* load_button = new QPushButton(tr("&Load"));
 		connect(load_button,SIGNAL(clicked()),this,SLOT(loadINI_()));
 		hbox->addWidget(load_button);
-		QPushButton* store_button=new QPushButton(tr("&Store"));
+    QPushButton* store_button = new QPushButton(tr("&Store"));
 		connect(store_button,SIGNAL(clicked()),this,SLOT(storeINI_()));
 		hbox->addWidget(store_button);
 		hbox->addStretch();
-		
-		ok_button_= new QPushButton(tr("&Ok"));
+
+    // cancel button
+    QPushButton* cancel_button = new QPushButton(tr("&Cancel"));
+    connect(cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
+    hbox->addWidget(cancel_button);
+
+    // ok button
+    QPushButton* ok_button_ = new QPushButton(tr("&Ok"));
 		connect(ok_button_, SIGNAL(clicked()),this,SLOT(ok_()));
 		hbox->addWidget(ok_button_);
-		
-		QPushButton* cancel_button=new QPushButton(tr("&Cancel"));
-		connect(cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
-		hbox->addWidget(cancel_button);
+
 		main_grid->addLayout(hbox,1,0,1,1);
 		
 		setLayout(main_grid);
@@ -85,7 +87,7 @@ namespace OpenMS
 		
 		editor_->setFocus(Qt::MouseFocusReason);
 		
-		setWindowTitle(tr("TOPP tool configuration"));
+    setWindowTitle(tool_name.toQString() + " " + tr("configuration"));
 	}
 	
 	TOPPASToolConfigDialog::~TOPPASToolConfigDialog()

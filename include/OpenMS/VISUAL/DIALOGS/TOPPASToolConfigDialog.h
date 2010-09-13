@@ -25,7 +25,6 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPASTOOLCONFIGDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPASTOOLCONFIGDIALOG_H
 
@@ -78,8 +77,6 @@ namespace OpenMS
 			Param* param_;
 			/// Param for loading the ini-file
 			Param arg_param_;
-			/// ok-button connected with slot ok_()
-			QPushButton* ok_button_;
 			/// default-dir of ini-file to open
 			String default_dir_;
 			/// name of ini-file
@@ -97,8 +94,7 @@ namespace OpenMS
 			/// loads an ini-file into the editor_
 			void loadINI_();
 			/// stores an ini-file from the editor_
-			void storeINI_();
-			
+			void storeINI_();			
 	};
 
 }
