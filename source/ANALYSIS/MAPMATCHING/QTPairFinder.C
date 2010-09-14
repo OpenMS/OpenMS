@@ -301,7 +301,7 @@ void QTPairFinder::makeConsensus(HashGrid& grid,ProgressLogger& logger,Consensus
 			}
 			ConsensusFeature act_consensus_feature=input_maps[it->second->getMapIndex()][it->second->getFeatureIndex()];
 			const ConsensusFeature::HandleSetType& act_features=act_consensus_feature.getFeatures();
-			for (std::set<FeatureHandle>::const_iterator feature_it=act_features.begin();feature_it!=act_features.end();++feature_it)
+			for (ConsensusFeature::HandleSetType::const_iterator feature_it=act_features.begin();feature_it!=act_features.end();++feature_it)
 			{
 				FeatureHandle act_feature=*feature_it;
 				//Assign the correct map index

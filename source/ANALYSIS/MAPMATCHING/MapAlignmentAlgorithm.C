@@ -276,7 +276,7 @@ namespace OpenMS
 		applyToBaseFeature_(feature, trafo);
 		
 		// apply to grouped features (feature handles):
-		for (ConsensusFeature::HandleSetType::iterator it = 
+		for (ConsensusFeature::HandleSetType::const_iterator it = 
 					 feature.getFeatures().begin(); it != feature.getFeatures().end();
 				 ++it)
 		{
