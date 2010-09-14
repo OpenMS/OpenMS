@@ -667,19 +667,12 @@ foreach(i ${TOPP_executables})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
   elseif(APPLE AND EXISTS ${resource_dir})
-    set_source_files_properties(${resource_dir}/${i}.icns
-      PROPERTIES
-      MACOSX_PACKAGE_LOCATION Resources)
+    add_executable(${i} ${TOPP_DIR}${i}.C)
 
-    add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C ${resource_dir}/${i}.icns)
-    ## transform TOPPView and INIFileEditor to real Mac OS X applications
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${i}.icns")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${i}")
+    # extra work for pseudo-mac-bundle
+    # move prepared package to RUNTIME_OUTPUT
+    file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app" 
+      DESTINATION "${PROJECT_BINARY_DIR}/bin")
   else()
 		add_executable(${i} ${TOPP_DIR}${i}.C)
 	endif()

@@ -1,0 +1,19 @@
+#!/bin/bash
+# bash script which sets the correct paths and executes TOPPView
+
+export OPENMS_TOPP_PATH=`dirname $0`
+
+## we need to set the DYLIB_LIBRARY_PATH for the TOPP-tools to execute properly
+export DYLD_LIBRARY_PATH=${OPENMS_TOPP_PATH}/../../../lib/:${OPENMS_TOPP_PATH}/../../../lib/QtCore.framework/Versions/4/:${OPENMS_TOPP_PATH}/../../../lib/QtGui.framework/Versions/4/:${OPENMS_TOPP_PATH}/../../../lib/QtNetwork.framework/Versions/4/:${OPENMS_TOPP_PATH}/../../../lib/QtOpenGL.framework/Versions/4/:${OPENMS_TOPP_PATH}/../../../lib/QtSql.framework/Versions/4/:${OPENMS_TOPP_PATH}/../../../lib/QtXml.framework/Versions/4/:$DYLIB_LIBRARY_PATH
+
+## setting of the OpenMS data path to the share directory
+export OPENMS_DATA_PATH=${OPENMS_TOPP_PATH}/../../../share/OpenMS
+
+## we need to set the path variable accordingly
+export PATH=${OPENMS_TOPP_PATH}/../../../TOPP:$PATH
+
+## start TOPPView
+cd ${OPENMS_TOPP_PATH}/../../../TOPP/
+TOPPView $@
+
+
