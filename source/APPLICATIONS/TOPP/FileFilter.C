@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-		levels = getIntList_("level");
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Lars Nilse $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -80,6 +80,10 @@ using namespace std;
 	- consensusXML
 		- filter by size (number of elements in consensus features)
 		- filter by consensus feature charge
+        - filter by map (extracts specified maps and re-evaluates consensus centroid)
+		  e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML
+          If a single map is specified, the featureXML itself can be extracted.
+          e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
 
 
 	<B>The command line parameters of this tool are:</B>
@@ -126,6 +130,7 @@ class TOPPFileFilter
 		addText_("peak data options:");
 		registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 		registerIntList_("level","\"i,j,...\"",IntList::create("1,2,3"),"MS levels to extract", false);
+		registerIntList_("map","\"i,j,...\"",IntList::create("1,2"),"maps to be extracted from a consensus", false);
 		registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 		registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
 		registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
@@ -199,18 +204,28 @@ class TOPPFileFilter
 		//input file type
 		FileTypes::Type in_type = FileHandler::getType(in);
 		writeDebug_("Input file type: " + FileHandler::typeToName(in_type), 2);
-
+		
 		if (in_type==FileTypes::UNKNOWN)
 		{
 			writeLog_("Error: Could not determine input file type!");
 			return PARSE_ERROR;
 		}
-
-		FileTypes::Type out_type = in_type;
+		
+		//output file type
+		FileTypes::Type out_type = FileHandler::getType(out);
+		writeDebug_("Output file type: " + FileHandler::typeToName(out_type), 2);
+		
+		if (out_type==FileTypes::UNKNOWN)
+		{
+			writeLog_("Error: Could not determine output file type!");
+			return PARSE_ERROR;
+		}
+		
+		//out_type = in_type;
 
 		//ranges
 		String mz, rt, it, charge, size, q;
-		IntList levels;
+		IntList levels, maps;
 		double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, size_l, size_u, q_l, q_u;
 		//initialize ranges
 		mz_l = rt_l = it_l = charge_l = size_l = q_l = -1 * numeric_limits<double>::max();
@@ -220,6 +235,7 @@ class TOPPFileFilter
 		mz = getStringOption_("mz");
 		it = getStringOption_("int");
 		levels = getIntList_("level");
+		maps = getIntList_("map");
 		sn = getDoubleOption_("sn");
 		charge = getStringOption_("charge");
 		size = getStringOption_("size");
@@ -401,7 +417,7 @@ class TOPPFileFilter
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
 			f.store(out,exp);
 		}
-		else if (out_type == FileTypes::FEATUREXML)
+		else if (in_type == FileTypes::FEATUREXML)
 		{
 			//-------------------------------------------------------------
 			// loading input
@@ -461,12 +477,12 @@ class TOPPFileFilter
 
 			f.store(out,map_sm);
 		}
-		else if (out_type == FileTypes::CONSENSUSXML)
+		else if (in_type == FileTypes::CONSENSUSXML)
 		{
 			//-------------------------------------------------------------
 			// loading input
 			//-------------------------------------------------------------
-
+			
 			ConsensusMap consensus_map;
 			ConsensusXMLFile f;
 			//f.setLogType(log_type_);
@@ -475,44 +491,125 @@ class TOPPFileFilter
 			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
 			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
 			f.load(in,consensus_map);
-
+			
 			// copy all properties
 			ConsensusMap consensus_map_filtered = consensus_map;
 			//.. but delete feature information
 			consensus_map_filtered.resize(0);
-
+			
 			bool charge_ok, size_ok;
-
+			
 			for ( ConsensusMap::const_iterator citer = consensus_map.begin(); citer != consensus_map.end(); ++citer)
 			{
 				if ((charge_l <= citer->getCharge()) && (citer->getCharge() <= charge_u)) { charge_ok = true; } else {charge_ok = false;}
 				if ((citer->size() >= size_l) && (citer->size() <= size_u)) { size_ok = true; } else { size_ok = false;}
-
+				
 				if (charge_ok == true && size_ok == true)
 				{
 					consensus_map_filtered.push_back(*citer);
 				}
 			}
-
+			
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
 			consensus_map_filtered.updateRanges();
-
+			
 			// sort if desired
-      if (sort)
-      {
-        consensus_map_filtered.sortByPosition();
-      }
+			if (sort) consensus_map_filtered.sortByPosition();
+			
+			if (out_type == FileTypes::FEATUREXML)
+			{				
+				if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one interger.
+				{
+					FeatureMap<> feature_map_filtered;
+					FeatureXMLFile ff;
+					
+					for (ConsensusMap::Iterator cm_it=consensus_map_filtered.begin(); cm_it!=consensus_map_filtered.end(); ++cm_it)
+					{
+						
+						for(ConsensusFeature::HandleSetType::const_iterator fh_iter = (*cm_it).getFeatures().begin();
+							fh_iter != (*cm_it).getFeatures().end();
+							++fh_iter)
+						{
+							if ((int)(*fh_iter).getMapIndex() == maps[0])
+							{
+								Feature feature;
+								feature.setRT((*fh_iter).getRT());
+								feature.setMZ((*fh_iter).getMZ());
+								feature.setIntensity((*fh_iter).getIntensity());
+								feature.setCharge((*fh_iter).getCharge());
+								feature_map_filtered.push_back(feature);
+							}
+						}
+					}
+					
+					//-------------------------------------------------------------
+					// writing output
+					//-------------------------------------------------------------
+					
+					//annotate output with data processing info
+					addDataProcessing_(feature_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
+					
+					feature_map_filtered.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+					
+					ff.store(out,feature_map_filtered);
+				}
+				else {
+					writeLog_("When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+			}
+			else if (out_type == FileTypes::CONSENSUSXML)
+			{
+				// generate new consensuses with features that appear in the 'maps' list        
+				ConsensusMap cm_new; // new consensus map
+				for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
+				{					
+					ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
+					consensus_feature_new.clear();
 
-			//-------------------------------------------------------------
-			// writing output
-			//-------------------------------------------------------------
+					ConsensusFeature::HandleSetType::iterator fh_it = cm_it->getFeatures().begin();          
+					ConsensusFeature::HandleSetType::iterator fh_it_end = cm_it->getFeatures().end();
+					for(; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
+					{
+						if (maps.contains(fh_it->getMapIndex()))
+						{
+							consensus_feature_new.insert(*fh_it);
+						}												
+					}
+					
+					consensus_feature_new.computeConsensus(); // evaluate position of the consensus
 
-			//annotate output with data processing info
-			addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
-
-			f.store(out,consensus_map_filtered);
+					if (consensus_feature_new.size() != 0) // add the consensus to the consensus map only if it is non-empty 
+					{            
+						cm_new.push_back(consensus_feature_new);
+					}
+				}				
+								
+				// assign unique ids
+				cm_new.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+			
+				//-------------------------------------------------------------
+				// writing output
+				//-------------------------------------------------------------
+				
+				if (maps.empty())
+				{
+					//annotate output with data processing info
+					addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
+					
+					f.store(out, consensus_map_filtered);
+				}
+				else
+				{
+					//annotate output with data processing info
+					addDataProcessing_(cm_new, getProcessingInfo_(DataProcessing::FILTERING));
+					
+					f.store(out, cm_new);
+				}
+			}
 		}
 		else
 		{
