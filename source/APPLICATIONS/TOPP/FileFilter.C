@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-		levels = getIntList_("level");
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -212,15 +212,14 @@ class TOPPFileFilter
 		}
 		
 		//output file type
-		FileTypes::Type out_type = FileHandler::getType(out);
-		writeDebug_("Output file type: " + FileHandler::typeToName(out_type), 2);
-		
+    FileTypes::Type out_type = FileHandler::getTypeByFileName(out);
 		if (out_type==FileTypes::UNKNOWN)
 		{
 			writeLog_("Error: Could not determine output file type!");
 			return PARSE_ERROR;
 		}
-		
+    writeDebug_("Output file type: " + FileHandler::typeToName(out_type), 2);
+
 		//out_type = in_type;
 
 		//ranges
@@ -382,8 +381,11 @@ class TOPPFileFilter
  			//remove empty scans
  			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
 
- 				//sort
- 			if (sort) exp.sortSpectra(true);
+      //sort
+      if (sort)
+      {
+        exp.sortSpectra(true);
+      }
 			if (getFlag_("sort_peaks"))
 			{
 				for (Size i=0; i<exp.size(); ++i)
@@ -466,7 +468,10 @@ class TOPPFileFilter
 			map_sm.updateRanges();
 
 			// sort if desired
-			if (sort) map_sm.sortByPosition();
+      if (sort)
+      {
+        map_sm.sortByPosition();
+      }
 
 			//-------------------------------------------------------------
 			// writing output
@@ -516,7 +521,10 @@ class TOPPFileFilter
 			consensus_map_filtered.updateRanges();
 			
 			// sort if desired
-			if (sort) consensus_map_filtered.sortByPosition();
+      if (sort)
+      {
+        consensus_map_filtered.sortByPosition();
+      }
 			
 			if (out_type == FileTypes::FEATUREXML)
 			{				
@@ -570,8 +578,8 @@ class TOPPFileFilter
 					ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
 					consensus_feature_new.clear();
 
-					ConsensusFeature::HandleSetType::iterator fh_it = cm_it->getFeatures().begin();          
-					ConsensusFeature::HandleSetType::iterator fh_it_end = cm_it->getFeatures().end();
+          ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
+          ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
 					for(; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
 					{
 						if (maps.contains(fh_it->getMapIndex()))
