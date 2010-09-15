@@ -80,10 +80,7 @@ using namespace std;
 	- consensusXML
 		- filter by size (number of elements in consensus features)
 		- filter by consensus feature charge
-        - filter by map (extracts specified maps and re-evaluates consensus centroid)
-		  e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML
-          If a single map is specified, the featureXML itself can be extracted.
-          e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
+		- filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
 
 
 	<B>The command line parameters of this tool are:</B>
@@ -115,11 +112,19 @@ class TOPPFileFilter
 
 	void registerOptionsAndFlags_()
 	{
+		String formats("mzML,featureXML,consensusXML");
+
 		registerInputFile_("in","<file>","","input file ");
-		setValidFormats_("in",StringList::create("mzML,featureXML,consensusXML"));
+		setValidFormats_("in",StringList::create(formats));
+
+		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+		setValidStrings_("in_type",StringList::create(formats));
 
 		registerOutputFile_("out","<file>","","output file");
-		setValidFormats_("out",StringList::create("mzML,featureXML,consensusXML"));
+		setValidFormats_("out",StringList::create(formats));
+		
+		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+		setValidStrings_("out_type",StringList::create(formats));
 
 		registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 		registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
@@ -197,13 +202,17 @@ class TOPPFileFilter
 		// parameter handling
 		//-------------------------------------------------------------
 
+		//input file name and type
 		String in = getStringOption_("in");
-		String out = getStringOption_("out");
-		bool no_chromatograms(getFlag_("no_chromatograms"));
+		FileHandler fh;
 
-		//input file type
-		FileTypes::Type in_type = FileHandler::getType(in);
-		writeDebug_("Input file type: " + FileHandler::typeToName(in_type), 2);
+		FileTypes::Type in_type = fh.nameToType(getStringOption_("in_type"));
+		
+		if (in_type==FileTypes::UNKNOWN)
+		{
+			in_type = fh.getType(in);
+			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
+		}
 		
 		if (in_type==FileTypes::UNKNOWN)
 		{
@@ -211,16 +220,26 @@ class TOPPFileFilter
 			return PARSE_ERROR;
 		}
 		
-		//output file type
-    FileTypes::Type out_type = FileHandler::getTypeByFileName(out);
+		
+		//output file name and type
+		String out = getStringOption_("out");
+
+		FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+		
+		if (out_type==FileTypes::UNKNOWN)
+		{
+			out_type = fh.getTypeByFileName(out);
+			writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
+		}
+		
 		if (out_type==FileTypes::UNKNOWN)
 		{
 			writeLog_("Error: Could not determine output file type!");
 			return PARSE_ERROR;
 		}
-    writeDebug_("Output file type: " + FileHandler::typeToName(out_type), 2);
-
-		//out_type = in_type;
+		
+		
+		bool no_chromatograms(getFlag_("no_chromatograms"));
 
 		//ranges
 		String mz, rt, it, charge, size, q;
@@ -521,10 +540,10 @@ class TOPPFileFilter
 			consensus_map_filtered.updateRanges();
 			
 			// sort if desired
-      if (sort)
-      {
-        consensus_map_filtered.sortByPosition();
-      }
+			if (sort)
+			{
+				consensus_map_filtered.sortByPosition();
+			}
 			
 			if (out_type == FileTypes::FEATUREXML)
 			{				
@@ -578,8 +597,8 @@ class TOPPFileFilter
 					ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
 					consensus_feature_new.clear();
 
-          ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
-          ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
+					ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
+					ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
 					for(; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
 					{
 						if (maps.contains(fh_it->getMapIndex()))
