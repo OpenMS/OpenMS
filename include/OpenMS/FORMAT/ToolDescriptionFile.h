@@ -21,62 +21,52 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: $
+// $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZIDENTMLFILE_H
-#define OPENMS_FORMAT_MZIDENTMLFILE_H
+#ifndef OPENMS_FORMAT_TOOLDESCRIPTORFILE_H
+#define OPENMS_FORMAT_TOOLDESCRIPTORFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 
 namespace OpenMS
 {
 	/**
-		@brief File adapter for MzIdentML files
+		@brief File adapter for ToolDescriptor files
 
 		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 
 		@ingroup FileIO
 	*/
-	class OPENMS_DLLAPI MzIdentMLFile
+	class OPENMS_DLLAPI ToolDescriptionFile
 		:	public Internal::XMLFile,
 			public ProgressLogger
 	{
 		public:
 			///Default constructor
-			MzIdentMLFile();
+			ToolDescriptionFile();
 			///Destructor
-			virtual ~MzIdentMLFile();
+			virtual ~ToolDescriptionFile();
 
 			/**
-				@brief Loads a map from a MzIdentML file.
+				@brief Loads a map from a ToolDescriptor file.
 
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, Identification& id);
+      void load(const String& filename, std::vector <Internal::ToolDescription>& tds);
 
 			/**
-				@brief Stores a map in a MzIdentML file.
+				@brief Stores a map in a ToolDescriptor file.
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(const String& filename, const Identification& id) const;
-
-			/**
-				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
-
-				@param filename File name of the file to be checked.
-				@param errors Errors during the validation are returned in this output parameter.
-				@param warnings Warnings during the validation are returned in this output parameter.
-
-				@exception Exception::FileNotFound is thrown if the file could not be opened
-			*/
-			bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
+			void store(const String& filename, const std::vector <Internal::ToolDescription>& tds) const;
 
 		private:
 
@@ -84,4 +74,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZIDENTMLFILE_H
+#endif // OPENMS_FORMAT_TOOLDESCRIPTORFILE_H

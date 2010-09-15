@@ -9,6 +9,10 @@ ChargePair.h
 Compomer.h
 ConstRefVector.h
 ConvexHull2D.h
+CVMappingTerm.h
+CVMappingRule.h
+CVReference.h
+CVMappings.h
 DBoundingBox.h
 DIntervalBase.h
 DPosition.h
@@ -37,10 +41,7 @@ SuffixArrayPeptideFinder.h
 SuffixArraySeqan.h
 SuffixArrayTrypticCompressed.h
 SuffixArrayTrypticSeqan.h
-CVMappingTerm.h
-CVMappingRule.h
-CVReference.h
-CVMappings.h
+ToolDescription.h
 )
 
 ### add path to the filenames

@@ -1,0 +1,15 @@
+<tool status="external">
+    <type>RAWFileConvert</type>
+    <category>FileConversion</category>
+    <cloptions>-o "%1" --mzML "%2"</cloptions>
+    <path>msconvert</path>
+    <mappings>
+      <mapping id="1" cl="%TMP" />
+      <mapping id="2" cl="%%in" />
+      <file location="%TMP/%BASENAME[%%in].mzML" target="out" />
+    </mappings>
+    <ini_param>
+      <ITEM name="in" value="c:/tmp/data.mzML" type="string" description="input file in mzML format(valid formats: &apos;mzML&apos;)" tags="input file" />
+      <ITEM name="out" value="c:/tmp/bla.mzML" type="string" description="output file in IdXML format(valid formats: &apos;idXML&apos;)" tags="output file" />
+    </ini_param>
+</tool>

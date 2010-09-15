@@ -21,61 +21,43 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: $
+// $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
+#include <OpenMS/FORMAT/ToolDescriptionFile.h>
+//#include <OpenMS/FORMAT/VALIDATORS/ToolDescriptorValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/ToolDescriptionHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
 
-	MzIdentMLFile::MzIdentMLFile()
-		: XMLFile("/SCHEMAS/mzIdentML1.0.0.xsd","1.0.0")
+	ToolDescriptionFile::ToolDescriptionFile()
+		: XMLFile("/SCHEMAS/ToolDescriptor_1_0.xsd","1.0.0")
 	{
 	}
 
-	MzIdentMLFile::~MzIdentMLFile()
+	ToolDescriptionFile::~ToolDescriptionFile()
 	{
 	}
 
-  void MzIdentMLFile::load(const String& filename, Identification& id)
+  void ToolDescriptionFile::load(const String& filename, std::vector<Internal::ToolDescription>& tds)
   {
-  	Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
+  	Internal::ToolDescriptionHandler handler(filename, schema_version_);
     parse_(filename, &handler);
+    tds = handler.getToolDescriptions();
   }
 
-  void MzIdentMLFile::store(const String& filename, const Identification& id) const
+  void ToolDescriptionFile::store(const String& filename, const std::vector<Internal::ToolDescription>& tds) const
   {
-  	Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
+  	Internal::ToolDescriptionHandler handler(filename, schema_version_);
+    handler.setToolDescriptions(tds);
     save_(filename, &handler);
   }
 
-	bool MzIdentMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
-	{
-		//load mapping
-		CVMappings mapping;
-		CVMappingFile().load(File::find("/MAPPING/mzIdentML-mapping.xml"),mapping);
-		
-		//load cvs
-		ControlledVocabulary cv;
-		cv.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
-		cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
-		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
-		cv.loadFromOBO("BTO",File::find("/CV/brenda.obo"));
-		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
-		
-		//validate
-		Internal::MzIdentMLValidator v(mapping, cv);
-		bool result = v.validate(filename, errors, warnings);
-		
-		return result;
-	}
 
 }// namespace OpenMS
 

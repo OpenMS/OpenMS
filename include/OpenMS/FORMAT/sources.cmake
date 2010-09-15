@@ -72,6 +72,7 @@ SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
 TextFile.h
+ToolDescriptionFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
 XMLFile.h
