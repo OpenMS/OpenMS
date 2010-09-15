@@ -24,7 +24,7 @@ PROJECT("OpenMS")
 ########################################################
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "1")
-set(OPENMS_PACKAGE_VERSION_MINOR "7")
+set(OPENMS_PACKAGE_VERSION_MINOR "8")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 ########################################################
