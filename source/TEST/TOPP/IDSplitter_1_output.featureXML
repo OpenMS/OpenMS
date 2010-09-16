@@ -20,40 +20,16 @@
 			<overallquality>1</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">80</hposition>
-					<hposition dim="1">1000</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">90</hposition>
-					<hposition dim="1">997</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">100</hposition>
-					<hposition dim="1">1000</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">90</hposition>
-					<hposition dim="1">1003</hposition>
-				</hullpoint>
+				<pt x="80" y="1000" />
+				<pt x="90" y="997" />
+				<pt x="100" y="1000" />
+				<pt x="90" y="1003" />
 			</convexhull>
 			<convexhull nr="1">
-				<hullpoint>
-					<hposition dim="0">80</hposition>
-					<hposition dim="1">1100</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">90</hposition>
-					<hposition dim="1">1097</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">100</hposition>
-					<hposition dim="1">1100</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">90</hposition>
-					<hposition dim="1">1103</hposition>
-				</hullpoint>
+				<pt x="80" y="1100" />
+				<pt x="90" y="1097" />
+				<pt x="100" y="1100" />
+				<pt x="90" y="1103" />
 			</convexhull>
 		</feature>
 	</featureList>

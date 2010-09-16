@@ -36,7 +36,7 @@ namespace OpenMS
 {
 	FeatureXMLFile::FeatureXMLFile()
 		: Internal::XMLHandler("","1.4"),
-			Internal::XMLFile("/SCHEMAS/FeatureXML_1_4.xsd","1.4"),
+			Internal::XMLFile("/SCHEMAS/FeatureXML_1_5.xsd","1.5"),
 		 	map_(0),
 		 	in_description_(false),
 			subordinate_feature_level_(0),
@@ -318,6 +318,11 @@ namespace OpenMS
 		{
 			dim_ = attributeAsInt_(attributes,s_dim);
 		}
+    else if (tag=="pt")
+		{
+      hull_position_[0] = attributeAsDouble_(attributes,"x");
+      hull_position_[1] = attributeAsDouble_(attributes,"y");
+    }
 		else if (tag=="convexhull")
 		{
 			current_chull_.clear();
@@ -672,7 +677,7 @@ namespace OpenMS
 			current_feature_->setModelDescription(*model_desc_);
 			delete model_desc_;
 		}
-		else if (tag=="hullpoint")
+		else if (tag=="hullpoint" || tag=="pt")
 		{
 			current_chull_.push_back(hull_position_);
 		}
@@ -802,16 +807,15 @@ namespace OpenMS
 
 			for (Size j=0;j<hull_size;j++)
 			{
-				os << indent << "\t\t\t\t<hullpoint>\n";
-
 				DPosition<2> pos = current_hull.getHullPoints()[j];
-				Size pos_size = pos.size();
-				for (Size k=0; k<pos_size; k++)
+			/*Size pos_size = pos.size();
+				os << indent << "\t\t\t\t<hullpoint>\n";
+        for (Size k=0; k<pos_size; k++)
 				{
 					os << indent << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << precisionWrapper(pos[k]) << "</hposition>\n";
 				}
-
-				os << indent << "\t\t\t\t</hullpoint>\n";
+				os << indent << "\t\t\t\t</hullpoint>\n";*/
+        os << indent << "\t\t\t\t<pt x=\"" << precisionWrapper(pos[0]) << "\" y=\""<< precisionWrapper(pos[1]) << "\" />\n";
 			}
 
 			os << indent << "\t\t\t</convexhull>\n";

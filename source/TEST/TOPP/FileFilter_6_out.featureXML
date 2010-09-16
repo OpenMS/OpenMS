@@ -43,34 +43,13 @@
 				<param name="RT:statistics:variance2" value="335.67"/>
 			</model>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">1069.91</hposition>
-					<hposition dim="1">486.88</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1078.98</hposition>
-					<hposition dim="1">486.879</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1085.02</hposition>
-					<hposition dim="1">486.879</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1127.32</hposition>
-					<hposition dim="1">486.885</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1127.32</hposition>
-					<hposition dim="1">488.885</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1075.96</hposition>
-					<hposition dim="1">489.893</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1072.94</hposition>
-					<hposition dim="1">488.897</hposition>
-				</hullpoint>
+				<pt x="1069.91" y="486.88" />
+				<pt x="1078.98" y="486.879" />
+				<pt x="1085.02" y="486.879" />
+				<pt x="1127.32" y="486.885" />
+				<pt x="1127.32" y="488.885" />
+				<pt x="1075.96" y="489.893" />
+				<pt x="1072.94" y="488.897" />
 			</convexhull>
 		</feature>
 		<feature id="f_9">
@@ -110,50 +89,17 @@
 				<param name="RT:statistics:variance2" value="300.664"/>
 			</model>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">1024.59</hposition>
-					<hposition dim="1">464.891</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1033.66</hposition>
-					<hposition dim="1">464.886</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1042.72</hposition>
-					<hposition dim="1">464.886</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1057.83</hposition>
-					<hposition dim="1">464.891</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1060.85</hposition>
-					<hposition dim="1">464.892</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1072.94</hposition>
-					<hposition dim="1">464.898</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1075.96</hposition>
-					<hposition dim="1">464.904</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1085.02</hposition>
-					<hposition dim="1">467.119</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1082</hposition>
-					<hposition dim="1">468.924</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1075.96</hposition>
-					<hposition dim="1">468.924</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1027.61</hposition>
-					<hposition dim="1">466.9</hposition>
-				</hullpoint>
+				<pt x="1024.59" y="464.891" />
+				<pt x="1033.66" y="464.886" />
+				<pt x="1042.72" y="464.886" />
+				<pt x="1057.83" y="464.891" />
+				<pt x="1060.85" y="464.892" />
+				<pt x="1072.94" y="464.898" />
+				<pt x="1075.96" y="464.904" />
+				<pt x="1085.02" y="467.119" />
+				<pt x="1082" y="468.924" />
+				<pt x="1075.96" y="468.924" />
+				<pt x="1027.61" y="466.9" />
 			</convexhull>
 		</feature>
 	</featureList>

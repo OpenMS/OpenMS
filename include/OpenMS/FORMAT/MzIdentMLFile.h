@@ -84,4 +84,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_ANLYSISXMLFILE_H
+#endif // OPENMS_FORMAT_MZIDENTMLFILE_H

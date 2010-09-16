@@ -12,6 +12,7 @@ MzMLHandler.h
 MzXMLHandler.h
 PTMXMLHandler.h
 ParamXMLHandler.h
+ToolDescriptionHandler.h
 UnimodXMLHandler.h
 XMLHandler.h
 XTandemInfileXMLHandler.h

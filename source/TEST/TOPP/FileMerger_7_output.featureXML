@@ -128,34 +128,16 @@
 								<param name="b" value="10"/>
 							</model>
 							<convexhull nr="0">
-								<hullpoint>
-									<hposition dim="0">1.5</hposition>
-									<hposition dim="1">1.8</hposition>
-								</hullpoint>
-								<hullpoint>
-									<hposition dim="0">2.5</hposition>
-									<hposition dim="1">2.8</hposition>
-								</hullpoint>
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 							<convexhull nr="1">
-								<hullpoint>
-									<hposition dim="0">1.5</hposition>
-									<hposition dim="1">1.8</hposition>
-								</hullpoint>
-								<hullpoint>
-									<hposition dim="0">2.5</hposition>
-									<hposition dim="1">2.8</hposition>
-								</hullpoint>
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 							<convexhull nr="2">
-								<hullpoint>
-									<hposition dim="0">1.5</hposition>
-									<hposition dim="1">1.8</hposition>
-								</hullpoint>
-								<hullpoint>
-									<hposition dim="0">2.5</hposition>
-									<hposition dim="1">2.8</hposition>
-								</hullpoint>
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 						</feature>
 					</subordinate>
@@ -182,14 +164,8 @@
 								<param name="b" value="10"/>
 							</model>
 							<convexhull nr="0">
-								<hullpoint>
-									<hposition dim="0">1.5</hposition>
-									<hposition dim="1">1.8</hposition>
-								</hullpoint>
-								<hullpoint>
-									<hposition dim="0">2.5</hposition>
-									<hposition dim="1">2.8</hposition>
-								</hullpoint>
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 						</feature>
 						<feature id="f_1_1_1">
@@ -232,14 +208,8 @@
 												<param name="b" value="10"/>
 											</model>
 											<convexhull nr="0">
-												<hullpoint>
-													<hposition dim="0">1.5</hposition>
-													<hposition dim="1">1.8</hposition>
-												</hullpoint>
-												<hullpoint>
-													<hposition dim="0">2.5</hposition>
-													<hposition dim="1">2.8</hposition>
-												</hullpoint>
+												<pt x="1.5" y="1.8" />
+												<pt x="2.5" y="2.8" />
 											</convexhull>
 										</feature>
 										<feature id="f_1_1_1_1_1">
@@ -275,14 +245,8 @@
 				<param name="b" value="10"/>
 			</model>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">1.5</hposition>
-					<hposition dim="1">1.8</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">2.5</hposition>
-					<hposition dim="1">2.8</hposition>
-				</hullpoint>
+				<pt x="1.5" y="1.8" />
+				<pt x="2.5" y="2.8" />
 			</convexhull>
 		</feature>
 		<feature id="f_13229490167902618598">

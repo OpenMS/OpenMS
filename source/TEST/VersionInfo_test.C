@@ -75,7 +75,7 @@ END_SECTION
 START_SECTION(static Int getMinorVersion())
 {
 	STATUS("We might need to update this for a new release, oops!");
-	TEST_EQUAL(VersionInfo::getMinorVersion(), 7);
+  TEST_EQUAL(VersionInfo::getMinorVersion(), 8);
 }
 END_SECTION
 
