@@ -215,14 +215,19 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, FeatureMapSim & c_map)
   {
-
+		LOG_INFO << "Raw MS1 Simulation ... ";
     // TODO: check if signal intensities scale linear with actual abundance, e.g. DOI: 10.1021/ac0202280 for NanoFlow-ESI
 
 
     if (param_.getValue("enabled") == "false")
     {
+      LOG_INFO << "disabled" << std::endl;
 			return;
 		}
+    else
+    {
+      LOG_INFO << "started" << std::endl;
+    }
 		// retrieve mz boundary parameters from experiment:
 		SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
 		SimCoordinateType maximal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].end;

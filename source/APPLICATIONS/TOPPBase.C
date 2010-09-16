@@ -1509,7 +1509,7 @@ namespace OpenMS
 
 	void TOPPBase::writeLog_(const String& text) const
 	{
-		cout << text << endl;
+		LOG_INFO << text << endl;
 		enableLogging_();
 		log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text<< endl;
 	}
@@ -1518,7 +1518,9 @@ namespace OpenMS
 	{
 		if (debug_level_>=(Int)min_level)
 		{
-			writeLog_(text);
+		  LOG_DEBUG << text << endl;
+		  enableLogging_();
+		  log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text<< endl;
 		}
 	}
 
@@ -1526,10 +1528,10 @@ namespace OpenMS
 	{
 		if (debug_level_>=(Int)min_level)
 		{
-			cout 	<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-						<< QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text<< endl
-						<< param
-						<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
+			LOG_DEBUG << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
+						    << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text<< endl
+						    << param
+						    << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 			enableLogging_();
 			log_  << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
 						<< QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text<< endl

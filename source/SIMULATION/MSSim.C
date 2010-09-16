@@ -135,6 +135,13 @@ namespace OpenMS {
 
   void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels& channels, const String &labeling_name)
   {
+    /*todo: move to a global config file or into INI file */
+    Log_fatal.setPrefix("%S: ");
+    Log_error.setPrefix("%S: ");
+    Log_warn.setPrefix("%S: ");
+    Log_info.setPrefix("%S: ");
+    Log_debug.setPrefix("%S: ");
+
     /*
       General progress should be
         1. Digest Proteins

@@ -83,6 +83,8 @@ namespace OpenMS {
 
   void IonizationSimulation::ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment)
   {
+    LOG_INFO << "Ionization Simulation ... started\n";
+
 		// clear the consensus map
 		charge_consensus = ConsensusMap();
 		charge_consensus.setProteinIdentifications(features.getProteinIdentifications());

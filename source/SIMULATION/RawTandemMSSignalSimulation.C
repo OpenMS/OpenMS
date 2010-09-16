@@ -218,17 +218,17 @@ namespace OpenMS
 
     if (param_.getValue("status") == "disabled")
 		{
-			LOG_INFO << "disabled\n";
+			LOG_INFO << "disabled" << std::endl;
 			return;
 		}
     else if (param_.getValue("status") == "precursor")
 		{
-			LOG_INFO << "precursor\n";
+			LOG_INFO << "precursor" << std::endl;
       generatePrecursorSpectra_ (features, experiment, ms2);
     }
     else // MS^E
     {
-			LOG_INFO << "MS^E\n";
+			LOG_INFO << "MS^E" << std::endl;
       generateMSESpectra_ (features, experiment, ms2);
     }
 

@@ -64,6 +64,7 @@ namespace OpenMS {
   
   void DetectabilitySimulation::filterDetectability(FeatureMapSim & features)
   {
+    LOG_INFO << "Detectability Simulation ... started" << std::endl;
     if (param_.getValue("dt_simulation_on") == "true")
     {
       svmFilter_(features);
