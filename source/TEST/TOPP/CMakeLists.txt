@@ -56,7 +56,7 @@ FileConverter
 FileFilter
 FileInfo
 FileMerger
-GenericWrapper
+#GenericWrapper ##disabled for now, as we need an automatic way to determine its types, changing frequently
 IDDecoyProbability
 IDPosteriorErrorProbability
 IDFileConverter
