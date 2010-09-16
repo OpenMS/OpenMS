@@ -43,54 +43,18 @@
 				<param name="RT:statistics:variance2" value="170.983"/>
 			</model>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">915.82</hposition>
-					<hposition dim="1">470.905</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">936.971</hposition>
-					<hposition dim="1">468.918</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">939.992</hposition>
-					<hposition dim="1">468.918</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">946.037</hposition>
-					<hposition dim="1">468.92</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">955.099</hposition>
-					<hposition dim="1">468.925</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">958.122</hposition>
-					<hposition dim="1">468.93</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">970.208</hposition>
-					<hposition dim="1">470.905</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">967.185</hposition>
-					<hposition dim="1">472.917</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">952.078</hposition>
-					<hposition dim="1">474.874</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">943.013</hposition>
-					<hposition dim="1">474.892</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">939.992</hposition>
-					<hposition dim="1">474.892</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">915.82</hposition>
-					<hposition dim="1">472.895</hposition>
-				</hullpoint>
+				<pt x="915.82" y="470.905" />
+				<pt x="936.971" y="468.918" />
+				<pt x="939.992" y="468.918" />
+				<pt x="946.037" y="468.92" />
+				<pt x="955.099" y="468.925" />
+				<pt x="958.122" y="468.93" />
+				<pt x="970.208" y="470.905" />
+				<pt x="967.185" y="472.917" />
+				<pt x="952.078" y="474.874" />
+				<pt x="943.013" y="474.892" />
+				<pt x="939.992" y="474.892" />
+				<pt x="915.82" y="472.895" />
 			</convexhull>
 		</feature>
 	</featureList>

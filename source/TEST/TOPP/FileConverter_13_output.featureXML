@@ -15,22 +15,10 @@
 			<overallquality>0.9917</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">521.106018</hposition>
-					<hposition dim="1">449.543263133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">553.833008</hposition>
-					<hposition dim="1">449.543263133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">553.833008</hposition>
-					<hposition dim="1">450.543263133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">521.106018</hposition>
-					<hposition dim="1">450.543263133438</hposition>
-				</hullpoint>
+				<pt x="521.106018" y="449.543263133438" />
+				<pt x="553.833008" y="449.543263133438" />
+				<pt x="553.833008" y="450.543263133438" />
+				<pt x="521.106018" y="450.543263133438" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1345.60796"/>
 			<userParam type="float" name="FirstScan" value="1480"/>
@@ -47,22 +35,10 @@
 			<overallquality>0.9953</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">523.559998</hposition>
-					<hposition dim="1">673.811476466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">546.731018</hposition>
-					<hposition dim="1">673.811476466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">546.731018</hposition>
-					<hposition dim="1">675.311476466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">523.559998</hposition>
-					<hposition dim="1">675.311476466771</hposition>
-				</hullpoint>
+				<pt x="523.559998" y="673.811476466771" />
+				<pt x="546.731018" y="673.811476466771" />
+				<pt x="546.731018" y="675.311476466771" />
+				<pt x="523.559998" y="675.311476466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1345.6084"/>
 			<userParam type="float" name="FirstScan" value="1487"/>
@@ -79,22 +55,10 @@
 			<overallquality>0.9863</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">546.731018</hposition>
-					<hposition dim="1">668.610876466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">567.784973</hposition>
-					<hposition dim="1">668.610876466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">567.784973</hposition>
-					<hposition dim="1">669.610876466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">546.731018</hposition>
-					<hposition dim="1">669.610876466771</hposition>
-				</hullpoint>
+				<pt x="546.731018" y="668.610876466771" />
+				<pt x="567.784973" y="668.610876466771" />
+				<pt x="567.784973" y="669.610876466771" />
+				<pt x="546.731018" y="669.610876466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="2002.8108"/>
 			<userParam type="float" name="FirstScan" value="1557"/>
@@ -111,22 +75,10 @@
 			<overallquality>0.9784</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">551.427979</hposition>
-					<hposition dim="1">1002.41303896677</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">558.577026</hposition>
-					<hposition dim="1">1002.41303896677</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">558.577026</hposition>
-					<hposition dim="1">1003.91303896677</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">551.427979</hposition>
-					<hposition dim="1">1003.91303896677</hposition>
-				</hullpoint>
+				<pt x="551.427979" y="1002.41303896677" />
+				<pt x="558.577026" y="1002.41303896677" />
+				<pt x="558.577026" y="1003.91303896677" />
+				<pt x="551.427979" y="1003.91303896677" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="2002.811525"/>
 			<userParam type="float" name="FirstScan" value="1571"/>
@@ -143,22 +95,10 @@
 			<overallquality>0.9869</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">558.577026</hposition>
-					<hposition dim="1">591.971309800104</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">590.963013</hposition>
-					<hposition dim="1">591.971309800104</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">590.963013</hposition>
-					<hposition dim="1">592.971309800104</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">558.577026</hposition>
-					<hposition dim="1">592.971309800104</hposition>
-				</hullpoint>
+				<pt x="558.577026" y="591.971309800104" />
+				<pt x="590.963013" y="591.971309800104" />
+				<pt x="590.963013" y="592.971309800104" />
+				<pt x="558.577026" y="592.971309800104" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1772.8921"/>
 			<userParam type="float" name="FirstScan" value="1592"/>
@@ -175,22 +115,10 @@
 			<overallquality>0.9946</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">560.914001</hposition>
-					<hposition dim="1">887.451944466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">586.155029</hposition>
-					<hposition dim="1">887.451944466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">586.155029</hposition>
-					<hposition dim="1">888.951944466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">560.914001</hposition>
-					<hposition dim="1">888.951944466771</hposition>
-				</hullpoint>
+				<pt x="560.914001" y="887.451944466771" />
+				<pt x="586.155029" y="887.451944466771" />
+				<pt x="586.155029" y="888.951944466771" />
+				<pt x="560.914001" y="888.951944466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1772.889336"/>
 			<userParam type="float" name="FirstScan" value="1599"/>
@@ -207,22 +135,10 @@
 			<overallquality>0.9747</overallquality>
 			<charge>4</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">560.914001</hposition>
-					<hposition dim="1">444.230097716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">588.521973</hposition>
-					<hposition dim="1">444.230097716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">588.521973</hposition>
-					<hposition dim="1">444.980097716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">560.914001</hposition>
-					<hposition dim="1">444.980097716771</hposition>
-				</hullpoint>
+				<pt x="560.914001" y="444.230097716771" />
+				<pt x="588.521973" y="444.230097716771" />
+				<pt x="588.521973" y="444.980097716771" />
+				<pt x="560.914001" y="444.980097716771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1772.891285"/>
 			<userParam type="float" name="FirstScan" value="1599"/>
@@ -239,22 +155,10 @@
 			<overallquality>0.9955</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">590.963013</hposition>
-					<hposition dim="1">701.835083966771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">619.705017</hposition>
-					<hposition dim="1">701.835083966771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">619.705017</hposition>
-					<hposition dim="1">703.335083966771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">590.963013</hposition>
-					<hposition dim="1">703.335083966771</hposition>
-				</hullpoint>
+				<pt x="590.963013" y="701.835083966771" />
+				<pt x="619.705017" y="701.835083966771" />
+				<pt x="619.705017" y="703.335083966771" />
+				<pt x="590.963013" y="703.335083966771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1401.655615"/>
 			<userParam type="float" name="FirstScan" value="1690"/>
@@ -271,22 +175,10 @@
 			<overallquality>0.9798</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">610.046997</hposition>
-					<hposition dim="1">533.779826466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">634.202026</hposition>
-					<hposition dim="1">533.779826466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">634.202026</hposition>
-					<hposition dim="1">535.279826466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">610.046997</hposition>
-					<hposition dim="1">535.279826466771</hposition>
-				</hullpoint>
+				<pt x="610.046997" y="533.779826466771" />
+				<pt x="634.202026" y="533.779826466771" />
+				<pt x="634.202026" y="535.279826466771" />
+				<pt x="610.046997" y="535.279826466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1065.5451"/>
 			<userParam type="float" name="FirstScan" value="1746"/>
@@ -303,22 +195,10 @@
 			<overallquality>0.9867</overallquality>
 			<charge>4</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">634.202026</hposition>
-					<hposition dim="1">524.975718216771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">646.385986</hposition>
-					<hposition dim="1">524.975718216771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">646.385986</hposition>
-					<hposition dim="1">525.725718216771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">634.202026</hposition>
-					<hposition dim="1">525.725718216771</hposition>
-				</hullpoint>
+				<pt x="634.202026" y="524.975718216771" />
+				<pt x="646.385986" y="524.975718216771" />
+				<pt x="646.385986" y="525.725718216771" />
+				<pt x="634.202026" y="525.725718216771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="2095.873767"/>
 			<userParam type="float" name="FirstScan" value="1816"/>
@@ -335,22 +215,10 @@
 			<overallquality>0.9621</overallquality>
 			<charge>4</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">648.786011</hposition>
-					<hposition dim="1">477.254126466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">656.114014</hposition>
-					<hposition dim="1">477.254126466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">656.114014</hposition>
-					<hposition dim="1">478.004126466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">648.786011</hposition>
-					<hposition dim="1">478.004126466771</hposition>
-				</hullpoint>
+				<pt x="648.786011" y="477.254126466771" />
+				<pt x="656.114014" y="477.254126466771" />
+				<pt x="656.114014" y="478.004126466771" />
+				<pt x="648.786011" y="478.004126466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1904.9874"/>
 			<userParam type="float" name="FirstScan" value="1858"/>
@@ -367,22 +235,10 @@
 			<overallquality>0.9961</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">656.114014</hposition>
-					<hposition dim="1">498.297813966771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">665.525024</hposition>
-					<hposition dim="1">498.297813966771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">665.525024</hposition>
-					<hposition dim="1">499.797813966771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">656.114014</hposition>
-					<hposition dim="1">499.797813966771</hposition>
-				</hullpoint>
+				<pt x="656.114014" y="498.297813966771" />
+				<pt x="665.525024" y="498.297813966771" />
+				<pt x="665.525024" y="499.797813966771" />
+				<pt x="656.114014" y="499.797813966771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="994.581075"/>
 			<userParam type="float" name="FirstScan" value="1879"/>
@@ -399,22 +255,10 @@
 			<overallquality>0.9891</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">658.47998</hposition>
-					<hposition dim="1">503.236674133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">693.369995</hposition>
-					<hposition dim="1">503.236674133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">693.369995</hposition>
-					<hposition dim="1">504.236674133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">658.47998</hposition>
-					<hposition dim="1">504.236674133438</hposition>
-				</hullpoint>
+				<pt x="658.47998" y="503.236674133438" />
+				<pt x="693.369995" y="503.236674133438" />
+				<pt x="693.369995" y="504.236674133438" />
+				<pt x="658.47998" y="504.236674133438" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1506.688193"/>
 			<userParam type="float" name="FirstScan" value="1886"/>
@@ -431,22 +275,10 @@
 			<overallquality>0.9905</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">660.861023</hposition>
-					<hposition dim="1">754.352146466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">680.966003</hposition>
-					<hposition dim="1">754.352146466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">680.966003</hposition>
-					<hposition dim="1">755.852146466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">660.861023</hposition>
-					<hposition dim="1">755.852146466771</hposition>
-				</hullpoint>
+				<pt x="660.861023" y="754.352146466771" />
+				<pt x="680.966003" y="754.352146466771" />
+				<pt x="680.966003" y="755.852146466771" />
+				<pt x="660.861023" y="755.852146466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1506.68974"/>
 			<userParam type="float" name="FirstScan" value="1893"/>
@@ -463,22 +295,10 @@
 			<overallquality>0.9274</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">672.174988</hposition>
-					<hposition dim="1">849.909026466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">849.909026466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">851.409026466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">672.174988</hposition>
-					<hposition dim="1">851.409026466771</hposition>
-				</hullpoint>
+				<pt x="672.174988" y="849.909026466771" />
+				<pt x="678.859985" y="849.909026466771" />
+				<pt x="678.859985" y="851.409026466771" />
+				<pt x="672.174988" y="851.409026466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1697.8035"/>
 			<userParam type="float" name="FirstScan" value="1928"/>
@@ -495,22 +315,10 @@
 			<overallquality>0.9907</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">667.744019</hposition>
-					<hposition dim="1">669.329622466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">693.369995</hposition>
-					<hposition dim="1">669.329622466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">693.369995</hposition>
-					<hposition dim="1">670.829622466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">667.744019</hposition>
-					<hposition dim="1">670.829622466771</hposition>
-				</hullpoint>
+				<pt x="667.744019" y="669.329622466771" />
+				<pt x="693.369995" y="669.329622466771" />
+				<pt x="693.369995" y="670.829622466771" />
+				<pt x="667.744019" y="670.829622466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1336.644692"/>
 			<userParam type="float" name="FirstScan" value="1914"/>
@@ -527,22 +335,10 @@
 			<overallquality>0.9856</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">670.021973</hposition>
-					<hposition dim="1">740.344856466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">691.309998</hposition>
-					<hposition dim="1">740.344856466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">691.309998</hposition>
-					<hposition dim="1">741.844856466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">670.021973</hposition>
-					<hposition dim="1">741.844856466771</hposition>
-				</hullpoint>
+				<pt x="670.021973" y="740.344856466771" />
+				<pt x="691.309998" y="740.344856466771" />
+				<pt x="691.309998" y="741.844856466771" />
+				<pt x="670.021973" y="741.844856466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1478.67516"/>
 			<userParam type="float" name="FirstScan" value="1921"/>
@@ -559,22 +355,10 @@
 			<overallquality>0.9504</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">674.471985</hposition>
-					<hposition dim="1">564.816701466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">680.966003</hposition>
-					<hposition dim="1">564.816701466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">680.966003</hposition>
-					<hposition dim="1">566.316701466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">674.471985</hposition>
-					<hposition dim="1">566.316701466771</hposition>
-				</hullpoint>
+				<pt x="674.471985" y="564.816701466771" />
+				<pt x="680.966003" y="564.816701466771" />
+				<pt x="680.966003" y="566.316701466771" />
+				<pt x="674.471985" y="566.316701466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1127.61885"/>
 			<userParam type="float" name="FirstScan" value="1935"/>
@@ -591,22 +375,10 @@
 			<overallquality>0.9912</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">676.612</hposition>
-					<hposition dim="1">747.367632133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">701.872009</hposition>
-					<hposition dim="1">747.367632133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">701.872009</hposition>
-					<hposition dim="1">748.367632133438</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">676.612</hposition>
-					<hposition dim="1">748.367632133438</hposition>
-				</hullpoint>
+				<pt x="676.612" y="747.367632133438" />
+				<pt x="701.872009" y="747.367632133438" />
+				<pt x="701.872009" y="748.367632133438" />
+				<pt x="676.612" y="748.367632133438" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="2239.081067"/>
 			<userParam type="float" name="FirstScan" value="1941"/>
@@ -623,22 +395,10 @@
 			<overallquality>0.9736</overallquality>
 			<charge>4</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">665.525024</hposition>
-					<hposition dim="1">560.777578716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">713.080994</hposition>
-					<hposition dim="1">560.777578716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">713.080994</hposition>
-					<hposition dim="1">561.527578716771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">665.525024</hposition>
-					<hposition dim="1">561.527578716771</hposition>
-				</hullpoint>
+				<pt x="665.525024" y="560.777578716771" />
+				<pt x="713.080994" y="560.777578716771" />
+				<pt x="713.080994" y="561.527578716771" />
+				<pt x="665.525024" y="561.527578716771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="2239.081209"/>
 			<userParam type="float" name="FirstScan" value="1907"/>
@@ -655,22 +415,10 @@
 			<overallquality>0.9904</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">680.966003</hposition>
-					<hposition dim="1">528.926591466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">701.872009</hposition>
-					<hposition dim="1">528.926591466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">701.872009</hposition>
-					<hposition dim="1">529.926591466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">680.966003</hposition>
-					<hposition dim="1">529.926591466771</hposition>
-				</hullpoint>
+				<pt x="680.966003" y="528.926591466771" />
+				<pt x="701.872009" y="528.926591466771" />
+				<pt x="701.872009" y="529.926591466771" />
+				<pt x="680.966003" y="529.926591466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1583.757945"/>
 			<userParam type="float" name="FirstScan" value="1955"/>
@@ -687,22 +435,10 @@
 			<overallquality>0.9934</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">792.886503466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">704.109009</hposition>
-					<hposition dim="1">792.886503466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">704.109009</hposition>
-					<hposition dim="1">794.386503466771</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">678.859985</hposition>
-					<hposition dim="1">794.386503466771</hposition>
-				</hullpoint>
+				<pt x="678.859985" y="792.886503466771" />
+				<pt x="704.109009" y="792.886503466771" />
+				<pt x="704.109009" y="794.386503466771" />
+				<pt x="678.859985" y="794.386503466771" />
 			</convexhull>
 			<userParam type="float" name="Mass" value="1583.758454"/>
 			<userParam type="float" name="FirstScan" value="1948"/>
