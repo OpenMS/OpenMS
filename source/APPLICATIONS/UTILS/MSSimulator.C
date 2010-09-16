@@ -250,10 +250,8 @@ class TOPPMSSimulator
         gsl_rng_set(rnd_gen.technical_rng, 0);
       }
 
-      // read contaminants
+      ms_simulation.setLogType(this->log_type_);
 
-      // select contaminants?? -> should this be done by MSSim??
-      
       // start simulation
       writeLog_("Starting simulation");
       StopWatch w;

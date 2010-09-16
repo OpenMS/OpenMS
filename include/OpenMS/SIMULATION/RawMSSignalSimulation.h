@@ -29,6 +29,7 @@
 #define OPENMS_SIMULATION_RAWMSSIGNALSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
@@ -50,7 +51,8 @@ namespace OpenMS {
    @ingroup Simulation
   */
   class OPENMS_DLLAPI RawMSSignalSimulation
-    : public DefaultParamHandler
+    : public DefaultParamHandler,
+      public ProgressLogger
   {
 
   public:

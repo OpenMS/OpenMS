@@ -232,26 +232,31 @@ namespace OpenMS {
 		SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
 		SimCoordinateType maximal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
 		
-    if(experiment.size() == 1)
+    LOG_INFO << "simulating signal for " << features.size() << " features ..." << std::endl;
+
+    this->startProgress(0,features.size(),"RawMSSignal");
+
+    Size i=0;
+    for(FeatureMap< >::iterator feature_it = features.begin();
+        feature_it != features.end();
+        ++feature_it,++i)
     {
-      for(FeatureMap< >::iterator feature_it = features.begin();
-          feature_it != features.end();
-          ++feature_it)
+      if(experiment.size() == 1)
       {
         add1DSignal_(*feature_it,experiment);
       }
-    }
-    else
-    {
-      for(FeatureMap< >::iterator feature_it = features.begin();
-          feature_it != features.end();
-          ++feature_it)
+      else
       {
         add2DSignal_(*feature_it, experiment);
       }
-      // build contaminant feature map & add raw signal
-      createContaminants_(c_map, experiment);
+
+      this->setProgress(i);
     }
+
+    this->endProgress();
+
+    // build contaminant feature map & add raw signal
+    createContaminants_(c_map, experiment);
 
     if ((String)param_.getValue("ionization_type")=="MALDI")
     {
@@ -506,6 +511,8 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::createContaminants_(FeatureMapSim & c_map, MSSimExperiment & exp)
   {
+    if(exp.size() == 1) return;
+
     IONIZATIONMETHOD this_im = (String)param_.getValue("ionization_type")=="ESI" ? IM_ESI : IM_MALDI;
     c_map.clear(true);
 

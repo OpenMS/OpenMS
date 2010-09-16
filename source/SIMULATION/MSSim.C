@@ -166,6 +166,7 @@ namespace OpenMS {
     ion_sim.setParameters(param_.copy("Ionization:", true));
     RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
+    raw_sim.setLogType(this->getLogType());
 
 
     labeler_ = Factory<BaseLabeler>::create(labeling_name);
