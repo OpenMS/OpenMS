@@ -262,7 +262,6 @@ namespace OpenMS {
       protHit=(it->second);
       // additional meta values:
       protHit.setMetaValue("description", it->first.description);
-      std::cout << protHit.getAccession() << " " << protHit.getSequence() << " " << double(protHit.getMetaValue("intensity")) << ::std::endl;
       protIdent.insertHit(protHit);
 
 		}

@@ -215,6 +215,8 @@ namespace OpenMS {
 			// features discarded - out of mz detection range
 			Size undetected_features_count = 0;
 			
+      LOG_INFO << "Simulating " << features.size() << " features.\n";
+
 			// iterate over all features
 			for(FeatureMapSim::iterator feature_it = features.begin();
 					feature_it != features.end();
@@ -267,7 +269,7 @@ namespace OpenMS {
 				if (charge_states_sorted.size()==0) 
 				{
 					++uncharged_feature_count;
-					std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
+					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
 					continue;
 				}
 
@@ -313,8 +315,8 @@ namespace OpenMS {
 			// swap feature maps
 			features.swap(copy_map);
 
-	    std::cout << "#Peptides not ionized: " << uncharged_feature_count << "\n";
-	    std::cout << "#Peptides outside mz range: " << undetected_features_count << "\n";
+	    LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << "\n";
+	    LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << "\n";
 		}
 		catch (std::exception& e)
 		{
