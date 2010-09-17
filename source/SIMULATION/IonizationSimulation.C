@@ -211,7 +211,6 @@ namespace OpenMS {
 			// but leave meta information & other stuff intact
 			copy_map.clear(false);
 
-			UInt feature_index=0;
 			// features which are not ionized
 			Size uncharged_feature_count = 0;
 			// features discarded - out of mz detection range
@@ -223,19 +222,32 @@ namespace OpenMS {
       Size progress=0;
 
 			// iterate over all features
-			for(FeatureMapSim::iterator feature_it = features.begin();
-					feature_it != features.end();
-					++feature_it, ++progress)
+#pragma omp parallel for
+			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
+#pragma omp critical
+        {
+        ++progress;
+        this->setProgress(progress);
+        }
+
 				ConsensusFeature cf;
 
 				// iterate on abundance
-				Int abundance = (Int) ceil( (*feature_it).getIntensity() );
-				UInt basic_residues_c = countIonizedResidues_((*feature_it).getPeptideIdentifications()[0].getHits()[0].getSequence());
+				Int abundance = (Int) ceil( features[index].getIntensity() );
+				UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
 	      
 				// assumption: each basic residue can hold one charged adduct
 				Map<Compomer, UInt> charge_states;
 	      
+        if (basic_residues_c==0)
+        {
+#pragma omp critical
+          {++uncharged_feature_count;}
+					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
+					continue;
+        }
+
 				// sample different charge states (dice for each peptide molecule separately)
 				for(Int j = 0; j < abundance ; ++j)
 				{
@@ -273,7 +285,8 @@ namespace OpenMS {
 				// no charges > 0 selected (this should be really rare)
 				if (charge_states_sorted.size()==0) 
 				{
-					++uncharged_feature_count;
+#pragma omp critical
+          {++uncharged_feature_count;}
 					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
 					continue;
 				}
@@ -288,20 +301,21 @@ namespace OpenMS {
 					Int charge = it_s->second.getNetCharge();
 					if (allowed_entities_of_charge[charge]>0)
 					{
-						Feature charged_feature((*feature_it));
+						Feature charged_feature(features[index]);
 
-						setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, feature_index);
+						setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);
 	
 						if (!isFeatureValid_(charged_feature))
 						{
-							++undetected_features_count;
+#pragma omp critical
+              {++undetected_features_count;}
 							continue;
 						}
 
             // ensure uniquenes
             charged_feature.setUniqueId();
-						
-						copy_map.push_back(charged_feature);
+#pragma omp critical
+            {copy_map.push_back(charged_feature);}
 						// add to consensus
 						cf.insert(0, charged_feature);
 
@@ -311,11 +325,12 @@ namespace OpenMS {
 				}
 
 				// add consensus element containing all charge variants just created
-				cf.computeDechargeConsensus(copy_map);
+#pragma omp critical
+        {
+        cf.computeDechargeConsensus(copy_map);
 				charge_consensus.push_back(cf);
+        }
 
-        this->setProgress(progress);
-				++feature_index;
 			} // ! feature iterator
       
       this->endProgress();	    
@@ -371,11 +386,9 @@ namespace OpenMS {
       this->startProgress(0,features.size(),"Ionization");
       Size progress=0;
 
-			for(FeatureMap< >::iterator feature_it = features.begin();
-					feature_it != features.end();
-					++feature_it)
+			for(SignedSize index=0; index<(SignedSize)features.size();++index)
 			{
-				Int abundance = (Int) ceil( (*feature_it).getIntensity() );
+				Int abundance = (Int) ceil( features[index].getIntensity() );
 				std::vector<UInt> charge_states(((DoubleList) param_.getValue("maldi:ionization_probabilities")).size() + 1);
 				// sample different charge states
 				for(Int j = 0; j < abundance ; ++j)
@@ -395,7 +408,7 @@ namespace OpenMS {
 					if (charge_states[c] == 0) { continue; }
 					else
 					{
-						Feature charged_feature((*feature_it));
+						Feature charged_feature(features[index]);
 						
 						setFeatureProperties_(charged_feature, h_mono_weight*c, String("H")+String(c), c, charge_states[c], feature_index);
 
@@ -416,7 +429,7 @@ namespace OpenMS {
 				
         this->setProgress(progress);
 				++feature_index;
-			} // ! feature iterator
+			} // ! feature loop (parallel)
       
       this->endProgress();
 
