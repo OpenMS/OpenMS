@@ -164,6 +164,7 @@ namespace OpenMS {
 		dt_sim.setParameters(param_.copy("Detectability:",true));
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
+    ion_sim.setLogType(this->getLogType());
     RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
     raw_sim.setLogType(this->getLogType());

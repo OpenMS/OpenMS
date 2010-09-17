@@ -83,7 +83,7 @@ namespace OpenMS {
 
   void IonizationSimulation::ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment)
   {
-    LOG_INFO << "Ionization Simulation ... started\n";
+    LOG_INFO << "Ionization Simulation ... started" << std::endl;
 
 		// clear the consensus map
 		charge_consensus = ConsensusMap();
@@ -217,12 +217,15 @@ namespace OpenMS {
 			// features discarded - out of mz detection range
 			Size undetected_features_count = 0;
 			
-      LOG_INFO << "Simulating " << features.size() << " features.\n";
+      LOG_INFO << "Simulating " << features.size() << " features" << std::endl;
+
+      this->startProgress(0,features.size(),"Ionization");
+      Size progress=0;
 
 			// iterate over all features
 			for(FeatureMapSim::iterator feature_it = features.begin();
 					feature_it != features.end();
-					++feature_it)
+					++feature_it, ++progress)
 			{
 				ConsensusFeature cf;
 
@@ -311,9 +314,12 @@ namespace OpenMS {
 				cf.computeDechargeConsensus(copy_map);
 				charge_consensus.push_back(cf);
 
+        this->setProgress(progress);
 				++feature_index;
 			} // ! feature iterator
-	    
+      
+      this->endProgress();	    
+
 			// swap feature maps
 			features.swap(copy_map);
 
@@ -361,7 +367,10 @@ namespace OpenMS {
 			FeatureMapSim copy_map(features);
       copy_map.clear(false);
       DoubleReal h_mono_weight = Constants::PROTON_MASS_U;
-      
+
+      this->startProgress(0,features.size(),"Ionization");
+      Size progress=0;
+
 			for(FeatureMap< >::iterator feature_it = features.begin();
 					feature_it != features.end();
 					++feature_it)
@@ -405,9 +414,12 @@ namespace OpenMS {
 				cf.computeDechargeConsensus(copy_map);
 				charge_consensus.push_back(cf);
 				
-				++feature_index; 
-			} // ! feature_it
-	    
+        this->setProgress(progress);
+				++feature_index;
+			} // ! feature iterator
+      
+      this->endProgress();
+
 			// swap feature maps
 			features.swap(copy_map);
 			

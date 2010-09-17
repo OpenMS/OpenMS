@@ -236,10 +236,10 @@ namespace OpenMS {
 
     this->startProgress(0,features.size(),"RawMSSignal");
 
-    Size i=0;
+    Size progress=0;
     for(FeatureMap< >::iterator feature_it = features.begin();
         feature_it != features.end();
-        ++feature_it,++i)
+        ++feature_it,++progress)
     {
       if(experiment.size() == 1)
       {
@@ -250,7 +250,7 @@ namespace OpenMS {
         add2DSignal_(*feature_it, experiment);
       }
 
-      this->setProgress(i);
+      this->setProgress(progress);
     }
 
     this->endProgress();
@@ -312,7 +312,7 @@ namespace OpenMS {
     else
     {
       ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-      std::cout << "current feature: " << active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << " with scale " << scale << std::endl;
+      //std::cout << "current feature: " << active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << " with scale " << scale << std::endl;
     }
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
     ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
@@ -356,7 +356,7 @@ namespace OpenMS {
   {
     SimIntensityType intensity_sum = 0.0;
 
-    LOG_DEBUG << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
+    //LOG_DEBUG << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
 
     SimPointType point;
 
@@ -395,7 +395,7 @@ namespace OpenMS {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
 
-    LOG_INFO << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
+    //LOG_INFO << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
 
     SimIntensityType intensity_sum = 0.0;
     vector< DPosition<2> > points;

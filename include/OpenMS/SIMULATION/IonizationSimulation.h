@@ -28,9 +28,10 @@
 #ifndef OPENMS_SIMULATION_IONIZATIONSIMULATION_H
 #define OPENMS_SIMULATION_IONIZATIONSIMULATION_H
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 // STL includes
@@ -53,7 +54,8 @@ namespace OpenMS {
    @ingroup Simulation
   */
   class OPENMS_DLLAPI IonizationSimulation
-    : public DefaultParamHandler
+    : public DefaultParamHandler,
+      public ProgressLogger
   {
 
   public: 
