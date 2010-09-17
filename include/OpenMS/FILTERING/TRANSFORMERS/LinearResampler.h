@@ -131,7 +131,7 @@ namespace OpenMS
             (it + right_index)->setIntensity(intensity);
         }
         
-        resampled_peak_container.swap(spectrum);
+        spectrum.swap(resampled_peak_container);
 	    }
 	
 	    /**
