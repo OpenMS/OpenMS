@@ -326,14 +326,16 @@ namespace OpenMS {
 
 				// add consensus element containing all charge variants just created
 #pragma omp critical
-        {
-        cf.computeDechargeConsensus(copy_map);
-				charge_consensus.push_back(cf);
-        }
+        {charge_consensus.push_back(cf);}
 
-			} // ! feature iterator
+			} // ! for feature  (parallel)
       
       this->endProgress();	    
+
+      for (Size i=0;i<charge_consensus.size(); ++i)
+      { // this cannot be done inside the parallel-for as the copy_map might be populated meanwhile, which changes the internal uniqueid-map (used in below function)
+        charge_consensus[i].computeDechargeConsensus(copy_map);
+      }
 
 			// swap feature maps
 			features.swap(copy_map);
