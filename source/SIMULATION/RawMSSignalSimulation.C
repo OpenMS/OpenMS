@@ -152,7 +152,7 @@ namespace OpenMS {
   void RawMSSignalSimulation::updateMembers_()
   {
     // convert from resolution @ 400th --> FWHM
-    DoubleReal tmp = 40000 / (double) param_.getValue("resolution"); // TODO .. why is this buggy
+    DoubleReal tmp = 400.00 / (double) param_.getValue("resolution"); // TODO .. why is this buggy
     peak_std_     = (tmp / 2.355);			// Approximation for Gaussian-shaped signals
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
@@ -232,7 +232,7 @@ namespace OpenMS {
 		SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
 		SimCoordinateType maximal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
 		
-    LOG_INFO << "simulating signal for " << features.size() << " features ..." << std::endl;
+    LOG_INFO << "  Simulating signal for " << features.size() << " features ..." << std::endl;
 
     this->startProgress(0,features.size(),"RawMSSignal");
 
@@ -404,7 +404,7 @@ namespace OpenMS {
     Int end_scan  = -5;
 
 		SimCoordinateType rt = rt_start;
-
+    // Sample the model ...
     for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
     {
 			rt = exp_iter->getRT();
@@ -413,7 +413,7 @@ namespace OpenMS {
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) );
 
-        if(intensity == 0)
+        if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
         {
           continue;
         }
@@ -473,8 +473,8 @@ namespace OpenMS {
       }
       else
       {      // TODO remove fixed values .. come up with a meaningfull model for elutionprofile shapes
-        p.setValue("egh:A", 50.0);
-        p.setValue("egh:B", 60.0);
+        p.setValue("egh:A", 10.0);
+        p.setValue("egh:B", 10.0);
       }
 
       elutionmodel->setParameters(p); // does the calculation
@@ -562,10 +562,9 @@ namespace OpenMS {
     SimPointType point;
 
     LOG_INFO << "Adding shot noise to spectra ..." << std::endl;
-    LOG_INFO << "Interval size: "  << interval_size << " poisson rate: " << rate << std::endl;
+    LOG_INFO << "Interval size: "  << interval_size << ", poisson rate: " << rate << std::endl;
 
-    // TODO: switch to iterator ??
-    for (Size i=0 ;i < experiment.size() ; ++i)
+    for (MSSimExperiment::Iterator it_exp=experiment.begin(); it_exp != experiment.end() ; ++it_exp)
     {
 
       for (Size j=0;j<num_intervals;++j)
@@ -582,7 +581,7 @@ namespace OpenMS {
           {
             point.setIntensity(it);
             point.setMZ(mz);
-            experiment[i].push_back(point);
+            it_exp->push_back(point);
           }
         }
 
