@@ -109,6 +109,7 @@ namespace OpenMS {
 
     // mz sampling rate
     // TODO: investigate if this can be hidden from the user by estimating it from "resolution"
+    //       e.g. http://www.adronsystems.com/faqs.htm#rate states 8 points per peak on low-res instruments --> ~4 points at FWHM
     defaults_.setValue("mz:sampling_rate",0.12,"detector interval(e.g. bin size in m/z).");
 
     // contaminants:
@@ -152,7 +153,7 @@ namespace OpenMS {
   void RawMSSignalSimulation::updateMembers_()
   {
     // convert from resolution @ 400th --> FWHM
-    DoubleReal tmp = 400.00 / (double) param_.getValue("resolution"); // TODO .. why is this buggy
+    DoubleReal tmp = 400.00 / (double) param_.getValue("resolution");
     peak_std_     = (tmp / 2.355);			// Approximation for Gaussian-shaped signals
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
