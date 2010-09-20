@@ -56,56 +56,13 @@ namespace OpenMS
 	*/
 	template <typename PeakT = Peak1D>
 	class MSSpectrum
-    : private std::vector<PeakT>,
+		: public std::vector<PeakT>,
 			public RangeManager<1>,
 			public SpectrumSettings,
 			public PersistentObject
 	{
 
-      typedef std::vector<PeakT> privvec;
 		public:
-    using privvec::value_type;
-     using privvec::pointer;
-     using privvec::const_pointer;
-     using privvec::reference;
-     using privvec::const_reference;
-     using privvec::iterator;
-     using privvec::const_iterator;
-     using privvec::const_reverse_iterator;
-     using privvec::reverse_iterator;
-     using privvec::size_type;
-     using privvec::difference_type;
-     using privvec::allocator_type;
-
-    using privvec::begin;
-    using privvec::end;
-    using privvec::rbegin;
-    using privvec::rend;
-
-    using privvec::size;
-    using privvec::max_size;
-    using privvec::resize;
-    using privvec::capacity;
-    using privvec::empty;
-    using privvec::reserve;
-    using privvec::operator[];
-    using privvec::at;
-    using privvec::front;
-    using privvec::back;
-    using privvec::data;
-
-    using privvec::assign;
-    using privvec::push_back;
-    using privvec::pop_back;
-    using privvec::insert;
-    using privvec::erase;
-    using privvec::swap;
-    using privvec::clear;
-
-    using privvec::get_allocator;
-
-
-
 
 		  ///Float data array class
 			class OPENMS_DLLAPI FloatDataArray
