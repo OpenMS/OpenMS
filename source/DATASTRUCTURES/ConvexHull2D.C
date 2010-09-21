@@ -85,8 +85,10 @@ namespace OpenMS
 		// construct outer hull if required
 		if (outer_points_.size() == 0 && map_points_.size() > 0)
 		{
+
+      // walk the outer hull
 			outer_points_.clear();
-			outer_points_.reserve(map_points_.size()*2  );
+			outer_points_.reserve(map_points_.size()*2);
 
 			// traverse lower m/z's of RT scans
 			for (HullPointType::ConstIterator it = map_points_.begin(); it!=map_points_.end(); ++it)
@@ -168,6 +170,43 @@ namespace OpenMS
 			addPoint(*it);
     }
 	}
+
+  Size ConvexHull2D::compress()
+  {
+    // if the m/z span is always the same in consecutive scans, keep the min&max scan only)
+    if (map_points_.size()<3) return 0; // we need at least one "middle" scan
+
+    HullPointType compressed_map;
+    DBoundingBox<1> last_range;
+    compressed_map[map_points_.begin()->first] = map_points_.begin()->second; // copy first scan
+    HullPointType::ConstIterator pred_it = map_points_.begin();
+    HullPointType::ConstIterator middle_it = pred_it; middle_it++;
+    HullPointType::ConstIterator succ_it = pred_it; succ_it++; succ_it++;
+
+    for (Size p=1; p<map_points_.size()-1; ++p)
+		{
+      if (pred_it->second==middle_it->second && middle_it->second==succ_it->second)
+      {
+        // middle is identical in range --> skip
+      }
+      else
+      {
+        compressed_map[middle_it->first] = middle_it->second;
+      }
+      ++succ_it;
+      ++middle_it;
+      ++pred_it;
+    }
+    compressed_map[middle_it->first] = middle_it->second; // copy last scan
+    if (succ_it != map_points_.end() ) throw Exception::BufferOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+
+    //std::cout << "compressed CH from " << map_points_.size() << " to " << compressed_map.size() << "\n";
+    Size saved_points = map_points_.size() - compressed_map.size();
+    //copy
+    map_points_.clear();
+    map_points_.insert(compressed_map.begin(), compressed_map.end());
+    return saved_points;
+  }
 
 	bool ConvexHull2D::encloses(const PointType& point) const
 	{

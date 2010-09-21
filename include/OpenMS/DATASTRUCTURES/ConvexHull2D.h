@@ -53,6 +53,10 @@ namespace OpenMS
 		where points range within each scan (although missing points within this range are still not shown).
 		When hulls are created like this, the encloses() function is supported, and works as expected, i.e.
 		for the shape defined by this hull (view it in TOPPView) it answers whether the point is inside the shape.
+    However, once you store the hull in featureXML and load it again, the encloses() function is not supported any longer, because
+    the old convex hulls did not save min&max for each scan.
+    (to support encloses() at least for the new hulls, one would need to check if there exists a min&max value for each scan
+     --> then the query would be valid and the inner representation can be filled. Old featureXML's are not supported in any case.)
 
 		The outer hullpoints can be queried by getHullPoints().
 
@@ -100,7 +104,17 @@ namespace OpenMS
 			/// this will trigger recomputation of the outer hull points (thus points set with setHullPoints() will be lost)
 			void addPoints(const PointArrayType& points);
 
-			/** 
+      /**
+        @brief Allows to reduce the disk/memory footprint of a hull
+
+        Removes points from the hull which lie on a straight line and do not contribute to
+        the hulls shape. Should be called before saving to disk.
+        
+        @returns Number of removed scans
+      **/
+      Size compress();
+			
+      /** 
 				@brief returns if the @p point lies in the feature hull
 			
 				This function is only supported if the hull is created using addPoint() or addPoints(),
