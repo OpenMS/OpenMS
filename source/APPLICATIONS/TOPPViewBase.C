@@ -2728,7 +2728,7 @@ namespace OpenMS
 		}
 
 		//load id data
-		QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",current_path_.toQString(),"identfication files (*.idXML);; all files (*.*)");
+    QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",current_path_.toQString(),"idXML files (*.idXML);; all files (*.*)");
 		if(name!="")
 		{
 			vector<PeptideIdentification> identifications;
