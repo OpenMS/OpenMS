@@ -42,6 +42,7 @@
 
 //Qt
 #include <QtGui/QToolBar>
+#include <QtGui/QDesktopWidget>
 #include <QtGui/QDockWidget>
 #include <QtGui/QListWidget>
 #include <QtGui/QListWidgetItem>
@@ -89,6 +90,14 @@ namespace OpenMS
 		
     //prevents errors caused by too small width,height values
     setMinimumSize(400,400);
+
+    // center main window
+    setGeometry(
+      (int)(0.1 * QApplication::desktop()->width()),
+      (int)(0.1 * QApplication::desktop()->height()),
+      (int)(0.8 * QApplication::desktop()->width()),
+      (int)(0.8 * QApplication::desktop()->height())
+      );
 
     // create dummy widget (to be able to have a layout), Tab bar and workspace
     QWidget* dummy = new QWidget(this);
