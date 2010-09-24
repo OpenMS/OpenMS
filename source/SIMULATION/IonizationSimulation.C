@@ -303,7 +303,8 @@ namespace OpenMS {
 					{
 						Feature charged_feature(features[index]);
 
-						setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);
+#pragma omp critical (setfeatureprop)
+{						setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);}
 	
 						if (!isFeatureValid_(charged_feature))
 						{
@@ -457,7 +458,6 @@ namespace OpenMS {
 																									 const SimIntensityType new_intensity,
 																									 const Size parent_index)
 	{
-	
 		EmpiricalFormula feature_ef = f.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
 
 		f.setMZ( (feature_ef.getMonoWeight() + adduct_mass ) / charge);
@@ -483,7 +483,6 @@ namespace OpenMS {
 				f.setMetaValue(*it_key, SimIntensityType(f.getMetaValue(*it_key)) * factor);
 			}
 		}
-	
 	}
 
   bool IonizationSimulation::isFeatureValid_(const Feature & feature)
