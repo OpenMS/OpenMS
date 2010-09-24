@@ -36,9 +36,7 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
-#ifdef _DEBUG
-#define OPENMS_DEBUG_SIM_
-#endif
+//#define OPENMS_DEBUG_SIM_
 
 namespace OpenMS {
 
