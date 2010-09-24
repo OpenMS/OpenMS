@@ -170,6 +170,14 @@ namespace OpenMS
 
     SimRandomNumberGenerator const * rng_;
 
+    /**
+      @brief Based on the stored consensus recompute the associations for the passed features, assuming
+             that the features where derived from the features stored in the consensus.
+
+      @param simulated_features FeatureMap containing features derived from the ones, stored in the
+                                consensus
+    */
+    void recomputeConsensus_(const FeatureMapSim & simulated_features);
   };
 } // namespace OpenMS
 

@@ -71,9 +71,10 @@ namespace OpenMS {
                   << " MZ: " << (*feat).getMZ()
                   << " INT: " << (*feat).getIntensity()
                   << " CHARGE: " << (*feat).getCharge()
-                  << " Det: " << (*feat).getMetaValue("detectibility")
-                  << " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence () .toString()
-                  << " Meta: " << keys.concatenate(",") << ::std::endl;
+                  << " Det: " << (*feat).getMetaValue("detectibility") << std::endl
+                  << " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence () .toString() << std::endl
+                  << " ID: " << feat->getUniqueId() << std::endl
+                  << " Meta: " << keys.concatenate(",") << std::endl;
         std::cout << "derived from protein(s): ";
         for(std::vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
             it != (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();

@@ -126,6 +126,96 @@ namespace OpenMS
     target.getPeptideIdentifications()[0].setHits(pepHits);
   }
 
+  void BaseLabeler::recomputeConsensus_(const FeatureMapSim &simulated_features)
+  {
+    // iterate over all given features stored in the labeling consensus and try to find the corresponding feature in
+    // in the feature map
+
+    // build index for faster access
+    Map<String, IntList> id_map;
+    for(Size i = 0 ; i < simulated_features.size() ; ++i)
+    {
+      if(simulated_features[i].metaValueExists("parent_feature"))
+      {
+        std::cout << "Checking [" << i << "]: " << simulated_features[i].getPeptideIdentifications()[0].getHits()[0].getSequence ().toString()
+          << " with charge " << simulated_features[i].getCharge() << " (" << simulated_features[i].getMetaValue("charge_adducts") << ")"
+          << " parent was " << simulated_features[i].getMetaValue("parent_feature") << std::endl;
+        id_map[simulated_features[i].getMetaValue("parent_feature")].push_back(i);
+      }
+    }
+
+    for(Map<String, IntList>::iterator it = id_map.begin() ; it != id_map.end() ; ++it)
+    {
+      std::cout << it->first << " " << it->second << std::endl;
+    }
+
+    // new consensus map
+    ConsensusMap new_cm;
+
+    for(ConsensusMap::iterator cm_iter = consensus_.begin() ; cm_iter != consensus_.end() ; ++cm_iter)
+    {
+      bool complete = true;
+
+      std::cout << "Checking consensus feature containing: " << std::endl;
+
+      // check if we have all elements of current CF in the new feature map (simulated_features)
+      for(ConsensusFeature::iterator cf_iter = (*cm_iter).begin() ; cf_iter != (*cm_iter).end() ; ++cf_iter)
+      {
+        complete &= id_map.has( String( (*cf_iter).getUniqueId() ) );
+        std::cout << "\t" << String( (*cf_iter).getUniqueId() ) << std::endl;
+      }
+
+      if(complete)
+      {
+        // get all elements sorted by charge state; since the same charge can be achieved by different
+        // adduct compositions we use the adduct-string as indicator to find the groups
+        Map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > charge_mapping;
+
+        for(ConsensusFeature::iterator cf_iter = (*cm_iter).begin() ; cf_iter != (*cm_iter).end() ; ++cf_iter)
+        {
+          IntList feature_indices = id_map[ String ( (*cf_iter).getUniqueId() ) ];
+
+          for(IntList::iterator it = feature_indices.begin() ; it != feature_indices.end() ; ++it)
+          {
+            if(charge_mapping.has(simulated_features[*it].getMetaValue("charge_adducts")))
+            {
+              charge_mapping[simulated_features[*it].getMetaValue("charge_adducts")].insert(FeatureHandle(0, simulated_features[*it]));
+            }
+            else
+            {
+              std::cout << "Create new set with charge composition " << simulated_features[*it].getMetaValue("charge_adducts") << std::endl;
+              std::set<FeatureHandle, FeatureHandle::IndexLess> fh_set;
+              fh_set.insert(FeatureHandle(0, simulated_features[*it]));
+              charge_mapping.insert(std::make_pair<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > (simulated_features[*it].getMetaValue("charge_adducts"),fh_set));
+            }
+          }
+        }
+
+        // create new consensus feature from derived features (separated by charge, if charge != 0)
+        for(Map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> >::iterator charge_group_it = charge_mapping.begin() ;
+          charge_group_it != charge_mapping.end() ;
+          ++charge_group_it)
+        {
+          ConsensusFeature cf;
+          cf.setCharge((*(*charge_group_it).second.begin()).getCharge());
+          cf.setMetaValue("charge_adducts",charge_group_it->first);
+
+          for(std::set<FeatureHandle>::iterator fh_it = (charge_group_it->second).begin() ; fh_it != (charge_group_it->second).end() ; ++fh_it)
+          {
+            cf.insert(*fh_it);
+          }
+
+          cf.computeConsensus();
+
+          new_cm.push_back(cf);
+        }
+
+      }
+    }
+
+    consensus_.swap(new_cm);
+  }
+
   const ConsensusMap& BaseLabeler::getConsensus() const
   {
     return consensus_;

@@ -283,6 +283,12 @@ namespace OpenMS {
 					{
 						Feature charged_feature((*feature_it));
 
+            // ensure uniquenes
+            charged_feature.setUniqueId();
+
+            // remember the original feature as parent feature
+            charged_feature.setMetaValue("parent_feature", String( (*feature_it).getUniqueId() ));
+
 						setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, feature_index);
 	
 						if (!isFeatureValid_(charged_feature))
@@ -291,9 +297,6 @@ namespace OpenMS {
 							continue;
 						}
 
-            // ensure uniquenes
-            charged_feature.setUniqueId();
-						
 						copy_map.push_back(charged_feature);
 						// add to consensus
 						cf.insert(0, charged_feature);

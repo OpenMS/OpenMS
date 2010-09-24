@@ -161,6 +161,7 @@ namespace OpenMS
           // labeling_efficiency is 100% so we transform the complete
           // feature in a dilabeled feature
           addModificationToPeptideHit_(*lf_iter, "UniMod:193");
+          (*lf_iter).ensureUniqueId();
           final_feature_map.push_back(*lf_iter);
 
           // add corresponding feature if it exists
@@ -169,7 +170,6 @@ namespace OpenMS
           {
             ConsensusFeature cf;
             final_feature_map.push_back(unlabeled_features_index[unmodified_sequence]);
-            (*lf_iter).ensureUniqueId();
             cf.insert(0, *lf_iter);
             cf.insert(0, unlabeled_features_index[unmodified_sequence]);
 
@@ -257,9 +257,10 @@ namespace OpenMS
   }
 
   /// Labeling after RawMS
-  void O18Labeler::postRawMSHook(FeatureMapSimVector & /* features_to_simulate */)
+  void O18Labeler::postRawMSHook(FeatureMapSimVector & features_to_simulate )
   {
-  }
+    recomputeConsensus_(features_to_simulate[0]);
+  }  
 
   void O18Labeler::postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)
   {
