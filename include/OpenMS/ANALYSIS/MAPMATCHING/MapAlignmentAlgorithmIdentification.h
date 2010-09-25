@@ -161,12 +161,8 @@ namespace OpenMS
 			 @param unassigned List of unassigned peptide IDs
 			 @param rt_data Lists of RT values for diff. peptide sequences (output)
 		*/
-		// void getRetentionTimes_(std::vector<BaseFeature*>& features, 
-		// 												std::vector<PeptideIdentification>& unassigned, 
-		// 												SeqToList& rt_data);
 		template <typename MapType> void getRetentionTimes_(MapType& features,
 																												SeqToList& rt_data);
-
 
 		/**
 			 @brief Compute retention time transformations from RT data grouped by peptide sequence
@@ -203,21 +199,13 @@ namespace OpenMS
 		template <typename MapType> void alignFeatureOrConsensusMaps_(
 			std::vector<MapType>& maps, std::vector<TransformationDescription>& 
 			transformations);
-		
-		/**
-			 @brief Transform a feature maps or consensus maps to a list of (pointers to) BaseFeatures.
-
-			 @param features Feature map or consensus map
-			 @param base_features List of pointers to base features (output)
-		*/
-		// template <typename MapType> void getBaseFeatures_(
-		// 	MapType& features, std::vector<BaseFeature*>& base_features);
 
 	 private:
 
 		/// Copy constructor intentionally not implemented -> private
 		MapAlignmentAlgorithmIdentification(
 			const MapAlignmentAlgorithmIdentification&);
+
 		///Assignment operator intentionally not implemented -> private
 		MapAlignmentAlgorithmIdentification& operator=(
 			const MapAlignmentAlgorithmIdentification&);

@@ -97,22 +97,12 @@ namespace OpenMS
 		{
 			FeatureMap<> features;
 			FeatureXMLFile().load(reference_file, features);
-			// vector<BaseFeature*> base_features(features.size());
-			// getBaseFeatures_(features, base_features);
-			// getRetentionTimes_(base_features,
-			// 									 features.getUnassignedPeptideIdentifications(), 
-			// 									 rt_data);
 			getRetentionTimes_(features, rt_data);
 		}
 		else if (filetype == FileTypes::CONSENSUSXML)
 		{
 			ConsensusMap features;
 			ConsensusXMLFile().load(reference_file, features);
-			// vector<BaseFeature*> base_features(features.size());
-			// getBaseFeatures_(features, base_features);
-			// getRetentionTimes_(base_features,
-			// 									 features.getUnassignedPeptideIdentifications(), 
-			// 									 rt_data);
 			getRetentionTimes_(features, rt_data);
 		}
 		else if (filetype == FileTypes::IDXML)
@@ -179,18 +169,6 @@ namespace OpenMS
 		endProgress();
 	}
 
-/*
-	template <typename MapType>
-	void MapAlignmentAlgorithmIdentification::getBaseFeatures_(
-		MapType& features, vector<BaseFeature*>& base_features)
-	{
-		base_features.resize(features.size());
-		for (Size i = 0; i < features.size(); ++i)
-		{
-			base_features[i] = &(features[i]);
-		}
-	}
-*/
 
 	template <typename MapType>
 	void MapAlignmentAlgorithmIdentification::alignFeatureOrConsensusMaps_(
@@ -199,10 +177,6 @@ namespace OpenMS
 		if (reference_index_) // reference is one of the input files
 		{
 			SeqToList rt_data;
-			// vector<BaseFeature*> base_features;
-			// getBaseFeatures_(maps[reference_index_ - 1], base_features);
-			// getRetentionTimes_(base_features, maps[reference_index_ - 1].
-			// 									 getUnassignedPeptideIdentifications(), rt_data);
 			getRetentionTimes_(maps[reference_index_ - 1], rt_data);
 			computeMedians_(rt_data, reference_, true);
 		}
@@ -212,11 +186,6 @@ namespace OpenMS
 		for (Size i = 0, j = 0; i < maps.size(); ++i)
 		{
 			if (i == reference_index_ - 1) continue; // skip reference map, if any
-			// vector<BaseFeature*> base_features;
-			// getBaseFeatures_(maps[i], base_features);
-			// getRetentionTimes_(base_features, 
-			// 									 maps[i].getUnassignedPeptideIdentifications(),
-			// 									 rt_data[j++]);
 			getRetentionTimes_(maps[i], rt_data[j++]);
 		}
 		setProgress(1);
@@ -366,63 +335,6 @@ namespace OpenMS
 		// duplicates should not be possible -> no need to remove them
 	}
 
-/*
-	// lists of peptide hits in "features" will be sorted
-	void MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-		vector<BaseFeature*>& features, vector<PeptideIdentification>& unassigned,
-		SeqToList& rt_data)
-	{
-		bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
-		for (vector<BaseFeature*>::iterator feat_it = features.begin();
-				 feat_it != features.end(); ++feat_it)
-		{
-			if (use_feature_rt)
-			{
-				// find the peptide ID closest in RT to the feature centroid:
-				String sequence;
-				DoubleReal rt_distance = numeric_limits<DoubleReal>::max();
-				bool any_good_hit = false;
-				for (vector<PeptideIdentification>::iterator pep_it =
-							 (*feat_it)->getPeptideIdentifications().begin(); pep_it != 
-							 (*feat_it)->getPeptideIdentifications().end(); ++pep_it)
-				{
-					if (hasGoodHit_(*pep_it))
-					{
-						any_good_hit = true;
-						DoubleReal current_distance = 
-							abs(double(pep_it->getMetaValue("RT")) - (*feat_it)->getRT());
-						if (current_distance < rt_distance)
-						{
-							sequence = pep_it->getHits()[0].getSequence().toString();
-							rt_distance = current_distance;
-						}
-					}
-				}
-				if (any_good_hit) rt_data[sequence] << (*feat_it)->getRT();
-			}
-			else
-			{
-				getRetentionTimes_((*feat_it)->getPeptideIdentifications(), rt_data);
-			}
-		}
-
-		if (!use_feature_rt && param_.getValue("use_unassigned_peptides").toBool())
-		{
-			getRetentionTimes_(unassigned, rt_data);
-		}
-
-		// remove duplicates (can occur if a peptide ID was assigned to several
-		// features due to overlap or annotation tolerance):
-		for (SeqToList::iterator rt_it = rt_data.begin();
-				 rt_it != rt_data.end(); ++rt_it)
-		{
-			DoubleList& rt_values = rt_it->second;
-			sort(rt_values.begin(), rt_values.end());
-			DoubleList::iterator it = unique(rt_values.begin(), rt_values.end());
-			rt_values.resize(it - rt_values.begin());
-		}
-	}
-*/
 
 	template <typename MapType>
 	void MapAlignmentAlgorithmIdentification::getRetentionTimes_(
