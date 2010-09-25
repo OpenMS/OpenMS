@@ -466,4 +466,4 @@ namespace OpenMS
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_HASHMAP_H
+#endif // OPENMS_DATASTRUCTURES_STRING_H

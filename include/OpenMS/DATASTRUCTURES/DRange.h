@@ -304,4 +304,4 @@ namespace OpenMS
 	
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DRANGE_H
+#endif // OPENMS_DATASTRUCTURES_DRANGE_H
