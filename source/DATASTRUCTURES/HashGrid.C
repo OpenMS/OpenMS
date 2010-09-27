@@ -40,18 +40,9 @@ HashGrid::HashGrid(DoubleReal rt_threshold_,DoubleReal mz_threshold_)
 	number_of_elements=0;
 }
 
-HashGrid::~HashGrid() {
-	for (std::map<std::pair<Int,Int>, std::list<GridElement*> >::iterator it=elements.begin();it!=elements.end();++it)
-	{
-		std::list<GridElement*>& elements=it->second;
-		for (std::list<GridElement*>::iterator lit=elements.begin();lit!=elements.end();++lit)
-		{
-			delete(*lit);
-		}
-	}
-
+HashGrid::~HashGrid()
+{
 }
-
 
 void HashGrid::removeElement(GridElement* element_,Int x,Int y)
 {
