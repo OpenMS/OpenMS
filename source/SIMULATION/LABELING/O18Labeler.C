@@ -154,6 +154,8 @@ namespace OpenMS
           consensus_.push_back(cf);
           final_feature_map.push_back(final_unlabeled_feature);
 
+          // remove unlabeled feature
+          unlabeled_features_index.erase(unmodified_sequence);
         }
         else
         {

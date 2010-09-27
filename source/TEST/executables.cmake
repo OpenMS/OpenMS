@@ -428,6 +428,7 @@ set(simulation_executables_list
   BaseLabeler_test
 	LabelFreeLabeler_test
 	O18Labeler_test
+	SILACLabeler_test
 )
 
 ############### GUI executables (require MOC) ########

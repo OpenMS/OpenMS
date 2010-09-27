@@ -8,6 +8,7 @@ BaseLabeler_impl.h
 ITRAQLabeler.h
 LabelFreeLabeler.h
 O18Labeler.h
+SILACLabeler.h
 )
 
 ### add path to the filenames
