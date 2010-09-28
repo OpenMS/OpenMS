@@ -50,7 +50,7 @@ namespace OpenMS
 	{
 	}
 
-	void FeatureGroupingAlgorithm::group(const std::vector<ConsensusMap>& maps, ConsensusMap& out)
+	void FeatureGroupingAlgorithm::group(const std::vector<ConsensusMap>& /* maps */, ConsensusMap& /* out */)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 	}
