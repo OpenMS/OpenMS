@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/hendrik/Software/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" id="cm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureLinker" version="version_string" />
+		<processingAction name="Feature grouping" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2006-03-09T11:11:11" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ABCDEAA" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="FGHIJAA" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2006-03-09T12:12:12" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_2" accession="ABCDEDD" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="FGHIJDD" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_2" date="2006-03-09T13:13:13" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_4" accession="ABCDECC" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="FGHIJCC" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_3" date="2006-03-09T11:11:11" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_6" accession="ABCDEAA" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="FGHIJAA" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_4" date="2006-03-09T12:12:12" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_8" accession="ABCDEDD" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="FGHIJDD" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_5" date="2006-03-09T13:13:13" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_10" accession="ABCDECC" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="FGHIJCC" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="FAA" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_7">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="FDD" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_9">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="FCC" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_11">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="FAA" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_7">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="FDD" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_9">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="FCC" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_11">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<mapList count="6">
+		<map id="0" name="FeatureLinker_2_input1.featureXML" unique_id="3189043221343374669" label="" size="21">
+		</map>
+		<map id="1" name="FeatureLinker_2_input2.featureXML" unique_id="17129849834928765316" label="" size="20">
+		</map>
+		<map id="2" name="FeatureLinker_2_input3.featureXML" unique_id="4826876609996876827" label="" size="24">
+		</map>
+		<map id="3" name="FeatureLinker_2_input1.featureXML" unique_id="3189043221343374669" label="" size="21">
+		</map>
+		<map id="4" name="FeatureLinker_2_input2.featureXML" unique_id="17129849834928765316" label="" size="20">
+		</map>
+		<map id="5" name="FeatureLinker_2_input3.featureXML" unique_id="4826876609996876827" label="" size="24">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_13229490167902618598" quality="1" charge="2">
+			<centroid rt="924.713" mz="941.449" it="2.06357e+08"/>
+			<groupedElementList>
+				<element map="0" id="12561597102443082088" rt="922.64" mz="941.449" it="2.15944e+08" charge="2"/>
+				<element map="1" id="12352437987179506182" rt="908.712" mz="941.449" it="1.25569e+08" charge="2"/>
+				<element map="2" id="114882254392289457" rt="942.787" mz="941.449" it="2.77557e+08" charge="2"/>
+				<element map="3" id="12561597102443082088" rt="922.64" mz="941.449" it="2.15944e+08" charge="2"/>
+				<element map="4" id="12352437987179506182" rt="908.712" mz="941.449" it="1.25569e+08" charge="2"/>
+				<element map="5" id="114882254392289457" rt="942.787" mz="941.449" it="2.77557e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5024549519481199379" quality="1" charge="2">
+			<centroid rt="1531.86" mz="1247.12" it="2.34128e+08"/>
+			<groupedElementList>
+				<element map="2" id="6589589462220824505" rt="1531.86" mz="1247.12" it="2.34128e+08" charge="2"/>
+				<element map="5" id="6589589462220824505" rt="1531.86" mz="1247.12" it="2.34128e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6211693768620736135" quality="1" charge="2">
+			<centroid rt="640.822" mz="537.243" it="3.46578e+08"/>
+			<groupedElementList>
+				<element map="1" id="757269036628510515" rt="640.822" mz="537.243" it="3.46578e+08" charge="2"/>
+				<element map="4" id="757269036628510515" rt="640.822" mz="537.243" it="3.46578e+08" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="ADD" charge="3" protein_refs="PH_8">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="ADD" charge="3" protein_refs="PH_8">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_2727934422266510952" quality="1" charge="1">
+			<centroid rt="979.852" mz="1283.7" it="3.13719e+08"/>
+			<groupedElementList>
+				<element map="0" id="5133610492701656310" rt="979.852" mz="1283.7" it="3.13719e+08" charge="1"/>
+				<element map="3" id="5133610492701656310" rt="979.852" mz="1283.7" it="3.13719e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3318143123566627610" quality="1" charge="1">
+			<centroid rt="854.844" mz="1752.61" it="1.68751e+08"/>
+			<groupedElementList>
+				<element map="1" id="8088443907873716601" rt="846.342" mz="1752.61" it="1.54686e+08" charge="1"/>
+				<element map="2" id="4246219713694864557" rt="863.346" mz="1752.61" it="1.82817e+08" charge="1"/>
+				<element map="4" id="8088443907873716601" rt="846.342" mz="1752.61" it="1.54686e+08" charge="1"/>
+				<element map="5" id="4246219713694864557" rt="863.346" mz="1752.61" it="1.82817e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16086848624660428181" quality="1" charge="1">
+			<centroid rt="786.15" mz="1555.63" it="1.86424e+08"/>
+			<groupedElementList>
+				<element map="0" id="9201749952666825017" rt="786.15" mz="1555.63" it="1.86424e+08" charge="1"/>
+				<element map="3" id="9201749952666825017" rt="786.15" mz="1555.63" it="1.86424e+08" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="XAA" charge="3" protein_refs="PH_6">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="XAA" charge="3" protein_refs="PH_6">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_12945392992539867993" quality="1" charge="2">
+			<centroid rt="824.473333333333" mz="789.372" it="2.19646e+08"/>
+			<groupedElementList>
+				<element map="0" id="7002570642037352670" rt="812.972" mz="789.372" it="2.23649e+08" charge="2"/>
+				<element map="1" id="9891393289043950297" rt="820.435" mz="789.372" it="2.36463e+08" charge="2"/>
+				<element map="2" id="17528243079730408472" rt="840.013" mz="789.372" it="1.98826e+08" charge="2"/>
+				<element map="3" id="7002570642037352670" rt="812.972" mz="789.372" it="2.23649e+08" charge="2"/>
+				<element map="4" id="9891393289043950297" rt="820.435" mz="789.372" it="2.36463e+08" charge="2"/>
+				<element map="5" id="17528243079730408472" rt="840.013" mz="789.372" it="1.98826e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_177690319544281384" quality="1" charge="1">
+			<centroid rt="1081.58" mz="1955.95" it="2.33178e+08"/>
+			<groupedElementList>
+				<element map="0" id="11069861101195641174" rt="1045.19" mz="1955.95" it="2.84147e+08" charge="1"/>
+				<element map="1" id="10964759451238497927" rt="1098.74" mz="1955.95" it="1.78653e+08" charge="1"/>
+				<element map="2" id="6290963726642619139" rt="1100.81" mz="1955.95" it="2.36733e+08" charge="1"/>
+				<element map="3" id="11069861101195641174" rt="1045.19" mz="1955.95" it="2.84147e+08" charge="1"/>
+				<element map="4" id="10964759451238497927" rt="1098.74" mz="1955.95" it="1.78653e+08" charge="1"/>
+				<element map="5" id="6290963726642619139" rt="1100.81" mz="1955.95" it="2.36733e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9192101947877554093" quality="1" charge="1">
+			<centroid rt="1197.24" mz="1479.79" it="3.46508e+08"/>
+			<groupedElementList>
+				<element map="1" id="18077057999411630341" rt="1158.36" mz="1479.79" it="3.762e+08" charge="1"/>
+				<element map="2" id="4653369483890906761" rt="1236.12" mz="1479.79" it="3.16815e+08" charge="1"/>
+				<element map="4" id="18077057999411630341" rt="1158.36" mz="1479.79" it="3.762e+08" charge="1"/>
+				<element map="5" id="4653369483890906761" rt="1236.12" mz="1479.79" it="3.16815e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_12521488001836564298" quality="1" charge="1">
+			<centroid rt="875.319" mz="1305.71" it="2.96944e+08"/>
+			<groupedElementList>
+				<element map="0" id="13635893658662189107" rt="875.319" mz="1305.71" it="2.96944e+08" charge="1"/>
+				<element map="3" id="13635893658662189107" rt="875.319" mz="1305.71" it="2.96944e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13797899526047680311" quality="1" charge="1">
+			<centroid rt="1035.53" mz="1163.62" it="2.14078e+08"/>
+			<groupedElementList>
+				<element map="0" id="9150379013440122717" rt="1037.54" mz="1163.62" it="1.34898e+08" charge="1"/>
+				<element map="1" id="340792039157394434" rt="1033.52" mz="1163.62" it="2.93257e+08" charge="1"/>
+				<element map="3" id="9150379013440122717" rt="1037.54" mz="1163.62" it="1.34898e+08" charge="1"/>
+				<element map="4" id="340792039157394434" rt="1033.52" mz="1163.62" it="2.93257e+08" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="XDD" charge="3" protein_refs="PH_8">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="XDD" charge="3" protein_refs="PH_8">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_4289218643589463690" quality="1" charge="1">
+			<centroid rt="1267.61666666667" mz="1725.81" it="3.19362e+08"/>
+			<groupedElementList>
+				<element map="0" id="3811900024087146945" rt="1250.54" mz="1725.81" it="2.45958e+08" charge="1"/>
+				<element map="1" id="3477191243131983109" rt="1260.04" mz="1725.81" it="3.674e+08" charge="1"/>
+				<element map="2" id="866116738649891337" rt="1292.27" mz="1725.81" it="3.44727e+08" charge="1"/>
+				<element map="3" id="3811900024087146945" rt="1250.54" mz="1725.81" it="2.45958e+08" charge="1"/>
+				<element map="4" id="3477191243131983109" rt="1260.04" mz="1725.81" it="3.674e+08" charge="1"/>
+				<element map="5" id="866116738649891337" rt="1292.27" mz="1725.81" it="3.44727e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_12781587058763672036" quality="1" charge="3">
+			<centroid rt="1006.93" mz="642.352" it="2.64687e+08"/>
+			<groupedElementList>
+				<element map="1" id="8721009512267762600" rt="1006.93" mz="642.352" it="2.64687e+08" charge="3"/>
+				<element map="4" id="8721009512267762600" rt="1006.93" mz="642.352" it="2.64687e+08" charge="3"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_14936148562894594876" quality="1" charge="1">
+			<centroid rt="1211.96333333333" mz="1399.69" it="2.24143e+08"/>
+			<groupedElementList>
+				<element map="0" id="4484104107431321453" rt="1202.52" mz="1399.69" it="2.3497e+08" charge="1"/>
+				<element map="1" id="17796243954070685414" rt="1199.42" mz="1399.69" it="3.17631e+08" charge="1"/>
+				<element map="2" id="8262010749831112791" rt="1233.95" mz="1399.69" it="1.19827e+08" charge="1"/>
+				<element map="3" id="4484104107431321453" rt="1202.52" mz="1399.69" it="2.3497e+08" charge="1"/>
+				<element map="4" id="17796243954070685414" rt="1199.42" mz="1399.69" it="3.17631e+08" charge="1"/>
+				<element map="5" id="8262010749831112791" rt="1233.95" mz="1399.69" it="1.19827e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15278081089682622877" quality="1" charge="2">
+			<centroid rt="1241.715" mz="954.949" it="2.3003e+08"/>
+			<groupedElementList>
+				<element map="1" id="7894280344941030689" rt="1192.41" mz="954.949" it="1.93777e+08" charge="2"/>
+				<element map="2" id="8160584573194146770" rt="1291.02" mz="954.949" it="2.66283e+08" charge="2"/>
+				<element map="4" id="7894280344941030689" rt="1192.41" mz="954.949" it="1.93777e+08" charge="2"/>
+				<element map="5" id="8160584573194146770" rt="1291.02" mz="954.949" it="2.66283e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16704439577065469165" quality="1" charge="1">
+			<centroid rt="761.192" mz="1444.62" it="3.48902e+08"/>
+			<groupedElementList>
+				<element map="0" id="892598954651927234" rt="750.768" mz="1444.62" it="3.03992e+08" charge="1"/>
+				<element map="2" id="10410627859860728742" rt="771.616" mz="1444.62" it="3.93811e+08" charge="1"/>
+				<element map="3" id="892598954651927234" rt="750.768" mz="1444.62" it="3.03992e+08" charge="1"/>
+				<element map="5" id="10410627859860728742" rt="771.616" mz="1444.62" it="3.93811e+08" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="XCC" charge="3" protein_refs="PH_10">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="XCC" charge="3" protein_refs="PH_10">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_8257272695996077464" quality="1" charge="1">
+			<centroid rt="542.407" mz="1465.55" it="2.43214e+08"/>
+			<groupedElementList>
+				<element map="1" id="15025931485506509003" rt="542.407" mz="1465.55" it="2.43214e+08" charge="1"/>
+				<element map="4" id="15025931485506509003" rt="542.407" mz="1465.55" it="2.43214e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1895007395010724969" quality="1" charge="1">
+			<centroid rt="638.468" mz="537.243" it="2.10227e+08"/>
+			<groupedElementList>
+				<element map="0" id="12975660629189576601" rt="638.468" mz="537.243" it="2.10227e+08" charge="1"/>
+				<element map="3" id="12975660629189576601" rt="638.468" mz="537.243" it="2.10227e+08" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="AAA" charge="3" protein_refs="PH_6">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="AAA" charge="3" protein_refs="PH_6">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_15353061600706821008" quality="1" charge="2">
+			<centroid rt="561.762" mz="733.275" it="2.08168e+08"/>
+			<groupedElementList>
+				<element map="0" id="2744661845964701343" rt="566.639" mz="733.275" it="1.6889e+08" charge="2"/>
+				<element map="2" id="13955064838748220845" rt="556.885" mz="733.275" it="2.47446e+08" charge="2"/>
+				<element map="3" id="2744661845964701343" rt="566.639" mz="733.275" it="1.6889e+08" charge="2"/>
+				<element map="5" id="13955064838748220845" rt="556.885" mz="733.275" it="2.47446e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3816132561016537260" quality="1" charge="1">
+			<centroid rt="1454.51" mz="2493.24" it="2.11806e+08"/>
+			<groupedElementList>
+				<element map="0" id="15457684198469067825" rt="1440.23" mz="2493.24" it="1.55069e+08" charge="1"/>
+				<element map="1" id="11001965471019981700" rt="1468.79" mz="2493.24" it="2.68544e+08" charge="1"/>
+				<element map="3" id="15457684198469067825" rt="1440.23" mz="2493.24" it="1.55069e+08" charge="1"/>
+				<element map="4" id="11001965471019981700" rt="1468.79" mz="2493.24" it="2.68544e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16944639381024544029" quality="1" charge="1">
+			<centroid rt="838.689333333333" mz="1504.57" it="2.57013e+08"/>
+			<groupedElementList>
+				<element map="0" id="11819683491843153899" rt="806.797" mz="1504.57" it="2.60293e+08" charge="1"/>
+				<element map="1" id="510828531039388399" rt="821.924" mz="1504.57" it="1.45679e+08" charge="1"/>
+				<element map="2" id="16395201437334876064" rt="887.347" mz="1504.57" it="3.65068e+08" charge="1"/>
+				<element map="3" id="11819683491843153899" rt="806.797" mz="1504.57" it="2.60293e+08" charge="1"/>
+				<element map="4" id="510828531039388399" rt="821.924" mz="1504.57" it="1.45679e+08" charge="1"/>
+				<element map="5" id="16395201437334876064" rt="887.347" mz="1504.57" it="3.65068e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13484234755636222304" quality="1" charge="1">
+			<centroid rt="1415.83" mz="1567.74" it="2.20417e+08"/>
+			<groupedElementList>
+				<element map="2" id="10053481325799554694" rt="1415.83" mz="1567.74" it="2.20417e+08" charge="1"/>
+				<element map="5" id="10053481325799554694" rt="1415.83" mz="1567.74" it="2.20417e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1812122023949971114" quality="1" charge="1">
+			<centroid rt="1004.22566666667" mz="1014.61" it="3.16178e+08"/>
+			<groupedElementList>
+				<element map="0" id="2905807036779206701" rt="963.927" mz="1014.61" it="3.71373e+08" charge="1"/>
+				<element map="1" id="6253636756564533798" rt="1005.49" mz="1014.61" it="2.35017e+08" charge="1"/>
+				<element map="2" id="836885712912035377" rt="1043.26" mz="1014.61" it="3.42143e+08" charge="1"/>
+				<element map="3" id="2905807036779206701" rt="963.927" mz="1014.61" it="3.71373e+08" charge="1"/>
+				<element map="4" id="6253636756564533798" rt="1005.49" mz="1014.61" it="2.35017e+08" charge="1"/>
+				<element map="5" id="836885712912035377" rt="1043.26" mz="1014.61" it="3.42143e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2401276438153366595" quality="1" charge="1">
+			<centroid rt="1196.8" mz="1908.9" it="2.00984e+08"/>
+			<groupedElementList>
+				<element map="0" id="3903516670498486088" rt="1196.8" mz="1908.9" it="2.00984e+08" charge="1"/>
+				<element map="3" id="3903516670498486088" rt="1196.8" mz="1908.9" it="2.00984e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_11259490216747845597" quality="1" charge="1">
+			<centroid rt="921.7225" mz="1511.84" it="1.8723e+08"/>
+			<groupedElementList>
+				<element map="0" id="5356901381920669764" rt="888.197" mz="1511.84" it="1.08185e+08" charge="1"/>
+				<element map="2" id="389001383939275187" rt="955.248" mz="1511.84" it="2.66276e+08" charge="1"/>
+				<element map="3" id="5356901381920669764" rt="888.197" mz="1511.84" it="1.08185e+08" charge="1"/>
+				<element map="5" id="389001383939275187" rt="955.248" mz="1511.84" it="2.66276e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4078862181829706382" quality="1" charge="1">
+			<centroid rt="1049.535" mz="1420.67" it="2.27286e+08"/>
+			<groupedElementList>
+				<element map="0" id="16829067224526334546" rt="1062.54" mz="1420.67" it="2.58532e+08" charge="1"/>
+				<element map="1" id="8816901613822006667" rt="1036.53" mz="1420.67" it="1.96041e+08" charge="1"/>
+				<element map="3" id="16829067224526334546" rt="1062.54" mz="1420.67" it="2.58532e+08" charge="1"/>
+				<element map="4" id="8816901613822006667" rt="1036.53" mz="1420.67" it="1.96041e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15802420458244127273" quality="1" charge="2">
+			<centroid rt="785.3975" mz="778.315" it="3.35197e+08"/>
+			<groupedElementList>
+				<element map="1" id="5923487873389524717" rt="788.996" mz="778.315" it="2.97395e+08" charge="2"/>
+				<element map="2" id="9588482092062192060" rt="781.799" mz="778.315" it="3.72998e+08" charge="2"/>
+				<element map="4" id="5923487873389524717" rt="788.996" mz="778.315" it="2.97395e+08" charge="2"/>
+				<element map="5" id="9588482092062192060" rt="781.799" mz="778.315" it="3.72998e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1710989597162072513" quality="1" charge="2">
+			<centroid rt="875.638" mz="653.354" it="2.67572e+08"/>
+			<groupedElementList>
+				<element map="1" id="9947115975316200578" rt="856.941" mz="653.354" it="1.52129e+08" charge="2"/>
+				<element map="2" id="1045454825286354924" rt="894.335" mz="653.354" it="3.83015e+08" charge="2"/>
+				<element map="4" id="9947115975316200578" rt="856.941" mz="653.354" it="1.52129e+08" charge="2"/>
+				<element map="5" id="1045454825286354924" rt="894.335" mz="653.354" it="3.83015e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5682331772882595012" quality="1" charge="1">
+			<centroid rt="796.474" mz="1108.49" it="6.83877e+07"/>
+			<groupedElementList>
+				<element map="2" id="6004004326366812857" rt="796.474" mz="1108.49" it="6.83877e+07" charge="1"/>
+				<element map="5" id="6004004326366812857" rt="796.474" mz="1108.49" it="6.83877e+07" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9420080330518514254" quality="1" charge="2">
+			<centroid rt="836.541" mz="876.804" it="4.39745e+08"/>
+			<groupedElementList>
+				<element map="0" id="15776542383322853081" rt="836.541" mz="876.804" it="4.39745e+08" charge="2"/>
+				<element map="3" id="15776542383322853081" rt="836.541" mz="876.804" it="4.39745e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16661872424895136812" quality="1" charge="2">
+			<centroid rt="1114.9" mz="710.835" it="2.71023e+08"/>
+			<groupedElementList>
+				<element map="2" id="8585306356694916618" rt="1114.9" mz="710.835" it="2.71023e+08" charge="2"/>
+				<element map="5" id="8585306356694916618" rt="1114.9" mz="710.835" it="2.71023e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15791798424829573813" quality="1" charge="1">
+			<centroid rt="822.757333333333" mz="1749.67" it="3.02481e+08"/>
+			<groupedElementList>
+				<element map="0" id="11259143081880763675" rt="806.443" mz="1749.67" it="3.57962e+08" charge="1"/>
+				<element map="1" id="8781789908765837138" rt="818.552" mz="1749.67" it="3.67003e+08" charge="1"/>
+				<element map="2" id="5572181956708182284" rt="843.277" mz="1749.67" it="1.82478e+08" charge="1"/>
+				<element map="3" id="11259143081880763675" rt="806.443" mz="1749.67" it="3.57962e+08" charge="1"/>
+				<element map="4" id="8781789908765837138" rt="818.552" mz="1749.67" it="3.67003e+08" charge="1"/>
+				<element map="5" id="5572181956708182284" rt="843.277" mz="1749.67" it="1.82478e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_836060891392977422" quality="1" charge="1">
+			<centroid rt="817.266" mz="922.481" it="2.63046e+08"/>
+			<groupedElementList>
+				<element map="2" id="17198512653051715988" rt="817.266" mz="922.481" it="2.63046e+08" charge="1"/>
+				<element map="5" id="17198512653051715988" rt="817.266" mz="922.481" it="2.63046e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15868134895698098287" quality="1" charge="3">
+			<centroid rt="656.405" mz="537.243" it="1.32679e+08"/>
+			<groupedElementList>
+				<element map="2" id="1966557505224183820" rt="656.405" mz="537.243" it="1.32679e+08" charge="3"/>
+				<element map="5" id="1966557505224183820" rt="656.405" mz="537.243" it="1.32679e+08" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="ACC" charge="3" protein_refs="PH_10">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="ACC" charge="3" protein_refs="PH_10">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_13150707032562546142" quality="1" charge="2">
+			<centroid rt="1300.965" mz="944.96" it="2.75438e+08"/>
+			<groupedElementList>
+				<element map="1" id="6122245384109454407" rt="1297.92" mz="944.96" it="3.20176e+08" charge="2"/>
+				<element map="2" id="6916883853867664495" rt="1304.01" mz="944.96" it="2.30701e+08" charge="2"/>
+				<element map="4" id="6122245384109454407" rt="1297.92" mz="944.96" it="3.20176e+08" charge="2"/>
+				<element map="5" id="6916883853867664495" rt="1304.01" mz="944.96" it="2.30701e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16998330674302602785" quality="1" charge="1">
+			<centroid rt="1304.43" mz="1567.74" it="3.00518e+08"/>
+			<groupedElementList>
+				<element map="0" id="898063321445019845" rt="1304.43" mz="1567.74" it="3.00518e+08" charge="1"/>
+				<element map="3" id="898063321445019845" rt="1304.43" mz="1567.74" it="3.00518e+08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16192366128764602414" quality="1" charge="2">
+			<centroid rt="1011.47" mz="642.352" it="2.21253e+08"/>
+			<groupedElementList>
+				<element map="2" id="15743766982953332227" rt="1011.47" mz="642.352" it="2.21253e+08" charge="2"/>
+				<element map="5" id="15743766982953332227" rt="1011.47" mz="642.352" it="2.21253e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
