@@ -177,7 +177,7 @@ namespace OpenMS
 				
 				@param clear_meta_data If @em true, all meta data is cleared in addition to the data.
 			*/ 
-			void clear(bool clear_meta_data)
+			void clear(bool clear_meta_data = true)
 			{
 				Base::clear();
 					
