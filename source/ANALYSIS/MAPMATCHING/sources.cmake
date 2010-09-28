@@ -21,7 +21,7 @@ MapAlignmentEvaluationAlgorithmPrecision.C
 MapAlignmentEvaluationAlgorithmRecall.C
 PoseClusteringAffineSuperimposer.C
 PoseClusteringShiftSuperimposer.C
-QTPairFinder.C
+QTClusterFinder.C
 SimplePairFinder.C
 StablePairFinder.C
 TransformationDescription.C

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Steffen Sass $
-// $Authors: $
+// $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMQT_H
@@ -33,11 +33,11 @@
 namespace OpenMS
 {
 	/**
-		@brief A map feature grouping algorithm for unlabeled data.
+		@brief A feature grouping algorithm for unlabeled data.
 
-		It takes many maps and searches for corresponding features.
-		The corresponding features must be aligned, but may have small position deviations.
-		The input maps can be either of type ConsensusMap or FeatureMap.
+		The algorithm takes a number of feature or consensus maps and searches for corresponding (consensus) features across different maps. The maps have to be aligned (i.e. retention time distortions corrected, e.g. using one of the @ref MapAlignmentAlgorithm "MapAlignmentAlgorithms"), but small deviations are tolerated.
+
+		This particular algorithm accumulates the features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. For more details, see QTClusterFinder.
 
 	  @htmlinclude OpenMS_FeatureGroupingAlgorithmQT.parameters
 
@@ -54,13 +54,18 @@ namespace OpenMS
 			virtual ~FeatureGroupingAlgorithmQT();
 
 			/**
-				@brief Applies the algorithm
-
+				@brief Applies the algorithm to feature maps
 				@exception IllegalArgument is thrown if less than two input maps are given.
 			*/
-			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out);
+			virtual void group(const std::vector< FeatureMap<> >& maps, 
+												 ConsensusMap& out);
 
-			virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out);
+			/**
+				@brief Applies the algorithm to consensus maps
+				@exception IllegalArgument is thrown if less than two input maps are given.
+			*/
+			virtual void group(const std::vector<ConsensusMap>& maps, 
+												 ConsensusMap& out);
 
 			/// Creates a new instance of this class (for Factory)
 			static FeatureGroupingAlgorithm* create()
@@ -77,10 +82,17 @@ namespace OpenMS
 		private:
 
 			/// Copy constructor intentionally not implemented -> private
-			FeatureGroupingAlgorithmQT(const FeatureGroupingAlgorithmQT& );
-			/// Assignment operator intentionally not implemented -> private
-			FeatureGroupingAlgorithmQT& operator=(const FeatureGroupingAlgorithmQT& );
+			FeatureGroupingAlgorithmQT(const FeatureGroupingAlgorithmQT&);
 
+			/// Assignment operator intentionally not implemented -> private
+			FeatureGroupingAlgorithmQT& operator=(const FeatureGroupingAlgorithmQT&);
+
+			/**
+				@brief Applies the algorithm to feature or consensus maps
+				@exception IllegalArgument is thrown if less than two input maps are given.
+			*/
+			template <typename MapType> void group_(const std::vector<MapType>& maps,
+																							ConsensusMap& out);
 	};
 
 } // namespace OpenMS

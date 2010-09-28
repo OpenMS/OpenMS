@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Steffen Sass $
-// $Authors: $
+// $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
@@ -30,32 +30,35 @@
 namespace OpenMS
 {
 
-GridFeature::GridFeature(const std::vector<std::vector<BaseFeature> >& input_maps,Size map_index,Size feature_index) : GridElement(input_maps[map_index][feature_index].getRT(),input_maps[map_index][feature_index].getMZ()),map_index_(map_index),feature_index_(feature_index), input_maps_(input_maps) {
-	// TODO Auto-generated constructor stub
+	GridFeature::GridFeature(const BaseFeature& feature, Size map_index,
+													 Size feature_index) : 
+		GridElement(feature.getRT(), feature.getMZ()), feature_(feature),
+		map_index_(map_index), feature_index_(feature_index)
+	{
+	}
 
-}
+	GridFeature::~GridFeature()
+	{
+	}
 
-GridFeature::~GridFeature() {
-	// TODO Auto-generated destructor stub
-}
+	const BaseFeature& GridFeature::getFeature() const
+	{
+		return feature_;
+	}
 
-BaseFeature GridFeature::getFeature() const
-{
-	return input_maps_[map_index_][feature_index_];
-}
+	Size GridFeature::getMapIndex()
+	{
+		return map_index_;
+	}
 
-Size GridFeature::getMapIndex()
-{
-	return map_index_;
-}
-Size GridFeature::getFeatureIndex()
-{
-	return feature_index_;
-}
+	Size GridFeature::getFeatureIndex()
+	{
+		return feature_index_;
+	}
 
-Int GridFeature::getID()
-{
-	return feature_index_;
-}
+	Int GridFeature::getID()
+	{
+		return feature_index_;
+	}
 
 }

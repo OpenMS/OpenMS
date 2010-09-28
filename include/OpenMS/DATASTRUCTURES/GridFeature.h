@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Steffen Sass $
-// $Authors: $
+// $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_DATASTRUCTURES_GRIDFEATURE_H
@@ -32,54 +32,49 @@
 
 namespace OpenMS
 {
+
 /**
- * @brief Used for QT feature linking based on geometric hashing.
- * A GridFeature can be stored in a HashGrid and points to a Feature.
- * @see HashGrid
+ * @brief Representation of a feature in a hash grid.
+ * 
+ * A GridFeature can be stored in a HashGrid and points to a BaseFeature (Feature or ConsensusFeature). Used for QT feature grouping (see QTClusterFinder).
  */
-class OPENMS_DLLAPI GridFeature : public GridElement {
-private:
-	/**
-	 * @brief Index of the Feature- or ConsensusMap
-	 */
-	Size map_index_;
-	/**
-	 * @brief Index of the Feature in the map
-	 */
-	Size feature_index_;
-	/**
-	 * @brief Reference to all FeatureMaps
-	 */
-	const std::vector<std::vector<BaseFeature> >& input_maps_;
-public:
-	/**
-	 * @brief Detailed constructor
-	 * @param input_maps reference to all FeatureMaps
-	 * @param map_index index of the Feature- or ConsensusMap
-	 * @param feature_index index of the Feature in the map
-	 */
-	GridFeature(const std::vector<std::vector<BaseFeature> >& input_maps,Size map_index,Size feature_index);
-	/**
-	 *@brief Returns the feature
-	 */
-	BaseFeature getFeature() const;
-	/**
-	 * @brief Destructor
-	 */
-	virtual ~GridFeature();
-	/**
-	 * @brief Returns the map index
-	 */
-	Size getMapIndex();
-	/**
-	 * @brief Returns the feature index
-	 */
-	Size getFeatureIndex();
-	/**
-	 * @brief Returns the ID of the GridFeature
-	 */
-	Int getID();
-};
+
+	class OPENMS_DLLAPI GridFeature : public GridElement
+	{
+	private:
+		/// Reference to the contained feature
+		const BaseFeature& feature_;
+
+		/// Index of the feature map or consensus map
+		Size map_index_;
+
+		/// Index of the feature in the map
+		Size feature_index_;
+
+	public:
+		/**
+		 * @brief Detailed constructor
+		 * @param feature Reference to the contained feature
+		 * @param map_index Index of the feature map or consensus map
+		 * @param feature_index Index of the feature in the map
+		 */
+		GridFeature(const BaseFeature& feature, Size map_index, Size feature_index);
+
+		/// Returns the feature
+		const BaseFeature& getFeature() const;
+
+		/// Destructor
+		virtual ~GridFeature();
+
+		/// Returns the map index
+		Size getMapIndex();
+		
+		/// Returns the feature index
+		Size getFeatureIndex();
+
+		/// Returns the ID of the GridFeature (same as the feature index)
+		Int getID();
+	};
 }
 
-#endif /* GRIDFEATURE_H_ */
+#endif // OPENMS_DATASTRUCTURES_GRIDFEATURE_H
