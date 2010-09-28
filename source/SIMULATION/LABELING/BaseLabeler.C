@@ -140,7 +140,7 @@ namespace OpenMS
         std::cout << "Checking [" << i << "]: " << simulated_features[i].getPeptideIdentifications()[0].getHits()[0].getSequence ().toString()
           << " with charge " << simulated_features[i].getCharge() << " (" << simulated_features[i].getMetaValue("charge_adducts") << ")"
           << " parent was " << simulated_features[i].getMetaValue("parent_feature") << std::endl;
-        id_map[simulated_features[i].getMetaValue("parent_feature")].push_back(i);
+        id_map[simulated_features[i].getMetaValue("parent_feature")].push_back((Int)i);
       }
     }
 
@@ -192,7 +192,7 @@ namespace OpenMS
         }
 
         // create new consensus feature from derived features (separated by charge, if charge != 0)
-        for(Map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> >::iterator charge_group_it = charge_mapping.begin() ;
+        for(Map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> >::const_iterator charge_group_it = charge_mapping.begin() ;
           charge_group_it != charge_mapping.end() ;
           ++charge_group_it)
         {
@@ -200,7 +200,7 @@ namespace OpenMS
           cf.setCharge((*(*charge_group_it).second.begin()).getCharge());
           cf.setMetaValue("charge_adducts",charge_group_it->first);
 
-          for(std::set<FeatureHandle>::iterator fh_it = (charge_group_it->second).begin() ; fh_it != (charge_group_it->second).end() ; ++fh_it)
+          for(std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fh_it = (charge_group_it->second).begin() ; fh_it != (charge_group_it->second).end() ; ++fh_it)
           {
             cf.insert(*fh_it);
           }
