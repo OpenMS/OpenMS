@@ -223,6 +223,7 @@ namespace OpenMS {
 
 			// iterate over all features
 #pragma omp parallel for
+// reduction(+: uncharged_feature_count, undetected_features_count)
 			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
 #pragma omp critical
@@ -242,8 +243,7 @@ namespace OpenMS {
 	      
         if (basic_residues_c==0)
         {
-#pragma omp critical
-          {++uncharged_feature_count;}
+					++uncharged_feature_count; // OMP
 					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
 					continue;
         }
@@ -285,8 +285,7 @@ namespace OpenMS {
 				// no charges > 0 selected (this should be really rare)
 				if (charge_states_sorted.size()==0) 
 				{
-#pragma omp critical
-          {++uncharged_feature_count;}
+					++uncharged_feature_count; // OMP!
 					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
 					continue;
 				}
@@ -308,8 +307,7 @@ namespace OpenMS {
 	
 						if (!isFeatureValid_(charged_feature))
 						{
-#pragma omp critical
-              {++undetected_features_count;}
+							++undetected_features_count; // OMP!
 							continue;
 						}
 
