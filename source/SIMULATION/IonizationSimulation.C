@@ -222,8 +222,7 @@ namespace OpenMS {
       Size progress=0;
 
 			// iterate over all features
-#pragma omp parallel for
-// reduction(+: uncharged_feature_count, undetected_features_count)
+#pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
 			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
 #pragma omp critical
@@ -303,7 +302,7 @@ namespace OpenMS {
 						Feature charged_feature(features[index]);
 
 #pragma omp critical (setfeatureprop)
-{						setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);}
+            {setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);}
 	
 						if (!isFeatureValid_(charged_feature))
 						{

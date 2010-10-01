@@ -32,13 +32,13 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/SIMULATION/SimTypes.h>
-#include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
 #include <OpenMS/SIMULATION/EGHModel.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 namespace OpenMS {
+
+  class IsotopeModel;
 
   /**
    @brief Simulates MS signales for a given set of peptides
@@ -109,7 +109,7 @@ namespace OpenMS {
      @param experiment Experiment to which the sampled signales will be added
      @param activeFeature The current feature that is simulated
      */
-    void samplePeptideModel1D_(const IsotopeModelGeneral & iso,
+    void samplePeptideModel1D_(const IsotopeModel & iso,
                                const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                                MSSimExperiment & experiment, Feature & activeFeature);
 

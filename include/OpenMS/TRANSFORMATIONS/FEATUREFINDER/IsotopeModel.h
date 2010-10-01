@@ -33,6 +33,9 @@
 
 namespace OpenMS
 {
+  class EmpiricalFormula;
+
+
   /** 
 		@brief Isotope distribution approximated using linear interpolation.
 
@@ -85,8 +88,11 @@ namespace OpenMS
 
 		CoordinateType getOffset();
 
+    /// return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)
+    EmpiricalFormula getFormula();
+
 		/// set sample/supporting points of interpolation
-		void setSamples();
+		void setSamples(const EmpiricalFormula& formula);
 
 		/** @brief get the center of the Isotope model
 
@@ -105,6 +111,7 @@ namespace OpenMS
 			DoubleReal isotope_distance_;
 
   		void updateMembers_();
+
   };
 }
 

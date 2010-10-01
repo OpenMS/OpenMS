@@ -31,8 +31,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
-#include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
-
 #include <vector>
 using std::vector;
 
@@ -289,9 +287,9 @@ namespace OpenMS {
     p1.setValue("intensity_scaling", scale);
     p1.setValue("charge", q);
 
-    IsotopeModelGeneral isomodel;
-    isomodel.setSamples(ef);
+    IsotopeModel isomodel;
     isomodel.setParameters(p1);
+    isomodel.setSamples(ef);
 
     SimCoordinateType mz_start = isomodel.getInterpolation().supportMin();
     SimCoordinateType mz_end = isomodel.getInterpolation().supportMax();
@@ -322,9 +320,9 @@ namespace OpenMS {
     p1.setValue("isotope:stdev", peak_std_);
     p1.setValue("charge", q);
 
-    IsotopeModelGeneral* isomodel = new IsotopeModelGeneral();
+    IsotopeModel* isomodel = new IsotopeModel();
+    isomodel->setParameters(p1); // this needs to come BEFORE setSamples() - otherwise the default setSamples() is called here!
     isomodel->setSamples(ef); // this already includes adducts
-    isomodel->setParameters(p1);
 
 		if (experiment.size()<2)
 		{
@@ -338,12 +336,16 @@ namespace OpenMS {
 		pm.setModel(1, isomodel);			// new'ed models will be deleted by the pm! no need to delete them manually
     pm.setScale(scale);
 
-    // start and end points of the sampling are entirely arbitrary
-    // and should be modified at some point
-    SimCoordinateType rt_start = elutionmodel->getInterpolation().supportMin();
-    SimCoordinateType rt_end = elutionmodel->getInterpolation().supportMax();
-    SimCoordinateType mz_start = isomodel->getInterpolation().supportMin();
-    SimCoordinateType mz_end = isomodel->getInterpolation().supportMax();
+    // start and end points of the sampling
+    SimCoordinateType rt_start ( elutionmodel->getInterpolation().supportMin() );
+    SimCoordinateType rt_end ( elutionmodel->getInterpolation().supportMax() );
+    if (active_feature.metaValueExists("RT_width_start") && active_feature.metaValueExists("RT_width_end"))
+    { // this is a contaminant with sampling restrictions
+      rt_start=active_feature.getMetaValue("RT_width_start");
+      rt_end=active_feature.getMetaValue("RT_width_end");
+    }
+    SimCoordinateType mz_start ( isomodel->getInterpolation().supportMin() );
+    SimCoordinateType mz_end ( isomodel->getInterpolation().supportMax() );
 
     // add peptide to global MS map
     // add CH and new intensity to feature
@@ -351,7 +353,7 @@ namespace OpenMS {
   }
 
 
-  void RawMSSignalSimulation::samplePeptideModel1D_(const IsotopeModelGeneral & pm,
+  void RawMSSignalSimulation::samplePeptideModel1D_(const IsotopeModel & pm,
 																										const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
 																										MSSimExperiment & experiment, Feature & active_feature)
   {
@@ -479,7 +481,6 @@ namespace OpenMS {
       }
 
       elutionmodel->setParameters(p); // does the calculation
-
       //----------------------------------------------------------------------
 
       // Hack away constness :-P   We know what we want.
@@ -489,6 +490,8 @@ namespace OpenMS {
 
       // find scan in experiment at which our elution starts
       MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
+      if (exp_it==experiment.end()) --exp_it; // we need the last valid RT below, so .end() is not useful
+
       DoubleList elution_intensities;
       DoubleList elution_bounds;
       elution_bounds.resize(4); // store min and max RT (in seconds and index terms)
@@ -517,15 +520,19 @@ namespace OpenMS {
     IONIZATIONMETHOD this_im = (String)param_.getValue("ionization_type")=="ESI" ? IM_ESI : IM_MALDI;
     c_map.clear(true);
 
-    std::cerr << "\n\n CREATING " << contaminants_.size() << " CONTAMINANTS\n\n";
+    Size out_of_range(0);
 
     for (Size i=0;i<contaminants_.size();++i)
     {
-      std::cerr << "\n\n CREATING " << i << " th CONTAMINANTS with IM: " << Int(contaminants_[i].im) << " " << Int(this_im) << "\n\n";
-
       if (contaminants_[i].im!=IM_ALL && contaminants_[i].im!=this_im) continue;
 
-      
+      if (exp.getMinRT() > contaminants_[i].rt_end || contaminants_[i].rt_start > exp.getMaxRT())
+      {
+        ++out_of_range;
+        continue;
+      }
+
+
       // ... create contaminants...
       FeatureMapSim::FeatureType feature;
       feature.setRT( (contaminants_[i].rt_end+contaminants_[i].rt_start)/2 );
@@ -534,6 +541,8 @@ namespace OpenMS {
       if (contaminants_[i].shape == RT_RECTANGULAR)
       {
         feature.setMetaValue("RT_width_gaussian", 1e6);
+        feature.setMetaValue("RT_width_start", contaminants_[i].rt_start);
+        feature.setMetaValue("RT_width_end", contaminants_[i].rt_end);
       }
       else
       {
@@ -545,6 +554,9 @@ namespace OpenMS {
       add2DSignal_(feature, exp);
       c_map.push_back(feature);
     }
+
+    LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range << " / " << contaminants_.size() << "\n";
+
   }
 
 
