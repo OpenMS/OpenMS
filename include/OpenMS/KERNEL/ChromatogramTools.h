@@ -33,6 +33,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
