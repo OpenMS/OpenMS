@@ -148,6 +148,12 @@ class TOPPNoiseFilter
       MSExperiment<Peak1D> exp;
       mz_data_file.load(in,exp);
 
+			if (exp.size()==0)
+			{
+				LOG_WARN << "The given file does not contain any conventional peak data, but might"
+					          " contain chromatograms. This tool currently cannot handle them, sorry.";
+				return INCOMPATIBLE_INPUT_DATA;
+			}
 			//check for peak type (profile data required)
 			if (PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())==SpectrumSettings::PEAKS)
 			{

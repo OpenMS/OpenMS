@@ -166,6 +166,12 @@ class TOPPPeakPicker
     MSExperiment<Peak1D > ms_exp_raw;
     mz_data_file.load(in,ms_exp_raw);
 
+		if (ms_exp_raw.size()==0)
+		{
+			LOG_WARN << "The given file does not contain any conventional peak data, but might"
+				          " contain chromatograms. This tool currently cannot handle them, sorry.";
+			return INCOMPATIBLE_INPUT_DATA;
+		}
 		//check for peak type (profile data required)
 		if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
 		{
