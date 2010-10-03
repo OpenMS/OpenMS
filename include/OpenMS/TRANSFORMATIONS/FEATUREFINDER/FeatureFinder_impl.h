@@ -98,22 +98,25 @@ namespace OpenMS
 			delete(algorithm);
 		}
 		
-		//report RT apex spectrum index and native ID for each feature
-		for (Size i=0; i<features.size(); ++i)
+		if (algorithm_name!="mrm") // mrm  works on chromatograms; the next section is only for conventional data
 		{
-			//index
-			Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
-			features[i].setMetaValue("spectrum_index", spectrum_index);
-			//native id
-			if (spectrum_index < input_map.size())
+			//report RT apex spectrum index and native ID for each feature
+			for (Size i=0; i<features.size(); ++i)
 			{
-				String native_id = input_map[spectrum_index].getNativeID();
-				features[i].setMetaValue("spectrum_native_id", native_id);
-			}
-			else
-			{
-				/// @todo that happens sometimes using IsotopeWaveletFeatureFinder (Rene, Marc, Andreas, Clemens)
-				std::cerr << "FeatureFinderAlgorithm_impl, line=" << __LINE__ << "; FixMe this cannot be, but happens" << std::endl;
+				//index
+				Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
+				features[i].setMetaValue("spectrum_index", spectrum_index);
+				//native id
+				if (spectrum_index < input_map.size())
+				{
+					String native_id = input_map[spectrum_index].getNativeID();
+					features[i].setMetaValue("spectrum_native_id", native_id);
+				}
+				else
+				{
+					/// @todo that happens sometimes using IsotopeWaveletFeatureFinder (Rene, Marc, Andreas, Clemens)
+					std::cerr << "FeatureFinderAlgorithm_impl, line=" << __LINE__ << "; FixMe this cannot be, but happens" << std::endl;
+				}
 			}
 		}
 	}

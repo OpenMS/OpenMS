@@ -117,6 +117,12 @@ class TOPPBaselineFilter
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp);
 
+		if (ms_exp.size()==0)
+		{
+			LOG_WARN << "The given file does not contain any conventional peak data, but might"
+				          " contain chromatograms. This tool currently cannot handle them, sorry.";
+			return INCOMPATIBLE_INPUT_DATA;
+		}
 		// check for peak type (raw data required)
 		if (PeakTypeEstimator().estimateType(ms_exp[0].begin(),ms_exp[0].end())==SpectrumSettings::PEAKS)
 		{

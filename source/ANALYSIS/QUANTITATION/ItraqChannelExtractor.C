@@ -94,9 +94,16 @@ namespace OpenMS
 	///
 	/// @param ms_exp_data Raw data to read
 	/// @param consensus_map Output each MS² scan as a consensus feature
-	/// @throws Exception::MissingInformation if MS² scan has no precursor
+	/// @throws Exception::MissingInformation if no scans present or MS² scan has no precursor
 	void ItraqChannelExtractor::run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
 	{
+		if (ms_exp_data.size()==0)
+		{
+			LOG_WARN << "The given file does not contain any conventional peak data, but might"
+				          " contain chromatograms. This tool currently cannot handle them, sorry.";
+			throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Experiment has no scans!");
+		}
+
 		MSExperiment<> ms_exp_MS2;
 
 		//check for peak type (raw data required)
