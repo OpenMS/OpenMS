@@ -111,7 +111,6 @@ namespace OpenMS
 
   void IsotopeModel::setSamples(const EmpiricalFormula& formula)
   {
-    std::cerr << "\n\nCalling setSamples with: " << formula.getString() << "\n\n";
     // MAGIC alert, num stdev for smooth table for normal distribution
     CoordinateType normal_widening_num_stdev = 4.;
     // Actual width for values in the smooth table for normal distribution
@@ -246,7 +245,5 @@ namespace OpenMS
 		averagine_[O] = param_.getValue("averagines:O");
 		averagine_[S] = param_.getValue("averagines:S");
 
-    // check that is is removed but added manually to places where its missing
-		//setSamples(getFormula());
 	}
 }

@@ -41,7 +41,7 @@ namespace OpenMS {
    */
   RawMSSignalSimulation::RawMSSignalSimulation(const SimRandomNumberGenerator& rng)
   : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
-  intensity_scale_(), intensity_scale_stddev_(), peak_std_(), rnd_gen_(&rng)
+  intensity_scale_(), intensity_scale_stddev_(), peak_std_(), rnd_gen_(&rng), contaminants_(), contaminants_loaded_(false)
   {
     setDefaultParams_();
     updateMembers_();
@@ -50,7 +50,7 @@ namespace OpenMS {
 
   RawMSSignalSimulation::RawMSSignalSimulation()
     : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
-    intensity_scale_(), intensity_scale_stddev_(), peak_std_()
+      intensity_scale_(), intensity_scale_stddev_(), peak_std_(), contaminants_(), contaminants_loaded_(false)
   {
     setDefaultParams_();
     updateMembers_();
@@ -58,7 +58,7 @@ namespace OpenMS {
 
   RawMSSignalSimulation::RawMSSignalSimulation(const RawMSSignalSimulation& source)
     : DefaultParamHandler(source), mz_sampling_rate_(source.mz_sampling_rate_), mz_error_mean_(source.mz_error_mean_), mz_error_stddev_(source.mz_error_stddev_),
-    intensity_scale_(source.intensity_scale_), intensity_scale_stddev_(source.intensity_scale_stddev_), peak_std_(source.peak_std_)
+      intensity_scale_(source.intensity_scale_), intensity_scale_stddev_(source.intensity_scale_stddev_), peak_std_(source.peak_std_), contaminants_(), contaminants_loaded_(false)
   {
     setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;
@@ -78,6 +78,9 @@ namespace OpenMS {
     intensity_scale_stddev_ = source.intensity_scale_stddev_;
 
     peak_std_ = source.peak_std_;
+
+    contaminants_ = source.contaminants_;
+    contaminants_loaded_ = source.contaminants_loaded_;
 
     updateMembers_();
     return *this;
@@ -111,7 +114,7 @@ namespace OpenMS {
     defaults_.setValue("mz:sampling_rate",0.12,"detector interval(e.g. bin size in m/z).");
 
     // contaminants:
-    defaults_.setValue("contaminants:file","","Contaminants file with sum formula and absolute RT interval.");
+    defaults_.setValue("contaminants:file","examples/simulation/contaminants.csv","Contaminants file with sum formula and absolute RT interval.");
 
     // noise params
 
@@ -160,22 +163,32 @@ namespace OpenMS {
 
     intensity_scale_ = param_.getValue("variation:intensity:scale");
     intensity_scale_stddev_ = param_.getValue("variation:intensity:scale_stddev");
+    
+    contaminants_loaded_=false;
+  }
 
+  void RawMSSignalSimulation::loadContaminants()
+  {
     // contaminants:
-    String file = param_.getValue("contaminants:file");
-    if (file.trim().size()!=0)
+    String contaminants_file = param_.getValue("contaminants:file");
+
+    if (contaminants_file.trim().size()!=0)
     {
-      if (!File::readable(file)) throw Exception::FileNotReadable(__FILE__,__LINE__,__PRETTY_FUNCTION__,file);
+	    if (! File::readable( contaminants_file ) )
+      { // look in OPENMS_DATA_PATH
+        contaminants_file = File::find( contaminants_file );
+      }
+      if (!File::readable(contaminants_file)) throw Exception::FileNotReadable(__FILE__,__LINE__,__PRETTY_FUNCTION__,contaminants_file);
       // read & parse file:
-      TextFile tf(file,true);
+      TextFile tf(contaminants_file,true);
       contaminants_.clear();
       const UInt COLS_EXPECTED = 8;
       for (Size i=0;i<tf.size();++i)
       {
         if (tf[i].size()==0 || tf[i].hasPrefix("#")) continue; // skip comments
         StringList cols;
-        tf[i].removeWhitespaces().split(',', cols);
-        if (cols.size()!=COLS_EXPECTED) throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i],"Expected " + String(COLS_EXPECTED) + " components, got" + String(cols.size()));
+        tf[i].removeWhitespaces().split(',', cols, true);
+        if (cols.size()!=COLS_EXPECTED) throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i],"Expected " + String(COLS_EXPECTED) + " components, got " + String(cols.size()));
         ContaminantInfo c;
         c.name = cols[0];
         try
@@ -184,7 +197,7 @@ namespace OpenMS {
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,cols[1],"Could not parse line " + String(i+1) + " in " + file + ".");
+          throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,cols[1],"Could not parse line " + String(i+1) + " in " + contaminants_file + ".");
         }
         try
         {
@@ -195,21 +208,21 @@ namespace OpenMS {
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i],"Could not parse line " + String(i+1) + " in " + file + ".");
+          throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i],"Could not parse line " + String(i+1) + " in " + contaminants_file + ".");
         }
-        if (cols[6]=="rec") c.shape = RT_RECTANGULAR;
-        else if (cols[6]=="gauss") c.shape = RT_GAUSSIAN;
-        else throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i], "Unknown shape type: " + cols[6] + " in line " + String(i) + " of '" + file + "'");
+        if (cols[6].toUpper()=="REC") c.shape = RT_RECTANGULAR;
+        else if (cols[6].toUpper()=="GAUSS") c.shape = RT_GAUSSIAN;
+        else throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i], "Unknown shape type: " + cols[6] + " in line " + String(i) + " of '" + contaminants_file + "'");
 
-        if (cols[7]=="ESI") c.im = IM_ESI;
-        else if (cols[7]=="MALDI") c.im = IM_MALDI;
-        else if (cols[7]=="ALL") c.im = IM_ALL;
-        else throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i], "Unknown ionization type: " + cols[7] + " in line " + String(i) + " of '" + file + "'");
+        if (cols[7].toUpper()=="ESI") c.im = IM_ESI;
+        else if (cols[7].toUpper()=="MALDI") c.im = IM_MALDI;
+        else if (cols[7].toUpper()=="ALL") c.im = IM_ALL;
+        else throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i], "Unknown ionization type: " + cols[7] + " in line " + String(i) + " of '" + contaminants_file + "'");
 
         contaminants_.push_back(c);
       }
     }
-
+    contaminants_loaded_=true;
   }
 
   void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, FeatureMapSim & c_map)
@@ -227,6 +240,7 @@ namespace OpenMS {
     {
       LOG_INFO << "started" << std::endl;
     }
+
 		// retrieve mz boundary parameters from experiment:
 		SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
 		SimCoordinateType maximal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
@@ -517,10 +531,14 @@ namespace OpenMS {
   {
     if(exp.size() == 1) return;
 
+    if (!contaminants_loaded_) loadContaminants();
+
     IONIZATIONMETHOD this_im = (String)param_.getValue("ionization_type")=="ESI" ? IM_ESI : IM_MALDI;
     c_map.clear(true);
 
-    Size out_of_range(0);
+    Size out_of_range_RT(0),out_of_range_MZ(0);
+		SimCoordinateType minimal_mz_measurement_limit = exp[0].getInstrumentSettings().getScanWindows()[0].begin;
+		SimCoordinateType maximal_mz_measurement_limit = exp[0].getInstrumentSettings().getScanWindows()[0].end;
 
     for (Size i=0;i<contaminants_.size();++i)
     {
@@ -528,15 +546,18 @@ namespace OpenMS {
 
       if (exp.getMinRT() > contaminants_[i].rt_end || contaminants_[i].rt_start > exp.getMaxRT())
       {
-        ++out_of_range;
+        ++out_of_range_RT;
         continue;
       }
-
-
       // ... create contaminants...
       FeatureMapSim::FeatureType feature;
       feature.setRT( (contaminants_[i].rt_end+contaminants_[i].rt_start)/2 );
       feature.setMZ( contaminants_[i].sf.getMonoWeight() );
+      if (!(minimal_mz_measurement_limit < feature.getMZ() && feature.getMZ() < maximal_mz_measurement_limit))
+      {
+        ++out_of_range_MZ;
+        continue;
+      }
       feature.setIntensity(contaminants_[i].intensity);
       if (contaminants_[i].shape == RT_RECTANGULAR)
       {
@@ -555,7 +576,8 @@ namespace OpenMS {
       c_map.push_back(feature);
     }
 
-    LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range << " / " << contaminants_.size() << "\n";
+    LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range_RT << " / " << contaminants_.size() << "\n";
+    LOG_INFO << "Contaminants out-of-MZ-range: " << out_of_range_MZ << " / " << contaminants_.size() << "\n";
 
   }
 

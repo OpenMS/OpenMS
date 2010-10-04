@@ -71,6 +71,11 @@ namespace OpenMS {
 
     RawMSSignalSimulation& operator = (const RawMSSignalSimulation& source);
 
+    /// load the contaminants from contaminants:file param
+    /// You do not have to call this function before calling generateRawSignals(), but it might 
+    /// be useful to check if the contaminant file is valid
+    void loadContaminants();
+
     /// fill experiment with signals and noise
     void generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, FeatureMapSim & contaminants);
 
@@ -198,6 +203,7 @@ namespace OpenMS {
 
     std::vector<ContaminantInfo> contaminants_;
 
+    bool contaminants_loaded_;
   };
 
 }

@@ -166,6 +166,7 @@ namespace OpenMS {
     RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
     raw_sim.setLogType(this->getLogType());
+    raw_sim.loadContaminants(); // check if the file is valid (if not, an error is raised here instead of half-way through simulation)
 
 
     labeler_ = Factory<BaseLabeler>::create(labeling_name);
