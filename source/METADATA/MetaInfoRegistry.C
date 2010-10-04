@@ -156,12 +156,12 @@ namespace OpenMS
     #pragma omp critical (MetaInfoRegistry)
     {
       found = (index_to_name_.find(index) != index_to_name_.end());
+      if (found)
+      {
+        index_to_description_[index] = description;
+      }
     }
-    if (found)
-    {
-      index_to_description_[index] = description;
-    }
-    else
+    if (!found)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
     }
@@ -173,13 +173,13 @@ namespace OpenMS
     #pragma omp critical (MetaInfoRegistry)
     {
       found = (name_to_index_.find(name) != name_to_index_.end());
+	    if (found)
+	    {
+		    UInt index = getIndex(name);
+		    setDescription(index, description);
+	    }
     }
 	  if (!found)
-	  {
-		  UInt index = getIndex(name);
-		  setDescription(index, description);
-	  }
-	  else
 	  {
 		  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
 	  }
@@ -191,12 +191,12 @@ namespace OpenMS
     #pragma omp critical (MetaInfoRegistry)
     {
       found = (index_to_name_.end() != index_to_name_.find(index));
+      if (found)
+      {
+        index_to_unit_[index] = unit;
+      }
     }
-    if (found)
-    {
-      index_to_unit_[index] = unit;
-    }
-    else
+    if (!found)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
     }
@@ -207,14 +207,14 @@ namespace OpenMS
     bool found;
     #pragma omp critical (MetaInfoRegistry)
     {
-      found = (name_to_index_.find(name)!= name_to_index_.end());
+      found = (name_to_index_.find(name) != name_to_index_.end());
+	    if (found)
+	    {
+		    UInt index = getIndex(name);
+		    setUnit(index, unit);
+	    }
     }
 	  if (!found)
-	  {
-		  UInt index = getIndex(name);
-		  setUnit(index, unit);
-	  }
-	  else
 	  {
 		  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
 	  }
@@ -244,16 +244,17 @@ namespace OpenMS
 
 	String MetaInfoRegistry::getDescription(UInt index) const
 	{
-    map<UInt,String>::const_iterator it;
+    String result;
     #pragma omp critical (MetaInfoRegistry)
     {
-      it = index_to_description_.find(index);
+      map<UInt,String>::const_iterator it = index_to_description_.find(index);
 		  if (it == index_to_description_.end())
 		  {
 			  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
 		  }
+      result = it->second;
     }
-    return it->second;
+    return result;
 	}
  
 	String MetaInfoRegistry::getDescription(const String& name) const
@@ -273,16 +274,17 @@ namespace OpenMS
 
 	String MetaInfoRegistry::getUnit(UInt index) const
 	{
-    map<UInt,String>::const_iterator it;
+    String result;
     #pragma omp critical (MetaInfoRegistry)
     {
-      it = index_to_unit_.find(index);
+      map<UInt,String>::const_iterator it = index_to_unit_.find(index);
 		  if (it == index_to_unit_.end())
 		  {
 			  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
 		  }
+      result = it->second;
     }
-    return it->second;
+    return result;
 	}
 	
 	String MetaInfoRegistry::getUnit(const String& name) const

@@ -32,9 +32,12 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 #include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS
 {
+
 	/** 
 		@brief Class for product models i.e. models with D independent dimensions
 	
@@ -262,6 +265,10 @@ namespace OpenMS
           distributions_[dim] = Factory< BaseModel<1> >::create(this->param_.getValue(name));
           Param copy = this->param_.copy(name+":",true);
           distributions_[dim]->setParameters(copy);
+          if (distributions_[dim]->getName().hasSubstring( "IsotopeModel" ) )
+					{
+						static_cast<IsotopeModel*>( distributions_[dim] )->setSamples( static_cast<IsotopeModel*>(distributions_[dim])->getFormula());
+          }
         }
       }
 		}
