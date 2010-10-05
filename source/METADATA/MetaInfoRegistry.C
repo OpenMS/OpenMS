@@ -173,11 +173,11 @@ namespace OpenMS
     #pragma omp critical (MetaInfoRegistry)
     {
       found = (name_to_index_.find(name) != name_to_index_.end());
-	    if (found)
-	    {
-		    UInt index = getIndex(name);
-		    setDescription(index, description);
-	    }
+    }
+    if (found)
+    {
+	    UInt index = getIndex(name);
+	    setDescription(index, description);
     }
 	  if (!found)
 	  {
@@ -208,11 +208,11 @@ namespace OpenMS
     #pragma omp critical (MetaInfoRegistry)
     {
       found = (name_to_index_.find(name) != name_to_index_.end());
-	    if (found)
-	    {
-		    UInt index = getIndex(name);
-		    setUnit(index, unit);
-	    }
+    }
+    if (found)
+    {
+	    UInt index = getIndex(name);
+	    setUnit(index, unit);
     }
 	  if (!found)
 	  {
