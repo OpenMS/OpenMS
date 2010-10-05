@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------------------------
+----                                  OpenMS 1.7.1                                    ----
+------------------------------------------------------------------------------------------
+
+Fixed Issues:
+- fixed BaselineFilter, NoiseFilter, PeakPicker bugs when handling empty and chromatogram data
+- fixed improper error messages for FeatureFinder-MRM
+- fixed FileFilter not sorting filtered ConsensusMap even if sort parameter was given
+
+------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.7                                      ----
 ------------------------------------------------------------------------------------------
 
