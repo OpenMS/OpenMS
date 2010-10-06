@@ -110,7 +110,7 @@ protected:
 		registerTOPPSubsection_("reference", "Options to define a reference file (currently only supported by the algorithms 'identification' and 'pose_clustering_affine')");
 		registerInputFile_("reference:file", "<file>", "", "File to use as reference (for the 'pose_clustering_affine' algorithm, same file format as input files required)\n", false);
 		setValidFormats_("reference:file", StringList::create(formats));
-		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.)", false);
+		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set, but the selected algorithm may pick one if needed.", false);
 		setMinInt_("reference:index", 0);
 
     addEmptyLine_();
