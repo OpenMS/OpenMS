@@ -94,6 +94,8 @@ namespace OpenMS
 				@brief Picks the peaks in an MSExperiment.
 			
 				Picks the peaks successive in every scan in the spectrum range. The detected peaks are stored in the output MSExperiment.
+        
+        @throws Exception::UnableToFit() if peak width cannot be determined (if estimation is set to auto)
     */
     void pickExperiment(const MSExperiment<>& input, MSExperiment<>& output);
 

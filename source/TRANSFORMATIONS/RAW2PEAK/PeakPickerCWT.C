@@ -1222,7 +1222,7 @@ namespace OpenMS
 				DoubleReal p_w = estimatePeakWidth(input);
 				if(p_w == 0.)
 					{
-						std::cout<< "Aborting!"<<std::endl;
+            throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"estimatePeakWidth()","Peak width could not be determined from data!");
 						return;
 					}
 				else

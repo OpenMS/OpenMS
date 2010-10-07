@@ -201,7 +201,15 @@ class TOPPPeakPicker
     	PeakPickerCWT pp;
       pp.setLogType(log_type_);
 			pp.setParameters(pepi_param);
-			pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
+      try
+      {
+			  pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
+      }
+      catch (Exception::BaseException& e)
+      {
+        LOG_ERROR << "Exception catched: " << e.what() << "\n";
+        return INTERNAL_ERROR;
+      }
     }
     else if (type == "high_res")
     {
