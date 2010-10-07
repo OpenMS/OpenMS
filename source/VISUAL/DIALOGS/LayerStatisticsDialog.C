@@ -272,7 +272,7 @@ namespace OpenMS
 		max_intensity_ = canvas_->getCurrentMaxIntensity();
 		avg_intensity_ = 0;
 		unsigned long divisor = 0;
-		for(LayerData::ExperimentType::ConstIterator it_rt = layer_data_.peaks.begin(); it_rt != layer_data_.peaks.end(); it_rt++)
+                for(LayerData::ExperimentType::ConstIterator it_rt = layer_data_.getPeakData()->begin(); it_rt != layer_data_.getPeakData()->end(); it_rt++)
 		{
 			for(PeakIterator_ it_peak = it_rt->begin(); it_peak != it_rt->end(); it_peak++)
 			{
@@ -292,19 +292,19 @@ namespace OpenMS
 		min_intensity_ = canvas_->getCurrentMinIntensity();
 		max_intensity_ = canvas_->getCurrentMaxIntensity();
 		avg_intensity_ = 0;
-		if(!layer_data_.features.empty())
+    if(!layer_data_.getFeatureMap()->empty())
 		{
-			min_charge_ = layer_data_.features.begin()->getCharge();
-			max_charge_ = layer_data_.features.begin()->getCharge();
+      min_charge_ = layer_data_.getFeatureMap()->begin()->getCharge();
+      max_charge_ = layer_data_.getFeatureMap()->begin()->getCharge();
 			avg_charge_ = 0;
 		
-			min_quality_ = layer_data_.features.begin()->getOverallQuality();
-			max_quality_ = layer_data_.features.begin()->getOverallQuality();
+      min_quality_ = layer_data_.getFeatureMap()->begin()->getOverallQuality();
+      max_quality_ = layer_data_.getFeatureMap()->begin()->getOverallQuality();
 			avg_quality_ = 0;
 		}
 		
 		unsigned long divisor = 0;
-		for(FeatureIterator_ it = layer_data_.features.begin(); it != layer_data_.features.end(); it++)
+    for(FeatureIterator_ it = layer_data_.getFeatureMap()->begin(); it != layer_data_.getFeatureMap()->end(); it++)
 		{
 			if(it->getCharge() < min_charge_) min_charge_ = it->getCharge();
 			if(it->getCharge() > max_charge_) max_charge_ = it->getCharge();
@@ -331,23 +331,23 @@ namespace OpenMS
 		min_intensity_ = canvas_->getCurrentMinIntensity();
 		max_intensity_ = canvas_->getCurrentMaxIntensity();
 		avg_intensity_ = 0;
-		if(!layer_data_.consensus.empty())
+    if(!layer_data_.getConsensusMap()->empty())
 		{
-			min_charge_ = layer_data_.consensus.begin()->getCharge();
-			max_charge_ = layer_data_.consensus.begin()->getCharge();
+      min_charge_ = layer_data_.getConsensusMap()->begin()->getCharge();
+      max_charge_ = layer_data_.getConsensusMap()->begin()->getCharge();
 			avg_charge_ = 0;
 		
-			min_quality_ = layer_data_.consensus.begin()->getQuality();
-			max_quality_ = layer_data_.consensus.begin()->getQuality();
+      min_quality_ = layer_data_.getConsensusMap()->begin()->getQuality();
+      max_quality_ = layer_data_.getConsensusMap()->begin()->getQuality();
 			avg_quality_ = 0;
 			
-			min_elements_ = layer_data_.consensus.begin()->size();
-			max_elements_ = layer_data_.consensus.begin()->size();
+      min_elements_ = layer_data_.getConsensusMap()->begin()->size();
+      max_elements_ = layer_data_.getConsensusMap()->begin()->size();
 			avg_elements_ = 0;			
 		}
 		
 		unsigned long divisor = 0;
-		for(ConsensusIterator_ it = layer_data_.consensus.begin(); it != layer_data_.consensus.end(); it++)
+    for(ConsensusIterator_ it = layer_data_.getConsensusMap()->begin(); it != layer_data_.getConsensusMap()->end(); it++)
 		{
 			if(it->getCharge() < min_charge_) min_charge_ = it->getCharge();
 			if(it->getCharge() > max_charge_) max_charge_ = it->getCharge();

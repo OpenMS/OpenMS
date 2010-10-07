@@ -50,6 +50,9 @@ namespace OpenMS
 		
 		x_axis_->hide();
 		y_axis_->hide();
+
+    // delegate signals from canvas
+    connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
 	}
 	
 	Spectrum3DWidget::~Spectrum3DWidget()
@@ -73,7 +76,7 @@ namespace OpenMS
 		}
 		Histogram<> tmp(min,max,(max-min)/500.0);
 		
-		for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().peaks.begin(); spec_it != canvas_->getCurrentLayer().peaks.end(); ++spec_it)
+                for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().getPeakData()->begin(); spec_it != canvas_->getCurrentLayer().getPeakData()->end(); ++spec_it)
 		{
 			if (spec_it->getMSLevel()!=1) continue;
 			for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
@@ -91,7 +94,7 @@ namespace OpenMS
 		
 		//determine min and max of the data
 		Real m_min = (numeric_limits<Real>::max)(), m_max = -(numeric_limits<Real>::max)();
-		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
+                for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it!=canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;
 			//float arrays
@@ -125,7 +128,7 @@ namespace OpenMS
 		
 		//create histogram
 		tmp.reset(m_min,m_max,(m_max-m_min)/500.0);
-		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
+                for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it!=canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;
 			//float arrays

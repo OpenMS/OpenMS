@@ -38,9 +38,9 @@ namespace OpenMS
 		os << "--LayerData BEGIN--"<<std::endl;
 		os << "name: " << rhs.name << std::endl;
 		os << "visible: " << rhs.visible << std::endl;
-		os << "number of peaks: " << rhs.peaks.getSize() << std::endl;
+                os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
 		os << "--LayerData END--"<<std::endl;
 		return os;
-	}
+            }
 }//Namespace
 

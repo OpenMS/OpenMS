@@ -94,13 +94,18 @@ namespace OpenMS
 			// Docu in base class
 			virtual void saveCurrentLayer(bool visible);
 
+    signals:
+      /// Requests to display all spectra in 2D plot
+      void showCurrentPeaksAs2D();
+
 		public slots:
 			
 	    // Docu in base class
 	    void activateLayer(Size layer_index);
 	    // Docu in base class
 	    void removeLayer(Size layer_index);
-  	
+      //docu in base class
+      virtual void updateLayer(Size i);
   	protected slots:
   		
 			/// Reacts on changed layer paramters
@@ -112,13 +117,11 @@ namespace OpenMS
 	    bool finishAdding_();
 			
   		// Reimplementation in order to update the OpenGL widget
-  		virtual void update_(const char* caller_name);
+      virtual void update_(const char* caller_name = 0);
 
 			///whether the legend is shoen or not
 			bool legend_shown_;
 
-			//docu in base class
-			virtual void updateLayer_(Size i);
       //docu in base class
 			virtual void translateLeft_();
 			//docu in base class

@@ -89,6 +89,12 @@ namespace OpenMS
 		/// Is emitted whenever the visible area changes.		
 		void visibleAreaChanged(double, double); 
 
+    /// Requests to display the whole spectrum in 2D view
+    void showCurrentPeaksAs2D();
+
+    /// Requests to display the whole spectrum in 3D view
+    void showCurrentPeaksAs3D();
+
 	public slots:
 		// Docu in base class
     virtual void showGoToDialog();

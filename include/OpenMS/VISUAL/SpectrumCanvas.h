@@ -52,8 +52,7 @@ class QMenu;
 namespace OpenMS
 {
 	class SpectrumWidget;
-	class FileWatcher;
-	
+
 	/**
 		@brief Base class for visualization canvas classes
 		
@@ -95,16 +94,23 @@ namespace OpenMS
 		/**	@name Type definitions */
 		//@{
 		
-		/// Main data type (experiment)
-		typedef LayerData::ExperimentType ExperimentType;
+    /// Main data type (experiment)
+    typedef LayerData::ExperimentType ExperimentType;
+    /// Main managed data type (experiment)
+    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
 		/// Main data type (features)
 		typedef LayerData::FeatureMapType FeatureMapType;
+    /// Main managed data type (features)
+    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 		/// Main data type (consensus features)
 		typedef LayerData::ConsensusMapType ConsensusMapType;
+    /// Main managed data type (consensus features)
+    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+
 		/// Spectrum type
 		typedef ExperimentType::SpectrumType SpectrumType;
 		/// Spectrum iterator type (iterates over peaks)
-		typedef SpectrumType::Iterator SpectrumIteratorType;
+                typedef SpectrumType::ConstIterator SpectrumConstIteratorType;
 		/// Peak type
 		typedef SpectrumType::PeakType PeakType;
 		/// Feature type
@@ -314,32 +320,32 @@ namespace OpenMS
 				
 			If chromatograms are present, a chromatogram layer is shown. Otherwise a peak layer is shown. Make sure to remove chromatograms from peak data and vice versa.
 		
-			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
+      @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
 
 			@return If a new layer was created
 		*/
-		bool addLayer(ExperimentType& map, const String& filename="");
+    bool addLayer(ExperimentSharedPtrType map, const String& filename="");
 
 		/**
 			@brief Add a feature data layer
 			
-			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
-			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+      @param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
 			@return If a new layer was created
 		*/
-		bool addLayer(FeatureMapType& map, const String& filename="");
+    bool addLayer(FeatureMapSharedPtrType map, const String& filename="");
 		
 		/**
 			@brief Add a consensus feature data layer
 			
-			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
-			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+      @param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
 			@return If a new layer was created
 		*/
-		bool addLayer(ConsensusMapType& map, const String& filename="");
+    bool addLayer(ConsensusMapSharedPtrType map, const String& filename="");
 		//@}
 		
 		/**
@@ -358,15 +364,15 @@ namespace OpenMS
 		{ 
 			if (getCurrentLayer().type==LayerData::DT_PEAK || getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
 			{
-				return getCurrentLayer().peaks.getMinInt(); 
+        return getCurrentLayer().getPeakData()->getMinInt();
 			}
 			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
 			{
-				return getCurrentLayer().features.getMinInt(); 
+        return getCurrentLayer().getFeatureMap()->getMinInt();
 			}
 			else
 			{
-				return getCurrentLayer().consensus.getMinInt(); 
+        return getCurrentLayer().getConsensusMap()->getMinInt();
 			}
 		}
 
@@ -375,15 +381,15 @@ namespace OpenMS
 		{ 
 			if (getCurrentLayer().type==LayerData::DT_PEAK || getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
 			{
-				return getCurrentLayer().peaks.getMaxInt();
+        return getCurrentLayer().getPeakData()->getMaxInt();
 			}
 			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
 			{
-				return getCurrentLayer().features.getMaxInt();
+        return getCurrentLayer().getFeatureMap()->getMaxInt();
 			}
 			else
 			{
-				return getCurrentLayer().consensus.getMaxInt();
+        return getCurrentLayer().getConsensusMap()->getMaxInt();
 			}
 		}
 
@@ -392,15 +398,15 @@ namespace OpenMS
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK || getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
 			{
-				return getLayer(index).peaks.getMinInt();
+        return getLayer(index).getPeakData()->getMinInt();
 			}
 			else if (getLayer(index).type==LayerData::DT_FEATURE)
 			{
-				return getLayer(index).features.getMinInt();
+        return getLayer(index).getFeatureMap()->getMinInt();
 			}
 			else
 			{
-				return getLayer(index).consensus.getMinInt();
+        return getLayer(index).getConsensusMap()->getMinInt();
 			}
 		}
 
@@ -409,15 +415,15 @@ namespace OpenMS
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK || getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
 			{
-				return getLayer(index).peaks.getMaxInt();
+        return getLayer(index).getPeakData()->getMaxInt();
 			}
 			else if (getLayer(index).type==LayerData::DT_FEATURE)
 			{
-				return getLayer(index).features.getMaxInt();
+        return getLayer(index).getFeatureMap()->getMaxInt();
 			}
 			else
 			{
-				return getLayer(index).consensus.getMaxInt();
+        return getLayer(index).getConsensusMap()->getMaxInt();
 			}
 		}
 
@@ -563,6 +569,9 @@ namespace OpenMS
 		*/
 		void getVisibleIdentifications(std::vector<PeptideIdentification>& peptides) const;
 
+    ///Updates layer @p i when the data in the corresponding file changes
+    virtual void updateLayer(Size i) = 0;
+
 	signals:
 
 		/// Signal emitted whenever the modification status of a layer changes (editing and storing)
@@ -605,9 +614,6 @@ namespace OpenMS
 		
 	protected slots:
 	
-		///Slot that is used to track file changes in order to update the data
-		void fileChanged_(const String& filename);
-
 		///Updates the cursor accoring to the current action mode
 		void updateCursor_();
 
@@ -642,11 +648,11 @@ namespace OpenMS
 			return getLayer_(current_layer_);
 		}
 		
-		/// Returns the active layer (mutable)
-		inline ExperimentType& currentPeakData_()
-		{
-			return getCurrentLayer_().peaks;
-		}
+    /// Returns the currently active layer (mutable)
+    inline ExperimentSharedPtrType currentPeakData_()
+    {
+            return getCurrentLayer_().getPeakData();
+    }
 	
 		///@name reimplemented QT events
 		//@{
@@ -661,8 +667,7 @@ namespace OpenMS
 		
 		///This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
 		virtual void intensityModeChange_();
-		
-		
+				
 		/**
 			@brief Sets the visible area
 			
@@ -713,8 +718,6 @@ namespace OpenMS
 		*/
 		virtual void updateScrollbars_();
 		
-		///Updates layer @p i when the data in the corresponding file changes
-		virtual void updateLayer_(Size i) = 0;
 		
 		/**
 			@brief Convert widget to chart coordinates
@@ -836,7 +839,7 @@ namespace OpenMS
 		virtual void update_(const char* caller_name);
 		
 		///Takes all actions necessary when the modification status of a layer changes (signals etc.)
-		void modificationStatus_(Size layer_index, bool modified);
+    void modificationStatus_(Size layer_index, bool modified);
 		
 		/// Whether to recalculate the data in the buffer when repainting
 		bool update_buffer_;
@@ -868,17 +871,12 @@ namespace OpenMS
 		std::vector<DoubleReal> snap_factors_;
 		
 		/// Rubber band for selected area
-		QRubberBand rubber_band_;
+		QRubberBand rubber_band_;		
 		
-		///Watcher that tracks file changes (in order to update the data in the viewer)
-		FileWatcher* watcher_;
-		///Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
-		Map<UInt,bool> watcher_msgbox_;
-		
-		///External context menu extension
+    /// External context menu extension
 		QMenu* context_add_;
 		
-		///Flag that determines if timimg data is printed to the command line
+    /// Flag that determines if timimg data is printed to the command line
 		bool show_timing_;
 
 		/// selected peak
@@ -886,7 +884,7 @@ namespace OpenMS
 		/// start peak of measuring mode
     PeakIndex measurement_start_;
 
-		///Data processing setter for peak maps
+    /// Data processing setter for peak maps
 		template<typename PeakType>
 		void addDataProcessing_(MSExperiment<PeakType>& map, DataProcessing::ProcessingAction action) const
 		{

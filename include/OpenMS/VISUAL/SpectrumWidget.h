@@ -92,6 +92,11 @@ namespace OpenMS
 			{ 
 				return canvas_; 
 			}
+
+      SpectrumCanvas* canvas() const
+      {
+        return canvas_;
+      }
 			
 			///Returns a pointer to the x-axis axis widget.
 			inline AxisWidget* xAxis() 

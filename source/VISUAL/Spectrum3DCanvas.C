@@ -56,7 +56,7 @@ namespace OpenMS
     defaults_.setMinInt("dot:shade_mode",0);
     defaults_.setMaxInt("dot:shade_mode",1);
     defaults_.setValue("dot:gradient", "Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Peak color gradient.");
-    defaults_.setValue("dot:interpolation_steps",200, "Interpolation steps for peak color gradient precalculation.");
+    defaults_.setValue("dot:interpolation_steps",1000, "Interpolation steps for peak color gradient precalculation.");
     defaults_.setMinInt("dot:interpolation_steps",1);
     defaults_.setMaxInt("dot:interpolation_steps",1000);
     defaults_.setValue("dot:line_width",2,"Line width for peaks.");
@@ -87,8 +87,7 @@ namespace OpenMS
 	
 	void Spectrum3DCanvas::showLegend(bool show)
 	{
-		legend_shown_ = show;
-		update_buffer_ = true;
+		legend_shown_ = show;		
 		update_(__PRETTY_FUNCTION__);
 	}
 
@@ -106,13 +105,11 @@ namespace OpenMS
 		}
 		
 		current_layer_ = getLayerCount()-1;
-		currentPeakData_().sortSpectra(true);
-		currentPeakData_().updateRanges(1);	
 
 		//Abort if no data points are contained
-		if (getCurrentLayer().peaks.size()==0 || getCurrentLayer().peaks.getSize()==0)
+    if (getCurrentLayer().getPeakData()->size()==0 || getCurrentLayer().getPeakData()->getSize()==0)
 		{
-			layers_.resize(getLayerCount()-1);
+      layers_.resize(getLayerCount()-1);
 			if (current_layer_!=0) current_layer_ = current_layer_-1;
 			QMessageBox::critical(this,"Error","Cannot add a dataset that contains no survey scans. Aborting!");
 			return false;
@@ -131,12 +128,6 @@ namespace OpenMS
 		openglwidget()->recalculateDotGradient_(current_layer_);
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
-
-		//set watch on the file
-		if (File::exists(getCurrentLayer().filename))
-		{
-			watcher_->addFile(getCurrentLayer().filename.toQString());
-		}
 
 		return true;
 	}
@@ -182,22 +173,20 @@ namespace OpenMS
 		return static_cast<Spectrum3DOpenGLCanvas*>(openglcanvas_);
 	}
 	
-	void Spectrum3DCanvas::update_(const char*
-#ifdef DEBUG_UPDATE_
-			caller_name)
+  void Spectrum3DCanvas::update_(const char* caller)
 	{
-		cout << "Spectrum3DCanvas::update_ from '" << caller_name << "'" << endl;
-#else
-		)
-	{
-#endif
+    #ifdef DEBUG_TOPPVIEW
+      cout << "BEGIN " << __PRETTY_FUNCTION__ << " caller: " << caller << endl;
+    #endif
+
+    std::cout << caller << std::endl;
 		if(update_buffer_)
 		{
 			update_buffer_ = false;
-			if(intensity_mode_ == SpectrumCanvas::IM_SNAP)
-			{
-				openglwidget()->updateIntensityScale();
-			}
+      if(intensity_mode_ == SpectrumCanvas::IM_SNAP)
+      {
+        openglwidget()->updateIntensityScale();
+      }
 			openglwidget()->initializeGL(); 
 		}
 		openglwidget()->resizeGL(width(), height());
@@ -215,13 +204,11 @@ namespace OpenMS
 		QComboBox* shade = dlg.findChild<QComboBox*>("shade");
 		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
 		QSpinBox* width  = dlg.findChild<QSpinBox*>("width");
-		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 		
 		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));		
 		shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
 		gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
 		width->setValue(UInt(layer.param.getValue("dot:line_width")));
-		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));	
 
 		if (dlg.exec())
 		{
@@ -229,7 +216,6 @@ namespace OpenMS
 			layer.param.setValue("dot:shade_mode",shade->currentIndex());
 			layer.param.setValue("dot:gradient",gradient->gradient().toString());
 			layer.param.setValue("dot:line_width",width->value());
-			param_.setValue("on_file_change", on_file_change->currentText());
 			
 		  emit preferencesChange();
 		}
@@ -260,20 +246,21 @@ namespace OpenMS
 		}
 		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
-
 		context_menu->addAction("Layer meta data");
 
 		QMenu* save_menu = new QMenu("Save");
 		context_menu->addMenu(save_menu);
 		save_menu->addAction("Layer");
 		save_menu->addAction("Visible layer data");
-		
+
 		QMenu* settings_menu = new QMenu("Settings");
 		context_menu->addMenu(settings_menu);
 		settings_menu->addAction("Show/hide grid lines");
 		settings_menu->addAction("Show/hide axis legends");
 		settings_menu->addSeparator();
  		settings_menu->addAction("Preferences");
+
+    context_menu->addAction("Switch to 2D view");
 
 		//add external context menu
 		if (context_add_)
@@ -304,7 +291,10 @@ namespace OpenMS
 			else if (result->text()=="Layer meta data")
 			{
 				showMetaData(true);
-			}
+      } else if (result->text()=="Switch to 2D view")
+      {
+        emit showCurrentPeaksAs2D();
+      }
 		}		
 		e->accept();
 	}
@@ -361,61 +351,35 @@ namespace OpenMS
 			}
 			else //all data
 			{
-				FileHandler().storeExperiment(file_name,layer.peaks,ProgressLogger::GUI);
+        FileHandler().storeExperiment(file_name,*layer.getPeakData(),ProgressLogger::GUI);
 			}
 		}
 	}
 
-
-	void Spectrum3DCanvas::updateLayer_(Size i)
+  void Spectrum3DCanvas::updateLayer(Size i)
 	{
-		LayerData& layer = getLayer_(i);
-		
-		//update data
-		try
-		{
-			FileHandler().loadExperiment(layer.filename,layer.peaks);
-		}
-		catch(Exception::BaseException& e)
-		{
-			QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-			layer.peaks.clear(true);
-		}
-		layer.peaks.sortSpectra(true);
-		layer.peaks.updateRanges(1);
-		
+    selected_peak_.clear();
 		recalculateRanges_(0,1,2);
-		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
-		
+    resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 		openglwidget()->recalculateDotGradient_(i);
-		
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
-		modificationStatus_(i, false);
+    intensityModeChange_();
+    modificationStatus_(i, false);
 	}
 
 	void Spectrum3DCanvas::translateLeft_()
 	{
-		openglwidget()->trans_x_ -= 10;
-		update_(__PRETTY_FUNCTION__);
 	}
 	
 	void Spectrum3DCanvas::translateRight_()
 	{
-		openglwidget()->trans_x_ += 10;
-		update_(__PRETTY_FUNCTION__);
 	}
 	
 	void Spectrum3DCanvas::translateForward_()
 	{
-		openglwidget()->trans_y_ += 10;
-		update_(__PRETTY_FUNCTION__);		
 	}
 	
 	void Spectrum3DCanvas::translateBackward_()
 	{
-		openglwidget()->trans_y_ -= 10;
-		update_(__PRETTY_FUNCTION__);		
 	}
 
 }//namspace

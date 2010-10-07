@@ -137,11 +137,20 @@ namespace OpenMS
 			/// Sets current spectrum index of current layer to @p index
 			void activateSpectrum(Size index, bool repaint=true);
 			
+  signals:
+      /// Requests to display all spectra in 2D plot
+      void showCurrentPeaksAs2D();
+      /// Requests to display all spectra in 3D plot
+      void showCurrentPeaksAs3D();
+
 		public slots:
 			// Docu in base class
 			void activateLayer(Size layer_index);
 			// Docu in base class
 			void removeLayer(Size layer_index);
+      //docu in base class
+      virtual void updateLayer(Size i);
+
 			/**
 				@brief Sets the visible area.
 				
@@ -224,8 +233,6 @@ namespace OpenMS
 			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
 			
-			//docu in base class
-			virtual void updateLayer_(Size i);
       ///Go forward in zoom history
 	    virtual void zoomForward_();
       //docu in base class

@@ -49,14 +49,14 @@ namespace OpenMS
 		setMouseTracking(TRUE);
 		setFocusPolicy(Qt::StrongFocus);
 	  
-	  corner_=100.0;  
-	  near_=0.0;  
-	  far_=600.0;
+    corner_= 100.0;
+    near_= 0.0;
+    far_= 600.0;
 	  zoom_= 1.5; 
-	  xrot_=220;
+    xrot_= 220;
 	  yrot_ = 220;
-	  zrot_=0;
-	  trans_x_ =0.0;
+    zrot_= 0;
+    trans_x_ = 0.0;
 	  trans_y_ = 0.0;
 	}
 	  
@@ -121,6 +121,16 @@ namespace OpenMS
         yrot_ = 0;
         zrot_ = 0;  
         zoom_ = 1.25;
+
+        if (stickdata_  != 0)
+        {
+          glDeleteLists(stickdata_, 1);
+          #ifdef DEBUG_TOPPVIEW
+            cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+            std::cout << "Deleting sticklist near makeDataAsTopView" << std::endl;
+          #endif
+        }
+
         stickdata_ = makeDataAsTopView();
         axes_ticks_ = makeAxesTicks();   
         drawAxesLegend();
@@ -138,6 +148,16 @@ namespace OpenMS
       y_1_ = 0.0;
       x_2_ = 0.0;
       y_2_ = 0.0;
+
+      if (stickdata_  != 0)
+      {
+        glDeleteLists(stickdata_, 1);
+        #ifdef DEBUG_TOPPVIEW
+          cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+          std::cout << "Deleting sticklist near makeDataAsTopView" << std::endl;
+        #endif
+      }
+
       stickdata_ =  makeDataAsStick();
       axes_ticks_ = makeAxesTicks();
       drawAxesLegend();	  	
@@ -400,7 +420,7 @@ namespace OpenMS
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
 		glPointSize(3.0);
-	
+
 		for (Size i =0;i<canvas_3d_.getLayerCount();++i)
 		{	
 			const LayerData& layer = canvas_3d_.getLayer(i);
@@ -415,29 +435,57 @@ namespace OpenMS
 					glShadeModel(GL_FLAT); 
 				}
 				
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0]); 
-						 it != layer.peaks.areaEndConst(); 
-						 ++it)
+        Spectrum3DCanvas::ExperimentType::ConstAreaIterator begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0]);
+        Spectrum3DCanvas::ExperimentType::ConstAreaIterator end_it = layer.getPeakData()->areaEndConst();
+
+        // count peaks in area
+        int count = 0;
+        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
+        {
+          count++;
+        }
+
+        int max_displayed_peaks = 10000;
+        int step = 1;
+        if (count > max_displayed_peaks)
+        {
+          step = 1 + count / max_displayed_peaks;
+        }
+
+        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
 				{
+          if (step > 1)
+          {
+            for (int i=0; i<step-1; ++i)
+            {
+              ++it;              
+            }
+          }
+          if (it == end_it)
+          {
+            glEndList();
+            return list;
+          }
+
 					PeakIndex pi = it.getPeakIndex();
-					if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
+          if (layer.filters.passes((*layer.getPeakData())[pi.spectrum],pi.peak))
 					{
 						glBegin(GL_POINTS);
 						double intensity = 0;
 						switch (canvas_3d_.intensity_mode_)
 						{
-							case SpectrumCanvas::IM_NONE:
-								qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
-								break;
-							case SpectrumCanvas::IM_PERCENTAGE:	
-								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
-								qglColor(layer.gradient.precalculatedColorAt(intensity ));
-								break;
-							case SpectrumCanvas::IM_SNAP:
-								qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
-								break;
+            case SpectrumCanvas::IM_NONE:
+              qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
+              break;
+            case SpectrumCanvas::IM_PERCENTAGE:
+              intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
+              qglColor(layer.gradient.precalculatedColorAt(intensity ));
+              break;
+            case SpectrumCanvas::IM_SNAP:
+              qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
+              break;
 						}
-						glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
+            glVertex3f(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 											 -corner_,
 											 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 						glEnd();		
@@ -452,7 +500,7 @@ namespace OpenMS
 	GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 	{
 		GLuint list = glGenLists(1);
-		glNewList(list,GL_COMPILE);
+    glNewList(list, GL_COMPILE);
 	
 		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
@@ -472,12 +520,39 @@ namespace OpenMS
 	
 				glLineWidth(layer.param.getValue("dot:line_width"));
 					
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0]); 
-						 it != layer.peaks.areaEndConst(); 
-						 ++it)
-				{
+        Spectrum3DCanvas::ExperimentType::ConstAreaIterator begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0]);
+        Spectrum3DCanvas::ExperimentType::ConstAreaIterator end_it = layer.getPeakData()->areaEndConst();
+        // count peaks in area
+        int count = 0;
+        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
+        {
+          count++;
+        }
+
+        int max_displayed_peaks = 100000;
+        int step = 1;
+        if (count > max_displayed_peaks)
+        {
+          step = 1 + count / max_displayed_peaks;
+        }
+
+        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
+        {
+          if (step > 1)
+          {
+            for (int i=0; i<step-1; ++i)
+            {
+              ++it;
+            }
+          }
+          if (it == end_it)
+          {
+            glEndList();
+            return list;
+          }
+
 					PeakIndex pi = it.getPeakIndex();
-					if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
+          if (layer.filters.passes((*layer.getPeakData())[pi.spectrum],pi.peak))
 					{
 						glBegin(GL_LINES);
 						double intensity = 0;
@@ -897,11 +972,12 @@ namespace OpenMS
 		
 		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
 		{
-			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getLayer(i).peaks.RTBegin(canvas_3d_.visible_area_.min_[1]); 
-					 spec_it != canvas_3d_.getLayer(i).peaks.RTEnd(canvas_3d_.visible_area_.max_[1]); 
-					 ++spec_it)
+      SpectrumCanvas::ExperimentType::ConstIterator rt_begin_it = canvas_3d_.getLayer(i).getPeakData()->RTBegin(canvas_3d_.visible_area_.min_[1]);
+      SpectrumCanvas::ExperimentType::ConstIterator rt_end_it = canvas_3d_.getLayer(i).getPeakData()->RTEnd(canvas_3d_.visible_area_.max_[1]);
+
+      for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
 			{
-				for (SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]); ++it)
+        for (SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]); ++it)
 				{
 					if(	int_scale_.min_[0]>= it->getIntensity())
 					{

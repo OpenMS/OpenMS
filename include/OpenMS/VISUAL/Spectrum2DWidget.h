@@ -56,6 +56,8 @@ namespace OpenMS
 	{
 		Q_OBJECT
 	public:
+                /// Main managed data type (experiment)
+                typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
 
 		/// Default constructor
 		Spectrum2DWidget(const Param& preferences, QWidget* parent = 0);
@@ -96,6 +98,8 @@ namespace OpenMS
 		void visibleAreaChanged(DRange<2> area);
 		/// Requests to display the spectrum with index @p index in 1D
 		void showSpectrumAs1D(int index);
+    /// Requests to display all spectra as 1D
+    void showCurrentPeaksAs3D();
 
 	protected:
 		// Docu in base class
@@ -122,9 +126,9 @@ namespace OpenMS
 		
 	private slots:
 		/// shows the horizontal projection with the given data and draw mode
-		void horizontalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes);
+                void horizontalProjection(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes);
 		/// shows the vertical projection with the given data and draw mode
-		void verticalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes);
+                void verticalProjection(ExperimentSharedPtrType exp, Spectrum1DCanvas::DrawModes);
 		/// shows projections information
 		void projectionInfo(int peaks, double intensity, double max);
 		/// slot that monitors the visible area changes and triggers the update of projections
