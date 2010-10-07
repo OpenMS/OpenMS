@@ -139,6 +139,7 @@ class TOPPFileFilter
 		registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 		registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
 		registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
+		registerFlag_("map_and", "AND connective of map selection instead of OR.");
 
 		addEmptyLine_();
 		addText_("Remove spectra: ");
@@ -592,6 +593,14 @@ class TOPPFileFilter
 			{
 				// generate new consensuses with features that appear in the 'maps' list        
 				ConsensusMap cm_new; // new consensus map
+				
+				for (IntList::iterator map_it=maps.begin();map_it!=maps.end();++map_it)
+				{
+					cm_new.getFileDescriptions()[*map_it].filename = consensus_map_filtered.getFileDescriptions()[*map_it].filename;
+					cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
+					cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
+				}
+
 				for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
 				{					
 					ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
@@ -608,8 +617,9 @@ class TOPPFileFilter
 					}
 					
 					consensus_feature_new.computeConsensus(); // evaluate position of the consensus
+					bool and_connective=getFlag_("map_and");
 
-					if (consensus_feature_new.size() != 0) // add the consensus to the consensus map only if it is non-empty 
+					if ((consensus_feature_new.size() != 0 && !and_connective) || (consensus_feature_new.size()==maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty 
 					{            
 						cm_new.push_back(consensus_feature_new);
 					}
