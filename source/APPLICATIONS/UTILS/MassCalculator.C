@@ -89,8 +89,9 @@ protected:
 
 	void registerOptionsAndFlags_()
 		{
-			registerStringList_("in", "<peptides/file>", StringList(), "List of peptide sequences, or single input file containing peptide sequences (and potentially charge numbers)");
-			registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
+			registerInputFile_("in", "<file>", "", "Input file containing peptide sequences (and potentially charge numbers)", false);
+			registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences", false,false);
+      registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
 			registerIntList_("charge", "<numbers>", IntList(), "List of charge states; required if 'in' is a list of peptide sequences", false);
 			registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
 			setValidStrings_("format", StringList::create("list,table,mass_only,mz_only"));
@@ -181,8 +182,8 @@ protected:
 				AASequence seq(item);
 				if (!seq.isValid())
 				{
-					LOG_ERROR << "Error: '" << item
-										<< "' is not a valid peptide sequence - skipping";
+					LOG_WARN << "Warning: '" << item
+										<< "' is not a valid peptide sequence - skipping\n";
 					continue;
 				}
 				set<Int> local_charges(charges);
@@ -197,9 +198,9 @@ protected:
 				}
 				if (local_charges.empty())
 				{
-					LOG_ERROR << "Error: No charge state specified - skipping";
-					continue;
-				}
+          LOG_WARN << "Warning: No charge state specified - skipping\n";
+ 					continue;
+        }
 				writeLine_(seq, local_charges);
 			}
 			input.close();
@@ -208,7 +209,8 @@ protected:
 
 	ExitCodes main_(int, const char**)
 		{
-			StringList in = getStringList_("in");
+			String in = getStringOption_("in");
+      StringList in_seq = getStringList_("in_seq");
 			String out = getStringOption_("out");
 			IntList charge_list = getIntList_("charge");
 			set<Int> charges(charge_list.begin(), charge_list.end());
@@ -222,7 +224,6 @@ protected:
 			}
 			else
 			{
-				outputFileWritable_(out, "out");
 				outfile.open(out.c_str());
 				output_ = &outfile;
 			}
@@ -237,10 +238,15 @@ protected:
 				sv_out << "peptide" << "charge" << "mass" << "mass-to-charge" << endl;
 			}
 
-			if ((in.size() == 1) && File::exists(in[0]))
+      if ((in.size() > 0) && (in_seq.size()>0))
+      {
+        LOG_ERROR << "Specifying and in-file and sequences at the same time is not allowed!";
+				return ILLEGAL_PARAMETERS;
+      }
+
+			if (in.size() > 0)
 			{
-				inputFileReadable_(in[0], "in");
-				readFile_(in[0], charges);
+				readFile_(in, charges);
 			}
 			else
 			{
@@ -249,13 +255,13 @@ protected:
 					LOG_ERROR << "Error: No charge state specified";
 					return ILLEGAL_PARAMETERS;
 				}
-				for (StringList::iterator it = in.begin(); it != in.end(); ++it)
+				for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
 				{
 					AASequence seq(*it);
 					if (!seq.isValid())
 					{
-						LOG_ERROR << "Error: '" << *it
-											<< "' is not a valid peptide sequence - skipping";
+						LOG_WARN << "Warning: '" << *it
+											<< "' is not a valid peptide sequence - skipping\n";
 						continue;
 					}
 					writeLine_(seq, charges);
