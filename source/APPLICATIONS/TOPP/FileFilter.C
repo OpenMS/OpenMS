@@ -135,7 +135,7 @@ class TOPPFileFilter
 		addText_("peak data options:");
 		registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 		registerIntList_("level","\"i,j,...\"",IntList::create("1,2,3"),"MS levels to extract", false);
-		registerIntList_("map","\"i,j,...\"",IntList::create("1,2"),"maps to be extracted from a consensus", false);
+		registerIntList_("map","\"i,j,...\"",IntList::create(""),"maps to be extracted from a consensus", false);
 		registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 		registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
 		registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
