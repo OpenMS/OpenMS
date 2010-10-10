@@ -34,6 +34,12 @@
 #include <vector>
 using std::vector;
 
+#ifdef _OPENMP
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <omp.h>
+#endif
+#endif
+
 namespace OpenMS {
 
   /**
@@ -406,8 +412,10 @@ namespace OpenMS {
   {
     if (rt_start <=0) rt_start = 0;
 
-    MSSimExperiment::iterator exp_iter = experiment.RTBegin(rt_start);
-    if(exp_iter == experiment.end() )
+    MSSimExperiment::iterator first_affected_scan = experiment.RTBegin(rt_start);
+    MSSimExperiment::iterator last_affected_scan  = experiment.RTEnd(rt_end);
+
+    if( first_affected_scan == experiment.end() )
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
@@ -417,15 +425,22 @@ namespace OpenMS {
     SimIntensityType intensity_sum = 0.0;
     vector< DPosition<2> > points;
     
-    Int start_scan = exp_iter - experiment.begin();
-    Int end_scan  = -5;
+    Int start_scan = first_affected_scan - experiment.begin();
+    Int end_scan   = last_affected_scan  - experiment.begin();
 
-		SimCoordinateType rt = rt_start;
+    // we include the last scan
+    end_scan = (end_scan != experiment.size()) ? end_scan + 1 : end_scan;
+
     // Sample the model ...
-    for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
+#pragma omp parallel for
+    for (Int scan = start_scan ; scan < end_scan ; ++scan)
     {
-			rt = exp_iter->getRT();
-			
+      SimCoordinateType rt = experiment[scan].getRT();
+
+      vector< DPosition<2> > scan_points;
+
+
+      std::cerr << "Sampling from RT: " << rt << " scan number " << scan << std::endl;
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) );
@@ -442,15 +457,20 @@ namespace OpenMS {
         //LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
 
         // add gaussian distributed m/z error
-        double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+        double mz_err;
+#pragma omp critical (gsl_create_mzerr)
+        {
+        mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+        }
         point.setMZ( point.getMZ() + mz_err );
 
         intensity_sum += point.getIntensity();
-        points.push_back( DPosition<2>( rt, mz) );		// store position
-        exp_iter->push_back(point);
+        scan_points.push_back( DPosition<2>( rt, mz) );		// store position
+        experiment[scan].push_back(point);
       }
-      //update last scan affected
-      end_scan = exp_iter - experiment.begin();
+
+#pragma omp critical (merge_points)
+      points.insert(points.end() , scan_points.begin() , scan_points.end());
     }
 
     OPENMS_POSTCONDITION(end_scan  != -5, "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");
