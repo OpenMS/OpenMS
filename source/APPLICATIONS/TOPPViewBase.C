@@ -1037,7 +1037,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 											(data_type == LayerData::DT_CONSENSUS) ||
 											(data_type == LayerData::DT_IDENT));
 
-		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);
+		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);   
+
 
 		//set the window where (new layer) data could be opened in
     SpectrumWidget* target_window = window_(window_id);
@@ -3069,11 +3070,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
   	{
   		return;
-            }
+    }
 
 		w->canvas()->activateSpectrum(index);
-		// set visible aree to visible area in 2D view
-    w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
+
 		// set relative (%) view of visible area
     w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
 
@@ -3084,9 +3084,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       // set visible aree to visible area in 2D view
       w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
     }
-
-    // set relative (%) view of visible area
-    w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
 
     String caption = layer.name;
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
@@ -3103,7 +3100,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     const LayerData& layer = activeCanvas_()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
-    //open new 1D widget
+    //open new 2D widget
     Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
 
     //add data
@@ -3135,6 +3132,18 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       {
         return;
       }
+
+     if (active1DWindow_()) // switch from 1D to 3D
+     {
+       //TODO:
+       //- distinguish between survey scan and fragment scan (only makes sense for survey scan?)
+       //- build new Area with mz range equal to 1D visible range
+       //- rt range either overall MS1 data range or some convenient window
+
+     } else if (active2DWindow_())  // switch from 2D to 3D
+     {
+        w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
+     }
 
       // set layer name
       String caption = layer.name + " (3D)";
