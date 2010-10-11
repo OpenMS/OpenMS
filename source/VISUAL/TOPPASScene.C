@@ -1404,6 +1404,7 @@ namespace OpenMS
 				tool_actions.insert("Edit parameters");
 				tool_actions.insert("Resume");
 				tool_actions.insert("Open files in TOPPView");
+				tool_actions.insert("Open containing folder");
 				all_actions.push_back(tool_actions);
 			}
 
@@ -1413,6 +1414,7 @@ namespace OpenMS
 				input_actions.insert("Change name");
 				input_actions.insert("Change files");
 				input_actions.insert("Open files in TOPPView");
+				input_actions.insert("Open containing folder");
 				all_actions.push_back(input_actions);
 			}
 
@@ -1420,6 +1422,7 @@ namespace OpenMS
 			{
 				QSet<QString> output_actions;
 				output_actions.insert("Open files in TOPPView");
+				output_actions.insert("Open containing folder");
 				all_actions.push_back(output_actions);
 			}
 
@@ -1521,6 +1524,10 @@ namespace OpenMS
 					{
 						ttv->openInTOPPView();
 					}
+					else if (text == "Open containing folder")
+					{
+						ttv->openContainingFolder();
+					}
 					
 					continue;
 				}
@@ -1531,6 +1538,10 @@ namespace OpenMS
 					if (text == "Open files in TOPPView")
 					{
 						ifv->openInTOPPView();
+					}
+					else if (text == "Open containing folder")
+					{
+						ifv->openContainingFolder();
 					}
 					else if (text == "Change files")
 					{
@@ -1555,7 +1566,11 @@ namespace OpenMS
 					{
 						ofv->openInTOPPView();
 					}
-					
+					else if (text == "Open containing folder")
+					{
+						ofv->openContainingFolder();
+					}
+
 					continue;
 				}
 				

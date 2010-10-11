@@ -37,6 +37,8 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include <QCoreApplication>
 
@@ -185,7 +187,25 @@ namespace OpenMS
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		TOPPASVertex::inEdgeHasChanged();
 	}
-	
+
+	void TOPPASOutputFileListVertex::openContainingFolder()
+	{
+    std::set<String> directories;
+    for (int i=0;i<files_.size();++i)
+    { // collect unique directories
+      QFileInfo fi(files_[i]);
+      directories.insert(String(QDir::toNativeSeparators(fi.absolutePath())));
+    }
+
+    // open them
+    for (std::set<String>::const_iterator it=directories.begin();it!=directories.end();++it)
+    {
+      QString path = QDir::toNativeSeparators(it->toQString());
+      if (QDir(path).exists()) QDesktopServices::openUrl(QUrl("file:///" + path));
+      else (std::cerr << "dir: " << String(path) << " does not exist" << "\n");
+    }
+	}
+
 	void TOPPASOutputFileListVertex::openInTOPPView()
 	{
 		QProcess* p = new QProcess();

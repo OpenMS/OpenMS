@@ -312,7 +312,7 @@ namespace OpenMS
           vector<Real> rts;
           for(Size i=0; i!= peak_map.size(); ++i)
           {
-            // skipp non MS1 and empty spectra
+            // skip non MS1 and empty spectra
             if (peak_map[i].getMSLevel()!=1 || peak_map[i].size()==0)
             {
               continue;

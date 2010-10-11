@@ -71,7 +71,9 @@ namespace OpenMS
 			void createDirs();
 			/// Sets the topological sort number and removes invalidated tmp files
 			virtual void setTopoNr(UInt nr);
-			/// Opens the files in TOPPView
+      /// Opens the folders of the input files
+      void openContainingFolder();
+      /// Opens the files in TOPPView
 			void openInTOPPView();
 			
 		public slots:

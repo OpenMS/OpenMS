@@ -166,6 +166,8 @@ namespace OpenMS
 			String getOutputDir();
 			/// Creates all necessary directories
 			void createDirs();			
+      /// Opens the folder where the file is contained
+      void openContainingFolder();
 			/// Opens the files in TOPPView
 			void openInTOPPView();
 			/// Refreshes the parameters of this tool, returns if their has been a change

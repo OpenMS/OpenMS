@@ -41,6 +41,8 @@
 #include <QtCore/QRegExp>
 #include <QtGui/QImage>
 
+#include <QDesktopServices>
+#include <QUrl>
 #include <QCoreApplication>
 
 namespace OpenMS
@@ -907,6 +909,28 @@ namespace OpenMS
 		TOPPASVertex::inEdgeHasChanged();
 	}
 	
+
+	void TOPPASToolVertex::openContainingFolder()
+	{
+		QVector<IOInfo> out_infos;
+		getOutputParameters(out_infos);
+		
+		if (out_infos.size() == all_written_output_files_.size())
+		{
+			foreach (const QStringList& files, all_written_output_files_)
+			{
+				if (files.size() > 0)
+				{
+          QFileInfo fi(files[0]);
+          QString path = QDir::toNativeSeparators(fi.absolutePath());
+          if (QDir(path).exists()) QDesktopServices::openUrl(QUrl("file:///" + path));
+          else (std::cerr << "dir: " << String(path) << " does not exist" << "\n");
+        }
+			}
+		}
+	}
+	  
+
 	void TOPPASToolVertex::openInTOPPView()
 	{
 		QVector<IOInfo> out_infos;

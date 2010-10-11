@@ -72,7 +72,9 @@ namespace OpenMS
 			bool fileNamesValid(const QStringList& files);
 			/// Shows the dialog for editing the files
 			void showFilesDialog();
-			/// Opens the files in TOPPView
+      /// Opens the folders of the input files
+      void openContainingFolder();
+      /// Opens the files in TOPPView
 			void openInTOPPView();
 			/// Returns the key (for applying resources from a resource file)
 			const QString& getKey();

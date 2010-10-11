@@ -902,9 +902,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
       if (sw!=0)
       {
-        int lc = sw->canvas()->getLayerCount();
+        Size lc = sw->canvas()->getLayerCount();
         // iterate over all layers
-        for (int j=0; j!= lc; ++j)
+        for (Size j=0; j!= lc; ++j)
         {
           filename_set.insert(sw->canvas()->getLayer(j).filename);
         }
@@ -3646,7 +3646,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
       if (sw!=0)
       {
-        int lc = sw->canvas()->getLayerCount();
+        Size lc = sw->canvas()->getLayerCount();
 
         // determine if widget stores one or more layers for the given filename (->needs update)
         for (int j=0; j!= lc; ++j)

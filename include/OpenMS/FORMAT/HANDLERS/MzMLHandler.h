@@ -4313,6 +4313,7 @@ namespace OpenMS
 				//write actual data
 				for (Size s=0; s<exp.size(); ++s)
 				{
+          logger_.setProgress(s);
 					const SpectrumType& spec = exp[s];
 					
 					//native id

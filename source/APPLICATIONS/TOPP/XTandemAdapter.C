@@ -146,8 +146,6 @@ class TOPPXTandemAdapter
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
 			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
 			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins");
-
-			registerStringOption_("temp_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", false, true);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -191,7 +189,7 @@ class TOPPXTandemAdapter
 
 
 			String unique_name = File::getUniqueName(); // body for the tmp files
-			String temp_directory(getStringOption_("temp_directory"));
+      String temp_directory = File::getTempDirectory();
 			if (temp_directory != "")
 			{
 				temp_directory.ensureLastChar('/');
@@ -364,8 +362,8 @@ class TOPPXTandemAdapter
 
 			/// Deletion of temporary files
 			QFile(input_filename.toQString()).remove();
-			QFile((temp_directory + files[0]).toQString()).remove();
 			QFile(tandem_input_filename.toQString()).remove();
+			QFile((temp_directory + files[0]).toQString()).remove(); // tandem_output_filename
 			QFile(tandem_taxonomy_filename.toQString()).remove();
 
 			return EXECUTION_OK;

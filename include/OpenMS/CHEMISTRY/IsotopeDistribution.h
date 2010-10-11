@@ -98,7 +98,7 @@ namespace OpenMS
 			/// overwrites the container which holds the distribution using @p distribution
 			void set(const ContainerType& distribution);
 
-			/// returns the container which holds the distribtion
+			/// returns the container which holds the distribution
 			const ContainerType& getContainer() const;
 
 			/// returns the maximal weight isotope which is stored in the distribution
