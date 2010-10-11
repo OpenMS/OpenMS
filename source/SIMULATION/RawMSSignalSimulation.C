@@ -161,7 +161,10 @@ namespace OpenMS {
   {
     // convert from resolution @ 400th --> FWHM
     DoubleReal tmp = 400.00 / (double) param_.getValue("resolution");
-    peak_std_     = (tmp / 2.355);			// Approximation for Gaussian-shaped signals
+    // Approximation for Gaussian-shaped signals, 
+    // i.e. sqrt(2*ln(2))*2 = 2.35482
+    // , relating FWHM to gaussian width
+    peak_std_     = (tmp / 2.35482);			
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
     mz_error_mean_    = param_.getValue("variation:mz:error_mean");
