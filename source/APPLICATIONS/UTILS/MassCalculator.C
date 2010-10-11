@@ -44,9 +44,14 @@ using namespace std;
 	
 	@brief Calculates masses and mass-to-charge ratios of peptide sequences.
 
-	Given a peptide sequence and a charge state, the charged mass (including H+ adducts) and the mass-to-charge ratio are computed. The peptide sequence can include modifications (for information on valid notation see the @ref OpenMS::AASequence "AASequence" class documentation). Neutral masses can be computed by using "0" as charge state.
+	Given a peptide sequence and a charge state, the charged mass (including H+ adducts) and the mass-to-charge ratio are computed. 
+  The peptide sequence can include modifications (for information on valid notation see the @ref OpenMS::AASequence "AASequence" class documentation). 
+  Neutral masses can be computed by using "0" as charge state.
 
-	Input can be given directly as values of the parameters: @p in for peptide sequences and @p charge for charge states. Alternatively, it can be read from a file with the following format: A peptide sequence at the beginning of each line, optionally followed by any number of charge states. Whitespace, commas or semicolons can de used to delimit the different items. Parts of the input that cannot be understood will be skipped. If charge states are given in the input file as well as via the @p charge parameter, results are returned for the union of both sets of charge states.
+	Input can be given directly as values of the parameters: @p in_seq for peptide sequences and @p charge for charge states. 
+  Alternatively, it can be read from a file (see parameter @p in) with the following format: A peptide sequence at the beginning of each line, optionally followed by any number of charge states. 
+  Whitespace, commas or semicolons can de used to delimit the different items. Parts of the input that cannot be understood will be skipped. 
+  If charge states are given in the input file as well as via the @p charge parameter, results are returned for the union of both sets of charge states.
 
 	Output can be written to a file or to the screen (see parameter @p out). Results for different charge states are always ordered from lowest to highest charge.
 A number of different output formats are available via the parameter @p format:

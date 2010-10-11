@@ -63,7 +63,7 @@ class TOPPDecoyDatabase
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","Input fasta file containing the database.");
-			registerOutputFile_("out","<file>","","Output fasta file were the decoy database will be written to.");
+			registerOutputFile_("out","<file>","","Output fasta file where the decoy database will be written to.");
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
 			registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
 		}
