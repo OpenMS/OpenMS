@@ -435,23 +435,23 @@ namespace OpenMS {
     end_scan = (end_scan != experiment.size()) ? end_scan + 1 : end_scan;
 
     // Sample the model ...
-#pragma omp parallel for
+#pragma omp parallel for reduction(+: intensity_sum)
     for (Int scan = start_scan ; scan < end_scan ; ++scan)
     {
+      std::vector<double> my_randoms(100);
+      Size rnd_index(0);
+
       SimCoordinateType rt = experiment[scan].getRT();
 
       vector< DPosition<2> > scan_points;
 
-
-      std::cerr << "Sampling from RT: " << rt << " scan number " << scan << std::endl;
+      //std::cerr << "Sampling from RT: " << rt << " scan number " << scan << std::endl;
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) );
 
-        if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
-        {
-          continue;
-        }
+        // intensity cutoff (below that we don't want to see a signal)
+        if(intensity < 1) continue;
 
         SimPointType point;
         point.setMZ(mz);
@@ -461,14 +461,27 @@ namespace OpenMS {
 
         // add gaussian distributed m/z error
         double mz_err;
-#pragma omp critical (gsl_create_mzerr)
-        {
-        mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+        if (rnd_index<my_randoms.size()) mz_err = my_randoms[rnd_index++];
+        else
+        { // refill random vector
+          rnd_index=0;
+          if (mz_error_stddev_==0)
+          {
+            for (Size i=0;i<my_randoms.size();++i) my_randoms[i] = mz_error_mean_;
+          }
+          else
+          {
+            #pragma omp critical (gsl_create_mzerr)
+            {
+              //std::cerr << "+";
+              for (Size i=0;i<my_randoms.size();++i) my_randoms[i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+            }
+          }
         }
-        point.setMZ( point.getMZ() + mz_err );
+        point.setMZ( mz + mz_err );
 
         intensity_sum += point.getIntensity();
-        scan_points.push_back( DPosition<2>( rt, mz) );		// store position
+        scan_points.push_back( DPosition<2>( rt, point.getMZ()) );		// store position
         experiment[scan].push_back(point);
       }
 
