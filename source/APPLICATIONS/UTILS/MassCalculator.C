@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -75,13 +75,13 @@ public:
 
 	TOPPMassCalculator()
 		: TOPPBase("MassCalculator", "Calculates masses and mass-to-charge ratios of peptide sequences", false), use_avg_mass_(false), output_(0), format_(), res_type_(Residue::Full)
+	{
+		for (Size i = 0; i < Residue::SizeOfResidueType; i++)
 		{
-			for (Size i = 0; i < Residue::SizeOfResidueType; i++)
-			{
-				Residue::ResidueType res_type = Residue::ResidueType(i);
-				res_type_names_[Residue::getResidueTypeName(res_type)] = res_type;
-			}
+			Residue::ResidueType res_type = Residue::ResidueType(i);
+			res_type_names_[Residue::getResidueTypeName(res_type)] = res_type;
 		}
+	}
 
 
 protected:
@@ -93,190 +93,190 @@ protected:
 	map<String, Residue::ResidueType> res_type_names_;
 
 	void registerOptionsAndFlags_()
-		{
-			registerInputFile_("in", "<file>", "", "Input file containing peptide sequences (and potentially charge numbers)", false);
-			registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences", false,false);
-      registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
-			registerIntList_("charge", "<numbers>", IntList(), "List of charge states; required if 'in' is a list of peptide sequences", false);
-			registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
-			setValidStrings_("format", StringList::create("list,table,mass_only,mz_only"));
-			registerFlag_("average_mass", "Compute average (instead of monoisotopic) peptide masses");
-			registerStringOption_("fragment_type", "<choice>", "full", "For what type of sequence/fragment the mass should be computed\n", false);
-			setValidStrings_("fragment_type", StringList::create("full,internal,N-terminal,C-terminal,a-ion,b-ion,c-ion,x-ion,y-ion,z-ion"));
-			registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
-		}
+	{
+		registerInputFile_("in", "<file>", "", "Input file with peptide sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
+		registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences (mutually exclusive to 'in')", false, false);
+    registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
+		registerIntList_("charge", "<numbers>", IntList(), "List of charge states; required if 'in_seq' is given", false);
+		registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
+		setValidStrings_("format", StringList::create("list,table,mass_only,mz_only"));
+		registerFlag_("average_mass", "Compute average (instead of monoisotopic) peptide masses");
+		registerStringOption_("fragment_type", "<choice>", "full", "For what type of sequence/fragment the mass should be computed\n", false);
+		setValidStrings_("fragment_type", StringList::create("full,internal,N-terminal,C-terminal,a-ion,b-ion,c-ion,x-ion,y-ion,z-ion"));
+		registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
+	}
 	
 	DoubleReal computeMass_(const AASequence& seq, Int charge) const
-		{
-			if (use_avg_mass_) return seq.getAverageWeight(res_type_, charge);
-			else return seq.getMonoWeight(res_type_, charge);
-		}
+	{
+		if (use_avg_mass_) return seq.getAverageWeight(res_type_, charge);
+		else return seq.getMonoWeight(res_type_, charge);
+	}
 
 	void writeTable_(const AASequence& seq, const set<Int>& charges)
+	{
+		SVOutStream sv_out(*output_, separator_);
+		for (set<Int>::const_iterator it = charges.begin(); it != charges.end(); 
+				 ++it)
 		{
-			SVOutStream sv_out(*output_, separator_);
-			for (set<Int>::const_iterator it = charges.begin(); it != charges.end(); 
-					 ++it)
-			{
-				DoubleReal mass = computeMass_(seq, *it);
-				sv_out << seq.toString() << *it << mass;
-				sv_out.writeValueOrNan(mass / *it);
-				sv_out << endl;
-			}
+			DoubleReal mass = computeMass_(seq, *it);
+			sv_out << seq.toString() << *it << mass;
+			sv_out.writeValueOrNan(mass / *it);
+			sv_out << endl;
 		}
+	}
 
 	void writeList_(const AASequence& seq, const set<Int>& charges)
+	{
+		*output_ << seq.toString() << ": ";
+		for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
+				 ++it)
 		{
-			*output_ << seq.toString() << ": ";
-			for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
-					 ++it)
-			{
-				DoubleReal mass = computeMass_(seq, *it);
-				if (it != charges.begin()) *output_ << ", ";
-				*output_ << "z=" << *it << " m=" << mass << " m/z=";
-				if (*it != 0) *output_ << (mass / *it);
-				else *output_ << "inf";
-			}
-			*output_ << endl;
+			DoubleReal mass = computeMass_(seq, *it);
+			if (it != charges.begin()) *output_ << ", ";
+			*output_ << "z=" << *it << " m=" << mass << " m/z=";
+			if (*it != 0) *output_ << (mass / *it);
+			else *output_ << "inf";
 		}
+		*output_ << endl;
+	}
 
 	void writeMassOnly_(const AASequence& seq, const set<Int>& charges, 
 											bool mz=false)
+	{
+		for (set<Int>::const_iterator it = charges.begin(); it != charges.end(); 
+				 ++it)
 		{
-			for (set<Int>::const_iterator it = charges.begin(); it != charges.end(); 
-					 ++it)
-			{
-				DoubleReal mass = computeMass_(seq, *it);
-				if (it != charges.begin()) *output_ << " ";
-				if (!mz) *output_ << mass;
-				else if (*it == 0) *output_ << "inf";
-				else *output_ << mass / *it;
-			}
-			*output_ << endl;
+			DoubleReal mass = computeMass_(seq, *it);
+			if (it != charges.begin()) *output_ << " ";
+			if (!mz) *output_ << mass;
+			else if (*it == 0) *output_ << "inf";
+			else *output_ << mass / *it;
 		}
+		*output_ << endl;
+	}
 
 	void writeLine_(const AASequence& seq, const set<Int>& charges)
-		{
-			if (format_ == "list") writeList_(seq, charges);
-			else if (format_ == "table") writeTable_(seq, charges);
-			else if (format_ == "mass_only") writeMassOnly_(seq, charges);
-			else writeMassOnly_(seq, charges, true); // "mz_only"
-		}
+	{
+		if (format_ == "list") writeList_(seq, charges);
+		else if (format_ == "table") writeTable_(seq, charges);
+		else if (format_ == "mass_only") writeMassOnly_(seq, charges);
+		else writeMassOnly_(seq, charges, true); // "mz_only"
+	}
 
 	String getItem_(String& line, const String& skip=" \t,;")
-		{
-			Size pos = line.find_first_of(skip);
-			String prefix = line.substr(0, pos);
-			pos = line.find_first_not_of(skip, pos);
-			if (pos == String::npos) line = "";
-			else line = line.substr(pos);
-			return prefix;
-		}
+	{
+		Size pos = line.find_first_of(skip);
+		String prefix = line.substr(0, pos);
+		pos = line.find_first_not_of(skip, pos);
+		if (pos == String::npos) line = "";
+		else line = line.substr(pos);
+		return prefix;
+	}
 
 	void readFile_(const String& filename, const set<Int>& charges)
+	{
+		ifstream input(filename.c_str());
+		String line;
+		while (getline(input, line))
 		{
-			ifstream input(filename.c_str());
-			String line;
-			while (getline(input, line))
+			String item = getItem_(line);
+			if ((item[0] == '"') && (item[item.size() - 1] == '"'))
 			{
-				String item = getItem_(line);
-				if ((item[0] == '"') && (item[item.size() - 1] == '"'))
-				{
-					item.unquote();
-				}
-				AASequence seq(item);
-				if (!seq.isValid())
-				{
-					LOG_WARN << "Warning: '" << item
-										<< "' is not a valid peptide sequence - skipping\n";
-					continue;
-				}
-				set<Int> local_charges(charges);
-				while (!line.empty())
-				{
-					item = getItem_(line);
-					try
-					{
-						local_charges.insert(item.toInt());
-					}
-					catch (Exception::ConversionError) {};
-				}
-				if (local_charges.empty())
-				{
-          LOG_WARN << "Warning: No charge state specified - skipping\n";
- 					continue;
-        }
-				writeLine_(seq, local_charges);
+				item.unquote();
 			}
-			input.close();
+			AASequence seq(item);
+			if (!seq.isValid())
+			{
+				LOG_WARN << "Warning: '" << item
+									<< "' is not a valid peptide sequence - skipping\n";
+				continue;
+			}
+			set<Int> local_charges(charges);
+			while (!line.empty())
+			{
+				item = getItem_(line);
+				try
+				{
+					local_charges.insert(item.toInt());
+				}
+				catch (Exception::ConversionError) {};
+			}
+			if (local_charges.empty())
+			{
+        LOG_WARN << "Warning: No charge state specified - skipping\n";
+				continue;
+      }
+			writeLine_(seq, local_charges);
 		}
+		input.close();
+	}
 	
 
 	ExitCodes main_(int, const char**)
+	{
+		String in = getStringOption_("in");
+    StringList in_seq = getStringList_("in_seq");
+		String out = getStringOption_("out");
+		IntList charge_list = getIntList_("charge");
+		set<Int> charges(charge_list.begin(), charge_list.end());
+		use_avg_mass_ = getFlag_("average_mass");
+		res_type_ = res_type_names_[getStringOption_("fragment_type")];
+
+		ofstream outfile;
+		if (out.empty())
 		{
-			String in = getStringOption_("in");
-      StringList in_seq = getStringList_("in_seq");
-			String out = getStringOption_("out");
-			IntList charge_list = getIntList_("charge");
-			set<Int> charges(charge_list.begin(), charge_list.end());
-			use_avg_mass_ = getFlag_("average_mass");
-			res_type_ = res_type_names_[getStringOption_("fragment_type")];
-
-			ofstream outfile;
-			if (out.empty())
-			{
-				output_ = &cout;
-			}
-			else
-			{
-				outfile.open(out.c_str());
-				output_ = &outfile;
-			}
-
-			format_ = getStringOption_("format");
-			if (format_ == "table")
-			{
-				separator_ = getStringOption_("separator");
-				if (separator_.empty()) separator_ = "\t";
-				// write header:
-				SVOutStream sv_out(*output_, separator_);
-				sv_out << "peptide" << "charge" << "mass" << "mass-to-charge" << endl;
-			}
-
-      if ((in.size() > 0) && (in_seq.size()>0))
-      {
-        LOG_ERROR << "Specifying and in-file and sequences at the same time is not allowed!";
-				return ILLEGAL_PARAMETERS;
-      }
-
-			if (in.size() > 0)
-			{
-				readFile_(in, charges);
-			}
-			else
-			{
-				if (charges.empty())
-				{
-					LOG_ERROR << "Error: No charge state specified";
-					return ILLEGAL_PARAMETERS;
-				}
-				for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
-				{
-					AASequence seq(*it);
-					if (!seq.isValid())
-					{
-						LOG_WARN << "Warning: '" << *it
-											<< "' is not a valid peptide sequence - skipping\n";
-						continue;
-					}
-					writeLine_(seq, charges);
-				}
-			}
-			
-			if (!out.empty()) outfile.close();
-
-			return EXECUTION_OK;
+			output_ = &cout;
 		}
+		else
+		{
+			outfile.open(out.c_str());
+			output_ = &outfile;
+		}
+
+		format_ = getStringOption_("format");
+		if (format_ == "table")
+		{
+			separator_ = getStringOption_("separator");
+			if (separator_.empty()) separator_ = "\t";
+			// write header:
+			SVOutStream sv_out(*output_, separator_);
+			sv_out << "peptide" << "charge" << "mass" << "mass-to-charge" << endl;
+		}
+
+    if ((in.size() > 0) && (in_seq.size()>0))
+    {
+      LOG_ERROR << "Specifying and in-file and sequences at the same time is not allowed!";
+			return ILLEGAL_PARAMETERS;
+    }
+
+		if (in.size() > 0)
+		{
+			readFile_(in, charges);
+		}
+		else
+		{
+			if (charges.empty())
+			{
+				LOG_ERROR << "Error: No charge state specified";
+				return ILLEGAL_PARAMETERS;
+			}
+			for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
+			{
+				AASequence seq(*it);
+				if (!seq.isValid())
+				{
+					LOG_WARN << "Warning: '" << *it
+										<< "' is not a valid peptide sequence - skipping\n";
+					continue;
+				}
+				writeLine_(seq, charges);
+			}
+		}
+		
+		if (!out.empty()) outfile.close();
+
+		return EXECUTION_OK;
+	}
 };
 
 
