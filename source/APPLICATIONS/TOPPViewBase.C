@@ -1027,7 +1027,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::addData_(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
   {      
     // initialize flags with defaults from the parameters
-    bool as_new_window;
+    bool as_new_window = true;
   	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
   	bool maps_as_1d = false;
     bool use_intensity_cutoff = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
@@ -1045,7 +1045,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (target_window == 0)
 		{
       target_window = activeWindow_();
-      as_new_window = true;
 		}
     else
 		{
@@ -1070,15 +1069,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
 			dialog.disableDimension(false);
 		}
-
-    // disable layer and merge and allow only window mode if data is already loaded
-    set<String> open_filenames = getFilenamesOfOpenFiles();
-    if (open_filenames.find(filename) != open_filenames.end())
-    {
-      as_new_window = true;
-      dialog.disableLocation(true);
-    }
-
 		//disable cutoff for features and single scans
     if (mergeable || !is_2D)
     {
