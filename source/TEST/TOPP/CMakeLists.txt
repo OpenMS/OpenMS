@@ -655,6 +655,11 @@ add_test("TOPP_ProteinQuantifier_1_out2" ${DIFF} -in1 ProteinQuantifier_1_output
 add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_all -filter_charge -average sum)
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ProteinQuantifier_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ProteinQuantifier_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file")
+# handling of modified peptides:
+add_test("TOPP_ProteinQuantifier_3" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_3_input.featureXML -out ProteinQuantifier_3_output1.tmp -peptide_out ProteinQuantifier_3_output2.tmp -top 2 -include_all -average mean)
+add_test("TOPP_ProteinQuantifier_3_out1" ${DIFF} -in1 ProteinQuantifier_3_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_3_output1.txt -whitelist "computed from file")
+add_test("TOPP_ProteinQuantifier_3_out2" ${DIFF} -in1 ProteinQuantifier_3_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_3_output2.txt -whitelist "computed from file")
+
 
 ### InclusionExclusionListCreator tests
 add_test("TOPP_InclusionExclusionListCreator_1" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_1_output.tmp)

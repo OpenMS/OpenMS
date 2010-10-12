@@ -75,6 +75,8 @@ using namespace std;
 
 	Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
 
+	Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
+
 	More information below the parameter specification.
 
 	<B>The command line parameters of this tool are:</B>
@@ -137,8 +139,8 @@ namespace OpenMS
 		/// Quantitative and associated data for a protein
 		struct protein_data
 		{
-			// peptide -> sample -> abundance:
-			map<AASequence, sample_abundances> abundances;
+			// peptide (unmodified) -> sample -> abundance:
+			map<String, sample_abundances> abundances;
 			sample_abundances total_abundances; // sample -> total abundance
 		};
 		typedef map<String, protein_data> protein_quant; // by protein accession
@@ -487,7 +489,9 @@ namespace OpenMS
 									 pep_it->second.total_abundances.begin(); tot_it !=
 									 pep_it->second.total_abundances.end(); ++tot_it)
 						{
-							prot_quant[accession].abundances[pep_it->first][tot_it->first] =
+							// add up contributions of same peptide with different mods:
+							String raw_peptide = pep_it->first.toUnmodifiedString();
+							prot_quant[accession].abundances[raw_peptide][tot_it->first] +=
 								tot_it->second;
 						}
 					}
@@ -507,7 +511,7 @@ namespace OpenMS
 						else continue; // not enough proteotypic peptides
 					}
 
-					vector<AASequence> peptides; // peptides selected for quantification
+					vector<String> peptides; // peptides selected for quantification
 					if (fix_peptides && (prot_it->second.abundances.size() > top))
 					{
 						// consider only "top" best peptides
@@ -516,7 +520,7 @@ namespace OpenMS
 					}
 					else // consider all peptides
 					{
-						for (map<AASequence, sample_abundances>::iterator ab_it =
+						for (map<String, sample_abundances>::iterator ab_it =
 									 prot_it->second.abundances.begin(); ab_it !=
 									 prot_it->second.abundances.end(); ++ab_it)
 						{
@@ -526,7 +530,7 @@ namespace OpenMS
 
 					map<UInt64, DoubleList> abundances; // all pept. abundances by sample
 					// consider only the peptides selected above for quantification:
-					for (vector<AASequence>::iterator pep_it = peptides.begin();
+					for (vector<String>::iterator pep_it = peptides.begin();
 							 pep_it != peptides.end(); ++pep_it)
 					{
 						sample_abundances& current_ab = prot_it->second.abundances[*pep_it];

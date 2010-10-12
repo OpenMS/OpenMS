@@ -1,0 +1,5 @@
+# Peptide abundances computed from file 'source/TEST/TOPP/ProteinQuantifier_input.featureXML'
+# Parameters (relevant only): (none)
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance"
+"(Carbamidomethyl)CCCCC"	"Protein0"	1	0	2222
+"CCCCC"	"Protein0"	1	0	7777
