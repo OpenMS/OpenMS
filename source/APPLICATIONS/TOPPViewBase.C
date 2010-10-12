@@ -2570,14 +2570,17 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
-		String filter_all = "readable files (*.dta *.dta2d";
-		String filter_single = "dta files (*.dta);;dta2d files (*.dta2d)";
+    String filter_all_andi;
+    String filter_single_andi;
 #ifdef USE_ANDIMS
 		filter_all +=" *.cdf";
 		filter_single += ";;ANDI/MS files (*.cdf)";
 #endif
-		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML fid);;" ;
-		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;all files (*)";
+    
+
+    String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid"+ filter_all_andi +" *.bz2 *.gz);;";
+		String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d)"+filter_single_andi+";;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
+
 
 		QString open_path = current_path_.toQString();
 		if (path_overwrite!="")

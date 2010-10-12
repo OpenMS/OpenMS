@@ -67,7 +67,7 @@ namespace OpenMS
 			return FileTypes::UNKNOWN;
 		}
 		tmp.toUpper();
-    if (tmp == "BZ2" || tmp == "ZIP" || tmp == "GZ")
+    if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
 		{
 			return getTypeByContent(filename);
 		}
@@ -130,16 +130,15 @@ namespace OpenMS
 		// so far, compression is only supported for XML files
 		vector<String> complete_file;
 
-
 		// test whether the file is compressed (bzip2 or gzip)
     ifstream compressed_file(filename.c_str());
     char bz[2];
     compressed_file.read(bz,2);
     char g1 = 0x1f;
     char g2 = 0;
-    g2 |= 1 << 7;
-    g2 |= 1 <<3;
-    g2  |=1  <<1;
+    g2 |=1 <<7;
+    g2 |=1 <<3;
+    g2 |=1 <<1;
     g2 |=1 <<0;
 		compressed_file.close();
     if(bz[0] == 'B' && bz[1] =='Z' ) // bzip2
@@ -169,7 +168,8 @@ namespace OpenMS
 			two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
 			all_simple = first_line + ' ' + two_five;
 			complete_file = split;
-    }		
+    }
+    //else {} // TODO: ZIP
 		else // uncompressed
 		{
     	//load first 5 lines
@@ -181,6 +181,8 @@ namespace OpenMS
 			first_line = file[0];
 			complete_file = file;
 		}
+    //std::cerr << "\n Line1:\n" << first_line << "\nLine2-5:\n" << two_five << "\nall:\n" << all_simple << "\n\n";
+
 
 		//mzXML (all lines)
     if (all_simple.hasSubstring("<mzXML")) return FileTypes::MZXML;
