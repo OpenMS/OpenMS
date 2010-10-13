@@ -389,7 +389,14 @@ namespace OpenMS
         Size feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
         if (feature_index == Size(-1)) // UID does not exist
         {
-          feature_index=feature_id.toInt(); // normal feature index as stored in map
+          try
+          {
+            feature_index=feature_id.toInt(); // normal feature index as stored in map
+          }
+          catch (...)
+          { // we might still deal with a UID, so toInt() will throw as the number is too big
+            feature_index = Size(-1);
+          }
         }
 
 				//check if the feature index exists
