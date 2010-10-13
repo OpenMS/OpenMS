@@ -45,10 +45,11 @@ namespace OpenMS
   	Input text file containing the following columns: RT m/z intensity.");
 		Additionally meta data columns may follow.
 		If meta data is used, meta data column names have to be specified in a header line, e.g.
-
+@code
     RT m/z Intensity charge mymeta
     321 405.233 24543534 2 lala
     321 406.207 4343344  2 blubb
+@endcode
 
     The separator between columns is checked in the first line in this order:
     Tab, Space, Comma
