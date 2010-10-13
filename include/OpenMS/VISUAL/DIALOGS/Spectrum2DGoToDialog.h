@@ -35,6 +35,8 @@
 namespace OpenMS 
 {
 
+  class String;
+
 	/**
 		@brief GoTo dialog used to zoom to a m/z and retention time range or to a feature.
 		
@@ -72,7 +74,7 @@ namespace OpenMS
 			///@name Methods for feature numbers
 			//@{
 	    ///Returns the selected feature numbers. If a number is retuned, the feature rather than the range should be displayed.
-	    UInt getFeatureNumber() const;
+	    String getFeatureNumber() const;
 	    ///Disables the feature number field
 	    void enableFeatureNumber(bool);
 	    //@}

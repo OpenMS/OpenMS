@@ -154,7 +154,7 @@
         </font>
        </property>
        <property name="text" >
-        <string>show feature</string>
+        <string>show feature (UID or index)</string>
        </property>
        <property name="wordWrap" >
         <bool>false</bool>

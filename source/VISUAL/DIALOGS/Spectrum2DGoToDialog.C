@@ -27,6 +27,8 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <QtGui/QLineEdit>
 
 using namespace std;
@@ -97,9 +99,9 @@ namespace OpenMS
 		}
 	}
 	
-	UInt Spectrum2DGoToDialog::getFeatureNumber() const
+	String Spectrum2DGoToDialog::getFeatureNumber() const
 	{
-		return feature_number_->text().toInt(); 
+		return feature_number_->text(); 
 	}
 
 	bool Spectrum2DGoToDialog::showRange() const
