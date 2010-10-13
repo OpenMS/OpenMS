@@ -71,6 +71,22 @@ using namespace std;
 
 	Conversion with the same output as input format is supported. In some cases, this can be helpful to remove errors from files, to update file formats to new versions, or to check whether information is lost upon reading or writing.
 
+  Some information about the supported input types:
+  @ref OpenMS::MzMLFile "mzML"
+  @ref OpenMS::MzXMLFile "mzXML"
+  @ref OpenMS::MzDataFile "mzData"
+  @ref OpenMS::MascotGenericFile "MGF"
+  @ref OpenMS::DTA2DFile "DTA2D"
+  @ref OpenMS::DTAFile "DTA"
+  @ref OpenMS::FeatureXMLFile "featureXML"
+  @ref OpenMS::ConsensusXMLFile "ConsensusXML"
+  @ref OpenMS::MS2File "ms2"
+  @ref OpenMS::XMassFile "fid/XMASS"
+  @ref OpenMS::MsInspectFile "TSV"
+  @ref OpenMS::SpecArrayFile "PEPLIST"
+  @ref OpenMS::KroenikFile "KROENIK"
+  @ref OpenMS::EDTAFile "EDTA"
+
 	See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
 	<B>The command line parameters of this tool are:</B>
