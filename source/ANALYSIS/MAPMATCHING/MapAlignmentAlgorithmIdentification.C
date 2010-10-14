@@ -54,7 +54,7 @@ namespace OpenMS
 		defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if any) a peptide must occur in to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
 		defaults_.setMinInt("min_run_occur", 2);
 
-		defaults_.setValue("max_rt_shift", 0.5, "Maximum realistic RT difference for a peptide (median per run vs. median overall). Peptides with higher shifts (outliers) are not used to compute the alignment.\nIf 0, no limit (disable filter); if > 1, the final value in seconds; if <= 1, taken as a fraction of the total retention time range.");
+		defaults_.setValue("max_rt_shift", 0.5, "Maximum realistic RT difference for a peptide (median per run vs. reference). Peptides with higher shifts (outliers) are not used to compute the alignment.\nIf 0, no limit (disable filter); if > 1, the final value in seconds; if <= 1, taken as a fraction of the range of the reference RT scale.");
 		defaults_.setMinFloat("max_rt_shift", 0.0);
 		
 		defaults_.setValue("use_unassigned_peptides", "true", "Should unassigned peptide identifications be used when computing an alignment of feature maps? If 'false', only peptide IDs assigned to features will be used.");
@@ -485,7 +485,8 @@ namespace OpenMS
 			rt_range = rt_max - rt_min;
 			max_rt_shift *= rt_range;
 		}
-			
+		LOG_DEBUG << "Max. allowed RT shift (in seconds): " << max_rt_shift << endl;
+
 		// generate RT transformations:
 		LOG_DEBUG << "Generating RT transformations..." << endl;
 		Int num_breakpoints = param_.getValue("num_breakpoints");
