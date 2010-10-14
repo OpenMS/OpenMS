@@ -2573,8 +2573,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     String filter_all_andi;
     String filter_single_andi;
 #ifdef USE_ANDIMS
-		filter_all +=" *.cdf";
-		filter_single += ";;ANDI/MS files (*.cdf)";
+		filter_all_andi +=" *.cdf";
+		filter_single_andi += ";;ANDI/MS files (*.cdf)";
 #endif
     
 
