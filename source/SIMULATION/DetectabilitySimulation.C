@@ -28,7 +28,7 @@
 #include<OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
 #include <iostream>
@@ -164,7 +164,7 @@ namespace OpenMS {
     }
 
 		
-		cout << "Predicting peptide detectabilities..    " << endl;
+    LOG_INFO << "Predicting peptide detectabilities..    " << endl;
     
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     
@@ -179,16 +179,8 @@ namespace OpenMS {
     
     svm_.getSVCProbabilities(prediction_data, detectabilities, labels);
     
-    cout << "Done." << endl;
-    
     delete prediction_data;
-    
-#ifdef DEBUG_SIM
-    cout << "----------------------------------------------------------------" << endl;
-    cout << "Predicted detectabilities:" << endl;
-#endif
-    
-	}
+  }
 	
   void DetectabilitySimulation::svmFilter_(FeatureMapSim & features)
   {

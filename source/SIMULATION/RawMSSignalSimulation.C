@@ -34,11 +34,12 @@
 #include <vector>
 using std::vector;
 
+// get openmp stuff
 #ifdef _OPENMP
-#ifdef OPENMS_WINDOWSPLATFORM
 #include <omp.h>
 #endif
-#endif
+
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 namespace OpenMS {
 
@@ -161,10 +162,10 @@ namespace OpenMS {
   {
     // convert from resolution @ 400th --> FWHM
     DoubleReal tmp = 400.00 / (double) param_.getValue("resolution");
-    // Approximation for Gaussian-shaped signals, 
+    // Approximation for Gaussian-shaped signals,
     // i.e. sqrt(2*ln(2))*2 = 2.35482
     // , relating FWHM to gaussian width
-    peak_std_     = (tmp / 2.35482);			
+    peak_std_     = (tmp / 2.35482);
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
     mz_error_mean_    = param_.getValue("variation:mz:error_mean");
@@ -259,23 +260,53 @@ namespace OpenMS {
     this->startProgress(0,features.size(),"RawMSSignal");
 
     Size progress=0;
-    for(FeatureMap< >::iterator feature_it = features.begin();
-        feature_it != features.end();
-        ++feature_it,++progress)
+    // we have a bit of code duplication here but this eases the parallelization
+    // step
+    if(experiment.size() == 1)
     {
-      if(experiment.size() == 1)
+      for(FeatureMap< >::iterator feature_it = features.begin();
+          feature_it != features.end();
+          ++feature_it,++progress)
       {
         add1DSignal_(*feature_it,experiment);
+        this->setProgress(progress);
       }
-      else
+    }
+    else
+    {
+#ifdef _OPENMP
+      // prepare random numbers for the different threads
+      // each possible thread gets his own set of random
+      // numbers
+      threaded_random_numbers.resize(omp_get_max_threads());
+      threaded_random_numbers_index.resize(omp_get_max_threads());
+      for(SignedSize i = 0 ; i < threaded_random_numbers.size() && i < threaded_random_numbers_index.size() ; ++i)
       {
-        add2DSignal_(*feature_it, experiment);
+        threaded_random_numbers[i].reserve(THREADED_RANDOM_NUMBER_POOL_SIZE);
+        threaded_random_numbers_index[i] = THREADED_RANDOM_NUMBER_POOL_SIZE;
       }
+#endif
+      Size progress = 0;
+#pragma omp parallel for
+      for(SignedSize f = 0 ; f < features.size() ; ++f)
+      {
+        add2DSignal_(features[f],experiment);
 
-      this->setProgress(progress);
+        // to avoid problems when updating the not thread safe
+        // progresslogger, make this step critical
+#pragma omp critical (update_progress)
+        {
+        ++progress;
+        this->setProgress(progress);
+        }
+      }
     }
 
     this->endProgress();
+
+    // finally sort generated data
+    experiment.sortSpectra(true);
+    experiment.updateRanges();
 
     // build contaminant feature map & add raw signal
     createContaminants_(c_map, experiment);
@@ -370,9 +401,63 @@ namespace OpenMS {
     SimCoordinateType mz_start ( isomodel->getInterpolation().supportMin() );
     SimCoordinateType mz_end ( isomodel->getInterpolation().supportMax() );
 
-    // add peptide to global MS map
+#ifdef _OPENMP
+    // check if the method is executed by a parallel section (will be true in 99.9% of the cases)
+    if( omp_get_num_threads() > 1)
+    {
+      // IMPROVEMENT: do not copy the complete map but only the affected part
+      //              which is defined by rt_start, rt_end
+
+      // prepare a temporary experiment to store the results
+      MSSimExperiment temp_experiment;
+      temp_experiment.resize(experiment.size());
+
+      MSSimExperiment::iterator org_it  = experiment.begin();
+      MSSimExperiment::iterator temp_it = temp_experiment.begin();
+
+      // naivly copy scan properties from original experiment
+      for(; org_it != experiment.end() && temp_it != temp_experiment.end() ; ++org_it , ++temp_it)
+      {
+        temp_it->setRT(org_it->getRT());
+      }
+
+      // add peptide to LOCAL MS map
+      // add CH and new intensity to feature
+      samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, temp_experiment, active_feature);
+
+#pragma omp critical (merge_temp_experiment)
+      {
+      // store temp result
+      org_it  = experiment.begin();
+      temp_it = temp_experiment.begin();
+
+      // naivly copy scan properties from original experiment
+      for(; org_it != experiment.end() && temp_it != temp_experiment.end() ; ++org_it , ++temp_it)
+      {
+        if(temp_it->empty()) continue; // we do not care if the spectrum wasn't touched at all
+
+        // append all points from temp to org and resort
+        org_it->insert(org_it->end() , temp_it->begin() , temp_it->end());
+
+        // resort spectrum
+        // org_it->sortByPosition();
+      }
+
+      }
+    }
+    else
+    {
+      // normal execution, we do not care about MT
+
+      // add peptide to GLOBAL MS map
+      // add CH and new intensity to feature
+      samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
+    }
+#else
+    // add peptide to GLOBAL MS map
     // add CH and new intensity to feature
     samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
+#endif
   }
 
 
@@ -415,43 +500,35 @@ namespace OpenMS {
   {
     if (rt_start <=0) rt_start = 0;
 
-    MSSimExperiment::iterator first_affected_scan = experiment.RTBegin(rt_start);
-    MSSimExperiment::iterator last_affected_scan  = experiment.RTEnd(rt_end);
-
-    if( first_affected_scan == experiment.end() )
+    MSSimExperiment::iterator exp_iter = experiment.RTBegin(rt_start);
+    if(exp_iter == experiment.end() )
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
 
-    //LOG_INFO << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
+//#pragma omp critical
+//    LOG_INFO << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
 
     SimIntensityType intensity_sum = 0.0;
     vector< DPosition<2> > points;
     
-    Int start_scan = first_affected_scan - experiment.begin();
-    Int end_scan   = last_affected_scan  - experiment.begin();
+    Int start_scan = exp_iter - experiment.begin();
+    Int end_scan  = -5;
 
-    // we include the last scan
-    end_scan = (end_scan != experiment.size()) ? end_scan + 1 : end_scan;
-
+		SimCoordinateType rt = rt_start;
     // Sample the model ...
-#pragma omp parallel for reduction(+: intensity_sum)
-    for (Int scan = start_scan ; scan < end_scan ; ++scan)
+    for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
     {
-      std::vector<double> my_randoms(100);
-      Size rnd_index(0);
-
-      SimCoordinateType rt = experiment[scan].getRT();
-
-      vector< DPosition<2> > scan_points;
-
-      //std::cerr << "Sampling from RT: " << rt << " scan number " << scan << std::endl;
+			rt = exp_iter->getRT();
+			
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) );
 
-        // intensity cutoff (below that we don't want to see a signal)
-        if(intensity < 1) continue;
+        if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
+        {
+          continue;
+        }
 
         SimPointType point;
         point.setMZ(mz);
@@ -460,33 +537,45 @@ namespace OpenMS {
         //LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
 
         // add gaussian distributed m/z error
-        double mz_err;
-        if (rnd_index<my_randoms.size()) mz_err = my_randoms[rnd_index++];
-        else
-        { // refill random vector
-          rnd_index=0;
-          if (mz_error_stddev_==0)
+        double mz_err = 0.0;
+#ifdef _OPENMP
+        int CURRENT_THREAD = omp_get_thread_num();
+        // check if we need to refill the random number pool for this thread
+        if(threaded_random_numbers_index[ CURRENT_THREAD ] == THREADED_RANDOM_NUMBER_POOL_SIZE)
+        {
+          if(mz_error_stddev_ != 0.0)
           {
-            for (Size i=0;i<my_randoms.size();++i) my_randoms[i] = mz_error_mean_;
+#pragma omp critical(generate_random_number_for_thread)
+            {
+            for(Size i = 0 ; i < THREADED_RANDOM_NUMBER_POOL_SIZE ; ++i)
+            {
+              threaded_random_numbers[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+            }
+            }
+
+            // reset index for this thread to first position
+            threaded_random_numbers_index[CURRENT_THREAD] = 0;
           }
           else
           {
-            #pragma omp critical (gsl_create_mzerr)
-            {
-              //std::cerr << "+";
-              for (Size i=0;i<my_randoms.size();++i) my_randoms[i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
-            }
+            // we do not need to care about concurrency here
+            fill(threaded_random_numbers[CURRENT_THREAD].begin(), threaded_random_numbers[CURRENT_THREAD].end() , mz_error_mean_);
           }
         }
-        point.setMZ( mz + mz_err );
+
+        mz_err = threaded_random_numbers[CURRENT_THREAD][threaded_random_numbers_index[CURRENT_THREAD]++];
+#else
+        // we can use the normal gaussian ran-gen if we do not use OPENMP
+        mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+#endif
+        point.setMZ( point.getMZ() + mz_err );
 
         intensity_sum += point.getIntensity();
-        scan_points.push_back( DPosition<2>( rt, point.getMZ()) );		// store position
-        experiment[scan].push_back(point);
+        points.push_back( DPosition<2>( rt, mz) );		// store position
+        exp_iter->push_back(point);
       }
-
-#pragma omp critical (merge_points)
-      points.insert(points.end() , scan_points.begin() , scan_points.end());
+      //update last scan affected
+      end_scan = exp_iter - experiment.begin();
     }
 
     OPENMS_POSTCONDITION(end_scan  != -5, "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");
