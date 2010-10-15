@@ -62,6 +62,8 @@ using namespace std;
 
 	The peptide hits and protein hits of the input files will be written into the single output file. In general, the number of idXML files that can be merged into one file is not limited.
 
+	The combination of search engine and processing date/time should be unique for every identification run over all input files. If this is not the case, the date/time of a conflicting run will be increased in steps of seconds until the combination is unique.
+
 	With the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!).
 pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
 
@@ -167,6 +169,19 @@ class TOPPIDMerger
 			}
 		}
 
+
+	void generateNewId_(const set<String>& used_ids, const String& search_engine,
+											DateTime& date_time, String& new_id)
+		{
+			do
+			{
+				date_time = date_time.addSecs(1);
+				new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
+			}
+			while (used_ids.find(new_id) != used_ids.end());
+		}
+
+
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"two or more input files separated by blanks");
@@ -204,36 +219,56 @@ class TOPPIDMerger
 		// calculations
 		//-------------------------------------------------------------
 
-		vector<ProteinIdentification> protein_identifications;
-		vector<PeptideIdentification> identifications;
+		vector<ProteinIdentification> proteins;
+		vector<PeptideIdentification> peptides;
 
 		if (pepxml_protxml)
 		{
-			mergePepXMLProtXML_(file_names, protein_identifications, identifications);
+			mergePepXMLProtXML_(file_names, proteins, peptides);
 		}
 		else
 		{
-			IdXMLFile().load(file_names[0], protein_identifications, identifications);
-
-			vector<String> used_ids;
-			for (Size i=1; i<file_names.size(); ++i)
+			set<String> used_ids;
+			for (StringList::Iterator file_it = file_names.begin(); 
+					 file_it != file_names.end(); ++file_it)
 			{
-				vector<ProteinIdentification> additional_protein_identifications;
-				vector<PeptideIdentification> additional_identifications;
-				IdXMLFile().load(file_names[i], additional_protein_identifications, additional_identifications);
+				vector<ProteinIdentification> additional_proteins;
+				vector<PeptideIdentification> additional_peptides;
+				IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
 
-				for (Size i=0; i<additional_protein_identifications.size();++i)
+				for (vector<ProteinIdentification>::iterator prot_it = 
+							 additional_proteins.begin(); prot_it != 
+							 additional_proteins.end(); ++prot_it)
 				{
-					if (find(used_ids.begin(), used_ids.end(), additional_protein_identifications[i].getIdentifier())!=used_ids.end())
+					String id = prot_it->getIdentifier();
+					if (used_ids.find(id) != used_ids.end()) // ID used previously
 					{
-						writeLog_(String("Error: The identifier '") + additional_protein_identifications[i].getIdentifier() + "' was used before!");
-						return INCOMPATIBLE_INPUT_DATA;
+						writeLog_("Warning: The identifier '" + id + "' was used before!");
+						// generate a new ID:
+						DateTime date_time = prot_it->getDateTime();
+						String new_id;
+						generateNewId_(used_ids, prot_it->getSearchEngine(), date_time, 
+													 new_id);
+						writeLog_("New identifier '" + new_id + 
+											"' generated as replacement.");
+						// update fields:
+						prot_it->setIdentifier(new_id);
+						prot_it->setDateTime(date_time);
+						for (vector<PeptideIdentification>::iterator pep_it = 
+									 additional_peptides.begin(); pep_it != 
+									 additional_peptides.end(); ++pep_it)
+						{
+							if (pep_it->getIdentifier() == id) pep_it->setIdentifier(new_id);
+						}
+						used_ids.insert(new_id);
 					}
-					used_ids.push_back(additional_protein_identifications[i].getIdentifier());
+					else used_ids.insert(id);
 				}
 
-				protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
-				identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
+				proteins.insert(proteins.end(), additional_proteins.begin(), 
+												additional_proteins.end());
+				peptides.insert(peptides.end(), additional_peptides.begin(), 
+												additional_peptides.end());
 			}
 		}
 
@@ -241,7 +276,7 @@ class TOPPIDMerger
 		// writing output
 		//-------------------------------------------------------------
 
-		IdXMLFile().store(out, protein_identifications, identifications);
+		IdXMLFile().store(out, proteins, peptides);
 
 		return EXECUTION_OK;
 	}
