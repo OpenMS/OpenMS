@@ -206,13 +206,13 @@ namespace OpenMS {
     /**
     @p threaded_random_numbers keeps a set of random numbers for each thread simulating a feature.
       */
-    std::vector<std::vector<double> > threaded_random_numbers;
+    std::vector<std::vector<double> > threaded_random_numbers_;
 
     /**
       Indicates which random numbers each thread has used already and if the random number pool
       should be rebuild.
       */
-    std::vector< Size > threaded_random_numbers_index;
+    std::vector< Size > threaded_random_numbers_index_;
 
     static const Size THREADED_RANDOM_NUMBER_POOL_SIZE = 500;
 

@@ -278,26 +278,26 @@ namespace OpenMS {
       // prepare random numbers for the different threads
       // each possible thread gets his own set of random
       // numbers
-      threaded_random_numbers.resize(omp_get_max_threads());
-      threaded_random_numbers_index.resize(omp_get_max_threads());
-      for(SignedSize i = 0 ; i < threaded_random_numbers.size() && i < threaded_random_numbers_index.size() ; ++i)
+      threaded_random_numbers_.resize(omp_get_max_threads());
+      threaded_random_numbers_index_.resize(omp_get_max_threads());
+      for(Size i = 0 ; i < threaded_random_numbers_.size(); ++i)
       {
-        threaded_random_numbers[i].reserve(THREADED_RANDOM_NUMBER_POOL_SIZE);
-        threaded_random_numbers_index[i] = THREADED_RANDOM_NUMBER_POOL_SIZE;
+        threaded_random_numbers_[i].resize(THREADED_RANDOM_NUMBER_POOL_SIZE);
+        threaded_random_numbers_index_[i] = THREADED_RANDOM_NUMBER_POOL_SIZE;
       }
 #endif
       Size progress = 0;
-#pragma omp parallel for
-      for(SignedSize f = 0 ; f < features.size() ; ++f)
+      #pragma omp parallel for
+      for(SignedSize f = 0 ; f < (SignedSize)features.size() ; ++f)
       {
         add2DSignal_(features[f],experiment);
 
         // to avoid problems when updating the not thread safe
         // progresslogger, make this step critical
-#pragma omp critical (update_progress)
+        #pragma omp critical (update_progress)
         {
-        ++progress;
-        this->setProgress(progress);
+          ++progress;
+          this->setProgress(progress);
         }
       }
     }
@@ -541,7 +541,7 @@ namespace OpenMS {
 #ifdef _OPENMP
         int CURRENT_THREAD = omp_get_thread_num();
         // check if we need to refill the random number pool for this thread
-        if(threaded_random_numbers_index[ CURRENT_THREAD ] == THREADED_RANDOM_NUMBER_POOL_SIZE)
+        if(threaded_random_numbers_index_[ CURRENT_THREAD ] == THREADED_RANDOM_NUMBER_POOL_SIZE)
         {
           if(mz_error_stddev_ != 0.0)
           {
@@ -549,21 +549,21 @@ namespace OpenMS {
             {
             for(Size i = 0 ; i < THREADED_RANDOM_NUMBER_POOL_SIZE ; ++i)
             {
-              threaded_random_numbers[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+              threaded_random_numbers_[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
             }
             }
 
             // reset index for this thread to first position
-            threaded_random_numbers_index[CURRENT_THREAD] = 0;
+            threaded_random_numbers_index_[CURRENT_THREAD] = 0;
           }
           else
           {
             // we do not need to care about concurrency here
-            fill(threaded_random_numbers[CURRENT_THREAD].begin(), threaded_random_numbers[CURRENT_THREAD].end() , mz_error_mean_);
+            fill(threaded_random_numbers_[CURRENT_THREAD].begin(), threaded_random_numbers_[CURRENT_THREAD].end() , mz_error_mean_);
           }
         }
 
-        mz_err = threaded_random_numbers[CURRENT_THREAD][threaded_random_numbers_index[CURRENT_THREAD]++];
+        mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
 #else
         // we can use the normal gaussian ran-gen if we do not use OPENMP
         mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
