@@ -70,6 +70,8 @@ namespace OpenMS
 		QWidget *ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& , const QModelIndex& index) const
 		{
 			Int type = index.sibling(index.row(),0).data(Qt::UserRole).toInt();
+
+      // only create editor for first column (value column)
 			if(index.column()==1 && type!=ParamEditor::NODE)
 			{
 				QString dtype = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
@@ -131,6 +133,7 @@ namespace OpenMS
 		{
 			QString str = index.data(Qt::DisplayRole).toString();
 
+      // only set editor data for first column (value column)
 			if(index.column()==1)
 			{
 				if(qobject_cast<QComboBox*>(editor)) //Drop-down list for enums
@@ -206,6 +209,7 @@ namespace OpenMS
 			QVariant new_value;
 			StringList list;
 			bool new_list = false;
+      // only set model data for first column (value column)
 			if(index.column()==1)
 			{
 				//extract new value
@@ -413,7 +417,7 @@ namespace OpenMS
 		QStringList list;
 		list << "name" << "value" << "type" << "restrictions";
 		tree_->setHeaderLabels(list);
-		dynamic_cast<QVBoxLayout*>(layout())->insertWidget(0,tree_,1);
+    dynamic_cast<QVBoxLayout*>(layout())->insertWidget(0,tree_,1);
 		tree_->setItemDelegate(new Internal::ParamEditorDelegate(tree_));	// the delegate from above is set
 		connect(tree_->itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));
 		connect(advanced_,SIGNAL(toggled(bool)),this,SLOT(toggleAdvancedMode(bool)));
@@ -443,16 +447,14 @@ namespace OpenMS
 				if (it2->opened) //opened node
 				{
 					item = new QTreeWidgetItem(parent);
-					//item->setTextAlignment(0,Qt::AlignTop);
-					//item->setTextAlignment(1,Qt::AlignTop);
-					//item->setTextAlignment(2,Qt::AlignTop);
-					//item->setTextAlignment(3,Qt::AlignTop);
 					//name
 					item->setText(0, it2->name.toQString());
+          item->setTextColor(0, Qt::darkGray);
+
 					//description
-					item->setData(1,Qt::UserRole,it2->description.toQString());
+          item->setData(1,Qt::UserRole, it2->description.toQString());
 					//role
-					item->setData(0,Qt::UserRole,NODE);
+          item->setData(0,Qt::UserRole, NODE);
 					//flags
 					if(param_!=NULL)
 					{
@@ -473,10 +475,12 @@ namespace OpenMS
 			
 			//********handle item********
 			item = new QTreeWidgetItem(parent);
-			//item->setTextAlignment(0,Qt::AlignTop);
-			//item->setTextAlignment(1,Qt::AlignTop);
-			//item->setTextAlignment(2,Qt::AlignTop);
-			//item->setTextAlignment(3,Qt::AlignTop);
+
+      // grey out unused columns
+      item->setTextColor(0, Qt::darkGray);
+      item->setTextColor(2, Qt::darkGray);
+      item->setTextColor(3, Qt::darkGray);
+
 			if (it->tags.count("advanced"))
 			{
 				item->setData(0,Qt::UserRole,ADVANCED_ITEM);
