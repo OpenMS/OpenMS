@@ -259,10 +259,10 @@ namespace OpenMS {
 
     this->startProgress(0,features.size(),"RawMSSignal");
 
-    Size progress=0;
+    Size progress(0);
     // we have a bit of code duplication here but this eases the parallelization
     // step
-    if(experiment.size() == 1)
+    if(experiment.size() == 1) // MS only
     {
       for(FeatureMap< >::iterator feature_it = features.begin();
           feature_it != features.end();
@@ -272,35 +272,83 @@ namespace OpenMS {
         this->setProgress(progress);
       }
     }
-    else
+    else // LC/MS
     {
+      std::vector < MSSimExperiment*> experiments; // pointer to experiment(s)
+      experiments.push_back(&experiment); // the master thread gets the original (just a reference, no copying here)
+
 #ifdef _OPENMP
       // prepare random numbers for the different threads
       // each possible thread gets his own set of random
       // numbers
-      threaded_random_numbers_.resize(omp_get_max_threads());
-      threaded_random_numbers_index_.resize(omp_get_max_threads());
-      for(Size i = 0 ; i < threaded_random_numbers_.size(); ++i)
+      Size thread_count = omp_get_max_threads();
+
+      threaded_random_numbers_.resize(thread_count);
+      threaded_random_numbers_index_.resize(thread_count);
+      experiments.reserve(thread_count); // !reserve! 
+      std::vector < MSSimExperiment> experiments_tmp(thread_count-1); // holds MSExperiments for slave threads
+
+      for(Size i=0 ; i<thread_count; ++i)
       {
         threaded_random_numbers_[i].resize(THREADED_RANDOM_NUMBER_POOL_SIZE);
         threaded_random_numbers_index_[i] = THREADED_RANDOM_NUMBER_POOL_SIZE;
       }
-#endif
-      Size progress = 0;
-      #pragma omp parallel for
-      for(SignedSize f = 0 ; f < (SignedSize)features.size() ; ++f)
+
+      for (Size i=1; i<thread_count; ++i)
       {
-        add2DSignal_(features[f],experiment);
+        // prepare a temporary experiment to store the results
+        experiments_tmp[i-1].resize(experiment.size());
+        MSSimExperiment::ConstIterator org_it  = experiment.begin();
+        MSSimExperiment::Iterator temp_it = experiments_tmp[i-1].begin();
+        // naivly copy scan properties from original experiment
+        experiments_tmp[i-1] = experiment;
+        for(; org_it != experiment.end(); ++org_it, ++temp_it)
+        {
+          temp_it->setRT(org_it->getRT());
+          temp_it->clear(false);
+          //static_cast<SpectrumSettings>(*temp_it) = *org_it;
+        }
+
+        // assign it to the list of experiments (this is no real copy, but a reference!)
+        experiments.push_back(&(experiments_tmp[i-1]));
+      }
+#endif
+
+      int current_thread(0);
+      #pragma omp parallel for
+      for (SignedSize f = 0 ; f < (SignedSize)features.size() ; ++f)
+      {
+        
+        #ifdef _OPENMP // update experiment index if necessary
+        current_thread = omp_get_thread_num();
+        #endif
+        add2DSignal_(features[f], *(experiments[current_thread]));
 
         // to avoid problems when updating the not thread safe
         // progresslogger, make this step critical
         #pragma omp critical (update_progress)
         {
-          ++progress;
-          this->setProgress(progress);
+          this->setProgress(++progress);
+        }
+      } // ! raw signal sim
+
+#ifdef _OPENMP // merge back other experiments
+      for (Size i=1;i<experiments.size();++i)
+      {
+        MSSimExperiment::Iterator org_it  = experiment.begin();
+        MSSimExperiment::ConstIterator temp_it = experiments[i]->begin();
+
+        // copy peak data from temporal experiment
+        for(; org_it != experiment.end() ; ++org_it, ++temp_it)
+        {
+          if(temp_it->empty()) continue; // we do not care if the spectrum wasn't touched at all
+          // append all points from temp to org
+          org_it->insert(org_it->end(), temp_it->begin(), temp_it->end());
         }
       }
-    }
+#endif
+    
+    } // ! 1D or 2D
 
     this->endProgress();
 
@@ -401,63 +449,9 @@ namespace OpenMS {
     SimCoordinateType mz_start ( isomodel->getInterpolation().supportMin() );
     SimCoordinateType mz_end ( isomodel->getInterpolation().supportMax() );
 
-#ifdef _OPENMP
-    // check if the method is executed by a parallel section (will be true in 99.9% of the cases)
-    if( omp_get_num_threads() > 1)
-    {
-      // IMPROVEMENT: do not copy the complete map but only the affected part
-      //              which is defined by rt_start, rt_end
-
-      // prepare a temporary experiment to store the results
-      MSSimExperiment temp_experiment;
-      temp_experiment.resize(experiment.size());
-
-      MSSimExperiment::iterator org_it  = experiment.begin();
-      MSSimExperiment::iterator temp_it = temp_experiment.begin();
-
-      // naivly copy scan properties from original experiment
-      for(; org_it != experiment.end() && temp_it != temp_experiment.end() ; ++org_it , ++temp_it)
-      {
-        temp_it->setRT(org_it->getRT());
-      }
-
-      // add peptide to LOCAL MS map
-      // add CH and new intensity to feature
-      samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, temp_experiment, active_feature);
-
-#pragma omp critical (merge_temp_experiment)
-      {
-      // store temp result
-      org_it  = experiment.begin();
-      temp_it = temp_experiment.begin();
-
-      // naivly copy scan properties from original experiment
-      for(; org_it != experiment.end() && temp_it != temp_experiment.end() ; ++org_it , ++temp_it)
-      {
-        if(temp_it->empty()) continue; // we do not care if the spectrum wasn't touched at all
-
-        // append all points from temp to org and resort
-        org_it->insert(org_it->end() , temp_it->begin() , temp_it->end());
-
-        // resort spectrum
-        // org_it->sortByPosition();
-      }
-
-      }
-    }
-    else
-    {
-      // normal execution, we do not care about MT
-
-      // add peptide to GLOBAL MS map
-      // add CH and new intensity to feature
-      samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
-    }
-#else
     // add peptide to GLOBAL MS map
     // add CH and new intensity to feature
     samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
-#endif
   }
 
 
@@ -506,9 +500,6 @@ namespace OpenMS {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
 
-//#pragma omp critical
-//    LOG_INFO << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
-
     SimIntensityType intensity_sum = 0.0;
     vector< DPosition<2> > points;
     
@@ -545,14 +536,13 @@ namespace OpenMS {
         {
           if(mz_error_stddev_ != 0.0)
           {
-#pragma omp critical(generate_random_number_for_thread)
+            #pragma omp critical(generate_random_number_for_thread)
             {
-            for(Size i = 0 ; i < THREADED_RANDOM_NUMBER_POOL_SIZE ; ++i)
-            {
-              threaded_random_numbers_[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+              for(Size i = 0 ; i < THREADED_RANDOM_NUMBER_POOL_SIZE ; ++i)
+              {
+                threaded_random_numbers_[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+              }
             }
-            }
-
             // reset index for this thread to first position
             threaded_random_numbers_index_[CURRENT_THREAD] = 0;
           }
@@ -593,7 +583,7 @@ namespace OpenMS {
 
   }
 
-  void RawMSSignalSimulation::chooseElutionProfile_(EGHModel*& elutionmodel, Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
+  void RawMSSignalSimulation::chooseElutionProfile_(EGHModel* const elutionmodel, Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
   {
       SimCoordinateType f_rt = feature.getRT();
 
