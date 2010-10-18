@@ -38,10 +38,21 @@ namespace OpenMS
 	}
 
 	QTCluster::QTCluster(GridFeature* center_point, Size num_maps, 
-											 DoubleReal max_distance) :
+											 DoubleReal max_distance, bool use_IDs) :
 		center_point_(center_point), neighbors_(), max_distance_(max_distance), 
-		num_maps_(num_maps), quality_(0.0), changed_(false)
+		num_maps_(num_maps), quality_(0.0), changed_(false), annotations_()
 	{
+		if (use_IDs)
+		{
+			const vector<PeptideIdentification>& peptides = 
+				center_point->getFeature().getPeptideIdentifications();
+			for (vector<PeptideIdentification>::const_iterator pep_it = 
+						 peptides.begin(); pep_it != peptides.end(); ++pep_it)
+			{
+				if (pep_it->getHits().empty()) continue; // shouldn't be the case
+				annotations_.insert(pep_it->getHits()[0].getSequence());
+			}
+		}
 	}
 
 	QTCluster::~QTCluster()
@@ -56,6 +67,7 @@ namespace OpenMS
 		num_maps_ = rhs.num_maps_;
 		quality_ = rhs.quality_;
 		changed_ = rhs.changed_;
+		annotations_ = rhs.annotations_;
 		return *this;
 	}
 
@@ -158,6 +170,11 @@ namespace OpenMS
 		// normalize:
 		internal_distance /= num_other;
 		quality_ = (max_distance_ - internal_distance) / max_distance_;
+	}
+
+	const set<AASequence>& QTCluster::getAnnotations() const
+	{
+		return annotations_;
 	}
 
 }

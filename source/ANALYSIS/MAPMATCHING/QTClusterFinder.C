@@ -93,6 +93,15 @@ void QTClusterFinder::run_(const vector<MapType>& input_maps,
 		{
 			grid_features.push_back(GridFeature(input_maps[map_index][feature_index],
 																					map_index, feature_index));
+			// sort peptide hits once now, instead of multiple times later:
+			BaseFeature& feature = const_cast<BaseFeature&>(
+				grid_features.back().getFeature());
+			for (vector<PeptideIdentification>::iterator pep_it = 
+						 feature.getPeptideIdentifications().begin(); pep_it != 
+						 feature.getPeptideIdentifications().end(); ++pep_it)
+			{
+				pep_it->sort();
+			}
 			grid.insert(&(grid_features.back()));
 		}
 	}
@@ -187,7 +196,7 @@ void QTClusterFinder::computeClustering_(HashGrid& grid,
 			// create a cluster for every element (this element is cluster center):
 			GridFeature* center_feature = 
 				dynamic_cast<GridFeature*>(*center_element);
-			QTCluster cluster(center_feature, num_maps_, max_distance);
+			QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_);
 
 			// iterate over neighboring grid cells (1st dimension):
 			for (int i = x - 1; i <= x + 1; ++i)
@@ -224,8 +233,8 @@ void QTClusterFinder::computeClustering_(HashGrid& grid,
 																			 center_feature->rt);
 							// if neighbor point is a possible cluster point, add it:
 							if ((dist_mz <= max_dist_mz_) && (dist_rt <= max_dist_rt_) && 
-									(!use_IDs_ || compatibleIDs_(neighbor_feature->getFeature(), 
-																							 center_feature->getFeature()))) {
+									(!use_IDs_ || compatibleIDs_(cluster, neighbor_feature)))
+							{
 								cluster.add(neighbor_feature, dist);
 							}
 						}
@@ -260,8 +269,7 @@ DoubleReal QTClusterFinder::getDistance_(GridFeature* left, GridFeature* right)
 DoubleReal QTClusterFinder::getDistance_(const BaseFeature& left, 
 																				 const BaseFeature& right) const
 {
-	// charge states have to match:
-	if (left.getCharge() != right.getCharge()) return -1;
+	if (left.getCharge() != right.getCharge()) return -1; // charges don't match
 	DPosition<2> pos_diff = left.getPosition() - right.getPosition();
 	return getDistance_(pos_diff[RT], pos_diff[MZ]);
 }
@@ -283,29 +291,21 @@ DoubleReal QTClusterFinder::getDistance_(DoubleReal pos_diff_rt,
 }
 
 
-bool QTClusterFinder::compatibleIDs_(const BaseFeature& feat1, 
-																		 const BaseFeature& feat2) const
+bool QTClusterFinder::compatibleIDs_(const QTCluster& cluster, 
+																		 const GridFeature* neighbor) const
 {
-	vector<PeptideIdentification> pep1 = feat1.getPeptideIdentifications(),
-		pep2 = feat2.getPeptideIdentifications();
-	// a feature without identifications always matches:
-	if (pep1.empty() || pep2.empty()) return true;
-	set<AASequence> best1, best2;
-	for (vector<PeptideIdentification>::iterator pep_it = pep1.begin(); 
-			 pep_it != pep1.end(); ++pep_it)
+	const vector<PeptideIdentification>& peptides = 
+		neighbor->getFeature().getPeptideIdentifications();
+	// a neighbor feature without identifications always matches:
+	if (peptides.empty()) return true;
+	set<AASequence> sequences;
+	for (vector<PeptideIdentification>::const_iterator pep_it = peptides.begin(); 
+			 pep_it != peptides.end(); ++pep_it)
 	{
 		if (pep_it->getHits().empty()) continue; // shouldn't be the case
-		pep_it->sort();
-		best1.insert(pep_it->getHits()[0].getSequence());
+		sequences.insert(pep_it->getHits()[0].getSequence());
 	}
-	for (vector<PeptideIdentification>::iterator pep_it = pep2.begin(); 
-			 pep_it != pep2.end(); ++pep_it)
-	{
-		if (pep_it->getHits().empty()) continue; // shouldn't be the case
-		pep_it->sort();
-		best2.insert(pep_it->getHits()[0].getSequence());
-	}
-	return (best1 == best2);
+	return (cluster.getAnnotations() == sequences);
 }
 
 

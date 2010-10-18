@@ -29,7 +29,8 @@
 #ifndef OPENMS_DATASTRUCTURES_QTCLUSTER_H
 #define OPENMS_DATASTRUCTURES_QTCLUSTER_H
 
-#include<OpenMS/DATASTRUCTURES/GridFeature.h>
+#include <OpenMS/DATASTRUCTURES/GridFeature.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 namespace OpenMS {
 
@@ -84,6 +85,9 @@ namespace OpenMS {
 		/// Has the cluster changed (if yes, quality needs to be recomputed)?
 		bool changed_;
 
+		/// Set of peptide sequences annotated to the cluster center
+		std::set<AASequence> annotations_;
+
 		/// Base constructor (not accessible)
 		QTCluster();
 
@@ -96,9 +100,10 @@ namespace OpenMS {
 		 * @param center_point Pointer to the center point
 		 * @param num_maps Number of input maps
 		 * @param max_distance Maximum allowed distance of two points
+		 * @param use_IDs Store peptide annotations in @p annotations_?
 		 */
 		QTCluster(GridFeature* center_point, Size num_maps, 
-							DoubleReal max_distance);
+							DoubleReal max_distance, bool use_IDs);
 
 		/// Destructor
 		virtual ~QTCluster();
@@ -137,6 +142,10 @@ namespace OpenMS {
 
 		/// Returns the cluster quality
 		DoubleReal getQuality();
+
+		/// Return the set of peptide sequences annotated to the cluster center
+		const std::set<AASequence>& getAnnotations() const;
+
 	};
 }
 
