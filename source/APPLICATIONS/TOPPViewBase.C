@@ -3642,7 +3642,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         Size lc = sw->canvas()->getLayerCount();
 
         // determine if widget stores one or more layers for the given filename (->needs update)
-        for (int j=0; j!= lc; ++j)
+        for (Size j=0; j!= lc; ++j)
         {
           //std::cout << "Layer filename: " << sw->canvas()->getLayer(j).filename << std::endl;
           const LayerData& ld = sw->canvas()->getLayer(j);

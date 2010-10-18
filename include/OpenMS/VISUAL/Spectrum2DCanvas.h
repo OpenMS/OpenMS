@@ -164,7 +164,7 @@ namespace OpenMS
         @param layer_index The index of the layer.
         @param p The QPainter to paint on.
       */
-        void paintMaximumIntensities_(Size layer_index, Int rt_pixel_count, Int mz_pixel_count, QPainter& p);
+        void paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter& p);
 
         /**
         @brief Paints the precursor peaks.

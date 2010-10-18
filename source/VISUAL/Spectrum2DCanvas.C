@@ -514,7 +514,7 @@ namespace OpenMS
     painter.setPen(Qt::black);
   }
 
-  void Spectrum2DCanvas::paintMaximumIntensities_(Size layer_index, Int rt_pixel_count, Int mz_pixel_count, QPainter& painter)
+  void Spectrum2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter& painter)
   {
       //set painter to black (we operate directly on the pixels for all colored data)
       painter.setPen(Qt::black);
@@ -537,7 +537,7 @@ namespace OpenMS
 
       //iterate over all pixels (RT dimension)
       Size scan_index = 0;
-      for (Int rt=0; rt<rt_pixel_count; ++rt)
+      for (Size rt=0; rt<rt_pixel_count; ++rt)
       {
         DoubleReal rt_start = rt_min + rt_step_size * rt;
         DoubleReal rt_end = rt_start + rt_step_size;
@@ -565,7 +565,7 @@ namespace OpenMS
         if (scan_indices.size()==0) continue;
 
         //iterate over all pixels (m/z dimension)
-        for (Int mz=0; mz<mz_pixel_count; ++mz)
+        for (Size mz=0; mz<mz_pixel_count; ++mz)
         {
           DoubleReal mz_start = mz_min + mz_step_size * mz;
           DoubleReal mz_end = mz_start + mz_step_size;

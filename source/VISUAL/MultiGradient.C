@@ -226,7 +226,7 @@ namespace OpenMS
 			}
 			else if (*it == ',')
 			{
-				tmp_pos = atoi(string(tmp,it).c_str());
+        tmp_pos = QString(string(tmp,it).c_str()).toUInt();
 				tmp = it+1;				
 			}
 		}
