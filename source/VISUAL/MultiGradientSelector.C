@@ -46,7 +46,7 @@ namespace OpenMS
 	MultiGradientSelector::MultiGradientSelector( QWidget * parent) 
 		: QWidget(parent), 
 			gradient_(), 
-			margin_(5), 
+      margin_(5),
 			gradient_area_width_(0), 
 			lever_area_height_(17), 
 			selected_(-1), 
@@ -243,6 +243,7 @@ namespace OpenMS
 		QMenu main_menu(this);
 		//Default gradient
 		QMenu* defaults = main_menu.addMenu("Default gradients");
+    defaults->addAction("grey - yellow - red - purple - blue - black");
 		defaults->addAction("grey - black");
 		defaults->addAction("yellow - red - purple - blue - black");
 		defaults->addAction("orange - red - purple - blue - black");
@@ -268,6 +269,10 @@ namespace OpenMS
 		QAction* result;
 		if ((result = main_menu.exec(e->globalPos())))
 		{
+      if (result->text()=="grey - yellow - red - purple - blue - black")
+      {         
+        gradient_.fromString("Linear|0,#eeeeee;1,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");
+      }
 			if (result->text()=="grey - black")
 			{
 				gradient_.fromString("Linear|0,#CCCCCC;100,#000000");

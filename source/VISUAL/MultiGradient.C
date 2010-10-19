@@ -53,31 +53,13 @@ namespace OpenMS
 		return pos_col_.size();
 	}
 	
-
-	void MultiGradient::insert (Int position, QColor color)
+  void MultiGradient::insert (DoubleReal position, QColor color)
 	{
 		if (position >= 0 || position <=100 )
 		{
 			pos_col_[position]=color;
 		}
 	}
-
-	bool MultiGradient::remove (Int position)
-	{
-		if (position < 1 || position > 99 )
-		{
-			return false;
-		}
-		
-		map<UInt,QColor>::iterator it = pos_col_.find(position);
-		if (it != pos_col_.end())
-		{
-			pos_col_.erase(it);
-			return true; 
-		}
-		return false;
-	}
-
 
 	UInt MultiGradient::position(UInt index)
 	{
@@ -86,7 +68,7 @@ namespace OpenMS
 			throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
 
-		map<UInt,QColor>::iterator it = pos_col_.begin();
+    map<DoubleReal, QColor>::iterator it = pos_col_.begin();
 		for (Size i=0; i<index; ++i)
 		{
 			++it;
@@ -101,7 +83,7 @@ namespace OpenMS
 			throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
 		
-		map<UInt,QColor>::iterator it = pos_col_.begin();
+    map<DoubleReal,QColor>::iterator it = pos_col_.begin();
 		for (Size i=0; i<index; ++i)
 		{
 			++it;
@@ -124,14 +106,14 @@ namespace OpenMS
 		//linear
 		if (interpolation_mode_==IM_LINEAR)
 		{
-			map<UInt,QColor>::const_iterator it1 = pos_col_.lower_bound(Int(position));
-			if (it1->first == UInt(position))
+      map<DoubleReal, QColor>::const_iterator it1 = pos_col_.lower_bound(position);
+      if (std::abs(it1->first-position) < 0.0001)  // compare double
 			{
 				return it1->second;
 			}
 			else
 			{
-				map<UInt,QColor>::const_iterator it0 = it1;
+        map<DoubleReal,QColor>::const_iterator it0 = it1;
 				--it0;
 				DoubleReal factor = (position-it0->first)/(it1->first-it0->first);
 				return QColor(Int(factor*it1->second.red()+(1-factor)*it0->second.red()+0.001) 
@@ -142,7 +124,7 @@ namespace OpenMS
 		//stairs
 		else
 		{
-			map<UInt,QColor>::const_iterator it = pos_col_.upper_bound(Int(position));
+      map<DoubleReal,QColor>::const_iterator it = pos_col_.upper_bound(position);
 			--it;
 			return it->second;
 		}
@@ -180,7 +162,7 @@ namespace OpenMS
 			out << "Stairs|";
 		}		
 		
-		for (map<UInt,QColor>::const_iterator it = pos_col_.begin(); it!=pos_col_.end(); ++it )
+    for (map<DoubleReal, QColor>::const_iterator it = pos_col_.begin(); it!=pos_col_.end(); ++it )
 		{
 			if (it!=pos_col_.begin())
 			{
@@ -204,7 +186,7 @@ namespace OpenMS
 
 		string g(gradient);
 		string::iterator tmp(g.begin());
-		UInt tmp_pos=0;
+    DoubleReal tmp_pos=0;
 		for (string::iterator it = g.begin(); it!=g.end();++it)
 		{
 			if (*it == '|')
@@ -226,7 +208,7 @@ namespace OpenMS
 			}
 			else if (*it == ',')
 			{
-        tmp_pos = QString(string(tmp,it).c_str()).toUInt();
+        tmp_pos = QString(string(tmp,it).c_str()).toDouble();
 				tmp = it+1;				
 			}
 		}
@@ -254,9 +236,25 @@ namespace OpenMS
 		pre_.clear();
 	}
 
-	bool MultiGradient::exists (Int position)
+  bool MultiGradient::exists(DoubleReal position)
 	{
 		return pos_col_.find(position)!=pos_col_.end();
 	}
+
+  bool MultiGradient::remove(DoubleReal position)
+  {
+    if (position < 1 || position > 99 )
+    {
+      return false;
+    }
+
+    map<DoubleReal,QColor>::iterator it = pos_col_.find(position);
+    if (it != pos_col_.end())
+    {
+      pos_col_.erase(it);
+      return true;
+    }
+    return false;
+  }
 
 } //namespace OpenMS
