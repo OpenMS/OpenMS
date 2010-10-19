@@ -294,42 +294,38 @@ namespace OpenMS {
         threaded_random_numbers_index_[i] = THREADED_RANDOM_NUMBER_POOL_SIZE;
       }
 
-      for (Size i=1; i<thread_count; ++i)
+      if (thread_count>1)
       {
         // prepare a temporary experiment to store the results
-        experiments_tmp[i-1].resize(experiment.size());
-        MSSimExperiment::ConstIterator org_it  = experiment.begin();
-        MSSimExperiment::Iterator temp_it = experiments_tmp[i-1].begin();
-        // naivly copy scan properties from original experiment
-        experiments_tmp[i-1] = experiment;
-        for(; org_it != experiment.end(); ++org_it, ++temp_it)
+        MSSimExperiment e_tmp = experiment;
+        // remove actual data
+        for(MSSimExperiment::Iterator temp_it = e_tmp.begin(); temp_it != e_tmp.end(); ++temp_it)
         {
-          temp_it->setRT(org_it->getRT());
           temp_it->clear(false);
-          //static_cast<SpectrumSettings>(*temp_it) = *org_it;
         }
-
-        // assign it to the list of experiments (this is no real copy, but a reference!)
-        experiments.push_back(&(experiments_tmp[i-1]));
+        // each slave thread gets a copy
+        for (Size i=1; i<thread_count; ++i)
+        {
+          experiments_tmp[i-1] = e_tmp;
+          // assign it to the list of experiments (this is no real copy, but a reference!)
+          experiments.push_back(&(experiments_tmp[i-1]));
+        }
       }
 #endif
 
       int current_thread(0);
-      #pragma omp parallel for
+#pragma omp parallel for private(current_thread)
       for (SignedSize f = 0 ; f < (SignedSize)features.size() ; ++f)
       {
-        
         #ifdef _OPENMP // update experiment index if necessary
-        current_thread = omp_get_thread_num();
+          current_thread = omp_get_thread_num();
         #endif
         add2DSignal_(features[f], *(experiments[current_thread]));
 
-        // to avoid problems when updating the not thread safe
-        // progresslogger, make this step critical
-        #pragma omp critical (update_progress)
-        {
-          this->setProgress(++progress);
-        }
+        // progresslogger, only master thread sets progress (no barrier here)
+        #pragma omp atomic
+        ++progress;
+        if (current_thread == 0) this->setProgress(progress);
       } // ! raw signal sim
 
 #ifdef _OPENMP // merge back other experiments

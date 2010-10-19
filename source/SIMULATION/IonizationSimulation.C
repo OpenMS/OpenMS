@@ -30,6 +30,8 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <omp.h>
+
 namespace OpenMS {
 
 
@@ -219,26 +221,22 @@ namespace OpenMS {
       LOG_INFO << "Simulating " << features.size() << " features" << std::endl;
 
       this->startProgress(0,features.size(),"Ionization");
-      Size progress=0;
+      Size progress(0);
 
 			// iterate over all features
-#pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
+      #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
 			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
-#pragma omp critical
-        {
+        // progresslogger, only master thread sets progress (no barrier here)
+        #pragma omp atomic
         ++progress;
-        this->setProgress(progress);
-        }
+        if (omp_get_thread_num() == 0) this->setProgress(progress);
 
 				ConsensusFeature cf;
 
 				// iterate on abundance
 				Int abundance = (Int) ceil( features[index].getIntensity() );
 				UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
-	      
-				// assumption: each basic residue can hold one charged adduct
-				Map<Compomer, UInt> charge_states;
 	      
         if (basic_residues_c==0)
         {
@@ -247,12 +245,31 @@ namespace OpenMS {
 					continue;
         }
 
+        // precompute random numbers:
+        std::vector<UInt> prec_rndbin(abundance);
+        #pragma omp critical (OPENMS_gsl)
+        {
+          for(Int j = 0; j < abundance ; ++j)
+				  {
+            prec_rndbin[j] = gsl_ran_binomial(rnd_gen_->technical_rng,esi_probability_,basic_residues_c);
+          }
+        }
+
+        std::vector<Size> prec_rnduni(50); // uniform numbers container
+        Size prec_rnduni_remaining(0);
+
+				// assumption: each basic residue can hold one charged adduct
+				Map<Compomer, UInt> charge_states;
+        Size adduct_index;
+        UInt charge;
+
 				// sample different charge states (dice for each peptide molecule separately)
 				for(Int j = 0; j < abundance ; ++j)
 				{
 					// currently we might also loose some molecules here (which is ok?)
 					// sample charge state from binomial
-          UInt charge = gsl_ran_binomial(rnd_gen_->technical_rng,esi_probability_,basic_residues_c);
+
+          charge = prec_rndbin[j]; // get precomputed rnd
 
 					if (charge==0)
 					{
@@ -263,30 +280,41 @@ namespace OpenMS {
 					// distribute charges across adduct types
 					for (UInt charge_site=0;charge_site<charge;++charge_site)
 					{
-            Size adduct_index = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
-						cmp.add(esi_adducts_[adduct_index],Compomer::RIGHT);
+            if (prec_rnduni_remaining == 0)
+            {
+              #pragma omp critical (OPENMS_gsl)
+              {
+                for (Size i_rnd=0;i_rnd<prec_rnduni.size();++i_rnd)
+                {
+                  prec_rnduni[i_rnd] = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
+                }
+                prec_rnduni_remaining = prec_rnduni.size();
+              }
+            }
+            adduct_index = prec_rnduni[--prec_rnduni_remaining];
+            cmp.add(esi_adducts_[adduct_index],Compomer::RIGHT);
 					}
 
 					// add 1 to abundance of sampled charge state
 					++charge_states[ cmp ];
 				}
 
-				Int max_observed_charge=0;
+        // no charges > 0 selected (this should be really rare)
+				if (charge_states.size()==0) 
+				{
+					++uncharged_feature_count; // OMP!
+					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
+					continue;
+				}
+
 				// transform into a set (for sorting by abundance)
+				Int max_observed_charge(0);
 				std::set< std::pair<UInt, Compomer > > charge_states_sorted;
 				for (Map<Compomer, UInt>::const_iterator it_m=charge_states.begin(); it_m!=charge_states.end();++it_m)
 				{ // create set of pair(value, key)
 					charge_states_sorted.insert( std::make_pair(it_m->second,it_m->first) );
 					// update maximal observed charge
 					max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
-				}
-
-				// no charges > 0 selected (this should be really rare)
-				if (charge_states_sorted.size()==0) 
-				{
-					++uncharged_feature_count; // OMP!
-					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
-					continue;
 				}
 
 				Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");
@@ -301,8 +329,7 @@ namespace OpenMS {
 					{
 						Feature charged_feature(features[index]);
 
-#pragma omp critical (setfeatureprop)
-            {setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);}
+            setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);
 	
 						if (!isFeatureValid_(charged_feature))
 						{
@@ -310,10 +337,10 @@ namespace OpenMS {
 							continue;
 						}
 
-            // ensure uniquenes
-            charged_feature.setUniqueId();
-#pragma omp critical
-            {copy_map.push_back(charged_feature);}
+            #pragma omp critical (OPENMS_copy_map)
+            {
+              copy_map.push_back(charged_feature);
+            }
 						// add to consensus
 						cf.insert(0, charged_feature);
 
@@ -323,11 +350,13 @@ namespace OpenMS {
 				}
 
 				// add consensus element containing all charge variants just created
-#pragma omp critical
-        {charge_consensus.push_back(cf);}
+        #pragma omp critical (OPENMS_charge_consensus)
+        {
+          charge_consensus.push_back(cf);
+        }
 
 			} // ! for feature  (parallel)
-      
+
       this->endProgress();	    
 
       for (Size i=0;i<charge_consensus.size(); ++i)
@@ -459,27 +488,31 @@ namespace OpenMS {
 
 		f.setMZ( (feature_ef.getMonoWeight() + adduct_mass ) / charge);
 		f.setCharge(charge);
-		f.ensureUniqueId();
-		
-		// add meta information on compomer (mass)
-		f.setMetaValue("charge_adduct_mass", adduct_mass );
-		f.setMetaValue("charge_adducts", adduct_formula );
-		f.setMetaValue("parent_feature_number", parent_index );
+	  // set "main" intensity
+    SimIntensityType old_intensity = f.getIntensity();
+	  f.setIntensity(new_intensity);
+	  DoubleReal factor = new_intensity / old_intensity;
 
-		// set "main" intensity
-		SimIntensityType old_intensity = f.getIntensity();
-		f.setIntensity(new_intensity);
-		// adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
-		DoubleReal factor = new_intensity / old_intensity;
-		StringList keys;
-		f.getKeys(keys);
-		for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
-		{
-			if (it_key->hasPrefix("intensity"))
-			{
-				f.setMetaValue(*it_key, SimIntensityType(f.getMetaValue(*it_key)) * factor);
-			}
-		}
+    #pragma omp critical (OPENMS_setfeatureprop)
+    {
+      // ensure uniquenes
+      f.setUniqueId();
+		  // add meta information on compomer (mass)
+		  f.setMetaValue("charge_adduct_mass", adduct_mass );
+		  f.setMetaValue("charge_adducts", adduct_formula );
+		  f.setMetaValue("parent_feature_number", parent_index );
+
+		  // adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
+		  StringList keys;
+		  f.getKeys(keys);
+		  for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
+		  {
+			  if (it_key->hasPrefix("intensity"))
+			  {
+				  f.setMetaValue(*it_key, SimIntensityType(f.getMetaValue(*it_key)) * factor);
+			  }
+		  }
+    } // ! pragma
 	}
 
   bool IonizationSimulation::isFeatureValid_(const Feature & feature)
