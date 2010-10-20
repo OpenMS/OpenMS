@@ -36,7 +36,6 @@
 				<pt x="1755.86" y="656.356994628906" />
 			</convexhull>
 			<userParam type="float" name="MZ" value="443.707"/>
-			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_5024549519481199379">
 			<position dim="0">2152.26572764145</position>
@@ -68,7 +67,6 @@
 				<pt x="2258.03" y="722.403991699219" />
 			</convexhull>
 			<userParam type="float" name="MZ" value="461.743"/>
-			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_6211693768620736135">
 			<position dim="0">2267.94328782799</position>
@@ -100,7 +98,6 @@
 				<pt x="2284.45" y="722.403991699219" />
 			</convexhull>
 			<userParam type="float" name="MZ" value="461.743"/>
-			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_2727934422266510952">
 			<position dim="0">2299.80627336107</position>
@@ -132,7 +129,6 @@
 				<pt x="2455.36" y="600.330993652344" />
 			</convexhull>
 			<userParam type="float" name="MZ" value="554.256"/>
-			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_3318143123566627610">
 			<position dim="0">2511.65687358884</position>
@@ -164,7 +160,6 @@
 				<pt x="2513.47" y="600.330993652344" />
 			</convexhull>
 			<userParam type="float" name="MZ" value="554.256"/>
-			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 	</featureList>
 </featureMap>
