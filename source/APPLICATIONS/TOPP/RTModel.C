@@ -656,7 +656,7 @@ class TOPPRTModel
 						else
 						{
 							writeLog_("For one spectrum there should not be more than one peptide."
-									      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
+									      "Please use the IDFilter with the -best:strict option to achieve this. Aborting!");
 							writeLog_("Hits: ");
 							for(vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); 
 									it != identifications[i].getHits().end(); 
@@ -819,7 +819,7 @@ class TOPPRTModel
 						else
 						{
 							writeLog_("For one spectrum there should not be more than one peptide."
-									      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
+									      "Please use the IDFilter with the -best:strict option to achieve this. Aborting!");
 							writeLog_("Hits: ");
 							for(vector<PeptideHit>::const_iterator it = identifications_negative[i].getHits().begin(); 
 									it != identifications_negative[i].getHits().end(); 

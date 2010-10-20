@@ -664,7 +664,9 @@ svn propset svn:eol-style native MyClass.C
 		<LI> Add the tool to the correct category in the <TT>defaults_</TT> param section in <TT>source/APPLICATIONS/TOPPASBase.C</TT>
         <LI> Write a TOPP test (add it to /source/TEST/TOPP/CMakeLists.txt)<BR>
         		 Warning: handle any kind of input files to your TOPP tool via command line flags and use the ${DATA_DIR_TOPP} prefix. You can use ini-files
-        		 to specify output-files, but not input-files. Doing otherwise will break out-of-source builds.
+        		 to specify output-files, but not input-files. Doing otherwise will break out-of-source builds.<BR>
+             Hint: add "-test" to the call of your TOPP tool and also create the expected output that you put in source/TEST/TOPP with that flag active.
+             The flag ensures that UniqueId's, dates etc are equal no matter where and when the tool is run.
 			</OL>
 
 			<LI><B>What do I have to do to add a new UTILS tool?</B>
@@ -675,6 +677,7 @@ svn propset svn:eol-style native MyClass.C
 				<LI> Add it to the UTILS docu page (in @a %doc/doxygen/public/UTILS.doxygen)
 				<LI> Add the executable to the ignore list of the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/UTILS/)
         <LI> Add the name to <TT>source/APPLICATIONS/UTILS/executables.cmake</TT>
+        <LI> Write a test (this is optional for UTILS). See TOPP tools above and add the test to the bottom of /source/TEST/TOPP/CMakeLists.txt.
 			</OL>
 
 		</UL>
