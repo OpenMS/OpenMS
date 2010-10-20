@@ -30,7 +30,9 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 namespace OpenMS {
 
@@ -227,10 +229,16 @@ namespace OpenMS {
       #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
 			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
-        // progresslogger, only master thread sets progress (no barrier here)
+        // no barrier here .. only an atomic update of progress value
         #pragma omp atomic
         ++progress;
+
+#ifdef _OPENMP
+        // progresslogger, only master thread sets progress (no barrier here)
         if (omp_get_thread_num() == 0) this->setProgress(progress);
+#else
+        this->setProgress(progress);
+#endif
 
 				ConsensusFeature cf;
 
