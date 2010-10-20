@@ -306,7 +306,7 @@ namespace OpenMS
 				}
 				
 				IOInfo io_info;
-				io_info.param_name = it->name;
+				io_info.param_name = it.getName();
 				io_info.valid_types = valid_types;
 				if (it->value.valueType() == DataValue::STRING_LIST)	
 				{
