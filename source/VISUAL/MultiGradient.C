@@ -107,7 +107,7 @@ namespace OpenMS
 		if (interpolation_mode_==IM_LINEAR)
 		{
       map<DoubleReal, QColor>::const_iterator it1 = pos_col_.lower_bound(position);
-      if (std::abs(it1->first-position) < 0.0001)  // compare double
+      if (std::abs(it1->first-position) < numeric_limits<DoubleReal>::epsilon())  // compare double
 			{
 				return it1->second;
 			}
@@ -219,8 +219,8 @@ namespace OpenMS
 	void MultiGradient::activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)
 	{
 		//add security margin to range to avoid numerical problems
-		pre_min_ = std::min(min,max)-0.005;
-		pre_size_ = fabs(max-min)+0.01;
+    pre_min_ = std::min(min,max)-0.000005;
+    pre_size_ = fabs(max-min)+0.00001;
 		pre_steps_ = steps - 1;
 		pre_.clear();
 		pre_.reserve(steps);
@@ -243,7 +243,7 @@ namespace OpenMS
 
   bool MultiGradient::remove(DoubleReal position)
   {
-    if (position < 1 || position > 99 )
+    if (position < 0 + std::numeric_limits<DoubleReal>::epsilon() || position > 100 - std::numeric_limits<DoubleReal>::epsilon())
     {
       return false;
     }
