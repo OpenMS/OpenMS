@@ -102,7 +102,30 @@ namespace OpenMS
 #else // Linux / MacOS
       char * p_env;
       p_env = getenv ("COLUMNS");
-      if (p_env!=NULL) console_width_ = String(p_env).toInt();
+      if (p_env!=NULL)
+      {
+				 console_width_ = String(p_env).toInt();
+			}
+			else
+			{ // try "stty size" command
+				writeDebug_("COLUMNS env does not exist!", -2);
+				// don't use QProcess, as stty will not work there
+				FILE *fp = popen("stty size", "r" );
+				if (fp != NULL)
+				{
+					char buff[100];
+					fgets( buff, sizeof (buff), fp );
+					pclose(fp);					
+					String output(buff);
+					StringList components;
+					output.split(' ', components);
+					if (components.size()==2) console_width_=components[1].toInt();
+				}
+				else
+				{
+					writeDebug_("stty size command failed." ,-2);
+				}
+			}
 #endif
       --console_width_; // to add the \n at the end of each line without forcing another line break on windows
     }
@@ -687,7 +710,6 @@ namespace OpenMS
   String TOPPBase::breakString_(const String& input, const Size line_len, const Size indentation, const Size max_lines) const
   {
     StringList result;
-    Size lines=0;
     Size short_line_len=line_len-indentation;
     if (short_line_len < 1)
     {
