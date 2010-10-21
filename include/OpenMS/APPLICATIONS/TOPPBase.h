@@ -771,6 +771,9 @@ namespace OpenMS
       void checkParam_( const Param& param, const String& filename, const String& location ) const;
       //@}
 
+      /// make a string console friendly
+      String breakString_(const String& input, const Size line_len, const Size indentation, const Size max_lines) const;
+      
       /// Prints the tool-specific command line options and appends the common options.
       void printUsage_() const;
 
@@ -885,6 +888,8 @@ namespace OpenMS
 			/// .TOPP.ini file for storing system default parameters
 			static String topp_ini_file_;
 			
+      /// width of console we are currently in (if not determinable, set to 80 as default)
+      int console_width_;
   };
 
 } // namespace OpenMS

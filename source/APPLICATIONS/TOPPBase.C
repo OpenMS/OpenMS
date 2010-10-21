@@ -46,6 +46,11 @@
 
 #include <cmath>
 
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <windows.h> // for GetConsoleScreenBufferInfo()
+#undef min
+#undef max
+#endif
 using namespace std;
 
 namespace OpenMS
@@ -81,6 +86,33 @@ namespace OpenMS
 		{
 			writeLog_(String("Error: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
 		}
+
+    // determine column width of current console (TODO: put that into a dedicated class)
+    try
+    {
+      console_width_ = -1;
+#ifdef OPENMS_WINDOWSPLATFORM
+      HANDLE hOut;
+      CONSOLE_SCREEN_BUFFER_INFO SBInfo;
+
+      hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+      GetConsoleScreenBufferInfo(hOut, &SBInfo);
+      console_width_ = SBInfo.dwSize.X;
+#else // Linux / MacOS
+      char * p_env;
+      p_env = getenv ("COLUMNS");
+      if (p_env!=NULL) console_width_ = String(p_env).toInt();
+#endif
+      --console_width_; // to add the \n at the end of each line without forcing another line break on windows
+    }
+    catch (...) {}
+    // if console_width_ is still -1, we do not use command line reshaping
+    if (console_width_<10)
+    {
+      writeDebug_("Console width could not be determined or is smaller than 10. Not using cl shaping!",2);
+      console_width_ = std::numeric_limits<int>::max();
+    }
 
 	}
 
@@ -652,8 +684,46 @@ namespace OpenMS
 		return result;
 	}
 
+  String TOPPBase::breakString_(const String& input, const Size line_len, const Size indentation, const Size max_lines) const
+  {
+    StringList result;
+    Size lines=0;
+    Size short_line_len=line_len-indentation;
+    if (short_line_len < 1)
+    {
+      std::cerr << "INTERNAL ERROR: cannot split lines into empty strings! see breakString_()";
+      return input;
+    }
+    for (Size i=0;i<input.size();)
+    {
+      String line = input.substr(i, result.size()==0 ? line_len : short_line_len); // first line has full length
+      Size advance_size = line.size();
+      if (line.hasSubstring("\n"))
+      {
+        advance_size=0;
+        while (line.hasPrefix("\n")){ line=line.substr(1);advance_size++;} // advance by # of \n's
+        if (line.hasSubstring("\n")) line = line.prefix('\n');
+        advance_size += line.size();  // + actual chars
+      }
+      i+=advance_size;
+      String s_intend = (result.size()==0 ? "" : String(indentation,' ')); // first line no intendation
+      String r = s_intend + (result.size()==0 ? line : line.trim()); // intended lines get trimmed
+      result.push_back(r);//(r.fillRight(' ', (UInt) line_len));
+    }
+    if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...
+    {
+      String last = result.back();
+      result.erase(result.begin()+max_lines-2, result.end());
+      result.push_back((String(indentation,' ') + String("...")));//.fillRight(' ',(UInt) line_len));
+      result.push_back(last);
+    }
+    // remove last " " from last line to prevent automatic linebreak
+    //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
+    return result.concatenate("\n");
+  }
 	void TOPPBase::printUsage_() const
 	{
+    Size console_intendation = 0; // intendation in case of line break
 		//common output
 		cerr << "\n"
 	       << tool_name_ << " -- " << tool_description_ << "\n"
@@ -666,7 +736,7 @@ namespace OpenMS
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
 
-		//determine max length of parameters (including argument) for indentation
+		//determine max length of parameters (including argument) for intendation
 		UInt max_size = 0;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
@@ -678,10 +748,11 @@ namespace OpenMS
 
 		//offset of the descriptions
 		UInt offset = 6 + max_size;
-
+    console_intendation = offset;
     //keep track of the current subsection we are in, to display the subsection help when a new section starts
     String current_TOPP_subsection("");
 
+    // PRINT parameters && description, restrictions and default
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
       if (!((!it->advanced) || (it->advanced && verbose))) continue;
@@ -693,7 +764,7 @@ namespace OpenMS
         map<String,String>::const_iterator it = subsections_TOPP_.find(current_TOPP_subsection);
         if (it==subsections_TOPP_.end()) throw Exception::ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,"'"+current_TOPP_subsection+"' (TOPP subsection not registered)");
         cerr << "\n"; // print newline for new subsection
-        cerr << it->second << ":\n"; // print subsection description
+        cerr << breakString_(it->second, console_width_, 0, 10) << ":\n"; // print subsection description
       }
       else if ((!it->name.has(':')) && current_TOPP_subsection.size()>0)
       { // subsection ended and normal parameters start again
@@ -729,7 +800,7 @@ namespace OpenMS
 						String tmp = it->default_value.toString().substitute(", ", " ");
 						if (tmp!="" && tmp!="[]")
 						{
-							addons.push_back(String("default: \"") + tmp + "\"");
+							addons.push_back(String("default: '") + tmp + "'");
 						}
 					}
 					break;
@@ -752,36 +823,36 @@ namespace OpenMS
 						for (StringList::iterator str_it = copy.begin();
 								 str_it != copy.end(); ++str_it)
 						{
-							str_it->quote();
+							str_it->quote('\'');
 						}
 
 						String add = "";
 						if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
 								it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST) add = " formats";
 
-						addons.push_back(String("valid") + add + ": " + copy.concatenate("/"));
+						addons.push_back(String("valid") + add + ": " + copy.concatenate(", ")); // concat restrictions by comma
 					}
 					break;
 				case ParameterInformation::INT:
 				case ParameterInformation::INTLIST:
 						if (it->min_int!=-std::numeric_limits<Int>::max())
 					{
-						addons.push_back(String("min: \"") + it->min_int + "\"");
+						addons.push_back(String("min: '") + it->min_int + "'");
 					}
 					if (it->max_int!=std::numeric_limits<Int>::max())
 					{
-						addons.push_back(String("max: \"") + it->max_int + "\"");
+						addons.push_back(String("max: '") + it->max_int + "'");
 					}
 					break;
 				case ParameterInformation::DOUBLE:
 				case ParameterInformation::DOUBLELIST:
 					if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
 					{
-						addons.push_back(String("min: \"") + it->min_float + "\"");
+						addons.push_back(String("min: '") + it->min_float + "'");
 					}
 					if (it->max_float!=std::numeric_limits<DoubleReal>::max())
 					{
-						addons.push_back(String("max: \"") + it->max_float + "\"");
+						addons.push_back(String("max: '") + it->max_float + "'");
 					}
 					break;
 
@@ -792,43 +863,17 @@ namespace OpenMS
 			//add DEFAULT and RESTRICTIONS
 			if (addons.size()!=0)
 			{
-				String output;
-				output.concatenate(addons.begin(),addons.end()," ");
-				if (desc_tmp[desc_tmp.size()-1]!='\n') desc_tmp += " ";
-				desc_tmp += String("(") + output + ")";
+        desc_tmp += String(" (") + addons.concatenate(" ") + ")";
 			}
 
-			//handle newlines in description
-			vector<String> parts;
-			if (!desc_tmp.split('\n',parts))
-			{
-				cerr << tmp << desc_tmp;
-			}
-			else
-			{
-				vector<String>::iterator it2 = parts.begin();
-				it2->firstToUpper();
-				cerr << tmp << *it2 << "\n";
-				it2++;
-				for (; (it2+1)!=parts.end(); ++it2)
-				{
-					if (it->type != ParameterInformation::TEXT) cerr << String(offset,' ');
-					cerr << *it2 << "\n";
-				}
-				if (it->type != ParameterInformation::TEXT)
-				{
-					// Note: one space less here, if default will appear at beginning of line
-					cerr << String(offset-it2->empty(),' ');
-				}
-				cerr << *it2;
-			}
-
+      cerr << breakString_(tmp + desc_tmp, console_width_, offset, 10);
 			cerr << "\n";
 		}
 
+    // SUBSECTION's at the end
 		if (subsections_.size()!=0)
 		{
-			//determine indentation of description
+			//determine intendation of description
 			UInt indent = 0;
 			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
@@ -843,7 +888,8 @@ namespace OpenMS
 			{
 				String tmp = String(" - ") + it->first;
 				tmp.fillRight(' ',indent);
-				cerr << tmp << it->second << "\n";
+        cerr << breakString_(tmp  + it->second, console_width_, indent, 10);
+				cerr << "\n";
 			}
       cerr << "\n"
 					 << "You can write an example INI file using the '-write_ini' option." << "\n"
