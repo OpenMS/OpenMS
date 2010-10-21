@@ -774,8 +774,11 @@ namespace OpenMS
       /// make a string console friendly
       String breakString_(const String& input, const Size line_len, const Size indentation, const Size max_lines) const;
       
+      /// read console settings for output shaping
+      void readConsoleSize_();
+
       /// Prints the tool-specific command line options and appends the common options.
-      void printUsage_() const;
+      void printUsage_();
 
       /// The actual "main" method.  main_() is invoked by main().
       virtual ExitCodes main_(int argc , const char** argv) = 0;

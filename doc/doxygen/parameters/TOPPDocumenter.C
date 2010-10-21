@@ -50,7 +50,10 @@ int main (int , char** )
 		//start process
 		QProcess process;
 		process.setProcessChannelMode(QProcess::MergedChannels);
-		process.start((it->first + " --help").toQString());
+    QStringList env = QProcess::systemEnvironment();
+    env << "COLUMNS=" << String((int)screen_length).toQString(); // Add an environment variable
+    process.setEnvironment(env);
+ 		process.start((it->first + " --help").toQString());
 		process.waitForFinished();
 
 		ofstream f((String("output/TOPP_") + it->first + ".cli").c_str());
@@ -65,28 +68,9 @@ int main (int , char** )
 		{
 			// write output
 			std::string lines = QString(process.readAllStandardOutput()).toStdString();
-			std::vector<std::string> splits;
-			boost::split(splits, lines, boost::is_any_of("\n"));
-			for(size_t t = 0; t < splits.size(); ++t)
-			{
-				if(splits[t].size()>screen_length)
-				{
-					size_t n=0;
-					f << splits[t].substr(n,screen_length) << " ..." << "\n" ;
-					n += screen_length;
-					while(n<splits[t].size())
-					{
-						f << " ... " << splits[t].substr(n,screen_length) << "\n" ;
-						n += screen_length;
-					}
-				}
-				else
-				{
-					f << splits[t] << "\n" ;
-				}
-			}
-			f.close();
+			f << lines;
 		}
+		f.close();
 	}
 
 	//UTILS
@@ -111,28 +95,8 @@ int main (int , char** )
 		{
 			// write output
 			std::string lines = QString(process.readAllStandardOutput()).toStdString();
-			std::vector<std::string> splits;
-			boost::split(splits, lines, boost::is_any_of("\n"));
-			for(size_t t = 0; t < splits.size(); ++t)
-			{
-				if(splits[t].size()>screen_length)
-				{
-					size_t n=0;
-					f << splits[t].substr(n,screen_length) << " ..." << "\n" ;
-					n += screen_length;
-					while(n<splits[t].size())
-					{
-						f << " ... " << splits[t].substr(n,screen_length) << "\n" ;
-						n += screen_length;
-					}
-				}
-				else
-				{
-					f << splits[t] << "\n" ;
-				}
-			}
-			//~ f << QString(process.readAllStandardOutput()).toStdString();
-		}
+			f << lines;
+    }
 		f.close();
 	}
 

@@ -86,57 +86,6 @@ namespace OpenMS
 		{
 			writeLog_(String("Error: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
 		}
-
-    // determine column width of current console (TODO: put that into a dedicated class)
-    try
-    {
-      console_width_ = -1;
-#ifdef OPENMS_WINDOWSPLATFORM
-      HANDLE hOut;
-      CONSOLE_SCREEN_BUFFER_INFO SBInfo;
-
-      hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
-      GetConsoleScreenBufferInfo(hOut, &SBInfo);
-      console_width_ = SBInfo.dwSize.X;
-#else // Linux / MacOS
-      char * p_env;
-      p_env = getenv ("COLUMNS");
-      if (p_env!=NULL)
-      {
-				 console_width_ = String(p_env).toInt();
-			}
-			else
-			{ // try "stty size" command
-				writeDebug_("COLUMNS env does not exist!", -2);
-				// don't use QProcess, as stty will not work there
-				FILE *fp = popen("stty size", "r" );
-				if (fp != NULL)
-				{
-					char buff[100];
-					fgets( buff, sizeof (buff), fp );
-					pclose(fp);					
-					String output(buff);
-					StringList components;
-					output.split(' ', components);
-					if (components.size()==2) console_width_=components[1].toInt();
-				}
-				else
-				{
-					writeDebug_("stty size command failed." ,-2);
-				}
-			}
-#endif
-      --console_width_; // to add the \n at the end of each line without forcing another line break on windows
-    }
-    catch (...) {}
-    // if console_width_ is still -1, we do not use command line reshaping
-    if (console_width_<10)
-    {
-      writeDebug_("Console width could not be determined or is smaller than 10. Not using cl shaping!",2);
-      console_width_ = std::numeric_limits<int>::max();
-    }
-
 	}
 
 	TOPPBase::~TOPPBase()
@@ -743,8 +692,67 @@ namespace OpenMS
     //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
     return result.concatenate("\n");
   }
-	void TOPPBase::printUsage_() const
+
+  void TOPPBase::readConsoleSize_()
+  {
+    // avoid calling this function more than once
+    static bool been_here = false;
+    if (been_here) return;
+    been_here = true;
+
+    // determine column width of current console (TODO: put that into a dedicated class)
+    try
+    {
+      console_width_ = -1;
+      char * p_env;
+      p_env = getenv ("COLUMNS");
+      if (p_env!=NULL)
+      {
+				 console_width_ = String(p_env).toInt();
+			}
+			else
+      {
+        writeDebug_("output shaping: COLUMNS env does not exist!", 2);
+#ifdef OPENMS_WINDOWSPLATFORM
+        HANDLE hOut;
+        CONSOLE_SCREEN_BUFFER_INFO SBInfo;
+        hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        GetConsoleScreenBufferInfo(hOut, &SBInfo);
+        console_width_ = SBInfo.dwSize.X;
+#else // Linux / MacOS
+			  // try "stty size" command
+				// don't use QProcess, as stty will not work there
+				FILE *fp = popen("stty size", "r" );
+				if (fp != NULL)
+				{
+					char buff[100];
+					fgets( buff, sizeof (buff), fp );
+					pclose(fp);					
+					String output(buff);
+					StringList components;
+					output.split(' ', components);
+					if (components.size()==2) console_width_=components[1].toInt();
+				}
+				else
+				{
+					writeDebug_("output shaping: stty size command failed." , 2);
+				}
+#endif
+			}
+      --console_width_; // to add the \n at the end of each line without forcing another line break on windows
+    }
+    catch (...) {}
+    // if console_width_ is still -1, we do not use command line reshaping
+    if (console_width_<10)
+    {
+      writeDebug_("Console width could not be determined or is smaller than 10. Not using output shaping!",2);
+      console_width_ = std::numeric_limits<int>::max();
+    }
+  }
+
+	void TOPPBase::printUsage_()
 	{
+    readConsoleSize_();
     Size console_intendation = 0; // intendation in case of line break
 		//common output
 		cerr << "\n"
