@@ -753,7 +753,6 @@ namespace OpenMS
 	void TOPPBase::printUsage_()
 	{
     readConsoleSize_();
-    Size console_intendation = 0; // intendation in case of line break
 		//common output
 		cerr << "\n"
 	       << tool_name_ << " -- " << tool_description_ << "\n"
@@ -778,7 +777,6 @@ namespace OpenMS
 
 		//offset of the descriptions
 		UInt offset = 6 + max_size;
-    console_intendation = offset;
     //keep track of the current subsection we are in, to display the subsection help when a new section starts
     String current_TOPP_subsection("");
 
@@ -896,7 +894,8 @@ namespace OpenMS
         desc_tmp += String(" (") + addons.concatenate(" ") + ")";
 			}
 
-      cerr << breakString_(tmp + desc_tmp, console_width_, offset, 10);
+      if (it->type == ParameterInformation::TEXT) cerr << breakString_(tmp + desc_tmp, console_width_, 0, 10); // no intendation for text
+      else  cerr << breakString_(tmp + desc_tmp, console_width_, offset, 10);
 			cerr << "\n";
 		}
 
