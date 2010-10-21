@@ -398,7 +398,7 @@ namespace OpenMS
       QToolBar* tool_bar_;
       //common intensity modes
 
-      QButtonGroup* intensity_group_;
+      QButtonGroup* intensity_button_group_;
       //1D specific stuff
 
       QToolBar* tool_bar_1d_;

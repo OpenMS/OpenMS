@@ -261,8 +261,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           tool_bar_ = addToolBar("Basic tool bar");
 
           //intensity modes
-          intensity_group_ = new QButtonGroup(tool_bar_);
-          intensity_group_->setExclusive(true);
+          intensity_button_group_ = new QButtonGroup(tool_bar_);
+          intensity_button_group_->setExclusive(true);
 
           b = new QToolButton(tool_bar_);
           b->setIcon(QIcon(":/lin.png"));
@@ -270,7 +270,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           b->setShortcut(Qt::Key_N);
           b->setCheckable(true);
           b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified.<BR>(Hotkey: N)");
-          intensity_group_->addButton(b,SpectrumCanvas::IM_NONE);
+          intensity_button_group_->addButton(b,SpectrumCanvas::IM_NONE);
           tool_bar_->addWidget(b);
 
           b = new QToolButton(tool_bar_);
@@ -282,7 +282,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
                           " maximum intensity. If only one layer is displayed this mode behaves like the"
                           " normal mode. If more than one layer is displayed intensities are aligned."
                           "<BR>(Hotkey: P)");
-          intensity_group_->addButton(b,SpectrumCanvas::IM_PERCENTAGE);
+          intensity_button_group_->addButton(b,SpectrumCanvas::IM_PERCENTAGE);
           tool_bar_->addWidget(b);
 
           b = new QToolButton(tool_bar_);
@@ -293,9 +293,18 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           b->setWhatsThis("Intensity: Snap to maximum displayed intensity<BR><BR> In this mode the"
                           " color gradient is adapted to the maximum currently displayed intensity."
                           "<BR>(Hotkey: S)");
-          intensity_group_->addButton(b,SpectrumCanvas::IM_SNAP);
+          intensity_button_group_->addButton(b,SpectrumCanvas::IM_SNAP);
           tool_bar_->addWidget(b);
-          connect(intensity_group_,SIGNAL(buttonClicked(int)),this,SLOT(setIntensityMode(int)));
+
+          b = new QToolButton(tool_bar_);
+          b->setIcon(QIcon(":/log.png"));
+          b->setToolTip("Intensity: Use log scaling for colors");
+          b->setCheckable(true);
+          b->setWhatsThis("Intensity: Logarithmic scaling of intensities for color calculation");
+          intensity_button_group_->addButton(b,SpectrumCanvas::IM_LOG);
+          tool_bar_->addWidget(b);
+
+          connect(intensity_button_group_,SIGNAL(buttonClicked(int)),this,SLOT(setIntensityMode(int)));
           tool_bar_->addSeparator();
 
           //common buttons
@@ -1509,9 +1518,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (w)
     {
       //set intensity mode
-      if(intensity_group_->button(w->canvas()->getIntensityMode()))
+      if(intensity_button_group_->button(w->canvas()->getIntensityMode()))
       {
-        intensity_group_->button(w->canvas()->getIntensityMode())->setChecked(true);
+        intensity_button_group_->button(w->canvas()->getIntensityMode())->setChecked(true);
       } else
       {
         showLogMessage_(LS_ERROR, __PRETTY_FUNCTION__ ,"Button for intensity mode doesn't exist");
