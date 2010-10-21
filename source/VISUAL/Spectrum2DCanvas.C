@@ -91,7 +91,6 @@ namespace OpenMS
 		{
 			mzToXAxis(false);
 		}
-		
 		//connect preferences change to the right slot
 		connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParamtersChanged_()));
 	}
@@ -490,8 +489,8 @@ namespace OpenMS
         dataToWidget_(i->getMZ(), i.getRT(), pos);
         if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
         {
-
           QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
+
           if (circle_size < 2)
           {
             painter.setPen(QColor(color));
@@ -934,8 +933,15 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::recalculateDotGradient_(Size layer)
 	{
-		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
-		getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
+    getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
+    if (intensity_mode_ == IM_LOG)
+    {
+      DoubleReal min_intensity = getMinIntensity(layer);    
+      getLayer_(layer).gradient.activatePrecalculationMode(std::log(min_intensity + 1), std::log(overall_data_range_.maxPosition()[2]) + 1, param_.getValue("interpolation_steps"));
+    } else
+    {
+      getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
+    }
 	}
 
 	void Spectrum2DCanvas::updateProjections()

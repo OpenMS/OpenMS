@@ -135,7 +135,8 @@ namespace OpenMS
 		{
 			IM_NONE,		    ///< Normal mode: f(x)=x
 			IM_PERCENTAGE,  ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
-			IM_SNAP         ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
+      IM_SNAP,        ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
+      IM_LOG          ///< Logarithmic mode
 		};
 		
 		//@}

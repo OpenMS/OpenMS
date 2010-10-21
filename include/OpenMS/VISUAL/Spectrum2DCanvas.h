@@ -270,6 +270,8 @@ namespace OpenMS
             case IM_SNAP:
                 return gradient.precalculatedColorAt(val*snap_factor).rgb();
                 break;
+            case IM_LOG:
+                return gradient.precalculatedColorAt(std::log(val + 1)).rgb();
             default:
                 throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
             }

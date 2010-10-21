@@ -1509,7 +1509,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (w)
     {
       //set intensity mode
-     	intensity_group_->button(w->canvas()->getIntensityMode())->setChecked(true);
+      if(intensity_group_->button(w->canvas()->getIntensityMode()))
+      {
+        intensity_group_->button(w->canvas()->getIntensityMode())->setChecked(true);
+      } else
+      {
+        showLogMessage_(LS_ERROR, __PRETTY_FUNCTION__ ,"Button for intensity mode doesn't exist");
+      }
     }
 
     //1D

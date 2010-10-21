@@ -122,7 +122,8 @@ namespace OpenMS
 			OPENMS_PRECONDITION(pre_.size()!=0,"MultiGradient::precalculatedColorAt(DoubleReal): Precalculation mode not activated!");
 			OPENMS_PRECONDITION(position>=pre_min_,(String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_+pre_size_) + ")!").c_str());
 			OPENMS_PRECONDITION(position<=pre_min_+pre_size_,(String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_+pre_size_) + ")!").c_str());
-			return pre_[(UInt)((position - pre_min_) / pre_size_ * pre_steps_)];	
+
+      return pre_[(UInt)((position - pre_min_) / pre_size_ * pre_steps_)];
 		}
 
 		///return the number of color points
