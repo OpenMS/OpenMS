@@ -117,7 +117,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::dataToWidget(const PeakType& peak, QPoint& point, bool flipped, bool percentage)
 	{
-		dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
+      dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
 	}
 	
 	void Spectrum1DCanvas::dataToWidget(float x, float y, QPoint& point, bool flipped, bool percentage)
@@ -772,11 +772,10 @@ namespace OpenMS
               for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
 							{
 								if (layer.filters.passes(spectrum,it-spectrum.begin()))
-								{
-									dataToWidget(*it,end,layer.flipped);
-									
-									dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
-									
+								{                  
+                  dataToWidget(*it,end,layer.flipped);
+                  dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
+
 									// draw peak
 									painter.drawLine(begin, end);
 								}
@@ -1437,16 +1436,16 @@ namespace OpenMS
 	
 	bool Spectrum1DCanvas::flippedLayersExist()
 	{
-		bool if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not = false;
+    bool has_flipped_layers = false;
 		for (Size i = 0; i < getLayerCount(); ++i)
 		{
 			if (layers_[i].flipped)
 			{
-				if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not = true;
+        has_flipped_layers = true;
 				break;
 			}
 		}
-		return if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not;
+    return has_flipped_layers;
 	}
 
   void Spectrum1DCanvas::updateLayer(Size i)

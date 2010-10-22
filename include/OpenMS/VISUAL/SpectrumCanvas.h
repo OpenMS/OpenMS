@@ -769,8 +769,17 @@ namespace OpenMS
 			}
 			else
 			{
-				point.setX( int((x - visible_area_.minX()) / visible_area_.width() * width()));
-				point.setY( height() - int((y - visible_area_.minY()) / visible_area_.height() * height()));
+        point.setX( int((x - visible_area_.minX()) / visible_area_.width() * width()));
+
+        if (intensity_mode_ != SpectrumCanvas::IM_LOG)
+        {
+          point.setY( height() - int((y - visible_area_.minY()) / visible_area_.height() * height()));
+        } else  // IM_LOG
+        {
+          point.setY( height() - int(
+              std::log10((y-visible_area_.minY())+1)/std::log10(visible_area_.height()+1)*height()
+              ));
+        }
 			}
 		}
 		

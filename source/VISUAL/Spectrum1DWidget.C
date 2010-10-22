@@ -86,17 +86,45 @@ namespace OpenMS
 		switch(canvas()->getIntensityMode())
 		{
 			case SpectrumCanvas::IM_NONE:
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
 				flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
 				break;
 			case SpectrumCanvas::IM_PERCENTAGE:
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
 				flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
 				break;
 			case SpectrumCanvas::IM_SNAP:
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY()/canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY()/canvas()->getSnapFactor());
 				flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY()/canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY()/canvas()->getSnapFactor());
 				break;
+      case SpectrumCanvas::IM_LOG:
+        if (!it_axis->isLogScale())
+        {
+          it_axis->setLogScale(true);
+          flipped_y_axis_->setLogScale(true);
+        }
+
+        it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        break;
 			default:
 				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
