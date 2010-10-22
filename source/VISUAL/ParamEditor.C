@@ -415,7 +415,7 @@ namespace OpenMS
 		tree_->setAllColumnsShowFocus(true);
 		tree_->setColumnCount(4);
 		QStringList list;
-		list << "name" << "value" << "type" << "restrictions";
+    list << "parameter" << "value" << "type" << "restrictions";
 		tree_->setHeaderLabels(list);
     dynamic_cast<QVBoxLayout*>(layout())->insertWidget(0,tree_,1);
 		tree_->setItemDelegate(new Internal::ParamEditorDelegate(tree_));	// the delegate from above is set
@@ -449,7 +449,7 @@ namespace OpenMS
 					item = new QTreeWidgetItem(parent);
 					//name
 					item->setText(0, it2->name.toQString());
-          item->setTextColor(0, Qt::darkGray);
+          item->setTextColor(0, Qt::darkGray);  // color of nodes with children
 
 					//description
           item->setData(1,Qt::UserRole, it2->description.toQString());
@@ -476,10 +476,19 @@ namespace OpenMS
 			//********handle item********
 			item = new QTreeWidgetItem(parent);
 
-      // grey out unused columns
-      item->setTextColor(0, Qt::darkGray);
-      item->setTextColor(2, Qt::darkGray);
-      item->setTextColor(3, Qt::darkGray);
+      // grey out non-editable columns (leaf nodes)
+      bool is_required = it->tags.find("required") != it->tags.end();
+      if (is_required)  // special color for required parameters
+      {
+        item->setTextColor(0, QColor(255,140,0,255)); // orange
+        item->setTextColor(2, QColor(255,140,0,255));
+        item->setTextColor(3, QColor(255,140,0,255));
+      } else
+      {
+        item->setTextColor(0, Qt::darkGray);
+        item->setTextColor(2, Qt::darkGray);
+        item->setTextColor(3, Qt::darkGray);
+      }
 
 			if (it->tags.count("advanced"))
 			{
