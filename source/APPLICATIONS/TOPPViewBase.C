@@ -233,9 +233,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           help->addSeparator();
           QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
           action->setData("http://www.OpenMS.de");
+          // this is not ready yet (and is somehow similar to our TOPP tutorial online, maybe we should unify both ideas...):
           //action = help->addAction("TOPPView tutorial",this,SLOT(showTutorial()), Qt::Key_F1);
           action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
-          action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPP_tutorial.html");
+          action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/TOPP_tutorial.html");
 
           help->addSeparator();
           help->addAction("&About",this,SLOT(showAboutDialog()));
@@ -3646,7 +3647,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     QWidgetList wl = ws_->windowList();
 
     // iterate over all windows and determine which need an update
-    std::vector<std::pair<const SpectrumWidget *, int> > needs_update;
+    std::vector<std::pair<const SpectrumWidget *, Size> > needs_update;
     for(int i=0; i!=ws_->windowList().count(); ++i)
     {
       //std::cout << "Number of windows: " << ws_->windowList().count() << std::endl;
@@ -3663,7 +3664,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           const LayerData& ld = sw->canvas()->getLayer(j);
           if (ld.filename == filename)
           {
-            needs_update.push_back(std::pair<const SpectrumWidget *, int>(sw,j));
+            needs_update.push_back(std::pair<const SpectrumWidget *, Size>(sw,j));
           }
         }
       }
@@ -3676,9 +3677,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     } else if (needs_update.size()!=0)  // at least one layer references data of filename
     {
       //std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
-      pair<const SpectrumWidget *, int>& slp = needs_update[0];
+      pair<const SpectrumWidget *, Size>& slp = needs_update[0];
       const SpectrumWidget * sw = slp.first;
-      int layer_index = slp.second;
+      Size layer_index = slp.second;
 
       bool user_wants_update = false;
       if ((String)(param_.getValue("preferences:on_file_change"))=="update automatically") //automatically update
@@ -3709,7 +3710,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       if (user_wants_update == false)
       {
         return;
-      } else if (user_wants_update == true)
+      }
+      else //if (user_wants_update == true)
       {
         const LayerData& layer = sw->canvas()->getLayer(layer_index);
         // reload data
@@ -3786,11 +3788,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
 
       // update all layers that need an update
-      for (UInt i=0; i!= needs_update.size(); ++i)
+      for (Size i=0; i!= needs_update.size(); ++i)
       {
-        pair<const SpectrumWidget *, int>& slp = needs_update[i];
+        pair<const SpectrumWidget *, Size>& slp = needs_update[i];
         const SpectrumWidget * sw = slp.first;
-        int layer_index = slp.second;
+        Size layer_index = slp.second;
         sw->canvas()->updateLayer(layer_index);        
       }
     }
