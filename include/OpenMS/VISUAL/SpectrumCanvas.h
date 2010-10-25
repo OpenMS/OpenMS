@@ -620,12 +620,6 @@ namespace OpenMS
 
 	protected:
 
-		/// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
-		void drawCoordinates_(QPainter& painter, const PeakIndex& peak, bool print_rt);
-
-		/// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
-		void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end, bool print_rt);
-			
 		/// Draws several lines of text to the upper right corner of the widget
 		void drawText_(QPainter& painter, QStringList text);
 

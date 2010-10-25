@@ -136,7 +136,10 @@ namespace OpenMS
 			
 			/// Sets current spectrum index of current layer to @p index
 			void activateSpectrum(Size index, bool repaint=true);
-			
+
+      /// is the widget shown vertically? (for projections)
+      void setVertical(bool vertical);
+
   signals:
       /// Requests to display all spectra in 2D plot
       void showCurrentPeaksAs2D();
@@ -169,6 +172,11 @@ namespace OpenMS
 		protected:
 			// Docu in base class
 			bool finishAdding_();
+
+      /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
+	    void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
+	    /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
+	    void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end);
 			
 			/**
 				@brief Changes visible area interval
@@ -215,7 +223,9 @@ namespace OpenMS
       std::vector<std::pair<DoubleReal, DoubleReal > > alignment_;
       /// Stores the score of the last alignment
 			DoubleReal alignment_score_;
-			
+			/// is this widget showing data vertically?
+      bool is_vertical_;
+
 			/// Find peak next to the given position
 			PeakIndex findPeakAtPosition_(QPoint);
 			

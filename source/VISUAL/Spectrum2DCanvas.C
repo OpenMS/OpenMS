@@ -56,6 +56,8 @@
 //boost
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/median.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
+
 
 using namespace std;
 
@@ -1550,11 +1552,11 @@ namespace OpenMS
 		//draw delta for measuring
 		if (action_mode_==AM_MEASURE && measurement_start_.isValid())
 		{
-			drawDeltas_(painter, measurement_start_, selected_peak_, true);
+			drawDeltas_(painter, measurement_start_, selected_peak_);
 		}
 		else
 		{
-			drawCoordinates_(painter, selected_peak_, true);
+			drawCoordinates_(painter, selected_peak_);
 		}
 
 		painter.end();
@@ -1566,6 +1568,148 @@ namespace OpenMS
 			cout << "  -overall time: " << overall_timer.elapsed() << " ms" << endl << endl;
 		}
 	}
+
+
+	void Spectrum2DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
+	{
+		if (!peak.isValid()) return;
+		
+		//determine coordinates;
+		DoubleReal mz = 0.0;
+		DoubleReal rt = 0.0;
+		Real it = 0.0;
+		Int charge = 0;
+		DoubleReal quality = 0.0;
+    Size size = 0;
+		if (getCurrentLayer().type==LayerData::DT_FEATURE)
+		{
+      mz = peak.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
+      rt = peak.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
+      it = peak.getFeature(*getCurrentLayer().getFeatureMap()).getIntensity();
+      charge  = peak.getFeature(*getCurrentLayer().getFeatureMap()).getCharge();
+      quality = peak.getFeature(*getCurrentLayer().getFeatureMap()).getOverallQuality();
+		}
+		else if (getCurrentLayer().type==LayerData::DT_PEAK)
+		{
+      mz = peak.getPeak(*getCurrentLayer().getPeakData()).getMZ();
+      rt = peak.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+      it = peak.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
+		}
+		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		{
+      mz = peak.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
+      rt = peak.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
+      it = peak.getFeature(*getCurrentLayer().getConsensusMap()).getIntensity();
+      charge  = peak.getFeature(*getCurrentLayer().getConsensusMap()).getCharge();
+      quality = peak.getFeature(*getCurrentLayer().getConsensusMap()).getQuality();
+      size =  peak.getFeature(*getCurrentLayer().getConsensusMap()).getFeatures().size();
+		}
+		else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
+		{
+			//TODO CHROM
+		}
+		else if (getCurrentLayer().type == LayerData::DT_IDENT)
+		{
+			// TODO IDENT
+		}
+		
+		//draw text			
+		QStringList lines;
+    lines.push_back("RT: " + QString::number(rt,'f',2));
+    lines.push_back("m/z: " + QString::number(mz,'f',2));
+		lines.push_back("Int: " + QString::number(it,'f',2));
+		if (getCurrentLayer().type==LayerData::DT_FEATURE || getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		{
+			lines.push_back("Charge: " + QString::number(charge));
+			lines.push_back("Quality: " + QString::number(quality,'f',4));
+		}
+    if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+    {
+      lines.push_back("Size: " + QString::number(size));
+    }
+		drawText_(painter, lines);
+	}
+
+	void Spectrum2DCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end)
+	{
+		if (!start.isValid()) return;
+		
+		//determine coordinates;
+		DoubleReal mz = 0.0;
+		DoubleReal rt = 0.0;
+		Real it = 0.0;
+		if (getCurrentLayer().type==LayerData::DT_FEATURE)
+		{
+			if (end.isValid())
+			{
+        mz = end.getFeature(*getCurrentLayer().getFeatureMap()).getMZ() - start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
+        rt = end.getFeature(*getCurrentLayer().getFeatureMap()).getRT() - start.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
+        it = end.getFeature(*getCurrentLayer().getFeatureMap()).getIntensity() / start.getFeature(*getCurrentLayer().getFeatureMap()).getIntensity();
+			}
+			else
+			{
+				PointType point = widgetToData_(last_mouse_pos_);
+        mz = point[0] - start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
+        rt = point[1] - start.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
+				it = std::numeric_limits<DoubleReal>::quiet_NaN();
+			}
+		}
+		else if (getCurrentLayer().type==LayerData::DT_PEAK)
+		{
+			if (end.isValid())
+			{
+        mz = end.getPeak(*getCurrentLayer().getPeakData()).getMZ() - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
+        rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+        it = end.getPeak(*getCurrentLayer().getPeakData()).getIntensity() / start.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
+			}
+			else
+			{
+				PointType point = widgetToData_(last_mouse_pos_);
+        mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
+        rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+				it = std::numeric_limits<DoubleReal>::quiet_NaN();
+			}
+		}
+		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		{
+			if (end.isValid())
+			{
+        mz = end.getFeature(*getCurrentLayer().getConsensusMap()).getMZ() - start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
+        rt = end.getFeature(*getCurrentLayer().getConsensusMap()).getRT() - start.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
+        it = end.getFeature(*getCurrentLayer().getConsensusMap()).getIntensity() / start.getFeature(*getCurrentLayer().getConsensusMap()).getIntensity();
+			}
+			else
+			{
+				PointType point = widgetToData_(last_mouse_pos_);
+        mz = point[0] - start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
+        rt = point[1] - start.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
+				it = std::numeric_limits<DoubleReal>::quiet_NaN();
+			}
+		}
+		else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
+		{
+			//TODO CHROM
+		}
+		else if (getCurrentLayer().type == LayerData::DT_IDENT)
+		{
+			// TODO IDENT
+		}
+
+		//draw text			
+		QStringList lines;
+		lines.push_back("RT delta : " + QString::number(rt,'f',2));
+		lines.push_back("m/z delta: " + QString::number(mz,'f',6));
+		if (boost::math::isinf(it) || boost::math::isnan(it))
+		{
+			lines.push_back("int ratio: n/a");
+		}
+		else
+		{
+			lines.push_back("int ratio: " + QString::number(it,'f',2));			
+		}
+		drawText_(painter, lines);
+	}
+
 
 	void Spectrum2DCanvas::mousePressEvent(QMouseEvent* e)
 	{

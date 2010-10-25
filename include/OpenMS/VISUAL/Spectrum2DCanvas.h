@@ -129,6 +129,11 @@ namespace OpenMS
         // Docu in base class
         bool finishAdding_();
 
+        /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
+		    void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
+		    /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
+		    void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end);
+
         /** @name Reimplemented QT events */
         //@{
         void mousePressEvent(QMouseEvent* e);

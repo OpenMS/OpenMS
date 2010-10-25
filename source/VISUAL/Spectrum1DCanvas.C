@@ -56,6 +56,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 
 #include <iostream>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
 
@@ -70,7 +71,10 @@ namespace OpenMS
 		: SpectrumCanvas(preferences, parent),
 			mirror_mode_(false),
 			show_alignment_(false),
-			moving_annotations_(false)
+			moving_annotations_(false),
+      alignment_(),
+      alignment_score_(0),
+      is_vertical_(false)
 	{
     //Paramater handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -279,7 +283,7 @@ namespace OpenMS
 					if (selected_peak_.isValid())
 					{
 						measurement_start_ = selected_peak_;
-                                                const ExperimentType::PeakType& peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
+            const ExperimentType::PeakType& peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
 						if (intensity_mode_==IM_PERCENTAGE)
 						{
 							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
@@ -301,7 +305,7 @@ namespace OpenMS
 					if (selected_peak_.isValid())
 					{
 						measurement_start_ = selected_peak_;
-                                                const ExperimentType::PeakType& peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
+            const ExperimentType::PeakType& peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
 						if (intensity_mode_==IM_PERCENTAGE)
 						{
 							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
@@ -877,11 +881,11 @@ namespace OpenMS
 		//draw delta for measuring
 		if (action_mode_==AM_MEASURE && measurement_start_.isValid())
 		{
-			drawDeltas_(painter, measurement_start_, selected_peak_, false);
+			drawDeltas_(painter, measurement_start_, selected_peak_);
 		}
 		else
 		{
-			drawCoordinates_(painter, selected_peak_, false);
+			drawCoordinates_(painter, selected_peak_);
 		}
 		
 		painter.end();
@@ -1037,10 +1041,10 @@ namespace OpenMS
 		}
 		
 		current_layer_ = getLayerCount()-1;
-                currentPeakData_()->updateRanges();
+    currentPeakData_()->updateRanges();
 		
 		//Abort if no data points are contained
-                if (getCurrentLayer().getPeakData()->size()==0 || getCurrentLayer().getPeakData()->getSize()==0)
+    if (getCurrentLayer().getPeakData()->size()==0 || getCurrentLayer().getPeakData()->getSize()==0)
 		{
 			layers_.resize(getLayerCount()-1);
 			if (current_layer_!=0) current_layer_ = current_layer_-1;
@@ -1083,7 +1087,7 @@ namespace OpenMS
 		// sort spectra in accending order of position
     for (Size i = 0; i < currentPeakData_()->size(); ++i)
 		{
-                        (*getCurrentLayer_().getPeakData())[i].sortByPosition();
+      (*getCurrentLayer_().getPeakData())[i].sortByPosition();
 		}
 		
     getCurrentLayer_().annotations_1d.resize(currentPeakData_()->size());
@@ -1115,6 +1119,100 @@ namespace OpenMS
 		emit layerActivated(this);
 		
 		return true;
+	}
+
+	void Spectrum1DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
+	{
+		if (!peak.isValid()) return;
+		
+		//determine coordinates;
+		DoubleReal mz = 0.0;
+		DoubleReal rt = 0.0;
+		Real it = 0.0;
+		// only peak data is supported here
+    if (getCurrentLayer().type!=LayerData::DT_PEAK)
+		{
+			QMessageBox::critical(this,"Error","This widget supports peak data only. Aborting!");
+			return;
+    }
+    mz = peak.getPeak(*getCurrentLayer().getPeakData()).getMZ();
+    rt = peak.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+    it = peak.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
+
+		//draw text			
+		QStringList lines;
+    String text;
+    int precision(2);
+    std::cerr << "axis mz:" << isMzToXAxis() << " vertical: " << is_vertical_ << "\n";
+    if (isMzToXAxis() && !is_vertical_) // default
+    {
+      text = "m/z: ";
+      precision = 6;
+    }
+    else
+    {
+      text = "RT: ";
+      precision = 2;
+    }
+    lines.push_back(text.c_str() + QString::number(mz,'f',precision));
+		lines.push_back("Int: " + QString::number(it,'f',2));
+		drawText_(painter, lines);
+	}
+
+	void Spectrum1DCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end)
+	{
+		if (!start.isValid()) return;
+		
+		//determine coordinates;
+		DoubleReal mz = 0.0;
+		DoubleReal rt = 0.0;
+		Real it = 0.0;
+
+    if (getCurrentLayer().type!=LayerData::DT_PEAK)
+		{
+			QMessageBox::critical(this,"Error","This widget supports peak data only. Aborting!");
+			return;
+    }
+
+		if (end.isValid())
+		{
+      mz = end.getPeak(*getCurrentLayer().getPeakData()).getMZ() - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
+      rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+      it = end.getPeak(*getCurrentLayer().getPeakData()).getIntensity() / start.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
+		}
+		else
+		{
+			PointType point = widgetToData_(last_mouse_pos_);
+      mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
+      rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+			it = std::numeric_limits<DoubleReal>::quiet_NaN();
+		}
+
+		//draw text			
+		QStringList lines;
+    String text;
+    int precision(2);
+    if (spectrum_widget_->canvas()->isMzToXAxis() && !is_vertical_) // default
+    {
+      text = "m/z: ";
+      precision = 6;
+    }
+    else
+    {
+      text = "RT: ";
+      precision = 2;
+    }
+    lines.push_back(text.c_str() + QString::number(mz,'f',precision));
+    
+    if (boost::math::isinf(it) || boost::math::isnan(it))
+		{
+			lines.push_back("int ratio: n/a");
+		}
+		else
+		{
+			lines.push_back("int ratio: " + QString::number(it,'f',2));			
+		}
+		drawText_(painter, lines);
 	}
 
   void Spectrum1DCanvas::recalculateSnapFactor_()
@@ -1764,6 +1862,11 @@ namespace OpenMS
 			}
 		}
 	}
+
+  void Spectrum1DCanvas::setVertical(bool vertical)
+  {
+    is_vertical_ = vertical;
+  }
 	
 }//Namespace
 
