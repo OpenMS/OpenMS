@@ -1697,7 +1697,7 @@ namespace OpenMS
 
 		//draw text			
 		QStringList lines;
-		lines.push_back("RT delta : " + QString::number(rt,'f',2));
+		lines.push_back("RT delta:  " + QString::number(rt,'f',2));
 		lines.push_back("m/z delta: " + QString::number(mz,'f',6));
 		if (boost::math::isinf(it) || boost::math::isnan(it))
 		{

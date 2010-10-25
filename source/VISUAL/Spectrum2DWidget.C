@@ -310,8 +310,8 @@ namespace OpenMS
 	
   void Spectrum2DWidget::horizontalProjection(ExperimentSharedPtrType exp, Spectrum1DCanvas::DrawModes mode)
 	{
-		projection_vert_->canvas()->mzToXAxis(true);
-    projection_vert_->canvas()->setVertical(canvas()->isMzToXAxis());
+		projection_horz_->canvas()->mzToXAxis(true); // determines the orientation of the data
+    projection_horz_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
 		projection_horz_->showLegend(false);
 		projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
 		if (!projectionsVisible() || projection_horz_->canvas()->getLayerCount()==0) //set draw mode
@@ -334,8 +334,8 @@ namespace OpenMS
 	
   void Spectrum2DWidget::verticalProjection(ExperimentSharedPtrType exp, Spectrum1DCanvas::DrawModes mode)
 	{
-		projection_vert_->canvas()->mzToXAxis(false);
-    projection_vert_->canvas()->setVertical(canvas()->isMzToXAxis());
+		projection_vert_->canvas()->mzToXAxis(false); // determines the orientation of the data
+    projection_vert_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
 		projection_vert_->showLegend(false);
 		projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
     // todo: why would we want to retain the old draw mode (same in horizontalProjection)??

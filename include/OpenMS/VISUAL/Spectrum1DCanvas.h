@@ -138,7 +138,7 @@ namespace OpenMS
 			void activateSpectrum(Size index, bool repaint=true);
 
       /// is the widget shown vertically? (for projections)
-      void setVertical(bool vertical);
+      void setSwappedAxis(bool swapped);
 
   signals:
       /// Requests to display all spectra in 2D plot
@@ -223,8 +223,8 @@ namespace OpenMS
       std::vector<std::pair<DoubleReal, DoubleReal > > alignment_;
       /// Stores the score of the last alignment
 			DoubleReal alignment_score_;
-			/// is this widget showing data vertically?
-      bool is_vertical_;
+      /// is this widget showing data with swapped m/z and RT axis? (for drawCoordinates_ only)
+      bool is_swapped_;
 
 			/// Find peak next to the given position
 			PeakIndex findPeakAtPosition_(QPoint);

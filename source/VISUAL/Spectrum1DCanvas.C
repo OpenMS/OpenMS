@@ -74,7 +74,7 @@ namespace OpenMS
 			moving_annotations_(false),
       alignment_(),
       alignment_score_(0),
-      is_vertical_(false)
+      is_swapped_(false)
 	{
     //Paramater handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -85,8 +85,8 @@ namespace OpenMS
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
 		setParameters(preferences);
-		
-		//connect preferences change to the right slot
+
+    //connect preferences change to the right slot
 		connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParamtersChanged_()));
 	}
 
@@ -1143,16 +1143,15 @@ namespace OpenMS
 		QStringList lines;
     String text;
     int precision(2);
-    std::cerr << "axis mz:" << isMzToXAxis() << " vertical: " << is_vertical_ << "\n";
-    if (isMzToXAxis() && !is_vertical_) // default
-    {
-      text = "m/z: ";
-      precision = 6;
+    if (isMzToXAxis() ^ is_swapped_) // XOR
+    { // only if either one of the conditions holds
+      text = "RT: ";  
+      precision = 2;
     }
     else
-    {
-      text = "RT: ";
-      precision = 2;
+    { // only if none or both are true
+      text = "m/z: ";
+      precision = 6;
     }
     lines.push_back(text.c_str() + QString::number(mz,'f',precision));
 		lines.push_back("Int: " + QString::number(it,'f',2));
@@ -1192,25 +1191,25 @@ namespace OpenMS
 		QStringList lines;
     String text;
     int precision(2);
-    if (spectrum_widget_->canvas()->isMzToXAxis() && !is_vertical_) // default
-    {
-      text = "m/z: ";
-      precision = 6;
+    if (isMzToXAxis() ^ is_swapped_) // XOR
+    { // only if either one of the conditions holds
+      text = "RT delta: ";  
+      precision = 2;
     }
     else
-    {
-      text = "RT: ";
-      precision = 2;
+    { // only if none or both are true
+      text = "m/z delta: ";
+      precision = 6;
     }
     lines.push_back(text.c_str() + QString::number(mz,'f',precision));
     
     if (boost::math::isinf(it) || boost::math::isnan(it))
 		{
-			lines.push_back("int ratio: n/a");
+			lines.push_back("Int ratio: n/a");
 		}
 		else
 		{
-			lines.push_back("int ratio: " + QString::number(it,'f',2));			
+			lines.push_back("Int ratio: " + QString::number(it,'f',2));			
 		}
 		drawText_(painter, lines);
 	}
@@ -1863,9 +1862,9 @@ namespace OpenMS
 		}
 	}
 
-  void Spectrum1DCanvas::setVertical(bool vertical)
+  void Spectrum1DCanvas::setSwappedAxis(bool swapped)
   {
-    is_vertical_ = vertical;
+    is_swapped_ = swapped;
   }
 	
 }//Namespace
