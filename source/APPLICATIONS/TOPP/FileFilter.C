@@ -91,6 +91,8 @@ using namespace std;
 
 	@todo add tests for selecting modes (port remove modes) (Andreas)
 	@improvement MS2 and higher spectra should be filtered according to precursor m/z and RT. The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
+               Currently when specifying mz or RT filters, they will also be applied to MS levels >=2 (not really what you usually want). To work around this,
+               you need to extract the MS2 levels beforehand, do the filtering on MS1 and merge them back together.
 */
 
 // We do not want this class to show up in the docu:
