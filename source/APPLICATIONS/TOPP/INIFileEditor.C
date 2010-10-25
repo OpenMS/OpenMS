@@ -34,6 +34,10 @@
 #include <QtGui/QApplication>
 #include <QtGui/QStyleFactory>
 
+#ifdef OPENMS_WINDOWSPLATFORM
+  #include <Windows.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -128,6 +132,11 @@ int main(int argc, const char** argv)
 		//cout << "OPEN: "  << argv[1] << endl;
 		editor_window.openFile(argv[1]);
 	}
+
+#ifdef OPENMS_WINDOWSPLATFORM
+  FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
+  AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
+#endif
 
 	editor_window.show();
 	return app.exec();
