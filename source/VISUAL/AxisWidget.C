@@ -167,11 +167,6 @@ namespace OpenMS
 					tick_pos = UInt(intervalTransformation(grid_line_[i][j], min_, max_, i_beg, i_end));
 				}
 	
-        if (alignment_ == LEFT)
-        {
-          cout << grid_line_[i][j] << "   " << tick_pos << endl;
-        }
-
 				//paint ticks
 				painter.setPen(QPen(Qt::black));
 				switch (alignment_)	
@@ -274,9 +269,6 @@ namespace OpenMS
 			min_ = linear2log(min);
 			max_ = linear2log(max);
 
-      cout << "-----------------" << endl;
-      cout << min << " : " << max << endl;
-      cout << min_ << " ; " << max_ << endl;
 			AxisTickCalculator::calcLogGridLines(min_,max_,grid_line_);
 		}
 		else
