@@ -277,6 +277,28 @@ namespace OpenMS
             }
         }
 
+        /**
+          @brief Convert chart to widget coordinates
+
+          Translates chart coordinates to widget coordinates.
+          @param x the chart coordinate x
+          @param y the chart coordinate y
+          @param point returned widget coordinates
+        */
+        inline void dataToWidget_(float x, float y, QPoint& point)
+        {
+          if (!isMzToXAxis())
+          {
+            point.setX( int((y - visible_area_.minY()) / visible_area_.height() * width()));
+            point.setY(height() - int((x - visible_area_.minX()) / visible_area_.width() * height()));
+          }
+          else
+          {
+            point.setX( int((x - visible_area_.minX()) / visible_area_.width() * width()));
+            point.setY( height() - int((y-visible_area_.minY())/visible_area_.height()*height()));
+          }
+        }
+
         /// Highlights a single peak and prints coordinates to screen
         void highlightPeak_(QPainter& p, const PeakIndex& peak);
 

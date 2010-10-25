@@ -760,11 +760,22 @@ namespace OpenMS
 			@param y the chart coordinate y
 			@param point returned widget coordinates
 		*/
-		inline void dataToWidget_(float x, float y, QPoint& point)
+    inline void dataToWidget_(float x, float y, QPoint& point)
 		{
 			if (!isMzToXAxis())
 			{
-				point.setX( int((y - visible_area_.minY()) / visible_area_.height() * width()));
+
+
+        if (intensity_mode_ != SpectrumCanvas::IM_LOG)
+        {
+        point.setX( int((y - visible_area_.minY()) / visible_area_.height() * width()));
+        } else  // IM_LOG
+        {
+          point.setX( int(
+              std::log10((y - visible_area_.minY())+1) / std::log10(visible_area_.height()+1) * width())
+                      );
+        }
+
 				point.setY(height() - int((x - visible_area_.minX()) / visible_area_.width() * height()));
 			}
 			else
