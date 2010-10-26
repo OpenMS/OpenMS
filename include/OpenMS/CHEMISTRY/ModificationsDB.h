@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -84,6 +84,9 @@ namespace OpenMS
 			/// returns all modification which have the given name as synonym and the given origin
 			void searchModifications(std::set<const ResidueModification*>& mods, const String& orgin, const String& mod_name, ResidueModification::Term_Specificity term_spec) const;
 			
+      /// returns all modification which have the given name as synonym
+      void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, ResidueModification::Term_Specificity term_spec) const;
+
 			/** @brief returns the modifications of the given name
 
 					This can either be the PSI-MOD identifier or every other unique

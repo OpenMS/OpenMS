@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -70,7 +70,7 @@ namespace OpenMS
 	}
 
 	
-	void ModificationsDB::searchTerminalModifications(set<const ResidueModification*>& mods, const String& name, ResidueModification::Term_Specificity term_spec) const
+  void ModificationsDB::searchTerminalModifications(set<const ResidueModification*>& mods, const String& name, ResidueModification::Term_Specificity term_spec) const
 	{
 		//cerr << "searchTerminalModification(" << name << " " << term_spec << endl;
 		if (!modification_names_.has(name))
@@ -113,6 +113,23 @@ namespace OpenMS
 		}
 	}
 
+  void ModificationsDB::searchModifications(std::set<const ResidueModification *> &mods, const String &name, ResidueModification::Term_Specificity term_spec) const
+  {
+    //cerr << "searchModification(" << origin << " " << name << " " << term_spec << endl;
+    if (!modification_names_.has(name))
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    }
+
+    set<const ResidueModification*> new_mods = modification_names_[name];
+    for (set<const ResidueModification*>::const_iterator it = new_mods.begin(); it != new_mods.end(); ++it)
+    {
+      if (term_spec == ResidueModification::ANYWHERE || term_spec == (*it)->getTermSpecificity())
+      {
+        mods.insert(*it);
+      }
+    }
+  }
 
 	const ResidueModification& ModificationsDB::getTerminalModification(const String& mod_name, ResidueModification::Term_Specificity term_spec) const
 	{
