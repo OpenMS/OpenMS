@@ -1701,11 +1701,11 @@ namespace OpenMS
 		lines.push_back("m/z delta: " + QString::number(mz,'f',6));
 		if (boost::math::isinf(it) || boost::math::isnan(it))
 		{
-			lines.push_back("int ratio: n/a");
+			lines.push_back("Int ratio: n/a");
 		}
 		else
 		{
-			lines.push_back("int ratio: " + QString::number(it,'f',2));			
+			lines.push_back("Int ratio: " + QString::number(it,'f',2));			
 		}
 		drawText_(painter, lines);
 	}
