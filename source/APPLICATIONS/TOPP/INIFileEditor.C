@@ -35,8 +35,12 @@
 #include <QtGui/QStyleFactory>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-  #include <Windows.h>
+#	ifndef _WIN32_WINNT
+#		define _WIN32_WINNT 0x0501 // Win XP (and above)
+#	endif
+#	include <Windows.h>
 #endif
+
 
 using namespace OpenMS;
 using namespace std;
