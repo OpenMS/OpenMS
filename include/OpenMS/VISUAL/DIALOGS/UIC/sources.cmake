@@ -3,7 +3,6 @@ set(directory include/OpenMS/VISUAL/DIALOGS/UIC)
 
 ### list all filenames of the directory here
 set(sources_list
-DemoDialog.ui
 DataFilterDialog.ui
 FeatureEditDialog.ui
 LayerStatisticsDialog.ui

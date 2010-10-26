@@ -312,9 +312,6 @@ namespace OpenMS
 			/// Appends process output to log window
 			void updateProcessLog();
 
-      /// Shows the tutorial browser
-      void showTutorial();      
-
       /// Called if a data file has been externally changed
       void fileChanged_(const String&);
     protected:
