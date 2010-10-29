@@ -34,7 +34,6 @@
 #include <vector>
 using std::vector;
 
-// get openmp stuff
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -47,8 +46,17 @@ namespace OpenMS {
    * TODO: review baseline and noise code
    */
   RawMSSignalSimulation::RawMSSignalSimulation(const SimRandomNumberGenerator& rng)
-  : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
-  intensity_scale_(), intensity_scale_stddev_(), peak_std_(), rnd_gen_(&rng), contaminants_(), contaminants_loaded_(false)
+  : DefaultParamHandler("RawSignalSimulation"), 
+    mz_sampling_rate_(),
+    mz_error_mean_(),
+    mz_error_stddev_(),
+    intensity_scale_(),
+    intensity_scale_stddev_(),
+    res_model_(RES_CONSTANT),
+    res_base_(0),
+    rnd_gen_(&rng),
+    contaminants_(),
+    contaminants_loaded_(false)
   {
     setDefaultParams_();
     updateMembers_();
@@ -56,16 +64,32 @@ namespace OpenMS {
 
 
   RawMSSignalSimulation::RawMSSignalSimulation()
-    : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
-      intensity_scale_(), intensity_scale_stddev_(), peak_std_(), contaminants_(), contaminants_loaded_(false)
+    : DefaultParamHandler("RawSignalSimulation"),
+      mz_sampling_rate_(),
+      mz_error_mean_(),
+      mz_error_stddev_(),
+      intensity_scale_(),
+      intensity_scale_stddev_(),
+      res_model_(RES_CONSTANT),
+      res_base_(0),
+      contaminants_(),
+      contaminants_loaded_(false)
   {
     setDefaultParams_();
     updateMembers_();
   }
 
   RawMSSignalSimulation::RawMSSignalSimulation(const RawMSSignalSimulation& source)
-    : DefaultParamHandler(source), mz_sampling_rate_(source.mz_sampling_rate_), mz_error_mean_(source.mz_error_mean_), mz_error_stddev_(source.mz_error_stddev_),
-      intensity_scale_(source.intensity_scale_), intensity_scale_stddev_(source.intensity_scale_stddev_), peak_std_(source.peak_std_), contaminants_(), contaminants_loaded_(false)
+    : DefaultParamHandler(source),
+    mz_sampling_rate_(source.mz_sampling_rate_),
+    mz_error_mean_(source.mz_error_mean_),
+    mz_error_stddev_(source.mz_error_stddev_),
+    intensity_scale_(source.intensity_scale_),
+    intensity_scale_stddev_(source.intensity_scale_stddev_),
+    res_model_(source.res_model_),
+    res_base_(source.res_base_),
+    contaminants_(),
+    contaminants_loaded_(false)
   {
     setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;
@@ -84,7 +108,8 @@ namespace OpenMS {
     intensity_scale_ = source.intensity_scale_;
     intensity_scale_stddev_ = source.intensity_scale_stddev_;
 
-    peak_std_ = source.peak_std_;
+    res_model_ = source.res_model_;
+    res_base_ = source.res_base_;
 
     contaminants_ = source.contaminants_;
     contaminants_loaded_ = source.contaminants_loaded_;
@@ -106,7 +131,10 @@ namespace OpenMS {
     defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
 
     // peak and instrument parameter
-    defaults_.setValue("resolution",50000,"Instrument resolution at 400Th.");
+    defaults_.setValue("resolution:value",50000,"Instrument resolution at 400Th.");
+    defaults_.setValue("resolution:type","linear","How does resolution change with increasing m/z?! QTOFs usually show 'linear' behaviour, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass.");
+    defaults_.setValidStrings("resolution:type", StringList::create("constant,linear,sqrt"));
+    
 
     // baseline
     defaults_.setValue("baseline:scaling",0.0,"Scale of baseline. Set to 0 to disable simulation of baseline.");
@@ -158,14 +186,30 @@ namespace OpenMS {
     defaultsToParam_();
   }
 
+  DoubleReal RawMSSignalSimulation::getResolution_(const DoubleReal query_mz, const DoubleReal resolution, const RESOLUTIONMODEL model) const
+  {
+    switch ( model )
+    {
+      case RES_CONSTANT:
+        return resolution;
+      case RES_LINEAR:
+        return resolution * (400/query_mz);
+      case RES_SQRT:
+        return resolution * (std::sqrt(400.0)/sqrt(query_mz));
+      default:
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown RESOLUTIONMODEL encountered!");
+    }
+  }
+
   void RawMSSignalSimulation::updateMembers_()
   {
-    // convert from resolution @ 400th --> FWHM
-    DoubleReal tmp = 400.00 / (double) param_.getValue("resolution");
-    // Approximation for Gaussian-shaped signals,
-    // i.e. sqrt(2*ln(2))*2 = 2.35482
-    // , relating FWHM to gaussian width
-    peak_std_     = (tmp / 2.35482);
+    res_base_ = (double) param_.getValue("resolution:value");
+    String model = param_.getValue("resolution:type");
+    if (model=="constant") res_model_ = RES_CONSTANT;
+    else if (model=="linear") res_model_ = RES_LINEAR;
+    else if (model=="sqrt") res_model_ = RES_SQRT;
+    else throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Resolution:type given in parameters is unknown");
+
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
     mz_error_mean_    = param_.getValue("variation:mz:error_mean");
@@ -366,6 +410,16 @@ namespace OpenMS {
     addWhiteNoise_(experiment);
   }
 
+  DoubleReal RawMSSignalSimulation::getPeakSD_(const DoubleReal mz) const
+  {
+    // convert from resolution @ current m/z --> FWHM
+    // Approximation for Gaussian-shaped signals,
+    // i.e. sqrt(2*ln(2))*2 = 2.35482
+    // , relating FWHM to gaussian width
+    DoubleReal tmp = mz / getResolution_(mz, res_base_, res_model_);
+    DoubleReal peak_std = (tmp / 2.35482);
+    return peak_std;
+  }
 
   void RawMSSignalSimulation::add1DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
@@ -381,7 +435,7 @@ namespace OpenMS {
 
     p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
-    p1.setValue("isotope:stdev", peak_std_);
+    p1.setValue("isotope:stdev", getPeakSD_(active_feature.getMZ()));
     p1.setValue("intensity_scaling", scale);
     p1.setValue("charge", q);
 
@@ -415,7 +469,7 @@ namespace OpenMS {
     ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
     p1.setValue("statistics:mean", ef.getAverageWeight() / q);
     p1.setValue("interpolation_step", 0.001);
-    p1.setValue("isotope:stdev", peak_std_);
+    p1.setValue("isotope:stdev", getPeakSD_(active_feature.getMZ()));
     p1.setValue("charge", q);
 
     IsotopeModel* isomodel = new IsotopeModel();
@@ -771,7 +825,7 @@ namespace OpenMS {
     {
       for(MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin() ; peak_it != (*spectrum_it).end() ; ++peak_it)
       {
-        SimIntensityType intensity = peak_it->getIntensity() + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev * peak_it->getIntensity()) + white_noise_mean;
+        SimIntensityType intensity = peak_it->getIntensity() + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev) + white_noise_mean;
         peak_it->setIntensity( (intensity > 0.0 ? intensity : 1.0) );
       }
     }

@@ -152,6 +152,11 @@ class TOPPFFEVal
 				sort(rt_spans.begin(), rt_spans.end());
 				rt_tol = getDoubleOption_("rt_tol")*rt_spans[rt_spans.size()/2];
 			}
+      else if (features_in.size() == 0)
+      {
+        // do nothing, rt_tol does not really matter, as we will not find a match anyway, but we want to have the stats 
+        // at the end, so we do not abort
+      }
 			else
 			{
 				writeLog_("Error: Input features do not have convex hulls. You have to set 'rt_tol_abs'!");

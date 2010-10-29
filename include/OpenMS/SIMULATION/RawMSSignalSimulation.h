@@ -80,6 +80,12 @@ namespace OpenMS {
     void generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, FeatureMapSim & contaminants);
 
   protected:
+
+    enum IONIZATIONMETHOD {IM_ESI=0,IM_MALDI=1,IM_ALL=2};
+    enum PROFILESHAPE {RT_RECTANGULAR, RT_GAUSSIAN};
+    enum RESOLUTIONMODEL {RES_CONSTANT, RES_LINEAR, RES_SQRT};
+
+
     /// Default constructor
     RawMSSignalSimulation();
 
@@ -177,19 +183,38 @@ namespace OpenMS {
      */
     SimIntensityType getFeatureScaledIntensity_(const SimIntensityType feature_intensity, const SimIntensityType natural_scaling_factor);
 
+
+    /**
+      @brief Compute resolution at a given m/z given a base resolution and how it degrades with increasing m/z
+
+      @param query_mz The m/z value where the resolution should be estimated
+      @param resolution The resolution at 400 Th
+      @param model The model describing how resolution behaves, i.e.
+                   - RES_CONSTANT: resolution does not change with m/z (this will just return @p resolution)<br>
+                   - RES_LINEAR: resolution decreases linear with m/z, i.e. at 800 Th, it will have 50% of original<br>
+                   - RES_SQRT: the resolution decreases with square root of mass, i.e. at 1600 Th, it will have 50% of original (sqrt(400) = sqrt(1600)*0.5)
+
+     */
+    DoubleReal getResolution_(const DoubleReal query_mz, const DoubleReal resolution, const RESOLUTIONMODEL model) const;
+
+    /**
+      @brief compute the peak's SD (gaussian) at a given m/z (internally the resolution model is used)
+    */
+    DoubleReal getPeakSD_(const DoubleReal mz) const;
+
     /// Scaling factor of peak intensities
     SimIntensityType intensity_scale_;
     /// Standard deviation of peak intensity scaling
     SimIntensityType intensity_scale_stddev_;
 
-	  /// Full width at half maximum of simulated peaks
-		SimCoordinateType peak_std_;
+
+    /// model of how resolution behaves with increasing m/z
+    RESOLUTIONMODEL res_model_;
+    /// base resolution at 400 Th
+    DoubleReal res_base_;
 
 		/// Random number generator
     SimRandomNumberGenerator const * rnd_gen_;
-
-    enum IONIZATIONMETHOD {IM_ESI=0,IM_MALDI=1,IM_ALL=2};
-    enum PROFILESHAPE {RT_RECTANGULAR, RT_GAUSSIAN};
 
     struct ContaminantInfo
     {
