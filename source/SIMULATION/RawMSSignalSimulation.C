@@ -331,7 +331,7 @@ namespace OpenMS {
 #ifdef _OPENMP // merge back other experiments
       for (Size i=1;i<experiments.size();++i)
       {
-        MSSimExperiment::Iterator org_it  = experiment.begin();
+        MSSimExperiment::Iterator org_it = experiment.begin();
         MSSimExperiment::ConstIterator temp_it = experiments[i]->begin();
 
         // copy peak data from temporal experiment
@@ -539,14 +539,14 @@ namespace OpenMS {
                 threaded_random_numbers_[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
               }
             }
-            // reset index for this thread to first position
-            threaded_random_numbers_index_[CURRENT_THREAD] = 0;
           }
           else
           {
             // we do not need to care about concurrency here
             fill(threaded_random_numbers_[CURRENT_THREAD].begin(), threaded_random_numbers_[CURRENT_THREAD].end() , mz_error_mean_);
           }
+          // reset index for this thread to first position
+          threaded_random_numbers_index_[CURRENT_THREAD] = 0;
         }
 
         mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
