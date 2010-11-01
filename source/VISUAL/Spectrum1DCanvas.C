@@ -74,7 +74,7 @@ namespace OpenMS
 			moving_annotations_(false),
       alignment_(),
       alignment_score_(0),
-      is_swapped_(false)
+      is_swapped_(true)
 	{
     //Paramater handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -1143,6 +1143,7 @@ namespace OpenMS
 		QStringList lines;
     String text;
     int precision(2);
+
     if (isMzToXAxis() ^ is_swapped_) // XOR
     { // only if either one of the conditions holds
       text = "RT: ";  
