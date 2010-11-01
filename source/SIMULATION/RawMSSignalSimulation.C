@@ -146,7 +146,7 @@ namespace OpenMS {
     // mz sampling rate
     // TODO: investigate if this can be hidden from the user by estimating it from "resolution"
     //       e.g. http://www.adronsystems.com/faqs.htm#rate states 8 points per peak on low-res instruments --> ~4 points at FWHM
-    defaults_.setValue("mz:sampling_rate",0.12,"detector interval(e.g. bin size in m/z).");
+    defaults_.setValue("mz:sampling_rate",0.01,"detector interval(e.g. bin size in m/z).");
 
     // contaminants:
     defaults_.setValue("contaminants:file","examples/simulation/contaminants.csv","Contaminants file with sum formula and absolute RT interval.");
@@ -355,10 +355,15 @@ namespace OpenMS {
           experiments.push_back(&(experiments_tmp[i-1]));
         }
       }
+#else
+      Size thread_count=1;
 #endif
 
+      Size compress_size_intermediate = 20000 / thread_count; // compress map every X features, (10.000 feature are ~ 2 GB at 0.002 sampling rate)
+      Size compress_count = 0; // feature count (for each thread)
       int current_thread(0);
-#pragma omp parallel for private(current_thread)
+
+#pragma omp parallel for private(current_thread) firstprivate(compress_count)
       for (SignedSize f = 0 ; f < (SignedSize)features.size() ; ++f)
       {
         #ifdef _OPENMP // update experiment index if necessary
@@ -370,13 +375,21 @@ namespace OpenMS {
         #pragma omp atomic
         ++progress;
         if (current_thread == 0) this->setProgress(progress);
+
+        // intermediate compress to avoid memory problems
+        ++compress_count;
+        if (compress_count > compress_size_intermediate)
+        {
+          compress_count = 0;
+          compressSignals_(*(experiments[current_thread]));
+        }
       } // ! raw signal sim
 
 #ifdef _OPENMP // merge back other experiments
       for (Size i=1;i<experiments.size();++i)
       {
         MSSimExperiment::Iterator org_it = experiment.begin();
-        MSSimExperiment::ConstIterator temp_it = experiments[i]->begin();
+        MSSimExperiment::Iterator temp_it = experiments[i]->begin();
 
         // copy peak data from temporal experiment
         for(; org_it != experiment.end() ; ++org_it, ++temp_it)
@@ -384,6 +397,8 @@ namespace OpenMS {
           if(temp_it->empty()) continue; // we do not care if the spectrum wasn't touched at all
           // append all points from temp to org
           org_it->insert(org_it->end(), temp_it->begin(), temp_it->end());
+          // delete from child experiment to save memory (otherwise the merge would double it!)
+          temp_it->clear(false);
         }
       }
 #endif
@@ -832,21 +847,21 @@ namespace OpenMS {
   }
 
   // TODO: add instrument specific sampling technique
-  // TODO: add instrument specific fwhm ~ mass relation
   void RawMSSignalSimulation::compressSignals_(MSSimExperiment & experiment)
   {
 		// assume we changed every scan a priori
 
     Size count = 0;
     do
-    { // TODO here we can improve on speed a lot by better compression! check if running times are significant
+    { // this loop is not required any longer (one run will always suffice) -- but for now we leave it in
       count = compressSignalsRun_(experiment);
+      std::cerr << "compress called with " << count << "\n";
     } while (count != 0);
   }
 
   Size RawMSSignalSimulation::compressSignalsRun_(MSSimExperiment & experiment)
   {
-    SimCoordinateType diff_mz = 0.0;
+    //SimCoordinateType diff_mz = 0.0;
     SimPointType p;
 
     Size count = 0;
@@ -856,6 +871,8 @@ namespace OpenMS {
     // 0.1 < 0.1 = true
     // due to numerical instability
     const SimCoordinateType numerical_correction = 0.0001 * mz_sampling_rate_;
+    
+    const SimCoordinateType mz_sampling_rate_num = mz_sampling_rate_ - numerical_correction;
 
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
@@ -869,6 +886,29 @@ namespace OpenMS {
 				
 				for ( Size j = 0 ; j < experiment[i].size() -1 ; ++j )
 				{
+          Size point_count = 1;
+          DoubleReal mz_start = experiment[i][j].getMZ();
+          DoubleReal mz_sum = mz_start;
+          DoubleReal int_sum = experiment[i][j].getIntensity();
+          change = false;
+          while ((j < (experiment[i].size()-1)) // join points within sampling rate
+              && (experiment[i][j+1].getMZ() < (mz_start + mz_sampling_rate_num)))
+          {
+            ++j;
+            ++point_count;
+            change = true;
+            mz_sum += experiment[i][j].getMZ();
+            int_sum += experiment[i][j].getIntensity();
+          }
+          if (change)
+          {
+            p.setIntensity(int_sum);
+            p.setMZ( mz_sum/point_count ); // use average m/z
+						cont.push_back(p);
+          }
+          else cont.push_back( experiment[i][j] );
+/*
+// OLD Version
 					diff_mz = fabs(experiment[i][ (j+1) ].getMZ() - experiment[i][j].getMZ());
 
           if ((diff_mz +  numerical_correction) < mz_sampling_rate_)
@@ -896,7 +936,7 @@ namespace OpenMS {
 					{
 						change = false;
 						cont.push_back( experiment[i][j] );
-					}
+					}*/
 				}
 				// don't forget the last one
 				if (!change) cont.push_back( experiment[i][ (experiment[i].size() - 1) ] );
