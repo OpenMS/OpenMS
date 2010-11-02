@@ -35,6 +35,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <fstream>
+#include <iostream>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -107,10 +109,9 @@ class TOPPOMSSAAdapter
 			addEmptyLine_();
 			addText_("Common Identification engine options");
 
-
 			registerInputFile_("in", "<file>", "", "input file ");
 			setValidFormats_("in",StringList::create("mzML"));
-			registerOutputFile_("out", "<file>", "", "output file ");
+      registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("idXML"));
 
       registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance (Default: Dalton)", false);
@@ -134,6 +135,7 @@ class TOPPOMSSAAdapter
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
 			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
       registerInputFile_("omssa_executable", "", "", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
+      registerInputFile_("omssa_user_mods", "<file>", "", "additional <MSModSpec> subtree of user modifications.\nSubtree will be pasted into OMSSAAdapter generated user mod files.\nSee http://www.ncbi.nlm.nih.gov/data_specs/schema/OMSSA.mod.xsd for details about user mod file definition.", false, true, StringList::create("input file"));
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
 			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
@@ -513,8 +515,9 @@ class TOPPOMSSAAdapter
 				}
 			}
 
+      String additional_user_mods_filename = getStringOption_("omssa_user_mods");
 			// write unknown modifications to user mods file
-			if (user_mods.size() != 0)
+      if (user_mods.size() != 0 || additional_user_mods_filename != "")
 			{
 				writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
 				parameters += " -mux " + File::absolutePath(unique_usermod_name);
@@ -588,6 +591,19 @@ class TOPPOMSSAAdapter
 						out << "</MSModSpec>" << endl;
 					}
 				}
+
+        // Add additional MSModSPec subtree to generated user mods
+        ifstream additional_user_mods_file(additional_user_mods_filename.c_str());
+        String line;
+        if(additional_user_mods_file.is_open())
+        {
+          while (additional_user_mods_file.good())
+          {
+            getline(additional_user_mods_file, line);
+            out << line;
+          }
+          additional_user_mods_file.close();
+        }
 				out << "</MSModSpecSet>" << endl;
 				out.close();
 			}
@@ -625,7 +641,7 @@ class TOPPOMSSAAdapter
 
 				QFile(unique_input_name.toQString()).remove();
 				QFile(unique_output_name.toQString()).remove();
-				if (user_mods.size() != 0)
+        if (user_mods.size() != 0 || additional_user_mods_filename!="")
 				{
 					QFile(unique_usermod_name.toQString()).remove();
 				}
