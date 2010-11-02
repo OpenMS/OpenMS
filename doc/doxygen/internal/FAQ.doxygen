@@ -468,8 +468,8 @@ svn propset svn:eol-style native MyClass.C
 				<UL>
 					<LI> Submit the bug to the tracker
 					<LI> Fix the bug and add a test for it in the HEAD
-					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "Fixed bug 12883026"
-					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision 3005"
+					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "Fixed bug #123"
+					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision [3005]"
 					<LI> Merge the revision into the current release branch (see SVN section above)
 				</UL>
 				
@@ -485,7 +485,9 @@ svn propset svn:eol-style native MyClass.C
 				Here is a list of what is to do:
 				<OL>
 					<LI> Remove classes not ready for release from the release branch.
-					<LI> Update the CHANGELOG file
+					<LI> Update the CHANGELOG file (also document all parameter names of TOPP tools which have changed!
+              - the easiest way to do this: take all INI files from previous release and call:
+              "<tool> -write_ini bla.ini -ini <previous.ini>" and look at output)
 					<LI> Check the test builds of the latest gcc/cl version for compiler warnings (32 and 64 bit)
 					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
 					<LI> Correct errors found by @a tools/checker.php.
