@@ -360,7 +360,7 @@ class TOPPOMSSAAdapter
 			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
 			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
-      if (getFlag_("precusor_mass_tolerance_unit_ppm"))
+      if (getFlag_("precursor_mass_tolerance_unit_ppm"))
       {
         parameters += " -teppm ";
       }
