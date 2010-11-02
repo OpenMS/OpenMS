@@ -113,8 +113,9 @@ class TOPPOMSSAAdapter
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("idXML"));
 
-			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance in Dalton", false);
+      registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance (Default: Dalton)", false);
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error in Dalton", false);
+      registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
       registerInputFile_("database", "<psq-file>", "", "NCBI formated fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'");
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
       registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
@@ -359,6 +360,10 @@ class TOPPOMSSAAdapter
 			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
 			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
+      if (getFlag_("precusor_mass_tolerance_unit"))
+      {
+        parameters += " -teppm ";
+      }
 			parameters += " -zl " +  String(getIntOption_("min_precursor_charge")); //String(getIntOption_("zl"));
 			parameters += " -zh " +  String(getIntOption_("max_precursor_charge")); //String(getIntOption_("zh"));
 			parameters += " -zt " +  String(getIntOption_("zt"));
