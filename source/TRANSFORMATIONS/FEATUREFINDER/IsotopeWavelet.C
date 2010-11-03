@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -39,6 +39,65 @@
 
 #ifndef TWOPI
 #define TWOPI 6.283185307
+#endif
+
+#ifndef SINETRAINVECS
+#define SINETRAINVECS
+		double avec [] =
+		{
+			1.00729092576906387,
+			8.47021314902288758,
+			0.568589043446217191,
+			0.155624756155312988,
+			0.0546681591351188961,
+			0.0239278712518182744,
+			0.0113785215738483325,
+			0.00521306547958902237,
+			0.00215635823841069541,
+			0.000803390368142344806
+		};
+
+		double bvec [] =
+		{
+			0.999413854502327892,
+			0.999402216792031672,
+			0.999781419604179100,
+			1.00003385169685144,
+			1.00019089578658660,
+			1.00027323765134879,
+			1.00032322673781815,
+			1.00036799996074044,
+			1.00041798239640700,
+			1.00047277354586983
+		};
+		
+		double cvec [] =
+		{
+			-1.82357924751654536e-7,
+			0.0000617158396180752893,
+			0.275538540246282853e-3,
+			0.000340752172835340433,
+			0.366877055752254583e-3,
+			0.000369558360963110233,
+			0.365734273818181337e-3,
+			0.000363964822444512546,
+			0.366472952708349505e-3,
+			0.372090375255612713e-3
+		};
+ 		
+		double dvec [] =
+		{
+			1.00134499727445,
+			0.000655514660572,
+			-0.5396047396523e-1,
+			-0.15108542328434,
+			-0.29337450695613,
+			-0.48557863368653,
+			-.70449316758845,
+			-.93081748650931,
+			-1.15609867020231,
+			-1.37929313525534
+		};
 #endif
 
 namespace OpenMS
@@ -108,6 +167,7 @@ namespace OpenMS
 		return (sine_table_[(Int)(sine_index)] * exp(fac));
 	}
 	
+
 	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - boost::math::lgamma(tz1));
@@ -119,7 +179,7 @@ namespace OpenMS
 	
 	DoubleReal IsotopeWavelet::getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		return (sin(2*Constants::PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/boost::math::tgamma(tz1));//tgamma(tz1)); //gsl_sf_gamma(tz1));//boost::math::tgamma1pm1(tz1));
+		return (sin(2*Constants::PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/tgamma(tz1));//boost::math::tgamma(tz1));
 	}
 
 	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) 
@@ -129,26 +189,44 @@ namespace OpenMS
 				
 
 	UInt IsotopeWavelet::getMzPeakCutOffAtMonoPos (const DoubleReal mass, const UInt z)
-	{ 
-		const DoubleReal m (mass*z);
-		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			(UInt) ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m))
-				: (UInt) ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m)));
+	{ 	
+		DoubleReal mz (mass*z);
+		int res=-1;
+		if (mz<Constants::CUT_LAMBDA_BREAK_0_1)
+			res = ceil(Constants::CUT_LAMBDA_Q_0_A+Constants::CUT_LAMBDA_Q_0_B*mz+Constants::CUT_LAMBDA_Q_0_C*mz*mz);
+		if (mz>Constants::CUT_LAMBDA_BREAK_1_2)
+			res =ceil(Constants::CUT_LAMBDA_L_2_A+Constants::CUT_LAMBDA_L_2_B*mz);
+		if (res < 0)
+			res = ceil(Constants::CUT_LAMBDA_Q_1_A+Constants::CUT_LAMBDA_Q_1_B*mz+Constants::CUT_LAMBDA_Q_1_C*mz*mz);
+
+		return (res);
 	}
 
 	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mass, const UInt z)
 	{ 
-		const DoubleReal m (mass*z);
-		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			(UInt) ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
-				: (UInt) ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+		DoubleReal mz (mass*z);
+		int res=-1;
+		if (mz<Constants::CUT_LAMBDA_BREAK_0_1)
+			res = ceil(Constants::CUT_LAMBDA_Q_0_A+Constants::CUT_LAMBDA_Q_0_B*mz+Constants::CUT_LAMBDA_Q_0_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS);
+		if (mz>Constants::CUT_LAMBDA_BREAK_1_2)
+			res = ceil(Constants::CUT_LAMBDA_L_2_A+Constants::CUT_LAMBDA_L_2_B*mz-Constants::IW_QUARTER_NEUTRON_MASS);
+		if (res < 0)
+			res = ceil(Constants::CUT_LAMBDA_Q_1_A+Constants::CUT_LAMBDA_Q_1_B*mz+Constants::CUT_LAMBDA_Q_1_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS);
+
+		return (res);
 	}	
 	
-	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal m)
+	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mz)
 	{ 
-		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			(UInt) ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
-				: (UInt)ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+		int res=-1;
+		if (mz<Constants::CUT_LAMBDA_BREAK_0_1)
+			res = ceil(Constants::CUT_LAMBDA_Q_0_A+Constants::CUT_LAMBDA_Q_0_B*mz+Constants::CUT_LAMBDA_Q_0_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS);
+		if (mz>Constants::CUT_LAMBDA_BREAK_1_2)
+			res = ceil(Constants::CUT_LAMBDA_L_2_A+Constants::CUT_LAMBDA_L_2_B*mz-Constants::IW_QUARTER_NEUTRON_MASS);
+		if (res < 0)
+			res = ceil(Constants::CUT_LAMBDA_Q_1_A+Constants::CUT_LAMBDA_Q_1_B*mz+Constants::CUT_LAMBDA_Q_1_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS);
+
+		return (res);
 	}
 
 		

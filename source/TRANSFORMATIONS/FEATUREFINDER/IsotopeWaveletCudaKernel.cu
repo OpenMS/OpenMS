@@ -25,13 +25,12 @@
 // $Authors: Rene Hussong $
 // --------------------------------------------------------------------------
 
+using namespace std;
 
 //**************************
 //Uses the sorting code provided by Alan Kaatz
 //http://courses.ece.uiuc.edu/ece498/al1/mps/MP5-TopWinners/kaatz/MP5-parallel_sort.zip
 //**************************
-
-using namespace std;
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
@@ -66,9 +65,7 @@ namespace OpenMS
 	
 	__device__ float isotope_wavelet (float tz1, float mz)
 	{
-		//float fac (-(Constants::LAMBDA_Q_0 + Constants::LAMBDA_Q_1*mz + Constants::LAMBDA_Q_2*mz*mz));
 		float fac (-(Constants::LAMBDA_L_0 + Constants::LAMBDA_L_1*mz));
-
 		fac += (tz1-1)*__log2f(-fac)*Constants::ONEOLOG2E - lgammaf(tz1);
 			
 		return (__sinf((tz1-1)*Constants::WAVELET_PERIODICITY) * __expf(fac));
@@ -76,25 +73,34 @@ namespace OpenMS
 
 	__device__ unsigned int getMzPeakCutOffAtMonoPos (float mass, unsigned int  z)
 	{
-		float m (mass*z);
-		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m))
-				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m)));
+		float mz (mass*z);
+		if (mz>Constants::CUT_LAMBDA_BREAK_1_2)
+			return(ceil(Constants::CUT_LAMBDA_L_2_A+Constants::CUT_LAMBDA_L_2_B*mz));
+		if (mz<Constants::CUT_LAMBDA_BREAK_0_1)
+			return(ceil(Constants::CUT_LAMBDA_Q_0_A+Constants::CUT_LAMBDA_Q_0_B*mz+Constants::CUT_LAMBDA_Q_0_C*mz*mz));
+		
+		return(ceil(Constants::CUT_LAMBDA_Q_1_A+Constants::CUT_LAMBDA_Q_1_B*mz+Constants::CUT_LAMBDA_Q_1_C*mz*mz));
 	}
 	
 	__device__ unsigned int getNumPeakCutOff (float mass, unsigned int  z)
 	{
-		float m (mass*z);
-		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
-				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+		float mz (mass*z);
+		if (mz<Constants::CUT_LAMBDA_BREAK_0_1)
+			return(ceil(Constants::CUT_LAMBDA_Q_0_A+Constants::CUT_LAMBDA_Q_0_B*mz+Constants::CUT_LAMBDA_Q_0_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS));
+		if (mz>Constants::CUT_LAMBDA_BREAK_1_2)
+			return(ceil(Constants::CUT_LAMBDA_L_2_A+Constants::CUT_LAMBDA_L_2_B*mz-Constants::IW_QUARTER_NEUTRON_MASS));
+		
+		return(ceil(Constants::CUT_LAMBDA_Q_1_A+Constants::CUT_LAMBDA_Q_1_B*mz+Constants::CUT_LAMBDA_Q_1_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS));
 	}
 
-	__device__ unsigned int getNumPeakCutOff (float m)
-	{
-		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
-				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+	__device__ unsigned int getNumPeakCutOff (float mz)
+	{		
+		if (mz<Constants::CUT_LAMBDA_BREAK_0_1)
+			return(ceil(Constants::CUT_LAMBDA_Q_0_A+Constants::CUT_LAMBDA_Q_0_B*mz+Constants::CUT_LAMBDA_Q_0_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS));
+		if (mz>Constants::CUT_LAMBDA_BREAK_1_2)
+			return(ceil(Constants::CUT_LAMBDA_L_2_A+Constants::CUT_LAMBDA_L_2_B*mz-Constants::IW_QUARTER_NEUTRON_MASS));
+			
+		return(ceil(Constants::CUT_LAMBDA_Q_1_A+Constants::CUT_LAMBDA_Q_1_B*mz+Constants::CUT_LAMBDA_Q_1_C*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS));
 	}
 
 
@@ -130,7 +136,6 @@ namespace OpenMS
 		{
 			signal_pos_block[threadIdx.x] = signal_pos[my_data_pos-from_max_to_left];
 			signal_int_block[threadIdx.x] = signal_int[my_data_pos-from_max_to_left];
-			//printf ("PreLoading: %i\t%f\n", threadIdx.x, signal_pos_block[threadIdx.x]);
 		}
 			
 		int additional_right_end_loads=0;
@@ -138,7 +143,6 @@ namespace OpenMS
 		{
 			signal_pos_block[my_local_pos+additional_right_end_loads*Constants::CUDA_BLOCK_SIZE_MAX] = signal_pos[my_data_pos+additional_right_end_loads*(Constants::CUDA_BLOCK_SIZE_MAX)];
 			signal_int_block[my_local_pos+additional_right_end_loads*Constants::CUDA_BLOCK_SIZE_MAX] = signal_int[my_data_pos+additional_right_end_loads*(Constants::CUDA_BLOCK_SIZE_MAX)];
-			//printf ("Loading: %i\t%f\n", my_local_pos+additional_right_end_loads*BLOCK_SIZE_MAX, signal_pos_block[my_local_pos+additional_right_end_loads*BLOCK_SIZE_MAX]);
 			++additional_right_end_loads;
 		};
 		
@@ -148,11 +152,9 @@ namespace OpenMS
 		if (threadIdx.x >= to_compute || 	my_data_pos - from_max_to_left >= size)
 			return;
 
-		float value = 0, boundary = getMzPeakCutOffAtMonoPos(signal_pos_block[my_local_pos], charge)/charge;
+		float value = 0, boundary = getMzPeakCutOffAtMonoPos(signal_pos_block[my_local_pos], charge)/(float)charge;
 		float old=0, c_diff, current, old_pos = (my_local_pos-from_max_to_left-1) > 0 ? signal_pos_block[my_local_pos-from_max_to_left-1] 
 			: signal_pos_block[my_local_pos-from_max_to_left]-(signal_pos[size-1]-signal_pos[size-2]); //i.e. min_spacing
-
-		//printf ("*********************************************** %f\n",  signal_pos_block[my_local_pos]);
 
 		for (int current_conv_pos = my_local_pos-from_max_to_left; 
 						current_conv_pos < my_local_pos+from_max_to_right; 
@@ -165,22 +167,76 @@ namespace OpenMS
 			
 			value += 0.5*(current + old)*(signal_pos_block[current_conv_pos]-old_pos);
 			
-			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-				
-				//if (trunc(signal_pos_block[my_local_pos]) == 556 && charge == 2)
-				{
-					//printf ("%i \t %f \t %f  \t %f \t %f \t %f \t %f \t %f\n", current_conv_pos, signal_pos_block[current_conv_pos], c_diff, current, old, c_diff, signal_int_block[current_conv_pos], boundary);
-					printf ("%f  \t %f \t %f \t %f \t %f \t %f\n", signal_pos_block[current_conv_pos], c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[current_conv_pos]*charge): 0, value, signal_int_block[current_conv_pos], c_diff, boundary);
-
-				};
-			#endif
-
 			old = current;
 			old_pos = signal_pos_block[current_conv_pos];
 		};
 		
-		//printf ("################################################\n");
+		result[my_data_pos] = value;
+	}
 
+	__global__ void ConvolutionIsotopeWaveletKernelHighRes(float* signal_pos, float* signal_int, const int from_max_to_left, const int from_max_to_right, float* result, 
+		const unsigned int charge, const int to_load, const int to_compute, const int size)
+	{
+		// the device-shared memory storing one data block
+		// This is currently hard-coded to 256 points, since we require two 4B floats for each
+		// data point, leading to 2kB per block.
+		__shared__ float signal_pos_block[Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX];//[BLOCK_SIZE_MAX];
+		__shared__ float signal_int_block[Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX];//[BLOCK_SIZE_MAX];
+
+		// load the data from device memory to shared memory. 
+		// to distribute the loads as evenly as possible over the threads, each thread loads
+		// the data point it will later compute in the output. the first wavelet_length threads
+		// will also load the padding to the left of the signal, the last wavelet_length ones will 
+		// load the padding to the right
+		
+		// we will silently ignore the first wavelet_length points in the output; these have to be
+		// zero-padded by the calling function. our data organization is as follows: each block computes
+		// a part of the output that is block_size-2*wavelet_length points long. For the computation, we
+		// require wavelet_length points on the left and on the right so we can put the wavelet on all
+		// points even at the boundary.
+		//                 left padding,                                                      position of thread
+		//                 ignored in output    the points computed by the previous blocks    in block
+		int my_data_pos  = from_max_to_left    +  blockIdx.x*to_compute + threadIdx.x;
+
+		int my_local_pos = threadIdx.x + from_max_to_left;
+
+		//every thread with an ID smaller than the number of from_max_to_left loads the additional boundary points
+		//at the left end
+		if (threadIdx.x < from_max_to_left)
+		{
+			signal_pos_block[threadIdx.x] = signal_pos[my_data_pos-from_max_to_left];
+			signal_int_block[threadIdx.x] = signal_int[my_data_pos-from_max_to_left];
+		}
+			
+		int additional_right_end_loads=0;
+		while (my_local_pos + (additional_right_end_loads)*Constants::CUDA_BLOCK_SIZE_MAX < to_load)
+		{
+			signal_pos_block[my_local_pos+additional_right_end_loads*Constants::CUDA_BLOCK_SIZE_MAX] = signal_pos[my_data_pos+additional_right_end_loads*(Constants::CUDA_BLOCK_SIZE_MAX)];
+			signal_int_block[my_local_pos+additional_right_end_loads*Constants::CUDA_BLOCK_SIZE_MAX] = signal_int[my_data_pos+additional_right_end_loads*(Constants::CUDA_BLOCK_SIZE_MAX)];
+			++additional_right_end_loads;
+		};
+		
+		//wait until the shared data is loaded completely
+		__syncthreads(); 
+
+		if (threadIdx.x >= to_compute || 	my_data_pos - from_max_to_left >= size)
+			return;
+
+		float value = 0, boundary = getMzPeakCutOffAtMonoPos(signal_pos_block[my_local_pos], charge)/(float)charge;
+		float c_diff, current;
+
+		for (int current_conv_pos = my_local_pos-from_max_to_left; 
+						current_conv_pos < my_local_pos+from_max_to_right; 
+							++current_conv_pos)
+		{
+			c_diff = signal_pos_block[current_conv_pos]-signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/(float)charge;
+
+			//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
+			current = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[current_conv_pos]*charge)*signal_int_block[current_conv_pos] : 0;
+			
+			value += current;
+		};
+		
 		result[my_data_pos] = value;
 	}
 
@@ -193,7 +249,7 @@ namespace OpenMS
 		if (my_data_pos - from_max_to_left >= size)
 			return;
 
-		float value = 0, boundary = getMzPeakCutOffAtMonoPos(tex1Dfetch(pos_tex, my_data_pos), charge)/charge;
+		float value = 0, boundary = getMzPeakCutOffAtMonoPos(tex1Dfetch(pos_tex, my_data_pos), charge)/(float)charge;
 		float old=0, c_diff, current, old_pos = (my_data_pos-from_max_to_left-1) > 0 ? tex1Dfetch(pos_tex, my_data_pos-from_max_to_left-1) 
 				: tex1Dfetch(pos_tex,my_data_pos-from_max_to_left)-(tex1Dfetch(pos_tex, size-1)-tex1Dfetch(pos_tex, size-2)); //i.e. min_spacing
 
@@ -205,7 +261,7 @@ namespace OpenMS
 
 			//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
 			current = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., tex1Dfetch(pos_tex, current_conv_pos)*charge)*tex1Dfetch(int_tex, current_conv_pos) : 0;
-			value += 0.5*(current + old)*(tex1Dfetch(pos_tex, current_conv_pos)-old_pos);
+			value += 0.5*(current + old)*(tex1Dfetch(pos_tex, current_conv_pos)-old_pos);//current;
 			
 			old = current;
 			old_pos = tex1Dfetch(pos_tex, current_conv_pos);
@@ -214,6 +270,32 @@ namespace OpenMS
 		result[my_data_pos] = value;
 	}
 
+
+	__global__ void ConvolutionIsotopeWaveletKernelTextureHighRes(const int from_max_to_left, const int from_max_to_right, float* result, 
+		const unsigned int charge, const int size)
+	{
+		int my_data_pos  = from_max_to_left    +  blockIdx.x*blockDim.x + threadIdx.x;
+
+		if (my_data_pos - from_max_to_left >= size)
+			return;
+
+		float value = 0, boundary = getMzPeakCutOffAtMonoPos(tex1Dfetch(pos_tex, my_data_pos), charge)/(float)charge;
+		float c_diff, current;
+ 
+		for (int current_conv_pos = my_data_pos-from_max_to_left; 
+						current_conv_pos < my_data_pos+from_max_to_right; 
+							++current_conv_pos)
+		{
+			c_diff =  tex1Dfetch(pos_tex, current_conv_pos)- tex1Dfetch(pos_tex, my_data_pos)+Constants::IW_QUARTER_NEUTRON_MASS/(float)charge;
+
+			//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
+			current = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., tex1Dfetch(pos_tex, current_conv_pos)*charge)*tex1Dfetch(int_tex, current_conv_pos) : 0;
+			value += current;
+			
+		};
+
+		result[my_data_pos] = value;
+	}
 
 	__global__ void getDerivatives (float* spec, float* spec_pos, float* fwd2, const int size, float* intensities_dev)
 	{
@@ -234,39 +316,81 @@ namespace OpenMS
 			fwd2[i+1] = spec[i+1];
 		};
 	}
+	
+	__global__ void getDerivativesHighRes (float* spec, float* spec_pos, float* fwd2, const int size, float* intensities_dev)
+	{
+		int i = threadIdx.x + blockIdx.x * blockDim.x;
+	
+		if ((i+2>=size && i<size) || i==0)
+		{
+			fwd2[i] = 0;
+			return;
+		};
+	
+		float share = spec[i+1], share_pos = spec_pos[i+1];
+		float bwd = (share-spec[i])/(share_pos-spec_pos[i]);
+		float fwd = (spec[i+2]-share)/(spec_pos[i+2]-share_pos);
+
+		if (bwd>=0 && fwd<=0)
+		{
+			fwd2[i+1] = spec[i+1];
+		};
+	}
 
 
-	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size, float* intensities_dev)
+	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size, float* intensities_dev, bool hr_data)
 	{
 		dim3 blockDim (Constants::CUDA_BLOCK_SIZE_MAX);
 		dim3 gridDim ((int)(ceil)(size/(float)Constants::CUDA_BLOCK_SIZE_MAX));
-		getDerivatives<<<gridDim, blockDim>>> (spec, spec_pos, fwd, size, intensities_dev);
+		if (hr_data)
+		{
+			getDerivativesHighRes<<<gridDim, blockDim>>> (spec, spec_pos, fwd, size, intensities_dev);
+		}
+		else
+		{
+			getDerivatives<<<gridDim, blockDim>>> (spec, spec_pos, fwd, size, intensities_dev);
+		}
 		cudaThreadSynchronize();
 		checkCUDAError("deriveOnDevice");
 	}
 
 
 	void getExternalCudaTransforms (dim3 dimGrid, dim3 dimBlock, float* positions_dev, float* intensities_dev, int from_max_to_left, int from_max_to_right, float* result_dev, 
-		const int charge, const int to_load, const int to_compute, const int size, float* fwd2) 
+		const int charge, const int to_load, const int to_compute, const int size, float* fwd2, bool hr_data) 
 	{
 		if (to_load < Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)
 		{	
-			ConvolutionIsotopeWaveletKernel<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, size);
+			if (hr_data)
+			{
+				ConvolutionIsotopeWaveletKernelHighRes<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, size);
+			}
+			else
+			{
+				ConvolutionIsotopeWaveletKernel<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, size);
+			}
 			cudaThreadSynchronize();
 			checkCUDAError("ConvolutionIsotopeWaveletKernel");
-			deriveOnDevice (result_dev, positions_dev, fwd2, size, intensities_dev);
+			deriveOnDevice (result_dev, positions_dev, fwd2, size, intensities_dev, hr_data);
 		}
 		else
 		{
+                	std::cout << "Must use texture instead of shared memory. To load: " << to_load << "\t" << Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX << std::endl;
 			dimBlock = dim3(Constants::CUDA_TEXTURE_THREAD_LIMIT);
 			dimGrid = dim3((int)ceil(size/(float)dimBlock.x));
 			cudaBindTexture(0, int_tex, intensities_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
 			cudaBindTexture(0, pos_tex, positions_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
 
-			ConvolutionIsotopeWaveletKernelTexture<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, size);
+			if (hr_data)
+			{
+				ConvolutionIsotopeWaveletKernelTextureHighRes<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, size);
+			}
+			else
+			{
+				ConvolutionIsotopeWaveletKernelTexture<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, size);
+			}
 			cudaThreadSynchronize();
 			checkCUDAError("ConvolutionIsotopeWaveletKernelTexture");
-			deriveOnDevice (result_dev, positions_dev, fwd2, size, intensities_dev);
+			deriveOnDevice (result_dev, positions_dev, fwd2, size, intensities_dev, hr_data);
 			
 			cudaUnbindTexture(int_tex);
 			cudaUnbindTexture(pos_tex);
@@ -931,7 +1055,7 @@ namespace OpenMS
 		int v = threadIdx.x;
 		int ref_index = tex1Dfetch (sorted_positions_indices_tex, blockIdx.x+offset);
 		
-		//printf ("my_index: %i\n", my_index);
+		//printf ("my_index: %i\n", v);
 		//printf ("ref_index: %i\n", ref_index); 	
 	
 		__shared__ int peak_cutoff, optimal_block_dim;
@@ -941,6 +1065,8 @@ namespace OpenMS
 		if (v==0)
 		{	
 			seed_mz = tex1Dfetch(pos_tex, ref_index);
+			//printf ("Scoring: %f\n", seed_mz);
+
 			peak_cutoff = getNumPeakCutOff(seed_mz, c+1);	
 			optimal_block_dim = 4*(peak_cutoff-1) -1;
 			//optimal_block_dim = 2*(peak_cutoff-1);
@@ -1052,7 +1178,7 @@ namespace OpenMS
 			int minus = -1;
 			for (int i=(int)floor(optimal_block_dim/2.)+1; i<optimal_block_dim && c_scores[i] != INT_MIN; ++i)
 			{
-				//if (trunc(seed_mz*100) == 80442) printf("r: %f\n", c_scores[i]);
+				//if (trunc(seed_mz) == 491) printf("r: %f\n", minus*c_scores[i]);
 
 				r_score += minus*c_scores[i];
 				minus *=-1;
@@ -1063,15 +1189,15 @@ namespace OpenMS
 
 		if(v==0)
 		{
+			/*if (trunc(seed_mz) == 491) 
+			{
+				printf("final_score: %f\t\t%f\t%f\t%f\n", seed_mz,  l_score, mid_val, r_score);
+			};*/
+
 			if (!(l_score <=0 || r_score <= 0 || l_score + r_score <= ampl_cutoff))
 			{
 				scores[blockIdx.x+write_offset] = l_score + r_score + mid_val;	
 			};
-			//printf ("blockid: %i\t%i\n", blockIdx.x, write_offset);
-			/*if (trunc(seed_mz*100) == 80442) 
-			{
-				printf("final_score: %f\t\t%f\t%f\t%f\n", seed_mz,  l_score, mid_val, r_score);
-			};*/
 		};
 	};
 

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -65,13 +65,16 @@ namespace OpenMS
 		const double LAMBDA_L_0 = 0.120398590399013419f;
 		const double LAMBDA_L_1 = 0.635926795694698589e-3f;
 
-		const double CUTOFF_FIT99_POLY_0 = 2.12202774968137176f;
-		const double CUTOFF_FIT99_POLY_1 = 0.00197865555872409017f;
-		const double CUTOFF_FIT99_POLY_2 = -9.99766525210084347e-8f;
-		const double BORDER_MZ_FIT99 = 4076.996010f;
-		const double CUTOFF_FIT99_POLY_3 = 3.68250011643849628f;
-		const double CUTOFF_FIT99_POLY_4 = 0.00124960187205541608f;
-		const double CUTOFF_FIT99_POLY_5 = -1.05660074613074878e-8f;
+		const double CUT_LAMBDA_Q_0_A = 1.9498e+00f;
+		const double CUT_LAMBDA_Q_0_B = 2.4244e-03f;		
+		const double CUT_LAMBDA_Q_0_C = -2.4183e-07f;
+		const double CUT_LAMBDA_Q_1_A = 3.6870e+00f;		
+		const double CUT_LAMBDA_Q_1_B = 1.1561e-03f;
+		const double CUT_LAMBDA_Q_1_C = -1.0329e-08f;
+		const double CUT_LAMBDA_L_2_A = 5.7661e+00f;
+		const double CUT_LAMBDA_L_2_B = 8.6301e-04f;
+		const double CUT_LAMBDA_BREAK_0_1 = 2739.4f;
+		const double CUT_LAMBDA_BREAK_1_2 = 1.4187e+04f;
 
 		const int SHIFT23 = (1<<23);
 		const double SHIFT23_00 = (1.0/(1<<23));

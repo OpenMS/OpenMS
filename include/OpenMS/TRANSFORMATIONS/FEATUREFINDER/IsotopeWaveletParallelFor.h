@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong $
-// $Authors: Rene Hussong $
+// $Maintainer: Rene Hussong$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETPARALLELFOR_H
@@ -41,7 +40,6 @@ namespace OpenMS
 	template <typename PeakType, typename FeatureType>
 	class FeatureFinderAlgorithmIsotopeWavelet;
 
-	//@brief A class to leverage the computing power of several GPU cards by splitting the data set and partitioning the work via Intel TBB. 
 	template <typename PeakType, typename FeatureType>
 	class IsotopeWaveletParallelFor
 	{
@@ -67,45 +65,97 @@ namespace OpenMS
 					for (UInt i=from; i<up_to; ++i)
 					{
 						const MSSpectrum<PeakType>& c_ref ((*ff_->map_)[i]);						
-						if (c_ref.size() <= 1) //unable to do transform anything
+						if (c_ref.size() <= 1) //unable to transform anything
 						{					
 							//need to do this atomic
 							ff_->ff_->setProgress (ff_->progress_counter_+=2);
 							continue;
 						};
-				
-						typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&c_ref);
-						if (c_iwt->initializeScanCuda (c_ref) == Constants::CUDA_INIT_SUCCESS)
-						{
-							for (UInt c=0; c<ff_->max_charge_; ++c)
-							{
-								c_iwt->getTransformCuda (c_trans, c);
 
-								#ifdef DINGSBUMS
+						bool success=true;
+						typename IsotopeWaveletTransform<PeakType>::TransSpectrum* c_trans (NULL); 
+						if (!ff_->hr_data_) //LowRes data
+						{
+							c_trans = new typename IsotopeWaveletTransform<PeakType>::TransSpectrum (&(*ff_->map_)[i]);
+							success = c_iwt->initializeScanCuda ((*ff_->map_)[i]) == Constants::CUDA_INIT_SUCCESS;
+
+							if (success)
+							{		
+								for (UInt c=0; c<ff_->max_charge_; ++c)
+								{	
+									c_iwt->getTransformCuda (*c_trans, c);
+
+									#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+										std::stringstream stream;
+										stream << "gpu_lowres_" << ((*ff_->map_)[i]).getRT() << "_" << c+1 << ".trans\0"; 
+										std::ofstream ofile (stream.str().c_str());
+										for (UInt k=0; k < c_trans->size(); ++k)
+										{
+											ofile << c_trans->getMZ(k) << "\t" <<  c_trans->getTransIntensity(k) << "\t" << c_trans->getMZ(k) << "\t" << c_trans->getRefIntensity(k) << std::endl;
+										};
+										ofile.close();
+									#endif					
+
+									#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+										std::cout << "cuda transform for charge " << c+1 << "  O.K. ... "; std::cout.flush();
+									#endif
+									ff_->ff_->setProgress (++ff_->progress_counter_);
+
+									c_iwt->identifyChargeCuda (*c_trans, i, c, ff_->intensity_threshold_, ff_->check_PPMs_);
+
+									#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+										std::cout << "cuda charge recognition for charge " << c+1 << " O.K." << std::endl;
+									#endif					
+									ff_->ff_->setProgress (++ff_->progress_counter_);	
+								};
+								c_iwt->finalizeScanCuda();
+							}
+							else
+							{
+								std::cout << "Warning/Error generated at scan " << i << " (" << ((*ff_->map_)[i]).getRT() << ")." << std::endl;
+							};
+						}
+						else //HighRes data
+						{
+							c_trans = ff_->prepareHRDataCuda (i, 0, c_iwt);
+							for (UInt c=0; c<ff_->max_charge_; ++c)
+							{	
+								//c_trans = ff_->prepareHRDataCuda (i, c, c_iwt);
+							
+								c_iwt->getTransformCuda (*c_trans, c);
+
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::stringstream stream;
-									stream << "gpu_" << (*ff_->map_)[i].getRT() << "_" << c+1 << ".trans\0"; 
+									stream << "gpu_highres_" << ((*ff_->map_)[i]).getRT() << "_" << c+1 << ".trans\0"; 
 									std::ofstream ofile (stream.str().c_str());
-									for (UInt k=0; k < c_trans.size(); ++k)
+									for (UInt k=0; k < c_trans->size(); ++k)
 									{
-										ofile << c_trans.getMZ(k) << "\t" <<  c_trans.getTransIntensity(k) << "\t" << c_ref[k].getIntensity() << std::endl;
+										ofile << c_trans->getMZ(k) << "\t" <<  c_trans->getTransIntensity(k) << "\t" << c_trans->getMZ(k) << "\t" << c_trans->getRefIntensity(k) << std::endl;
 									};
 									ofile.close();
 								#endif					
 
-								#ifdef DINGSBUMS
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "cuda transform for charge " << c+1 << "  O.K. ... "; std::cout.flush();
 								#endif
 								ff_->ff_->setProgress (++ff_->progress_counter_);
 
-								c_iwt->identifyChargeCuda (c_trans, i, c, ff_->intensity_threshold_, ff_->check_PPMs_);
+								c_iwt->identifyChargeCuda (*c_trans, i, c, ff_->intensity_threshold_, ff_->check_PPMs_);
 
-								#ifdef DINGSBUMS
-									std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::cout << "cuda charge recognition for charge " << c+1 << " O.K." << std::endl;
 								#endif					
-								ff_->ff_->setProgress (++ff_->progress_counter_);	
-							};
+								ff_->ff_->setProgress (++ff_->progress_counter_);
+							
+								//c_trans->destroy();
+								//c_iwt->finalizeScanCuda();
+							};								
+
+							c_trans->destroy();
 							c_iwt->finalizeScanCuda();
-						};
+						}
+					
+						delete (c_trans); c_trans=NULL;
 						
 						c_iwt->updateBoxStates(*ff_->map_, i, ff_->RT_interleave_, ff_->real_RT_votes_cutoff_, from, up_to-1);
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -115,7 +165,7 @@ namespace OpenMS
 						std::cout.flush();
 					};
 					
-					c_iwt->updateBoxStates(*ff_->map_, INT_MAX,  ff_->RT_interleave_, ff_->real_RT_votes_cutoff_);
+					c_iwt->updateBoxStates(*ff_->map_, INT_MAX, ff_->RT_interleave_, ff_->real_RT_votes_cutoff_);
 				};
 			};
 
