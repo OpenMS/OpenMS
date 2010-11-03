@@ -30,6 +30,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <vector>
 using std::vector;
@@ -412,7 +413,10 @@ namespace OpenMS {
     experiment.updateRanges();
 
     // build contaminant feature map & add raw signal
-    createContaminants_(c_map, experiment);
+    if (experiment.size() > 1) // LC/MS only currently
+    {
+      createContaminants_(c_map, experiment);
+    }
 
     if ((String)param_.getValue("ionization_type")=="MALDI")
     {
@@ -421,7 +425,7 @@ namespace OpenMS {
     addShotNoise_(experiment, minimal_mz_measurement_limit, maximal_mz_measurement_limit);
     compressSignals_(experiment);
 
-    // finally add a white noise to the simulated data
+    // finally add white noise to the simulated data
     addWhiteNoise_(experiment);
   }
 
@@ -709,7 +713,10 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::createContaminants_(FeatureMapSim & c_map, MSSimExperiment & exp)
   {
-    if(exp.size() == 1) return;
+    if(exp.size() == 1)
+    {
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); // not implemented for 1D yet
+    }
 
     if (!contaminants_loaded_) loadContaminants();
 
@@ -731,8 +738,8 @@ namespace OpenMS {
       }
       // ... create contaminants...
       FeatureMapSim::FeatureType feature;
-      feature.setRT( (contaminants_[i].rt_end+contaminants_[i].rt_start)/2 );
-      feature.setMZ( contaminants_[i].sf.getMonoWeight() );
+      feature.setRT( (contaminants_[i].rt_end+contaminants_[i].rt_start) / 2 );
+      feature.setMZ( (contaminants_[i].sf.getMonoWeight() / contaminants_[i].q) + Constants::PROTON_MASS_U ); // m/z (incl. protons)
       if (!(minimal_mz_measurement_limit < feature.getMZ() && feature.getMZ() < maximal_mz_measurement_limit))
       {
         ++out_of_range_MZ;
@@ -749,9 +756,9 @@ namespace OpenMS {
       {
         feature.setMetaValue("RT_width_gaussian", contaminants_[i].rt_end-contaminants_[i].rt_start);
       }
-      feature.setMetaValue("sum_formula", contaminants_[i].sf.getString());
+      feature.setMetaValue("sum_formula", contaminants_[i].sf.getString()); // formula without adducts
       feature.setCharge(contaminants_[i].q);
-      feature.setMetaValue("charge_adducts","H"+String(contaminants_[i].q));
+      feature.setMetaValue("charge_adducts","H"+String(contaminants_[i].q));  // adducts separately
       add2DSignal_(feature, exp);
       c_map.push_back(feature);
     }
@@ -874,6 +881,8 @@ namespace OpenMS {
     
     const SimCoordinateType mz_sampling_rate_num = mz_sampling_rate_ - numerical_correction;
 
+    Size point_count_before = 0, point_count_after = 0;
+
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
       experiment[i].sortByPosition();
@@ -940,9 +949,15 @@ namespace OpenMS {
 				}
 				// don't forget the last one
 				if (!change) cont.push_back( experiment[i][ (experiment[i].size() - 1) ] );
+
+        point_count_before += experiment[i].size();
 	      experiment[i] = cont;
+        point_count_after += experiment[i].size();
+
 			}
     }
+
+    std::cerr << " point count: " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
 
 #ifdef DEBUG_SIM
     cout << "Done " << endl;
