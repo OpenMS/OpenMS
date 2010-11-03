@@ -46,7 +46,7 @@ bool generate(const map<String,StringList>& tools, const String& prefix)
 		QProcess process;
 		process.setProcessChannelMode(QProcess::MergedChannels);
     QStringList env = QProcess::systemEnvironment();
-    env << String("COLUMNS=110").toQString(); // Add an environment variable
+    env << String("COLUMNS=110").toQString(); // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
     process.setEnvironment(env);
  		process.start((it->first + " --help").toQString());
 		process.waitForFinished();
