@@ -1,4 +1,3 @@
-	
 set(INSTALL_FORCE_DOC FALSE) ## do not force documentation to be present
 include(cmake/install_common.cmake)
 
