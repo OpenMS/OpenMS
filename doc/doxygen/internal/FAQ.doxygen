@@ -575,6 +575,10 @@ svn propset svn:eol-style native MyClass.C
 						<LI> Build the contrib libraries
 						<LI> Configure %OpenMS using
 						     @n <code>&gt; cmake -D INSTALL_PREFIX=/usr -D PACKAGE_TYPE=rpm/deb ...</code>
+            <LI> Set the environment variable 'OPENMS_DATA_PATH' to your OpenMS share directory, e.g. <tt>/home/myusername/binary_release/OpenMS/share/OpenMS</tt>.<br>
+                 Explanation follows (just read if interested):
+                 When using INSTALL_PREFIX, running any OpenMS executable before installation will result in an error because the SHARE/OpenMS directory will not be found
+                 (it is already hardcoded to the future install directory). As 'make doc' etc require OpenMS executables (TOPPDocumenter,...) this step is required.
 						<LI> Build OpenMS: <tt>make TOPP UTILS doc doc_tutorials</tt>
 						<LI> Build the package using <tt>make package</tt>
 						<LI> Rename the package to this naming schema:
