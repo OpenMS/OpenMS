@@ -219,7 +219,7 @@ namespace OpenMS
 		
 		if (!exists(path))
 		{ // now we're in big trouble as './share' is not were its supposed to be...
-			std::cerr << "OpenMS FATAL ERROR!\nExpected shared data to be at '" << path << "'! OpenMS cannot function without it! Exiting ...\n";
+			std::cerr << "OpenMS FATAL ERROR!\nExpected shared data to be at '" << path << "'! OpenMS cannot function without it! Exiting now. To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory.\n";
 			exit(1);
 		}
 		
