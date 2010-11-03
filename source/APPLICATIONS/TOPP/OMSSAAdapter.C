@@ -600,7 +600,7 @@ class TOPPOMSSAAdapter
           while (additional_user_mods_file.good())
           {
             getline(additional_user_mods_file, line);
-            out << line;
+            out << line << endl;
           }
           additional_user_mods_file.close();
         }
