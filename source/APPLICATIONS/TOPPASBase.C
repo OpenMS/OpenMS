@@ -1153,12 +1153,17 @@ namespace OpenMS
 		{
 			return;
 		}
+    /*
 		QString text = (sender->getName()).toQString();
 		if (sender->getType() != "")
 		{
 			text += " ("+(sender->getType()).toQString()+")";
 		}
 		text += ":\n" + out;
+    */
+    QString text = out; // shortened version for now (if we reintroduce simultaneous tool execution, 
+                        // we need to rethink this (probably only trigger this slot when tool 100% finished)
+
 		
 		//show log if there is output
 		qobject_cast<QWidget*>(log_->parent())->show();

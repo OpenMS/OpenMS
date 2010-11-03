@@ -430,9 +430,9 @@ namespace OpenMS {
 		gradient_min_ = param_.getValue("scan_window:min");
 		gradient_max_ = param_.getValue("scan_window:max");
     if(gradient_max_ > total_gradient_time_)
-      {
-        LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
-      }
+    {
+      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
+    }
     
     rt_sampling_rate_ = param_.getValue("sampling_rate");
 
