@@ -135,7 +135,7 @@ class TOPPOMSSAAdapter
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
 			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
       registerInputFile_("omssa_executable", "", "", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
-      registerInputFile_("omssa_user_mods", "<file>", "", "additional <MSModSpec> subtree of user modifications.\nSubtree will be pasted into OMSSAAdapter generated user mod files.\nSee http://www.ncbi.nlm.nih.gov/data_specs/schema/OMSSA.mod.xsd for details about user mod file definition.", false, true, StringList::create("input file"));
+      registerInputFile_("omssa_user_mods", "<file>", "", "additional <MSModSpec> subtrees of user modifications.\nSubtrees will be pasted into OMSSAAdapter generated user mod files.\nSee http://www.ncbi.nlm.nih.gov/data_specs/schema/OMSSA.mod.xsd for details about user mod file definition.", false, true, StringList::create("input file"));
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
 			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
@@ -592,7 +592,7 @@ class TOPPOMSSAAdapter
 					}
 				}
 
-        // Add additional MSModSPec subtree to generated user mods
+        // Add additional MSModSPec subtrees to generated user mods
         ifstream additional_user_mods_file(additional_user_mods_filename.c_str());
         String line;
         if(additional_user_mods_file.is_open())

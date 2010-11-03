@@ -460,13 +460,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           windows->addAction(layer_bar->toggleViewAction());
 
           //spectrum selection
-          spectrum_bar_ = new QDockWidget("Spectra", this);
-          addDockWidget(Qt::RightDockWidgetArea, spectrum_bar_);
-
-          QWidget* tmp_widget_spec_browser = new QWidget(); //dummy widget as QDockWidget takes only one widget
-          QVBoxLayout* tmp_widget_spec_browser_layout = new QVBoxLayout(tmp_widget_spec_browser);
-
-          spectrum_selection_ = new QTreeWidget(tmp_widget_spec_browser);
+          spectrum_bar_ = new QDockWidget("Spectra views", this);
+          addDockWidget(Qt::RightDockWidgetArea, spectrum_bar_);          
+          QTabWidget* tw = new QTabWidget(spectrum_bar_);
+          spectrum_bar_->setWidget(tw);
+          QWidget* spectra_widget = new QWidget(); //dummy widget as QDockWidget takes only one widget
+//          QWidget* spectra_ident_widget = new QWidget();
+          QVBoxLayout* spectra_widget_layout = new QVBoxLayout(spectra_widget);
+          tw->addTab(spectra_widget, "Spectra");
+//          tw->addTab(spectra_ident_widget, "Test");
+          spectrum_selection_ = new QTreeWidget(spectra_widget);
           spectrum_selection_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
 
           //~ no good for huge experiments - omitted:
@@ -503,11 +506,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(spectrum_selection_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(spectrumContextMenu(const QPoint&)));
           connect(spectrum_selection_->header(),SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(spectrumBrowserHeaderContextMenu(const QPoint&)));
 
-          tmp_widget_spec_browser_layout->addWidget(spectrum_selection_);
+          spectra_widget_layout->addWidget(spectrum_selection_);
 
           QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
 
-          spectrum_search_box_ = new QLineEdit("", tmp_widget_spec_browser);
+          spectrum_search_box_ = new QLineEdit("", spectra_widget);
 
           QStringList qsl;
           qsl.push_back("index");
@@ -516,16 +519,15 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           qsl.push_back("dissociation");
           qsl.push_back("scan");
           qsl.push_back("zoom");
-          spectrum_combo_box_ = new QComboBox(tmp_widget_spec_browser);
+          spectrum_combo_box_ = new QComboBox(spectra_widget);
           spectrum_combo_box_->addItems(qsl);
 
           connect(spectrum_search_box_,SIGNAL(textEdited ( const QString &)),this,SLOT(chooseSpectrumByUser(const QString&)));
 
           tmp_hbox_layout->addWidget(spectrum_search_box_);
           tmp_hbox_layout->addWidget(spectrum_combo_box_);
-          tmp_widget_spec_browser_layout->addLayout(tmp_hbox_layout);
+          spectra_widget_layout->addLayout(tmp_hbox_layout);
 
-          spectrum_bar_->setWidget(tmp_widget_spec_browser);
           windows->addAction(spectrum_bar_->toggleViewAction());
 
           //data filters
