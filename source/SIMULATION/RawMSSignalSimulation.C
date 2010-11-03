@@ -877,9 +877,7 @@ namespace OpenMS {
     // this is necessary to avoid
     // 0.1 < 0.1 = true
     // due to numerical instability
-    const SimCoordinateType numerical_correction = 0.0001 * mz_sampling_rate_;
-    
-    const SimCoordinateType mz_sampling_rate_num = mz_sampling_rate_ - numerical_correction;
+    const SimCoordinateType mz_sampling_rate_num = 0.99 * mz_sampling_rate_; // be generous here (99%) - everything closer to 1 might be unstable
 
     Size point_count_before = 0, point_count_after = 0;
 
