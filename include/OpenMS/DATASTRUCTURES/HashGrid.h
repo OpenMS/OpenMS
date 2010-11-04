@@ -62,14 +62,12 @@ class OPENMS_DLLAPI HashGrid {
 
 private:
 
-	DoubleReal rt_threshold;
-	DoubleReal mz_threshold;
-	DoubleReal hyp_threshold;
-	DoubleReal rt_scaling;
-	Int grid_size_x;
-	Int grid_size_y;
-	Int number_of_elements;
-	GridCells elements;
+	DoubleReal rt_threshold_;
+	DoubleReal mz_threshold_;
+	Int grid_size_x_;
+  Int grid_size_y_;
+	Size number_of_elements_;
+	GridCells elements_;
 
 
 public:
@@ -90,32 +88,32 @@ public:
 	@param x x-value of the cell
 	@param y y-value of the cell
 */
-	void removeElement(GridElement* element_,Int x,Int y);
+	void removeElement(GridElement * const element, Int x, Int y);
 /** @brief removes an element from the hash grid. The cell, in which the element may be contained, is calculated out of the RT and m/z values of the element:
 
 	@param element_ the element to remove
 */
-	void removeElement(GridElement* element_);
+	void removeElement(GridElement * const element);
 
 	/** @brief removes the cell at location loc from the hash grid :
 
 		@param loc location of the cell
 	*/
-		void removeCell(GridCells::iterator loc);
+	void removeCell(GridCells::iterator loc);
 
 /** @brief inserts a new element in the grid:
 
 	@param element_ the element to remove
 */
-	void insert(GridElement* element_);
+	void insert(GridElement * const element);
 /** @brief writes the content of the grid to the console:
 
 */
-	void consoleOut();
+	void consoleOut() const;
 /** @brief gets the number of element holding cells
 
 */
-	int size();
+	Size size() const;
 /** @brief gets the height of the cells
 
 */
@@ -127,16 +125,16 @@ public:
 /** @brief gets the number of grids in m/z-direction
 
 		*/
-	Int getGridSizeX();
+	Int getGridSizeX() const;
 
 /** @brief gets the number of grids in RT-direction
 
 		*/
-	Int getGridSizeY();
+	Int getGridSizeY() const;
 	/**
 	 * @brief gets the number of elements in the grid
 	 */
-	Int getNumberOfElements();
+	Size getNumberOfElements() const;
 
 	/**
 	 * @brief gets an iterator to the beginning of the GridCells map

@@ -115,152 +115,208 @@ namespace OpenMS
 	
 	MetaInfoRegistry& MetaInfoRegistry::operator = (const MetaInfoRegistry& rhs)
 	{
-		if (this==&rhs) return *this;
-		
-		next_index_ = rhs.next_index_;
-		name_to_index_ = rhs.name_to_index_;
-		index_to_name_ = rhs.index_to_name_;
-		index_to_description_ = rhs.index_to_description_;
-		index_to_unit_ = rhs.index_to_unit_;
-		
-		return *this;
-	}
+    if (this==&rhs) return *this;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+		  next_index_ = rhs.next_index_;
+		  name_to_index_ = rhs.name_to_index_;
+		  index_to_name_ = rhs.index_to_name_;
+		  index_to_description_ = rhs.index_to_description_;
+		  index_to_unit_ = rhs.index_to_unit_;
+    }
+	  return *this;
+  }
 		
 
 	UInt MetaInfoRegistry::registerName(const String& name, const String& description, const String& unit) const
 	{
-		map<String,UInt>::iterator it = name_to_index_.find(name);
-		if (it == name_to_index_.end())
-		{
-			name_to_index_[name] = next_index_;
-			index_to_name_[next_index_] = name;
-			index_to_description_[next_index_] = description;
-			index_to_unit_[next_index_] = unit;
-			return next_index_++;
-		}
-		else
-		{
-			return it->second;
-		}
+    UInt rv;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+		  map<String,UInt>::iterator it = name_to_index_.find(name);
+		  if (it == name_to_index_.end())
+		  {
+			  name_to_index_[name] = next_index_;
+			  index_to_name_[next_index_] = name;
+			  index_to_description_[next_index_] = description;
+			  index_to_unit_[next_index_] = unit;
+			  rv = next_index_++;
+		  }
+		  else
+		  {
+			  rv = it->second;
+		  }
+    }
+    return rv;
 	}
 	
 	void MetaInfoRegistry::setDescription(UInt index, const String& description)
 	{
-		map<UInt,String>::iterator it = index_to_name_.find(index);
-		if (it != index_to_name_.end())
-		{
-			index_to_description_[index] = description;
-		}
-		else
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
-		}
+    bool found;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      found = (index_to_name_.find(index) != index_to_name_.end());
+      if (found)
+      {
+        index_to_description_[index] = description;
+      }
+    }
+    if (!found)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+    }
 	}
 			
 	void MetaInfoRegistry::setDescription(const String& name, const String& description)
 	{
-		map<String,UInt>::iterator it = name_to_index_.find(name);
-		if (it != name_to_index_.end())
-		{
-			UInt index = getIndex(name);
-			setDescription(index, description);
-		}
-		else
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
-		}
+    bool found;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      found = (name_to_index_.find(name) != name_to_index_.end());
+    }
+    if (found)
+    {
+	    UInt index = getIndex(name);
+	    setDescription(index, description);
+    }
+	  if (!found)
+	  {
+		  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
+	  }
 	}
 	
 	void MetaInfoRegistry::setUnit(UInt index, const String& unit)
 	{
-		map<UInt,String>::iterator it = index_to_name_.find(index);
-		if (it != index_to_name_.end())
-		{
-			index_to_unit_[index] = unit;
-		}
-		else
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
-		}
+    bool found;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      found = (index_to_name_.end() != index_to_name_.find(index));
+      if (found)
+      {
+        index_to_unit_[index] = unit;
+      }
+    }
+    if (!found)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+    }
 	}
 	
 	void MetaInfoRegistry::setUnit(const String& name, const String& unit)
 	{
-		map<String,UInt>::iterator it = name_to_index_.find(name);
-		if (it != name_to_index_.end())
-		{
-			UInt index = getIndex(name);
-			setUnit(index, unit);
-		}
-		else
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
-		}
+    bool found;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      found = (name_to_index_.find(name) != name_to_index_.end());
+    }
+    if (found)
+    {
+	    UInt index = getIndex(name);
+	    setUnit(index, unit);
+    }
+	  if (!found)
+	  {
+		  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
+	  }
 	}
 	
 	UInt MetaInfoRegistry::getIndex(const String& name) const
 	{
-		map<String,UInt>::const_iterator it = name_to_index_.find(name);
-		if (it != name_to_index_.end())
-		{
-			return it->second;
-		}
-		else
-		{
-			registerName(name, String::EMPTY, String::EMPTY);
-			return getIndex(name);
-		}
+    UInt rv;
+    bool found = false;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      map<String,UInt>::const_iterator it = name_to_index_.find(name);
+		  if (it != name_to_index_.end())
+		  {
+			  rv = it->second;
+        found = true;
+		  }
+    }
+	  if (!found)
+    {
+		  registerName(name, String::EMPTY, String::EMPTY);
+		  rv = getIndex(name);
+	  }
+    return rv;
 	}
 
 
 	String MetaInfoRegistry::getDescription(UInt index) const
 	{
-		map<UInt,String>::const_iterator it = index_to_description_.find(index);
-		if (it == index_to_description_.end())
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
-		}
-		return it->second;
+    String result;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      map<UInt,String>::const_iterator it = index_to_description_.find(index);
+		  if (it == index_to_description_.end())
+		  {
+			  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+		  }
+      result = it->second;
+    }
+    return result;
 	}
  
 	String MetaInfoRegistry::getDescription(const String& name) const
 	{
-		UInt index = getIndex(name);
-		if  (index==0)
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered Name!",name);
-		}
-		return (index_to_description_.find(index))->second;
+    String rv;
+    UInt index = getIndex(name);
+	  if  (index==0)
+	  {
+		  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered Name!",name);
+	  }
+    #pragma omp critical (MetaInfoRegistry)
+    {
+		  rv = (index_to_description_.find(index))->second;
+    }
+    return rv;
 	}
 
 	String MetaInfoRegistry::getUnit(UInt index) const
 	{
-		map<UInt,String>::const_iterator it = index_to_unit_.find(index);
-		if (it == index_to_unit_.end())
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
-		}
-		return it->second;
+    String result;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      map<UInt,String>::const_iterator it = index_to_unit_.find(index);
+		  if (it == index_to_unit_.end())
+		  {
+			  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+		  }
+      result = it->second;
+    }
+    return result;
 	}
 	
 	String MetaInfoRegistry::getUnit(const String& name) const
 	{
-		UInt index = getIndex(name);
-		if  (index==0)
-		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered Name!",name);
-		}
-		return (index_to_unit_.find(index))->second;
+    String rv;
+    UInt index = getIndex(name);
+	  if  (index==0)
+	  {
+		  throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered Name!",name);
+	  }
+    #pragma omp critical (MetaInfoRegistry)
+    {
+		  rv = (index_to_unit_.find(index))->second;
+    }
+    return rv;
 	}
 
   String MetaInfoRegistry::getName(UInt index) const
   {
-		map<UInt,String>::const_iterator it = index_to_name_.find(index);
-		if (it != index_to_name_.end())
-		{
-			return it->second;
-		}
-		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+    String rv;
+    bool found=false;
+    #pragma omp critical (MetaInfoRegistry)
+    {
+      map<UInt,String>::const_iterator it = index_to_name_.find(index);
+	    if (it != index_to_name_.end())
+	    {
+		    rv = it->second;
+        found=true;
+	    }
+    }
+    if (!found) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+    return rv;
   }
 	
 } //namespace

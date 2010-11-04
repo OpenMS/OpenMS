@@ -28,7 +28,7 @@
 #include<OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
 #include <iostream>
@@ -64,6 +64,7 @@ namespace OpenMS {
   
   void DetectabilitySimulation::filterDetectability(FeatureMapSim & features)
   {
+    LOG_INFO << "Detectability Simulation ... started" << std::endl;
     if (param_.getValue("dt_simulation_on") == "true")
     {
       svmFilter_(features);
@@ -100,19 +101,19 @@ namespace OpenMS {
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
     
-		if (File::readable(dtModelFile_))
+		if (File::readable(dt_model_file_))
 		{
-    	svm_.loadModel(dtModelFile_);
+    	svm_.loadModel(dt_model_file_);
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dtModelFile_ + " is not readable");
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dt_model_file_ + " is not readable");
     }
 		
 		// load additional parameters
 		if (svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
-      String add_paramfile = dtModelFile_ + "_additional_parameters";
+      String add_paramfile = dt_model_file_ + "_additional_parameters";
       if (! File::readable( add_paramfile ) )
       {
         throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: SVM parameter file " + add_paramfile + " is not readable");
@@ -143,7 +144,7 @@ namespace OpenMS {
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
     }
     
-		if (File::readable(dtModelFile_))
+		if (File::readable(dt_model_file_))
 		{
     	svm_.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
     	svm_.setParameter(SVMWrapper::SIGMA, sigma);
@@ -151,7 +152,7 @@ namespace OpenMS {
     	svm_.setParameter(SVMWrapper::PROBABILITY, 1);
 		}
     // loading training data
-    String sample_file = dtModelFile_ + "_samples";
+    String sample_file = dt_model_file_ + "_samples";
     if (File::readable(sample_file))
     {
     	training_data = encoder.loadLibSVMProblem(sample_file);
@@ -163,7 +164,7 @@ namespace OpenMS {
     }
 
 		
-		cout << "Predicting peptide detectabilities..    " << endl;
+    LOG_INFO << "Predicting peptide detectabilities..    " << endl;
     
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     
@@ -178,16 +179,8 @@ namespace OpenMS {
     
     svm_.getSVCProbabilities(prediction_data, detectabilities, labels);
     
-    cout << "Done." << endl;
-    
     delete prediction_data;
-    
-#ifdef DEBUG_SIM
-    cout << "----------------------------------------------------------------" << endl;
-    cout << "Predicted detectabilities:" << endl;
-#endif
-    
-	}
+  }
 	
   void DetectabilitySimulation::svmFilter_(FeatureMapSim & features)
   {
@@ -226,16 +219,20 @@ namespace OpenMS {
 
   void DetectabilitySimulation::setDefaultParams_() 
   {
-		defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility");
+		defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility enabled? This can serve as a filter to remove peptides which ionize badly, thus reducing peptide count");
     defaults_.setValidStrings("dt_simulation_on", StringList::create("true,false"));
-    defaults_.setValue("min_detect",0.5,"Minimum peptide detectability accepted");
-    defaults_.setValue("dt_model_file","","SVM model for peptide detectability prediction");
+    defaults_.setValue("min_detect",0.5,"Minimum peptide detectability accepted. Peptides with a lower score will be removed");
+    defaults_.setValue("dt_model_file","examples/simulation/DTPredict.model","SVM model for peptide detectability prediction");
     defaultsToParam_();
   }
   
   void DetectabilitySimulation::updateMembers_()
   {
     min_detect_ = param_.getValue("min_detect");
-    dtModelFile_ = param_.getValue("dt_model_file");
+		dt_model_file_ = param_.getValue("dt_model_file");
+		if (! File::readable( dt_model_file_ ) )
+    { // look in OPENMS_DATA_PATH
+      dt_model_file_ = File::find( dt_model_file_ );
+    }
   }  
 }

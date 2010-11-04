@@ -36,9 +36,7 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
-#ifdef _DEBUG
-#define OPENMS_DEBUG_SIM_
-#endif
+//#define OPENMS_DEBUG_SIM_
 
 namespace OpenMS {
 
@@ -136,6 +134,13 @@ namespace OpenMS {
 
   void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels& channels, const String &labeling_name)
   {
+    /*todo: move to a global config file or into INI file */
+    Log_fatal.setPrefix("%S: ");
+    Log_error.setPrefix("%S: ");
+    Log_warn.setPrefix("%S: ");
+    Log_info.setPrefix("%S: ");
+    Log_debug.setPrefix("%S: ");
+
     /*
       General progress should be
         1. Digest Proteins
@@ -158,8 +163,11 @@ namespace OpenMS {
 		dt_sim.setParameters(param_.copy("Detectability:",true));
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
+    ion_sim.setLogType(this->getLogType());
     RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
+    raw_sim.setLogType(this->getLogType());
+    raw_sim.loadContaminants(); // check if the file is valid (if not, an error is raised here instead of half-way through simulation)
 
 
     labeler_ = Factory<BaseLabeler>::create(labeling_name);
@@ -263,7 +271,6 @@ namespace OpenMS {
       protHit=(it->second);
       // additional meta values:
       protHit.setMetaValue("description", it->first.description);
-      std::cout << protHit.getAccession() << " " << protHit.getSequence() << " " << double(protHit.getMetaValue("intensity")) << ::std::endl;
       protIdent.insertHit(protHit);
 
 		}

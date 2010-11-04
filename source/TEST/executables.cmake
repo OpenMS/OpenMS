@@ -421,7 +421,6 @@ set(simulation_executables_list
   EGHModel_test
   EGHFitter1D_test
   IonizationSimulation_test
-  IsotopeModelGeneral_test
   MSSim_test
   RTSimulation_test
   RawMSSignalSimulation_test

@@ -8,7 +8,6 @@ DigestSimulation.h
 EGHModel.h
 EGHFitter1D.h
 IonizationSimulation.h
-IsotopeModelGeneral.h
 MSSim.h
 RTSimulation.h
 RawMSSignalSimulation.h

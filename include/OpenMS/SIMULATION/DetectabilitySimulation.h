@@ -88,7 +88,7 @@ namespace OpenMS
 		DoubleReal min_detect_;
 
 		/// Name of the svm model file
-		OpenMS::String dtModelFile_;
+		OpenMS::String dt_model_file_;
 
   protected:
     /// Filter the feature map using a svm model

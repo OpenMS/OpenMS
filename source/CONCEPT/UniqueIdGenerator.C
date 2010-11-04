@@ -58,7 +58,10 @@ UniqueIdGenerator::getUniqueId()
 {
   V_UniqueIdGenerator("UniqueIdGenerator::getUID()");
   getInstance_();
-  return (UInt64(gsl_rng_get(rng_)) << 32) + UInt64(gsl_rng_get(rng_));
+  UInt64 r;
+#pragma omp critical  
+  {r = (UInt64(gsl_rng_get(rng_)) << 32) + UInt64(gsl_rng_get(rng_));}
+  return r;
 }
 
 const Param&

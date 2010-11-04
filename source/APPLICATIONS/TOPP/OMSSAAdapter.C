@@ -321,13 +321,15 @@ class TOPPOMSSAAdapter
 
 			// get version of OMSSA
       QProcess qp;
-      qp.start((omssa_executable + " -version").toQString(), QIODevice::ReadOnly); // does automatic escaping etc...
-      qp.waitForFinished();
+      String call = omssa_executable + " -version";
+      qp.start(call.toQString(), QIODevice::ReadOnly); // does automatic escaping etc...
+      bool success = qp.waitForFinished();
       String output (QString(qp.readAllStandardOutput ()));
 			String omssa_version;
-			if (qp.exitStatus() != 0)
+      if (!success || qp.exitStatus() != 0 || qp.exitCode()!=0)
 			{
-				writeLog_("Warning: unable to determine the version of OMSSA");
+        writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + call + "'. Make sure that the path to the OMSSA executable is correct!");
+        return ILLEGAL_PARAMETERS;
 			}
       else
       {

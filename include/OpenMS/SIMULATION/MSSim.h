@@ -32,6 +32,7 @@
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
@@ -58,7 +59,8 @@ namespace OpenMS
    @ingroup Simulation
   */
   class OPENMS_DLLAPI MSSim
-    : public DefaultParamHandler
+    : public DefaultParamHandler,
+      public ProgressLogger
   {
 
   public:

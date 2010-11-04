@@ -66,8 +66,9 @@ class OPENMS_DLLAPI UniqueIdInterface
 
     /// Default constructor - the unique id will be <i>invalid</i>
     UniqueIdInterface()
+      : unique_id_(UInt64(INVALID))
     {
-      clearUniqueId();
+      //do not use clearUniqueId(), as it will be slower and creates a warranted valgrind warning;
     }
 
     /// Copy constructor - copies the unique id

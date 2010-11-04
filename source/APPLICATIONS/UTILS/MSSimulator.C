@@ -246,14 +246,12 @@ class TOPPMSSimulator
       }
       else
       {
-        // use gsl default seed to get reproducible exeperiments
+        // use gsl default seed to get reproducible experiments
         gsl_rng_set(rnd_gen.technical_rng, 0);
       }
 
-      // read contaminants
+      ms_simulation.setLogType(this->log_type_);
 
-      // select contaminants?? -> should this be done by MSSim??
-      
       // start simulation
       writeLog_("Starting simulation");
       StopWatch w;

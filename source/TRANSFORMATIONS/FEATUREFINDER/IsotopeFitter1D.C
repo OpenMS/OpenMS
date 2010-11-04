@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <numeric>
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -113,6 +114,7 @@ namespace OpenMS
 			tmp.setValue( "isotope:maximum", max_isotope_ );
 
 			model->setParameters( tmp );
+      (static_cast<IsotopeModel*> (model)) -> setSamples( (static_cast<IsotopeModel*> (model))->getFormula() );
 		}
 
 		// fit offset

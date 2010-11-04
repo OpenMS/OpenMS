@@ -154,11 +154,11 @@ namespace OpenMS
 				if (begin_==end_)
 				{
 					if ( recursion_depth_ ) cout << '\n';
-					cout << endl << string(2*recursion_depth_,' ') << "-- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) -- " << endl;
+          cout << endl << string(2*recursion_depth_,' ') << "-- done [took " << String::number(stop_watch_.getCPUTime(),3) << " s(CPU), " << String::number(stop_watch_.getClockTime(),3) << " s(Wall)] -- " << endl;
 				}
 				else
 				{
-					cout << '\r' << string(2*recursion_depth_,' ') << "-- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) -- " << endl;
+					cout << '\r' << string(2*recursion_depth_,' ') << "-- done [took " << String::number(stop_watch_.getCPUTime(),3) << " s(CPU), " << String::number(stop_watch_.getClockTime(),3) << " s(Wall)] -- " << endl;
 				}
 				break;
 			case GUI:

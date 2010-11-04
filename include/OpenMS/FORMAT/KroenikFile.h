@@ -44,9 +44,16 @@ namespace OpenMS
  		@brief File adapter for Kroenik (HardKloer sibling) files.
  		
   	The first line is the header and contains the column names:<br>
-    File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications
+    File,  First Scan,  Last Scan,  Num of Scans,  Charge,  Monoisotopic Mass,  Base Isotope Peak,  Best Intensity,  Summed Intensity,  First RTime,  Last RTime,  Best RTime,  Best Correlation,  Modifications
 
     Every subsequent line is a feature.
+    
+    All properties in the file are converted to Feature properties, whereas "First Scan", "Last Scan", "Num of Scans" and "Modifications" are stored as 
+    metavalues with the following names "FirstScan", "LastScan", "NumOfScans" and "AveragineModifications".
+
+    The width in m/z of the overall convex hull of each feature is set to 3 Th in lack of a value provided by the Kroenik file.
+
+    @note Kroenik files are Tab (\t) separated files.
   	
   	@ingroup FileIO
   */
@@ -80,7 +87,7 @@ namespace OpenMS
 				{
 					String line = input[i];
 				
-					//split lines: File,	First Scan,	Last Scan,	Num of Scans,	Charge,	Monoisotopic Mass, Base Isotope Peak,	Best Intensity,	Summed Intensity,	First RTime,	Last RTime,	Best RTime,	Best Correlation,	Modifications
+					//split lines: File,  First Scan,  Last Scan,  Num of Scans,  Charge,  Monoisotopic Mass,  Base Isotope Peak,  Best Intensity,  Summed Intensity,  First RTime,  Last RTime,  Best RTime,  Best Correlation,  Modifications
 					std::vector< String > parts;
 					line.split('\t', parts);
 					

@@ -412,11 +412,11 @@ namespace OpenMS
 
 					- <b>%y</b>	message type ("Error", "Warning", "Information", "-")
 					- <b>%T</b> time (HH:MM:SS)
-					- <b>%t</b>  time in short format (HH:MM)
+					- <b>%t</b> time in short format (HH:MM)
 					- <b>%D</b>	date (YYYY/MM/DD)
-					- <b>%d</b>  date in short format (MM/DD)
+					- <b>%d</b> date in short format (MM/DD)
 					- <b>%S</b> time and date (YYYY/MM/DD, HH:MM:SS)
-					- <b>%s</b>  time and date in short format (MM/DD, HH:MM)
+					- <b>%s</b> time and date in short format (MM/DD, HH:MM)
 					- <b>%%</b>	percent sign (escape sequence)
 				
 		*/

@@ -125,6 +125,7 @@ namespace OpenMS {
    */
   void RTSimulation::predictRT(FeatureMapSim & features)
   {
+    LOG_INFO << "RT Simulation ... started" << std::endl;
 
     predictFeatureRT_(features);
 
@@ -239,7 +240,8 @@ namespace OpenMS {
     if(deleted_features.size() > 0)
     {
       LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
-      LOG_WARN << "  " << deleted_features.concatenate("\n  ") << std::endl;
+      if (deleted_features.size()<100) LOG_WARN << "  " << deleted_features.concatenate("\n  ") << std::endl;
+      else LOG_WARN << "  (List is too big to show)" << std::endl;
     }
     // only retain valid features:	
     features.swap(fm_tmp);
@@ -380,26 +382,26 @@ namespace OpenMS {
 		std::vector<AASequence>::iterator pep_iter_start = peptide_sequences.begin();
 		std::vector<AASequence>::iterator pep_iter_stop = peptide_sequences.begin();
 		while(count < peptide_sequences.size())
+		{
+			while(pep_iter_stop != peptide_sequences.end() && tmp_count < max_number_of_peptides)
 			{
-				while(pep_iter_stop != peptide_sequences.end() && tmp_count < max_number_of_peptides)
-					{
-						++tmp_count;
-						++pep_iter_stop;
-					}
-				std::vector<AASequence> tmp_peptide_seqs;
-				tmp_peptide_seqs.insert(tmp_peptide_seqs.end(),pep_iter_start,pep_iter_stop);
-				std::vector<DoubleReal> tmp_rts(tmp_peptide_seqs.size(), 0);
-				std::vector<DoubleReal> tmp_pred_rts;
-				// Encoding test data
-				encoder.encodeProblemWithOligoBorderVectors(tmp_peptide_seqs,k_mer_length, allowed_amino_acid_characters, border_length,prediction_samples.sequences);
-				prediction_samples.labels = tmp_rts;
-			
-				svm.predict(prediction_samples, tmp_pred_rts);
-				predicted_retention_times.insert(predicted_retention_times.end(),tmp_pred_rts.begin(),tmp_pred_rts.end());
-				pep_iter_start = pep_iter_stop;				
-				count += tmp_count;
-				tmp_count = 0;
+				++tmp_count;
+				++pep_iter_stop;
 			}
+			std::vector<AASequence> tmp_peptide_seqs;
+			tmp_peptide_seqs.insert(tmp_peptide_seqs.end(),pep_iter_start,pep_iter_stop);
+			std::vector<DoubleReal> tmp_rts(tmp_peptide_seqs.size(), 0);
+			std::vector<DoubleReal> tmp_pred_rts;
+			// Encoding test data
+			encoder.encodeProblemWithOligoBorderVectors(tmp_peptide_seqs,k_mer_length, allowed_amino_acid_characters, border_length,prediction_samples.sequences);
+			prediction_samples.labels = tmp_rts;
+		
+			svm.predict(prediction_samples, tmp_pred_rts);
+			predicted_retention_times.insert(predicted_retention_times.end(),tmp_pred_rts.begin(),tmp_pred_rts.end());
+			pep_iter_start = pep_iter_stop;				
+			count += tmp_count;
+			tmp_count = 0;
+		}
     LibSVMEncoder::destroyProblem(training_data);
 		
     LOG_INFO << "done" << endl;
@@ -428,9 +430,9 @@ namespace OpenMS {
 		gradient_min_ = param_.getValue("scan_window:min");
 		gradient_max_ = param_.getValue("scan_window:max");
     if(gradient_max_ > total_gradient_time_)
-      {
-        LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
-      }
+    {
+      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
+    }
     
     rt_sampling_rate_ = param_.getValue("sampling_rate");
 
