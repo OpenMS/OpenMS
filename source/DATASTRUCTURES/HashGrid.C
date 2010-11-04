@@ -31,117 +31,116 @@
 namespace OpenMS
 {
 
-HashGrid::HashGrid(DoubleReal rt_threshold_,DoubleReal mz_threshold_)
-{
-	rt_threshold=rt_threshold_;
-	mz_threshold=mz_threshold_;
-	grid_size_x=-1;
-	grid_size_y=-1;
-	number_of_elements=0;
-}
+  HashGrid::HashGrid(DoubleReal rt_threshold,DoubleReal mz_threshold)
+    : rt_threshold_(rt_threshold),
+	    mz_threshold_(mz_threshold),
+	    grid_size_x_(-1),
+	    grid_size_y_(-1),
+	    number_of_elements_(0),
+      elements_()
+  {
+  }
 
-HashGrid::~HashGrid()
-{
-}
-
-void HashGrid::removeElement(GridElement* element_,Int x,Int y)
-{
-	std::list<GridElement*>& subsets = elements[std::make_pair(x,y)];
-	Size previous_size=subsets.size();
-	subsets.remove(element_);
-	if (subsets.size() < previous_size && number_of_elements>0)
-		--number_of_elements;
-	if (subsets.empty())
-		elements.erase(std::make_pair(x,y));
-}
-
-void HashGrid::removeElement(GridElement* element_)
-{
-	int x = element_->mz / mz_threshold;
-	int y = element_->rt / rt_threshold;
-	removeElement(element_,x,y);
-}
-
-void HashGrid::removeCell(GridCells::iterator loc)
-{
-	number_of_elements-=loc->second.size();
-	elements.erase(loc);
-}
+  HashGrid::~HashGrid()
+  {
+  }
 
 
-void HashGrid::insert(GridElement* element_)
-{
-	int x = element_->mz / mz_threshold;
-	if (x>grid_size_x)
-		grid_size_x=x;
-	int y = element_->rt / rt_threshold;
-	if (y>grid_size_y)
-		grid_size_y=y;
+  void HashGrid::removeElement(GridElement * const element, const Int x, const Int y)
+  {
+	  std::list<GridElement*>& subsets = elements_[std::make_pair(x,y)];
+	  Size previous_size=subsets.size();
+	  subsets.remove(element);
+	  if (subsets.size() < previous_size && number_of_elements_>0) --number_of_elements_;
+	  if (subsets.empty()) elements_.erase(std::make_pair(x,y));
+  }
 
-	elements[std::make_pair(x,y)].push_back(element_);
-	++number_of_elements;
-}
+  void HashGrid::removeElement(GridElement * const element)
+  {
+	  int x = element->mz / mz_threshold_;
+	  int y = element->rt / rt_threshold_;
+	  removeElement(element,x,y);
+  }
 
-void HashGrid::consoleOut()
-{
-	for (std::map<std::pair<Int,Int>, std::list<GridElement*> >::iterator it=elements.begin();it!=elements.end();++it)
-	{
-		std::pair<Int,Int> coords=it->first;
-		std::list<GridElement*> act_elements= it->second;
-		if (it->second.size()>0)
-			std::cout << coords.first << "/" << coords.second<< ": ";
-		for (std::list<GridElement*>::iterator list_it=act_elements.begin();list_it!=act_elements.end();++list_it)
-		{
-			std::cout << (*list_it)->getID() << " | ";
-		}
-		std::cout << std::endl;
-
-	}
-	std::cout << std::endl;
-}
-
-int HashGrid::size()
-{
-	return elements.size();
-}
+  void HashGrid::removeCell(const GridCells::iterator loc)
+  {
+	  number_of_elements_-=loc->second.size();
+	  elements_.erase(loc);
+  }
 
 
-DoubleReal HashGrid::getRTThreshold() const
-{
-	return rt_threshold;
-}
+  void HashGrid::insert(GridElement * const element)
+  {
+	  int x = element->mz / mz_threshold_;
+	  if (x>grid_size_x_) grid_size_x_=x;
+	  int y = element->rt / rt_threshold_;
+	  if (y>grid_size_y_) grid_size_y_=y;
 
-DoubleReal HashGrid::getMZThreshold() const
-{
-	return mz_threshold;
-}
-Int HashGrid::getGridSizeX()
-{
-	return grid_size_x;
-}
+	  elements_[std::make_pair(x,y)].push_back(element);
+	  ++number_of_elements_;
+  }
 
-Int HashGrid::getGridSizeY()
-{
-	return grid_size_y;
-}
-Int  HashGrid::getNumberOfElements()
-{
-	return number_of_elements;
-}
+  void HashGrid::consoleOut() const
+  {
+	  for (std::map<std::pair<Int,Int>, std::list<GridElement*> >::const_iterator it=elements_.begin();it!=elements_.end();++it)
+	  {
+		  std::pair<Int,Int> coords = it->first;
+		  std::list<GridElement*> act_elements = it->second;
+		  if (it->second.size()>0) std::cout << coords.first << "/" << coords.second<< ": ";
+		  for (std::list<GridElement*>::const_iterator list_it=act_elements.begin();list_it!=act_elements.end();++list_it)
+		  {
+			  std::cout << (*list_it)->getID() << " | ";
+		  }
+		  std::cout << "\n";
 
-GridCells::iterator HashGrid::begin()
-{
-	return elements.begin();
-}
+	  }
+	  std::cout << std::endl;
+  }
 
-GridCells::iterator HashGrid::end()
-{
-	return elements.end();
-}
+  Size HashGrid::size() const
+  {
+	  return elements_.size();
+  }
 
-GridCells::iterator HashGrid::find(std::pair<Int,Int> loc)
-{
-	return elements.find(loc);
-}
+
+  DoubleReal HashGrid::getRTThreshold() const
+  {
+	  return rt_threshold_;
+  }
+
+  DoubleReal HashGrid::getMZThreshold() const
+  {
+	  return mz_threshold_;
+  }
+
+  Int HashGrid::getGridSizeX() const
+  {
+	  return grid_size_x_;
+  }
+
+  Int HashGrid::getGridSizeY() const
+  {
+	  return grid_size_y_;
+  }
+
+  Size HashGrid::getNumberOfElements() const
+  {
+	  return number_of_elements_;
+  }
+
+  GridCells::iterator HashGrid::begin()
+  {
+	  return elements_.begin();
+  }
+
+  GridCells::iterator HashGrid::end()
+  {
+	  return elements_.end();
+  }
+
+  GridCells::iterator HashGrid::find(const std::pair<Int,Int> loc)
+  {
+	  return elements_.find(loc);
+  }
 
 }
