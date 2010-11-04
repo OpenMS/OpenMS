@@ -600,12 +600,14 @@ namespace OpenMS
 									c_trans->destroy();
 									iwt->finalizeScanCuda();
 								};
+							
+								delete (new_spec); new_spec=NULL;
+								delete (c_trans); c_trans=NULL;
+
 							#else
 								std::cerr << "Error: You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
 								std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-cuda\"." << std::endl; 
 							#endif
-							delete (new_spec); new_spec=NULL;
-							delete (c_trans); c_trans=NULL;
 						};
 		
 						iwt->updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
