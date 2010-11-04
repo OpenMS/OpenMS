@@ -261,7 +261,7 @@ QTCluster QTPairFinder::QTClust(HashGrid& act_grid)
 
 void QTPairFinder::makeConsensus(HashGrid& grid,ProgressLogger& logger,ConsensusMap& result_map)
 {
-	Int grid_size=grid.getNumberOfElements();
+	Size grid_size=grid.getNumberOfElements();
 	while(grid.getNumberOfElements() > 0)
 	{
 		QTCluster act_cluster=QTClust(grid);
@@ -283,7 +283,7 @@ void QTPairFinder::makeConsensus(HashGrid& grid,ProgressLogger& logger,Consensus
 
 void QTPairFinder::makeConsensus(HashGrid& grid,ProgressLogger& logger,ConsensusMap& result_map,const std::vector<ConsensusMap>& input_maps)
 {
-	Int grid_size=grid.getNumberOfElements();
+	Size grid_size=grid.getNumberOfElements();
 	while(grid.getNumberOfElements() > 0)
 	{
 		QTCluster act_cluster=QTClust(grid);
