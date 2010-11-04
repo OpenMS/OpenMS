@@ -58,7 +58,7 @@ namespace OpenMS
   typedef Feature::ChargeType SimChargeType;
   
   /// Raw data point
-	typedef RichPeak1D SimPointType;
+	typedef Peak1D SimPointType;
 	
   /// Container for FASTAEntry & abundance information
   typedef std::vector< std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > SampleProteins;

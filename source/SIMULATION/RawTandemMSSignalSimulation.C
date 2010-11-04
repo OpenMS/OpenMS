@@ -105,7 +105,8 @@ namespace OpenMS
     {
       // sample MS2 spectra for each feature
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
-      adv_spec_gen.simulate(single_ms2_spectra[i_f], seq, rnd_gen_->biological_rng,features[i_f].getCharge());
+      //TODO: work around RichPeak1D restriction
+      //adv_spec_gen.simulate(single_ms2_spectra[i_f], seq, rnd_gen_->biological_rng,features[i_f].getCharge());
       single_ms2_spectra[i_f].setMSLevel(2);
 
       // validate features Metavalues exist and are valid:
@@ -144,7 +145,7 @@ namespace OpenMS
       if (features_fragmented.size()==0) continue;
 
       // now we have all features that elute in this scan -> create MS2 scans
-      MSExperiment<RichPeak1D> MS2_spectra;
+      MSSimExperiment MS2_spectra;
       MS2_spectra.resize(features_fragmented.size());
 
       for (Size index=0;index<features_fragmented.size();++index)
@@ -157,7 +158,7 @@ namespace OpenMS
         const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
         const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
         DoubleReal factor = elution_ints [i - elution_bounds[0] ];
-        for (MSSpectrum<RichPeak1D>::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
+        for (MSSimExperiment::SpectrumType::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
         {
           it->setIntensity(it->getIntensity() * factor);
         }
@@ -202,7 +203,8 @@ namespace OpenMS
 		  for(Size id =0; id<ids.size();++id)
 		  {
 		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
-        adv_spec_gen.simulate(ms2[i], seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
+        //TODO: work around RichPeak1D restriction
+        //adv_spec_gen.simulate(ms2[i], seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
         // todo: rescale intensities! according to region within in the 2D Model of the feature
       }
     }
