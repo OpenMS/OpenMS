@@ -10,6 +10,7 @@ HistogramWidget.h
 MetaDataBrowser.h
 MultiGradientSelector.h
 ParamEditor.h
+SpectraViewWidget.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h
@@ -66,6 +67,7 @@ MetaDataBrowser.h
 MultiGradient.h
 MultiGradientSelector.h
 ParamEditor.h
+SpectraViewWidget.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h

@@ -34,6 +34,7 @@
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/SpectraViewWidget.h>
 
 //STL
 #include <map>
@@ -180,8 +181,8 @@ namespace OpenMS
       void layerStatistics();
       /// lets the user edit the meta data of a layer
       void editMetadata();
-      /// chooses searched spectrum
-      void chooseSpectrumByUser(const QString& text);
+      /// manual activation of 1D spectrum
+      void activate1DSpectrum(int index);
       /// closes the active window
       void closeFile();
       /// updates the toolbar
@@ -242,11 +243,7 @@ namespace OpenMS
 			/// dialog for inspecting database meta data
 			void metadataDatabaseDialog();
 			/// dialog for inspecting file meta data
-			void metadataFileDialog();
-			/// Shows the selected spectrum
-			void spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* previous);
-			/// Opens a new 1D window and shows the spectrum, if not already in 1D
-			void spectrumDoubleClicked(QTreeWidgetItem* current, int /*col*/);
+			void metadataFileDialog();			      
 
     protected slots:
       /** @name Layer manager and filter manager slots
@@ -258,10 +255,6 @@ namespace OpenMS
     	void layerFilterVisibilityChange(bool);
     	/// slot for layer manager context menu
     	void layerContextMenu(const QPoint& pos);
-    	/// slot for spectrum manager context menu
-    	void spectrumContextMenu(const QPoint& pos);
-    	/// slot for spectrum browser column header context menu
-    	void spectrumBrowserHeaderContextMenu(const QPoint& pos);
     	/// slot for log window context menu
     	void logContextMenu(const QPoint& pos);
     	/// slot for layer manager visibility change (check box)
@@ -282,6 +275,9 @@ namespace OpenMS
     	void updateMenu();
     	/// shows the spectrum browser and updates it
     	void showSpectrumBrowser();
+      /// shows the spectrum metadata
+      void showSpectrumMetaData(int spectrum_index);
+
       //@}
 
       /** @name Tabbar slots
@@ -374,10 +370,8 @@ namespace OpenMS
 
       ///@name Spectrum selection widgets
       //@{
-      QTreeWidget* spectrum_selection_;
-      QDockWidget* spectrum_bar_;
-      QLineEdit* spectrum_search_box_;
-      QComboBox* spectrum_combo_box_;
+      QDockWidget* spectra_views_dockwidget_;
+      SpectraViewWidget* spectra_view_widget_;
       //@}
 
       ///@name Data filter widgets

@@ -36,6 +36,7 @@
 #include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
+#include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
@@ -435,14 +436,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(dm_ident_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
           //################## Dock widgets #################
-          //data manager window (resource manager view)
-//          QDockWidget* databar = new QDockWidget("Files", this);
-//          addDockWidget(Qt::RightDockWidgetArea, databar);
-//          data_manager_view_ = new QTreeWidget(databar);
-//          data_manager_view_->setWhatsThis("Data bar<BR><BR>Here available data is shown.");
-//          databar->setWidget(data_manager_view_);
-//          data_manager_view_->setContextMenuPolicy(Qt::CustomContextMenu);
-
           //layer window
           QDockWidget* layer_bar = new QDockWidget("Layers", this);
           addDockWidget(Qt::RightDockWidgetArea, layer_bar);
@@ -460,75 +453,20 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           windows->addAction(layer_bar->toggleViewAction());
 
           //spectrum selection
-          spectrum_bar_ = new QDockWidget("Spectra views", this);
-          addDockWidget(Qt::RightDockWidgetArea, spectrum_bar_);          
-          QTabWidget* tw = new QTabWidget(spectrum_bar_);
-          spectrum_bar_->setWidget(tw);
-          QWidget* spectra_widget = new QWidget(); //dummy widget as QDockWidget takes only one widget
-//          QWidget* spectra_ident_widget = new QWidget();
-          QVBoxLayout* spectra_widget_layout = new QVBoxLayout(spectra_widget);
-          tw->addTab(spectra_widget, "Spectra");
-//          tw->addTab(spectra_ident_widget, "Test");
-          spectrum_selection_ = new QTreeWidget(spectra_widget);
-          spectrum_selection_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
+          spectra_views_dockwidget_ = new QDockWidget("Spectra views", this);
+          addDockWidget(Qt::RightDockWidgetArea, spectra_views_dockwidget_);
+          QTabWidget* tw = new QTabWidget(spectra_views_dockwidget_);
+          spectra_views_dockwidget_->setWidget(tw);
+          spectra_view_widget_ = new SpectraViewWidget();
+          connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
+          connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
+          connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
+          connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
 
-          //~ no good for huge experiments - omitted:
-          //~ spectrum_selection_->setSortingEnabled(true);
-          //~ spectrum_selection_->sortByColumn ( 1, Qt::AscendingOrder);
-
-          spectrum_selection_->setColumnCount(7);/// @improvement make dependend from global "header_labels" to change only once (otherwise changes must be applied in several slots too!)
-
-          spectrum_selection_->setColumnWidth(0,65);
-          spectrum_selection_->setColumnWidth(1,45);
-          spectrum_selection_->setColumnWidth(2,50);
-          spectrum_selection_->setColumnWidth(3,55);
-          spectrum_selection_->setColumnWidth(4,55);
-          spectrum_selection_->setColumnWidth(5,45);
-          spectrum_selection_->setColumnWidth(6,45);
-
-          ///@improvement write the visibility-status of the columns in toppview.ini and read at start
-
-          QStringList header_labels; /// @improvement make this global to change only once (otherwise changes must be applied in several slots too!)
-          header_labels.append(QString("MS level"));
-          header_labels.append(QString("index"));
-          header_labels.append(QString("RT"));
-          header_labels.append(QString("precursor m/z"));
-          header_labels.append(QString("dissociation"));
-          header_labels.append(QString("scan type"));
-          header_labels.append(QString("zoom"));
-          spectrum_selection_->setHeaderLabels(header_labels);
-
-          spectrum_selection_->setDragEnabled(true);
-          spectrum_selection_->setContextMenuPolicy(Qt::CustomContextMenu);
-          spectrum_selection_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
-          connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
-          connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
-          connect(spectrum_selection_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(spectrumContextMenu(const QPoint&)));
-          connect(spectrum_selection_->header(),SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(spectrumBrowserHeaderContextMenu(const QPoint&)));
-
-          spectra_widget_layout->addWidget(spectrum_selection_);
-
-          QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
-
-          spectrum_search_box_ = new QLineEdit("", spectra_widget);
-
-          QStringList qsl;
-          qsl.push_back("index");
-          qsl.push_back("RT");
-          qsl.push_back("MZ");
-          qsl.push_back("dissociation");
-          qsl.push_back("scan");
-          qsl.push_back("zoom");
-          spectrum_combo_box_ = new QComboBox(spectra_widget);
-          spectrum_combo_box_->addItems(qsl);
-
-          connect(spectrum_search_box_,SIGNAL(textEdited ( const QString &)),this,SLOT(chooseSpectrumByUser(const QString&)));
-
-          tmp_hbox_layout->addWidget(spectrum_search_box_);
-          tmp_hbox_layout->addWidget(spectrum_combo_box_);
-          spectra_widget_layout->addLayout(tmp_hbox_layout);
-
-          windows->addAction(spectrum_bar_->toggleViewAction());
+          tw->addTab(spectra_view_widget_, "Spectra view");
+          //QWidget* spectra_ident_widget = new QWidget();
+          //tw->addTab(spectra_ident_widget, "Identification view");
+          windows->addAction(spectra_views_dockwidget_->toggleViewAction());
 
           //data filters
           QDockWidget* filter_bar = new QDockWidget("Data filters", this);
@@ -1635,14 +1573,15 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::updateSpectrumBar()
   {
-  	if (!spectrum_selection_->isVisible())
+    QTreeWidget* spectra_view_treewidget = spectra_view_widget_->getTreeWidget();
+    if (!spectra_view_treewidget->isVisible())
   	{
   		return;
   	}
 
-  	spectrum_selection_->blockSignals(true);
+    spectra_view_treewidget->blockSignals(true);
 
-  	spectrum_selection_->clear();
+    spectra_view_treewidget->clear();
 
   	SpectrumCanvas* cc = activeCanvas_();
   	int layer_row = layer_manager_->currentRow();
@@ -1662,16 +1601,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   		parent_stack.push_back(0);
   		bool fail = false;
 
-                        for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+      for (Size i = 0; i < cl.getPeakData()->size(); ++i)
 			{
 				if (i > 0)
 				{
-                                        if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel() + 1)
+          if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel() + 1)
 					{
 						item = new QTreeWidgetItem(parent_stack.back());
 						parent_stack.resize(parent_stack.size()+1);
 					}
-                                        else if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel())
+          else if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel())
 					{
 						if (parent_stack.size() == 1)
 						{
@@ -1682,9 +1621,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 							item = new QTreeWidgetItem(*(parent_stack.end()-2));
 						}
 					}
-                                        else if ((*cl.getPeakData())[i].getMSLevel() < (*cl.getPeakData())[i-1].getMSLevel())
+          else if ((*cl.getPeakData())[i].getMSLevel() < (*cl.getPeakData())[i-1].getMSLevel())
 					{
-                                                Int level_diff = (*cl.getPeakData())[i-1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();
+            Int level_diff = (*cl.getPeakData())[i-1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();
 						Size parent_index = 0;
 						QTreeWidgetItem* parent = 0;
 						if (parent_stack.size() - level_diff >= 2)
@@ -1718,23 +1657,22 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 					toplevel_items.push_back(item);
 				}
 
-                                item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
+        item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
 				item->setText(1, QString::number(i));
-                                item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
-                                if (!(*cl.getPeakData())[i].getPrecursors().empty())
+        item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
+        if (!(*cl.getPeakData())[i].getPrecursors().empty())
 				{
-                                        item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
-
-                                        if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+          item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
+          if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
 					{
 						QString t;
-                                                for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+            for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
 						{
 							if(!t.isEmpty())
 							{
 								t.append(",");
 							}
-                                                        t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+              t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
 						}
 						item->setText(4,t);
 					}
@@ -1748,15 +1686,15 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 					item->setText(3, "-");
 					item->setText(4, "-");
 				}
-                                if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+        if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
 				{
-                                        item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+          item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
 				}
 				else
 				{
 					item->setText(5, "-");
 				}
-                                if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
+        if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
 				{
 					item->setText(6,"yes");
 				}
@@ -1764,7 +1702,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				{
 					item->setText(6, "no");
 				}
-
 
 				if (i == cl.current_spectrum)
 				{
@@ -1775,33 +1712,32 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 			if (!fail)
 			{
-				spectrum_selection_->addTopLevelItems(toplevel_items);
+        spectra_view_treewidget->addTopLevelItems(toplevel_items);
 			}
 			else
 			{
 				// generate flat list instead
-				spectrum_selection_->clear();
+        spectra_view_treewidget->clear();
 				toplevel_items.clear();
 				selected_item = 0;
-                                for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+        for (Size i = 0; i < cl.getPeakData()->size(); ++i)
 				{
 					item = new QTreeWidgetItem((QTreeWidget*)0);
-                                        item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
+          item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
 					item->setText(1, QString::number(i));
-                                        item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
-                                        if (!(*cl.getPeakData())[i].getPrecursors().empty())
+          item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
+          if (!(*cl.getPeakData())[i].getPrecursors().empty())
 					{
-                                                item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
-
-                                                if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+            item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
+            if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
 						{
 							QString t;
-                                                        for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+              for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
 							{
 								if(!t.isEmpty()){
 									t.append(",");
 								}
-                                                                t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+                t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
 							}
 							item->setText(4,t);
 						}
@@ -1815,15 +1751,15 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 						item->setText(3, "-");
 						item->setText(4, "-");
 					}
-                                        if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+          if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
 					{
-                                                item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+            item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
 					}
 					else
 					{
 						item->setText(5, "-");
 					}
-                                        if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
+          if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
 					{
 						item->setText(6,"yes");
 					}
@@ -1838,13 +1774,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 						selected_item = item;
 					}
 				}
-				spectrum_selection_->addTopLevelItems(toplevel_items);
+        spectra_view_treewidget->addTopLevelItems(toplevel_items);
 			}
 			if (selected_item)
 			{
 				// now, select and scroll down to item
 				selected_item->setSelected(true);
-				spectrum_selection_->scrollToItem(selected_item);
+        spectra_view_treewidget->scrollToItem(selected_item);
 			}
   	}
   	else
@@ -1855,17 +1791,17 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   		item->setText(2, QString("-"));
   		item->setText(3, QString::number(0));
 			item->setFlags(0);
-			spectrum_selection_->addTopLevelItem(item);
+      spectra_view_treewidget->addTopLevelItem(item);
 			return; // leave signals blocked
   	}
 
-        if (cl.getPeakData()->size() == 1)
+    if (cl.getPeakData()->size() == 1)
   	{
   		item->setFlags(0);
   		return; // leave signals blocked
   	}
 
-  	spectrum_selection_->blockSignals(false);
+    spectra_view_treewidget->blockSignals(false);
   }
 
   /*
@@ -1894,56 +1830,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			updateFilterBar();
 			updateSpectrumBar();
 		}
-	}
-
-	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* previous)
-	{
-		if (current == 0 || previous == 0)
-		/*	test for previous == 0 is important - without it,
-				the wrong spectrum will be selected after finishing
-				the execution of a TOPP tool on the whole data */
-		{
-			return;
-		}
-
-		Spectrum1DWidget* widget_1d = active1DWindow_();
-		if (widget_1d)
-		{
-			int index = current->text(1).toInt();
-			widget_1d->canvas()->activateSpectrum(index);
-		}
-	}
-
-	void TOPPViewBase::spectrumDoubleClicked(QTreeWidgetItem* current, int /*col*/)
-	{
-		//do nothing if (1) no item is selected or (2) this is already a 1D view
-		if (current==0 || active1DWindow_()) return;
-
-		//store spectrum index
-		int index = current->text(1).toInt();
-
-		//add a copy of the current data as 1D view
-		LayerData cl;
-		try
-		{
-			cl = activeCanvas_()->getCurrentLayer();
-		}
-    catch(Exception::BaseException& e) // catch Out-Of-Memory Exceptions
-    {
-    	showLogMessage_(LS_ERROR,"Error while creating layer",e.what());
-      return;
-    }
-
-    addData_(cl.getFeatureMap(), cl.getConsensusMap(), cl.peptides, cl.getPeakData(), LayerData::DT_PEAK, true, false, cl.filename, cl.name);
-
-		//set properties for the new 1D view
-		if (active1DWindow_())
-		{
-			active1DWindow_()->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
-			active1DWindow_()->canvas()->activateSpectrum(index);
-		}
-		updateToolBar();
-		updateSpectrumBar();
 	}
 
 	void TOPPViewBase::layerContextMenu(const QPoint & pos)
@@ -2026,89 +1912,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 			delete (context_menu);
 		}
-	}
-
-	void TOPPViewBase::spectrumContextMenu(const QPoint & pos)
-	{
-		QTreeWidgetItem* item = spectrum_selection_->itemAt(pos);
-		if (item)
-		{
-			//create menu
-			int spectrum_index = item->text(1).toInt();
-			QMenu* context_menu = new QMenu(spectrum_selection_);
-			context_menu->addAction("Show in 1D view");
-			context_menu->addAction("Meta data");
-
-			QAction* selected = context_menu->exec(spectrum_selection_->mapToGlobal(pos));
-
-			if (selected!=0 && selected->text()=="Show in 1D view")
-			{
-				//add a copy of the current data as 1D view
-				LayerData cl;
-				try
-				{
-					cl = activeCanvas_()->getCurrentLayer();
-				}
-				catch(Exception::BaseException& e) // catch Out-Of-Memory Exceptions
-				{
-    			showLogMessage_(LS_ERROR,"Error while creating layer",e.what());
-					return;
-				}
-        addData_(cl.getFeatureMap(), cl.getConsensusMap(), cl.peptides, cl.getPeakData(), LayerData::DT_PEAK, true, false, cl.filename, cl.name);
-
-				//set properties for the new 1D view
-				if (active1DWindow_())
-				{
-					active1DWindow_()->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
-					active1DWindow_()->canvas()->activateSpectrum(spectrum_index);
-				}
-				updateToolBar();
-				updateSpectrumBar();
-			}
-
-			else if (selected!=0 && selected->text()=="Meta data")
-			{
-				activeCanvas_()->showMetaData(true, spectrum_index);
-			}
-
-			delete (context_menu);
-		}
-	}
-
-	void TOPPViewBase::spectrumBrowserHeaderContextMenu(const QPoint & pos)
-	{
-		//create menu
-		QMenu* context_menu = new QMenu(spectrum_selection_->header());
-		QStringList header_labels;
-		header_labels.append(QString("MS level"));
-		header_labels.append(QString("index"));
-		header_labels.append(QString("RT"));
-		header_labels.append(QString("precursor m/z"));
-		header_labels.append(QString("dissociation"));
-		header_labels.append(QString("scan type"));
-		header_labels.append(QString("zoom"));
-		for(int i = 0; i < header_labels.size(); ++i)
-		{
-			QAction* tmp = new QAction(header_labels[i],context_menu);
-			tmp->setCheckable(true);
-			tmp->setChecked(!spectrum_selection_->isColumnHidden(i));
-			context_menu->addAction(tmp);
-		}
-
-		//(show and) execute menu
-		QAction* selected = context_menu->exec(spectrum_selection_->mapToGlobal(pos));
-		if (selected!=0)
-		{
-			for(int i = 0; i < header_labels.size(); ++i)
-			{
-				if(selected->text()==header_labels[i])
-				{
-					selected->isChecked()?spectrum_selection_->setColumnHidden(i,false):spectrum_selection_->setColumnHidden(i,true);
-				}
-			}
-			updateSpectrumBar();
-		}
-		delete (context_menu);
 	}
 
 	void TOPPViewBase::logContextMenu(const QPoint & pos)
@@ -2201,6 +2004,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	{
 		activeCanvas_()->showCurrentLayerPreferences();
 	}
+
+
 
   void TOPPViewBase::updateFilterBar()
   {
@@ -2384,44 +2189,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   	activeWindow_()->showGoToDialog();
   }
 
-  void TOPPViewBase::chooseSpectrumByUser(const QString& text)
+  void TOPPViewBase::activate1DSpectrum(int index)
   {
-    if(text.size() > 0)
+    Spectrum1DWidget* widget_1d = active1DWindow_();
+    if (widget_1d)
     {
-      int col(spectrum_combo_box_->currentIndex()+1);
-      if(col>5)
-      {
-        col = 1;
-      }
-      QList<QTreeWidgetItem *>  searched =  spectrum_selection_->findItems(text, Qt::MatchFixedString /* matchflag exact match */, col );
-      QList<QTreeWidgetItem *>  selected =  spectrum_selection_->selectedItems();
-
-      if(searched.size()>0)
-      {
-        for(int i = 0; i < selected.size(); ++i)
-        {
-          selected[i]->setSelected(false);
-        }
-        spectrum_selection_->update();
-
-        int index = searched.first()->text(1).toInt();
-        searched.first()->setSelected(true);
-        spectrum_selection_->update();
-
-        spectrum_selection_->scrollToItem(searched.first());
-
-        Spectrum1DWidget* widget_1d = active1DWindow_();
-        if (widget_1d)
-        {
-          widget_1d->canvas()->activateSpectrum(index);
-        }
-      }
-      //~ for coloring if nothing found
-      //~ else
-      //~ {
-			//~ QPalette p = spectrum_search_box_->palette();
-			//~ spectrum_search_box_->setPalette(p);
-      //~ }
+      widget_1d->canvas()->activateSpectrum(index);
     }
   }
 
@@ -3492,8 +3265,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 	}
 
+  void TOPPViewBase::showSpectrumMetaData(int spectrum_index)
+  {
+    activeCanvas_()->showMetaData(true, spectrum_index);
+  }
+
 	void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
 	{
+    QTreeWidget* spectra_view_treewidget = spectra_view_widget_->getTreeWidget();
 		try
 		{
 			//NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
@@ -3524,10 +3303,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				//add the data
 				addData_(features, consensus, peptides, peaks, layer.type, false, false, layer.filename, layer.name, new_id);
 			}
-			else if (source == spectrum_selection_)
+      else if (source == spectra_view_treewidget)
 			{
 				const LayerData& layer = activeCanvas_()->getCurrentLayer();
-				QTreeWidgetItem* item = spectrum_selection_->currentItem();
+        QTreeWidgetItem* item = spectra_view_treewidget->currentItem();
 				if (item != 0)
 				{
 					Size index = (Size)(item->text(3).toInt());
@@ -3618,7 +3397,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::showSpectrumBrowser()
 	{
-		spectrum_bar_->show();
+    spectra_views_dockwidget_->show();
 		updateSpectrumBar();
 	}
 
