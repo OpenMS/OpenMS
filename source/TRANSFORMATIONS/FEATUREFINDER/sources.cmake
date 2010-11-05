@@ -28,6 +28,7 @@ InterpolationModel.C
 IsotopeFitter1D.C
 IsotopeModel.C
 IsotopeWavelet.C
+IsotopeWaveletTransform.C
 LevMarqFitter1D.C
 LmaGaussFitter1D.C
 LmaGaussModel.C

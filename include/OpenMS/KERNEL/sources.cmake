@@ -5,6 +5,8 @@ set(directory include/OpenMS/KERNEL)
 set(sources_list_h
 AreaIterator.h
 BaseFeature.h
+ChromatogramPeak.h
+ChromatogramTools.h
 ComparatorUtils.h
 ConsensusFeature.h
 ConsensusMap.h
@@ -13,6 +15,7 @@ DRichPeak.h
 Feature.h
 FeatureHandle.h
 FeatureMap.h
+MSChromatogram.h
 MSExperiment.h
 MSSpectrum.h
 Peak1D.h
@@ -23,9 +26,7 @@ RangeUtils.h
 RichPeak1D.h
 RichPeak2D.h
 StandardTypes.h
-ChromatogramPeak.h
-MSChromatogram.h
-ChromatogramTools.h
+TransPeak1D.h
 )
 
 ### add path to the filenames

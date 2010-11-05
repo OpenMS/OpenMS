@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -179,7 +179,7 @@ namespace OpenMS
 	
 	DoubleReal IsotopeWavelet::getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		return (sin(2*Constants::PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/tgamma(tz1));//boost::math::tgamma(tz1));
+    return (sin(2*Constants::PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/boost::math::tgamma(tz1));//boost::math::tgamma(tz1));
 	}
 
 	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) 

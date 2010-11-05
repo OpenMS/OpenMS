@@ -32,6 +32,9 @@ InterpolationModel.h
 IsotopeFitter1D.h
 IsotopeModel.h
 IsotopeWavelet.h
+IsotopeWaveletConstants.h
+IsotopeWaveletCudaKernel.h
+IsotopeWaveletParallelFor.h
 IsotopeWaveletTransform.h
 LevMarqFitter1D.h
 LmaGaussFitter1D.h
