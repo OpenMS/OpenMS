@@ -505,14 +505,15 @@ namespace OpenMS
 				for (protein_quant::iterator prot_it = prot_quant.begin();
 						 prot_it != prot_quant.end(); ++prot_it)
 				{
-					if (prot_it->second.abundances.size() < top)
+					if ((top > 0) && (prot_it->second.abundances.size() < top))
 					{
 						if (include_all) stats_.too_few_peptides++;
 						else continue; // not enough proteotypic peptides
 					}
 
 					vector<String> peptides; // peptides selected for quantification
-					if (fix_peptides && (prot_it->second.abundances.size() > top))
+					if (fix_peptides && (top > 0) && 
+							(prot_it->second.abundances.size() > top))
 					{
 						// consider only "top" best peptides
 						orderBest_(prot_it->second.abundances, peptides);
@@ -544,7 +545,7 @@ namespace OpenMS
 					for (map<UInt64, DoubleList>::iterator ab_it = abundances.begin();
 							 ab_it != abundances.end(); ++ab_it)
 					{
-						if (!include_all && (ab_it->second.size() < top))
+						if (!include_all && (top > 0) && (ab_it->second.size() < top))
 						{
 							continue; // not enough peptide abundances for this sample
 						}
@@ -835,14 +836,18 @@ namespace OpenMS
 				if (!getStringOption_("out").empty())
 				{
 					bool include_all = getFlag_("include_all");
+					Size top = getIntOption_("top");
 					LOG_INFO << "\n...proteins/protein groups: " << stats_.quant_proteins
 									 << " quantified";
-					if (include_all) LOG_INFO << " (incl. ";
-					else LOG_INFO << ", ";
-					LOG_INFO << stats_.too_few_peptides << " with fewer than " 
-									 << getIntOption_("top") << " peptides";
-					if (include_all) LOG_INFO << ")";
-					else if (n_samples > 1) LOG_INFO << " in every sample";
+					if (top > 1)
+					{
+						if (include_all) LOG_INFO << " (incl. ";
+						else LOG_INFO << ", ";
+						LOG_INFO << stats_.too_few_peptides << " with fewer than " 
+										 << top << " peptides";
+						if (include_all) LOG_INFO << ")";
+						else if (n_samples > 1) LOG_INFO << " in every sample";
+					}
 				}
 				LOG_INFO << endl;
 			}
