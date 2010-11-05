@@ -223,6 +223,229 @@ namespace OpenMS
     delete (context_menu);
   }
 
+  void SpectraViewWidget::updateEntries(const LayerData& cl)
+  {
+    if (!spectra_treewidget_->isVisible())
+    {
+      return;
+    }
+
+    spectra_treewidget_->blockSignals(true);
+    spectra_treewidget_->clear();
+
+    QTreeWidgetItem* item = 0;
+    QTreeWidgetItem* selected_item = 0;
+    QList<QTreeWidgetItem*> toplevel_items;
+
+    if(cl.type == LayerData::DT_PEAK)
+    {
+      std::vector<QTreeWidgetItem*> parent_stack;
+      parent_stack.push_back(0);
+      bool fail = false;
+
+      for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+      {
+        if (i > 0)
+        {
+          if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel() + 1)
+          {
+            item = new QTreeWidgetItem(parent_stack.back());
+            parent_stack.resize(parent_stack.size()+1);
+          }
+          else if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel())
+          {
+            if (parent_stack.size() == 1)
+            {
+              item = new QTreeWidgetItem((QTreeWidget*)0);
+            }
+            else
+            {
+              item = new QTreeWidgetItem(*(parent_stack.end()-2));
+            }
+          }
+          else if ((*cl.getPeakData())[i].getMSLevel() < (*cl.getPeakData())[i-1].getMSLevel())
+          {
+            Int level_diff = (*cl.getPeakData())[i-1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();
+            Size parent_index = 0;
+            QTreeWidgetItem* parent = 0;
+            if (parent_stack.size() - level_diff >= 2)
+            {
+              parent_index = parent_stack.size() - level_diff - 1;
+              parent = parent_stack[parent_index];
+
+              item = new QTreeWidgetItem(parent, parent_stack[parent_index+1]);
+            }
+            else
+            {
+              item = new QTreeWidgetItem((QTreeWidget*)0);
+            }
+            parent_stack.resize(parent_index+1);
+          }
+          else
+          {
+            std::cerr << "Cannot build treelike view for spectrum browser, generating flat list instead." << std::endl;
+            fail = true;
+            break;
+          }
+        }
+        else
+        {
+          item = new QTreeWidgetItem((QTreeWidget*)0);
+        }
+
+        parent_stack.back() = item;
+        if (parent_stack.size() == 1)
+        {
+          toplevel_items.push_back(item);
+        }
+
+        item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
+        item->setText(1, QString::number(i));
+        item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
+        if (!(*cl.getPeakData())[i].getPrecursors().empty())
+        {
+          item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
+          if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+          {
+            QString t;
+            for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+            {
+              if(!t.isEmpty())
+              {
+                t.append(",");
+              }
+              t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+            }
+            item->setText(4,t);
+          }
+          else
+          {
+            item->setText(4, "-");
+          }
+        }
+        else
+        {
+          item->setText(3, "-");
+          item->setText(4, "-");
+        }
+        if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+        {
+          item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+        }
+        else
+        {
+          item->setText(5, "-");
+        }
+        if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
+        {
+          item->setText(6,"yes");
+        }
+        else
+        {
+          item->setText(6, "no");
+        }
+
+        if (i == cl.current_spectrum)
+        {
+          // just remember it, select later
+          selected_item = item;
+        }
+      }
+
+      if (!fail)
+      {
+        spectra_treewidget_->addTopLevelItems(toplevel_items);
+      }
+      else
+      {
+        // generate flat list instead
+        spectra_treewidget_->clear();
+        toplevel_items.clear();
+        selected_item = 0;
+        for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+        {
+          item = new QTreeWidgetItem((QTreeWidget*)0);
+          item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
+          item->setText(1, QString::number(i));
+          item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
+          if (!(*cl.getPeakData())[i].getPrecursors().empty())
+          {
+            item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
+            if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+            {
+              QString t;
+              for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+              {
+                if(!t.isEmpty()){
+                  t.append(",");
+                }
+                t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+              }
+              item->setText(4,t);
+            }
+            else
+            {
+              item->setText(4, "-");
+            }
+          }
+          else
+          {
+            item->setText(3, "-");
+            item->setText(4, "-");
+          }
+          if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+          {
+            item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+          }
+          else
+          {
+            item->setText(5, "-");
+          }
+          if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
+          {
+            item->setText(6,"yes");
+          }
+          else
+          {
+            item->setText(6, "no");
+          }
+          toplevel_items.push_back(item);
+          if (i == cl.current_spectrum)
+          {
+            // just remember it, select later
+            selected_item = item;
+          }
+        }
+        spectra_treewidget_->addTopLevelItems(toplevel_items);
+      }
+      if (selected_item)
+      {
+        // now, select and scroll down to item
+        selected_item->setSelected(true);
+        spectra_treewidget_->scrollToItem(selected_item);
+      }
+    }
+    else
+    {
+      item = new QTreeWidgetItem((QTreeWidget*)0);
+      item->setText(0, QString("No peak map"));
+      item->setText(1, QString("-"));
+      item->setText(2, QString("-"));
+      item->setText(3, QString::number(0));
+      item->setFlags(0);
+      spectra_treewidget_->addTopLevelItem(item);
+      return; // leave signals blocked
+    }
+
+    if (cl.getPeakData()->size() == 1)
+    {
+      item->setFlags(0);
+      return; // leave signals blocked
+    }
+
+    spectra_treewidget_->blockSignals(false);
+  }
+
   SpectraViewWidget::~SpectraViewWidget()
   {
   }

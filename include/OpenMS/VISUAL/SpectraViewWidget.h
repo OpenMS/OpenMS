@@ -33,6 +33,8 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QTreeWidget>
 
+#include <OpenMS/VISUAL/LayerData.h>
+
 namespace OpenMS
 {
   class SpectraViewWidget
@@ -46,6 +48,7 @@ namespace OpenMS
       virtual ~SpectraViewWidget();
       QTreeWidget* getTreeWidget();
       QComboBox* getComboBox();
+      void updateEntries(const LayerData& cl);
     signals:
       void spectrumSelected(int);
       void spectrumDoubleClicked(int);

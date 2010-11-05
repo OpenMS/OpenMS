@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_APPLICATIONS_TOPPVIEWBASE_H
@@ -194,7 +194,7 @@ namespace OpenMS
       /// adapts the layer bar to the active window
       void updateLayerBar();
       /// adapts the spectrum bar to the active window
-      void updateSpectrumBar();
+      void updateSpectraViewBar();
       /// adapts the filter bar to the active window
       void updateFilterBar();
       /// brings the tab corresponding to the active window in front
