@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/steffen/Studium/Master/Kuehlungsborn/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" id="cm_5024549519481199379" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="1999-12-31T23:59:59" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="Protein" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="3">
+		<map id="0" name="sample1.featureXML" unique_id="0" label="" size="4">
+		</map>
+		<map id="1" name="sample2.featureXML" unique_id="1" label="" size="4">
+		</map>
+		<map id="2" name="sample3.featureXML" unique_id="2" label="" size="4">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="1" charge="2">
+			<centroid rt="100" mz="100" it="1000"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="100" mz="100" it="1000" charge="2"/>
+				<element map="2" id="0" rt="100" mz="100" it="1000" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" >
+				<PeptideHit score="1" sequence="AAA" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_1" quality="1" charge="2">
+			<centroid rt="200" mz="200" it="200"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="200" mz="200" it="200" charge="2"/>
+				<element map="1" id="1" rt="200" mz="200" it="200" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" >
+				<PeptideHit score="1" sequence="CCC" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_2" quality="1" charge="2">
+			<centroid rt="300" mz="300" it="30"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="300" mz="300" it="30" charge="2"/>
+				<element map="1" id="2" rt="300" mz="300" it="30" charge="2"/>
+				<element map="2" id="2" rt="300" mz="300" it="30" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" >
+				<PeptideHit score="1" sequence="EEE" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_3" quality="1" charge="2">
+			<centroid rt="400" mz="400" it="4"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="400" mz="400" it="4" charge="2"/>
+				<element map="1" id="3" rt="400" mz="400" it="4" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="400" RT="400" >
+				<PeptideHit score="1" sequence="GGG" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
