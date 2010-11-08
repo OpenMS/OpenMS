@@ -72,13 +72,19 @@ using namespace std;
 	according to the trained model. The predicted retention times
 	are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" /> 
 	@endcode inside the peptide entities in the IdXML output file.
+
 	For separation prediction you have to specify two output file names.
-	'out_positive' is the filename of the peptides which are predicted
-	to be collected by the column and 'out_negative' is the file
+	'out_id:positive' is the filename of the peptides which are predicted
+	to be collected by the column and 'out_id:negative' is the file
 	of the predicted flowthrough peptides.
+
+  Retention time prediction and separation prediction cannot be combined!
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_RTPredict.cli
+
+	@todo This need serious clean up! Combining certain input and output options will
+          result in strange behaviour, especially when using text output/input.
 */
 
 // We do not want this class to show up in the docu:
@@ -97,20 +103,27 @@ class TOPPRTPredict
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file (valid formats: \"idXML\" or textfile [see below])");
-			//setValidFormats_("in",StringList::create("idXML"));
-			registerOutputFile_("out","<file>","","output file with peptide RT prediction (valid formats: \"idXML\" or textfile [see below])\n", false);
-			//setValidFormats_("out",StringList::create("idXML"));
-			registerFlag_("textfile_input", "if this flag is set, RTPredict expects a textfile instead of an IdXML file as input which contains one peptide sequence per line; output as a textfile is switched on as well");
-			registerFlag_("textfile_output", "if this flag is set, RTPredict just writes a peptide sequence with the corresponding predicted retention time per line");
-			registerOutputFile_("out_positive","<file>","","output file in IdXML format containing positive predictions (peptide separation prediction)\n", false);
-			setValidFormats_("out_positive",StringList::create("idXML"));
-			registerOutputFile_("out_negative","<file>","","output file in IdXML format containing negative predictions (peptide separation prediction)\n", false);
-			setValidFormats_("out_negative",StringList::create("idXML"));
+      //input
+			registerInputFile_("in_id","<file>","","peptides with precursor information", false);
+			setValidFormats_("in_id",StringList::create("idXML"));
+      registerInputFile_("in_text","<file>", "","peptides as text-based file", false);
+      
+      //output
+      registerTOPPSubsection_("out_id", "Output files in idXML format");
+      registerOutputFile_("out_id:file","<file>","","Output file with peptide RT prediction", false);
+      setValidFormats_("out_id:file",StringList::create("idXML"));
+      registerOutputFile_("out_id:positive","<file>","","Output file in IdXML format containing positive predictions (peptide separation prediction - requires negative file to be present as well)\n", false);
+      setValidFormats_("out_id:positive",StringList::create("idXML"));
+      registerOutputFile_("out_id:negative","<file>","","Output file in IdXML format containing negative predictions (peptide separation prediction - requires positive file to be present as well)\n", false);
+      setValidFormats_("out_id:negative",StringList::create("idXML"));
+      
+      registerTOPPSubsection_("out_text","Output files in text format");
+      registerOutputFile_("out_text:file","<file>","","Output file with predicted RT values", false);
+
 			registerInputFile_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
 			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
 			setMinFloat_("total_gradient_time", 0.00001);
-			registerIntOption_("max_number_of_peptides", "<int>",100000,"the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n",false);
+			registerIntOption_("max_number_of_peptides", "<int>",100000,"the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false, true);
 		}
 
 		void loadStrings_(String filename, std::vector<String>& sequences)
@@ -130,14 +143,14 @@ class TOPPRTPredict
 		
 		void writeStringLabelLines_(String filename, map< String, DoubleReal > predicted_data)
 		{
-				ofstream os;
+        ofstream os;
 				map< String, DoubleReal >::iterator it;
 				
 				os.open(filename.c_str(), ofstream::out);
 				
 				for(it = predicted_data.begin(); it != predicted_data.end(); ++it)
 				{
-					os << it->first << " " << it->second << endl;
+					os << it->first << " " << it->second << "\n";
 				}
 				os.flush();
 				os.close();																					
@@ -171,17 +184,11 @@ class TOPPRTPredict
 			UInt maximum_length = 50;
 			pair<DoubleReal, DoubleReal> temp_point;
 			vector<Real> performance_retention_times;
-			String inputfile_name = "";
-			String outputfile_name = "";
-			String outputfile_name_positive = "";
-			String outputfile_name_negative = "";
 			String svmfile_name = "";
 			Real total_gradient_time = 1.f;
 			bool separation_prediction = false;
 			vector<PeptideIdentification> identifications_positive;
 			vector<PeptideIdentification> identifications_negative;
-			bool textfile_input = false;
-			bool textfile_output = false;
 			bool first_dim_rt = false;
 			Size number_of_peptides = 0;
 			Size max_number_of_peptides = getIntOption_("max_number_of_peptides");
@@ -190,31 +197,45 @@ class TOPPRTPredict
 			// parsing parameters
 			//-------------------------------------------------------------
 			
-			inputfile_name = getStringOption_("in");			
-			outputfile_name_positive = getStringOption_("out_positive");
-			if (outputfile_name_positive != "")
+      String outputfile_name_positive = getStringOption_("out_id:positive");
+      String outputfile_name_negative = getStringOption_("out_id:negative");
+      // for separation prediction, we require both files to be present!
+      if (outputfile_name_positive != "" || outputfile_name_negative != "")
 			{
-				outputfile_name_negative = getStringOption_("out_negative");
-				if (outputfile_name_negative != "")
+        if (outputfile_name_positive != "" && outputfile_name_negative != "")
 				{
 					separation_prediction = true;					
 				}
 				else
 				{
-					writeLog_("No file name given for negative output . Aborting!");
+					writeLog_("Both files for separation prediction required. Please specify the other one as well. Aborting!");
 					return ILLEGAL_PARAMETERS;					
 				}
 			}
-			else
+
+      // either or
+      String input_id = getStringOption_("in_id");			
+      String input_text = getStringOption_("in_text");			
+      if (input_text != "" && input_id != "")
 			{
-				outputfile_name = getStringOption_("out");	
+        writeLog_("Two input parameter files given, only one allowed! Use either -in_id:file or -in_text:file!");
+        return ILLEGAL_PARAMETERS;
 			}
-			textfile_output = getFlag_("textfile_output");			
-			textfile_input = getFlag_("textfile_input");			
-			if (textfile_input)
-			{
-				textfile_output = true;
-			}
+      else if (input_text == "" && input_id == "")
+      {
+        writeLog_("No input file given. Aborting...");
+        return ILLEGAL_PARAMETERS;
+      }
+
+      // OUTPUT
+      // (can use both)
+      String output_id = getStringOption_("out_id:file");	
+      String output_text = getStringOption_("out_text:file");			
+      if (output_text == "" && output_id == "" && !separation_prediction)
+      {
+        writeLog_("No output files given. Aborting...");
+        return ILLEGAL_PARAMETERS;
+      }
 
 			svmfile_name = getStringOption_("svm_model");	
 			total_gradient_time = getDoubleOption_("total_gradient_time");
@@ -306,9 +327,9 @@ class TOPPRTPredict
 				}
 			}				
 			
-			if (textfile_input)
+			if ( input_text != "" )
 			{
-				loadStrings_(inputfile_name, peptides);
+				loadStrings_(input_text, peptides);
 				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					for (Size i = 0; i < peptides.size(); ++i)
@@ -321,14 +342,14 @@ class TOPPRTPredict
 			else
 			{
 				String document_id;
-				IdXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+				IdXML_file.load(input_id, protein_identifications, identifications, document_id);
 			}
 	  													
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
 		
-			if (!textfile_input)
+			if (input_id != "")
 			{
 				for (Size i = 0; i < identifications.size(); i++)
 				{
@@ -429,7 +450,7 @@ class TOPPRTPredict
 				}
 				for (Size i = 0; i < temp_counter; ++i)
 				{
-					if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO && !textfile_output)
+					if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO && output_text=="")
 					{
 						predicted_modified_data.insert(make_pair(temp_modified_peptides[i],
 																						(predicted_retention_times[i] * total_gradient_time)));
@@ -449,7 +470,7 @@ class TOPPRTPredict
 				predicted_retention_times.clear();
 			}						
 
-			if (!textfile_input)
+			if (input_id != "")
 			{
 				if (!separation_prediction)
 				{
@@ -517,7 +538,7 @@ class TOPPRTPredict
 						identifications[i].setHits(temp_peptide_hits);				
 					}
 				}
-				else
+				else // separation prediction
 				{
 					vector<PeptideHit> hits_positive;
 					vector<PeptideHit> hits_negative;
@@ -582,21 +603,21 @@ class TOPPRTPredict
 			if (separation_prediction)
 			{
 				IdXML_file.store(outputfile_name_positive,
-															 protein_identifications,
-															 identifications_positive);
+												 protein_identifications,
+												 identifications_positive);
 				IdXML_file.store(outputfile_name_negative,
-															 protein_identifications,
-															 identifications_negative);
+												 protein_identifications,
+												 identifications_negative);
 			}
 			else
 			{
-				if (textfile_output)
+				if (output_text != "") // text
 				{
-					writeStringLabelLines_(outputfile_name, predicted_data);
+					writeStringLabelLines_(output_text, predicted_data);
 				}
-				else
+				if (output_id != "") // idXML
 				{
-					IdXML_file.store(outputfile_name,
+					IdXML_file.store(output_id,
 													 protein_identifications,
 													 identifications);
 					writeDebug_("Linear correlation between predicted and measured rt is: "
