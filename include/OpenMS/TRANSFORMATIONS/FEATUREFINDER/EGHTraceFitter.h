@@ -128,6 +128,11 @@ namespace OpenMS
       return height_;
     }
 
+    DoubleReal getSigmaSquare() const
+    {
+      return sigma_square_;
+    }
+
     DoubleReal getCenter() const
     {
       return apex_rt_;
@@ -138,12 +143,12 @@ namespace OpenMS
       return ( (sigma_5_bound_.second - sigma_5_bound_.first) > max_rt_span*region_rt_span_);
     }
 
-    virtual bool checkMinimalRTSpan(std::pair<DoubleReal,DoubleReal> const & rt_bounds, const DoubleReal min_rt_span)
+    virtual bool checkMinimalRTSpan(const std::pair<DoubleReal,DoubleReal> & rt_bounds, const DoubleReal min_rt_span)
     {
       return (rt_bounds.second-rt_bounds.first) < min_rt_span * (sigma_5_bound_.second - sigma_5_bound_.first);
     }
 
-    DoubleReal computeTheoretical(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace, Size k)
+    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace, Size k)
     {
       double rt = trace.peaks[k].first;
       double t_diff,t_diff2,denominator = 0.0;
@@ -152,14 +157,14 @@ namespace OpenMS
       t_diff = rt - apex_rt_;
       t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
 
-       denominator = 2 * sigma_square_ + tau_ * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+      denominator = 2 * sigma_square_ + tau_ * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
 
-       if(denominator > 0.0)
-       {
-         fegh =  trace.theoretical_int * height_ * exp(- t_diff2 / denominator);
-       }
+      if(denominator > 0.0)
+      {
+        fegh =  trace.theoretical_int * height_ * exp(- t_diff2 / denominator);
+      }
 
-       return fegh;
+      return fegh;
     }
 
     virtual DoubleReal getFeatureIntensityContribution()
@@ -371,20 +376,36 @@ namespace OpenMS
 
       Size i = max_pos;
       LOG_DEBUG << "max_pos: " << max_pos << std::endl;
-
-      while(i > 0)
+      Size filter_max_pos = traces[traces.max_trace].peaks.size() - 2;
+      // use  moving average filter to avoid bad initial values
+      // moving average of size 5
+      // TODO: optimize windows size
+      while(i > 2 && i < filter_max_pos)
       {
-       if(traces[traces.max_trace].peaks[i].second->getIntensity() / height_ < 0.5) break;
-       else --i;
+        // compute smoothed
+        DoubleReal smoothed = (traces[traces.max_trace].peaks[i - 2].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i - 1].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i + 1].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i + 2].second->getIntensity() ) / 5.0;
+
+        if(smoothed / height_ < 0.5) break;
+        else --i;
       }
       LOG_DEBUG << "Left alpha at " << i << " with " << traces[traces.max_trace].peaks[i].first << std::endl;
       double A = apex_rt_ - traces[traces.max_trace].peaks[i].first;
 
       i = max_pos;
-      while(i < traces[traces.max_trace].peaks.size())
+      while(i < filter_max_pos && i > 2)
       {
-       if(traces[traces.max_trace].peaks[i].second->getIntensity() / height_ < 0.5) break;
-       else ++i;
+        DoubleReal smoothed = (traces[traces.max_trace].peaks[i - 2].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i - 1].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i + 1].second->getIntensity()
+                               + traces[traces.max_trace].peaks[i + 2].second->getIntensity() ) / 5.0;
+
+        if(smoothed / height_ < 0.5) break;
+        else ++i;
       }
       LOG_DEBUG << "Right alpha at " << i << " with " << traces[traces.max_trace].peaks[i].first << std::endl;
       double B = traces[traces.max_trace].peaks[i].first - apex_rt_;
