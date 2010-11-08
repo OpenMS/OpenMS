@@ -48,6 +48,7 @@ namespace OpenMS {
    */
   RawMSSignalSimulation::RawMSSignalSimulation(const SimRandomNumberGenerator& rng)
   : DefaultParamHandler("RawSignalSimulation"), 
+    ProgressLogger(),
     mz_sampling_rate_(),
     mz_error_mean_(),
     mz_error_stddev_(),
@@ -82,15 +83,16 @@ namespace OpenMS {
 
   RawMSSignalSimulation::RawMSSignalSimulation(const RawMSSignalSimulation& source)
     : DefaultParamHandler(source),
-    mz_sampling_rate_(source.mz_sampling_rate_),
-    mz_error_mean_(source.mz_error_mean_),
-    mz_error_stddev_(source.mz_error_stddev_),
-    intensity_scale_(source.intensity_scale_),
-    intensity_scale_stddev_(source.intensity_scale_stddev_),
-    res_model_(source.res_model_),
-    res_base_(source.res_base_),
-    contaminants_(),
-    contaminants_loaded_(false)
+      ProgressLogger(source),
+      mz_sampling_rate_(source.mz_sampling_rate_),
+      mz_error_mean_(source.mz_error_mean_),
+      mz_error_stddev_(source.mz_error_stddev_),
+      intensity_scale_(source.intensity_scale_),
+      intensity_scale_stddev_(source.intensity_scale_stddev_),
+      res_model_(source.res_model_),
+      res_base_(source.res_base_),
+      contaminants_(),
+      contaminants_loaded_(false)
   {
     setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;

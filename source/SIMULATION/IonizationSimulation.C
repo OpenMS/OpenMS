@@ -39,12 +39,13 @@ namespace OpenMS {
 
   IonizationSimulation::IonizationSimulation(const SimRandomNumberGenerator& random_generator)
     : DefaultParamHandler("IonizationSimulation"),
-			ionization_type_(),
-			basic_residues_(),
-			esi_probability_(),
-			esi_impurity_probabilities_(),
-			esi_adducts_(),
-			max_adduct_charge_(),
+      ProgressLogger(),
+      ionization_type_(),
+      basic_residues_(),
+      esi_probability_(),
+      esi_impurity_probabilities_(),
+      esi_adducts_(),
+      max_adduct_charge_(),
       maldi_probabilities_(),
       rnd_gen_(&random_generator)
   {
@@ -54,12 +55,13 @@ namespace OpenMS {
 
   IonizationSimulation::IonizationSimulation(const IonizationSimulation& source)
     : DefaultParamHandler(source),
-			ionization_type_(source.ionization_type_ ),
-			basic_residues_(source.basic_residues_ ),
-			esi_probability_(source.esi_probability_ ),
-			esi_impurity_probabilities_(source.esi_impurity_probabilities_),
-			esi_adducts_(source.esi_adducts_ ),
-			max_adduct_charge_(source.max_adduct_charge_ ),
+      ProgressLogger(source),
+      ionization_type_(source.ionization_type_ ),
+      basic_residues_(source.basic_residues_ ),
+      esi_probability_(source.esi_probability_ ),
+      esi_impurity_probabilities_(source.esi_impurity_probabilities_),
+      esi_adducts_(source.esi_adducts_ ),
+      max_adduct_charge_(source.max_adduct_charge_ ),
       maldi_probabilities_(source.maldi_probabilities_),
       rnd_gen_(source.rnd_gen_)
   {
