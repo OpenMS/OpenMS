@@ -54,6 +54,9 @@ namespace OpenMS
 		defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
 		defaults_.setValidStrings("add_precursor_peaks", StringList::create("true,false"));
 
+    defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
+    defaults_.setValidStrings("add_abundant_immonium_ions", StringList::create("true,false"));
+
 		defaults_.setValue("add_first_prefix_ion", "false", "If set to true e.g. b1 ions are added");
 		defaults_.setValidStrings("add_first_prefix_ion", StringList::create("true,false"));
 
@@ -110,8 +113,69 @@ namespace OpenMS
 		{
 			addPrecursorPeaks(spec, peptide, charge);
 		}
+
+    bool add_abundant_immonium_ions(param_.getValue("add_abundant_immonium_ions").toBool());
+    if (add_abundant_immonium_ions)
+    {
+      addAbundantImmoniumIons(spec);
+    }
+
 		return;
 	}
+
+  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons(RichPeakSpectrum& spec)
+  {
+    bool add_metainfo(param_.getValue("add_metainfo").toBool());
+    // Histidin immonium ion
+    p_.setMZ(110.0718);
+    p_.setIntensity(1.0);
+    if (add_metainfo)
+    {
+      String name("immonium ion of H");
+      p_.setMetaValue("IonName", name);
+    }
+    spec.push_back(p_);
+
+    // Phenylalanin immonium ion
+    p_.setMZ(120.0813 );
+    p_.setIntensity(1.0);
+    if (add_metainfo)
+    {
+      String name("immonium ion of F");
+      p_.setMetaValue("IonName", name);
+    }
+    spec.push_back(p_);
+
+    // Tyrosine immonium ion
+    p_.setMZ(136.0762 );
+    p_.setIntensity(1.0);
+    if (add_metainfo)
+    {
+      String name("immonium ion of Y");
+      p_.setMetaValue("IonName", name);
+    }
+    spec.push_back(p_);
+
+    // Iso/Leucin immonium ion (same mass for immonium ion)
+    p_.setMZ(86.09698);
+    p_.setIntensity(1.0);
+    if (add_metainfo)
+    {
+      String name("immonium ion of L/I");
+      p_.setMetaValue("IonName", name);
+    }
+    spec.push_back(p_);
+
+    // Tryptophan immonium ion
+    p_.setMZ(159.0922);
+    p_.setIntensity(1.0);
+    if (add_metainfo)
+    {
+      String name("immonium ion of W");
+      p_.setMetaValue("IonName", name);
+    }
+    spec.push_back(p_);
+  }
 
 	void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
 	{

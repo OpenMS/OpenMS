@@ -1783,8 +1783,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		activeCanvas_()->showCurrentLayerPreferences();
 	}
 
-
-
   void TOPPViewBase::updateFilterBar()
   {
   	//update filters
@@ -2482,12 +2480,20 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				TheoreticalSpectrumGenerator generator;
 				Param p;
 
+        p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
 				bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
 				String losses_str = losses ? "true" : "false";
 				p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+
 				bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
 				String iso_str = isotopes ? "true" : "false";
 				p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
+
+        bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
+        String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
+        p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
+
         Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
         p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
 				p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
@@ -2529,7 +2535,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				  if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
 				  {
 					  generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
-				  }
+          }          
+          if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
+          {
+            generator.addAbundantImmoniumIons(rich_spec);
+          }
+
         }
         catch (Exception::BaseException& e)
         {

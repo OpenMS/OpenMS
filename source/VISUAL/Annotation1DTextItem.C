@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Johannes Junker, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/Annotation1DTextItem.h>
@@ -31,20 +31,21 @@
 #include <QtGui/QPainter>
 #include <QtCore/QPoint>
 
-
 namespace OpenMS
 {	
 
-	Annotation1DTextItem::Annotation1DTextItem(const PointType& position, const QString& text)
+  Annotation1DTextItem::Annotation1DTextItem(const PointType& position, const QString& text, int flags)
 		: Annotation1DItem(text),
-			position_(position)
+      position_(position),
+      flags_(flags)
 	{
 	}
 	
 	Annotation1DTextItem::Annotation1DTextItem(const Annotation1DTextItem& rhs)
-		: Annotation1DItem(rhs)
+    : Annotation1DItem(rhs)
 	{
 		position_ = rhs.getPosition();
+    flags_ = rhs.getFlags();
 	}
 	
 	Annotation1DTextItem::~Annotation1DTextItem()
@@ -58,9 +59,9 @@ namespace OpenMS
 		canvas->dataToWidget(position_.getX(), position_.getY(), pos, flipped, true);
 		
 		// compute bounding box of text_item on the specified painter
-		bounding_box_ = painter.boundingRect(QRectF(pos, pos), Qt::AlignCenter, text_);
+    bounding_box_ = painter.boundingRect(QRectF(pos, pos), flags_, text_);
 		
-		painter.drawText(bounding_box_, Qt::AlignCenter, text_);
+    painter.drawText(bounding_box_, flags_, text_);
 		if (selected_)
 		{
 			drawBoundingBox_(painter);
@@ -82,7 +83,17 @@ namespace OpenMS
  	{
  		return position_;
  	}
- 	
+
+  void Annotation1DTextItem::setFlags(int flags)
+  {
+    flags_ = flags;
+  }
+
+  int Annotation1DTextItem::getFlags() const
+  {
+    return flags_;
+  }
+
  	void Annotation1DTextItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
 	{
 		DRange<3> data_range = canvas->getDataRange();
@@ -108,8 +119,4 @@ namespace OpenMS
 		}
 	}
 	
-}//Namespace
-
-
-
-
+} // namespace OpenMS

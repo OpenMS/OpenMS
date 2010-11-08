@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Johannes Junker, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_ANNOTATION1DTEXTITEM_H
@@ -37,12 +37,11 @@ namespace OpenMS
 	*/
 	class Annotation1DTextItem
 		: public Annotation1DItem
-	{
-		
-		public:
-			
+	{		
+		public:			
+
 			/// Constructor
-			Annotation1DTextItem(const PointType& position, const QString& text);
+      Annotation1DTextItem(const PointType& position, const QString& text, const int flags = Qt::AlignCenter);
 			/// Copy constructor
 			Annotation1DTextItem(const Annotation1DTextItem& rhs);
 			/// Destructor
@@ -57,11 +56,16 @@ namespace OpenMS
 			void setPosition(const PointType& position);
 			/// Returns the position of the item (in MZ / intensity coordinates)
  			const PointType& getPosition() const;
-			
+      /// Set Qt flags (default: Qt::AlignCenter)
+      void setFlags(int flags);
+      /// Get Qt flags
+      int getFlags() const;
+
 		protected:
 		
 			/// The position of the item (in MZ / intensity coordinates)
 			PointType position_;
+      int flags_;
 			
 	};
 } // namespace OpenMS

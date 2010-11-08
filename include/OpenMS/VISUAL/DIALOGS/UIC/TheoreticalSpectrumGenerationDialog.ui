@@ -1,31 +1,32 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>TheoreticalSpectrumGenerationDialogTemplate</class>
- <widget class="QDialog" name="TheoreticalSpectrumGenerationDialogTemplate" >
-  <property name="geometry" >
+ <widget class="QDialog" name="TheoreticalSpectrumGenerationDialogTemplate">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
-    <height>341</height>
+    <width>457</width>
+    <height>343</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Generate theoretical spectrum</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_5" >
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout" >
+    <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLabel" name="enter_seq_label" >
-       <property name="text" >
+      <widget class="QLabel" name="enter_seq_label">
+       <property name="text">
         <string>Enter peptide sequence:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="line_edit" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+      <widget class="QLineEdit" name="line_edit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -35,35 +36,35 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_11" >
+    <layout class="QHBoxLayout" name="horizontalLayout_11">
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_4" >
+      <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_10" >
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout" >
+          <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="QLabel" name="spin_label" >
-             <property name="sizePolicy" >
-              <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+            <widget class="QLabel" name="spin_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="text" >
+             <property name="text">
               <string>Charge:</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spin_box" >
-             <property name="sizePolicy" >
-              <sizepolicy vsizetype="Fixed" hsizetype="Maximum" >
+            <widget class="QSpinBox" name="spin_box">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="value" >
+             <property name="value">
               <number>1</number>
              </property>
             </widget>
@@ -71,32 +72,32 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2" >
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
-            <widget class="QLabel" name="max_iso_label" >
-             <property name="enabled" >
+            <widget class="QLabel" name="max_iso_label">
+             <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="maximumSize" >
+             <property name="maximumSize">
               <size>
                <width>16777213</width>
                <height>16777215</height>
               </size>
              </property>
-             <property name="whatsThis" >
+             <property name="whatsThis">
               <string>Defines the maximal isotopic peak which is added</string>
              </property>
-             <property name="text" >
+             <property name="text">
               <string>Max Isotope:</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="max_iso_spinbox" >
-             <property name="enabled" >
+            <widget class="QSpinBox" name="max_iso_spinbox">
+             <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="value" >
+             <property name="value">
               <number>2</number>
              </property>
             </widget>
@@ -106,80 +107,85 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2" >
+        <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QLabel" name="generate_label" >
-           <property name="sizePolicy" >
-            <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+          <widget class="QLabel" name="generate_label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Generate:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QListWidget" name="list_widget" >
-           <property name="sizePolicy" >
-            <sizepolicy vsizetype="Ignored" hsizetype="Ignored" >
+          <widget class="QListWidget" name="list_widget">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize" >
+           <property name="minimumSize">
             <size>
              <width>100</width>
              <height>155</height>
             </size>
            </property>
-           <property name="selectionMode" >
+           <property name="selectionMode">
             <enum>QAbstractItemView::NoSelection</enum>
            </property>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>A-ions</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>B-ions</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>C-ions</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>X-ions</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Y-ions</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Z-ions</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Precursor</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Neutral losses</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Isotope clusters</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Abundant immonium-ions</string>
             </property>
            </item>
           </widget>
@@ -189,23 +195,23 @@
       </layout>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox" >
-       <property name="title" >
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
         <string>Intensities</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_3" >
+       <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3" >
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLabel" name="label" >
-            <property name="text" >
+           <widget class="QLabel" name="label">
+            <property name="text">
              <string>A-ions</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="a_intensity" >
-            <property name="value" >
+           <widget class="QDoubleSpinBox" name="a_intensity">
+            <property name="value">
              <double>1.000000000000000</double>
             </property>
            </widget>
@@ -213,17 +219,17 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4" >
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <widget class="QLabel" name="label_2" >
-            <property name="text" >
+           <widget class="QLabel" name="label_2">
+            <property name="text">
              <string>B-ions</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="b_intensity" >
-            <property name="value" >
+           <widget class="QDoubleSpinBox" name="b_intensity">
+            <property name="value">
              <double>1.000000000000000</double>
             </property>
            </widget>
@@ -231,17 +237,17 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5" >
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QLabel" name="label_3" >
-            <property name="text" >
+           <widget class="QLabel" name="label_3">
+            <property name="text">
              <string>C-ions</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="c_intensity" >
-            <property name="value" >
+           <widget class="QDoubleSpinBox" name="c_intensity">
+            <property name="value">
              <double>1.000000000000000</double>
             </property>
            </widget>
@@ -249,17 +255,17 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6" >
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QLabel" name="label_4" >
-            <property name="text" >
+           <widget class="QLabel" name="label_4">
+            <property name="text">
              <string>X-ions</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="x_intensity" >
-            <property name="value" >
+           <widget class="QDoubleSpinBox" name="x_intensity">
+            <property name="value">
              <double>1.000000000000000</double>
             </property>
            </widget>
@@ -267,17 +273,17 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7" >
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
-           <widget class="QLabel" name="label_5" >
-            <property name="text" >
+           <widget class="QLabel" name="label_5">
+            <property name="text">
              <string>Y-ions</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="y_intensity" >
-            <property name="value" >
+           <widget class="QDoubleSpinBox" name="y_intensity">
+            <property name="value">
              <double>1.000000000000000</double>
             </property>
            </widget>
@@ -285,17 +291,17 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_8" >
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
-           <widget class="QLabel" name="label_6" >
-            <property name="text" >
+           <widget class="QLabel" name="label_6">
+            <property name="text">
              <string>Z-ions</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="z_intensity" >
-            <property name="value" >
+           <widget class="QDoubleSpinBox" name="z_intensity">
+            <property name="value">
              <double>1.000000000000000</double>
             </property>
            </widget>
@@ -303,20 +309,20 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_9" >
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
           <item>
-           <widget class="QLabel" name="label_7" >
-            <property name="text" >
+           <widget class="QLabel" name="label_7">
+            <property name="text">
              <string>Relative loss in %</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="rel_loss_intensity" >
-            <property name="maximum" >
+           <widget class="QSpinBox" name="rel_loss_intensity">
+            <property name="maximum">
              <number>100</number>
             </property>
-            <property name="value" >
+            <property name="value">
              <number>10</number>
             </property>
            </widget>
@@ -329,17 +335,17 @@
     </layout>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="button_box" >
-     <property name="sizePolicy" >
-      <sizepolicy vsizetype="Fixed" hsizetype="Ignored" >
+    <widget class="QDialogButtonBox" name="button_box">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="orientation" >
+     <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <property name="standardButtons" >
+     <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
@@ -354,11 +360,11 @@
    <receiver>TheoreticalSpectrumGenerationDialogTemplate</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>248</x>
      <y>254</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>157</x>
      <y>274</y>
     </hint>
@@ -370,11 +376,11 @@
    <receiver>TheoreticalSpectrumGenerationDialogTemplate</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>316</x>
      <y>260</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
     </hint>

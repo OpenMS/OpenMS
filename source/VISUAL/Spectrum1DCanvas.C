@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 // Qt
@@ -751,7 +751,8 @@ namespace OpenMS
 					vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
 					vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
 					// draw dashed elongations for pairs of peaks annotated with a distance
-					for(Annotations1DContainer::ConstIterator it = layer.getCurrentAnnotations().begin(); it != layer.getCurrentAnnotations().end(); ++it)
+          for(Annotations1DContainer::ConstIterator it = layer.getCurrentAnnotations().begin();
+            it != layer.getCurrentAnnotations().end(); ++it)
 					{
 						Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
 						if (distance_item)
@@ -767,7 +768,7 @@ namespace OpenMS
 								
 								dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
 								drawDashedLine_(from, to, painter);
-						}
+            }
 					}
 					switch (draw_modes_[i])
 					{
@@ -903,7 +904,7 @@ namespace OpenMS
 		if (peak.isValid())
 		{
 			QPoint begin;
-                        const ExperimentType::PeakType& sel = peak.getPeak(*getLayer_(layer_index).getPeakData());
+      const ExperimentType::PeakType& sel = peak.getPeak(*getLayer_(layer_index).getPeakData());
 
 			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
 			

@@ -45,7 +45,8 @@ namespace OpenMS
 		list_widget->item(5)->setCheckState(Qt::Unchecked);
 		list_widget->item(6)->setCheckState(Qt::Unchecked);
 		list_widget->item(7)->setCheckState(Qt::Unchecked);
-		list_widget->item(8)->setCheckState(Qt::Unchecked);
+    list_widget->item(8)->setCheckState(Qt::Unchecked);
+    list_widget->item(9)->setCheckState(Qt::Unchecked);
 	}
 	
 	void TheoreticalSpectrumGenerationDialog::itemChanged(QListWidgetItem* item)
