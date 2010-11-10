@@ -83,17 +83,21 @@ namespace OpenMS
 				this->defaults_.setValue ("max_charge", 3, "The maximal charge state to be considered.");
 				this->defaults_.setMinInt ("max_charge", 1);
 
-				this->defaults_.setValue ("intensity_threshold", 2., "The final threshold t' is build upon the formula: t' = av+t*sd," 
-																	"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal" 
+				this->defaults_.setValue ("intensity_threshold", -1., "The final threshold t' is build upon the formula: t' = av+t*sd, " 
+																	"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal " 
 																	"and sd the standard deviation of the transform. "
-																	"If you set intensity_threshold=-1, t' will be zero.\n");
+																	"If you set intensity_threshold=-1, t' will be zero.\n"
+																	"As the 'right' value for this parameter is highly data dependent, we would recommend to start "
+																	"with -1, which will also extract features with very low signal-to-noise ratio. Subsequently, one "
+																	"might increase the threshold to find an optimized trade-off between false positives and true positives.");
 				
 				this->defaults_.setValue ("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
 																	"potential peptide masses are checked for plausibility.", StringList::create("advanced")); 
 				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 				
 				this->defaults_.setValue ("hr_data", "false", "Must be true in case of high-resolution data, i.e. "
-							"for spectra featuring large m/z-gaps (typically FTICR or Orbitrap data, e.g.).");
+							"for spectra featuring large m/z-gaps (present in FTICR and Orbitrap data, e.g.). Please check " 
+							"a single MS scan out of your recording, if you are unsure.");
 				this->defaults_.setValidStrings("hr_data",StringList::create("true,false"));
 
 				#if (defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB))
@@ -116,27 +120,16 @@ namespace OpenMS
 		{
 		}	
 	
-		typename IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRData (const UInt i, const UInt c, IsotopeWaveletTransform<PeakType>* iwt)
+		typename IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRDataCuda (const UInt i, IsotopeWaveletTransform<PeakType>* iwt)
 		{
-			MSSpectrum<PeakType>* new_spec (createHRData(i, c, iwt));
-			typename IsotopeWaveletTransform<PeakType>::TransSpectrum* c_trans = new typename IsotopeWaveletTransform<PeakType>::TransSpectrum (new_spec);
-			std::cout << "Hier ist noch was falsch! in FeatureFinderAlgorihtmIsotopeWavelet.h" << std::endl;
-			iwt->initializeScanCuda (*new_spec);	
-
-			return (c_trans);
-
-		}
-
-		typename IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRDataCuda (const UInt i, const UInt c, IsotopeWaveletTransform<PeakType>* iwt)
-		{
-			MSSpectrum<PeakType>* new_spec (createHRData(i, c, iwt));
+			MSSpectrum<PeakType>* new_spec (createHRData(i));
 			typename IsotopeWaveletTransform<PeakType>::TransSpectrum* c_trans = new typename IsotopeWaveletTransform<PeakType>::TransSpectrum (new_spec);
 			iwt->initializeScanCuda (*new_spec);	
 
 			return (c_trans);
 		}
 
-		MSSpectrum<PeakType>* createHRData (const UInt i, const UInt c, IsotopeWaveletTransform<PeakType>* iwt)
+		MSSpectrum<PeakType>* createHRData (const UInt i)
 		{
 			//NOVEL TRY
 			MSSpectrum<PeakType> spec ((*this->map_)[i]);
@@ -483,13 +476,13 @@ namespace OpenMS
 								MSSpectrum<PeakType>* new_spec (NULL);
 								for (UInt c=0; c<max_charge_; ++c)
 								{
-									new_spec = createHRData (i, c, iwt);
+									new_spec = createHRData (i);
 									iwt->initializeScan (*new_spec);
 									MSSpectrum<PeakType> c_trans (*new_spec);
 									
 									iwt->getTransformHighRes (c_trans, *new_spec, c);
 									
-									//#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 										std::stringstream stream;
 										stream << "cpu_highres_" << new_spec->getRT() << "_" << c+1 << ".trans\0"; 
 										std::ofstream ofile (stream.str().c_str());
@@ -498,7 +491,7 @@ namespace OpenMS
 											ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << (*new_spec)[k].getIntensity() << std::endl;
 										};
 										ofile.close();
-									//#endif
+									#endif
 
 									#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 										std::cout << "transform O.K. ... "; std::cout.flush();
@@ -564,11 +557,11 @@ namespace OpenMS
 								}
 								else //HighRes data
 								{	
-									c_trans = prepareHRDataCuda (i, 0, iwt);
+									
+									std::cout << "Here 1" << std::endl;
+									c_trans = prepareHRDataCuda (i, iwt);
 									for (UInt c=0; c<max_charge_; ++c)
 									{	
-										//c_trans = prepareHRDataCuda (i, c, iwt);
-									
 										iwt->getTransformCuda (*c_trans, c);
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -593,9 +586,6 @@ namespace OpenMS
 											std::cout << "cuda charge recognition for charge " << c+1 << " O.K." << std::endl;
 										#endif					
 										this->ff_->setProgress (++progress_counter_);
-									
-										//c_trans->destroy();
-										//iwt->finalizeScanCuda();
 									};									
 									c_trans->destroy();
 									iwt->finalizeScanCuda();
@@ -710,7 +700,6 @@ namespace OpenMS
 					gpu_ids_.push_back(tokens[i].trim().toInt());
 					use_tbb_ = true;
 				};
-			
 			#else
 				use_cuda_ = false;	
 				use_tbb_ = false;

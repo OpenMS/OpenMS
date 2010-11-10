@@ -1193,10 +1193,21 @@ namespace OpenMS
 			{
 				printf("final_score: %f\t\t%f\t%f\t%f\n", seed_mz,  l_score, mid_val, r_score);
 			};*/
+	
+			if (l_score + r_score <= 0)
+			{
+			}
 
 			if (!(l_score <=0 || r_score <= 0 || l_score + r_score <= ampl_cutoff))
 			{
 				scores[blockIdx.x+write_offset] = l_score + r_score + mid_val;	
+			}
+			else
+			{
+				if (l_score + r_score <= ampl_cutoff && l_score + r_score > 0)
+				{
+					scores[blockIdx.x+write_offset]=-1000;
+				}
 			};
 		};
 	};

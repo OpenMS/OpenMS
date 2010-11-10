@@ -135,7 +135,8 @@ namespace OpenMS
 					return ( left < right );
 				}
 			};
-		
+	
+			/// Compares the wavelet-transformed intensity values. 	
 			struct TransIntensityLess
 				: std::binary_function < TransPeak1D, TransPeak1D, bool >
 			{

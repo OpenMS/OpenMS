@@ -111,14 +111,8 @@ START_SECTION([IsotopeWaveletTransform::TransSpectrum] MSSpectrum<PeakType>::con
 	TEST_EQUAL((int)((--test2->end())->getMZ()*10), 14349)
 END_SECTION
 
-START_SECTION([IsotopeWaveletTransform::TransSpectrum] virtual ~TransSpectrum())
-	delete(test2);
-END_SECTION
 
-
-
-
-START_SECTION(IsotopeWaveletTransform(const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size=0))
+START_SECTION(IsotopeWaveletTransform(const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size=0, const bool use_cuda=false, const bool hr_data=false))
 	iw = new IsotopeWaveletTransform<Peak1D> (map[0].begin()->getMZ(), (map[0].end()-1)->getMZ(), 1);
 	TEST_NOT_EQUAL (iw, NULL)
 END_SECTION
@@ -128,9 +122,33 @@ START_SECTION(void initializeScan(const MSSpectrum< PeakType > &c_ref))
 	NOT_TESTABLE
 END_SECTION
 
+START_SECTION(Int getMaxScanSize () const)
+	TEST_EQUAL (iw->getMaxScanSize(), 0);
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(void computeMinSpacing (const MSSpectrum<PeakType>& c_ref))
+	iw->computeMinSpacing (map[0]);
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(DoubleReal getMinSpacing () const)
+	TEST_EQUAL ((int)(iw->getMinSpacing()*100), 1);
+END_SECTION
+
+
 START_SECTION(void getTransform(MSSpectrum<PeakType> &c_trans, const MSSpectrum<PeakType> &c_ref, const UInt c))
 	iw->getTransform (*spec, map[0], 0);
 	TEST_EQUAL (*spec!= map[0], true)
+END_SECTION
+
+START_SECTION(void setSigma (const DoubleReal sigma))
+	iw->setSigma (1);
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(DoubleReal getSigma () const)
+	TEST_EQUAL (iw->getSigma(), 1)
 END_SECTION
 
 START_SECTION(void identifyCharge(const MSSpectrum< PeakType > &candidates, const MSSpectrum< PeakType > &ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs))
@@ -153,8 +171,17 @@ START_SECTION(FeatureMap< Feature > mapSeeds2Features(const MSExperiment< PeakTy
 END_SECTION	
 
 START_SECTION(~IsotopeWaveletTransform())
-	delete (spec);
 	delete (iw);
+END_SECTION
+
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] void destroy ())
+	test2->destroy();
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION([IsotopeWaveletTransform::TransSpectrum] virtual ~TransSpectrum())
+	delete(test2);
 END_SECTION
 
 END_TEST

@@ -40,16 +40,20 @@ namespace OpenMS
 	template <typename PeakType, typename FeatureType>
 	class FeatureFinderAlgorithmIsotopeWavelet;
 
+	/** @brief A class for distributing the data over several GPUs using Intel Threading Building Blocks. */
 	template <typename PeakType, typename FeatureType>
 	class IsotopeWaveletParallelFor
 	{
 		public:
 
+			/** @brief Constructor. */
 			IsotopeWaveletParallelFor (std::vector<IsotopeWaveletTransform<PeakType>*>& iwts, FeatureFinderAlgorithmIsotopeWavelet<PeakType, FeatureType>* ff)
 				: iwts_(iwts), ff_(ff)
 			{
 			};
 
+			/** @brief The working horse of the class.
+ 				* The operator initializes the computation on the individual GPU. */ 		
 			void operator() (const tbb::blocked_range<size_t>& r) const
 			{
 				for (size_t t=r.begin(); t!=r.end(); ++t) //this will be essentially one iteration
@@ -117,11 +121,9 @@ namespace OpenMS
 						}
 						else //HighRes data
 						{
-							c_trans = ff_->prepareHRDataCuda (i, 0, c_iwt);
+							c_trans = ff_->prepareHRDataCuda (i, c_iwt);
 							for (UInt c=0; c<ff_->max_charge_; ++c)
 							{	
-								//c_trans = ff_->prepareHRDataCuda (i, c, c_iwt);
-							
 								c_iwt->getTransformCuda (*c_trans, c);
 
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -146,9 +148,6 @@ namespace OpenMS
 									std::cout << "cuda charge recognition for charge " << c+1 << " O.K." << std::endl;
 								#endif					
 								ff_->ff_->setProgress (++ff_->progress_counter_);
-							
-								//c_trans->destroy();
-								//c_iwt->finalizeScanCuda();
 							};								
 
 							c_trans->destroy();
