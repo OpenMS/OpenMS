@@ -28,6 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -67,8 +68,16 @@ END_SECTION
 
 START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
 {
-  // Tested extensively in TEST/TOPP.  See MapAligner_test.
-  NOT_TESTABLE;
+  MzMLFile f;
+  std::vector< MSExperiment<> > peak_maps(2);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), peak_maps[0]);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), peak_maps[1]);
+  
+  MapAlignmentAlgorithm* alignment = Factory<MapAlignmentAlgorithm>::create("pose_clustering_affine");
+  std::vector<TransformationDescription> transformations;
+  // Trafo cannot be computed, due to too few datapoints
+  // -- the ideal solution would be to fix the trafo estimation
+  TEST_EXCEPTION(Exception::InvalidValue, alignment->alignPeakMaps(peak_maps,transformations));
 }
 END_SECTION
 

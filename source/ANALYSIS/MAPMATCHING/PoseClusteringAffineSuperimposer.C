@@ -36,6 +36,8 @@
 #include <map>
 #include <cmath>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 // #define Debug_PoseClusteringAffineSuperimposer
 #ifdef Debug_PoseClusteringAffineSuperimposer
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
@@ -991,6 +993,11 @@ namespace OpenMS
 
       const DoubleReal intercept = rt_low_image - rt_low * slope;
       transformations[0].setParam("intercept", intercept);
+
+      if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept*slope));
+      }
     }
 
     setProgress(++actual_progress);
