@@ -244,12 +244,16 @@ START_SECTION((DoubleReal getNegativePrior() const))
 NOT_TESTABLE
 END_SECTION
 
+START_SECTION((DoubleReal getSmallestScore() const))
+TEST_REAL_SIMILAR(ptr->getSmallestScore(), -0.39)
+END_SECTION
+
 START_SECTION((const String getGumbelGnuplotFormula(const GaussFitter::GaussFitResult& params) const))
 String gumbel = ptr->getGumbelGnuplotFormula(ptr->getIncorrectlyAssignedFitResult());
-//"f(x)= = (1/0.907832") * exp(( 1.48185 - x)/0.907832) * exp(-exp(( 1.48185 - x)/0.907832))"
-
-	TEST_EQUAL(gumbel.hasSubstring("(1/0.907832)"), true)
-	TEST_EQUAL(gumbel.hasSubstring("exp(( 1.48185- x)/0.907832)"), true)
+//approx. f(x) = (1/0.907832") * exp(( 1.48185 - x)/0.907832) * exp(-exp(( 1.48185 - x)/0.907832))"
+	cout<<gumbel<<endl;
+	TEST_EQUAL(gumbel.hasSubstring("(1/0.90"), true)
+	TEST_EQUAL(gumbel.hasSubstring("exp(( 1.48"), true)
 	TEST_EQUAL(gumbel.hasSubstring(") * exp(-exp(("), true)
 END_SECTION
 				
@@ -274,6 +278,11 @@ START_SECTION((TextFile* InitPlots(std::vector<double> & x_scores)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
+START_SECTION((void	plotTargetDecoyEstimation(std::vector<double> &target,std::vector<double> & decoy)))
+NOT_TESTABLE
+//not yet tested
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -50,6 +50,8 @@ namespace OpenMS
 		defaults_.setValue("treat_runs_separately", "false", "It set to 'true' different search runs are treated separately (for peptides of combined target/decoy searches only).");
 		defaults_.setValidStrings("treat_runs_separately", StringList::create("true,false"));
 		defaults_.setValue("decoy_string", "_rev", "String which is appended at the accession of the protein to indicate that it is a decoy protein (for proteins only).");
+		defaults_.setValue("add_decoy_peptides","false", "If set to true, decoy peptides will be written to output file, too.");
+		defaults_.setValidStrings("add_decoy_peptides", StringList::create("true,false"));
 		defaultsToParam_();
 	}
 
@@ -59,7 +61,7 @@ namespace OpenMS
 		bool use_all_hits = param_.getValue("use_all_hits").toBool();
 		bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
 		bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
-
+	  bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
 		cerr << "Parameters: q_value=" << q_value << ", use_all_hits=" << use_all_hits << ", treat_runs_separately=" << treat_runs_separately << ", split_charge_variants=" << split_charge_variants << endl;
 #endif
@@ -288,11 +290,10 @@ namespace OpenMS
 							hits.push_back(*pit);
 							continue;
 						}
-
 						if (hit.metaValueExists("target_decoy"))
 						{
 							String meta_value = (String)hit.getMetaValue("target_decoy");
-							if (meta_value == "decoy" || meta_value == "target+decoy")
+							if ((meta_value == "decoy" || meta_value == "target+decoy") && !add_decoy_peptides)
 							{
 								continue;
 							}
@@ -360,7 +361,7 @@ namespace OpenMS
 
 		bool q_value(param_.getValue("q_value").toBool());
 		bool higher_score_better(fwd_ids.begin()->isHigherScoreBetter());
-		
+	  bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
 		// calculate fdr for the forward scores
 		Map<DoubleReal, DoubleReal> score_to_fdr;
 		calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
@@ -389,6 +390,34 @@ namespace OpenMS
 				pit->setScore(score_to_fdr[pit->getScore()]);
 			}
 			it->setHits(hits);
+		}
+		//write as well decoy peptides
+		if(add_decoy_peptides)
+		{
+			score_type = rev_ids.begin()->getScoreType() + "_score";
+			for (vector<PeptideIdentification>::iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
+			{
+				if (q_value)
+				{
+					it->setScoreType("q-value");
+				}
+				else
+				{
+					it->setScoreType("FDR");
+				}
+					
+				it->setHigherScoreBetter(false);
+				vector<PeptideHit> hits = it->getHits();
+				for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+				{
+	#ifdef FALSE_DISCOVERY_RATE_DEBUG
+					cerr << pit->getScore() << " " << score_to_fdr[pit->getScore()] << endl;
+	#endif
+					pit->setMetaValue(score_type, pit->getScore());
+					pit->setScore(score_to_fdr[pit->getScore()]);
+				}
+				it->setHits(hits);
+			}		
 		}
 		
 		return;

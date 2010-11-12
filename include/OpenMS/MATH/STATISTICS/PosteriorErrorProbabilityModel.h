@@ -144,6 +144,16 @@ namespace OpenMS
 
 				/// returns the gnuplot formula of the fitted mixture distribution.
 				const String getBothGnuplotFormula(const GaussFitter::GaussFitResult& incorrect, const GaussFitter::GaussFitResult& correct) const;
+				
+				///plots the estimated distribution against target and decoy hits
+				void	plotTargetDecoyEstimation(std::vector<double> &target,std::vector<double> & decoy);
+				
+				/// returns the smallest score used in the last fit
+				inline const DoubleReal getSmallestScore()
+				{
+					return smallest_score_;
+				}
+				
 			private:
 				/// assignment operator (not implemented)
 				PosteriorErrorProbabilityModel& operator = (const PosteriorErrorProbabilityModel& rhs);

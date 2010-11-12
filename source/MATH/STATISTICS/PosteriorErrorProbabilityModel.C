@@ -45,7 +45,7 @@ namespace OpenMS
 			defaults_.setValue("number_of_bins", 100, "Number of bins used for visualisation. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
 			defaults_.setValue("output_plots","false","If true every step of the EM-algorithm will be written to a file as a gnuplot formula",StringList::create("advanced"));
 			defaults_.setValidStrings("output_plots",StringList::create("true,false"));
-			defaults_.setValue("output_name","", "if output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name>step_* for each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123_ then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123_step_0, /usr/home/OMSSA123_step_1 ... will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123_' just OMSSA123_, the files will be written into the working directory.",StringList::create("advanced,output file"));
+			defaults_.setValue("output_name","", "if output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name> which contains each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123 then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.",StringList::create("advanced,output file"));
 			defaults_.setValue("incorrectly_assigned","Gumbel", "if Gumbel, gumbel distribution is used to plot incorrectly assigned sequences. If Gauss, gauss distribution is used.",StringList::create("advanced"));
 			defaults_.setValidStrings("incorrectly_assigned",StringList::create("Gumbel,Gauss"));
 			defaultsToParam_();
@@ -78,7 +78,7 @@ namespace OpenMS
 			{
 				*it = *iti + fabs(smallest_score_) + 0.001;
 			}
-			negative_prior_ = 0.5;
+			negative_prior_ = 0.7;
 			if(param_.getValue("incorrectly_assigned") == "Gumbel")
 			{
 				incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5* x_scores.size())) + x_scores[0];
@@ -174,6 +174,9 @@ namespace OpenMS
         if(fabs(new_maxlike - maxlike) < 0.001)
         {
         	stop_em_init = true;
+        	sum_posterior = sum_post(incorrect_density,correct_density);
+					negative_prior_ = sum_posterior/x_scores.size();
+        	
         }
 				if(output_plots)
 				{
@@ -181,7 +184,7 @@ namespace OpenMS
 					formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_)+ "* " + String(negative_prior_);//String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
 					formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_)+ "* (1 - " + String(negative_prior_) + ")";//String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
 					formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_,correctly_assigned_fit_param_);
-					(*file)<<("plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+					(*file)<<("plot \""+(String)param_.getValue("output_name") +"_scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
 				}
 				//update maximum likelihood
 				maxlike = new_maxlike;				
@@ -202,8 +205,8 @@ namespace OpenMS
 				formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_)+ "*" + String(negative_prior_);//String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
 				formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_)+ "* (1 - " + String(negative_prior_) + ")";// String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
 				formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_,correctly_assigned_fit_param_);
-				(*file)<<("plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
-				file->store((String)param_.getValue("output_name"));				
+				(*file)<<("plot \""+(String)param_.getValue("output_name") +"_scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+				file->store((String)param_.getValue("output_name"));
 				delete file;
 			}
 		}
@@ -218,12 +221,6 @@ namespace OpenMS
 				*probs = computeProbability(*scores);
 			}
 		}
-		
-		/*void InitParameters()
-		{
-			if Gauss Gauss then normal
-			if Gumbel Gauss then anders
-		}*/
 		
 		void PosteriorErrorProbabilityModel::fillDensities(vector<double>& x_scores,vector<DoubleReal>& incorrect_density,vector<DoubleReal>& correct_density)
 		{
@@ -331,7 +328,7 @@ namespace OpenMS
 				x_neg = max_incorrectly_;	
 				x_pos = ((this)->*(calc_correct_))(score, correctly_assigned_fit_param_ );
 			}
-			//same as above. Hovever, this time to ensure that probabilities wont drop again.
+			//same as above. However, this time to ensure that probabilities wont drop again.
 			else if(score > correctly_assigned_fit_param_.x0)
 			{
 				x_neg = ((this)->*(calc_incorrect_))(score, incorrectly_assigned_fit_param_);
@@ -350,30 +347,39 @@ namespace OpenMS
 				TextFile* file = new TextFile;
 				String output;
 				std::vector<DPosition<2> > points;
+				Int number_of_bins = param_.getValue("number_of_bins");
+				points.resize(number_of_bins);
 				DPosition<2> temp;
-				double dividing_score = x_scores.back() /(Int)param_.getValue("number_of_bins");
+				double dividing_score = (x_scores.back() -x_scores[0])/number_of_bins;
+
 				temp.setX(dividing_score/2);
 				temp.setY(0);
-				points.push_back(temp);
+				Int bin = 0;
+				points[bin] = temp;
 				double temp_divider = dividing_score;
 				for(std::vector< double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
 				{
-					if(temp_divider - *it >= 0)
+					if(temp_divider - *it >= 0 && bin < number_of_bins - 1 )
 					{
-						points.back().setY(points.back().getY()+1);
+							points[bin].setY(points[bin].getY()+1);
+					}
+					else if(bin  == number_of_bins - 1 )
+					{
+						points[bin].setY(points[bin].getY()+1);
 					}
 					else
 					{
 						temp.setX((temp_divider + temp_divider + dividing_score)/2);
-						temp.setY(0);
-						points.push_back(temp);
+						temp.setY(1);
+						++bin;
+						points[bin] = temp;
 						temp_divider += dividing_score;
 					}
 				}	
 
 				for(vector<DPosition<2> >::iterator it = points.begin(); it < points.end(); ++it)
 				{
-					it->setY( it->getY()/( x_scores.size() * dividing_score));
+					it->setY( it->getY()/( x_scores.size()  *dividing_score));
 				}
 					
 				TextFile data_points;
@@ -384,14 +390,20 @@ namespace OpenMS
 					temp += it->getY();
 					data_points<<temp;
 				}
-				data_points.store((String)param_.getValue("output_name") + "scores.txt");
+				data_points.store((String)param_.getValue("output_name") + "_scores.txt");
 				output = "set output \""+ (String)param_.getValue("output_name") +".ps\"";
-				(*file)<<"set terminal postscript";	
+				(*file)<<"set terminal postscript color solid linewidth 2.0 rounded";
+				//(*file)<<"set style empty solid 0.5 border -1";
+				//(*file)<<"set style function lines";
+				(*file)<<"set xlabel \"discriminant score\"";
+				(*file)<<"set ylabel \"density\"";
+				//TODO: (*file)<<"set title ";
+				(*file)<<"set key off";
 				(*file)<<(output);
 				String formula1, formula2;
 				formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_)+ "* " + String(negative_prior_);//String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
 				formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_)+ "* (1 - " + String(negative_prior_) + ")";//String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
-				(*file)<< ("plot \""+(String)param_.getValue("output_name") +"scores.txt\" with boxes, " + formula1 + " , " + formula2);
+				(*file)<< ("plot \""+(String)param_.getValue("output_name") +"_scores.txt\" with boxes, " + formula1 + " , " + formula2);
 				return file;
 		}
 
@@ -415,7 +427,109 @@ namespace OpenMS
 			stringstream formula;
 			formula << negative_prior_<<"*"<<  ((this)->*(getNegativeGnuplotFormula_))(incorrect) <<" + (1-"<<negative_prior_<<")*"<< ((this)->*(getPositiveGnuplotFormula_))(correct);
 			return formula.str();
-		}	
+		}
+		
+		void PosteriorErrorProbabilityModel::plotTargetDecoyEstimation(vector<double> &target,vector<double> & decoy)
+		{
+				TextFile file;
+				String output;
+				std::vector<DPosition<3> > points;
+				Int number_of_bins = param_.getValue("number_of_bins");
+				points.resize(number_of_bins);
+				DPosition<3> temp;
+
+				sort(target.begin(),target.end());
+				sort(decoy.begin(),decoy.end());
+				
+				double dividing_score = (max(target.back(),decoy.back())/*scores.back()*/ - min(target[0],decoy[0])/*scores[0]*/)/number_of_bins;
+				
+				temp[0] = (dividing_score/2);
+				temp[1] = 0;
+				temp[2] = 0;
+				Int bin = 0;
+				points[bin] = temp;
+				double temp_divider = dividing_score;
+				for(std::vector< double>::iterator it = target.begin(); it < target.end(); ++it)
+				{
+					*it = *it + fabs(smallest_score_) + 0.001;
+					if(temp_divider - *it >= 0 && bin < number_of_bins - 1 )
+					{
+							points[bin][1] = (points[bin][1]+1);
+					}
+					else if(bin  == number_of_bins - 1 )
+					{
+						points[bin][1] = (points[bin][1]+1);
+					}
+					else
+					{
+						temp[0] = ((temp_divider + temp_divider + dividing_score)/2);
+						temp[1] = 1;
+						++bin;
+						points[bin] = temp;
+						temp_divider += dividing_score;
+					}
+				}	
+
+				bin = 0;
+				temp_divider = dividing_score;
+				for(std::vector< double>::iterator it = decoy.begin(); it < decoy.end(); ++it)
+				{	
+					*it = *it + fabs(smallest_score_) + 0.001;
+					if(temp_divider - *it >= 0 && bin < number_of_bins - 1 )
+					{
+							points[bin][2] = (points[bin][2]+1);
+					}
+					else if(bin  == number_of_bins - 1 )
+					{
+						points[bin][2] = (points[bin][2]+1);
+					}
+					else
+					{
+						//temp[0] = ((temp_divider + temp_divider + dividing_score)/2);
+					//	temp[2] = 1;
+						++bin;
+						points[bin][2] = 1;
+						temp_divider += dividing_score;
+					}
+				}	
+
+				for(vector<DPosition<3> >::iterator it = points.begin(); it < points.end(); ++it)
+				{
+				//	if((*it)[1] > (*it)[2])
+				//	{(*it)[1] = (*it)[1] + (*it)[2];}
+				/*	else{/(*it)[2] = (*it)[1] + (*it)[2];//}*/
+					
+					(*it)[1] = ( (*it)[1]/( (decoy.size()+target.size())  *dividing_score));
+					(*it)[2] = ( (*it)[2]/( (decoy.size()+target.size())  *dividing_score));
+				}
+					
+				TextFile data_points;
+				for(vector<DPosition<3> >::iterator it = points.begin(); it < points.end() ; ++it)
+				{
+					String temp  = (*it)[0];
+					temp += "\t";
+					temp += (*it)[1];
+					temp += "\t";
+					temp += (*it)[2];
+					data_points<<temp;
+				}
+				data_points.store( (String)param_.getValue("output_name") + "_target_decoy_scores.txt");
+				output = String("set output \"")+  (String)param_.getValue("output_name") + "_target_decoy.ps\"";
+				(file)<<"set terminal postscript color solid linewidth 2.0 rounded";
+				//(*file)<<"set style empty solid 0.5 border -1";
+				//(*file)<<"set style function lines";
+				(file)<<"set xlabel \"discriminant score\"";
+				(file)<<"set ylabel \"density\"";
+				//TODO: (*file)<<"set title ";
+				(file)<<"set key off";
+				(file)<<(output);
+				String formula1, formula2;
+				formula1 = getGumbelGnuplotFormula(getIncorrectlyAssignedFitResult())+ "* " + String(getNegativePrior());//String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+				formula2 = getGaussGnuplotFormula(getCorrectlyAssignedFitResult())+ "* (1 - " + String(getNegativePrior()) + ")";//String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+				(file)<< ("plot \"" + (String)param_.getValue("output_name") + "_target_decoy_scores.txt\"   using 1:3  with boxes fill solid 0.8 noborder, \"" + (String)param_.getValue("output_name") + "_target_decoy_scores.txt\"  using 1:2  with boxes, " + formula1 + " , " + formula2);
+				file.store( (String)param_.getValue("output_name") + "_target_decoy");
+			}		
+		
 	} //namespace Math
 } // namespace OpenMS
 
