@@ -335,10 +335,13 @@ namespace OpenMS {
 					Int charge = it_s->second.getNetCharge();
 					if (allowed_entities_of_charge[charge]>0)
 					{
-						Feature charged_feature(features[index]);
+						Feature charged_feature(features[index]);            
 
             setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);
 	
+            // remember the original feature as parent feature (needed for labeling consensus)
+            charged_feature.setMetaValue("parent_feature", String( features[index].getUniqueId() ));
+
 						if (!isFeatureValid_(charged_feature))
 						{
 							++undetected_features_count; // OMP!
@@ -448,6 +451,9 @@ namespace OpenMS {
 						Feature charged_feature(features[index]);
 						
 						setFeatureProperties_(charged_feature, h_mono_weight*c, String("H")+String(c), c, charge_states[c], feature_index);
+
+            // remember the original feature as parent feature (needed for labeling consensus)
+            charged_feature.setMetaValue("parent_feature", String( features[index].getUniqueId() ));
 
 						if (!isFeatureValid_(charged_feature))
 						{

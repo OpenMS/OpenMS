@@ -58,8 +58,8 @@ namespace OpenMS
 		defaults_.setMinFloat("Precursor:exclusion_time",0.);
 		
 		// sync'ed Param (also appears in IonizationSimulation)
-    defaults_.setValue("ionization_type", "ESI", "Type of Ionization (ESI or MALDI)");
-    defaults_.setValidStrings("ionization_type", StringList::create("ESI,MALDI"));
+    defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
+    defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
 
     defaultsToParam_();
   }

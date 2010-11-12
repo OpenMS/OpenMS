@@ -151,6 +151,10 @@ namespace OpenMS {
         6. select features for MS2
         7. generate MS2 signals for selected features
      */
+
+    // re-distribute synced parameters:
+    //param_.store("c:/mssim_param.ini"); // test reconstruction
+    syncParams_(param_, false);
     
     // instanciate and pass params before doing any actual work
     // ... this way, each module can throw an Exception when the parameters
@@ -177,10 +181,6 @@ namespace OpenMS {
 
     // check parameters ..
     labeler_->preCheck(param_);
-
-		// re-distribute synced parameters:
-		syncParams_(param_, false);
-		//param_.store("c:/mssim_param.ini"); // test reconstruction
 
     // convert sample proteins into an empty FeatureMap with ProteinHits
     for(SampleChannels::const_iterator channel_iterator = channels.begin() ; channel_iterator != channels.end() ; ++channel_iterator)
