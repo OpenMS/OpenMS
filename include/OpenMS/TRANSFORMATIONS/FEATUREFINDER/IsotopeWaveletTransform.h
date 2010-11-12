@@ -620,8 +620,8 @@ namespace OpenMS
 		max_mz_cutoff_ =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(max_mz, max_charge);
 		max_num_peaks_per_pattern_=  IsotopeWavelet::getNumPeakCutOff(max_mz, max_charge);
 		
-		//#ifdef OPENMS_HAS_CUDA 
-			if (use_cuda > 0) //only important for the GPU
+		#ifdef OPENMS_HAS_CUDA 
+			if (use_cuda) //only important for the GPU
 			{	
 				if (hr_data_)
 				{
@@ -652,15 +652,18 @@ namespace OpenMS
 				interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 				interpol_ys_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 			}
-		/*#else
-			Int size_estimate ((Int)ceil(max_scan_size_/(max_mz-min_mz)));
-			Int to_reserve  ((Int)ceil(size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS));
-			psi_.reserve (to_reserve); //The wavelet
-			prod_.reserve (to_reserve); 
-			xs_.reserve (to_reserve);
-			interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
-			interpol_ys_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
-		#endif*/
+		#else
+			if (!use_cuda)
+			{
+				Int size_estimate ((Int)ceil(max_scan_size_/(max_mz-min_mz)));
+				Int to_reserve  ((Int)ceil(size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS));
+				psi_.reserve (to_reserve); //The wavelet
+				prod_.reserve (to_reserve); 
+				xs_.reserve (to_reserve);
+				interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+				interpol_ys_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+			}
+		#endif
 	}
 
 
