@@ -43,6 +43,14 @@ START_SECTION(FeatureFinderAlgorithmIsotopeWavelet())
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
+START_SECTION(IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRDataCuda(const UInt i, IsotopeWaveletTransform< PeakType > *iwt))
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(MSSpectrum<PeakType>* createHRData(const UInt i))
+	NOT_TESTABLE
+END_SECTION
+
 START_SECTION(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
 END_SECTION

@@ -69,13 +69,13 @@ namespace OpenMS
 			
 		typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
-		struct lessPair : public std::binary_function<std::pair<DoubleReal, DoubleReal>, std::pair<DoubleReal, DoubleReal>, bool> 
+		/*struct lessPair : public std::binary_function<std::pair<DoubleReal, DoubleReal>, std::pair<DoubleReal, DoubleReal>, bool> 
 		{
 			bool operator()(std::pair<DoubleReal, DoubleReal> x, std::pair<DoubleReal, DoubleReal> y) 
 			{ 
 				return (x.first < y.first); 
 			}
-    };
+    };*/
 
 		/** @brief Default Constructor */
 		FeatureFinderAlgorithmIsotopeWavelet() 

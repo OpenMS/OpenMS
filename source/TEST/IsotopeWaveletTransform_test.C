@@ -136,6 +136,10 @@ START_SECTION(DoubleReal getMinSpacing () const)
 	TEST_EQUAL ((int)(iw->getMinSpacing()*100), 1);
 END_SECTION
 
+START_SECTION(void getTransformHighRes(MSSpectrum<PeakType> &c_trans, const MSSpectrum<PeakType> &c_ref, const UInt c))
+	iw->getTransformHighRes (*spec, map[0], 0);
+	TEST_EQUAL (*spec!= map[0], true)
+END_SECTION
 
 START_SECTION(void getTransform(MSSpectrum<PeakType> &c_trans, const MSSpectrum<PeakType> &c_ref, const UInt c))
 	iw->getTransform (*spec, map[0], 0);
@@ -168,7 +172,20 @@ END_SECTION
 START_SECTION(FeatureMap< Feature > mapSeeds2Features(const MSExperiment< PeakType > &map, const UInt RT_votes_cutoff))
 	FeatureMap<Feature> f = iw->mapSeeds2Features(map, 0);
 	TEST_EQUAL (f.size(), 1)
-END_SECTION	
+END_SECTION
+
+START_SECTION(void mergeFeatures(IsotopeWaveletTransform< PeakType > *later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff))
+	NOT_TESTABLE //only via CUDA
+END_SECTION
+
+START_SECTION(DoubleReal getLinearInterpolation(const typename MSSpectrum< PeakType >::const_iterator &left_iter, const DoubleReal mz_pos, const typename MSSpectrum< PeakType >::const_iterator &right_iter))
+	TEST_EQUAL((int)(iw->getLinearInterpolation(map[0].begin(), 1420.02, (map[0].begin()+1))*10),5)
+END_SECTION
+
+START_SECTION(DoubleReal getLinearInterpolation(const DoubleReal mz_a, const DoubleReal intens_a, const DoubleReal mz_pos, const DoubleReal mz_b, const DoubleReal intens_b))
+	TEST_EQUAL(iw->getLinearInterpolation(1,1, 1.5, 2, 2), 1.5)
+END_SECTION
+
 
 START_SECTION(~IsotopeWaveletTransform())
 	delete (iw);

@@ -32,7 +32,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/TransPeak1D.h>
+//#include <OpenMS/KERNEL/TransPeak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>

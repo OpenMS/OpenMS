@@ -26,7 +26,6 @@ RangeUtils.h
 RichPeak1D.h
 RichPeak2D.h
 StandardTypes.h
-TransPeak1D.h
 )
 
 ### add path to the filenames
