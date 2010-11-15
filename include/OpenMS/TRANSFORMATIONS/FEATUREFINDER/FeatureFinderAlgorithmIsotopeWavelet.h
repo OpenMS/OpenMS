@@ -69,13 +69,6 @@ namespace OpenMS
 			
 		typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
-		/*struct lessPair : public std::binary_function<std::pair<DoubleReal, DoubleReal>, std::pair<DoubleReal, DoubleReal>, bool> 
-		{
-			bool operator()(std::pair<DoubleReal, DoubleReal> x, std::pair<DoubleReal, DoubleReal> y) 
-			{ 
-				return (x.first < y.first); 
-			}
-    };*/
 
 		/** @brief Default Constructor */
 		FeatureFinderAlgorithmIsotopeWavelet() 
@@ -87,9 +80,12 @@ namespace OpenMS
 																	"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal " 
 																	"and sd the standard deviation of the transform. "
 																	"If you set intensity_threshold=-1, t' will be zero.\n"
-																	"As the 'right' value for this parameter is highly data dependent, we would recommend to start "
+																	"As the 'optimal' value for this parameter is highly data dependent, we would recommend to start "
 																	"with -1, which will also extract features with very low signal-to-noise ratio. Subsequently, one "
-																	"might increase the threshold to find an optimized trade-off between false positives and true positives.");
+																	"might increase the threshold to find an optimized trade-off between false positives and true positives. "
+																	"Depending on the dynamic range of your spectra, suitable value ranges include: -1, [0:10] and if data "
+																	"features even very high intensity values, t can also adopt values up to around 30. "
+																	"Please note that this parameter is not of an integer type, s.t. you can also use t:=0.1, e.g.");
 				
 				this->defaults_.setValue ("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
 																	"potential peptide masses are checked for plausibility.", StringList::create("advanced")); 
@@ -131,7 +127,6 @@ namespace OpenMS
 
 		MSSpectrum<PeakType>* createHRData (const UInt i)
 		{
-			//NOVEL TRY
 			MSSpectrum<PeakType> spec ((*this->map_)[i]);
 			
 			const MSSpectrum<PeakType>& specr ((*this->map_)[i]);
@@ -144,27 +139,29 @@ namespace OpenMS
 			spec[spec.size()-1].setMZ(-1); spec[spec.size()-1].setIntensity(-1);
 
 			ConstRefVector<MSSpectrum<PeakType> > c_sorted_spec (spec.begin(), spec.end());	
-			//Sort the transform in ascending order according to the intensities present in the transform 	
+			//Sort in ascending order according to the intensities present in the transform 	
 			c_sorted_spec.sortByPosition();
 		
-			/*std::ofstream ofilex ("spacings.trans");
-			for (UInt j=0; j<spec.size()-1; ++j)
-			{
-				ofilex << ::std::setprecision(12) << std::fixed << spec[j].getMZ() << "\t" << spec[j].getIntensity() << std::endl; 
-			};
-			ofilex.close();*/
+			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+				std::ofstream ofilex ("spacings.trans");
+				for (UInt j=0; j<spec.size()-1; ++j)
+				{
+					ofilex << ::std::setprecision(12) << std::fixed << spec[j].getMZ() << "\t" << spec[j].getIntensity() << std::endl; 
+				};
+				ofilex.close();
+			#endif
 
 			UInt pos=0;
 			while (c_sorted_spec[pos].getIntensity() <= 0)
 			{
 				if (++pos >= c_sorted_spec.size())
 				{
-					std::cout << "*********** Oh no" << std::endl;
+					std::cout << "Detected empty scan or a scan that cannot be interpolated with zeros in HR mode. " << std::endl;
+					std::cout << "Please check scan # " << i << " of your data set." << std::endl;
 					exit (-1);
 				}
 			};
 			DoubleReal bound=-1*c_sorted_spec[pos].getMZ();
-			//std::cout << "First relevant spacing is: " << -1*c_sorted_spec[pos].getMZ() << std::endl;
 		
 			MSSpectrum<PeakType>* new_spec = new MSSpectrum<PeakType>;
 			new_spec->reserve(200000); 
@@ -178,8 +175,6 @@ namespace OpenMS
 				count=0;
 				while (-spec[j].getMZ()-count*bound > bound)
 				{
-					//std::cout << "in loop: " << specr[j+1] << "\t" << "\t" << count << "\t" << -spec[j].getMZ()-count*bound
-					//	<< "\t" << bound << std::endl;
 					++count;
 					p.setMZ(specr[j].getMZ()+count*bound); p.setIntensity(0);
 					new_spec->push_back(p);
@@ -188,143 +183,16 @@ namespace OpenMS
 				new_spec->push_back(p);
 			};
 
-			/*std::ofstream ofiley ("new_spec.trans");
-			for (UInt j=0; j<new_spec->size(); ++j)
-			{
-				ofiley << ::std::setprecision(12) << std::fixed << (*new_spec)[j].getMZ() << "\t" << (*new_spec)[j].getIntensity() << std::endl; 
-			};
-			ofiley.close();*/
-
-
-			//END TRY NOVEL
-
-			/*const MSSpectrum<PeakType>& c_spec ((*this->map_)[i]);
-			Int peak_cutoff, end; DoubleReal seed_mz;
-			//std::map<DoubleReal, DoubleReal> positions;	
-			std::vector<std::pair<DoubleReal, DoubleReal> > positions; positions.reserve(iwt->getMaxScanSize());
-			//for (UInt s=0; s<c_spec.size(); ++s)
-			//{
-				//positions.insert (std::pair<DoubleReal, DoubleReal> (c_spec[s].getMZ(), c_spec[s].getIntensity()));
-				//positions.push_back (std::pair<DoubleReal, DoubleReal> (c_spec[s].getMZ(), c_spec[s].getIntensity()));
-			//};
-
-			for (UInt s=0; s<c_spec.size(); ++s)
-			{
-				if (c_spec[s].getIntensity() == 0)
+			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+				std::ofstream ofiley ("new_spec.trans");
+				for (UInt j=0; j<new_spec->size(); ++j)
 				{
-					continue;
+					ofiley << ::std::setprecision(12) << std::fixed << (*new_spec)[j].getMZ() << "\t" << (*new_spec)[j].getIntensity() << std::endl; 
 				};
-				seed_mz = c_spec[s].getMZ();
-				//for (UInt c=0; c<max_charge_; ++c)
-				//{
-					peak_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos(seed_mz, c+1);
-					end=4*(peak_cutoff-1) -1; //4 times and not 2 times, since we move by 0.5 m/z entities
+				ofiley.close();
+			#endif
 
-					UInt count=0;
-					for (Int p=0; p<end/2; ++p)
-					{
-						//if (c>0 && (count++)%(c+1) == 0)
-						//	continue;
-						//positions.insert (std::pair<DoubleReal, DoubleReal> (seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(p+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1), -1));
-						positions.push_back (std::pair<DoubleReal, DoubleReal> (seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(p+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1), -1));
-					};
-					positions.push_back (std::pair<DoubleReal, DoubleReal> (c_spec[end/2].getMZ(), c_spec[end/2].getIntensity()));
-
-					count=0;
-					for (Int p=end/2+1; p<=end; ++p)
-					{						
-						//if (c>0 && (count++)%(c+1) == 0)
-							//continue;
-						//positions.insert (std::pair<DoubleReal, DoubleReal> (seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(p+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1), -1));
-						positions.push_back (std::pair<DoubleReal, DoubleReal> (seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(p+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1), -1));
-					};
-			//	}
-			};
-								
-			//std::map<DoubleReal, DoubleReal>::iterator list_iter = positions.begin();
-			std::vector<std::pair<DoubleReal, DoubleReal> >::iterator list_iter = positions.begin();
-			std::sort(positions.begin(), positions.end(), lessPair());
-
-			//std::ofstream ofile100 ("positions_new.org");
-			//for (list_iter = positions.begin(); list_iter != positions.end(); ++list_iter)
-			//{
-			//	ofile100 << ::std::setprecision(12) << std::fixed << list_iter->first <<  "\t" << list_iter->second << std::endl;
-			//};
-			//ofile100.close();
-
-			typename MSSpectrum<PeakType>::const_iterator spec_iter;
-			bool broken=false;
-			DoubleReal x0, x1, y0, y1, q;
-			for (spec_iter=c_spec.begin(),list_iter = positions.begin(); spec_iter != c_spec.end(); ++spec_iter)
-			{
-				while (spec_iter->getMZ() >= list_iter->first)
-				{
-					if (++list_iter == positions.end())
-					{
-						broken=true;
-						break;
-					};
-				};
-				if (broken)
-				{
-					break;
-				};
-				if (list_iter->second > -1)
-				{
-					continue;
-				};
-				x0 = spec_iter->getMZ(); y0 = spec_iter->getIntensity();
-				x1 = (spec_iter+1)->getMZ(); y1 = (spec_iter+1)->getIntensity();
-				
-				while (list_iter->first < x1)
-				{
-					q=list_iter->first; 
-					list_iter->second = y0 + (q-x0)* (y1-y0)/(x1-x0);
-					if (++list_iter == positions.end())
-					{
-						broken=true;
-						break;
-					};
-				};
-				if (broken)
-				{
-					break;
-				};
-			};
-
-			//std::cout << "solved." << std::endl;
-			//std::stringstream stream;
-			//stream << "positions_new_" << ((*this->map_)[i]).getRT() << ".trans\0"; 
-			//std::ofstream ofile1000 (stream.str().c_str());
-			DoubleReal old_mz = INT_MIN;
-			iwt->computeMinSpacing((*this->map_)[i]);
-			DoubleReal min_spacing (iwt->getMinSpacing());
-			
-			MSSpectrum<PeakType>* new_spec = new MSSpectrum<PeakType>; 
-			new_spec->setRT(((*this->map_)[i]).getRT());
-			for (list_iter = positions.begin(); list_iter != positions.end(); ++list_iter)
-			{
-				if (list_iter->first-old_mz < min_spacing)
-				{
-					continue;
-				};									
-				
-				PeakType p; p.setMZ(list_iter->first); p.setIntensity(list_iter->second);
-				new_spec->push_back(p);
-				
-				old_mz = list_iter->first;
-
-				//ofile1000 << ::std::setprecision(12) << std::fixed << list_iter->first <<  "\t" << list_iter->second << std::endl;
-			};
-			//ofile1000.close();*/
-								
 			return (new_spec);
-	
-			//typename IsotopeWaveletTransform<PeakType>::TransSpectrum* c_trans = new typename IsotopeWaveletTransform<PeakType>::TransSpectrum (new_spec);
-			//iwt->initializeScanCuda (*new_spec);	
-			//return (c_trans);
-			//Additional experimental code for HighResData *********************
-
 		};
 
 

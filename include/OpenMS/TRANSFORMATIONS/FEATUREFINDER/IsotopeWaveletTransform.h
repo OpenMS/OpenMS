@@ -32,7 +32,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-//#include <OpenMS/KERNEL/TransPeak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -227,7 +226,7 @@ namespace OpenMS
  				* @param min_mz The smallest m/z value occurring in your map.
  				* @param max_mz The largest m/z value occurring in your map.
  				* @param max_charge The highest charge state you would like to consider. */
-			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size=0, const bool use_cuda=false, const bool hr_data=false);
+			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size=0, const bool use_cuda=false, const bool hr_data=false);
 
 			/** @brief Destructor. */
 			virtual ~IsotopeWaveletTransform () ;
@@ -367,7 +366,7 @@ namespace OpenMS
 				return (min_spacing_);
 			};			
 			
-			inline Int getMaxScanSize () const
+			inline Size getMaxScanSize () const
 			{
 				return (max_scan_size_);
 			};
@@ -535,7 +534,8 @@ namespace OpenMS
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
 			std::vector<DoubleReal> interpol_xs_, interpol_ys_;
 
-			UInt max_scan_size_, max_num_peaks_per_pattern_, max_charge_;
+			Size max_scan_size_; 
+			UInt max_num_peaks_per_pattern_, max_charge_;
 			bool hr_data_;
 			Int from_max_to_left_, from_max_to_right_;
 			std::vector<int> indices_;
@@ -605,7 +605,7 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size, const bool use_cuda, const bool hr_data) 
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size, const bool use_cuda, const bool hr_data) 
 	{
 		max_charge_ = max_charge;
 		max_scan_size_ = max_scan_size;
@@ -757,8 +757,6 @@ namespace OpenMS
 				//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
 				current = c_diff > T_boundary_left && c_diff <= T_boundary_right ? IsotopeWavelet::getValueByLambda (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
 			
-
-
 				value += current;
 			};		
 
