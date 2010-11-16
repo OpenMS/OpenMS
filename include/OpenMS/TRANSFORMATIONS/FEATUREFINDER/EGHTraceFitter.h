@@ -376,14 +376,31 @@ namespace OpenMS
 
       Size i = max_pos;
       LOG_DEBUG << "max_pos: " << max_pos << std::endl;
+      if (traces[traces.max_trace].peaks.size() < 3)
+      {
+        // TODO: abort the whole thing here??
+        //       because below we REQUIRE at least three peaks!!!
+      }
+
       Size filter_max_pos = traces[traces.max_trace].peaks.size() - 2;
 
       // compute a smoothed value for the maxima
-      DoubleReal smoothed_height = (traces[traces.max_trace].peaks[max_pos - 2].second->getIntensity()
-                                    + traces[traces.max_trace].peaks[max_pos - 1].second->getIntensity()
-                                    + traces[traces.max_trace].peaks[max_pos].second->getIntensity()
-                                    + traces[traces.max_trace].peaks[max_pos + 1].second->getIntensity()
-                                    + traces[traces.max_trace].peaks[max_pos + 2].second->getIntensity() ) / 5.0;
+      // if the maximum is close to the borders, we need to think of something...
+      DoubleReal smoothed_height;
+      if ((max_pos < 2) || (max_pos+2 >= traces[traces.max_trace].peaks.size()))
+      {
+        // ... too close to border... no smoothing
+        smoothed_height = traces[traces.max_trace].peaks[max_pos].second->getIntensity();
+        // TODO: does this trace even make sense?! why wasn't it extended it further? or should we have skipped it beforehand?
+      }
+      else
+      {
+        smoothed_height = (traces[traces.max_trace].peaks[max_pos - 2].second->getIntensity()
+                            + traces[traces.max_trace].peaks[max_pos - 1].second->getIntensity()
+                            + traces[traces.max_trace].peaks[max_pos].second->getIntensity()
+                            + traces[traces.max_trace].peaks[max_pos + 1].second->getIntensity()
+                            + traces[traces.max_trace].peaks[max_pos + 2].second->getIntensity() ) / 5.0;
+      }
 
       // use  moving average filter to avoid bad initial values
       // moving average of size 5
