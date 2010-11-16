@@ -37,7 +37,7 @@ namespace OpenMS
 {
 	// This is documented in the declaration, see FeatureFinder.h
 	template<class PeakType, class FeatureType>
-	void FeatureFinder::run(const String& algorithm_name, MSExperiment<PeakType> const & input_map, FeatureMap<FeatureType> & features, const Param& param, const FeatureMap<FeatureType>& seeds)
+	void FeatureFinder::run(const String& algorithm_name, MSExperiment<PeakType> & input_map, FeatureMap<FeatureType> & features, const Param& param, const FeatureMap<FeatureType>& seeds)
 	{
 		// Nothing to do if there is no data
 		if ((algorithm_name != "mrm" && input_map.size()==0) || (algorithm_name == "mrm" && input_map.getChromatograms().size() == 0))
@@ -61,17 +61,18 @@ namespace OpenMS
 			}
 			
 			//Check if the peaks are sorted according to m/z
+      if (!input_map.isSorted(true))
+      {
+        LOG_WARN << "Input map is not sorted by RT and m/z! This is done now, before applying the algorithm!" << std::endl;
+        input_map.sortSpectra(true);
+        input_map.sortChromatograms(true);
+      }
 			for (Size s=0; s<input_map.size(); ++s)
 			{
 				if (input_map[s].size()==0) continue;
-				DoubleReal last_pos = input_map[s][0].getMZ();
-				for (Size p=1; p<input_map[s].size(); ++p)
+				if (input_map[s][0].getMZ()<0)
 				{
-					if (input_map[s][p].getMZ()<last_pos)
-					{
-						throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder can only operate spectra that contain the peaks ordered according to m/z. Aborting.");
-					}
-					last_pos = input_map[s][p].getMZ();
+					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder can only operate spectra that contain the peaks with positive m/z values. Filter the data accordingly beforehand! Aborting.");
 				}
 			}
 		}

@@ -65,6 +65,9 @@ namespace OpenMS
 				There are several constraints for the @p input_map.  They are tested before
 				the algorithm starts.  It must only contain MS 1 level scans and you
 				have to call updateRanges() before passing it to this method.
+        The input map is sorted by RT & m/z if thats not the case.
+        Furthermore we throw an Exception if the data contains negative m/z values, 
+        as this will disturb most algorithms.
 
 				@param algorithm_name Name of the feature finding algorithm to use
 				@param input_map Input peak map
@@ -75,7 +78,7 @@ namespace OpenMS
 				Implemented in FeatureFinder_impl.h
 			*/
 			template<class PeakType, class FeatureType>
-			void run(const String& algorithm_name, MSExperiment<PeakType> const & input_map, FeatureMap<FeatureType> & features, const Param& param, const FeatureMap<FeatureType>& seeds);
+			void run(const String& algorithm_name, MSExperiment<PeakType> & input_map, FeatureMap<FeatureType> & features, const Param& param, const FeatureMap<FeatureType>& seeds);
 
 			/// Returns a non-mutable reference to a peak flag
 			const Flag& getPeakFlag(const IndexPair& index) const
