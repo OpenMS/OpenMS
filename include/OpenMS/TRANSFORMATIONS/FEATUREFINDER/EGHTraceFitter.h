@@ -377,6 +377,14 @@ namespace OpenMS
       Size i = max_pos;
       LOG_DEBUG << "max_pos: " << max_pos << std::endl;
       Size filter_max_pos = traces[traces.max_trace].peaks.size() - 2;
+
+      // compute a smoothed value for the maxima
+      DoubleReal smoothed_height = (traces[traces.max_trace].peaks[max_pos - 2].second->getIntensity()
+                                    + traces[traces.max_trace].peaks[max_pos - 1].second->getIntensity()
+                                    + traces[traces.max_trace].peaks[max_pos].second->getIntensity()
+                                    + traces[traces.max_trace].peaks[max_pos + 1].second->getIntensity()
+                                    + traces[traces.max_trace].peaks[max_pos + 2].second->getIntensity() ) / 5.0;
+
       // use  moving average filter to avoid bad initial values
       // moving average of size 5
       // TODO: optimize windows size
@@ -389,7 +397,7 @@ namespace OpenMS
                                + traces[traces.max_trace].peaks[i + 1].second->getIntensity()
                                + traces[traces.max_trace].peaks[i + 2].second->getIntensity() ) / 5.0;
 
-        if(smoothed / height_ < 0.5) break;
+        if(smoothed / smoothed_height < 0.5) break;
         else --i;
       }
       LOG_DEBUG << "Left alpha at " << i << " with " << traces[traces.max_trace].peaks[i].first << std::endl;
@@ -404,7 +412,7 @@ namespace OpenMS
                                + traces[traces.max_trace].peaks[i + 1].second->getIntensity()
                                + traces[traces.max_trace].peaks[i + 2].second->getIntensity() ) / 5.0;
 
-        if(smoothed / height_ < 0.5) break;
+        if(smoothed / smoothed_height < 0.5) break;
         else ++i;
       }
       LOG_DEBUG << "Right alpha at " << i << " with " << traces[traces.max_trace].peaks[i].first << std::endl;
