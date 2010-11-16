@@ -659,7 +659,7 @@ namespace OpenMS
 						
 						//------------------------------------------------------------------
 						//Step 3.3.2:
-						//Gauss fit (first fit to find the feature boundaries)
+            //Gauss/EGH fit (first fit to find the feature boundaries)
 						//------------------------------------------------------------------
 						Int plot_nr=-1;
 
@@ -758,17 +758,18 @@ namespace OpenMS
               {
                 egh_tau = (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getTau();
                 f.setMetaValue("EGH_tau",egh_tau);
+                f.setMetaValue("EGH_height",(static_cast<EGHTraceFitter<PeakType>*>(fitter))->getHeight());
+                f.setMetaValue("EGH_sigma",(static_cast<EGHTraceFitter<PeakType>*>(fitter))->getSigmaSquare());
               }
 						}
 						f.setRT(fitter->getCenter());
 						
-						//Calculate the mass of the feature: maximum, average, monoisotopic
-						String reported_mz = param_.getValue("feature:reported_mz");
-						if(reported_mz=="maximum")
+						//Calculate the mass of the feature: maximum, average, monoisotopic            
+            if(reported_mz_=="maximum")
 						{
 							f.setMZ(traces[traces.getTheoreticalmaxPosition()].getAvgMZ());
 						}
-						else if(reported_mz=="average")
+            else if(reported_mz_=="average")
 						{
 							DoubleReal total_intensity = 0.0;
 							DoubleReal average_mz = 0.0;
@@ -783,7 +784,7 @@ namespace OpenMS
 							average_mz /= total_intensity;
 							f.setMZ(average_mz);
 						}
-						else if(reported_mz=="monoisotopic")
+            else if(reported_mz_=="monoisotopic")
 						{
 							DoubleReal mono_mz = traces[traces.getTheoreticalmaxPosition()].getAvgMZ();
               mono_mz -= (Constants::PROTON_MASS_U/c) * (traces.getTheoreticalmaxPosition() + best_pattern.theoretical_pattern.trimmed_left);
@@ -1009,6 +1010,7 @@ namespace OpenMS
 			DoubleReal min_rt_span_; ///< Minimum RT range that has to be left after the fit
 			DoubleReal max_rt_span_; ///< Maximum RT range the model is allowed to span
 			DoubleReal max_feature_intersection_; ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
+      String reported_mz_; ///< The mass type that is reported for features. 'maximum' returns the m/z value of the highest mass trace. 'average' returns the intensity-weighted average m/z value of all contained peaks. 'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.
 			//@}
 
       /// @name Members for intensity significance estimation
@@ -1042,6 +1044,7 @@ namespace OpenMS
 				min_rt_span_ = param_.getValue("feature:min_rt_span");
 				max_rt_span_ = param_.getValue("feature:max_rt_span");
 				max_feature_intersection_ = param_.getValue("feature:max_intersection");
+        reported_mz_ = param_.getValue("feature:reported_mz");
 			}
 			
       /// Writes the abort reason to the log file and counts occurences for each reason
@@ -1792,7 +1795,7 @@ namespace OpenMS
        * @param new_traces Mass traces created by cropping the original mass traces.
        */
       void cropFeature_(TraceFitter<PeakType> * fitter,
-                        MassTraces & traces,
+                        const MassTraces & traces,
                         MassTraces & new_traces)
       {
         DoubleReal low_bound = fitter->getLowerRTBound();
@@ -1801,7 +1804,7 @@ namespace OpenMS
         log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
         for (Size t=0; t< traces.size(); ++t)
         {
-          MassTrace& trace = traces[t];
+          const MassTrace& trace = traces[t];
           log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")" << std::endl;
 
           MassTrace new_trace;
