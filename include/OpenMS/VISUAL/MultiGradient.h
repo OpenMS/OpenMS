@@ -121,7 +121,7 @@ namespace OpenMS
 		{
 			OPENMS_PRECONDITION(pre_.size()!=0,"MultiGradient::precalculatedColorAt(DoubleReal): Precalculation mode not activated!");
 			OPENMS_PRECONDITION(position>=pre_min_,(String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_+pre_size_) + ")!").c_str());
-			OPENMS_PRECONDITION(position<=pre_min_+pre_size_,(String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_+pre_size_) + ")!").c_str());
+      OPENMS_PRECONDITION(position<=pre_min_+pre_size_ + std::numeric_limits<DoubleReal>::epsilon() * (pre_min_+pre_size_) ,(String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_+pre_size_) + ")!").c_str());
 
       return pre_[(UInt)((position - pre_min_) / pre_size_ * pre_steps_)];
 		}
@@ -142,13 +142,13 @@ namespace OpenMS
 			The string represenation of a gradient starts with the interpolation mode: "Linear" or "Stairs" and the separator "|".
 			It is followed by an arbitrary number of integer-color-pairs. 
 			
-			Such a pair consists of an integer (0-100) followed by a comma and
+      Such a pair consists of floating point number (0.0-100.0) followed by a comma and
 			a "#". Then follows a color in RGB notation "#RRGGBB" and finally a semicolon.
 			
 			Examples are:
 			<UL>
 				<LI> "Linear|0,#ffff00;100,#000000"
-				<LI> "Stairs|0,#ffff00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000"
+        <LI> "Stairs|0,#ffff00;11.5,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000"
 			</UL>
 		*/
 		void fromString(const std::string& gradient);
