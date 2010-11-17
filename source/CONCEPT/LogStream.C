@@ -43,6 +43,10 @@
 
 #define BUFFER_LENGTH 32768
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace std;
 
 namespace OpenMS 
@@ -152,7 +156,6 @@ namespace OpenMS
 
   bool LogStreamBuf::isInCache_(std::string const & line)
   {
-    //cout << "LogCache (count)" << log_cache_.count(line) << endl;
     if(log_cache_.count(line) == 0)
     {
       return false;
@@ -264,15 +267,30 @@ namespace OpenMS
 					incomplete_line_ = "";
 					outstring += &(buf[0]);
 
-          // check if we already have that in line in our cache
-          if(!isInCache_(outstring)) 
+          // 1st check if we need to write to any attached string
+          //  to avoid cache checking if we do not have any streams
+          //  appended
+          if(stream_list_.size() > 0)
           {
 
-            // add line to the log cache
-            std::string extra_message = addToCache_(outstring);
+            // to avoid collisions between different threads e.g. simultanous deletion of cache entry
+            // we make this critical
+#ifdef _OPENMP
+            #pragma omp critical
+            {
+#endif
+            // check if we already have that in line in our cache
+            if(!isInCache_(outstring))
+            {
+              // add line to the log cache
+              std::string extra_message = addToCache_(outstring);
 
-						if (extra_message.size()>0) distribute_(extra_message);
-						distribute_(outstring);
+              if (extra_message.size()>0) distribute_(extra_message);
+              distribute_(outstring);
+            }
+#ifdef _OPENMP
+            }
+#endif
           } 
 
           // update the line pointers (increment both)

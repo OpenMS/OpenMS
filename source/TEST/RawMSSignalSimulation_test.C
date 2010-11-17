@@ -41,7 +41,7 @@ START_TEST(RawMSSignalSimulation, "$Id$")
 
 RawMSSignalSimulation* ptr = 0;
 SimRandomNumberGenerator empty_rnd_gen;
-const unsigned long rnd_gen_seed = 1;
+//const unsigned long rnd_gen_seed = 1;
 
 START_SECTION((RawMSSignalSimulation(const SimRandomNumberGenerator &rng)))
 {

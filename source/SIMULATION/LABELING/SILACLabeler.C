@@ -66,6 +66,7 @@ namespace OpenMS
     String mod_list = param_.getValue("SILAC_modifications");
     StringList modifications = StringList::create(mod_list);
 
+    // TODO: this one ignores modifications with multiple specificitys
     Map<String, const ResidueModification*> site_resmod_map;
 
     for(StringList::iterator it = modifications.begin() ; it != modifications.end() ; ++it)
