@@ -206,8 +206,7 @@ class TOPPIDPosteriorErrorProbability
 			}
 		}		
 		
-		vector<Int>::iterator charge = charges.begin();
-		do
+		for (vector<Int>::iterator charge = charges.begin();charge != charges.end();++charge)
 		{
 			for(StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
 			{
@@ -297,8 +296,7 @@ class TOPPIDPosteriorErrorProbability
 				target.clear();
 				decoy.clear();
 			}			
-			++charge;
-		}while(charge < charges.end());
+    }
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
