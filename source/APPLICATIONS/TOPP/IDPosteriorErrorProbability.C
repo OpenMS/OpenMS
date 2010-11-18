@@ -205,8 +205,12 @@ class TOPPIDPosteriorErrorProbability
 				break;
 			}
 		}		
-		
-		for (vector<Int>::iterator charge = charges.begin();charge != charges.end();++charge)
+	  vector<Int>::iterator charge;
+		if(split_charge)
+		{
+			charge = charges.begin();
+		}
+		do
 		{
 			for(StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
 			{
@@ -295,8 +299,12 @@ class TOPPIDPosteriorErrorProbability
 				scores.clear();
 				target.clear();
 				decoy.clear();
-			}			
-    }
+			}
+			if(split_charge)
+			{
+				++charge;
+			}
+     }while(charge < charges.end());
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
