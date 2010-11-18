@@ -19,6 +19,7 @@ MultiGradient.C
 MultiGradientSelector.C
 ParamEditor.C
 SpectraViewWidget.C
+SpectraIdentificationViewWidget.C
 Spectrum1DCanvas.C
 Spectrum1DWidget.C
 Spectrum2DCanvas.C

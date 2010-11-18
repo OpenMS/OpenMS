@@ -225,11 +225,18 @@ namespace OpenMS
 		}
 		
 		/// returns the layer data of the active layer
-		inline const LayerData& getCurrentLayer() const
+    inline const LayerData& getCurrentLayer() const
 		{
 			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getCurrentLayer() index overflow");
 			return layers_[current_layer_];
 		}
+
+    /// returns the layer data of the active layer
+    inline LayerData& getCurrentLayer()
+    {
+      OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getCurrentLayer() index overflow");
+      return layers_[current_layer_];
+    }
 
 		/// returns a layer flag of the current layer
 		bool getLayerFlag(LayerData::Flags f) const
@@ -430,6 +437,9 @@ namespace OpenMS
 
 		/// Sets the @p name of layer @p i
 		void setLayerName(Size i, const String& name);
+
+    /// Gets the name of layer @p i
+    String getLayerName(Size i);
 
 		/// Sets the parameters of the current layer
 		inline void setCurrentLayerParameters(const Param& param) 

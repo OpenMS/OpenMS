@@ -131,7 +131,7 @@ namespace OpenMS
     p_.setIntensity(1.0);
     if (add_metainfo)
     {
-      String name("immonium ion of H");
+      String name("iH");
       p_.setMetaValue("IonName", name);
     }
     spec.push_back(p_);
@@ -141,7 +141,7 @@ namespace OpenMS
     p_.setIntensity(1.0);
     if (add_metainfo)
     {
-      String name("immonium ion of F");
+      String name("iF");
       p_.setMetaValue("IonName", name);
     }
     spec.push_back(p_);
@@ -151,7 +151,7 @@ namespace OpenMS
     p_.setIntensity(1.0);
     if (add_metainfo)
     {
-      String name("immonium ion of Y");
+      String name("iY");
       p_.setMetaValue("IonName", name);
     }
     spec.push_back(p_);
@@ -161,7 +161,7 @@ namespace OpenMS
     p_.setIntensity(1.0);
     if (add_metainfo)
     {
-      String name("immonium ion of L/I");
+      String name("iL/I");
       p_.setMetaValue("IonName", name);
     }
     spec.push_back(p_);
@@ -171,7 +171,7 @@ namespace OpenMS
     p_.setIntensity(1.0);
     if (add_metainfo)
     {
-      String name("immonium ion of W");
+      String name("iW");
       p_.setMetaValue("IonName", name);
     }
     spec.push_back(p_);

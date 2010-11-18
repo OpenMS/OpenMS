@@ -11,6 +11,7 @@ MetaDataBrowser.h
 MultiGradientSelector.h
 ParamEditor.h
 SpectraViewWidget.h
+SpectraIdentificationViewWidget.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h
@@ -68,6 +69,7 @@ MultiGradient.h
 MultiGradientSelector.h
 ParamEditor.h
 SpectraViewWidget.h
+SpectraIdentificationViewWidget.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h

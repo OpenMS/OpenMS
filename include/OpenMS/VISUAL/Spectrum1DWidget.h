@@ -112,6 +112,7 @@ namespace OpenMS
 		
 		/// Spacer between the two y-axes in mirror mode (needed when visualizing an alignment)
 		QSpacerItem* spacer_;
+
 	};
 } // namespace OpenMS
 

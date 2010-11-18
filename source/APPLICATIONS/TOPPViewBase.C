@@ -36,6 +36,7 @@
 #include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
+#include <OpenMS/VISUAL/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -456,6 +457,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           spectra_views_dockwidget_ = new QDockWidget("Spectra views", this);
           addDockWidget(Qt::RightDockWidgetArea, spectra_views_dockwidget_);
           QTabWidget* tw = new QTabWidget(spectra_views_dockwidget_);
+
           spectra_views_dockwidget_->setWidget(tw);
           spectra_view_widget_ = new SpectraViewWidget();
           connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
@@ -463,9 +465,18 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
           connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
 
+          spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
+          connect(spectra_identification_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
+          connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
+          connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(removeTheoreticalSpectrumLayer_(int)));
+          connect(spectra_identification_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
+
           tw->addTab(spectra_view_widget_, "Spectra view");
-          //QWidget* spectra_ident_widget = new QWidget();
-          //tw->addTab(spectra_ident_widget, "Identification view");
+          tw->addTab(spectra_identification_view_widget_, "Identification view");
+
+          // switch between different view tabs
+          connect(tw, SIGNAL(currentChanged(int)), this, SLOT(updateSpectraViewBar()));
+
           windows->addAction(spectra_views_dockwidget_->toggleViewAction());
 
           //data filters
@@ -526,21 +537,26 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
           defaults_.setValue("preferences:db:port", 3306, "Database server port.");
           defaults_.setSectionDescription("preferences:db","Database settings.");
-          //1d
+          // 1d view
           Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(),0);
           defaults_.insert("preferences:1d:",def1->getDefaults());
           delete def1;
           defaults_.setSectionDescription("preferences:1d","Settings for single spectrum view.");
-          //2d
+          // 2d view
           Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(),0);
           defaults_.insert("preferences:2d:",def2->getDefaults());
           defaults_.setSectionDescription("preferences:2d","Settings for 2D map view.");
           delete def2;
-          //3d
+          // 3d view
           Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(),0);
           defaults_.insert("preferences:3d:",def3->getDefaults());
           delete def3;
           defaults_.setSectionDescription("preferences:3d","Settings for 3D map view.");
+          // identification view
+          SpectraIdentificationViewWidget* def4 = new SpectraIdentificationViewWidget(Param(),0);
+          defaults_.insert("preferences:idview:",def4->getDefaults());
+          delete def4;
+          defaults_.setSectionDescription("preferences:idview","Settings for identification view.");
 
           defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
 
@@ -637,7 +653,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     //add data
     if (caption=="") caption = String("DB entry ")+db_id;
-    addData_(dummy_map_sptr, dummy_map2_sptr, dummy_peptides, exp_sptr, data_type, false, show_options, "", caption, window_id);
+    addData_(dummy_map_sptr, dummy_map2_sptr, dummy_peptides, exp_sptr, data_type, false, show_options, true, "", caption, window_id);
 
     //Reset cursor
     setCursor(Qt::ArrowCursor);
@@ -716,7 +732,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
 		Internal::TOPPViewPrefDialog dlg(this);
 
-		//get pointers
+    // --------------------------------------------------------------------
+    // Get pointers to the widget in the preferences dialog
+
+    // default tab
 		QLineEdit* default_path = dlg.findChild<QLineEdit*>("default_path");
 		QCheckBox* default_path_current = dlg.findChild<QCheckBox*>("default_path_current");
 		QLineEdit* temp_path = dlg.findChild<QLineEdit*>("temp_path");
@@ -725,25 +744,55 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		QComboBox* map_cutoff = dlg.findChild<QComboBox*>("map_cutoff");
 		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 
+    // db tab
 		QLineEdit* db_host = dlg.findChild<QLineEdit*>("db_host");
 		QSpinBox* db_port = dlg.findChild<QSpinBox*>("db_port");
 		QLineEdit* db_name = dlg.findChild<QLineEdit*>("db_name");
 		QLineEdit* db_login = dlg.findChild<QLineEdit*>("db_login");
 
+    // 1D view tab
 		ColorSelector* color_1D = dlg.findChild<ColorSelector*>("color_1D");
 		ColorSelector* selected_1D = dlg.findChild<ColorSelector*>("selected_1D");
 		ColorSelector* icon_1D = dlg.findChild<ColorSelector*>("icon_1D");
 
+    // 2D view tab
 		MultiGradientSelector* peak_2D = dlg.findChild<MultiGradientSelector*>("peak_2D");
 		QComboBox* mapping_2D = dlg.findChild<QComboBox*>("mapping_2D");
 		QComboBox* feature_icon_2D = dlg.findChild<QComboBox*>("feature_icon_2D");
 		QSpinBox* feature_icon_size_2D = dlg.findChild<QSpinBox*>("feature_icon_size_2D");
 
+    // 3D view tab
 		MultiGradientSelector* peak_3D = dlg.findChild<MultiGradientSelector*>("peak_3D");
 		QComboBox* shade_3D = dlg.findChild<QComboBox*>("shade_3D");
 		QSpinBox* line_width_3D  = dlg.findChild<QSpinBox*>("line_width_3D");
 
-		//set General values
+    // identification view tab
+    QListWidget* id_view_ions = dlg.findChild<QListWidget*>("ions_list_widget");
+    QDoubleSpinBox* a_intensity = dlg.findChild<QDoubleSpinBox*>("a_intensity");
+    QDoubleSpinBox* b_intensity = dlg.findChild<QDoubleSpinBox*>("b_intensity");
+    QDoubleSpinBox* c_intensity = dlg.findChild<QDoubleSpinBox*>("c_intensity");
+    QDoubleSpinBox* x_intensity = dlg.findChild<QDoubleSpinBox*>("x_intensity");
+    QDoubleSpinBox* y_intensity = dlg.findChild<QDoubleSpinBox*>("y_intensity");
+    QDoubleSpinBox* z_intensity = dlg.findChild<QDoubleSpinBox*>("z_intensity");
+    QDoubleSpinBox* relative_loss_intensity = dlg.findChild<QDoubleSpinBox*>("relative_loss_intensity");
+    QSpinBox* max_isotopes = dlg.findChild<QSpinBox*>("max_isotopes");
+    QSpinBox* charge = dlg.findChild<QSpinBox*>("charge");
+
+    QList<QListWidgetItem*> a_ions = id_view_ions->findItems("A-ions", Qt::MatchFixedString);
+    QList<QListWidgetItem*> b_ions = id_view_ions->findItems("B-ions", Qt::MatchFixedString);
+    QList<QListWidgetItem*> c_ions = id_view_ions->findItems("C-ions", Qt::MatchFixedString);
+    QList<QListWidgetItem*> x_ions = id_view_ions->findItems("X-ions", Qt::MatchFixedString);
+    QList<QListWidgetItem*> y_ions = id_view_ions->findItems("Y-ions", Qt::MatchFixedString);
+    QList<QListWidgetItem*> z_ions = id_view_ions->findItems("Z-ions", Qt::MatchFixedString);
+    QList<QListWidgetItem*> pc_ions = id_view_ions->findItems("Precursor", Qt::MatchFixedString);
+    QList<QListWidgetItem*> nl_ions = id_view_ions->findItems("Neutral losses", Qt::MatchFixedString);
+    QList<QListWidgetItem*> ic_ions = id_view_ions->findItems("Isotope clusters", Qt::MatchFixedString);
+    QList<QListWidgetItem*> ai_ions = id_view_ions->findItems("Abundant immonium-ions", Qt::MatchFixedString);
+
+    // --------------------------------------------------------------------
+    // Set dialog entries from current parameter object (default values)
+
+    // default
 		default_path->setText(param_.getValue("preferences:default_path").toQString());
 		if ((String)param_.getValue("preferences:default_path_current")=="true")
 		{
@@ -759,25 +808,132 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));
 		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));
 
+    // db
 		db_host->setText(param_.getValue("preferences:db:host").toQString());
 		db_port->setValue((Int)param_.getValue("preferences:db:port"));
 		db_name->setText(param_.getValue("preferences:db:name").toQString());
 		db_login->setText(param_.getValue("preferences:db:login").toQString());
 
+    // 1D view
 		color_1D->setColor(QColor(param_.getValue("preferences:1d:peak_color").toQString()));
 		selected_1D->setColor(QColor(param_.getValue("preferences:1d:highlighted_peak_color").toQString()));
 		icon_1D->setColor(QColor(param_.getValue("preferences:1d:icon_color").toQString()));
 
+    // 2D view
 		peak_2D->gradient().fromString(param_.getValue("preferences:2d:dot:gradient"));
 		mapping_2D->setCurrentIndex(mapping_2D->findText(param_.getValue("preferences:2d:mapping_of_mz_to").toQString()));
 		feature_icon_2D->setCurrentIndex(feature_icon_2D->findText(param_.getValue("preferences:2d:dot:feature_icon").toQString()));
 		feature_icon_size_2D->setValue((Int)param_.getValue("preferences:2d:dot:feature_icon_size"));
 
+    // 3D view
 		peak_3D->gradient().fromString(param_.getValue("preferences:3d:dot:gradient"));
 		shade_3D->setCurrentIndex((Int)param_.getValue("preferences:3d:dot:shade_mode"));
 		line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
 
-		//execute dialog
+    // id view
+    a_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:a_intensity"));
+    b_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:b_intensity"));
+    c_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:c_intensity"));
+    x_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:x_intensity"));
+    y_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:y_intensity"));
+    z_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:z_intensity"));
+
+    relative_loss_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:relative_loss_intensity"));
+    max_isotopes->setValue((Int)param_.getValue("preferences:idview:max_isotope"));
+    charge->setValue((Int)param_.getValue("preferences:idview:charge"));
+
+    if(a_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'A-ions' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:show_a_ions").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      a_ions[0]->setCheckState(state);
+    }
+
+    if(b_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'B-ions' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:show_b_ions").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      b_ions[0]->setCheckState(state);
+    }
+
+    if(c_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'C-ions' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:show_c_ions").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      c_ions[0]->setCheckState(state);
+    }
+
+    if(x_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'X-ions' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:show_x_ions").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      x_ions[0]->setCheckState(state);
+    }
+
+    if(y_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'Y-ions' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:show_y_ions").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      y_ions[0]->setCheckState(state);
+    }
+
+    if(z_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'Z-ions' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:show_z_ions").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      z_ions[0]->setCheckState(state);
+    }
+
+    if(pc_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'Precursor' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:show_precursor").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      pc_ions[0]->setCheckState(state);
+    }
+
+    if(nl_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'Neutral losses' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:add_losses").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      nl_ions[0]->setCheckState(state);
+    }
+
+    if(ic_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'Isotope clusters' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:add_isotopes").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      ic_ions[0]->setCheckState(state);
+    }
+
+    if(ai_ions.size() == 0)
+    {
+      showLogMessage_(LS_ERROR,"", "String 'Abundant immonium-ions' doesn't exist in identification dialog.");
+    } else
+    {
+      Qt::CheckState state = param_.getValue("preferences:idview:add_abundant_immonium_ions").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      ai_ions[0]->setCheckState(state);
+    }
+
+    // --------------------------------------------------------------------
+    // Execute dialog and update parameter object with user modified values
 		if (dlg.exec())
 		{
 			param_.setValue("preferences:default_path", default_path->text());
@@ -813,6 +969,48 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			param_.setValue("preferences:3d:dot:gradient",peak_3D->gradient().toString());
 			param_.setValue("preferences:3d:dot:shade_mode", shade_3D->currentIndex());
 			param_.setValue("preferences:3d:dot:line_width",line_width_3D->value());
+
+      // id view
+      param_.setValue("preferences:idview:a_intensity", a_intensity->value(), "Default intensity of a-ions");
+      param_.setValue("preferences:idview:b_intensity", b_intensity->value(), "Default intensity of b-ions");
+      param_.setValue("preferences:idview:c_intensity", c_intensity->value(), "Default intensity of c-ions");
+      param_.setValue("preferences:idview:x_intensity", x_intensity->value(), "Default intensity of x-ions");
+      param_.setValue("preferences:idview:y_intensity", y_intensity->value(), "Default intensity of y-ions");
+      param_.setValue("preferences:idview:z_intensity", z_intensity->value(), "Default intensity of z-ions");
+      param_.setValue("preferences:idview:relative_loss_intensity", relative_loss_intensity->value(), "Relativ loss in percent");
+      param_.setValue("preferences:idview:max_isotope", max_isotopes->value(), "Maximum number of isotopes");
+      param_.setValue("preferences:idview:charge", charge->value(), "Charge state");
+
+      String checked;
+      a_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:show_a_ions", checked, "Show a-ions");
+
+      b_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:show_b_ions", checked, "Show b-ions");
+
+      c_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:show_c_ions", checked, "Show c-ions");
+
+      x_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:show_x_ions", checked, "Show x-ions");
+
+      y_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:show_y_ions", checked, "Show y-ions");
+
+      z_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:show_z_ions", checked, "Show z-ions");
+
+      pc_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:show_precursor", checked, "Show precursor");
+
+      nl_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:add_losses", checked, "Show neutral losses");
+
+      ic_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:add_isotopes", checked, "Show isotopes");
+
+      ai_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:add_abundant_immonium_ions", checked, "Show abundant immonium ions");
 
 			savePreferences();
 		}
@@ -937,7 +1135,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	abs_filename = "";
     }
 
-    addData_(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, data_type, false, show_options, abs_filename, caption, window_id, spectrum_id);
+    addData_(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, data_type, false, show_options, true, abs_filename, caption, window_id, spectrum_id);
 
   	//add to recent file
     if (add_to_recent)
@@ -952,10 +1150,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     setCursor(Qt::ArrowCursor);
   }
 
-  void TOPPViewBase::addData_(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
+  void TOPPViewBase::addData_(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
   {      
     // initialize flags with defaults from the parameters
-    bool as_new_window = true;
   	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
   	bool maps_as_1d = false;
     bool use_intensity_cutoff = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
@@ -1579,7 +1776,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       return;
     }
-    spectra_view_widget_->updateEntries(cc->getCurrentLayer());
+
+    if (spectra_view_widget_->isVisible())
+    {
+      spectra_view_widget_->updateEntries(cc->getCurrentLayer());
+    }
+
+    if (spectra_identification_view_widget_->isVisible())
+    {
+      spectra_identification_view_widget_->updateEntries(cc->getCurrentLayer());
+    }
   }
 
   /*
@@ -1971,6 +2177,37 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (widget_1d)
     {
       widget_1d->canvas()->activateSpectrum(index);
+      UInt ms_level = widget_1d->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
+      if (ms_level == 2)
+      {
+        vector<PeptideIdentification> pi = widget_1d->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+        if (pi.size() != 0)
+        {
+          Size best_i_index = 0;
+          Size best_j_index = 0;
+          bool is_higher_score_better = false;
+          Size best_score = pi[0].getHits()[0].getScore();
+          is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
+
+          // determine best scoring hit
+          for(Size i=0; i!=pi.size(); ++i)
+          {
+            for(Size j=0; j!=pi[i].getHits().size(); ++j)
+            {
+              PeptideHit ph = pi[i].getHits()[j];
+              // better score?
+              if ((ph.getScore() < best_score && !is_higher_score_better)
+               || (ph.getScore() > best_score && is_higher_score_better))
+              {
+                best_score = ph.getScore();
+                best_i_index = i;
+                best_j_index = j;
+              }
+            }
+          }
+          addTheoreticalSpectrum(pi[best_i_index].getHits()[best_j_index]);
+        }
+      }
     }
   }
 
@@ -2449,9 +2686,159 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         IDMapper().annotate(*layer.getConsensusMap(),identifications,protein_identifications);
 			}
 		}
+    updateSpectraViewBar();
 	}
 
-	void TOPPViewBase::showSpectrumGenerationDialog()
+  void TOPPViewBase::addTheoreticalSpectrum(const PeptideHit& ph)
+  {
+    AASequence aa_sequence = ph.getSequence();
+
+    Int charge = 1;
+
+    if (aa_sequence.isValid())
+    {
+      RichPeakSpectrum rich_spec;
+      TheoreticalSpectrumGenerator generator;
+      Param p;
+      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+      p.setValue("max_isotope", param_.getValue("preferences:idview:max_isotope"), "Number of isotopic peaks");
+      p.setValue("add_losses", param_.getValue("preferences:idview:add_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+      p.setValue("add_isotopes", param_.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
+      p.setValue("add_abundant_immonium_ions", param_.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
+
+      p.setValue("a_intensity", param_.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
+      p.setValue("b_intensity", param_.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
+      p.setValue("c_intensity", param_.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
+      p.setValue("x_intensity", param_.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
+      p.setValue("y_intensity", param_.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
+      p.setValue("z_intensity", param_.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
+      p.setValue("relative_loss_intensity", param_.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
+      generator.setParameters(p);
+
+      try
+      {
+        if (param_.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
+        }
+        if (param_.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
+        }
+        if (param_.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
+        }
+        if (param_.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
+        }
+        if (param_.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
+        }
+        if (param_.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
+        }
+        if (param_.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
+        {
+          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+        }
+        if (param_.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
+        {
+          generator.addAbundantImmoniumIons(rich_spec);
+        }
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
+        return;
+      }
+
+      // convert rich spectrum to simple spectrum
+      PeakSpectrum new_spec;
+      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+      {
+        new_spec.push_back(static_cast<Peak1D>(*it));
+      }
+
+      PeakMap new_exp;
+      new_exp.push_back(new_spec);
+      ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+      FeatureMapSharedPtrType f_dummy(new FeatureMapType());
+      ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+      vector<PeptideIdentification> p_dummy;
+
+      Size real_spectrum_layer_index = active1DWindow_()->canvas()->activeLayerIndex();
+      Size real_spectrum_index = active1DWindow_()->canvas()->getCurrentLayer().current_spectrum;
+
+
+//      QTableWidget* tw = spectra_identification_view_widget_->findChild<QTableWidget*>("table_widget");
+//      tw->scrollBarWidgets()
+      spectra_identification_view_widget_->ignore_update = true;
+
+      String layer_caption = aa_sequence.toString().toQString() + QString(" (identification view)");
+      addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, false, "", layer_caption.toQString());
+      Size theoretical_spectrum_layer_index = active1DWindow_()->canvas()->activeLayerIndex();
+
+      // kind of a hack to check whether adding the layer was successful
+      if (real_spectrum_layer_index != theoretical_spectrum_layer_index)
+      {
+        // ensure theoretical spectrum is drawn as dashed sticks
+        draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
+        setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+        active1DWindow_()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
+        // Add ion names as annotations to the theoretical spectrum
+        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+        {
+          if (it->getMetaValue("IonName") != DataValue::EMPTY)
+          {
+            //cout << it->getMetaValue("IonName") << endl;
+            DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
+            QString s(((string)it->getMetaValue("IonName")).c_str());
+            Annotation1DItem* item = new Annotation1DTextItem(position, s, Qt::AlignTop);
+            item->setSelected(false);
+            active1DWindow_()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+          }
+        }
+        // activate real data layer and spectrum        
+        active1DWindow_()->canvas()->activateLayer(real_spectrum_layer_index);
+        active1DWindow_()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
+//        cout << "LI: " << real_spectrum_layer_index << endl;
+//        cout << "SI: " << real_spectrum_index << endl;
+        updateLayerBar();
+        spectra_identification_view_widget_->ignore_update = false;
+      }
+    }
+    else
+    {
+      QMessageBox::warning(this, "Error", "The entered peptide sequence is invalid!");
+    }
+  }
+
+  void TOPPViewBase::removeTheoreticalSpectrumLayer_(int spectrum_index)
+  {
+    // find the automatical generated layer with theoretical spectrum and remove it
+    if (active1DWindow_())
+    {
+      Size lc = active1DWindow_()->canvas()->getLayerCount();
+      for(Size i=0; i!=lc; ++i)
+      {
+        String ln = active1DWindow_()->canvas()->getLayerName(i);
+        if (ln.hasSubstring("(identification view)"))
+        {
+          active1DWindow_()->canvas()->removeLayer(i);
+          updateLayerBar();
+          break;
+        }
+      }
+      activate1DSpectrum(spectrum_index);
+    }
+  }
+
+  void TOPPViewBase::showSpectrumGenerationDialog()
 	{
 		TheoreticalSpectrumGenerationDialog spec_gen_dialog;
 		if (spec_gen_dialog.exec())
@@ -2540,7 +2927,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           {
             generator.addAbundantImmoniumIons(rich_spec);
           }
-
         }
         catch (Exception::BaseException& e)
         {
@@ -2548,6 +2934,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				  return;
         }
 
+        // convert rich spectrum to simple spectrum
 				PeakSpectrum new_spec;
 				for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
 				{
@@ -2560,11 +2947,22 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         FeatureMapSharedPtrType f_dummy(new FeatureMapType());
         ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
 				vector<PeptideIdentification> p_dummy;
-        addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, "", seq_string + QString(" (theoretical)"));
+        addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
 
 	      // ensure spectrum is drawn as sticks
 	      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
 				setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+
+        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+        {
+          if (it->getMetaValue("IonName") != DataValue::EMPTY)
+          {
+            cout << it->getMetaValue("IonName") << endl;
+            DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
+            //Annotation1DItem* item = new Annotation1DTextItem(position, "x");
+            //active1DWindow_()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+          }
+        }
 			}
 			else
 			{
@@ -2634,6 +3032,35 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       // set visible aree to visible area in 2D view
       w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
+    } else if (ms_level == 2)
+    {
+      vector<PeptideIdentification> pi = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+      if (pi.size() != 0)
+      {
+        Size best_i_index = 0;
+        Size best_j_index = 0;
+        bool is_higher_score_better = false;
+        Size best_score = pi[0].getHits()[0].getScore();        
+        is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
+
+        // determine best scoring hit
+        for(Size i=0; i!=pi.size(); ++i)
+        {
+          for(Size j=0; j!=pi[i].getHits().size(); ++j)
+          {
+            PeptideHit ph = pi[i].getHits()[j];
+            // better score?
+            if ((ph.getScore() < best_score && !is_higher_score_better)
+             || (ph.getScore() > best_score && is_higher_score_better))
+            {
+              best_score = ph.getScore();
+              best_i_index = i;
+              best_j_index = j;
+            }
+          }
+        }        
+        addTheoreticalSpectrum(pi[best_i_index].getHits()[best_j_index]);
+      }
     }
 
     String caption = layer.name;
@@ -3090,7 +3517,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				vector<PeptideIdentification> peptides = layer.peptides;
 
 				//add the data
-				addData_(features, consensus, peptides, peaks, layer.type, false, false, layer.filename, layer.name, new_id);
+        addData_(features, consensus, peptides, peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
 			}
       else if (source == spectra_view_treewidget)
 			{
@@ -3106,7 +3533,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
 					vector<PeptideIdentification> p_dummy;
-          addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, layer.filename, layer.name, new_id);
+          addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.name, new_id);
 				}
 			}
 			else if (source == 0)

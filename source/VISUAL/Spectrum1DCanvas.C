@@ -625,6 +625,7 @@ namespace OpenMS
 		//remove settings
 		layers_.erase(layers_.begin()+layer_index);
 		draw_modes_.erase(draw_modes_.begin()+layer_index);
+    peak_penstyle_.erase(peak_penstyle_.begin()+layer_index);
 	
 		//update current layer if it became invalid
 		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
@@ -706,12 +707,13 @@ namespace OpenMS
 			return;
 		}
 
+    /*
     #ifdef DEBUG_TOPPVIEW
       cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
       cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
       //cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " int: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl;
     #endif
-		
+    */
 		QTime timer;
 		if (show_timing_)
 		{
@@ -739,7 +741,10 @@ namespace OpenMS
 				if (layer.visible)
 				{
 					QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
-					painter.setPen(QPen(QColor(layer.param.getValue("peak_color").toQString()), 1));
+          QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
+          pen.setStyle(peak_penstyle_[i]);
+          painter.setPen(pen);
+
 					if (intensity_mode_ == IM_PERCENTAGE)
 					{
 						percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum.getMaxInt();
@@ -774,6 +779,7 @@ namespace OpenMS
 					{
 						case DM_PEAKS:
 							//-----------------------------------------DRAWING PEAKS-------------------------------------------							
+
               for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
 							{
 								if (layer.filters.passes(spectrum,it-spectrum.begin()))
@@ -890,9 +896,11 @@ namespace OpenMS
 		}
 		
 		painter.end();
+    /*
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
 #endif
+    */
 		if (show_timing_)
 		{
 			cout << "paint event took " << timer.elapsed() << " ms" << endl;
@@ -1053,13 +1061,16 @@ namespace OpenMS
 			return false;
 		}
 		
-		//add new draw mode
+    //add new draw mode and style
 		draw_modes_.push_back(DM_PEAKS);
+    peak_penstyle_.push_back(Qt::SolidLine);
+
 		//estimate peak type
 		PeakTypeEstimator pte;
 		if (pte.estimateType(getCurrentLayer_().getCurrentSpectrum().begin(),getCurrentLayer_().getCurrentSpectrum().end()) == SpectrumSettings::RAWDATA)
 		{
 			draw_modes_.back() = DM_CONNECTEDLINES;
+      peak_penstyle_.push_back(Qt::SolidLine);
 		}
 		
 		//Change peak color if this is not the first layer
@@ -1868,7 +1879,20 @@ namespace OpenMS
   {
     is_swapped_ = swapped;
   }
-	
+	  
+  void Spectrum1DCanvas::setCurrentLayerPeakPenStyle(Qt::PenStyle ps)
+  {    
+    //no layers
+    if (layers_.size()==0) return;
+
+    if (peak_penstyle_[current_layer_] != ps)
+    {
+      peak_penstyle_[current_layer_] = ps;
+      update_buffer_ = true;
+      update_(__PRETTY_FUNCTION__);
+    }
+  }
+
 }//Namespace
 
 

@@ -140,6 +140,9 @@ namespace OpenMS
       /// is the widget shown vertically? (for projections)
       void setSwappedAxis(bool swapped);
 
+      /// Set's the Qt PenStyle of the active layer
+      void setCurrentLayerPeakPenStyle(Qt::PenStyle ps);
+
   signals:
       /// Requests to display all spectra in 2D plot
       void showCurrentPeaksAs2D();
@@ -211,6 +214,9 @@ namespace OpenMS
 
 			/// Draw modes (for each spectrum)
 			std::vector<DrawModes> draw_modes_; 
+      /// Draw style
+      std::vector<Qt::PenStyle> peak_penstyle_;
+
       /// start point of "ruler" for measure mode
       QPoint measurement_start_point_;
       /// Indicates whether this widget is currently in mirror mode

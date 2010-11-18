@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 
 //STL
 #include <map>
@@ -220,6 +221,8 @@ namespace OpenMS
       void annotateWithID();
       /// Shows the theoretical spectrum generation dialog
       void showSpectrumGenerationDialog();
+      /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
+      void addTheoreticalSpectrum(const PeptideHit& ph);
       /// Shows the spectrum alignment dialog
       void showSpectrumAlignmentDialog();
       /// Shows the spectrum with index @p index of the active layer in 1D
@@ -277,7 +280,8 @@ namespace OpenMS
     	void showSpectrumBrowser();
       /// shows the spectrum metadata
       void showSpectrumMetaData(int spectrum_index);
-
+      /// removes all layer with theoretical spectrum generated in identification then actives given layer index
+      void removeTheoreticalSpectrumLayer_(int spectrum_index);
       //@}
 
       /** @name Tabbar slots
@@ -326,7 +330,7 @@ namespace OpenMS
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       	@param spectrum_id determines the spectrum to show in 1D view.
       */
-      void addData_(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
+      void addData_(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
 
       /// unique list of files referenced by all layers
        std::set<String> getFilenamesOfOpenFiles();
@@ -372,6 +376,7 @@ namespace OpenMS
       //@{
       QDockWidget* spectra_views_dockwidget_;
       SpectraViewWidget* spectra_view_widget_;
+      SpectraIdentificationViewWidget* spectra_identification_view_widget_;
       //@}
 
       ///@name Data filter widgets
