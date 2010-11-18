@@ -40,7 +40,8 @@ namespace OpenMS
   SILACLabeler::SILACLabeler()
   {
     setName("SILACLabeler");
-    defaults_.setValue("SILAC_modifications", "UniMod:944", "Comma separated list of SILAC modifications that will be added to the labeled channel.");
+    defaults_.setValue("SILAC_modification", "UniMod:188", "SILAC modification that will be added to the labeled channel.");
+    defaults_.setValue("SILAC_specificities","R,K", "Comma separated list of amino acids that will be modified.");
     defaultsToParam_();
   }
 
@@ -63,32 +64,41 @@ namespace OpenMS
     }
 
     // parse modifications
-    String mod_list = param_.getValue("SILAC_modifications");
-    StringList modifications = StringList::create(mod_list);
+    String mod_name = param_.getValue("SILAC_modification");
+    String specificities = param_.getValue("SILAC_specificities");
 
-    // TODO: this one ignores modifications with multiple specificitys
+    StringList origins_list = StringList::create(specificities);
+    std::set<String> origins_set;
+    origins_set.insert(origins_list.begin(),origins_list.end());
+
+
+    std::set<const ResidueModification*> modifications;
+    try
+    {
+      ModificationsDB::getInstance()->searchModifications(modifications,mod_name,ResidueModification::ANYWHERE);
+    }
+    catch (Exception::ElementNotFound ex)
+    {
+      // nothing to clean up here
+      ex.setMessage("The modification \"" + mod_name + "\" could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)");
+      throw ex;
+    }
+
+    // this one ignores modifications with multiple specificitys
     Map<String, const ResidueModification*> site_resmod_map;
 
-    for(StringList::iterator it = modifications.begin() ; it != modifications.end() ; ++it)
+    for(std::set<const ResidueModification*>::iterator mod_it = modifications.begin() ; mod_it != modifications.end() ; ++mod_it)
     {
-      try
+      if(origins_set.find((*mod_it)->getOrigin()) != origins_set.end())
       {
-        const ResidueModification* mod = &ModificationsDB::getInstance()->getModification(*it);
-        if(site_resmod_map.has(mod->getOrigin()))
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator can only handle one modification specific for the residue \"" + mod->getOrigin() + "\"");
-        }
-        else
-        {
-          site_resmod_map.insert(std::make_pair<String, const ResidueModification*>(mod->getOrigin(), mod));
-        }
+        site_resmod_map.insert(std::make_pair<String, const ResidueModification*>((*mod_it)->getOrigin(), (*mod_it)));
       }
-      catch (Exception::ElementNotFound ex)
-      {
-        // nothing to clean up here
-        ex.setMessage("The modification \"" + *it + "\" could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)");
-        throw ex;
-      }
+    }
+
+    if(site_resmod_map.size() == 0)
+    {
+      // no modifications -> no labeling
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"You need to specify at least one residue that can be modified by the modification " + ((*modifications.begin())->getFullName()));
     }
 
     // label second channel

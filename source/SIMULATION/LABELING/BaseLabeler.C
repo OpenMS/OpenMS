@@ -137,7 +137,7 @@ namespace OpenMS
     {
       if(simulated_features[i].metaValueExists("parent_feature"))
       {
-        std::cout << "Checking [" << i << "]: " << simulated_features[i].getPeptideIdentifications()[0].getHits()[0].getSequence ().toString()
+        LOG_DEBUG << "Checking [" << i << "]: " << simulated_features[i].getPeptideIdentifications()[0].getHits()[0].getSequence ().toString()
           << " with charge " << simulated_features[i].getCharge() << " (" << simulated_features[i].getMetaValue("charge_adducts") << ")"
           << " parent was " << simulated_features[i].getMetaValue("parent_feature") << std::endl;
         id_map[simulated_features[i].getMetaValue("parent_feature")].push_back((Int)i);
@@ -146,7 +146,7 @@ namespace OpenMS
 
     for(Map<String, IntList>::iterator it = id_map.begin() ; it != id_map.end() ; ++it)
     {
-      std::cout << it->first << " " << it->second << std::endl;
+      LOG_DEBUG << it->first << " " << it->second << std::endl;
     }
 
     // new consensus map
@@ -156,13 +156,13 @@ namespace OpenMS
     {
       bool complete = true;
 
-      std::cout << "Checking consensus feature containing: " << std::endl;
+      LOG_DEBUG << "Checking consensus feature containing: " << std::endl;
 
       // check if we have all elements of current CF in the new feature map (simulated_features)
       for(ConsensusFeature::iterator cf_iter = (*cm_iter).begin() ; cf_iter != (*cm_iter).end() ; ++cf_iter)
       {
         complete &= id_map.has( String( (*cf_iter).getUniqueId() ) );
-        std::cout << "\t" << String( (*cf_iter).getUniqueId() ) << std::endl;
+        LOG_DEBUG << "\t" << String( (*cf_iter).getUniqueId() ) << std::endl;
       }
 
       if(complete)
@@ -183,7 +183,7 @@ namespace OpenMS
             }
             else
             {
-              std::cout << "Create new set with charge composition " << simulated_features[*it].getMetaValue("charge_adducts") << std::endl;
+              LOG_DEBUG << "Create new set with charge composition " << simulated_features[*it].getMetaValue("charge_adducts") << std::endl;
               std::set<FeatureHandle, FeatureHandle::IndexLess> fh_set;
               fh_set.insert(FeatureHandle(0, simulated_features[*it]));
               charge_mapping.insert(std::make_pair<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > (simulated_features[*it].getMetaValue("charge_adducts"),fh_set));

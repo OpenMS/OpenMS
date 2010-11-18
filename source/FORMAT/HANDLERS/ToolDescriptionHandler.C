@@ -38,8 +38,8 @@ namespace OpenMS
 
   ToolDescriptionHandler::ToolDescriptionHandler(const String& filename, const String& version)
 		: ParamXMLHandler(p_, filename, version),
+      td_(),
       p_(),
-			td_(),
       td_vec_(),
       tag_(),
       in_ini_section_(false)
