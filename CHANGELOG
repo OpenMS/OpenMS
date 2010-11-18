@@ -6,7 +6,7 @@ Fixed Issues:
 - fixed BaselineFilter, NoiseFilter, PeakPicker bugs when handling empty and chromatogram data
 - fixed improper error messages for FeatureFinder-MRM
 - fixed FileFilter not sorting filtered ConsensusMap even if sort parameter was given
-
+- fixed "Caching in LogStream is not thread safe" (#215,#217)
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.7                                      ----
 ------------------------------------------------------------------------------------------
