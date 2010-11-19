@@ -277,8 +277,8 @@ class TOPPSILACAnalyzer
 
     void registerOptionsAndFlags_()
     {
-	  registerStringOption_("type","<name>","","SILAC experiment type\n",true);
-	  setValidStrings_("type", getToolList()[toolName_()] );
+	    registerStringOption_("type","<name>","","SILAC experiment type", true);
+	    setValidStrings_("type", ToolHandler::getTypes(toolName_()) );
 
       registerInputFile_("in","<file>","","input file");
       setValidFormats_("in",StringList::create("mzML"));

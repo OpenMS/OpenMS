@@ -33,7 +33,9 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <map>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+
 
 namespace OpenMS
 {
@@ -77,45 +79,51 @@ namespace OpenMS
   		
 		  @ingroup Datastructures
 	  */
-	  struct ToolDescriptionGeneric
+	  struct OPENMS_DLLAPI ToolDescriptionInternal
 	  {
       bool is_internal;
       String name;
       String category;
-      StringList type;
+      StringList types; // -types of the tool (if any, e.g. ['centroided','wavelet'])
 
-      ToolDescriptionGeneric& operator=(const ToolDescriptionGeneric& rhs)
-      {
-        if (this==&rhs) return *this;
-        
-        is_internal = rhs.is_internal;
-        name = rhs.name;
-        category = rhs.category;
-        type = rhs.type;
-        return *this;
-      }
+      // default C'Tor
+      ToolDescriptionInternal();
+
+      // C'Tor with arguments
+      ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types);
+
+      ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs);
 	  };
 
-    struct ToolDescription :
-      ToolDescriptionGeneric
+    struct OPENMS_DLLAPI ToolExternalDetails
     {
+      String category;
       String commandline;
       String path; //< filename to external tool
       MappingParam tr_table;
       Param param;
+    };
 
-      ToolDescription& operator=(const ToolDescription& rhs)
-      {
-        if (this==&rhs) return *this;
-        
-        ToolDescriptionGeneric::operator=(rhs);
-        commandline = rhs.commandline;
-        path = rhs.path;
-        tr_table = rhs.tr_table;
-        param = rhs.param;
-        return *this;
-      }
+    /**
+      Used for internal and external tools
+    */
+    struct OPENMS_DLLAPI ToolDescription :
+      ToolDescriptionInternal
+    {
+      // additional details for external tools (one entry for each 'type')
+      std::vector < ToolExternalDetails > external_details;
 
+      // default CTor
+      ToolDescription();
+
+      // C'Tor for internal TOPP tools
+      ToolDescription(const String& p_name, const String& p_category, const StringList& p_types = StringList());
+
+      void addExternalType(const String& type, const ToolExternalDetails& details);
+
+      void append(const ToolDescription& other);
+
+      ToolDescription& operator=(const ToolDescription& rhs);
     };
   
   } // namespace Internal

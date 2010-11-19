@@ -104,7 +104,7 @@ class TOPPMSSimulator
       registerOutputFile_("out_cntm","<file>","","output (simulated MS map) in featureXML format (contaminants)",false);
       
       registerStringOption_("type","<name>","","Labeling type\n",true);
-      setValidStrings_("type", getUtilList()[toolName_()] );
+      setValidStrings_("type", ToolHandler::getTypes(toolName_()) );
 
 			addEmptyLine_();
   		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");

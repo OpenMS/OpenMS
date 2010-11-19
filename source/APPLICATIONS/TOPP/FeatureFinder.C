@@ -142,7 +142,7 @@ class TOPPFeatureFinder
 		registerInputFile_("seeds","<file>","","User-specified seed list. This feature is not supported by all algorithms!", false);
 		setValidFormats_("seeds",StringList::create("featureXML"));
 		registerStringOption_("type","<name>","","FeatureFinder algorithm type",true);
-		setValidStrings_("type", getToolList()[toolName_()] );
+		setValidStrings_("type", ToolHandler::getTypes(toolName_()) );
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
 						 "They are set in the 'algorithm' section of the INI file.\n");

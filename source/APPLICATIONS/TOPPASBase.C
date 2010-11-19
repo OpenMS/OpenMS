@@ -39,6 +39,7 @@
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -180,74 +181,7 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
 		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
 		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPAS.ini is up-to-date");
-		
-		//tool categories
-		defaults_.setValue("tool_categories:AdditiveSeries", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:BaselineFilter", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:CompNovo", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:ConsensusID", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:DBExporter", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:DBImporter", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:DTAExtractor", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:Decharger", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:ExecutePipeline", "Misc", "The category of the tool");
-		defaults_.setValue("tool_categories:FalseDiscoveryRate", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:FeatureFinder", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:FeatureLinker", "Map Alignment", "The category of the tool");
-		defaults_.setValue("tool_categories:FileConverter", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:FileFilter", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:FileInfo", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:FileMerger", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:GenericWrapper", "Misc", "The category of the tool");
-		defaults_.setValue("tool_categories:IDDecoyProbability", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:IDPosteriorErrorProbability", "Protein/peptide Processing", "The category of the tool");		
-		defaults_.setValue("tool_categories:IDFileConverter", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:IDFilter", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:IDMapper", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:IDMerger", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:IDRTCalibration", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:ITRAQAnalyzer", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:InclusionExclusionListCreator", "Targeted Experiments", "The category of the tool");
-		defaults_.setValue("tool_categories:InspectAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:InternalCalibration", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:MapAligner", "Map Alignment", "The category of the tool");
-		defaults_.setValue("tool_categories:MapNormalizer", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:MascotAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:MascotAdapterOnline", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:NoiseFilter", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:OMSSAAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:PILISIdentification", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:PILISModel", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:PTModel", "Peptide property prediction", "The category of the tool");
-		defaults_.setValue("tool_categories:PTPredict", "Peptide property prediction", "The category of the tool");
-		defaults_.setValue("tool_categories:PeakPicker", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:PepNovoAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:PeptideIndexer", "Protein/peptide Processing", "The category of the tool");
-		defaults_.setValue("tool_categories:PrecursorIonSelector", "Targeted Experiments", "The category of the tool");
-		defaults_.setValue("tool_categories:PrecursorMassCorrector", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:ProteinQuantifier", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:RTModel", "Peptide property prediction", "The category of the tool");
-		defaults_.setValue("tool_categories:RTPredict", "Peptide property prediction", "The category of the tool");
-		defaults_.setValue("tool_categories:Resampler", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:SILACAnalyzer", "Quantitation", "The category of the tool");
-		defaults_.setValue("tool_categories:SeedListGenerator", "Quantitation", "The category of the tool");
-		//defaults_.setValue("tool_categories:SequestAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:SpecLibSearcher", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:SpectraFilter", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:SpectraMerger", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:TOFCalibration", "Signal processing and preprocessing", "The category of the tool");
-		defaults_.setValue("tool_categories:TextExporter", "File Handling", "The category of the tool");
-		defaults_.setValue("tool_categories:XTandemAdapter", "Protein/peptide Identification", "The category of the tool");
-		defaults_.setValue("tool_categories:ProteinInference", "Protein/peptide Identification", "The category of the tool");
-		
-		// UTILS:
-		map<String,StringList> util_tools = TOPPBase::getUtilList();
-		for (map<String,StringList>::const_iterator it=util_tools.begin(); it!=util_tools.end(); ++it)
-		{
-			// for now, we put all UTILS tools in one category
-			defaults_.setValue("tool_categories:" + it->first, "Utils", "The category of the tool");		
-		}
-		
+				
   	defaultsToParam_();
 
   	//load param file
@@ -276,12 +210,27 @@ namespace OpenMS
     item->setText(0, "<Merger>");
     tools_tree_view_->addTopLevelItem(item);
     
-    Param category_param = param_.copy("tool_categories:", true);
-    
-    QSet<QString> category_set;
-    for (Param::ParamIterator it = category_param.begin(); it != category_param.end(); ++it)
+    //Param category_param = param_.copy("tool_categories:", true);
+		
+    ToolListType tools_list = ToolHandler::getTOPPToolList(true);
+    ToolListType util_list = ToolHandler::getUtilList();
+    // append utils
+    for (ToolListType::Iterator it = util_list.begin(); it != util_list.end(); ++it)
     {
-    	category_set << String(it->value).toQString();
+      it->second.category = "Utils";
+      tools_list.insert(*it);
+    }
+
+    // any tool without a category gets into "unassigned" bin
+    for (ToolListType::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    {
+      if (it->second.category.trim() =="") it->second.category = "Unassigned";
+    }
+
+    QSet<QString> category_set;
+    for (ToolListType::ConstIterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    {
+      category_set << String(it->second.category).toQString();
     }
 		QStringList category_list = category_set.toList();
 		qSort(category_list);
@@ -294,41 +243,19 @@ namespace OpenMS
     	tools_tree_view_->addTopLevelItem(item);
     	category_map[category] = item;
     }
-    item = new QTreeWidgetItem((QTreeWidget*)0);
-		item->setText(0, "Unassigned");
-		tools_tree_view_->addTopLevelItem(item);
-		category_map["Unassigned"] = item;
-		
-    Map<String,StringList> tools_list = TOPPBase::getToolList();
-    Map<String,StringList> util_list = TOPPBase::getUtilList();
-    // append utils
-    tools_list.insert(util_list.begin(),util_list.end());
     
     QTreeWidgetItem* parent_item;
-    for (Map<String,StringList>::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-    	if (category_param.exists(it->first))
-    	{
-    		item = new QTreeWidgetItem(category_map[String(category_param.getValue(it->first)).toQString()]);
-    	}
-    	else
-    	{
-    		item = new QTreeWidgetItem(category_map["Unassigned"]);
-    	}
+      item = new QTreeWidgetItem(category_map[it->second.category.toQString()]);
     	item->setText(0, it->first.toQString());
    		parent_item = item;
-   		StringList types = it->second;
+   		StringList types = ToolHandler::getTypes(it->first);
    		for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
    		{
    			item = new QTreeWidgetItem(parent_item);
    			item->setText(0, types_it->toQString());
    		}
-    }
-    
-    if (category_map["Unassigned"]->childCount() == 0)
-    {
-    	int index = tools_tree_view_->indexOfTopLevelItem(category_map["Unassigned"]);
-    	tools_tree_view_->takeTopLevelItem(index);
     }
     
     tools_tree_view_->resizeColumnToContents(0);

@@ -28,14 +28,13 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
-#include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
+
+#include <QDir>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -82,9 +81,9 @@ namespace OpenMS
 		}
 
 		//check if tool is in official tools list
-		if (official && !getToolList().has(tool_name_))
+    if (official && tool_name_!="GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
 		{
-			writeLog_(String("Error: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
+			writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
 		}
 	}
 
@@ -110,17 +109,17 @@ namespace OpenMS
       ofstream create_out(topp_ini_file_.c_str());
       create_out.close();
       Param all_params;
-      for (Map<String, StringList>::ConstIterator it = getToolList().begin(); it != getToolList().end(); ++it)
+      for (ToolListType::const_iterator it = ToolHandler::getTOPPToolList().begin(); it != ToolHandler::getTOPPToolList().end(); ++it)
       {
 				String call = it->first; // @todo think about paths (chris, andreas)
 				String tmp_file = String(QDir::tempPath()) + String("/") + File::getUniqueName();
-				StringList types = it->second;
-				if (it->second.size() == 0)
+				StringList types = ToolHandler::getTypes(it->first);
+				if (types.size() == 0)
 				{
 					types.push_back("");
 				}
 
-				for (StringList::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+				for (StringList::const_iterator sit = types.begin(); sit != types.end(); ++sit)
 				{
 					String type_arg ="";
 					if (*sit != "")
@@ -161,7 +160,7 @@ namespace OpenMS
 		registerOptionsAndFlags_();
 		addEmptyLine_();
     //common section for all tools
-    if (getToolList().has(tool_name_)) addText_("Common TOPP options:");
+    if (ToolHandler::getTOPPToolList().count(tool_name_)) addText_("Common TOPP options:");
     else addText_("Common UTIL options:");
 		registerStringOption_("ini","<file>","","Use the given TOPP INI file",false);
 		registerStringOption_("log","<file>","","Name of log file (created only when specified)",false,true);
@@ -1593,9 +1592,7 @@ namespace OpenMS
 	{
 		if (debug_level_>=(Int)min_level)
 		{
-		  LOG_DEBUG << text << endl;
-		  enableLogging_();
-		  log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text<< endl;
+		  writeLog_(text);
 		}
 	}
 
@@ -2211,107 +2208,6 @@ namespace OpenMS
 	const String& TOPPBase::toolName_() const
 	{
 		return tool_name_;
-	}
-
-	Map<String,StringList> TOPPBase::getToolList()
-	{
-		Map<String,StringList> tools_map;
-
-		tools_map["AdditiveSeries"] = StringList::create("");
-		tools_map["BaselineFilter"] = StringList::create("");
-		tools_map["CompNovo"] = StringList::create("CompNovo,CompNovoCID");
-		tools_map["ConsensusID"] = StringList::create("");
-		tools_map["DBExporter"] = StringList::create("");
-		tools_map["DBImporter"] = StringList::create("");
-		tools_map["DTAExtractor"] = StringList::create("");
-		tools_map["Decharger"] = StringList::create("");
-		tools_map["ExecutePipeline"] = StringList::create("");
-		tools_map["FalseDiscoveryRate"] = StringList::create("");
-		tools_map["FeatureFinder"] = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
-		tools_map["FeatureLinker"] = Factory<FeatureGroupingAlgorithm>::registeredProducts();
-		tools_map["FileConverter"] = StringList::create("");
-		tools_map["FileFilter"] = StringList::create("");
-		tools_map["FileInfo"] = StringList::create("");
-		tools_map["FileMerger"] = StringList::create("");
-		tools_map["IDDecoyProbability"] = StringList::create("");
-		tools_map["IDPosteriorErrorProbability"] = StringList::create("");
-		tools_map["IDFileConverter"] = StringList::create("");
-		tools_map["IDFilter"] = StringList::create("");
-		tools_map["IDMapper"] = StringList::create("");
-		tools_map["IDMerger"] = StringList::create("");
-		tools_map["IDRTCalibration"] = StringList::create("");
-		tools_map["ITRAQAnalyzer"] = StringList::create("4plex,8plex");
-		tools_map["InspectAdapter"] = StringList::create("");
-		tools_map["InternalCalibration"] = StringList::create("");
-		tools_map["MapAligner"] = Factory<MapAlignmentAlgorithm>::registeredProducts();
-		tools_map["MapNormalizer"] = StringList::create("");
-		tools_map["MascotAdapter"] = StringList::create("");
-		tools_map["MascotAdapterOnline"] = StringList::create("");
-		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
-		tools_map["OMSSAAdapter"] = StringList::create("");
-		tools_map["PILISIdentification"] = StringList::create("");
-		tools_map["PILISModel"] = StringList::create("");
-		tools_map["PTModel"] = StringList::create("");
-		tools_map["PTPredict"] = StringList::create("");
-		tools_map["PeakPicker"] = StringList::create("wavelet,high_res");
-		tools_map["PepNovoAdapter"] = StringList::create("");
-		tools_map["PeptideIndexer"] = StringList::create("");
-		tools_map["PrecursorIonSelector"] = StringList::create("");
-		tools_map["ProteinQuantifier"] = StringList::create("");
-		tools_map["RTModel"] = StringList::create("");
-		tools_map["RTPredict"] = StringList::create("");
-		tools_map["Resampler"] = StringList::create("");
-		tools_map["SILACAnalyzer"] = StringList::create("");
-		tools_map["SeedListGenerator"] = StringList::create("");
-		//tools_map["SequestAdapter"] = StringList::create("");
-		tools_map["SpecLibSearcher"] = StringList::create("");
-		tools_map["SpectraFilter"] = Factory<PreprocessingFunctor>::registeredProducts();
-		tools_map["TOFCalibration"] = StringList::create("");
-		tools_map["TextExporter"] = StringList::create("");
-		tools_map["XTandemAdapter"] = StringList::create("");
-		tools_map["SILACAnalyzer"] = StringList::create("double,triple");
-		tools_map["SpectraMerger"] = StringList::create("");
-		tools_map["PrecursorMassCorrector"] = StringList::create("");
-		tools_map["GenericWrapper"] = StringList::create("");
-		tools_map["ProteinInference"] = StringList::create("");
-		tools_map["InclusionExclusionListCreator"] = StringList::create("");
-
-		return tools_map;
-	}
-
-	Map<String,StringList> TOPPBase::getUtilList()
-	{
-		Map<String,StringList> util_map;
-
-		util_map["IDMassAccuracy"] = StringList::create("");
-		util_map["DecoyDatabase"] = StringList::create("");
-		util_map["MapAlignmentEvaluation"] = StringList::create("");
-		util_map["CaapConvert"] = StringList::create("");
-		util_map["CVInspector"] = StringList::create("");
-		util_map["DecoyDatabase"] = StringList::create("");
-		util_map["Digestor"] = StringList::create("");
-		util_map["DigestorMotif"] = StringList::create("");
-		util_map["FFEval"] = StringList::create("");
-		util_map["FuzzyDiff"] = StringList::create("");
-		util_map["HistView"] = StringList::create("");
-		util_map["IDExtractor"] = StringList::create("");
-		util_map["LabeledEval"] = StringList::create("");
-		util_map["SemanticValidator"] = StringList::create("");
-		util_map["SequenceCoverageCalculator"] = StringList::create("");
-		util_map["XMLValidator"] = StringList::create("");
-		util_map["IdXMLEvaluation"] = StringList::create("");
-    util_map["MSSimulator"] = Factory<BaseLabeler>::registeredProducts();
-		util_map["ERPairFinder"] = StringList::create("");
-		util_map["SpecLibCreator"] = StringList::create("");
-		util_map["SpectrumGeneratorNetworkTrainer"] = StringList::create("");
-		util_map["MRMPairFinder"] = StringList::create("");
-		util_map["DeMeanderize"] = StringList::create("");
-		util_map["UniqueIdAssigner"] = StringList::create("");
-		util_map["ImageCreator"] = StringList::create("");
-		util_map["IDSplitter"] = StringList::create("");
-		util_map["MassCalculator"] = StringList::create("");
-
-		return util_map;
 	}
 
   DataProcessing TOPPBase::getProcessingInfo_(DataProcessing::ProcessingAction action) const

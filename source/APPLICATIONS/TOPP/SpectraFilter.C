@@ -108,7 +108,7 @@ class TOPPSpectraFilter
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("mzML"));
 			registerStringOption_("type","<name>","","Filter type",true);
-			setValidStrings_("type", getToolList()[toolName_()] );
+			setValidStrings_("type", ToolHandler::getTypes(toolName_()));
 
 			addEmptyLine_();
 			addText_("Parameters for the filter can only be given in the INI file.");

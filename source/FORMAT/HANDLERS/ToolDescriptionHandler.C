@@ -38,8 +38,9 @@ namespace OpenMS
 
   ToolDescriptionHandler::ToolDescriptionHandler(const String& filename, const String& version)
 		: ParamXMLHandler(p_, filename, version),
-      td_(),
       p_(),
+			tde_(),
+      td_(),
       td_vec_(),
       tag_(),
       in_ini_section_(false)
@@ -74,13 +75,13 @@ namespace OpenMS
 		{
       Int id = attributeAsInt_(attributes, "id");
       String command = attributeAsString_(attributes, "cl");
-      td_.tr_table.mapping[id] = command;
+      tde_.tr_table.mapping[id] = command;
 			return;
 		}
 		if (tag_ == "file")
 		{
-      td_.tr_table.post_move.location = attributeAsString_(attributes, "location");
-      td_.tr_table.post_move.target = attributeAsString_(attributes, "target");
+      tde_.tr_table.post_move.location = attributeAsString_(attributes, "location");
+      tde_.tr_table.post_move.target = attributeAsString_(attributes, "target");
 			return;
 		}
 
@@ -91,17 +92,17 @@ namespace OpenMS
       return;
     }
     
-    if (tag_=="category" || tag_=="type") return;
+    if (tag_ == "ttd" || tag_=="category" || tag_=="e_category" || tag_=="type") return;
     if (td_.is_internal)
     {
       if (tag_ == "name") return;
     }
     else if (!td_.is_internal)
     {
-      if (tag_=="path" || tag_=="mappings" || tag_=="cloptions") return;
+      if (tag_=="external" || tag_=="cloptions" || tag_=="path" || tag_=="mappings" || tag_=="mapping" || tag_=="ini_param") return;
     }
 
-    error(LOAD, "ToolDescriptionHandler::startElement: Unkown element found: '" + tag_ + "', ignoring.");
+    error(LOAD, "ToolDescriptionHandler::startElement(): Unkown element found: '" + tag_ + "', ignoring.");
 	}
 
 	void ToolDescriptionHandler::characters(const XMLCh* const chars, const XMLSize_t length)
@@ -114,13 +115,14 @@ namespace OpenMS
     
     //std::cout << "characters '" << sm_.convert(chars) << "' in tag " << tag_ << "\n";
 
-    if (tag_ == "tool" || tag_ == "mappings" || tag_ == "file") return;
+    if (tag_ == "ttd" || tag_ == "tool" || tag_ == "mappings" || tag_=="external") return;
 
     if (tag_ == "name") td_.name = sm_.convert(chars);
 		else if (tag_ == "category") td_.category = sm_.convert(chars);
-    else if (tag_ == "cloptions") td_.commandline = sm_.convert(chars);
-    else if (tag_ == "type") td_.type.push_back(sm_.convert(chars));
-    else if (tag_ == "path") td_.path = sm_.convert(chars);
+    else if (tag_ == "type") td_.types.push_back(sm_.convert(chars));
+    else if (tag_ == "e_category") tde_.category = sm_.convert(chars);
+    else if (tag_ == "cloptions") tde_.commandline = sm_.convert(chars);
+    else if (tag_ == "path") tde_.path = sm_.convert(chars);
     
     else error(LOAD, "ToolDescriptionHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
 	}
@@ -142,7 +144,13 @@ namespace OpenMS
     if (endtag_ == "ini_param")
     {
       in_ini_section_=false;
-      td_.param = p_;
+      tde_.param = p_;
+      return;
+    }
+    else if (endtag_ == "external")
+    {
+      td_.external_details.push_back(tde_);
+      tde_ = ToolExternalDetails();
       return;
     }
     else if (endtag_ == "tool")

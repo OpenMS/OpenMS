@@ -87,7 +87,7 @@ class TOPPITRAQAnalyzer
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("type","<name>","","iTRAQ experiment type\n",true);
-		setValidStrings_("type", getToolList()[toolName_()] );
+		setValidStrings_("type", ToolHandler::getTypes(toolName_()));
 
 		registerInputFile_("in","<file>","","input raw/picked data file ");
 		setValidFormats_("in",StringList::create("mzML"));

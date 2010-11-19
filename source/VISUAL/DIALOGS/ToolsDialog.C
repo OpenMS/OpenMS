@@ -235,7 +235,7 @@ namespace OpenMS
 			return;
 		}
 
-		if (TOPPBase::getToolList()[getTool()].empty())
+		if (ToolHandler::getTypes(getTool()).empty())
 		{
 			setType_(-1);
 		}
@@ -263,7 +263,7 @@ namespace OpenMS
 		type_combo_->clear();
 		
 		//get type list
-		StringList type_list = TOPPBase::getToolList()[tools_combo_->currentText()];
+		StringList type_list = ToolHandler::getTypes(tools_combo_->currentText());
 		
 		//no types => disable combo box
 		if (type_list.empty())
@@ -354,7 +354,7 @@ namespace OpenMS
 		//load data into editor
 		editor_->load(vis_param_);			
 		//special treatment for tools with type
-		if (!TOPPBase::getToolList()[string].empty())
+		if (!ToolHandler::getTypes(string).empty())
 		{
 			String type;
 			if (vis_param_.exists("type")) type = vis_param_.getValue("type");

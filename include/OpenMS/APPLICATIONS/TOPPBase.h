@@ -28,7 +28,9 @@
 #ifndef OPENMS_APPLICATIONS_TOPPBASE_H
 #define OPENMS_APPLICATIONS_TOPPBASE_H
 
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -41,7 +43,7 @@
 #include <OpenMS/METADATA/DocumentIDTagger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/CONCEPT/LogStream.h>
+
 
 #include <iostream>
 #include <fstream>
@@ -159,13 +161,7 @@ namespace OpenMS
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 			
-			/// Returns the list of official TOPP tools contained in the OpenMS/TOPP release.
-			static Map<String,StringList> getToolList();
-
-			/// Returns the list of "official" UTIL tools contained in the OpenMS/TOPP release.
-			static Map<String,StringList> getUtilList();
-			
-      ///Stuct that captures all information of a parameter
+      ///Stuct that captures all information of a command line parameter
       struct ParameterInformation
       {
         /// Parameter types

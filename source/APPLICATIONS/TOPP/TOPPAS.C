@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 /**
@@ -59,6 +59,7 @@
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h> 
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -127,7 +128,7 @@ int main( int argc, const char** argv )
     // in Param.h
     if(!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
     {
-      cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
+      LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
       print_usage();
       return 1;
     }
@@ -140,8 +141,7 @@ int main( int argc, const char** argv )
 
 	 	if (param.exists("execute") || param.exists("out_dir"))
 		{
-			cout << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl; 
-			
+			LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl; 
 			return 1;
 		}
 		

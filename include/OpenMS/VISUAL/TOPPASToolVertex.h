@@ -217,6 +217,10 @@ namespace OpenMS
 			/// Writes @p param to the @p ini_file
 			void writeParam_(const Param& param, const QString& ini_file);
 			
+      /// When building the commandline and INI file to call a TOPP/UTIL, this function picks a list or a single file, depending on operation mode
+      /// Also index checking is done
+      QStringList getFileArgument_(const QStringList& source_files, const int index, const bool as_list) const;
+
 			/// The name of the tool
 			String name_;
 			/// The type of the tool, or "" if it does not have a type

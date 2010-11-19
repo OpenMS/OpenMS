@@ -28,14 +28,12 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <OpenMS/FORMAT/ToolDescriptionFile.h>
-#include <QFileInfo>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <QFileInfo>
-#include <QDir>
 #include <QtCore/QProcess>
+#include <QFileInfo>
+
 #include <typeinfo>
 
 using namespace OpenMS;
@@ -147,97 +145,51 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-    const String getExternalToolsPath()
-    {
-      return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
-    }
-
-    std::vector<Internal::ToolDescription> tools_external;
-
-    const QStringList getExternalToolConfigFiles()
-    {
-      // look at environment in addition?!
-      QStringList paths;
-      paths << getExternalToolsPath().toQString(); // hardcoded OpenMS path
-      
-      QStringList all_files;
-      for (int p=0;p<paths.size();++p)
-      {
-        QDir dir(paths[p], "*.ttd");
-        QStringList files = dir.entryList();
-        for (int i=0;i<files.size();++i)
-        {
-          files[i] = dir.absolutePath()+QDir::separator()+files[i];
-        }
-        all_files << files;
-      }
-      //StringList list = StringList::create(getExternalToolsPath() + "/" + "msconvert.ttd");
-      return all_files;
-    }
-
-    const StringList getExternalToolNames()
-    {
-      StringList names;
-      std::set<String> unique_check;
-      for (Size i=0;i<tools_external.size();++i)
-      {
-        if (unique_check.count(tools_external[i].type[0])>0)
-        {
-          LOG_ERROR << "Type '" << tools_external[i].type[0] << "' exists at least twice and is ambiguous. Please fix!\n";
-          exit(TOPPBase::INCOMPATIBLE_INPUT_DATA);
-        }
-        unique_check.insert(tools_external[i].type[0]);
-        names.push_back(tools_external[i].type[0]);
-      }
-      return names;
-    }
-
-    static void loadToolConfig()
-    {
-      QStringList files = getExternalToolConfigFiles();
-      for (int i=0;i<files.size();++i)
-      {
-        ToolDescriptionFile tdf;
-        std::vector<Internal::ToolDescription> tools;
-        tdf.load(String(files[i]), tools);
-        tools_external.insert(tools_external.end(),tools.begin(),tools.end()); // append
-      }
-    }
+String paramToString(const Param::ParamEntry& p)
+{
+  if (p.value.valueType() == DataValue::STRING_LIST)
+  { // quote each element
+    return "\"" + StringList(p.value).concatenate("\" \"") + "\"";
+  }
+  else
+  {
+    return p.value;
+  }
+}
 
 
-    void createFragment(String& fragment, const Param& param)
-    {
+void createFragment(String& fragment, const Param& param)
+{
+  //std::cout << " fragment '" << fragment << "' --> '";
+  // e.g.:  -input %BASENAME[%%in].mzML
+  // iterate through all input params and replace with values:
+  for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
+  {
+    fragment.substitute("%%" + it->name, paramToString(*it));
+  }
+  if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
+  
+  // %TMP% replace:
+  fragment.substitute("%TMP", File::getTempDirectory());
 
-      //std::cout << " fragment '" << fragment << "' --> '";
-      // e.g.:  -input %BASENAME[%%in].mzML
-      // iterate through all input params and replace with values:
-      for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
-      {
-        fragment.substitute("%%" + it->name, it->value);
-      }
-      if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid '%%' found in '" + fragment + "' after replaceing all parameters!", fragment);
-      
-      // %TMP% replace:
-      fragment.substitute("%TMP", File::getTempDirectory());
+  // %BASENAME% replace
+  QRegExp rx("%BASENAME\\[(.*)\\]");
+  rx.setMinimal(true);
+  int pos = 0;
+  QString t_tmp = fragment.toQString();
+  while ((pos = rx.indexIn(t_tmp, pos+1)) != -1)
+  {
+    //std::cout << "match @ " << pos << "\n";
+    String value = rx.cap(1); // paramname (hopefully)
+    // replace in fragment:
+    QFileInfo qfi(value.toQString());
+    fragment.substitute("%BASENAME["+value+"]", qfi.baseName());
+  }
+  
+  if (fragment.has('%')) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping still contains a '%' after substitution! Did you use % instead of %%?", fragment);
 
-      // %BASENAME% replace
-      QRegExp rx("%BASENAME\\[(.*)\\]");
-      rx.setMinimal(true);
-      int pos = 0;
-      QString t_tmp = fragment.toQString();
-      while ((pos = rx.indexIn(t_tmp, pos+1)) != -1)
-      {
-        //std::cout << "match @ " << pos << "\n";
-        String value = rx.cap(1); // paramname (hopefully)
-        // replace in fragment:
-        QFileInfo qfi(value.toQString());
-        fragment.substitute("%BASENAME["+value+"]", qfi.baseName());
-      }
-      
-      if (fragment.has('%')) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping still contains a '%' after substitution! Did you use % instead of %%?", fragment);
-
-      //std::cout << fragment << "'\n";
-    }
+  //std::cout << fragment << "'\n";
+}
 
 
 
@@ -255,22 +207,22 @@ class TOPPGenericWrapper
  
 		void registerOptionsAndFlags_()
 		{
-      registerSubsection_("tool","tool specific parameters");
-      registerStringOption_("type", "", "", "Which external tool configuration to load?! See '" + getExternalToolsPath() + "'.", true, false);
-      setValidStrings_("type", getExternalToolNames());
+      registerSubsection_("ETool","tool specific parameters");
+      registerStringOption_("type", "", "", "Which external tool configuration to load?! See '" + ToolHandler::getExternalToolsPath() + "'.", true, false);
+      setValidStrings_("type",  ToolHandler::getTypes(toolName_()));
 		}
 
 	  Param getSubsectionDefaults_(const String& section) const
 	  {
       String type = getStringOption_("type");
       // find params for 'type'
-      for (Size i=0;i<tools_external.size();++i)
+      Internal::ToolDescription gw = ToolHandler::getTOPPToolList(true)[toolName_()];
+      for (Size i=0; i<gw.types.size(); ++i)
       {
-        //std::cout << "type: " << type << "  --- toolname: " << tools_external[i].type << "\n";
-        if (type == tools_external[i].type[0]) 
+        if (type == gw.types[i]) 
         {
-          //std::cout << "found: " << tools_external[i].param << "\n";
-          return tools_external[i].param;
+          //std::cout << "found: " << tools_external_[i].param << "\n";
+          return gw.external_details[i].param;
         }
       }
 		  return Param();
@@ -280,16 +232,18 @@ class TOPPGenericWrapper
 		{
       // find the config for the tool:
       String type = getStringOption_("type");
-      Internal::ToolDescription td;
-      for (Size i=0;i<tools_external.size();++i)
+      Internal::ToolExternalDetails tde;
+      Internal::ToolDescription gw = ToolHandler::getTOPPToolList(true)[toolName_()];
+      for (Size i=0; i<gw.types.size(); ++i)
       {
-        if (type == tools_external[i].type[0]) 
+        if (type == gw.types[i]) 
         {
-          td = tools_external[i];
+          tde = gw.external_details[i];
+          break;
         }
       }
 
-      String command_args = td.commandline;
+      String command_args = tde.commandline;
       // check for double spaces and warn
       if (command_args.hasSubstring("  "))
       {
@@ -303,12 +257,12 @@ class TOPPGenericWrapper
 
       ///// construct the command line:
       // go through mappings:
-      for (std::map<Int, String>::const_iterator it = td.tr_table.mapping.begin(); it != td.tr_table.mapping.end(); ++it)
+      for (std::map<Int, String>::const_iterator it = tde.tr_table.mapping.begin(); it != tde.tr_table.mapping.end(); ++it)
       {
         //std::cout << "mapping #" << it->first << "\n";
         String fragment = it->second;
         // fragment's placeholder evaluation:
-        createFragment(fragment, this->getParam_().copy("tool:",true));
+        createFragment(fragment, this->getParam_().copy("ETool:",true));
 
         // replace fragment in cl
         //std::cout << "replace : " << "%"+String(it->first) << " with '" << fragment << "\n";
@@ -317,32 +271,30 @@ class TOPPGenericWrapper
 
       QProcess builder;
       builder.setProcessChannelMode(QProcess::MergedChannels);
-      String call = td.path + " " + command_args;
+      String call = tde.path + " " + command_args;
 
       writeDebug_("call command: " + call, 1);
 
       builder.start(call.toQString());
 
-      if (!builder.waitForFinished())
+      if (!builder.waitForFinished(-1) || builder.exitStatus() != 0 || builder.exitCode()!=0)
       {
-        LOG_ERROR << ("External tool returned with non-zero exit code ("+String(builder.exitCode())+"). Aborting ...");
+        LOG_ERROR << ("External tool returned with non-zero exit code ("+String(builder.exitCode())+"), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
         LOG_ERROR << ("External tool output:\n"+ String(QString(builder.readAll())));
         return EXTERNAL_PROGRAM_ERROR;
       }
-      else
-      {
-        LOG_ERROR << ("External tool output:\n"+ String(QString(builder.readAll())));
-      }
+      
+      LOG_INFO << ("External tool output:\n"+ String(QString(builder.readAll())));
 
       
       // post processing (file moving via 'file' command)
-      if (td.tr_table.post_move.location != "")
+      if (tde.tr_table.post_move.location != "")
       {
         // find target param:
-        Param p = this->getParam_().copy("tool:",true);
-        String target = td.tr_table.post_move.target;
+        Param p = this->getParam_().copy("ETool:",true);
+        String target = tde.tr_table.post_move.target;
         if (!p.exists(target)) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
-        String source = td.tr_table.post_move.location;
+        String source = tde.tr_table.post_move.location;
         // fragment's placeholder evaluation:
         createFragment(source, p);
         // check if target already exists:
@@ -373,8 +325,6 @@ class TOPPGenericWrapper
 
 int main( int argc, const char** argv )
 {
-  loadToolConfig();
-
 	TOPPGenericWrapper tool;
 	return tool.main(argc,argv);
 }

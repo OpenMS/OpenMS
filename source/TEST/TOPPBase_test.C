@@ -248,17 +248,17 @@ START_SECTION((void checkTOPPIniFile(const String &tool_path)))
 END_SECTION
 
 START_SECTION((static Map<String,StringList> getToolList()))
-	TEST_EQUAL(TOPPBaseTest::getToolList().has("FileInfo"),true)
-	TEST_EQUAL(TOPPBaseTest::getToolList().has("ImaginaryTool"),false)
-	TEST_EQUAL(TOPPBaseTest::getToolList()["FileInfo"].empty(),true)
-	TEST_EQUAL(TOPPBaseTest::getToolList()["FeatureFinder"].empty(),false)
+	TEST_EQUAL(ToolHandler::getTOPPToolList().has("FileInfo"),true)
+	TEST_EQUAL(ToolHandler::getTOPPToolList().has("ImaginaryTool"),false)
+	TEST_EQUAL(ToolHandler::getTOPPToolList()["FileInfo"].types.empty(),true)
+	TEST_EQUAL(ToolHandler::getTOPPToolList()["FeatureFinder"].types.empty(),false)
 END_SECTION
 
 START_SECTION((static Map<String,StringList> getUtilList()))
-	TEST_EQUAL(TOPPBaseTest::getUtilList().has("MapAlignmentEvaluation"),true)
-	TEST_EQUAL(TOPPBaseTest::getUtilList().has("SomeCoolUtil"),false)
-	TEST_EQUAL(TOPPBaseTest::getUtilList()["MSSimulator"].empty(),false)
-	TEST_EQUAL(TOPPBaseTest::getUtilList()["ImageCreator"].empty(),true)
+	TEST_EQUAL(ToolHandler::getUtilList().has("MapAlignmentEvaluation"),true)
+	TEST_EQUAL(ToolHandler::getUtilList().has("SomeCoolUtil"),false)
+	TEST_EQUAL(ToolHandler::getUtilList()["MSSimulator"].types.empty(),false)
+	TEST_EQUAL(ToolHandler::getUtilList()["ImageCreator"].types.empty(),true)
 END_SECTION
 
 TOPPBase::ParameterInformation* pi_ptr = 0;

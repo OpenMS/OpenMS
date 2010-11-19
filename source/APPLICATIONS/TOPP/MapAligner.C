@@ -102,7 +102,7 @@ protected:
 		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
 		setValidFormats_("transformations", StringList::create("trafoXML"));
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
-		setValidStrings_("type", getToolList()[toolName_()]);
+    setValidStrings_("type", ToolHandler::getTypes(toolName_()));
 		// TODO  Remove this hack when StringList becomes available in INIFileEditor. Transformations should be specified in algorithm section.
 		registerInputFileList_("given_transformations","<files>",StringList(),"Transformations to apply by the 'apply_given_trafo' algorithm",false);
 		setValidFormats_("given_transformations",StringList::create("trafoXML"));

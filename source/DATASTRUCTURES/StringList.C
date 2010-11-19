@@ -27,6 +27,8 @@
 
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
+#include <QStringList>
+
 using namespace std;
 
 namespace OpenMS
@@ -49,7 +51,16 @@ namespace OpenMS
 	StringList::StringList(const vector<string>& rhs)
 		: vector<String>(rhs.begin(),rhs.end())
 	{
+  }
+
+	StringList::StringList(const QStringList& rhs)
+	{
+    for (int i=0;i<rhs.size();++i)
+    {
+      this->push_back( rhs[i].toStdString() );
+    }
 	}
+
 
 	StringList& StringList::operator=(const StringList& rhs)
 	{

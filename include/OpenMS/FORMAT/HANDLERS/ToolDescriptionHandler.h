@@ -80,21 +80,21 @@ namespace OpenMS
 
 		 protected:
 
-      Internal::ToolDescription td_;
-
       Param p_;
 
-      std::vector <ToolDescription> td_vec_;
+      Internal::ToolExternalDetails tde_;
+      Internal::ToolDescription td_;
+      std::vector<Internal::ToolDescription> td_vec_;
 
       String tag_;
 
       bool in_ini_section_;
 
-			private:
+		private:
 
-				ToolDescriptionHandler();
-				ToolDescriptionHandler(const ToolDescriptionHandler& rhs);
-				ToolDescriptionHandler& operator = (const ToolDescriptionHandler& rhs);
+			ToolDescriptionHandler();
+			ToolDescriptionHandler(const ToolDescriptionHandler& rhs);
+			ToolDescriptionHandler& operator = (const ToolDescriptionHandler& rhs);
 
 		};
 	} // namespace Internal

@@ -1,0 +1,33 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		// this is the name of the '-type' which is added to GenericWrapper - so chose carefully
+		<type>RAWFileConvert</type>
+		// description of the wrapper
+		<external>
+		  // currently disregarded by TOPPAS, but might become useful
+		  <e_category>FileConversion</e_category>
+		  // command line options of your external tool (use placeholders ,e.g. %1 to insert dynamic content)
+		  <cloptions>-o "%1" --mzML %2</cloptions>
+		  // the actual executable (usually it should be in your PATH, to avoid having to specify a full path to it)
+		  <path>msconvert</path>
+		  // these mappings connect input parameters (from the 'ini_param' section below) and the command line options of your tool
+		  // any INI parameter can be referenced using %%'param_name', e.g. %%in
+		  // additionally you can use %TMP and %BASENAME[X] to get the current temp directory to store data, or the basename of X
+		  <mappings>
+			<mapping id="1" cl="%TMP" />
+			<mapping id="2" cl="%%in" />
+			// output mapping/copying: this is a little hard to explain and usually you will not need it (then you have to delete all file-tags!)
+			// what it does: when you cannot specify an explicit output file to the external tool and it rather determines that by itself
+			//               ,e.g. msconvert will create an output file (call it F_E) which has the same name as the input file with a replaced suffix
+			//               then you might need to move F_E to the name you want (and/or where TOPPAS can find it)
+			//               Thus you specify the name of F_E and the target name (in terms of INI parameter values)
+			<file location="%TMP/%BASENAME[%%in].mzML" target="out" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="input file in RAW format(valid formats: &apos;RAW&apos;)" tags="input file" />
+			<ITEM name="out" value="" type="string" description="output file in mzML format(valid formats: &apos;mzML&apos;)" tags="output file" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

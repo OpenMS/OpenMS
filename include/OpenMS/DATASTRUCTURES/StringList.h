@@ -35,6 +35,8 @@
 	#pragma warning( disable : 4251 ) // disable MSVC dll-interface warning
 #endif
 
+class QStringList;
+
 namespace OpenMS
 {
 	/**
@@ -72,6 +74,8 @@ namespace OpenMS
 			StringList(const std::vector<String>& rhs);
 			/// Constructor from vector<string>
 			StringList(const std::vector<std::string>& rhs);
+			/// Constructor from QStringList
+			StringList(const QStringList& rhs);
 			///  Assignment operator
 			StringList& operator=(const StringList& rhs);
 			///  Assignment operator from vector<String>

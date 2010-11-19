@@ -102,7 +102,7 @@ protected:
 		registerOutputFile_("out","<file>","","Output file",true);
 		setValidFormats_("out",StringList::create("consensusXML"));
 		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
-		setValidStrings_("type", getToolList()[toolName_()]);
+		setValidStrings_("type", ToolHandler::getTypes(toolName_()));
 
 		registerSubsection_("algorithm","Algorithm parameters section");
 	}

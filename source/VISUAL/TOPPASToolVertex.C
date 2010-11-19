@@ -445,12 +445,10 @@ namespace OpenMS
 			ini_file += "_"+type_.toQString();
 		}
 		ini_file += ".ini";
-		writeParam_(param_,ini_file);
+		// do not write the ini yet - we might need to alter it
 		
 		QStringList shared_args;
-		shared_args	<< "-ini"
-								<< ini_file
-								<< "-no_progress";
+		shared_args	<< "-no_progress";
 		if (type_ != "")
 		{
 			shared_args << "-type" << type_.toQString();
@@ -464,6 +462,9 @@ namespace OpenMS
 		num_iterations_ = in_parameter_has_list_type_ ? 1 : input_list_length_;
 		iteration_nr_ = 0; // needed in executionFinished()
 		
+    // we might need to modify input/output file parameters before storing to INI
+    Param param_tmp = param_;
+
 		for (int i = 0; i < num_iterations_; ++i)
 		{
 			debugOut_(String("Enqueueing process nr ")+i);
@@ -480,9 +481,19 @@ namespace OpenMS
 					std::cerr << "TOPPAS: Input parameter index out of bounds!" << std::endl;
 					break;
 				}
-				args << "-"+(in_params[param_index].param_name).toQString();
+
+        String param_name = in_params[param_index].param_name;
+
+        bool store_to_ini = false;
+        // check for GenericWrapper input/output files and put them in INI file:
+        if (param_name.hasPrefix("ETool:")) store_to_ini = true;
+        if (!store_to_ini) args << "-"+param_name.toQString();
 				
+        QStringList file_list;
+
 				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
+				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
 				if (tv)
 				{
 					int out_param_index = (*it)->getSourceOutParam();
@@ -491,64 +502,28 @@ namespace OpenMS
 						std::cerr << "TOPPAS: Output parameter index out of bounds!" << std::endl;
 						break;
 					}
-					const QStringList& source_out_files = tv->current_output_files_[out_param_index];
-					
-					if (in_parameter_has_list_type_)
-					{
-						args << source_out_files;
-					}
-					else
-					{
-						if (i >= source_out_files.size())
-						{
-							std::cerr << "TOPPAS: Input list too short!" << std::endl;
-							break;
-						}
-						args << source_out_files[i];
-					}
-					continue;
+					file_list = tv->current_output_files_[out_param_index];
 				}
-				
-				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
-				if (mv)
+				else if (mv)
 				{
-					const QStringList& input_files = mv->getCurrentOutputList();
-
-					if (in_parameter_has_list_type_)
-					{
-						args << input_files;
-					}
-					else
-					{
-						if (i >= input_files.size())
-						{
-							std::cerr << "TOPPAS: Input list too short!" << std::endl;
-							break;
-						}
-						args << input_files[i];
-					}
-					continue;
+					file_list = mv->getCurrentOutputList();
 				}
-
-				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
-				if (iflv)
+				else if (iflv)
 				{
-					const QStringList& input_files = iflv->getFilenames();
-					if (in_parameter_has_list_type_)
-					{
-						args << input_files;
-					}
-					else
-					{
-						if (i >= input_files.size())
-						{
-							std::cerr << "TOPPAS: Input list too short!" << std::endl;
-							break;
-						}
-						args << input_files[i];
-					}
-					continue;
+					file_list = iflv->getFilenames();
 				}
+        QStringList p_files = getFileArgument_(file_list, i, in_parameter_has_list_type_);
+        if (store_to_ini)
+        {
+          if (param_tmp.getValue(param_name).valueType()==DataValue::STRING_LIST) param_tmp.setValue(param_name, StringList(p_files));
+          else 
+          { 
+            if (p_files.size()>1) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            param_tmp.setValue(param_name, String(p_files[0]));
+          }
+        }
+        else args << p_files;
+
 			}
 			
 			// add all output file parameters
@@ -564,27 +539,37 @@ namespace OpenMS
 					
 					if (j == param_index)
 					{
-						args << "-"+(out_params[param_index].param_name).toQString();
+            String param_name = out_params[param_index].param_name;
+
+            bool store_to_ini = false;
+            // check for GenericWrapper input/output files and put them in INI file:
+            if (param_name.hasPrefix("ETool:")) store_to_ini = true;
+            if (!store_to_ini) args << "-"+param_name.toQString();
+
 						const QStringList& output_files = current_output_files_[param_index];
-						if (in_parameter_has_list_type_)
-						{
-							args << output_files;
-						}
-						else
-						{
-							if (i >= output_files.size())
-							{
-								std::cerr << "TOPPAS: Output list too short!" << std::endl;
-								break;
-							}
-							args << output_files[i];
-						}
+
+            QStringList p_files = getFileArgument_(output_files, i, in_parameter_has_list_type_);
+            if (store_to_ini)
+            {
+              if (param_tmp.getValue(param_name).valueType()==DataValue::STRING_LIST) param_tmp.setValue(param_name, StringList(p_files));
+              else 
+              { 
+                if (p_files.size()>1) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+                param_tmp.setValue(param_name, String(p_files[0]));
+              }
+            }
+            else args << p_files;
 						
 						break; // (regardless of the number of out edges, every argument must appear only once)
 					}
 				}
 			}
-			
+      
+      // each iteration might have different params (input/output items which are registered in subsections (GenericWrapper stuff))
+      QString ini_file_iteration = (String(ini_file) + String(num_iterations_)).toQString();
+      writeParam_(param_tmp, ini_file_iteration);
+      args << "-ini" << ini_file_iteration;
+
 			//create process
 			QProcess* p = new QProcess();
 			p->setProcessChannelMode(QProcess::MergedChannels);
@@ -600,6 +585,24 @@ namespace OpenMS
 		__DEBUG_END_METHOD__
 	}
 	
+  QStringList TOPPASToolVertex::getFileArgument_(const QStringList& source_files, const int index, const bool as_list) const
+  {
+    if (as_list)
+    {
+      return source_files;
+    }
+    else
+    {
+      if (index >= source_files.size())
+			{
+        LOG_ERROR << "TOPPAS: Input list too short!" << std::endl;
+        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, source_files.size());
+			}
+			return QStringList(source_files[index]);
+    }
+
+  }
+
 	void TOPPASToolVertex::executionFinished(int ec, QProcess::ExitStatus es)
 	{
 		__DEBUG_BEGIN_METHOD__
@@ -818,7 +821,7 @@ namespace OpenMS
 							+QDir::separator()
 							+getOutputDir().toQString()
 							+QDir::separator()
-							+out_params[param_index].param_name.toQString()
+              +out_params[param_index].param_name.remove(':').toQString()
 							+QDir::separator()
 							+input_file_basenames.first()
 							+"_to_"
@@ -834,7 +837,7 @@ namespace OpenMS
 								+QDir::separator()
 								+getOutputDir().toQString()
 								+QDir::separator()
-								+out_params[param_index].param_name.toQString()
+								+out_params[param_index].param_name.remove(':').toQString()
 								+QDir::separator()
 								+str;
 							QRegExp rx("_tmp\\d+$");
