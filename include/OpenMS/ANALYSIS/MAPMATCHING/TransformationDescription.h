@@ -111,6 +111,9 @@ namespace OpenMS
 		*/
 		void apply(DoubleReal& value) const;
 				
+		/// Compute an (approximate) inverse of the transformation
+		void getInverse(TransformationDescription& result);
+
 	 protected:
 			
 		/**@brief Base class for all transformations
@@ -143,7 +146,8 @@ namespace OpenMS
 		struct OPENMS_DLLAPI Trafo_
 		{
 			Trafo_(const TransformationDescription&) {}
-			virtual void operator ()(DoubleReal& value) const = 0;
+			virtual void operator()(DoubleReal& value) const = 0;
+			virtual void getInverse(TransformationDescription& result) = 0;
 		 private:			
 			Trafo_(const Trafo_&) {}
 		};

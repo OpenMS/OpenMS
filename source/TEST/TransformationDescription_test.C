@@ -347,6 +347,73 @@ START_SECTION((void apply(DoubleReal &value) const))
 END_SECTION
 
 
+START_SECTION((void getInverse(TransformationDescription& result)))
+{
+	TransformationDescription td, inverse;
+	DoubleReal value = 57.12;
+
+	// test null transformation:
+	td.setName("none");
+	td.getInverse(inverse);
+	TEST_EQUAL(inverse.getName(), "none");
+
+	// test linear transformation:
+	td.clear();
+	td.setName("linear");
+	td.setParam("slope", 2.0);
+	td.setParam("intercept", 47.12);
+
+	td.getInverse(inverse);
+	TEST_EQUAL(inverse.getName(), "linear");
+	TEST_REAL_SIMILAR(inverse.getParam("slope"), 0.5);
+	TEST_REAL_SIMILAR(inverse.getParam("intercept"), -23.56);
+	inverse.apply(value);
+	TEST_REAL_SIMILAR(value, 5.0);
+
+	// test self-assignment:
+	td.getInverse(td);
+	value = 57.12;
+	td.apply(value);
+	TEST_REAL_SIMILAR(value, 5.0);
+
+	// test interpolated-linear transformation:
+	td.clear();
+	td.setName("interpolated_linear");
+	td.setPairs(pairs);
+	sort(td.getPairs().begin(), td.getPairs().end());
+
+	td.getInverse(inverse);
+	sort(inverse.getPairs().begin(), inverse.getPairs().end());
+	// pairs have changed (and not just their order)...
+	TEST_EQUAL(td.getPairs() != inverse.getPairs(), true);
+	inverse.getInverse(inverse);
+	TEST_EQUAL(td.getName() == inverse.getName(), true);
+	sort(inverse.getPairs().begin(), inverse.getPairs().end());
+	// ... now they're back to the original:
+	TEST_EQUAL(td.getPairs() == inverse.getPairs(), true);
+
+	// test B-spline transformation:
+	td.clear();
+	td.setName("b_spline");
+	td.setParam("num_breakpoints", 4);
+	td.setPairs(pairs);
+	sort(td.getPairs().begin(), td.getPairs().end());
+
+	td.getInverse(inverse);
+	TEST_EQUAL(td.getParam("num_breakpoints"), inverse.getParam("num_breakpoints"));
+	sort(inverse.getPairs().begin(), inverse.getPairs().end());
+	// pairs have changed (and not just their order)...
+	TEST_EQUAL(td.getPairs() != inverse.getPairs(), true);
+	inverse.getInverse(inverse);
+	TEST_EQUAL(td.getName() == inverse.getName(), true);
+	sort(inverse.getPairs().begin(), inverse.getPairs().end());
+	// ... now they're back to the original:
+	TEST_EQUAL(td.getPairs() == inverse.getPairs(), true);
+	
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

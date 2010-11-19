@@ -48,28 +48,26 @@ namespace OpenMS
   {
   }
 
-  TransformationDescription&
-  TransformationDescription::operator =(const TransformationDescription& rhs)
+  TransformationDescription& TransformationDescription::operator=(const TransformationDescription& rhs)
   {
-    if ( this == &rhs )
-      return *this;
+    if (this == &rhs) return *this;
 
     name_ = rhs.name_;
     param_ = rhs.param_;
     pairs_ = rhs.pairs_;
-    trafo_ = 0;
+		delete trafo_;
+		trafo_ = 0;
 
     return *this;
   }
 
-  void
-  TransformationDescription::clear()
+  void TransformationDescription::clear()
   {
     name_ = "";
     param_.clear();
     pairs_.clear();
-    delete trafo_;
-    trafo_ = 0;
+		delete trafo_;
+		trafo_ = 0;
   }
 
 	const String& TransformationDescription::getName() const
@@ -139,12 +137,19 @@ namespace OpenMS
 
 	void TransformationDescription::apply(DoubleReal& value) const
 	{
-		// Initialize transformation (if unset).
+		// initialize transformation (if unset).
 		if (!trafo_) init_();
-		//apply transformation
+		// apply transformation
 		trafo_->operator()(value);
 	}
 
+	void TransformationDescription::getInverse(TransformationDescription& result)
+	{
+		// initialize transformation (if unset).
+		if (!trafo_) init_();
+		// invert
+		trafo_->getInverse(result);
+	}
 
 //// internal structs
 
@@ -156,10 +161,25 @@ namespace OpenMS
       return;
     }
 
-    virtual void operator ()(DoubleReal&) const
+    virtual void operator()(DoubleReal&) const
     {
       return;
     }
+
+		virtual void getInverse(TransformationDescription& result)
+		{
+			if (this == result.trafo_) // self-assignment
+			{
+				result.pairs_.clear();
+				result.param_.clear();
+			}
+			else
+			{
+				result.clear();
+			}
+			result.name_ = "none";
+		}
+		
   };
 
   struct TransformationDescription::Linear_ : TransformationDescription::Trafo_
@@ -181,12 +201,35 @@ namespace OpenMS
       return;
     }
 
-    virtual void operator ()(DoubleReal& value) const
+    virtual void operator()(DoubleReal& value) const
     {
       value *= slope_;
       value += intercept_;
       return;
     }
+
+		virtual void getInverse(TransformationDescription& result)
+		{
+			if (slope_ == 0) throw Exception::DivisionByZero(__FILE__, __LINE__, 
+																											__PRETTY_FUNCTION__);
+
+			if (this == result.trafo_) // self-assignment
+			{
+				result.pairs_.clear();
+				result.param_.clear();
+				intercept_ = -intercept_ / slope_;
+				slope_ = 1.0 / slope_;
+				result.param_.setValue("slope", slope_);
+				result.param_.setValue("intercept", intercept_);
+			}
+			else
+			{
+				result.clear();
+				result.param_.setValue("intercept", -intercept_ / slope_);
+				result.param_.setValue("slope", 1.0 / slope_);
+			}
+			result.name_ = "linear";
+		}
 
     protected:
       DoubleReal slope_;
@@ -207,8 +250,7 @@ namespace OpenMS
       return;
     }
 
-    virtual void
-    operator()(DoubleReal& value) const
+    virtual void operator()(DoubleReal& value) const
     {
       if ( value <= pairs_.front().first )
       {
@@ -232,6 +274,29 @@ namespace OpenMS
       return;
     }
 
+		virtual void getInverse(TransformationDescription& result)
+		{
+			if (this == result.trafo_) // self-assignment
+			{
+				result.param_.clear();
+				for (PairVector::iterator it = pairs_.begin(); it != pairs_.end(); ++it)
+				{
+					*it = std::make_pair(it->second, it->first); // swap the components
+				}
+				std::sort(pairs_.begin(), pairs_.end());
+				result.pairs_ = pairs_;
+			}
+			else
+			{
+				result.clear();
+				for (PairVector::iterator it = pairs_.begin(); it != pairs_.end(); ++it)
+				{
+					result.pairs_.push_back(std::make_pair(it->second, it->first));
+				}
+			}
+			result.name_ = "interpolated_linear";
+		}
+
     protected:
       PairVector pairs_;
   };
@@ -241,23 +306,23 @@ namespace OpenMS
     BSpline_(const TransformationDescription& rhs) :
       Trafo_(rhs)
     {
-      if ( rhs.pairs_.size() < 4 ) // TODO: check number
+      if (rhs.pairs_.size() < 4) // TODO: check number
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             "less than four pairs for 'b_spline' transformation given (need at least four different pre-images)");
       }
 
       // TODO: allow arbitrary (non-uniform) breakpoints
-      if ( !rhs.param_.exists("num_breakpoints") )
+      if (!rhs.param_.exists("num_breakpoints"))
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parameter 'num_breakpoints' for 'b_spline' transformation not given");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parameter 'num_breakpoints' for 'b_spline' transformation missing");
       }
 
       size = rhs.pairs_.size();
       x = gsl_vector_alloc(size);
       y = gsl_vector_alloc(size);
       w = gsl_vector_alloc(size);
-      for ( size_t i = 0; i < size; ++i )
+      for (size_t i = 0; i < size; ++i)
       {
         gsl_vector_set(x, i, rhs.pairs_[i].first);
         gsl_vector_set(y, i, rhs.pairs_[i].second);
@@ -289,17 +354,16 @@ namespace OpenMS
       gsl_vector_free(w);
     }
 
-    void
-    compute_fit_()
+    void compute_fit_()
     {
       // construct the fit matrix:
       gsl_matrix *fit_matrix = gsl_matrix_alloc(size, ncoeffs);
       bsplines = gsl_vector_alloc(ncoeffs);
-      for ( size_t i = 0; i < size; ++i )
+      for (size_t i = 0; i < size; ++i)
       {
         double xi = gsl_vector_get(x, i);
         gsl_bspline_eval(xi, bsplines, workspace);
-        for ( size_t j = 0; j < ncoeffs; ++j )
+        for (size_t j = 0; j < ncoeffs; ++j)
         {
           double bspline = gsl_vector_get(bsplines, j);
           gsl_matrix_set(fit_matrix, i, j, bspline);
@@ -320,17 +384,16 @@ namespace OpenMS
       compute_linear_(xmax, slope_max, offset_max);
     }
 
-    void
-    compute_linear_(double pos, double& slope, double& offset)
+    void compute_linear_(double pos, double& slope, double& offset)
     {
       gsl_bspline_deriv_workspace *deriv_workspace = gsl_bspline_deriv_alloc(4);
       gsl_matrix *deriv = gsl_matrix_alloc(ncoeffs, 2);
       gsl_bspline_deriv_eval(pos, 1, deriv, workspace, deriv_workspace);
       gsl_bspline_deriv_free(deriv_workspace);
       double results[2];
-      for ( size_t j = 0; j < 2; ++j )
+      for (size_t j = 0; j < 2; ++j)
       {
-        for ( size_t i = 0; i < ncoeffs; ++i )
+        for (size_t i = 0; i < ncoeffs; ++i)
         {
           gsl_vector_set(bsplines, i, gsl_matrix_get(deriv, i, j));
         }
@@ -342,14 +405,13 @@ namespace OpenMS
       slope = results[1];
     }
 
-    virtual void
-    operator()(DoubleReal& value) const
+    virtual void operator()(DoubleReal& value) const
     {
-      if ( value < xmin )
+      if (value < xmin)
       {
         value = offset_min - slope_min * (xmin - value);
       }
-      else if ( value > xmax )
+      else if (value > xmax)
       {
         value = offset_max + slope_max * (value - xmax);
       }
@@ -361,6 +423,44 @@ namespace OpenMS
       }
     }
 
+		virtual void getInverse(TransformationDescription& result)
+		{
+			if (this == result.trafo_) // self-assignment
+			{
+				result.param_.clear();
+				result.pairs_.clear();
+			}
+			else
+			{
+				result.clear();
+			}
+			for (size_t i = 0; i < size; ++i)
+			{
+				result.pairs_.push_back(std::make_pair(gsl_vector_get(y, i),
+																							 gsl_vector_get(x, i)));
+			}
+			if (this == result.trafo_) // self-assignment
+			{
+				// swap x and y (weights stay the same):
+				gsl_vector* temp;
+				temp = x;
+				x = y;
+				y = temp;
+				// recompute the spline:
+				xmin = gsl_vector_min(x);
+				xmax = gsl_vector_max(x);
+				// workspace stays the same
+				gsl_bspline_knots_uniform(xmin, xmax, workspace);
+				ncoeffs = gsl_bspline_ncoeffs(workspace);
+				xmin = gsl_vector_min(workspace->knots);
+				xmax = gsl_vector_max(workspace->knots);
+				compute_fit_();
+			}
+			// ncoeffs = nbreak + k - 2
+			result.param_.setValue("num_breakpoints", ncoeffs - 2);
+			result.name_ = "b_spline";
+		}
+
   protected:
     gsl_vector *x, *y, *w, *bsplines, *coeffs;
     gsl_matrix *cov;
@@ -370,28 +470,26 @@ namespace OpenMS
     double slope_min, slope_max, offset_min, offset_max;
   };
 
-  void
-  TransformationDescription::init_() const
+  void TransformationDescription::init_() const
   {
     // workaround: init_() is const, but in fact it changes "hidden" state.
     Trafo_ * & trafo = const_cast<Trafo_*&> (trafo_);
 
-    if ( trafo )
-      delete trafo;
+    if (trafo) delete trafo;
     trafo = 0;
-    if ( name_ == "none" )
+    if (name_ == "none")
     {
       trafo = new None_(*this);
     }
-    else if ( name_ == "linear" )
+    else if (name_ == "linear")
     {
       trafo = new Linear_(*this);
     }
-    else if ( name_ == "interpolated_linear" )
+    else if (name_ == "interpolated_linear")
     {
       trafo = new InterpolatedLinear_(*this);
     }
-    else if ( name_ == "b_spline" )
+    else if (name_ == "b_spline")
     {
       trafo = new BSpline_(*this);
     }
@@ -401,8 +499,7 @@ namespace OpenMS
     }
   }
 
-  std::ostream&
-  operator<<(std::ostream& os, TransformationDescription const & td)
+  std::ostream& operator<<(std::ostream& os, const TransformationDescription& td)
   {
     return os << " -- TransformationDescription  BEGIN --\n"
       "name: " << td.getName() << "\n"
