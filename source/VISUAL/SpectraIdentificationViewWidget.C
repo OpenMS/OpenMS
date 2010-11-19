@@ -86,6 +86,9 @@ namespace OpenMS
     table_widget_->setColumnWidth(6,45);
     table_widget_->setColumnHidden(6, true);
     table_widget_->setColumnWidth(7,45);
+    table_widget_->setColumnWidth(8,45);
+    table_widget_->setColumnWidth(9,45);
+    table_widget_->setColumnWidth(10,400);
 
     ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
@@ -150,6 +153,7 @@ namespace OpenMS
     }
 
     table_widget_->setSortingEnabled(false);
+    table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
     table_widget_->clear();
     table_widget_->setRowCount(0);
@@ -167,6 +171,10 @@ namespace OpenMS
     table_widget_->setColumnWidth(5,45);
     table_widget_->setColumnWidth(6,45);
     table_widget_->setColumnWidth(7,45);
+    table_widget_->setColumnWidth(8,45);
+    table_widget_->setColumnWidth(9,45);
+    table_widget_->setColumnWidth(10,400);
+
 
     QTableWidgetItem* item = 0;
     QTableWidgetItem* selected_item = 0;
@@ -203,16 +211,19 @@ namespace OpenMS
           // ms level
           item = new QTableWidgetItem(QString::number(ms_level));
           item->setBackgroundColor(c);
+          item->setTextAlignment(Qt::AlignCenter);
           table_widget_->setItem(table_widget_->rowCount()-1 , 0, item);
 
           // index
-          item = new QTableWidgetItem();          
+          item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignCenter);
           item->setData(Qt::DisplayRole, i);
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 1, item);
 
           // rt
           item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignCenter);
           item->setData(Qt::DisplayRole, (*cl.getPeakData())[i].getRT());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
@@ -222,29 +233,51 @@ namespace OpenMS
           if (pi.size()!=0)
           {
             vector<PeptideHit> ph = pi[0].getHits();
-            if (ph.size()!=0)  // @TODO: select best scoring hit
-            {
+
+            Size best_j_index = 0;
+            bool is_higher_score_better = false;
+            Size best_score = pi[0].getHits()[0].getScore();
+            is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
+
+            if (ph.size()!=0)
+            {              
+              for(Size j=0; j!=pi[0].getHits().size(); ++j)
+              {
+                PeptideHit ph = pi[0].getHits()[j];
+                // better score?
+                if ((ph.getScore() < best_score && !is_higher_score_better)
+                 || (ph.getScore() > best_score && is_higher_score_better))
+                {
+                  best_score = ph.getScore();
+                  best_j_index = j;
+                }
+              }
+              PeptideHit best_ph = pi[0].getHits()[best_j_index];
               // score
               item = new QTableWidgetItem();
-              item->setData(Qt::DisplayRole, ph[0].getScore());
+              item->setTextAlignment(Qt::AlignCenter);
+              item->setData(Qt::DisplayRole, best_ph.getScore());
               item->setBackgroundColor(c);
               table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
 
               // rank
               item = new QTableWidgetItem();
-              item->setData(Qt::DisplayRole, ph[0].getRank());
+              item->setTextAlignment(Qt::AlignCenter);
+              item->setData(Qt::DisplayRole, best_ph.getRank());
               item->setBackgroundColor(c);
               table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
 
               // charge
               item = new QTableWidgetItem();
-              item->setData(Qt::DisplayRole, ph[0].getCharge());
+              item->setTextAlignment(Qt::AlignCenter);
+              item->setData(Qt::DisplayRole, best_ph.getCharge());
               item->setBackgroundColor(c);
               table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
 
               //sequence
               item = new QTableWidgetItem();
-              item->setText(ph[0].getSequence().toString().toQString());
+              item->setTextAlignment(Qt::AlignLeft);
+              item->setText(best_ph.getSequence().toString().toQString());
               item->setBackgroundColor(c);
               table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
             }
@@ -253,24 +286,28 @@ namespace OpenMS
             // score
             item = new QTableWidgetItem();
             item->setText("-");
+            item->setTextAlignment(Qt::AlignCenter);
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
 
             // rank
             item = new QTableWidgetItem();
             item->setText("-");
+            item->setTextAlignment(Qt::AlignCenter);
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
 
             // charge
             item = new QTableWidgetItem();
             item->setText("-");
+            item->setTextAlignment(Qt::AlignCenter);
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
 
             //sequence
             item = new QTableWidgetItem();
             item->setText("-");
+            item->setTextAlignment(Qt::AlignCenter);
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
           }
@@ -278,11 +315,13 @@ namespace OpenMS
           if (!(*cl.getPeakData())[i].getPrecursors().empty())  // has precursor
           {            
             item = new QTableWidgetItem();
+            item->setTextAlignment(Qt::AlignCenter);
             item->setData(Qt::DisplayRole, (*cl.getPeakData())[i].getPrecursors()[0].getMZ());
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
 
             item = new QTableWidgetItem();
+            item->setTextAlignment(Qt::AlignCenter);
             if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
             {
               QString t;
@@ -305,10 +344,12 @@ namespace OpenMS
           else  // has no precursor (leave fields 3 and 4 empty)
           {
             item = new QTableWidgetItem();
-            item->setText("-");
+            item->setTextAlignment(Qt::AlignCenter);
+            item->setText("-");            
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
             item = new QTableWidgetItem();
+            item->setTextAlignment(Qt::AlignCenter);
             item->setText("-");
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 4, item);
@@ -316,6 +357,7 @@ namespace OpenMS
 
           // scan mode
           item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignCenter);
           if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
           {
             item->setText(QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
@@ -329,6 +371,7 @@ namespace OpenMS
 
           // zoom scan
           item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignCenter);
           if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
           {
             item->setText("yes");
@@ -363,10 +406,10 @@ namespace OpenMS
       item->setFlags(0);
       return; // leave signals blocked
     }
-
     table_widget_->blockSignals(false);
+    table_widget_->setUpdatesEnabled(true);
     table_widget_->setSortingEnabled(true);
-    table_widget_->resizeColumnsToContents ();
+    table_widget_->resizeColumnsToContents();
     table_widget_->resizeRowsToContents();
   }
 

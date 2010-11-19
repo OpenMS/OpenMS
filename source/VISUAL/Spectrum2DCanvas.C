@@ -1170,7 +1170,10 @@ namespace OpenMS
 
 		//overall values update
 		recalculateRanges_(0,1,2);
-		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+    if (layers_.size() == 1)
+    {
+      resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+    }
 
 		if (getLayerCount()==2)
 		{
