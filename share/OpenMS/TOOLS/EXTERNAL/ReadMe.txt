@@ -21,8 +21,10 @@ This way you can now easily integrate external tools into TOPPAS, by just adding
 
 If you want to add a custom *.ttd file (obtainable from our website or other users), simply add it to this folder.
 Some tools (like 'mail' on linux), might only be available on certain Operating Systems. In this case you should
-place them in the respective subfolder. Only this folder and the subfolder matching your Operating System will be
+place them in the respective subfolder. The folder of this ReadMe and the subfolder matching your Operating System will be
 scanned for *.ttd files.
+Additionally you can create an environment variable OPENMS_TTD_PATH and use it to point to one (!) custom directory of your choice.
+This is useful when upgrading OpenMS to another version while keeping all your custom *.ttd files.
 
 If you encounter a bug, mail to the developers at
   General OpenMS discussion <open-ms-general@lists.sourceforge.net>
@@ -48,3 +50,18 @@ Make a copy of it and modify to your needs.
 Once you are done, place the new *.ttd in either this folder (for all Operating Systems) or the correct subfolder.
 
 You can also have a look at existing wrappers and get inspiration.
+
+A note on using more complicated shell commands (e.g. piping):
+  - as we use QProcess to call the external tool, no piping and shell internal commands (such as 'echo' on Windows) are supported
+    To work around this you have to specify the command tool itself, e.g.
+	
+	<path>cmd</path>
+	<cloptions>/C "echo ""bla bla"" > testfile"</cloptions>
+	
+	or
+	
+	<path>sh</path>
+	<cloptions>-c "echo """%2""" > testfile"</cloptions>
+                  
+	Note that escaping of internal quotes works different on each platform. You need to test this!
+	

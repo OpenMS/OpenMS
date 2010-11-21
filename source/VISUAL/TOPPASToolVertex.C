@@ -200,12 +200,11 @@ namespace OpenMS
 		// use a copy for editing
 		Param edit_param(param_);
 		
-		QVector<Param::ParamEntry> hidden_entries;
+		QVector<String> hidden_entries;
 		// remove type (should not be edited)
 		if (edit_param.exists("type"))
 		{
-			hidden_entries.push_back(edit_param.getEntry("type"));
-			edit_param.remove("type");
+			hidden_entries.push_back("type");
 		}
 		// remove entries that are handled by edges already, user should not see them
 		QVector<IOInfo> input_infos;
@@ -221,8 +220,7 @@ namespace OpenMS
 			const String& name = input_infos[index].param_name;
 			if (edit_param.exists(name))
 			{
-				hidden_entries.push_back(edit_param.getEntry(name));
-				edit_param.remove(name);
+				hidden_entries.push_back(name);
 			}
 		}
 		
@@ -239,25 +237,22 @@ namespace OpenMS
 			const String& name = output_infos[index].param_name;
 			if (edit_param.exists(name))
 			{
-				hidden_entries.push_back(edit_param.getEntry(name));
-				edit_param.remove(name);
+				hidden_entries.push_back(name);
 			}
 		}
 		
+    // remove entries explained by edges
+    foreach (const String& name, hidden_entries)
+		{
+			edit_param.remove(name);
+		}
+
 		TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, hidden_entries);
 		if (dialog.exec())
 		{
-			param_ = edit_param;
-			// restore the removed entries
-			foreach (const Param::ParamEntry& pe, hidden_entries)
-			{
-				StringList tags;
-				for (std::set<String>::const_iterator it = pe.tags.begin(); it != pe.tags.end(); ++it)
-				{
-					tags.push_back(*it);
-				}
-				param_.setValue(pe.name, pe.value, pe.description, tags);
-			}
+      // take new values
+      param_.update(edit_param);
+			
 			
 			progress_color_ = Qt::gray;
 			emit somethingHasChanged();

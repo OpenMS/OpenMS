@@ -66,8 +66,8 @@ namespace OpenMS
 				@param tool_name The name of the tool
 				@param tool_type The type of the tool
 			*/
-			TOPPASToolConfigDialog(QWidget* parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<Param::ParamEntry> hidden_entries);
-			///Desctructor
+			TOPPASToolConfigDialog(QWidget* parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<String> hidden_entries);
+			///Destructor
 			~TOPPASToolConfigDialog();
 	
 		private:		
@@ -86,7 +86,7 @@ namespace OpenMS
 			/// The type of the tool
 			String tool_type_;
 			/// The parameters already explained by in edges
-			QVector<Param::ParamEntry> hidden_entries_;
+			QVector<String> hidden_entries_;
 			
 		protected slots:
 			/// Slot for OK button

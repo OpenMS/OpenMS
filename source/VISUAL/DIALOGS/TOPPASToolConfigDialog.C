@@ -44,7 +44,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	TOPPASToolConfigDialog::TOPPASToolConfigDialog( QWidget * parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<Param::ParamEntry> hidden_entries)
+	TOPPASToolConfigDialog::TOPPASToolConfigDialog( QWidget * parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<String> hidden_entries)
 		: QDialog(parent),
 			param_(&param),
 			default_dir_(default_dir),
@@ -134,9 +134,9 @@ namespace OpenMS
 		//param_->remove("debug");
 		
 		//remove parameters already explained by edges and the "type" parameter
-		foreach (const Param::ParamEntry& pe, hidden_entries_)
+		foreach (const String& name, hidden_entries_)
 		{
-			param_->remove(pe.name);
+			param_->remove(name);
 		}
 		
 		//load data into editor
