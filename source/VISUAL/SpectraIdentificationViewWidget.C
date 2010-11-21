@@ -217,7 +217,7 @@ namespace OpenMS
           // index
           item = new QTableWidgetItem();
           item->setTextAlignment(Qt::AlignCenter);
-          item->setData(Qt::DisplayRole, i);
+          item->setData(Qt::DisplayRole, UInt(i));
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 1, item);
 
