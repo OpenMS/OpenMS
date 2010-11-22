@@ -107,6 +107,10 @@ namespace OpenMS
 				this->defaults_.setValue ("sweep_line:rt_interleave", 1, "Defines the maximum number of "
 							"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", StringList::create("advanced"));
 				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
+
+				this->defaults_.setValue ("int_corr", "false", "Experimental intensity correction.", StringList::create("advanced"));
+				this->defaults_.setValidStrings("int_corr",StringList::create("true,false"));
+
 				this->defaultsToParam_();
 		}
 
@@ -163,6 +167,13 @@ namespace OpenMS
 			};
 			DoubleReal bound=-1*c_sorted_spec[pos].getMZ();
 		
+			if (bound > (1./max_charge_)/2.) 
+			//that might be case for simulated spectra, 
+			//which might show a very artificial spacing
+			{
+				bound = (1./max_charge_)/2./4.;
+			};
+	
 			MSSpectrum<PeakType>* new_spec = new MSSpectrum<PeakType>;
 			new_spec->reserve(200000); 
 			new_spec->setRT(((*this->map_)[i]).getRT());
@@ -237,7 +248,7 @@ namespace OpenMS
 						
 						for (UInt t=0; t<num_gpus; ++t)
 						{
-							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, true, hr_data_);
+							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, true, hr_data_, int_corr_);
 						};
 
 						static tbb::affinity_partitioner ap;
@@ -274,7 +285,7 @@ namespace OpenMS
 
 				if (!use_tbb_)
 				{
-					IsotopeWaveletTransform<PeakType>* iwt = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, use_cuda_, hr_data_);
+					IsotopeWaveletTransform<PeakType>* iwt = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, use_cuda_, hr_data_, int_corr_);
 					#ifdef OPENMS_HAS_CUDA
 						if (use_cuda_)
 						{
@@ -425,8 +436,6 @@ namespace OpenMS
 								}
 								else //HighRes data
 								{	
-									
-									std::cout << "Here 1" << std::endl;
 									c_trans = prepareHRDataCuda (i, iwt);
 									for (UInt c=0; c<max_charge_; ++c)
 									{	
@@ -526,7 +535,7 @@ namespace OpenMS
 		DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
 		UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
 		String use_gpus_;
-		bool use_tbb_, use_cuda_, check_PPMs_, hr_data_;
+		bool use_tbb_, use_cuda_, check_PPMs_, hr_data_, int_corr_;
 		std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
 			
 		#if defined(OPENMS_HAS_TBB) && defined(OPENMS_HAS_CUDA)
@@ -545,6 +554,7 @@ namespace OpenMS
 			IsotopeWavelet::setMaxCharge(max_charge_);
 			check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
 			hr_data_ = ( (String)(this->param_.getValue("hr_data"))=="true" );
+			int_corr_ = ( (String)(this->param_.getValue("int_corr"))=="true" );
 			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB)
 				use_gpus_ = this->param_.getValue ("parallel:use_gpus");
 				std::vector<String> tokens; 
@@ -565,6 +575,10 @@ namespace OpenMS
 				use_tbb_ = false;
 				for (UInt i=1; i<tokens.size(); ++i)
 				{
+					if (tokens[i].trim().toInt() == (Int) gpu_ids_[i-1])
+					{
+						continue;
+					};
 					gpu_ids_.push_back(tokens[i].trim().toInt());
 					use_tbb_ = true;
 				};

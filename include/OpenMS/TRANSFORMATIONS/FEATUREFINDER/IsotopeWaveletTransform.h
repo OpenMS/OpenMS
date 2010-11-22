@@ -226,7 +226,7 @@ namespace OpenMS
  				* @param min_mz The smallest m/z value occurring in your map.
  				* @param max_mz The largest m/z value occurring in your map.
  				* @param max_charge The highest charge state you would like to consider. */
-			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size=0, const bool use_cuda=false, const bool hr_data=false);
+			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size=0, const bool use_cuda=false, const bool hr_data=false, const bool skellam=false);
 
 			/** @brief Destructor. */
 			virtual ~IsotopeWaveletTransform () ;
@@ -536,7 +536,7 @@ namespace OpenMS
 
 			Size max_scan_size_; 
 			UInt max_num_peaks_per_pattern_, max_charge_;
-			bool hr_data_;
+			bool hr_data_, skellam_;
 			Int from_max_to_left_, from_max_to_right_;
 			std::vector<int> indices_;
 			
@@ -596,6 +596,8 @@ namespace OpenMS
 		max_scan_size_ = 0;
 		max_mz_cutoff_ = 3;
 		max_num_peaks_per_pattern_ = 3;
+		hr_data_=false;
+		skellam_=false;
 		#ifdef OPENMS_HAS_CUDA 
 			largest_array_size_ = 0;
 			num_elements_ = 0;
@@ -605,11 +607,12 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size, const bool use_cuda, const bool hr_data) 
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size, const bool use_cuda, const bool hr_data, bool skellam) 
 	{
 		max_charge_ = max_charge;
 		max_scan_size_ = max_scan_size;
 		hr_data_ = hr_data;
+		skellam_ = skellam;
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (max_charge);
 		if (max_scan_size <= 0) //only important for the CPU
 		{
@@ -769,8 +772,15 @@ namespace OpenMS
 	void IsotopeWaveletTransform<PeakType>::initializeScan (const MSSpectrum<PeakType>& c_ref) 
 	{
 		computeMinSpacing(c_ref);
-
+		//CHANGED
+		max_mz_cutoff_ =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[c_ref.size()-1].getMZ(), max_charge_);
 		Int wavelet_length = (UInt) ceil(max_mz_cutoff_/min_spacing_);
+		if (wavelet_length > (Int) c_ref.size())
+		{
+			std::cout << "Warning: the extremal length of the wavelet is larger (" << wavelet_length << ") than the number of data points ("<< c_ref.size() << "). This might (!) severely affect the transform."<< std::endl;
+			std::cout << "Minimal spacing: " << min_spacing_ << std::endl;
+			std::cout << "Warning/Error generated at scan with RT " << c_ref.getRT() << "." << std::endl;
+		}; 
 		Int max_index = (UInt) (Constants::IW_QUARTER_NEUTRON_MASS/min_spacing_);
 		from_max_to_left_ = max_index;
 		from_max_to_right_ = wavelet_length-1-from_max_to_left_;
@@ -812,6 +822,7 @@ namespace OpenMS
 			min_spacing_=INT_MAX;
 			pre_positions[0] = scan[0].getMZ();
 			pre_intensities[0] = scan[0].getIntensity();
+			
 			for (UInt i=1; i<data_length_; ++i)
 			{
 				pre_positions[i] = scan[i].getMZ();
@@ -846,13 +857,16 @@ namespace OpenMS
 			}
 			else
 			{
+				//CHANGED
+				max_mz_cutoff_ =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(scan[data_length_-1].getMZ(), max_charge_);
 				wavelet_length = (UInt) ceil(max_mz_cutoff_/min_spacing_);
 			};
 			//... done
 
 			if (wavelet_length > data_length_ || wavelet_length == 1) //==1, because of 'ceil'
 			{
-				std::cout << "Warning: wavelet is larger than the number of data points. This might (!) severely affect the transform."<< std::endl;
+				std::cout << "Warning: the extremal length of the wavelet is larger (" << wavelet_length << ") than the number of data points ("<< data_length_ << "). This might (!) severely affect the transform."<< std::endl;
+				std::cout << "Minimal spacing: " << min_spacing_ << std::endl;
 				std::cout << "Warning/Error generated at scan with RT " << scan.getRT() << "." << std::endl;
 			}; 
 
@@ -2381,8 +2395,11 @@ namespace OpenMS
 			c_feature.setConvexHulls (std::vector<ConvexHull2D> (1, c_conv_hull));
 
 			//This makes the intensity value independent of the m/z (the lambda) value (Skellam distribution)
-			DoubleReal lambda = IsotopeWavelet::getLambdaL(av_mz*c_charge);
-			av_intens /= exp(-2*lambda) * boost::math::cyl_bessel_i(0, 2*lambda);
+			if (skellam_)
+			{
+				DoubleReal lambda = IsotopeWavelet::getLambdaL(av_mz*c_charge);
+				av_intens /= exp(-2*lambda) * boost::math::cyl_bessel_i(0, 2*lambda);
+			};
 			//DoubleReal breen (0.000594*av_mz*c_charge-0.03091);
 			//av_ref_intens /= exp(-breen);
 	

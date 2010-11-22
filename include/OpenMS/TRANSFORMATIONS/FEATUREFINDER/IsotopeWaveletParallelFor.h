@@ -80,6 +80,8 @@ namespace OpenMS
 						typename IsotopeWaveletTransform<PeakType>::TransSpectrum* c_trans (NULL); 
 						if (!ff_->hr_data_) //LowRes data
 						{
+							std::cout << "Parallel for: here we are" << std::endl;
+
 							c_trans = new typename IsotopeWaveletTransform<PeakType>::TransSpectrum (&(*ff_->map_)[i]);
 							success = c_iwt->initializeScanCuda ((*ff_->map_)[i]) == Constants::CUDA_INIT_SUCCESS;
 
