@@ -47,6 +47,10 @@ namespace OpenMS
     defaults_.setValue("block_method:rt_block_size", 5, "Number of scans to be summed up.");
     defaults_.setMinInt("block_method:rt_block_size", 1);
 
+    defaults_.setValue("block_method:rt_max_length", 0.0, "Maximum size of the block in rt dimension (0.0 = no size restriction).");
+    defaults_.setMinFloat("block_method:rt_max_length", 0.0);
+    defaults_.setMaxFloat("block_method:rt_max_length", 10e10);
+
     // same precursor MS/MS merging
    	defaults_.setValue("precursor_method:mz_tolerance", 10e-5, "Max m/z distance of the precursor entries of two spectra to be merged in Dalton.");
 		defaults_.setMinFloat("precursor_method:mz_tolerance", 0);

@@ -79,10 +79,15 @@ namespace OpenMS
 		{
 			IntList ms_levels = (IntList) (param_.getValue("block_method:ms_levels"));
       Int rt_block_size(param_.getValue("block_method:rt_block_size"));
+      DoubleReal rt_max_length = (param_.getValue("block_method:rt_max_length"));
+
+      if (rt_max_length == 0)  // no rt restriction set?
+      {
+        rt_max_length = 10e10; // set max rt span to very large value
+      }
 
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel<ms_levels.end(); ++it_mslevel)
       {
-
         MergeBlocks spectra_to_merge;
         Size idx_block(0);
         SignedSize block_size_count(rt_block_size+1);
@@ -91,10 +96,11 @@ namespace OpenMS
 			  {
 				  if (Int(it1->getMSLevel()) == *it_mslevel)
 				  {
-            // block full
-            if (++block_size_count >= rt_block_size)
+            // block full if it contains a maximum number of scans or if maximum rt length spanned
+            if (++block_size_count >= rt_block_size ||
+                exp[idx_spectrum].getRT() - exp[idx_block].getRT() > rt_max_length)
             {
-              block_size_count=0;
+              block_size_count = 0;
               idx_block = idx_spectrum;
             }
             else
@@ -114,7 +120,6 @@ namespace OpenMS
         // merge spectra, remove all old MS spectra and add new consensus spectra
         mergeSpectra_(exp, spectra_to_merge, *it_mslevel);
       }
-
 
       exp.sortSpectra();
 
