@@ -504,6 +504,9 @@ namespace OpenMS {
 
 		f.setMZ( (feature_ef.getMonoWeight() + adduct_mass ) / charge);
 		f.setCharge(charge);
+    std::vector<PeptideHit> hits = f.getPeptideIdentifications()[0].getHits();
+    hits[0].setCharge(charge);
+    f.getPeptideIdentifications()[0].setHits(hits);
 	  // set "main" intensity
     SimIntensityType old_intensity = f.getIntensity();
 	  f.setIntensity(new_intensity);

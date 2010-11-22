@@ -134,8 +134,8 @@ namespace OpenMS {
     defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
 
     // peak and instrument parameter
-    defaults_.setValue("resolution:value",50000,"Instrument resolution at 400Th.");
-    defaults_.setValue("resolution:type","linear","How does resolution change with increasing m/z?! QTOFs usually show 'linear' behaviour, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass.");
+    defaults_.setValue("resolution:value",50000,"Instrument resolution at 400 Th.");
+    defaults_.setValue("resolution:type","linear","How does resolution change with increasing m/z?! QTOFs usually show 'constant' behaviour, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass.");
     defaults_.setValidStrings("resolution:type", StringList::create("constant,linear,sqrt"));
     
 
@@ -179,8 +179,8 @@ namespace OpenMS {
     defaults_.setValue("noise:shot:int-mean",50.0,"Shot noise intensity mean (gaussian distributed).");
 
     // white noise
-    defaults_.setValue("noise:white:mean", 0.0, "Mean value of the white noise that is added to each measured signal.");
-    defaults_.setValue("noise:white:stddev", 0.0, "Mean value of the white noise that is added to each measured signal.");
+    defaults_.setValue("noise:white:mean", 0.0, "Mean value of white noise being added to each measured signal.");
+    defaults_.setValue("noise:white:stddev", 0.0, "Standard deviation of white noise being added to each measured signal.");
 
     defaults_.setSectionDescription("noise", "Parameters modelling noise in mass spectrometry measurements.");
     defaults_.setSectionDescription("noise:shot", "Parameters regarding shot noise modelling.");
