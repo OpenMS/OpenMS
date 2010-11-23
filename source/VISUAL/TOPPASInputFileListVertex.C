@@ -36,6 +36,7 @@
 #include <QtCore/QDir>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QMessageBox>
 
 namespace OpenMS
 {
@@ -159,15 +160,17 @@ namespace OpenMS
     for (int i=0;i<files_.size();++i)
     { // collect unique directories
       QFileInfo fi(files_[i]);
-      directories.insert(String(QDir::toNativeSeparators(fi.absolutePath())));
+      directories.insert(String(QFileInfo(fi.canonicalFilePath()).path()));
     }
 
     // open them
     for (std::set<String>::const_iterator it=directories.begin();it!=directories.end();++it)
     {
       QString path = QDir::toNativeSeparators(it->toQString());
-      if (QDir(path).exists()) QDesktopServices::openUrl(QUrl("file:///" + path));
-      else (std::cerr << "dir: " << String(path) << " does not exist" << "\n");
+      if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
+      {
+        QMessageBox::warning(0, "Open Folder Error", String("The folder " + path + " could not be opened!").toQString());
+      }
     }
 	}
 

@@ -43,6 +43,7 @@
 
 #include <QDesktopServices>
 #include <QUrl>
+#include <QMessageBox>
 #include <QCoreApplication>
 
 namespace OpenMS
@@ -920,9 +921,11 @@ namespace OpenMS
 				if (files.size() > 0)
 				{
           QFileInfo fi(files[0]);
-          QString path = QDir::toNativeSeparators(fi.absolutePath());
-          if (QDir(path).exists()) QDesktopServices::openUrl(QUrl("file:///" + path));
-          else (std::cerr << "dir: " << String(path) << " does not exist" << "\n");
+          QString path = QFileInfo(fi.canonicalFilePath()).path();
+          if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
+          {
+            QMessageBox::warning(0, "Open Folder Error", String("The folder " + path + " could not be opened!").toQString());
+          }
         }
 			}
 		}
