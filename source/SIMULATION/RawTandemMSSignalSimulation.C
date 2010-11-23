@@ -188,8 +188,8 @@ namespace OpenMS
 		param.remove("charge_filter");
 		ps.setParameters(param);
 		// different selection strategies for MALDI and ESI
-		bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";
-    ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);
+		bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";    
+		ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);
 
 		
 		//** actual MS2 signal **//
