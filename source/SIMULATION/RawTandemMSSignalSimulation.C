@@ -27,7 +27,7 @@
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
-#include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 
 
@@ -85,8 +85,8 @@ namespace OpenMS
 
   void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2)
   {
-    AdvancedTheoreticalSpectrumGenerator adv_spec_gen;
-    adv_spec_gen.loadProbabilisticModel();
+    SvmTheoreticalSpectrumGenerator svm_spec_gen;
+    svm_spec_gen.load();
     Param p;
     p.setValue("block_method:rt_block_size", features.size()); // merge all single spectra
     p.setValue("block_method:ms_levels", IntList::create("2"));
@@ -106,7 +106,14 @@ namespace OpenMS
       // sample MS2 spectra for each feature
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
-      //adv_spec_gen.simulate(single_ms2_spectra[i_f], seq, rnd_gen_->biological_rng,features[i_f].getCharge());
+      RichPeakSpectrum tmp_spec;      
+      svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng,features[i_f].getCharge());
+//      for(Size peak=0; peak<tmp_spec.size(); ++peak)
+//      {
+//        Peak1D p=tmp_spec[peak];
+//        single_ms2_spectra[i_f].push_back(p);
+//      }
+
       single_ms2_spectra[i_f].setMSLevel(2);
 
       // validate features Metavalues exist and are valid:
@@ -159,10 +166,12 @@ namespace OpenMS
         const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
         DoubleReal factor = elution_ints [i - elution_bounds[0] ];
         for (MSSimExperiment::SpectrumType::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
-        {
+        {          
           it->setIntensity(it->getIntensity() * factor);
         }
       }
+
+      std::cerr<<"made it here!  "<<MS2_spectra.size()<<std::endl;
       
       // debug: also add single spectra
       for (Size ii=0;ii<MS2_spectra.size();++ii) ms2.push_back(MS2_spectra[ii]); // DEBUG
@@ -195,20 +204,29 @@ namespace OpenMS
 		//** actual MS2 signal **//
 		std::cout << "MS2 features selected: " << ms2.size() << "\n";
 		
-		AdvancedTheoreticalSpectrumGenerator adv_spec_gen;
-		adv_spec_gen.loadProbabilisticModel();
+		SvmTheoreticalSpectrumGenerator svm_spec_gen;
+    svm_spec_gen.load();    
 		for (Size i = 0; i < ms2.size(); ++i)
     {
 		  IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
+      DoubleReal prec_intens = ms2[i].getPrecursors()[0].getIntensity();
 		  for(Size id =0; id<ids.size();++id)
 		  {
-		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
-        //TODO: work around RichPeak1D restriction
+		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();        
+        RichPeakSpectrum tmp_spec;
+        std::cerr<<"generate Spec for peptide: "<<seq<<std::endl;
+        svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
+        //TODO: work around RichPeak1D restriction        
+        for(Size peak=0; peak<tmp_spec.size(); ++peak)
+        {
+          Peak1D p=tmp_spec[peak];
+          p.setIntensity(p.getIntensity()*prec_intens);
+          ms2[i].push_back(p);
+        }
         //adv_spec_gen.simulate(ms2[i], seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
         // todo: rescale intensities! according to region within in the 2D Model of the feature
       }
     }
-
   }
 
   void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)
