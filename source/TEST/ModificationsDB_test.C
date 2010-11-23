@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -69,6 +69,54 @@ START_SECTION((void searchTerminalModifications(std::set< const ResidueModificat
 	set<const ResidueModification*> mods;
 	ptr->searchTerminalModifications(mods, "NIC", ResidueModification::N_TERM);
 	TEST_EQUAL(mods.size(), 1)
+END_SECTION
+
+START_SECTION((void searchModifications(std::set< const ResidueModification * > &mods, const String &mod_name, ResidueModification::Term_Specificity term_spec) const ))
+{
+  set<const ResidueModification*> mods;
+  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::ANYWHERE);
+
+  TEST_EQUAL(mods.size(), 4)
+  ABORT_IF(mods.size() != 4)
+
+  set<const ResidueModification*>::const_iterator mod_it = mods.begin();
+
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "Y")
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "T")
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "S")
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
+
+  mods.clear();
+  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::C_TERM);
+
+  TEST_EQUAL(mods.size(), 1)
+  ABORT_IF(mods.size() != 1)
+
+  mod_it = mods.begin();
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
+
+  mods.clear();
+  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::N_TERM);
+
+  TEST_EQUAL(mods.size(), 0)
+  ABORT_IF(mods.size() != 0)
+}
 END_SECTION
 
 

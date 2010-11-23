@@ -156,7 +156,7 @@ namespace OpenMS
 		{
 			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
 			f << "<aminoacid_modification aminoacid=\"" << mod.getOrigin()
-				<< "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
+        << "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
 				<< precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
 				<< "\n";
@@ -205,7 +205,7 @@ namespace OpenMS
 					<< seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
 					<< h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter()
 					<< "\" protein=\"Protein1\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
-					<< "\" massdiff=\"\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
+          << "\" massdiff=\"0.0\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
 				if (seq.isModified())
 				{
 					f << "      <modification_info modified_peptide=\""
@@ -231,8 +231,9 @@ namespace OpenMS
 					{
 						if (seq[i].isModified())
 						{
-							const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getOneLetterCode(), seq[i].getModification(), ResidueModification::ANYWHERE);
-							f << "         <mod_aminoacid_mass position=\"" << i
+              const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getOneLetterCode(), seq[i].getModification(), ResidueModification::ANYWHERE);
+              // the modification position is 1-based
+              f << "         <mod_aminoacid_mass position=\"" << (i+1)
 								<< "\" mass=\"" << 
 								precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
 						}
@@ -592,7 +593,7 @@ namespace OpenMS
 		else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
 		{
 			DoubleReal modification_mass = attributeAsDouble_(attributes, "mass");
-			Size 			 modification_position = attributeAsInt_(attributes, "position");
+      Size 			 modification_position = attributeAsInt_(attributes, "position");
       String     origin = String(current_sequence_[modification_position - 1]);
 			String 		 temp_description = "";
 			
@@ -838,7 +839,7 @@ namespace OpenMS
 		{
 			AASequence temp_aa_sequence = AASequence(current_sequence_);
 			
-			// modification position is 1-based
+      // modification position is 1-based
 			for (vector<pair<String, Size> >::const_iterator it = current_modifications_.begin(); it != current_modifications_.end(); ++it)
 			{
 				// e.g. Carboxymethyl (C)
@@ -854,7 +855,7 @@ namespace OpenMS
 				}
 				else if (mod_split.size() == 2)
 				{
-					temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
+          temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
 				}
 				else
 				{

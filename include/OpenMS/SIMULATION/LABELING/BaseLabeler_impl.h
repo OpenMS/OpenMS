@@ -34,6 +34,7 @@
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
+#include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
 
 namespace OpenMS
 {
@@ -43,6 +44,7 @@ namespace OpenMS
         Factory< BaseLabeler >::registerProduct(LabelFreeLabeler::getProductName(), &LabelFreeLabeler::create);
         Factory< BaseLabeler >::registerProduct(O18Labeler::getProductName(), &O18Labeler::create);
         Factory< BaseLabeler >::registerProduct(ITRAQLabeler::getProductName(), &ITRAQLabeler::create);
+        Factory< BaseLabeler >::registerProduct(SILACLabeler::getProductName(), &SILACLabeler::create);
         return;
     }
 
