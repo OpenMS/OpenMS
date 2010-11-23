@@ -32,6 +32,7 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QComboBox>
 #include <QtGui/QTableWidget>
+#include <QtGui/QCheckBox>
 
 #include <OpenMS/VISUAL/LayerData.h>
 
@@ -47,16 +48,22 @@ namespace OpenMS
       SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
       /// Destructor
       virtual ~SpectraIdentificationViewWidget();
-      void updateEntries(const LayerData& cl);
+      /// Attach model
+      void attachLayer(LayerData* model);
+      /// Helper function to block outgoing signals
       bool ignore_update;
+    public slots:
+      /// Rebuild table entries
+      void updateEntries();
     signals:
       void spectrumSelected(int);
       void spectrumDoubleClicked(int);
       void showSpectrumAs1D(int);
       void showSpectrumMetaData(int);
     private:
-      QLineEdit* spectra_search_box_;
-      QComboBox* spectra_combo_box_;
+      LayerData* layer_;
+      QCheckBox* hide_no_identification_;
+      QCheckBox* hide_ms1_;
       QTableWidget* table_widget_;
     private slots:
       void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);

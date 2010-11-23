@@ -472,7 +472,6 @@ namespace OpenMS
       ///@name reimplemented Qt events
       //@{
       void closeEvent(QCloseEvent* event);
-			void keyPressEvent(QKeyEvent* e);
 			//@}
 
 			///Log message states

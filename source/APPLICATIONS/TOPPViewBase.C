@@ -1784,7 +1784,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     if (spectra_identification_view_widget_->isVisible())
     {
-      spectra_identification_view_widget_->updateEntries(cc->getCurrentLayer());
+      spectra_identification_view_widget_->attachLayer(&cc->getCurrentLayer());
+      spectra_identification_view_widget_->updateEntries();
     }
   }
 
@@ -3559,42 +3560,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   	setCursor(Qt::ArrowCursor);
 	}
 
-	void TOPPViewBase::keyPressEvent(QKeyEvent* e)
-	{
- 		SpectrumCanvas* canvas = activeCanvas_();
-    if (canvas == 0 || canvas->getLayerCount()==0)
-    {
-    	e->ignore();
-      return;
-    }
-
-		//page up => go one layer up
-		if (e->key()==Qt::Key_PageUp)
-		{
-			if (canvas->activeLayerIndex()!=0)
-			{
-				canvas->activateLayer(canvas->activeLayerIndex()-1);
-				updateLayerBar();
-				updateFilterBar();
-				updateMenu();
-				e->accept();
-			}
-		}
-		//page down => go one layer down
-		else if (e->key()==Qt::Key_PageDown)
-		{
-			if (canvas->activeLayerIndex()!=canvas->getLayerCount()-1)
-			{
-				canvas->activateLayer(canvas->activeLayerIndex()+1);
-				updateLayerBar();
-				updateFilterBar();
-				updateMenu();
-				e->accept();
-			}
-		}
-
-		e->ignore();
-	}
 
 	void TOPPViewBase::updateCurrentPath()
 	{

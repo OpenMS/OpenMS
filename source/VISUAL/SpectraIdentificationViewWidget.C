@@ -32,6 +32,7 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QHeaderView>
 #include <QtGui/QMenu>
+#include <QtGui/QPushButton>
 
 #include <vector>
 
@@ -42,7 +43,8 @@ namespace OpenMS
   SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param&, QWidget* parent)
     : QWidget(parent),
       DefaultParamHandler("SpectraIdentificationViewWidget"),
-      ignore_update(false)
+      ignore_update(false),
+      layer_(0)
   {
     // set common defaults
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
@@ -89,11 +91,12 @@ namespace OpenMS
     table_widget_->setColumnWidth(8,45);
     table_widget_->setColumnWidth(9,45);
     table_widget_->setColumnWidth(10,400);
+    table_widget_->setColumnWidth(11,45);
 
     ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "          sequence          " << "accessions";
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->setColumnCount(header_labels.size());
 
@@ -105,23 +108,12 @@ namespace OpenMS
     spectra_widget_layout->addWidget(table_widget_);
 
     QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
-
-    spectra_search_box_ = new QLineEdit("", this);
-
-    QStringList qsl;
-    qsl.push_back("index");
-    qsl.push_back("RT");
-    qsl.push_back("MZ");
-    qsl.push_back("dissociation");
-    qsl.push_back("scan");
-    qsl.push_back("zoom");
-    spectra_combo_box_ = new QComboBox(this);
-    spectra_combo_box_->addItems(qsl);
-
-    connect(spectra_search_box_, SIGNAL(textEdited ( const QString &)), this, SLOT(spectrumSelected_(const QString&)));
-
-    tmp_hbox_layout->addWidget(spectra_search_box_);
-    tmp_hbox_layout->addWidget(spectra_combo_box_);
+    hide_ms1_ = new QCheckBox("Hide MS1", this);
+    connect(hide_ms1_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    hide_no_identification_ = new QCheckBox("Only hits", this);
+    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    tmp_hbox_layout->addWidget(hide_ms1_);
+    tmp_hbox_layout->addWidget(hide_no_identification_);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
     table_widget_->sortByColumn ( 2, Qt::AscendingOrder);
   }
@@ -141,12 +133,18 @@ namespace OpenMS
     emit spectrumSelected(spectrum_index);
   }
 
-  void SpectraIdentificationViewWidget::updateEntries(const LayerData& cl)
+  void SpectraIdentificationViewWidget::attachLayer(LayerData* cl)
+  {
+    layer_ = cl;
+  }
+
+  void SpectraIdentificationViewWidget::updateEntries()
   {
     if (ignore_update)
     {
       return;
     }
+
     if (!table_widget_->isVisible())
     {
       return;
@@ -159,7 +157,8 @@ namespace OpenMS
     table_widget_->setRowCount(0);
 
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation"
+        << "scan type" << "zoom" << "score" << "rank" << "charge" << "          sequence          " << "accession";
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->verticalHeader()->setHidden(true); // hide vertical column
     table_widget_->setColumnCount(header_labels.size());
@@ -174,28 +173,81 @@ namespace OpenMS
     table_widget_->setColumnWidth(8,45);
     table_widget_->setColumnWidth(9,45);
     table_widget_->setColumnWidth(10,400);
+    table_widget_->setColumnWidth(11,45);
 
+    if (layer_ == 0)
+    {
+      return;
+    }
 
     QTableWidgetItem* item = 0;
     QTableWidgetItem* selected_item = 0;
 
-    if(cl.type == LayerData::DT_PEAK)
+    if(layer_->type == LayerData::DT_PEAK)
     {
         // generate flat list
         selected_item = 0;
-        for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+        for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
         {
-          UInt ms_level = (*cl.getPeakData())[i].getMSLevel();
+          UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
+
+          // check whether to skip MS1 level scans
+          if (ms_level == 1 && hide_ms1_->isChecked())
+          {
+            continue;
+          }
+
+          // hiding of entries with no identifications
+          // for convinience MS1 are shown if their MS2 contain identification (if not hide MS1 is selected)
+          Size id_count = (*layer_->getPeakData())[i].getPeptideIdentifications().size();
+          if (hide_no_identification_->isChecked())
+          {
+            if (id_count == 0 && ms_level == 2)  // hide MS2 level with no identification
+            {
+                continue;
+            } else if (ms_level == 1)
+            {
+              if (hide_ms1_->isChecked())
+              {
+                continue;
+              } else // hide MS1 level if there is no MS2 with Identification
+              {
+                Size j = i + 1;
+                bool has_ms2_with_id = false;
+                while(j < layer_->getPeakData()->size())
+                {
+                  int level = (*layer_->getPeakData())[j].getMSLevel();
+                  if (level == 1)
+                  {
+                    break;  // reached next MS1
+                  } else if (level ==2)
+                  {
+                    if ((*layer_->getPeakData())[j].getPeptideIdentifications().size() >= 1)
+                    {
+                      has_ms2_with_id = true;
+                      break;
+                    }
+                  }
+                  ++j;
+                }
+
+                if (!has_ms2_with_id)
+                {
+                  continue;
+                }
+              }
+            }
+          }
 
           // coloring
           QColor c;
           if (ms_level == 1)
-          {
+          {           
             c = Qt::lightGray;  // default color for MS1
           } else if (ms_level == 2)
           {
             // get peptide identifications of current spectrum
-            vector<PeptideIdentification> pi = (*cl.getPeakData())[i].getPeptideIdentifications();
+            vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
             if (pi.size() != 0)
             {
               c = Qt::green; // default color for MS1 with identification
@@ -217,18 +269,18 @@ namespace OpenMS
           // index
           item = new QTableWidgetItem();
           item->setTextAlignment(Qt::AlignCenter);
-          item->setData(Qt::DisplayRole, UInt(i));
+          item->setData(Qt::DisplayRole, Int(i));
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 1, item);
 
           // rt
           item = new QTableWidgetItem();
           item->setTextAlignment(Qt::AlignCenter);
-          item->setData(Qt::DisplayRole, (*cl.getPeakData())[i].getRT());
+          item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getRT());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
 
-          vector<PeptideIdentification> pi = (*cl.getPeakData())[i].getPeptideIdentifications();
+          vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
           //cout << "peptide identifications: " << pi.size() << endl;
           if (pi.size()!=0)
           {
@@ -280,8 +332,28 @@ namespace OpenMS
               item->setText(best_ph.getSequence().toString().toQString());
               item->setBackgroundColor(c);
               table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
+
+              //Accession
+              item = new QTableWidgetItem();
+              item->setTextAlignment(Qt::AlignLeft);
+              String accessions = "";
+
+              // add protein accessions:
+              for(vector<String>::const_iterator it = best_ph.getProteinAccessions().begin(); it != best_ph.getProteinAccessions().end(); ++it)
+              {
+                if (accessions != "")
+                {
+                  accessions += ", " + *it;
+                } else
+                {
+                  accessions = *it;
+                }
+              }
+              item->setText(accessions.toQString());
+              item->setBackgroundColor(c);
+              table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
             }
-          } else
+          } else // no identification
           {
             // score
             item = new QTableWidgetItem();
@@ -310,27 +382,34 @@ namespace OpenMS
             item->setTextAlignment(Qt::AlignCenter);
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
+
+            //accession
+            item = new QTableWidgetItem();
+            item->setText("-");
+            item->setTextAlignment(Qt::AlignCenter);
+            item->setBackgroundColor(c);
+            table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
           }
 
-          if (!(*cl.getPeakData())[i].getPrecursors().empty())  // has precursor
+          if (!(*layer_->getPeakData())[i].getPrecursors().empty())  // has precursor
           {            
             item = new QTableWidgetItem();
             item->setTextAlignment(Qt::AlignCenter);
-            item->setData(Qt::DisplayRole, (*cl.getPeakData())[i].getPrecursors()[0].getMZ());
+            item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
             item->setBackgroundColor(c);
             table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
 
             item = new QTableWidgetItem();
             item->setTextAlignment(Qt::AlignCenter);
-            if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+            if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
             {
               QString t;
-              for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+              for(std::set<Precursor::ActivationMethod>::const_iterator it = (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
               {
                 if(!t.isEmpty()){
                   t.append(",");
                 }
-                t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+                t.append(QString::fromStdString((*layer_->getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
               }
               item->setText(t);
             }
@@ -358,9 +437,9 @@ namespace OpenMS
           // scan mode
           item = new QTableWidgetItem();
           item->setTextAlignment(Qt::AlignCenter);
-          if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+          if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()>0)
           {
-            item->setText(QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+            item->setText(QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]));
           }
           else
           {
@@ -372,7 +451,7 @@ namespace OpenMS
           // zoom scan
           item = new QTableWidgetItem();
           item->setTextAlignment(Qt::AlignCenter);
-          if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
+          if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
           {
             item->setText("yes");
           }
@@ -383,7 +462,7 @@ namespace OpenMS
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 6, item);
 
-          if (i == cl.current_spectrum)
+          if (i == layer_->current_spectrum)
           {
             // just remember it, select later
             selected_item = item;
@@ -401,7 +480,7 @@ namespace OpenMS
       return; // leave signals blocked
     }
 
-    if (cl.getPeakData()->size() == 1)
+    if (layer_->getPeakData()->size() == 1)
     {
       item->setFlags(0);
       return; // leave signals blocked

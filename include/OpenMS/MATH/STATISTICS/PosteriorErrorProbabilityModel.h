@@ -149,7 +149,7 @@ namespace OpenMS
 				void	plotTargetDecoyEstimation(std::vector<double> &target,std::vector<double> & decoy);
 				
 				/// returns the smallest score used in the last fit
-				inline const DoubleReal getSmallestScore()
+        inline DoubleReal getSmallestScore()
 				{
 					return smallest_score_;
 				}

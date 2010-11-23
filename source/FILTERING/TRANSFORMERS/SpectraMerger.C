@@ -44,10 +44,10 @@ namespace OpenMS
     // block merging
 		defaults_.setValue("block_method:ms_levels", IntList::create("1"), "Merge spectra of this level.");
 		defaults_.setMinInt("block_method:ms_levels", 1);
-    defaults_.setValue("block_method:rt_block_size", 5, "Number of scans to be summed up.");
+    defaults_.setValue("block_method:rt_block_size", 5, "Maximum number of scans to be summed up.");
     defaults_.setMinInt("block_method:rt_block_size", 1);
 
-    defaults_.setValue("block_method:rt_max_length", 0.0, "Maximum size of the block in rt dimension (0.0 = no size restriction).");
+    defaults_.setValue("block_method:rt_max_length", 0.0, "Maximum RT size of the block in seconds (0.0 = no size restriction).");
     defaults_.setMinFloat("block_method:rt_max_length", 0.0);
     defaults_.setMaxFloat("block_method:rt_max_length", 10e10);
 
