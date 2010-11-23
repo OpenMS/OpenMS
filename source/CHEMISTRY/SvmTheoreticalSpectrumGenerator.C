@@ -128,7 +128,7 @@ namespace OpenMS
     static std::map<String,Size>aa_to_index;
     static std::map<String,DoubleReal>hydrophobicity, helicity;
 
-    Size index=0;
+    int index=0;
     //if the map was not yet generated (this is first call of this Function)
     if(aa_to_index.empty())
     {

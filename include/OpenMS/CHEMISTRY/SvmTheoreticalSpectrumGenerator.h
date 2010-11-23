@@ -32,9 +32,6 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
-#include <fann.h>
-#include <fann_train.h>
-
 #include<svm.h>
 
 
