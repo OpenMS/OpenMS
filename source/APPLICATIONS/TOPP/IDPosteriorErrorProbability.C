@@ -205,11 +205,12 @@ class TOPPIDPosteriorErrorProbability
 				break;
 			}
 		}		
-	  vector<Int>::iterator charge;
-		if(split_charge)
-		{
-			charge = charges.begin();
-		}
+    
+    vector<Int>::iterator charge = charges.begin(); // charges can be empty, no problem
+    if (split_charge && charges.size()==0)
+    {
+      throw Exception::Precondition(__FILE__,__LINE__, __PRETTY_FUNCTION__, "List of charge states is empty but should not be!");
+    }
 		do
 		{
 			for(StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
@@ -300,11 +301,10 @@ class TOPPIDPosteriorErrorProbability
 				target.clear();
 				decoy.clear();
 			}
-			if(split_charge)
-			{
-				++charge;
-			}
-     }while(charge < charges.end());
+
+      if(split_charge) ++charge;
+
+    } while(charge < charges.end());
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
