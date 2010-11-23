@@ -234,7 +234,16 @@ namespace OpenMS
 
 			/// Find peak next to the given position
 			PeakIndex findPeakAtPosition_(QPoint);
-			
+
+      /// Shows dialog and calls addLabelAnnotation_
+      void addUserLabelAnnotation_(const QPoint& screen_position);
+      /// Adds an annotation item at the given screen position
+      void addLabelAnnotation_(const QPoint& screen_position, QString label_text);
+      /// Shows dialog and calls addPeakAnnotation_
+      void addUserPeakAnnotation_(PeakIndex near_peak);
+      /// Add an annotation item for the given peak
+      void addPeakAnnotation_(PeakIndex peak_index, QString text);
+
 			/// Ensure that all annotations are within data range
 			void ensureAnnotationsWithinDataRange_();
 	
@@ -245,9 +254,11 @@ namespace OpenMS
 			void mouseReleaseEvent(QMouseEvent* e);
 			void mouseMoveEvent(QMouseEvent* e);
 			void keyPressEvent(QKeyEvent* e);
-
 			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
+
+      /// Actual painting takes place here
+      void paint(QPaintDevice* paint_device, QPaintEvent* e);
 			
       ///Go forward in zoom history
 	    virtual void zoomForward_();

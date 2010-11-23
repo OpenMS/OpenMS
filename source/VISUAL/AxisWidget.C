@@ -54,7 +54,7 @@ namespace OpenMS
 			inverse_orientation_(false),
 			margin_(0),
 			legend_(legend),
-			tick_level_(2),
+      tick_level_(2),
 			allow_short_numbers_(false)
 	{
 		setAxisBounds(0.0,100.0);
@@ -80,180 +80,185 @@ namespace OpenMS
 	
 	void AxisWidget::paintEvent(QPaintEvent *)
 	{
-		//position of the widget
-		bool horizontal_alignment = (alignment_==BOTTOM || alignment_==TOP);
-		
-		//spacing between ticks and text
-		static UInt tick_spacing = 4;
-		
-		// determine paintable area without margin
-		UInt h = height();
-		UInt w = width();
-		w = (horizontal_alignment)? w-margin_ : w;
-		h = (horizontal_alignment)? h : h-margin_;
-		
-		//shrink font size if text does not fit
-		UInt font_size = font().pointSize();
-		UInt max_width = 0;
-		if (grid_line_.size()>=1) //check big intervals only
-		{
-			QFontMetrics metrics(QFont(font().family(),font_size));
-			for (Size i=0; i<grid_line_[0].size(); i++)
-			{
-				QString tmp;
-				getShortenedNumber_(tmp, scale_(grid_line_[0][i]));
-				QRect rect = metrics.boundingRect(tmp);
-				max_width = max(max_width,(UInt)rect.width());
-			}
-		}
-		//shrink font if too much text it displayed
-		UInt overall_required_pixels = 0;
-		if (horizontal_alignment) 
-		{
-			Size tick_count = 0;
-			for (Size i=0; i<grid_line_.size(); i++)
-			{
-				tick_count += grid_line_[i].size();
-			}
-			overall_required_pixels = (UInt)(max_width*tick_count);
-		}
-		else //shrink font if the largest text is too big
-		{
-			overall_required_pixels = UInt(max_width  + 0.25*font_size + tick_spacing);
-		}
-		
-		if (w<overall_required_pixels)
-		{
-			font_size = UInt(font_size * w / overall_required_pixels);
-		}
-
-		QPainter painter(this);
-		//painting tick levels
-		for (Size i = 0; i!=grid_line_.size(); i++) 
-		{
-			// iust draw text on big intervalls
-	    if (is_log_ && i>0) break; 
-	    
-			QColor text_color;
-			UInt tick_size = 0;
-			QFontMetrics metrics(font());
-			if (i==0) //big intervals 
-			{	
-				painter.setFont(QFont(font().family(), UInt(font_size))); 
-				metrics = QFontMetrics(painter.font());
-				tick_size = UInt(0.33 * font_size);
-				text_color = QColor(0, 0, 0);
-			}
-			else //small intervals
-			{
-				painter.setFont(QFont(font().family(),UInt(0.8*font_size)));
-				metrics = QFontMetrics(painter.font());
-				tick_size = UInt(0.25 * font_size);
-				text_color = QColor(20, 20, 20);
-			}
-	
-			//painting all ticks of the level
-			UInt i_beg = (horizontal_alignment)? 0 : h;
-			UInt i_end = (horizontal_alignment)? w : 0;
-			for (Size j = 0; j!=grid_line_[i].size(); j++) 
-			{
-				UInt tick_pos;
-	      if (inverse_orientation_)
-	      {
-					tick_pos = UInt(intervalTransformation(grid_line_[i][j], min_, max_, i_end, i_beg)) + ((alignment_==LEFT || alignment_==RIGHT)?-1:1)*margin_;
-				}
-				else
-				{
-					tick_pos = UInt(intervalTransformation(grid_line_[i][j], min_, max_, i_beg, i_end));
-				}
-	
-				//paint ticks
-				painter.setPen(QPen(Qt::black));
-				switch (alignment_)	
-				{
-					case BOTTOM:
-						painter.drawLine(tick_pos, 0, tick_pos, tick_size);
-						break;
-					case TOP:
-						painter.drawLine(tick_pos, h, tick_pos,  h-tick_size);
-						break;
-					case LEFT:
-						painter.drawLine(w-tick_size, tick_pos+margin_, w, tick_pos+margin_);
-						break;
-					case RIGHT:
-						painter.drawLine(0, tick_pos+margin_, tick_size, tick_pos+margin_);
-						break;
-				}			
-					
-				// values at axis lines
-				QString text;
-				getShortenedNumber_(text, scale_(grid_line_[i][j]));
-				painter.setPen(QPen(text_color));
-		
-				// get bounding rectangle for text we want to layout
-				QRect textbound = metrics.boundingRect(text);
-	
-				// Calculate text position
-				UInt x_pos = 0;
-				switch (alignment_)	
-				{
-				  case BOTTOM:
-				  case TOP:
-				  	x_pos = tick_pos - UInt(0.5*textbound.width());
-				  	break;
-			  	case LEFT:
-			  		x_pos = w - (tick_size + tick_spacing) - textbound.width();
-			  		break;
-				  case RIGHT:
-				  	x_pos = tick_size + tick_spacing;
-				  	break;
-				}	
-				
-				UInt y_pos = 0;
-				switch (alignment_)	
-				{
-				  case BOTTOM:
-				  	y_pos = tick_size + tick_spacing + UInt(0.5*textbound.height());
-				  	break;
-				  case TOP:
-				  	y_pos = h - (tick_size + tick_spacing);
-				  	break;
-				  case LEFT:
-				  case RIGHT:
-				  	y_pos = tick_pos + margin_ + UInt(0.25*textbound.height());
-				  	break;
-				}	
-				painter.drawText(x_pos, y_pos, text);
-			}		
-		}
-		
-		//painting legend
-		if (show_legend_ && legend_!="") 
-		{	
-			// style settings
-			painter.setFont(font());
-			painter.setPen(QPen(Qt::black));
-	
-			switch (alignment_)	
-			{
-    		case BOTTOM:
-					painter.drawText(0, 0 ,  w, h, Qt::AlignBottom|Qt::AlignHCenter, legend_.c_str());	
-					break;
-			  case TOP:
-					painter.drawText(0, 0 ,  w, h, Qt::AlignTop|Qt::AlignHCenter, legend_.c_str());	
-					break;
-			  case LEFT: 
-					painter.rotate(270);
- 				painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignTop, legend_.c_str());
-					break;
-			  case RIGHT:
-					painter.rotate(270);
-					painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignBottom, legend_.c_str());
-					break;
-			}	
-		}
+    paint(this);
 	}
-	
+
+  void AxisWidget::paint(QPaintDevice* paint_device)
+  {
+    //position of the widget
+    bool horizontal_alignment = (alignment_==BOTTOM || alignment_==TOP);
+
+    //spacing between ticks and text
+    static UInt tick_spacing = 4;
+
+    // determine paintable area without margin
+    UInt h = height();
+    UInt w = width();
+    w = (horizontal_alignment)? w-margin_ : w;
+    h = (horizontal_alignment)? h : h-margin_;
+
+    //shrink font size if text does not fit
+    UInt font_size = font().pointSize();
+    UInt max_width = 0;
+    if (grid_line_.size()>=1) //check big intervals only
+    {
+      QFontMetrics metrics(QFont(font().family(),font_size));
+      for (Size i=0; i<grid_line_[0].size(); i++)
+      {
+        QString tmp;
+        getShortenedNumber_(tmp, scale_(grid_line_[0][i]));
+        QRect rect = metrics.boundingRect(tmp);
+        max_width = max(max_width,(UInt)rect.width());
+      }
+    }
+    //shrink font if too much text it displayed
+    UInt overall_required_pixels = 0;
+    if (horizontal_alignment)
+    {
+      Size tick_count = 0;
+      for (Size i=0; i<grid_line_.size(); i++)
+      {
+        tick_count += grid_line_[i].size();
+      }
+      overall_required_pixels = (UInt)(max_width*tick_count);
+    }
+    else //shrink font if the largest text is too big
+    {
+      overall_required_pixels = UInt(max_width  + 0.25*font_size + tick_spacing);
+    }
+
+    if (w<overall_required_pixels)
+    {
+      font_size = UInt(font_size * w / overall_required_pixels);
+    }
+
+    QPainter painter(paint_device);
+    //painting tick levels
+    for (Size i = 0; i!=grid_line_.size(); i++)
+    {
+      // iust draw text on big intervalls
+      if (is_log_ && i>0) break;
+
+      QColor text_color;
+      UInt tick_size = 0;
+      QFontMetrics metrics(font());
+      if (i==0) //big intervals
+      {
+        painter.setFont(QFont(font().family(), UInt(font_size)));
+        metrics = QFontMetrics(painter.font());
+        tick_size = UInt(0.33 * font_size);
+        text_color = QColor(0, 0, 0);
+      }
+      else //small intervals
+      {
+        painter.setFont(QFont(font().family(),UInt(0.8*font_size)));
+        metrics = QFontMetrics(painter.font());
+        tick_size = UInt(0.25 * font_size);
+        text_color = QColor(20, 20, 20);
+      }
+
+      //painting all ticks of the level
+      UInt i_beg = (horizontal_alignment)? 0 : h;
+      UInt i_end = (horizontal_alignment)? w : 0;
+      for (Size j = 0; j!=grid_line_[i].size(); j++)
+      {
+        UInt tick_pos;
+        if (inverse_orientation_)
+        {
+          tick_pos = UInt(intervalTransformation(grid_line_[i][j], min_, max_, i_end, i_beg)) + ((alignment_==LEFT || alignment_==RIGHT)?-1:1)*margin_;
+        }
+        else
+        {
+          tick_pos = UInt(intervalTransformation(grid_line_[i][j], min_, max_, i_beg, i_end));
+        }
+
+        //paint ticks
+        painter.setPen(QPen(Qt::black));
+        switch (alignment_)
+        {
+          case BOTTOM:
+            painter.drawLine(tick_pos, 0, tick_pos, tick_size);
+            break;
+          case TOP:
+            painter.drawLine(tick_pos, h, tick_pos,  h-tick_size);
+            break;
+          case LEFT:
+            painter.drawLine(w-tick_size, tick_pos+margin_, w, tick_pos+margin_);
+            break;
+          case RIGHT:
+            painter.drawLine(0, tick_pos+margin_, tick_size, tick_pos+margin_);
+            break;
+        }
+
+        // values at axis lines
+        QString text;
+        getShortenedNumber_(text, scale_(grid_line_[i][j]));
+        painter.setPen(QPen(text_color));
+
+        // get bounding rectangle for text we want to layout
+        QRect textbound = metrics.boundingRect(text);
+
+        // Calculate text position
+        UInt x_pos = 0;
+        switch (alignment_)
+        {
+          case BOTTOM:
+          case TOP:
+            x_pos = tick_pos - UInt(0.5*textbound.width());
+            break;
+          case LEFT:
+            x_pos = w - (tick_size + tick_spacing) - textbound.width();
+            break;
+          case RIGHT:
+            x_pos = tick_size + tick_spacing;
+            break;
+        }
+
+        UInt y_pos = 0;
+        switch (alignment_)
+        {
+          case BOTTOM:
+            y_pos = tick_size + tick_spacing + UInt(0.5*textbound.height());
+            break;
+          case TOP:
+            y_pos = h - (tick_size + tick_spacing);
+            break;
+          case LEFT:
+          case RIGHT:
+            y_pos = tick_pos + margin_ + UInt(0.25*textbound.height());
+            break;
+        }
+        painter.drawText(x_pos, y_pos, text);
+      }
+    }
+
+    //painting legend
+    if (show_legend_ && legend_!="")
+    {
+      // style settings
+      painter.setFont(font());
+      painter.setPen(QPen(Qt::black));
+
+      switch (alignment_)
+      {
+        case BOTTOM:
+          painter.drawText(0, 0 ,  w, h, Qt::AlignBottom|Qt::AlignHCenter, legend_.c_str());
+          break;
+        case TOP:
+          painter.drawText(0, 0 ,  w, h, Qt::AlignTop|Qt::AlignHCenter, legend_.c_str());
+          break;
+        case LEFT:
+          painter.rotate(270);
+        painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignTop, legend_.c_str());
+          break;
+        case RIGHT:
+          painter.rotate(270);
+          painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignBottom, legend_.c_str());
+          break;
+      }
+    }
+  }
+
 	void AxisWidget::setAxisBounds(DoubleReal min, DoubleReal max)
 	{
 	  if (min >= max)

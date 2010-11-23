@@ -35,6 +35,7 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QFileDialog>
 #include <QtGui/QInputDialog>
+#include <QtSvg/QSvgGenerator>
  
 // OpenMS
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
@@ -696,274 +697,265 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
 	{
-		//Only fill background if no layer is present
-		if (getLayerCount()==0)
-		{
-			QPainter painter;
-			painter.begin(this);
-			painter.fillRect(0,0,this->width(),this->height(),QColor(param_.getValue("background_color").toQString()));
-			painter.end();
-			e->accept();
-			return;
-		}
+    paint(this, e);
+	}
 
-    /*
-    #ifdef DEBUG_TOPPVIEW
-      cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-      cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
-      //cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " int: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl;
-    #endif
-    */
-		QTime timer;
-		if (show_timing_)
-		{
-			timer.start();
-		}
-		
-		QPainter painter;
-		QPoint begin, end;
-		if (update_buffer_)
-		{
-			update_buffer_ = false;
-			
-			painter.begin(&buffer_);
+  void Spectrum1DCanvas::paint(QPaintDevice* paint_device, QPaintEvent* e)
+  {
+    //Only fill background if no layer is present
+    if (getLayerCount()==0)
+    {
+      QPainter painter;
+      painter.begin(paint_device);
+      painter.fillRect(0,0,this->width(),this->height(),QColor(param_.getValue("background_color").toQString()));
+      painter.end();
+      e->accept();
+      return;
+    }
 
-			buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
+    QTime timer;
+    if (show_timing_)
+    {
+      timer.start();
+    }
 
-			emit recalculateAxes();
-			paintGridLines_(painter);
-			
+    QPainter painter;
+    QPoint begin, end;
+    if (update_buffer_)
+    {
+      update_buffer_ = false;
+
+      painter.begin(&buffer_);
+      buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
+      emit recalculateAxes();
+      paintGridLines_(painter);
+
       SpectrumConstIteratorType vbegin, vend;
-			for (Size i=0; i< getLayerCount();++i)
-			{
-				const LayerData& layer = getLayer(i);
-				const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
-				if (layer.visible)
-				{
-					QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
+      for (Size i=0; i< getLayerCount();++i)
+      {
+        const LayerData& layer = getLayer(i);
+        const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
+        if (layer.visible)
+        {
+          QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
           QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
           pen.setStyle(peak_penstyle_[i]);
           painter.setPen(pen);
 
-					if (intensity_mode_ == IM_PERCENTAGE)
-					{
-						percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum.getMaxInt();
-					}
-					else 
-					{
-						percentage_factor_ = 1.0;
-					}
-					vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
-					vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
-					// draw dashed elongations for pairs of peaks annotated with a distance
+          if (intensity_mode_ == IM_PERCENTAGE)
+          {
+            percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum.getMaxInt();
+          }
+          else
+          {
+            percentage_factor_ = 1.0;
+          }
+          vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
+          vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
+          // draw dashed elongations for pairs of peaks annotated with a distance
           for(Annotations1DContainer::ConstIterator it = layer.getCurrentAnnotations().begin();
             it != layer.getCurrentAnnotations().end(); ++it)
-					{
-						Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
-						if (distance_item)
-						{
-								QPoint from;
-								QPoint to;
-								dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
-								
-								dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
-								drawDashedLine_(from, to, painter);
-								
-								dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer.flipped);
-								
-								dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
-								drawDashedLine_(from, to, painter);
+          {
+            Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
+            if (distance_item)
+            {
+                QPoint from;
+                QPoint to;
+                dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
+
+                dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+                drawDashedLine_(from, to, painter);
+
+                dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer.flipped);
+
+                dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+                drawDashedLine_(from, to, painter);
             }
-					}
-					switch (draw_modes_[i])
-					{
-						case DM_PEAKS:
-							//-----------------------------------------DRAWING PEAKS-------------------------------------------							
+          }
+          switch (draw_modes_[i])
+          {
+            case DM_PEAKS:
+              //-----------------------------------------DRAWING PEAKS-------------------------------------------
 
               for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
-							{
-								if (layer.filters.passes(spectrum,it-spectrum.begin()))
-								{                  
+              {
+                if (layer.filters.passes(spectrum,it-spectrum.begin()))
+                {
                   dataToWidget(*it,end,layer.flipped);
                   dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
 
-									// draw peak
-									painter.drawLine(begin, end);
-								}
-							}
-							break;
-						case DM_CONNECTEDLINES:
-							{
-								//-------------------------------------DRAWING CONNECTED LINES-----------------------------------------
-								QPainterPath path;
-							
-								// connect peaks in visible area; (no clipping needed)
+                  // draw peak
+                  painter.drawLine(begin, end);
+                }
+              }
+              break;
+            case DM_CONNECTEDLINES:
+              {
+                //-------------------------------------DRAWING CONNECTED LINES-----------------------------------------
+                QPainterPath path;
+
+                // connect peaks in visible area; (no clipping needed)
                 bool first_point = true;
                 for (SpectrumConstIteratorType it = vbegin; it != vend; it++)
-								{
-									dataToWidget(*it, begin, layer.flipped);
-						
-									// connect lines
-									if (first_point)
-									{
-										path.moveTo(begin);
-										first_point = false;
-									} 
-									else
-									{
-										path.lineTo(begin);
-									}
-								}
-								painter.drawPath(path);
-									
-								// clipping on left side
-								if (vbegin!=spectrum.begin() && vbegin!=spectrum.end())
-								{
-									dataToWidget(*(vbegin-1), begin, layer.flipped);
-									dataToWidget(*(vbegin), end, layer.flipped);
-									painter.drawLine(begin, end);
-								}
-							
-								// clipping on right side
-								if (vend!=spectrum.end() && vend!=spectrum.begin())
-								{
-									dataToWidget(*(vend-1), begin, layer.flipped);
-									dataToWidget(*(vend), end, layer.flipped);
-									painter.drawLine(begin,end);
-								}
-							}
-							break;
-						default:
-							throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-					}
-					
-					//draw all annotation items
-					drawAnnotations(getLayer_(i), painter);
-				}
-			}
-			painter.end();
-		} //if (update_buffer)
-		painter.begin(this);
-		
-		//draw peak data
-		QVector<QRect> rects = e->region().rects();
-		for (int i = 0; i < (int)rects.size(); ++i)
-		{
-			painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
-		}
-		
-		if (mirror_mode_)
-		{
-			painter.save();
-			
-			if (!show_alignment_)
-			{
-				// draw x-axis
-				painter.setPen(Qt::black);
-				painter.drawLine(0,height()/2,width(),height()/2);
-			}
-			else
-			{
-				drawAlignment(painter);
-				// two x-axes:
-				painter.setPen(Qt::black);
-				painter.drawLine(0,height()/2+5,width(),height()/2+5);
-				painter.drawLine(0,height()/2-5,width(),height()/2-5);
-			}
-			
-			painter.restore();
-		}
-		
-		// draw measuring line when in measure mode and valid measurement start peak selected
-		if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
-		{
-			QPoint measurement_end_point(last_mouse_pos_.x(), measurement_start_point_.y());
-			painter.drawLine(measurement_start_point_, measurement_end_point);
-		}
-		// draw highlighted measurement start peak and selected peak
-		bool with_elongation = (action_mode_ == AM_MEASURE);
-		drawHighlightedPeak_(current_layer_, measurement_start_, painter, with_elongation);
-		drawHighlightedPeak_(current_layer_, selected_peak_, painter, with_elongation);
-		
-		//draw delta for measuring
-		if (action_mode_==AM_MEASURE && measurement_start_.isValid())
-		{
-			drawDeltas_(painter, measurement_start_, selected_peak_);
-		}
-		else
-		{
-			drawCoordinates_(painter, selected_peak_);
-		}
-		
-		painter.end();
-    /*
-#ifdef DEBUG_TOPPVIEW
-		cout << "END   " << __PRETTY_FUNCTION__ << endl;
-#endif
-    */
-		if (show_timing_)
-		{
-			cout << "paint event took " << timer.elapsed() << " ms" << endl;
-		}
-	}
-	
-	void Spectrum1DCanvas::drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
-	{
-		if (peak.isValid())
-		{
-			QPoint begin;
+                {
+                  dataToWidget(*it, begin, layer.flipped);
+
+                  // connect lines
+                  if (first_point)
+                  {
+                    path.moveTo(begin);
+                    first_point = false;
+                  }
+                  else
+                  {
+                    path.lineTo(begin);
+                  }
+                }
+                painter.drawPath(path);
+
+                // clipping on left side
+                if (vbegin!=spectrum.begin() && vbegin!=spectrum.end())
+                {
+                  dataToWidget(*(vbegin-1), begin, layer.flipped);
+                  dataToWidget(*(vbegin), end, layer.flipped);
+                  painter.drawLine(begin, end);
+                }
+
+                // clipping on right side
+                if (vend!=spectrum.end() && vend!=spectrum.begin())
+                {
+                  dataToWidget(*(vend-1), begin, layer.flipped);
+                  dataToWidget(*(vend), end, layer.flipped);
+                  painter.drawLine(begin,end);
+                }
+              }
+              break;
+            default:
+              throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          }
+
+          //draw all annotation items
+          drawAnnotations(getLayer_(i), painter);
+        }
+      }
+      painter.end();
+    } //if (update_buffer)
+    painter.begin(paint_device);
+
+    //draw peak data
+    QVector<QRect> rects = e->region().rects();
+    for (int i = 0; i < (int)rects.size(); ++i)
+    {
+      painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
+    }
+
+    if (mirror_mode_)
+    {
+      painter.save();
+
+      if (!show_alignment_)
+      {
+        // draw x-axis
+        painter.setPen(Qt::black);
+        painter.drawLine(0,height()/2,width(),height()/2);
+      }
+      else
+      {
+        drawAlignment(painter);
+        // two x-axes:
+        painter.setPen(Qt::black);
+        painter.drawLine(0,height()/2+5,width(),height()/2+5);
+        painter.drawLine(0,height()/2-5,width(),height()/2-5);
+      }
+      painter.restore();
+    }
+
+    // draw measuring line when in measure mode and valid measurement start peak selected
+    if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
+    {
+      QPoint measurement_end_point(last_mouse_pos_.x(), measurement_start_point_.y());
+      painter.drawLine(measurement_start_point_, measurement_end_point);
+    }
+    // draw highlighted measurement start peak and selected peak
+    bool with_elongation = (action_mode_ == AM_MEASURE);
+    drawHighlightedPeak_(current_layer_, measurement_start_, painter, with_elongation);
+    drawHighlightedPeak_(current_layer_, selected_peak_, painter, with_elongation);
+
+    //draw delta for measuring
+    if (action_mode_==AM_MEASURE && measurement_start_.isValid())
+    {
+      drawDeltas_(painter, measurement_start_, selected_peak_);
+    }
+    else
+    {
+      drawCoordinates_(painter, selected_peak_);
+    }
+
+    painter.end();
+
+    if (show_timing_)
+    {
+      cout << "paint event took " << timer.elapsed() << " ms" << endl;
+    }
+  }
+
+  void Spectrum1DCanvas::drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
+  {
+    if (peak.isValid())
+    {
+      QPoint begin;
       const ExperimentType::PeakType& sel = peak.getPeak(*getLayer_(layer_index).getPeakData());
 
-			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
-			
-			if (intensity_mode_==IM_PERCENTAGE)
-			{
-				percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
-			}
-			else 
-			{
-				percentage_factor_ = 1.0;
-			}
-			dataToWidget(sel, begin, getLayer_(layer_index).flipped);
-			QPoint top_end(begin);
-			
-			bool layer_flipped = getLayer_(layer_index).flipped;
-			if (isMzToXAxis())
-			{
-				if (layer_flipped)
-				{
-					top_end.setY(height());
-				}
-				else
-				{
-					top_end.setY(0);
-				}
-			}
-			else
-			{
-				if (!layer_flipped)
-				{
-					top_end.setX(width());
-				}
-				else // should not happen
-				{
-					top_end.setX(0);
-				}
-			}
-			
-			// paint the crosshair only for currently selected peaks of the current layer
-			if (layer_index == current_layer_ && (peak == measurement_start_ || peak == selected_peak_))
-			{
-				painter.drawLine(begin.x(), begin.y()-4, begin.x(), begin.y()+4);
-				painter.drawLine(begin.x()-4, begin.y(), begin.x()+4, begin.y());
-			}
-			// draw elongation as dashed line (while in measure mode and for all existing distance annotations)
-			if (draw_elongation)
-			{
-				drawDashedLine_(begin, top_end, painter);
-			}
-		}
-	}
+      painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
+
+      if (intensity_mode_==IM_PERCENTAGE)
+      {
+        percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
+      }
+      else
+      {
+        percentage_factor_ = 1.0;
+      }
+      dataToWidget(sel, begin, getLayer_(layer_index).flipped);
+      QPoint top_end(begin);
+
+      bool layer_flipped = getLayer_(layer_index).flipped;
+      if (isMzToXAxis())
+      {
+        if (layer_flipped)
+        {
+          top_end.setY(height());
+        }
+        else
+        {
+          top_end.setY(0);
+        }
+      }
+      else
+      {
+        if (!layer_flipped)
+        {
+          top_end.setX(width());
+        }
+        else // should not happen
+        {
+          top_end.setX(0);
+        }
+      }
+
+      // paint the crosshair only for currently selected peaks of the current layer
+      if (layer_index == current_layer_ && (peak == measurement_start_ || peak == selected_peak_))
+      {
+        painter.drawLine(begin.x(), begin.y()-4, begin.x(), begin.y()+4);
+        painter.drawLine(begin.x()-4, begin.y(), begin.x()+4, begin.y());
+      }
+      // draw elongation as dashed line (while in measure mode and for all existing distance annotations)
+      if (draw_elongation)
+      {
+        drawDashedLine_(begin, top_end, painter);
+      }
+    }
+  }
 	
 	void Spectrum1DCanvas::drawDashedLine_(const QPoint& from, const QPoint& to, QPainter& painter)
 	{
@@ -1299,7 +1291,7 @@ namespace OpenMS
 	{
 		//Abort if there are no layers
 		if (layers_.empty()) return;
-		
+
 		QMenu* context_menu = new QMenu(this);
 		QAction* result = 0;
 		QAction* new_action = 0;
@@ -1437,39 +1429,11 @@ namespace OpenMS
 				}
 				else if (result->text()=="Add label")
 				{
-					bool ok;
-					QString text = QInputDialog::getText(this, "Add label", "Enter text:", QLineEdit::Normal, "", &ok);
-					if (ok && !text.isEmpty())
-					{
-						if (intensity_mode_==IM_PERCENTAGE)
-						{
-							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
-						}
-						else 
-						{
-							percentage_factor_ = 1.0;
-						}
-						PointType position = widgetToData(e->pos(), true);
-						Annotation1DItem* item = new Annotation1DTextItem(position, text);
-						getCurrentLayer_().getCurrentAnnotations().push_front(item);
-						
-						update_buffer_ = true;
-						update_(__PRETTY_FUNCTION__);
-					}
+          addUserLabelAnnotation_(e->pos());
 				}
 				else if (result->text()=="Add peak annotation")
 				{
-					bool ok;
-					QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
-					if (ok && !text.isEmpty())
-					{
-            PeakType peak = near_peak.getPeak(*getCurrentLayer().getPeakData());
-						PointType position(peak.getMZ(), peak.getIntensity());
-						Annotation1DItem* item = new Annotation1DPeakItem(position, text);
-						getCurrentLayer_().getCurrentAnnotations().push_front(item);
-						update_buffer_ = true;
-						update_(__PRETTY_FUNCTION__);
-					}
+          addUserPeakAnnotation_(near_peak);
 				}
 				else if (result->text()=="Reset alignment")
 				{
@@ -1486,6 +1450,55 @@ namespace OpenMS
 		e->accept();
 	}
 
+  void Spectrum1DCanvas::addUserLabelAnnotation_(const QPoint& screen_position)
+  {
+      bool ok;
+      QString text = QInputDialog::getText(this, "Add label", "Enter text:", QLineEdit::Normal, "", &ok);
+      if (ok && !text.isEmpty())
+      {
+        addLabelAnnotation_(screen_position, text);
+      }
+  }
+
+  void Spectrum1DCanvas::addLabelAnnotation_(const QPoint& screen_position, QString text)
+  {
+    // TODO: check if is this needed
+    if (intensity_mode_==IM_PERCENTAGE)
+    {
+      percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+    }
+    else
+    {
+      percentage_factor_ = 1.0;
+    }
+
+    PointType position = widgetToData(screen_position, true);
+    Annotation1DItem* item = new Annotation1DTextItem(position, text);
+    getCurrentLayer_().getCurrentAnnotations().push_front(item);
+
+    update_buffer_ = true;
+    update_(__PRETTY_FUNCTION__);
+  }
+
+  void Spectrum1DCanvas::addUserPeakAnnotation_(PeakIndex near_peak)
+  {
+    bool ok;
+    QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
+    if (ok && !text.isEmpty())
+    {
+      addPeakAnnotation_(near_peak, text);
+    }
+  }
+
+  void Spectrum1DCanvas::addPeakAnnotation_(PeakIndex peak_index, QString text)
+  {
+    PeakType peak = peak_index.getPeak(*getCurrentLayer().getPeakData());
+    PointType position(peak.getMZ(), peak.getIntensity());
+    Annotation1DItem* item = new Annotation1DPeakItem(position, text);
+    getCurrentLayer_().getCurrentAnnotations().push_front(item);
+    update_buffer_ = true;
+    update_(__PRETTY_FUNCTION__);
+  }
 
 	void Spectrum1DCanvas::saveCurrentLayer(bool visible)
 	{

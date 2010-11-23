@@ -149,10 +149,11 @@ namespace OpenMS
 			/// maximum number of tick levels (default=2)
 			UInt tick_level_;
 			/// true if k/M/G units can be used
-			bool allow_short_numbers_;
-			
-			///Reimplemented Qt event
+			bool allow_short_numbers_;			
+      /// Reimplemented Qt event (calls paint with "this")
 			void paintEvent(QPaintEvent*);
+      /// Actual painting takes place here
+      void paint(QPaintDevice* paint_device);
 	
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
 			inline DoubleReal scale_(DoubleReal x)

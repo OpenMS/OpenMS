@@ -2807,8 +2807,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         // activate real data layer and spectrum        
         active1DWindow_()->canvas()->activateLayer(real_spectrum_layer_index);
         active1DWindow_()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
-//        cout << "LI: " << real_spectrum_layer_index << endl;
-//        cout << "SI: " << real_spectrum_index << endl;
         updateLayerBar();
         spectra_identification_view_widget_->ignore_update = false;
       }
