@@ -25,7 +25,7 @@
 // $Authors: Marc Sturm, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <QtCore/QProcess>
 
@@ -37,10 +37,10 @@ using namespace std;
 using namespace OpenMS;
 
 
-bool generate(const map<String,StringList>& tools, const String& prefix)
+bool generate(const ToolListType& tools, const String& prefix)
 {
 	bool errors_occured = false;
-	for (map<String,StringList>::const_iterator it=tools.begin(); it!=tools.end(); ++it)
+	for (ToolListType::const_iterator it=tools.begin(); it!=tools.end(); ++it)
 	{
 		//start process
 		QProcess process;
@@ -74,11 +74,11 @@ bool generate(const map<String,StringList>& tools, const String& prefix)
 int main (int , char** )
 {
 	//TOPP tools
-	map<String,StringList> topp_tools = TOPPBase::getToolList();
-	topp_tools["TOPPView"] = StringList();
-	topp_tools["TOPPAS"] = StringList();
+	ToolListType topp_tools = ToolHandler::getTOPPToolList();
+	topp_tools["TOPPView"] = Internal::ToolDescription();
+	topp_tools["TOPPAS"] = Internal::ToolDescription();
 	//UTILS
-	map<String,StringList> util_tools = TOPPBase::getUtilList();
+	ToolListType util_tools = ToolHandler::getUtilList();
 
   bool errors_occured = generate(topp_tools,"TOPP_") || generate(util_tools, "UTILS_");
 
