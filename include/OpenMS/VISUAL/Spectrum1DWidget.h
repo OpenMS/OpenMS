@@ -85,6 +85,8 @@ namespace OpenMS
 		/// Resets the alignment
 		void resetAlignment();
 		
+    // Docu in base class
+    virtual void saveAsImage();
 	signals:
 		/// Is emitted whenever the visible area changes.		
 		void visibleAreaChanged(double, double); 

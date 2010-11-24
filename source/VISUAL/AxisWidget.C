@@ -78,12 +78,14 @@ namespace OpenMS
 	{
 	}
 	
-	void AxisWidget::paintEvent(QPaintEvent *)
+  void AxisWidget::paintEvent(QPaintEvent * e)
 	{
-    paint(this);
+    QPainter painter(this);
+    paint(&painter, e);
+    painter.end();
 	}
 
-  void AxisWidget::paint(QPaintDevice* paint_device)
+  void AxisWidget::paint(QPainter* painter, QPaintEvent* e)
   {
     //position of the widget
     bool horizontal_alignment = (alignment_==BOTTOM || alignment_==TOP);
@@ -132,7 +134,6 @@ namespace OpenMS
       font_size = UInt(font_size * w / overall_required_pixels);
     }
 
-    QPainter painter(paint_device);
     //painting tick levels
     for (Size i = 0; i!=grid_line_.size(); i++)
     {
@@ -144,15 +145,15 @@ namespace OpenMS
       QFontMetrics metrics(font());
       if (i==0) //big intervals
       {
-        painter.setFont(QFont(font().family(), UInt(font_size)));
-        metrics = QFontMetrics(painter.font());
+        painter->setFont(QFont(font().family(), UInt(font_size)));
+        metrics = QFontMetrics(painter->font());
         tick_size = UInt(0.33 * font_size);
         text_color = QColor(0, 0, 0);
       }
       else //small intervals
       {
-        painter.setFont(QFont(font().family(),UInt(0.8*font_size)));
-        metrics = QFontMetrics(painter.font());
+        painter->setFont(QFont(font().family(),UInt(0.8*font_size)));
+        metrics = QFontMetrics(painter->font());
         tick_size = UInt(0.25 * font_size);
         text_color = QColor(20, 20, 20);
       }
@@ -173,27 +174,27 @@ namespace OpenMS
         }
 
         //paint ticks
-        painter.setPen(QPen(Qt::black));
+        painter->setPen(QPen(Qt::black));
         switch (alignment_)
         {
           case BOTTOM:
-            painter.drawLine(tick_pos, 0, tick_pos, tick_size);
+            painter->drawLine(tick_pos, 0, tick_pos, tick_size);
             break;
           case TOP:
-            painter.drawLine(tick_pos, h, tick_pos,  h-tick_size);
+            painter->drawLine(tick_pos, h, tick_pos,  h-tick_size);
             break;
           case LEFT:
-            painter.drawLine(w-tick_size, tick_pos+margin_, w, tick_pos+margin_);
+            painter->drawLine(w-tick_size, tick_pos+margin_, w, tick_pos+margin_);
             break;
           case RIGHT:
-            painter.drawLine(0, tick_pos+margin_, tick_size, tick_pos+margin_);
+            painter->drawLine(0, tick_pos+margin_, tick_size, tick_pos+margin_);
             break;
         }
 
         // values at axis lines
         QString text;
         getShortenedNumber_(text, scale_(grid_line_[i][j]));
-        painter.setPen(QPen(text_color));
+        painter->setPen(QPen(text_color));
 
         // get bounding rectangle for text we want to layout
         QRect textbound = metrics.boundingRect(text);
@@ -228,7 +229,7 @@ namespace OpenMS
             y_pos = tick_pos + margin_ + UInt(0.25*textbound.height());
             break;
         }
-        painter.drawText(x_pos, y_pos, text);
+        painter->drawText(x_pos, y_pos, text);
       }
     }
 
@@ -236,24 +237,24 @@ namespace OpenMS
     if (show_legend_ && legend_!="")
     {
       // style settings
-      painter.setFont(font());
-      painter.setPen(QPen(Qt::black));
+      painter->setFont(font());
+      painter->setPen(QPen(Qt::black));
 
       switch (alignment_)
       {
         case BOTTOM:
-          painter.drawText(0, 0 ,  w, h, Qt::AlignBottom|Qt::AlignHCenter, legend_.c_str());
+          painter->drawText(0, 0 ,  w, h, Qt::AlignBottom|Qt::AlignHCenter, legend_.c_str());
           break;
         case TOP:
-          painter.drawText(0, 0 ,  w, h, Qt::AlignTop|Qt::AlignHCenter, legend_.c_str());
+          painter->drawText(0, 0 ,  w, h, Qt::AlignTop|Qt::AlignHCenter, legend_.c_str());
           break;
         case LEFT:
-          painter.rotate(270);
-        painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignTop, legend_.c_str());
+          painter->rotate(270);
+          painter->drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignTop, legend_.c_str());
           break;
         case RIGHT:
-          painter.rotate(270);
-          painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignBottom, legend_.c_str());
+          painter->rotate(270);
+          painter->drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignBottom, legend_.c_str());
           break;
       }
     }

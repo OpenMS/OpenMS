@@ -325,7 +325,6 @@ namespace OpenMS
 				}
 			}
 		}
-		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 
@@ -370,7 +369,6 @@ namespace OpenMS
 						(*it)->move(delta);
 					}
 				}
-				update_buffer_ = true;
 				update_(__PRETTY_FUNCTION__);
 				last_mouse_pos_ = p;
 			}
@@ -513,7 +511,6 @@ namespace OpenMS
 			moving_annotations_ = false;
 			
 			measurement_start_.clear();
-			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}
 	}
@@ -525,7 +522,6 @@ namespace OpenMS
 		{
 			e->accept();
 			getCurrentLayer_().getCurrentAnnotations().removeSelectedItems();
-			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}
 		
@@ -534,7 +530,6 @@ namespace OpenMS
 		{
 			e->accept();
 			getCurrentLayer_().getCurrentAnnotations().selectAll();
-			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}
 		
@@ -638,7 +633,6 @@ namespace OpenMS
 		if (layers_.empty())
 		{
 			overall_data_range_ = DRange<3>::empty;
-			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 			return;
 		}
@@ -670,7 +664,6 @@ namespace OpenMS
 												overall_data_range_.maxX(), overall_data_range_.maxY());
 			changeVisibleArea_(new_area, true, true);
 		}
-		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 
@@ -682,7 +675,6 @@ namespace OpenMS
 		if (draw_modes_[current_layer_]!=mode)
 		{
 			draw_modes_[current_layer_] = mode;
-			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}
 	}
@@ -697,18 +689,17 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
 	{
-    paint(this, e);
+    QPainter painter(this);
+    paint(&painter, e);
+    painter.end();
 	}
 
-  void Spectrum1DCanvas::paint(QPaintDevice* paint_device, QPaintEvent* e)
+  void Spectrum1DCanvas::paint(QPainter* painter, QPaintEvent* e)
   {
-    //Only fill background if no layer is present
+    //Fill background if no layer is present
     if (getLayerCount()==0)
     {
-      QPainter painter;
-      painter.begin(paint_device);
-      painter.fillRect(0,0,this->width(),this->height(),QColor(param_.getValue("background_color").toQString()));
-      painter.end();
+      painter->fillRect(0,0,this->width(),this->height(),QColor(param_.getValue("background_color").toQString()));
       e->accept();
       return;
     }
@@ -719,179 +710,163 @@ namespace OpenMS
       timer.start();
     }
 
-    QPainter painter;
     QPoint begin, end;
-    if (update_buffer_)
+
+    painter->fillRect(0,0,this->width(),this->height(),QColor(param_.getValue("background_color").toQString()));
+
+    emit recalculateAxes();
+    paintGridLines_(*painter);
+
+    SpectrumConstIteratorType vbegin, vend;
+    for (Size i=0; i< getLayerCount();++i)
     {
-      update_buffer_ = false;
-
-      painter.begin(&buffer_);
-      buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
-      emit recalculateAxes();
-      paintGridLines_(painter);
-
-      SpectrumConstIteratorType vbegin, vend;
-      for (Size i=0; i< getLayerCount();++i)
+      const LayerData& layer = getLayer(i);
+      const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
+      if (layer.visible)
       {
-        const LayerData& layer = getLayer(i);
-        const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
-        if (layer.visible)
+        QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
+        QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
+        pen.setStyle(peak_penstyle_[i]);
+        painter->setPen(pen);
+
+        if (intensity_mode_ == IM_PERCENTAGE)
         {
-          QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
-          QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
-          pen.setStyle(peak_penstyle_[i]);
-          painter.setPen(pen);
+          percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum.getMaxInt();
+        }
+        else
+        {
+          percentage_factor_ = 1.0;
+        }
+        vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
+        vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
+        // draw dashed elongations for pairs of peaks annotated with a distance
+        for(Annotations1DContainer::ConstIterator it = layer.getCurrentAnnotations().begin();
+        it != layer.getCurrentAnnotations().end(); ++it)
+        {
+          Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
+          if (distance_item)
+          {
+            QPoint from;
+            QPoint to;
+            dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
 
-          if (intensity_mode_ == IM_PERCENTAGE)
-          {
-            percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum.getMaxInt();
+            dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+            drawDashedLine_(from, to, *painter);
+
+            dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer.flipped);
+
+            dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+            drawDashedLine_(from, to, *painter);
           }
-          else
+        }
+        switch (draw_modes_[i])
+        {
+        case DM_PEAKS:
+          //-----------------------------------------DRAWING PEAKS-------------------------------------------
+
+          for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
           {
-            percentage_factor_ = 1.0;
-          }
-          vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
-          vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
-          // draw dashed elongations for pairs of peaks annotated with a distance
-          for(Annotations1DContainer::ConstIterator it = layer.getCurrentAnnotations().begin();
-            it != layer.getCurrentAnnotations().end(); ++it)
-          {
-            Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
-            if (distance_item)
+            if (layer.filters.passes(spectrum,it-spectrum.begin()))
             {
-                QPoint from;
-                QPoint to;
-                dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
+              dataToWidget(*it,end,layer.flipped);
+              dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
 
-                dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
-                drawDashedLine_(from, to, painter);
-
-                dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer.flipped);
-
-                dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
-                drawDashedLine_(from, to, painter);
+              // draw peak
+              painter->drawLine(begin, end);
             }
           }
-          switch (draw_modes_[i])
-          {
-            case DM_PEAKS:
-              //-----------------------------------------DRAWING PEAKS-------------------------------------------
-
-              for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
-              {
-                if (layer.filters.passes(spectrum,it-spectrum.begin()))
-                {
-                  dataToWidget(*it,end,layer.flipped);
-                  dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
-
-                  // draw peak
-                  painter.drawLine(begin, end);
-                }
-              }
-              break;
+          break;
             case DM_CONNECTEDLINES:
+          {
+            //-------------------------------------DRAWING CONNECTED LINES-----------------------------------------
+            QPainterPath path;
+
+            // connect peaks in visible area; (no clipping needed)
+            bool first_point = true;
+            for (SpectrumConstIteratorType it = vbegin; it != vend; it++)
+            {
+              dataToWidget(*it, begin, layer.flipped);
+
+              // connect lines
+              if (first_point)
               {
-                //-------------------------------------DRAWING CONNECTED LINES-----------------------------------------
-                QPainterPath path;
-
-                // connect peaks in visible area; (no clipping needed)
-                bool first_point = true;
-                for (SpectrumConstIteratorType it = vbegin; it != vend; it++)
-                {
-                  dataToWidget(*it, begin, layer.flipped);
-
-                  // connect lines
-                  if (first_point)
-                  {
-                    path.moveTo(begin);
-                    first_point = false;
-                  }
-                  else
-                  {
-                    path.lineTo(begin);
-                  }
-                }
-                painter.drawPath(path);
-
-                // clipping on left side
-                if (vbegin!=spectrum.begin() && vbegin!=spectrum.end())
-                {
-                  dataToWidget(*(vbegin-1), begin, layer.flipped);
-                  dataToWidget(*(vbegin), end, layer.flipped);
-                  painter.drawLine(begin, end);
-                }
-
-                // clipping on right side
-                if (vend!=spectrum.end() && vend!=spectrum.begin())
-                {
-                  dataToWidget(*(vend-1), begin, layer.flipped);
-                  dataToWidget(*(vend), end, layer.flipped);
-                  painter.drawLine(begin,end);
-                }
+                path.moveTo(begin);
+                first_point = false;
               }
-              break;
-            default:
-              throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+              else
+              {
+                path.lineTo(begin);
+              }
+            }
+            painter->drawPath(path);
+
+            // clipping on left side
+            if (vbegin!=spectrum.begin() && vbegin!=spectrum.end())
+            {
+              dataToWidget(*(vbegin-1), begin, layer.flipped);
+              dataToWidget(*(vbegin), end, layer.flipped);
+              painter->drawLine(begin, end);
+            }
+
+            // clipping on right side
+            if (vend!=spectrum.end() && vend!=spectrum.begin())
+            {
+              dataToWidget(*(vend-1), begin, layer.flipped);
+              dataToWidget(*(vend), end, layer.flipped);
+              painter->drawLine(begin,end);
+            }
           }
-
-          //draw all annotation items
-          drawAnnotations(getLayer_(i), painter);
+          break;
+            default:
+          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         }
-      }
-      painter.end();
-    } //if (update_buffer)
-    painter.begin(paint_device);
 
-    //draw peak data
-    QVector<QRect> rects = e->region().rects();
-    for (int i = 0; i < (int)rects.size(); ++i)
-    {
-      painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
+        //draw all annotation items
+        drawAnnotations(getLayer_(i), *painter);
+      }
     }
 
     if (mirror_mode_)
     {
-      painter.save();
+      painter->save();
 
       if (!show_alignment_)
       {
         // draw x-axis
-        painter.setPen(Qt::black);
-        painter.drawLine(0,height()/2,width(),height()/2);
+        painter->setPen(Qt::black);
+        painter->drawLine(0,height()/2,width(),height()/2);
       }
       else
       {
-        drawAlignment(painter);
+        drawAlignment(*painter);
         // two x-axes:
-        painter.setPen(Qt::black);
-        painter.drawLine(0,height()/2+5,width(),height()/2+5);
-        painter.drawLine(0,height()/2-5,width(),height()/2-5);
+        painter->setPen(Qt::black);
+        painter->drawLine(0,height()/2+5,width(),height()/2+5);
+        painter->drawLine(0,height()/2-5,width(),height()/2-5);
       }
-      painter.restore();
+      painter->restore();
     }
 
     // draw measuring line when in measure mode and valid measurement start peak selected
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       QPoint measurement_end_point(last_mouse_pos_.x(), measurement_start_point_.y());
-      painter.drawLine(measurement_start_point_, measurement_end_point);
+      painter->drawLine(measurement_start_point_, measurement_end_point);
     }
     // draw highlighted measurement start peak and selected peak
     bool with_elongation = (action_mode_ == AM_MEASURE);
-    drawHighlightedPeak_(current_layer_, measurement_start_, painter, with_elongation);
-    drawHighlightedPeak_(current_layer_, selected_peak_, painter, with_elongation);
+    drawHighlightedPeak_(current_layer_, measurement_start_, *painter, with_elongation);
+    drawHighlightedPeak_(current_layer_, selected_peak_, *painter, with_elongation);
 
     //draw delta for measuring
     if (action_mode_==AM_MEASURE && measurement_start_.isValid())
     {
-      drawDeltas_(painter, measurement_start_, selected_peak_);
+      drawDeltas_(*painter, measurement_start_, selected_peak_);
     }
     else
     {
-      drawCoordinates_(painter, selected_peak_);
+      drawCoordinates_(*painter, selected_peak_);
     }
-
-    painter.end();
 
     if (show_timing_)
     {
@@ -964,10 +939,10 @@ namespace OpenMS
 		dashes << 5 << 5 << 1 << 5;
 		pen.setDashPattern(dashes);
 		pen.setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
-		painter.save();
-		painter.setPen(pen);
-		painter.drawLine(from, to);
-		painter.restore();
+    painter.save();
+    painter.setPen(pen);
+    painter.drawLine(from, to);
+    painter.restore();
 	}
 	
 	void Spectrum1DCanvas::drawAnnotations(LayerData& layer, QPainter& painter)
@@ -1000,11 +975,11 @@ namespace OpenMS
 		{
 			if (!(*it)->isSelected())
 			{
-				painter.setPen(pen);
+        painter.setPen(pen);
 			}
 			else
 			{
-				painter.setPen(selected_pen);
+        painter.setPen(selected_pen);
 			}
 			(*it)->draw(this, painter, flipped);
 		}
@@ -1028,7 +1003,6 @@ namespace OpenMS
 		
 		if (repaint)
 		{
-			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}
 	}
@@ -1283,7 +1257,6 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::currentLayerParamtersChanged_()
 	{
-		update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
 	}
 
@@ -1302,7 +1275,6 @@ namespace OpenMS
 		{
 			annots_1d.deselectAll();
 			annots_1d.selectItemAt(e->pos());
-			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 			
 			context_menu->addAction("Edit");
@@ -1324,7 +1296,6 @@ namespace OpenMS
 						annot_item->setText(text);
 					}
 				}
-				update_buffer_ = true;
 				update_(__PRETTY_FUNCTION__);
 			}
 		}
@@ -1476,7 +1447,6 @@ namespace OpenMS
     Annotation1DItem* item = new Annotation1DTextItem(position, text);
     getCurrentLayer_().getCurrentAnnotations().push_front(item);
 
-    update_buffer_ = true;
     update_(__PRETTY_FUNCTION__);
   }
 
@@ -1496,7 +1466,6 @@ namespace OpenMS
     PointType position(peak.getMZ(), peak.getIntensity());
     Annotation1DItem* item = new Annotation1DPeakItem(position, text);
     getCurrentLayer_().getCurrentAnnotations().push_front(item);
-    update_buffer_ = true;
     update_(__PRETTY_FUNCTION__);
   }
 
@@ -1658,7 +1627,6 @@ namespace OpenMS
 	{
 		mirror_mode_ = b;
 		qobject_cast<Spectrum1DWidget*>(spectrum_widget_)->toggleMirrorView(b);
-		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 	
@@ -1673,7 +1641,7 @@ namespace OpenMS
 		QPen p3(QColor(230,230,230));
 		p3.setStyle(Qt::DashLine);
 	
-		painter.save();
+    painter.save();
 
 		unsigned int xl, xh, yl, yh; //width/height of the diagram area, x, y coordinates of lo/hi x,y values
 	
@@ -1690,17 +1658,17 @@ namespace OpenMS
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-					painter.setPen(p1);
+          painter.setPen(p1);
 					break;
 				case 1:	// style settings for small intervals
-					painter.setPen(p2);
+          painter.setPen(p2);
 					break;
 				case 2: // style settings for smalles intervals
-					painter.setPen(p3);
+          painter.setPen(p3);
 					break;
 				default:
 					std::cout << "empty vertical grid line vector error!" << std::endl;
-					painter.setPen(QPen(QColor(0,0,0)));
+          painter.setPen(QPen(QColor(0,0,0)));
 					break;
 			}
 
@@ -1708,7 +1676,7 @@ namespace OpenMS
 			for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); it++) 
 			{
 				x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
-				painter.drawLine(x, yl, x, yh);
+        painter.drawLine(x, yl, x, yh);
 			}
 		}
 		
@@ -1719,17 +1687,17 @@ namespace OpenMS
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-					painter.setPen(p1);
+          painter.setPen(p1);
 					break;
 				case 1:	// style settings for small intervals
-					painter.setPen(p2);
+          painter.setPen(p2);
 					break;
 				case 2: // style settings for smalles intervals
-					painter.setPen(p3);
+          painter.setPen(p3);
 					break;
 				default:
 					std::cout << "empty vertical grid line vector error!" << std::endl;
-					painter.setPen(QPen(QColor(0,0,0)));
+          painter.setPen(QPen(QColor(0,0,0)));
 					break;
 			}
 
@@ -1739,14 +1707,14 @@ namespace OpenMS
 				y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
 				if (!mirror_mode_)
 				{
-					painter.drawLine(xl, y, xh, y);
+          painter.drawLine(xl, y, xh, y);
 				}
 				else
 				{
 					if (!show_alignment_)
 					{
-						painter.drawLine(xl, y/2, xh, y/2);
-						painter.drawLine(xl, yl-y/2, xh, yl-y/2);
+            painter.drawLine(xl, y/2, xh, y/2);
+            painter.drawLine(xl, yl-y/2, xh, yl-y/2);
 					}
 					else
 					{
@@ -1755,14 +1723,14 @@ namespace OpenMS
 						{
 							alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
 						}
-						painter.drawLine(xl,(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, (int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
-						painter.drawLine(xl,yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
+            painter.drawLine(xl,(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, (int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
+            painter.drawLine(xl,yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
 					}
 				}
 			}
 		}
 		
-		painter.restore();
+    painter.restore();
 	}
 	
 	void Spectrum1DCanvas::performAlignment(Size layer_index_1, Size layer_index_2, const Param& param)
@@ -1791,7 +1759,6 @@ namespace OpenMS
 		}
 		
 		show_alignment_ = true;
-		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 		
 		SpectrumAlignmentScore scorer;
@@ -1805,16 +1772,15 @@ namespace OpenMS
 		alignment_.clear();
 		qobject_cast<Spectrum1DWidget*>(spectrum_widget_)->resetAlignment();
 		show_alignment_ = false;
-		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 	
 	void Spectrum1DCanvas::drawAlignment(QPainter& painter)
 	{
-		painter.save();
+    painter.save();
 		
 		//draw peak-connecting lines between the two spectra
-		painter.setPen(Qt::red);
+    painter.setPen(Qt::red);
 		QPoint begin_p, end_p;
 		double dummy = 0.0;
 
@@ -1822,10 +1788,10 @@ namespace OpenMS
 		{
 			dataToWidget(alignment_[i].first, dummy, begin_p);
 			dataToWidget(alignment_[i].second, dummy, end_p);
-			painter.drawLine(begin_p.x(), height()/2-5, end_p.x(), height()/2+5);
+      painter.drawLine(begin_p.x(), height()/2-5, end_p.x(), height()/2+5);
 		}
 		
-		painter.restore();
+    painter.restore();
 	}
 	
 	Size Spectrum1DCanvas::getAlignmentSize()
@@ -1842,7 +1808,6 @@ namespace OpenMS
 	{
 		recalculateSnapFactor_();
 		ensureAnnotationsWithinDataRange_();
-		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 	
@@ -1882,7 +1847,6 @@ namespace OpenMS
 			recalculateSnapFactor_();
 			if (repaint)
 			{
-				update_buffer_ = true;
 				update_(__PRETTY_FUNCTION__);
 			}
 		}
@@ -1901,7 +1865,6 @@ namespace OpenMS
     if (peak_penstyle_[current_layer_] != ps)
     {
       peak_penstyle_[current_layer_] = ps;
-      update_buffer_ = true;
       update_(__PRETTY_FUNCTION__);
     }
   }

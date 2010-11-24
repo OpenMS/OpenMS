@@ -118,7 +118,9 @@ namespace OpenMS
 
 	    /// returns the maximum value displayed on the axis
 	    DoubleReal getAxisMaximum() const;
-	    
+
+      /// Actual painting takes place here
+      void paint(QPainter* painter, QPaintEvent* e);
 		public slots:
 		
 			///sets min/max of the axis
@@ -152,8 +154,6 @@ namespace OpenMS
 			bool allow_short_numbers_;			
       /// Reimplemented Qt event (calls paint with "this")
 			void paintEvent(QPaintEvent*);
-      /// Actual painting takes place here
-      void paint(QPaintDevice* paint_device);
 	
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
 			inline DoubleReal scale_(DoubleReal x)

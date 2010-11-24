@@ -143,6 +143,8 @@ namespace OpenMS
       /// Set's the Qt PenStyle of the active layer
       void setCurrentLayerPeakPenStyle(Qt::PenStyle ps);
 
+      /// Actual painting takes place here
+      void paint(QPainter* paint_device, QPaintEvent* e);
   signals:
       /// Requests to display all spectra in 2D plot
       void showCurrentPeaksAs2D();
@@ -256,9 +258,6 @@ namespace OpenMS
 			void keyPressEvent(QKeyEvent* e);
 			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
-
-      /// Actual painting takes place here
-      void paint(QPaintDevice* paint_device, QPaintEvent* e);
 			
       ///Go forward in zoom history
 	    virtual void zoomForward_();

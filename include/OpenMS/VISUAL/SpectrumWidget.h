@@ -126,7 +126,7 @@ namespace OpenMS
 			virtual void hideAxes();
 			
 			/// Saves the widget's content as image file
-			void saveAsImage();
+      virtual void saveAsImage();
 			
 			/// Widget id used as identifier
 			Int window_id;
