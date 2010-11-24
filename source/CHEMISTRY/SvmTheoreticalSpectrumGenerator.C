@@ -668,10 +668,11 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no svm models loaded. Call load function before using simulate");
     }
 
+
     //load parameters
     bool add_isotopes = param_.getValue("add_isotopes").toBool();    
     Size max_isotope = (Size)param_.getValue("max_isotope");
-    bool add_losses = param_.getValue("add_losses").toBool();
+    bool add_losses = param_.getValue("add_losses").toBool();    
     bool add_first_nterminals = param_.getValue("add_first_nterminals").toBool();
     bool add_metainfo = param_.getValue("add_metainfo").toBool();
     bool add_precursor_peaks = param_.getValue("add_precursor_peaks").toBool();
@@ -764,7 +765,7 @@ namespace OpenMS
           scaleDescriptorSet_(descriptor, scaling_lower_, scaling_upper_);
         }
 
-        DoubleReal predicted_intensity=0.0;
+        DoubleReal predicted_intensity=0.0;        
         Size predicted_class = svm_predict(class_models_[type_nr], &descriptor.descriptors[0]);
 
         if(predicted_class==1)

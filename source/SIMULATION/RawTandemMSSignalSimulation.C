@@ -84,8 +84,13 @@ namespace OpenMS
   {}
 
   void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2)
-  {
+  {    
     SvmTheoreticalSpectrumGenerator svm_spec_gen;
+    Param p_gen =svm_spec_gen.getParameters();
+    p_gen.setValue("add_losses","true");
+    p_gen.setValue("add_isotopes","true"  );
+    svm_spec_gen.setParameters(p_gen);
+
     svm_spec_gen.load();
     Param p;
     p.setValue("block_method:rt_block_size", features.size()); // merge all single spectra
@@ -100,6 +105,7 @@ namespace OpenMS
     MSSimExperiment single_ms2_spectra;
     single_ms2_spectra.resize(features.size());
 
+
     // preparation & validation of input
     for (Size i_f=0;i_f<features.size();++i_f)
     {
@@ -107,14 +113,15 @@ namespace OpenMS
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
       RichPeakSpectrum tmp_spec;      
-      svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng,features[i_f].getCharge());
-//      for(Size peak=0; peak<tmp_spec.size(); ++peak)
-//      {
-//        Peak1D p=tmp_spec[peak];
-//        single_ms2_spectra[i_f].push_back(p);
-//      }
+      svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng,features[i_f].getCharge());      
+      for(Size peak=0; peak<tmp_spec.size(); ++peak)
+      {
+        Peak1D p=tmp_spec[peak];
+        single_ms2_spectra[i_f].push_back(p);
+      }
+      //std::cerr<<tmp_spec.size()<<std::endl;
 
-      single_ms2_spectra[i_f].setMSLevel(2);
+      single_ms2_spectra[i_f].setMSLevel(2);      
 
       // validate features Metavalues exist and are valid:
       if (!features[i_f].metaValueExists("elution_profile_bounds")
@@ -169,9 +176,7 @@ namespace OpenMS
         {          
           it->setIntensity(it->getIntensity() * factor);
         }
-      }
-
-      std::cerr<<"made it here!  "<<MS2_spectra.size()<<std::endl;
+      }      
       
       // debug: also add single spectra
       for (Size ii=0;ii<MS2_spectra.size();++ii) ms2.push_back(MS2_spectra[ii]); // DEBUG
