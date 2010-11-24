@@ -28,6 +28,7 @@ SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
 SpectrumGeneratorNetworkTrainer
+TrafoInverter
 UniqueIdAssigner
 XMLValidator
 )

@@ -128,6 +128,7 @@ SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
 SpectrumGeneratorNetworkTrainer
+TrafoInverter
 #UniqueIdAssigner (not derived from TOPPBase)
 XMLValidator
 
@@ -704,3 +705,6 @@ add_test("UTILS_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DA
 add_test("UTILS_MassCalculator_1_out1" ${DIFF} -in1 MassCalculator_1_output.tmp -in2 ${DATA_DIR_TOPP}/MassCalculator_1_output.csv)
 add_test("UTILS_MassCalculator_2" ${TOPP_BIN_PATH}/MassCalculator -test -in_seq "LDQWLC(Carbamidomethyl)EKL" "(Glu->pyro-Glu)EAM(Oxidation)APKHK" "RANVM(Oxidation)DYR" "FGVEQDVDMVFASFIR" -out MassCalculator_2_output.tmp -charge 1 2 3)
 add_test("UTILS_MassCalculator_2_out1" ${DIFF} -in1 MassCalculator_2_output.tmp -in2 ${DATA_DIR_TOPP}/MassCalculator_2_output.txt)
+
+add_test("UTILS_TrafoInverter_1" ${TOPP_BIN_PATH}/TrafoInverter -test -in ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out TrafoInverter_1_output.tmp)
+add_test("UTILS_TrafoInverter_1_out1" ${DIFF} -in1 TrafoInverter_1_output.tmp -in2 ${DATA_DIR_TOPP}/TrafoInverter_1_output.trafoXML)
