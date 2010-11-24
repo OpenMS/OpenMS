@@ -42,6 +42,7 @@ namespace OpenMS
     setName("SILACLabeler");
     defaults_.setValue("SILAC_modification", "UniMod:188", "SILAC modification that will be added to the labeled channel.");
     defaults_.setValue("SILAC_specificities","R,K", "Comma separated list of amino acids that will be modified.");
+    defaults_.setValue("SILAC_fixed_rtshift", 0.0, "Fixed retention time shift between labeled pairs. If set to 0.0 only the retention times, computed by the RT model step are used.");
     defaultsToParam_();
   }
 
@@ -194,9 +195,53 @@ namespace OpenMS
     consensus_.getFileDescriptions()[0] = map_description;
   }
 
-  void SILACLabeler::postRTHook(FeatureMapSimVector & /* features_to_simulate */)
+  void SILACLabeler::postRTHook(FeatureMapSimVector & features_to_simulate)
   {
-    // no changes to the features .. nothing todo here
+    DoubleReal rt_shift = param_.getValue("SILAC_fixed_rtshift");
+
+    if(rt_shift != 0.0)
+    {
+
+      Map<UInt64, Feature*> id_map;
+      FeatureMapSim& feature_map = features_to_simulate[0];
+      for(FeatureMapSim::Iterator it = feature_map.begin() ; it != feature_map.end() ; ++it)
+      {
+        id_map.insert(std::make_pair<UInt64,Feature*>(it->getUniqueId(), &(*it)));
+      }
+
+      // recompute RT of pairs
+      for(ConsensusMap::Iterator consensus_it = consensus_.begin() ; consensus_it != consensus_.end() ; ++consensus_it)
+      {
+        ConsensusFeature& cf = *consensus_it;
+
+        // check if these features are still available and were not removed during RT sim
+        bool complete = true;
+
+        for(ConsensusFeature::iterator cfit = cf.begin() ; cfit != cf.end() ; ++cfit)
+        {
+          complete &= id_map.has(cfit->getUniqueId());
+        }
+
+        if(complete)
+        {
+          Feature* f1 = id_map[(cf.begin())->getUniqueId()];
+          Feature* f2 = id_map[(++cf.begin())->getUniqueId()];
+
+          // the lighter one should be the unmodified one
+          EmpiricalFormula ef1 = (f1->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula();
+          EmpiricalFormula ef2 = (f2->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula();
+
+          if(ef1.getMonoWeight() < ef2.getMonoWeight())
+          {
+            f2->setRT(f1->getRT() + rt_shift);
+          }
+          else
+          {
+            f1->setRT(f2->getRT() + rt_shift);
+          }
+        }
+      }
+    }
   }
 
   void SILACLabeler::postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
