@@ -73,6 +73,7 @@ using namespace std;
 		- extract spectra of a certain MS level
 		- filter by signal-to-noise estimation
 		- filter by scan mode of the spectra
+    - filter by a meta value (existence)
 	- featureXML
 		- filter by feature charge
 		- filter by feature size (number of subordinate features)
@@ -135,7 +136,6 @@ class TOPPFileFilter
 		addText_("peak data options:");
 		registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 		registerIntList_("level","\"i,j,...\"",IntList::create("1,2,3"),"MS levels to extract", false);
-		registerIntList_("map","\"i,j,...\"",IntList::create("1,2"),"maps to be extracted from a consensus", false);
 		registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 		registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
 		registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
@@ -167,15 +167,19 @@ class TOPPFileFilter
 		setValidStrings_("select_mode", mode_list);
 		registerStringOption_("select_activation", "<activation>", "", "Select MSn scans where any of its percursors features a certain activation method\n", false);
 		setValidStrings_("select_activation", activation_list);
+		registerStringOption_("select_by_metavalue", "<metavalue_name>", "", "Select scans which are annotated with a certain meta-value\n", false);
 		addEmptyLine_();
 
 
-		addText_("feature data options:");
-		registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
+    addText_("Feature and ConsensusFeature options:");
+		registerIntList_("map","\"i,j,...\"",IntList::create("1,2"),"maps to be extracted from a consensus", false);
+
+		addText_("Feature options:");
+    registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
 		registerStringOption_("size","[min]:[max]",":","size range to extract", false);
 		registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1]", false);
 
-		addText_("consensus feature data options:");
+		addText_("ConsensusFeature options:");
 		registerStringOption_("size","[min]:[max]",":","size range to extract", false);
 		registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
 
@@ -298,13 +302,13 @@ class TOPPFileFilter
 			// loading input
 			//-------------------------------------------------------------
 
-  			MapType exp;
-  			MzMLFile f;
-  			f.setLogType(log_type_);
-  			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
-  			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
-  			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-  			f.load(in,exp);
+			MapType exp;
+			MzMLFile f;
+			f.setLogType(log_type_);
+			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
+			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
+			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
+			f.load(in,exp);
 
 			if (!no_chromatograms)
 			{
@@ -396,6 +400,16 @@ class TOPPFileFilter
 				writeDebug_("Selecting zoom scans", 3);
 				exp.erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>(true)), exp.end());
 			}
+
+      
+      //remove scans without a certain metavalue
+      String meta_value_key = getStringOption_("select_by_metavalue");
+			if (!meta_value_key.empty())
+			{ 
+				writeDebug_("Selecting scans with meta-value '" + meta_value_key + "'", 3);
+				exp.erase(remove_if(exp.begin(), exp.end(), HasMetaValue<MapType::SpectrumType>(meta_value_key, true)), exp.end());
+      }
+
 
  			//remove empty scans
  			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());

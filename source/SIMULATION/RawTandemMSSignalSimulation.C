@@ -56,6 +56,8 @@ namespace OpenMS
 		defaults_.setValidStrings("Precursor:use_dynamic_exclusion", StringList::create("true,false"));
 		defaults_.setValue("Precursor:exclusion_time",100.,"The time (in seconds) a feature is excluded after its last selection.");
 		defaults_.setMinFloat("Precursor:exclusion_time",0.);
+		defaults_.setValue("MS_E:add_single_spectra","false","If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MS_E_debug_spectra' attached, so they can be filtered out. Full MS_E spectra will have 'MS_E_FullSpectrum' instead.");
+		defaults_.setValidStrings("MS_E:add_single_spectra", StringList::create("true,false"));
 		
 		// sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
@@ -141,6 +143,7 @@ namespace OpenMS
     }
 
     // creating the MS^E scan:
+    bool add_debug_spectra = ((String)param_.getValue("MS_E:add_single_spectra") == "true");
 
     for (Size i=0;i<experiment.size();++i)
     { // create MS2 for every MS scan
@@ -178,13 +181,22 @@ namespace OpenMS
         }
       }      
       
+      
       // debug: also add single spectra
-      for (Size ii=0;ii<MS2_spectra.size();++ii) ms2.push_back(MS2_spectra[ii]); // DEBUG
+      if (add_debug_spectra)
+      {
+        for (Size ii=0;ii<MS2_spectra.size();++ii)
+        {
+          ms2.push_back(MS2_spectra[ii]); // DEBUG
+          ms2.back().setMetaValue("MS_E_debug_spectra","true");
+        }
+      }
 
       // merge all MS2 spectra 
       sm.mergeSpectraBlockWise(MS2_spectra);
       if (MS2_spectra.size()!=1) throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__,MS2_spectra.size() );
       // store merged spectrum
+      MS2_spectra[0].setMetaValue("MS_E_FullSpectrum","true");
       ms2.push_back(MS2_spectra[0]);
 
     }
@@ -202,7 +214,7 @@ namespace OpenMS
 		param.remove("charge_filter");
 		ps.setParameters(param);
 		// different selection strategies for MALDI and ESI
-		bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";    
+		bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";
 		ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);
 
 		
