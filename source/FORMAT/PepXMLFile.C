@@ -155,9 +155,14 @@ namespace OpenMS
 				 it != aa_mods.end(); ++it)
 		{
 			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
+
+      // compute mass of modified residue
+      EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod.getOrigin())->getFormula();
+      ef += mod.getDiffFormula();
+
 			f << "<aminoacid_modification aminoacid=\"" << mod.getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
-				<< precisionWrapper(mod.getMonoMass())
+        << precisionWrapper(ef.getMonoWeight())
 				<< "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
 				<< "\n";
 		}
