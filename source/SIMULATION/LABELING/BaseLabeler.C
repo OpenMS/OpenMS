@@ -200,18 +200,26 @@ namespace OpenMS
           cf.setCharge((*(*charge_group_it).second.begin()).getCharge());
           cf.setMetaValue("charge_adducts",charge_group_it->first);
 
+          std::vector<PeptideIdentification> ids;
           for(std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fh_it = (charge_group_it->second).begin() ; fh_it != (charge_group_it->second).end() ; ++fh_it)
           {
             cf.insert(*fh_it);
+            // append identifications
+            Size f_index = simulated_features.uniqueIdToIndex (fh_it->getUniqueId ());
+            std::vector<PeptideIdentification> ids_feature = simulated_features [ f_index ].getPeptideIdentifications();
+            ids.insert(ids.end(), ids_feature.begin(), ids_feature.end() ); 
           }
 
           cf.computeConsensus();
+          cf.setPeptideIdentifications(ids);
 
           new_cm.push_back(cf);
         }
 
       }
     }
+    
+    new_cm.setProteinIdentifications(simulated_features.getProteinIdentifications());
 
     consensus_.swap(new_cm);
   }

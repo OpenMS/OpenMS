@@ -156,20 +156,23 @@ namespace OpenMS
       // check if we have a pair ..
       if(unlabeled_features_index.has(unmodified_sequence.toUnmodifiedString()))
       {
-        // guarantee uniqueness
-        unlabeled_features_index[unmodified_sequence.toUnmodifiedString()].ensureUniqueId();
+        // own scope as we don't know what happens to 'f_modified' once we call erase() below
+        {
+          Feature& f_modified = unlabeled_features_index[unmodified_sequence.toUnmodifiedString()];
+          // guarantee uniqueness
+          f_modified.ensureUniqueId();
 
-        // add features to final map
-        final_feature_map.push_back(*lf_iter);
-        final_feature_map.push_back(unlabeled_features_index[unmodified_sequence.toUnmodifiedString()]);
+          // add features to final map
+          final_feature_map.push_back(*lf_iter);
+          final_feature_map.push_back(f_modified);
 
-        // create consensus feature
-        ConsensusFeature cf;
-        cf.insert(0, *lf_iter);
-        cf.insert(0, unlabeled_features_index[unmodified_sequence.toUnmodifiedString()]);
+          // create consensus feature
+          ConsensusFeature cf;
+          cf.insert(0, *lf_iter);
+          cf.insert(0, f_modified);
 
-        consensus_.push_back(cf);
-
+          consensus_.push_back(cf);
+        }
         // remove unlabeled feature
         unlabeled_features_index.erase(unmodified_sequence.toUnmodifiedString());
       }
