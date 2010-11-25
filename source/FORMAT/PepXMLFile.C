@@ -160,7 +160,8 @@ namespace OpenMS
       EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod.getOrigin())->getFormula();
       ef += mod.getDiffFormula();
 
-			f << "<aminoacid_modification aminoacid=\"" << mod.getOrigin()
+      f << "      "
+			  << "<aminoacid_modification aminoacid=\"" << mod.getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
 				<< "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
@@ -171,7 +172,8 @@ namespace OpenMS
 		{
 			const ResidueModification& mod = ModificationsDB::getInstance()->
 				getModification(*it);
-			f << "<terminal_modification terminus=\"n\" massdiff=\""
+      f << "      "
+			  << "<terminal_modification terminus=\"n\" massdiff=\""
 				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" description=\"" << *it
 				<< "\" protein_terminus=\"\"/>" << "\n";
@@ -180,7 +182,8 @@ namespace OpenMS
 		for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
 		{
 			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
-			f << "<terminal_modification terminus=\"c\" massdiff=\""
+      f << "      "
+        << "<terminal_modification terminus=\"c\" massdiff=\""
 				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" description=\"" << *it
 				<< "\" protein_terminus=\"\"/>" << "\n";
@@ -196,14 +199,21 @@ namespace OpenMS
 		{
 			if (it->getHits().size() > 0)
 			{
+        if (it->getHits().size() > 1)
+        {
+          LOG_WARN << "PepXMLFile::store() : only writing the first peptide hit of " << it->getHits().size() << " for PeptideID# " << count << "\n";
+        }
 				PeptideHit h = *it->getHits().begin();
 				AASequence seq = h.getSequence();
 				DoubleReal precursor_neutral_mass = seq.getMonoWeight();
 
-				f << "		<spectrum_query spectrum=\"" << count << "\" start_scan=\""
-					<< count << "\" end_scan=\"" << count
-					<< "\" precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass)
-          << "\" assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
+        Int scan_index = ( it->metaValueExists("RT_index") ? it->getMetaValue("RT_index") : count );
+
+				f << "		<spectrum_query spectrum=\"" << count << "\""
+          << " start_scan=\"" << scan_index << "\""
+          << " end_scan=\"" << scan_index << "\""
+					<< " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
+          << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
 
         DataValue dv = it->getMetaValue("RT");
         if (dv!=DataValue::EMPTY)
