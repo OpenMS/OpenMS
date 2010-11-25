@@ -233,6 +233,10 @@ namespace OpenMS {
       }
       
       features[i].setRT(predicted_retention_times[i]);
+      // also store this in the peptide identifications
+      Feature& f = features[i];
+      PeptideIdentification& pi = f.getPeptideIdentifications()[0];
+      pi.setMetaValue("RT", predicted_retention_times[i]);
 			fm_tmp.push_back(features[i]);
     }
     

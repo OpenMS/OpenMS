@@ -203,8 +203,15 @@ namespace OpenMS
 				f << "		<spectrum_query spectrum=\"" << count << "\" start_scan=\""
 					<< count << "\" end_scan=\"" << count
 					<< "\" precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass)
-					<< "\" assumed_charge=\"" << h.getCharge() << "\" index=\"" << count
-					<< "\">" << "\n";
+          << "\" assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
+
+        DataValue dv = it->getMetaValue("RT");
+        if (dv!=DataValue::EMPTY)
+        {
+          f << " retention_time_sec=\"" << dv << "\" ";
+        }
+
+        f << ">\n";
 				f << " 		<search_result>" << "\n";
 				f << "			<search_hit hit_rank=\"1\" peptide=\""
 					<< seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
