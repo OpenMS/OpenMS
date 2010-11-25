@@ -70,21 +70,21 @@ namespace OpenMS
 	  {
 		  case SpectrumCanvas::IM_SNAP:
 		    updateIntensityScale();
-		    AxisTickCalculator::calcGridLines(int_scale_.min_[0],int_scale_.max_[0],3,grid_intensity_,7,5); 
+        AxisTickCalculator::calcGridLines(int_scale_.min_[0],int_scale_.max_[0],grid_intensity_);
 		    break;
 		  case SpectrumCanvas::IM_NONE:
-		    AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3,grid_intensity_,7,5); 
+        AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],grid_intensity_);
 		    break;
 		  case SpectrumCanvas::IM_PERCENTAGE:
-		    AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_,7,5); 
+        AxisTickCalculator::calcGridLines(0.0, 100.0, grid_intensity_);
 		    break;
       case SpectrumCanvas::IM_LOG:
         cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
       break;
 	  }
 	  
-	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_rt_,7,5);
-	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_mz_,7,5);
+    AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],grid_rt_);
+    AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],grid_mz_);
 	}
 	
 	

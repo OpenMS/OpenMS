@@ -40,32 +40,19 @@ START_TEST(AxisTickCalculator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-START_SECTION((static void calcGridLines(DoubleReal x1, DoubleReal x2, Int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)))
+START_SECTION((static void calcGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid)))
 	std::vector<std::vector<DoubleReal> > vector1;
-	AxisTickCalculator::calcGridLines(1.0,4.0,3,vector1,7,5);
+  AxisTickCalculator::calcGridLines(1.0,4.0,vector1);
 	
-	TEST_EQUAL(3,vector1.size());
+  TEST_EQUAL(2,vector1.size());
 	TEST_EQUAL(4,vector1[0].size());
-	TEST_EQUAL(3,vector1[1].size());
-	TEST_EQUAL(6,vector1[2].size());
 	
 	TEST_REAL_SIMILAR(1.0,vector1[0][0]);
 	TEST_REAL_SIMILAR(2.0,vector1[0][1]);
 	TEST_REAL_SIMILAR(3.0,vector1[0][2]);
 	TEST_REAL_SIMILAR(4.0,vector1[0][3]);
-	
-	TEST_REAL_SIMILAR(1.5,vector1[1][0]);
-	TEST_REAL_SIMILAR(2.5,vector1[1][1]);
-	TEST_REAL_SIMILAR(3.5,vector1[1][2]);
-	
-	TEST_REAL_SIMILAR(1.25,vector1[2][0]);
-	TEST_REAL_SIMILAR(1.75,vector1[2][1]);
-	TEST_REAL_SIMILAR(2.25,vector1[2][2]);
-	TEST_REAL_SIMILAR(2.75,vector1[2][3]);
-	TEST_REAL_SIMILAR(3.25,vector1[2][4]);
-	TEST_REAL_SIMILAR(3.75,vector1[2][5]);
-END_SECTION
-
+		
+END_SECTION        
 
 START_SECTION((static void calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid)))
 	std::vector<std::vector<DoubleReal> > vector1;

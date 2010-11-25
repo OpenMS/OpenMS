@@ -85,7 +85,7 @@ namespace OpenMS
     painter.end();
 	}
 
-  void AxisWidget::paint(QPainter* painter, QPaintEvent* e)
+  void AxisWidget::paint(QPainter* painter, QPaintEvent*)
   {
     //position of the widget
     bool horizontal_alignment = (alignment_==BOTTOM || alignment_==TOP);
@@ -192,6 +192,23 @@ namespace OpenMS
         }
 
         // values at axis lines
+
+        // count number of grid lines
+        Size gl_count = 0;
+        for (GridVector::iterator it = grid_line_.begin(); it != grid_line_.end(); ++it)
+        {
+          gl_count += it->size();
+        }
+        //  if there are too many grid lines, hide every odd minor grid line value
+        if (gl_count >= 30 && i == 1)
+        {
+          UInt n = Math::round((grid_line_[1][j] - grid_line_[0][0]) / (grid_line_[1][1] - grid_line_[1][0]));
+          if (n % 2 == 1)
+          {
+            continue;
+          }
+        }
+
         QString text;
         getShortenedNumber_(text, scale_(grid_line_[i][j]));
         painter->setPen(QPen(text_color));
@@ -284,7 +301,7 @@ namespace OpenMS
 			
 			min_ = min; 
 			max_ = max;
-			AxisTickCalculator::calcGridLines(min_, max_,tick_level_,grid_line_,9, 9);
+      AxisTickCalculator::calcGridLines(min_, max_, grid_line_);
 		}
 		
 		update();

@@ -42,7 +42,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	void AxisTickCalculator::calcGridLines(DoubleReal x1, DoubleReal x2, Int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)
+  void AxisTickCalculator::calcGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid)
 	{		
 		grid.clear();
 		
@@ -63,44 +63,63 @@ namespace OpenMS
 
 		DoubleReal sDecPow = floor(log10(dx));
 		DoubleReal sDec = pow(10.0,sDecPow);
+
+    UInt n_max_big_gridlines = floor(dx / sDec);
+
 		std::vector<DoubleReal> big;
 		DoubleReal currGL = ceilDecimal(x1, (UInt)sDecPow);
+
+    // big grid lines
 		while (currGL < (x2+epsilon) )
 		{			
 			big.push_back(currGL);
 			currGL += sDec;
 		}
 		grid.push_back(big);
-		if (big.size() < max_num_big && levels>=2) 
-		{
-			std::vector<DoubleReal> small;
-			currGL = grid[0][0]-sDec/2;
-			while(currGL<(x2+epsilon))
-			{
-				if(currGL>x1)
-				{
-					small.push_back(currGL);
-				}
-				currGL +=sDec;
-			}
-			
-			grid.push_back(small);
 
-			if(big.size() < max_num_small && levels==3)
-			{	
-				std::vector<DoubleReal> smaller;
-				currGL=grid[0][0]-0.75*sDec;
-				while(currGL<(x2+epsilon))
-				{
-					if(currGL>x1)
-					{
-						smaller.push_back(currGL);
-					}
-					currGL +=sDec/2;
-				}
-				grid.push_back(smaller);
-			}
-		}
+    // only one major grid line
+    if (n_max_big_gridlines <= 3)
+    {
+      std::vector<DoubleReal> small;
+      currGL = grid[0][0]-sDec*9/10;
+      while(currGL < (x2 + epsilon))
+      {
+        // check if in visible area
+        if(currGL > x1)
+        {
+          // check for overlap with big gridlines
+          bool overlap = false;
+          for(Size i=0; i != big.size(); ++i)
+          {
+            if(fabs(big[i] - currGL) < epsilon )
+            {
+              overlap = true;
+            }
+          }
+          if (!overlap)
+          {
+             small.push_back(currGL);
+          }
+        }
+        currGL +=sDec/10;
+      }
+      grid.push_back(small);
+      return;
+    }
+
+    // four or more major grid lines
+    std::vector<DoubleReal> small;
+    currGL = grid[0][0]-sDec/2;
+    while(currGL<(x2+epsilon))
+    {
+      if(currGL>x1)
+      {
+        small.push_back(currGL);
+      }
+      currGL +=sDec;
+    }
+
+    grid.push_back(small);
 	}
 	
 	void AxisTickCalculator::calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid)

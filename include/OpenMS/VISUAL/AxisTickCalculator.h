@@ -52,12 +52,9 @@ namespace OpenMS
 				 
 				 @param x1 minimum value
 				 @param x2 maximum value
-				 @param levels numbers of different tick levels (maximum is 3)
 				 @param grid the grid_vector to fill
-				 @param max_num_big
-				 @param max_num_small
 			*/
-			static void calcGridLines(DoubleReal x1, DoubleReal x2, Int levels, GridVector& grid, UInt max_num_big, UInt max_num_small);
+      static void calcGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid);
 			
 			/**
 				 @brief Returns a GridVector with ticks for logarithmic scales.
