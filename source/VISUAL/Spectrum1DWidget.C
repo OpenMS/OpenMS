@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 // OpenMS
@@ -288,7 +288,7 @@ namespace OpenMS
 
   void Spectrum1DWidget::saveAsImage()
   {
-    QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Images (*.bmp *.png *.jpg *.gif *.svg)");
+    QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Raster images *.bmp *.png *.jpg *.gif (*.bmp *.png *.jpg *.gif);;Vector images *.svg (*.svg)");
     bool x_visible = x_scrollbar_->isVisible();
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();

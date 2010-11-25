@@ -140,12 +140,19 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::updateEntries()
   {
+    // no valid peak layer attached
+    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    {
+      table_widget_->clear();
+      return;
+    }
+
     if (ignore_update)
     {
       return;
     }
 
-    if (!table_widget_->isVisible())
+    if (!this->isVisible())
     {
       return;
     }
@@ -183,308 +190,297 @@ namespace OpenMS
     QTableWidgetItem* item = 0;
     QTableWidgetItem* selected_item = 0;
 
-    if(layer_->type == LayerData::DT_PEAK)
+    // generate flat list
+    selected_item = 0;
+    for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
-        // generate flat list
-        selected_item = 0;
-        for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
-        {
-          UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
+      UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
 
-          // check whether to skip MS1 level scans
-          if (ms_level == 1 && hide_ms1_->isChecked())
+      // check whether to skip MS1 level scans
+      if (ms_level == 1 && hide_ms1_->isChecked())
+      {
+        continue;
+      }
+
+      // hiding of entries with no identifications
+      // for convinience MS1 are shown if their MS2 contain identification (if not hide MS1 is selected)
+      Size id_count = (*layer_->getPeakData())[i].getPeptideIdentifications().size();
+      if (hide_no_identification_->isChecked())
+      {
+        if (id_count == 0 && ms_level == 2)  // hide MS2 level with no identification
+        {
+          continue;
+        } else if (ms_level == 1)
+        {
+          if (hide_ms1_->isChecked())
           {
             continue;
-          }
-
-          // hiding of entries with no identifications
-          // for convinience MS1 are shown if their MS2 contain identification (if not hide MS1 is selected)
-          Size id_count = (*layer_->getPeakData())[i].getPeptideIdentifications().size();
-          if (hide_no_identification_->isChecked())
+          } else // hide MS1 level if there is no MS2 with Identification
           {
-            if (id_count == 0 && ms_level == 2)  // hide MS2 level with no identification
+            Size j = i + 1;
+            bool has_ms2_with_id = false;
+            while(j < layer_->getPeakData()->size())
             {
-                continue;
-            } else if (ms_level == 1)
-            {
-              if (hide_ms1_->isChecked())
+              int level = (*layer_->getPeakData())[j].getMSLevel();
+              if (level == 1)
               {
-                continue;
-              } else // hide MS1 level if there is no MS2 with Identification
+                break;  // reached next MS1
+              } else if (level ==2)
               {
-                Size j = i + 1;
-                bool has_ms2_with_id = false;
-                while(j < layer_->getPeakData()->size())
+                if ((*layer_->getPeakData())[j].getPeptideIdentifications().size() >= 1)
                 {
-                  int level = (*layer_->getPeakData())[j].getMSLevel();
-                  if (level == 1)
-                  {
-                    break;  // reached next MS1
-                  } else if (level ==2)
-                  {
-                    if ((*layer_->getPeakData())[j].getPeptideIdentifications().size() >= 1)
-                    {
-                      has_ms2_with_id = true;
-                      break;
-                    }
-                  }
-                  ++j;
-                }
-
-                if (!has_ms2_with_id)
-                {
-                  continue;
+                  has_ms2_with_id = true;
+                  break;
                 }
               }
+              ++j;
+            }
+
+            if (!has_ms2_with_id)
+            {
+              continue;
             }
           }
+        }
+      }
 
-          // coloring
-          QColor c;
-          if (ms_level == 1)
-          {           
-            c = Qt::lightGray;  // default color for MS1
-          } else if (ms_level == 2)
+      // coloring
+      QColor c;
+      if (ms_level == 1)
+      {
+        c = Qt::lightGray;  // default color for MS1
+      } else if (ms_level == 2)
+      {
+        // get peptide identifications of current spectrum
+        vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
+        if (pi.size() != 0)
+        {
+          c = Qt::green; // default color for MS1 with identification
+        } else
+        {
+          c = Qt::white;
+        }
+      }
+
+      // add new row at the end of the table
+      table_widget_->insertRow(table_widget_->rowCount());
+
+      // ms level
+      item = new QTableWidgetItem(QString::number(ms_level));
+      item->setBackgroundColor(c);
+      item->setTextAlignment(Qt::AlignCenter);
+      table_widget_->setItem(table_widget_->rowCount()-1 , 0, item);
+
+      // index
+      item = new QTableWidgetItem();
+      item->setTextAlignment(Qt::AlignCenter);
+      item->setData(Qt::DisplayRole, Int(i));
+      item->setBackgroundColor(c);
+      table_widget_->setItem(table_widget_->rowCount()-1 , 1, item);
+
+      // rt
+      item = new QTableWidgetItem();
+      item->setTextAlignment(Qt::AlignCenter);
+      item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getRT());
+      item->setBackgroundColor(c);
+      table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
+
+      vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
+      //cout << "peptide identifications: " << pi.size() << endl;
+      if (pi.size()!=0)
+      {
+        vector<PeptideHit> ph = pi[0].getHits();
+
+        Size best_j_index = 0;
+        bool is_higher_score_better = false;
+        Size best_score = pi[0].getHits()[0].getScore();
+        is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
+
+        if (ph.size()!=0)
+        {
+          for(Size j=0; j!=pi[0].getHits().size(); ++j)
           {
-            // get peptide identifications of current spectrum
-            vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
-            if (pi.size() != 0)
+            PeptideHit ph = pi[0].getHits()[j];
+            // better score?
+            if ((ph.getScore() < best_score && !is_higher_score_better)
+              || (ph.getScore() > best_score && is_higher_score_better))
+              {
+              best_score = ph.getScore();
+              best_j_index = j;
+            }
+          }
+          PeptideHit best_ph = pi[0].getHits()[best_j_index];
+          // score
+          item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignCenter);
+          item->setData(Qt::DisplayRole, best_ph.getScore());
+          item->setBackgroundColor(c);
+          table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
+
+          // rank
+          item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignCenter);
+          item->setData(Qt::DisplayRole, best_ph.getRank());
+          item->setBackgroundColor(c);
+          table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
+
+          // charge
+          item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignCenter);
+          item->setData(Qt::DisplayRole, best_ph.getCharge());
+          item->setBackgroundColor(c);
+          table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
+
+          //sequence
+          item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignLeft);
+          item->setText(best_ph.getSequence().toString().toQString());
+          item->setBackgroundColor(c);
+          table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
+
+          //Accession
+          item = new QTableWidgetItem();
+          item->setTextAlignment(Qt::AlignLeft);
+          String accessions = "";
+
+          // add protein accessions:
+          for(vector<String>::const_iterator it = best_ph.getProteinAccessions().begin(); it != best_ph.getProteinAccessions().end(); ++it)
+          {
+            if (accessions != "")
             {
-              c = Qt::green; // default color for MS1 with identification
+              accessions += ", " + *it;
             } else
             {
-              c = Qt::white;
+              accessions = *it;
             }
           }
-
-          // add new row at the end of the table
-          table_widget_->insertRow(table_widget_->rowCount());
-
-          // ms level
-          item = new QTableWidgetItem(QString::number(ms_level));
+          item->setText(accessions.toQString());
           item->setBackgroundColor(c);
-          item->setTextAlignment(Qt::AlignCenter);
-          table_widget_->setItem(table_widget_->rowCount()-1 , 0, item);
-
-          // index
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignCenter);
-          item->setData(Qt::DisplayRole, Int(i));
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount()-1 , 1, item);
-
-          // rt
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignCenter);
-          item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getRT());
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
-
-          vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
-          //cout << "peptide identifications: " << pi.size() << endl;
-          if (pi.size()!=0)
-          {
-            vector<PeptideHit> ph = pi[0].getHits();
-
-            Size best_j_index = 0;
-            bool is_higher_score_better = false;
-            Size best_score = pi[0].getHits()[0].getScore();
-            is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
-
-            if (ph.size()!=0)
-            {              
-              for(Size j=0; j!=pi[0].getHits().size(); ++j)
-              {
-                PeptideHit ph = pi[0].getHits()[j];
-                // better score?
-                if ((ph.getScore() < best_score && !is_higher_score_better)
-                 || (ph.getScore() > best_score && is_higher_score_better))
-                {
-                  best_score = ph.getScore();
-                  best_j_index = j;
-                }
-              }
-              PeptideHit best_ph = pi[0].getHits()[best_j_index];
-              // score
-              item = new QTableWidgetItem();
-              item->setTextAlignment(Qt::AlignCenter);
-              item->setData(Qt::DisplayRole, best_ph.getScore());
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
-
-              // rank
-              item = new QTableWidgetItem();
-              item->setTextAlignment(Qt::AlignCenter);
-              item->setData(Qt::DisplayRole, best_ph.getRank());
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
-
-              // charge
-              item = new QTableWidgetItem();
-              item->setTextAlignment(Qt::AlignCenter);
-              item->setData(Qt::DisplayRole, best_ph.getCharge());
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
-
-              //sequence
-              item = new QTableWidgetItem();
-              item->setTextAlignment(Qt::AlignLeft);
-              item->setText(best_ph.getSequence().toString().toQString());
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
-
-              //Accession
-              item = new QTableWidgetItem();
-              item->setTextAlignment(Qt::AlignLeft);
-              String accessions = "";
-
-              // add protein accessions:
-              for(vector<String>::const_iterator it = best_ph.getProteinAccessions().begin(); it != best_ph.getProteinAccessions().end(); ++it)
-              {
-                if (accessions != "")
-                {
-                  accessions += ", " + *it;
-                } else
-                {
-                  accessions = *it;
-                }
-              }
-              item->setText(accessions.toQString());
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
-            }
-          } else // no identification
-          {
-            // score
-            item = new QTableWidgetItem();
-            item->setText("-");
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
-
-            // rank
-            item = new QTableWidgetItem();
-            item->setText("-");
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
-
-            // charge
-            item = new QTableWidgetItem();
-            item->setText("-");
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
-
-            //sequence
-            item = new QTableWidgetItem();
-            item->setText("-");
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
-
-            //accession
-            item = new QTableWidgetItem();
-            item->setText("-");
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
-          }
-
-          if (!(*layer_->getPeakData())[i].getPrecursors().empty())  // has precursor
-          {            
-            item = new QTableWidgetItem();
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
-
-            item = new QTableWidgetItem();
-            item->setTextAlignment(Qt::AlignCenter);
-            if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
-            {
-              QString t;
-              for(std::set<Precursor::ActivationMethod>::const_iterator it = (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
-              {
-                if(!t.isEmpty()){
-                  t.append(",");
-                }
-                t.append(QString::fromStdString((*layer_->getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
-              }
-              item->setText(t);
-            }
-            else
-            {
-              item->setText("-");
-            }            
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 4, item);
-          }
-          else  // has no precursor (leave fields 3 and 4 empty)
-          {
-            item = new QTableWidgetItem();
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setText("-");            
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
-            item = new QTableWidgetItem();
-            item->setTextAlignment(Qt::AlignCenter);
-            item->setText("-");
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount()-1 , 4, item);
-          }
-
-          // scan mode
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignCenter);
-          if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()>0)
-          {
-            item->setText(QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]));
-          }
-          else
-          {
-            item->setText("-");
-          }
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount()-1 , 5, item);
-
-          // zoom scan
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignCenter);
-          if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
-          {
-            item->setText("yes");
-          }
-          else
-          {
-            item->setText("no");
-          }
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount()-1 , 6, item);
-
-          if (i == layer_->current_spectrum)
-          {
-            // just remember it, select later
-            selected_item = item;
-          }
+          table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
         }
-        if (selected_item)
+      } else // no identification
+      {
+        // score
+        item = new QTableWidgetItem();
+        item->setText("-");
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
+
+        // rank
+        item = new QTableWidgetItem();
+        item->setText("-");
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
+
+        // charge
+        item = new QTableWidgetItem();
+        item->setText("-");
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
+
+        //sequence
+        item = new QTableWidgetItem();
+        item->setText("-");
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
+
+        //accession
+        item = new QTableWidgetItem();
+        item->setText("-");
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
+      }
+
+      if (!(*layer_->getPeakData())[i].getPrecursors().empty())  // has precursor
+      {
+        item = new QTableWidgetItem();
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
+
+        item = new QTableWidgetItem();
+        item->setTextAlignment(Qt::AlignCenter);
+        if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
         {
-          // now, select and scroll down to item
-          selected_item->setSelected(true);
-          table_widget_->scrollToItem(selected_item);
+          QString t;
+          for(std::set<Precursor::ActivationMethod>::const_iterator it = (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+          {
+            if(!t.isEmpty()){
+              t.append(",");
+            }
+            t.append(QString::fromStdString((*layer_->getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+          }
+          item->setText(t);
         }
-    }
-    else  // no peak map
-    {
-      return; // leave signals blocked
+        else
+        {
+          item->setText("-");
+        }
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 4, item);
+      }
+      else  // has no precursor (leave fields 3 and 4 empty)
+      {
+        item = new QTableWidgetItem();
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setText("-");
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
+        item = new QTableWidgetItem();
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setText("-");
+        item->setBackgroundColor(c);
+        table_widget_->setItem(table_widget_->rowCount()-1 , 4, item);
+      }
+
+      // scan mode
+      item = new QTableWidgetItem();
+      item->setTextAlignment(Qt::AlignCenter);
+      if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+      {
+        item->setText(QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]));
+      }
+      else
+      {
+        item->setText("-");
+      }
+      item->setBackgroundColor(c);
+      table_widget_->setItem(table_widget_->rowCount()-1 , 5, item);
+
+      // zoom scan
+      item = new QTableWidgetItem();
+      item->setTextAlignment(Qt::AlignCenter);
+      if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
+      {
+        item->setText("yes");
+      }
+      else
+      {
+        item->setText("no");
+      }
+      item->setBackgroundColor(c);
+      table_widget_->setItem(table_widget_->rowCount()-1 , 6, item);
+
+      if (i == layer_->current_spectrum)
+      {
+        // just remember it, select later
+        selected_item = item;
+      }
     }
 
-    if (layer_->getPeakData()->size() == 1)
+    if (selected_item)
     {
-      item->setFlags(0);
-      return; // leave signals blocked
+      // now, select and scroll down to item
+      selected_item->setSelected(true);
+      table_widget_->scrollToItem(selected_item);
     }
+
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
     table_widget_->setSortingEnabled(true);
