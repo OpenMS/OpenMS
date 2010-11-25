@@ -202,7 +202,9 @@ namespace OpenMS
         //  if there are too many grid lines, hide every odd minor grid line value
         if (gl_count >= 30 && i == 1)
         {
-          UInt n = Math::round((grid_line_[1][j] - grid_line_[0][0]) / (grid_line_[1][1] - grid_line_[1][0]));
+          // needed because skips occur in small grid lines at the position of big grid lines
+          DoubleReal dist_small = std::min<DoubleReal>(fabs(grid_line_[1][1] - grid_line_[1][0]), fabs(grid_line_[1][2] - grid_line_[1][1]));
+          UInt n = Math::round((grid_line_[1][j] - grid_line_[0][0]) / dist_small);
           if (n % 2 == 1)
           {
             continue;

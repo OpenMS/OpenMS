@@ -2807,6 +2807,15 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         // activate real data layer and spectrum        
         active1DWindow_()->canvas()->activateLayer(real_spectrum_layer_index);
         active1DWindow_()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
+
+        // Spectra alignment
+        Param param;
+        DoubleReal tolerance = 100;
+        param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance");
+        String unit_is_ppm = "true";
+        param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");
+        active1DWindow_()->performAlignment(real_spectrum_layer_index, theoretical_spectrum_layer_index, param);
+
         updateLayerBar();
         spectra_identification_view_widget_->ignore_update = false;
       }
