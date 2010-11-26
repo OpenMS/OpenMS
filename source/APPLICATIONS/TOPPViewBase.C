@@ -2810,7 +2810,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
         // Spectra alignment
         Param param;
-        DoubleReal tolerance = 100;
+        DoubleReal tolerance = 10;
         param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance");
         String unit_is_ppm = "true";
         param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");

@@ -71,9 +71,9 @@ namespace OpenMS
 	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent),
 			mirror_mode_(false),
-			show_alignment_(false),
 			moving_annotations_(false),
-      alignment_(),
+      show_alignment_(false),
+      aligned_peaks_mz_delta_(),
       alignment_score_(0),
       is_swapped_(true)
 	{
@@ -845,6 +845,12 @@ namespace OpenMS
         painter->drawLine(0,height()/2-5,width(),height()/2-5);
       }
       painter->restore();
+    } else // !mirror_mode_
+    {
+      if (show_alignment_)
+      {
+        drawAlignment(*painter);
+      }
     }
 
     // draw measuring line when in measure mode and valid measurement start peak selected
@@ -1727,7 +1733,11 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::performAlignment(Size layer_index_1, Size layer_index_2, const Param& param)
 	{
-		alignment_.clear();
+    alignment_layer_1_ = layer_index_1;
+    alignment_layer_2_ = layer_index_2;
+    aligned_peaks_mz_delta_.clear();
+    aligned_peaks_indices_.clear();
+
 		if (layer_index_1 >= getLayerCount() || layer_index_2 >= getLayerCount())
 		{
 			return;
@@ -1739,15 +1749,13 @@ namespace OpenMS
 		
 		SpectrumAlignment aligner;
 		aligner.setParameters(param);
-		
-		std::vector<std::pair<Size, Size> > aligned_peaks_indices;
-		aligner.getSpectrumAlignment(aligned_peaks_indices, spectrum_1, spectrum_2);
+    aligner.getSpectrumAlignment(aligned_peaks_indices_, spectrum_1, spectrum_2);
 
-		for (Size i = 0; i < aligned_peaks_indices.size(); ++i)
+    for (Size i = 0; i < aligned_peaks_indices_.size(); ++i)
 		{
-			DoubleReal line_begin_mz = spectrum_1[aligned_peaks_indices[i].first].getMZ();
-			DoubleReal line_end_mz = spectrum_2[aligned_peaks_indices[i].second].getMZ();
-			alignment_.push_back(std::make_pair(line_begin_mz, line_end_mz));
+      DoubleReal line_begin_mz = spectrum_1[aligned_peaks_indices_[i].first].getMZ();
+      DoubleReal line_end_mz = spectrum_2[aligned_peaks_indices_[i].second].getMZ();
+      aligned_peaks_mz_delta_.push_back(std::make_pair(line_begin_mz, line_end_mz));
 		}
 		
 		show_alignment_ = true;
@@ -1761,7 +1769,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::resetAlignment()
 	{
-		alignment_.clear();
+    aligned_peaks_mz_delta_.clear();
 		qobject_cast<Spectrum1DWidget*>(spectrum_widget_)->resetAlignment();
 		show_alignment_ = false;
 		update_(__PRETTY_FUNCTION__);
@@ -1772,23 +1780,48 @@ namespace OpenMS
     painter.save();
 		
 		//draw peak-connecting lines between the two spectra
-    painter.setPen(Qt::red);
-		QPoint begin_p, end_p;
-		double dummy = 0.0;
+    if (mirror_mode_)
+    {
+      painter.setPen(Qt::red);
+      QPoint begin_p, end_p;
+      double dummy = 0.0;
 
-		for (Size i = 0; i < getAlignmentSize(); ++i)
-		{
-			dataToWidget(alignment_[i].first, dummy, begin_p);
-			dataToWidget(alignment_[i].second, dummy, end_p);
-      painter.drawLine(begin_p.x(), height()/2-5, end_p.x(), height()/2+5);
-		}
-		
+      for (Size i = 0; i < getAlignmentSize(); ++i)
+      {
+        dataToWidget(aligned_peaks_mz_delta_[i].first, dummy, begin_p);
+        dataToWidget(aligned_peaks_mz_delta_[i].second, dummy, end_p);
+        painter.drawLine(begin_p.x(), height()/2-5, end_p.x(), height()/2+5);
+      }
+    } else
+    {
+      painter.setPen(Qt::red);
+      QPoint begin_p, end_p;
+      const ExperimentType::SpectrumType& spectrum_1 = getLayer(alignment_layer_1_).getCurrentSpectrum();
+      const ExperimentType::SpectrumType& spectrum_2 = getLayer(alignment_layer_2_).getCurrentSpectrum();
+
+      // select source interval start and end depending on diagram orientation
+      if (intensity_mode_==IM_PERCENTAGE)
+      {
+        percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum_1.getMaxInt();
+      }
+      else
+      {
+        percentage_factor_ = 1.0;
+      }
+
+      for (Size i = 0; i < getAlignmentSize(); ++i)
+      {
+        dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), 0, begin_p, false, true);
+        dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), spectrum_1[aligned_peaks_indices_[i].first].getIntensity(), end_p, false, true);
+        painter.drawLine(begin_p.x(), begin_p.y(), end_p.x(), end_p.y());
+      }
+    }
     painter.restore();
 	}
 	
 	Size Spectrum1DCanvas::getAlignmentSize()
 	{
-		return alignment_.size();
+    return aligned_peaks_mz_delta_.size();
 	}
 	
 	DoubleReal Spectrum1DCanvas::getAlignmentScore()

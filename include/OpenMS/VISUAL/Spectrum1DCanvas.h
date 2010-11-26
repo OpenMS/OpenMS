@@ -223,12 +223,21 @@ namespace OpenMS
       QPoint measurement_start_point_;
       /// Indicates whether this widget is currently in mirror mode
 			bool mirror_mode_;
-			/// Indicates whether an alignment is currently visualized
-			bool show_alignment_;
+
 			/// Indicates whether annotation items are just being moved on the canvas
 			bool moving_annotations_;
+
+      /// Indicates whether an alignment is currently visualized
+      bool show_alignment_;
+      /// Layer index of the first alignment layer
+      Size alignment_layer_1_;
+      /// Layer index of the second alignment layer
+      Size alignment_layer_2_;
       /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
-      std::vector<std::pair<DoubleReal, DoubleReal > > alignment_;
+      std::vector<std::pair<DoubleReal, DoubleReal > > aligned_peaks_mz_delta_;
+      /// Stores the peak indizes of pairs of aligned peaks in both spectra
+      std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
+
       /// Stores the score of the last alignment
 			DoubleReal alignment_score_;
       /// is this widget showing data with swapped m/z and RT axis? (for drawCoordinates_ only)
