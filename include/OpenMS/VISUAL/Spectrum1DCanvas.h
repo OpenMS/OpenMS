@@ -116,8 +116,8 @@ namespace OpenMS
 			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
 			PointType widgetToData(float x, float y, bool percentage = false);
 			
-			/// Draws all annotation items of @p layer on @p painter
-			void drawAnnotations(LayerData& layer, QPainter& painter);
+      /// Draws all annotation items of @p layer_index on @p painter
+      void drawAnnotations(Size layer_index, QPainter& painter);
 			
 			/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
 			void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
@@ -196,6 +196,9 @@ namespace OpenMS
 			/// Draws a dashed line using the highlighted peak color parameter
 			void drawDashedLine_(const QPoint& from, const QPoint& to, QPainter& painter);
 			
+      /// Recalculates the current scale factor based on the specified layer (= 1.0 if intensity mode != IM_PERCENTAGE)
+      void updatePercentageFactor_(Size layer_index);
+
 			/**
 				@brief Sets the visible area
 				

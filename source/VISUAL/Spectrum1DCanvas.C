@@ -287,7 +287,7 @@ namespace OpenMS
             const ExperimentType::PeakType& peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
 						if (intensity_mode_==IM_PERCENTAGE)
 						{
-							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+              updatePercentageFactor_(current_layer_);
 						}
 						else 
 						{
@@ -307,14 +307,7 @@ namespace OpenMS
 					{
 						measurement_start_ = selected_peak_;
             const ExperimentType::PeakType& peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
-						if (intensity_mode_==IM_PERCENTAGE)
-						{
-							percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
-						}
-						else 
-						{
-							percentage_factor_ = 1.0;
-						}
+            updatePercentageFactor_(current_layer_);
 						dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
 						measurement_start_point_.setX(last_mouse_pos_.x());
 					}
@@ -351,14 +344,7 @@ namespace OpenMS
 			}
 			if (move)
 			{
-				if (intensity_mode_==IM_PERCENTAGE)
-				{
-					percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
-				}
-				else 
-				{
-					percentage_factor_ = 1.0;
-				}
+        updatePercentageFactor_(current_layer_);
 				PointType delta = widgetToData(p, true) - widgetToData(last_mouse_pos_, true);
 				
 				Annotations1DContainer& ann_1d = getCurrentLayer_().getCurrentAnnotations();
@@ -485,15 +471,7 @@ namespace OpenMS
           const ExperimentType::PeakType& peak_1 = measurement_start_.getPeak(*getCurrentLayer().getPeakData());
           const ExperimentType::PeakType& peak_2 = selected_peak_.getPeak(*getCurrentLayer().getPeakData());
 					DoubleReal distance = peak_2.getMZ() - peak_1.getMZ();
-					// add new distance item to annotations_1d of current layer
-					if (intensity_mode_==IM_PERCENTAGE)
-					{
-						percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
-					}
-					else 
-					{
-						percentage_factor_ = 1.0;
-					}
+          updatePercentageFactor_(current_layer_);
 					PointType p = widgetToData(measurement_start_point_, true);
 					bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
 					DoubleReal start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
@@ -577,14 +555,7 @@ namespace OpenMS
     SpectrumConstIteratorType nearest_it = left_it;
 		
 		// select source interval start and end depending on diagram orientation
-		if (intensity_mode_==IM_PERCENTAGE)
-		{
-			percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
-		}
-		else 
-		{
-			percentage_factor_ = 1.0;
-		}		
+    updatePercentageFactor_(current_layer_);
 		QPoint tmp;
 		dataToWidget(0, overall_data_range_.minY(),tmp, getCurrentLayer().flipped, true);
 		double dest_interval_start = tmp.y();
@@ -728,15 +699,7 @@ namespace OpenMS
         QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
         pen.setStyle(peak_penstyle_[i]);
         painter->setPen(pen);
-
-        if (intensity_mode_ == IM_PERCENTAGE)
-        {
-          percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum.getMaxInt();
-        }
-        else
-        {
-          percentage_factor_ = 1.0;
-        }
+        updatePercentageFactor_(i);
         vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
         vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
         // draw dashed elongations for pairs of peaks annotated with a distance
@@ -822,7 +785,7 @@ namespace OpenMS
         }
 
         //draw all annotation items
-        drawAnnotations(getLayer_(i), *painter);
+        drawAnnotations(i, *painter);
       }
     }
 
@@ -889,14 +852,8 @@ namespace OpenMS
 
       painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
 
-      if (intensity_mode_==IM_PERCENTAGE)
-      {
-        percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
-      }
-      else
-      {
-        percentage_factor_ = 1.0;
-      }
+      updatePercentageFactor_(layer_index);
+
       dataToWidget(sel, begin, getLayer_(layer_index).flipped);
       QPoint top_end(begin);
 
@@ -951,17 +908,11 @@ namespace OpenMS
     painter.restore();
 	}
 	
-	void Spectrum1DCanvas::drawAnnotations(LayerData& layer, QPainter& painter)
+  void Spectrum1DCanvas::drawAnnotations(Size layer_index, QPainter& painter)
 	{
+    LayerData& layer = getLayer_(layer_index);
 		bool flipped = layer.flipped;
-		if (intensity_mode_==IM_PERCENTAGE)
-		{
-			percentage_factor_ = overall_data_range_.maxPosition()[1]/layer.getCurrentSpectrum().getMaxInt();
-		}
-		else 
-		{
-			percentage_factor_ = 1.0;
-		}
+    updatePercentageFactor_(layer_index);
 		QPen pen(QColor(layer.param.getValue("annotation_color").toQString()));
 		QPen selected_pen;
 		
@@ -1439,15 +1390,7 @@ namespace OpenMS
 
   void Spectrum1DCanvas::addLabelAnnotation_(const QPoint& screen_position, QString text)
   {
-    // TODO: check if is this needed
-    if (intensity_mode_==IM_PERCENTAGE)
-    {
-      percentage_factor_ = overall_data_range_.maxPosition()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
-    }
-    else
-    {
-      percentage_factor_ = 1.0;
-    }
+    updatePercentageFactor_(current_layer_);
 
     PointType position = widgetToData(screen_position, true);
     Annotation1DItem* item = new Annotation1DTextItem(position, text);
@@ -1778,7 +1721,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::drawAlignment(QPainter& painter)
 	{
     painter.save();
-		
+		 
 		//draw peak-connecting lines between the two spectra
     if (mirror_mode_)
     {
@@ -1792,28 +1735,17 @@ namespace OpenMS
         dataToWidget(aligned_peaks_mz_delta_[i].second, dummy, end_p);
         painter.drawLine(begin_p.x(), height()/2-5, end_p.x(), height()/2+5);
       }
-    } else
+    } else if(!mirror_mode_)
     {
       painter.setPen(Qt::red);
       QPoint begin_p, end_p;
       const ExperimentType::SpectrumType& spectrum_1 = getLayer(alignment_layer_1_).getCurrentSpectrum();
-      const ExperimentType::SpectrumType& spectrum_2 = getLayer(alignment_layer_2_).getCurrentSpectrum();
-
-      // select source interval start and end depending on diagram orientation
-      if (intensity_mode_==IM_PERCENTAGE)
-      {
-        percentage_factor_ = overall_data_range_.maxPosition()[1]/spectrum_1.getMaxInt();
-      }
-      else
-      {
-        percentage_factor_ = 1.0;
-      }
-
+      updatePercentageFactor_(alignment_layer_1_);
       for (Size i = 0; i < getAlignmentSize(); ++i)
       {
         dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), 0, begin_p, false, true);
         dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), spectrum_1[aligned_peaks_indices_[i].first].getIntensity(), end_p, false, true);
-        painter.drawLine(begin_p.x(), begin_p.y(), end_p.x(), end_p.y());
+        painter.drawLine(begin_p.x(), begin_p.y(), end_p.x(), end_p.y());        
       }
     }
     painter.restore();
@@ -1840,14 +1772,7 @@ namespace OpenMS
 	{
 		for (Size i = 0; i < getLayerCount(); ++i)
 		{
-			if (intensity_mode_==IM_PERCENTAGE)
-			{
-				percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(i).getCurrentSpectrum().getMaxInt();
-			}
-			else 
-			{
-				percentage_factor_ = 1.0;
-			}
+      updatePercentageFactor_(i);
 			Annotations1DContainer& ann_1d = getLayer_(i).getCurrentAnnotations();
 			for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
 			{
@@ -1856,6 +1781,18 @@ namespace OpenMS
 		}
 	}
 	
+  void Spectrum1DCanvas::updatePercentageFactor_(Size layer_index)
+  {
+    if (intensity_mode_ == IM_PERCENTAGE)
+    {
+      percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
+    }
+    else 
+    {
+      percentage_factor_ = 1.0;
+    }    
+  }
+  
 	void Spectrum1DCanvas::flipLayer(Size index)
 	{
 		if (index < getLayerCount())
@@ -1895,7 +1832,3 @@ namespace OpenMS
   }
 
 }//Namespace
-
-
-
-
