@@ -67,7 +67,7 @@ namespace OpenMS {
 		defaults_.setValidStrings("enzyme", enzymes);
 		
 		// cleavages
-    defaults_.setValue("model", "trained", "The cleavage model to use for digestion. 'Trained' is based on a log likelihood model (see DOI:10.1021/pr060507u).");
+    defaults_.setValue("model", "naive", "The cleavage model to use for digestion. 'Trained' is based on a log likelihood model (see DOI:10.1021/pr060507u).");
     defaults_.setValidStrings("model", StringList::create("trained,naive"));
 
     defaults_.setValue("model_trained:threshold",0.50,"Model threshold for calling a cleavage. Higher values increase the number of cleavages. -2 will give no cleavages, +4 almost full cleavage.");

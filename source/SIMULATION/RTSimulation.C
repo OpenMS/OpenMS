@@ -297,15 +297,21 @@ namespace OpenMS {
 			std::vector<DoubleReal> rt_sorted(predicted_retention_times);
 			std::sort(rt_sorted.begin(), rt_sorted.end() );
 			
-			// take 95th percentile (we want to avoid that few outliers with huge MT can compress the others to a small MT range):
-			DoubleReal mt_95p = rt_sorted[rt_sorted.size()*95/100];
+      //std::cerr << "minRT: " << rt_sorted[0] << "   max: " << rt_sorted.back() << "\n";
+			// normalize to 5th - 95th percentile (we want to avoid that few outliers with huge/small MT can compress the others to a small MT range):
+      DoubleReal mt_5p = rt_sorted[rt_sorted.size()*5/100];
+      DoubleReal mt_95p = rt_sorted[rt_sorted.size()*95/100];
 			// ... assume 95% MT range at 95th percentile
-			DoubleReal range = std::max(1.0, mt_95p*100/95 - rt_sorted[0]);
+			DoubleReal range = std::max(1.0, (mt_95p - mt_5p)*0.9);
 			
+      //std::cerr << " 5% MT: " << mt_5p << ",   95% MT: " << mt_95p << " Range: " << range << "\n";
+
+      DoubleReal new_offset = mt_5p - range*0.05;
+
 			// scale MT's between 0 and 1 (except for outliers --> which will get > 1)
 			for (Size i = 0; i < features.size(); ++i)
 			{
-				predicted_retention_times[i] = (predicted_retention_times[i] - rt_sorted[0]) / range;
+				predicted_retention_times[i] = (predicted_retention_times[i] - new_offset) / range;
 			}
 		}
 
