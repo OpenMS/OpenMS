@@ -1278,6 +1278,11 @@ namespace OpenMS
 			{
 				new_action->setEnabled(false);
 			}
+      new_action = context_menu->addAction("Add peak annotation mz");
+      if (!near_peak.isValid())
+      {
+        new_action->setEnabled(false);
+      }
 			context_menu->addSeparator();
 			new_action = context_menu->addAction("Reset alignment");
 			if (!show_alignment_)
@@ -1363,6 +1368,10 @@ namespace OpenMS
 				{
           addUserPeakAnnotation_(near_peak);
 				}
+        else if (result->text()=="Add peak annotation mz")
+        {
+          addPeakAnnotation_(near_peak, String::number(near_peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), 4).toQString());
+        }
 				else if (result->text()=="Reset alignment")
 				{
 					resetAlignment();
@@ -1414,6 +1423,7 @@ namespace OpenMS
     PeakType peak = peak_index.getPeak(*getCurrentLayer().getPeakData());
     PointType position(peak.getMZ(), peak.getIntensity());
     Annotation1DItem* item = new Annotation1DPeakItem(position, text);
+    item->setSelected(false);
     getCurrentLayer_().getCurrentAnnotations().push_front(item);
     update_(__PRETTY_FUNCTION__);
   }

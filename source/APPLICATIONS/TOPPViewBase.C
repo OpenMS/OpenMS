@@ -2694,6 +2694,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
     AASequence aa_sequence = ph.getSequence();
 
+    // get measured spectrum indices and spectrum
+    Size real_spectrum_layer_index = active1DWindow_()->canvas()->activeLayerIndex();
+    Size real_spectrum_index = active1DWindow_()->canvas()->getCurrentLayer().current_spectrum;
+    ExperimentType::SpectrumType& real_spectrum = active1DWindow_()->canvas()->getCurrentLayer().getCurrentSpectrum();
+    cout << real_spectrum.getMaxInt() << endl;
+
     Int charge = 1;
 
     if (aa_sequence.isValid())
@@ -2708,12 +2714,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       p.setValue("add_isotopes", param_.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
       p.setValue("add_abundant_immonium_ions", param_.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
 
-      p.setValue("a_intensity", param_.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-      p.setValue("b_intensity", param_.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-      p.setValue("c_intensity", param_.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-      p.setValue("x_intensity", param_.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-      p.setValue("y_intensity", param_.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-      p.setValue("z_intensity", param_.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
+      p.setValue("a_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
+      p.setValue("b_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
+      p.setValue("c_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
+      p.setValue("x_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
+      p.setValue("y_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
+      p.setValue("z_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
       p.setValue("relative_loss_intensity", param_.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
       generator.setParameters(p);
 
@@ -2772,12 +2778,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       vector<PeptideIdentification> p_dummy;
 
-      Size real_spectrum_layer_index = active1DWindow_()->canvas()->activeLayerIndex();
-      Size real_spectrum_index = active1DWindow_()->canvas()->getCurrentLayer().current_spectrum;
-
-
-//      QTableWidget* tw = spectra_identification_view_widget_->findChild<QTableWidget*>("table_widget");
-//      tw->scrollBarWidgets()
+      // Block update events for identification widget
       spectra_identification_view_widget_->ignore_update = true;
 
       String layer_caption = aa_sequence.toString().toQString() + QString(" (identification view)");
@@ -2787,7 +2788,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       // kind of a hack to check whether adding the layer was successful
       if (real_spectrum_layer_index != theoretical_spectrum_layer_index)
       {
-        // ensure theoretical spectrum is drawn as dashed sticks
+        // Ensure theoretical spectrum is drawn as dashed sticks
         draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
         setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
         active1DWindow_()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
@@ -2796,7 +2797,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         {
           if (it->getMetaValue("IonName") != DataValue::EMPTY)
           {
-            //cout << it->getMetaValue("IonName") << endl;
             DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
             QString s(((string)it->getMetaValue("IonName")).c_str());
             Annotation1DItem* item = new Annotation1DTextItem(position, s, Qt::AlignTop);
@@ -2808,8 +2808,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         active1DWindow_()->canvas()->activateLayer(real_spectrum_layer_index);
         active1DWindow_()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
 
-        // Spectra alignment
+        // spectra alignment
         Param param;
+
+        //DouvleReal tolerance = param_.getValue("preferences:idview:tolerance")
+        //DouvleReal unit_is_ppm = param_.getValue("preferences:idview:unit_is_ppm")
+
         DoubleReal tolerance = 10;
         param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance");
         String unit_is_ppm = "true";
@@ -2817,6 +2821,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         active1DWindow_()->performAlignment(real_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
         updateLayerBar();
+
         spectra_identification_view_widget_->ignore_update = false;
       }
     }
