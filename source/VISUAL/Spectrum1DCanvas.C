@@ -1722,6 +1722,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::resetAlignment()
 	{
+    aligned_peaks_indices_.clear();
     aligned_peaks_mz_delta_.clear();
 		qobject_cast<Spectrum1DWidget*>(spectrum_widget_)->resetAlignment();
 		show_alignment_ = false;

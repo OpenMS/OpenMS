@@ -2188,7 +2188,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           Size best_j_index = 0;
           bool is_higher_score_better = false;
           Size best_score = pi[0].getHits()[0].getScore();
-          is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
+          is_higher_score_better = pi[0].isHigherScoreBetter();
 
           // determine best scoring hit
           for(Size i=0; i!=pi.size(); ++i)
@@ -2833,7 +2833,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::removeTheoreticalSpectrumLayer_(int spectrum_index)
   {
-    // find the automatical generated layer with theoretical spectrum and remove it
+    // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
     if (active1DWindow_())
     {
       Size lc = active1DWindow_()->canvas()->getLayerCount();
@@ -2842,7 +2842,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         String ln = active1DWindow_()->canvas()->getLayerName(i);
         if (ln.hasSubstring("(identification view)"))
         {
-          active1DWindow_()->canvas()->removeLayer(i);
+          active1DWindow_()->canvas()->removeLayer(i);          
+          active1DWindow_()->canvas()->resetAlignment();
           updateLayerBar();
           break;
         }
