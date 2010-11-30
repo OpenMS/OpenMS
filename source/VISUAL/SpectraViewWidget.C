@@ -190,6 +190,7 @@ namespace OpenMS
   {
     //create menu
     QMenu* context_menu = new QMenu(spectra_treewidget_->header());
+
     QStringList header_labels;
     header_labels.append(QString("MS level"));
     header_labels.append(QString("index"));
@@ -218,7 +219,6 @@ namespace OpenMS
             :spectra_treewidget_->setColumnHidden(i,true);
         }
       }
-      //updateSpectrumBar(); @TODO: update
     }
     delete (context_menu);
   }

@@ -68,6 +68,7 @@ namespace OpenMS
       QTableWidget* table_widget_;
     private slots:
       void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
+      void headerContextMenu_(const QPoint&);
    };
 }
 

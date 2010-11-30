@@ -123,6 +123,10 @@ namespace OpenMS
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
     table_widget_->sortByColumn ( 2, Qt::AscendingOrder);
+
+    // header context menu
+    table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint&)));
   }
 
   void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem* current, QTableWidgetItem* previous)
@@ -581,6 +585,46 @@ namespace OpenMS
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
     table_widget_->resizeRowsToContents();
+  }
+
+  void SpectraIdentificationViewWidget::headerContextMenu_(const QPoint& pos)
+  {
+    // create menu
+    QMenu* context_menu = new QMenu(table_widget_);
+
+    // extract header labels
+    QStringList header_labels;
+    for (int i = 0; i != table_widget_->rowCount(); ++i)
+    {
+      QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
+      if (ti != 0)
+      {
+        header_labels.append(ti->text());
+      }
+    }
+
+    // add actions
+    for(int i = 0; i < header_labels.size(); ++i)
+    {
+      QAction* tmp = new QAction(header_labels[i], context_menu);
+      tmp->setCheckable(true);
+      tmp->setChecked(!table_widget_->isColumnHidden(i));
+      context_menu->addAction(tmp);
+    }
+
+    //show menu and hide selected columns
+    QAction* selected = context_menu->exec(table_widget_->mapToGlobal(pos));
+    if (selected!=0)
+    {
+      for(int i = 0; i < header_labels.size(); ++i)
+      {
+        if(selected->text()==header_labels[i])
+        {
+          selected->isChecked()? table_widget_->setColumnHidden(i,false) :table_widget_->setColumnHidden(i,true);
+        }
+      }
+    }
+    delete (context_menu);
   }
 
   SpectraIdentificationViewWidget::~SpectraIdentificationViewWidget()
