@@ -69,6 +69,8 @@ namespace OpenMS
     defaults_.setValue("add_losses", "false", "Show neutral losses");
     defaults_.setValue("add_isotopes", "false", "Show isotopes");
     defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
+    defaults_.setValue("unit_is_ppm", "true");
+    defaults_.setValue("tolerance", 10.0);
 
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     table_widget_ = new QTableWidget(this);
@@ -612,13 +614,13 @@ namespace OpenMS
       context_menu->addAction(tmp);
     }
 
-    //show menu and hide selected columns
+    // show menu and hide selected columns
     QAction* selected = context_menu->exec(table_widget_->mapToGlobal(pos));
     if (selected!=0)
     {
       for(int i = 0; i < header_labels.size(); ++i)
       {
-        if(selected->text()==header_labels[i])
+        if(selected->text() == header_labels[i])
         {
           selected->isChecked()? table_widget_->setColumnHidden(i,false) :table_widget_->setColumnHidden(i,true);
         }

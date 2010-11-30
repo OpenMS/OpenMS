@@ -157,7 +157,10 @@ namespace OpenMS
 
   void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem* current, int)
   {
-    if (current==0) return;
+    if (current == 0)
+    {
+      return;
+    }
     int spectrum_index = current->text(1).toInt();
     emit spectrumDoubleClicked(spectrum_index);
   }
@@ -213,7 +216,7 @@ namespace OpenMS
     {
       for(int i = 0; i < header_labels.size(); ++i)
       {
-        if(selected->text()==header_labels[i])
+        if(selected->text() == header_labels[i])
         {
           selected->isChecked()? spectra_treewidget_->setColumnHidden(i,false)
             :spectra_treewidget_->setColumnHidden(i,true);
