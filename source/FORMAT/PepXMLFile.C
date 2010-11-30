@@ -207,7 +207,15 @@ namespace OpenMS
 				AASequence seq = h.getSequence();
 				DoubleReal precursor_neutral_mass = seq.getMonoWeight();
 
-        Int scan_index = ( it->metaValueExists("RT_index") ? it->getMetaValue("RT_index") : count );
+        Int scan_index;
+        if(it->metaValueExists("RT_index"))
+        {
+          scan_index = it->getMetaValue("RT_index");
+        }
+        else
+        {
+          scan_index = count;
+        }
 
 				f << "		<spectrum_query spectrum=\"" << count << "\""
           << " start_scan=\"" << scan_index << "\""
