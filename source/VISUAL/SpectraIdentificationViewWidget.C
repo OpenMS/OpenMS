@@ -107,13 +107,20 @@ namespace OpenMS
 
     spectra_widget_layout->addWidget(table_widget_);
 
+    // additional checkboxes and buttons
     QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
     hide_ms1_ = new QCheckBox("Hide MS1", this);
     connect(hide_ms1_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+
     hide_no_identification_ = new QCheckBox("Only hits", this);
     connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+
+    create_rows_for_commmon_metavalue_ = new QCheckBox("Extra columns for additional annotations (slow)", this);
+    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+
     tmp_hbox_layout->addWidget(hide_ms1_);
     tmp_hbox_layout->addWidget(hide_no_identification_);
+    tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
     table_widget_->sortByColumn ( 2, Qt::AscendingOrder);
   }
@@ -157,20 +164,66 @@ namespace OpenMS
       return;
     }
 
-    table_widget_->setSortingEnabled(false);
-    table_widget_->setUpdatesEnabled(false);
-    table_widget_->blockSignals(true);
-    table_widget_->clear();
-    table_widget_->setRowCount(0);
+    set<String> common_keys;
+    // determine metavalues common to all hits
+    if (create_rows_for_commmon_metavalue_->isChecked())
+    {
 
+      for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
+      {
+        UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
+        const vector<PeptideIdentification> peptide_ids = (*layer_->getPeakData())[i].getPeptideIdentifications();
+        Size peptide_ids_count = peptide_ids.size();
+
+        if (ms_level != 2 || peptide_ids_count == 0)  // skip non ms2 spectra and spectra with no identification
+        {
+          continue;    table_widget_->setRowCount(0);
+        }
+
+        for (vector<PeptideIdentification>::const_iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
+        {
+          const vector<PeptideHit> phits = pids_it->getHits();
+          for (vector<PeptideHit>::const_iterator phits_it = phits.begin(); phits_it != phits.end(); ++phits_it)
+          {
+            // get meta value keys
+            vector<String> keys;
+            phits_it->getKeys(keys);
+            if (common_keys.size() == 0) // first MS2 peptide hit found. Now insert keys.
+            {
+              for(vector<String>::iterator sit = keys.begin(); sit != keys.end(); ++sit)
+              {
+                common_keys.insert(*sit);
+              }
+            } else // calculate intersection between current keys and common keys -> set as common_keys
+            {
+              set<String> current_keys;
+              current_keys.insert(keys.begin(), keys.end());
+              set<String> new_common_keys;
+              set_intersection(current_keys.begin(), current_keys.end(), common_keys.begin(), common_keys.end(), inserter(new_common_keys, new_common_keys.begin()));
+              swap(new_common_keys, common_keys);
+            }
+          }
+        }
+      }
+    }
+
+    // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
     header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation"
         << "scan type" << "zoom" << "score" << "rank" << "charge" << "          sequence          " << "accession";
-    table_widget_->setHorizontalHeaderLabels(header_labels);
+
+    for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
+    {
+      header_labels << sit->toQString();
+    }
+
+    table_widget_->clear();
+    table_widget_->setRowCount(0);
+
     table_widget_->verticalHeader()->setHidden(true); // hide vertical column
     table_widget_->setColumnCount(header_labels.size());
-    table_widget_->setColumnWidth(0,65);  //MS Level
-    table_widget_->setColumnWidth(1,45);  //index
+    table_widget_->setColumnWidth(0,65);
+    table_widget_->setColumnWidth(1,45);
     table_widget_->setColumnWidth(2,70);
     table_widget_->setColumnWidth(3,70);
     table_widget_->setColumnWidth(4,55);
@@ -181,6 +234,10 @@ namespace OpenMS
     table_widget_->setColumnWidth(9,45);
     table_widget_->setColumnWidth(10,400);
     table_widget_->setColumnWidth(11,45);
+
+    table_widget_->setSortingEnabled(false);
+    table_widget_->setUpdatesEnabled(false);
+    table_widget_->blockSignals(true);
 
     if (layer_ == 0)
     {
@@ -357,6 +414,28 @@ namespace OpenMS
           item->setText(accessions.toQString());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
+
+          // add additional meta value columns
+          Size current_col = 12;
+          if (create_rows_for_commmon_metavalue_->isChecked())
+          {
+            for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
+            {
+              DataValue dv = best_ph.getMetaValue(*sit);
+              item = new QTableWidgetItem();
+              item->setTextAlignment(Qt::AlignLeft);
+              if (dv.valueType() == DataValue::DOUBLE_VALUE)
+              {
+                item->setData(Qt::DisplayRole, (DoubleReal)dv);
+              } else
+              {
+                item->setText(dv.toQString());
+              }
+              item->setBackgroundColor(c);
+              table_widget_->setItem(table_widget_->rowCount()-1 , current_col, item);
+              ++current_col;
+            }
+          }
         }
       } else // no identification
       {
@@ -394,6 +473,21 @@ namespace OpenMS
         item->setTextAlignment(Qt::AlignCenter);
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
+
+        // add additional meta value columns
+        Size current_col = 12;
+        if (create_rows_for_commmon_metavalue_->isChecked())
+        {
+          for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
+          {
+            item = new QTableWidgetItem();
+            item->setTextAlignment(Qt::AlignLeft);
+            item->setText("-");
+            item->setBackgroundColor(c);
+            table_widget_->setItem(table_widget_->rowCount()-1 , current_col, item);
+            ++current_col;
+          }
+        }
       }
 
       if (!(*layer_->getPeakData())[i].getPrecursors().empty())  // has precursor
@@ -484,6 +578,7 @@ namespace OpenMS
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
     table_widget_->setSortingEnabled(true);
+    table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
     table_widget_->resizeRowsToContents();
   }

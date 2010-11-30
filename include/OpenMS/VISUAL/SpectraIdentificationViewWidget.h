@@ -64,6 +64,7 @@ namespace OpenMS
       LayerData* layer_;
       QCheckBox* hide_no_identification_;
       QCheckBox* hide_ms1_;
+      QCheckBox* create_rows_for_commmon_metavalue_;
       QTableWidget* table_widget_;
     private slots:
       void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
