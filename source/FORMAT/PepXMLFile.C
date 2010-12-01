@@ -157,7 +157,7 @@ namespace OpenMS
 			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
 
       // compute mass of modified residue
-      EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod.getOrigin())->getFormula();
+      EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod.getOrigin())->getFormula(Residue::Internal);
       ef += mod.getDiffFormula();
 
       f << "      "

@@ -451,10 +451,10 @@ namespace OpenMS {
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
-    ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
-    p1.setValue("statistics:mean", ef.getAverageWeight() / q);		
+    ef -= String("H")+String(q);
+    ef.setCharge(q);				 // effectively substract q electrons
 
-    p1.setValue("statistics:mean", active_feature.getMZ() );
+    p1.setValue("statistics:mean", ef.getAverageWeight() / q);		
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", getPeakSD_(active_feature.getMZ()));
     p1.setValue("intensity_scaling", scale);
@@ -503,11 +503,11 @@ namespace OpenMS {
 		}
 		DoubleReal rt_sampling_rate = experiment[1].getRT() - experiment[0].getRT();
 		EGHModel* elutionmodel = new EGHModel();
-    chooseElutionProfile_(elutionmodel, active_feature, scale, rt_sampling_rate, experiment);
+    chooseElutionProfile_(elutionmodel, active_feature, 1.0, rt_sampling_rate, experiment);
     ProductModel<2> pm;
     pm.setModel(0, elutionmodel); // new'ed models will be deleted by the pm! no need to delete them manually
 		pm.setModel(1, isomodel);			// new'ed models will be deleted by the pm! no need to delete them manually
-    pm.setScale(scale);
+    pm.setScale(scale); // scale
 
     // start and end points of the sampling
     SimCoordinateType rt_start ( elutionmodel->getInterpolation().supportMin() );
@@ -582,11 +582,9 @@ namespace OpenMS {
     for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
     {
 			rt = exp_iter->getRT();
-			
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) );
-
         if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
         {
           continue;
@@ -632,7 +630,7 @@ namespace OpenMS {
         point.setMZ( point.getMZ() + mz_err );
 
         intensity_sum += point.getIntensity();
-        points.push_back( DPosition<2>( rt, mz) );		// store position
+        points.push_back( DPosition<2>( rt, mz) );		// store position TODO: shouldn't it be the modified MZ
         exp_iter->push_back(point);
       }
       //update last scan affected
