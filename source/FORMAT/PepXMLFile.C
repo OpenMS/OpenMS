@@ -462,13 +462,20 @@ namespace OpenMS
 			DoubleReal value;
 
 			// TODO: deal with different scores
-			if (name == "hyperscore")
-			{ // X!Tandem score
+			if (name == "expect")
+			{ // X!Tandem or Mascot E-value
 				value = attributeAsDouble_(attributes, "value");
 				peptide_hit_.setScore(value);
-				current_peptide_.setScoreType(name); // add "X!Tandem" to name?
-				current_peptide_.setHigherScoreBetter(true);
+				current_peptide_.setScoreType(name);
+				current_peptide_.setHigherScoreBetter(false);
 			}
+			// if (name == "hyperscore")
+			// { // X!Tandem score
+			// 	value = attributeAsDouble_(attributes, "value");
+			// 	peptide_hit_.setScore(value);
+			// 	current_peptide_.setScoreType(name); // add "X!Tandem" to name?
+			// 	current_peptide_.setHigherScoreBetter(true);
+			// }
 			else if (name == "xcorr")
 			{ // Sequest score
 				value = attributeAsDouble_(attributes, "value");

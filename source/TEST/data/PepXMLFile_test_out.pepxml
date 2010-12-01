@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" summary_xml=".xml">
-<msms_run_summary base_name="PepXMLFile_test_200.tmp" raw_data_type="raw" raw_data=".mzXML" search_engine="X! Tandem (k-score)">
+<msms_run_summary base_name="PepXMLFile_test_out" raw_data_type="raw" raw_data=".mzXML" search_engine="X! Tandem (k-score)">
 <sample_enzyme name="trypsin">
 <specificity cut="KR" no_cut="P" sense="C"/>
 </sample_enzyme>
-<search_summary base_name="PepXMLFile_test_200.tmp" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+<search_summary base_name="PepXMLFile_test_out" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
 		<search_database local_path="./current.fasta" type="AA"/>
 <aminoacid_modification aminoacid="C" massdiff="57.021464" mass="0" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
 <terminal_modification terminus="n" massdiff="-17.026549" mass="0" variable="Y" description="Gln->pyro-Glu (N-term Q)" protein_terminus=""/>
@@ -17,7 +17,7 @@
       <modification_info modified_peptide="(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" mod_nterm_mass="129.0425930976">
       </modification_info>
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="329" all_ntt_prob="(329,329,329)">
+			<peptideprophet_result probability="8" all_ntt_prob="(8,8,8)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -29,7 +29,7 @@
       <modification_info modified_peptide="(Gln->pyro-Glu)QLPGVNIKPVVK" mod_nterm_mass="128.0585775146">
       </modification_info>
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="173" all_ntt_prob="(173,173,173)">
+			<peptideprophet_result probability="7.7" all_ntt_prob="(7.7,7.7,7.7)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -39,7 +39,7 @@
  		<search_result>
 			<search_hit hit_rank="1" peptide="IFQAALYAAPYK" peptide_prev_aa="K" peptide_next_aa="S" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1354.7285231866" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="274" all_ntt_prob="(274,274,274)">
+			<peptideprophet_result probability="4.9" all_ntt_prob="(4.9,4.9,4.9)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -49,7 +49,7 @@
  		<search_result>
 			<search_hit hit_rank="1" peptide="EISPDTTLLDLQNNDISELR" peptide_prev_aa="K" peptide_next_aa="K" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2285.1386849438" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="807" all_ntt_prob="(807,807,807)">
+			<peptideprophet_result probability="0.00091" all_ntt_prob="(0.00091,0.00091,0.00091)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -59,7 +59,7 @@
  		<search_result>
 			<search_hit hit_rank="1" peptide="EISPDTTLLDLQNNDISELR" peptide_prev_aa="K" peptide_next_aa="K" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2285.1386849438" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="705" all_ntt_prob="(705,705,705)">
+			<peptideprophet_result probability="7.9e-05" all_ntt_prob="(7.9e-05,7.9e-05,7.9e-05)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -73,7 +73,7 @@
          <mod_aminoacid_mass position="19" mass="160.0306482446"/>
       </modification_info>
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="350" all_ntt_prob="(350,350,350)">
+			<peptideprophet_result probability="14" all_ntt_prob="(14,14,14)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -83,7 +83,7 @@
  		<search_result>
 			<search_hit hit_rank="1" peptide="VSLPNYPAIPSDATLEVQSLR" peptide_prev_aa="K" peptide_next_aa="S" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2269.1954119599" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="463" all_ntt_prob="(463,463,463)">
+			<peptideprophet_result probability="0.65" all_ntt_prob="(0.65,0.65,0.65)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -93,7 +93,7 @@
  		<search_result>
 			<search_hit hit_rank="1" peptide="NALWHTGDTESQVR" peptide_prev_aa="R" peptide_next_aa="L" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1612.7593824156" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="478" all_ntt_prob="(478,478,478)">
+			<peptideprophet_result probability="0.0046" all_ntt_prob="(0.0046,0.0046,0.0046)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
@@ -103,7 +103,7 @@
  		<search_result>
 			<search_hit hit_rank="1" peptide="SSLKNYANK" peptide_prev_aa="R" peptide_next_aa="I" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1023.5349087594" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
  			<analysis_result analysis="peptideprophet">
-			<peptideprophet_result probability="266" all_ntt_prob="(266,266,266)">
+			<peptideprophet_result probability="1.1" all_ntt_prob="(1.1,1.1,1.1)">
 			</peptideprophet_result>
 			</analysis_result>
 			</search_hit>
