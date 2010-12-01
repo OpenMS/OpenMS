@@ -102,14 +102,11 @@ class TOPPDigestor
 			vector<ProteinIdentification> protein_identifications;
 			vector<PeptideIdentification> identifications;
 			vector< String > peptides;
-			vector<PeptideHit> temp_peptide_hits;
 			EnzymaticDigestion digestor;
 			vector<AASequence> temp_peptides;
 			PeptideIdentification peptide_identification;
 			ProteinIdentification protein_identification;
 			PeptideHit temp_peptide_hit;
-			ProteinHit temp_protein_hit;
-			vector<String> protein_accessions;
 			vector<String> parts;
 			ProteinIdentification::SearchParameters search_parameters;
 			
@@ -139,6 +136,8 @@ class TOPPDigestor
 			UInt min_size = getIntOption_("min_length");
 			UInt missed_cleavages = getIntOption_("missed_cleavages");
 			
+      bool has_FASTA_output = (out_type==FileTypes::FASTA);
+
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
@@ -154,46 +153,61 @@ class TOPPDigestor
 			search_parameters.enzyme = ProteinIdentification::TRYPSIN;
 			digestor.setMissedCleavages(missed_cleavages);
 			
-			protein_accessions.resize(1, String(""));
+      vector<String> protein_accessions(1);
 
 			std::vector<FASTAFile::FASTAEntry> all_peptides;
 
       for (Size i = 0; i < protein_data.size(); ++i)
 			{
-				protein_accessions[0] = protein_data[i].identifier;
-				temp_protein_hit.setSequence(protein_data[i].sequence);
-				temp_protein_hit.setAccession(protein_accessions[0]);
+        if (!has_FASTA_output)
+        {
+				  protein_accessions[0] = protein_data[i].identifier;
+  			  ProteinHit temp_protein_hit;
+          temp_protein_hit.setSequence(protein_data[i].sequence);
+				  temp_protein_hit.setAccession(protein_accessions[0]);
+				  protein_identifications[0].insertHit(temp_protein_hit);
+  				temp_peptide_hit.setProteinAccessions(protein_accessions);
+        }
 				
 				digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
-				temp_peptide_hit.setProteinAccessions(protein_accessions);
-				for (Size j = 0; j < temp_peptides.size(); ++j)
+	
+        for (Size j = 0; j < temp_peptides.size(); ++j)
 				{
 					if (temp_peptides[j].size() >= min_size)
 					{
-						temp_peptide_hit.setSequence(temp_peptides[j]);
-						peptide_identification.insertHit(temp_peptide_hit);
-            // for FASTA file output
-            FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
-            all_peptides.push_back(pep);
+            if (!has_FASTA_output)
+            {
+						  temp_peptide_hit.setSequence(temp_peptides[j]);
+						  peptide_identification.insertHit(temp_peptide_hit);
+            }
+            else // for FASTA file output
+            {             
+              FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
+              all_peptides.push_back(pep);
+            }
 					}
 				}
-				protein_identifications[0].insertHit(temp_protein_hit);
 			}
-			DateTime date_time = DateTime::now();
-			String date_time_string = "";
-			
-			date_time_string = date_time.get();
-			protein_identifications[0].setSearchParameters(search_parameters);
-			protein_identifications[0].setDateTime(date_time);
-			protein_identifications[0].setSearchEngine("In-silico digestion");
-			protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
-			peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
-			identifications.push_back(peptide_identification);
-			
+
+      if (!has_FASTA_output)
+      {
+			  DateTime date_time = DateTime::now();
+			  String date_time_string = "";
+  			
+			  date_time_string = date_time.get();
+			  protein_identifications[0].setSearchParameters(search_parameters);
+			  protein_identifications[0].setDateTime(date_time);
+			  protein_identifications[0].setSearchEngine("In-silico digestion");
+			  protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
+			  peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
+			  identifications.push_back(peptide_identification);
+      }
+  			
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-      if (out_type==FileTypes::FASTA)
+      
+      if (has_FASTA_output)
       {
         file.store(outputfile_name, all_peptides);
       }
