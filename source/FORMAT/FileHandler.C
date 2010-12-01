@@ -52,6 +52,10 @@ namespace OpenMS
 	FileTypes::Type FileHandler::getTypeByFileName(const String& filename)
 	{
 		String basename = File::basename(filename), tmp;
+		// special rules for "double extensions":
+		if (basename.hasSuffix(".pep.xml")) return FileTypes::PEPXML;
+		if (basename.hasSuffix(".prot.xml")) return FileTypes::PROTXML;
+
 		try
 		{
 			tmp = basename.suffix('.');
