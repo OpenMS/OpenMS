@@ -32,37 +32,37 @@
 
 namespace OpenMS
 {
-	/** @brief A peak annotation item
+  /** @brief A peak annotation item
 			@see Annotation1DItem
 	*/
 	class Annotation1DPeakItem
 		: public Annotation1DItem
-	{
-		
-		public:
-			
+	{	
+		public:			
 			/// Constructor
-			Annotation1DPeakItem(const PointType& position, const QString& text);
+      Annotation1DPeakItem(const PointType& peak_position, const QString& text);
 			/// Copy constructor
 			Annotation1DPeakItem(const Annotation1DPeakItem& rhs);
 			/// Destructor
 			virtual ~Annotation1DPeakItem();
 			// Docu in base class
-			virtual void ensureWithinDataRange(Spectrum1DCanvas* const /*canvas*/);
+      virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
 			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 			// Docu in base class
 			virtual void move(const PointType& /*delta*/);
-			/// Sets the position of the peak (in MZ / intensity coordinates)
+      /// Sets the position of the label (in MZ / intensity coordinates)
 			void setPosition(const PointType& position);
+      /// Sets the anker position of the label (peak) (in MZ / intensity coordinates)
+      const PointType& getPeakPosition() const;
 			/// Returns the position of the peak (in MZ / intensity coordinates)
  			const PointType& getPosition() const;
 			
 		protected:
-		
-			/// The position of the peak (in MZ / intensity coordinates)
-			PointType position_;
-			
+      /// The position of the anker (peak) (in MZ / intensity coordinates)
+      PointType peak_position_;      
+      /// The position of the label (in MZ / intensity coordinates)
+			PointType position_;			
 	};
 } // namespace OpenMS
 

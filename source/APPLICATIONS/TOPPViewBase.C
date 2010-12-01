@@ -36,7 +36,7 @@
 #include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/Annotation1DTextItem.h>
+#include <OpenMS/VISUAL/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -2815,7 +2815,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           {
             DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
             QString s(((string)it->getMetaValue("IonName")).c_str());
-            Annotation1DItem* item = new Annotation1DTextItem(position, s, Qt::AlignTop);
+            Annotation1DItem* item = new Annotation1DPeakItem(position, s);
             item->setSelected(false);
             active1DWindow_()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
           }
