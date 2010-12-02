@@ -138,6 +138,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           QWidget* dummy = new QWidget(this);
           setCentralWidget(dummy);
           QVBoxLayout* box_layout = new QVBoxLayout(dummy);
+
+          // create empty tab bar and workspace which will hold the main visualization widgets (e.g. spectrawidgets...)
           tab_bar_ = new EnhancedTabBar(dummy);
           tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
           tab_bar_->addTab("dummy",4710);
@@ -149,8 +151,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           //connect signals ans slots for drag-and-drop
           connect(tab_bar_,SIGNAL(dropOnWidget(const QMimeData*,QWidget*)),this,SLOT(copyLayer(const QMimeData*,QWidget*)));
           connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));
-
           box_layout->addWidget(tab_bar_);
+
           ws_= new EnhancedWorkspace(dummy);
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolBar()));
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
@@ -512,55 +514,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           windows->addAction(log_bar->toggleViewAction());
 
           //################## DEFAULTS #################
-          //general
-          defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-          defaults_.setValidStrings("preferences:default_map_view",StringList::create("2d,3d"));
-          defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
-          defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-          defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
-          defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
-          defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
-          defaults_.setMinInt("preferences:number_of_recent_files",5);
-          defaults_.setMaxInt("preferences:number_of_recent_files",20);
-          defaults_.setValue("preferences:legend", "show", "Legend visibility");
-          defaults_.setValidStrings("preferences:legend",StringList::create("show,hide"));
-          defaults_.setValue("preferences:intensity_cutoff", "off","Low intensity cutoff for maps.");
-          defaults_.setValidStrings("preferences:intensity_cutoff",StringList::create("on,off"));
-          defaults_.setValue("preferences:on_file_change","ask","What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-          defaults_.setValidStrings("preferences:on_file_change",StringList::create("none,ask,update automatically"));
-          defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-          defaults_.setValidStrings("preferences:topp_cleanup",StringList::create("true,false"));
-          //db
-          defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
-          defaults_.setValue("preferences:db:login", "NoName", "Database login.");
-          defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
-          defaults_.setValue("preferences:db:port", 3306, "Database server port.");
-          defaults_.setSectionDescription("preferences:db","Database settings.");
-          // 1d view
-          Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(),0);
-          defaults_.insert("preferences:1d:",def1->getDefaults());
-          delete def1;
-          defaults_.setSectionDescription("preferences:1d","Settings for single spectrum view.");
-          // 2d view
-          Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(),0);
-          defaults_.insert("preferences:2d:",def2->getDefaults());
-          defaults_.setSectionDescription("preferences:2d","Settings for 2D map view.");
-          delete def2;
-          // 3d view
-          Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(),0);
-          defaults_.insert("preferences:3d:",def3->getDefaults());
-          delete def3;
-          defaults_.setSectionDescription("preferences:3d","Settings for 3D map view.");
-          // identification view
-          SpectraIdentificationViewWidget* def4 = new SpectraIdentificationViewWidget(Param(),0);
-          defaults_.insert("preferences:idview:",def4->getDefaults());
-          delete def4;
-          defaults_.setSectionDescription("preferences:idview","Settings for identification view.");
+          initializeDefaultParameters_();
 
-          defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
-
-          subsections_.push_back("preferences:RecentFiles");
-
+          // store defaults in param_
           defaultsToParam_();
 
           //load param file
@@ -578,6 +534,56 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           watcher_ = new FileWatcher(this);
           connect(watcher_,SIGNAL(fileChanged(const String&)),this, SLOT(fileChanged_(const String&)));
         }
+
+  void TOPPViewBase::initializeDefaultParameters_()
+  {
+    //general
+    defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
+    defaults_.setValidStrings("preferences:default_map_view",StringList::create("2d,3d"));
+    defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
+    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
+    defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
+    defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
+    defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
+    defaults_.setMinInt("preferences:number_of_recent_files",5);
+    defaults_.setMaxInt("preferences:number_of_recent_files",20);
+    defaults_.setValue("preferences:legend", "show", "Legend visibility");
+    defaults_.setValidStrings("preferences:legend",StringList::create("show,hide"));
+    defaults_.setValue("preferences:intensity_cutoff", "off","Low intensity cutoff for maps.");
+    defaults_.setValidStrings("preferences:intensity_cutoff",StringList::create("on,off"));
+    defaults_.setValue("preferences:on_file_change","ask","What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
+    defaults_.setValidStrings("preferences:on_file_change",StringList::create("none,ask,update automatically"));
+    defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
+    defaults_.setValidStrings("preferences:topp_cleanup",StringList::create("true,false"));
+    //db
+    defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
+    defaults_.setValue("preferences:db:login", "NoName", "Database login.");
+    defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
+    defaults_.setValue("preferences:db:port", 3306, "Database server port.");
+    defaults_.setSectionDescription("preferences:db","Database settings.");
+    // 1d view
+    Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(),0);
+    defaults_.insert("preferences:1d:",def1->getDefaults());
+    delete def1;
+    defaults_.setSectionDescription("preferences:1d","Settings for single spectrum view.");
+    // 2d view
+    Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(),0);
+    defaults_.insert("preferences:2d:",def2->getDefaults());
+    defaults_.setSectionDescription("preferences:2d","Settings for 2D map view.");
+    delete def2;
+    // 3d view
+    Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(),0);
+    defaults_.insert("preferences:3d:",def3->getDefaults());
+    delete def3;
+    defaults_.setSectionDescription("preferences:3d","Settings for 3D map view.");
+    // identification view
+    SpectraIdentificationViewWidget* def4 = new SpectraIdentificationViewWidget(Param(),0);
+    defaults_.insert("preferences:idview:",def4->getDefaults());
+    delete def4;
+    defaults_.setSectionDescription("preferences:idview","Settings for identification view.");
+    defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
+    subsections_.push_back("preferences:RecentFiles");
+  }
 
   TOPPViewBase::~TOPPViewBase()
           {
@@ -775,7 +781,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     QDoubleSpinBox* z_intensity = dlg.findChild<QDoubleSpinBox*>("z_intensity");
 
     QDoubleSpinBox* tolerance = dlg.findChild<QDoubleSpinBox*>("tolerance");
-    QCheckBox* unit_is_ppm = dlg.findChild<QCheckBox*>("unit_is_ppm");
+    QCheckBox* is_relative_tolerance = dlg.findChild<QCheckBox*>("unit_is_ppm");
 
     QDoubleSpinBox* relative_loss_intensity = dlg.findChild<QDoubleSpinBox*>("relative_loss_intensity");
     QSpinBox* max_isotopes = dlg.findChild<QSpinBox*>("max_isotopes");
@@ -936,13 +942,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       ai_ions[0]->setCheckState(state);
     }
 
-    if(unit_is_ppm == 0)
+    if(is_relative_tolerance == 0)
     {
       showLogMessage_(LS_ERROR,"", "String 'unit is ppm' doesn't exist in identification dialog.");
     } else
     {
-      Qt::CheckState state = param_.getValue("preferences:idview:unit_is_ppm").toBool() == true ? Qt::Checked : Qt::Unchecked;
-      unit_is_ppm->setCheckState(state);
+      Qt::CheckState state = param_.getValue("preferences:idview:is_relative_tolerance").toBool() == true ? Qt::Checked : Qt::Unchecked;
+      is_relative_tolerance->setCheckState(state);
     }
 
     // --------------------------------------------------------------------
@@ -1026,8 +1032,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       ai_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
       param_.setValue("preferences:idview:add_abundant_immonium_ions", checked, "Show abundant immonium ions");
 
-      unit_is_ppm->checkState() == Qt::Checked ? checked = "true" : checked = "false";
-      param_.setValue("preferences:idview:unit_is_ppm", checked, "Use ppm instead of Da for the automatic alignment");
+      is_relative_tolerance->checkState() == Qt::Checked ? checked = "true" : checked = "false";
+      param_.setValue("preferences:idview:is_relative_tolerance", checked, "Use ppm instead of Da for the automatic alignment");
 			savePreferences();
 		}
   }
@@ -2195,7 +2201,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       widget_1d->canvas()->activateSpectrum(index);
       UInt ms_level = widget_1d->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
-      if (ms_level == 2)
+      if (ms_level == 2 && spectra_identification_view_widget_->isVisible())
       {
         vector<PeptideIdentification> pi = widget_1d->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
         if (pi.size() != 0)
@@ -2714,7 +2720,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     Size real_spectrum_layer_index = active1DWindow_()->canvas()->activeLayerIndex();
     Size real_spectrum_index = active1DWindow_()->canvas()->getCurrentLayer().current_spectrum;
     ExperimentType::SpectrumType& real_spectrum = active1DWindow_()->canvas()->getCurrentLayer().getCurrentSpectrum();
-    cout << real_spectrum.getMaxInt() << endl;
 
     Int charge = 1;
 
@@ -2828,7 +2833,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         Param param;
 
         DoubleReal tolerance = param_.getValue("preferences:idview:tolerance");
-        bool unit_is_ppm = param_.getValue("preferences:idview:unit_is_ppm").toBool();
+        bool unit_is_ppm = param_.getValue("preferences:idview:is_relative_tolerance").toBool();
 
         param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance in the alignment");
         String sunit_is_ppm = unit_is_ppm ? "true" : "false";
@@ -2849,6 +2854,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::removeTheoreticalSpectrumLayer_(int spectrum_index)
   {
     // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
+    // before activating the next normal spectrum
     if (active1DWindow_())
     {
       Size lc = active1DWindow_()->canvas()->getLayerCount();
@@ -3024,9 +3030,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 			Param param;
 			DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
-			param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance");
+      param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) mass tolerance");
 			String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
-			param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");
+      param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 
 			active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
 
@@ -3061,7 +3067,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       // set visible aree to visible area in 2D view
       w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
-    } else if (ms_level == 2)
+    } else if (ms_level == 2 && spectra_identification_view_widget_->isVisible())
     {
       vector<PeptideIdentification> pi = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
       if (pi.size() != 0)
@@ -3070,7 +3076,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         Size best_j_index = 0;
         bool is_higher_score_better = false;
         Size best_score = pi[0].getHits()[0].getScore();        
-        is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
+        is_higher_score_better = pi[0].isHigherScoreBetter();
 
         // determine best scoring hit
         for(Size i=0; i!=pi.size(); ++i)

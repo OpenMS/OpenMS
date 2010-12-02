@@ -315,6 +315,9 @@ namespace OpenMS
       /// Called if a data file has been externally changed
       void fileChanged_(const String&);
     protected:
+      /// Initializes the default parameters on TOPPView construction.
+      void initializeDefaultParameters_();
+
   		/**
   			@brief Adds a peak or feature map to the viewer
 

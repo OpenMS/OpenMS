@@ -73,7 +73,7 @@ namespace OpenMS
     spectra_treewidget_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(spectra_treewidget_, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTreeWidgetItem*, QTreeWidgetItem*)));
-    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(spectrumDoubleClicked__(QTreeWidgetItem*, int)));
+    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(spectrumDoubleClicked_(QTreeWidgetItem*, int)));
     connect(spectra_treewidget_, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(spectrumContextMenu_(const QPoint&)));
     connect(spectra_treewidget_->header(), SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(spectrumBrowserHeaderContextMenu_(const QPoint&)));
 

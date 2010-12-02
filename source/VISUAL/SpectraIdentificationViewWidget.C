@@ -69,8 +69,8 @@ namespace OpenMS
     defaults_.setValue("add_losses", "false", "Show neutral losses");
     defaults_.setValue("add_isotopes", "false", "Show isotopes");
     defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
-    defaults_.setValue("unit_is_ppm", "true");
-    defaults_.setValue("tolerance", 10.0);
+    defaults_.setValue("is_relative_tolerance", "true", "If true, the mass tolerance is interpreted as ppm otherwise in Dalton");
+    defaults_.setValue("tolerance", 10.0, "Mass tolerance used in the automatic alignment. Unit depends on 'is_relative_tolerance.");
 
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     table_widget_ = new QTableWidget(this);
@@ -183,7 +183,7 @@ namespace OpenMS
 
         if (ms_level != 2 || peptide_ids_count == 0)  // skip non ms2 spectra and spectra with no identification
         {
-          continue;    table_widget_->setRowCount(0);
+          continue;
         }
 
         for (vector<PeptideIdentification>::const_iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
