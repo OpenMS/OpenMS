@@ -67,7 +67,11 @@ namespace OpenMS
       QCheckBox* create_rows_for_commmon_metavalue_;
       QTableWidget* table_widget_;
     private slots:
+      /// Emits spectrumSelected with the current spectrum index
       void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
+      /// Export table entries as csv
+      void exportEntries_();
+      /// Display header context menu
       void headerContextMenu_(const QPoint&);
    };
 }

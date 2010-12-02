@@ -33,6 +33,8 @@
 #include <QtGui/QHeaderView>
 #include <QtGui/QMenu>
 #include <QtGui/QPushButton>
+#include <QtGui/QFileDialog>
+#include <QtCore/QTextStream>
 
 #include <vector>
 
@@ -109,6 +111,7 @@ namespace OpenMS
 
     spectra_widget_layout->addWidget(table_widget_);
 
+    ////////////////////////////////////
     // additional checkboxes and buttons
     QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
     hide_ms1_ = new QCheckBox("Hide MS1", this);
@@ -120,9 +123,14 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Extra columns for additional annotations (slow)", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
+    QPushButton* export_table = new QPushButton("export table", this);
+    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
+
     tmp_hbox_layout->addWidget(hide_ms1_);
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
+    tmp_hbox_layout->addWidget(export_table);
+
     spectra_widget_layout->addLayout(tmp_hbox_layout);
     table_widget_->sortByColumn ( 2, Qt::AscendingOrder);
 
@@ -596,7 +604,7 @@ namespace OpenMS
 
     // extract header labels
     QStringList header_labels;
-    for (int i = 0; i != table_widget_->rowCount(); ++i)
+    for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
       if (ti != 0)
@@ -629,8 +637,46 @@ namespace OpenMS
     delete (context_menu);
   }
 
+  void SpectraIdentificationViewWidget::exportEntries_()
+  {
+    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "csv file (*.csv)");
+    QFile f(filename);
+
+    // extract header labels
+    QStringList header_labels;
+    for (int i = 0; i != table_widget_->columnCount(); ++i)
+    {
+      QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
+      if (ti != 0)
+      {
+        header_labels.append(ti->text());
+      }
+    }
+
+    if(f.open(QIODevice::WriteOnly))
+    {
+      QTextStream ts(&f);
+      QStringList strList;
+
+      // write header
+      ts << header_labels.join( "\t" )+"\n";
+
+      // write entries
+      for( int r = 0; r < table_widget_->rowCount(); ++r )
+      {
+        strList.clear();
+        for( int c = 0; c < table_widget_->columnCount(); ++c )
+        {
+          strList << table_widget_->item( r, c )->text();
+        }
+        ts << strList.join( "\t" )+"\n";
+      }
+      f.close();
+    }
+  }
+
   SpectraIdentificationViewWidget::~SpectraIdentificationViewWidget()
   {
-  }
+  }  
 
 }
