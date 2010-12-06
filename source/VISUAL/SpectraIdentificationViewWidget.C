@@ -40,6 +40,8 @@
 
 using namespace std;
 
+///@improvement write the visibility-status of the columns in toppview.ini and read at start
+
 namespace OpenMS
 {
   SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param&, QWidget* parent)
@@ -97,10 +99,8 @@ namespace OpenMS
     table_widget_->setColumnWidth(10,400);
     table_widget_->setColumnWidth(11,45);
 
-    ///@improvement write the visibility-status of the columns in toppview.ini and read at start
-
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "          sequence          " << "accessions";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions";
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->setColumnCount(header_labels.size());
 
@@ -223,9 +223,7 @@ namespace OpenMS
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation"
-        << "scan type" << "zoom" << "score" << "rank" << "charge" << "          sequence          " << "accession";
-
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accession";
     for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();

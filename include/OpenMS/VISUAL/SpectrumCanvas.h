@@ -110,7 +110,7 @@ namespace OpenMS
 		/// Spectrum type
 		typedef ExperimentType::SpectrumType SpectrumType;
 		/// Spectrum iterator type (iterates over peaks)
-                typedef SpectrumType::ConstIterator SpectrumConstIteratorType;
+    typedef SpectrumType::ConstIterator SpectrumConstIteratorType;
 		/// Peak type
 		typedef SpectrumType::PeakType PeakType;
 		/// Feature type

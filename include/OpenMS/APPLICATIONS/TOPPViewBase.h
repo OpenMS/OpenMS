@@ -497,6 +497,9 @@ namespace OpenMS
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
 
+      /// Adds labels for the provided precursors to the 1D spectrum
+      void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);
+
       // static helper functions
       public:        
         /// Returns true if @p contains at least one MS1 spectrum

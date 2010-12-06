@@ -29,6 +29,7 @@
 #define OPENMS_VISUAL_ANNOTATION1DDISTANCEITEM_H
 
 #include <OpenMS/VISUAL/Annotation1DItem.h>
+#include <vector>
 
 namespace OpenMS
 {
@@ -40,7 +41,6 @@ namespace OpenMS
 	{
 		
 		public:
-
 			/// Constructor
 			Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point);
 			/// Copy constructor
@@ -61,13 +61,15 @@ namespace OpenMS
 			const PointType& getStartPoint() const;
 			/// Returns the end point as (MZ,intensity)
 			const PointType& getEndPoint() const;
-			
-		protected:
-		
+      /// Set tick lines for the distance item
+      void setTicks(const std::vector<DoubleReal>& ticks);
+		protected:		
 			/// The start point of the measured distance line
 			PointType start_point_;
 			/// The end point of the measured distance line
 			PointType end_point_;
+      /// Additional tick lines for the distance item
+      std::vector<DoubleReal> ticks_;
 			
 	};
 } // namespace OpenMS

@@ -64,7 +64,7 @@ namespace OpenMS
 		DoubleReal sDecPow = floor(log10(dx));
 		DoubleReal sDec = pow(10.0,sDecPow);
 
-    UInt n_max_big_gridlines = floor(dx / sDec);
+    UInt n_max_big_gridlines = (UInt)floor(dx / sDec);
 
 		std::vector<DoubleReal> big;
 		DoubleReal currGL = ceilDecimal(x1, (UInt)sDecPow);

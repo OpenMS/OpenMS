@@ -31,6 +31,8 @@
 #include <QtCore/QPoint>
 #include <QtGui/QPainter>
 
+using namespace std;
+
 namespace OpenMS
 {	
 
@@ -101,23 +103,37 @@ namespace OpenMS
 		
 		// draw line
 		painter.drawLine(start_p, end_p);
+
+    // draw ticks
+    if (ticks_.size() != 0)
+    {
+      for(vector<DoubleReal>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
+      {
+        QPoint tick;
+        canvas->dataToWidget(*it, start_point_.getY(), tick, flipped, true);
+        painter.drawLine(tick.x(), tick.y()-4, tick.x(), tick.y()+4);
+      }
+    }
 		
-		// draw arrow heads and the ends
-		if (canvas->isMzToXAxis())
-		{
-			painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()-4));
-			painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()+4));
-			painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()-4));
-			painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()+4));
-		}
-		else
-		{
-			painter.drawLine(start_p, QPoint(start_p.x()+4, start_p.y()-5));
-			painter.drawLine(start_p, QPoint(start_p.x()-4, start_p.y()-5));
-			painter.drawLine(end_p, QPoint(end_p.x()+4, end_p.y()+5));
-			painter.drawLine(end_p, QPoint(end_p.x()-4, end_p.y()+5));
-		}
-		
+    // draw arrow heads and the ends if they won't overlap
+    if ((start_p - end_p).manhattanLength() > 10)
+    {
+      if (canvas->isMzToXAxis())
+      {
+        painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()-4));
+        painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()+4));
+        painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()-4));
+        painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()+4));
+      }
+      else
+      {
+        painter.drawLine(start_p, QPoint(start_p.x()+4, start_p.y()-5));
+        painter.drawLine(start_p, QPoint(start_p.x()-4, start_p.y()-5));
+        painter.drawLine(end_p, QPoint(end_p.x()+4, end_p.y()+5));
+        painter.drawLine(end_p, QPoint(end_p.x()-4, end_p.y()+5));
+      }
+    }
+
 		if (!canvas->isMzToXAxis())
 		{
 			bounding_box_.setWidth(bounding_box_.width()+10.0);
@@ -158,7 +174,12 @@ namespace OpenMS
 	{
 		return end_point_;
 	}
-	
+
+  void Annotation1DDistanceItem::setTicks(const std::vector<DoubleReal> &ticks)
+  {
+    ticks_ = ticks;
+  }
+
 	void Annotation1DDistanceItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
 	{
 		// can only be moved vertically, so check only y-position

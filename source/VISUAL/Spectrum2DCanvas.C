@@ -418,8 +418,8 @@ namespace OpenMS
     const ExperimentType& peak_map = *layer.getPeakData();
 
     for (ExperimentType::ConstIterator i = peak_map.RTBegin(visible_area_.minPosition()[1]);
-    i != peak_map.RTEnd(visible_area_.maxPosition()[1]);
-    ++i)
+      i != peak_map.RTEnd(visible_area_.maxPosition()[1]);
+      ++i)
     {
       //this is an MS/MS scan
       if (i->getMSLevel()==2 && !i->getPrecursors().empty())

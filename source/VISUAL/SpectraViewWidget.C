@@ -250,11 +250,13 @@ namespace OpenMS
       {
         if (i > 0)
         {
+          // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
           if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel() + 1)
           {
             item = new QTreeWidgetItem(parent_stack.back());
             parent_stack.resize(parent_stack.size()+1);
           }
+          // current MS level = previous MS level (e.g. MS2,MS2 or MS1,MS1)
           else if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel())
           {
             if (parent_stack.size() == 1)
@@ -266,6 +268,7 @@ namespace OpenMS
               item = new QTreeWidgetItem(*(parent_stack.end()-2));
             }
           }
+          // current MS level < previous MS level (e.g. MS1,MS2)
           else if ((*cl.getPeakData())[i].getMSLevel() < (*cl.getPeakData())[i-1].getMSLevel())
           {
             Int level_diff = (*cl.getPeakData())[i-1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();

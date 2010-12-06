@@ -37,6 +37,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
 #include <OpenMS/VISUAL/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/Annotation1DTextItem.h>
+#include <OpenMS/VISUAL/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -2200,35 +2202,61 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (widget_1d)
     {
       widget_1d->canvas()->activateSpectrum(index);
-      UInt ms_level = widget_1d->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
-      if (ms_level == 2 && spectra_identification_view_widget_->isVisible())
-      {
-        vector<PeptideIdentification> pi = widget_1d->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
-        if (pi.size() != 0)
-        {
-          Size best_i_index = 0;
-          Size best_j_index = 0;
-          bool is_higher_score_better = false;
-          Size best_score = pi[0].getHits()[0].getScore();
-          is_higher_score_better = pi[0].isHigherScoreBetter();
+      const LayerData& cl = widget_1d->canvas()->getCurrentLayer();
+      UInt ms_level = cl.getCurrentSpectrum().getMSLevel();
 
-          // determine best scoring hit
-          for(Size i=0; i!=pi.size(); ++i)
+      // special visualization for spectra identification view
+      if (spectra_identification_view_widget_->isVisible())
+      {
+        if (ms_level == 2)  // show theoretical spectrum with automatic alignment
+        {
+          vector<PeptideIdentification> pi = cl.getCurrentSpectrum().getPeptideIdentifications();
+          if (pi.size() != 0)
           {
-            for(Size j=0; j!=pi[i].getHits().size(); ++j)
+            Size best_i_index = 0;
+            Size best_j_index = 0;
+            bool is_higher_score_better = false;
+            Size best_score = pi[0].getHits()[0].getScore();
+            is_higher_score_better = pi[0].isHigherScoreBetter();
+
+            // determine best scoring hit
+            for(Size i=0; i!=pi.size(); ++i)
             {
-              PeptideHit ph = pi[i].getHits()[j];
-              // better score?
-              if ((ph.getScore() < best_score && !is_higher_score_better)
-               || (ph.getScore() > best_score && is_higher_score_better))
+              for(Size j=0; j!=pi[i].getHits().size(); ++j)
               {
-                best_score = ph.getScore();
-                best_i_index = i;
-                best_j_index = j;
+                PeptideHit ph = pi[i].getHits()[j];
+                // better score?
+                if ((ph.getScore() < best_score && !is_higher_score_better)
+                  || (ph.getScore() > best_score && is_higher_score_better))
+                  {
+                  best_score = ph.getScore();
+                  best_i_index = i;
+                  best_j_index = j;
+                }
               }
             }
+            addTheoreticalSpectrum(pi[best_i_index].getHits()[best_j_index]);
           }
-          addTheoreticalSpectrum(pi[best_i_index].getHits()[best_j_index]);
+        } else if (ms_level == 1)  // show precursor locations
+        {
+          vector<Precursor> precursors;
+          // collect all MS2 spectra precursor till next MS1 spectrum is encountered
+          for (Size i = index + 1; i < cl.getPeakData()->size(); ++i)
+          {
+            if ((*cl.getPeakData())[i].getMSLevel() == 1)
+            {
+              break;
+            }
+            // skip MS2 without precursor
+            if ((*cl.getPeakData())[i].getPrecursors().empty())
+            {
+              continue;
+            }
+            // there should be only one precusor per MS2 spectrum.
+            vector<Precursor> pcs = (*cl.getPeakData())[i].getPrecursors();
+            copy(pcs.begin(), pcs.end(), back_inserter(precursors));
+          }
+          addPrecursorLabels1D_(precursors);
         }
       }
     }
@@ -2296,7 +2324,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
       
       //apply preferences if they are of the current TOPPView version
-    	if(!error && tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
+      if(!error && tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
     	{
     		try
     		{
@@ -3615,6 +3643,43 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     spectra_views_dockwidget_->show();
     updateSpectraViewBar();
 	}
+
+  void TOPPViewBase::addPrecursorLabels1D_(const vector<Precursor>& pcs)
+  {
+    ExperimentType::SpectrumType& spectrum = active1DWindow_()->canvas()->getCurrentLayer().getCurrentSpectrum();
+
+    for(vector<Precursor>::const_iterator it= pcs.begin(); it != pcs.end(); ++it)
+    {
+      // determine start and stop of isolation window
+      DoubleReal isolation_window_lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
+      DoubleReal isolation_window_upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
+
+      // determine maximum peak intensity in isolation window
+      SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
+      SpectrumType::const_iterator vend = spectrum.MZEnd(isolation_window_upper_mz);           
+
+      DoubleReal max_intensity = numeric_limits<DoubleReal>::min();
+      for(; vbegin!=vend; ++vbegin)
+      {
+        if (vbegin->getIntensity() > max_intensity)
+        {
+          max_intensity = vbegin->getIntensity();
+        }
+      }
+
+      // DPosition<2> precursor_position = DPosition<2>(it->getMZ(), max_intensity);
+      DPosition<2> lower_position = DPosition<2>(isolation_window_lower_mz, max_intensity);
+      DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
+
+      Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
+      // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
+      vector<DoubleReal> ticks;
+      ticks.push_back(it->getMZ());
+      item->setTicks(ticks);
+      item->setSelected(false);
+      active1DWindow_()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+    }
+  }
 
   void TOPPViewBase::fileChanged_(const String& filename)
   {
