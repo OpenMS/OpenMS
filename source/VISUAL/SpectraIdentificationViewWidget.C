@@ -150,8 +150,11 @@ namespace OpenMS
       return;
     }
 
-    int spectrum_index = table_widget_->item(current->row(), 1)->data(Qt::DisplayRole).toInt() ;
-    emit spectrumSelected(spectrum_index);
+    int previous_spectrum_index = table_widget_->item(previous->row(), 1)->data(Qt::DisplayRole).toInt();
+    int current_spectrum_index = table_widget_->item(current->row(), 1)->data(Qt::DisplayRole).toInt();
+
+    emit spectrumDeselected(previous_spectrum_index);
+    emit spectrumSelected(current_spectrum_index);
   }
 
   void SpectraIdentificationViewWidget::attachLayer(LayerData* cl)

@@ -36,6 +36,7 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
 //STL
 #include <map>
@@ -148,6 +149,23 @@ namespace OpenMS
       */
       void addDataDB(UInt db_id, bool show_options, String caption="", UInt window_id=0);
 
+      /**
+        @brief Adds a peak or feature map to the viewer
+
+        @param feature_map The feature data (empty if not feature data)
+        @param consensus_map The consensus feature data (empty if not consensus feature data)
+        @param peptides The peptide identifications (empty if not ID data)
+        @param peak_map The peak data (empty if not peak data)
+        @param data_type Type of the data
+        @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
+        @param show_options If the options dialog should be shown (otherwise the defaults are used)
+        @param filename source file name (if the data came from a file)
+        @param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
+        @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
+        @param spectrum_id determines the spectrum to show in 1D view.
+      */
+      void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
+
       /// opens all the files that are inside the handed over string list
       void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 
@@ -163,6 +181,19 @@ namespace OpenMS
 			/// Returns the active Layer data (0 if no layer is active)
 			const LayerData* getCurrentLayer() const;
 
+      ///returns a pointer to the active SpectrumWidget (0 if none is active)
+      SpectrumWidget*  getActiveWindow() const;
+      ///returns a pointer to the active SpectrumCanvas (0 if none is active)
+      SpectrumCanvas*  getActiveCanvas() const;
+      ///returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
+      Spectrum1DWidget* getActive1DWindow() const;
+      ///returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
+      Spectrum2DWidget* getActive2DWindow() const;
+      ///returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
+      Spectrum3DWidget* getActive3DWindow() const;
+
+      /// returns a pointer to the SpectraIdentificationViewWidget
+      SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
     public slots:
       /// changes the current path according to the currently active window/layer
       void updateCurrentPath();
@@ -221,8 +252,6 @@ namespace OpenMS
       void annotateWithID();
       /// Shows the theoretical spectrum generation dialog
       void showSpectrumGenerationDialog();
-      /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
-      void addTheoreticalSpectrum(const PeptideHit& ph);
       /// Shows the spectrum alignment dialog
       void showSpectrumAlignmentDialog();
       /// Shows the spectrum with index @p index of the active layer in 1D
@@ -247,6 +276,18 @@ namespace OpenMS
 			void metadataDatabaseDialog();
 			/// dialog for inspecting file meta data
 			void metadataFileDialog();			      
+
+      /** @name Toolbar slots
+      */
+      //@{
+      void setDrawMode1D(int);
+      void setIntensityMode(int);
+      void changeLayerFlag(bool);
+      void changeLabel(QAction*);
+      void changeUnassigned(QAction*);
+      void resetZoom();
+      void toggleProjections();
+      //@}
 
     protected slots:
       /** @name Layer manager and filter manager slots
@@ -280,8 +321,6 @@ namespace OpenMS
     	void showSpectrumBrowser();
       /// shows the spectrum metadata
       void showSpectrumMetaData(int spectrum_index);
-      /// removes all layer with theoretical spectrum generated in identification then actives given layer index
-      void removeTheoreticalSpectrumLayer_(int spectrum_index);
       //@}
 
       /** @name Tabbar slots
@@ -297,18 +336,6 @@ namespace OpenMS
 			void copyLayer(const QMimeData* data, QWidget* source, int id=-1);
       //@}
 
-      /** @name Toolbar slots
-      */
-      //@{
-      void setDrawMode1D(int);
-      void setIntensityMode(int);
-      void changeLayerFlag(bool);
-      void changeLabel(QAction*);
-			void changeUnassigned(QAction*);
-      void resetZoom();
-      void toggleProjections();
-      //@}
-
 			/// Appends process output to log window
 			void updateProcessLog();
 
@@ -317,23 +344,6 @@ namespace OpenMS
     protected:
       /// Initializes the default parameters on TOPPView construction.
       void initializeDefaultParameters_();
-
-  		/**
-  			@brief Adds a peak or feature map to the viewer
-
-  			@param feature_map The feature data (empty if not feature data)
-  			@param consensus_map The consensus feature data (empty if not consensus feature data)
-				@param peptides The peptide identifications (empty if not ID data)
-  			@param peak_map The peak data (empty if not peak data)
-				@param data_type Type of the data
-  			@param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
-  			@param show_options If the options dialog should be shown (otherwise the defaults are used)
-  			@param filename source file name (if the data came from a file)
-      	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
-      	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current
-      	@param spectrum_id determines the spectrum to show in 1D view.
-      */
-      void addData_(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
 
       /// unique list of files referenced by all layers
        std::set<String> getFilenamesOfOpenFiles();
@@ -351,16 +361,6 @@ namespace OpenMS
       void showAsWindow_(SpectrumWidget* sw, const String& caption);
       ///returns the window with id @p id
       SpectrumWidget* window_(int id) const;
-      ///returns a pointer to the active SpectrumWidget (0 if none is active)
-      SpectrumWidget*  activeWindow_() const;
-      ///returns a pointer to the active SpectrumCanvas (0 if none is active)
-      SpectrumCanvas*  activeCanvas_() const;
-      ///returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
-      Spectrum1DWidget* active1DWindow_() const;
-      ///returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-      Spectrum2DWidget* active2DWindow_() const;
-      ///returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-      Spectrum3DWidget* active3DWindow_() const;
 
       /// Layer management widget
       QListWidget* layer_manager_;
@@ -497,8 +497,7 @@ namespace OpenMS
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
 
-      /// Adds labels for the provided precursors to the 1D spectrum
-      void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);
+      TOPPViewIdentificationViewBehavior* toppview_behavior_;
 
       // static helper functions
       public:        

@@ -472,7 +472,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
           connect(spectra_identification_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
           connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-          connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(removeTheoreticalSpectrumLayer_(int)));
+          connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
+
+          toppview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
+          connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), toppview_behavior_, SLOT(deactivate1DSpectrum(int)));
 
           tw->addTab(spectra_view_widget_, "Spectra view");
           tw->addTab(spectra_identification_view_widget_, "Identification view");
@@ -660,7 +663,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     //add data
     if (caption=="") caption = String("DB entry ")+db_id;
-    addData_(dummy_map_sptr, dummy_map2_sptr, dummy_peptides, exp_sptr, data_type, false, show_options, true, "", caption, window_id);
+    addData(dummy_map_sptr, dummy_map2_sptr, dummy_peptides, exp_sptr, data_type, false, show_options, true, "", caption, window_id);
 
     //Reset cursor
     setCursor(Qt::ArrowCursor);
@@ -1159,7 +1162,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	abs_filename = "";
     }
 
-    addData_(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, data_type, false, show_options, true, abs_filename, caption, window_id, spectrum_id);
+    addData(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, data_type, false, show_options, true, abs_filename, caption, window_id, spectrum_id);
 
   	//add to recent file
     if (add_to_recent)
@@ -1174,7 +1177,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     setCursor(Qt::ArrowCursor);
   }
 
-  void TOPPViewBase::addData_(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
+  void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
   {      
     // initialize flags with defaults from the parameters
   	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
@@ -1193,7 +1196,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     SpectrumWidget* target_window = window_(window_id);
     if (target_window == 0)
 		{
-      target_window = activeWindow_();
+      target_window = getActiveWindow();
 		}
     else
 		{
@@ -1449,7 +1452,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::editMetadata()
   {
-  	SpectrumCanvas* canvas = activeCanvas_();
+    SpectrumCanvas* canvas = getActiveCanvas();
 
     //warn if hidden layer => wrong layer selected...
   	if (!canvas->getCurrentLayer().visible)
@@ -1463,7 +1466,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::layerStatistics()
   {
-  	activeWindow_()->showStatistics();
+    getActiveWindow()->showStatistics();
   	updateFilterBar();
   }
 
@@ -1517,7 +1520,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::resetZoom()
   {
-    SpectrumWidget* window = activeWindow_();
+    SpectrumWidget* window = getActiveWindow();
     if (window!=0)
     {
       window->canvas()->resetZoom();
@@ -1526,18 +1529,20 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::setIntensityMode(int index)
   {
-    SpectrumWidget* w = activeWindow_();
+    SpectrumWidget* w = getActiveWindow();
     if (w)
     {
+      intensity_button_group_->button(index)->setChecked(true);
     	w->setIntensityMode((OpenMS::SpectrumCanvas::IntensityModes)index);
   	}
   }
 
   void TOPPViewBase::setDrawMode1D(int index)
   {
-    Spectrum1DWidget* w = active1DWindow_();
+    Spectrum1DWidget* w = getActive1DWindow();
     if (w)
     {
+      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
     	w->canvas()->setDrawMode((OpenMS::Spectrum1DCanvas::DrawModes)index);
   	}
   }
@@ -1551,7 +1556,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
 			if (action->text().toStdString()==LayerData::NamesOfLabelType[i])
 			{
-				active2DWindow_()->canvas()->setLabel(LayerData::LabelType(i));
+        getActive2DWindow()->canvas()->setLabel(LayerData::LabelType(i));
 				set = true;
 			}
 		}
@@ -1559,14 +1564,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		//button is simply pressed
 		if (!set)
 		{
-			if (active2DWindow_()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
+      if (getActive2DWindow()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
 			{
-				active2DWindow_()->canvas()->setLabel(LayerData::L_INDEX);
+        getActive2DWindow()->canvas()->setLabel(LayerData::L_INDEX);
 				dm_label_2d_->menu()->actions()[1]->setChecked(true);
 			}
 			else
 			{
-				active2DWindow_()->canvas()->setLabel(LayerData::L_NONE);
+        getActive2DWindow()->canvas()->setLabel(LayerData::L_NONE);
 				dm_label_2d_->menu()->actions()[0]->setChecked(true);
 			}
 		}
@@ -1581,29 +1586,28 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		// mass reference is selected
 		if (action->text().toStdString() == "Don't show")
 		{
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
 			set = true;
 		}
 		else if (action->text().toStdString() == "Show by precursor m/z")
 		{
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
 			set = true;
 		}
 		else if (action->text().toStdString() == "Show by peptide mass")
 		{
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
 			set = true;
 		}
 
 		// button is simply pressed
 		if (!set)
 		{
-			bool previous = 
-				active2DWindow_()->canvas()->getLayerFlag(LayerData::F_UNASSIGNED);
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, 
+      bool previous = getActive2DWindow()->canvas()->getLayerFlag(LayerData::F_UNASSIGNED);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED,
 																								!previous);
 			if (previous) // now: don't show
 			{
@@ -1613,7 +1617,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			{
 				dm_unassigned_2d_->menu()->actions()[1]->setChecked(true);
 			}
-			active2DWindow_()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
 		}
 
 		updateToolBar();
@@ -1622,7 +1626,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::changeLayerFlag(bool on)
   {
 		QAction* action = qobject_cast<QAction *>(sender());
-    if (Spectrum2DWidget* win = active2DWindow_())
+    if (Spectrum2DWidget* win = getActive2DWindow())
     {
     	//peaks
 			if (action == dm_precursors_2d_)
@@ -1653,7 +1657,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::updateToolBar()
   {
-    SpectrumWidget* w = activeWindow_();
+    SpectrumWidget* w = getActiveWindow();
 
     if (w)
     {
@@ -1668,7 +1672,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
 
     //1D
-    Spectrum1DWidget* w1 = active1DWindow_();
+    Spectrum1DWidget* w1 = getActive1DWindow();
     if (w1)
     {
       //draw mode
@@ -1683,7 +1687,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
 
     //2d
-    Spectrum2DWidget* w2 = active2DWindow_();
+    Spectrum2DWidget* w2 = getActive2DWindow();
     if (w2)
     {
       tool_bar_1d_->hide();
@@ -1728,7 +1732,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
 
     //1D
-    Spectrum3DWidget* w3 = active3DWindow_();
+    Spectrum3DWidget* w3 = getActive3DWindow();
     if (w3)
     {
       //show/hide toolbars and buttons
@@ -1744,7 +1748,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
   	//reset
 		layer_manager_->clear();
-    SpectrumCanvas* cc = activeCanvas_();
+    SpectrumCanvas* cc = getActiveCanvas();
     if (cc == 0) return;
 
 		//determine if this is a 1D view (for text color)
@@ -1794,7 +1798,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::updateSpectraViewBar()
   {
-    SpectrumCanvas* cc = activeCanvas_();
+    SpectrumCanvas* cc = getActiveCanvas();
     int layer_row = layer_manager_->currentRow();
     if (layer_row == -1 || cc == 0)
     {
@@ -1835,7 +1839,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	{
 		if (i!=-1)
 		{
-			activeCanvas_()->activateLayer(i);
+      getActiveCanvas()->activateLayer(i);
 			updateFilterBar();
       updateSpectraViewBar();
 		}
@@ -1852,7 +1856,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			context_menu->addAction("Rename");
 			context_menu->addAction("Delete");
 
-			if (activeCanvas_()->getLayer(layer).flipped)
+      if (getActiveCanvas()->getLayer(layer).flipped)
 			{
 				new_action = context_menu->addAction("Flip upwards (1D)");
 			}
@@ -1860,7 +1864,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			{
 				new_action = context_menu->addAction("Flip downwards (1D)");
 			}
-			if (!active1DWindow_())
+      if (!getActive1DWindow())
 			{
 				new_action->setEnabled(false);
 			}
@@ -1872,7 +1876,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			//delete layer
 			if (selected!=0 && selected->text()=="Delete")
 			{
-				activeCanvas_()->removeLayer(layer);
+        getActiveCanvas()->removeLayer(layer);
 			}
 			//rename layer
 			else if (selected!=0 && selected->text()=="Rename")
@@ -1880,36 +1884,36 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				QString name = QInputDialog::getText(this,"Rename layer","Name:");
 				if (name!="")
 				{
-					activeCanvas_()->setLayerName(layer, name);
+          getActiveCanvas()->setLayerName(layer, name);
 				}
 			}
 			// flip layer up/downwards
 			else if (selected != 0 && selected->text() == "Flip downwards (1D)")
 			{
-				active1DWindow_()->canvas()->flipLayer(layer);
-				active1DWindow_()->canvas()->setMirrorModeActive(true);
+        getActive1DWindow()->canvas()->flipLayer(layer);
+        getActive1DWindow()->canvas()->setMirrorModeActive(true);
 			}
 			else if (selected != 0 && selected->text() == "Flip upwards (1D)")
 			{
-				active1DWindow_()->canvas()->flipLayer(layer);
-				bool b = active1DWindow_()->canvas()->flippedLayersExist();
-				active1DWindow_()->canvas()->setMirrorModeActive(b);
+        getActive1DWindow()->canvas()->flipLayer(layer);
+        bool b = getActive1DWindow()->canvas()->flippedLayersExist();
+        getActive1DWindow()->canvas()->setMirrorModeActive(b);
 			}
 			else if (selected != 0 && selected->text() == "Preferences")
 			{
-				activeCanvas_()->showCurrentLayerPreferences();
+        getActiveCanvas()->showCurrentLayerPreferences();
 			}
 
 			//Update tab bar and window title
-			if (activeCanvas_()->getLayerCount()!=0)
+      if (getActiveCanvas()->getLayerCount()!=0)
 			{
-				tab_bar_->setTabText(tab_bar_->currentIndex(), activeCanvas_()->getLayer(0).name.toQString());
-				activeWindow_()->setWindowTitle(activeCanvas_()->getLayer(0).name.toQString());
+        tab_bar_->setTabText(tab_bar_->currentIndex(), getActiveCanvas()->getLayer(0).name.toQString());
+        getActiveWindow()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
 			}
 			else
 			{
 				tab_bar_->setTabText(tab_bar_->currentIndex(),"empty");
-				activeWindow_()->setWindowTitle("empty");
+        getActiveWindow()->setWindowTitle("empty");
 			}
 
 			//Update filter bar, spectrum bar and layer bar
@@ -1941,13 +1945,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	void TOPPViewBase::filterContextMenu(const QPoint & pos)
 	{
 		//do nothing if no window is open
-		if (activeCanvas_()==0) return;
+    if (getActiveCanvas()==0) return;
 
 		QMenu* context_menu = new QMenu(filters_);
 
 		//warn if the current layer is not visible
-		String layer_name = String("Layer: ") + activeCanvas_()->getCurrentLayer().name;
-		if (!activeCanvas_()->getCurrentLayer().visible)
+    String layer_name = String("Layer: ") + getActiveCanvas()->getCurrentLayer().name;
+    if (!getActiveCanvas()->getCurrentLayer().visible)
 		{
 			layer_name += " (invisible)";
 		}
@@ -1971,9 +1975,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
 			if(selected->text()=="Delete")
 			{
-				DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
+        DataFilters filters = getActiveCanvas()->getCurrentLayer().filters;
 				filters.remove(filters_->row(item));
-				activeCanvas_()->setFilters(filters);
+        getActiveCanvas()->setFilters(filters);
 				updateFilterBar();
 			}
 			else if (selected->text()=="Edit")
@@ -1982,13 +1986,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			}
 			else if (selected->text()=="Add filter")
 			{
-				DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
+        DataFilters filters = getActiveCanvas()->getCurrentLayer().filters;
 				DataFilters::DataFilter filter;
 				DataFilterDialog dlg(filter, this);
 				if (dlg.exec())
 				{
 					filters.add(filter);
-					activeCanvas_()->setFilters(filters);
+          getActiveCanvas()->setFilters(filters);
 					updateFilterBar();
 				}
 			}
@@ -1998,20 +2002,20 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::filterEdit(QListWidgetItem* item)
 	{
-		DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
+    DataFilters filters = getActiveCanvas()->getCurrentLayer().filters;
 		DataFilters::DataFilter filter = filters[filters_->row(item)];
 		DataFilterDialog dlg(filter, this);
 		if (dlg.exec())
 		{
 			filters.replace(filters_->row(item),filter);
-			activeCanvas_()->setFilters(filters);
+      getActiveCanvas()->setFilters(filters);
 			updateFilterBar();
 		}
 	}
 
 	void TOPPViewBase::layerEdit(QListWidgetItem* /*item*/)
 	{
-		activeCanvas_()->showCurrentLayerPreferences();
+    getActiveCanvas()->showCurrentLayerPreferences();
 	}
 
   void TOPPViewBase::updateFilterBar()
@@ -2019,11 +2023,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   	//update filters
   	filters_->clear();
 
-		SpectrumCanvas* canvas = activeCanvas_();
+    SpectrumCanvas* canvas = getActiveCanvas();
 		if (canvas==0) return;
 		if (canvas->getLayerCount()==0) return;
 
-		const DataFilters& filters = activeCanvas_()->getCurrentLayer().filters;
+    const DataFilters& filters = getActiveCanvas()->getCurrentLayer().filters;
 		for (Size i=0; i<filters.size(); ++i)
 		{
 			QListWidgetItem* item = new QListWidgetItem(filters_);
@@ -2031,14 +2035,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 
   	//update check box
-  	filters_check_box_->setChecked(activeCanvas_()->getCurrentLayer().filters.isActive());
+    filters_check_box_->setChecked(getActiveCanvas()->getCurrentLayer().filters.isActive());
   }
 
 	void TOPPViewBase::layerFilterVisibilityChange(bool on)
 	{
-		if (activeCanvas_())
+    if (getActiveCanvas())
 		{
-			activeCanvas_()->changeLayerFilterState(activeCanvas_()->activeLayerIndex(),on);
+      getActiveCanvas()->changeLayerFilterState(getActiveCanvas()->activeLayerIndex(),on);
 		}
 	}
 
@@ -2047,15 +2051,15 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		int layer;
 		bool visible;
 		layer = layer_manager_->row(item);
-		visible = activeCanvas_()->getLayer(layer).visible;
+    visible = getActiveCanvas()->getLayer(layer).visible;
 
 		if (item->checkState()==Qt::Unchecked && visible)
 		{
-			activeCanvas_()->changeVisibility(layer, false);
+      getActiveCanvas()->changeVisibility(layer, false);
 		}
 		else if (item->checkState()==Qt::Checked && !visible)
 		{
-			activeCanvas_()->changeVisibility(layer, true);
+      getActiveCanvas()->changeVisibility(layer, true);
 		}
 	}
 
@@ -2074,8 +2078,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     QWidgetList windows = ws_->windowList();
     if ( !windows.count() ) return;
 
-    if (active1DWindow_()) active1DWindow_()->showNormal();
-    if (active2DWindow_()) active2DWindow_()->showNormal();
+    if (getActive1DWindow()) getActive1DWindow()->showNormal();
+    if (getActive2DWindow()) getActive2DWindow()->showNormal();
 
     int heightForEach = ws_->height() / windows.count();
     int y = 0;
@@ -2103,8 +2107,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     QWidgetList windows = ws_->windowList();
     if ( !windows.count() ) return;
 
-    if (active1DWindow_()) active1DWindow_()->showNormal();
-    if (active2DWindow_()) active2DWindow_()->showNormal();
+    if (getActive1DWindow()) getActive1DWindow()->showNormal();
+    if (getActive2DWindow()) getActive2DWindow()->showNormal();
 
     int widthForEach = ws_->width() / windows.count();
     int y = 0;
@@ -2193,82 +2197,30 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::gotoDialog()
   {
-  	activeWindow_()->showGoToDialog();
+    getActiveWindow()->showGoToDialog();
   }
 
   void TOPPViewBase::activate1DSpectrum(int index)
   {
-    Spectrum1DWidget* widget_1d = active1DWindow_();
+    Spectrum1DWidget* widget_1d = getActive1DWindow();
     if (widget_1d)
     {
       widget_1d->canvas()->activateSpectrum(index);
-      const LayerData& cl = widget_1d->canvas()->getCurrentLayer();
-      UInt ms_level = cl.getCurrentSpectrum().getMSLevel();
-
       // special visualization for spectra identification view
       if (spectra_identification_view_widget_->isVisible())
       {
-        if (ms_level == 2)  // show theoretical spectrum with automatic alignment
-        {
-          vector<PeptideIdentification> pi = cl.getCurrentSpectrum().getPeptideIdentifications();
-          if (pi.size() != 0)
-          {
-            Size best_i_index = 0;
-            Size best_j_index = 0;
-            bool is_higher_score_better = false;
-            Size best_score = pi[0].getHits()[0].getScore();
-            is_higher_score_better = pi[0].isHigherScoreBetter();
-
-            // determine best scoring hit
-            for(Size i=0; i!=pi.size(); ++i)
-            {
-              for(Size j=0; j!=pi[i].getHits().size(); ++j)
-              {
-                PeptideHit ph = pi[i].getHits()[j];
-                // better score?
-                if ((ph.getScore() < best_score && !is_higher_score_better)
-                  || (ph.getScore() > best_score && is_higher_score_better))
-                  {
-                  best_score = ph.getScore();
-                  best_i_index = i;
-                  best_j_index = j;
-                }
-              }
-            }
-            addTheoreticalSpectrum(pi[best_i_index].getHits()[best_j_index]);
-          }
-        } else if (ms_level == 1)  // show precursor locations
-        {
-          vector<Precursor> precursors;
-          // collect all MS2 spectra precursor till next MS1 spectrum is encountered
-          for (Size i = index + 1; i < cl.getPeakData()->size(); ++i)
-          {
-            if ((*cl.getPeakData())[i].getMSLevel() == 1)
-            {
-              break;
-            }
-            // skip MS2 without precursor
-            if ((*cl.getPeakData())[i].getPrecursors().empty())
-            {
-              continue;
-            }
-            // there should be only one precusor per MS2 spectrum.
-            vector<Precursor> pcs = (*cl.getPeakData())[i].getPrecursors();
-            copy(pcs.begin(), pcs.end(), back_inserter(precursors));
-          }
-          addPrecursorLabels1D_(precursors);
-        }
+        toppview_behavior_->activate1DSpectrum(index);
       }
     }
   }
 
-  SpectrumWidget*  TOPPViewBase::activeWindow_() const
+  SpectrumWidget* TOPPViewBase::getActiveWindow() const
   {
   	if (!ws_->activeWindow()) return 0;
     return qobject_cast<SpectrumWidget*>(ws_->activeWindow());
   }
 
-  SpectrumCanvas*  TOPPViewBase::activeCanvas_() const
+  SpectrumCanvas*  TOPPViewBase::getActiveCanvas() const
   {
     SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeWindow());
     if (sw == 0)
@@ -2278,23 +2230,23 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     return sw->canvas();
   }
 
-  Spectrum1DWidget* TOPPViewBase::active1DWindow_() const
+  Spectrum1DWidget* TOPPViewBase::getActive1DWindow() const
   {
-		Spectrum1DWidget* w = qobject_cast<Spectrum1DWidget*>(activeWindow_());
+    Spectrum1DWidget* w = qobject_cast<Spectrum1DWidget*>(getActiveWindow());
 		if (!w) return 0;
 		return w;
   }
 
-  Spectrum2DWidget* TOPPViewBase::active2DWindow_() const
+  Spectrum2DWidget* TOPPViewBase::getActive2DWindow() const
   {
-		Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(activeWindow_());
+    Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(getActiveWindow());
 		if (!w) return 0;
 		return w;
   }
 
-  Spectrum3DWidget* TOPPViewBase::active3DWindow_() const
+  Spectrum3DWidget* TOPPViewBase::getActive3DWindow() const
   {
-		Spectrum3DWidget* w = qobject_cast<Spectrum3DWidget*>(activeWindow_());
+    Spectrum3DWidget* w = qobject_cast<Spectrum3DWidget*>(getActiveWindow());
 		if (!w) return 0;
 		return w;
   }
@@ -2499,7 +2451,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	void TOPPViewBase::rerunTOPPTool()
 	{
 		//warn if hidden layer => wrong layer selected...
-		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 		if (!layer.visible)
 		{
   		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
@@ -2522,7 +2474,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	void TOPPViewBase::showTOPPDialog_(bool visible)
 	{
 		//warn if hidden layer => wrong layer selected...
-		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 		if (!layer.visible)
 		{
   		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
@@ -2551,7 +2503,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::runTOPPTool_()
 	{
-		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 
 		//test if files are writable
 		if (!File::writable(topp_.file_name+"_in"))
@@ -2567,7 +2519,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		//Store data
 		topp_.layer_name = layer.name;
-		topp_.window_id = activeWindow_()->window_id;
+    topp_.window_id = getActiveWindow()->window_id;
 		topp_.spectrum_id = layer.current_spectrum;
 		if (layer.type==LayerData::DT_PEAK)
 		{
@@ -2576,7 +2528,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			if (topp_.visible)
 			{
 				ExperimentType exp;
-				activeCanvas_()->getVisiblePeakData(exp);
+        getActiveCanvas()->getVisiblePeakData(exp);
 				f.store(topp_.file_name+"_in",exp);
 			}
 			else
@@ -2589,7 +2541,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			if (topp_.visible)
 			{
 				FeatureMapType map;
-				activeCanvas_()->getVisibleFeatureData(map);
+        getActiveCanvas()->getVisibleFeatureData(map);
 				FeatureXMLFile().store(topp_.file_name+"_in",map);
 			}
 			else
@@ -2602,7 +2554,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			if (topp_.visible)
 			{
 				ConsensusMapType map;
-				activeCanvas_()->getVisibleConsensusData(map);
+        getActiveCanvas()->getVisibleConsensusData(map);
 				ConsensusXMLFile().store(topp_.file_name+"_in",map);
 			}
 			else
@@ -2680,7 +2632,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	const LayerData* TOPPViewBase::getCurrentLayer() const
 	{
-		SpectrumCanvas* canvas = activeCanvas_();
+    SpectrumCanvas* canvas = getActiveCanvas();
 		if (canvas==0)
 		{
 			return 0;
@@ -2690,7 +2642,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::toggleProjections()
   {
-    Spectrum2DWidget* w = active2DWindow_();
+    Spectrum2DWidget* w = getActive2DWindow();
     if (w)
     {
     	//update minimum size before
@@ -2708,7 +2660,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::annotateWithID()
 	{
-		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 		//warn if hidden layer => wrong layer selected...
 		if (!layer.visible)
 		{
@@ -2739,167 +2691,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
     updateSpectraViewBar();
 	}
-
-  void TOPPViewBase::addTheoreticalSpectrum(const PeptideHit& ph)
-  {
-    AASequence aa_sequence = ph.getSequence();
-
-    // get measured spectrum indices and spectrum
-    Size real_spectrum_layer_index = active1DWindow_()->canvas()->activeLayerIndex();
-    Size real_spectrum_index = active1DWindow_()->canvas()->getCurrentLayer().current_spectrum;
-    ExperimentType::SpectrumType& real_spectrum = active1DWindow_()->canvas()->getCurrentLayer().getCurrentSpectrum();
-
-    Int charge = 1;
-
-    if (aa_sequence.isValid())
-    {
-      RichPeakSpectrum rich_spec;
-      TheoreticalSpectrumGenerator generator;
-      Param p;
-      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-      p.setValue("max_isotope", param_.getValue("preferences:idview:max_isotope"), "Number of isotopic peaks");
-      p.setValue("add_losses", param_.getValue("preferences:idview:add_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-      p.setValue("add_isotopes", param_.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
-      p.setValue("add_abundant_immonium_ions", param_.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
-
-      p.setValue("a_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-      p.setValue("b_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-      p.setValue("c_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-      p.setValue("x_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-      p.setValue("y_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-      p.setValue("z_intensity", real_spectrum.getMaxInt() * (DoubleReal)param_.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
-      p.setValue("relative_loss_intensity", param_.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
-      generator.setParameters(p);
-
-      try
-      {
-        if (param_.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
-        }
-        if (param_.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
-        }
-        if (param_.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
-        }
-        if (param_.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
-        }
-        if (param_.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
-        }
-        if (param_.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
-        }
-        if (param_.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
-        {
-          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
-        }
-        if (param_.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
-        {
-          generator.addAbundantImmoniumIons(rich_spec);
-        }
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
-        return;
-      }
-
-      // convert rich spectrum to simple spectrum
-      PeakSpectrum new_spec;
-      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-      {
-        new_spec.push_back(static_cast<Peak1D>(*it));
-      }
-
-      PeakMap new_exp;
-      new_exp.push_back(new_spec);
-      ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
-      FeatureMapSharedPtrType f_dummy(new FeatureMapType());
-      ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-      vector<PeptideIdentification> p_dummy;
-
-      // Block update events for identification widget
-      spectra_identification_view_widget_->ignore_update = true;
-
-      String layer_caption = aa_sequence.toString().toQString() + QString(" (identification view)");
-      addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, false, "", layer_caption.toQString());
-      Size theoretical_spectrum_layer_index = active1DWindow_()->canvas()->activeLayerIndex();
-
-      // kind of a hack to check whether adding the layer was successful
-      if (real_spectrum_layer_index != theoretical_spectrum_layer_index)
-      {
-        // Ensure theoretical spectrum is drawn as dashed sticks
-        draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
-        setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
-        active1DWindow_()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
-        // Add ion names as annotations to the theoretical spectrum
-        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-        {
-          if (it->getMetaValue("IonName") != DataValue::EMPTY)
-          {
-            DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
-            QString s(((string)it->getMetaValue("IonName")).c_str());
-            Annotation1DItem* item = new Annotation1DPeakItem(position, s);
-            item->setSelected(false);
-            active1DWindow_()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-          }
-        }
-        // activate real data layer and spectrum        
-        active1DWindow_()->canvas()->activateLayer(real_spectrum_layer_index);
-        active1DWindow_()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
-
-        // spectra alignment
-        Param param;
-
-        DoubleReal tolerance = param_.getValue("preferences:idview:tolerance");
-        bool unit_is_ppm = param_.getValue("preferences:idview:is_relative_tolerance").toBool();
-
-        param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance in the alignment");
-        String sunit_is_ppm = unit_is_ppm ? "true" : "false";
-        param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
-        active1DWindow_()->performAlignment(real_spectrum_layer_index, theoretical_spectrum_layer_index, param);
-
-        updateLayerBar();
-
-        spectra_identification_view_widget_->ignore_update = false;
-      }
-    }
-    else
-    {
-      QMessageBox::warning(this, "Error", "The entered peptide sequence is invalid!");
-    }
-  }
-
-  void TOPPViewBase::removeTheoreticalSpectrumLayer_(int spectrum_index)
-  {
-    // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
-    // before activating the next normal spectrum
-    if (active1DWindow_())
-    {
-      Size lc = active1DWindow_()->canvas()->getLayerCount();
-      for(Size i=0; i!=lc; ++i)
-      {
-        String ln = active1DWindow_()->canvas()->getLayerName(i);
-        if (ln.hasSubstring("(identification view)"))
-        {
-          active1DWindow_()->canvas()->removeLayer(i);          
-          active1DWindow_()->canvas()->resetAlignment();
-          updateLayerBar();
-          break;
-        }
-      }
-      activate1DSpectrum(spectrum_index);
-    }
-  }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
 	{
@@ -3010,22 +2801,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         FeatureMapSharedPtrType f_dummy(new FeatureMapType());
         ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
 				vector<PeptideIdentification> p_dummy;
-        addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+        addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
 
 	      // ensure spectrum is drawn as sticks
 	      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
 				setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
 
-        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-        {
-          if (it->getMetaValue("IonName") != DataValue::EMPTY)
-          {
-            cout << it->getMetaValue("IonName") << endl;
-            DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
-            //Annotation1DItem* item = new Annotation1DTextItem(position, "x");
-            //active1DWindow_()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-          }
-        }
 			}
 			else
 			{
@@ -3036,7 +2817,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::showSpectrumAlignmentDialog()
 	{
-		Spectrum1DWidget* active_1d_window = active1DWindow_();
+    Spectrum1DWidget* active_1d_window = getActive1DWindow();
 		if (!active_1d_window || !active_1d_window->canvas()->mirrorModeActive())
 		{
 			return;
@@ -3073,7 +2854,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
-     const LayerData& layer = activeCanvas_()->getCurrentLayer();
+     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
      ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
     //open new 1D widget
@@ -3094,36 +2875,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (ms_level == 1)
     {
       // set visible aree to visible area in 2D view
-      w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
+      w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
     } else if (ms_level == 2 && spectra_identification_view_widget_->isVisible())
     {
-      vector<PeptideIdentification> pi = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
-      if (pi.size() != 0)
-      {
-        Size best_i_index = 0;
-        Size best_j_index = 0;
-        bool is_higher_score_better = false;
-        Size best_score = pi[0].getHits()[0].getScore();        
-        is_higher_score_better = pi[0].isHigherScoreBetter();
-
-        // determine best scoring hit
-        for(Size i=0; i!=pi.size(); ++i)
-        {
-          for(Size j=0; j!=pi[i].getHits().size(); ++j)
-          {
-            PeptideHit ph = pi[i].getHits()[j];
-            // better score?
-            if ((ph.getScore() < best_score && !is_higher_score_better)
-             || (ph.getScore() > best_score && is_higher_score_better))
-            {
-              best_score = ph.getScore();
-              best_i_index = i;
-              best_j_index = j;
-            }
-          }
-        }        
-        addTheoreticalSpectrum(pi[best_i_index].getHits()[best_j_index]);
-      }
+      toppview_behavior_->showSpectrumAs1D(index);
     }
 
     String caption = layer.name;
@@ -3138,7 +2893,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::showCurrentPeaksAs2D()
   {
-    const LayerData& layer = activeCanvas_()->getCurrentLayer();
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
     //open new 2D widget
@@ -3161,29 +2916,29 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::showCurrentPeaksAs3D()
   {
-    const LayerData& layer = activeCanvas_()->getCurrentLayer();
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
     if (layer.type==LayerData::DT_PEAK)
     {
       //open new 3D widget
       Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
 
-      ExperimentSharedPtrType exp_sptr = activeCanvas_()->getCurrentLayer().getPeakData();
+      ExperimentSharedPtrType exp_sptr = getActiveCanvas()->getCurrentLayer().getPeakData();
 
       if (!w->canvas()->addLayer(exp_sptr, layer.filename))
       {
         return;
       }
 
-     if (active1DWindow_()) // switch from 1D to 3D
+     if (getActive1DWindow()) // switch from 1D to 3D
      {
        //TODO:
        //- distinguish between survey scan and fragment scan (only makes sense for survey scan?)
        //- build new Area with mz range equal to 1D visible range
        //- rt range either overall MS1 data range or some convenient window
 
-     } else if (active2DWindow_())  // switch from 2D to 3D
+     } else if (getActive2DWindow())  // switch from 2D to 3D
      {
-        w->canvas()->setVisibleArea(activeCanvas_()->getVisibleArea());
+        w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
      }
 
       // set layer name
@@ -3280,13 +3035,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
   	//is there a canvas?
   	bool canvas_exists = false;
-  	if (activeCanvas_()!=0)
+    if (getActiveCanvas()!=0)
   	{
   		canvas_exists = true;
   	}
   	//is there a layer?
   	bool layer_exists = false;
-  	if (canvas_exists && activeCanvas_()->getLayerCount()!=0)
+    if (canvas_exists && getActiveCanvas()->getLayerCount()!=0)
   	{
   		layer_exists = true;
   	}
@@ -3296,7 +3051,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
 			topp_running = true;
 		}
-  	bool mirror_mode = active1DWindow_() && active1DWindow_()->canvas()->mirrorModeActive();
+    bool mirror_mode = getActive1DWindow() && getActive1DWindow()->canvas()->mirrorModeActive();
 		QList<QAction*> actions = this->findChildren<QAction*>("");
 		for (int i=0; i<actions.count(); ++i)
 		{
@@ -3372,59 +3127,59 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	}
     	else if (*it=="@bw")
     	{
-    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
     		{
-    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+          Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
-    			activeCanvas_()->setCurrentLayerParameters(tmp);
+          getActiveCanvas()->setCurrentLayerParameters(tmp);
     		}
     	}
     	else if (*it=="@bg")
     	{
-    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
     		{
-    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+          Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#dddddd;100,#000000");
-    			activeCanvas_()->setCurrentLayerParameters(tmp);
+          getActiveCanvas()->setCurrentLayerParameters(tmp);
     		}
     	}
     	else if (*it=="@b")
     	{
-    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
     		{
-    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+          Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#000000;100,#000000");
-    			activeCanvas_()->setCurrentLayerParameters(tmp);
+          getActiveCanvas()->setCurrentLayerParameters(tmp);
     		}
     	}
     	else if (*it=="@r")
     	{
-    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
     		{
-    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+          Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#ff0000;100,#ff0000");
-    			activeCanvas_()->setCurrentLayerParameters(tmp);
+          getActiveCanvas()->setCurrentLayerParameters(tmp);
     		}
     	}
     	else if (*it=="@g")
     	{
-    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
     		{
-    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+          Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#00ff00;100,#00ff00");
-    			activeCanvas_()->setCurrentLayerParameters(tmp);
+          getActiveCanvas()->setCurrentLayerParameters(tmp);
     		}
     	}
     	else if (*it=="@m")
     	{
-    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
     		{
-    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+          Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#ff00ff;100,#ff00ff");
-    			activeCanvas_()->setCurrentLayerParameters(tmp);
+          getActiveCanvas()->setCurrentLayerParameters(tmp);
     		}
     	}
-    	else if (!last_was_plus || !activeWindow_())
+      else if (!last_was_plus || !getActiveWindow())
     	{
     		splash_screen->showMessage((String("Loading file: ") + *it).toQString());
     		splash_screen->repaint();
@@ -3437,7 +3192,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     		splash_screen->repaint();
     		QApplication::processEvents();
     		last_was_plus = false;
-    		addDataFile(*it,false,true,"",activeWindow_()->window_id);
+        addDataFile(*it,false,true,"",getActiveWindow()->window_id);
     	}
     }
   }
@@ -3466,27 +3221,27 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::saveLayerAll()
 	{
-		activeCanvas_()->saveCurrentLayer(false);
+    getActiveCanvas()->saveCurrentLayer(false);
 	}
 
 	void TOPPViewBase::saveLayerVisible()
 	{
-		activeCanvas_()->saveCurrentLayer(true);
+    getActiveCanvas()->saveCurrentLayer(true);
 	}
 
 	void TOPPViewBase::toggleGridLines()
 	{
-		activeCanvas_()->showGridLines(!activeCanvas_()->gridLinesShown());
+    getActiveCanvas()->showGridLines(!getActiveCanvas()->gridLinesShown());
 	}
 
 	void TOPPViewBase::toggleAxisLegends()
 	{
-		activeWindow_()->showLegend(!activeWindow_()->isLegendShown());
+    getActiveWindow()->showLegend(!getActiveWindow()->isLegendShown());
 	}
 
 	void TOPPViewBase::showPreferences()
 	{
-		activeCanvas_()->showCurrentLayerPreferences();
+    getActiveCanvas()->showCurrentLayerPreferences();
 	}
 
 	void TOPPViewBase::metadataFileDialog()
@@ -3544,9 +3299,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 	}
 
+  SpectraIdentificationViewWidget* TOPPViewBase::getSpectraIdentificationViewWidget()
+  {
+    return spectra_identification_view_widget_;
+  }
+
   void TOPPViewBase::showSpectrumMetaData(int spectrum_index)
   {
-    activeCanvas_()->showMetaData(true, spectrum_index);
+    getActiveCanvas()->showMetaData(true, spectrum_index);
   }
 
 	void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
@@ -3571,7 +3331,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			if (source == layer_manager_)
 			{
 				//only the selected row can be dragged => the source layer is the selected layer
-				const LayerData& layer = activeCanvas_()->getCurrentLayer();
+        const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 
          //attach feature, consensus and peak data
         FeatureMapSharedPtrType features = layer.getFeatureMap();
@@ -3580,11 +3340,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				vector<PeptideIdentification> peptides = layer.peptides;
 
 				//add the data
-        addData_(features, consensus, peptides, peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
+        addData(features, consensus, peptides, peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
 			}
       else if (source == spectra_view_treewidget)
 			{
-				const LayerData& layer = activeCanvas_()->getCurrentLayer();
+        const LayerData& layer = getActiveCanvas()->getCurrentLayer();
         QTreeWidgetItem* item = spectra_view_treewidget->currentItem();
 				if (item != 0)
 				{
@@ -3596,7 +3356,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
 					vector<PeptideIdentification> p_dummy;
-          addData_(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.name, new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.name, new_id);
 				}
 			}
 			else if (source == 0)
@@ -3632,9 +3392,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		current_path_ = param_.getValue("preferences:default_path");
 
 		//update if the current layer has a path associated
-		if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")
+    if (getActiveCanvas() && getActiveCanvas()->getLayerCount()!=0 && getActiveCanvas()->getCurrentLayer().filename!="")
 		{
-			current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
+      current_path_ = File::path(getActiveCanvas()->getCurrentLayer().filename);
 		}
 	}
 
@@ -3643,43 +3403,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     spectra_views_dockwidget_->show();
     updateSpectraViewBar();
 	}
-
-  void TOPPViewBase::addPrecursorLabels1D_(const vector<Precursor>& pcs)
-  {
-    ExperimentType::SpectrumType& spectrum = active1DWindow_()->canvas()->getCurrentLayer().getCurrentSpectrum();
-
-    for(vector<Precursor>::const_iterator it= pcs.begin(); it != pcs.end(); ++it)
-    {
-      // determine start and stop of isolation window
-      DoubleReal isolation_window_lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
-      DoubleReal isolation_window_upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
-
-      // determine maximum peak intensity in isolation window
-      SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
-      SpectrumType::const_iterator vend = spectrum.MZEnd(isolation_window_upper_mz);           
-
-      DoubleReal max_intensity = numeric_limits<DoubleReal>::min();
-      for(; vbegin!=vend; ++vbegin)
-      {
-        if (vbegin->getIntensity() > max_intensity)
-        {
-          max_intensity = vbegin->getIntensity();
-        }
-      }
-
-      // DPosition<2> precursor_position = DPosition<2>(it->getMZ(), max_intensity);
-      DPosition<2> lower_position = DPosition<2>(isolation_window_lower_mz, max_intensity);
-      DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
-
-      Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
-      // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
-      vector<DoubleReal> ticks;
-      ticks.push_back(it->getMZ());
-      item->setTicks(ticks);
-      item->setSelected(false);
-      active1DWindow_()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-    }
-  }
 
   void TOPPViewBase::fileChanged_(const String& filename)
   {

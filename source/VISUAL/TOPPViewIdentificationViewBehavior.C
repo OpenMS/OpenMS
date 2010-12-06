@@ -1,0 +1,360 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
+#include <OpenMS/VISUAL/Annotation1DItem.h>
+#include <OpenMS/VISUAL/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/Annotation1DPeakItem.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+
+#include <QtGui/QMessageBox>
+#include <QtCore/QString>
+
+using namespace OpenMS;
+using namespace std;
+
+namespace OpenMS
+{
+    TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase* parent):
+        tv_(parent)
+    {
+    }
+
+   void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int index)
+   {
+     Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();
+     vector<PeptideIdentification> pi = widget_1D->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+     if (pi.size() != 0)
+     {
+       Size best_i_index = 0;
+       Size best_j_index = 0;
+       bool is_higher_score_better = false;
+       Size best_score = pi[0].getHits()[0].getScore();
+       is_higher_score_better = pi[0].isHigherScoreBetter();
+
+       // determine best scoring hit
+       for(Size i=0; i!=pi.size(); ++i)
+       {
+         for(Size j=0; j!=pi[i].getHits().size(); ++j)
+         {
+           PeptideHit ph = pi[i].getHits()[j];
+           // better score?
+           if ((ph.getScore() < best_score && !is_higher_score_better)
+            || (ph.getScore() > best_score && is_higher_score_better))
+           {
+             best_score = ph.getScore();
+             best_i_index = i;
+             best_j_index = j;
+           }
+         }
+       }
+       addTheoreticalSpectrumLayer_(pi[best_i_index].getHits()[best_j_index]);
+     }
+   }
+
+   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
+   {
+     Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();
+     widget_1D->canvas()->activateSpectrum(index);
+     const LayerData& cl = widget_1D->canvas()->getCurrentLayer();
+     UInt ms_level = cl.getCurrentSpectrum().getMSLevel();
+
+     if (ms_level == 2)  // show theoretical spectrum with automatic alignment
+     {
+       vector<PeptideIdentification> pi = cl.getCurrentSpectrum().getPeptideIdentifications();
+       if (pi.size() != 0)
+       {
+         Size best_i_index = 0;
+         Size best_j_index = 0;
+         bool is_higher_score_better = false;
+         Size best_score = pi[0].getHits()[0].getScore();
+         is_higher_score_better = pi[0].isHigherScoreBetter();
+
+         // determine best scoring hit
+         for(Size i=0; i!=pi.size(); ++i)
+         {
+           for(Size j=0; j!=pi[i].getHits().size(); ++j)
+           {
+             PeptideHit ph = pi[i].getHits()[j];
+             // better score?
+             if ((ph.getScore() < best_score && !is_higher_score_better)
+               || (ph.getScore() > best_score && is_higher_score_better))
+               {
+               best_score = ph.getScore();
+               best_i_index = i;
+               best_j_index = j;
+             }
+           }
+         }
+         addTheoreticalSpectrumLayer_(pi[best_i_index].getHits()[best_j_index]);
+       }
+     } else if (ms_level == 1)  // show precursor locations
+     {
+       vector<Precursor> precursors;
+       // collect all MS2 spectra precursor till next MS1 spectrum is encountered
+       for (Size i = index + 1; i < cl.getPeakData()->size(); ++i)
+       {
+         if ((*cl.getPeakData())[i].getMSLevel() == 1)
+         {
+           break;
+         }
+         // skip MS2 without precursor
+         if ((*cl.getPeakData())[i].getPrecursors().empty())
+         {
+           continue;
+         }
+         // there should be only one precusor per MS2 spectrum.
+         vector<Precursor> pcs = (*cl.getPeakData())[i].getPrecursors();
+         copy(pcs.begin(), pcs.end(), back_inserter(precursors));
+       }
+       addPrecursorLabels1D_(precursors);
+     }
+   }
+
+  void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
+  {
+    LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
+    SpectrumType& spectrum = current_layer.getCurrentSpectrum();
+
+    for(vector<Precursor>::const_iterator it= pcs.begin(); it != pcs.end(); ++it)
+    {
+      // determine start and stop of isolation window
+      DoubleReal isolation_window_lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
+      DoubleReal isolation_window_upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
+
+      // determine maximum peak intensity in isolation window
+      SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
+      SpectrumType::const_iterator vend = spectrum.MZEnd(isolation_window_upper_mz);
+
+      DoubleReal max_intensity = numeric_limits<DoubleReal>::min();
+      for(; vbegin!=vend; ++vbegin)
+      {
+        if (vbegin->getIntensity() > max_intensity)
+        {
+          max_intensity = vbegin->getIntensity();
+        }
+      }
+
+      // DPosition<2> precursor_position = DPosition<2>(it->getMZ(), max_intensity);
+      DPosition<2> lower_position = DPosition<2>(isolation_window_lower_mz, max_intensity);
+      DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
+
+      Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
+      // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
+      vector<DoubleReal> ticks;
+      ticks.push_back(it->getMZ());
+      item->setTicks(ticks);
+      item->setSelected(false);
+      current_layer.getCurrentAnnotations().push_front(item);
+    }
+  }
+
+  void TOPPViewIdentificationViewBehavior::removePrecursorLabels1D_(Size spectrum_index)
+  {
+    LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
+    current_layer.getAnnotations(spectrum_index).clear();
+  }
+
+
+  void TOPPViewIdentificationViewBehavior::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
+  {
+    SpectrumCanvas* current_canvas = tv_->getActive1DWindow()->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+
+    AASequence aa_sequence = ph.getSequence();
+
+    // get measured spectrum indices and spectrum
+    Size real_spectrum_layer_index = current_canvas->activeLayerIndex();
+    Size real_spectrum_index = current_layer.current_spectrum;
+    SpectrumType& real_spectrum = current_layer.getCurrentSpectrum();
+
+    const Param& tv_params = tv_->getParameters();
+    Int charge = 1;
+
+    if (aa_sequence.isValid())
+    {
+      RichPeakSpectrum rich_spec;
+      TheoreticalSpectrumGenerator generator;
+      Param p;
+      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+      p.setValue("max_isotope", tv_params.getValue("preferences:idview:max_isotope"), "Number of isotopic peaks");
+      p.setValue("add_losses", tv_params.getValue("preferences:idview:add_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+      p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
+      p.setValue("add_abundant_immonium_ions", tv_params.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
+
+      p.setValue("a_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
+      p.setValue("b_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
+      p.setValue("c_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
+      p.setValue("x_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
+      p.setValue("y_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
+      p.setValue("z_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
+      p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
+      generator.setParameters(p);
+
+      try
+      {
+        if (tv_params.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
+        }
+        if (tv_params.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
+        }
+        if (tv_params.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
+        }
+        if (tv_params.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
+        }
+        if (tv_params.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
+        }
+        if (tv_params.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
+        }
+        if (tv_params.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
+        {
+          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+        }
+        if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
+        {
+          generator.addAbundantImmoniumIons(rich_spec);
+        }
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::warning(tv_, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
+        return;
+      }
+
+      // convert rich spectrum to simple spectrum
+      PeakSpectrum new_spec;
+      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+      {
+        new_spec.push_back(static_cast<Peak1D>(*it));
+      }
+
+      PeakMap new_exp;
+      new_exp.push_back(new_spec);
+      ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+      FeatureMapSharedPtrType f_dummy(new FeatureMapType());
+      ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+      vector<PeptideIdentification> p_dummy;
+
+      // Block update events for identification widget
+      tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
+
+      String layer_caption = aa_sequence.toString().toQString() + QString(" (identification view)");
+      tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, false, "", layer_caption.toQString());
+
+      // get layer index of new layer
+      Size theoretical_spectrum_layer_index = tv_->getActive1DWindow()->canvas()->activeLayerIndex();
+
+      // kind of a hack to check whether adding the layer was successful
+      if (real_spectrum_layer_index != theoretical_spectrum_layer_index)
+      {
+        // Ensure theoretical spectrum is drawn as dashed sticks
+        tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+        tv_->getActive1DWindow()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
+        // Add ion names as annotations to the theoretical spectrum
+        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+        {
+          if (it->getMetaValue("IonName") != DataValue::EMPTY)
+          {
+            DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
+            QString s(((string)it->getMetaValue("IonName")).c_str());
+            Annotation1DItem* item = new Annotation1DPeakItem(position, s);
+            item->setSelected(false);
+            tv_->getActive1DWindow()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+          }
+        }
+        // activate real data layer and spectrum
+        tv_->getActive1DWindow()->canvas()->activateLayer(real_spectrum_layer_index);
+        tv_->getActive1DWindow()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
+
+        // spectra alignment
+        Param param;
+
+        DoubleReal tolerance = tv_params.getValue("preferences:idview:tolerance");
+        bool unit_is_ppm = tv_params.getValue("preferences:idview:is_relative_tolerance").toBool();
+
+        param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance in the alignment");
+        String sunit_is_ppm = unit_is_ppm ? "true" : "false";
+        param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
+        tv_->getActive1DWindow()->performAlignment(real_spectrum_layer_index, theoretical_spectrum_layer_index, param);
+
+        tv_->updateLayerBar();
+
+        tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
+      }
+    }
+    else
+    {
+      QMessageBox::warning(tv_, "Error", "The entered peptide sequence is invalid!");
+    }
+  }
+
+  void TOPPViewIdentificationViewBehavior::deactivate1DSpectrum(int spectrum_index)
+  {
+    removeTheoreticalSpectrumLayer_();
+    removePrecursorLabels1D_(spectrum_index);
+  }
+
+  void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
+  {
+    Spectrum1DWidget* spectrum_widget_1D = tv_->getActive1DWindow();
+    Spectrum1DCanvas* canvas_1D = spectrum_widget_1D->canvas();
+
+    // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
+    // before activating the next normal spectrum
+    if (spectrum_widget_1D)
+    {
+      Size lc = canvas_1D->getLayerCount();
+      for(Size i=0; i!=lc; ++i)
+      {
+        String ln = canvas_1D->getLayerName(i);
+        if (ln.hasSubstring("(identification view)"))
+        {
+          canvas_1D->removeLayer(i);
+          canvas_1D->resetAlignment();
+          tv_->updateLayerBar();
+          break;
+        }
+      }      
+    }
+  }
+}

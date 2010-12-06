@@ -57,6 +57,7 @@ namespace OpenMS
       void updateEntries();
     signals:
       void spectrumSelected(int);
+      void spectrumDeselected(int);
       void spectrumDoubleClicked(int);
       void showSpectrumAs1D(int);
       void showSpectrumMetaData(int);
