@@ -192,14 +192,12 @@ namespace OpenMS
       /// Returns a const reference to the annotations of the current spectrum (1d view)
       inline const Annotations1DContainer& getAnnotations(Size spectrum_index) const
       {
-        OPENMS_ASSERTIONS(spectrum_index < annotations_1d.size());
         return annotations_1d[spectrum_index];
       }
 
       /// Returns a mutable reference to the annotations of the current spectrum (1d view)
       inline Annotations1DContainer& getAnnotations(Size spectrum_index)
       {
-        OPENMS_ASSERTIONS(spectrum_index < annotations_1d.size());
         return annotations_1d[spectrum_index];
       }
 
