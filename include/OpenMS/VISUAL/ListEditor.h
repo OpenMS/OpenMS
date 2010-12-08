@@ -29,12 +29,12 @@
 #define OPENMS_VISUAL_LISTEDITOR_H
 
 
-#include<OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <QtGui/QDialog>
-#include<QtGui/QListWidget>
+#include <QtGui/QListWidget>
 #include <QtGui/QItemDelegate>
 
-	class QPushButton;
+class QPushButton;
 	
 namespace OpenMS
 {

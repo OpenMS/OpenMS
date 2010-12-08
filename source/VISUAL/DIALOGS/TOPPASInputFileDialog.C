@@ -70,10 +70,11 @@ namespace OpenMS
 	
 	void TOPPASInputFileDialog::checkValidity_()
 	{
+			// we ALLOW non-existing filenames (e.g. for FASTA files, which
+			// are searched in other paths via OpenMS.ini:id_db_dir
 		if (!fileNameValid(line_edit->text()))
 		{
-			QMessageBox::warning(0,"Invalid file name","The specified file does not exist!");
-			return;
+      QMessageBox::warning(0,"Invalid file name","Warning: filename does not exist!");
 		}
 		
 		accept();

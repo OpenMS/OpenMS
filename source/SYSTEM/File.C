@@ -43,19 +43,10 @@
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  define NOMINMAX
-#  include <Windows.h>
-#  include <Winioctl.h> // for DeviceIoControl and constants e.g. FSCTL_SET_SPARSE
+#  include <Windows.h>  // for 'GetCurrentProcessId()'
 #else
-#  include <fcntl.h> // for O_RDWR etc
-#  include <unistd.h>
+#  include <unistd.h>   // for 'getpid()'
 #endif
-
-// Mac OS X does not provide lseek64 and open64, so we need to replace them with their normal counterparts
-#if defined __APPLE__ & defined __MACH__
-#define lseek64 lseek
-#define open64  open 
-#endif
-
 
 using namespace std;
 
@@ -155,7 +146,7 @@ namespace OpenMS
 			
 			if (exists(loc))
 			{
-				return loc;
+        return String(QDir::cleanPath(loc.toQString()));
 			}
 		}
 		
@@ -242,7 +233,7 @@ namespace OpenMS
 
   String File::getTempDirectory()
   {
-    Param p = getSystemParameterDefaults_();
+    Param p = getSystemParameters();
     if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
     {
        return p.getValue("temp_dir");
@@ -253,7 +244,7 @@ namespace OpenMS
   /// The current OpenMS user data path (for result files)
   String File::getUserDirectory()
   {
-    Param p = getSystemParameterDefaults_();
+    Param p = getSystemParameters();
     String dir;
     if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
     {
@@ -267,7 +258,25 @@ namespace OpenMS
     return dir;
   }
 
-  Param File::getSystemParameters_()
+  String File::findDatabase(const String& db_name)
+  {
+    Param sys_p = getSystemParameters();
+    String full_db_name;
+    try
+    {
+      full_db_name = find(db_name, sys_p.getValue("id_db_dir"));
+      LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'\n";
+    }
+    catch (Exception::BaseException& e)
+    {
+      LOG_ERROR << "Input database '" + db_name + "' not found. Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!";
+      throw e;
+    }
+
+    return full_db_name;
+  }
+
+  Param File::getSystemParameters()
   {
     String filename = String(QDir::homePath()) + "/.OpenMS/OpenMS.ini";
     Param p;
@@ -309,6 +318,11 @@ namespace OpenMS
     p.setValue("version", VersionInfo::getVersion());
     p.setValue("home_dir", ""); // only active when user enters something in this value
     p.setValue("temp_dir", ""); // only active when user enters something in this value
+    p.setValue("id_db_dir", StringList::create(""),
+                            String("Default directory for FASTA and psq files used as databased for id engines. ") + \
+                                   "This allows you to specify just the filename of the DB in the " + \
+                                   "respective TOPP tool, and the database will be searched in the directories specified here " + \
+                                   "");// only active when user enters something in this value
     p.setValue("threads", 2);
     // TODO: maybe we add -log, -debug.... or....
 

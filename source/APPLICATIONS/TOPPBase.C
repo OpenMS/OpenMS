@@ -2169,7 +2169,7 @@ namespace OpenMS
 		tmp.update(tool_user_defaults);
 
 		// 3rd stage, use OpenMS.ini from library to override settings
-		Param system_defaults(File::getSystemParameters_());
+		Param system_defaults(File::getSystemParameters());
     // this currently writes to the wrong part of the ini-file (revise) or remove altogether:
     //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
     //   furthermore, entering those params will not allow us to change settings in OpenMS.ini and expect them to be effective, as they will be overriden by the tools' ini file

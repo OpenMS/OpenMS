@@ -22,9 +22,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch, Knut Reinert $
+// $Authors: Andreas Bertsch, Knut Reinert, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -64,6 +65,9 @@ using namespace std;
 	indicating if the peptide sequence is found in a 'target', a 'decoy' or in both 'target+decoy' protein. This information is
 	crucial for the @ref TOPP_FalseDiscoveryRate tool.
 
+  This tool supports relative database filenames, which (when not found in the current working directory) is looked up in
+  the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PeptideIndexer.cli
 */
@@ -86,7 +90,7 @@ class TOPPPeptideIndexer
 		{
 			registerInputFile_("in","<file>","","Input idXML file containing the identifications.");
 			setValidFormats_("in", StringList::create("IdXML"));
-			registerInputFile_("fasta", "<file>", "", "Input sequence database in fasta format.");
+			registerInputFile_("fasta", "<file>", "", "Input sequence database in fasta format. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
 			registerOutputFile_("out","<file>","","Output idXML file.");
 			setValidFormats_("in", StringList::create("IdXML"));
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended to the accession of the protein database to indicate a decoy protein.", false);
@@ -100,11 +104,27 @@ class TOPPPeptideIndexer
 			// parsing parameters
 			//-------------------------------------------------------------
 			String in(getStringOption_("in"));
-			String fasta(getStringOption_("fasta"));
 			String out(getStringOption_("out"));
 			bool write_protein_sequence(getFlag_("write_protein_sequence"));
 			bool keep_unreferenced_proteins(getFlag_("keep_unreferenced_proteins"));
 			String decoy_string(getStringOption_("decoy_string"));
+
+      String db_name(getStringOption_("fasta"));
+      if (!File::readable(db_name))
+      {
+        String full_db_name;
+        try
+        {
+          full_db_name = File::findDatabase(db_name);
+        }
+        catch (...)
+        {
+			    printUsage_();
+			    return ILLEGAL_PARAMETERS;
+        }
+        db_name = full_db_name;
+      }
+      
 
 			//-------------------------------------------------------------
 			// reading input
@@ -112,7 +132,7 @@ class TOPPPeptideIndexer
 
 			// we stream the Fasta file
 			vector<FASTAFile::FASTAEntry> proteins;
-			FASTAFile().load(fasta, proteins);
+			FASTAFile().load(db_name, proteins);
 
 			vector<ProteinIdentification> prot_ids;
 			vector<PeptideIdentification> pep_ids;

@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -76,7 +76,13 @@ using namespace std;
 	of the NCBI-tools suite (see ftp://ftp.ncbi.nlm.nih.gov/blast/executables/release/2.2.13/ for a working version).
   The latest NCBI BLAST distribution does not contain the formatdb executable any longer!).
   Use @em formatdb @em -i @em SwissProt_TargetAndDecoy.fasta @em -o to create
-  additional files, which	will be used by @em OMSSA. The database option of the @em OMSSAAdapter should contain the name of the psq file created by formatdb (e.g. SwissProt_TargetAndDecoy.fasta.psq).
+  additional files, which	will be used by @em OMSSA. The database option of the @em OMSSAAdapter should contain the name of the psq file
+  , e.g., 'SwissProt_TargetAndDecoy.fasta.psq'. The '.psq' suffix can also be omitted, e.g. 'SwissProt_TargetAndDecoy.fasta' and will be added
+  automatically.
+  This makes it easy to specifiy a common TOPPAS input node (using only the FASTA suffix) for many adapters.
+  
+  This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
+  the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
 	The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
 	proteases can be found be executing @em omssacl @em -el.
@@ -117,7 +123,7 @@ class TOPPOMSSAAdapter
       registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance (Default: Dalton)", false);
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error in Dalton", false);
       registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
-      registerInputFile_("database", "<psq-file>", "", "NCBI formated fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'");
+      registerInputFile_("database", "<psq-file>", "", "NCBI formatted fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end if '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
       registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
 			vector<String> all_mods;
@@ -354,13 +360,27 @@ class TOPPOMSSAAdapter
 
       if (db_name.suffix('.') != "psq")
       {
-        writeLog_("Input database has invalid name. Make sure it ends with '.psq'. Got '" + db_name + "'. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
+        db_name += ".psq";
       }
       db_name = db_name.substr(0,db_name.size()-4);
 
-			parameters += " -d "  +  db_name; // getStringOption_("d");
+      if (!File::readable(db_name))
+      {
+        String full_db_name;
+        try
+        {
+          full_db_name = File::findDatabase(db_name);
+        }
+        catch (...)
+        {
+			    printUsage_();
+			    return ILLEGAL_PARAMETERS;
+        }
+        db_name = full_db_name;
+      }
+
+
+			parameters += " -d "  +  db_name;
 			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
 			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));

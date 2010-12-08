@@ -661,12 +661,10 @@ namespace OpenMS
 				if (current_type == "input file list")
 				{
 					StringList file_names = vertices_param.getValue(current_id + ":file_names");
-					// make file names absolute again
-					QDir load_dir(File::path(file).toQString());
 					QStringList file_names_qt;
 					for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
 					{
-						file_names_qt.push_back(QDir::cleanPath(load_dir.absoluteFilePath(str_it->toQString())));
+						file_names_qt.push_back(QDir::cleanPath(str_it->toQString()));
 					}
 					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names_qt);
 					current_vertex = iflv;

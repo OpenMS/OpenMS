@@ -121,12 +121,17 @@ namespace OpenMS
       /// The current OpenMS user data path (for result files)
       static String getUserDirectory();
 
-  private:
-      
       /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
       /// or create/repair it if required
-      static Param getSystemParameters_();
+      static Param getSystemParameters();
 
+      /// uses File::find() to search for a file names @p db_name
+      /// in the 'id_db_dir' param of the OpenMS system parameters
+      /// @exception FileNotFound is thrown, if the file is not found
+      static String findDatabase(const String& db_name);
+
+  private:
+      
       /// get defaults for the system's Temp-path, user home directory etc
       static Param getSystemParameterDefaults_();
 	};
