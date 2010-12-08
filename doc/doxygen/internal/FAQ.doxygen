@@ -443,22 +443,22 @@ svn propset svn:eol-style native MyClass.C
 
 	    <LI><b>How is the command line documentation for TOPP/UTILS tools created?</b><BR>
 				The program @a OpenMS/doc/doxygen/parameters/TOPPDocumenter.C creates the command line documentation
-				for all classes that are included in the static TOPPBase tools list.
+				for all classes that are included in the static ToolHandler.C tools list.
 				It can be included into the documentation using the following doxygen command:
 				@code
 @verbinclude TOPP_<tool name>.cli
 				@endcode
 				You can test if everything worked by calling @a make @a doc_param_internal .
-				The comand line documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
+				The command line documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
 	    <LI><b>What are the important files for adding a new tutorial section?</b><BR>
 		    %OpenMS tutorial:
-		    <BR>OpenMS/doc/OpenMS_tutorial/refman_overwrite.tex.in
-		    <BR>%OpenMS/doc/doxygen/public/OpenMS_Tutorial_html.doxygen
+		    <BR>OpenMS/doc/OpenMS_tutorial/refman_overwrite.tex.in (for PDF tutorials)
+		    <BR>%OpenMS/doc/doxygen/public/OpenMS_Tutorial_html.doxygen (for html tutorials)
 
 				TOPP and TOPPView tutorial:
-		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex.in
-		    <BR>%OpenMS/doc/doxygen/public/TOPP_Tutorial_html.doxygen
+		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex.in (for PDF tutorials)
+		    <BR>%OpenMS/doc/doxygen/public/TOPP_Tutorial_html.doxygen (for html tutorials)
 
 		</UL>
 	<H2 style="border-top:2px solid grey;">Bug fixes</H2>

@@ -2,11 +2,9 @@
   
   @page known_dev_bugs Known Issues
   
-  Have look at the Internal FAQ, if you cannot find your answer here. Write to the OpenMS mailing list, if the problem persists.
+  Have look at the Internal FAQ, if you cannot find your answer here. Write to the %OpenMS mailing list, if the problem persists.
   
 	@section known_issues_windows ... on Windows
-
-  <H3 style="border-top:2px solid grey;">... on Windows</H2>
 
     <UL>
         <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinder) gives "Entry point not found"</B><BR>

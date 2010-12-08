@@ -154,7 +154,7 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
       </UL>
     <LI> GPL Ghostscript (8.60) for Windows
       <UL>
-         <LI> Download binaries for Windows (http://www.ghostscript.com/awki -> Sourceforge -> Win32 Binaries) and install
+         <LI> Download binaries for Windows (http://www.ghostscript.com/) and install
          <LI> add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
       </UL>
 		<LI>

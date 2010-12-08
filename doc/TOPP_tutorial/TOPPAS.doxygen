@@ -38,7 +38,7 @@
 		editing process and before execution,
 		in order to make it more difficult to create an invalid workflow.
 		Once set up and saved, a workflow can also be run without the GUI using
-		the @a TOPPAS @a -execute @a \<file\> command line option.
+		the @a ExecutePipeline @a -in @a \<file\> command line option.
 		
 		The following figure shows a simple example pipeline that has just been created
 		and executed successfully:

@@ -1,0 +1,64 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
+
+/**
+	
+	@page TOPP_advanced TOPP for Advanced Users
+	
+
+	We will not introduce you to some advanced concepts of TOPP,
+  which will increase your productivity and easy usage.
+	
+	<b>Global database for search engine adapters</b>
+		
+		In your $HOME directoy you will find an OpenMS.ini file in the @a .%OpenMS subfolder.
+    This INI file contains global parameters which are honored by many/all TOPP tools - depending on
+    what the parameters refer to.
+    The @a id_db_dir parameter allows you to specify one or more directories where you have placed
+    FASTA files (or related, e.g., .psq files). If you now specify just a filename (without path) in an ID engine
+    adapter, the filename will be looked up in the current working directory. If its not found, the directories specified in 
+    @a id_db_dir will be searched. This allows you to build scripts and/or TOPPAS pipelines which are portable across 
+    several computers - you just have to adapt the OpenMS.ini once on each machine.
+    
+    Note when using TOPPAS:
+      * You can use an "input file" node to specify the FASTA file for several engines simultaneously.
+        However, when selecting the file, TOPPAS will use the absolute pathname and the dialog will not allow you
+        to name a non-existing file. After you've selected the file, you can however edit the filename and remove the
+        path (this will issue a warning which you can ignore).
+        
+    @note This approach does not work for our MascotAdapters, as each Mascot instance has its own database managed internally. You can however,
+    make sure that the database is present on all mascot servers you are going to use, thus making the INI settings portable.
+
+  <b>Using External tools in your workflows</b>
+  
+    %OpenMS supports the wrapping of external tools (like msconvert from ProteoWizard), 
+    thus allowing you to build scripts and/or TOPPAS pipelines containing external tools. 
+
+    \include TOOLS/EXTERNAL/ReadMe.txt
+
+
+*/

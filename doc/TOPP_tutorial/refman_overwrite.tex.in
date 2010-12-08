@@ -72,6 +72,19 @@
 	\input{TOPPView_feature_detection_centroided}
 	\pagebreak
 
+\section{Using TOPPAS to create and run TOPP pipelines}
+
+	\input{TOPPAS_general}
+	\pagebreak
+	\input{TOPPAS_interface}
+	\pagebreak
+	\input{TOPPAS_examples}
+
+\section{Advanced Users: Tips&Tricks}
+    
+  \input{TOPP_advanced}
+	\pagebreak
+  
 \section{Scripting with TOPP}
 	
 	\input{TOPP_general}
@@ -94,12 +107,5 @@
 	\pagebreak
 	\input{TOPP_example_convert}
 
-\section{Using TOPPAS to create and run TOPP pipelines}
-
-	\input{TOPPAS_general}
-	\pagebreak
-	\input{TOPPAS_interface}
-	\pagebreak
-	\input{TOPPAS_examples}
 
 \end{document}

@@ -22,8 +22,27 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer:  $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
+
+//########################### Please read this carefully! ###########################
+
+// Sections:
+// - to add new pages you have to add them to:
+//    - doc/TOPP_tutorial/refman_overwrite.tex.in (pdf output)
+//    - doc/doxygen/public/TOPP_Tutorial_html.doxygen (html output)
+
+// Conventions:
+// - Please write a short introduction for each chapter that explains
+//   what classes are described and where these classes can be found (folder)
+// - Use @a to visually highlight class names, namespaces, etc
+// - When using example code, put it in the OpenMS/source/Examples folder
+//   to make sure it can be compiled. The name of the file should be in the text
+//   to make the file easy to find for the user.
+//   Dont forget to add the built example application to the svn ignore list:
+//   'svn propedit svn:ignore source/EXAMPLES/'
+// - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
+//   link to the OpenMS namspace is generated automatically
 
 /**
 	
@@ -61,6 +80,19 @@
 		- @subpage TOPPView_peakpicking
 		- @subpage TOPPView_feature_detection_centroided
 
+  <b>Using TOPPAS to create and run TOPP pipelines</b>
+	
+		This part of the tutorial introduces TOPPAS, a tool for visual creation
+		and execution of TOPP pipelines.
+		
+		- @subpage TOPPAS_general
+		- @subpage TOPPAS_interface
+		- @subpage TOPPAS_examples
+  
+  <b>Advanced Users: Tips&Tricks</b>
+    
+    Learn how to use advanced functionalities, increasing productivity in @subpage TOPP_advanced .
+    
 	<b>Scripting with TOPP</b>
 	
 		This part of the tutorial will give you a detailled overview of the most important TOPP tools.
@@ -76,14 +108,5 @@
 		- @subpage TOPP_example_id
 		- @subpage TOPP_example_ppp
 		- @subpage TOPP_example_convert
-	
-	<b>Using TOPPAS to create and run TOPP pipelines</b>
-	
-		This part of the tutorial introduces TOPPAS, a tool for visual creation
-		and execution of TOPP pipelines.
-		
-		- @subpage TOPPAS_general
-		- @subpage TOPPAS_interface
-		- @subpage TOPPAS_examples
-	
+
 */
