@@ -50,39 +50,75 @@ namespace OpenMS
 
    void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int index)
    {
-     Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();
-     vector<PeptideIdentification> pi = widget_1D->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
-     if (pi.size() != 0)
-     {
-       Size best_i_index = 0;
-       Size best_j_index = 0;
-       bool is_higher_score_better = false;
-       Size best_score = pi[0].getHits()[0].getScore();
-       is_higher_score_better = pi[0].isHigherScoreBetter();
+     // basic behavior 1
+     const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
+     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
-       // determine best scoring hit
-       for(Size i=0; i!=pi.size(); ++i)
-       {
-         for(Size j=0; j!=pi[i].getHits().size(); ++j)
-         {
-           PeptideHit ph = pi[i].getHits()[j];
-           // better score?
-           if ((ph.getScore() < best_score && !is_higher_score_better)
-            || (ph.getScore() > best_score && is_higher_score_better))
-           {
-             best_score = ph.getScore();
-             best_i_index = i;
-             best_j_index = j;
-           }
-         }
-       }
-       addTheoreticalSpectrumLayer_(pi[best_i_index].getHits()[best_j_index]);
-     }
+    //open new 1D widget with the current default parameters
+    Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
+    //add data
+    if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+    {
+      return;
+    }
+
+    w->canvas()->activateSpectrum(index);
+
+    // set relative (%) view of visible area
+    w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+
+    //for MS1 spectra set visible area to visible area in 2D view.
+    UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
+    if (ms_level == 1)
+    {
+      // set visible aree to visible area in 2D view
+      w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
+    }
+
+    // special behavior
+    Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();
+    vector<PeptideIdentification> pi = widget_1D->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+    if (pi.size() != 0)
+    {
+      Size best_i_index = 0;
+      Size best_j_index = 0;
+      bool is_higher_score_better = false;
+      Size best_score = pi[0].getHits()[0].getScore();
+      is_higher_score_better = pi[0].isHigherScoreBetter();
+
+      // determine best scoring hit
+      for(Size i=0; i!=pi.size(); ++i)
+      {
+        for(Size j=0; j!=pi[i].getHits().size(); ++j)
+        {
+          PeptideHit ph = pi[i].getHits()[j];
+          // better score?
+          if ((ph.getScore() < best_score && !is_higher_score_better)
+           || (ph.getScore() > best_score && is_higher_score_better))
+          {
+            best_score = ph.getScore();
+            best_i_index = i;
+            best_j_index = j;
+          }
+        }
+      }
+      addTheoreticalSpectrumLayer_(pi[best_i_index].getHits()[best_j_index]);
+    }
+
+    // basic behavior 2
+    String caption = layer.name;
+    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+
+    tv_->showSpectrumWidgetInWindow(w, caption);
+    tv_->updateLayerBar();
+    tv_->updateSpectraViewBar();
+    tv_->updateFilterBar();
+    tv_->updateMenu();
    }
 
    void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
    {
-     Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();
+     Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();     
      widget_1D->canvas()->activateSpectrum(index);
      const LayerData& cl = widget_1D->canvas()->getCurrentLayer();
      UInt ms_level = cl.getCurrentSpectrum().getMSLevel();
@@ -356,5 +392,18 @@ namespace OpenMS
         }
       }      
     }
+  }
+
+  void TOPPViewIdentificationViewBehavior::activateBehavior()
+  {
+    // no special handling of activation needed
+  }
+
+  void TOPPViewIdentificationViewBehavior::deactivateBehavior()
+  {
+    // remove precusor labels, theoretical spectra and trigger repaint
+    removePrecursorLabels1D_(tv_->getActive1DWindow()->canvas()->getCurrentLayer().current_spectrum);
+    removeTheoreticalSpectrumLayer_();
+    tv_->getActive1DWindow()->canvas()->repaint();
   }
 }

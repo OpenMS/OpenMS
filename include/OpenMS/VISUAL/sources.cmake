@@ -34,6 +34,8 @@ TOPPASTabBar.h
 TOPPASTreeView.h
 TOPPASResource.h
 TOPPASResources.h
+TOPPViewBehaviorInterface.h
+TOPPViewSpectraViewBehavior.h
 TOPPViewIdentificationViewBehavior.h
 EnhancedWorkspace.h
 )

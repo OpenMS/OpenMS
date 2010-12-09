@@ -25,8 +25,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
-#define OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
+#ifndef OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H
+#define OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
@@ -37,7 +37,7 @@ namespace OpenMS
 {
   class TOPPViewBase;
 
-  class TOPPViewIdentificationViewBehavior :
+  class TOPPViewSpectraViewBehavior :
       public TOPPViewBehaviorInterface
   {
     Q_OBJECT
@@ -63,7 +63,7 @@ namespace OpenMS
 
     public:
       /// Construct the behaviour with its parent
-      TOPPViewIdentificationViewBehavior(TOPPViewBase* parent);
+      TOPPViewSpectraViewBehavior(TOPPViewBase* parent);
 
     public slots:
       /// Behavior for showSpectraumAs1D
@@ -80,23 +80,8 @@ namespace OpenMS
 
       /// Slot for behavior deactivation
       virtual void deactivateBehavior();
-
-    private:
-      /// Adds labels for the provided precursors to the 1D spectrum
-      void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);
-
-      /// Removes the precursor labels for from the specified 1D spectrum
-      void removePrecursorLabels1D_(Size spectrum_index);
-
-      /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
-      void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
-
-      /// removes all layer with theoretical spectrum generated in identification view
-      void removeTheoreticalSpectrumLayer_();
-
     private:
       TOPPViewBase* tv_;
   };
 }
-
-#endif // OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
+#endif // OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H

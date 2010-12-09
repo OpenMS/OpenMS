@@ -460,28 +460,28 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           //spectrum selection
           spectra_views_dockwidget_ = new QDockWidget("Spectra views", this);
           addDockWidget(Qt::RightDockWidgetArea, spectra_views_dockwidget_);
-          QTabWidget* tw = new QTabWidget(spectra_views_dockwidget_);
+          views_tabwidget_ = new QTabWidget(spectra_views_dockwidget_);
 
-          spectra_views_dockwidget_->setWidget(tw);
+          spectra_views_dockwidget_->setWidget(views_tabwidget_);
+
           spectra_view_widget_ = new SpectraViewWidget();
           connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
           connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
           connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
           connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
+          spectraview_behavior_ = new TOPPViewSpectraViewBehavior(this);
+          view_behavior_ = spectraview_behavior_;
 
           spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
-          connect(spectra_identification_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
+          connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), this, SLOT(deactivate1DSpectrum(int)));
           connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
           connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
+          identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
 
-          toppview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
-          connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), toppview_behavior_, SLOT(deactivate1DSpectrum(int)));
-
-          tw->addTab(spectra_view_widget_, "Spectra view");
-          tw->addTab(spectra_identification_view_widget_, "Identification view");
-
+          views_tabwidget_->addTab(spectra_view_widget_, "Spectra view");
+          views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
           // switch between different view tabs
-          connect(tw, SIGNAL(currentChanged(int)), this, SLOT(updateSpectraViewBar()));
+          connect(views_tabwidget_, SIGNAL(currentChanged(int)), this, SLOT(viewChanged(int)));
 
           windows->addAction(spectra_views_dockwidget_->toggleViewAction());
 
@@ -1264,19 +1264,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       if (!is_2D) //1d
       {
-        target_window = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
+        target_window = new Spectrum1DWidget(getSpectrumParameters(1), ws_);
       }
       else if (maps_as_1d) // 2d in 1d window
       {
-        target_window = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
+        target_window = new Spectrum1DWidget(getSpectrumParameters(1), ws_);
       }
       else if (maps_as_2d || mergeable) //2d or features/IDs
       {
-        target_window = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);        
+        target_window = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
       }
       else //3d
       {
-        target_window = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
+        target_window = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
       }
     }
 
@@ -1358,7 +1358,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     if (as_new_window)
     {
-      showAsWindow_(target_window,caption);
+      showSpectrumWidgetInWindow(target_window,caption);
 		}
     //updateDataBar();
 		updateLayerBar();
@@ -1817,6 +1817,28 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
   }
 
+  void TOPPViewBase::viewChanged(int tab_index)
+  {
+    // notify that behavior will be deactivated
+    view_behavior_->deactivateBehavior();
+
+    // set new behavior
+    if (views_tabwidget_->tabText(tab_index) == "Spectra view")
+    {      
+       view_behavior_ = spectraview_behavior_;
+    } else if (views_tabwidget_->tabText(tab_index) == "Identification view")
+    {
+      view_behavior_ = identificationview_behavior_;
+    } else
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
+
+    // notify that new behavior has been activated
+    view_behavior_->activateBehavior();
+    updateSpectraViewBar();    
+  }
+
   /*
   void TOPPViewBase::updateDataBar()
   {
@@ -2130,7 +2152,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
   }
 
-  void TOPPViewBase::showAsWindow_(SpectrumWidget* sw, const String& caption)
+  void TOPPViewBase::showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption)
   {
   	ws_->addWindow(sw);
     connect(sw->canvas(),SIGNAL(preferencesChange()),this,SLOT(updateLayerBar()));
@@ -2205,13 +2227,22 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     Spectrum1DWidget* widget_1d = getActive1DWindow();
     if (widget_1d)
     {
-      widget_1d->canvas()->activateSpectrum(index);
-      // special visualization for spectra identification view
-      if (spectra_identification_view_widget_->isVisible())
-      {
-        toppview_behavior_->activate1DSpectrum(index);
-      }
+      view_behavior_->activate1DSpectrum(index);
     }
+  }
+
+  void TOPPViewBase::deactivate1DSpectrum(int index)
+  {
+    Spectrum1DWidget* widget_1d = getActive1DWindow();
+    if (widget_1d)
+    {
+      view_behavior_->deactivate1DSpectrum(index);
+    }
+  }
+
+  QWorkspace* TOPPViewBase::getWorkspace() const
+  {
+    return ws_;
   }
 
   SpectrumWidget* TOPPViewBase::getActiveWindow() const
@@ -2854,41 +2885,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
-     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
-
-    //open new 1D widget
-    Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
-    //add data
-    if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
-  	{
-  		return;
-    }
-
-		w->canvas()->activateSpectrum(index);
-
-		// set relative (%) view of visible area
-    w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
-
-    //for MS1 spectra set visible area to visible area in 2D view.
-    UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
-    if (ms_level == 1)
+    Spectrum1DWidget* widget_1d = getActive1DWindow();
+    if (widget_1d)
     {
-      // set visible aree to visible area in 2D view
-      w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
-    } else if (ms_level == 2 && spectra_identification_view_widget_->isVisible())
-    {
-      toppview_behavior_->showSpectrumAs1D(index);
+      if (spectra_view_widget_->isVisible())
+      {
+        spectraview_behavior_->showSpectrumAs1D(index);
+      }
+
+      if (spectra_identification_view_widget_->isVisible())
+      {
+        identificationview_behavior_->showSpectrumAs1D(index);
+      }
     }
-
-    String caption = layer.name;
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-
-    showAsWindow_(w,caption);
-    updateLayerBar();
-    updateSpectraViewBar();
-    updateFilterBar();
-    updateMenu();
 	}
 
   void TOPPViewBase::showCurrentPeaksAs2D()
@@ -2897,7 +2906,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
     //open new 2D widget
-    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
+    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
 
     //add data
     if (!w->canvas()->addLayer(exp_sptr, layer.filename))
@@ -2907,7 +2916,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     String caption = layer.name;
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-    showAsWindow_(w, caption);
+    showSpectrumWidgetInWindow(w, caption);
     updateLayerBar();
     updateSpectraViewBar();
     updateFilterBar();
@@ -2920,7 +2929,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (layer.type==LayerData::DT_PEAK)
     {
       //open new 3D widget
-      Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
+      Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
 
       ExperimentSharedPtrType exp_sptr = getActiveCanvas()->getCurrentLayer().getPeakData();
 
@@ -2944,7 +2953,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       // set layer name
       String caption = layer.name + " (3D)";
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-      showAsWindow_(w, caption);
+      showSpectrumWidgetInWindow(w, caption);
       updateLayerBar();
       updateSpectraViewBar();
       updateFilterBar();
@@ -3006,7 +3015,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		log_->append(topp_.process->readAllStandardOutput());
 	}
 
-	Param TOPPViewBase::getSpectrumParameters_(UInt dim)
+  Param TOPPViewBase::getSpectrumParameters(UInt dim)
 	{
 		Param out = param_.copy(String("preferences:") + dim + "d:",true);
 		out.setValue("default_path",param_.getValue("preferences:default_path").toString());
@@ -3309,7 +3318,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     getActiveCanvas()->showMetaData(true, spectrum_index);
   }
 
-	void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
+  void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
 	{
     QTreeWidget* spectra_view_treewidget = spectra_view_widget_->getTreeWidget();
 		try
@@ -3572,4 +3581,3 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   }
 
 } //namespace OpenMS
-

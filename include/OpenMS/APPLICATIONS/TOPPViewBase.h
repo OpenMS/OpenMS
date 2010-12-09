@@ -36,6 +36,9 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+
+#include <OpenMS/VISUAL/TOPPViewBehaviorInterface.h>
+#include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
 //STL
@@ -175,25 +178,40 @@ namespace OpenMS
       	If the filename is empty, the application name + ".ini" is used as filename
       */
       void loadPreferences(String filename="");
-      /// stores the preferences (used when this window is closed)
+
+      /// Stores the preferences (used when this window is closed)
       void savePreferences();
+
+      /// Returns the parameters for a SpectrumCanvas of dimension @p dim
+      Param getSpectrumParameters(UInt dim);
 
 			/// Returns the active Layer data (0 if no layer is active)
 			const LayerData* getCurrentLayer() const;
 
+      ///returns a pointer to the QWorkspace
+      QWorkspace* getWorkspace() const;
+
       ///returns a pointer to the active SpectrumWidget (0 if none is active)
       SpectrumWidget*  getActiveWindow() const;
-      ///returns a pointer to the active SpectrumCanvas (0 if none is active)
+
+      ///returns a pointer to the active SpectrumCanvas (0 if none is active)      
       SpectrumCanvas*  getActiveCanvas() const;
+
       ///returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
       Spectrum1DWidget* getActive1DWindow() const;
+
       ///returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
       Spectrum2DWidget* getActive2DWindow() const;
+
       ///returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
       Spectrum3DWidget* getActive3DWindow() const;
 
       /// returns a pointer to the SpectraIdentificationViewWidget
       SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
+
+      /// Opens the provided spectrum widget in a new window
+      void showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption);
+
     public slots:
       /// changes the current path according to the currently active window/layer
       void updateCurrentPath();
@@ -213,22 +231,24 @@ namespace OpenMS
       void layerStatistics();
       /// lets the user edit the meta data of a layer
       void editMetadata();
-      /// manual activation of 1D spectrum
+      /// Activation of 1D spectrum
       void activate1DSpectrum(int index);
+      /// Deactivation of 1D spectrum
+      void deactivate1DSpectrum(int index);
       /// closes the active window
       void closeFile();
       /// updates the toolbar
       void updateToolBar();
-      /*
-      /// updates entries of loaded datas
-      void updateDataBar();
-      */
       /// adapts the layer bar to the active window
       void updateLayerBar();
       /// adapts the spectrum bar to the active window
       void updateSpectraViewBar();
+      /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
+      void viewChanged(int);
       /// adapts the filter bar to the active window
       void updateFilterBar();
+      /// enabled/disabled menu entries depending on the current state
+      void updateMenu();
       /// brings the tab corresponding to the active window in front
       void updateTabBar(QWidget* w);
       /// tile the open windows vertically
@@ -315,8 +335,6 @@ namespace OpenMS
     	void abortTOPPTool();
     	/// retuns the last invoked TOPP tool with the same parameters
 			void rerunTOPPTool();
-    	/// enabled/disabled menu entries depending on the current state
-    	void updateMenu();
     	/// shows the spectrum browser and updates it
     	void showSpectrumBrowser();
       /// shows the spectrum metadata
@@ -355,11 +373,7 @@ namespace OpenMS
     	*/
     	QStringList getFileList_(const String& path_overwrite = "");
 
-      ///Returns the parameters for a SpectrumCanvas of dimension @p dim
-      Param getSpectrumParameters_(UInt dim);
-
-      void showAsWindow_(SpectrumWidget* sw, const String& caption);
-      ///returns the window with id @p id
+      /// Returns the window with id @p id
       SpectrumWidget* window_(int id) const;
 
       /// Layer management widget
@@ -497,7 +511,14 @@ namespace OpenMS
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
 
-      TOPPViewIdentificationViewBehavior* toppview_behavior_;
+      /// Tabwidget that hold the different views on the loaded data
+      QTabWidget* views_tabwidget_;
+      /// The current TOPPView view behavior
+      TOPPViewBehaviorInterface* view_behavior_;
+      /// TOPPView behavior for the identification view
+      TOPPViewIdentificationViewBehavior* identificationview_behavior_;
+      /// TOPPView behavior for the spectra view
+      TOPPViewSpectraViewBehavior* spectraview_behavior_;
 
       // static helper functions
       public:        

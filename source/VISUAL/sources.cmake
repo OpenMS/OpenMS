@@ -42,7 +42,9 @@ TOPPASTabBar.C
 TOPPASTreeView.C
 TOPPASResource.C
 TOPPASResources.C
+TOPPViewBehaviorInterface.C
 TOPPViewIdentificationViewBehavior.C
+TOPPViewSpectraViewBehavior.C
 EnhancedWorkspace.C
 )
 
