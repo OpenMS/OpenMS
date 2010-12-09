@@ -90,18 +90,18 @@ namespace OpenMS
 		
 		//gradient field outline
 		painter.setPen(QColor(0,0,0));
-		painter.drawRect(margin_,margin_,width()-2*margin_,height()-2*margin_-lever_area_height_);
+		painter.drawRect(margin_, margin_, width()-2*margin_, height()- 2*margin_ - lever_area_height_);
 	
 		//draw gradient
-		for (Int i=0;i<=gradient_area_width_;++i)
+		for (Int i=0;i <= gradient_area_width_; ++i)
 		{
 			painter.setPen(gradient_.interpolatedColorAt(i,0,gradient_area_width_));
-			painter.drawLine(margin_+1+i,margin_+1,margin_+1+i,height()-margin_-lever_area_height_-1);		
+			painter.drawLine(margin_+1+i, margin_+1,margin_+1+i, height()-margin_-lever_area_height_-1);		
 		}
 		
 		//levers
 		painter.setPen(QColor(0,0,0));
-		for (UInt i=0;i<(UInt)gradient_.size();++i)
+		for (UInt i=0; i<(UInt)gradient_.size(); ++i)
 		{
 			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
 			painter.drawRect(pos-4,height()-margin_-lever_area_height_+5,9,9);
@@ -129,16 +129,19 @@ namespace OpenMS
 			return;
 	  } 	
 		
-		left_button_pressed_=true;
+		left_button_pressed_ = true;
 		
-		//select lever
-		for (UInt i=0;i<(UInt)gradient_.size();++i)
+		// select lever
+    // Starting with the rightmost lever, the first lever that overlaps the mouse pointer is selected (only lever with higher index can overlap lever with lower index).
+		for (Int i=(Int)gradient_.size()-1; i >= 0; --i)
 		{
-			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
-			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
+			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);     
+
+      // mouse pointer over lever?
+			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)  
 			{
-				selected_=gradient_.position(i);
-				selected_color_=gradient_.color(i);
+				selected_ = gradient_.position(i);
+				selected_color_ = gradient_.color(i);
 				repaint();
 				return;
 			}
@@ -156,17 +159,16 @@ namespace OpenMS
 
 	void MultiGradientSelector::mouseMoveEvent(QMouseEvent* e)
 	{
-		if (left_button_pressed_ && selected_!=-1)
+    if (left_button_pressed_ && selected_ > 0 && selected_ < 100) // don't move first or last lever
 		{
 			//inside lever area
 			if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
 			{
-				Int pos = Int(100*(e->x()-margin_)/float(gradient_area_width_));
-				//be careful not to remove other levers...
-				if (pos!=selected_ && !gradient_.exists(pos))
+				Int pos = Int(100*(e->x()-margin_)/float(gradient_area_width_));        
+				if (pos!=selected_ && !gradient_.exists(pos))  // lever has been moved AND no other lever at the new position?
 				{
 					gradient_.remove(selected_);
-					gradient_.insert(pos,selected_color_);
+					gradient_.insert(pos, selected_color_);
 					selected_ = pos;
 					repaint();
 				}
@@ -203,11 +205,11 @@ namespace OpenMS
 	
 	void MultiGradientSelector::keyPressEvent ( QKeyEvent * e )
 	{
-		if (e->key() == Qt::Key_Delete)
+		if (e->key() == Qt::Key_Delete && selected_ > 0 && selected_ < 100) // don't remove first or last lever)
 		{
 			gradient_.remove(selected_);
-			selected_=-1;
-			selected_color_=Qt::white;
+			selected_= -1;
+			selected_color_ = Qt::white;
 			repaint();
 		}
 		else

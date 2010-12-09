@@ -107,6 +107,7 @@ namespace OpenMS
 		if (interpolation_mode_==IM_LINEAR)
 		{
       map<DoubleReal, QColor>::const_iterator it1 = pos_col_.lower_bound(position);
+
       if (std::abs(it1->first-position) < numeric_limits<DoubleReal>::epsilon())  // compare double
 			{
 				return it1->second;
