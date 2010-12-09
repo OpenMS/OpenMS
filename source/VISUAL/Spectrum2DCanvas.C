@@ -1981,6 +1981,11 @@ namespace OpenMS
 			//find nearest survey scan
       SignedSize size = getCurrentLayer().getPeakData()->size();
       Int current = getCurrentLayer().getPeakData()->RTBegin(rt)-getCurrentLayer().getPeakData()->begin();
+      if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
+      {
+        current = 0;
+      }
+
 			SignedSize i=0;
 			while (current+i<size || current-i>=0)
 			{

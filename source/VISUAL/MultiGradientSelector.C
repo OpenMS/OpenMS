@@ -61,8 +61,7 @@ namespace OpenMS
 	}
 	
 	MultiGradientSelector::~MultiGradientSelector()
-	{
-	
+	{	
 	}
 	
 	const MultiGradient& MultiGradientSelector::gradient() const
@@ -330,8 +329,7 @@ namespace OpenMS
 			else if (result->text()=="Linear")
 			{
 				setInterpolationMode(MultiGradient::IM_LINEAR);				
-			}
-			
+			}			
 		}
 	}
 
