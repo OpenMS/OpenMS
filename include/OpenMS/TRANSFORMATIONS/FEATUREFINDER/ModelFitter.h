@@ -174,15 +174,15 @@ namespace OpenMS
 			this->defaults_.setMinFloat("isotope_model:stdev:step", 0.0);
 			this->defaults_.setSectionDescription( "isotope_model:stdev", "Instrument resolution settings for m/z dimension." );
 
-			this->defaults_.setValue( "isotope_model:averagines:C", 0.0443f, "Number of C atoms per Dalton of the mass.", StringList::create("advanced") );
+      this->defaults_.setValue( "isotope_model:averagines:C", 0.04443989f, "Number of C atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:C", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:H", 0.007f, "Number of H atoms per Dalton of the mass.", StringList::create("advanced") );
+			this->defaults_.setValue( "isotope_model:averagines:H", 0.06981572f, "Number of H atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:H", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:N", 0.0012f, "Number of N atoms per Dalton of the mass.", StringList::create("advanced") );
+			this->defaults_.setValue( "isotope_model:averagines:N", 0.01221773f, "Number of N atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:N", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:O", 0.013f, "Number of O atoms per Dalton of the mass.", StringList::create("advanced") );
+			this->defaults_.setValue( "isotope_model:averagines:O", 0.01329399f, "Number of O atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:O", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:S", 0.00037f, "Number of S atoms per Dalton of the mass.", StringList::create("advanced"));
+			this->defaults_.setValue( "isotope_model:averagines:S", 0.00037525f, "Number of S atoms per Dalton of the mass.", StringList::create("advanced"));
 			this->defaults_.setMinFloat("isotope_model:averagines:S", 0.0);
 			this->defaults_.setSectionDescription( "isotope_model:averagines", "Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains." );
 
