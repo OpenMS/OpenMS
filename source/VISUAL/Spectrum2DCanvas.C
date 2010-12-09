@@ -424,25 +424,27 @@ namespace OpenMS
       //this is an MS/MS scan
       if (i->getMSLevel()==2 && !i->getPrecursors().empty())
       {
-        ExperimentType::ConstIterator prec=peak_map.getPrecursorSpectrum(i);
-        if (prec!=peak_map.end())
+        ExperimentType::ConstIterator prec = peak_map.getPrecursorSpectrum(i);
+
+        if (prec != peak_map.end())
         {
-          QPoint pos;
-          dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(),pos);
+          QPoint pos_ms1;
+          dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(), pos_ms1);  // position of precursor in MS1
+          QPoint pos_ms2;
+          dataToWidget_(i->getPrecursors()[0].getMZ(), i->getRT(), pos_ms2);   // position of precursor in MS2
           QPen p;
           p.setColor(Qt::black);
           painter.setPen(p);
-          painter.drawLine(pos.x(),pos.y()+3,pos.x()+3,pos.y());
-          painter.drawLine(pos.x()+3,pos.y(),pos.x(),pos.y()-3);
-          painter.drawLine(pos.x(),pos.y()-3,pos.x()-3,pos.y());
-          painter.drawLine(pos.x()-3,pos.y(),pos.x(),pos.y()+3);
 
-          p.setColor(Qt::white);
-          painter.setPen(p);
-          painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
-          painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
-          painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
-          painter.drawLine(pos.x()-2,pos.y(),pos.x(),pos.y()+2);
+          // diamond shape in MS1
+          painter.drawLine(pos_ms1.x(), pos_ms1.y()+3, pos_ms1.x()+3, pos_ms1.y());
+          painter.drawLine(pos_ms1.x()+3, pos_ms1.y(), pos_ms1.x(), pos_ms1.y()-3);
+          painter.drawLine(pos_ms1.x(), pos_ms1.y()-3, pos_ms1.x()-3, pos_ms1.y());
+          painter.drawLine(pos_ms1.x()-3, pos_ms1.y(), pos_ms1.x(), pos_ms1.y()+3);
+
+          // rt position of corresponding MS2
+          painter.drawLine(pos_ms2.x()-3, pos_ms2.y(), pos_ms2.x()+3, pos_ms2.y());
+          painter.drawLine(pos_ms1.x(), pos_ms1.y(), pos_ms2.x(), pos_ms2.y());
         }
       }
     }
@@ -2064,14 +2066,18 @@ namespace OpenMS
       for (ExperimentType::ConstIterator it=getCurrentLayer().getPeakData()->RTBegin(rt_min); it!=getCurrentLayer().getPeakData()->RTEnd(rt_max); ++it)
 			{
 				DoubleReal mz = 0.0;
-				if (!it->getPrecursors().empty()) mz = it->getPrecursors()[0].getMZ();
-				if (it->getMSLevel()>1 && mz>=mz_min && mz<=mz_max)
+				if (!it->getPrecursors().empty()) 
+        {
+          mz = it->getPrecursors()[0].getMZ();
+        }
+
+				if (it->getMSLevel()>1 && mz >= mz_min && mz <= mz_max)
 				{
 					a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
                                         a->setData((int)(it-getCurrentLayer().getPeakData()->begin()));
 					a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
                                         a->setData((int)(it-getCurrentLayer().getPeakData()->begin()));
-					item_added=true;
+					item_added = true;
 				}
 			}
 			if (item_added)
