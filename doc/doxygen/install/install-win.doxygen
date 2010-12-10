@@ -59,7 +59,7 @@
 
   @subsection install_qt QT installation
 		
-		We require Qt version 4.3 or higher.
+		We require Qt version 4.5 or higher.
 	
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Trolltech website
     <OL>

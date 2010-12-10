@@ -22,7 +22,7 @@
   In order to compile %OpenMS, several applications need to be installed:
    - XCode (version 3.0 or higher) is required to build %OpenMS (the current version can be obtained from <a href="http://developer.apple.com/technology/xcode.html" target="_new">http://developer.apple.com/technology/xcode.html</a>)
    - CMake (version 2.8.1 or higher) is required to configure and build the package 
-	 - Qt4 (version 4.4. or higher)  containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://www.qtsoftware.com/" target="_new">http://www.qtsoftware.com/</a>)
+	 - Qt4 (version 4.5. or higher)  containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://www.qtsoftware.com/" target="_new">http://www.qtsoftware.com/</a>)
   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
