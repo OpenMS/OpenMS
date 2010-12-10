@@ -96,7 +96,9 @@ namespace OpenMS
 
     private:
       TOPPViewBase* tv_;
-      Annotations1DContainer current_spectrum_precursor_annotations_;
+      /// Used to check which annotation handles have been added automaticaly by the identification view. Ownership
+      /// of the AnnotationItems has the Annotation1DContainer 
+      std::vector<Annotation1DItem* > current_spectrum_precursor_annotations_;  
   };
 }
 

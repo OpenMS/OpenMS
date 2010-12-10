@@ -210,9 +210,8 @@ namespace OpenMS
       item->setTicks(ticks);
       item->setSelected(false);
 
-      current_spectrum_precursor_annotations_.clear();
-      current_spectrum_precursor_annotations_.push_front(item); // for removal
-      current_layer.getCurrentAnnotations().push_front(item);  // for visualisation
+      current_spectrum_precursor_annotations_.push_back(item); // for removal (no ownership)
+      current_layer.getCurrentAnnotations().push_front(item);  // for visualisation (ownership)
     }
   }
 
@@ -220,9 +219,9 @@ namespace OpenMS
   {
     // Delete annotations added by IdentificationView (but not user added annotations)
     LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
-    const Annotations1DContainer& cas = current_spectrum_precursor_annotations_;    
+    const vector<Annotation1DItem* >& cas = current_spectrum_precursor_annotations_;    
     Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
-    for(Annotations1DContainer::const_iterator it = cas.begin(); it != cas.end(); ++it)
+    for(vector<Annotation1DItem* >::const_iterator it = cas.begin(); it != cas.end(); ++it)
     {
       Annotations1DContainer::iterator i = find(las.begin(), las.end(), *it);
       if (i != las.end())

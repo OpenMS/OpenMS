@@ -2712,7 +2712,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 
 		//load id data
-    QString name = QFileDialog::getOpenFileName(this,"Select protein identification data",current_path_.toQString(),"idXML files (*.idXML;; all files (*.*)");
+    QString name = QFileDialog::getOpenFileName(this,"Select protein identification data",current_path_.toQString(),"idXML files (*.idXML);; all files (*.*)");
 
 		if(name!="")
 		{
