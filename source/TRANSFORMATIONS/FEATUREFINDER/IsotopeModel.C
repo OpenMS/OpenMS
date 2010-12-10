@@ -27,7 +27,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <numeric>
@@ -109,6 +108,11 @@ namespace OpenMS
 		return EmpiricalFormula(form);
   }
 
+  const IsotopeDistribution& IsotopeModel::getIsotopeDistribution() const
+  {
+    return isotope_distribution_;
+  }
+
   void IsotopeModel::setSamples(const EmpiricalFormula& formula)
   {
     // MAGIC alert, num stdev for smooth table for normal distribution
@@ -119,17 +123,16 @@ namespace OpenMS
 		typedef std::vector < DoubleReal > ContainerType;
     ContainerType isotopes_exact;
 
-    typedef IsotopeDistribution::iterator IsoIter;
-    IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
+    isotope_distribution_ = formula.getIsotopeDistribution(max_isotope_);
 
-    isotope_distribution.trimRight(trim_right_cutoff_);
-    isotope_distribution.renormalize();
+    isotope_distribution_.trimRight(trim_right_cutoff_);
+    isotope_distribution_.renormalize();
 
     // compute the average mass (-offset)
     CoordinateType isotopes_mean = 0;
 		Int i=0;
-    for (	IsoIter iter = isotope_distribution.begin();
-          iter != isotope_distribution.end(); ++iter,++i)
+    for (	IsotopeDistribution::iterator iter = isotope_distribution_.begin();
+          iter != isotope_distribution_.end(); ++iter,++i)
     {
       isotopes_exact.push_back(iter->second);
       isotopes_mean += iter->second*i;

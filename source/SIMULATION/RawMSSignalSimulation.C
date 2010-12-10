@@ -474,7 +474,6 @@ namespace OpenMS {
   {
     SimIntensityType scale = getFeatureScaledIntensity_(active_feature.getIntensity(), 1.0);
 
-    Param p1;
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef;
     if (active_feature.metaValueExists("sum_formula"))
@@ -488,6 +487,7 @@ namespace OpenMS {
     }
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
     ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
+    Param p1;
     p1.setValue("statistics:mean", ef.getAverageWeight() / q);
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", getPeakSD_(active_feature.getMZ()));
@@ -565,26 +565,29 @@ namespace OpenMS {
   {
     if (rt_start <=0) rt_start = 0;
 
-    MSSimExperiment::iterator exp_iter = experiment.RTBegin(rt_start);
-    if(exp_iter == experiment.end() )
+    MSSimExperiment::iterator exp_start = experiment.RTBegin(rt_start);
+
+    if(exp_start == experiment.end() )
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
 
-    SimIntensityType intensity_sum = 0.0;
-    vector< DPosition<2> > points;
+    SimIntensityType intensity_sum(0.0);
     
-    Int start_scan = exp_iter - experiment.begin();
-    Int end_scan  = -5;
+    Int start_scan = exp_start - experiment.begin();
+    Int end_scan  = std::numeric_limits<Int>::min();
 
-		SimCoordinateType rt = rt_start;
     // Sample the model ...
+    SimCoordinateType rt(0);
+    MSSimExperiment::iterator exp_iter = exp_start;
     for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
     {
 			rt = exp_iter->getRT();
+      DoubleReal distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
+      //std::cerr << distortion << "\n";
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
-        ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) );
+        ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
         if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
         {
           continue;
@@ -628,27 +631,72 @@ namespace OpenMS {
         mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
 #endif
         point.setMZ( point.getMZ() + mz_err );
+        exp_iter->push_back(point);
 
         intensity_sum += point.getIntensity();
-        points.push_back( DPosition<2>( rt, mz) );		// store position TODO: shouldn't it be the modified MZ
-        exp_iter->push_back(point);
       }
       //update last scan affected
       end_scan = exp_iter - experiment.begin();
     }
 
-    OPENMS_POSTCONDITION(end_scan  != -5, "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");
-
-    active_feature.setQuality(0,start_scan);
-    active_feature.setQuality(1,end_scan);
-
+    OPENMS_POSTCONDITION(end_scan != std::numeric_limits<Int>::min(), "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");
+  
+    // new intensity is AREA==SUM of all peaks
     active_feature.setIntensity(intensity_sum);
-    // store convex hull
+    
+    // -------------------------
+    // --- store convex hull ---
+    // -------------------------
     active_feature.getConvexHulls().clear();
-    // adding ALL points of the feature
-		ConvexHull2D hull;
-		hull.addPoints(points);
-    active_feature.getConvexHulls().push_back(hull);
+    
+    // get isotope model (to determine mass traces)
+    IsotopeModel* isomodel = static_cast<IsotopeModel*>(pm.getModel(1));
+    IsotopeDistribution iso_dist = isomodel->getIsotopeDistribution();
+    
+    SimCoordinateType mz_mono = active_feature.getMZ();
+
+    StringList isotope_intensities;
+    for (	IsotopeDistribution::iterator iter = iso_dist.begin();
+          iter != iso_dist.end(); ++iter)
+    {
+      const SimCoordinateType mz = mz_mono + (iter->first - iso_dist.begin()->first); // this is only an approximated trace' m/z position (as we do assume 1Da space between them)
+
+      SimCoordinateType rt_min =  std::numeric_limits<SimCoordinateType>::max();      
+      SimCoordinateType rt_max = -std::numeric_limits<SimCoordinateType>::max();
+      bool has_data = false;
+
+      // for each trace, sample the model again and see how far it extends
+      SimCoordinateType rt(0);
+      for (exp_iter = exp_start; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
+      {
+			  rt = exp_iter->getRT();
+        const DoubleReal& distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
+        ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
+        if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
+        {
+          continue;
+        }
+        // update min&max
+        if (rt_min > rt)  rt_min = rt;
+        if (rt_max < rt)  rt_max = rt;
+        has_data = true;
+      }
+      if (!has_data) continue;
+
+      // add four egde points of mass trace
+      ConvexHull2D hull;
+      vector< DPosition<2> > points;
+      points.push_back( DPosition<2>(rt_min, mz-0.001));
+      points.push_back( DPosition<2>(rt_min, mz+0.001));
+      points.push_back( DPosition<2>(rt_max, mz-0.001));
+      points.push_back( DPosition<2>(rt_max, mz+0.001));
+  		hull.addPoints(points);
+      active_feature.getConvexHulls().push_back(hull);
+
+      isotope_intensities.push_back(String(iter->second));
+    }
+
+    active_feature.setMetaValue("isotope_intensities", isotope_intensities);
 
   }
 

@@ -285,10 +285,9 @@ namespace OpenMS {
 			// ** determine mass of peptide
 			DoubleReal mass = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula().getAverageWeight();
 	
-			// ** mobility
-			DoubleReal mu = (auto_scale ? 0 : (DoubleReal)param_.getValue("CE:mu_eo")) + ( charge / std::pow(mass, alpha) );
-			
-			predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)
+			// ** mobility (mu = mu_ep + mu_eo = (q/MW^alpha) + mu_eo
+			DoubleReal mu = ( charge / std::pow(mass, alpha) ) + (auto_scale ? 0 : (DoubleReal)param_.getValue("CE:mu_eo"));
+			predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)  as "c = L_d*L_t/V"
     }
 		
 		// ** only when Auto-Scaling is active ** /
@@ -476,7 +475,7 @@ namespace OpenMS {
     defaults_.setValidStrings("rt_column", StringList::create("none,HPLC,CE"));
     
     // scaling
-    defaults_.setValue("auto_scale","true","Scale predicted RT's to given 'total_gradient_time'?");
+    defaults_.setValue("auto_scale","true","Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
     defaults_.setValidStrings("auto_scale", StringList::create("true,false"));
 
 		// column settings
