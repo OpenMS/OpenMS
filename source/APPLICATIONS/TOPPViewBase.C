@@ -128,12 +128,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           //enable drag-and-drop
           setAcceptDrops(true);
 
+          // get geometry of first screen
+          QRect screen_geometry = QApplication::desktop()->screenGeometry();
           // center main window
           setGeometry(
-            (int)(0.1 * QApplication::desktop()->width()),
-            (int)(0.1 * QApplication::desktop()->height()),
-            (int)(0.8 * QApplication::desktop()->width()),
-            (int)(0.8 * QApplication::desktop()->height())
+            (int)(0.1 * screen_geometry.width()),
+            (int)(0.1 * screen_geometry.height()),
+            (int)(0.8 * screen_geometry.width()),
+            (int)(0.8 * screen_geometry.height())
             );
 
           // create dummy widget (to be able to have a layout), Tab bar and workspace
@@ -591,10 +593,21 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   }
 
   TOPPViewBase::~TOPPViewBase()
-          {
-              savePreferences();
-              abortTOPPTool();
-          }
+  {
+    savePreferences();
+    abortTOPPTool();
+
+    // dispose behavior
+    if(identificationview_behavior_ != 0)
+    { 
+      delete(identificationview_behavior_);
+    }
+
+    if(spectraview_behavior_ != 0)
+    { 
+      delete(spectraview_behavior_);
+    }
+  }
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
           {

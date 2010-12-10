@@ -402,8 +402,11 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::deactivateBehavior()
   {
     // remove precusor labels, theoretical spectra and trigger repaint
-    removePrecursorLabels1D_(tv_->getActive1DWindow()->canvas()->getCurrentLayer().current_spectrum);
-    removeTheoreticalSpectrumLayer_();
-    tv_->getActive1DWindow()->canvas()->repaint();
+    if(tv_->getActive1DWindow() != 0)
+    {
+      removePrecursorLabels1D_(tv_->getActive1DWindow()->canvas()->getCurrentLayer().current_spectrum);
+      removeTheoreticalSpectrumLayer_();
+      tv_->getActive1DWindow()->canvas()->repaint();
+    }
   }
 }

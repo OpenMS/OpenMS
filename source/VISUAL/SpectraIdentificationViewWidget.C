@@ -134,6 +134,12 @@ namespace OpenMS
     spectra_widget_layout->addLayout(tmp_hbox_layout);
     table_widget_->sortByColumn ( 2, Qt::AscendingOrder);
 
+    table_widget_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    
+    // select single rows
+    table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table_widget_->setSelectionMode(QAbstractItemView::SingleSelection);
+
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint&)));
@@ -185,7 +191,6 @@ namespace OpenMS
     // determine metavalues common to all hits
     if (create_rows_for_commmon_metavalue_->isChecked())
     {
-
       for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
       {
         UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
@@ -250,6 +255,11 @@ namespace OpenMS
     table_widget_->setColumnWidth(10,400);
     table_widget_->setColumnWidth(11,45);
 
+    QTableWidgetItem* proto_item = new QTableWidgetItem();
+    proto_item->setTextAlignment(Qt::AlignCenter);
+
+    table_widget_->setItemPrototype(proto_item);
+
     table_widget_->setSortingEnabled(false);
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
@@ -261,6 +271,7 @@ namespace OpenMS
 
     QTableWidgetItem* item = 0;
     QTableWidgetItem* selected_item = 0;
+    Size selected_row = 0;
 
     // generate flat list
     selected_item = 0;
@@ -338,21 +349,19 @@ namespace OpenMS
       table_widget_->insertRow(table_widget_->rowCount());
 
       // ms level
-      item = new QTableWidgetItem(QString::number(ms_level));
+      item = table_widget_->itemPrototype()->clone();
+      item->setText(QString::number(ms_level));
       item->setBackgroundColor(c);
-      item->setTextAlignment(Qt::AlignCenter);
       table_widget_->setItem(table_widget_->rowCount()-1 , 0, item);
 
       // index
-      item = new QTableWidgetItem();
-      item->setTextAlignment(Qt::AlignCenter);
+      item = table_widget_->itemPrototype()->clone();
       item->setData(Qt::DisplayRole, Int(i));
       item->setBackgroundColor(c);
       table_widget_->setItem(table_widget_->rowCount()-1 , 1, item);
 
       // rt
-      item = new QTableWidgetItem();
-      item->setTextAlignment(Qt::AlignCenter);
+      item = table_widget_->itemPrototype()->clone();
       item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getRT());
       item->setBackgroundColor(c);
       table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
@@ -383,35 +392,31 @@ namespace OpenMS
           }
           PeptideHit best_ph = pi[0].getHits()[best_j_index];
           // score
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignCenter);
+          item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, best_ph.getScore());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
 
           // rank
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignCenter);
+          item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, best_ph.getRank());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
 
           // charge
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignCenter);
+          item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, best_ph.getCharge());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
 
           //sequence
-          item = new QTableWidgetItem();
-          item->setTextAlignment(Qt::AlignLeft);
+          item = table_widget_->itemPrototype()->clone();
           item->setText(best_ph.getSequence().toString().toQString());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
 
           //Accession
-          item = new QTableWidgetItem();
+          item = table_widget_->itemPrototype()->clone();
           item->setTextAlignment(Qt::AlignLeft);
           String accessions = "";
 
@@ -437,7 +442,7 @@ namespace OpenMS
             for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
             {
               DataValue dv = best_ph.getMetaValue(*sit);
-              item = new QTableWidgetItem();
+              item = table_widget_->itemPrototype()->clone();
               item->setTextAlignment(Qt::AlignLeft);
               if (dv.valueType() == DataValue::DOUBLE_VALUE)
               {
@@ -455,37 +460,32 @@ namespace OpenMS
       } else // no identification
       {
         // score
-        item = new QTableWidgetItem();
+        item = table_widget_->itemPrototype()->clone();
         item->setText("-");
-        item->setTextAlignment(Qt::AlignCenter);
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 7, item);
 
         // rank
-        item = new QTableWidgetItem();
+        item = table_widget_->itemPrototype()->clone();
         item->setText("-");
-        item->setTextAlignment(Qt::AlignCenter);
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 8, item);
 
         // charge
-        item = new QTableWidgetItem();
+        item = table_widget_->itemPrototype()->clone();
         item->setText("-");
-        item->setTextAlignment(Qt::AlignCenter);
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 9, item);
 
         //sequence
-        item = new QTableWidgetItem();
+        item = table_widget_->itemPrototype()->clone();
         item->setText("-");
-        item->setTextAlignment(Qt::AlignCenter);
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 10, item);
 
         //accession
-        item = new QTableWidgetItem();
+        item = table_widget_->itemPrototype()->clone();
         item->setText("-");
-        item->setTextAlignment(Qt::AlignCenter);
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
 
@@ -495,7 +495,7 @@ namespace OpenMS
         {
           for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
           {
-            item = new QTableWidgetItem();
+            item = table_widget_->itemPrototype()->clone();
             item->setTextAlignment(Qt::AlignLeft);
             item->setText("-");
             item->setBackgroundColor(c);
@@ -507,14 +507,12 @@ namespace OpenMS
 
       if (!(*layer_->getPeakData())[i].getPrecursors().empty())  // has precursor
       {
-        item = new QTableWidgetItem();
-        item->setTextAlignment(Qt::AlignCenter);
+        item = table_widget_->itemPrototype()->clone();
         item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
 
-        item = new QTableWidgetItem();
-        item->setTextAlignment(Qt::AlignCenter);
+        item = table_widget_->itemPrototype()->clone();
         if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
         {
           QString t;
@@ -536,21 +534,19 @@ namespace OpenMS
       }
       else  // has no precursor (leave fields 3 and 4 empty)
       {
-        item = new QTableWidgetItem();
-        item->setTextAlignment(Qt::AlignCenter);
+        item = table_widget_->itemPrototype()->clone();
         item->setText("-");
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
-        item = new QTableWidgetItem();
-        item->setTextAlignment(Qt::AlignCenter);
+
+        item = table_widget_->itemPrototype()->clone();
         item->setText("-");
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount()-1 , 4, item);
       }
 
       // scan mode
-      item = new QTableWidgetItem();
-      item->setTextAlignment(Qt::AlignCenter);
+      item = table_widget_->itemPrototype()->clone();
       if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()>0)
       {
         item->setText(QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]));
@@ -563,8 +559,7 @@ namespace OpenMS
       table_widget_->setItem(table_widget_->rowCount()-1 , 5, item);
 
       // zoom scan
-      item = new QTableWidgetItem();
-      item->setTextAlignment(Qt::AlignCenter);
+      item = table_widget_->itemPrototype()->clone();
       if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
       {
         item->setText("yes");
@@ -580,13 +575,15 @@ namespace OpenMS
       {
         // just remember it, select later
         selected_item = item;
+        selected_row = i;
       }
     }
 
     if (selected_item)
     {
       // now, select and scroll down to item
-      selected_item->setSelected(true);
+      table_widget_->selectRow(selected_row);
+      //selected_item->setSelected(true);
       table_widget_->scrollToItem(selected_item);
     }
 
@@ -595,7 +592,7 @@ namespace OpenMS
     table_widget_->setSortingEnabled(true);
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
-    table_widget_->resizeRowsToContents();
+    //table_widget_->resizeRowsToContents();
   }
 
   void SpectraIdentificationViewWidget::headerContextMenu_(const QPoint& pos)
