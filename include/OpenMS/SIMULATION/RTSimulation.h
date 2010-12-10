@@ -68,10 +68,9 @@ namespace OpenMS
     RTSimulation& operator = (const RTSimulation& source);
     
     /** 
-     @brief Predict retention times for given peptide features based on a SVM Model
+     @brief Predict retention times for given peptide features based for HPLC or CE
      
      @param features Feature map for which the retention times will be predicted
-     @param experiment Experiment map which will be build from scratch
      */
     void predictRT(FeatureMapSim & features);
  
@@ -103,14 +102,12 @@ namespace OpenMS
     /// Simply set all retention times to -1
     void noRTColumn_(FeatureMapSim &);
     
-    /// Predict all retention times based on a svm model
-    void predictFeatureRT_(FeatureMapSim &);
-  
 		/// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
 		void smoothRTDistortion_(MSSimExperiment & experiment);
 
 		/// Wrapper for the Migration time calculation (CE)
-		void calculateMT_(const FeatureMapSim & features,std::vector<DoubleReal>& predicted_retention_times);
+    /// @param features will get modified with metavalue "RT_CE_width_factor", describing widening of MT shape
+		void calculateMT_(FeatureMapSim & features,std::vector<DoubleReal>& predicted_retention_times);
 
 		void getChargeContribution_(Map< String, double> & q_cterm, 
 															  Map< String, double> & q_nterm,

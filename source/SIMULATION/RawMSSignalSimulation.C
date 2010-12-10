@@ -654,12 +654,13 @@ namespace OpenMS {
     IsotopeDistribution iso_dist = isomodel->getIsotopeDistribution();
     
     SimCoordinateType mz_mono = active_feature.getMZ();
+    Int q = active_feature.getCharge();
 
     StringList isotope_intensities;
     for (	IsotopeDistribution::iterator iter = iso_dist.begin();
           iter != iso_dist.end(); ++iter)
     {
-      const SimCoordinateType mz = mz_mono + (iter->first - iso_dist.begin()->first); // this is only an approximated trace' m/z position (as we do assume 1Da space between them)
+      const SimCoordinateType mz = mz_mono + DoubleReal(iter->first - iso_dist.begin()->first)/q; // this is only an approximated trace' m/z position (as we do assume 1Da space between them)
 
       SimCoordinateType rt_min =  std::numeric_limits<SimCoordinateType>::max();      
       SimCoordinateType rt_max = -std::numeric_limits<SimCoordinateType>::max();
@@ -721,9 +722,14 @@ namespace OpenMS {
         p.setValue("egh:B", double(feature.getMetaValue("RT_width_gaussian"))/2.0 * 0.9);
       }
       else
-      {      // TODO remove fixed values .. come up with a meaningfull model for elutionprofile shapes
-        p.setValue("egh:A", 10.0);
-        p.setValue("egh:B", 10.0);
+      { 
+        // for CE we want wider profiles with higher MT
+        DoubleReal width_factor(1); // default for HPLC
+        if (feature.metaValueExists("RT_CE_width_factor")) width_factor = feature.getMetaValue("RT_CE_width_factor");
+
+        // TODO remove fixed values .. come up with a meaningfull model for elutionprofile shapes
+        p.setValue("egh:A", width_factor*10.0);
+        p.setValue("egh:B", width_factor*10.0);
       }
 
       elutionmodel->setParameters(p); // does the calculation

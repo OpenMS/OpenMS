@@ -40,58 +40,6 @@ using std::endl;
 
 namespace OpenMS {
 
-	/// PKA values as given in Rickard1991
-	void RTSimulation::getChargeContribution_(Map< String, double> & q_cterm, 
-																	 Map< String, double> & q_nterm,
-																	 Map< String, double> & q_aa_basic,
-																	 Map< String, double> & q_aa_acidic)
-	{
-		// the actual constants from the paper:
-		String aas = "ARNDCQEGHILKMFPSTWYVBZ";
-		const double cterm_pkas[] = { 3.20, 3.20, 2.75, 2.75, 2.75, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 2.75, 3.20 };
-		const double nterm_pkas[] = { 8.20, 8.20, 7.30, 8.60, 7.30, 7.70, 8.20,8.20,8.20,8.20,8.20, 7.70, 9.20, 7.7, 9.00, 7.30, 8.20, 8.20, 7.70, 8.20, 8.03, 8.00};
-
-		String aa_basic = "HRK";
-		double aa_basic_pkas[] = {6.20, 12.50, 10.30};
-
-		String aa_acidic = "DECY";
-		double aa_acidic_pkas[] = {3.50, 4.50, 10.30, 10.30};
-
-		// clear target structures
-		q_cterm.clear();
-		q_nterm.clear();
-		q_aa_basic.clear();
-		q_aa_acidic.clear();
-		
-		// get params
-		DoubleReal ph = param_.getValue("CE:pH");
-
-		// calculate charges according to constants and conditions:
-		
-		// C&N term
-		for (Size i = 0; i<aas.size(); ++i)
-		{
-			q_nterm[aas[i]] = + 1/( 1+std::pow(10, +ph - nterm_pkas[i] ));
-			q_cterm[aas[i]] = - 1/( 1+std::pow(10, -ph + cterm_pkas[i] ));
-		}
-		
-		// basic AA's
-		for (Size i = 0; i<aa_basic.size(); ++i)
-		{
-			q_aa_basic[aa_basic[i]]   = + 1/( 1+std::pow(10, +ph - aa_basic_pkas[i] ));
-		}
-
-		// acidic AA's
-		for (Size i = 0; i<aa_acidic.size(); ++i)
-		{
-			q_aa_acidic[aa_acidic[i]] = - 1/( 1+std::pow(10, -ph + aa_acidic_pkas[i] ));
-		}
-		// add values for ambigous AA according to dayhoff frequencies
-		q_aa_acidic["B"] = q_aa_acidic["D"]*(5.5/(5.5+4.3)) + 0*(4.3/(5.5+4.3)); // D~5.5; N~4.3
-		q_aa_acidic["Z"] = q_aa_acidic["E"]*(6.0/(6.0+3.9)) + 0*(3.9/(6.0+3.9)); // E~6.0; Q~3.9
-
-	}
-
   
   RTSimulation::RTSimulation(const SimRandomNumberGenerator& random_generator)
     : DefaultParamHandler("RTSimulation"), rnd_gen_(&random_generator)
@@ -118,43 +66,9 @@ namespace OpenMS {
   }
   
   RTSimulation::~RTSimulation()
-  {}
-  
-  /**
-   @brief Gets a feature map containing the peptides and predicts for those the retention times
-   */
-  void RTSimulation::predictRT(FeatureMapSim & features)
   {
-    LOG_INFO << "RT Simulation ... started" << std::endl;
-
-    predictFeatureRT_(features);
-
-    for(FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
-        ++it_f)
-    {
-      // TODO: revise the process of rt shape generation
-      double symmetry = gsl_ran_flat (rnd_gen_->technical_rng, symmetry_down_, symmetry_up_);
-      double width = gsl_ran_flat (rnd_gen_->technical_rng, 5, 15);
-			// TODO: maybe this would be a better solution ..
-			//double width = 1;
-      it_f->setMetaValue("rt_symmetry", symmetry);
-      it_f->setMetaValue("rt_width", width);
-
-
-      // Exponentially modified Gaussian
-      const DoubleReal decay_stretch = 5.0;
-
-      // compute rt bounding box
-      DoubleReal bb_min = it_f->getRT() - decay_stretch*(width+fabs(symmetry));
-      DoubleReal bb_max = it_f->getRT() + decay_stretch*(width+fabs(symmetry));
-
-      it_f->setMetaValue("rt_bb_min",bb_min);
-      it_f->setMetaValue("rt_bb_max",bb_max);
-    }
-		
-		//else if (param_.getValue("rt_column") == "CE") number_of_scans = Size((features.getMax()[0]+gradient_front_offset_) / rt_sampling_rate_);
-
   }
+  
 
   void RTSimulation::noRTColumn_(FeatureMapSim & features)
   {
@@ -165,8 +79,14 @@ namespace OpenMS {
     }
   }
 
-  void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
+
+  /**
+   @brief Gets a feature map containing the peptides and predicts for those the retention times
+   */
+  void RTSimulation::predictRT(FeatureMapSim & features)
   {
+    LOG_INFO << "RT Simulation ... started" << std::endl;
+
     vector< DoubleReal>  predicted_retention_times;
 		bool is_relative = (param_.getValue("auto_scale")=="true");
     if (param_.getValue("rt_column") == "none")
@@ -250,8 +170,61 @@ namespace OpenMS {
     features.updateRanges ();
     
   }
-  
-  void RTSimulation::calculateMT_(const FeatureMapSim & features, std::vector<DoubleReal>& predicted_retention_times)
+
+
+	/// PKA values as given in Rickard1991
+	void RTSimulation::getChargeContribution_(Map< String, double> & q_cterm, 
+																	 Map< String, double> & q_nterm,
+																	 Map< String, double> & q_aa_basic,
+																	 Map< String, double> & q_aa_acidic)
+	{
+		// the actual constants from the paper:
+		String aas = "ARNDCQEGHILKMFPSTWYVBZ";
+		const double cterm_pkas[] = { 3.20, 3.20, 2.75, 2.75, 2.75, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 2.75, 3.20 };
+		const double nterm_pkas[] = { 8.20, 8.20, 7.30, 8.60, 7.30, 7.70, 8.20,8.20,8.20,8.20,8.20, 7.70, 9.20, 7.7, 9.00, 7.30, 8.20, 8.20, 7.70, 8.20, 8.03, 8.00};
+
+		String aa_basic = "HRK";
+		double aa_basic_pkas[] = {6.20, 12.50, 10.30};
+
+		String aa_acidic = "DECY";
+		double aa_acidic_pkas[] = {3.50, 4.50, 10.30, 10.30};
+
+		// clear target structures
+		q_cterm.clear();
+		q_nterm.clear();
+		q_aa_basic.clear();
+		q_aa_acidic.clear();
+		
+		// get params
+		DoubleReal ph = param_.getValue("CE:pH");
+
+		// calculate charges according to constants and conditions:
+		
+		// C&N term
+		for (Size i = 0; i<aas.size(); ++i)
+		{
+			q_nterm[aas[i]] = + 1/( 1+std::pow(10, +ph - nterm_pkas[i] ));
+			q_cterm[aas[i]] = - 1/( 1+std::pow(10, -ph + cterm_pkas[i] ));
+		}
+		
+		// basic AA's
+		for (Size i = 0; i<aa_basic.size(); ++i)
+		{
+			q_aa_basic[aa_basic[i]]   = + 1/( 1+std::pow(10, +ph - aa_basic_pkas[i] ));
+		}
+
+		// acidic AA's
+		for (Size i = 0; i<aa_acidic.size(); ++i)
+		{
+			q_aa_acidic[aa_acidic[i]] = - 1/( 1+std::pow(10, -ph + aa_acidic_pkas[i] ));
+		}
+		// add values for ambigous AA according to dayhoff frequencies
+		q_aa_acidic["B"] = q_aa_acidic["D"]*(5.5/(5.5+4.3)) + 0*(4.3/(5.5+4.3)); // D~5.5; N~4.3
+		q_aa_acidic["Z"] = q_aa_acidic["E"]*(6.0/(6.0+3.9)) + 0*(3.9/(6.0+3.9)); // E~6.0; Q~3.9
+	}
+
+
+  void RTSimulation::calculateMT_(FeatureMapSim & features, std::vector<DoubleReal>& predicted_retention_times)
   {
 		Map< String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
 		getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
@@ -291,11 +264,15 @@ namespace OpenMS {
     }
 		
 		// ** only when Auto-Scaling is active ** /
-		if (auto_scale)
+		std::vector<DoubleReal> rt_sorted(predicted_retention_times);
+		std::sort(rt_sorted.begin(), rt_sorted.end() );
+
+    DoubleReal max_rt = rt_sorted.back();
+    
+    if (auto_scale)
 		{
-			std::vector<DoubleReal> rt_sorted(predicted_retention_times);
-			std::sort(rt_sorted.begin(), rt_sorted.end() );
-			
+			max_rt = 1; // highest will be scaled to 1
+
       //std::cerr << "minRT: " << rt_sorted[0] << "   max: " << rt_sorted.back() << "\n";
 			// normalize to 5th - 95th percentile (we want to avoid that few outliers with huge/small MT can compress the others to a small MT range):
       DoubleReal mt_5p = rt_sorted[rt_sorted.size()*5/100];
@@ -307,13 +284,19 @@ namespace OpenMS {
 
       DoubleReal new_offset = mt_5p - range*0.05;
 
-			// scale MT's between 0 and 1 (except for outliers --> which will get > 1)
+			// scale MT's between 0 and 1 (except for outliers --> which will get <0 or >1)
 			for (Size i = 0; i < features.size(); ++i)
 			{
 				predicted_retention_times[i] = (predicted_retention_times[i] - new_offset) / range;
 			}
 		}
-
+    
+    // the width factor is 1.0 at MT=0 and reaches its max (default 2.0) at MT=max
+    DoubleReal rt_widening_max = 2.0;
+    for (Size i = 0; i < features.size(); ++i)
+		{
+      features[i].setMetaValue("RT_CE_width_factor", (predicted_retention_times[i]/max_rt * (rt_widening_max-1) + 1));
+    }
 				
   }
 
