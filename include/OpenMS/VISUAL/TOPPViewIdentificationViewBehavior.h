@@ -96,6 +96,7 @@ namespace OpenMS
 
     private:
       TOPPViewBase* tv_;
+      Annotations1DContainer current_spectrum_precursor_annotations_;
   };
 }
 
