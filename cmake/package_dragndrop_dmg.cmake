@@ -7,26 +7,7 @@ set(CPACK_GENERATOR "DragNDrop")
 # does not work currently, file is simply copied (see below)
 #set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store)
 
-# add start-up script for TOPPView.app into Bundle, and move real TOPPView executable to TOPPView.exe
 # call scripts to fix issues with wrongly referenced Qt libs 
-
-include(BundleUtilities)
-
-set(BundleDirectories "${PROJECT_BINARY_DIR}/lib" ${QT_LIBRARY_DIR} )
-
-
-# create necessary dirs
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/Libraries")
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/Plugins")
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/Frameworks")
-
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/Libraries")
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/Plugins")
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/Frameworks")
-
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/Libraries")
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/Plugins")
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/Frameworks")
 
 # create qt conf
 file(WRITE "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/Resources/qt.conf" "")
@@ -47,35 +28,36 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${QT_LIBRARY_DIR}/Qt
 
 # add openms fix script also here
 INSTALL(CODE "
-	include(BundleUtilities)
-	set(BUNDLE_DIRS \"${PROJECT_BINARY_DIR}/lib\" ${QT_LIBRARY_DIR})
-	
-	fixup_bundle(\"${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app\" \"\" \"${BUNDLE_DIRS}\")
-  fixup_bundle(\"${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app\" \"\" \"${BUNDLE_DIRS}\")
-  fixup_bundle(\"${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app\" \"\" \"${BUNDLE_DIRS}\") 
 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS/TOPPView 
-    ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS/TOPPView.exe) 
   execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS/TOPPView )
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPPView 
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPPView-resources/TOPPView 
     ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS)
 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS/INIFileEditor 
-    ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS/INIFileEditor.exe)
   execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS/INIFileEditor) 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/INIFileEditor 
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/INIFileEditor-resources/INIFileEditor
     ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS)
 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS/TOPPAS 
-    ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS/TOPPAS.exe)
   execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS/TOPPAS) 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPPAS 
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPPAS-resources/TOPPAS
     ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS)
 
 	execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/install_qt.bash ${QT_LIBRARY_DIR} ${PROJECT_BINARY_DIR}/lib ${CMAKE_INSTALL_NAME_TOOL})
 	execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_openms.bash ${CMAKE_INSTALL_NAME_TOOL} ${QT_LIBRARY_DIR} ${PROJECT_BINARY_DIR}/lib)
 ")
 
+#pseudo-app install hack
+install(DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ COMPONENT applications)
+# hack to avoid permission problem
+install(PROGRAMS  ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS/TOPPAS 
+  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/TOPPAS.app/Contents/MacOS/)
+
+install(DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ COMPONENT applications)
+install(PROGRAMS  ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS/TOPPView 
+  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/TOPPView.app/Contents/MacOS/)
+
+install(DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ COMPONENT applications)
+install(PROGRAMS  ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS/INIFileEditor 
+  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/INIFileEditor.app/Contents/MacOS/)
 
 # the OpenMS library
 install (TARGETS OpenMS
@@ -88,12 +70,10 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ DESTINATION OpenMS-${CPACK_PACKAGE_
 
 # the TOPP tools
 foreach(TOPP_exe ${TOPP_executables})
-  if(NOT ${TOPP_exe} STREQUAL "TOPPView" AND NOT ${TOPP_exe} STREQUAL "INIFileEditor" AND NOT ${TOPP_exe} STREQUAL "TOPPAS")
-    # call scripts to fix issues with wrongly referenced Qt libs 
-    add_custom_command(TARGET ${TOPP_exe} POST_BUILD
-      COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_TOPP.bash ${CMAKE_INSTALL_NAME_TOOL} ${QT_LIBRARY_DIR} ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TOPP_exe}
-      )
-  endif()
+  # call scripts to fix issues with wrongly referenced Qt libs 
+  add_custom_command(TARGET ${TOPP_exe} POST_BUILD
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_TOPP.bash ${CMAKE_INSTALL_NAME_TOOL} ${QT_LIBRARY_DIR} ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TOPP_exe}
+    )
 	
   install(TARGETS ${TOPP_exe}
 		RUNTIME DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/TOPP

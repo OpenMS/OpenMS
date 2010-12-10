@@ -15,18 +15,18 @@ do
     cp -Rf $1/$lib.framework $2
 
     # fix the id's
-    $3 -id ./$lib.framework/Versions/4/$lib \
+    $3 -id @executable_path/../lib/$lib.framework/Versions/4/$lib \
         $2/$lib.framework/Versions/4/$lib
 
     # fix reference to core
     $3 -change $1/QtCore.framework/Versions/4/QtCore \
-        QtCore.framework/Versions/4/QtCore \
+        @executable_path/../lib/QtCore.framework/Versions/4/QtCore \
         $2/$lib.framework/Versions/4/$lib
 done
 
 #fix reference of QtOpenGL to QtGui
 $3 -change $1/QtGui.framework/Versions/4/QtGui \
-    QtGui.framework/Versions/4/QtGui \
+    @executable_path/../lib/QtGui.framework/Versions/4/QtGui \
     $2/QtOpenGL.framework/Versions/4/QtOpenGL
 
 #delete debug stuff
