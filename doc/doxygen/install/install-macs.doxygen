@@ -34,7 +34,7 @@
  @section install_mac_contrib Installing the contrib package
 
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
-  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn, COINOR, imslib, zlib, bzip2 and XERCES-C. 
+  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, libSVM, SeqAn, COINOR, imslib, zlib, bzip2 and XERCES-C. 
     
   The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
   

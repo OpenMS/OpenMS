@@ -7,10 +7,31 @@
 	@section known_issues_windows ... on Windows
 
     <UL>
+        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinder) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
+          When you run the tool in Debug mode and look where it crashes, you might acutally find it to be a very weird place - e.g.
+          when creating a perfectly legal String from a QString:
+@code
+  QFileInfo fi(file.toQString());
+  return fi.path()
+@endcode          
+          The reason this happens is usually: you've mixed DLL's from multiple runtimes (e.g. compiled with VS10 and VS9). This can easily happen,
+          if you use your Qt (build with VS9) to link against your OpenMS (build with VS10). The loader will load VS9 and VS10 runtimes and will NOT
+          tell you that they conflict. Instead, very weird things are going to happen.
+          You can identify if you are affected by looking at the DLL's that are loaded via daisy-chaining - see either DependencyWalker's output or the 'output'
+          window in VS when running the app from inside VS. It might read:
+@code
+'MSSimulator.exe': Loaded 'C:\Windows\winsxs\amd64_microsoft.vc90.debugcrt_1fc8b3b9a1e18e3b_9.0.21022.8_none_4ec74c6b3093419c\msvcp90d.dll', Symbols loaded.
+'MSSimulator.exe': Loaded 'C:\Windows\winsxs\amd64_microsoft.vc90.debugcrt_1fc8b3b9a1e18e3b_9.0.21022.8_none_4ec74c6b3093419c\msvcr90d.dll', Symbols loaded.
+'MSSimulator.exe': Loaded 'C:\dev\qt-everywhere-opensource-src-4.7.1\bin\QtSqld4.dll', Symbols loaded.
+@endcode
+          As this was a VS10 build, the vc90 DLL's have no place here, but got loaded from the Qt4 DLL's.
+          <b>Fix</b> is easy: recompile Qt (in this case) using VS10 and link against the new Qt.
+          
+          
         <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinder) gives "Entry point not found"</B><BR>
           This usually happens when your %PATH% contains multiple versions of DLL's on which TOPP/OpenMS depends.
           Candidates are all QT (QtGui4.dll, QtCore4.dll, ...) or Xerces-C (xerces-c_3_0) libraries.
-          Usually other external programms (Miktex, Mendeley etc) put their own binary directory (which contains these inkompatible DLL's) before 
+          Usually other external programms (Miktex, Mendeley etc) put their own binary directory (which contains these incompatible DLL's) before 
           the contrib directory in your %PATH%.<br>
           Solution: put the contrib directory at the very beginning of your %PATH%. The other tools should be unaffected as DLL's are first searched in the path of the executable (where their DLL's should be as well). We do that for %OpenMS as well, but only in the binary installer packages, not for the developer version.
 
