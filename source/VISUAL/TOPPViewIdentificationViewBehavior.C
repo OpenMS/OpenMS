@@ -423,4 +423,17 @@ namespace OpenMS
       tv_->getActive1DWindow()->canvas()->repaint();
     }
   }
+
+  void TOPPViewIdentificationViewBehavior::setVisibleArea1D(DoubleReal l, DoubleReal h)
+  {
+    if(tv_->getActive1DWindow() != 0)
+    {
+      DRange<2> range = tv_->getActive1DWindow()->canvas()->getVisibleArea();
+      range.setMinX(l);
+      range.setMaxX(h);
+      tv_->getActive1DWindow()->canvas()->setVisibleArea(range);
+      tv_->getActive1DWindow()->canvas()->repaint();
+    }
+  }
+
 }

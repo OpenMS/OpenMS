@@ -114,8 +114,6 @@ namespace OpenMS
     ////////////////////////////////////
     // additional checkboxes and buttons
     QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
-    hide_ms1_ = new QCheckBox("Hide MS1", this);
-    connect(hide_ms1_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
     connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
@@ -126,7 +124,6 @@ namespace OpenMS
     QPushButton* export_table = new QPushButton("export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
-    tmp_hbox_layout->addWidget(hide_ms1_);
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
     tmp_hbox_layout->addWidget(export_table);
@@ -143,7 +140,42 @@ namespace OpenMS
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint&)));
+
+    connect(table_widget_, SIGNAL(cellClicked(int, int)), this, SLOT(cellClicked_(int, int)));
   }
+
+  void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
+  {
+    if (column == 3) // precursor mz
+    {
+      int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
+      if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty())  // has precursor
+      {        
+        // determine parent MS1 spectrum
+        int ms1_spectrum_index = 0;
+        for(ms1_spectrum_index = ms2_spectrum_index; ms1_spectrum_index >= 0; --ms1_spectrum_index)
+        {
+          if ((*layer_->getPeakData())[ms1_spectrum_index].getMSLevel() == 1)
+          {
+            break;
+          }
+        }
+
+        if (ms1_spectrum_index != -1)
+        { 
+          DoubleReal precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
+          // determine start and stop of isolation window
+          DoubleReal isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
+          DoubleReal isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
+          DoubleReal dx = isolation_window_upper_mz - isolation_window_lower_mz;
+
+          emit spectrumDeselected(ms2_spectrum_index);
+          emit spectrumSelected(ms1_spectrum_index);
+          emit requestVisibleArea1D(isolation_window_lower_mz - 0.05 * dx, isolation_window_upper_mz +  0.05 * dx);
+        }
+      }
+     }
+    }
 
   void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem* current, QTableWidgetItem* previous)
   {
@@ -279,70 +311,25 @@ namespace OpenMS
     {
       UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
 
-      // check whether to skip MS1 level scans
-      if (ms_level == 1 && hide_ms1_->isChecked())
+      // skip all non MS2 level scans
+      if (ms_level != 2)
       {
         continue;
       }
 
-      // hiding of entries with no identifications
-      // for convinience MS1 are shown if their MS2 contain identification (if not hide MS1 is selected)
-      Size id_count = (*layer_->getPeakData())[i].getPeptideIdentifications().size();
-      if (hide_no_identification_->isChecked())
-      {
-        if (id_count == 0 && ms_level == 2)  // hide MS2 level with no identification
-        {
-          continue;
-        } else if (ms_level == 1)
-        {
-          if (hide_ms1_->isChecked())
-          {
-            continue;
-          } else // hide MS1 level if there is no MS2 with Identification
-          {
-            Size j = i + 1;
-            bool has_ms2_with_id = false;
-            while(j < layer_->getPeakData()->size())
-            {
-              int level = (*layer_->getPeakData())[j].getMSLevel();
-              if (level == 1)
-              {
-                break;  // reached next MS1
-              } else if (level ==2)
-              {
-                if ((*layer_->getPeakData())[j].getPeptideIdentifications().size() >= 1)
-                {
-                  has_ms2_with_id = true;
-                  break;
-                }
-              }
-              ++j;
-            }
-
-            if (!has_ms2_with_id)
-            {
-              continue;
-            }
-          }
-        }
-      }
-
+      vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
+      Size id_count = pi.size();
+      
       // coloring
       QColor c;
-      if (ms_level == 1)
+
+      // get peptide identifications of current spectrum
+      if (id_count != 0)
       {
-        c = Qt::lightGray;  // default color for MS1
-      } else if (ms_level == 2)
+        c = Qt::green; // with identification
+      } else
       {
-        // get peptide identifications of current spectrum
-        vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
-        if (pi.size() != 0)
-        {
-          c = Qt::green; // default color for MS1 with identification
-        } else
-        {
-          c = Qt::white;
-        }
+        c = Qt::white; // without identification
       }
 
       // add new row at the end of the table
@@ -366,9 +353,9 @@ namespace OpenMS
       item->setBackgroundColor(c);
       table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
 
-      vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
+
       //cout << "peptide identifications: " << pi.size() << endl;
-      if (pi.size()!=0)
+      if (id_count != 0)
       {
         vector<PeptideHit> ph = pi[0].getHits();
 
@@ -592,7 +579,6 @@ namespace OpenMS
     table_widget_->setSortingEnabled(true);
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
-    //table_widget_->resizeRowsToContents();
   }
 
   void SpectraIdentificationViewWidget::headerContextMenu_(const QPoint& pos)

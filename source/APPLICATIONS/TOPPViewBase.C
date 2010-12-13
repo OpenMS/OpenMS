@@ -479,6 +479,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
           connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
           identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
+          connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
 
           views_tabwidget_->addTab(spectra_view_widget_, "Spectra view");
           views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");

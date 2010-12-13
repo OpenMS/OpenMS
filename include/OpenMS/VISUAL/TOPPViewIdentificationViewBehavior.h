@@ -81,6 +81,8 @@ namespace OpenMS
       /// Slot for behavior deactivation
       virtual void deactivateBehavior();
 
+      void setVisibleArea1D(DoubleReal l, DoubleReal h);
+
     private:
       /// Adds labels for the provided precursors to the 1D spectrum
       void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);

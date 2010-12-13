@@ -61,10 +61,10 @@ namespace OpenMS
       void spectrumDoubleClicked(int);
       void showSpectrumAs1D(int);
       void showSpectrumMetaData(int);
+      void requestVisibleArea1D(DoubleReal, DoubleReal);
     private:
       LayerData* layer_;
       QCheckBox* hide_no_identification_;
-      QCheckBox* hide_ms1_;
       QCheckBox* create_rows_for_commmon_metavalue_;
       QTableWidget* table_widget_;
     private slots:
@@ -74,6 +74,8 @@ namespace OpenMS
       void exportEntries_();
       /// Display header context menu
       void headerContextMenu_(const QPoint&);
+      /// Cell clicked in table_widget
+      void cellClicked_(int row, int column);
    };
 }
 
