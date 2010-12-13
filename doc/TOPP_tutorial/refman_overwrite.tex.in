@@ -80,7 +80,7 @@
 	\pagebreak
 	\input{TOPPAS_examples}
 
-\section{Advanced Users: Tips&Tricks}
+\section{Advanced Users: Tips \& Tricks}
     
   \input{TOPP_advanced}
 	\pagebreak
