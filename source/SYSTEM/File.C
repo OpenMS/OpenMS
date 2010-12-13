@@ -305,8 +305,10 @@ namespace OpenMS
           LOG_WARN << "File '"<< filename << "' is deprecated.\n";
         }
         LOG_WARN << "Updating missing/wrong entries in '"<< filename << "' with defaults!\n";
-        p.update(getSystemParameterDefaults_());
-        p.store(filename);
+        Param p_new = getSystemParameterDefaults_();
+        p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
+        p_new.update(p);
+        p_new.store(filename);
       }
     }
     return p;
@@ -323,7 +325,7 @@ namespace OpenMS
                                    "This allows you to specify just the filename of the DB in the " + \
                                    "respective TOPP tool, and the database will be searched in the directories specified here " + \
                                    "");// only active when user enters something in this value
-    p.setValue("threads", 2);
+    p.setValue("threads", 1);
     // TODO: maybe we add -log, -debug.... or....
 
     return p;
