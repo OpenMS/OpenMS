@@ -146,9 +146,9 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
+    int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
     if (column == 3) // precursor mz
     {
-      int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
       if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty())  // has precursor
       {        
         // determine parent MS1 spectrum
@@ -171,11 +171,11 @@ namespace OpenMS
 
           emit spectrumDeselected(ms2_spectrum_index);
           emit spectrumSelected(ms1_spectrum_index);
-          emit requestVisibleArea1D(isolation_window_lower_mz - 0.05 * dx, isolation_window_upper_mz +  0.05 * dx);
+          emit requestVisibleArea1D(isolation_window_lower_mz - 0.2 * dx, isolation_window_upper_mz +  0.2 * dx);
         }
       }
-     }
     }
+  }
 
   void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem* current, QTableWidgetItem* previous)
   {

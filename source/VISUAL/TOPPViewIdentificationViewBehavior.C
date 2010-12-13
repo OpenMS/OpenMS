@@ -382,6 +382,7 @@ namespace OpenMS
   {
     removeTheoreticalSpectrumLayer_();
     removePrecursorLabels1D_(spectrum_index);
+    tv_->getActive1DWindow()->canvas()->resetZoom();
   }
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
