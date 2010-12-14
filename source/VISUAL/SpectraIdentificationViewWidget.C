@@ -48,7 +48,8 @@ namespace OpenMS
     : QWidget(parent),
       DefaultParamHandler("SpectraIdentificationViewWidget"),
       ignore_update(false),
-      layer_(0)
+      layer_(0),
+      is_ms1_shown_(false)
   {
     // set common defaults
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
@@ -116,6 +117,7 @@ namespace OpenMS
     QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
+    hide_no_identification_->setChecked(true);
     connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
     create_rows_for_commmon_metavalue_ = new QCheckBox("Extra columns for additional annotations (slow)", this);
@@ -129,7 +131,7 @@ namespace OpenMS
     tmp_hbox_layout->addWidget(export_table);
 
     spectra_widget_layout->addLayout(tmp_hbox_layout);
-    table_widget_->sortByColumn ( 2, Qt::AscendingOrder);
+    table_widget_->sortByColumn (2, Qt::AscendingOrder);
 
     table_widget_->setEditTriggers(QAbstractItemView::NoEditTriggers);
     
@@ -147,11 +149,19 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
     int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
+
+    // currently MS1 active and not on precursor column clicked 
+    if (is_ms1_shown_ && column != 3)
+    {
+      emit spectrumDeselected(layer_->current_spectrum);
+      is_ms1_shown_ = false;
+    }
+
     if (column == 3) // precursor mz
     {
       if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty())  // has precursor
       {        
-        // determine parent MS1 spectrum
+        // determine parent MS1 spectrum of current MS2 row
         int ms1_spectrum_index = 0;
         for(ms1_spectrum_index = ms2_spectrum_index; ms1_spectrum_index >= 0; --ms1_spectrum_index)
         {
@@ -169,9 +179,17 @@ namespace OpenMS
           DoubleReal isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
           DoubleReal dx = isolation_window_upper_mz - isolation_window_lower_mz;
 
-          emit spectrumDeselected(ms2_spectrum_index);
+          if (!is_ms1_shown_)
+          {
+            emit spectrumDeselected(ms2_spectrum_index);
+          }
+
           emit spectrumSelected(ms1_spectrum_index);
-          emit requestVisibleArea1D(isolation_window_lower_mz - 0.2 * dx, isolation_window_upper_mz +  0.2 * dx);
+          is_ms1_shown_ = true;
+          if (dx > 0.1)  // safeguard for minimum isolation window size
+          {
+            emit requestVisibleArea1D(isolation_window_lower_mz - 0.2 * dx, isolation_window_upper_mz +  0.2 * dx);
+          }
         }
       }
     }
@@ -320,6 +338,12 @@ namespace OpenMS
       vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
       Size id_count = pi.size();
       
+      // skip 
+      if (hide_no_identification_->isChecked() && id_count == 0)
+      {
+        continue;
+      }
+
       // coloring
       QColor c;
 
@@ -497,6 +521,7 @@ namespace OpenMS
         item = table_widget_->itemPrototype()->clone();
         item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
         item->setBackgroundColor(c);
+        item->setTextColor(Qt::blue);
         table_widget_->setItem(table_widget_->rowCount()-1 , 3, item);
 
         item = table_widget_->itemPrototype()->clone();
@@ -566,6 +591,9 @@ namespace OpenMS
       }
     }
 
+    table_widget_->blockSignals(false);
+    table_widget_->setUpdatesEnabled(true);
+
     if (selected_item)
     {
       // now, select and scroll down to item
@@ -574,8 +602,7 @@ namespace OpenMS
       table_widget_->scrollToItem(selected_item);
     }
 
-    table_widget_->blockSignals(false);
-    table_widget_->setUpdatesEnabled(true);
+
     table_widget_->setSortingEnabled(true);
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
