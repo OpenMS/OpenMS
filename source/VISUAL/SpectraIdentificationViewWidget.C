@@ -153,14 +153,7 @@ namespace OpenMS
   {
     int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
 
-    // currently MS1 active and not on precursor column clicked 
-    if (is_ms1_shown_ && column != 3)
-    {
-      emit spectrumDeselected(layer_->current_spectrum);
-      is_ms1_shown_ = false;
-    }
-
-    if (column == 3) // precursor mz
+    if (column == 3) // precursor mz column
     {
       if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty())  // has precursor
       {        
@@ -184,9 +177,15 @@ namespace OpenMS
 
           if (!is_ms1_shown_)
           {
+            #ifdef DEBUG_IDENTIFICATION_VIEW
+              cout << "cellClicked_ deselect MS2: " << ms2_spectrum_index << endl;
+            #endif
             emit spectrumDeselected(ms2_spectrum_index);
           }
 
+          #ifdef DEBUG_IDENTIFICATION_VIEW
+            cout << "cellClicked_ select MS1: " << ms1_spectrum_index << endl;
+          #endif
           emit spectrumSelected(ms1_spectrum_index);
           is_ms1_shown_ = true;
           if (dx > 0.1)  // safeguard for minimum isolation window size
@@ -200,7 +199,6 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem* current, QTableWidgetItem* previous)
   {
-
       /*test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
         the execution of a TOPP tool on the whole data */
@@ -212,8 +210,30 @@ namespace OpenMS
     int previous_spectrum_index = table_widget_->item(previous->row(), 1)->data(Qt::DisplayRole).toInt();
     int current_spectrum_index = table_widget_->item(current->row(), 1)->data(Qt::DisplayRole).toInt();
 
-    emit spectrumDeselected(previous_spectrum_index);
-    emit spectrumSelected(current_spectrum_index);
+    if (is_ms1_shown_)
+    {
+      #ifdef DEBUG_IDENTIFICATION_VIEW
+        cout << "selection Change MS1 deselect: "<< layer_->current_spectrum << endl;
+      #endif
+      emit spectrumDeselected(layer_->current_spectrum);
+    } else
+    {
+      #ifdef DEBUG_IDENTIFICATION_VIEW
+        cout << "selection Change MS2 deselect: "<< previous_spectrum_index << endl;
+      #endif
+      emit spectrumDeselected(previous_spectrum_index);
+    }
+
+    if (current->column() == 3) // precursor mz column clicked
+    {
+      // handled by cell click event
+    } else  // !precursor mz column clicked
+    {
+      #ifdef DEBUG_IDENTIFICATION_VIEW
+        cout << "selection Change MS2 select "<< current_spectrum_index << endl;
+      #endif
+      emit spectrumSelected(current_spectrum_index);
+    }
   }
 
   void SpectraIdentificationViewWidget::attachLayer(LayerData* cl)
@@ -381,7 +401,6 @@ namespace OpenMS
       table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
 
 
-      //cout << "peptide identifications: " << pi.size() << endl;
       if (id_count != 0)
       {
         vector<PeptideHit> ph = pi[0].getHits();

@@ -217,6 +217,9 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::removePrecursorLabels1D_(Size spectrum_index)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
+    #endif
     // Delete annotations added by IdentificationView (but not user added annotations)
     LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
     const vector<Annotation1DItem* >& cas = current_spectrum_precursor_annotations_;    
@@ -380,8 +383,18 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::deactivate1DSpectrum(int spectrum_index)
   {
-    removeTheoreticalSpectrumLayer_();
-    removePrecursorLabels1D_(spectrum_index);
+    LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
+    int ms_level = (*current_layer.getPeakData())[spectrum_index].getMSLevel();
+
+    if (ms_level == 1)
+    {
+      removePrecursorLabels1D_(spectrum_index);
+    } else
+    if (ms_level == 2)
+    {
+      removeTheoreticalSpectrumLayer_();
+    }
+
     tv_->getActive1DWindow()->canvas()->resetZoom();
   }
 
