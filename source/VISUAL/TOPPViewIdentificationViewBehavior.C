@@ -75,9 +75,13 @@ namespace OpenMS
       w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
     }
 
+    String caption = layer.name;
+    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+
+    tv_->showSpectrumWidgetInWindow(w, caption);
+
     // special behavior
-    Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();
-    vector<PeptideIdentification> pi = widget_1D->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+    vector<PeptideIdentification> pi = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
     if (pi.size() != 0)
     {
       Size best_i_index = 0;
@@ -105,11 +109,6 @@ namespace OpenMS
       addTheoreticalSpectrumLayer_(pi[best_i_index].getHits()[best_j_index]);
     }
 
-    // basic behavior 2
-    String caption = layer.name;
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-
-    tv_->showSpectrumWidgetInWindow(w, caption);
     tv_->updateLayerBar();
     tv_->updateSpectraViewBar();
     tv_->updateFilterBar();

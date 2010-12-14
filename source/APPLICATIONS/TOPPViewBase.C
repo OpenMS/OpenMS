@@ -1837,7 +1837,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     view_behavior_->deactivateBehavior();
 
     // set new behavior
-    if (views_tabwidget_->tabText(tab_index) == "Spectra view")
+    if (views_tabwidget_->tabText(tab_index) == "Scan view")
     {      
        view_behavior_ = spectraview_behavior_;
     } else if (views_tabwidget_->tabText(tab_index) == "Identification view")
@@ -2172,7 +2172,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateSpectraViewBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateCurrentPath()));
-    //connect(sw,SIGNAL(destroyed()),this, SLOT(updateDataBar()));
     connect(sw->canvas(),SIGNAL(layerModficationChange(Size,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
@@ -2899,6 +2898,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
     Spectrum1DWidget* widget_1d = getActive1DWindow();
+    Spectrum2DWidget* widget_2d = getActive2DWindow();
+
     if (widget_1d)
     {
       if (spectra_view_widget_->isVisible())
@@ -2910,7 +2911,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       {
         identificationview_behavior_->showSpectrumAs1D(index);
       }
+    } else if (widget_2d)
+    {
+      if (spectra_view_widget_->isVisible())
+      {
+        spectraview_behavior_->showSpectrumAs1D(index);
+      }
+
+      if (spectra_identification_view_widget_->isVisible())
+      {
+        identificationview_behavior_->showSpectrumAs1D(index);
+      }
     }
+
 	}
 
   void TOPPViewBase::showCurrentPeaksAs2D()
@@ -2949,7 +2962,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       if (!w->canvas()->addLayer(exp_sptr, layer.filename))
       {
         return;
-      }
+      }      
 
      if (getActive1DWindow()) // switch from 1D to 3D
      {
