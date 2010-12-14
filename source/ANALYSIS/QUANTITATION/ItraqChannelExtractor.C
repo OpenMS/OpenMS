@@ -22,13 +22,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 
@@ -106,44 +105,6 @@ namespace OpenMS
 
 		MSExperiment<> ms_exp_MS2;
 
-		//check for peak type (raw data required)
-		bool do_picking = false;
-		if ((String) param_.getValue("intensity_method")=="peak_picker")
-		{
-			do_picking = true;
-			if (ms_exp_data.size()>0)
-			{
-				for (Size i=0; i<ms_exp_data[0].getDataProcessing().size(); ++i)
-				{
-					if (ms_exp_data[0].getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
-					{
-						std::cerr << "WARNING: ItraqChannelExtractor::run() MSExperiment is already picked! Skipping PeakPicking!" << std::endl;
-						do_picking = false;
-						break;
-					}
-				}
-			}
-		}
-		else
-		{
-			do_picking = false;
-		}
-
-		if (do_picking)
-		{
-			#ifdef ITRAQ_DEBUG
-			std::cout << "picking peaks..." << std::endl;
-			#endif
-			// pick
-			if (PeakTypeEstimator().estimateType(ms_exp_data[0].begin(),ms_exp_data[0].end())==SpectrumSettings::PEAKS)
-			{
-				std::cerr << "Warning: OpenMS peak type estimation indicates that this is peak data already!";
-			}					
-		}
-		Param pepi_param = param_.copy("PeakPicker:",true);
-		PeakPickerCWT peak_picker;
-		peak_picker.setParameters(pepi_param);
-
 		String mode = (String) param_.getValue("select_activation");
 		std::cout << "Selecting scans with activation mode: " << (mode=="" ? "any" : mode) << "\n";
 		HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(StringList::create(mode));
@@ -154,16 +115,8 @@ namespace OpenMS
 			{
 				if (mode=="" || activation_predicate(ms_exp_data[idx]) )
 				{
-					if (do_picking)
-					{	// pick peaks: copying is important, because the peakpicker does not preserve precusor peak information etc
-						MSSpectrum <Peak1D> spectrum_picked(ms_exp_data[idx]);
-						peak_picker.pick(ms_exp_data[idx],spectrum_picked);
-						ms_exp_MS2.push_back(spectrum_picked);
-					}
-					else
-					{ // copy only MS² scans
-						ms_exp_MS2.push_back(ms_exp_data[idx]);
-					}
+					// copy only MS² scans
+					ms_exp_MS2.push_back(ms_exp_data[idx]);
 				}
 				else
 				{
@@ -270,13 +223,28 @@ namespace OpenMS
 			++element_index;
 		} // ! Experiment iterator
 
-		// TODO: put that into a statistics object and return it
-		std::cout <<   "iTRAQ: skipped " << emtpy_scans.size() << " of " << ms_exp_MS2.size() << " selected scans due to lack of iTRAQ information:\n  " << emtpy_scans.concatenate(", ") << "\n";
-		std::cout <<   "iTRAQ: channels with signal\n";
-		for (Map<Int, Size>::ConstIterator it_ec=empty_channel.begin(); it_ec!=empty_channel.end();++it_ec)
+		// ------------------------------
+    // Labeling efficiency statistics
+		// ------------------------------
+    LOG_INFO <<   "iTRAQ: skipped " << emtpy_scans.size() << " of " << ms_exp_MS2.size() << " selected scans due to lack of iTRAQ information:\n";
+    consensus_map.setMetaValue("itraq:scans_noquant", emtpy_scans.size());
+    consensus_map.setMetaValue("itraq:scans_total", ms_exp_MS2.size());
+    // print only up to 20 scans
+    for (Size i=0;i<emtpy_scans.size() && i<20;++i)
+    {
+      LOG_INFO << emtpy_scans[i] << ", ";
+    }
+    if (emtpy_scans.size() >= 20) LOG_INFO << emtpy_scans[19];
+    if (emtpy_scans.size() >  20) LOG_INFO << " ...";
+    LOG_INFO << "\n";
+
+    LOG_INFO <<   "iTRAQ: channels with signal\n";
+    for (Map<Int, Size>::ConstIterator it_ec=empty_channel.begin(); it_ec!=empty_channel.end();++it_ec)
 		{
-			std::cout << "      channel " << it_ec->first << ": " << (ms_exp_MS2.size()-it_ec->second) << " / " <<  ms_exp_MS2.size() << " (" << ((ms_exp_MS2.size()-it_ec->second)*100/ms_exp_MS2.size()) << "%)\n";
-		}
+			LOG_INFO << "      channel " << it_ec->first << ": " << (ms_exp_MS2.size()-it_ec->second) << " / " <<  ms_exp_MS2.size() << " (" << ((ms_exp_MS2.size()-it_ec->second)*100/ms_exp_MS2.size()) << "%)\n";
+      consensus_map.setMetaValue(String("itraq:quantifyable_ch") + it_ec->first, (ms_exp_MS2.size()-it_ec->second) );
+    }
+    
 
 		#ifdef ITRAQ_DEBUG
 		std::cout << "processed " << element_index << " scans" << std::endl;
@@ -298,9 +266,6 @@ namespace OpenMS
 		defaults_.setMinFloat ("reporter_mass_shift", 0.00000001);
 		defaults_.setMaxFloat ("reporter_mass_shift", 0.5);
 
-		defaults_.setValue("intensity_method", "sum", "which method to use for collecting peaks for each channel", StringList::create("advanced")); 
-		defaults_.setValidStrings("intensity_method", StringList::create("sum, peak_picker"));
-
 		if (itraq_type_ == ItraqConstants::FOURPLEX)
 		{
       defaults_.setValue("channel_active", StringList::create("114:liver,117:lung"), "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
@@ -310,10 +275,7 @@ namespace OpenMS
       defaults_.setValue("channel_active", StringList::create("113:liver,117:lung"), "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\"."); 
 		}
 
-		PeakPickerCWT ppcwt; 
-		defaults_.insert ("PeakPicker:", ppcwt.getDefaults());
-
-		defaultsToParam_();
+    defaultsToParam_();
 
 		return;
 	}

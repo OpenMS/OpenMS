@@ -99,7 +99,7 @@ namespace OpenMS
 	}
 
 	/**
-	 *	@brief using the raw iTRAQ intensities we apply isotope correction, normalization (using median) and protein inference
+	 *	@brief using the raw iTRAQ intensities we apply isotope correction and normalization (using median)
 	 *	
 	 *	@param consensus_map_in Raw iTRAQ intensities from previous step
 	 *	@param consensus_map_out Postprocessed iTRAQ ratios for peptides
@@ -111,30 +111,6 @@ namespace OpenMS
 					 ConsensusMap& consensus_map_out
 					 )
 	{
-		run(consensus_map_in, 
-				std::vector< PeptideIdentification >(),
-				std::vector< ProteinIdentification >(),
-				consensus_map_out);
-		return;
-	}
-	/**
-	 *	@brief using the raw iTRAQ intensities we apply isotope correction, normalization (using median) and protein inference
-	 *	
-	 *	@param consensus_map_in Raw iTRAQ intensities from previous step
-	 *	@param peptide_ids List of peptides identified by a search engine on the same MS² dataset
-	 *	@param protein_ids List of proteins inferred from peptides
-	 *	@param consensus_map_out Postprocessed iTRAQ ratios for Proteins (if provided) or Peptides otherwise
-	 *
-	 *	@throws Exception::FailedAPICall if least-squares fit fails
-	 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
-	 */
-	void ItraqQuantifier::run(const ConsensusMap& consensus_map_in, 
-					 const std::vector< PeptideIdentification > &peptide_ids,
-					 const std::vector< ProteinIdentification > &protein_ids, 
-					 ConsensusMap& consensus_map_out
-					 )
-	{
-
 		reconstructChannelInfo_(consensus_map_in);
 
 		consensus_map_out = consensus_map_in;
@@ -451,25 +427,6 @@ namespace OpenMS
 
 
 		// ** PEPTIDE PROTEIN MAPPING ** //
-
-		// find unique peptides of a protein and use a robust peptide ratio as protein ratio
-		if ((!peptide_ids.empty() && !protein_ids.empty()))
-		{
-			
-			// annotate consensusMap with identifications
-			IDMapper mapper;
-			Param p = mapper.getParameters();
-			p.setValue("rt_tolerance", 0.005);
-			p.setValue("mz_tolerance", 0.0005);
-			p.setValue("mz_measure","Da");
-			mapper.setParameters(p);
-			mapper.annotate(consensus_map_out, peptide_ids, protein_ids, false);
-			
-			// put quantitative info on Proteins
-			ProteinInference inferrer;
-			inferrer.infer(consensus_map_out,(UInt) ref_mapid);
-
-		}
 
 		consensus_map_out.setExperimentType("itraq");
 		
