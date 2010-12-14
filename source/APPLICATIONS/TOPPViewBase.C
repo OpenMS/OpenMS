@@ -1850,7 +1850,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     // notify that new behavior has been activated
     view_behavior_->activateBehavior();
-    updateSpectraViewBar();    
+    updateSpectraViewBar();
   }
 
   /*
@@ -1953,7 +1953,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			}
 
 			//Update filter bar, spectrum bar and layer bar
-      //updateDataBar();
 			updateLayerBar();
       updateSpectraViewBar();
 			updateFilterBar();

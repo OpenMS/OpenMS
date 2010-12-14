@@ -105,6 +105,7 @@ namespace OpenMS
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->setColumnCount(header_labels.size());
 
+    table_widget_->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setShowGrid(false);
 
@@ -138,6 +139,8 @@ namespace OpenMS
     // select single rows
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    table_widget_->horizontalHeader()->setMovable(true);
 
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -599,6 +602,7 @@ namespace OpenMS
       // now, select and scroll down to item
       table_widget_->selectRow(selected_row);
       //selected_item->setSelected(true);
+      table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);
     }
 
