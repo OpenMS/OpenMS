@@ -360,7 +360,7 @@ namespace OpenMS
 
       vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
       Size id_count = pi.size();
-      
+
       // skip 
       if (hide_no_identification_->isChecked() && id_count == 0)
       {
@@ -401,10 +401,21 @@ namespace OpenMS
       table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
 
 
+      if(i==230)
+      {
+        cout << "pi " << id_count<< endl;
+      }
+
       if (id_count != 0)
       {
         vector<PeptideHit> ph = pi[0].getHits();
 
+        if(i==230)
+        {
+          cout << "ph " << ph.size()<< endl;
+        }
+
+        Size best_pi_index = 0;
         Size best_j_index = 0;
         bool is_higher_score_better = false;
         Size best_score = pi[0].getHits()[0].getScore();
@@ -412,18 +423,34 @@ namespace OpenMS
 
         if (ph.size()!=0)
         {
-          for(Size j=0; j!=pi[0].getHits().size(); ++j)
+          for(Size pi_index=0; pi_index!=id_count; ++pi_index)
           {
-            PeptideHit ph = pi[0].getHits()[j];
-            // better score?
-            if ((ph.getScore() < best_score && !is_higher_score_better)
-              || (ph.getScore() > best_score && is_higher_score_better))
-              {
-              best_score = ph.getScore();
-              best_j_index = j;
+            for(Size j=0; j!=pi[pi_index].getHits().size(); ++j)
+            {
+              PeptideHit ph = pi[pi_index].getHits()[j];
+              // better score?
+              if ((ph.getScore() < best_score && !is_higher_score_better)
+                || (ph.getScore() > best_score && is_higher_score_better))
+                {
+                best_score = ph.getScore();
+                best_j_index = j;
+                best_pi_index = pi_index;
+                if(i==230)
+                {
+                  cout << best_j_index << " " << best_pi_index << endl;
+                  cout << ph.getScore() << endl;
+                  cout << ph.getSequence().toString() << endl;
+                }
+              }
             }
           }
-          PeptideHit best_ph = pi[0].getHits()[best_j_index];
+
+          if(i==230)
+          {
+            cout << "best_j_index " << best_j_index << " best_i_index " << best_pi_index << endl;
+          }
+
+          PeptideHit best_ph = pi[best_pi_index].getHits()[best_j_index];
           // score
           item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, best_ph.getScore());
