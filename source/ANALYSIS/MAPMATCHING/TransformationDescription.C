@@ -304,7 +304,8 @@ namespace OpenMS
   struct TransformationDescription::BSpline_ : TransformationDescription::Trafo_
   {
     BSpline_(const TransformationDescription& rhs) :
-      Trafo_(rhs)
+      Trafo_(rhs),
+      tmp_lin_(rhs) // for extrapolation
     {
       if (rhs.pairs_.size() < 4) // TODO: check number
       {
@@ -379,47 +380,25 @@ namespace OpenMS
       // clean-up:
       gsl_matrix_free(fit_matrix);
       gsl_multifit_linear_free(multifit);
-      // for linear extrapolation (natural spline):
-      compute_linear_(xmin, slope_min, offset_min);
-      compute_linear_(xmax, slope_max, offset_max);
-    }
-
-    void compute_linear_(double pos, double& slope, double& offset)
-    {
-      gsl_bspline_deriv_workspace *deriv_workspace = gsl_bspline_deriv_alloc(4);
-      gsl_matrix *deriv = gsl_matrix_alloc(ncoeffs, 2);
-      gsl_bspline_deriv_eval(pos, 1, deriv, workspace, deriv_workspace);
-      gsl_bspline_deriv_free(deriv_workspace);
-      double results[2];
-      for (size_t j = 0; j < 2; ++j)
-      {
-        for (size_t i = 0; i < ncoeffs; ++i)
-        {
-          gsl_vector_set(bsplines, i, gsl_matrix_get(deriv, i, j));
-        }
-        double yerr;
-        gsl_multifit_linear_est(bsplines, coeffs, cov, &results[j], &yerr);
-      }
-      gsl_matrix_free(deriv);
-      offset = results[0];
-      slope = results[1];
     }
 
     virtual void operator()(DoubleReal& value) const
     {
-      if (value < xmin)
+      if (value < xmin || value > xmax)
       {
-        value = offset_min - slope_min * (xmin - value);
-      }
-      else if (value > xmax)
-      {
-        value = offset_max + slope_max * (value - xmax);
+        tmp_lin_(value); // use linear interpolation when extrapolating (b-Spline is very bad at this)
       }
       else
       {
         double yerr;
+        DoubleReal value_old = value;
         gsl_bspline_eval(value, bsplines, workspace);
         gsl_multifit_linear_est(bsplines, coeffs, cov, &value, &yerr);
+        if (yerr > 1) // the error gets too big!
+        {
+          value = value_old; // use backup
+          tmp_lin_(value);   // ... for linear interpolation
+        }
       }
     }
 
@@ -468,6 +447,7 @@ namespace OpenMS
     size_t size, ncoeffs;
     double xmin, xmax; // first/last breakpoint
     double slope_min, slope_max, offset_min, offset_max;
+    InterpolatedLinear_ tmp_lin_; // for extrapolation
   };
 
   void TransformationDescription::init_() const
