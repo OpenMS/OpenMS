@@ -336,9 +336,11 @@ namespace OpenMS
 		QVector<TOPPASToolVertex::IOInfo> source_output_files;
 		QVector<TOPPASToolVertex::IOInfo> target_input_files;
 		source_tool->getOutputParameters(source_output_files);
+    if (source_param_index >= source_output_files.size()) return ES_TOOL_API_CHANGED;
 		const TOPPASToolVertex::IOInfo& source_param = source_output_files[source_param_index];
 		StringList source_param_types = source_param.valid_types;
 		target_tool->getInputParameters(target_input_files);
+    if (target_param_index >= target_input_files.size()) return ES_TOOL_API_CHANGED;
 		const TOPPASToolVertex::IOInfo& target_param = target_input_files[target_param_index];
 		StringList target_param_types = target_param.valid_types;
 		
@@ -584,7 +586,7 @@ namespace OpenMS
 		{
 			setColor(QColor(255,165,0));
 		}
-		else
+    else
 		{
 			setColor(Qt::red);
 		}
