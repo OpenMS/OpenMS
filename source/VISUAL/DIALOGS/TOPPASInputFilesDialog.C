@@ -82,6 +82,7 @@ namespace OpenMS
 		{
 			files.push_back(input_file_list->item(i)->text());
 		}
+    if (flag_sort_list->isChecked()) files.sort();
 	}
 	
 	void TOPPASInputFilesDialog::editCurrentItem()

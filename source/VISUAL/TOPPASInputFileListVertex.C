@@ -51,12 +51,11 @@ namespace OpenMS
 	
 	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files)
 		:	TOPPASVertex(),
-			//files_(files), (use member function, as we need to sort it)
+			files_(files),
 			key_()
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
-    setFilenames(files);
 	}
 	
 	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs)
@@ -93,13 +92,16 @@ namespace OpenMS
 		TOPPASInputFilesDialog tifd(files_);
 		if (tifd.exec())
 		{
-      QStringList files;
-			tifd.getFilenames(files);
-      setFilenames(files); // sort the input
+			tifd.getFilenames(files_);
 			qobject_cast<TOPPASScene*>(scene())->setChanged(true);
 			qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 			emit somethingHasChanged();
 		}
+	}
+	
+	const QStringList& TOPPASInputFileListVertex::getFilenames()
+	{
+		return files_;
 	}
 	
 	void TOPPASInputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
@@ -253,15 +255,9 @@ namespace OpenMS
 		return key_;
 	}
 	
-	const QStringList& TOPPASInputFileListVertex::getFilenames()
-	{
-		return files_;
-	}
-	
 	void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
 	{
 		files_ = files;
-    files_.sort();
 	}
 	
 }

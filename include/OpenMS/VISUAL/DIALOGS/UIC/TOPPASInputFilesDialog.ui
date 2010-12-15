@@ -98,6 +98,16 @@
       <number>0</number>
      </property>
      <item>
+      <widget class="QCheckBox" name="flag_sort_list">
+       <property name="text">
+        <string>sort list alphabetically on &quot;Ok&quot;</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
