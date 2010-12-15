@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
@@ -89,7 +89,7 @@ namespace OpenMS
 		map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 
 		//keep track of assigned/unassigned peptide identifications
-		std::set<Size> assigned;
+		std::map<Size,Size> assigned;
 					
 		// store which peptides fit which feature (and avoid double entries)
 		// consensusMap -> {peptide_index}
@@ -123,7 +123,7 @@ namespace OpenMS
 						{
 							was_added = true;
 							map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-							assigned.insert(i);
+							++assigned[i];
 						}
 					}
 					else
@@ -138,7 +138,7 @@ namespace OpenMS
 								if (mapping[cm_index].count(i) == 0)
 								{
 									map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-									assigned.insert(i);
+									++assigned[i];
 									mapping[cm_index].insert(i);
 								}
 								break; // we added this peptide already.. no need to check other handles
@@ -156,14 +156,35 @@ namespace OpenMS
 			} // features
 		} // Identifications
 
+
+    Size matches_none(0);
+    Size matches_single(0);
+    Size matches_multi(0);
+
 		//append unassigned peptide identifications
 		for (Size i=0; i<ids.size(); ++i)
 		{
-			if (assigned.count(i)==0)
+			if (assigned[i]==0)
 			{
 				map.getUnassignedPeptideIdentifications().push_back(ids[i]);
+        ++matches_none;
 			}
+      else if (assigned[i]==1)
+      {
+        ++matches_single;
+      }
+      else if (assigned[i]>1)
+      {
+        ++matches_multi;
+      }
 		}
+
+    //some statistics output
+	  LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
+					   << "Peptides assigned to exactly one feature: " 
+					   << matches_single << "\n"
+					   << "Peptides assigned to multiple features: " 
+					   << matches_multi << std::endl;
 
 	}
 
