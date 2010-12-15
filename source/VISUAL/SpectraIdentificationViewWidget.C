@@ -400,13 +400,17 @@ namespace OpenMS
       item->setBackgroundColor(c);
       table_widget_->setItem(table_widget_->rowCount()-1 , 2, item);
 
-      cout << "pi " << id_count<< endl;
+      #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "peptide identifications found:  " << id_count<< endl;
+      #endif
 
       if (id_count != 0)
       {
         vector<PeptideHit> ph = pi[0].getHits();
 
-        cout << "  ph " << ph.size()<< endl;
+        #ifdef DEBUG_IDENTIFICATION_VIEW
+          cout << "  peptide hits found: " << ph.size()<< endl;
+        #endif
 
         Size best_pi_index = 0;
         Size best_j_index = 0;
@@ -422,8 +426,9 @@ namespace OpenMS
             {
               PeptideHit ph = pi[pi_index].getHits()[j];
 
-              cout << "    " << i << " "  << pi_index << " " << j << " " << ph.getScore() << " " << ph.getSequence().toString() << endl;
-
+              #ifdef DEBUG_IDENTIFICATION_VIEW
+                cout << "    " << i << " "  << pi_index << " " << j << " " << ph.getScore() << " " << ph.getSequence().toString() << endl;
+              #endif
               // better score?
               if ((ph.getScore() < best_score && !is_higher_score_better)
                 || (ph.getScore() > best_score && is_higher_score_better))
@@ -433,11 +438,6 @@ namespace OpenMS
                 best_pi_index = pi_index;
               }
             }
-          }
-
-          if(i==230)
-          {
-            cout << "best_j_index " << best_j_index << " best_i_index " << best_pi_index << endl;
           }
 
           PeptideHit best_ph = pi[best_pi_index].getHits()[best_j_index];

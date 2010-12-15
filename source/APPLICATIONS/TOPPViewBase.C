@@ -483,6 +483,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
           views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
           views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
+          views_tabwidget_->setTabEnabled(1, false);
           // switch between different view tabs
           connect(views_tabwidget_, SIGNAL(currentChanged(int)), this, SLOT(viewChanged(int)));
 
@@ -2728,6 +2729,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
         mapper.setParameters(p);
         mapper.annotate(*layer.getPeakData(), identifications, protein_identifications);
+        // enable identification view
+        views_tabwidget_->setTabEnabled(1, true);
 			}
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
