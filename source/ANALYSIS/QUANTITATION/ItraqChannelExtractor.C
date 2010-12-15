@@ -209,15 +209,14 @@ namespace OpenMS
 
 			
 			// check featureHandles are not empty
-			if (overall_intensity>0)
-			{
-				cf.setIntensity(overall_intensity);
-				consensus_map.push_back(cf);
-			}
-			else
+      if (overall_intensity==0)
 			{
 				emtpy_scans.push_back(String(cf.getRT()));
+        cf.setMetaValue("all_empty", String("true"));
 			}
+			cf.setIntensity(overall_intensity);
+			consensus_map.push_back(cf);
+			
 
 			// the tandem-scan in the order they appear in the experiment
 			++element_index;
