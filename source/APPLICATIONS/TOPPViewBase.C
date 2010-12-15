@@ -2719,17 +2719,23 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			vector<ProteinIdentification> protein_identifications;
 			String document_id;
 			IdXMLFile().load(name, protein_identifications, identifications, document_id);
+      IDMapper mapper;
 			if (layer.type==LayerData::DT_PEAK)
 			{
-        IDMapper().annotate(*layer.getPeakData(), identifications, protein_identifications);
+        Param p = mapper.getDefaults();
+        p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+        p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+        p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+        mapper.setParameters(p);
+        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications);
 			}
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
-        IDMapper().annotate(*layer.getFeatureMap(),identifications,protein_identifications);
+        mapper.annotate(*layer.getFeatureMap(),identifications,protein_identifications);
 			}
 			else
 			{
-        IDMapper().annotate(*layer.getConsensusMap(),identifications,protein_identifications);
+        mapper.annotate(*layer.getConsensusMap(),identifications,protein_identifications);
 			}
 		}
     updateSpectraViewBar();
