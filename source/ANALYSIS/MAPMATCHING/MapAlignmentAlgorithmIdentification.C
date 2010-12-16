@@ -46,7 +46,7 @@ namespace OpenMS
 	{
 		setName("MapAlignmentAlgorithmIdentification");
 
-		defaults_.setValue("num_breakpoints", 10, "Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing.");
+		defaults_.setValue("num_breakpoints", 10, "Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has unexpected shape.");
 		defaults_.setMinInt("num_breakpoints", 2);
 
 		defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to be used in the alignment.\nSelect a value that allows only 'high confidence' matches.");

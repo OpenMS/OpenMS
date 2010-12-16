@@ -410,7 +410,9 @@ namespace OpenMS
         }
         gsl_multifit_linear_est(bsplines_, coeffs_, cov_, &results[j], &sd_err);
         if (sd_err >= 1) // todo: find a good way to estimate the error!
-        {
+        {                // e.g. by reducing #breakpoints and compare to current?!
+                         //  (this SD seems on a much smaller scale than 'yerr' in operator() )
+                         // see GSL's multilinear.c::gsl_multifit_linear_est() for details
           LOG_ERROR << "BSpline::extrapolation() is unreliable. Consider reducing 'num_breakpoints' or use another model." << std::endl; 
         }
       }
