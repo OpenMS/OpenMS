@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <gsl/gsl_bspline.h>
 #include <gsl/gsl_multifit.h>
 #include <algorithm>
@@ -150,6 +151,15 @@ namespace OpenMS
 		// invert
 		trafo_->getInverse(result);
 	}
+
+	DoubleReal TransformationDescription::getMaxRTErrorEstimate() const
+	{
+		// initialize transformation (if unset).
+		if (!trafo_) init_();
+		// invert
+		return trafo_->getMaxRTErrorEstimate();
+	}
+
 
 //// internal structs
 
@@ -305,7 +315,7 @@ namespace OpenMS
   {
     BSpline_(const TransformationDescription& rhs) :
       Trafo_(rhs),
-      tmp_lin_(rhs) // for extrapolation
+      tmp_lin_(rhs)
     {
       if (rhs.pairs_.size() < 4) // TODO: check number
       {
@@ -319,87 +329,128 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parameter 'num_breakpoints' for 'b_spline' transformation missing");
       }
 
-      size = rhs.pairs_.size();
-      x = gsl_vector_alloc(size);
-      y = gsl_vector_alloc(size);
-      w = gsl_vector_alloc(size);
-      for (size_t i = 0; i < size; ++i)
+      size_ = rhs.pairs_.size();
+      x_ = gsl_vector_alloc(size_);
+      y_ = gsl_vector_alloc(size_);
+      w_ = gsl_vector_alloc(size_);
+      for (size_t i = 0; i < size_; ++i)
       {
-        gsl_vector_set(x, i, rhs.pairs_[i].first);
-        gsl_vector_set(y, i, rhs.pairs_[i].second);
-        gsl_vector_set(w, i, 1.0); // TODO: non-uniform weights
+        gsl_vector_set(x_, i, rhs.pairs_[i].first);
+        gsl_vector_set(y_, i, rhs.pairs_[i].second);
+        gsl_vector_set(w_, i, 1.0); // TODO: non-uniform weights
       }
-      xmin = gsl_vector_min(x);
-      xmax = gsl_vector_max(x);
+      xmin_ = gsl_vector_min(x_);
+      xmax_ = gsl_vector_max(x_);
 		
       // set up cubic (k = 4) spline workspace:
       Size num_breakpoints = rhs.param_.getValue("num_breakpoints");
 			if (num_breakpoints < 2) num_breakpoints = 2;
-			else if (num_breakpoints > size - 2) num_breakpoints = size - 2;
-			workspace = gsl_bspline_alloc(4, num_breakpoints);
-			gsl_bspline_knots_uniform(xmin, xmax, workspace);
-      ncoeffs = gsl_bspline_ncoeffs(workspace);
-      xmin = gsl_vector_min(workspace->knots);
-      xmax = gsl_vector_max(workspace->knots);
-      compute_fit_();
+			else if (num_breakpoints > size_ - 2) num_breakpoints = size_ - 2;
+			workspace_ = gsl_bspline_alloc(4, num_breakpoints);
+			gsl_bspline_knots_uniform(xmin_, xmax_, workspace_);
+      ncoeffs_ = gsl_bspline_ncoeffs(workspace_);
+      xmin_ = gsl_vector_min(workspace_->knots);
+      xmax_ = gsl_vector_max(workspace_->knots);
+      computeFit_();
     }
 
     ~BSpline_()
     {
-      gsl_bspline_free(workspace);
-      gsl_vector_free(bsplines);
-      gsl_vector_free(coeffs);
-      gsl_matrix_free(cov);
-      gsl_vector_free(x);
-      gsl_vector_free(y);
-      gsl_vector_free(w);
+      gsl_bspline_free(workspace_);
+      gsl_vector_free(bsplines_);
+      gsl_vector_free(coeffs_);
+      gsl_matrix_free(cov_);
+      gsl_vector_free(x_);
+      gsl_vector_free(y_);
+      gsl_vector_free(w_);
     }
 
-    void compute_fit_()
+    void computeFit_()
     {
       // construct the fit matrix:
-      gsl_matrix *fit_matrix = gsl_matrix_alloc(size, ncoeffs);
-      bsplines = gsl_vector_alloc(ncoeffs);
-      for (size_t i = 0; i < size; ++i)
+      gsl_matrix *fit_matrix = gsl_matrix_alloc(size_, ncoeffs_);
+      bsplines_ = gsl_vector_alloc(ncoeffs_);
+      for (size_t i = 0; i < size_; ++i)
       {
-        double xi = gsl_vector_get(x, i);
-        gsl_bspline_eval(xi, bsplines, workspace);
-        for (size_t j = 0; j < ncoeffs; ++j)
+        double xi = gsl_vector_get(x_, i);
+        gsl_bspline_eval(xi, bsplines_, workspace_);
+        for (size_t j = 0; j < ncoeffs_; ++j)
         {
-          double bspline = gsl_vector_get(bsplines, j);
+          double bspline = gsl_vector_get(bsplines_, j);
           gsl_matrix_set(fit_matrix, i, j, bspline);
         }
       }
       // do the fit:
       gsl_multifit_linear_workspace *multifit = gsl_multifit_linear_alloc(
-				size, ncoeffs);
-      coeffs = gsl_vector_alloc(ncoeffs);
-      cov = gsl_matrix_alloc(ncoeffs, ncoeffs);
+				size_, ncoeffs_);
+      coeffs_ = gsl_vector_alloc(ncoeffs_);
+      cov_ = gsl_matrix_alloc(ncoeffs_, ncoeffs_);
       double chisq;
-      gsl_multifit_wlinear(fit_matrix, w, y, coeffs, cov, &chisq, multifit);
+      gsl_multifit_wlinear(fit_matrix, w_, y_, coeffs_, cov_, &chisq, multifit);
       // clean-up:
       gsl_matrix_free(fit_matrix);
       gsl_multifit_linear_free(multifit);
+      // for linear extrapolation (natural spline):
+      computeLinear_(xmin_, slope_min_, offset_min_, sd_err_left_);
+      computeLinear_(xmax_, slope_max_, offset_max_, sd_err_right_);
+    }
+
+    void computeLinear_(const double pos, double& slope, double& offset, double& sd_err)
+    {
+      gsl_bspline_deriv_workspace *deriv_workspace = gsl_bspline_deriv_alloc(4);
+      gsl_matrix *deriv = gsl_matrix_alloc(ncoeffs_, 2);
+      gsl_bspline_deriv_eval(pos, 1, deriv, workspace_, deriv_workspace);
+      gsl_bspline_deriv_free(deriv_workspace);
+      double results[2];
+      for (size_t j = 0; j < 2; ++j)
+      {
+        for (size_t i = 0; i < ncoeffs_; ++i)
+        {
+          gsl_vector_set(bsplines_, i, gsl_matrix_get(deriv, i, j));
+        }
+        gsl_multifit_linear_est(bsplines_, coeffs_, cov_, &results[j], &sd_err);
+        if (sd_err >= 1) // todo: find a good way to estimate the error!
+        {
+          LOG_ERROR << "BSpline::extrapolation() is unreliable. Consider reducing 'num_breakpoints' or use another model." << std::endl; 
+        }
+      }
+      gsl_matrix_free(deriv);
+      offset = results[0];
+      slope = results[1];
     }
 
     virtual void operator()(DoubleReal& value) const
     {
-      if (value < xmin || value > xmax)
-      {
-        tmp_lin_(value); // use linear interpolation when extrapolating (b-Spline is very bad at this)
-      }
-      else
+      DoubleReal value_cpy = value;
+      if (value < xmin_)
+      { 
+        value = offset_min_ - slope_min_ * (xmin_ - value);
+        if (sd_err_left_ >= 1) bSplineCatch_(value, value_cpy);
+      } 
+      else if (value > xmax_) 
+      { 
+        value = offset_max_ + slope_max_ * (value - xmax_); 
+        if (sd_err_right_ >= 1) bSplineCatch_(value, value_cpy);
+      } 
+      else // interpolation
       {
         double yerr;
-        DoubleReal value_old = value;
-        gsl_bspline_eval(value, bsplines, workspace);
-        gsl_multifit_linear_est(bsplines, coeffs, cov, &value, &yerr);
+        DoubleReal value_cpy = value;
+        gsl_bspline_eval(value, bsplines_, workspace_);
+        gsl_multifit_linear_est(bsplines_, coeffs_, cov_, &value, &yerr);
         if (yerr > 1) // the error gets too big!
         {
-          value = value_old; // use backup
-          tmp_lin_(value);   // ... for linear interpolation
+          bSplineCatch_(value, value_cpy);
         }
       }
+    }
+
+    /// alternative calculation of Trafo when BSpline gives bad SD
+    /// , also updating 'max_rt_diff_'
+    virtual void bSplineCatch_(const DoubleReal& value_bspline, DoubleReal& original_value) const
+    {
+      tmp_lin_(original_value);   // ... for linear interpolation
+      max_rt_diff_ = std::max(max_rt_diff_, abs(original_value-value_bspline)); // get a feeling for the maximal error
     }
 
 		virtual void getInverse(TransformationDescription& result)
@@ -413,41 +464,42 @@ namespace OpenMS
 			{
 				result.clear();
 			}
-			for (size_t i = 0; i < size; ++i)
+			for (size_t i = 0; i < size_; ++i)
 			{
-				result.pairs_.push_back(std::make_pair(gsl_vector_get(y, i),
-																							 gsl_vector_get(x, i)));
+				result.pairs_.push_back(std::make_pair(gsl_vector_get(y_, i),
+																							 gsl_vector_get(x_, i)));
 			}
 			if (this == result.trafo_) // self-assignment
 			{
 				// swap x and y (weights stay the same):
 				gsl_vector* temp;
-				temp = x;
-				x = y;
-				y = temp;
+				temp = x_;
+				x_ = y_;
+				y_ = temp;
 				// recompute the spline:
-				xmin = gsl_vector_min(x);
-				xmax = gsl_vector_max(x);
+				xmin_ = gsl_vector_min(x_);
+				xmax_ = gsl_vector_max(x_);
 				// workspace stays the same
-				gsl_bspline_knots_uniform(xmin, xmax, workspace);
-				ncoeffs = gsl_bspline_ncoeffs(workspace);
-				xmin = gsl_vector_min(workspace->knots);
-				xmax = gsl_vector_max(workspace->knots);
-				compute_fit_();
+				gsl_bspline_knots_uniform(xmin_, xmax_, workspace_);
+				ncoeffs_ = gsl_bspline_ncoeffs(workspace_);
+				xmin_ = gsl_vector_min(workspace_->knots);
+				xmax_ = gsl_vector_max(workspace_->knots);
+				computeFit_();
 			}
 			// ncoeffs = nbreak + k - 2
-			result.param_.setValue("num_breakpoints", ncoeffs - 2);
+			result.param_.setValue("num_breakpoints", ncoeffs_ - 2);
 			result.name_ = "b_spline";
 		}
 
   protected:
-    gsl_vector *x, *y, *w, *bsplines, *coeffs;
-    gsl_matrix *cov;
-    gsl_bspline_workspace *workspace;
-    size_t size, ncoeffs;
-    double xmin, xmax; // first/last breakpoint
-    double slope_min, slope_max, offset_min, offset_max;
+    gsl_vector *x_, *y_, *w_, *bsplines_, *coeffs_;
+    gsl_matrix *cov_;
+    gsl_bspline_workspace *workspace_;
+    size_t size_, ncoeffs_;
+    double xmin_, xmax_; // first/last breakpoint
+    double slope_min_, slope_max_, offset_min_, offset_max_;
     InterpolatedLinear_ tmp_lin_; // for extrapolation
+    double sd_err_left_, sd_err_right_;
   };
 
   void TransformationDescription::init_() const
@@ -455,8 +507,8 @@ namespace OpenMS
     // workaround: init_() is const, but in fact it changes "hidden" state.
     Trafo_ * & trafo = const_cast<Trafo_*&> (trafo_);
 
-    if (trafo) delete trafo;
-    trafo = 0;
+    if (trafo) return; // object already present, delete it beforehand if you want a new one
+
     if (name_ == "none")
     {
       trafo = new None_(*this);

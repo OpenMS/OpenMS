@@ -114,6 +114,9 @@ namespace OpenMS
 		/// Compute an (approximate) inverse of the transformation
 		void getInverse(TransformationDescription& result);
 
+    /// Get maximal RT difference for current model versus an alternative model
+    /// , currently used for BSplines only when their fit is bad.
+    DoubleReal getMaxRTErrorEstimate() const;
 	 protected:
 			
 		/**@brief Base class for all transformations
@@ -145,9 +148,15 @@ namespace OpenMS
 		*/
 		struct OPENMS_DLLAPI Trafo_
 		{
-			Trafo_(const TransformationDescription&) {}
+      Trafo_(const TransformationDescription&): max_rt_diff_(0)
+      {
+      }
 			virtual void operator()(DoubleReal& value) const = 0;
 			virtual void getInverse(TransformationDescription& result) = 0;
+      DoubleReal getMaxRTErrorEstimate() const {return max_rt_diff_;}
+     protected:
+   		/// Max Error
+      mutable DoubleReal max_rt_diff_;
 		 private:			
 			Trafo_(const Trafo_&) {}
 		};
@@ -171,7 +180,7 @@ namespace OpenMS
 		PairVector pairs_;
 		/// Pointer to actual transformation functor
 		Trafo_ * trafo_;
-				
+
 		/// See Trafo_ for documentation.
 		struct None_;
 			

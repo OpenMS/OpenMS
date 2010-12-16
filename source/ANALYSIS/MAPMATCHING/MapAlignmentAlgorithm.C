@@ -168,7 +168,10 @@ namespace OpenMS
 			 transformSinglePeptideIdentification(
 				 fmap.getUnassignedPeptideIdentifications(), trafo);
 		 }
-
+     if (trafo.getMaxRTErrorEstimate() > 0)
+     {
+       LOG_WARN << "Maximal RT difference using alternative (linear) model was: " << trafo.getMaxRTErrorEstimate() << std::endl;
+     }
      return;
    }
 
@@ -239,7 +242,11 @@ namespace OpenMS
 		{
 			applyToConsensusFeature_(*cmit, trafo);
 		}
-		
+    if (trafo.getMaxRTErrorEstimate() > 0)
+    {
+      LOG_WARN << "Maximal RT difference using alternative (linear) model was: " << trafo.getMaxRTErrorEstimate() << std::endl;
+    }
+
 		// adapt RT values of unassigned peptides:
 		if (!cmap.getUnassignedPeptideIdentifications().empty())
 		{
@@ -284,7 +291,6 @@ namespace OpenMS
 			(*trafo.trafo_)(rt);
 			it->asMutable().setRT(rt);
 		}
-
 		return;
 	}
 
@@ -316,8 +322,8 @@ namespace OpenMS
 
     void MapAlignmentAlgorithm::transformSinglePeptideIdentification( std::vector< PeptideIdentification >& pepids, const TransformationDescription& trafo )
     {
-      const UInt meta_index_RT = MetaInfo::registry().getIndex("RT");
       trafo.init_();
+      const UInt meta_index_RT = MetaInfo::registry().getIndex("RT");
       for ( UInt pepid_index = 0; pepid_index < pepids.size(); ++pepid_index )
       {
         V_MapAlignmentAlgorithm("pepid_index: " << pepid_index);
