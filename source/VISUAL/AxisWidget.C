@@ -276,9 +276,6 @@ namespace OpenMS
       painter->setFont(font());
       painter->setPen(QPen(Qt::black));
 
-      UInt i_beg = (horizontal_alignment) ? 0 : h;
-      UInt i_end = (horizontal_alignment) ? w : 0;
-
       switch (alignment_)
       {
         case BOTTOM:

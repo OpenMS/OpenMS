@@ -690,8 +690,14 @@ namespace OpenMS
 
     SpectrumConstIteratorType vbegin, vend;
     for (Size i=0; i< getLayerCount();++i)
-    {
+    {      
       const LayerData& layer = getLayer(i);
+
+      if (layer.type != LayerData::DT_PEAK)  // skip non peak data layer
+      {        
+        continue;
+      }
+
       const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
       if (layer.visible)
       {
