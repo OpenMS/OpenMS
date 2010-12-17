@@ -482,7 +482,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
 
           views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
-          views_tabwidget_->setTabEnabled(views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view"),false);
+          views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
           views_tabwidget_->setTabEnabled(1, false);
           // switch between different view tabs
           connect(views_tabwidget_, SIGNAL(currentChanged(int)), this, SLOT(viewChanged(int)));
@@ -2758,7 +2758,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         mapper.annotate(*layer.getConsensusMap(),identifications,protein_identifications);
 			}
 		}
-		spectra_identification_view_widget_->setEnabled(true);
     updateSpectraViewBar();
 	}
 
