@@ -240,8 +240,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           help->addSeparator();
           QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
           action->setData("http://open-ms.sourceforge.net/news.php");
-          action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
-          action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/TOPP_tutorial.html");
+          action = help->addAction("Tutorials and documentation (online)",this,SLOT(showURL()), Qt::Key_F1);
+          action->setData("http://open-ms.sourceforge.net/documentation.php");
 
           help->addSeparator();
           help->addAction("&About",this,SLOT(showAboutDialog()));
@@ -482,7 +482,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
 
           views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
-          views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
+          views_tabwidget_->setTabEnabled(views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view"),false);
           views_tabwidget_->setTabEnabled(1, false);
           // switch between different view tabs
           connect(views_tabwidget_, SIGNAL(currentChanged(int)), this, SLOT(viewChanged(int)));
@@ -535,7 +535,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           current_path_ = param_.getValue("preferences:default_path");
 
           //update the menu
-          updateMenu();         
+          updateMenu();
 
           topp_.process = 0;
 
@@ -803,7 +803,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     QList<QListWidgetItem*> pc_ions = id_view_ions->findItems("Precursor", Qt::MatchFixedString);
     QList<QListWidgetItem*> nl_ions = id_view_ions->findItems("Neutral losses", Qt::MatchFixedString);
     QList<QListWidgetItem*> ic_ions = id_view_ions->findItems("Isotope clusters", Qt::MatchFixedString);
-    QList<QListWidgetItem*> ai_ions = id_view_ions->findItems("Abundant immonium-ions", Qt::MatchFixedString);        
+    QList<QListWidgetItem*> ai_ions = id_view_ions->findItems("Abundant immonium-ions", Qt::MatchFixedString);
 
     // --------------------------------------------------------------------
     // Set dialog entries from current parameter object (default values)
@@ -1103,7 +1103,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     // create shared pointer to main data types
     FeatureMapType* feature_map = new FeatureMapType();
-    FeatureMapSharedPtrType feature_map_sptr(feature_map);    
+    FeatureMapSharedPtrType feature_map_sptr(feature_map);
 
     ExperimentType* peak_map = new ExperimentType();
     ExperimentSharedPtrType peak_map_sptr(peak_map);
@@ -1139,7 +1139,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         data_type = LayerData::DT_CHROMATOGRAM;
         if (TOPPViewBase::containsMS1Scans(*peak_map))
         {
-          data_type = LayerData::DT_PEAK;          
+          data_type = LayerData::DT_PEAK;
         }
       }
     }
@@ -1180,18 +1180,18 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   }
 
   void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
-  {      
+  {
     // initialize flags with defaults from the parameters
   	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
   	bool maps_as_1d = false;
     bool use_intensity_cutoff = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
 
     // feature, consensus feature and identifications can be merged
-		bool mergeable = ((data_type == LayerData::DT_FEATURE) || 
+		bool mergeable = ((data_type == LayerData::DT_FEATURE) ||
 											(data_type == LayerData::DT_CONSENSUS) ||
 											(data_type == LayerData::DT_IDENT));
 
-		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);   
+		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);
 
 
 		//set the window where (new layer) data could be opened in
@@ -1251,7 +1251,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 		as_new_window = dialog.openAsNewWindow();
 		maps_as_2d = dialog.viewMapAs2D();
-		maps_as_1d = dialog.viewMapAs1D();    
+		maps_as_1d = dialog.viewMapAs1D();
 		if (show_as_1d)
 		{
 			maps_as_1d = true;
@@ -1701,7 +1701,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	      tool_bar_2d_peak_->show();
  	    	tool_bar_2d_feat_->hide();
 	      tool_bar_2d_cons_->hide();
-				tool_bar_2d_ident_->hide();			
+				tool_bar_2d_ident_->hide();
 			}
 			//feature draw modes
 			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1828,7 +1828,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     // set new behavior
     if (views_tabwidget_->tabText(tab_index) == "Scan view")
-    {      
+    {
        view_behavior_ = spectraview_behavior_;
     } else if (views_tabwidget_->tabText(tab_index) == "Identification view")
     {
@@ -2333,7 +2333,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       {
         error = true;
       }
-      
+
       //apply preferences if they are of the current TOPPView version
       if(!error && tmp.exists("preferences:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
@@ -2422,7 +2422,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		filter_all_andi +=" *.cdf";
 		filter_single_andi += ";;ANDI/MS files (*.cdf)";
 #endif
-    
+
 
     String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid"+ filter_all_andi +" *.bz2 *.gz);;";
 		String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d)"+filter_single_andi+";;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
@@ -2758,6 +2758,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         mapper.annotate(*layer.getConsensusMap(),identifications,protein_identifications);
 			}
 		}
+		spectra_identification_view_widget_->setEnabled(true);
     updateSpectraViewBar();
 	}
 
@@ -2845,7 +2846,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				  if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
 				  {
 					  generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
-          }          
+          }
           if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
           {
             generator.addAbundantImmoniumIons(rich_spec);
@@ -2988,7 +2989,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       if (!w->canvas()->addLayer(exp_sptr, layer.filename))
       {
         return;
-      }      
+      }
 
      if (getActive1DWindow()) // switch from 1D to 3D
      {
@@ -3432,7 +3433,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 					}
 				}
 			}
-		
+
 		}
     catch(Exception::BaseException& e)
     {
@@ -3548,7 +3549,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           {
             QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
             layer.getPeakData()->clear(true);
-          }          
+          }
           layer.getPeakData()->sortSpectra(true);
           layer.getPeakData()->updateRanges(1);
         }
@@ -3616,7 +3617,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         pair<const SpectrumWidget *, Size>& slp = needs_update[i];
         const SpectrumWidget * sw = slp.first;
         Size layer_index = slp.second;
-        sw->canvas()->updateLayer(layer_index);        
+        sw->canvas()->updateLayer(layer_index);
       }
     }
     /*
