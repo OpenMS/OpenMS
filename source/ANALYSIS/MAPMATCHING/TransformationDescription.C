@@ -452,7 +452,7 @@ namespace OpenMS
     virtual void bSplineCatch_(const DoubleReal& value_bspline, DoubleReal& original_value) const
     {
       tmp_lin_(original_value);   // ... for linear interpolation
-      max_rt_diff_ = std::max(max_rt_diff_, abs(original_value-value_bspline)); // get a feeling for the maximal error
+      max_rt_diff_ = std::max(max_rt_diff_, fabs(original_value-value_bspline)); // get a feeling for the maximal error
     }
 
 		virtual void getInverse(TransformationDescription& result)
