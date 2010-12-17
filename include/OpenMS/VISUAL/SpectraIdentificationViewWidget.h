@@ -73,6 +73,8 @@ namespace OpenMS
       void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
       /// Export table entries as csv
       void exportEntries_();
+      /// Saves the (potentially filtered) idXML
+      void saveIdXML_();
       /// Display header context menu
       void headerContextMenu_(const QPoint&);
       /// Cell clicked in table_widget

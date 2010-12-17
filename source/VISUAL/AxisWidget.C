@@ -88,7 +88,7 @@ namespace OpenMS
   void AxisWidget::paint(QPainter* painter, QPaintEvent*)
   {
     //position of the widget
-    bool horizontal_alignment = (alignment_==BOTTOM || alignment_==TOP);
+    bool horizontal_alignment = (alignment_ == BOTTOM || alignment_ == TOP);
 
     //spacing between ticks and text
     static UInt tick_spacing = 4;
@@ -96,10 +96,27 @@ namespace OpenMS
     // determine paintable area without margin
     UInt h = height();
     UInt w = width();
-    w = (horizontal_alignment)? w-margin_ : w;
-    h = (horizontal_alignment)? h : h-margin_;
+    w = (horizontal_alignment) ? w-margin_ : w;
+    h = (horizontal_alignment) ? h : h-margin_;
 
-    //shrink font size if text does not fit
+    // paint axis lines
+    switch (alignment_)
+    {
+    case BOTTOM:
+      painter->drawLine(0, 0, w-1, 0);
+      break;
+    case TOP:
+      painter->drawLine(0, h-1, w-1, h-1);
+      break;
+    case LEFT:
+      painter->drawLine(w-1, 0 , w-1, h-1);
+      break;
+    case RIGHT:
+      painter->drawLine(0, 0 , 0, h-1);
+      break;
+    }
+
+    // shrink font size if text does not fit
     UInt font_size = font().pointSize();
     UInt max_width = 0;
     if (grid_line_.size()>=1) //check big intervals only
@@ -259,6 +276,9 @@ namespace OpenMS
       painter->setFont(font());
       painter->setPen(QPen(Qt::black));
 
+      UInt i_beg = (horizontal_alignment) ? 0 : h;
+      UInt i_end = (horizontal_alignment) ? w : 0;
+
       switch (alignment_)
       {
         case BOTTOM:
@@ -277,6 +297,7 @@ namespace OpenMS
           break;
       }
     }
+
   }
 
 	void AxisWidget::setAxisBounds(DoubleReal min, DoubleReal max)

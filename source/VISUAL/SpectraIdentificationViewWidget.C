@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QComboBox>
@@ -35,6 +37,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QFileDialog>
 #include <QtCore/QTextStream>
+
 
 #include <vector>
 
@@ -87,7 +90,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(0,65);  //MS Level
     table_widget_->setColumnWidth(1,45);  //index
     table_widget_->setColumnWidth(2,70);
-    table_widget_->setColumnWidth(3,70);
+    table_widget_->setColumnWidth(3,70);        
     table_widget_->setColumnWidth(4,55);
     table_widget_->setColumnHidden(4, true);
     table_widget_->setColumnWidth(5,45);
@@ -124,11 +127,15 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Extra columns for additional annotations (slow)", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
+    QPushButton* save_idXML = new QPushButton("save idXML", this);
+    connect(save_idXML, SIGNAL(clicked()), this, SLOT(saveIdXML_()));
+
     QPushButton* export_table = new QPushButton("export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
+    tmp_hbox_layout->addWidget(save_idXML);
     tmp_hbox_layout->addWidget(export_table);
 
     spectra_widget_layout->addLayout(tmp_hbox_layout);
@@ -320,10 +327,14 @@ namespace OpenMS
     table_widget_->setColumnWidth(2,70);
     table_widget_->setColumnWidth(3,70);
     table_widget_->setColumnWidth(4,55);
+    table_widget_->setColumnHidden(4, true);
     table_widget_->setColumnWidth(5,45);
+    table_widget_->setColumnHidden(5, true);
     table_widget_->setColumnWidth(6,45);
+    table_widget_->setColumnHidden(6, true);
     table_widget_->setColumnWidth(7,45);
     table_widget_->setColumnWidth(8,45);
+    table_widget_->setColumnHidden(8, true);
     table_widget_->setColumnWidth(9,45);
     table_widget_->setColumnWidth(10,400);
     table_widget_->setColumnWidth(11,45);
@@ -724,6 +735,20 @@ namespace OpenMS
       }
       f.close();
     }
+  }
+
+  void SpectraIdentificationViewWidget::saveIdXML_()
+  {
+    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML)");
+    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+    vector<PeptideIdentification> all_pep_ids;
+    for(int r = 0; r < table_widget_->rowCount(); ++r )
+    {
+      int spectrum_index = table_widget_->item( r, 1 )->data(Qt::DisplayRole).toInt();
+      vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
+      copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
+    }
+    IdXMLFile().store(filename, prot_id, all_pep_ids);
   }
 
   SpectraIdentificationViewWidget::~SpectraIdentificationViewWidget()

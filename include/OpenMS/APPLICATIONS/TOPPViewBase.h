@@ -224,13 +224,17 @@ namespace OpenMS
       /// shows the DB dialog for opening files
       void openDatabaseDialog();
       /// shows the goto dialog
-      void gotoDialog();
+      void showGoToDialog();
       /// shows the preferences dialog
       void preferencesDialog();
       /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
       void layerStatistics();
       /// lets the user edit the meta data of a layer
       void editMetadata();
+      /// get's called if a layer got activated
+      void layerActivated();
+      /// get's called if a layer got deactivated
+      void layerDeactivated();
       /// Activation of 1D spectrum
       void activate1DSpectrum(int index);
       /// Deactivation of 1D spectrum
@@ -529,7 +533,7 @@ namespace OpenMS
         float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
 
         /// Counts the number of exact zero valued intensities in all MS1 spectra
-        UInt countZeros(const ExperimentType& exp);
+        static UInt countMS1Zeros(const ExperimentType& exp);
   }
   ; //class
 
