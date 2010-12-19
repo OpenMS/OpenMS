@@ -419,6 +419,10 @@ namespace OpenMS
       gsl_matrix_free(deriv);
       offset = results[0];
       slope = results[1];
+			if (slope < 0.1 || slope > 10) // todo: this could be decided better using the RT ranges of the input maps
+			{
+				LOG_ERROR << "BSpline::extrapolation() gave unusual results for 'slope' (" << slope << "). Consider reducing 'num_breakpoints' or use another model." << std::endl; 
+			}
     }
 
     virtual void operator()(DoubleReal& value) const
