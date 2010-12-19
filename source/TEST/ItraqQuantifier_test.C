@@ -116,16 +116,11 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 	ConsensusMap cm_in, cm_out;
 	cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
 
-	std::vector<ProteinIdentification> protein_ids;
-	std::vector<PeptideIdentification> peptide_ids;
-	String document_id;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.idXML"), protein_ids, peptide_ids, document_id);
-	
 	ItraqQuantifier iq;
 	Param p;
 	p.setValue("do_normalization", "true");
 	iq.setParameters(p);
-	iq.run(cm_in, peptide_ids, protein_ids, cm_out);
+	iq.run(cm_in,cm_out);
 
 	String cm_file_out;// = OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML");
 	NEW_TMP_FILE(cm_file_out);
