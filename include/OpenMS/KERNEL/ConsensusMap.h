@@ -61,7 +61,7 @@ namespace OpenMS
 
 		public:
 
-			/// Source file desciption for input files
+			/// Source file description for input files
 			struct FileDescription
 				: public MetaInfoInterface
 			{
@@ -361,6 +361,37 @@ namespace OpenMS
 				output_map.getFileDescriptions()[input_map_index].size = n;
 				output_map.updateRanges();
 			}
+
+      /**
+				@brief Convert a ConsensusMap to a FeatureMap(of any feature type).
+				The previous content of output_map is cleared.
+				UID's of the elements and the container is copied if the @p keep_uids flag is set.
+
+				@param input_map The container to be converted.
+        @param keep_uids Shall the UID's of the elements and the container be kept or created anew
+				@param output_map The resulting ConsensusMap.
+
+			*/
+      template <typename FeatureT>
+      static void convert(ConsensusMap const& input_map, const bool keep_uids, FeatureMap<FeatureT> & output_map )
+      {
+        output_map.clear(true);
+				output_map.resize(input_map.size());
+				// fm.MetaInfoInterface::operator=(input_map); // not available ...
+				output_map.DocumentIdentifier::operator=(input_map);
+				if (keep_uids) output_map.UniqueIdInterface::operator=(input_map);
+        else output_map.setUniqueId();
+				output_map.setProteinIdentifications(input_map.getProteinIdentifications());
+				output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
+				for ( Size i = 0; i < input_map.size(); ++i )
+				{
+					Feature & f = output_map[i];
+					const ConsensusFeature & c = input_map[i];
+					f.BaseFeature::operator=(c);
+          if (!keep_uids) f.setUniqueId();
+				}
+
+      }
 
 			// Docu in base class
 			void updateRanges();

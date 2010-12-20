@@ -296,24 +296,7 @@ class TOPPFileConverter
 		  }
 		  else if (in_type == FileTypes::CONSENSUSXML)
 		  {
-				fm.resize(cm.size());
-				// fm.MetaInfoInterface::operator=(cm); // not available ...
-				fm.DocumentIdentifier::operator=(cm);
-				fm.UniqueIdInterface::operator=(cm);
-				fm.setProteinIdentifications(cm.getProteinIdentifications());
-				fm.setUnassignedPeptideIdentifications(cm.getUnassignedPeptideIdentifications());
-				for ( Size i = 0; i < cm.size(); ++i )
-				{
-					Feature & f = fm[i];
-					const ConsensusFeature & c = cm[i];
-					f.RichPeak2D::operator=(c);
-					f.setCharge(c.getCharge());
-					f.setOverallQuality(c.getQuality());
-					f.setPeptideIdentifications(c.getPeptideIdentifications());
-				}
-
-				// TODO Discuss: Arguably we do NOT want to assign new unique ids?
-				// fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        ConsensusMap::convert(cm, true, fm);
 		  }
 		  else // not loaded as feature map or consensus map
 		  {
