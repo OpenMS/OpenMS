@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
@@ -50,9 +50,19 @@ namespace OpenMS
 	{
 	}
 
-	void FeatureGroupingAlgorithm::group(const std::vector<ConsensusMap>& /* maps */, ConsensusMap& /* out */)
+	void FeatureGroupingAlgorithm::group(const std::vector<ConsensusMap>& maps, ConsensusMap& out)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    LOG_WARN << "FeatureGroupingAlgorithm::group() does not support ConsensusMaps directly. Converting to FeatureMaps." << std::endl;
+
+		std::vector< FeatureMap<> > maps_f;
+    for (Size i=0; i<maps.size(); ++i)
+    {
+      FeatureMap<> fm;
+      ConsensusMap::convert(maps[i], true, fm);
+      maps_f.push_back(fm);
+    }
+    // call FeatureMap version of group()
+    group(maps_f, out);
 	}
 
 	FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()

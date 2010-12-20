@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
@@ -54,6 +54,8 @@ namespace OpenMS
 			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)=0;
 
 			///Applies the algorithm. The consensus features in the input @p maps are grouped and the output is written to the consensus map @p out
+      /// Algorithms not supporting ConsensusMap input should simply not override this method,
+      /// as the base implementation will forward the data to the FeatureMap version of group()
 			virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out);
 
 			/// Register all derived classes in this method

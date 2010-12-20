@@ -71,9 +71,21 @@ namespace OpenMS
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}
 
-	void MapAlignmentAlgorithm::alignConsensusMaps(std::vector<ConsensusMap>&, std::vector<TransformationDescription>&)
+	void MapAlignmentAlgorithm::alignConsensusMaps(std::vector<ConsensusMap>& cms, std::vector<TransformationDescription>& tf)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
+    LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps." << std::endl;
+
+		std::vector< FeatureMap<> > maps_f;
+    for (Size i=0; i<cms.size(); ++i)
+    {
+      FeatureMap<> fm;
+      ConsensusMap::convert(cms[i], true, fm);
+      maps_f.push_back(fm);
+    }
+    // call FeatureMap version of group()
+    alignFeatureMaps(maps_f, tf);
+    // apply transform
+    transformConsensusMaps(cms, tf);
 	}
 
 	void MapAlignmentAlgorithm::alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&)

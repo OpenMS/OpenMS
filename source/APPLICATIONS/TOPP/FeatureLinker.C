@@ -67,11 +67,15 @@ using namespace std;
 </CENTER>
 
 
-	This tool provides algorithms for grouping corresponding features in @ref OpenMS::FeatureGroupingAlgorithmLabeled "isotope-labeled" and @ref OpenMS::FeatureGroupingAlgorithmUnlabeled "label-free" experiments. (Click on the links for detailed information including algorithm-specific parameters.)
+	This tool provides algorithms for grouping corresponding features in @ref OpenMS::FeatureGroupingAlgorithmLabeled "isotope-labeled" 
+  and @ref OpenMS::FeatureGroupingAlgorithmUnlabeled "label-free" experiments. (Click on the links for detailed information 
+  including algorithm-specific parameters.)
 
-	FeatureLinker takes one or several feature maps (featureXML files) and stores the corresponding features in a consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using the @ref TOPP_FeatureFinder.
+	FeatureLinker takes one or several feature maps (featureXML files) and stores the corresponding features in a 
+  consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using the @ref TOPP_FeatureFinder.
 
-	It is assumed that major retention time distortions are corrected before applying this tool. Use @ref TOPP_MapAligner to do that on the peak or feature level.
+	It is assumed that major retention time distortions are corrected before applying this tool. Use
+  @ref TOPP_MapAligner to do that on the peak- or feature level.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FeatureLinker.cli
@@ -132,26 +136,12 @@ protected:
 		//-------------------------------------------------------------
 		//check if all input files have the correct type
 		FileTypes::Type file_type= FileHandler::getType(ins[0]);
-		if (type=="unlabeled_qt")
+		for (Size i=0;i<ins.size();++i)
 		{
-			for (Size i=0;i<ins.size();++i)
+			if (FileHandler::getType(ins[i])!=file_type)
 			{
-				if (FileHandler::getType(ins[i])!=file_type)
-				{
-					writeLog_("Error: All input files must be of same type!");
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-		}
-		else
-		{
-			for (Size i=0;i<ins.size();++i)
-			{
-				if (FileHandler::getType(ins[i])!=FileTypes::FEATUREXML)
-				{
-					writeLog_("Error: All input files must be of type FeatureXML!");
-					return ILLEGAL_PARAMETERS;
-				}
+				writeLog_("Error: All input files must be of the same type!");
+				return ILLEGAL_PARAMETERS;
 			}
 		}
 
@@ -201,14 +191,11 @@ protected:
 			{
 				f.load(ins[i], maps[i]);
 			}
-			if (out_map.getFileDescriptions().empty())
+			for (Size i=0; i<ins.size(); ++i)
 			{
-				for (Size i=0; i<ins.size(); ++i)
-				{
-					out_map.getFileDescriptions()[i].filename = ins[i];
-					out_map.getFileDescriptions()[i].size = maps[i].size();
-					out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
-				}
+				out_map.getFileDescriptions()[i].filename = ins[i];
+				out_map.getFileDescriptions()[i].size = maps[i].size();
+				out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
 			}
 			// group
 			algorithm->group(maps,out_map);
