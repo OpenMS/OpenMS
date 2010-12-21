@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -41,13 +41,13 @@ namespace OpenMS
 	FalseDiscoveryRate::FalseDiscoveryRate()
 		: DefaultParamHandler("FalseDiscoveryRate")
 	{		
- 		defaults_.setValue("q_value", "true", "if 'true', the q-values will be calculated instead of the FDRs");
+ 		defaults_.setValue("q_value", "true", "If 'true', the q-values will be calculated instead of the FDRs");
 		defaults_.setValidStrings("q_value", StringList::create("true,false"));
 		defaults_.setValue("use_all_hits", "false", "If 'true' not only the first hit, but all are used (peptides only)");
 		defaults_.setValidStrings("use_all_hits", StringList::create("true,false"));
 		defaults_.setValue("split_charge_variants", "false", "If set to 'true' charge variants are treated separately (for peptides of combined target/decoy searches only).");
 		defaults_.setValidStrings("split_charge_variants", StringList::create("true,false"));
-		defaults_.setValue("treat_runs_separately", "false", "It set to 'true' different search runs are treated separately (for peptides of combined target/decoy searches only).");
+		defaults_.setValue("treat_runs_separately", "false", "If set to 'true' different search runs are treated separately (for peptides of combined target/decoy searches only).");
 		defaults_.setValidStrings("treat_runs_separately", StringList::create("true,false"));
 		defaults_.setValue("decoy_string", "_rev", "String which is appended at the accession of the protein to indicate that it is a decoy protein (for proteins only).");
 		defaults_.setValue("add_decoy_peptides","false", "If set to true, decoy peptides will be written to output file, too.");

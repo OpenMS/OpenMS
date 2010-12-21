@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -100,10 +100,10 @@ class TOPPFalseDiscoveryRate
 			registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run", false);
 			setValidFormats_("rev_in", StringList::create("idXML"));
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
-			registerFlag_("proteins_only", "if set, the FDR of the proteins only is calculated");
-			registerFlag_("peptides_only", "if set, the FDR of the peptides only is calculated");
+			registerFlag_("proteins_only", "If set, the FDR of the proteins only is calculated");
+			registerFlag_("peptides_only", "If set, the FDR of the peptides only is calculated");
 
-			registerSubsection_("algorithm","Parameter section for the fdr calculation algorithm");
+			registerSubsection_("algorithm","Parameter section for the FDR calculation algorithm");
 
 
 			addEmptyLine_();
