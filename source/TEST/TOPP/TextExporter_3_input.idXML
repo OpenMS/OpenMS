@@ -12,14 +12,14 @@
 			<ProteinHit score="34.4" id="PH_3" accession="PROT1" sequence="ABCDEFG" >
 				<UserParam type="string" value="ProteinHit" name="name"/>
 			</ProteinHit>
-			<ProteinHit score="24.4" id="PH_4" accession="PROT2" sequence="ABCDEFG" />
+			<ProteinHit score="24.4" id="PH_4" accession="PROT2" sequence="DEFGHIGK" />
 			<UserParam type="string" value="ProteinIdentification" name="name"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="false" MZ="675.9" RT="1234.5" spectrum_reference="17">
-			<PeptideHit sequence="PEP1" score="0.9" charge="1" aa_before="A" aa_after="B" protein_refs="PH_3 PH_4">
+			<PeptideHit sequence="DEF" score="0.9" charge="1" aa_before="A" aa_after="B" protein_refs="PH_3 PH_4">
 				<UserParam type="string" value="PeptideHit" name="name"/>
 			</PeptideHit>
-			<PeptideHit sequence="PEP2" score="1.4" charge="1" />
+			<PeptideHit sequence="ZZZZ" score="1.4" charge="1" />
 			<UserParam type="string" value="PeptideIdentification" name="name"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true">

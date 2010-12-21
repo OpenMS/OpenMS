@@ -40,7 +40,7 @@ namespace OpenMS
     @brief Representation of a protein hit
     
     It contains the fields score, score_type, rank, accession, 
-    accession_type and sequence.
+    sequence and coverage.
 		
 		@ingroup Metadata
   */

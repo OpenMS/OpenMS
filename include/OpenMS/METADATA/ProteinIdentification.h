@@ -35,7 +35,8 @@
 #include <set>
 
 namespace OpenMS
-{   	
+{
+  class PeptideIdentification;
   /**
     @brief Representation of a protein identification run
     
@@ -213,6 +214,10 @@ namespace OpenMS
 			void sort();
 			/// Sorts the protein hits by score and assigns ranks (best score has rank 1)
 	    void assignRanks();
+      /// Compute the coverage (in percent) of all ProteinHits given PeptideHits
+      /// @throws Exception::MissingInformation if ProteinsHits do not have sequence information
+      /// @return The number of Proteins referenced by the @p pep_ids that are not contained in this ProteinIdentification set (should be 0)
+      Size computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
 			//@}
 
 	   	///@name General information

@@ -38,7 +38,7 @@ namespace OpenMS
 			rank_(0), 
 			accession_(""), 
 			sequence_(""),
-			coverage_(0)
+      coverage_(-1)
   {
   }
   
@@ -49,7 +49,7 @@ namespace OpenMS
   		rank_(rank), 
   		accession_(accession.trim()), 
   		sequence_(sequence.trim()),
-  		coverage_(0)
+  		coverage_(-1)
   {
   }
   

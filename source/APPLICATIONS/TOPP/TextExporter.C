@@ -150,7 +150,7 @@ namespace OpenMS
 	void writeProteinHeader(SVOutStream& out)
 	{
 		bool old = out.modifyStrings(false);
-		out << "#PROTEIN" << "score" << "rank" << "accession" << "sequence" << endl;
+		out << "#PROTEIN" << "score" << "rank" << "accession" << "coverage" << "sequence" << endl;
 		out.modifyStrings(old);
 	}
 
@@ -158,8 +158,8 @@ namespace OpenMS
 	// stream output operator for a ProteinHit
 	SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
 	{
-		out << hit.getScore() << hit.getRank() << hit.getAccession()
-				<< hit.getSequence();
+    out << hit.getScore() << hit.getRank() << hit.getAccession()
+        << hit.getCoverage() << hit.getSequence();
 		return out;
 	}
 
@@ -408,6 +408,22 @@ namespace OpenMS
           FeatureXMLFile f;
           f.load(in, feature_map);
 
+          // compute protein coverage
+          vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
+          vector<PeptideIdentification> pep_ids;
+          for (Size i=0;i<feature_map.size();++i) // collect all peptide ids
+          {
+            vector<PeptideIdentification> pep_ids_bf = feature_map[i].getPeptideIdentifications();
+            pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
+          }
+          pep_ids.insert(pep_ids.end(), feature_map.getUnassignedPeptideIdentifications().begin(), feature_map.getUnassignedPeptideIdentifications().end());
+          try
+          { // might throw Exception::MissingInformation()
+            for (Size i=0;i<prot_ids.size();++i) prot_ids[i].computeCoverage(pep_ids);
+          }
+          catch (...){}
+          feature_map.setProteinIdentifications(prot_ids);
+
           // text output
           ofstream outstr(out.c_str());
 					SVOutStream output(outstr, sep, replacement, quoting_method);
@@ -492,6 +508,23 @@ namespace OpenMS
           ConsensusXMLFile consensus_xml_file;
 
           consensus_xml_file.load(in, consensus_map);
+
+          // compute protein coverage
+          vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
+          vector<PeptideIdentification> pep_ids;
+          for (Size i=0;i<consensus_map.size();++i) // collect all peptide ids
+          {
+            vector<PeptideIdentification> pep_ids_bf = consensus_map[i].getPeptideIdentifications();
+            pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
+          }
+          pep_ids.insert(pep_ids.end(), consensus_map.getUnassignedPeptideIdentifications().begin(), consensus_map.getUnassignedPeptideIdentifications().end());
+          try
+          { // might throw Exception::MissingInformation()
+            for (Size i=0;i<prot_ids.size();++i) prot_ids[i].computeCoverage(pep_ids);
+          }
+          catch (...){}
+          consensus_map.setProteinIdentifications(prot_ids);
+
 
           if (sorting_method == "none")
           {
@@ -820,8 +853,7 @@ namespace OpenMS
             {
 							writeRunHeader(output);
 							writeProteinHeader(output);
-							writePeptideHeader(output, "UNASSIGNEDPEPTIDE", true, true,
-																	 true);
+							writePeptideHeader(output, "UNASSIGNEDPEPTIDE", true, true, true);
 							writePeptideHeader(output, "PEPTIDE");
             }
 
@@ -884,6 +916,11 @@ namespace OpenMS
           vector<PeptideIdentification> pep_ids;
           String document_id;
           IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+          try
+          { // might throw Exception::MissingInformation()
+            for (Size i=0;i<prot_ids.size();++i) prot_ids[i].computeCoverage(pep_ids);
+          }
+          catch (...){}
 
           ofstream txt_out(out.c_str());
 					SVOutStream output(txt_out, sep, replacement, quoting_method);

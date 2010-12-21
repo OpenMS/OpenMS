@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -259,6 +260,69 @@ namespace OpenMS
 		}
   }
 
+  Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
+  {
+    // todo: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
+
+    Size no_seq_count(0);
+    // index the proteins by accession
+    // Accession -> set of pep sequences
+    // (use set to discard mutli-pep matches)
+    Map<String, std::set<String> > protein_index;
+    for (Size i=0;i<protein_hits_.size(); ++i)
+    {
+      std::set<String> empty;
+      protein_index[protein_hits_[i].getAccession()] = empty;
+      if (protein_hits_[i].getSequence().length()==0) ++no_seq_count;
+    }
+
+    if (no_seq_count > 0)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(no_seq_count) + " of " + protein_hits_.size() +" ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
+    }
+
+    // go through peptides and add length to proteinHit
+    Size protein_not_found_counter(0);
+    for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+    {
+      // peptide hits
+		 	vector<PeptideHit> peptide_hits = it1->getHits();
+      for (vector<PeptideHit>::iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
+      {
+				// matched proteins for hit
+        for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+        {
+          if (protein_index.has(*it3))
+          {
+            protein_index[*it3].insert(it2->getSequence().toUnmodifiedString());
+          }
+          else
+          {
+            ++protein_not_found_counter;
+          }
+        }
+			}
+    }
+
+    if (protein_not_found_counter > 0) LOG_WARN << "ProteinIdentification::computeCoverage() was given PeptideIdentifications where " << protein_not_found_counter << " did not match a known Protein!" << std::endl;
+
+    // store coverage
+    for (Size i=0;i<protein_hits_.size(); ++i)
+    {
+      // add up peptide sizes
+      Size covered_length(0);
+      for (std::set<String>::const_iterator it = protein_index[protein_hits_[i].getAccession()].begin();
+                                            it!= protein_index[protein_hits_[i].getAccession()].end();
+                                            ++it)
+      {
+        covered_length += it->size();
+      }
+      // set coverage
+      protein_hits_[i].setCoverage( double(covered_length) / (double)protein_hits_[i].getSequence().length() * 100.0 );
+    }
+
+    return protein_not_found_counter;
+  }
 
 	bool ProteinIdentification::isHigherScoreBetter() const
 	{

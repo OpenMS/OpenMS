@@ -65,7 +65,10 @@ using namespace std;
 
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-	This tool counts the peptide sequences that match a protein accession. From this count	for all protein hits in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in general to remove bad identifications.
+	This tool counts the peptide sequences that match a protein accession. From this count for all protein hits 
+  in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences 
+  identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in 
+  general to remove bad identifications.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ProteinInference.cli
@@ -128,6 +131,7 @@ class TOPPProteinInference
 
 
 			// count the sequences that match a protein accession
+      // ProtAcc --> [charge, PepSeq]
 			Map<String, Map<Size, set<String> > > acc_peptides;
 			for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 			{
@@ -157,7 +161,7 @@ class TOPPProteinInference
 				}
 			}
 
-			writeDebug_("Peptides from " + String(acc_peptides.size()) + " recorded.", 1);
+			writeDebug_("Peptides from " + String(acc_peptides.size()) + " proteins recorded.", 1);
 
 			// for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
 			set<String> accepted_proteins;
@@ -216,7 +220,7 @@ class TOPPProteinInference
           {
             if (accepted_proteins.find(*it3) != accepted_proteins.end())
             {
-						valid_accessions.push_back(*it3);
+						  valid_accessions.push_back(*it3);
             }
           }
 					it2->setProteinAccessions(valid_accessions);
