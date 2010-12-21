@@ -595,7 +595,6 @@ namespace OpenMS
 
 						std::map<Size,Size> map_id_to_map_num;
             std::vector<Size> map_num_to_map_id;
-            std::vector<FeatureHandle> feature_handles;
             FeatureHandle feature_handle_NaN;
             feature_handle_NaN.setRT(
 							std::numeric_limits<FeatureHandle::CoordinateType>::quiet_NaN());
@@ -669,9 +668,7 @@ namespace OpenMS
             for (ConsensusMap::const_iterator cmit = consensus_map.begin();
 								 cmit != consensus_map.end(); ++cmit)
             {
-              {
-                feature_handles.swap( std::vector<FeatureHandle>(map_num_to_map_id.size(),feature_handle_NaN) );
-              }
+              std::vector<FeatureHandle> feature_handles(map_num_to_map_id.size(),feature_handle_NaN);
               output << *cmit;
               for (ConsensusFeature::const_iterator cfit = cmit->begin();
 									 cfit != cmit->end(); ++cfit)
@@ -742,7 +739,6 @@ namespace OpenMS
 
             std::map<Size,Size> map_id_to_map_num;
             std::vector<Size> map_num_to_map_id;
-            std::vector<FeatureHandle> feature_handles;
             FeatureHandle feature_handle_NaN;
             feature_handle_NaN.setRT(std::numeric_limits<
                 FeatureHandle::CoordinateType>::quiet_NaN());
@@ -851,13 +847,8 @@ namespace OpenMS
             for (ConsensusMap::const_iterator cmit = consensus_map.begin();
 								 cmit != consensus_map.end(); ++cmit)
             {
-              {
-                // please can anyone explain to me why putting the next two
-								// things into one statement doesnt work?
-                std::vector<FeatureHandle> tmp(map_num_to_map_id.size(),
+              std::vector<FeatureHandle> feature_handles(map_num_to_map_id.size(),
 																							 feature_handle_NaN);
-                feature_handles.swap(tmp);
-              }
               if (!no_ids) output << "CONSENSUS";
               output << *cmit << cmit->getQuality();
               for (ConsensusFeature::const_iterator cfit = cmit->begin();
