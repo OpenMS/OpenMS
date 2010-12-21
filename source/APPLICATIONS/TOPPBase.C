@@ -974,16 +974,19 @@ namespace OpenMS
 		throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 	}
 
-	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats)
+	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats, const bool force_OpenMS_format)
 	{
 		//check if formats are known
-		for (Size i=0; i<formats.size(); ++i)
+		if (force_OpenMS_format)
 		{
-			if (formats[i] != "fid")
+			for (Size i=0; i<formats.size(); ++i)
 			{
-				if (FileHandler::getTypeByFileName(String(".")+formats[i])==FileTypes::UNKNOWN)
+				if (formats[i] != "fid")
 				{
-					throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The file format '" + formats[i] + "' is invalid!");
+					if (FileHandler::getTypeByFileName(String(".")+formats[i])==FileTypes::UNKNOWN)
+					{
+						throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The file format '" + formats[i] + "' is invalid!");
+					}
 				}
 			}
 		}

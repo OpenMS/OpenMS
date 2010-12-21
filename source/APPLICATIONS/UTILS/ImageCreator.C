@@ -50,7 +50,7 @@ using namespace std;
 
 	The input is first resampled into a matrix using
 	bilinear forward resampling.  Then the content of the matrix is written to
-	a PNG file.  The output has a uniform spacing in both dimensions regardless
+	an image file.  The output has a uniform spacing in both dimensions regardless
 	of the input.
 
 	<B>The command line parameters of this tool are:</B>
@@ -144,17 +144,18 @@ class TOPPImageCreator
 	{
 		registerInputFile_("in", "<file>", "", "input file ");
 		setValidFormats_("in", StringList::create("mzML"));
-		registerOutputFile_("out", "<file>", "",
-												"output file in PNG format");
-		setValidFormats_("out", StringList::create("PNG"));
-
+		registerOutputFile_("out", "<file>", "", "output file");
+		setValidFormats_("out", StringList::create("PNG,JPG,BMP,TIFF,PPM"), false);
+		registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
+		setValidStrings_("out_type", StringList::create("PNG,JPG,BMP,TIFF,PPM"));
+		
 		registerIntOption_("width", "<number>", 1024, "Number of pixels in m/z dimension.\nIf 0, one pixel per Th.", false);
 		setMinInt_("width",0);
 		registerIntOption_("height", "<number>", 1024, "Number of pixels in RT dimension.\nIf 0, one pixel per spectrum.", false);
 		setMinInt_("height",0);
 		registerStringOption_("gradient", "<gradient>", "", "Intensity gradient that defines colors for the range between 0 and 100.\n"
 													"Example: '0,#FFFFFF;50,#FF0000;100,#000000'", false);
-		registerDoubleOption_("maxintensity", "<int>", 0, "Maximum peak intensity used to determine range for colors.\n"
+		registerDoubleOption_("max_intensity", "<int>", 0, "Maximum peak intensity used to determine range for colors.\n"
 													"If 0, this is determined from the data.", false);
 		registerFlag_("log_intensity", "Apply logarithm to intensity values");
 		registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z).\n"
@@ -174,6 +175,11 @@ class TOPPImageCreator
 		//----------------------------------------------------------------
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
+		String format = getStringOption_("out_type");
+		if (format.trim() == "")
+		{ // get from filename
+      format = out.suffix('.');
+		}
 		MSExperiment<> exp;
 		MzMLFile f;
 		f.setLogType(log_type_);
@@ -269,7 +275,7 @@ class TOPPImageCreator
     writeDebug_("log_intensity: " + String(use_log), 1);
 
     QImage image(peaks, scans, QImage::Format_RGB32);
-		DoubleReal factor = getDoubleOption_("maxintensity");
+		DoubleReal factor = getDoubleOption_("max_intensity");
 		if ( factor == 0 )
 		{
 			factor = (*std::max_element(bilip.getData().begin(),
@@ -297,8 +303,8 @@ class TOPPImageCreator
 											  Size(getIntOption_("precursor_size")));
 		}
 		
-		image.save(out.toQString(), "PNG");
-		return EXECUTION_OK;
+		if (image.save(out.toQString(), format.c_str())) return EXECUTION_OK;
+		else return CANNOT_WRITE_OUTPUT_FILE;
 	}
 
 };

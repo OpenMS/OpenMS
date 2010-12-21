@@ -692,10 +692,11 @@ add_test("TOPP_InclusionExclusionListCreator_5_out1" ${DIFF} -in1 InclusionExclu
 
 
 ### UTILS tests (if this becomes too much, we should create a separate directory)
-add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.png -width 20 -height 15)
-add_test("UTILS_ImageCreator_1_out1" ${DIFF} -in1 ImageCreator1.png -in2 ${DATA_DIR_TOPP}/ImageCreator_1_output.png)
-add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_2_input.mzML -out ImageCreator2.png -width 20 -height 15 -precursors -precursor_size 3 -precursor_color green -log_intensity)
-add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_DIR_TOPP}/ImageCreator_2_output.png)
+add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.jpg -width 20 -height 15)
+add_test("UTILS_ImageCreator_1_out1" ${DIFF} -in1 ImageCreator1.jpg -in2 ${DATA_DIR_TOPP}/ImageCreator_1_output.jpg)
+# testing forced out_type
+add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_2_input.mzML -out ImageCreator2.png -out_type JPG -width 20 -height 15 -precursors -precursor_size 3 -precursor_color green -log_intensity)
+add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_DIR_TOPP}/ImageCreator_2_output.jpg)
 
 add_test("UTILS_IDSplitter_1" ${TOPP_BIN_PATH}/IDSplitter -test -in ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML -out IDSplitter_1_output1.tmp -id_out IDSplitter_1_output2.tmp)
 add_test("UTILS_IDSplitter_1_out1" ${DIFF} -in1 IDSplitter_1_output1.tmp -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.featureXML)

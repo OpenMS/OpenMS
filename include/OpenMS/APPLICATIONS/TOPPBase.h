@@ -520,12 +520,13 @@ namespace OpenMS
 				@brief Sets the formats for a input/output file option or for all members of an input/output file lists
 				
 				Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
-				This check is performed only, when the option is accessed in the TOPP tool.				
+				This check is performed only, when the option is accessed in the TOPP tool.
+				When @p force_OpenMS_format is set, only formats known to OpenMS internally are allowed (default).
 
 				@exception Exception::ElementNotFound is thrown if the parameter is unset or not a file parameter
 				@exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
 			*/
-			void setValidFormats_(const String& name, const std::vector<String>& formats);
+			void setValidFormats_(const String& name, const std::vector<String>& formats, const bool force_OpenMS_format=true);
 			
 
       /**
