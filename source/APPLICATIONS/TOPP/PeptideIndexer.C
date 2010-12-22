@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch, Knut Reinert, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow, Knut Reinert $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/File.h>

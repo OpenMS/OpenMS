@@ -68,7 +68,7 @@ START_SECTION((ProteinHit(DoubleReal score, UInt rank, String accession, String 
 	TEST_EQUAL(hit.getRank(), rank)
 	TEST_EQUAL(hit.getAccession(), accession)
 	TEST_EQUAL(hit.getSequence(), sequence)
-	TEST_EQUAL(hit.getCoverage(), 0)
+	TEST_EQUAL(hit.getCoverage(), -1)
 END_SECTION
 
 START_SECTION(ProteinHit(const ProteinHit& source))
@@ -204,7 +204,7 @@ END_SECTION
 
 START_SECTION(DoubleReal getCoverage() const)
 	ProteinHit hit(score, rank, accession, sequence);
-	TEST_EQUAL(hit.getCoverage(), 0)
+	TEST_EQUAL(hit.getCoverage(), -1)
 	hit.setCoverage(123.123);
 	TEST_EQUAL(hit.getCoverage(), 123.123)
 END_SECTION
