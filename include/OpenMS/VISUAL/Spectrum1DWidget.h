@@ -87,6 +87,7 @@ namespace OpenMS
 		
     // Docu in base class
     virtual void saveAsImage();
+
 	signals:
 		/// Is emitted whenever the visible area changes.		
 		void visibleAreaChanged(double, double); 

@@ -94,7 +94,7 @@ namespace OpenMS
 	
 	SpectrumWidget::~SpectrumWidget()
 	{
-		emit aboutToBeDestroyed(window_id);
+    emit aboutToBeDestroyed(window_id_);
 	}
 	
 	Int SpectrumWidget::getActionMode() const 
@@ -315,9 +315,21 @@ namespace OpenMS
 	
 	void SpectrumWidget::dropEvent(QDropEvent* event)
 	{
-		emit dropReceived(event->mimeData(), event->source(), window_id);
+    emit dropReceived(event->mimeData(), event->source(), window_id_);
 		event->acceptProposedAction();
 	}
+
+  // from interface EnhancedTabBarInterface
+  Int SpectrumWidget::getWindowId()
+  {
+    return window_id_;
+  }
+
+  // from interface EnhancedTabBarInterface
+  void SpectrumWidget::setWindowId(Int window_id)
+  {
+    window_id_ = window_id;
+  }
 
 } //namespace OpenMS
 

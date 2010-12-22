@@ -32,6 +32,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
 class QGridLayout;
 class QScrollBar;
@@ -61,7 +62,8 @@ namespace OpenMS
 		@todo Add support to store the displayed data as SVG image (HiWi)
 	*/
 	class OPENMS_DLLAPI SpectrumWidget 
-		: public QWidget
+    : public QWidget,
+      public EnhancedTabBarWidgetInterface
 	{
 		Q_OBJECT
 
@@ -128,9 +130,11 @@ namespace OpenMS
 			/// Saves the widget's content as image file
       virtual void saveAsImage();
 			
-			/// Widget id used as identifier
-			Int window_id;
-			
+      /// getter for the EnhancedTabBar window id as defined in the interface
+      virtual Int getWindowId();
+
+      /// setter for the EnhancedTabBar window id as defined in the interface
+      virtual void setWindowId(Int window_id);
 		signals:
 			/// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
 			void sendStatusMessage(std::string, OpenMS::UInt);
@@ -216,6 +220,8 @@ namespace OpenMS
 			QScrollBar* x_scrollbar_;
 			/// Vertical scrollbar
 			QScrollBar* y_scrollbar_;
+
+      Int window_id_;
 	};
 }
 

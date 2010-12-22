@@ -37,7 +37,6 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
-#include <OpenMS/VISUAL/TOPPASTreeView.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -188,77 +187,11 @@ namespace OpenMS
     loadPreferences();
 
 		//################## Dock widgets #################
-    
     //TOPP tools window
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
-    tools_tree_view_ = new TOPPASTreeView(topp_tools_bar);
-    tools_tree_view_->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
-    tools_tree_view_->setColumnCount(1);
-  	QStringList header_labels;
-  	header_labels.append(QString("TOPP tools"));
-  	tools_tree_view_->setHeaderLabels(header_labels);
-    topp_tools_bar->setWidget(tools_tree_view_);
-    
-    QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<Input files>");
-    tools_tree_view_->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<Output files>");
-    tools_tree_view_->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<Merger>");
-    tools_tree_view_->addTopLevelItem(item);
-    
-    //Param category_param = param_.copy("tool_categories:", true);
-		
-    ToolListType tools_list = ToolHandler::getTOPPToolList(true);
-    ToolListType util_list = ToolHandler::getUtilList();
-    // append utils
-    for (ToolListType::Iterator it = util_list.begin(); it != util_list.end(); ++it)
-    {
-      it->second.category = "Utils";
-      tools_list.insert(*it);
-    }
-
-    // any tool without a category gets into "unassigned" bin
-    for (ToolListType::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
-    {
-      if (it->second.category.trim() =="") it->second.category = "Unassigned";
-    }
-
-    QSet<QString> category_set;
-    for (ToolListType::ConstIterator it = tools_list.begin(); it != tools_list.end(); ++it)
-    {
-      category_set << String(it->second.category).toQString();
-    }
-		QStringList category_list = category_set.toList();
-		qSort(category_list);
-    Map<QString,QTreeWidgetItem*> category_map;
-    
-    foreach (const QString& category, category_list)
-    {
-    	item = new QTreeWidgetItem((QTreeWidget*)0);
-    	item->setText(0, category);
-    	tools_tree_view_->addTopLevelItem(item);
-    	category_map[category] = item;
-    }
-    
-    QTreeWidgetItem* parent_item;
-    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
-    {
-      item = new QTreeWidgetItem(category_map[it->second.category.toQString()]);
-    	item->setText(0, it->first.toQString());
-   		parent_item = item;
-   		StringList types = ToolHandler::getTypes(it->first);
-   		for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
-   		{
-   			item = new QTreeWidgetItem(parent_item);
-   			item->setText(0, types_it->toQString());
-   		}
-    }
-    
-    tools_tree_view_->resizeColumnToContents(0);
+    tools_tree_view_ = createTOPPToolsTreeWidget(topp_tools_bar);
+    topp_tools_bar->setWidget(tools_tree_view_);    
 		connect (tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
 		windows->addAction(topp_tools_bar->toggleViewAction());
 
@@ -285,6 +218,77 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
   	savePreferences();
+  }
+
+  //static
+  TOPPASTreeView* TOPPASBase::createTOPPToolsTreeWidget(QWidget* parent_widget)
+  {
+    TOPPASTreeView* tools_tree_view = new TOPPASTreeView(parent_widget);
+    tools_tree_view->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
+    tools_tree_view->setColumnCount(1);
+    QStringList header_labels;
+    header_labels.append(QString("TOPP tools"));
+    tools_tree_view->setHeaderLabels(header_labels);
+
+    QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Input files>");
+    tools_tree_view->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Output files>");
+    tools_tree_view->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Merger>");
+    tools_tree_view->addTopLevelItem(item);
+
+    //Param category_param = param_.copy("tool_categories:", true);
+
+    ToolListType tools_list = ToolHandler::getTOPPToolList(true);
+    ToolListType util_list = ToolHandler::getUtilList();
+    // append utils
+    for (ToolListType::Iterator it = util_list.begin(); it != util_list.end(); ++it)
+    {
+      it->second.category = "Utils";
+      tools_list.insert(*it);
+    }
+
+    // any tool without a category gets into "unassigned" bin
+    for (ToolListType::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    {
+      if (it->second.category.trim() =="") it->second.category = "Unassigned";
+    }
+
+    QSet<QString> category_set;
+    for (ToolListType::ConstIterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    {
+      category_set << String(it->second.category).toQString();
+    }
+    QStringList category_list = category_set.toList();
+    qSort(category_list);
+    Map<QString,QTreeWidgetItem*> category_map;
+
+    foreach (const QString& category, category_list)
+    {
+      item = new QTreeWidgetItem((QTreeWidget*)0);
+      item->setText(0, category);
+      tools_tree_view->addTopLevelItem(item);
+      category_map[category] = item;
+    }
+
+    QTreeWidgetItem* parent_item;
+    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    {
+      item = new QTreeWidgetItem(category_map[it->second.category.toQString()]);
+      item->setText(0, it->first.toQString());
+      parent_item = item;
+      StringList types = ToolHandler::getTypes(it->first);
+      for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
+      {
+        item = new QTreeWidgetItem(parent_item);
+        item->setText(0, types_it->toQString());
+      }
+    }
+    tools_tree_view->resizeColumnToContents(0);
+    return tools_tree_view;
   }
 
 	void TOPPASBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
@@ -529,9 +533,10 @@ namespace OpenMS
 
 		//add tab with id
   	static int window_counter = 1337;
-  	tw->window_id = window_counter++;
+    tw->setWindowId(window_counter);
+    window_counter++;
 
-    tab_bar_->addTab(caption.toQString(), tw->window_id);
+    tab_bar_->addTab(caption.toQString(), tw->getWindowId());
 
     //connect slots and sigals for removing the widget from the bar, when it is closed
     //- through the menu entry
@@ -539,7 +544,7 @@ namespace OpenMS
     //- through the MDI close button
     connect(tw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
 
-    tab_bar_->setCurrentId(tw->window_id);
+    tab_bar_->setCurrentId(tw->getWindowId());
 
 		//show first window maximized (only visible windows are in the list)
 		if (ws_->windowList().count()==0)
@@ -601,7 +606,7 @@ namespace OpenMS
 		{
 			TOPPASWidget* window = qobject_cast<TOPPASWidget*>(windows.at(i));
 			//cout << "  Tab " << i << ": " << window->window_id << endl;
-			if (window->window_id == id)
+      if (window->getWindowId() == id)
 			{
 				return window;
 			}
@@ -673,7 +678,7 @@ namespace OpenMS
   {
   	if (w)
   	{
-  		Int window_id = qobject_cast<TOPPASWidget*>(w)->window_id;
+      Int window_id = qobject_cast<TOPPASWidget*>(w)->getWindowId();
   		tab_bar_->setCurrentId(window_id);
   	}
   }

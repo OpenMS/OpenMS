@@ -41,6 +41,7 @@
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 //STL
 #include <map>
 
@@ -65,18 +66,19 @@ class QCloseEvent;
 class QTextEdit;
 class QCheckBox;
 class QSplashScreen;
-class QWorkspace;
 class QToolButton;
+class QWorkspace;
 
 namespace OpenMS
 {
-  class MultiGradientSelector;
+  class EnhancedWorkspace;
+  class EnhancedTabBar;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
   class ToolsDialog;
+  class MultiGradientSelector;
   class DBConnection;
-  class EnhancedTabBar;
   class FileWatcher;
 
   /**
@@ -169,7 +171,15 @@ namespace OpenMS
       */
       void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
 
-      /// opens all the files that are inside the handed over string list
+      /**
+        @brief Opens and displays a TOPP pipeline from a file
+      */
+      void addTOPPASFile(const QString& filename);
+
+      /// adds toppas widget to the current workspace
+      void showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption);
+
+      /// Opens all the files in the string list
       void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 
       /**
@@ -188,8 +198,8 @@ namespace OpenMS
 			/// Returns the active Layer data (0 if no layer is active)
 			const LayerData* getCurrentLayer() const;
 
-      ///returns a pointer to the QWorkspace
-      QWorkspace* getWorkspace() const;
+      ///returns a pointer to the EnhancedWorkspace
+      EnhancedWorkspace* getWorkspace() const;
 
       ///returns a pointer to the active SpectrumWidget (0 if none is active)
       SpectrumWidget*  getActiveWindow() const;
@@ -225,6 +235,8 @@ namespace OpenMS
       void openDatabaseDialog();
       /// shows the goto dialog
       void showGoToDialog();
+      /// opens TOPPAS in an embedded window
+      void showTOPPAS();
       /// shows the preferences dialog
       void preferencesDialog();
       /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
@@ -377,34 +389,38 @@ namespace OpenMS
     	*/
     	QStringList getFileList_(const String& path_overwrite = "");
 
-      /// Returns the window with id @p id
-      SpectrumWidget* window_(int id) const;
+      /// Returns the enhanced tabbar widget with id @p id
+      EnhancedTabBarWidgetInterface* window_(int id) const;
+
+      ///@name dock widgets
+      //@{
+      QDockWidget* topp_tools_dock_widget_;
+      QDockWidget* layer_dock_widget_;
+      QDockWidget* spectra_views_dockwidget_;
+      QDockWidget* filter_dock_widget_;
+      //@}
+
+      ///@name Spectrum selection widgets
+      //@{
+      SpectraViewWidget* spectra_view_widget_;
+      SpectraIdentificationViewWidget* spectra_identification_view_widget_;
+      //@}
 
       /// Layer management widget
       QListWidget* layer_manager_;
 
-      /*
-      /// data management widget (shows loaded files)
-      QTreeWidget* data_manager_view_;
-      */
+      ///@name Filter widgets
+      //@{
+      QListWidget* filters_;
+      QCheckBox* filters_check_box_;
+      //@}
+
       /// Watcher that tracks file changes (in order to update the data in the different views)
       FileWatcher* watcher_;
 
       /// Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
       bool watcher_msgbox_;
 
-      ///@name Spectrum selection widgets
-      //@{
-      QDockWidget* spectra_views_dockwidget_;
-      SpectraViewWidget* spectra_view_widget_;
-      SpectraIdentificationViewWidget* spectra_identification_view_widget_;
-      //@}
-
-      ///@name Data filter widgets
-      //@{
-      QListWidget* filters_;
-      QCheckBox* filters_check_box_;
-      //@}
 
       /// Log output window
       QTextEdit* log_;
@@ -439,7 +455,7 @@ namespace OpenMS
       //@}
 
       /// Main workspace
-      QWorkspace* ws_;
+      EnhancedWorkspace* ws_;
 
       ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
       EnhancedTabBar* tab_bar_;

@@ -124,7 +124,7 @@ namespace OpenMS
     hide_no_identification_->setChecked(true);
     connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
-    create_rows_for_commmon_metavalue_ = new QCheckBox("Extra columns for additional annotations (slow)", this);
+    create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
     QPushButton* save_idXML = new QPushButton("save idXML", this);

@@ -59,7 +59,7 @@ namespace OpenMS
 	
 	TOPPASWidget::~TOPPASWidget()
 	{
-		emit aboutToBeDestroyed(window_id);
+    emit aboutToBeDestroyed(window_id_);
 	}
 	
 	TOPPASScene* TOPPASWidget::getScene()
@@ -203,6 +203,18 @@ namespace OpenMS
 			e->ignore();
 		}
 	}
+
+  // from EnhancedTabBarWidgetInterface
+  void TOPPASWidget::setWindowId(Int window_id)
+  {
+    window_id_ = window_id;
+  }
+
+  // from EnhancedTabBarWidgetInterface
+  Int TOPPASWidget::getWindowId()
+  {
+    return window_id_;
+  }
 
 } //Namespace
 

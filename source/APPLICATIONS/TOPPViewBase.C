@@ -72,6 +72,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/Precursor.h>
 
+#include <OpenMS/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+
 //Qt
 #include <QtCore/QDate>
 #include <QtCore/QDir>
@@ -170,7 +173,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           box_layout->addWidget(ws_);
 
           //################## MENUS #################
-          // File menu
+          // File menu          
           QMenu* file = new QMenu("&File",this);
           menuBar()->addMenu(file);
           file->addAction("&Open file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
@@ -205,6 +208,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           tools->addAction("&Edit meta data",this,SLOT(editMetadata()), Qt::CTRL+Qt::Key_M);
           tools->addAction("&Statistics",this,SLOT(layerStatistics()));
           tools->addSeparator();
+          //tools->addAction("Show TOPPAS", this, SLOT(showTOPPAS()))->setData(false);
           tools->addAction("Apply TOPP tool (whole layer)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T)->setData(false);
           tools->addAction("Apply TOPP tool (visible layer data)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_T)->setData(true);
           tools->addAction("Rerun TOPP tool", this, SLOT(rerunTOPPTool()),Qt::Key_F4);
@@ -443,13 +447,22 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(dm_ident_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
           //################## Dock widgets #################
-          //layer window
-          QDockWidget* layer_bar = new QDockWidget("Layers", this);
-          addDockWidget(Qt::RightDockWidgetArea, layer_bar);
-          layer_manager_ = new QListWidget(layer_bar);
+          // topp tool dock widget
+          topp_tools_dock_widget_ = new QDockWidget("TOPP", this);
+          topp_tools_dock_widget_->close();
+          addDockWidget(Qt::RightDockWidgetArea, topp_tools_dock_widget_);
+          TOPPASTreeView* tools_tree_view = TOPPASBase::createTOPPToolsTreeWidget(topp_tools_dock_widget_);
+          topp_tools_dock_widget_->setWidget(tools_tree_view);
+          //connect (tools_tree_view, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+          windows->addAction(topp_tools_dock_widget_->toggleViewAction());
+
+          // layer dock widget
+          layer_dock_widget_ = new QDockWidget("Layers", this);
+          addDockWidget(Qt::RightDockWidgetArea, layer_dock_widget_);
+          layer_manager_ = new QListWidget(layer_dock_widget_);
           layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the available layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.<BR>Double-clicking a layer open its preferences.<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.");
 
-          layer_bar->setWidget(layer_manager_);
+          layer_dock_widget_->setWidget(layer_manager_);
           layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
           layer_manager_->setDragEnabled(true);
           connect(layer_manager_,SIGNAL(currentRowChanged(int)),this,SLOT(layerSelectionChange(int)));
@@ -457,9 +470,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
           connect(layer_manager_,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(layerEdit(QListWidgetItem*)));
 
-          windows->addAction(layer_bar->toggleViewAction());
+          windows->addAction(layer_dock_widget_->toggleViewAction());
 
-          //spectrum selection
+          // spectra views dock widget
           spectra_views_dockwidget_ = new QDockWidget("Spectra views", this);
           addDockWidget(Qt::RightDockWidgetArea, spectra_views_dockwidget_);
           views_tabwidget_ = new QTabWidget(spectra_views_dockwidget_);
@@ -489,11 +502,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
           windows->addAction(spectra_views_dockwidget_->toggleViewAction());
 
-          //data filters
-          QDockWidget* filter_bar = new QDockWidget("Data filters", this);
-          addDockWidget(Qt::RightDockWidgetArea, filter_bar);
+          // filter dock widget
+          filter_dock_widget_ = new QDockWidget("Data filters", this);
+          addDockWidget(Qt::RightDockWidgetArea, filter_dock_widget_);
           QWidget* tmp_widget = new QWidget(); //dummy widget as QDockWidget takes only one widget
-          filter_bar->setWidget(tmp_widget);
+          filter_dock_widget_->setWidget(tmp_widget);
 
           QVBoxLayout* vbl = new QVBoxLayout(tmp_widget);
 
@@ -509,7 +522,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(filters_check_box_,SIGNAL(toggled(bool)),this,SLOT(layerFilterVisibilityChange(bool)));
           vbl->addWidget(filters_check_box_);
 
-          windows->addAction(filter_bar->toggleViewAction());
+          windows->addAction(filter_dock_widget_->toggleViewAction());
 
           //log window
           QDockWidget* log_bar = new QDockWidget("Log", this);
@@ -1195,8 +1208,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 
 		//set the window where (new layer) data could be opened in
-    SpectrumWidget* target_window = window_(window_id);
-    if (target_window == 0)
+
+    // get EnhancedTabBarWidget with given id
+    EnhancedTabBarWidgetInterface* tab_bar_target = window_(window_id);
+
+    // cast to SpectrumWidget
+    SpectrumWidget* target_window = dynamic_cast<SpectrumWidget*>(tab_bar_target);
+
+    if (tab_bar_target == 0)
 		{
       target_window = getActiveWindow();
 		}
@@ -1209,7 +1228,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
     //disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
-    if (target_window == 0 || (mergeable && qobject_cast<Spectrum3DWidget*>(target_window) != 0))
+    if (target_window == 0 || (mergeable && dynamic_cast<Spectrum3DWidget*>(target_window) != 0))
 		{
 			dialog.disableLocation(true);
 		}
@@ -1411,16 +1430,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
   }
 
-  SpectrumWidget* TOPPViewBase::window_(int id) const
+  EnhancedTabBarWidgetInterface* TOPPViewBase::window_(int id) const
   {
     // return window with window_it == id
   	QList<QWidget*> windows = ws_->windowList();
     for(int i = 0; i < windows.size(); ++i)
-		{
-			SpectrumWidget* window = qobject_cast<SpectrumWidget*>(windows.at(i));
-			if (window->window_id == id)
+    {
+      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i));
+      if (w->getWindowId() == id)
 			{
-				return window;
+        return w;
 			}
 		}
 		return 0;
@@ -1428,7 +1447,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::closeByTab(int id)
   {
-    SpectrumWidget* w = window_(id);
+    QWidget* w = dynamic_cast<QWidget*>(window_(id));
     if (w)
   	{
       w->close();
@@ -1438,7 +1457,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::focusByTab(int id)
   {
-    SpectrumWidget* w = window_(id);
+    QWidget* w = dynamic_cast<QWidget*>(window_(id));
     if (w)
   	{
       w->setFocus();
@@ -2092,7 +2111,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
   	if (w)
   	{
-  		Int window_id = qobject_cast<SpectrumWidget*>(w)->window_id;
+      SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(w);
+      TOPPASWidget* tw = qobject_cast<TOPPASWidget*>(w);
+      Int window_id;
+      if (sw)
+      {
+        window_id = sw->getWindowId();
+      } else if (tw)
+      {
+        window_id = tw->getWindowId();
+      }
   		tab_bar_->setCurrentId(window_id);
   	}
   }
@@ -2206,9 +2234,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		//add tab with id
   	static int window_counter = 4711;
-  	sw->window_id = window_counter++;
+    sw->setWindowId(window_counter++);
 
-    tab_bar_->addTab(caption.toQString(), sw->window_id);
+    tab_bar_->addTab(caption.toQString(), sw->getWindowId());
 
     //connect slots and sigals for removing the widget from the bar, when it is closed
     //- through the menu entry
@@ -2216,7 +2244,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     //- thourgh the MDI close button
     connect(sw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
 
-    tab_bar_->setCurrentId(sw->window_id);
+    tab_bar_->setCurrentId(sw->getWindowId());
 
 		//show first window maximized (only visible windows are in the list)
 		if (ws_->windowList().count()==0)
@@ -2256,7 +2284,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
   }
 
-  QWorkspace* TOPPViewBase::getWorkspace() const
+  EnhancedWorkspace* TOPPViewBase::getWorkspace() const
   {
     return ws_;
   }
@@ -2423,10 +2451,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		filter_single_andi += ";;ANDI/MS files (*.cdf)";
 #endif
 
-
-    String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid"+ filter_all_andi +" *.bz2 *.gz);;";
-		String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d)"+filter_single_andi+";;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
-
+    String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid"+ filter_all_andi +" *.bz2 *.gz *.toppas);;";
+    String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d)"+filter_single_andi+";;bzipped files (*.bz2);;gzipped files (*.gz);;TOPPAS files (*.toppas);;all files (*)";
 
 		QString open_path = current_path_.toQString();
 		if (path_overwrite!="")
@@ -2436,10 +2462,15 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     // we use the QT file dialog instead of using QFileDialog::Names(...)
 		// On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,
 		// which prevents us from doing GUI testing on it.
-		QFileDialog dialog(this, "Open file(s)", open_path, (filter_all+ filter_single).toQString());
+    QFileDialog dialog(this, "Open file(s)", open_path, (filter_all + filter_single).toQString());
 		dialog.setFileMode(QFileDialog::ExistingFiles);
 		QStringList file_names;
-		if (dialog.exec()) file_names = dialog.selectedFiles();
+
+    if (dialog.exec())
+    {
+      file_names = dialog.selectedFiles();
+    }
+
 		return file_names;
   }
 
@@ -2448,16 +2479,91 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	 	QStringList files = getFileList_();
     for(QStringList::iterator it = files.begin(); it!=files.end(); it++)
 		{
-			addDataFile(*it,true,true);
+      QString filename = *it;
+      if (filename.contains(".toppas", Qt::CaseInsensitive))
+      {
+        addTOPPASFile(filename);
+      }
+      else
+      {
+        addDataFile(filename, true, true);
+      }
 		}
+  }
+
+  void TOPPViewBase::addTOPPASFile(const QString& file_name)
+  {    
+    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, "");
+    showTOPPipelineInWindow_(tw, File::basename(file_name));
+    TOPPASScene* scene = tw->getScene();
+    scene->load(file_name);
+    if (topp_tools_dock_widget_->isHidden())
+    {
+      showTOPPAS();
+    }
+  }
+
+  void TOPPViewBase::showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption)
+  {
+    ws_->addWindow(tw);
+    /*
+    connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
+    connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
+    connect(tw,SIGNAL(toolDroppedOnWidget(double,double)),this,SLOT(insertNewVertex_(double,double)));
+    connect(tw,SIGNAL(pipelineDroppedOnWidget(const String&, bool)),this,SLOT(openFile(const String&, bool)));
+    */
+    tw->setWindowTitle(caption.toQString());
+
+    //add tab with id
+    static int window_counter = 1337;
+    tw->setWindowId(window_counter);
+    window_counter++;
+
+    tab_bar_->addTab(caption.toQString(), tw->getWindowId());
+
+    //connect slots and sigals for removing the widget from the bar, when it is closed
+    //- through the menu entry
+    //- through the tab bar
+    //- through the MDI close button
+
+    /*
+    connect(tw, SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
+    */
+    tab_bar_->setCurrentId(tw->getWindowId());
+
+    //show first window maximized (only visible windows are in the list)
+    if (ws_->windowList().count()==0)
+    {
+      tw->showMaximized();
+    }
+    else
+    {
+      tw->show();
+    }
+    TOPPASScene* ts = tw->getScene();
+    /*
+    connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+    connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
+    connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
+    */
+    ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
   }
 
   void TOPPViewBase::openExampleDialog()
   {
 	 	QStringList files = getFileList_(File::getOpenMSDataPath() + "/examples/");
+
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
 		{
-			addDataFile(*it,true,true);
+      QString filename = *it;
+      if (filename.contains(".toppas", Qt::CaseInsensitive))
+      {
+        addTOPPASFile(filename);
+      }
+      else
+      {
+        addDataFile(filename, true, true);
+      }
 		}
   }
 
@@ -2580,7 +2686,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		//Store data
 		topp_.layer_name = layer.name;
-    topp_.window_id = getActiveWindow()->window_id;
+    topp_.window_id = getActiveWindow()->getWindowId();
 		topp_.spectrum_id = layer.current_spectrum;
 		if (layer.type==LayerData::DT_PEAK)
 		{
@@ -3245,7 +3351,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     		splash_screen->showMessage((String("Loading file: ") + *it).toQString());
     		splash_screen->repaint();
     		QApplication::processEvents();
-    		addDataFile(*it,false,true);
+        addDataFile(*it, false, true);  // add data file but don't show options
     	}
     	else
     	{
@@ -3253,7 +3359,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     		splash_screen->repaint();
     		QApplication::processEvents();
     		last_was_plus = false;
-        addDataFile(*it,false,true,"",getActiveWindow()->window_id);
+        addDataFile(*it, false, true,"",getActiveWindow()->getWindowId());
     	}
     }
   }
@@ -3630,6 +3736,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
     */
+  }
+
+  void TOPPViewBase::showTOPPAS()
+  {
+    topp_tools_dock_widget_->show();
   }
 
   TOPPViewBase::~TOPPViewBase()

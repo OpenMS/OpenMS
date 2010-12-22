@@ -30,6 +30,7 @@
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/VISUAL/TOPPASTreeView.h>
 
 //QT
 #include <QtGui/QMainWindow>
@@ -240,6 +241,10 @@ namespace OpenMS
 
 			/// The clipboard
 			TOPPASScene* clipboard_;
+
+    public:
+      /// Creates and fills a tree widget with all available tools
+      static TOPPASTreeView* createTOPPToolsTreeWidget(QWidget* parent_widget);
   }
   ; //class
 

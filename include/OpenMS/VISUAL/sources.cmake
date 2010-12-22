@@ -38,6 +38,7 @@ TOPPViewBehaviorInterface.h
 TOPPViewSpectraViewBehavior.h
 TOPPViewIdentificationViewBehavior.h
 EnhancedWorkspace.h
+EnhancedTabBarWidgetInterface.h
 )
 
 ### add path to the filenames

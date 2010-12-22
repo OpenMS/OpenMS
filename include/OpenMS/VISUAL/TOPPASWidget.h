@@ -31,6 +31,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
 #include <QtGui/QGraphicsView>
 
@@ -49,7 +50,8 @@ namespace OpenMS
 		@ingroup TOPPAS_elements
   */
   class OPENMS_DLLAPI TOPPASWidget
-  	: public QGraphicsView
+    : public QGraphicsView,
+      public EnhancedTabBarWidgetInterface
   {
       Q_OBJECT
 
@@ -60,10 +62,13 @@ namespace OpenMS
 
       /// Destructor
       virtual ~TOPPASWidget();
-      
-      /// Widget id used as identifier
-			Int window_id;
-			
+
+      /// setter from EnhancedTabBarWidgetInterface
+      virtual void setWindowId(Int id);
+
+      /// getter from EnhancedTabBarWidgetInterface
+      virtual Int getWindowId();
+
 			/// Returns the scene
 			TOPPASScene* getScene();
 			/// Zooms in or out, depending on @p zoom_in
@@ -100,6 +105,9 @@ namespace OpenMS
 			void resizeEvent(QResizeEvent* event);
 			void closeEvent(QCloseEvent* e);
 			//@}
+
+      /// Widget id used as identifier
+      Int window_id_;
   };
 }
 

@@ -46,6 +46,7 @@ TOPPViewBehaviorInterface.C
 TOPPViewIdentificationViewBehavior.C
 TOPPViewSpectraViewBehavior.C
 EnhancedWorkspace.C
+EnhancedTabBarWidgetInterface.C
 )
 
 ### add path to the filenames
