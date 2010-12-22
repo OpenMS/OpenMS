@@ -137,7 +137,9 @@ namespace OpenMS
 				for (ConsensusMap::ConstIterator feat_it = consensus.begin();
 						 feat_it != consensus.end(); ++feat_it)
 				{
-					id_lookup[i][feat_it->getUniqueId()] = feat_it;
+          // do NOT use 'id_lookup[i][feat_it->getUniqueId()]=feat_it;' here as you will get
+          // "attempt to copy- construct an iterator from a singular iterator." in STL debug mode
+					id_lookup[i].insert(std::pair<UInt64, ConsensusMap::ConstIterator>(feat_it->getUniqueId(), feat_it));
 				}			
 			}
 			// adjust the consensus features:
