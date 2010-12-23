@@ -63,7 +63,7 @@ using namespace std;
 
   This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above)<br>
   or<br>
-  merge scans which stem from similar precursors (for MS2 and above) (the latter is <b>currently disabled</b>).
+  merge scans which stem from similar precursors (for MS2 and above).
 
   In any case, the number of scans will be reduced.
 

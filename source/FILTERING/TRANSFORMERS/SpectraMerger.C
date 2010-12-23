@@ -42,7 +42,7 @@ namespace OpenMS
     defaults_.setValidStrings("mz_binning_width_unit", StringList::create("Da,ppm"));
 
     // block merging
-		defaults_.setValue("block_method:ms_levels", IntList::create("1"), "Merge spectra of this level.");
+		defaults_.setValue("block_method:ms_levels", IntList::create("1"), "Merge spectra of this level. All spectra with other MS levels remain untouched.");
 		defaults_.setMinInt("block_method:ms_levels", 1);
     defaults_.setValue("block_method:rt_block_size", 5, "Maximum number of scans to be summed up.");
     defaults_.setMinInt("block_method:rt_block_size", 1);
@@ -52,9 +52,9 @@ namespace OpenMS
     defaults_.setMaxFloat("block_method:rt_max_length", 10e10);
 
     // same precursor MS/MS merging
-   	defaults_.setValue("precursor_method:mz_tolerance", 10e-5, "Max m/z distance of the precursor entries of two spectra to be merged in Dalton.");
+   	defaults_.setValue("precursor_method:mz_tolerance", 10e-5, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");
 		defaults_.setMinFloat("precursor_method:mz_tolerance", 0);
-    defaults_.setValue("precursor_method:rt_tolerance", 5.0, "Max RT distance of the precursor entries of two spectra to be merged in Dalton.");
+    defaults_.setValue("precursor_method:rt_tolerance", 5.0, "Max RT distance of the precursor entries of two spectra to be merged in [s].");
 		defaults_.setMinFloat("precursor_method:rt_tolerance", 0);
 
 		defaultsToParam_();

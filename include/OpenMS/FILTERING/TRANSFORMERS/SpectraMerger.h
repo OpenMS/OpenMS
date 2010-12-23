@@ -29,11 +29,14 @@
 #define OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <vector>
-#include <set>
-#include <stack>
 
 namespace OpenMS
 {
@@ -49,6 +52,77 @@ namespace OpenMS
   class OPENMS_DLLAPI SpectraMerger
     : public DefaultParamHandler
   {
+
+  protected:
+
+    /* Determine distance between two spectra
+
+      Distance is determined as 
+      
+        delta m/z * weight + delta rt * weight
+
+      and normalized to [0-1] by dividing with:
+
+        max delta m/z * weight + max delta rt * weight
+
+
+
+    */
+    class SpectraDistance_
+      : public DefaultParamHandler
+    {
+      public:
+      SpectraDistance_()
+        : DefaultParamHandler("SpectraDistance")
+      {
+        defaults_.setValue("rt_tolerance", 10.0, "Maximal RT distance (in [s]) for two spectra's precursor.s");
+        defaults_.setValue("rt_weight", 1, "Multiplier for RT distance, to determine distance (delta m/z * weight + delta rt * weight < threshold).");
+        defaults_.setValue("mz_tolerance", 1.0, "Maximal m/z distance (in Da) for two spectra's precursors.");
+        defaults_.setValue("mz_weight", 10, "Multiplier for m/z distance, to determine distance (delta m/z * weight + delta rt * weight < threshold).");
+        defaultsToParam_();
+      }
+      
+      void updateMembers_()
+      {
+        rt_max_ = (DoubleReal) param_.getValue("rt_tolerance");
+        rt_weight_ = (DoubleReal) param_.getValue("rt_weight");
+        mz_max_ = (DoubleReal) param_.getValue("mz_tolerance");
+        mz_weight_ = (DoubleReal) param_.getValue("mz_weight");
+        return;
+      }
+
+      double getDistance(const DoubleReal d_rt, const DoubleReal d_mz) const
+      {
+        return (d_rt/rt_max_ + d_mz/mz_max_) / 2;
+      }
+
+      // measure of SIMILARITY (not distance, i.e. 1-distance)!!
+      double operator()(const BaseFeature& first, const BaseFeature& second) const
+      {
+        // get RT distance:
+        DoubleReal d_rt = fabs(first.getRT() - second.getRT());
+        DoubleReal d_mz = fabs(first.getMZ() - second.getMZ());
+        if (d_rt > rt_max_) return 0;
+        if (d_mz > mz_max_) return 0;
+
+        // calculate similarity (0-1):
+        DoubleReal sim = 1; //getDistance(d_rt, d_mz) / max_possible_distance_;
+
+        // clustering threshold is 0.5, so everything above will be disallowed
+        //distance /= 2;
+      
+        return sim;
+      }
+
+    protected:
+      DoubleReal rt_max_;
+      DoubleReal rt_weight_;
+      DoubleReal mz_max_;
+      DoubleReal mz_weight_;
+      DoubleReal max_possible_distance_;
+
+    }; // end of SpectraDistance
+
   public:
 
     /// blocks of spectra (master-spectrum index to sacrifice-spectra(the ones being merged into the master-spectrum))
@@ -83,7 +157,7 @@ namespace OpenMS
 
       if (rt_max_length == 0)  // no rt restriction set?
       {
-        rt_max_length = 10e10; // set max rt span to very large value
+        rt_max_length = std::numeric_limits<DoubleReal>::max(); // set max rt span to very large value
       }
 
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel<ms_levels.end(); ++it_mslevel)
@@ -126,106 +200,75 @@ namespace OpenMS
 			return;
 		}
 
-		/// merges spectra with similar precursors
-		template <typename MapType> void mergeSpectraPrecursors(MapType& /*exp*/)
+    /// merges spectra with similar precursors (must have MS2 level)
+		template <typename MapType> void mergeSpectraPrecursors(MapType& exp)
 		{
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    /*
-    idea: merge spectra with "similar" precursors to enhance S/N
-    method: either leave #spectra identical and add neighbouring spectra if within deltas
-            or do full clustering (single,complete linkage etc) and report only merged spectra
-               with each spectrum being added to one cluster exlcusively
 
-    untested and probably buggy code:
+      // convert spectra's precursors to clusterizable data
+      std::vector<BaseFeature> data;
+      Map<Size, Size> index_mapping;
+      for (Size i=0;i<exp.size(); ++i)
+      {
+        if (exp[i].getMSLevel() != 2) continue;
 
+        // remember which index in distance data ==> experiment index
+        index_mapping[data.size()] = i;
 
-			DoubleReal mz_tolerance(param_.getValue("precursor_method:mz_tolerance"));
-			DoubleReal rt_tolerance(param_.getValue("precursor_method:rt_tolerance"));
+        // make cluster element
+        BaseFeature bf;
+        bf.setRT(exp[i].getRT());
+        std::vector< Precursor > pcs = exp[i].getPrecursors();
+        if (pcs.size()==0) throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
+        if (pcs.size()>1) LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
+        bf.setMZ(pcs[0].getMZ());
+        data.push_back(bf);
+      }
 
+      SpectraDistance_ llc;
+      llc.setParameters(param_.copy("precursor_method:",true));
+      CompleteLinkage sl;
+      vector<BinaryTreeNode> tree;
+      DistanceMatrix<Real> dist; // will be filled
+      ClusterHierarchical ch;
+      ch.setThreshold(0.5);
 
-			typedef typename MapType::ConstIterator ConstExpIterator;
-			typedef typename MapType::SpectrumType SpectrumType;
-			Map<Size, std::vector<Size> > spectra_by_idx;
-			Size count1(0);
-      // iterate over spectra
-			for (ConstExpIterator it1 = exp.begin(); it1 != exp.end(); ++it1, ++count1)
-			{
-        // only MS2 and above
-				if (it1->getMSLevel() == 1)
-				{
-					continue;
-				}
-				DoubleReal rt1(it1->getRT());
-				if (it1->getPrecursors().size() == 0)
-				{
-					LOG_DEBUG << "SpectrumMerger::mergeSpectraPrecursors(): no precursor defined at spectrum: RT=" << rt1 << ", skipping!" << std::endl;
-					continue;
-				}
-				else if (it1->getPrecursors().size() > 1)
-				{
-					LOG_WARN << "SpectrumMerger::mergeSpectraPrecursors(): multiple precursors defined at spectrum RT=" << rt1 << ", using only first one!" << std::endl;
-				}
-				
-				DoubleReal precursor_mz1(it1->getPrecursors().begin()->getMZ());
+      // clustering
+      ch.cluster<BaseFeature,SpectraDistance_>(data,llc,sl,tree,dist);
 
-        // from current spectrum --> last spectrum
-				Size count2(count1 + 1);
-				for (ConstExpIterator it2 = it1 + 1; it2 != exp.end(); ++it2, ++count2)
-				{
-					if (it2->getMSLevel() == 1)	continue;
-					if (it1->getPrecursors().size() == 0)	continue;
-					
-					DoubleReal rt2(it2->getRT());
-					DoubleReal precursor_mz2(it2->getPrecursors().begin()->getMZ());
-					
-					if (fabs(precursor_mz1 - precursor_mz2) < mz_tolerance && fabs(rt1 - rt2) < rt_tolerance)
-					{
-						spectra_by_idx[count1].push_back(count2);
-					}
-				}
-			}
-	
-			// identify which spectra are merged 	
-			std::set<Size> used_spectra;
-			MergeBlocks spectra_to_merge;
-			for (MergeBlocks::ConstIterator it = spectra_by_idx.begin(); it != spectra_by_idx.end(); ++it)
-			{
-				if (used_spectra.find(it->first) != used_spectra.end())
-				{
-					continue;
-				}
-				used_spectra.insert(it->first);
-				std::stack<Size> steak;
-				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
-				{
-					if (used_spectra.find(*sit) == used_spectra.end())
-					{
-						steak.push(*sit);
-					}
-				}
-	
-				spectra_to_merge[it->first] = std::vector<Size>();
-				while (steak.size() != 0)
-				{
-					Size spec_idx = steak.top();
-					spectra_to_merge[it->first].push_back(spec_idx);
-					steak.pop();
-					for (std::vector<Size>::const_iterator sit = spectra_by_idx[spec_idx].begin(); sit != spectra_by_idx[spec_idx].end(); ++sit)
-					{
-						if (used_spectra.find(*sit) == used_spectra.end())
-						{
-							steak.push(*sit);
-						}
-					}
-				}
-			}
+      // extract the clusters
+      ClusterAnalyzer ca;
+      std::vector<std::vector<Size> > clusters;
+      // count number of real tree nodes (not the -1 ones):
+      Size node_count=0;
+      for (;node_count<tree.size();++node_count) if (tree[node_count].distance == -1) break;
+      ca.cut(data.size()-node_count, tree, clusters);
 
-      // merge spectra, remove all old MS2 spectra and add new consensus spectra
+      std::cerr << "Treesize: " << tree.size() << "   #clusters: " << clusters.size() << std::endl;
+
+      std::cerr << "tree: " << ca.newickTree(tree, true) << "\n";
+      // convert to blocks
+      MergeBlocks spectra_to_merge;
+
+      for (Size i_outer=0;i_outer<clusters.size(); ++i_outer)
+      {
+        if (clusters[i_outer].size() <= 1) continue;
+        // init block with first cluster element
+        Size cl_index0 = clusters[i_outer][0];
+        std::cerr << "oIndex: " << cl_index0 << "\n";
+        spectra_to_merge[ index_mapping[cl_index0] ] = std::vector<Size>();
+        // add all other elements
+        for (Size i_inner=1;i_inner<clusters[i_outer].size();++i_inner)
+        {
+          Size cl_index = clusters[i_outer][i_inner];
+          std::cerr << "oIndex: " << cl_index << "\n";
+          spectra_to_merge[ index_mapping[cl_index0] ].push_back( index_mapping[cl_index] );
+        }
+      }
+
+      // do it
       mergeSpectra_(exp, spectra_to_merge, 2);
 
       exp.sortSpectra();
-    
-    */
 
 			return;
 		}
@@ -241,6 +284,7 @@ namespace OpenMS
         Merges spectra belonging to the same block, setting their MS level to @p ms_level.
         All old spectra of level @p ms_level are removed, and the new consensus spectra (one per block)
         are added.
+        All spectra with other MS levels remain untouched.
         The resulting map is NOT sorted!
 
     */
@@ -253,14 +297,31 @@ namespace OpenMS
       // merge spectra
 			MapType merged_spectra;
 
+      Map <Size, Size> cluster_sizes;
+      std::set <Size> merged_indices;
+
+      // each BLOCK
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
-        
+        ++cluster_sizes[ it->second.size() + 1]; // for stats
+
+  			typename MapType::SpectrumType consensus_spec;
+		  	consensus_spec.setMSLevel(ms_level);
+
+        consensus_spec.unify(exp[it->first]); // append meta info
+        merged_indices.insert(it->first);
+        std::cerr << "insert " << it->first << "\n";
+
         typename MapType::SpectrumType all_peaks = exp[it->first];			
         DoubleReal rt_average=all_peaks.getRT();
 
+        // block elements
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
+          consensus_spec.unify(exp[*sit]); // append meta info
+          merged_indices.insert(*sit);
+          std::cerr << "insert " << *sit << "\n";
+
           rt_average+=exp[*sit].getRT();
 					for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
 					{
@@ -269,10 +330,6 @@ namespace OpenMS
 				}
 				all_peaks.sortByPosition();
         rt_average/=it->second.size()+1;
-
-  			typename MapType::SpectrumType consensus_spec;
-        // todo: what about metainfo and precursor information?
-		  	consensus_spec.setMSLevel(ms_level);
         consensus_spec.setRT(rt_average);
 
         if (all_peaks.size()==0) continue;
@@ -301,13 +358,31 @@ namespace OpenMS
         }
 			}
 
-			// remove level "X" spectra and add consensus spectra
-      exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
+      LOG_INFO << "Cluster sizes:\n";
+      for (Map <Size, Size>::const_iterator it=cluster_sizes.begin(); it!=cluster_sizes.end();++it)
+      {
+        LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+      }
+      
+      LOG_INFO << "Size original: " << exp.size() << "\n";
 
-			for (typename MapType::const_iterator it = merged_spectra.begin(); it != merged_spectra.end(); ++it)
-			{
-				exp.push_back(*it);
-			}
+      // remove all spectra that were within a cluster
+      
+      for (std::set<Size>::const_reverse_iterator it=merged_indices.rbegin(); it!=merged_indices.rend();++it)
+      {
+        Size index = *it;
+        std::cerr << "removing " << index << "\n";
+        exp.erase (exp.begin() + index);
+      }
+      // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
+      
+      LOG_INFO << "Size after clean: " << exp.size() << "\n";
+      
+      // ... and add consensus spectra
+			exp.insert(exp.end(), merged_spectra.begin(), merged_spectra.end());
+
+      LOG_INFO << "Size after merge: " << exp.size() << "\n";
+
     }
 	
   };

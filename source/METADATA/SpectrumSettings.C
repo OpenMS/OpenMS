@@ -81,8 +81,8 @@ namespace OpenMS
     acquisition_info_ = source.acquisition_info_;
     source_file_ = source.source_file_;
     precursors_ = source.precursors_;
-    identification_ = source.identification_;
 	  products_ = source.products_;
+    identification_ = source.identification_;
 	  data_processing_ = source.data_processing_;
 		
 	  return *this;
@@ -99,16 +99,36 @@ namespace OpenMS
 	    acquisition_info_ == rhs.acquisition_info_ &&
 		  source_file_ == rhs.source_file_ &&
 	    precursors_ == rhs.precursors_ &&
-	    identification_ == rhs.identification_ &&
 	    products_ == rhs.products_ &&
+	    identification_ == rhs.identification_ &&
 			data_processing_ == rhs.data_processing_
   		;
   }
-  
+
   bool SpectrumSettings::operator!= (const SpectrumSettings& rhs) const
   {
   	return !(operator==(rhs));
  	}
+
+  void SpectrumSettings::unify(const SpectrumSettings& rhs)
+  {
+    // append metavalues (overwrite when already present)
+    std::vector< UInt > keys;
+    rhs.getKeys (keys);
+    for (Size i=0;i<keys.size();++i) setMetaValue(keys[i], rhs.getMetaValue(keys[i]));
+    
+    
+    if (type_ != rhs.type_) type_ = UNKNOWN; // only keep if both are equal
+    //native_id_ == rhs.native_id_ // keep
+	  comment_ += rhs.comment_;      // append
+	  //instrument_settings_ == rhs.instrument_settings_  // keep
+	  //acquisition_info_ == rhs.acquisition_info_ 
+		//source_file_ == rhs.source_file_ &&
+    precursors_.insert(precursors_.end(), rhs.precursors_.begin(), rhs.precursors_.end());
+	  products_.insert(products_.end(), rhs.products_.begin(), rhs.products_.end() );
+    identification_.insert(identification_.end(), rhs.identification_.begin(), rhs.identification_.end() );
+	  data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end() );
+  }
 
 	SpectrumSettings::SpectrumType SpectrumSettings::getType() const
 	{

@@ -86,6 +86,9 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const SpectrumSettings& rhs) const;
 
+      /// merge another spectrum setting into this one (data is usually appended, except for spectrum type which needs to be unambiguous to be kept)
+      void unify(const SpectrumSettings& rhs);
+
 			///returns the spectrum type
       SpectrumType getType() const;
       ///sets the spectrum type
