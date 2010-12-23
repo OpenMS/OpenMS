@@ -72,8 +72,14 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/Precursor.h>
 
+// OpenMS TOPPAS
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+
 
 //Qt
 #include <QtCore/QDate>
@@ -116,6 +122,8 @@ namespace OpenMS
   using namespace Internal;
 	using namespace Math;
 
+  qreal TOPPViewBase::z_value_ = 42.0;
+
 TOPPViewBase::TOPPViewBase(QWidget* parent):
         QMainWindow(parent),
         DefaultParamHandler("TOPPViewBase"),
@@ -140,6 +148,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
             (int)(0.8 * screen_geometry.width()),
             (int)(0.8 * screen_geometry.height())
             );
+
+          //set temporary path
+          tmp_path_ = QDir::tempPath() + QDir::separator();
 
           // create dummy widget (to be able to have a layout), Tab bar and workspace
           QWidget* dummy = new QWidget(this);
@@ -1217,7 +1228,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     if (tab_bar_target == 0)
 		{
-      target_window = getActiveWindow();
+      target_window = getActiveSpectrumWidget();
 		}
     else
 		{
@@ -1486,7 +1497,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::layerStatistics()
   {
-    getActiveWindow()->showStatistics();
+    getActiveSpectrumWidget()->showStatistics();
   	updateFilterBar();
   }
 
@@ -1501,6 +1512,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       statusBar()->showMessage(msg.c_str(), time);
     }
+    QApplication::processEvents();
   }
 
   void TOPPViewBase::showCursorStatusInvert(double mz, double rt)
@@ -1542,7 +1554,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::resetZoom()
   {
-    SpectrumWidget* w = getActiveWindow();
+    SpectrumWidget* w = getActiveSpectrumWidget();
     if (w != 0)
     {
       w->canvas()->resetZoom();
@@ -1551,7 +1563,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::setIntensityMode(int index)
   {
-    SpectrumWidget* w = getActiveWindow();
+    SpectrumWidget* w = getActiveSpectrumWidget();
     if (w)
     {
       intensity_button_group_->button(index)->setChecked(true);
@@ -1561,7 +1573,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::setDrawMode1D(int index)
   {
-    Spectrum1DWidget* w = getActive1DWindow();
+    Spectrum1DWidget* w = getActive1DWidget();
     if (w)
     {
       draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
@@ -1578,7 +1590,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
       if (action->text().toStdString() == LayerData::NamesOfLabelType[i])
 			{
-        getActive2DWindow()->canvas()->setLabel(LayerData::LabelType(i));
+        getActive2DWidget()->canvas()->setLabel(LayerData::LabelType(i));
 				set = true;
 			}
 		}
@@ -1586,14 +1598,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		//button is simply pressed
 		if (!set)
 		{
-      if (getActive2DWindow()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
+      if (getActive2DWidget()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
 			{
-        getActive2DWindow()->canvas()->setLabel(LayerData::L_INDEX);
+        getActive2DWidget()->canvas()->setLabel(LayerData::L_INDEX);
 				dm_label_2d_->menu()->actions()[1]->setChecked(true);
 			}
 			else
 			{
-        getActive2DWindow()->canvas()->setLabel(LayerData::L_NONE);
+        getActive2DWidget()->canvas()->setLabel(LayerData::L_NONE);
 				dm_label_2d_->menu()->actions()[0]->setChecked(true);
 			}
 		}
@@ -1608,28 +1620,28 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		// mass reference is selected
 		if (action->text().toStdString() == "Don't show")
 		{
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
 			set = true;
 		}
 		else if (action->text().toStdString() == "Show by precursor m/z")
 		{
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
 			set = true;
 		}
 		else if (action->text().toStdString() == "Show by peptide mass")
 		{
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
 			set = true;
 		}
 
 		// button is simply pressed
 		if (!set)
 		{
-      bool previous = getActive2DWindow()->canvas()->getLayerFlag(LayerData::F_UNASSIGNED);
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED,
+      bool previous = getActive2DWidget()->canvas()->getLayerFlag(LayerData::F_UNASSIGNED);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED,
 																								!previous);
 			if (previous) // now: don't show
 			{
@@ -1639,7 +1651,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			{
 				dm_unassigned_2d_->menu()->actions()[1]->setChecked(true);
 			}
-      getActive2DWindow()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
 		}
 
 		updateToolBar();
@@ -1648,7 +1660,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::changeLayerFlag(bool on)
   {
 		QAction* action = qobject_cast<QAction *>(sender());
-    if (Spectrum2DWidget* win = getActive2DWindow())
+    if (Spectrum2DWidget* win = getActive2DWidget())
     {
     	//peaks
 			if (action == dm_precursors_2d_)
@@ -1679,7 +1691,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::updateToolBar()
   {
-    SpectrumWidget* w = getActiveWindow();
+    SpectrumWidget* w = getActiveSpectrumWidget();
 
     if (w)
     {
@@ -1694,7 +1706,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
 
     // 1D
-    Spectrum1DWidget* w1 = getActive1DWindow();
+    Spectrum1DWidget* w1 = getActive1DWidget();
     if (w1)
     {
       //draw mode
@@ -1709,7 +1721,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
 
     // 2D
-    Spectrum2DWidget* w2 = getActive2DWindow();
+    Spectrum2DWidget* w2 = getActive2DWidget();
     if (w2)
     {
       tool_bar_1d_->hide();
@@ -1754,7 +1766,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
 
     // 3D
-    Spectrum3DWidget* w3 = getActive3DWindow();
+    Spectrum3DWidget* w3 = getActive3DWidget();
     if (w3)
     {
       //show/hide toolbars and buttons
@@ -1909,7 +1921,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			{
 				new_action = context_menu->addAction("Flip downwards (1D)");
 			}
-      if (!getActive1DWindow())
+      if (!getActive1DWidget())
 			{
 				new_action->setEnabled(false);
 			}
@@ -1935,14 +1947,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			// flip layer up/downwards
 			else if (selected != 0 && selected->text() == "Flip downwards (1D)")
 			{
-        getActive1DWindow()->canvas()->flipLayer(layer);
-        getActive1DWindow()->canvas()->setMirrorModeActive(true);
+        getActive1DWidget()->canvas()->flipLayer(layer);
+        getActive1DWidget()->canvas()->setMirrorModeActive(true);
 			}
 			else if (selected != 0 && selected->text() == "Flip upwards (1D)")
 			{
-        getActive1DWindow()->canvas()->flipLayer(layer);
-        bool b = getActive1DWindow()->canvas()->flippedLayersExist();
-        getActive1DWindow()->canvas()->setMirrorModeActive(b);
+        getActive1DWidget()->canvas()->flipLayer(layer);
+        bool b = getActive1DWidget()->canvas()->flippedLayersExist();
+        getActive1DWidget()->canvas()->setMirrorModeActive(b);
 			}
 			else if (selected != 0 && selected->text() == "Preferences")
 			{
@@ -1953,12 +1965,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       if (getActiveCanvas()->getLayerCount()!=0)
 			{
         tab_bar_->setTabText(tab_bar_->currentIndex(), getActiveCanvas()->getLayer(0).name.toQString());
-        getActiveWindow()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
+        getActiveSpectrumWidget()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
 			}
 			else
 			{
 				tab_bar_->setTabText(tab_bar_->currentIndex(),"empty");
-        getActiveWindow()->setWindowTitle("empty");
+        getActiveSpectrumWidget()->setWindowTitle("empty");
 			}
 
 			//Update filter bar, spectrum bar and layer bar
@@ -2131,8 +2143,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     QWidgetList windows = ws_->windowList();
     if ( !windows.count() ) return;
 
-    if (getActive1DWindow()) getActive1DWindow()->showNormal();
-    if (getActive2DWindow()) getActive2DWindow()->showNormal();
+    if (getActive1DWidget()) getActive1DWidget()->showNormal();
+    if (getActive2DWidget()) getActive2DWidget()->showNormal();
 
     int heightForEach = ws_->height() / windows.count();
     int y = 0;
@@ -2160,8 +2172,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     QWidgetList windows = ws_->windowList();
     if ( !windows.count() ) return;
 
-    if (getActive1DWindow()) getActive1DWindow()->showNormal();
-    if (getActive2DWindow()) getActive2DWindow()->showNormal();
+    if (getActive1DWidget()) getActive1DWidget()->showNormal();
+    if (getActive2DWidget()) getActive2DWidget()->showNormal();
 
     int widthForEach = ws_->width() / windows.count();
     int y = 0;
@@ -2259,16 +2271,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::showGoToDialog()
   {
-    SpectrumWidget* w = getActiveWindow();
+    SpectrumWidget* w = getActiveSpectrumWidget();
     if (w)
     {
-      getActiveWindow()->showGoToDialog();
+      getActiveSpectrumWidget()->showGoToDialog();
     }
   }
 
   void TOPPViewBase::activate1DSpectrum(int index)
   {
-    Spectrum1DWidget* w = getActive1DWindow();
+    Spectrum1DWidget* w = getActive1DWidget();
     if (w)
     {
       view_behavior_->activate1DSpectrum(index);
@@ -2277,7 +2289,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::deactivate1DSpectrum(int index)
   {
-    Spectrum1DWidget* w = getActive1DWindow();
+    Spectrum1DWidget* w = getActive1DWidget();
     if (w)
     {
       view_behavior_->deactivate1DSpectrum(index);
@@ -2289,7 +2301,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     return ws_;
   }
 
-  SpectrumWidget* TOPPViewBase::getActiveWindow() const
+  SpectrumWidget* TOPPViewBase::getActiveSpectrumWidget() const
   {
     if (!ws_->activeWindow())
     {
@@ -2308,9 +2320,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     return sw->canvas();
   }
 
-  Spectrum1DWidget* TOPPViewBase::getActive1DWindow() const
+
+  TOPPASWidget* TOPPViewBase::getActiveTOPPASWidget() const
   {
-    Spectrum1DWidget* w = qobject_cast<Spectrum1DWidget*>(getActiveWindow());
+    if (!ws_->activeWindow())
+    {
+      return 0;
+    }
+    return qobject_cast<TOPPASWidget*>(ws_->activeWindow());
+  }
+
+  Spectrum1DWidget* TOPPViewBase::getActive1DWidget() const
+  {
+    Spectrum1DWidget* w = qobject_cast<Spectrum1DWidget*>(getActiveSpectrumWidget());
     if (!w)
     {
       return 0;
@@ -2318,9 +2340,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		return w;
   }
 
-  Spectrum2DWidget* TOPPViewBase::getActive2DWindow() const
+  Spectrum2DWidget* TOPPViewBase::getActive2DWidget() const
   {
-    Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(getActiveWindow());
+    Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(getActiveSpectrumWidget());
     if (!w)
     {
       return 0;
@@ -2328,9 +2350,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		return w;
   }
 
-  Spectrum3DWidget* TOPPViewBase::getActive3DWindow() const
+  Spectrum3DWidget* TOPPViewBase::getActive3DWidget() const
   {
-    Spectrum3DWidget* w = qobject_cast<Spectrum3DWidget*>(getActiveWindow());
+    Spectrum3DWidget* w = qobject_cast<Spectrum3DWidget*>(getActiveSpectrumWidget());
     if (!w)
     {
       return 0;
@@ -2493,7 +2515,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::addTOPPASFile(const QString& file_name)
   {    
-    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, "");
+    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
     showTOPPipelineInWindow_(tw, File::basename(file_name));
     TOPPASScene* scene = tw->getScene();
     scene->load(file_name);
@@ -2506,12 +2528,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption)
   {
     ws_->addWindow(tw);
-    /*
+
     connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
     connect(tw,SIGNAL(toolDroppedOnWidget(double,double)),this,SLOT(insertNewVertex_(double,double)));
     connect(tw,SIGNAL(pipelineDroppedOnWidget(const String&, bool)),this,SLOT(openFile(const String&, bool)));
-    */
+
     tw->setWindowTitle(caption.toQString());
 
     //add tab with id
@@ -2525,10 +2547,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
-
-    /*
     connect(tw, SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
-    */
+
     tab_bar_->setCurrentId(tw->getWindowId());
 
     //show first window maximized (only visible windows are in the list)
@@ -2541,13 +2561,84 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       tw->show();
     }
     TOPPASScene* ts = tw->getScene();
-    /*
+
     connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
     connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
     connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
-    */
+
     ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
   }
+
+  void TOPPViewBase::insertNewVertex_(double x, double y, QTreeWidgetItem* item)
+  {       
+    TOPPASTreeView* toppas_tree_view = qobject_cast<TOPPASTreeView*>(topp_tools_dock_widget_->widget());
+
+    if (!getActiveTOPPASWidget() || !getActiveTOPPASWidget()->getScene() || !toppas_tree_view)
+    {
+      return;
+    }
+
+    TOPPASScene* scene = getActiveTOPPASWidget()->getScene();
+    QTreeWidgetItem* current_tool = item ? item : toppas_tree_view->currentItem();
+    String tool_name = String(current_tool->text(0));
+    TOPPASVertex* tv = 0;
+
+    if (tool_name == "<Input files>")
+    {
+      tv = new TOPPASInputFileListVertex();
+    }
+    else if (tool_name == "<Output files>")
+    {
+      tv = new TOPPASOutputFileListVertex();
+      TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
+      connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+      scene->connectOutputVertexSignals(oflv);
+    }
+    else if (tool_name == "<Merger>")
+    {
+      tv = new TOPPASMergerVertex();
+    }
+    else // node is a TOPP tool
+    {
+      if (current_tool->childCount() > 0)
+      {
+        // category or tool name with types is selected (instead of a concrete type)
+        return;
+      }
+      String tool_type;
+      if (current_tool->parent() != 0 && current_tool->parent()->parent() != 0)
+      {
+        // selected item is a type
+        tool_type = String(current_tool->text(0));
+        tool_name = String(current_tool->parent()->text(0));
+      }
+      else
+      {
+        // normal tool which does not have type selected
+        tool_name = String(current_tool->text(0));
+        tool_type = "";
+      }
+
+      tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
+      TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+      connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
+      connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
+      connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
+      connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+      connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+
+      scene->connectToolVertexSignals(ttv);
+    }
+
+    scene->connectVertexSignals(tv);
+    scene->addVertex(tv);
+    tv->setPos(x,y);
+    tv->setZValue(z_value_);
+    z_value_ += 0.000001;
+    scene->topoSort();
+    scene->setChanged(true);
+  }
+
 
   void TOPPViewBase::openExampleDialog()
   {
@@ -2686,7 +2777,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		//Store data
 		topp_.layer_name = layer.name;
-    topp_.window_id = getActiveWindow()->getWindowId();
+    topp_.window_id = getActiveSpectrumWidget()->getWindowId();
 		topp_.spectrum_id = layer.current_spectrum;
 		if (layer.type==LayerData::DT_PEAK)
 		{
@@ -2809,7 +2900,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::toggleProjections()
   {
-    Spectrum2DWidget* w = getActive2DWindow();
+    Spectrum2DWidget* w = getActive2DWidget();
     if (w)
     {
     	//update minimum size before
@@ -2992,7 +3083,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::showSpectrumAlignmentDialog()
 	{
-    Spectrum1DWidget* active_1d_window = getActive1DWindow();
+    Spectrum1DWidget* active_1d_window = getActive1DWidget();
 		if (!active_1d_window || !active_1d_window->canvas()->mirrorModeActive())
 		{
 			return;
@@ -3029,8 +3120,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
-    Spectrum1DWidget* widget_1d = getActive1DWindow();
-    Spectrum2DWidget* widget_2d = getActive2DWindow();
+    Spectrum1DWidget* widget_1d = getActive1DWidget();
+    Spectrum2DWidget* widget_2d = getActive2DWidget();
 
     if (widget_1d)
     {
@@ -3096,14 +3187,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         return;
       }
 
-     if (getActive1DWindow()) // switch from 1D to 3D
+     if (getActive1DWidget()) // switch from 1D to 3D
      {
        //TODO:
        //- distinguish between survey scan and fragment scan (only makes sense for survey scan?)
        //- build new Area with mz range equal to 1D visible range
        //- rt range either overall MS1 data range or some convenient window
 
-     } else if (getActive2DWindow())  // switch from 2D to 3D
+     } else if (getActive2DWidget())  // switch from 2D to 3D
      {
         w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
      }
@@ -3218,7 +3309,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
 			topp_running = true;
 		}
-    bool mirror_mode = getActive1DWindow() && getActive1DWindow()->canvas()->mirrorModeActive();
+    bool mirror_mode = getActive1DWidget() && getActive1DWidget()->canvas()->mirrorModeActive();
 		QList<QAction*> actions = this->findChildren<QAction*>("");
 		for (int i=0; i<actions.count(); ++i)
 		{
@@ -3294,7 +3385,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	}
     	else if (*it=="@bw")
     	{
-        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
+        if ( (getActive2DWidget()!=0 || getActive3DWidget()!=0) && getActiveCanvas()!=0 )
     		{
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
@@ -3303,7 +3394,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	}
     	else if (*it=="@bg")
     	{
-        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
+        if ( (getActive2DWidget()!=0 || getActive3DWidget()!=0) && getActiveCanvas()!=0 )
     		{
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#dddddd;100,#000000");
@@ -3312,7 +3403,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	}
     	else if (*it=="@b")
     	{
-        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
+        if ( (getActive2DWidget()!=0 || getActive3DWidget()!=0) && getActiveCanvas()!=0 )
     		{
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#000000;100,#000000");
@@ -3321,7 +3412,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	}
     	else if (*it=="@r")
     	{
-        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
+        if ( (getActive2DWidget()!=0 || getActive3DWidget()!=0) && getActiveCanvas()!=0 )
     		{
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#ff0000;100,#ff0000");
@@ -3330,7 +3421,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	}
     	else if (*it=="@g")
     	{
-        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
+        if ( (getActive2DWidget()!=0 || getActive3DWidget()!=0) && getActiveCanvas()!=0 )
     		{
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#00ff00;100,#00ff00");
@@ -3339,14 +3430,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     	}
     	else if (*it=="@m")
     	{
-        if ( (getActive2DWindow()!=0 || getActive3DWindow()!=0) && getActiveCanvas()!=0 )
+        if ( (getActive2DWidget()!=0 || getActive3DWidget()!=0) && getActiveCanvas()!=0 )
     		{
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
     			tmp.setValue("dot:gradient", "Linear|0,#ff00ff;100,#ff00ff");
           getActiveCanvas()->setCurrentLayerParameters(tmp);
     		}
     	}
-      else if (!last_was_plus || !getActiveWindow())
+      else if (!last_was_plus || !getActiveSpectrumWidget())
     	{
     		splash_screen->showMessage((String("Loading file: ") + *it).toQString());
     		splash_screen->repaint();
@@ -3359,7 +3450,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     		splash_screen->repaint();
     		QApplication::processEvents();
     		last_was_plus = false;
-        addDataFile(*it, false, true,"",getActiveWindow()->getWindowId());
+        addDataFile(*it, false, true,"",getActiveSpectrumWidget()->getWindowId());
     	}
     }
   }
@@ -3403,7 +3494,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::toggleAxisLegends()
 	{
-    getActiveWindow()->showLegend(!getActiveWindow()->isLegendShown());
+    getActiveSpectrumWidget()->showLegend(!getActiveSpectrumWidget()->isLegendShown());
 	}
 
 	void TOPPViewBase::showPreferences()

@@ -83,7 +83,7 @@ namespace OpenMS
 
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
   {
-    Spectrum1DWidget* widget_1d = tv_->getActive1DWindow();
+    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
     widget_1d->canvas()->activateSpectrum(index);
   }
 

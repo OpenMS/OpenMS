@@ -117,7 +117,7 @@ namespace OpenMS
 
    void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
    {
-     Spectrum1DWidget* widget_1D = tv_->getActive1DWindow();     
+     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();     
      widget_1D->canvas()->activateSpectrum(index);
      const LayerData& cl = widget_1D->canvas()->getCurrentLayer();
      UInt ms_level = cl.getCurrentSpectrum().getMSLevel();
@@ -176,7 +176,7 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
-    LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     SpectrumType& spectrum = current_layer.getCurrentSpectrum();
 
     for(vector<Precursor>::const_iterator it= pcs.begin(); it != pcs.end(); ++it)
@@ -220,7 +220,7 @@ namespace OpenMS
       cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
     #endif
     // Delete annotations added by IdentificationView (but not user added annotations)
-    LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     const vector<Annotation1DItem* >& cas = current_spectrum_precursor_annotations_;    
     Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
     for(vector<Annotation1DItem* >::const_iterator it = cas.begin(); it != cas.end(); ++it)
@@ -238,7 +238,7 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
-    SpectrumCanvas* current_canvas = tv_->getActive1DWindow()->canvas();
+    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
 
     AASequence aa_sequence = ph.getSequence();
@@ -334,14 +334,14 @@ namespace OpenMS
       tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, false, "", layer_caption.toQString());
 
       // get layer index of new layer
-      Size theoretical_spectrum_layer_index = tv_->getActive1DWindow()->canvas()->activeLayerIndex();
+      Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
 
       // kind of a hack to check whether adding the layer was successful
       if (real_spectrum_layer_index != theoretical_spectrum_layer_index)
       {
         // Ensure theoretical spectrum is drawn as dashed sticks
         tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
-        tv_->getActive1DWindow()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
+        tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
         // Add ion names as annotations to the theoretical spectrum
         for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
         {
@@ -351,12 +351,12 @@ namespace OpenMS
             QString s(((string)it->getMetaValue("IonName")).c_str());
             Annotation1DItem* item = new Annotation1DPeakItem(position, s);
             item->setSelected(false);
-            tv_->getActive1DWindow()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+            tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
           }
         }
         // activate real data layer and spectrum
-        tv_->getActive1DWindow()->canvas()->activateLayer(real_spectrum_layer_index);
-        tv_->getActive1DWindow()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
+        tv_->getActive1DWidget()->canvas()->activateLayer(real_spectrum_layer_index);
+        tv_->getActive1DWidget()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
 
         // spectra alignment
         Param param;
@@ -367,7 +367,7 @@ namespace OpenMS
         param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance in the alignment");
         String sunit_is_ppm = unit_is_ppm ? "true" : "false";
         param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
-        tv_->getActive1DWindow()->performAlignment(real_spectrum_layer_index, theoretical_spectrum_layer_index, param);
+        tv_->getActive1DWidget()->performAlignment(real_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
         tv_->updateLayerBar();
 
@@ -382,7 +382,7 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::deactivate1DSpectrum(int spectrum_index)
   {
-    LayerData& current_layer = tv_->getActive1DWindow()->canvas()->getCurrentLayer();
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     int ms_level = (*current_layer.getPeakData())[spectrum_index].getMSLevel();
 
     if (ms_level == 1)
@@ -394,12 +394,12 @@ namespace OpenMS
       removeTheoreticalSpectrumLayer_();
     }
 
-    tv_->getActive1DWindow()->canvas()->resetZoom();
+    tv_->getActive1DWidget()->canvas()->resetZoom();
   }
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
   {
-    Spectrum1DWidget* spectrum_widget_1D = tv_->getActive1DWindow();
+    Spectrum1DWidget* spectrum_widget_1D = tv_->getActive1DWidget();
     Spectrum1DCanvas* canvas_1D = spectrum_widget_1D->canvas();
 
     // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
@@ -429,23 +429,23 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::deactivateBehavior()
   {
     // remove precusor labels, theoretical spectra and trigger repaint
-    if(tv_->getActive1DWindow() != 0)
+    if(tv_->getActive1DWidget() != 0)
     {
-      removePrecursorLabels1D_(tv_->getActive1DWindow()->canvas()->getCurrentLayer().current_spectrum);
+      removePrecursorLabels1D_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().current_spectrum);
       removeTheoreticalSpectrumLayer_();
-      tv_->getActive1DWindow()->canvas()->repaint();
+      tv_->getActive1DWidget()->canvas()->repaint();
     }
   }
 
   void TOPPViewIdentificationViewBehavior::setVisibleArea1D(DoubleReal l, DoubleReal h)
   {
-    if(tv_->getActive1DWindow() != 0)
+    if(tv_->getActive1DWidget() != 0)
     {
-      DRange<2> range = tv_->getActive1DWindow()->canvas()->getVisibleArea();
+      DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
       range.setMinX(l);
       range.setMaxX(h);
-      tv_->getActive1DWindow()->canvas()->setVisibleArea(range);
-      tv_->getActive1DWindow()->canvas()->repaint();
+      tv_->getActive1DWidget()->canvas()->setVisibleArea(range);
+      tv_->getActive1DWidget()->canvas()->repaint();
     }
   }
 

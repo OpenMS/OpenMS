@@ -198,23 +198,31 @@ namespace OpenMS
 			/// Returns the active Layer data (0 if no layer is active)
 			const LayerData* getCurrentLayer() const;
 
-      ///returns a pointer to the EnhancedWorkspace
+      //@name Accessors for the main gui components.
+      //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
+      //@{
+      /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets and TOPPASWidgets
       EnhancedWorkspace* getWorkspace() const;
 
-      ///returns a pointer to the active SpectrumWidget (0 if none is active)
-      SpectrumWidget*  getActiveWindow() const;
+      /// returns a pointer to the active SpectrumWidget (0 if none is active)
+      SpectrumWidget*  getActiveSpectrumWidget() const;
 
-      ///returns a pointer to the active SpectrumCanvas (0 if none is active)      
+      /// returns a pointer to the active TOPPAS widget (0 if none is active)
+      TOPPASWidget* getActiveTOPPASWidget() const;
+
+      /// returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
+      Spectrum1DWidget* getActive1DWidget() const;
+
+      /// returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
+      Spectrum2DWidget* getActive2DWidget() const;
+
+      /// returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
+      Spectrum3DWidget* getActive3DWidget() const;
+      //@}
+
+      /// returns a pointer to the active SpectrumCanvas (0 if none is active)
       SpectrumCanvas*  getActiveCanvas() const;
 
-      ///returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
-      Spectrum1DWidget* getActive1DWindow() const;
-
-      ///returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-      Spectrum2DWidget* getActive2DWindow() const;
-
-      ///returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-      Spectrum3DWidget* getActive3DWindow() const;
 
       /// returns a pointer to the SpectraIdentificationViewWidget
       SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
@@ -345,6 +353,8 @@ namespace OpenMS
     	void filterEdit(QListWidgetItem* item);
     	/// slot for editing the preferences of the current layer
     	void layerEdit(QListWidgetItem* /*item*/);
+      /// Inserts a new TOPP tool in the current window at (x,y)
+      void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
     	/// slot for the finished signal of the TOPP tools execution
     	void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     	/// aborts the execution of a TOPP tool
@@ -530,6 +540,12 @@ namespace OpenMS
       /// The current path (used for loading and storing).
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
+
+      /// Path to temporary directory used in TOPPAS
+      QString tmp_path_;
+
+      /// z-value counter for new inserted TOPPAS nodes
+      static qreal z_value_;
 
       /// Tabwidget that hold the different views on the loaded data
       QTabWidget* views_tabwidget_;
