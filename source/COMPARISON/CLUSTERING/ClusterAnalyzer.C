@@ -53,7 +53,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	std::vector< Real > ClusterAnalyzer::averageSilhouetteWidth(std::vector<BinaryTreeNode>& tree, DistanceMatrix<Real>& original)
+	std::vector< Real > ClusterAnalyzer::averageSilhouetteWidth(const std::vector<BinaryTreeNode>& tree, const DistanceMatrix<Real>& original)
 	{
 		//throw exception if cannot be legal clustering
 		if(tree.size() < 1)
@@ -328,7 +328,7 @@ namespace OpenMS
 		return average_silhouette_widths;
 	}
 
-	std::vector< Real > ClusterAnalyzer::dunnIndices(std::vector<BinaryTreeNode>& tree, DistanceMatrix<Real>& original, bool tree_from_singlelinkage)
+	std::vector< Real > ClusterAnalyzer::dunnIndices(const std::vector<BinaryTreeNode>& tree, const DistanceMatrix<Real>& original, const bool tree_from_singlelinkage)
 	{
 		//throw exception if cannot be legal clustering
 		if(tree.size() < 1)
@@ -517,15 +517,15 @@ namespace OpenMS
 		return all_dunn_indices;
 	}
 
-	void ClusterAnalyzer::cut(Size cluster_quantity, std::vector<std::vector<Size> >& clusters, std::vector<BinaryTreeNode>& tree)
+	void ClusterAnalyzer::cut(const Size cluster_quantity, const std::vector<BinaryTreeNode>& tree, std::vector<std::vector<Size> >& clusters)
 	{
 		if(cluster_quantity==0)
 		{
-			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "minimal partition contains one cluster, not zero");
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "minimal partitioning contains one cluster, not zero");
 		}
 		if(cluster_quantity>=tree.size()+1)
 		{
-			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partition contains singleton clusters, further separation is not possible");
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partitioning contains singleton clusters, further separation is not possible");
 		}
 
 		std::set<Size> leafs;
@@ -533,33 +533,34 @@ namespace OpenMS
 		{
 			leafs.insert(tree[i].left_child);
 			leafs.insert(tree[i].right_child);
-			if(tree[i].distance == -1)
-			{
-				break;
-			}
 		}
 
 		std::map<Size,std::vector<Size> > cluster_map;
 		std::set<Size>::iterator it = leafs.begin();
-		//++it;
 		for (; it != leafs.end(); ++it)
-
 		{
 			cluster_map[*it]=std::vector<Size>(1,*it);
 		}
-		//redo clustering till step (original.dimensionsize()-cluster_quantity)
+
+    //redo clustering till step (original.dimensionsize()-cluster_quantity)
 		for (Size cluster_step = 0; cluster_step < tree.size()+1-cluster_quantity; ++cluster_step)
 		{
+			if(tree[cluster_step].distance == -1)
+			{
+				break;
+			}
 			//pushback elements of right_child to left_child (and then erase second)
 			cluster_map[tree[cluster_step].left_child].insert(cluster_map[tree[cluster_step].left_child].end(),cluster_map[tree[cluster_step].right_child].begin(),cluster_map[tree[cluster_step].right_child].end());
 
 			// erase second one
 			cluster_map[tree[cluster_step].right_child].clear();
 		}
-		//clusters.reserve(tree.size()+1);
-		  std::map<Size,std::vector<Size> >::iterator iter;
-		  for( iter = cluster_map.begin(); iter != cluster_map.end(); ++iter )
+
+    // convert Map to Vector
+    std::map<Size,std::vector<Size> >::iterator iter;
+	  for( iter = cluster_map.begin(); iter != cluster_map.end(); ++iter )
 		{
+      if (iter->second.size()==0) continue;
 			std::vector<Size> actCluster=iter->second;
 			clusters.push_back(actCluster);
 		}
@@ -574,7 +575,7 @@ namespace OpenMS
 		std::sort(clusters.begin(),clusters.end());
 	}
 
-	void ClusterAnalyzer::cut(Size cluster_quantity, std::vector< std::vector<BinaryTreeNode> >& trees, std::vector<BinaryTreeNode>& tree)
+	void ClusterAnalyzer::cut(const Size cluster_quantity, const std::vector<BinaryTreeNode>& tree, std::vector< std::vector<BinaryTreeNode> >& subtrees)
 	{
 		if(cluster_quantity==0)
 		{
@@ -584,11 +585,11 @@ namespace OpenMS
 		{
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partition contains singleton clusters, further separation is not possible");
 		}
-		trees.clear();
-		trees.resize(cluster_quantity);
+		subtrees.clear();
+		subtrees.resize(cluster_quantity);
 
 		std::vector< std::vector<Size> > clusters;
-		cut(cluster_quantity, clusters, tree);
+		cut(cluster_quantity, tree, clusters);
 
 		//~ unused nodes are discarded, (tree.begin()+tree.size()+1-cluster_quantity) is maximal tree.end() since cluster_quantity is always > 1! (tree.end()==tree.begin()+tree.size())
 		std::list<BinaryTreeNode> tc(tree.begin(), (tree.begin()+(tree.size()+1-cluster_quantity)));
@@ -602,7 +603,7 @@ namespace OpenMS
 				std::vector<Size>::iterator right = std::find(clusters[cluster].begin(),clusters[cluster].end(), it->right_child);
 				if((left != clusters[cluster].end() || right != clusters[cluster].end()))
 				{
-					trees[cluster].push_back(*it);
+					subtrees[cluster].push_back(*it);
 					it = tc.erase(it);
 				}
 				else
@@ -660,7 +661,7 @@ namespace OpenMS
 		return aberration;
 	}
 
-	std::vector< Real > ClusterAnalyzer::cohesion(std::vector< std::vector<Size> >& clusters, DistanceMatrix<Real>& original)
+	std::vector< Real > ClusterAnalyzer::cohesion(const std::vector< std::vector<Size> >& clusters, const DistanceMatrix<Real>& original)
 	{
 		if(clusters.size()==0 || clusters.size() > original.dimensionsize())
 		{
@@ -701,7 +702,7 @@ namespace OpenMS
 		return cohesions;
 	}
 
-	String ClusterAnalyzer::newickTree(std::vector<BinaryTreeNode>& tree, bool include_distance)
+	String ClusterAnalyzer::newickTree(const std::vector<BinaryTreeNode>& tree, const bool include_distance)
 	{
 		std::set<Size> leafs;
 		for (Size i = 0; i < tree.size(); ++i)
@@ -776,7 +777,7 @@ namespace OpenMS
 		return (x.distance < y.distance);
 	}
 
-	BinaryTreeNode::BinaryTreeNode(Size i, Size j, Real x) : left_child(i), right_child(j), distance(x)
+	BinaryTreeNode::BinaryTreeNode(const Size i, const Size j, const Real x) : left_child(i), right_child(j), distance(x)
 	{
 	}
 

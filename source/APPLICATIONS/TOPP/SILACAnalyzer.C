@@ -550,7 +550,7 @@ class TOPPSILACAnalyzer
         //-------------------------------------------------------------
         best_n = int(cluster_number_scaling * best_n); // slightly increase cluster number
         std::vector< std::vector<Size> > best_n_clusters;
-        ca.cut(best_n,best_n_clusters,tree);
+        ca.cut(best_n, tree, best_n_clusters);
         cluster_number[charge] = best_n;
 
         //-------------------------------------------------------------
