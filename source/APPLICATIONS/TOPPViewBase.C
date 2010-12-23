@@ -123,6 +123,7 @@ namespace OpenMS
 	using namespace Math;
 
   qreal TOPPViewBase::z_value_ = 42.0;
+  Int TOPPViewBase::node_offset_ = 0;
 
 TOPPViewBase::TOPPViewBase(QWidget* parent):
         QMainWindow(parent),
@@ -163,9 +164,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           tab_bar_->addTab("dummy",4710);
           tab_bar_->setMinimumSize(tab_bar_->sizeHint());
           tab_bar_->removeId(4710);
-          //connect slots and sigals for selecting spectra
-          connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
+
+          connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(enhancedWorkspaceWindowChanged(int)));
           connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
+
           //connect signals ans slots for drag-and-drop
           connect(tab_bar_,SIGNAL(dropOnWidget(const QMimeData*,QWidget*)),this,SLOT(copyLayer(const QMimeData*,QWidget*)));
           connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));
@@ -219,7 +221,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           tools->addAction("&Edit meta data",this,SLOT(editMetadata()), Qt::CTRL+Qt::Key_M);
           tools->addAction("&Statistics",this,SLOT(layerStatistics()));
           tools->addSeparator();
-          //tools->addAction("Show TOPPAS", this, SLOT(showTOPPAS()))->setData(false);
+
           tools->addAction("Apply TOPP tool (whole layer)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T)->setData(false);
           tools->addAction("Apply TOPP tool (visible layer data)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_T)->setData(true);
           tools->addAction("Rerun TOPP tool", this, SLOT(rerunTOPPTool()),Qt::Key_F4);
@@ -458,15 +460,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(dm_ident_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
           //################## Dock widgets #################
-          // topp tool dock widget
-          topp_tools_dock_widget_ = new QDockWidget("TOPP", this);
-          topp_tools_dock_widget_->close();
-          addDockWidget(Qt::RightDockWidgetArea, topp_tools_dock_widget_);
-          TOPPASTreeView* tools_tree_view = TOPPASBase::createTOPPToolsTreeWidget(topp_tools_dock_widget_);
-          topp_tools_dock_widget_->setWidget(tools_tree_view);
-          //connect (tools_tree_view, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
-          windows->addAction(topp_tools_dock_widget_->toggleViewAction());
-
           // layer dock widget
           layer_dock_widget_ = new QDockWidget("Layers", this);
           addDockWidget(Qt::RightDockWidgetArea, layer_dock_widget_);
@@ -505,12 +498,20 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
           connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
 
+          // topp tool dock widget          
+          TOPPASTreeView* tools_tree_view = TOPPASBase::createTOPPToolsTreeWidget();
+          connect (tools_tree_view, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+
           views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
           views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
           views_tabwidget_->setTabEnabled(1, false);
+          views_tabwidget_->addTab(tools_tree_view, "TOPPAS view");
+          views_tabwidget_->setTabEnabled(2, false);
+
           // switch between different view tabs
           connect(views_tabwidget_, SIGNAL(currentChanged(int)), this, SLOT(viewChanged(int)));
 
+          // add hide/show option to dock widget
           windows->addAction(spectra_views_dockwidget_->toggleViewAction());
 
           // filter dock widget
@@ -691,6 +692,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     setCursor(Qt::ArrowCursor);
   }
 
+  // static
   bool TOPPViewBase::containsMS1Scans(const ExperimentType& exp)
   {
     //test if no scans with MS-level 1 exist => prevent deadlock
@@ -706,6 +708,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     return ms1_present;
   }
 
+  // static
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
   {
     if (!TOPPViewBase::containsMS1Scans(exp))
@@ -738,6 +741,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     return noise / (DoubleReal)n_scans;
   }
 
+  // static
   UInt TOPPViewBase::countMS1Zeros(const ExperimentType& exp)
   {
     if (!TOPPViewBase::containsMS1Scans(exp))
@@ -762,6 +766,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
     return zeros;
+  }
+
+  // static
+  bool TOPPViewBase::hasPeptideIdentifications(const ExperimentType& map)
+  {
+    for(Size i = 0; i!= map.size(); ++i)
+    {
+      if (map[i].getPeptideIdentifications().size() != 0)
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   void TOPPViewBase::preferencesDialog()
@@ -1443,8 +1460,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   EnhancedTabBarWidgetInterface* TOPPViewBase::window_(int id) const
   {
-    // return window with window_it == id
+    // return window with window_id == id
   	QList<QWidget*> windows = ws_->windowList();
+
     for(int i = 0; i < windows.size(); ++i)
     {
       EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i));
@@ -1466,12 +1484,37 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   	}
   }
 
-  void TOPPViewBase::focusByTab(int id)
-  {
+  void TOPPViewBase::enhancedWorkspaceWindowChanged(int id)
+  {    
     QWidget* w = dynamic_cast<QWidget*>(window_(id));
     if (w)
   	{
       w->setFocus();
+      TOPPASWidget* tw = dynamic_cast<TOPPASWidget*>(w);
+      SpectrumWidget* sw = dynamic_cast<SpectrumWidget*>(w);
+      if (tw)  // TOPPASWidget
+      {
+        setTOPPASTabEnabled(true);
+        views_tabwidget_->setCurrentIndex(2);
+        views_tabwidget_->setTabEnabled(0, false);  // switch scan view off
+        views_tabwidget_->setTabEnabled(1, false);  // switch identification view off
+
+      } else if (sw)  // SpectrumWidget
+      {
+        views_tabwidget_->setTabEnabled(0, true);
+        const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
+
+        if(hasPeptideIdentifications(map))
+        {
+          views_tabwidget_->setTabEnabled(1, true);
+        } else
+        {
+          views_tabwidget_->setTabEnabled(1, false);
+        }
+
+        views_tabwidget_->setCurrentIndex(0);
+        setTOPPASTabEnabled(false);
+      }
   	}
   }
 
@@ -1864,8 +1907,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     } else if (views_tabwidget_->tabText(tab_index) == "Identification view")
     {
       view_behavior_ = identificationview_behavior_;
+    } else if (views_tabwidget_->tabText(tab_index) == "TOPPAS view")
+    {      
+      // no complex behavior for TOPPAS view needed
     } else
     {
+      cerr << "Error: tab_index " << tab_index << endl;
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
 
@@ -2123,16 +2170,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
   	if (w)
   	{
-      SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(w);
-      TOPPASWidget* tw = qobject_cast<TOPPASWidget*>(w);
-      Int window_id;
-      if (sw)
-      {
-        window_id = sw->getWindowId();
-      } else if (tw)
-      {
-        window_id = tw->getWindowId();
-      }
+      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w);
+      Int window_id = tbw->getWindowId();
   		tab_bar_->setCurrentId(window_id);
   	}
   }
@@ -2246,6 +2285,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		//add tab with id
   	static int window_counter = 4711;
+
     sw->setWindowId(window_counter++);
 
     tab_bar_->addTab(caption.toQString(), sw->getWindowId());
@@ -2267,6 +2307,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
 			sw->show();
 		}
+    enhancedWorkspaceWindowChanged(sw->getWindowId());
   }
 
   void TOPPViewBase::showGoToDialog()
@@ -2518,11 +2559,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
     showTOPPipelineInWindow_(tw, File::basename(file_name));
     TOPPASScene* scene = tw->getScene();
-    scene->load(file_name);
-    if (topp_tools_dock_widget_->isHidden())
-    {
-      showTOPPAS();
-    }
+    scene->load(file_name);    
   }
 
   void TOPPViewBase::showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption)
@@ -2541,15 +2578,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     tw->setWindowId(window_counter);
     window_counter++;
 
-    tab_bar_->addTab(caption.toQString(), tw->getWindowId());
-
     //connect slots and sigals for removing the widget from the bar, when it is closed
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
     connect(tw, SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
-
-    tab_bar_->setCurrentId(tw->getWindowId());
 
     //show first window maximized (only visible windows are in the list)
     if (ws_->windowList().count()==0)
@@ -2567,11 +2600,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
 
     ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
+
+    tab_bar_->addTab(caption.toQString(), tw->getWindowId());
+    tab_bar_->setCurrentId(tw->getWindowId());
+    enhancedWorkspaceWindowChanged(tw->getWindowId());
   }
 
   void TOPPViewBase::insertNewVertex_(double x, double y, QTreeWidgetItem* item)
-  {       
-    TOPPASTreeView* toppas_tree_view = qobject_cast<TOPPASTreeView*>(topp_tools_dock_widget_->widget());
+  {
+    // get toppas tree view from tab widget 2
+    TOPPASTreeView* toppas_tree_view = qobject_cast<TOPPASTreeView*>(views_tabwidget_->widget(2));
 
     if (!getActiveTOPPASWidget() || !getActiveTOPPASWidget()->getScene() || !toppas_tree_view)
     {
@@ -2639,6 +2677,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     scene->setChanged(true);
   }
 
+  void TOPPViewBase::insertNewVertexInCenter_(QTreeWidgetItem* item)
+  {
+    TOPPASTreeView* toppas_tree_view = qobject_cast<TOPPASTreeView*>(views_tabwidget_->widget(2));
+
+    if (!getActiveTOPPASWidget() || !getActiveTOPPASWidget()->getScene() || !toppas_tree_view || !toppas_tree_view->currentItem())
+    {
+      return;
+    }
+
+    QPointF insert_pos = getActiveTOPPASWidget()->mapToScene(QPoint((getActiveTOPPASWidget()->width()/2.0)+(qreal)(5*node_offset_),(getActiveTOPPASWidget()->height()/2.0)+(qreal)(5*node_offset_)));
+    insertNewVertex_(insert_pos.x(), insert_pos.y(), item);
+    node_offset_ = (node_offset_+1) % 10;
+  }
 
   void TOPPViewBase::openExampleDialog()
   {
@@ -2943,8 +2994,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
         mapper.setParameters(p);
         mapper.annotate(*layer.getPeakData(), identifications, protein_identifications);
-        // enable identification view
-        views_tabwidget_->setTabEnabled(1, true);
+        views_tabwidget_->setTabEnabled(1, true);         // enable identification view
 			}
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
@@ -3829,9 +3879,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     */
   }
 
-  void TOPPViewBase::showTOPPAS()
+  void TOPPViewBase::setTOPPASTabEnabled(bool enabled)
   {
-    topp_tools_dock_widget_->show();
+    if (views_tabwidget_->isTabEnabled(2) != enabled)
+    {
+      views_tabwidget_->setTabEnabled(2, enabled);
+    }
   }
 
   TOPPViewBase::~TOPPViewBase()

@@ -244,7 +244,7 @@ namespace OpenMS
 
     public:
       /// Creates and fills a tree widget with all available tools
-      static TOPPASTreeView* createTOPPToolsTreeWidget(QWidget* parent_widget);
+      static TOPPASTreeView* createTOPPToolsTreeWidget(QWidget* parent_widget = 0);
   }
   ; //class
 

@@ -243,8 +243,8 @@ namespace OpenMS
       void openDatabaseDialog();
       /// shows the goto dialog
       void showGoToDialog();
-      /// opens TOPPAS in an embedded window
-      void showTOPPAS();
+      /// enable TOPPAS tab in the view dock widget
+      void setTOPPASTabEnabled(bool enabled);
       /// shows the preferences dialog
       void preferencesDialog();
       /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
@@ -355,6 +355,10 @@ namespace OpenMS
     	void layerEdit(QListWidgetItem* /*item*/);
       /// Inserts a new TOPP tool in the current window at (x,y)
       void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
+
+      /// Inserts a new TOPP tool at the center of the current window at (x,y)
+      void insertNewVertexInCenter_(QTreeWidgetItem* item);
+
     	/// slot for the finished signal of the TOPP tools execution
     	void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     	/// aborts the execution of a TOPP tool
@@ -373,7 +377,7 @@ namespace OpenMS
     	/// Closes the window corresponding to the data of the tab with identifier @p id
       void closeByTab(int id);
       /// Raises the window corresponding to the data of the tab with identifier @p id
-      void focusByTab(int id);
+      void enhancedWorkspaceWindowChanged(int id);
       /// Opens a file from the recent files menu
       void openRecentFile();
 			/// Slot for drag-and-drop of layer manager to tabbar
@@ -404,7 +408,6 @@ namespace OpenMS
 
       ///@name dock widgets
       //@{
-      QDockWidget* topp_tools_dock_widget_;
       QDockWidget* layer_dock_widget_;
       QDockWidget* spectra_views_dockwidget_;
       QDockWidget* filter_dock_widget_;
@@ -547,6 +550,9 @@ namespace OpenMS
       /// z-value counter for new inserted TOPPAS nodes
       static qreal z_value_;
 
+      /// Offset counter for new inserted TOPPAS nodes (to avoid invisible stacking)
+      static int node_offset_;
+
       /// Tabwidget that hold the different views on the loaded data
       QTabWidget* views_tabwidget_;
       /// The current TOPPView view behavior
@@ -566,6 +572,9 @@ namespace OpenMS
 
         /// Counts the number of exact zero valued intensities in all MS1 spectra
         static UInt countMS1Zeros(const ExperimentType& exp);
+
+        /// Returns true if the experiment map contains peptide identifications
+        static bool hasPeptideIdentifications(const ExperimentType& map);
   }
   ; //class
 
