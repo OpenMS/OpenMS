@@ -28,6 +28,8 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -93,6 +95,7 @@ protected:
       "Sequest: Directory containing the .out files\n"
       "pepXML: Single pepXML file.\n"
       "protXML: Single protXML file.\n"
+	"xml: Single mascot XML file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
     setValidFormats_("out", StringList::create("idXML,pepXML"));
@@ -117,20 +120,20 @@ protected:
   ExitCodes
   main_(int, const char**)
   {
-    //-------------------------------------------------------------
-    // general variables and data
-    //-------------------------------------------------------------
-    FileHandler fh;
-    vector<PeptideIdentification> peptide_identifications;
-    vector<ProteinIdentification> protein_identifications;
+	//-------------------------------------------------------------
+	// general variables and data
+	//-------------------------------------------------------------
+	FileHandler fh;
+	vector<PeptideIdentification> peptide_identifications;
+	vector<ProteinIdentification> protein_identifications;
 
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-		const String in = getStringOption_("in");
+	//-------------------------------------------------------------
+	// reading input
+	//-------------------------------------------------------------
+	const String in = getStringOption_("in");
 
-    if ( File::isDirectory(in) )
-    {
+	if ( File::isDirectory(in) )
+	{
 
       const String in_directory = File::absolutePath(in).ensureLastChar('/');
       const String mz_file = getStringOption_("mz_file");
@@ -244,18 +247,18 @@ protected:
       writeDebug_("All files processed.", 3);
 
     } // ! directory
-    else
-    {
-			FileTypes::Type in_type = fh.getType(in);
+	else
+	{
+		FileTypes::Type in_type = fh.getType(in);
 
-			if (in_type==FileTypes::PEPXML)
-  		{
-  			String exp_name = getStringOption_("mz_file"),
+		if (in_type==FileTypes::PEPXML)
+		{
+			String exp_name = getStringOption_("mz_file"),
 				orig_name =	getStringOption_("mz_name");
 
 				if (exp_name.empty()) {
 					PepXMLFile().load(in, protein_identifications,
-														peptide_identifications, orig_name);
+									peptide_identifications, orig_name);
 				}
 				else {
 					MSExperiment<> exp;
@@ -264,26 +267,38 @@ protected:
 						exp_name = orig_name;
 					}
 					PepXMLFile().load(in, protein_identifications,
-														peptide_identifications, exp_name, exp);
+									peptide_identifications, exp_name, exp);
 				}
-  		}
-			else if ( in_type==FileTypes::IDXML)
-  		{
-  			IdXMLFile().load(in, protein_identifications, peptide_identifications);
-  		}
-      else if (in_type==FileTypes::PROTXML)
-  		{
-        protein_identifications.resize(1);
-        peptide_identifications.resize(1);
-        ProtXMLFile().load(in, protein_identifications[0], peptide_identifications[0]);
-      }
-			else
-			{
-				writeLog_("Unknown input file type given. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
 		}
+		else if ( in_type==FileTypes::IDXML)
+		{
+			IdXMLFile().load(in, protein_identifications, peptide_identifications);
+		}
+		else if (in_type==FileTypes::PROTXML)
+		{
+			protein_identifications.resize(1);
+			peptide_identifications.resize(1);
+			ProtXMLFile().load(in, protein_identifications[0], peptide_identifications[0]);
+		}
+		else if (in_type==FileTypes::OMSSAXML)
+		{
+			protein_identifications.resize(1);
+			peptide_identifications.resize(1);
+			OMSSAXMLFile().load(in, protein_identifications[0], peptide_identifications, true);
+		}
+		else if (in_type==FileTypes::MASCOTXML)
+		{
+			protein_identifications.resize(1);
+			peptide_identifications.resize(1);
+			MascotXMLFile().load(in, protein_identifications[0], peptide_identifications);
+		}
+		else
+		{
+			writeLog_("Unknown input file type given. Aborting!");
+			printUsage_();
+			return ILLEGAL_PARAMETERS;
+		}
+	}
 
 		//-------------------------------------------------------------
 		// writing output

@@ -37,7 +37,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -229,9 +229,12 @@ namespace OpenMS
 
 		//traML (all lines)
 		if (all_simple.hasSubstring("<TraML")) return FileTypes::TRAML;
-	
+
 		//OMSSAXML file
 		if (all_simple.hasSubstring("<MSResponse")) return FileTypes::OMSSAXML;
+
+		//MASCOTXML file
+		if (all_simple.hasSubstring("<mascot_search_results")) return FileTypes::MASCOTXML;
 
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
@@ -240,7 +243,7 @@ namespace OpenMS
     Size bigger_than=0;
     while (i<complete_file.size())
     {
-      if (complete_file[i].trim().hasPrefix(">")) 
+      if (complete_file[i].trim().hasPrefix(">"))
       {
         ++bigger_than;
         ++i;
@@ -347,7 +350,7 @@ namespace OpenMS
 		{
 			return FileTypes::PEPLIST;
 		}
-    
+
     // hardkloer file (.hardkloer)
 		/**
     NOT IMPLEMENTED YET
