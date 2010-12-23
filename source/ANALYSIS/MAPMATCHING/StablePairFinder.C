@@ -262,7 +262,7 @@ namespace OpenMS
 		{
 			position_difference[MZ] = -position_difference[MZ];
 		}
-		// The two features in map 0 and map 1 (fi0 and its best friend) should not be further apart then the user specified max_pair_distance.
+		// The two features in map 0 and map 1 (fi0 and its best friend) should not be further apart than the user specified max_pair_distance.
 		if ((position_difference[RT] < max_pair_distance_[RT]) && (position_difference[MZ] < max_pair_distance_[MZ]) &&
 			(best_companion_distance_0[fi0] * second_nearest_gap_ <= second_best_companion_distance_0[fi0]))
 		{
