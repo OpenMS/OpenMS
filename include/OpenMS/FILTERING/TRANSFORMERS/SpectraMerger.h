@@ -205,47 +205,56 @@ namespace OpenMS
 		{
 
       // convert spectra's precursors to clusterizable data
-      std::vector<BaseFeature> data;
-      Map<Size, Size> index_mapping;
-      for (Size i=0;i<exp.size(); ++i)
-      {
-        if (exp[i].getMSLevel() != 2) continue;
+			Size data_size;
+			std::vector<BinaryTreeNode> tree;
+			Map<Size, Size> index_mapping;
+			// local scope to save memory - we do not need the clustering stuff later
+			{
+				std::vector<BaseFeature> data;
 
-        // remember which index in distance data ==> experiment index
-        index_mapping[data.size()] = i;
+				for (Size i=0;i<exp.size(); ++i)
+				{
+					if (exp[i].getMSLevel() != 2) continue;
 
-        // make cluster element
-        BaseFeature bf;
-        bf.setRT(exp[i].getRT());
-        std::vector< Precursor > pcs = exp[i].getPrecursors();
-        if (pcs.size()==0) throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
-        if (pcs.size()>1) LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
-        bf.setMZ(pcs[0].getMZ());
-        data.push_back(bf);
-      }
+					// remember which index in distance data ==> experiment index
+					index_mapping[data.size()] = i;
 
-      SpectraDistance_ llc;
-      llc.setParameters(param_.copy("precursor_method:",true));
-      CompleteLinkage sl;
-      vector<BinaryTreeNode> tree;
-      DistanceMatrix<Real> dist; // will be filled
-      ClusterHierarchical ch;
-      ch.setThreshold(0.5);
+					// make cluster element
+					BaseFeature bf;
+					bf.setRT(exp[i].getRT());
+					std::vector< Precursor > pcs = exp[i].getPrecursors();
+					if (pcs.size()==0) throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
+					if (pcs.size()>1) LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
+					bf.setMZ(pcs[0].getMZ());
+					data.push_back(bf);
+				}
+				data_size = data.size();
 
-      // clustering
-      ch.cluster<BaseFeature,SpectraDistance_>(data,llc,sl,tree,dist);
+				SpectraDistance_ llc;
+				llc.setParameters(param_.copy("precursor_method:",true));
+				CompleteLinkage sl;
+				DistanceMatrix<Real> dist; // will be filled
+				ClusterHierarchical ch;
+				ch.setThreshold(0.5);
+
+				// clustering
+				ch.cluster<BaseFeature,SpectraDistance_>(data,llc,sl,tree,dist);
+			}
 
       // extract the clusters
       ClusterAnalyzer ca;
       std::vector<std::vector<Size> > clusters;
       // count number of real tree nodes (not the -1 ones):
       Size node_count=0;
-      for (;node_count<tree.size();++node_count) if (tree[node_count].distance == -1) break;
-      ca.cut(data.size()-node_count, tree, clusters);
+      for (;node_count<tree.size();++node_count)
+			{
+				if (tree[node_count].distance == -1) break;
+			}
+      ca.cut(data_size-node_count, tree, clusters);
 
-      std::cerr << "Treesize: " << tree.size() << "   #clusters: " << clusters.size() << std::endl;
+      //std::cerr << "Treesize: " << tree.size() << "   #clusters: " << clusters.size() << std::endl;
+      //std::cerr << "tree: " << ca.newickTree(tree, true) << "\n";
 
-      std::cerr << "tree: " << ca.newickTree(tree, true) << "\n";
       // convert to blocks
       MergeBlocks spectra_to_merge;
 
@@ -254,13 +263,11 @@ namespace OpenMS
         if (clusters[i_outer].size() <= 1) continue;
         // init block with first cluster element
         Size cl_index0 = clusters[i_outer][0];
-        std::cerr << "oIndex: " << cl_index0 << "\n";
         spectra_to_merge[ index_mapping[cl_index0] ] = std::vector<Size>();
         // add all other elements
         for (Size i_inner=1;i_inner<clusters[i_outer].size();++i_inner)
         {
           Size cl_index = clusters[i_outer][i_inner];
-          std::cerr << "oIndex: " << cl_index << "\n";
           spectra_to_merge[ index_mapping[cl_index0] ].push_back( index_mapping[cl_index] );
         }
       }
