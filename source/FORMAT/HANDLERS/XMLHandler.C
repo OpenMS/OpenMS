@@ -21,10 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -73,6 +74,17 @@ namespace OpenMS
 			if (mode==LOAD)  error_message_ =  String("While loading '") + file_ + "': " + msg;
 			if (mode==STORE) error_message_ =  String("While storing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
+
+      // test if file has the wrong extension and is therefore passed to the wrong parser (e.g. in MapAligner)
+      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+      FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+      if (ft_name != ft_content)
+      {
+        error_message_ += String("\nProbable cause: The file suffix (") + FileHandler::typeToName(ft_name) 
+                          + ") does not match the file content (" + FileHandler::typeToName(ft_content) + ")."
+                          + "Rename the file to fix this.";
+      }
+
 			LOG_FATAL_ERROR << error_message_ << "\n";
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
 		}
