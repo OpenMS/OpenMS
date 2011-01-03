@@ -321,6 +321,47 @@ namespace OpenMS
 			/// dialog for inspecting file meta data
 			void metadataFileDialog();			      
 
+      /** @name TOPPAS pipeline slots
+        */
+      //@{
+      /// creates a new TOPPAS pipeline
+      void newPipeline();
+      /// shows the dialog for saving the current TOPPAS pipeline and updates the current tab caption
+      void saveCurrentPipelineAs();
+      /// saves the pipeline (determined by qt's sender mechanism)
+      void savePipeline();     
+      /// paste pipeline into current pipeline
+      void includePipeline();
+      /// load toppas resource file
+      void loadPipelineResourceFile();
+      /// save toppas resource file
+      void savePipelineResourceFile();
+      /// refresh the toppas pipeline parameters
+      void refreshPipelineParameters();
+      /// runs the the toppas pipeline
+      void runPipeline();
+      /// aborts the the toppas pipeline
+      void abortPipeline();
+      /// message after successful completion of pipeline
+      void showPipelineFinishedLogMessage();
+      /// Saves @p scene to the clipboard
+      void saveToClipboard(TOPPASScene* scene);
+      /// Sends the clipboard content to the sender of the connected signal
+      void sendClipboardContent();
+      /// Called when a tool is started
+      void toolStarted();
+      /// Called when a tool is finished
+      void toolFinished();
+      /// Called when a tool crashes
+      void toolCrashed();
+      /// Called when a tool execution fails
+      void toolFailed();
+      /// Called when a pipeline execution ended successfully in an output vertex
+      void outputVertexFinished(const String& file);
+      /// Called when a TOPP tool produces (error) output.
+      void updateTOPPOutputLog(const QString& out);
+      //@}
+
       /** @name Toolbar slots
       */
       //@{
@@ -353,11 +394,16 @@ namespace OpenMS
     	void filterEdit(QListWidgetItem* item);
     	/// slot for editing the preferences of the current layer
     	void layerEdit(QListWidgetItem* /*item*/);
+      //@}
+
+      /** @name TOPPAS protected slots
+        */
+      //@{
       /// Inserts a new TOPP tool in the current window at (x,y)
       void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
-
       /// Inserts a new TOPP tool at the center of the current window at (x,y)
       void insertNewVertexInCenter_(QTreeWidgetItem* item);
+      //@}
 
     	/// slot for the finished signal of the TOPP tools execution
     	void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
@@ -369,7 +415,6 @@ namespace OpenMS
     	void showSpectrumBrowser();
       /// shows the spectrum metadata
       void showSpectrumMetaData(int spectrum_index);
-      //@}
 
       /** @name Tabbar slots
       */
@@ -389,6 +434,7 @@ namespace OpenMS
 
       /// Called if a data file has been externally changed
       void fileChanged_(const String&);
+
     protected:
       /// Initializes the default parameters on TOPPView construction.
       void initializeDefaultParameters_();
@@ -409,7 +455,7 @@ namespace OpenMS
       ///@name dock widgets
       //@{
       QDockWidget* layer_dock_widget_;
-      QDockWidget* spectra_views_dockwidget_;
+      QDockWidget* views_dockwidget_;
       QDockWidget* filter_dock_widget_;
       //@}
 
@@ -544,14 +590,20 @@ namespace OpenMS
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
 
+      ///@name TOPPAS variables
+      //@{
       /// Path to temporary directory used in TOPPAS
-      QString tmp_path_;
+      QString toppas_tmp_path_;
 
       /// z-value counter for new inserted TOPPAS nodes
-      static qreal z_value_;
+      static qreal toppas_z_value_;
 
       /// Offset counter for new inserted TOPPAS nodes (to avoid invisible stacking)
-      static int node_offset_;
+      static int toppas_node_offset_;
+
+      /// The toppas clipboard
+      TOPPASScene* toppas_clipboard_scene_;
+      //@}
 
       /// Tabwidget that hold the different views on the loaded data
       QTabWidget* views_tabwidget_;

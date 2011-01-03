@@ -122,14 +122,15 @@ namespace OpenMS
   using namespace Internal;
 	using namespace Math;
 
-  qreal TOPPViewBase::z_value_ = 42.0;
-  Int TOPPViewBase::node_offset_ = 0;
+  qreal TOPPViewBase::toppas_z_value_ = 42.0;
+  Int TOPPViewBase::toppas_node_offset_ = 0;
 
 TOPPViewBase::TOPPViewBase(QWidget* parent):
         QMainWindow(parent),
         DefaultParamHandler("TOPPViewBase"),
         watcher_(0),
-        watcher_msgbox_(false)
+        watcher_msgbox_(false),
+        toppas_clipboard_scene_(0)
         {
           setWindowTitle("TOPPView");
           setWindowIcon(QIcon(":/TOPPView.png"));
@@ -151,7 +152,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
             );
 
           //set temporary path
-          tmp_path_ = QDir::tempPath() + QDir::separator();
+          toppas_tmp_path_ = QDir::tempPath() + QDir::separator();
 
           // create dummy widget (to be able to have a layout), Tab bar and workspace
           QWidget* dummy = new QWidget(this);
@@ -195,6 +196,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
           file->addSeparator();
 
+          // File menu: TOPPAS section
+          file->addAction("&New TOPPAS pipeline",this,SLOT(newPipeline()), Qt::CTRL+Qt::Key_N);
+          file->addAction("&Include TOPPAS pipeline",this,SLOT(includePipeline()), Qt::CTRL+Qt::Key_I);
+          file->addAction("&Save TOPPAS pipeline",this,SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
+          file->addAction("Save TOPPAS pipeline &As",this,SLOT(saveCurrentPipelineAs()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+          file->addAction("&Load TOPPAS resource file",this,SLOT(loadPipelineResourceFile()));
+          file->addAction("Save TOPPAS &resource file",this,SLOT(savePipelineResourceFile()));
+          file->addAction("Refresh TOPPAS &parameters",this,SLOT(refreshPipelineParameters()), Qt::CTRL+Qt::SHIFT+Qt::Key_P);
+          file->addSeparator();
+
           //Meta data
           file->addAction("&Show meta data (file)",this,SLOT(metadataFileDialog()));
           file->addAction("&Show meta data (database)",this,SLOT(metadataDatabaseDialog()));
@@ -230,6 +241,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           tools->addAction("Align spectra", this, SLOT(showSpectrumAlignmentDialog()));
           tools->addAction("Generate theoretical spectrum", this, SLOT(showSpectrumGenerationDialog()));
 
+          // TOPPAS menu
+          // pipeline menu (TOPPAS pipeline)
+          QMenu* toppas_pipeline = new QMenu("TOPPAS &Pipeline", this);
+          toppas_pipeline->addAction("&Run (F5)",this,SLOT(runPipeline()));
+          toppas_pipeline->addAction("&Abort",this,SLOT(abortPipeline()));
+          menuBar()->addMenu(toppas_pipeline);
+
           //Layer menu
           QMenu* layer = new QMenu("&Layer",this);
           menuBar()->addMenu(layer);
@@ -242,7 +260,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           layer->addAction("Preferences", this, SLOT(showPreferences()));
 
           //Windows menu
-          QMenu * windows = new QMenu("&Windows", this);
+          QMenu* windows = new QMenu("&Windows", this);
           menuBar()->addMenu(windows);
           windows->addAction("&Cascade",this->ws_,SLOT(cascade()));
           windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
@@ -476,12 +494,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
           windows->addAction(layer_dock_widget_->toggleViewAction());
 
-          // spectra views dock widget
-          spectra_views_dockwidget_ = new QDockWidget("Spectra views", this);
-          addDockWidget(Qt::RightDockWidgetArea, spectra_views_dockwidget_);
-          views_tabwidget_ = new QTabWidget(spectra_views_dockwidget_);
-
-          spectra_views_dockwidget_->setWidget(views_tabwidget_);
+          // Views dock widget
+          views_dockwidget_ = new QDockWidget("Views", this);
+          addDockWidget(Qt::RightDockWidgetArea, views_dockwidget_);
+          views_tabwidget_ = new QTabWidget(views_dockwidget_);
+          views_dockwidget_->setWidget(views_tabwidget_);
 
           spectra_view_widget_ = new SpectraViewWidget();
           connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
@@ -512,7 +529,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(views_tabwidget_, SIGNAL(currentChanged(int)), this, SLOT(viewChanged(int)));
 
           // add hide/show option to dock widget
-          windows->addAction(spectra_views_dockwidget_->toggleViewAction());
+          windows->addAction(views_dockwidget_->toggleViewAction());
 
           // filter dock widget
           filter_dock_widget_ = new QDockWidget("Data filters", this);
@@ -1903,12 +1920,18 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     // set new behavior
     if (views_tabwidget_->tabText(tab_index) == "Scan view")
     {
-       view_behavior_ = spectraview_behavior_;
+      layer_dock_widget_->show();
+      filter_dock_widget_->show();
+      view_behavior_ = spectraview_behavior_;
     } else if (views_tabwidget_->tabText(tab_index) == "Identification view")
     {
+      layer_dock_widget_->show();
+      filter_dock_widget_->show();
       view_behavior_ = identificationview_behavior_;
     } else if (views_tabwidget_->tabText(tab_index) == "TOPPAS view")
-    {      
+    {
+      layer_dock_widget_->hide();
+      filter_dock_widget_->hide();
       // no complex behavior for TOPPAS view needed
     } else
     {
@@ -2543,7 +2566,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     for(QStringList::iterator it = files.begin(); it!=files.end(); it++)
 		{
       QString filename = *it;
-      if (filename.contains(".toppas", Qt::CaseInsensitive))
+      if (filename.endsWith(".toppas", Qt::CaseInsensitive))
       {
         addTOPPASFile(filename);
       }
@@ -2556,7 +2579,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::addTOPPASFile(const QString& file_name)
   {    
-    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, toppas_tmp_path_);
     showTOPPipelineInWindow_(tw, File::basename(file_name));
     TOPPASScene* scene = tw->getScene();
     scene->load(file_name);    
@@ -2595,7 +2618,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
     TOPPASScene* ts = tw->getScene();
 
-    connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+    connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showPipelineFinishedLogMessage()));
     connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
     connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
 
@@ -2657,7 +2680,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         tool_type = "";
       }
 
-      tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
+      tv = new TOPPASToolVertex(tool_name, tool_type, toppas_tmp_path_);
       TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
       connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
       connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
@@ -2671,8 +2694,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     scene->connectVertexSignals(tv);
     scene->addVertex(tv);
     tv->setPos(x,y);
-    tv->setZValue(z_value_);
-    z_value_ += 0.000001;
+    tv->setZValue(toppas_z_value_);
+    toppas_z_value_ += 0.000001;
     scene->topoSort();
     scene->setChanged(true);
   }
@@ -2686,19 +2709,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       return;
     }
 
-    QPointF insert_pos = getActiveTOPPASWidget()->mapToScene(QPoint((getActiveTOPPASWidget()->width()/2.0)+(qreal)(5*node_offset_),(getActiveTOPPASWidget()->height()/2.0)+(qreal)(5*node_offset_)));
+    QPointF insert_pos = getActiveTOPPASWidget()->mapToScene(QPoint((getActiveTOPPASWidget()->width()/2.0)+(qreal)(5*toppas_node_offset_),(getActiveTOPPASWidget()->height()/2.0)+(qreal)(5*toppas_node_offset_)));
     insertNewVertex_(insert_pos.x(), insert_pos.y(), item);
-    node_offset_ = (node_offset_+1) % 10;
+    toppas_node_offset_ = (toppas_node_offset_+1) % 10;
   }
 
   void TOPPViewBase::openExampleDialog()
   {
 	 	QStringList files = getFileList_(File::getOpenMSDataPath() + "/examples/");
 
-		for(QStringList::iterator it=files.begin();it!=files.end();it++)
+    for(QStringList::iterator it = files.begin(); it != files.end(); it++)
 		{
       QString filename = *it;
-      if (filename.contains(".toppas", Qt::CaseInsensitive))
+      if (filename.endsWith(".toppas", Qt::CaseInsensitive))
       {
         addTOPPASFile(filename);
       }
@@ -3359,6 +3382,17 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
 			topp_running = true;
 		}
+
+    TOPPASWidget* tw = getActiveTOPPASWidget();
+    TOPPASScene* ts = 0;
+    if (tw)
+    {
+      ts = tw->getScene();
+    } else // active widget is no TOPPAS widget
+    {
+
+    }
+
     bool mirror_mode = getActive1DWidget() && getActive1DWidget()->canvas()->mirrorModeActive();
 		QList<QAction*> actions = this->findChildren<QAction*>("");
 		for (int i=0; i<actions.count(); ++i)
@@ -3412,6 +3446,54 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 					actions[i]->setEnabled(true);
 				}
 			}
+      else if (text=="&Run (F5)")  // pipeline menu
+      {
+        bool show = false;
+        if (ts && !(ts->isPipelineRunning()))
+        {
+          show = true;
+        }
+        actions[i]->setEnabled(show);
+      }
+      else if (text=="&Abort") // pipeline menu
+      {
+        bool show = false;
+        if (ts && ts->isPipelineRunning())
+        {
+          show = true;
+        }
+        actions[i]->setEnabled(show);
+      }
+      else if (text=="&Include TOPPAS pipeline") // pipeline menu
+      {
+        bool show = ts;
+        actions[i]->setEnabled(show);
+      }
+      else if (text=="&Load TOPPAS resource file") // pipeline menu
+      {
+        bool show = ts;
+        actions[i]->setEnabled(show);
+      }
+      else if (text=="Save TOPPAS &resource file") // pipeline menu
+      {
+        bool show = ts;
+        actions[i]->setEnabled(show);
+      }
+      else if (text=="&Save TOPPAS pipeline")
+      {
+        bool show = ts && ts->wasChanged();
+        actions[i]->setEnabled(show);
+      }
+      else if (text=="Save TOPPAS pipeline &As")
+      {
+        bool show = ts && ts->wasChanged();
+        actions[i]->setEnabled(show);
+      }
+      else if (text=="Refresh TOPPAS &parameters") // pipeline menu
+      {
+        bool show = ts && !(ts->isPipelineRunning());
+        actions[i]->setEnabled(show);
+      }
 			else if (text=="")
 			{
 				actions[i]->setEnabled(false);
@@ -3708,7 +3790,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 	void TOPPViewBase::showSpectrumBrowser()
 	{
-    spectra_views_dockwidget_->show();
+    views_dockwidget_->show();
     updateSpectraViewBar();
 	}
 
@@ -3886,6 +3968,247 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       views_tabwidget_->setTabEnabled(2, enabled);
     }
   }
+
+  // ******************************************TOPPAS events**********************************
+  void TOPPViewBase::newPipeline()
+  {
+    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, toppas_tmp_path_);
+    TOPPASScene* ts = tw->getScene();
+    connect (ts, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
+    connect (ts, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
+    connect (ts, SIGNAL(saveMe()), this, SLOT(savePipeline()));
+    connect (ts, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
+    showTOPPipelineInWindow_(tw, "(Untitled)");
+  }
+
+  void TOPPViewBase::includePipeline()
+  {
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+   // addTOPPASFile(file_name, false);
+  }
+
+  void TOPPViewBase::savePipeline()
+  {
+    TOPPASWidget* w = 0;
+    QObject* sendr = QObject::sender();
+    QAction* save_button_clicked = qobject_cast<QAction*>(sendr);
+
+    if (!save_button_clicked)
+    {
+      // scene has requested to be saved
+      TOPPASScene* ts = qobject_cast<TOPPASScene*>(sendr);
+      if (ts && ts->views().size() > 0)
+      {
+        w = qobject_cast<TOPPASWidget*>(ts->views().first());
+      }
+    }
+    else
+    {
+      w = getActiveTOPPASWidget();
+    }
+
+    if (!w)
+    {
+      return;
+    }
+
+    String file_name = w->getScene()->getSaveFileName();
+    if (file_name != "")
+    {
+      if (!file_name.hasSuffix(".toppas"))
+      {
+        file_name += ".toppas";
+      }
+      w->getScene()->store(file_name);
+    }
+    else
+    {
+      TOPPASBase::savePipelineAs(w, current_path_.toQString());
+    }
+  }
+
+  void TOPPViewBase::saveCurrentPipelineAs()
+  {
+    TOPPASWidget* w = getActiveTOPPASWidget();
+    QString file_name = TOPPASBase::savePipelineAs(w, current_path_.toQString());
+    if (file_name != "")
+    {
+      QString caption = File::basename(file_name).toQString();
+      tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+    }
+  }
+
+  void TOPPViewBase::loadPipelineResourceFile()
+  {
+    TOPPASWidget* w = getActiveTOPPASWidget();
+    TOPPASBase::loadPipelineResourceFile(w, current_path_.toQString());
+  }
+
+  void TOPPViewBase::savePipelineResourceFile()
+  {
+    TOPPASWidget* w = getActiveTOPPASWidget();
+    TOPPASBase::savePipelineResourceFile(w, current_path_.toQString());
+  }
+
+  void TOPPViewBase::refreshPipelineParameters()
+  {
+    TOPPASWidget* w = getActiveTOPPASWidget();
+    QString file_name = TOPPASBase::refreshPipelineParameters(w, current_path_.toQString());
+    if (file_name != "")
+    {
+      QString caption = File::basename(file_name).toQString();
+      tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+    }
+  }
+
+  void TOPPViewBase::runPipeline()
+  {
+    TOPPASWidget* w = getActiveTOPPASWidget();
+    if (w)
+    {
+      w->getScene()->runPipeline();
+    }
+  }
+
+  void TOPPViewBase::abortPipeline()
+  {
+    TOPPASWidget* w = getActiveTOPPASWidget();
+    if (w)
+    {
+      w->getScene()->abortPipeline();
+    }
+    updateMenu();
+  }
+
+  void TOPPViewBase::showPipelineFinishedLogMessage()
+  {
+    showLogMessage_(LS_NOTICE, "Entire pipeline execution finished!", "");
+  }
+
+  void TOPPViewBase::saveToClipboard(TOPPASScene* scene)
+  {
+    if (toppas_clipboard_scene_ != 0)
+    {
+      delete toppas_clipboard_scene_;
+      toppas_clipboard_scene_ = 0;
+    }
+    toppas_clipboard_scene_ = scene;
+  }
+
+  void TOPPViewBase::sendClipboardContent()
+  {
+    TOPPASScene* sndr = qobject_cast<TOPPASScene*>(QObject::sender());
+    if (sndr != 0)
+    {
+      sndr->setClipboard(toppas_clipboard_scene_);
+    }
+  }
+
+  void TOPPViewBase::toolStarted()
+  {
+    TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+    if (tv)
+    {
+      String text = tv->getName();
+      String type = tv->getType();
+      if (type != "")
+      {
+        text += " ("+type+")";
+      }
+      text += " started. Processing ...";
+
+      showLogMessage_(LS_NOTICE, text, "");
+    }
+    updateMenu();
+  }
+
+  void TOPPViewBase::toolFinished()
+  {
+    TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+    if (tv)
+    {
+      String text = tv->getName();
+      String type = tv->getType();
+      if (type != "")
+      {
+        text += " ("+type+")";
+      }
+      text += " finished!";
+
+      showLogMessage_(LS_NOTICE, text, "");
+    }
+    updateMenu();
+  }
+
+  void TOPPViewBase::toolCrashed()
+  {
+    TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+    if (tv)
+    {
+      String text = tv->getName();
+      String type = tv->getType();
+      if (type != "")
+      {
+        text += " ("+type+")";
+      }
+      text += " crashed!";
+
+      showLogMessage_(LS_ERROR, text, "");
+    }
+    updateMenu();
+  }
+
+  void TOPPViewBase::toolFailed()
+  {
+    TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+    if (tv)
+    {
+      String text = tv->getName();
+      String type = tv->getType();
+      if (type != "")
+      {
+        text += " ("+type+")";
+      }
+      text += " failed!";
+
+      showLogMessage_(LS_ERROR, text, "");
+    }
+    updateMenu();
+  }
+
+  void TOPPViewBase::outputVertexFinished(const String& file)
+  {
+    String text = "Output file '"+file+"' written.";
+    showLogMessage_(LS_NOTICE, text, "");
+  }
+
+  void TOPPViewBase::updateTOPPOutputLog(const QString& out)
+  {
+    TOPPASToolVertex* sender = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+    if (!sender)
+    {
+      return;
+    }
+    /*
+    QString text = (sender->getName()).toQString();
+    if (sender->getType() != "")
+    {
+      text += " ("+(sender->getType()).toQString()+")";
+    }
+    text += ":\n" + out;
+    */
+    QString text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
+                        // we need to rethink this (probably only trigger this slot when tool 100% finished)
+
+    //show log if there is output
+    qobject_cast<QWidget*>(log_->parent())->show();
+
+    //update log_
+    log_->append(text);
+  }
+
+  //
 
   TOPPViewBase::~TOPPViewBase()
   {

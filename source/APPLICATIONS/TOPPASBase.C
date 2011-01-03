@@ -83,7 +83,7 @@ namespace OpenMS
   TOPPASBase::TOPPASBase(QWidget* parent):
       QMainWindow(parent),
       DefaultParamHandler("TOPPASBase"),
-			clipboard_(0)
+      clipboard_scene_(0)
   {
   	setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));
@@ -123,17 +123,17 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
-    file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
+    file->addAction("&New",this,SLOT(newPipeline()), Qt::CTRL+Qt::Key_N);
 		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
 		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
-		file->addAction("&Include",this,SLOT(includeWorkflowDialog()), Qt::CTRL+Qt::Key_I);
-    file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
-		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+    file->addAction("&Include",this,SLOT(includePipeline()), Qt::CTRL+Qt::Key_I);
+    file->addAction("&Save",this,SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
+    file->addAction("Save &As",this,SLOT(saveCurrentPipelineAs()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
 		file->addAction("Refresh &parameters",this,SLOT(refreshParameters()), Qt::CTRL+Qt::SHIFT+Qt::Key_P);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
-		file->addAction("&Load resource file",this,SLOT(loadResourceFileDialog()));
-		file->addAction("Save &resource file",this,SLOT(saveResourceFileDialog()));
+    file->addAction("&Load TOPPAS resource file",this,SLOT(loadPipelineResourceFile()));
+    file->addAction("Save TOPPAS &resource file",this,SLOT(savePipelineResourceFile()));
     file->addSeparator();
     file->addAction("&Quit",qApp,SLOT(quit()));
 
@@ -325,28 +325,17 @@ namespace OpenMS
 		openFile(file_name);
   }
  	
-	void TOPPASBase::includeWorkflowDialog()
+  void TOPPASBase::includePipeline()
 	{
-		QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
-		
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));		
 		openFile(file_name, false);
 	}
-
 
 	void TOPPASBase::openFile(const String& file_name, bool in_new_window)
 	{
 		if (file_name != "")
 		{
-			String::SizeType dot_index = file_name.rfind(".");
-			if (dot_index == String::npos)
-			{
-				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
-				return;
-			}
-
-			String extension = file_name.substr(dot_index+1);
-			extension.toLower();
-			if (extension != "toppas")
+      if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
 			{
 				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
 				return;
@@ -359,7 +348,7 @@ namespace OpenMS
 				showAsWindow_(tw, File::basename(file_name));
 				scene = tw->getScene();
 				scene->load(file_name);
-				connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+        connect (scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
 				connect (scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
 				connect (scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
 				connect (scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
@@ -400,18 +389,18 @@ namespace OpenMS
 		}
 	}
 
-  void TOPPASBase::newFileDialog()
+  void TOPPASBase::newPipeline()
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 		TOPPASScene* ts = tw->getScene();
 		connect (ts, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
 		connect (ts, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
-		connect (ts, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+    connect (ts, SIGNAL(saveMe()), this, SLOT(savePipeline()));
 		connect (ts, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
   	showAsWindow_(tw, "(Untitled)");
   }
 	
-	void TOPPASBase::saveFileDialog()
+  void TOPPASBase::savePipeline()
 	{
 		TOPPASWidget* w = 0;
 		QObject* sendr = QObject::sender();
@@ -447,22 +436,30 @@ namespace OpenMS
 		}
 		else
 		{
-			saveAsFileDialog(w);
+      TOPPASBase::savePipelineAs(w, current_path_.toQString());
 		}
 	}
 	
-	void TOPPASBase::saveAsFileDialog(TOPPASWidget* w)
+  void TOPPASBase::saveCurrentPipelineAs()
+  {
+    TOPPASWidget* w = activeWindow_();
+    QString file_name = TOPPASBase::savePipelineAs(w, current_path_.toQString());
+    if (file_name != "")
+    {
+      QString caption = File::basename(file_name).toQString();
+      tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+    }
+  }
+
+  // static
+  QString TOPPASBase::savePipelineAs(TOPPASWidget* w, QString current_path)
 	{
-		if (w == 0)
-		{
-			w = activeWindow_();
-		}
 		if (!w)
 		{
-			return;
+      return "";
 		}
 		
-		QString file_name = QFileDialog::getSaveFileName(this, tr("Save workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+    QString file_name = QFileDialog::getSaveFileName(w, tr("Save workflow"), current_path, tr("TOPPAS pipelines (*.toppas)"));
 		if (file_name != "")
 		{
 			if (!file_name.endsWith(".toppas"))
@@ -470,52 +467,66 @@ namespace OpenMS
 				file_name += ".toppas";
 			}
 			w->getScene()->store(file_name);
-			QString caption = File::basename(file_name).toQString();
-			tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
-			w->setWindowTitle(caption);
+      QString caption = File::basename(file_name).toQString();
+      w->setWindowTitle(caption);     
 		}
+    return file_name;
 	}
 	
-	void TOPPASBase::loadResourceFileDialog()
+  void TOPPASBase::loadPipelineResourceFile()
 	{
 		TOPPASWidget* w = activeWindow_();
-		if (!w)
-		{
-			return;
-		}
-		TOPPASScene* scene = w->getScene();
-		QString file_name = QFileDialog::getOpenFileName(this, tr("Load resource file"), current_path_.toQString(), tr("TOPPAS resource files (*.trf)"));
-		if (file_name == "")
-		{
-			return;
-		}
-		TOPPASResources resources;
-		resources.load(file_name);
-		scene->loadResources(resources);
+    TOPPASBase::loadPipelineResourceFile(w, current_path_.toQString());
 	}
+
+  // static
+  QString TOPPASBase::loadPipelineResourceFile(TOPPASWidget* w, QString current_path)
+  {
+    if (!w)
+    {
+      return "";
+    }
+    TOPPASScene* scene = w->getScene();
+    QString file_name = QFileDialog::getOpenFileName(w, tr("Load resource file"), current_path, tr("TOPPAS resource files (*.trf)"));
+    if (file_name == "")
+    {
+      return "";
+    }
+    TOPPASResources resources;
+    resources.load(file_name);
+    scene->loadResources(resources);
+    return file_name;
+  }
 	
-	void TOPPASBase::saveResourceFileDialog()
+  void TOPPASBase::savePipelineResourceFile()
 	{
 		TOPPASWidget* w = activeWindow_();
-		if (!w)
-		{
-			return;
-		}
-		TOPPASScene* scene = w->getScene();
-		QString file_name = QFileDialog::getSaveFileName(this, tr("Save resource file"), current_path_.toQString(), tr("TOPPAS resource files (*.trf)"));
-		if (file_name == "")
-		{
-			return;
-		}
-		if (!file_name.endsWith(".trf"))
-		{
-			file_name += ".trf";
-		}
-		TOPPASResources resources;
-		scene->createResources(resources);
-		resources.store(file_name);
+    TOPPASBase::savePipelineResourceFile(w, current_path_.toQString());
 	}
-	
+
+  // static
+  QString TOPPASBase::savePipelineResourceFile(TOPPASWidget* w, QString current_path)
+  {
+    if (!w)
+    {
+      return "";
+    }
+    TOPPASScene* scene = w->getScene();
+    QString file_name = QFileDialog::getSaveFileName(w, tr("Save resource file"), current_path, tr("TOPPAS resource files (*.trf)"));
+    if (file_name == "")
+    {
+      return "";
+    }
+    if (!file_name.endsWith(".trf"))
+    {
+      file_name += ".trf";
+    }
+    TOPPASResources resources;
+    scene->createResources(resources);
+    resources.store(file_name);
+    return file_name;
+  }
+
 	void TOPPASBase::preferencesDialog()
   {
 		// do something...
@@ -556,7 +567,7 @@ namespace OpenMS
 			tw->show();
 		}
 		TOPPASScene* ts = tw->getScene();
-		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+    connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showPipelineFinishedLogMessage()));
 		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
 		connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
 		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
@@ -1113,7 +1124,7 @@ namespace OpenMS
 		log_->append(text);
 	}
 	
-	void TOPPASBase::showSuccessLogMessage()
+  void TOPPASBase::showPipelineFinishedLogMessage()
 	{
 		showLogMessage_(LS_NOTICE, "Entire pipeline execution finished!", "");
 	}
@@ -1132,13 +1143,12 @@ namespace OpenMS
 	
 	void TOPPASBase::saveToClipboard(TOPPASScene* scene)
 	{
-		if (clipboard_ != 0)
+    if (clipboard_scene_ != 0)
 		{
-			delete clipboard_;
-			clipboard_ = 0;
+      delete clipboard_scene_;
+      clipboard_scene_ = 0;
 		}
-
-		clipboard_ = scene;
+    clipboard_scene_ = scene;
 	}
 
 	void TOPPASBase::sendClipboardContent()
@@ -1146,38 +1156,52 @@ namespace OpenMS
 		TOPPASScene* sndr = qobject_cast<TOPPASScene*>(QObject::sender());
 		if (sndr != 0)
 		{
-			sndr->setClipboard(clipboard_);
+      sndr->setClipboard(clipboard_scene_);
 		}
 	}
 	
-	void TOPPASBase::refreshParameters()
+  void TOPPASBase::refreshParameters()
 	{
-		TOPPASWidget* tw = activeWindow_();
-  	TOPPASScene* ts = 0;
-  	if (tw)
-  	{
-  		ts = tw->getScene();
-  	}
-  	if (!ts)
-  	{
-  		return;
-  	}
-  	
-  	if (!ts->refreshParameters())
-  	{
-  		QMessageBox::information(this, tr("Nothing to be done"),
-				tr("The parameters of the tools used in this workflow have not changed."));
-  		return;
-  	}
-  	
-  	ts->setChanged(true);
-		int ret = QMessageBox::information(tw, "Parameters updated!",
-						"The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
-						QMessageBox::Save | QMessageBox::Cancel);
-		if (ret == QMessageBox::Save)
-		{
-			saveAsFileDialog();
-		}
+    TOPPASWidget* w = activeWindow_();
+    QString file_name = TOPPASBase::refreshPipelineParameters(w, current_path_.toQString());
+    if (file_name != "")
+    {
+      QString caption = File::basename(file_name).toQString();
+      tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+    }
 	}
+
+  // static
+  QString TOPPASBase::refreshPipelineParameters(TOPPASWidget* tw, QString current_path)
+  {
+    TOPPASScene* ts = 0;
+    if (tw)
+    {
+      ts = tw->getScene();
+    }
+    if (!ts)
+    {
+      return "";
+    }
+
+    if (!ts->refreshParameters())
+    {
+      QMessageBox::information(tw, tr("Nothing to be done"),
+                               tr("The parameters of the tools used in this workflow have not changed."));
+      return "";
+    }
+
+    ts->setChanged(true);
+    int ret = QMessageBox::information(tw, "Parameters updated!",
+                                       "The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
+                                       QMessageBox::Save | QMessageBox::Cancel);
+    if (ret == QMessageBox::Save)
+    {
+      QString file_name = TOPPASBase::savePipelineAs(tw, current_path);
+      return file_name;
+    }
+
+    return "";
+  }
 } //namespace OpenMS
 

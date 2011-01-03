@@ -183,7 +183,7 @@ int main( int argc, const char** argv )
  	  }
 		else
 		{
-			mw->newFileDialog();
+			mw->newPipeline();
 		}
 
 		// We are about to show the application. 
