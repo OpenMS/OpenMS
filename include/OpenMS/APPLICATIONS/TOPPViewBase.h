@@ -171,14 +171,6 @@ namespace OpenMS
       */
       void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
 
-      /**
-        @brief Opens and displays a TOPP pipeline from a file
-      */
-      void addTOPPASFile(const QString& filename);
-
-      /// adds toppas widget to the current workspace
-      void showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption);
-
       /// Opens all the files in the string list
       void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 
@@ -324,6 +316,14 @@ namespace OpenMS
       /** @name TOPPAS pipeline slots
         */
       //@{
+      /**
+        @brief Opens and displays a TOPP pipeline from a file.
+        @param filename Name of the file to be opened
+        @param in_new_window Indicates wether a new window should be created or merged with the opened one
+      */
+      void addTOPPASFile(const String& filename, bool in_new_window);
+      /// adds toppas widget to the current workspace
+      void showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption);
       /// creates a new TOPPAS pipeline
       void newPipeline();
       /// shows the dialog for saving the current TOPPAS pipeline and updates the current tab caption

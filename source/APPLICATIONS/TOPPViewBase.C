@@ -2568,7 +2568,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       QString filename = *it;
       if (filename.endsWith(".toppas", Qt::CaseInsensitive))
       {
-        addTOPPASFile(filename);
+        addTOPPASFile(filename, true);
       }
       else
       {
@@ -2577,12 +2577,61 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
   }
 
-  void TOPPViewBase::addTOPPASFile(const QString& file_name)
-  {    
-    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, toppas_tmp_path_);
-    showTOPPipelineInWindow_(tw, File::basename(file_name));
-    TOPPASScene* scene = tw->getScene();
-    scene->load(file_name);    
+  void TOPPViewBase::addTOPPASFile(const String& file_name, bool in_new_window)
+  {
+    TOPPASScene* scene = 0;
+    if (in_new_window) // open in new window
+    {
+      // create TOPPASWidget, load data and open in new window
+      TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, toppas_tmp_path_);
+      showTOPPipelineInWindow_(tw, File::basename(file_name));
+      scene = tw->getScene();
+      scene->load(file_name);
+    }
+    else  // merge into existing scene
+    {
+      TOPPASWidget* tw = getActiveTOPPASWidget();
+      if (!tw)
+      {
+        return;
+      }
+      // create TOPPASWidget, load data into temporary scene and include into existing one
+      TOPPASScene* tmp_scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+      tmp_scene->load(file_name);
+      scene = tw->getScene();
+      scene->include(tmp_scene);
+      delete tmp_scene;
+    }
+
+    if (in_new_window)
+    {
+      // connect scene signals only if we created a new window (otherwise they already exist)
+      connect(scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
+      connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
+      connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
+      connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
+    }
+
+    //connect vertex signals/slots for log messages
+    for (TOPPASScene::VertexIterator it = scene->verticesBegin(); it != scene->verticesEnd(); ++it)
+    {
+      TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
+      if (tv)
+      {
+        connect(tv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
+        connect(tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
+        connect(tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
+        connect(tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+        connect(tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+        continue;
+      }
+      TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+      if (oflv)
+      {
+        connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+        continue;
+      }
+    }
   }
 
   void TOPPViewBase::showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption)
@@ -2592,7 +2641,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
     connect(tw,SIGNAL(toolDroppedOnWidget(double,double)),this,SLOT(insertNewVertex_(double,double)));
-    connect(tw,SIGNAL(pipelineDroppedOnWidget(const String&, bool)),this,SLOT(openFile(const String&, bool)));
+    connect(tw,SIGNAL(pipelineDroppedOnWidget(const String&, bool)),this,SLOT(addTOPPASFile(const String&, bool)));
 
     tw->setWindowTitle(caption.toQString());
 
@@ -2723,7 +2772,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       QString filename = *it;
       if (filename.endsWith(".toppas", Qt::CaseInsensitive))
       {
-        addTOPPASFile(filename);
+        addTOPPASFile(filename, true);
       }
       else
       {
@@ -3984,8 +4033,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::includePipeline()
   {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
-    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-   // addTOPPASFile(file_name, false);
+    addTOPPASFile(file_name, false);
   }
 
   void TOPPViewBase::savePipeline()
