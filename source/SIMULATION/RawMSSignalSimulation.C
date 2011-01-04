@@ -490,6 +490,7 @@ namespace OpenMS {
     Param p1;
     p1.setValue("statistics:mean", ef.getAverageWeight() / q);
     p1.setValue("interpolation_step", 0.001);
+    p1.setValue("intensity_scaling",  0.001); // this removes the problem of to big isotope-model values
     p1.setValue("isotope:stdev", getPeakSD_(active_feature.getMZ()));
     p1.setValue("charge", q);
 
@@ -588,7 +589,7 @@ namespace OpenMS {
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
-        if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
+        if(!intensity > 0.0) // intensity cutoff (below that we don't want to see a signal)
         {
           continue;
         }
@@ -902,7 +903,7 @@ namespace OpenMS {
       for(MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin() ; peak_it != (*spectrum_it).end() ; ++peak_it)
       {
         SimIntensityType intensity = peak_it->getIntensity() + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev) + white_noise_mean;
-        peak_it->setIntensity( (intensity > 0.0 ? intensity : 1.0) );
+        peak_it->setIntensity( (intensity > 0.0 ? intensity : 0.0) );
       }
     }
   }
