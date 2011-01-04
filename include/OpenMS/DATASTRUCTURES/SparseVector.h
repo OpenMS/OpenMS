@@ -953,25 +953,25 @@ namespace OpenMS
 				/// less than operator
 				bool operator< (const SparseVectorReverseIterator& other)
 				{
-					return !(*this.position < other.position());
+					return !(this->position() < other.position());
 				}
 
 				/// greater than operator
 				bool operator> (const SparseVectorReverseIterator& other)
 				{
-					return !(*this.position > other.position());
+					return !(this->position() > other.position());
 				}
 
 				/// less or equal than operator
 				bool operator<= (const SparseVectorReverseIterator& other)
 				{
-					return !(*this.position <= other.position());
+					return !(this->position() <= other.position());
 				}
 
 				/// greater or equal than operator
 				bool operator>= (const SparseVectorReverseIterator& other)
 				{
-					return !(*this.position >= other.position());
+					return !(this->position() >= other.position());
 				}
 
 				/// go to the next nonempty position
@@ -1166,25 +1166,25 @@ namespace OpenMS
 				/// less than operator
 				bool operator< (const SparseVectorConstIterator& other)
 				{
-					return (*this.position < other.position());
+					return (this->position() < other.position());
 				}
 
 				/// greater than operator
 				bool operator> (const SparseVectorConstIterator& other)
 				{
-					return (*this.position > other.position());
+					return (this->position() > other.position());
 				}
 
 				/// less or equal than operator
 				bool operator<= (const SparseVectorConstIterator& other)
 				{
-					return (*this.position <= other.position());
+					return (this->position() <= other.position());
 				}
 
 				/// greater or equal than operator
 				bool operator>= (const SparseVectorConstIterator& other)
 				{
-					return (*this.position >= other.position());
+					return (this->position() >= other.position());
 				}
 
 				/// go to the next nonempty position
