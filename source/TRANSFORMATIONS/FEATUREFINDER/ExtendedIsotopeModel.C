@@ -159,6 +159,7 @@ namespace OpenMS
 		// (for better numerics)
 		for ( SignedSize i = left.size() - 1; i >= 0; --i )
 		{
+      if (left[i]==0) continue;
 			for ( SignedSize j = std::min<SignedSize> ( rMax - i, right.size() ) - 1; j >= 0 ; --j )
 			{
 				result[i+j] += left[i] * right[j];

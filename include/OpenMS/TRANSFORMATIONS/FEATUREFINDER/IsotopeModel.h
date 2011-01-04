@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 
@@ -38,6 +38,8 @@ namespace OpenMS
 
   /** 
 		@brief Isotope distribution approximated using linear interpolation.
+
+    Peak widening is achieved by either a Gaussian or Lorentzian shape.
 
 		@htmlinclude OpenMS_IsotopeModel.parameters
 	*/
@@ -110,6 +112,8 @@ namespace OpenMS
 
 		protected:
 			CoordinateType isotope_stdev_;
+      CoordinateType isotope_lorentz_fwhm_;
+
 			UInt charge_;
 			CoordinateType mean_;
 			CoordinateType monoisotopic_mz_;

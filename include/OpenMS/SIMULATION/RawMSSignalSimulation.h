@@ -200,7 +200,7 @@ namespace OpenMS {
     /**
       @brief compute the peak's SD (gaussian) at a given m/z (internally the resolution model is used)
     */
-    DoubleReal getPeakSD_(const DoubleReal mz) const;
+    DoubleReal getPeakWidth_(const DoubleReal mz, const bool is_gaussian) const;
 
     /// Scaling factor of peak intensities
     SimIntensityType intensity_scale_;

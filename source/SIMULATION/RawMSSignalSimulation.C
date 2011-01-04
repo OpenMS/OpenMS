@@ -138,6 +138,9 @@ namespace OpenMS {
     defaults_.setValue("resolution:type","linear","How does resolution change with increasing m/z?! QTOFs usually show 'constant' behaviour, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass.");
     defaults_.setValidStrings("resolution:type", StringList::create("constant,linear,sqrt"));
     
+    defaults_.setValue("peak_shape","Gaussian","Peak Shape used around each isotope peak.");
+    defaults_.setValidStrings("peak_shape", StringList::create("Gaussian,Lorentzian"));
+
 
     // baseline
     defaults_.setValue("baseline:scaling",0.0,"Scale of baseline. Set to 0 to disable simulation of baseline.");
@@ -431,34 +434,35 @@ namespace OpenMS {
     addWhiteNoise_(experiment);
   }
 
-  DoubleReal RawMSSignalSimulation::getPeakSD_(const DoubleReal mz) const
+  OpenMS::DoubleReal RawMSSignalSimulation::getPeakWidth_( const DoubleReal mz, const bool is_gaussian ) const
   {
     // convert from resolution @ current m/z --> FWHM
+    DoubleReal fwhm = mz / getResolution_(mz, res_base_, res_model_);
     // Approximation for Gaussian-shaped signals,
     // i.e. sqrt(2*ln(2))*2 = 2.35482
-    // , relating FWHM to gaussian width
-    DoubleReal tmp = mz / getResolution_(mz, res_base_, res_model_);
-    DoubleReal peak_std = (tmp / 2.35482);
-    return peak_std;
+    // , relating FWHM to Gaussian width
+    if (is_gaussian) fwhm /= 2.35482;
+    else {}// for Lorentzian, we do nothing as the scale parameter is exactly the FWHM
+    return fwhm;
   }
 
   void RawMSSignalSimulation::add1DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
-    Param p1;
-
-    SimIntensityType scale = getFeatureScaledIntensity_(active_feature.getIntensity(), 150.0);
+    SimIntensityType scale = getFeatureScaledIntensity_(active_feature.getIntensity(), 1.0);
 
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
     ef -= String("H")+String(q);
-    ef.setCharge(q);				 // effectively substract q electrons
+    ef.setCharge(q);				 // effectively subtract q electrons
 
+    Param p1;
     p1.setValue("statistics:mean", ef.getAverageWeight() / q);		
     p1.setValue("interpolation_step", 0.001);
-    p1.setValue("isotope:stdev", getPeakSD_(active_feature.getMZ()));
-    p1.setValue("intensity_scaling", scale);
-    p1.setValue("charge", q);
+    p1.setValue("isotope:mode:mode", param_.getValue("peak_shape"));
+    if (param_.getValue("peak_shape") == "Gaussian")  p1.setValue("isotope:mode:GaussianSD", getPeakWidth_(active_feature.getMZ(), true));
+    else p1.setValue("isotope:mode:LorentzFWHM", getPeakWidth_(active_feature.getMZ(), false));
+		p1.setValue("intensity_scaling",  0.001); // this removes the problem of to big isotope-model values    p1.setValue("charge", q);
 
     IsotopeModel isomodel;
     isomodel.setParameters(p1);
@@ -483,15 +487,18 @@ namespace OpenMS {
     else
     {
       ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-      //std::cout << "current feature: " << active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << " with scale " << scale << std::endl;
     }
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
-    ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
+    ef -= String("H")+String(q);
+    ef.setCharge(q);				 // effectively subtract q electrons
+
     Param p1;
-    p1.setValue("statistics:mean", ef.getAverageWeight() / q);
+    p1.setValue("statistics:mean", ef.getAverageWeight() / q);		
     p1.setValue("interpolation_step", 0.001);
+    p1.setValue("isotope:mode:mode", param_.getValue("peak_shape"));
+    if (param_.getValue("peak_shape") == "Gaussian")  p1.setValue("isotope:mode:GaussianSD", getPeakWidth_(active_feature.getMZ(), true));
+    else p1.setValue("isotope:mode:LorentzFWHM", getPeakWidth_(active_feature.getMZ(), false));
     p1.setValue("intensity_scaling",  0.001); // this removes the problem of to big isotope-model values
-    p1.setValue("isotope:stdev", getPeakSD_(active_feature.getMZ()));
     p1.setValue("charge", q);
 
     IsotopeModel* isomodel = new IsotopeModel();
