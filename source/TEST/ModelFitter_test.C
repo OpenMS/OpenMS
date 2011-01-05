@@ -324,7 +324,7 @@ START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (Unabl
 	TOLERANCE_ABSOLUTE(default_precision)
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
-	TEST_REAL_SIMILAR(mz_model->getParameters().getValue("isotope:stdev"),stdev[2]);
+	TEST_REAL_SIMILAR(mz_model->getParameters().getValue("isotope:mode:GaussianSD"),stdev[2]);
 
 	// test predicted intensities
 	DPosition<2> pos;
