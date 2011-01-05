@@ -506,7 +506,7 @@ namespace OpenMS
 				}
 				else if (iflv)
 				{
-					file_list = iflv->getFilenames();
+          file_list = iflv->getInputFilenames();
 				}
         QStringList p_files = getFileArgument_(file_list, i, in_parameter_has_list_type_);
         if (store_to_ini)
@@ -745,7 +745,7 @@ namespace OpenMS
 				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
 				if (iflv)
 				{
-					const QStringList& input_files = iflv->getFilenames();
+          const QStringList& input_files = iflv->getInputFilenames();
 					input_list_length_ = input_files.count();
 					foreach (const QString& str, input_files)
 					{
@@ -931,37 +931,6 @@ namespace OpenMS
 		}
 	}
 	  
-
-	void TOPPASToolVertex::openInTOPPView()
-	{
-		QVector<IOInfo> out_infos;
-		getOutputParameters(out_infos);
-		
-		if (out_infos.size() == all_written_output_files_.size())
-		{
-			foreach (const QStringList& files, all_written_output_files_)
-			{
-				if (files.size() > 0)
-				{
-					QProcess* p = new QProcess();
-					p->setProcessChannelMode(QProcess::ForwardedChannels);
-          QString toppview_executable;
-          toppview_executable = "TOPPView";
-
-          p->start(toppview_executable, files);
-          if(!p->waitForStarted())
-          {
-            // execution failed
-            std::cerr << p->errorString().toStdString() << std::endl;
-#if defined(Q_WS_MAC)
-            std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
-#endif
-
-          }
-				}
-			}
-		}
-	}
 	
 	String TOPPASToolVertex::getOutputDir()
 	{

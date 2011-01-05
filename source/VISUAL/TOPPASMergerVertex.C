@@ -132,18 +132,18 @@ namespace OpenMS
 			{
 				if (round_based_mode_)
 				{
-					if (tmp_merge_counter < source_list->getFilenames().size())
+					if (tmp_merge_counter < source_list->getInputFilenames().size())
 					{
-						out_files << source_list->getFilenames()[tmp_merge_counter];
+						out_files << source_list->getInputFilenames()[tmp_merge_counter];
 					}
-					if (source_list->getFilenames().size() > new_max_input_list_length)
+					if (source_list->getInputFilenames().size() > new_max_input_list_length)
 					{
-						new_max_input_list_length = source_list->getFilenames().size();
+						new_max_input_list_length = source_list->getInputFilenames().size();
 					}
 				}
 				else
 				{
-					out_files << source_list->getFilenames();
+					out_files << source_list->getInputFilenames();
 				}
 				continue;
 			}
@@ -198,7 +198,7 @@ namespace OpenMS
 			TOPPASInputFileListVertex* source_list = qobject_cast<TOPPASInputFileListVertex*>(source);
 			if (source_list)
 			{
-				out_files << source_list->getFilenames();
+				out_files << source_list->getInputFilenames();
 				continue;
 			}
 			TOPPASMergerVertex* source_merger = qobject_cast<TOPPASMergerVertex*>(source);

@@ -298,7 +298,7 @@ namespace OpenMS
 			splash_screen->showMessage((String("Loading file: ") + *it).toQString());
 			splash_screen->repaint();
 			QApplication::processEvents();
-			openFile(*it);
+      addTOPPASFile(*it);
     }
   }
 
@@ -315,23 +315,23 @@ namespace OpenMS
 													+"TOPPAS"+QDir::separator(),
 													tr("TOPPAS pipelines (*.toppas)"));
 		
-		openFile(file_name);
+    addTOPPASFile(file_name);
 	}
 	
 	void TOPPASBase::openFileDialog()
   {
 		QString file_name = QFileDialog::getOpenFileName(this, tr("Open workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 		
-		openFile(file_name);
+    addTOPPASFile(file_name);
   }
  	
   void TOPPASBase::includePipeline()
 	{
 		QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));		
-		openFile(file_name, false);
+    addTOPPASFile(file_name, false);
 	}
 
-	void TOPPASBase::openFile(const String& file_name, bool in_new_window)
+  void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
 	{
 		if (file_name != "")
 		{
@@ -348,11 +348,12 @@ namespace OpenMS
 				showAsWindow_(tw, File::basename(file_name));
 				scene = tw->getScene();
 				scene->load(file_name);
-        connect (scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
-				connect (scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
-				connect (scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
-				connect (scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
-			}
+        connect(scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
+        connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
+        connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
+        connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
+        connect(scene, SIGNAL(openInTOPPView(QVector<QStringList>)), this, SLOT(openFilesInTOPPView(QVector<QStringList>)));
+      }
 			else
 			{
 				if (!activeWindow_())
@@ -539,7 +540,7 @@ namespace OpenMS
     connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
 		connect(tw,SIGNAL(toolDroppedOnWidget(double,double)),this,SLOT(insertNewVertex_(double,double)));
-    connect(tw,SIGNAL(pipelineDroppedOnWidget(const String&, bool)),this,SLOT(openFile(const String&, bool)));
+    connect(tw,SIGNAL(pipelineDroppedOnWidget(const String&, bool)),this,SLOT(addTOPPASFile(const String&, bool)));
 	  tw->setWindowTitle(caption.toQString());
 
 		//add tab with id
@@ -1203,5 +1204,30 @@ namespace OpenMS
 
     return "";
   }
+
+  void TOPPASBase::openFilesInTOPPView(QVector<QStringList> all_files)
+  {
+    foreach (const QStringList& files, all_files)
+    {
+      if (files.size() > 0)
+      {
+        QProcess* p = new QProcess();
+        p->setProcessChannelMode(QProcess::ForwardedChannels);
+        QString toppview_executable;
+        toppview_executable = "TOPPView";
+
+        p->start(toppview_executable, files);
+        if(!p->waitForStarted())
+        {
+          // execution failed
+          std::cerr << p->errorString().toStdString() << std::endl;
+#if defined(Q_WS_MAC)
+          std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
+#endif
+        }
+      }
+    }
+  }
+
 } //namespace OpenMS
 

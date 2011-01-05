@@ -73,9 +73,9 @@ namespace OpenMS
 			virtual void setTopoNr(UInt nr);
       /// Opens the folders of the output files
       void openContainingFolder();
-      /// Opens the files in TOPPView
-			void openInTOPPView();
-			
+      /// Returns the vector of output files
+      const QStringList& getAllWrittenOutputFileNames();
+
 		public slots:
 		
 			//documented in base class

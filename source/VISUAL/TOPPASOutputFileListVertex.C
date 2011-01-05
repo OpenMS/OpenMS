@@ -209,6 +209,12 @@ namespace OpenMS
     }
 	}
 
+  const QStringList& TOPPASOutputFileListVertex::getAllWrittenOutputFileNames()
+  {
+    return files_;
+  }
+
+  /*
 	void TOPPASOutputFileListVertex::openInTOPPView()
 	{
 		QProcess* p = new QProcess();
@@ -227,7 +233,7 @@ namespace OpenMS
 
     }
 	}
-	
+  */
 	bool TOPPASOutputFileListVertex::isFinished()
 	{
 		return finished_;

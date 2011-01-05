@@ -2587,6 +2587,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       showTOPPipelineInWindow_(tw, File::basename(file_name));
       scene = tw->getScene();
       scene->load(file_name);
+      addRecentFile_(file_name);
     }
     else  // merge into existing scene
     {
@@ -2610,6 +2611,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
       connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
       connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
+      connect(scene, SIGNAL(openInTOPPView(QVector<QStringList>)), this, SLOT(openFilesInTOPPView(QVector<QStringList>)));
     }
 
     //connect vertex signals/slots for log messages
@@ -4254,6 +4256,17 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     //update log_
     log_->append(text);
+  }
+
+  void TOPPViewBase::openFilesInTOPPView(QVector<QStringList> all_files)
+  {
+    foreach(QStringList sl, all_files)
+    {
+      foreach(QString s, sl)
+      {
+        addDataFile(s, false, false, s);
+      }
+    }
   }
 
   //

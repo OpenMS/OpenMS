@@ -86,7 +86,7 @@ namespace OpenMS
 
     public slots:    	
 			/// opens the file in a new window
-			void openFile(const String& file_name, bool in_new_window = true);
+      void addTOPPASFile(const String& file_name, bool in_new_window = true);
     	/// shows the dialog for opening files
       void openFileDialog();
 			/// shows the dialog for opening example files
@@ -152,6 +152,8 @@ namespace OpenMS
 			void sendClipboardContent();
       /// Refreshes the parameters of the TOPP tools of the current workflow and stores an updated workflow including the current parameters
       void refreshParameters();
+      /// Opens each StringList of files in a new TOPPView instance
+      void openFilesInTOPPView(QVector<QStringList> all_files);
     protected slots:
 		
 			/** @name Tabbar slots
@@ -257,7 +259,7 @@ namespace OpenMS
       static QString savePipelineResourceFile(TOPPASWidget* w, QString current_path);
 
       /// Refreshes the TOPP tools parameters of the pipeline
-      static QString refreshPipelineParameters(TOPPASWidget* tw, QString current_path);
+      static QString refreshPipelineParameters(TOPPASWidget* tw, QString current_path);      
       //@}
   }
   ; //class

@@ -55,7 +55,7 @@ namespace OpenMS
 			/// Assignment operator
 			TOPPASInputFileListVertex& operator= (const TOPPASInputFileListVertex& rhs);
 			/// Returns the list of files
-			const QStringList& getFilenames();
+      const QStringList& getInputFilenames();
 			/// Sets the list of files
 			void setFilenames(const QStringList& files);
 			/// Starts all tools below this node

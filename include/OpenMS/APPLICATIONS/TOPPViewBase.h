@@ -360,6 +360,8 @@ namespace OpenMS
       void outputVertexFinished(const String& file);
       /// Called when a TOPP tool produces (error) output.
       void updateTOPPOutputLog(const QString& out);
+      /// Opens each StringList of files in this TOPPView instance
+      void openFilesInTOPPView(QVector<QStringList> all_files);
       //@}
 
       /** @name Toolbar slots

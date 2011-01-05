@@ -99,7 +99,7 @@ namespace OpenMS
 		}
 	}
 	
-	const QStringList& TOPPASInputFileListVertex::getFilenames()
+  const QStringList& TOPPASInputFileListVertex::getInputFilenames()
 	{
 		return files_;
 	}
@@ -171,26 +171,6 @@ namespace OpenMS
       {
         QMessageBox::warning(0, "Open Folder Error", String("The folder " + path + " could not be opened!").toQString());
       }
-    }
-	}
-
-	void TOPPASInputFileListVertex::openInTOPPView()
-	{
-		QProcess* p = new QProcess();
-		p->setProcessChannelMode(QProcess::ForwardedChannels);
-
-    QString toppview_executable;
-    toppview_executable = "TOPPView";
-
-    p->start(toppview_executable, files_);
-    if(!p->waitForStarted())
-    {
-      // execution failed
-      std::cerr << p->errorString().toStdString() << std::endl;
-#if defined(Q_WS_MAC)
-      std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
-#endif
-
     }
 	}
 	

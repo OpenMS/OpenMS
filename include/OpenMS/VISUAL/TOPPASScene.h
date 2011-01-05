@@ -243,6 +243,8 @@ namespace OpenMS
 			void requestClipboardContent();
 			/// Emitted when the main window needs to be updated
 			void mainWindowNeedsUpdate();
+      /// Emitted when files are triggered for opening in TOPPView
+      void openInTOPPView(QVector<QStringList> all_files);
 
 		protected:
 			
@@ -291,7 +293,6 @@ namespace OpenMS
 			
 			///Writes the @p text to the logfile
 			void writeToLogFile_(const QString& text);
-			
 	};
 
 }

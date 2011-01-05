@@ -385,7 +385,7 @@ namespace OpenMS
 
 	TOPPASEdge::EdgeStatus TOPPASEdge::getListToolStatus_(TOPPASInputFileListVertex* source_input_list, TOPPASToolVertex* target_tool, int target_param_index)
 	{
-		const QStringList& file_names = source_input_list->getFilenames();
+		const QStringList& file_names = source_input_list->getInputFilenames();
 		if (file_names.empty())
 		{
 			// file names are not specified yet
