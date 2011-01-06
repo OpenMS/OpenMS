@@ -49,6 +49,7 @@ namespace OpenMS
   class OPENMS_DLLAPI SvmTheoreticalSpectrumGenerator: public TheoreticalSpectrumGenerator
   {
     friend class SvmTrainer;
+    friend class SvmTrainerGrid;
     public:
 
     /**

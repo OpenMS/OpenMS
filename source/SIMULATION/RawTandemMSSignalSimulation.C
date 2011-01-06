@@ -115,15 +115,21 @@ namespace OpenMS
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
       RichPeakSpectrum tmp_spec;      
-      svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng,features[i_f].getCharge());      
+      svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng,features[i_f].getCharge());            
+      std::cerr<<"Spectrum with prec charge: "<<features[i_f].getCharge()<<std::endl;
       for(Size peak=0; peak<tmp_spec.size(); ++peak)
       {
         Peak1D p=tmp_spec[peak];
         single_ms2_spectra[i_f].push_back(p);
       }
-      //std::cerr<<tmp_spec.size()<<std::endl;
+      std::cerr<<tmp_spec.size()<<std::endl;
 
-      single_ms2_spectra[i_f].setMSLevel(2);      
+      single_ms2_spectra[i_f].setMSLevel(2);
+      Precursor prec;
+      prec.setMZ(features[i_f].getMZ());
+      single_ms2_spectra[i_f].setPrecursors(std::vector<Precursor>(1,prec));
+      single_ms2_spectra[i_f].setMetaValue("FeatureID",(String)features[i_f].getUniqueId());
+
 
       // validate features Metavalues exist and are valid:
       if (!features[i_f].metaValueExists("elution_profile_bounds")
@@ -176,8 +182,12 @@ namespace OpenMS
         const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
         DoubleReal factor = elution_ints [i - elution_bounds[0] ];
         for (MSSimExperiment::SpectrumType::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
-        {          
-          it->setIntensity(it->getIntensity() * factor);
+        {
+          std::cerr<<"Old Intensity: "<<it->getIntensity()<<std::endl;
+          std::cerr<<"factor: "<<factor<<std::endl;
+          it->setIntensity(it->getIntensity() * factor * features[i_f].getIntensity());
+          std::cerr<<"New Intensity: "<<it->getIntensity()<<std::endl;
+          std::cerr<<"Feat Intensity: "<<features[i_f].getIntensity()*factor<<std::endl;
         }
       }      
       
@@ -188,7 +198,7 @@ namespace OpenMS
         for (Size ii=0;ii<MS2_spectra.size();++ii)
         {
           ms2.push_back(MS2_spectra[ii]); // DEBUG
-          ms2.back().setMetaValue("MS_E_debug_spectra","true");
+          ms2.back().setMetaValue("MS_E_debug_spectra","true");          
         }
       }
 

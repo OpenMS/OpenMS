@@ -126,7 +126,7 @@ namespace OpenMS
   {
     ///map AA to integers
     static std::map<String,Size>aa_to_index;
-    static std::map<String,DoubleReal>hydrophobicity, helicity;
+    static std::map<String,DoubleReal>hydrophobicity, helicity, basicity;
 
     int index=0;
     //if the map was not yet generated (this is first call of this Function)
@@ -164,7 +164,7 @@ namespace OpenMS
       hydrophobicity["T"]=-1.08;
       hydrophobicity["V"]=3.02;
       hydrophobicity["W"]=4.88;
-      hydrophobicity["Y"]=2;
+      hydrophobicity["Y"]=2;      
     }
 
     if(helicity.empty())
@@ -188,8 +188,35 @@ namespace OpenMS
       helicity["T"]=1.09;
       helicity["V"]=1.27;
       helicity["W"]=1.07;
-      helicity["Y"]=1.11;
+      helicity["Y"]=1.11;      
     }
+
+
+    if(basicity.empty())
+    {
+      basicity["A"]= 206.4;
+      basicity["C"]= 206.2;
+      basicity["D"]= 208.6;
+      basicity["E"]= 215.5;
+      basicity["F"]= 212.1;
+      basicity["G"]= 202.7;
+      basicity["H"]= 223.7;
+      basicity["I"]= 209.6;
+      basicity["K"]= 221.8;
+      basicity["L"]= 209.6;
+      basicity["M"]= 213.3;
+      basicity["N"]= 212.8;
+      basicity["P"]= 214.4;
+      basicity["Q"]= 214.2;
+      basicity["R"]= 237.0;
+      basicity["S"]= 207.6;
+      basicity["T"]= 211.7;
+      basicity["V"]= 208.7;
+      basicity["W"]= 216.1;
+      basicity["Y"]= 213.1;      
+    }
+
+
 
     std::vector<svm_node>descriptors_tmp;
     descriptors_tmp.reserve(50);
@@ -255,39 +282,49 @@ namespace OpenMS
 
     //BaRB_N
     node.index=index++;
-    node.value=peptide.getResidue(position).getSideChainBasicity();
+    node.value=basicity[res_n_string];
     descriptors_tmp.push_back(node);
 
     //BaRB_C
     node.index=index++;
-    node.value=peptide.getResidue(position+1).getSideChainBasicity();
+    node.value=basicity[res_c_string];
     descriptors_tmp.push_back(node);
 
     //BaRB_A
     node.index=index++;
-    node.value=(peptide.getResidue(position).getSideChainBasicity() + peptide.getResidue(position+1).getSideChainBasicity())/2.0;
+    node.value=(basicity[res_n_string]+basicity[res_c_string])/2.0;
     descriptors_tmp.push_back(node);
 
     //BaRB_D
     node.index=index++;
-    node.value=(peptide.getResidue(position).getSideChainBasicity() - peptide.getResidue(position+1).getSideChainBasicity());
+    node.value=basicity[res_n_string]-basicity[res_c_string];    
     descriptors_tmp.push_back(node);
 
-    DoubleReal ba_p=0, hy_p=0, ba_yi=0, hy_yi=0;
+    DoubleReal ba_p=0, hy_p=0, ba_yi=0, hy_yi=0, ba_bi=0, hy_bi=0;
     for(Size i=0; i<peptide.size();++i)
     {
-      ba_p+=peptide.getResidue(i).getSideChainBasicity();
+      ba_p+=basicity[peptide.getResidue(i).getOneLetterCode()];
       hy_p+=hydrophobicity[peptide.getResidue(i).getOneLetterCode()];
     }
     for(Size i=0; i<position+1;++i)
     {
-      ba_yi+=peptide.getResidue(i).getSideChainBasicity();
+      ba_bi+=basicity[peptide.getResidue(i).getOneLetterCode()];
+      hy_bi+=hydrophobicity[peptide.getResidue(i).getOneLetterCode()];
+    }
+    for(Size i=position+1; i<peptide.size();++i)
+    {
+      ba_yi+=basicity[peptide.getResidue(i).getOneLetterCode()];
       hy_yi+=hydrophobicity[peptide.getResidue(i).getOneLetterCode()];
     }
 
     //BaYI
     node.index=index++;
     node.value=ba_yi;
+    descriptors_tmp.push_back(node);
+
+    //BaBI
+    node.index=index++;
+    node.value=ba_bi;
     descriptors_tmp.push_back(node);
 
     //BaP
@@ -297,7 +334,7 @@ namespace OpenMS
 
     //HeRB_N
     node.index=index++;
-    node.value=helicity[res_n_string];
+    node.value=helicity[res_n_string];    
     descriptors_tmp.push_back(node);
 
     //HeRB_C
@@ -317,7 +354,7 @@ namespace OpenMS
 
     //HyRB_N
     node.index=index++;
-    node.value=hydrophobicity[res_n_string];
+    node.value=hydrophobicity[res_n_string];    
     descriptors_tmp.push_back(node);
 
     //HyRB_C
@@ -338,6 +375,11 @@ namespace OpenMS
     //Hy_YI
     node.index=index++;
     node.value=hy_yi;
+    descriptors_tmp.push_back(node);
+
+    //Hy_BI
+    node.index=index++;
+    node.value=hy_bi;
     descriptors_tmp.push_back(node);
 
     //Hy_P
@@ -370,12 +412,12 @@ namespace OpenMS
     node.value=peptide.size();
     descriptors_tmp.push_back(node);
 
-    //LYI
+    //LYI (works for B also)
     node.index=index++;
     node.value=fragment.size();
     descriptors_tmp.push_back(node);
 
-    //RLIP
+    //RLIP (works for B also)
     node.index=index++;
     node.value=(DoubleReal)fragment.size()/peptide.size();
     descriptors_tmp.push_back(node);
@@ -385,7 +427,7 @@ namespace OpenMS
     node.value=peptide.getNumberOf("H")+peptide.getNumberOf("K")+peptide.getNumberOf("R");
     descriptors_tmp.push_back(node);
 
-    //NBaR_YI
+    //NBaR_YI (works for B also)
     node.index=index++;
     node.value=fragment.getNumberOf("H")+fragment.getNumberOf("K")+fragment.getNumberOf("R");
     descriptors_tmp.push_back(node);
@@ -438,7 +480,6 @@ namespace OpenMS
 
     return index;
   }
-
 
 
   void SvmTheoreticalSpectrumGenerator::load()
@@ -727,6 +768,8 @@ namespace OpenMS
         EmpiricalFormula loss_formula = ion_types_[type_nr].loss;
         Int charge = ion_types_[type_nr].charge;
 
+        //std::cerr<<"prim type: "<<residue<<" "<<loss_formula<<"  "<<charge<<std::endl;
+
         //determine whether type is N- or C-terminal
         if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
         {
@@ -765,14 +808,14 @@ namespace OpenMS
           scaleDescriptorSet_(descriptor, scaling_lower_, scaling_upper_);
         }
 
-        DoubleReal predicted_intensity=0.0;        
+        DoubleReal predicted_intensity=0.0;
         Size predicted_class = svm_predict(class_models_[type_nr], &descriptor.descriptors[0]);
+        //predicted_class = 1;
 
         if(predicted_class==1)
         {
-          predicted_intensity = svm_predict(reg_models_[type_nr], &descriptor.descriptors[0]);
-          predicted_intensity = exp(predicted_intensity);
-          peaks_to_generate.push_back(std::make_pair(ion_types_[type_nr],predicted_intensity));
+          predicted_intensity = std::max(0.0, svm_predict(reg_models_[type_nr], &descriptor.descriptors[0]));
+          peaks_to_generate.push_back(std::make_pair(ion_types_[type_nr],predicted_intensity));          
         }
 
         //binning the predicted intensity
@@ -786,18 +829,17 @@ namespace OpenMS
 
         for(std::vector<IonType>::iterator it = secondary_types_[ion_types_[type_nr]].begin(); it!= secondary_types_[ion_types_[type_nr]].end(); ++it)
         {
+          if(!add_losses && !it->loss.isEmpty())
+          {
+            continue;
+          }
+
           //sample intensities for secondary types
           DoubleReal * condit_probs = &conditional_prob_[std::make_pair(*it, region)][bin][0];
           gsl_gen = gsl_ran_discrete_preproc(number_intensity_levels_, condit_probs);
           Size binned_int = gsl_ran_discrete(rng, gsl_gen);
           gsl_ran_discrete_free(gsl_gen);
-          //std::cerr<<"Secondary Type: "<<it->residue<<"  "<<it->loss<<std::endl;
-          //std::cerr<<"Conditional probs: "<<std::endl;
-          //for(Size p=0; p<number_intensity_levels_; ++p)
-          //{
-          //  std::cerr<<condit_probs[p]<<"  ";
-          //}
-          //std::cerr<<"Primary intens: "<<predicted_intensity<<"   bin:  "<<bin<<"  secondary bin: "<<binned_int<<"  as intens: "<<intensity_bin_values_[binned_int]<<std::endl;
+
           if(binned_int!=0)
           {
             peaks_to_generate.push_back(std::make_pair(*it,intensity_bin_values_[binned_int-1]));
@@ -812,13 +854,9 @@ namespace OpenMS
         DoubleReal intensity = peaks_to_generate[i].second;
         Residue::ResidueType residue = type.residue;
         EmpiricalFormula loss_formula = type.loss;
-        Int charge = type.charge;
+        Int charge = type.charge;                
 
-        if(!add_losses && !loss_formula.isEmpty())
-        {
-          continue;
-        }
-
+        //std::cerr<<"add: "<<residue<<"  "<<loss_formula<<"  "<<charge<<std::endl;
         EmpiricalFormula ion_formula = ion->getFormula(residue, charge) - loss_formula;
         DoubleReal mz_pos = ion_formula.getMonoWeight() / charge;
 
@@ -859,7 +897,7 @@ namespace OpenMS
     std::vector<svm_node>tmp_desc;
     std::vector<svm_node>::iterator it;
     Size feature_index=1;
-    Size num_features=feature_max_.size();
+    Size num_features=feature_max_.size();    
     for(it=desc.descriptors.begin(); it!=(desc.descriptors.end()-1); ++it)
     {      
       while(feature_index<(Size)it->index)
