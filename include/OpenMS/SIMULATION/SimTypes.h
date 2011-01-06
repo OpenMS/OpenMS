@@ -75,23 +75,45 @@ namespace OpenMS
   /// Sim MSExperiment type
   typedef MSExperiment< SimPointType > MSSimExperiment;
 
+  /**
+    @brief Wrapper class for random number generators used by the simulation classes
+
+    The random numbers are separated two sources of randomness:
+
+    <ul>
+      <li><em>technical random numbers</em> which should represent technical
+          sources of variability like instrument noise and </li>
+      <li><em>biological random numbers</em> which should represent biological
+          sources of variability (e.g. between two samples of the same composition)</li>
+    </ul>
+
+    @ingroup Simulation
+  */
   struct SimRandomNumberGenerator
   {
+    /// GSL random number generator for biological variability
     gsl_rng* biological_rng;
+    /// GSL random number generator for technical variability
     gsl_rng* technical_rng;
 
+    /// Default constructor
     SimRandomNumberGenerator()
       : biological_rng(NULL),
       technical_rng(NULL)
     {
     }
 
+    /** @name Constructors and Destructors
+      */
+    //@{
+    /// Copy constructor
     SimRandomNumberGenerator(const SimRandomNumberGenerator& other)
       : biological_rng(other.biological_rng),
       technical_rng(other.technical_rng)
     {
     }
 
+    /// Destructor
     ~SimRandomNumberGenerator()
     {
       if(biological_rng != 0)
@@ -104,7 +126,9 @@ namespace OpenMS
         gsl_rng_free( technical_rng );
       }
     }
+    //@}
 
+    /// Assignment operator
     SimRandomNumberGenerator& operator = (const SimRandomNumberGenerator& source)
     {
       this->biological_rng = source.biological_rng;

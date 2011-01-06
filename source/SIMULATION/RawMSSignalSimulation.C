@@ -340,8 +340,8 @@ namespace OpenMS {
 
       for(Size i=0 ; i<thread_count; ++i)
       {
-        threaded_random_numbers_[i].resize(THREADED_RANDOM_NUMBER_POOL_SIZE);
-        threaded_random_numbers_index_[i] = THREADED_RANDOM_NUMBER_POOL_SIZE;
+        threaded_random_numbers_[i].resize(THREADED_RANDOM_NUMBER_POOL_SIZE_);
+        threaded_random_numbers_index_[i] = THREADED_RANDOM_NUMBER_POOL_SIZE_;
       }
 
       if (thread_count>1)
@@ -612,13 +612,13 @@ namespace OpenMS {
 #ifdef _OPENMP
         int CURRENT_THREAD = omp_get_thread_num();
         // check if we need to refill the random number pool for this thread
-        if(threaded_random_numbers_index_[ CURRENT_THREAD ] == THREADED_RANDOM_NUMBER_POOL_SIZE)
+        if(threaded_random_numbers_index_[ CURRENT_THREAD ] == THREADED_RANDOM_NUMBER_POOL_SIZE_)
         {
           if(mz_error_stddev_ != 0.0)
           {
             #pragma omp critical(generate_random_number_for_thread)
             {
-              for(Size i = 0 ; i < THREADED_RANDOM_NUMBER_POOL_SIZE ; ++i)
+              for(Size i = 0 ; i < THREADED_RANDOM_NUMBER_POOL_SIZE_ ; ++i)
               {
                 threaded_random_numbers_[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
               }
@@ -729,7 +729,17 @@ namespace OpenMS {
         p.setValue("egh:A", double(feature.getMetaValue("RT_width_gaussian"))/2.0 * 0.9); // make width a little smaller as this is only the 5% height cutoff
         p.setValue("egh:B", double(feature.getMetaValue("RT_width_gaussian"))/2.0 * 0.9);
       }
-      else
+      else if(feature.metaValueExists("RT_egh_sigma") && feature.metaValueExists("RT_egh_tau"))
+      {
+        // for CE we want wider profiles with higher MT
+        DoubleReal width_factor(1); // default for HPLC
+        if (feature.metaValueExists("RT_CE_width_factor")) width_factor = feature.getMetaValue("RT_CE_width_factor");
+
+        p.setValue("egh:guess_parameter", "false");
+        p.setValue("egh:tau", (DoubleReal) feature.getMetaValue("RT_egh_tau"));
+        p.setValue("egh:sigma_square", ((DoubleReal) feature.getMetaValue("RT_egh_variance")) * width_factor);
+      }
+      else // for compatibility reasons .. can be removed?
       { 
         // for CE we want wider profiles with higher MT
         DoubleReal width_factor(1); // default for HPLC
@@ -1034,7 +1044,7 @@ namespace OpenMS {
     SimIntensityType intensity = feature_intensity * natural_scaling_factor * intensity_scale_;
     
     // add some noise
-    // TODO: variables model für den intensitäts-einfluss
+    // TODO: variables model f??r den intensit??ts-einfluss
     // e.g. sqrt(intensity) || ln(intensity)
     intensity += gsl_ran_gaussian(rnd_gen_->technical_rng, intensity_scale_stddev_ * intensity);
 

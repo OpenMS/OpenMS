@@ -153,7 +153,15 @@ namespace OpenMS {
       }
       
       features[i].setRT(predicted_retention_times[i]);
-			fm_tmp.push_back(features[i]);
+
+      // determine shape parameters for EGH
+      DoubleReal variance = gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_) + egh_variance_location_;
+      DoubleReal tau = gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_) + egh_tau_location_;
+
+      features[i].setMetaValue("RT_egh_variance", variance);
+      features[i].setMetaValue("RT_egh_tau", tau);
+
+      fm_tmp.push_back(features[i]);
     }
     
     // print invalid features:
@@ -422,32 +430,22 @@ namespace OpenMS {
       LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
     }
     
-    rt_sampling_rate_ = param_.getValue("sampling_rate");
+    rt_sampling_rate_    = param_.getValue("sampling_rate");
 
-    String column_preset = param_.getValue("column_condition:preset");
-    if (column_preset == "poor")
+    distortion_          = param_.getValue("column_condition:distortion");
+
+    egh_variance_location_  = param_.getValue("profile_shape:variance:value");
+    egh_variance_scale_     = param_.getValue("profile_shape:variance:scale");
+    if(!egh_variance_scale_ > 0.0)
     {
-      distortion_    = 2.0;
-      symmetry_down_ = -100;
-      symmetry_up_   = +100;
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the variance has to be > 0.");
     }
-    else if (column_preset == "medium")
+
+    egh_tau_location_    = param_.getValue("profile_shape:tau:value");
+    egh_tau_scale_       = param_.getValue("profile_shape:tau:scale");
+    if(!egh_tau_scale_ > 0.0)
     {
-      distortion_    = 1.0;
-      symmetry_down_ = -60;
-      symmetry_up_   = +60;
-    }
-    else if (column_preset == "good")
-    {
-      distortion_    = 0.0;
-      symmetry_down_ = -15;
-      symmetry_up_   = +15;
-    }
-    else 	// default is "none" so get user set parameters
-    {
-      distortion_    = param_.getValue("column_condition:distortion");
-      symmetry_up_   = param_.getValue("column_condition:symmetry_up");
-      symmetry_down_ = param_.getValue("column_condition:symmetry_down");
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the time constant has to be > 0.");
     }
 
   }
@@ -482,15 +480,16 @@ namespace OpenMS {
     defaults_.setValue("variation:affine_scale",1,"Global scaling in retention time from predicted model");
     defaults_.setSectionDescription("variation","Random component that simulates technical/biological variation");
 
-    // column conditions
-    defaults_.setValue("column_condition:preset","medium","LC condition (none|good|medium|poor) if set to none the explicit values will be used.");
-    defaults_.setValidStrings("column_condition:preset", StringList::create("none,good,medium,poor"));
-
-    // todo: can we use EGH params for this?!
-    defaults_.setValue("column_condition:distortion", 1.0, "LC distortion (used only if preset is set to 'none')");
-    defaults_.setValue("column_condition:symmetry_up", -60.0, "LC symmetry up (used only if preset is set to 'none')");
-    defaults_.setValue("column_condition:symmetry_down", +60.0, "LC symmetry down (used only if preset is set to 'none')");
+    defaults_.setValue("column_condition:distortion", 1.0, "Distortion of the elution profiles. Good presets are 0.0 for a perfect elution profile, 1.0 for a slightly distorted elution profile and 2.0 for heavily distorted profile.");
 		
+    defaults_.setValue("profile_shape:variance:value", 9, "Variance of the Exponential Gaussian Hybrid distribution shape of the elution profile.");
+    defaults_.setValue("profile_shape:variance:scale", 1.6, "Scale parameter for the lorentzian variation of the variance (Note: The scale parameter has to be > 0).");
+    defaults_.setMinFloat("profile_shape:variance:scale",0.0);
+
+    defaults_.setValue("profile_shape:tau:value", 0.1, "Time constant of the exponential decay of the Exponential Gaussian Hybrid distribution shape of the elution profile.");
+    defaults_.setValue("profile_shape:tau:scale", 2.7, "Scale parameter for the lorentzian variation of the time constant (Note: The scale parameter has to be > 0).");
+    defaults_.setMinFloat("profile_shape:tau:scale",0.0);
+
     // HPLC specific Parameters
     defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
     defaults_.setValue("HPLC:max_number_of_peptides",100000,"Maximal number of peptides considered at once");

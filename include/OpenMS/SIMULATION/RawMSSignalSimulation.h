@@ -239,7 +239,7 @@ namespace OpenMS {
       */
     std::vector< Size > threaded_random_numbers_index_;
 
-    static const Size THREADED_RANDOM_NUMBER_POOL_SIZE = 500;
+    static const Size THREADED_RANDOM_NUMBER_POOL_SIZE_ = 500;
 
     bool contaminants_loaded_;
   };

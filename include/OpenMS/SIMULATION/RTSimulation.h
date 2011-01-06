@@ -64,7 +64,7 @@ namespace OpenMS
     virtual ~RTSimulation();
     //@}
 
-    // Assignment operator
+    /// Assignment operator
     RTSimulation& operator = (const RTSimulation& source);
     
     /** 
@@ -132,11 +132,19 @@ namespace OpenMS
     /// bin size in rt dimension
     SimCoordinateType rt_sampling_rate_;
 
-    /// LC conditions (noise parameter for EMG)
-		DoubleReal distortion_;
-    DoubleReal symmetry_up_;
-    DoubleReal symmetry_down_;
-    
+    /// LC conditions (noise parameter)
+    DoubleReal distortion_;
+
+    /// EGH tau value
+    DoubleReal egh_tau_location_;
+    /// EGH tau scale parameter of the lorentzian variation
+    DoubleReal egh_tau_scale_;
+
+    /// EGH sigma value
+    DoubleReal egh_variance_location_;
+    /// EGH sigma scale parameter of the lorentzian variation
+    DoubleReal egh_variance_scale_;
+
   protected:  
 		/// Random number generator
     SimRandomNumberGenerator const * rnd_gen_;
