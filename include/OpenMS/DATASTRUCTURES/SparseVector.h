@@ -117,7 +117,7 @@ namespace OpenMS
 					for(size_type s=0; s<size; ++s)
 					{
 						//makes each insertion in amortized constant time inserted direct after last one
-						i = values_.insert(i,make_pair(s,value));
+						i = values_.insert(i, std::make_pair(s,value));
 					}
 				}
 			}

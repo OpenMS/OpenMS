@@ -32,6 +32,7 @@
 
 //QT includes
 #include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
 
 //OpenMS includes
 #include <OpenMS/CONCEPT/Exception.h>

@@ -731,40 +731,40 @@ namespace OpenMS
 					}
 #endif
 				Int peak_idx =0;
-				std::map<Int, std::vector<PeakIndex> >::iterator it
+				std::map<Int, std::vector<PeakIndex> >::iterator itv
 					=d.matching_peaks.begin();
-				for(; it != d.matching_peaks.end(); ++it)
+				for(; itv != d.matching_peaks.end(); ++itv)
 					{
-						Int i = distance(d.matching_peaks.begin(),it);
-						for(Size j=0;j<it->second.size();++j)
+						Int i = distance(d.matching_peaks.begin(),itv);
+						for(Size j=0;j<itv->second.size();++j)
 							{
 
 #ifdef DEBUG_2D
-									std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][it->second[j].peak]//it->second[j].getPeak(ms_exp).getIntensity()
-													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][it->second[j].peak]
-													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][it->second[j].peak] << "\n";
+									std::cout << "pos: "<<itv->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][itv->second[j].peak]//itv->second[j].getPeak(ms_exp).getIntensity()
+													<<"\nlw: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][itv->second[j].peak]
+													<<"\nrw: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][itv->second[j].peak] << "\n";
 
 #endif
 
-								ms_exp[it->second[j].spectrum][it->second[j].peak].setMZ(gsl_vector_get(fit->x,d.total_nr_peaks+3*i));
-								ms_exp[it->second[j].spectrum].getFloatDataArrays()[1][it->second[j].peak] =(gsl_vector_get(fit->x,peak_idx));
+								ms_exp[itv->second[j].spectrum][itv->second[j].peak].setMZ(gsl_vector_get(fit->x,d.total_nr_peaks+3*i));
+								ms_exp[itv->second[j].spectrum].getFloatDataArrays()[1][itv->second[j].peak] =(gsl_vector_get(fit->x,peak_idx));
 								//TODO calculate area
-								//				ms_exp[it->second[j].spectrum][it->second[j].peak].setIntensity();
+								//				ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity();
 
-								ms_exp[it->second[j].spectrum].getFloatDataArrays()[3][it->second[j].peak] =
+								ms_exp[itv->second[j].spectrum].getFloatDataArrays()[3][itv->second[j].peak] =
 									gsl_vector_get(fit->x,d.total_nr_peaks+3*i+1);
-								ms_exp[it->second[j].spectrum].getFloatDataArrays()[4][it->second[j].peak] =
+								ms_exp[itv->second[j].spectrum].getFloatDataArrays()[4][((itv->second)[j]).peak] =
 									gsl_vector_get(fit->x,d.total_nr_peaks+3*i+2);
 
 
 #ifdef DEBUG_2D
-								std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][it->second[j].peak]//it->second[j].getPeak(ms_exp).getIntensity()
-													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][it->second[j].peak]
-													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][it->second[j].peak] << "\n";
+								std::cout << "pos: "<<itv->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][itv->second[j].peak]//itv->second[j].getPeak(ms_exp).getIntensity()
+													<<"\nlw: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][itv->second[j].peak]
+													<<"\nrw: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][itv->second[j].peak] << "\n";
 
-// 								std::cout << "pos: "<<it->second[j]->getMZ()<<"\nint: "<<it->second[j]->getIntensity()
-// 													<<"\nlw: "<<it->second[j]->getLeftWidthParameter()
-// 													<<"\nrw: "<<it->second[j]->getRightWidthParameter() << "\n";
+// 								std::cout << "pos: "<<itv->second[j]->getMZ()<<"\nint: "<<itv->second[j]->getIntensity()
+// 													<<"\nlw: "<<itv->second[j]->getLeftWidthParameter()
+// 													<<"\nrw: "<<itv->second[j]->getRightWidthParameter() << "\n";
 
 #endif
 
