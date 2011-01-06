@@ -106,7 +106,7 @@ START_SECTION((virtual Param getDefaultParameters() const ))
 }
 END_SECTION
 
-START_SECTION((virtual void setRnd(gsl_rng *const rng)))
+START_SECTION((virtual void setRnd(const SimRandomNumberGenerator &rng)))
 {
   NOT_TESTABLE
 }

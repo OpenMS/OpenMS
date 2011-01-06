@@ -84,12 +84,18 @@ START_SECTION((RawMSSignalSimulation& operator=(const RawMSSignalSimulation &sou
 }
 END_SECTION
 
-START_SECTION((void generateRawSignals(FeatureMapSim &, MSSimExperiment &)))
+START_SECTION((void generateRawSignals(FeatureMapSim &features, MSSimExperiment &experiment, FeatureMapSim &contaminants)))
 {
   // TODO
 }
 END_SECTION
 
+
+START_SECTION((void loadContaminants()))
+{
+  // TODO
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

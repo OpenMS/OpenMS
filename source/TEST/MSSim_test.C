@@ -127,6 +127,18 @@ START_SECTION((ConsensusMap const& getLabelingConsensus() const ))
 }
 END_SECTION
 
+START_SECTION((FeatureMapSim const& getContaminants() const ))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((Param getParameters(const String &labeling_name) const ))
+{
+  // TODO
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
