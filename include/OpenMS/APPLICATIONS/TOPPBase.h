@@ -136,7 +136,8 @@ namespace OpenMS
         EXTERNAL_PROGRAM_ERROR,
         PARSE_ERROR,
         INCOMPATIBLE_INPUT_DATA,
-        INTERNAL_ERROR
+        INTERNAL_ERROR,
+        UNEXPECTED_RESULT
     	};
 
       /**

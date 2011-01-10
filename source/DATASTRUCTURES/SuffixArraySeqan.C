@@ -207,15 +207,15 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name+".txt"));
 		}
 
-		if (!indexSupplied(index_, ESA_SA()) ||
-				!indexSupplied(index_, ESA_LCP()) ||
-				!indexSupplied(index_, ESA_ChildTab()))
+		if (!indexSupplied(index_, EsaSA()) ||
+				!indexSupplied(index_, EsaLcp()) ||
+				!indexSupplied(index_, EsaChildtab()))
 		{
 			//cout<<"creating index " << endl;
 
-			indexRequire(index_, ESA_SA());
-			indexRequire(index_, ESA_LCP());
-			indexRequire(index_, ESA_ChildTab());
+			indexRequire(index_, EsaSA());
+			indexRequire(index_, EsaLcp());
+			indexRequire(index_, EsaChildtab());
 			seqan::save(index_, file_name.c_str());
 		}
 

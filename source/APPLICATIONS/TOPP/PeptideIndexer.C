@@ -34,6 +34,7 @@
 #include <algorithm>
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
+//#include <seqan/index.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -68,9 +69,204 @@ using namespace std;
   This tool supports relative database filenames, which (when not found in the current working directory) is looked up in
   the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
+  By default the tool will fail, if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
+  You can force the tool to return successfully in this case by using the flag 'allow_unmatched'.
+
+  @todo: speed increase of 200% possible when loading the SA from disk instead of building it.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PeptideIndexer.cli
 */
+
+struct FoundProteinFunctor
+{   
+    Map<Size, set<Size> > pep_to_prot; // peptide index --> protein indices
+
+    FoundProteinFunctor()
+      : pep_to_prot()
+    {
+    }
+
+    template <typename TIter1, typename TIter2>
+    void operator() (TIter1 &iter_pep, TIter2 &iter_prot)
+    {
+      // remember mapping of proteins to peptides and vice versa
+      for(unsigned i_pep=0;i_pep<countOccurrences(iter_pep);++i_pep)
+      {
+        Size idx_pep = getOccurrences(iter_pep)[i_pep].i1;
+        for(unsigned i_prot=0;i_prot<countOccurrences(iter_prot);++i_prot)
+        {
+          Size idx_prot = getOccurrences(iter_prot)[i_prot].i1;
+          pep_to_prot[idx_pep].insert(idx_prot);
+        }
+      }
+    }
+
+          //hits_pep += countOccurrences(iter1);
+      //hits_prot += countOccurrences(iter2);
+      //std::cout << "peptide:        " << representative(iter1) << " occs: " << getOccurrences(iter1) << std::endl;
+      //std::cout << "protein_suffix: " << representative(iter2) << " occs: " << getOccurrences(iter2) << std::endl;
+      /*std::cout << "Peptide (" << representative(iter1) << "): ";
+      for(unsigned i=0;i<countOccurrences(iter1);++i)
+      {
+        std::cout << getOccurrences(iter1)[i].i1 << " ";
+      }
+      std::cout << " --> " << representative(iter2) << " -- " ;
+      for(unsigned i=0;i<countOccurrences(iter2);++i)
+      {
+        std::cout << "[" << getOccurrences(iter2)[i].i1 << "," << getOccurrences(iter2)[i].i2 << "] ";
+      }
+      std::cout << "\n";
+      */
+};
+
+
+namespace seqan
+  {
+
+  // saving some memory for the SA
+  template <>
+  struct SAValue<Index< StringSet<Peptide>, IndexWotd<> > > {
+    typedef Pair<unsigned> Type;
+  };
+
+  template <typename T = void>
+  struct EquivalenceClassAA_
+  {
+	  static unsigned const VALUE[24];
+  };
+  template <typename T>
+  unsigned const EquivalenceClassAA_<T>::VALUE[24] = 
+  {
+	  1, // 0 Ala Alanine                 
+	  2, // 1 Arg Arginine                
+	  4, // 2 Asn Asparagine              
+	  8, // 3 Asp Aspartic Acid           
+	  16, // 4 Cys Cystine                 
+	  32, // 5 Gln Glutamine               
+	  64, // 6 Glu Glutamic Acid           
+	  128, // 7 Gly Glycine                 
+	  256, // 8 His Histidine               
+	  512, // 9 Ile Isoleucine              
+	  1024, //10 Leu Leucine                 
+	  2048, //11 Lys Lysine                  
+	  4096, //12 Met Methionine              
+	  8192, //13 Phe Phenylalanine           
+	  16384, //14 Pro Proline                 
+	  32768, //15 Ser Serine                  
+	  65536, //16 Thr Threonine               
+	  131072, //17 Trp Tryptophan              
+	  262144, //18 Tyr Tyrosine                
+	  524288, //19 Val Valine                  
+	  12, //20 Aspartic Acid, Asparagine   
+	  96, //21 Glutamic Acid, Glutamine    
+	  -1, //22 Unknown (matches ALL)
+	  -1, //23 Terminator (dummy)
+  };
+
+
+  template <
+	  bool enumerateA,
+	  bool enumerateB,
+	  typename TOnFoundFunctor,
+	  typename TTreeIteratorA, 
+	  typename TIterPosA, 
+	  typename TTreeIteratorB, 
+	  typename TIterPosB, 
+	  typename TErrors >
+  inline void 
+  _approximateAminoAcidTreeSearch(
+	  TOnFoundFunctor	&onFoundFunctor,
+	  TTreeIteratorA	iterA, 
+	  TIterPosA		iterPosA, 
+	  TTreeIteratorB	iterB_, 
+	  TIterPosB		iterPosB, 
+	  TErrors			errorsLeft,
+    TErrors     classErrorsLeft)
+  {
+	  if (enumerateA && !goDown(iterA)) return;
+	  if (enumerateB && !goDown(iterB_)) return;
+  	
+	  do 
+	  {
+		  TTreeIteratorB iterB = iterB_;
+		  do 
+		  {
+			  TErrors e = errorsLeft;
+        TErrors ec = classErrorsLeft;
+			  TIterPosA ipA = iterPosA;
+			  TIterPosB ipB = iterPosB;
+  			
+			  while (true)
+			  {
+          if (ipA == repLength(iterA))
+				  {
+            if (isLeaf(iterA))
+            {
+              onFoundFunctor(iterA, iterB);
+              break;
+            }
+
+					  if (ipB == repLength(iterB) && !isLeaf(iterB))
+				      _approximateAminoAcidTreeSearch<true,true>(onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+				    else
+					    _approximateAminoAcidTreeSearch<true,false>(onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+					  break;
+				  } 
+				  else
+          {
+            if (ipB == repLength(iterB))
+            {
+					    if (!isLeaf(iterB))
+						    _approximateAminoAcidTreeSearch<false,true>(onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+              break;
+            }
+          }
+
+				  if (_charComparator(representative(iterA)[ipA],
+                              representative(iterB)[ipB],
+                              seqan::EquivalenceClassAA_<char>() ))
+          {
+            const char xx = representative(iterB)[ipB];
+            // matched (including character classes) - look at ambiguous AA in PROTEIN tree (peptide tree is not considered!)
+            if (xx == 'X' ||
+                xx == 'B' ||
+                xx == 'Z')
+            {
+              if (ec == 0) break;
+              --ec;
+            }
+          }
+          else
+          {
+					  if (e == 0) break;
+            --e;
+          }
+          
+  				
+				  ++ipA;
+				  ++ipB;
+			  }
+		  } while (enumerateB && goRight(iterB));
+	  } while (enumerateA && goRight(iterA));
+  }
+
+  template <
+	  typename TEquivalenceTable >
+  inline bool 
+  _charComparator(
+    AminoAcid charA,
+    AminoAcid charB,
+    TEquivalenceTable equivalence)
+  {
+    unsigned a_index = ordValue(charA);
+    unsigned b_index = ordValue(charB);
+    return (equivalence.VALUE[a_index] & equivalence.VALUE[b_index]) != 0;
+  }
+
+
+}
+
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -82,7 +278,6 @@ class TOPPPeptideIndexer
 		TOPPPeptideIndexer()
 			: TOPPBase("PeptideIndexer","Refreshes the protein references for all peptide hits.", false)
 		{
-
 		}
 
 	protected:
@@ -94,8 +289,11 @@ class TOPPPeptideIndexer
 			registerOutputFile_("out","<file>","","Output idXML file.");
 			setValidFormats_("in", StringList::create("IdXML"));
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended to the accession of the protein database to indicate a decoy protein.", false);
-			registerFlag_("write_protein_sequence", "If set, the protein sequences are added to the protein hits.");
+			registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
 			registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
+      registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. not set) the program terminates with error status on unmatched peptides.");
+      registerIntOption_("aaa_max", "<AA count>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein DB with AAA's. AAA's are 'B', 'Z', and 'X'", false);
+      setMinInt_("aaa_max", 0);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -107,6 +305,8 @@ class TOPPPeptideIndexer
 			String out(getStringOption_("out"));
 			bool write_protein_sequence(getFlag_("write_protein_sequence"));
 			bool keep_unreferenced_proteins(getFlag_("keep_unreferenced_proteins"));
+      bool allow_unmatched(getFlag_("allow_unmatched"));
+      
 			String decoy_string(getStringOption_("decoy_string"));
 
       String db_name(getStringOption_("fasta"));
@@ -142,221 +342,259 @@ class TOPPPeptideIndexer
 			// calculations
 			//-------------------------------------------------------------
 
-
 			writeDebug_("Collecting peptides...", 1);
-			// collect the peptides in a Seqan StringSet
-			seqan::StringSet<seqan::String<char> > needle;
 
-			// store for each run the protein idx and number of peptides that hit this protein
-			Map<String, Map<Size, Size> > prot_idx_hits;
+      FoundProteinFunctor func; // stores the matches (need to survive local scope which follows)
+			Map<String,Size> acc_to_prot; // build map accessions to proteins
 
-			// map the number of the peptide to the corresponding iterator in vector<PeptideHits>
-			Size needle_count = (numeric_limits<Size>::max)();
-			Map<String, Size> peptide_to_idx;
+      { // new scope - forget data after search
 
-			for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+        /**
+         BUILD Protein DB
+        */
+        
+        seqan::StringSet<seqan::Peptide> prot_DB;
+			  for (Size i = 0; i != proteins.size(); ++i)
+			  {
+          // build Prot DB
+				  seqan::appendValue(prot_DB, proteins[i].sequence.c_str());
+
+          // consistency check
+				  String acc = proteins[i].identifier;
+				  if (acc_to_prot.has(acc))
+				  {
+					  writeLog_(String("PeptideIndexer: error, identifiers of proteins should be unique to a database, identifier '") + acc + String("' found multipe times."));
+				  }
+				  acc_to_prot[acc] = i;
+			  }
+
+        /**
+         BUILD Peptide DB
+        */
+        seqan::StringSet<seqan::Peptide> pep_DB;
+			  for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+			  {
+				  String run_id = it1->getIdentifier();
+				  vector<PeptideHit> hits = it1->getHits();
+				  for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
+				  {
+            appendValue(pep_DB, it2->getSequence().toUnmodifiedString().c_str());
+          }
+        }
+
+        writeLog_(String("Mapping ") + length(pep_DB) + " peptides to " + length(prot_DB) + " proteins.");
+
+        /** search DB */
+
+        typedef seqan::Index< seqan::StringSet<seqan::Peptide>, seqan::IndexWotd<> > TIndex;
+        TIndex prot_Index(prot_DB);
+        TIndex pep_Index(pep_DB);
+        
+        // use only full peptides in Suffix Array
+        resize(indexSA(pep_Index), length(pep_DB));
+        for (unsigned i = 0; i < length(pep_DB); ++i)
+        {
+          indexSA(pep_Index)[i].i1 = i;
+          indexSA(pep_Index)[i].i2 = 0;
+        }
+
+        typedef seqan::Iterator< TIndex, seqan::TopDown<seqan::PreorderEmptyEdges> >::Type TTreeIter;
+
+        //seqan::open(indexSA(prot_Index), "c:\\tmp\\prot_Index.sa");
+        //seqan::open(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
+
+        TTreeIter prot_Iter(prot_Index);
+        TTreeIter pep_Iter(pep_Index);
+
+        UInt max_aaa = getIntOption_("aaa_max");
+        seqan::_approximateAminoAcidTreeSearch<true,true>(func, pep_Iter, 0u, prot_Iter, 0u, 0u, max_aaa);
+
+        //seqan::save(indexSA(prot_Index), "c:\\tmp\\prot_Index.sa");
+        //seqan::save(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
+      
+      } // end local scope
+
+      /* do mapping */
+
+      writeDebug_("Reindexing peptide/protein matches...", 1);
+
+      
+      /// index existing proteins 
+      // -- to find newly mapped proteins
+      // -- to find orphaned proteins
+      //Map<String, set<Size> > accession_to_runidxs; // which protein appears in which ProtID_run
+      //Map<Size, set<String> > runidx_to_accessions; // which run used to hold which proteins (to find orphaned ones)
+      Map<String, Size> runid_to_runidx; // identifier to index
+      for (Size run_idx=0; run_idx < prot_ids.size(); ++run_idx)
 			{
-				String run_id = it1->getIdentifier();
-				vector<PeptideHit> hits = it1->getHits();
-				for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
+        runid_to_runidx[prot_ids[run_idx].getIdentifier()] = run_idx;
+				// walk through already existing protein hits and update them
+				/*for (vector<ProteinHit>::iterator p_hit = prot_ids[run_idx].getHits().begin(); p_hit != prot_ids[run_idx].getHits().end(); ++p_hit)
 				{
-					it2->setProteinAccessions(vector<String>());
-					String seq = it2->getSequence().toUnmodifiedString();
-					seqan::appendValue(needle, seq.c_str());
+					accession_to_runidxs[p_hit->getAccession()].insert(run_idx);
+          runidx_to_accessions[run_idx].insert(p_hit->getAccession());
+        }*/
+      }
+      
 
-					peptide_to_idx[seq] = ++needle_count;
-				}
-			}
+      /// for peptides --> proteins
 
+      Int stats_matched_unique(0);
+      Int stats_matched_multi(0);
+      Int stats_unmatched(0);
 
-			// read and concatenate all proteins
-			seqan::String<char> all_protein_sequences;
-			// build map accessions to proteins
-			Map<String, vector<Size> > acc_to_prot;
-			Size pos(0);
-			Map<Size, Size> idx_to_protein; // stores the begin indices of the 'all_protein_sequences' string and the corresponding protein indices (proteins vector)
-			vector<Size> protein_idx_vector; // contains all begin indices of the proteins in the 'all_protein_sequences' string
-			for (Size i = 0; i != proteins.size(); ++i)
-			{
-				protein_idx_vector.push_back(pos);
-				idx_to_protein[pos] = i;
-				pos += proteins[i].sequence.size() + 1; // consider the terminating '$'
-				all_protein_sequences += (proteins[i].sequence + "$").c_str();
-
-				String acc = proteins[i].identifier;
-				if (acc_to_prot.has(acc))
-				{
-					writeLog_(String("PeptideIndexer: error, identifiers of proteins should by unique to a database, identifier '") + acc + String("' found multiply."));
-				}
-				acc_to_prot[acc].push_back(i);
-			}
-
-			// Aho Corasick Call
-			seqan::Finder<seqan::String<char>  > finder(all_protein_sequences);
-			seqan::Pattern<seqan::StringSet<seqan::String<char> >, seqan::AhoCorasick > pattern(needle);
-
-			seqan::String<seqan::Pair<Size, Size> > pat_hits;
-			Map<Size, vector<Size> > peptide_to_indices;
-			writeDebug_("Finding peptide/protein matches...", 1);
-			while (find(finder, pattern))
-			{
-				seqan::appendValue(pat_hits, seqan::Pair<Size, Size>(position(pattern), position(finder)));
-				peptide_to_indices[position(pattern)].push_back(position(finder));
-			}
-			writeDebug_("Ended finding", 1);
-
-			writeDebug_("Reindexing peptide/protein matches...", 1);
+      Map<Size, set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
+      
+      Size pep_idx(0);
 			for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 			{
-				String run_id = it1->getIdentifier();
 				vector<PeptideHit> hits = it1->getHits();
-				for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
+
+        // which ProteinIdentification does the peptide belong to?
+        Size run_idx = runid_to_runidx[it1->getIdentifier()];
+
+        for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
 				{
-					it2->setProteinAccessions(vector<String>());
-					String seq = it2->getSequence().toUnmodifiedString();
+          // clear protein accessions
+          it2->setProteinAccessions(vector<String>());
 
+          // add new protein references
+          for (set<Size>::const_iterator it_i = func.pep_to_prot[pep_idx].begin(); 
+                                         it_i!= func.pep_to_prot[pep_idx].end();
+                                         ++it_i)
+          {
+						it2->addProteinAccession(proteins[*it_i].identifier);
 
-					//seqan::Pair<Size> hits;
-					//hits = seqan::equalRangeSA(all_protein_sequences, suffix_array, seq.c_str());
+            runidx_to_protidx[run_idx].insert(*it_i); // fill protein hits
 
+            /*
+            /// STATS
+            String acc = proteins[*it_i].identifier;
+            // is the mapped protein in this run?
+            if (accession_to_runidxs[acc].find(run_idx) == 
+                accession_to_runidxs[acc].end())
+            {
+              ++stats_new_proteins; // this peptide was matched to a new protein
+            }
+            // remove proteins which we already saw (what remains is orphaned):
+            runidx_to_accessions[run_idx].erase(acc);
+            */
+          }
 
-					for (vector<Size>::const_iterator it = peptide_to_indices[peptide_to_idx[seq]].begin(); it != peptide_to_indices[peptide_to_idx[seq]].end(); ++it)
-					{
-						vector<Size>::const_iterator lower_bound_iter = lower_bound(protein_idx_vector.begin(), protein_idx_vector.end(), *it) - 1;
-						Size prot_idx = idx_to_protein[*lower_bound_iter];
-						it2->addProteinAccession(proteins[prot_idx].identifier);
-
-						if (prot_idx_hits.has(run_id))
-						{
-							if (prot_idx_hits[run_id].has(prot_idx))
-							{
-								++prot_idx_hits[run_id][prot_idx];
-							}
-							else
-							{
-								prot_idx_hits[run_id][prot_idx] = 1;
-							}
-						}
-						else
-						{
-							prot_idx_hits[run_id][prot_idx] = 1;
-						}
-					}
-
+          ///
 					// add information whether this is a decoy hit
+          ///
 					bool matches_target(false);
 					bool matches_decoy(false);
 					for (vector<String>::const_iterator it = it2->getProteinAccessions().begin(); it != it2->getProteinAccessions().end(); ++it)
 					{
-						if (it->hasSuffix(decoy_string))
-						{
-							matches_decoy = true;
-						}
-						else
-						{
-							matches_target = true;
-						}
+						if (it->hasSuffix(decoy_string)) matches_decoy = true;
+						else matches_target = true;
 					}
-					String target_decoy = "";
-					if (matches_decoy && !matches_target)
-					{
-						target_decoy = "decoy";
-					}
-					if (!matches_decoy && matches_target)
-					{
-						target_decoy = "target";
-					}
-					if (matches_decoy && matches_target)
-					{
-						target_decoy = "target+decoy";
-					}
-					it2->setMetaValue("target_decoy", target_decoy);
+					StringList target_decoy;
+					if (matches_target) target_decoy.push_back("target");
+					if (matches_decoy) target_decoy.push_back("decoy");
+					it2->setMetaValue("target_decoy", target_decoy.concatenate("+"));
 					if (it2->getProteinAccessions().size() == 1)
 					{
 						it2->setMetaValue("protein_references", "unique");
+            ++stats_matched_unique;
+					}
+					else if (it2->getProteinAccessions().size() > 1)
+					{
+						it2->setMetaValue("protein_references", "non-unique");
+            ++stats_matched_multi;
 					}
 					else
 					{
-						if (it2->getProteinAccessions().size() > 1)
-						{
-							it2->setMetaValue("protein_references", "non-unique");
-						}
-						else
-						{
-							it2->setMetaValue("protein_references", "unmatched");
-						}
-					}
+						it2->setMetaValue("protein_references", "unmatched");
+            ++stats_unmatched;
+            if (stats_unmatched < 5) LOG_INFO << "  unmatched peptide: " << it2->getSequence() << "\n";
+            else if (stats_unmatched == 5) LOG_INFO << "  unmatched peptide: ...\n";
+          }
+
+          ++pep_idx; // next hit
 				}
 				it1->setHits(hits);
 			}
 
+      LOG_INFO << "Statistics (peptides):\n";
+      LOG_INFO << "  no match (to 0 protein): " << stats_unmatched << "\n";
+      LOG_INFO << "  unique match (to 1 protein): " << stats_matched_unique << "\n";
+      LOG_INFO << "  non-unique match (to >1 protein): " << stats_matched_multi << "\n";
+
+      /// for proteins --> peptides
+
+      Int stats_new_proteins(0);
+      Int stats_orphaned_proteins(0);
+
 			// all peptides contain the correct protein hit references, now update the protein hits
 			vector<ProteinIdentification> new_prot_ids;
-			for (vector<ProteinIdentification>::iterator it1 = prot_ids.begin(); it1 != prot_ids.end(); ++it1)
+			for (Size run_idx=0; run_idx < prot_ids.size(); ++run_idx)
 			{
-				String run_id = it1->getIdentifier();
-				ProteinIdentification new_prot_id = *it1;
-				new_prot_id.setHits(vector<ProteinHit>());
-				vector<ProteinHit> protein_hits;
-				set<String> acc_done;
-				// walk through already existing protein hits and update them
-				for (vector<ProteinHit>::iterator it2 = it1->getHits().begin(); it2 != it1->getHits().end(); ++it2)
-				{
-					String acc = it2->getAccession();
-					acc_done.insert(acc);
-					if (acc_to_prot.has(acc))
-					{
-						if (write_protein_sequence)
-						{
-							for (Size i = 0; i != acc_to_prot[acc].size(); ++i)
-							{
-								it2->setSequence(proteins[acc_to_prot[acc][i]].sequence);
-							}
-						}
-						protein_hits.push_back(*it2);
-					}
-					else
-					{
-						if (keep_unreferenced_proteins)
-						{
-							protein_hits.push_back(*it2);
-						}
-					}
-				}
+        set<Size> masterset = runidx_to_protidx[run_idx]; // all found protein matches
 
-				// go through new referenced proteins
-				if (prot_idx_hits.has(run_id))
+				vector<ProteinHit> new_protein_hits;
+        // go through existing hits and update (do not create from anew, as there might be other information [score, rank] etc which
+        //   we want to preserve
+        for (vector<ProteinHit>::iterator p_hit = prot_ids[run_idx].getHits().begin(); p_hit != prot_ids[run_idx].getHits().end(); ++p_hit)
 				{
-					for (Map<Size, Size>::const_iterator it = prot_idx_hits[run_id].begin(); it != prot_idx_hits[run_id].end(); ++it)
-					{
-						if (it->second == 0)
-						{
-							continue; // should not happen
-						}
-						String acc = proteins[it->first].identifier;
-						if (acc_done.find(acc) == acc_done.end())
-						{
-							ProteinHit hit;
-							hit.setAccession(acc);
-							if(write_protein_sequence)
-							{
-								hit.setSequence(proteins[it->first].sequence);
-							}
-							protein_hits.push_back(hit);
-						}
-					}
-				}
+          const String& acc = p_hit->getAccession();
+          if (masterset.find(acc_to_prot[acc]) != masterset.end())
+          { // this accession was there already
+            new_protein_hits.push_back(*p_hit);
+            String seq;
+            if (write_protein_sequence) seq = proteins[acc_to_prot[acc]].sequence;
+            else seq = "";
+						new_protein_hits.back().setSequence(seq);
+            masterset.erase(acc_to_prot[acc]); // remove from master (at the end only new proteins remain)
+          }
+          else
+          { // old hit is orphaned
+            ++stats_orphaned_proteins;
+            if (keep_unreferenced_proteins) new_protein_hits.push_back(*p_hit);
+          }
+        }
 
-				new_prot_id.setHits(protein_hits);
-				new_prot_ids.push_back(new_prot_id);
+        // add remaining new hits 
+        for (set<Size>::const_iterator it = masterset.begin();
+                                            it!= masterset.end();
+                                            ++it)
+        {
+          ProteinHit hit;
+          hit.setAccession(proteins[*it].identifier);
+          if (write_protein_sequence) hit.setSequence(proteins[*it].sequence);
+          new_protein_hits.push_back(hit);
+          ++stats_new_proteins;
+        }
+
+
+				prot_ids[run_idx].setHits(new_protein_hits);
 			}
+
+      LOG_INFO << "Statistics (proteins):\n";
+      LOG_INFO << "  new proteins: " << stats_new_proteins << "\n";
+      LOG_INFO << "  orphaned proteins: " << stats_orphaned_proteins << (keep_unreferenced_proteins ? " (all kept)" : " (all removed)") << "\n";
+
 			writeDebug_("Ended reindexing", 1);
 
 			//-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
 
-			IdXMLFile().store(out, new_prot_ids, pep_ids);
+			IdXMLFile().store(out, prot_ids, pep_ids);
+
+      if ((!allow_unmatched) && (stats_unmatched>0))
+      {
+        LOG_WARN << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
+                 << "Either:\n"
+                 << "   - check your FASTA database\n"
+                 << "   - increase 'aaa_max' to allow more ambiguous AA\n"
+                 << "   - use 'allow_unmatched' flag if unmatched peptides are ok\n";
+        LOG_WARN << "Result files were written, but program will return with error code\n";
+        return UNEXPECTED_RESULT;
+      }
+
 
 			return EXECUTION_OK;
 		}
