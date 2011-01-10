@@ -79,7 +79,7 @@ namespace OpenMS
     defaults_.setValue("dot:feature_icon_size", 4, "Icon size used for features and consensus features.");
     defaults_.setMinInt("dot:feature_icon_size",1);
     defaults_.setMaxInt("dot:feature_icon_size",999);
-    defaults_.setValue("mapping_of_mz_to","x_axis","Determines which axis is the m/z axis.");
+    defaults_.setValue("mapping_of_mz_to","y_axis","Determines which axis is the m/z axis.");
 		defaults_.setValidStrings("mapping_of_mz_to", StringList::create("x_axis,y_axis"));
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
