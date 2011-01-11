@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="test" score="0" sequence="GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSVGSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSVAXXSTFDFYQRRLVTLAESPRAPSPGSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="BSA2" score="3.33299994468689" sequence="EWATYTCVLGFHVYVPVR" >
+				<UserParam type="string" name="my_user_param" value="veryimportant"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="BSA3" score="0" sequence="AXXXSTFDFYQRRLVTLAESPRAPSX" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="test2_rev" score="0" sequence="EDQSCPSERRRAFSRLRFGPS" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="BSA4" score="0" sequence="EDQSCPSERRRAFSRLRXXXX" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="Thyroglo" score="0" sequence="AAAAAEWATYTCVLGFHVYVPVR" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="BSA4_rev" score="0" sequence="EDQSCPSERRRAFSRLRXXXX" >
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="Thyroglo_rev" score="0" sequence="AAAAAEWATYTCVLGFHVYVPVR" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="revonly_rev" score="0" sequence="DFIANGER" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="40" sequence="STFDFYQRRLVTLAESPRAPSP" charge="2" protein_refs="PH_0 PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+			<PeptideHit score="40" sequence="EDQSCPSERRRAFSRLRFGPS" charge="2" protein_refs="PH_3 PH_4 PH_6" >
+				<UserParam type="string" name="target_decoy" value="target+decoy"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" protein_refs="PH_1 PH_5 PH_7" >
+				<UserParam type="string" name="target_decoy" value="target+decoy"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" protein_refs="PH_1 PH_5 PH_7" >
+				<UserParam type="string" name="target_decoy" value="target+decoy"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="UNMATCHED" charge="2" >
+				<UserParam type="string" name="target_decoy" value=""/>
+				<UserParam type="string" name="protein_references" value="unmatched"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="0.0001" sequence="FIANGE" charge="2" protein_refs="PH_8" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

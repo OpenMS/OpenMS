@@ -54,7 +54,7 @@ namespace OpenMS
 	{
 
 		typedef seqan::TopDown<seqan::ParentLinks<> > TIterSpec;
-		typedef seqan::Index<seqan::String<char>, seqan::Index_ESA<TIterSpec> > TIndex;
+		typedef seqan::Index<seqan::String<char>, seqan::IndexEsa<TIterSpec> > TIndex;
 		typedef seqan::Iter<TIndex, seqan::VSTree<TIterSpec> > TIter;
 
 		// TODO ??? was: typedef seqan::Index<seqan::String<char>, seqan::Index_ESA<seqan::TopDown<seqan::ParentLinks<seqan::Preorder> > > > TIndex;

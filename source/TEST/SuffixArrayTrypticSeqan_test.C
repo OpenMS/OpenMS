@@ -53,7 +53,7 @@ SuffixArrayTrypticSeqan* sa = new SuffixArrayTrypticSeqan(text,"");
 START_SECTION(SuffixArrayTrypticSeqan(const String &st, const String &filename, const WeightWrapper::WEIGHTMODE weight_mode=WeightWrapper::MONO))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("$A",""));
-	ptr = new SuffixArrayTrypticSeqan("$","");
+	ptr = new SuffixArrayTrypticSeqan(text,"");
 	TEST_NOT_EQUAL(ptr, 0);
 	TEST_EXCEPTION (Exception::FileNotFound,new SuffixArrayTrypticSeqan(text,"FileThatNotExists"));
 	
