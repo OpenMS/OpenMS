@@ -46,7 +46,8 @@ namespace OpenMS
      operator(,) for element access.
 
 		 Think of it as a random access container.  You can also generate gray
-     scale images.  This is not designed to be used for linear algebra.
+     scale images.  This data structure is not designed to be used for linear algebra, 
+		 but rather a simple two-dimensional array. 
 
 		 The following member functions of the base class std::vector<ValueType>
 		 can also be used:
@@ -62,10 +63,6 @@ namespace OpenMS
 		 - size
 		 - capacity
 		 - max_size
-		 .
-
-		 (It seems that Doxygen does not parse pure access declarations, so we
-		 list them here.)
 
 		 @ingroup Datastructures
   */
@@ -174,6 +171,34 @@ namespace OpenMS
 			Base::operator[](index(i,j)) = value;
 		}
 
+		// Return the i-th row of the matrix as a vector.
+		container_type row(size_type const i) const
+		{
+			#ifdef OPENMS_DEBUG
+				if (i >= rows_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, i, rows_);
+			#endif
+			container_type values(cols_);
+			for (size_type j = 0; j < cols_; j++)
+			{
+				values[j] = Base::operator[](index(i, j));
+			}
+			return values;
+		}
+
+		// Return the i-th column of the matrix as a vector.
+		container_type col(size_type const i) const
+		{
+			#ifdef OPENMS_DEBUG
+				if (i >= cols_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, i, cols_);
+			#endif
+			container_type values(rows_);
+			for (size_type j = 0; j < rows_; j++)
+			{
+				values[j] = Base::operator[](index(j, i));
+			}
+			return values;
+		}
+
 		//@}
 
 
@@ -213,14 +238,14 @@ namespace OpenMS
 		{
 			rows_ = i;
 			cols_ = j;
-			Base::resize(rows_*cols_, value);
+			Base::resize(rows_ * cols_, value);
 		}
 
 		void resize(std::pair<Size,Size> const & size_pair, value_type value = value_type())
 		{
 			rows_ = size_pair.first;
 			cols_ = size_pair.second;
-			Base::resize(rows_*cols_, value);
+			Base::resize(rows_ * cols_, value);
 		}
 
 		/// Number of rows

@@ -161,10 +161,41 @@ END_SECTION
 START_SECTION((reference operator() (size_type const i, size_type const j)))
 {
 	STATUS(mi.getValue(1,0));
-	mi.getValue(1,0)=44;
+	mi.getValue(1,0) = 44;
 	STATUS(mi.getValue(1,0));
 	Matrix<int> const & micr = mi;
-	TEST_EQUAL(micr.getValue(1,0),44);
+	TEST_EQUAL(micr.getValue(1,0), 44);
+}
+END_SECTION
+
+START_SECTION(container_type row(size_type const i) const)
+{
+	Matrix<int>::container_type row = mi.row(0);
+	TEST_EQUAL(row.size(), 3)
+	TEST_EQUAL(row[0], 3)
+	TEST_EQUAL(row[1], 3)
+	TEST_EQUAL(row[2], 3)
+	row = mi.row(1);
+	TEST_EQUAL(row[0], 44)
+	TEST_EQUAL(row[1], 17)
+	TEST_EQUAL(row[2], 33)
+}
+END_SECTION
+
+START_SECTION(container_type col(size_type const i) const)
+{
+	Matrix<int>::container_type col = mi.col(0);
+	TEST_EQUAL(col.size(), 2)
+	TEST_EQUAL(col[0], 3)
+	TEST_EQUAL(col[1], 44)
+	col = mi.col(1);
+	TEST_EQUAL(col.size(), 2)
+	TEST_EQUAL(col[0], 3)
+	TEST_EQUAL(col[1], 17)
+	col = mi.col(2);
+	TEST_EQUAL(col.size(), 2)
+	TEST_EQUAL(col[0], 3)
+	TEST_EQUAL(col[1], 33)
 }
 END_SECTION
 
@@ -340,16 +371,6 @@ START_SECTION((template <typename  Value > std::ostream & operator<<(std::ostrea
 }
 END_SECTION
 
-#if 0
-// actually seems to *generate* a warning for me! - Clemens
-
-START_SECTION((OPENMS_DLLAPI gsl_matrix * toGslMatrix()))
-{
-	NOT_TESTABLE // avoid warning
-}
-END_SECTION
-
-#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

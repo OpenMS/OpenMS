@@ -267,22 +267,22 @@ class TOPPFileFilter
 		try
 		{
 			//rt
-			parseRange_(rt,rt_l,rt_u);
+			parseRange_(rt, rt_l, rt_u);
 			//mz
-			parseRange_(mz,mz_l,mz_u);
+			parseRange_(mz, mz_l, mz_u);
 			//int
-			parseRange_(it,it_l,it_u);
+			parseRange_(it, it_l, it_u);
 			//charge (features only)
-			parseRange_(charge,charge_l,charge_u);
+			parseRange_(charge, charge_l, charge_u);
 			//size (features and consensus features only)
-			parseRange_(size,size_l,size_u);
+			parseRange_(size, size_l, size_u);
 			//overall quality (features only)
-			parseRange_(q,q_l,q_u);
+			parseRange_(q, q_l, q_u);
 		}
 		catch(Exception::ConversionError&)
 		{
 			String tmp;
-			for(IntList::iterator it = levels.begin(); it != levels.end();++it)
+			for (IntList::iterator it = levels.begin(); it != levels.end();++it)
 			{
 				tmp += *it;
 			}
@@ -302,13 +302,13 @@ class TOPPFileFilter
 			// loading input
 			//-------------------------------------------------------------
 
-			MapType exp;
-			MzMLFile f;
-			f.setLogType(log_type_);
-			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
-			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
-			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-			f.load(in,exp);
+  			MapType exp;
+  			MzMLFile f;
+  			f.setLogType(log_type_);
+  			f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
+  			f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
+  			f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
+  			f.load(in,exp);
 
 			if (!no_chromatograms)
 			{
@@ -433,7 +433,7 @@ class TOPPFileFilter
 				SignalToNoiseEstimatorMedian < MapType::SpectrumType > snm;
 				Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:",true);
 				snm.setParameters(dc_param);
-				for(MapType::Iterator it = exp.begin(); it != exp.end(); ++it)
+				for (MapType::Iterator it = exp.begin(); it != exp.end(); ++it)
 				{
 					snm.init(it->begin(), it->end());
 					for (MapType::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
@@ -491,7 +491,6 @@ class TOPPFileFilter
 				if ((size_l <= feature_map[i].getSubordinates().size()) && (feature_map[i].getSubordinates().size() <= size_u)) { size_ok = true; } else { size_ok = false;}
 				if ((q_l <= feature_map[i].getOverallQuality()) && (feature_map[i].getOverallQuality() <= q_u)) { q_ok = true; } else {q_ok = false;}
 
-				//std::cout << feature_map[i].getRT() << " " << feature_map[i].getMZ() << " " << feature_map[i].getIntensity() << " " << feature_map[i].getCharge() << " "<< feature_map[i].getOverallQuality() << " ";
 				if (rt_ok == true && mz_ok == true && int_ok == true && charge_ok == true && size_ok == true && q_ok == true)
 				{
 					//std::cout << rt_ok << mz_ok << int_ok << charge_ok << size_ok << q_ok << "\n";
@@ -523,8 +522,7 @@ class TOPPFileFilter
 			
 			ConsensusMap consensus_map;
 			ConsensusXMLFile f;
-			//f.setLogType(log_type_);
-			// this does not work yet implicitly - not supported by FeatureXMLFile
+
 			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
 			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
 			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
@@ -537,7 +535,7 @@ class TOPPFileFilter
 			
 			bool charge_ok, size_ok;
 			
-			for ( ConsensusMap::const_iterator citer = consensus_map.begin(); citer != consensus_map.end(); ++citer)
+			for (ConsensusMap::const_iterator citer = consensus_map.begin(); citer != consensus_map.end(); ++citer)
 			{
 				if ((charge_l <= citer->getCharge()) && (citer->getCharge() <= charge_u)) { charge_ok = true; } else {charge_ok = false;}
 				if ((citer->size() >= size_l) && (citer->size() <= size_u)) { size_ok = true; } else { size_ok = false;}
@@ -569,7 +567,7 @@ class TOPPFileFilter
 					for (ConsensusMap::Iterator cm_it=consensus_map_filtered.begin(); cm_it!=consensus_map_filtered.end(); ++cm_it)
 					{
 						
-						for(ConsensusFeature::HandleSetType::const_iterator fh_iter = (*cm_it).getFeatures().begin();
+						for (ConsensusFeature::HandleSetType::const_iterator fh_iter = (*cm_it).getFeatures().begin();
 							fh_iter != (*cm_it).getFeatures().end();
 							++fh_iter)
 						{
@@ -596,7 +594,8 @@ class TOPPFileFilter
 					
 					ff.store(out,feature_map_filtered);
 				}
-				else {
+				else 
+				{
 					writeLog_("When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
@@ -613,7 +612,7 @@ class TOPPFileFilter
 
 					ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
 					ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
-					for(; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
+					for (; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
 					{
 						if (maps.contains(fh_it->getMapIndex()))
 						{
