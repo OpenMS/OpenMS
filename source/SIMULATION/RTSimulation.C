@@ -319,7 +319,7 @@ namespace OpenMS {
     UInt k_mer_length = 0;
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
-    Size max_number_of_peptides(param_.getValue("HPLC:max_number_of_peptides"));
+    Size max_number_of_peptides(2000); // hard coding pediction bins; larger values only take more memory, result is not affected
 
 		LOG_INFO << "Predicting RT ... ";
     
@@ -492,8 +492,6 @@ namespace OpenMS {
 
     // HPLC specific Parameters
     defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
-    defaults_.setValue("HPLC:max_number_of_peptides",100000,"Maximal number of peptides considered at once");
-    defaults_.setMinInt("HPLC:max_number_of_peptides",1);
 
     // CE specific Parameters
     defaults_.setValue("CE:pH",3.0,"pH of buffer");
