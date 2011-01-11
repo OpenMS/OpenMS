@@ -225,7 +225,7 @@ namespace seqan
 
 				  if (_charComparator(representative(iterA)[ipA],
                               representative(iterB)[ipB],
-                              seqan::EquivalenceClassAA_<char>() ))
+															EquivalenceClassAA_<char>::VALUE ))
           {
             const char xx = representative(iterB)[ipB];
             // matched (including character classes) - look at ambiguous AA in PROTEIN tree (peptide tree is not considered!)
@@ -261,7 +261,7 @@ namespace seqan
   {
     unsigned a_index = ordValue(charA);
     unsigned b_index = ordValue(charB);
-    return (equivalence.VALUE[a_index] & equivalence.VALUE[b_index]) != 0;
+    return (equivalence[a_index] & equivalence[b_index]) != 0;
   }
 
 
