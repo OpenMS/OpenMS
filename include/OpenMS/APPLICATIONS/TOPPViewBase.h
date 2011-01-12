@@ -257,8 +257,8 @@ namespace OpenMS
       void updateToolBar();
       /// adapts the layer bar to the active window
       void updateLayerBar();
-      /// adapts the spectrum bar to the active window
-      void updateSpectraViewBar();
+      /// adapts view bar to the active window
+      void updateViewBar();
       /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
       void viewChanged(int);
       /// adapts the filter bar to the active window

@@ -110,7 +110,7 @@ namespace OpenMS
     }
 
     tv_->updateLayerBar();
-    tv_->updateSpectraViewBar();
+    tv_->updateViewBar();
     tv_->updateFilterBar();
     tv_->updateMenu();
    }

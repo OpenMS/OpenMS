@@ -178,7 +178,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolBar()));
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerBar()));
-          connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateSpectraViewBar()));
+          connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateViewBar()));
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
           connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateCurrentPath()));
@@ -1428,7 +1428,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
     //updateDataBar();
 		updateLayerBar();
-    updateSpectraViewBar();
+    updateViewBar();
 		updateFilterBar();
   	updateMenu();
 	}
@@ -1890,7 +1890,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		layer_manager_->blockSignals(false);
   }
 
-  void TOPPViewBase::updateSpectraViewBar()
+  void TOPPViewBase::updateViewBar()
   {
     SpectrumCanvas* cc = getActiveCanvas();
     int layer_row = layer_manager_->currentRow();
@@ -1941,7 +1941,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     // notify that new behavior has been activated
     view_behavior_->activateBehavior();
-    updateSpectraViewBar();
+    updateViewBar();
   }
 
   /*
@@ -1968,7 +1968,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		{
       getActiveCanvas()->activateLayer(i);
 			updateFilterBar();
-      updateSpectraViewBar();
+      updateViewBar();
 		}
 	}
 
@@ -2045,7 +2045,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 			//Update filter bar, spectrum bar and layer bar
 			updateLayerBar();
-      updateSpectraViewBar();
+      updateViewBar();
 			updateFilterBar();
 			updateMenu();
 
@@ -2260,7 +2260,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::layerActivated()
   {
     updateToolBar();
-    updateSpectraViewBar();
+    updateViewBar();
     updateCurrentPath();
   }
 
@@ -3079,7 +3079,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         mapper.annotate(*layer.getConsensusMap(),identifications,protein_identifications);
 			}
 		}
-    updateSpectraViewBar();
+    updateViewBar();
 	}
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -3291,7 +3291,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
     updateLayerBar();
-    updateSpectraViewBar();
+    updateViewBar();
     updateFilterBar();
     updateMenu();
   }
@@ -3328,7 +3328,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       showSpectrumWidgetInWindow(w, caption);
       updateLayerBar();
-      updateSpectraViewBar();
+      updateViewBar();
       updateFilterBar();
       updateMenu();
     }
@@ -3842,7 +3842,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	void TOPPViewBase::showSpectrumBrowser()
 	{
     views_dockwidget_->show();
-    updateSpectraViewBar();
+    updateViewBar();
 	}
 
   void TOPPViewBase::fileChanged_(const String& filename)
@@ -4010,6 +4010,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
     */
+    tv_->updateLayerBar();
+    tv_->updateViewBar();
+    tv_->updateFilterBar();
+    tv_->updateMenu();
   }
 
   void TOPPViewBase::setTOPPASTabEnabled(bool enabled)
