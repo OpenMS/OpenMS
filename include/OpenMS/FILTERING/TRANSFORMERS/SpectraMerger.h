@@ -30,6 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -59,13 +60,7 @@ namespace OpenMS
 
       Distance is determined as 
       
-        delta m/z * weight + delta rt * weight
-
-      and normalized to [0-1] by dividing with:
-
-        max delta m/z * weight + max delta rt * weight
-
-
+        (d_rt/rt_max_ + d_mz/mz_max_) / 2
 
     */
     class SpectraDistance_
@@ -88,12 +83,14 @@ namespace OpenMS
         rt_weight_ = (DoubleReal) param_.getValue("rt_weight");
         mz_max_ = (DoubleReal) param_.getValue("mz_tolerance");
         mz_weight_ = (DoubleReal) param_.getValue("mz_weight");
+
         return;
       }
 
-      double getDistance(const DoubleReal d_rt, const DoubleReal d_mz) const
+      double getSimilarity(const DoubleReal d_rt, const DoubleReal d_mz) const
       {
-        return (d_rt/rt_max_ + d_mz/mz_max_) / 2;
+        //     1 - distance
+        return 1 - ( (d_rt/rt_max_ + d_mz/mz_max_) / 2);
       }
 
       // measure of SIMILARITY (not distance, i.e. 1-distance)!!
@@ -102,14 +99,11 @@ namespace OpenMS
         // get RT distance:
         DoubleReal d_rt = fabs(first.getRT() - second.getRT());
         DoubleReal d_mz = fabs(first.getMZ() - second.getMZ());
-        if (d_rt > rt_max_) return 0;
-        if (d_mz > mz_max_) return 0;
 
+        if (d_rt > rt_max_ || d_mz > mz_max_) {return 0;}
+        
         // calculate similarity (0-1):
-        DoubleReal sim = 1; //getDistance(d_rt, d_mz) / max_possible_distance_;
-
-        // clustering threshold is 0.5, so everything above will be disallowed
-        //distance /= 2;
+        DoubleReal sim = getSimilarity(d_rt, d_mz);
       
         return sim;
       }
@@ -235,9 +229,10 @@ namespace OpenMS
 				CompleteLinkage sl;
 				DistanceMatrix<Real> dist; // will be filled
 				ClusterHierarchical ch;
-				ch.setThreshold(0.5);
+				
+        //ch.setThreshold(0.99);
 
-				// clustering
+				// clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
 				ch.cluster<BaseFeature,SpectraDistance_>(data,llc,sl,tree,dist);
 			}
 
@@ -252,8 +247,8 @@ namespace OpenMS
 			}
       ca.cut(data_size-node_count, tree, clusters);
 
-      //std::cerr << "Treesize: " << tree.size() << "   #clusters: " << clusters.size() << std::endl;
-      //std::cerr << "tree: " << ca.newickTree(tree, true) << "\n";
+      //std::cerr << "Treesize: " << (tree.size()+1) << "   #clusters: " << clusters.size() << std::endl;
+      //std::cerr << "tree:\n" << ca.newickTree(tree, true) << "\n";
 
       // convert to blocks
       MergeBlocks spectra_to_merge;
@@ -317,19 +312,19 @@ namespace OpenMS
 
         consensus_spec.unify(exp[it->first]); // append meta info
         merged_indices.insert(it->first);
-        std::cerr << "insert " << it->first << "\n";
 
         typename MapType::SpectrumType all_peaks = exp[it->first];			
         DoubleReal rt_average=all_peaks.getRT();
+        DoubleReal mz_average=all_peaks.getPrecursors()[0].getMZ();
 
         // block elements
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
           consensus_spec.unify(exp[*sit]); // append meta info
           merged_indices.insert(*sit);
-          std::cerr << "insert " << *sit << "\n";
 
           rt_average+=exp[*sit].getRT();
+          if (ms_level >= 2) mz_average+=exp[*sit].getPrecursors()[0].getMZ();
 					for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
 					{
 						all_peaks.push_back(*pit);
@@ -338,6 +333,16 @@ namespace OpenMS
 				all_peaks.sortByPosition();
         rt_average/=it->second.size()+1;
         consensus_spec.setRT(rt_average);
+
+        mz_average/=it->second.size()+1;
+        if (ms_level >= 2)
+        {
+          std::vector< Precursor > pcs = consensus_spec.getPrecursors();
+          //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
+          pcs.resize(1);
+          pcs[0].setMZ(mz_average);
+          consensus_spec.setPrecursors(pcs);
+        }
 
         if (all_peaks.size()==0) continue;
         else
@@ -371,24 +376,17 @@ namespace OpenMS
         LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
       }
       
-      LOG_INFO << "Size original: " << exp.size() << "\n";
-
       // remove all spectra that were within a cluster
       
       for (std::set<Size>::const_reverse_iterator it=merged_indices.rbegin(); it!=merged_indices.rend();++it)
       {
         Size index = *it;
-        std::cerr << "removing " << index << "\n";
         exp.erase (exp.begin() + index);
       }
       // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
       
-      LOG_INFO << "Size after clean: " << exp.size() << "\n";
-      
       // ... and add consensus spectra
 			exp.insert(exp.end(), merged_spectra.begin(), merged_spectra.end());
-
-      LOG_INFO << "Size after merge: " << exp.size() << "\n";
 
     }
 	
