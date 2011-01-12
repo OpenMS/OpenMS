@@ -378,7 +378,7 @@ namespace OpenMS
       }
       
       // remove all spectra that were within a cluster
-      MapType::SpectrumType empty_spec;
+      typename MapType::SpectrumType empty_spec;
       MapType exp_tmp;
       for (Size i=0;i<exp.size();++i)
       {
@@ -388,7 +388,7 @@ namespace OpenMS
           exp[i] = empty_spec;
         }
       }
-      typedef std::vector<MapType::SpectrumType> Base;
+      typedef std::vector<typename MapType::SpectrumType> Base;
       exp.Base::operator=(exp_tmp);
 
       // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
