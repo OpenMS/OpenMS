@@ -27,6 +27,7 @@
 //
 
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
