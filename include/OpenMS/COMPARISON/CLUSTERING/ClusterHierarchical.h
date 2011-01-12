@@ -166,7 +166,9 @@ namespace OpenMS
 			return threshold_;
 		}
 
-		/// set the threshold
+    /// set the threshold (in terms of distance)
+    /// The default is 1, i.e. only at similarity 0 the clustering stops. 
+    /// Warning: clustering is not supported by all methods yet (e.g. SingleLinkage does ignore it).
 		void setThreshold(double x)
 		{
 			threshold_= x;
