@@ -4010,10 +4010,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
     */
-    tv_->updateLayerBar();
-    tv_->updateViewBar();
-    tv_->updateFilterBar();
-    tv_->updateMenu();
+    updateLayerBar();
+    updateViewBar();
+    updateFilterBar();
+    updateMenu();
   }
 
   void TOPPViewBase::setTOPPASTabEnabled(bool enabled)

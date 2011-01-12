@@ -251,12 +251,18 @@ namespace OpenMS
 		
 		if (layer.type==LayerData::DT_PEAK) //peaks
 		{
-			//renaming some values for readability
+      // renaming some values for readability
       const ExperimentType& peak_map = *layer.getPeakData();
       const DoubleReal rt_min = visible_area_.minPosition()[1];
       const DoubleReal rt_max = visible_area_.maxPosition()[1];
       const DoubleReal mz_min = visible_area_.minPosition()[0];
       const DoubleReal mz_max = visible_area_.maxPosition()[0];
+
+      // skip empty peak maps
+      if (peak_map.size() == 0)
+      {
+        return;
+      }
 
 			//determine number of pixels for each dimension
       Size rt_pixel_count = image_height;
@@ -294,15 +300,15 @@ namespace OpenMS
         for(Size i=0; i!= peak_map.size(); ++i)
         {
           // skipp non MS1 and empty spectra
-          if (peak_map[i].getMSLevel()!=1 || peak_map[i].size()==0)
+          if (peak_map[i].getMSLevel() != 1 || peak_map[i].size() == 0)
           {
             continue;
           }          
           DoubleReal current_average_mz_spacing =  (peak_map[i][peak_map[i].size()-1].getMZ()- peak_map[i][0].getMZ())/peak_map[i].size();
           mz_spacing.push_back(current_average_mz_spacing);
         }
-        sort(mz_spacing.begin(), mz_spacing.end());        
-        min_spacing_mz = mz_spacing[0];
+        sort(mz_spacing.begin(), mz_spacing.end());
+        min_spacing_mz = mz_spacing.size() != 0 ? mz_spacing[0] : 1.0;
 
 #ifdef DEBUG_TOPPVIEW
         cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
