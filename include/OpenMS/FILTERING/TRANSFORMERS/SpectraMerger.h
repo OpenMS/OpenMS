@@ -226,12 +226,11 @@ namespace OpenMS
 
 				SpectraDistance_ llc;
 				llc.setParameters(param_.copy("precursor_method:",true));
-				CompleteLinkage sl;
+				SingleLinkage sl;
 				DistanceMatrix<Real> dist; // will be filled
 				ClusterHierarchical ch;
 				
         //ch.setThreshold(0.99);
-
 				// clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
 				ch.cluster<BaseFeature,SpectraDistance_>(data,llc,sl,tree,dist);
 			}
@@ -241,9 +240,10 @@ namespace OpenMS
       std::vector<std::vector<Size> > clusters;
       // count number of real tree nodes (not the -1 ones):
       Size node_count=0;
-      for (;node_count<tree.size();++node_count)
+      for (Size ii=0;ii<tree.size();++ii)
 			{
-				if (tree[node_count].distance == -1) break;
+				if (tree[ii].distance >= 1) tree[ii].distance=-1; // manually set to disconnect, as SingleLinkage does not support it
+        if (tree[ii].distance != -1) ++node_count;
 			}
       ca.cut(data_size-node_count, tree, clusters);
 
@@ -305,6 +305,7 @@ namespace OpenMS
       // each BLOCK
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
+
         ++cluster_sizes[ it->second.size() + 1]; // for stats
 
   			typename MapType::SpectrumType consensus_spec;
@@ -377,14 +378,21 @@ namespace OpenMS
       }
       
       // remove all spectra that were within a cluster
-      
-      for (std::set<Size>::const_reverse_iterator it=merged_indices.rbegin(); it!=merged_indices.rend();++it)
+      MapType::SpectrumType empty_spec;
+      MapType exp_tmp;
+      for (Size i=0;i<exp.size();++i)
       {
-        Size index = *it;
-        exp.erase (exp.begin() + index);
+        if (merged_indices.count(i)==0) // save unclustered ones
+        {
+          exp_tmp.push_back(exp[i]);
+          exp[i] = empty_spec;
+        }
       }
+      typedef std::vector<MapType::SpectrumType> Base;
+      exp.Base::operator=(exp_tmp);
+
       // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
-      
+
       // ... and add consensus spectra
 			exp.insert(exp.end(), merged_spectra.begin(), merged_spectra.end());
 
