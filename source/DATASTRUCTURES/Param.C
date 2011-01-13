@@ -775,13 +775,13 @@ namespace OpenMS
 					d.substitute("\n","#br#");
 					//d.substitute("<","&lt;");
 					//d.substitute(">","&gt;");
-					os << indentation  << "<NODE name=\"" << writeXMLEscape(it2->name) << "\" description=\"" << writeXMLEscape(d) << "\">" << endl;
+					os << indentation  << "<NODE name=\"" << writeXMLEscape(it2->name) << "\" description=\"" << writeXMLEscape(d) << "\">" << "\n";
 					indentation += "  ";
 				}
 				else //closed node
 				{
 					indentation.resize(indentation.size()-2);
-					os << indentation << "</NODE>" << endl;
+					os << indentation << "</NODE>" << "\n";
 				}
 			}
 			
@@ -897,39 +897,39 @@ namespace OpenMS
 					case DataValue::INT_VALUE:
 					case DataValue::DOUBLE_VALUE:
 					case DataValue::STRING_VALUE:
-						os << " />" <<  endl;	
+						os << " />" <<  "\n";	
 						break;
 					case DataValue::STRING_LIST:
 						{
-							os << ">" <<  endl;
+							os << ">" <<  "\n";
 							const StringList& list = it->value;
 							for (Size i=0; i<list.size();++i)
 							{
-								os << indentation << "  <LISTITEM value=\"" << writeXMLEscape(list[i]) << "\"/>" << endl;	
+								os << indentation << "  <LISTITEM value=\"" << writeXMLEscape(list[i]) << "\"/>" << "\n";	
 							}
-							os << indentation << "</ITEMLIST>" << endl;	
+							os << indentation << "</ITEMLIST>" << "\n";	
 						}
 						break;
 					case DataValue::INT_LIST:
 						{
-							os << ">" <<  endl;
+							os << ">" <<  "\n";
 							const IntList& list = it->value;
 							for (Size i=0; i<list.size();++i)
 							{
-								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << "\n";	
 							}
-							os << indentation << "</ITEMLIST>" << endl;	
+							os << indentation << "</ITEMLIST>" << "\n";	
 						}
 						break;
 					case DataValue::DOUBLE_LIST:
 						{
-							os << ">" <<  endl;
+							os << ">" <<  "\n";
 							const DoubleList& list = it->value;
 							for (Size i=0; i<list.size();++i)
 							{
-								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << "\n";	
 							}
-							os << indentation << "</ITEMLIST>" << endl;	
+							os << indentation << "</ITEMLIST>" << "\n";	
 						}
 						break;
 					default:
@@ -947,11 +947,11 @@ namespace OpenMS
 		  for(std::vector< ParamIterator::TraceInfo >::const_iterator it2 = trace.begin(); it2!=trace.end(); ++it2)
 		  {
 			  indentation.resize(indentation.size()-2);
-			  os << indentation << "</NODE>" << endl;	
+			  os << indentation << "</NODE>" << "\n";	
 		  }
     }
 		
-		os << "</PARAMETERS>\n";
+		os << "</PARAMETERS>" << endl; // forces a flush
     os_.close();
 	}
 	
