@@ -663,11 +663,12 @@ namespace OpenMS
 						//------------------------------------------------------------------
 						Int plot_nr=-1;
 
-
 #ifdef _OPENMP
 #pragma omp critical (FeatureFinderAlgorithmPicked)
 #endif
-						plot_nr = ++plot_nr_global;
+            {
+						  plot_nr = ++plot_nr_global;
+            }
 
             //------------------------------------------------------------------
 
@@ -805,7 +806,11 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical (FeatureFinderAlgorithmPicked)
 #endif
-						features_->push_back(f);
+            {
+						  features_->push_back(f);
+            }
+
+
 						feature_candidates++;
 						
 						//----------------------------------------------------------------
