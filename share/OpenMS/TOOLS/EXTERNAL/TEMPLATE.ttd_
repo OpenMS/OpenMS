@@ -5,6 +5,11 @@
 		<type>RAWFileConvert</type>
 		// description of the wrapper
 		<external>
+      <text>
+        <onstartup>This is printed on startup ...</onstartup>
+        <onfail>This is printed in case of error - you can list possible causes for failure here...</onfail>
+        <onfinish>This is printed when finished successfully.</onfinish>
+      </text>    
 		  // currently disregarded by TOPPAS, but might become useful
 		  <e_category>FileConversion</e_category>
 		  // command line options of your external tool (use placeholders ,e.g. %1 to insert dynamic content)

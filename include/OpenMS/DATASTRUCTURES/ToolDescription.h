@@ -61,13 +61,13 @@ namespace OpenMS
     struct MappingParam
     {
       std::map<Int, String> mapping;
-      FileMapping post_move;
+      std::vector<FileMapping> post_moves;
       
       MappingParam& operator=(const MappingParam& rhs)
       {
         if (this==&rhs) return *this;
         mapping = rhs.mapping;
-        post_move = rhs.post_move;
+        post_moves = rhs.post_moves;
         return *this;
       }
     };
@@ -97,6 +97,9 @@ namespace OpenMS
 
     struct OPENMS_DLLAPI ToolExternalDetails
     {
+      String text_startup;
+      String text_fail;
+      String text_finish;
       String category;
       String commandline;
       String path; //< filename to external tool

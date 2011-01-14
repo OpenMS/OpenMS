@@ -80,8 +80,10 @@ namespace OpenMS
 		}
 		if (tag_ == "file")
 		{
-      tde_.tr_table.post_move.location = attributeAsString_(attributes, "location");
-      tde_.tr_table.post_move.target = attributeAsString_(attributes, "target");
+      Internal::FileMapping fm;
+      fm.location = attributeAsString_(attributes, "location");
+      fm.target = attributeAsString_(attributes, "target");
+      tde_.tr_table.post_moves.push_back(fm);
 			return;
 		}
 
@@ -99,7 +101,8 @@ namespace OpenMS
     }
     else if (!td_.is_internal)
     {
-      if (tag_=="external" || tag_=="cloptions" || tag_=="path" || tag_=="mappings" || tag_=="mapping" || tag_=="ini_param") return;
+      if (tag_=="external" || tag_=="cloptions" || tag_=="path" || tag_=="mappings" || tag_=="mapping" || tag_=="ini_param" ||
+          tag_=="text" || tag_=="onstartup" || tag_=="onfail" || tag_=="onfinish") return;
     }
 
     error(LOAD, "ToolDescriptionHandler::startElement(): Unkown element found: '" + tag_ + "', ignoring.");
@@ -115,7 +118,7 @@ namespace OpenMS
     
     //std::cout << "characters '" << sm_.convert(chars) << "' in tag " << tag_ << "\n";
 
-    if (tag_ == "ttd" || tag_ == "tool" || tag_ == "mappings" || tag_=="external") return;
+    if (tag_ == "ttd" || tag_ == "tool" || tag_ == "mappings" || tag_=="external" || tag_=="text") return;
 
     if (tag_ == "name") td_.name = sm_.convert(chars);
 		else if (tag_ == "category") td_.category = sm_.convert(chars);
@@ -123,6 +126,10 @@ namespace OpenMS
     else if (tag_ == "e_category") tde_.category = sm_.convert(chars);
     else if (tag_ == "cloptions") tde_.commandline = sm_.convert(chars);
     else if (tag_ == "path") tde_.path = sm_.convert(chars);
+    else if (tag_ == "onstartup") tde_.text_startup = sm_.convert(chars);
+    else if (tag_ == "onfail") tde_.text_fail = sm_.convert(chars);
+    else if (tag_ == "onfinish") tde_.text_finish = sm_.convert(chars);
+
     
     else error(LOAD, "ToolDescriptionHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
 	}

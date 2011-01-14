@@ -204,7 +204,17 @@ class TOPPGenericWrapper
 
 	protected:
   
- 
+    Internal::ToolExternalDetails tde;
+
+    ExitCodes wrapExit(const ExitCodes return_code)
+    {
+      if (return_code!=EXECUTION_OK)
+      {
+        LOG_ERROR << "\n" << tde.text_fail << "\n";
+      }
+      return return_code;
+    }
+
 		void registerOptionsAndFlags_()
 		{
       registerSubsection_("ETool","tool specific parameters");
@@ -232,7 +242,20 @@ class TOPPGenericWrapper
 		{
       // find the config for the tool:
       String type = getStringOption_("type");
-      Internal::ToolExternalDetails tde;
+      
+      // check required parameters (TOPPBase does not do this as we did not use registerInputFile_(...) etc)
+      Param p = this->getParam_().copy("ETool:",true);
+      for (Param::ParamIterator it=p.begin();it!=p.end();++it)
+      {
+        if (  ((it->tags).count("required")>0 )
+           && (it->value.toString().trim().size()==0 )
+           ) 
+				{
+					LOG_ERROR << "The INI-parameter '"+it->name+"' is required, but was not given! Aborting ...";
+          return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
+				}
+      }
+
       Internal::ToolDescription gw = ToolHandler::getTOPPToolList(true)[toolName_()];
       for (Size i=0; i<gw.types.size(); ++i)
       {
@@ -242,6 +265,8 @@ class TOPPGenericWrapper
           break;
         }
       }
+      
+      LOG_INFO << tde.text_startup << "\n";
 
       String command_args = tde.commandline;
       // check for double spaces and warn
@@ -256,8 +281,8 @@ class TOPPGenericWrapper
       }
 
       ///// construct the command line:
-      // go through mappings:
-      for (std::map<Int, String>::const_iterator it = tde.tr_table.mapping.begin(); it != tde.tr_table.mapping.end(); ++it)
+      // go through mappings (reverse because replacing %10 must come before %1):
+      for (std::map<Int, String>::const_reverse_iterator it = tde.tr_table.mapping.rbegin(); it != tde.tr_table.mapping.rend(); ++it)
       {
         //std::cout << "mapping #" << it->first << "\n";
         String fragment = it->second;
@@ -281,20 +306,21 @@ class TOPPGenericWrapper
       {
         LOG_ERROR << ("External tool returned with non-zero exit code ("+String(builder.exitCode())+"), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
         LOG_ERROR << ("External tool output:\n"+ String(QString(builder.readAll())));
-        return EXTERNAL_PROGRAM_ERROR;
+        return wrapExit(EXTERNAL_PROGRAM_ERROR);
       }
       
       LOG_INFO << ("External tool output:\n"+ String(QString(builder.readAll())));
 
       
       // post processing (file moving via 'file' command)
-      if (tde.tr_table.post_move.location != "")
+      for (Size i=0;i<tde.tr_table.post_moves.size();++i)
       {
+        const Internal::FileMapping& fm = tde.tr_table.post_moves[i];
         // find target param:
         Param p = this->getParam_().copy("ETool:",true);
-        String target = tde.tr_table.post_move.target;
+        String target = fm.target;
         if (!p.exists(target)) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
-        String source = tde.tr_table.post_move.location;
+        String source = fm.location;
         // fragment's placeholder evaluation:
         createFragment(source, p);
         // check if target already exists:
@@ -304,19 +330,30 @@ class TOPPGenericWrapper
           if (!File::remove(target_file))
           {
             LOG_ERROR << "Cannot remove conflicting file '"+target_file+"'. Check permissions! Aborting ...";
-            return CANNOT_WRITE_OUTPUT_FILE;
+            return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
           }
         }
+				else
+				{
+					if (!p.hasTag(target,"required")) 
+					{
+						LOG_INFO << "Parameter '"+target+"' not given. Skipping forwarding of files.\n";
+						continue;
+					}
+				}
         // move to target
         writeDebug_(String("moving '") + source + "' to '" + target_file + "'", 1);
         bool move_ok = QFile::rename(source.toQString(),target_file.toQString());
         if (!move_ok)
         {
           LOG_ERROR << "Moving the target file '"+target_file+"' from '" + source + "' failed! Aborting ...";
-          return CANNOT_WRITE_OUTPUT_FILE;
+          return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
       }
-      return EXECUTION_OK;
+
+      LOG_INFO << tde.text_finish << "\n";
+
+      return wrapExit(EXECUTION_OK);
 		}
 };
 
