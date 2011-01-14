@@ -115,6 +115,7 @@ using namespace std;
   <ul>
   <li>%TMP  --> The current temp directory, fetched using File::getTempDirectory()
   <li>%BASENAME[file] --> the basename of a file, e.g. c:\tmp\myfile.mzML gives 'myfile'
+  <li>%RND --> generates a long random number, which can be used to generate unique filenames in a <file_pre> tag
   <li>%%<param> --> any param registered in the ini_param section, e.g. '%%in'
   </ul>
 
@@ -169,8 +170,11 @@ void createFragment(String& fragment, const Param& param)
   }
   if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
   
-  // %TMP% replace:
+  // %TMP replace:
   fragment.substitute("%TMP", File::getTempDirectory());
+
+  // %RND replace:
+  fragment.substitute("%RND", String(UniqueIdGenerator::getUniqueId()));
 
   // %BASENAME% replace
   QRegExp rx("%BASENAME\\[(.*)\\]");
@@ -243,17 +247,29 @@ class TOPPGenericWrapper
       // find the config for the tool:
       String type = getStringOption_("type");
       
+
+      Param tool_param = this->getParam_();
+
       // check required parameters (TOPPBase does not do this as we did not use registerInputFile_(...) etc)
-      Param p = this->getParam_().copy("ETool:",true);
+      Param p = tool_param.copy("ETool:",true);
       for (Param::ParamIterator it=p.begin();it!=p.end();++it)
       {
-        if (  ((it->tags).count("required")>0 )
-           && (it->value.toString().trim().size()==0 )
-           ) 
-				{
-					LOG_ERROR << "The INI-parameter '"+it->name+"' is required, but was not given! Aborting ...";
-          return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
-				}
+        if ((it->tags).count("required")>0)
+        {
+          if (it->value.toString().trim().size()==0 )
+          {
+					  LOG_ERROR << "The INI-parameter '"+it->name+"' is required, but was not given! Aborting ...";
+            return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
+          }
+          else if ((it->tags).count("input file")>0)
+          {
+            if (!File::exists(it->value))
+            {
+              LOG_ERROR << "Input file '"+String(it->value)+"' does not exist! Aborting ...";
+              return wrapExit(INPUT_FILE_NOT_FOUND);
+            }
+          }
+        }
       }
 
       Internal::ToolDescription gw = ToolHandler::getTOPPToolList(true)[toolName_()];
@@ -280,6 +296,46 @@ class TOPPGenericWrapper
         LOG_WARN << "result: " << command_args << "\n";
       }
 
+
+      // do "pre" moves (e.g. if the wrapped tool works on its data in-place (overwrites) it - we need to make a copy first
+      // - we copy the file
+      // - we set the value of the affected parameter to the copied tmp file, such that subsequent calls target the tmp file
+      for (Size i=0;i<tde.tr_table.pre_moves.size();++i)
+      {
+        const Internal::FileMapping& fm = tde.tr_table.pre_moves[i];
+        // find target param:
+        Param p = tool_param.copy("ETool:",true);
+        String target = fm.target;
+        if (!p.exists(target)) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+        String tmp_location = fm.location;
+        // fragment's placeholder evaluation:
+
+        createFragment(tmp_location, p);
+
+        // check if target already exists:
+        String target_file = (String)p.getValue(target);
+        if (File::exists(tmp_location))
+        {
+          if (!File::remove(tmp_location))
+          {
+            LOG_ERROR << "While writing a tmp file: Cannot remove conflicting file '"+tmp_location+"'. Check permissions! Aborting ...";
+            return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
+          }
+        }
+        // create the temp file  tmp_location target_file
+        tmp_location.substitute('/','\\');
+        writeDebug_(String("Copying '") + target_file + "' to '" + tmp_location + "'", 1);
+        bool move_ok = QFile::copy(target_file.toQString(),tmp_location.toQString());
+        if (!move_ok)
+        {
+          LOG_ERROR << "Copying the target file '"+tmp_location+"' from '" + target_file + "' failed! Aborting ...";
+          return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
+        }
+        // set the input file's value to the temp file
+        tool_param.setValue(target, tmp_location);
+      }
+
+
       ///// construct the command line:
       // go through mappings (reverse because replacing %10 must come before %1):
       for (std::map<Int, String>::const_reverse_iterator it = tde.tr_table.mapping.rbegin(); it != tde.tr_table.mapping.rend(); ++it)
@@ -287,7 +343,7 @@ class TOPPGenericWrapper
         //std::cout << "mapping #" << it->first << "\n";
         String fragment = it->second;
         // fragment's placeholder evaluation:
-        createFragment(fragment, this->getParam_().copy("ETool:",true));
+        createFragment(fragment, tool_param.copy("ETool:",true));
 
         // replace fragment in cl
         //std::cout << "replace : " << "%"+String(it->first) << " with '" << fragment << "\n";
@@ -317,7 +373,7 @@ class TOPPGenericWrapper
       {
         const Internal::FileMapping& fm = tde.tr_table.post_moves[i];
         // find target param:
-        Param p = this->getParam_().copy("ETool:",true);
+        Param p = tool_param.copy("ETool:",true);
         String target = fm.target;
         if (!p.exists(target)) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
         String source = fm.location;

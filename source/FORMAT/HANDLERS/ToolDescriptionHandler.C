@@ -78,12 +78,20 @@ namespace OpenMS
       tde_.tr_table.mapping[id] = command;
 			return;
 		}
-		if (tag_ == "file")
+		if (tag_ == "file_post")
 		{
       Internal::FileMapping fm;
       fm.location = attributeAsString_(attributes, "location");
       fm.target = attributeAsString_(attributes, "target");
       tde_.tr_table.post_moves.push_back(fm);
+			return;
+		}
+		if (tag_ == "file_pre")
+		{
+      Internal::FileMapping fm;
+      fm.location = attributeAsString_(attributes, "location");
+      fm.target = attributeAsString_(attributes, "target");
+      tde_.tr_table.pre_moves.push_back(fm);
 			return;
 		}
 

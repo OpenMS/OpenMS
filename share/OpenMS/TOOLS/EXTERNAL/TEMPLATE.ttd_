@@ -22,12 +22,20 @@
 		  <mappings>
 			<mapping id="1" cl="%TMP" />
 			<mapping id="2" cl="%%in" />
+
 			// output mapping/copying: this is a little hard to explain and usually you will not need it (then you have to delete all file-tags!)
+			// what it does: when the wrapped tool works with in-place files (i.e. overwrites its input), you must copy it before
+			//               ,e.g. TPP's RefreshParser will overwrite its input pepXML file
+			//               The targeted parameter gets replaced with the temporary filename after the copy is done, so that subsequent
+			//               operations target the temp file
+      <file_pre location="%TMP/%RND_%%in" target="in" />
+      
+			// output mapping/moving: this is a little hard to explain and usually you will not need it (then you have to delete all file-tags!)
 			// what it does: when you cannot specify an explicit output file to the external tool and it rather determines that by itself
 			//               ,e.g. msconvert will create an output file (call it F_E) which has the same name as the input file with a replaced suffix
 			//               then you might need to move F_E to the name you want (and/or where TOPPAS can find it)
 			//               Thus you specify the name of F_E and the target name (in terms of INI parameter values)
-			<file location="%TMP/%BASENAME[%%in].mzML" target="out" />
+			<file_post location="%TMP/%BASENAME[%%in].mzML" target="out" />
 		  </mappings>
 		  <ini_param>
 			<ITEM name="in" value="" type="string" description="input file in RAW format(valid formats: &apos;RAW&apos;)" tags="input file" />

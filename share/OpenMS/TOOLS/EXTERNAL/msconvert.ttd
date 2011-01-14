@@ -17,7 +17,7 @@
 		  <mappings>
 			<mapping id="1" cl="%TMP" />
 			<mapping id="2" cl="%%in" />
-			<file location="%TMP/%BASENAME[%%in].mzML" target="out" />
+			<file_post location="%TMP/%BASENAME[%%in].mzML" target="out" />
 		  </mappings>
 		  <ini_param>
 			<ITEM name="in" value="" type="string" description="input file in RAW format(valid formats: &apos;RAW&apos;)" tags="input file" />

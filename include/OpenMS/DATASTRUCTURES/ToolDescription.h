@@ -61,12 +61,14 @@ namespace OpenMS
     struct MappingParam
     {
       std::map<Int, String> mapping;
+      std::vector<FileMapping> pre_moves;
       std::vector<FileMapping> post_moves;
       
       MappingParam& operator=(const MappingParam& rhs)
       {
         if (this==&rhs) return *this;
         mapping = rhs.mapping;
+        pre_moves = rhs.pre_moves;
         post_moves = rhs.post_moves;
         return *this;
       }

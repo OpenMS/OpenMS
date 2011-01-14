@@ -25,8 +25,8 @@
 			<mapping id="9" cl="%%flag_confem" />
 			<mapping id="10" cl="%%flag_allpeps" />
 			<mapping id="11" cl="%%flag_noplot" />
-			<file location="0.prot.xml" target="out" />
-			<file location="0.prot.xls" target="out_xls" />
+			<file_post location="0.prot.xml" target="out" />
+			<file_post location="0.prot.xls" target="out_xls" />
 		  </mappings>
 		  <ini_param>
 			<ITEM name="in" value="" type="string" description="Input file in pepXML format(valid formats: &apos;pepXML&apos;)" tags="input file,required" />
