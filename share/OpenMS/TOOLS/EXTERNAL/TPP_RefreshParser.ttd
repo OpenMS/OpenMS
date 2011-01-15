@@ -21,9 +21,9 @@
 			<file_post location="%%in" target="out" />
 		  </mappings>
 		  <ini_param>
-			<ITEM name="in" value="" type="string" description="input file in RAW format(valid formats: &apos;RAW&apos;)" tags="input file,required" />
+			<ITEM name="in" value="" type="string" description="input file in pepXML format(valid formats: &apos;pepXML&apos;)" tags="input file,required" />
       <ITEM name="database" value="" type="string" description="FASTA database to find matching proteins." tags="input file,required" />
-			<ITEM name="out" value="" type="string" description="output file in mzML format(valid formats: &apos;mzML&apos;)" tags="output file,required" />
+			<ITEM name="out" value="" type="string" description="output file in pepXML format(valid formats: &apos;pepXML&apos;)" tags="output file,required" />
 		  </ini_param>
 		</external>
 	</tool>

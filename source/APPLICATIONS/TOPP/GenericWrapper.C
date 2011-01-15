@@ -226,7 +226,7 @@ class TOPPGenericWrapper
       setValidStrings_("type",  ToolHandler::getTypes(toolName_()));
 		}
 
-	  Param getSubsectionDefaults_(const String& section) const
+	  Param getSubsectionDefaults_(const String& /*section*/) const
 	  {
       String type = getStringOption_("type");
       // find params for 'type'
@@ -323,7 +323,6 @@ class TOPPGenericWrapper
           }
         }
         // create the temp file  tmp_location target_file
-        tmp_location.substitute('/','\\');
         writeDebug_(String("Copying '") + target_file + "' to '" + tmp_location + "'", 1);
         bool move_ok = QFile::copy(target_file.toQString(),tmp_location.toQString());
         if (!move_ok)
@@ -332,9 +331,8 @@ class TOPPGenericWrapper
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
         // set the input file's value to the temp file
-        tool_param.setValue(target, tmp_location);
+        tool_param.setValue(String("ETool:")+target, tmp_location);
       }
-
 
       ///// construct the command line:
       // go through mappings (reverse because replacing %10 must come before %1):
