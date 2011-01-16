@@ -7,7 +7,7 @@
 		// multiple of these allowed (same # as 'types') - for external only
 		<external>
       <text>
-        <onstartup>Conversion started ...</onstartup>
+        <onstartup>Calling PWiz' msconvert ...</onstartup>
         <onfail>Something went wrong. Is 'msconvert' in your PATH?</onfail>
         <onfinish>Tool finished successfully.</onfinish>
       </text>    

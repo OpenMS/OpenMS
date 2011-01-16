@@ -7,7 +7,7 @@
 		// multiple of these allowed (same # as 'types') - for external only
 		<external>
       <text>
-        <onstartup>Calling TPP's ProteinProphet...</onstartup>
+        <onstartup>Calling TPP's ProteinProphet... Wrapper tested with TPP v4.4.1 (VUVUZELA), report issues to the OpenMS team at www.OpenMS.de</onstartup>
         <onfail>Something went wrong. Possible cause: You forgot to call TPP's 'RefreshParser' prior to calling this?</onfail>
         <onfinish>Tool finished successfully.</onfinish>
       </text>

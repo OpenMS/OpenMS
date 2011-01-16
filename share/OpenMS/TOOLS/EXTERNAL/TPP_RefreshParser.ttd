@@ -7,7 +7,7 @@
 		// multiple of these allowed (same # as 'types') - for external only
 		<external>
       <text>
-        <onstartup>Tool started ...</onstartup>
+        <onstartup>Calling TPP's RefreshParser ...  Wrapper tested with TPP v4.4.1 (VUVUZELA), report issues to the OpenMS team at www.OpenMS.de</onstartup>
         <onfail>Something went wrong. Is 'RefreshParser' in your PATH?</onfail>
         <onfinish>Tool finished successfully.</onfinish>
       </text>    

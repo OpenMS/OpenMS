@@ -6,7 +6,7 @@
 		// description of the wrapper
 		<external>
       <text>
-        <onstartup>This is printed on startup ...</onstartup>
+        <onstartup>This is printed on startup ... Wrapper was tested with <external_tool> vX.Y.Z, report issues to the OpenMS team at www.OpenMS.de</onstartup>
         <onfail>This is printed in case of error - you can list possible causes for failure here...</onfail>
         <onfinish>This is printed when finished successfully.</onfinish>
       </text>    
