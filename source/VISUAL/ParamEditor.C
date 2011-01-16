@@ -683,7 +683,7 @@ namespace OpenMS
 		if(param_!=NULL)
 		{
 			QTreeWidgetItem* parent=tree_->invisibleRootItem();
-			param_->clear();
+			//param_->clear();
 		
 			for (Int i = 0; i < parent->childCount();++i)
 			{
@@ -702,6 +702,13 @@ namespace OpenMS
 	
 	void ParamEditor::storeRecursive_(QTreeWidgetItem* child, String path,map<String,String>& section_descriptions)
 	{
+		/**
+			
+			@todo: why would we "recreate" (setting restrictions etc) the the param object from scratch?
+             updating everything that changed seems the better option, as
+						 this is more robust against additions to Param
+			
+		*/
 		child->setData ( 1, Qt::BackgroundRole, QBrush(Qt::white));
 		
 		if (path=="")
@@ -715,6 +722,13 @@ namespace OpenMS
 		
 		String description = child->data(1, Qt::UserRole).toString();
 		
+    StringList tag_list;
+    try
+    { // might throw ElementNotFound
+      tag_list = param_->getTags(path);
+    }
+    catch (...) {}
+
 		if(child->text(2)=="") // node
 		{
 			if (description != "")
@@ -724,15 +738,9 @@ namespace OpenMS
 		}
 		else //item + section descriptions
 		{
-			StringList tags;
-			if (child->data(0, Qt::UserRole)==ADVANCED_ITEM)
-			{
-				tags.push_back("advanced");
-			}
-			
 			if(child->text(2)=="float")
 			{
-				param_->setValue(path,child->text(1).toDouble(),description,tags);
+				param_->setValue(path,child->text(1).toDouble(),description,tag_list);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				vector<String> parts;
 				if (restrictions.split(' ',parts))
@@ -749,7 +757,7 @@ namespace OpenMS
 			}
 			else if(child->text(2)=="string")
 			{
-				param_->setValue(path, child->text(1).toStdString(),description,tags);
+				param_->setValue(path, child->text(1).toStdString(),description,tag_list);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -760,8 +768,7 @@ namespace OpenMS
 			}
 			else if(child->text(2) =="input file")
 			{
-				tags.push_back("input file");
-				param_->setValue(path, child->text(1).toStdString(),description,tags);
+				param_->setValue(path, child->text(1).toStdString(),description,tag_list);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -770,10 +777,9 @@ namespace OpenMS
 					param_->setValidStrings(path,parts);
 				}
 			}
-						else if(child->text(2) =="output file")
+			else if(child->text(2) =="output file")
 			{
-				tags.push_back("output file");
-				param_->setValue(path, child->text(1).toStdString(),description,tags);
+				param_->setValue(path, child->text(1).toStdString(),description,tag_list);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -784,7 +790,7 @@ namespace OpenMS
 			}
 			else if(child->text(2)=="int")
 			{
-				param_->setValue(path, child->text(1).toInt(),description,tags);
+				param_->setValue(path, child->text(1).toInt(),description,tag_list);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				vector<String> parts;
 				if (restrictions.split(' ',parts))
@@ -808,7 +814,7 @@ namespace OpenMS
 			}
 			if(child->text(2)=="string list")
 			{
-				param_->setValue(path,rlist,description,tags);
+				param_->setValue(path,rlist,description,tag_list);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -819,8 +825,7 @@ namespace OpenMS
 			}
 			else if(child->text(2)=="input file list")
 			{
-				tags.push_back("input file");
-				param_->setValue(path,rlist,description,tags);
+				param_->setValue(path,rlist,description,tag_list);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -831,8 +836,7 @@ namespace OpenMS
 			}
 			else if(child->text(2)=="output file list")
 			{
-				tags.push_back("output file");
-				param_->setValue(path,rlist,description,tags);
+				param_->setValue(path,rlist,description,tag_list);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -843,7 +847,7 @@ namespace OpenMS
 			}
 			else if(child->text(2) =="double list")
 			{
-				param_->setValue(path,DoubleList::create(rlist),description,tags);
+				param_->setValue(path,DoubleList::create(rlist),description,tag_list);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				vector<String> parts;
 				if(restrictions.split(' ',parts))
@@ -860,7 +864,7 @@ namespace OpenMS
 			}
 			else if(child->text(2) == "int list")
 			{
-				param_->setValue(path,IntList::create(rlist),description,tags);
+				param_->setValue(path,IntList::create(rlist),description,tag_list);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				vector<String> parts;
 				if(restrictions.split(' ',parts))
