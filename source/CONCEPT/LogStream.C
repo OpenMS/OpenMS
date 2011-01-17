@@ -92,7 +92,6 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-
     {
     clearCache_();
     }
@@ -232,84 +231,76 @@ namespace OpenMS
 
 	int LogStreamBuf::sync() 
 	{
-		static char buf[BUFFER_LENGTH];
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+    {
+      static char buf[BUFFER_LENGTH];
 
-		// sync our streambuffer...
-		if (pptr() != pbase()) 
-		{
-      // check if we have attached streams, so we don't waste time to
-      // prepare the output
-      if(!stream_list_.empty())
+      // sync our streambuffer...
+      if (pptr() != pbase()) 
       {
-        char*	line_start = pbase();
-        char*	line_end = pbase();
-
-        while (line_end < pptr())
+        // check if we have attached streams, so we don't waste time to
+        // prepare the output
+        if(!stream_list_.empty())
         {
-          // search for the first end of line
-          for (; line_end < pptr() && *line_end != '\n'; line_end++) {};
+          char*	line_start = pbase();
+          char*	line_end = pbase();
 
-          if (line_end >= pptr())
+          while (line_end < pptr())
           {
-            // Copy the incomplete line to the incomplete_line_ buffer
-            size_t length = line_end - line_start;
-            length = std::min(length, (size_t)(BUFFER_LENGTH - 1));
-            strncpy(&(buf[0]), line_start, length);
+            // search for the first end of line
+            for (; line_end < pptr() && *line_end != '\n'; line_end++) {};
 
-            // if length was too large, we copied one byte less than BUFFER_LENGTH to have
-            // room for the final \0
-            buf[length] = '\0';
-
-            incomplete_line_ += &(buf[0]);
-
-            // mark everything as read
-            line_end = pptr() + 1;
-          }
-          else
-          {
-            // note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
-            memcpy(&(buf[0]), line_start, line_end - line_start + 1);
-            buf[line_end - line_start] = '\0';
-
-            // assemble the string to be written
-            // (consider leftovers of the last buffer from incomplete_line_)
-            std::string outstring = incomplete_line_;
-            incomplete_line_ = "";
-            outstring += &(buf[0]);
-
-            bool is_message_in_cache;
-            // check if we already have that in line in our cache
-#ifdef _OPENMP
-#pragma omp critical
-#endif
+            if (line_end >= pptr())
             {
-            is_message_in_cache = isInCache_(outstring);
+              // Copy the incomplete line to the incomplete_line_ buffer
+              size_t length = line_end - line_start;
+              length = std::min(length, (size_t)(BUFFER_LENGTH - 1));
+              strncpy(&(buf[0]), line_start, length);
+
+              // if length was too large, we copied one byte less than BUFFER_LENGTH to have
+              // room for the final \0
+              buf[length] = '\0';
+
+              incomplete_line_ += &(buf[0]);
+
+              // mark everything as read
+              line_end = pptr() + 1;
             }
-
-            if(!is_message_in_cache)
+            else
             {
-              // add line to the log cache
-              std::string extra_message;
-#ifdef _OPENMP
-#pragma omp critical
-#endif
+              // note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
+              memcpy(&(buf[0]), line_start, line_end - line_start + 1);
+              buf[line_end - line_start] = '\0';
+
+              // assemble the string to be written
+              // (consider leftovers of the last buffer from incomplete_line_)
+              std::string outstring = incomplete_line_;
+              incomplete_line_ = "";
+              outstring += &(buf[0]);
+
+              // check if we already have that in line in our cache
+              if(!isInCache_(outstring))
               {
-              extra_message = addToCache_(outstring);
+                // add line to the log cache
+                std::string extra_message = addToCache_(outstring);
+
+                if (extra_message.size()>0) distribute_(extra_message);
+                distribute_(outstring);
               }
 
-              if (extra_message.size()>0) distribute_(extra_message);
-              distribute_(outstring);
+              // update the line pointers (increment both)
+              line_start = ++line_end;
             }
-
-            // update the line pointers (increment both)
-            line_start = ++line_end;
           }
         }
+        // remove all processed lines from the buffer
+        pbump((int)(pbase() - pptr()));
       }
-			// remove all processed lines from the buffer
-			pbump((int)(pbase() - pptr()));
-		}
-
+    
+    } // ! OMP
+    
     return 0;
 	}
 
