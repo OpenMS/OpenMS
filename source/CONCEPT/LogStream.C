@@ -88,15 +88,15 @@ namespace OpenMS
 		
 	LogStreamBuf::~LogStreamBuf() 
 	{
-		sync();
+		  sync();
 #ifdef _OPENMP
 #pragma omp critical
 #endif
     {
-    clearCache_();
+      clearCache_();
+		  if (incomplete_line_.size()>0) distribute_(incomplete_line_);
+		  delete [] pbuf_;
     }
-		if (incomplete_line_.size()>0) distribute_(incomplete_line_);
-		delete [] pbuf_;
 	}
 
 
