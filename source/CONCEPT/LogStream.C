@@ -41,6 +41,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #define BUFFER_LENGTH 32768
 
 using namespace std;
@@ -85,7 +89,13 @@ namespace OpenMS
 	LogStreamBuf::~LogStreamBuf() 
 	{
 		sync();
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+
+    {
     clearCache_();
+    }
 		if (incomplete_line_.size()>0) distribute_(incomplete_line_);
 		delete [] pbuf_;
 	}
@@ -227,59 +237,75 @@ namespace OpenMS
 		// sync our streambuffer...
 		if (pptr() != pbase()) 
 		{
-				
-			char*	line_start = pbase();
-			char*	line_end = pbase();
+      // check if we have attached streams, so we don't waste time to
+      // prepare the output
+      if(!stream_list_.empty())
+      {
+        char*	line_start = pbase();
+        char*	line_end = pbase();
 
-			while (line_end < pptr())
-			{
-				// search for the first end of line
-				for (; line_end < pptr() && *line_end != '\n'; line_end++) {};
+        while (line_end < pptr())
+        {
+          // search for the first end of line
+          for (; line_end < pptr() && *line_end != '\n'; line_end++) {};
 
-				if (line_end >= pptr()) 
-				{
-					// Copy the incomplete line to the incomplete_line_ buffer
-					size_t length = line_end - line_start;
-					length = std::min(length, (size_t)(BUFFER_LENGTH - 1));
-					strncpy(&(buf[0]), line_start, length);
-
-					// if length was too large, we copied one byte less than BUFFER_LENGTH to have
-					// room for the final \0
-					buf[length] = '\0';
-
-					incomplete_line_ += &(buf[0]);
-
-					// mark everything as read
-					line_end = pptr() + 1;
-				} 
-				else 
-				{
-					// note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
-					memcpy(&(buf[0]), line_start, line_end - line_start + 1);
-					buf[line_end - line_start] = '\0';
-						
-					// assemble the string to be written
-					// (consider leftovers of the last buffer from incomplete_line_)
-					std::string outstring = incomplete_line_;
-					incomplete_line_ = "";
-					outstring += &(buf[0]);
-
-          // check if we already have that in line in our cache
-          if(!isInCache_(outstring)) 
+          if (line_end >= pptr())
           {
+            // Copy the incomplete line to the incomplete_line_ buffer
+            size_t length = line_end - line_start;
+            length = std::min(length, (size_t)(BUFFER_LENGTH - 1));
+            strncpy(&(buf[0]), line_start, length);
 
-            // add line to the log cache
-            std::string extra_message = addToCache_(outstring);
+            // if length was too large, we copied one byte less than BUFFER_LENGTH to have
+            // room for the final \0
+            buf[length] = '\0';
 
-						if (extra_message.size()>0) distribute_(extra_message);
-						distribute_(outstring);
-          } 
+            incomplete_line_ += &(buf[0]);
 
-          // update the line pointers (increment both)
-          line_start = ++line_end;
-				}
-			}
+            // mark everything as read
+            line_end = pptr() + 1;
+          }
+          else
+          {
+            // note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
+            memcpy(&(buf[0]), line_start, line_end - line_start + 1);
+            buf[line_end - line_start] = '\0';
 
+            // assemble the string to be written
+            // (consider leftovers of the last buffer from incomplete_line_)
+            std::string outstring = incomplete_line_;
+            incomplete_line_ = "";
+            outstring += &(buf[0]);
+
+            bool is_message_in_cache;
+            // check if we already have that in line in our cache
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+            is_message_in_cache = isInCache_(outstring);
+            }
+
+            if(!is_message_in_cache)
+            {
+              // add line to the log cache
+              std::string extra_message;
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+              {
+              extra_message = addToCache_(outstring);
+              }
+
+              if (extra_message.size()>0) distribute_(extra_message);
+              distribute_(outstring);
+            }
+
+            // update the line pointers (increment both)
+            line_start = ++line_end;
+          }
+        }
+      }
 			// remove all processed lines from the buffer
 			pbump((int)(pbase() - pptr()));
 		}
