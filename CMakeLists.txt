@@ -69,10 +69,10 @@ include (cmake/macros.cmake)
 set(CF_OPENMS_ADDCXX_FLAGS) ## see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	if (MT_ENABLE_CUDA)
-		add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long) # necessary since CUDA contains non-pedantic code
-	else()
-		add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long --pedantic)
+	
+  add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long -Wno-variadic-macros)
+  if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
+		add_definitions(--pedantic)
 	endif()
 
 	## Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
