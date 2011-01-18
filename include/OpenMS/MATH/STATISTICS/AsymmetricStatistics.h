@@ -55,10 +55,10 @@ namespace OpenMS
 			typedef BasicStatistics<Real> Base;
 			typedef typename Base::RealType RealType;
 
-			Base::clear;
-			Base::sum_;
-			Base::mean_;
-			Base::variance_;
+      using Base::clear;
+      using Base::sum_;
+      using Base::mean_;
+      using Base::variance_;
 			
 		 public:
 

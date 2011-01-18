@@ -439,13 +439,13 @@ namespace OpenMS
 						map_iterator tmp_it = it;
 						--tmp_it;
 						values_.erase(it);
-						it = values_.insert(tmp_it,make_pair(tmp_index-amount_deleted,tmp_value));
+            it = values_.insert(tmp_it,std::make_pair(tmp_index-amount_deleted,tmp_value));
 					}
 					else
 					{
 						//simply insert, as we have no element to insert after
 						values_.erase(it);
-						it = values_.insert(make_pair(tmp_index-amount_deleted,tmp_value)).first;
+            it = values_.insert(std::make_pair(tmp_index-amount_deleted,tmp_value)).first;
 					}
 					++it;
 				}

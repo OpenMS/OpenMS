@@ -196,8 +196,8 @@ namespace OpenMS
 	class OPENMS_DLLAPI FeatureHandle::FeatureHandleMutable_ : public FeatureHandle
 	{
 	 private:
-		FeatureHandle::setUniqueId;
-		FeatureHandle::setMapIndex;
+    using FeatureHandle::setUniqueId;
+    using FeatureHandle::setMapIndex;
 		FeatureHandleMutable_();
 		FeatureHandleMutable_(const FeatureHandleMutable_&);
 	};

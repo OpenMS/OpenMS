@@ -430,7 +430,7 @@ namespace OpenMS
 			OPENMS_PRECONDITION(dimensionsize_ == rhs.dimensionsize_,"DistanceMatrices have different sizes.");
 			for (Size i = 1; i < rhs.dimensionsize(); ++i)
 			{
-				for (Size j = 0; i < i; ++j)
+        for (Size j = 0; j < i; ++j)
 				{
 					if(matrix_[i][j]!=rhs.matrix_[i][j])
 					{

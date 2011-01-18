@@ -185,20 +185,20 @@ namespace OpenMS
 		//@{
 	 public:
 
-		Base::begin;
-		Base::end;
-		Base::rbegin;
-		Base::rend;
+    using Base::begin;
+    using Base::end;
+    using Base::rbegin;
+    using Base::rend;
 
-		Base::front;
-		Base::back;
-		Base::assign;
+    using Base::front;
+    using Base::back;
+    using Base::assign;
 
-		Base::empty;
-		Base::size;
+    using Base::empty;
+    using Base::size;
 
-		Base::capacity;
-		Base::max_size;
+    using Base::capacity;
+    using Base::max_size;
 
 		//@}
 
