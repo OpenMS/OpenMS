@@ -43,7 +43,7 @@ namespace OpenMS
 	{
 		addLabel_("Modify DocumentIdentifier information");
 		addSeparator_();
-		addLineEdit_(identifier_, "Idenifier");
+		addLineEdit_(identifier_, "Identifier");
 		addSeparator_();
 		addLineEdit_(file_path_,"Loaded from file");
 		addLineEdit_(file_type_,"File type");
