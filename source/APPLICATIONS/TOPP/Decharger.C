@@ -67,6 +67,11 @@ using namespace std;
    tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
    This will allow to tighten the RT search window, thus reducing false positive results.
 
+  This tool is described in the following publication:
+
+  Bielow C, Ruzek S, Huber CG, Reinert K. Optimal decharging and clustering of charge ladders generated in ESI-MS. J Proteome Res 2010; 9: 2688.<br>
+  DOI: 10.1021/pr100177k
+
 	 <B>The command line parameters of this tool are:</B>
    @verbinclude TOPP_Decharger.cli
 */
