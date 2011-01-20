@@ -341,7 +341,7 @@ class TOPPGenericWrapper
 
       ///// construct the command line:
       // go through mappings (reverse because replacing %10 must come before %1):
-      for (std::map<Int, String>::reverse_iterator it = tde.tr_table.mapping.rbegin(); it != tde.tr_table.mapping.rend(); ++it)
+      for (std::map<Int, String>::reverse_iterator it = tde_.tr_table.mapping.rbegin(); it != tde_.tr_table.mapping.rend(); ++it)
       {
         //std::cout << "mapping #" << it->first << "\n";
         String fragment = it->second;
