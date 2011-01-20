@@ -14,10 +14,11 @@
 		  <e_category>FileConversion</e_category>
 		  <cloptions>"%1" "%2"</cloptions>
 		  <path>RefreshParser</path>
+      <workingdirectory>.</workingdirectory>
 		  <mappings>
 			<mapping id="1" cl="%%in" />
 			<mapping id="2" cl="%%database" />
-      <file_pre location="%TMP/%RND_%%in" target="in" />
+      <file_pre location="%TMP/%RND_%BASENAME[%%in]" target="in" />
 			<file_post location="%%in" target="out" />
 		  </mappings>
 		  <ini_param>

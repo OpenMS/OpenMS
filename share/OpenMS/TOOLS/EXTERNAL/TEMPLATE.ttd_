@@ -16,6 +16,10 @@
 		  <cloptions>-o "%1" --mzML %2</cloptions>
 		  // the actual executable (usually it should be in your PATH, to avoid having to specify a full path to it)
 		  <path>msconvert</path>
+      // sets the working directory to this path before calling the external tool. Some tools write to the current working directory
+      // and thus starting the tool from somewhere else might actually lead to trouble
+      // use only real paths here (no placeholders like %TMP)
+      <workingdirectory>.</workingdirectory>
 		  // these mappings connect input parameters (from the 'ini_param' section below) and the command line options of your tool
 		  // any INI parameter can be referenced using %%'param_name', e.g. %%in
 		  // additionally you can use %TMP and %BASENAME[X] to get the current temp directory to store data, or the basename of X
