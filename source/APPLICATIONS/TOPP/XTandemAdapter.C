@@ -298,6 +298,8 @@ class TOPPXTandemAdapter
 			infile.setTaxon("OpenMS_dummy_taxonomy");
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
 			infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
+      infile.setRefine(!getFlag_("no_refinement"));
+
 			infile.write(input_filename);
 
 			vector<ProteinIdentification> protein_identifications;

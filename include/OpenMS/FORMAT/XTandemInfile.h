@@ -176,6 +176,12 @@ namespace OpenMS
 			/// returns the max valid E-value allowed in the list
 			double getMaxValidEValue() const;
 			
+      /// get state of refine setting
+      bool isRefining() const;
+
+      /// set state of refine setting
+      void setRefine(const bool refine);
+
 			/** writes the XTandemInfile to the given file
 
 					@param filename the name of the file which is written
