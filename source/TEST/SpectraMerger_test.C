@@ -103,14 +103,34 @@ END_SECTION
 
 START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType &)))
 	PeakMap exp;
-	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_1.mzML"), exp);
+	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_precursor.mzML"), exp);
 
 	SpectraMerger merger;
-	TEST_EQUAL(exp.size(), 38)
-	
-  // not testable (yet) because not implemented (yet)
-  //merger.mergeSpectraPrecursors(exp);
-	//TEST_EQUAL(exp.size(), 10);
+	TEST_EQUAL(exp.size(), 17)
+
+  Param p;
+  p.setValue("mz_binning_width", 0.3, "Max m/z distance of two peaks to be merged.", StringList::create("advanced"));
+
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", StringList::create("advanced"));
+
+  // same precursor MS/MS merging
+ 	p.setValue("precursor_method:mz_tolerance", 10e-5, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");
+  p.setValue("precursor_method:rt_tolerance", 5.0, "Max RT distance of the precursor entries of two spectra to be merged in [s].");
+  merger.setParameters(p);
+  merger.mergeSpectraPrecursors(exp);
+
+  PeakMap exp2;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_output_precursor.mzML"), exp2);
+
+	TEST_EQUAL(exp.size(), exp2.size());
+  ABORT_IF(exp.size() != exp2.size());
+
+  for (Size i=0;i<exp.size();++i)
+  {
+    TEST_EQUAL(exp[i].size(), exp2[i].size())
+    TEST_EQUAL(exp[i].getMSLevel (), exp2[i].getMSLevel ())
+  }
+
 END_SECTION
 
 delete e_ptr;

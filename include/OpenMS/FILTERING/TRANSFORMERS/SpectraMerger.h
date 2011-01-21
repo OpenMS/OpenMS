@@ -33,6 +33,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -302,21 +303,37 @@ namespace OpenMS
       Map <Size, Size> cluster_sizes;
       std::set <Size> merged_indices;
 
+      // set up alignment
+      SpectrumAlignment sas;
+      Param p;
+      p.setValue("tolerance", mz_binning_width);
+      if (! (mz_binning_unit=="Da" || mz_binning_unit=="ppm")) throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__); // sanity check
+      p.setValue("is_relative_tolerance", mz_binning_unit=="Da" ? "false" : "true");
+      sas.setParameters(p);
+      std::vector< std::pair<Size, Size > > alignment;
+	    
+
       // each BLOCK
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
 			{
 
         ++cluster_sizes[ it->second.size() + 1]; // for stats
 
-  			typename MapType::SpectrumType consensus_spec;
+  			typename MapType::SpectrumType consensus_spec = exp[it->first];
 		  	consensus_spec.setMSLevel(ms_level);
 
-        consensus_spec.unify(exp[it->first]); // append meta info
+        //consensus_spec.unify(exp[it->first]); // append meta info
         merged_indices.insert(it->first);
 
-        typename MapType::SpectrumType all_peaks = exp[it->first];			
-        DoubleReal rt_average=all_peaks.getRT();
-        DoubleReal mz_average=all_peaks.getPrecursors()[0].getMZ();
+        //typename MapType::SpectrumType all_peaks = exp[it->first];			
+        DoubleReal rt_average=consensus_spec.getRT();
+        DoubleReal precursor_mz_average;
+        Size precursor_count(0);
+        if (consensus_spec.getPrecursors().size() > 0)
+        {
+          precursor_mz_average = consensus_spec.getPrecursors()[0].getMZ();
+          ++precursor_count;
+        }
 
         // block elements
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
@@ -325,29 +342,58 @@ namespace OpenMS
           merged_indices.insert(*sit);
 
           rt_average+=exp[*sit].getRT();
-          if (ms_level >= 2) mz_average+=exp[*sit].getPrecursors()[0].getMZ();
+          if (ms_level >= 2 && exp[*sit].getPrecursors().size()>0)
+          {
+            precursor_mz_average+=exp[*sit].getPrecursors()[0].getMZ();
+            ++precursor_count;
+          }
+
+          // merge data points
+          sas.getSpectrumAlignment(alignment, consensus_spec, exp[*sit]);
+          //std::cerr << "alignment of " << it->first << " with " << *sit << " yielded " << alignment.size() << " common peaks!\n";
+          Size align_index(0);
+          Size spec_b_index(0);
+
+          // sanity check for number of peaks
+          Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size=alignment.size();
 					for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
 					{
-						all_peaks.push_back(*pit);
+            // either add aligned peak height to existing peak
+            if (alignment.size()>0 && alignment[align_index].second == spec_b_index)
+            {
+              consensus_spec[alignment[align_index].first].setIntensity( consensus_spec[alignment[align_index].first].getIntensity() + 
+                                                                         pit->getIntensity() );
+              ++align_index; // this aligned peak was explained, wait for next aligned peak ...
+              if (align_index == alignment.size()) alignment.clear(); // end reached -> avoid going into this block again
+            }
+            else // ... or add unaligned peak
+            {
+              consensus_spec.push_back(*pit);
+            }
+            ++spec_b_index;
 					}
+          consensus_spec.sortByPosition();// sort, otherwise next alignment will fail
+          if (spec_a + spec_b - align_size != consensus_spec.size()) std::cerr << "\n\n ERRROR \n\n";
 				}
-				all_peaks.sortByPosition();
         rt_average/=it->second.size()+1;
         consensus_spec.setRT(rt_average);
 
-        mz_average/=it->second.size()+1;
         if (ms_level >= 2)
         {
+          if (precursor_count) precursor_mz_average/=precursor_count;
           std::vector< Precursor > pcs = consensus_spec.getPrecursors();
           //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
-          pcs[0].setMZ(mz_average);
+          pcs[0].setMZ(precursor_mz_average);
           consensus_spec.setPrecursors(pcs);
         }
 
-        if (all_peaks.size()==0) continue;
+        if (consensus_spec.size()==0) continue;
         else
         {
+/*
+          // merge close-by peaks
+  				all_peaks.sortByPosition();
           typename MapType::PeakType old_peak = *all_peaks.begin();
           DoubleReal distance;
 		  	  for (typename MapType::SpectrumType::ConstIterator it = (++all_peaks.begin()); it != all_peaks.end(); ++it)
@@ -367,7 +413,8 @@ namespace OpenMS
   			  }
           consensus_spec.push_back(old_peak); // store last peak
 
-				  merged_spectra.push_back(consensus_spec);
+          */
+          merged_spectra.push_back(consensus_spec);
         }
 			}
 

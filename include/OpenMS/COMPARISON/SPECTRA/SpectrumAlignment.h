@@ -43,7 +43,10 @@ namespace OpenMS
 
   /**
 	  @brief Aligns the peaks of two spectra
-		 
+		
+    Using a banded (width via 'tolerance' parameter) alignment.
+    Scoring function is the m/z distance between peaks. Intensity does not play a role!
+
 		@htmlinclude OpenMS_SpectrumAlignment.parameters
 		
 		@ingroup SpectraComparison
@@ -72,6 +75,10 @@ namespace OpenMS
 		template <typename SpectrumType>
 		void getSpectrumAlignment(std::vector<std::pair<Size, Size> >& alignment, const SpectrumType& s1, const SpectrumType& s2) const
 		{
+      if (!s1.isSorted () || !s2.isSorted())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input to SpectrumAlignment is not sorted!");
+      }
       // clear result
       alignment.clear();
 
