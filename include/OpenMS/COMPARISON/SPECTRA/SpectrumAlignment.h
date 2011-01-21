@@ -72,6 +72,9 @@ namespace OpenMS
 		template <typename SpectrumType>
 		void getSpectrumAlignment(std::vector<std::pair<Size, Size> >& alignment, const SpectrumType& s1, const SpectrumType& s2) const
 		{
+      // clear result
+      alignment.clear();
+
 			double tolerance = (double)param_.getValue("tolerance");
 			std::map<Size, std::map<Size, std::pair<Size, Size> > > traceback;
 			std::map<Size, std::map<Size, double> > matrix;
@@ -95,17 +98,19 @@ namespace OpenMS
 			//Size off_band_counter(0);
 			for (Size i = 1; i <= s1.size(); ++i)
 			{
+        double pos1(s1[i - 1].getMZ());
+        
 				for (Size j = left_ptr; j <= s2.size(); ++j)
 				{
 					bool off_band(false);
 					// find min of the three possible directions
-					double pos1(s1[i - 1].getMZ()), pos2(s2[j - 1].getMZ());
+					double pos2(s2[j - 1].getMZ());
 					double diff_align = fabs(pos1 - pos2);
 	
 					// running off the right border of the band?
 					if (pos2 > pos1 && diff_align > tolerance)
 					{
-						if (i < s1.size() && j < s2.size() && s1[i].getMZ() < pos2 && fabs(s1[i].getMZ() - pos2))
+						if (i < s1.size() && j < s2.size() && s1[i].getMZ() < pos2)
 						{
 							off_band = true;
 						}
@@ -114,7 +119,7 @@ namespace OpenMS
 					// can we tighten the left border of the band?
 					if (pos1 > pos2 && diff_align > tolerance && j > left_ptr + 1)
 					{
-						left_ptr++;
+						++left_ptr;
 					}
 	
 					double score_align = diff_align;
