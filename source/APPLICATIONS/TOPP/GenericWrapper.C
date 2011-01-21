@@ -175,6 +175,9 @@ class TOPPGenericWrapper
       //std::cout << " fragment '" << fragment << "' --> '";
       // e.g.:  -input %BASENAME[%%in].mzML
       // iterate through all input params and replace with values:
+      // @TODO: sort params by length of their name and replace from
+      //        longest to shortest,
+      //        otherwise: if A is a prefix of B and gets replaced first, the suffix of B remains and will cause trouble!
       for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
       {
         fragment.substitute("%%" + it->name, paramToString_(*it));
