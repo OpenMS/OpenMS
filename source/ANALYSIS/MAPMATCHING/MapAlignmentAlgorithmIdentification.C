@@ -46,9 +46,6 @@ namespace OpenMS
 	{
 		setName("MapAlignmentAlgorithmIdentification");
 
-		defaults_.setValue("num_breakpoints", 10, "Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has unexpected shape.");
-		defaults_.setMinInt("num_breakpoints", 2);
-
 		defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to be used in the alignment.\nSelect a value that allows only 'high confidence' matches.");
 
 		defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if any) a peptide must occur in to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
@@ -164,7 +161,7 @@ namespace OpenMS
 		computeTransformations_(rt_data, transformations);
 		setProgress(2);
 
-		transformPeakMaps(maps, transformations);
+		// transformPeakMaps(maps, transformations);
 		setProgress(3);
 		endProgress();
 	}
@@ -204,7 +201,7 @@ namespace OpenMS
 
 		alignFeatureOrConsensusMaps_(maps, transformations);
 
-		transformFeatureMaps(maps, transformations);
+		// transformFeatureMaps(maps, transformations);
 		setProgress(3);
 		endProgress();
 	}
@@ -219,7 +216,7 @@ namespace OpenMS
 
 		alignFeatureOrConsensusMaps_(maps, transformations);
 
-		transformConsensusMaps(maps, transformations);
+		// transformConsensusMaps(maps, transformations);
 		setProgress(3);
 		endProgress();
 	}
@@ -251,7 +248,7 @@ namespace OpenMS
 		computeTransformations_(rt_data, transformations, true);
 		setProgress(2);
 
-		transformPeptideIdentifications(maps, transformations);
+		// transformPeptideIdentifications(maps, transformations);
 		setProgress(3);
 		endProgress();
 	}
@@ -399,8 +396,6 @@ namespace OpenMS
 	{
 		Size size = rt_data.size();
 		transforms.clear();
-		// potentially need one additional transformation for the reference map:
-		transforms.resize(size + bool(reference_index_));
 		
 		// filter RT data (remove peptides that elute in several fractions):
 		// TODO
@@ -489,7 +484,6 @@ namespace OpenMS
 
 		// generate RT transformations:
 		LOG_DEBUG << "Generating RT transformations..." << endl;
-		Int num_breakpoints = param_.getValue("num_breakpoints");
 		LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
 		for (Size i = 0, offset = 0; i < size + 1; ++i)
 		{
@@ -497,15 +491,17 @@ namespace OpenMS
 			{
 				// if one of the input maps was used as reference, it has been skipped 
 				// so far - now we have to consider it again:
-				transforms[i].setName("none");
+				TransformationDescription trafo;
+				trafo.fitModel("identity");
+				transforms.push_back(trafo);
 				LOG_INFO << "- 0 data points for sample " << i + 1 << " (reference)\n";
 				offset = 1;
 			}
 			if (i >= size) break;
-			TransformationDescription::PairVector pairs;
 			// to be useful for the alignment, a peptide sequence has to occur in the
 			// current run ("medians_per_run[i]"), but also in at least one other run
 			// ("medians_overall"):
+			TransformationDescription::DataPoints data;
 			for (SeqToValue::iterator med_it = medians_per_run[i].begin();
 					 med_it != medians_per_run[i].end(); ++med_it)
 			{
@@ -513,21 +509,26 @@ namespace OpenMS
 				if ((pos != reference_.end()) && 
 						(fabs(med_it->second - pos->second) <= max_rt_shift))
 				{ // found, and satisfies "max_rt_shift" condition!
-					pairs.push_back(make_pair(med_it->second, pos->second));
+					data.push_back(make_pair(med_it->second, pos->second));
 				}
 			}
-
-			// maybe TODO: check "pairs.size()" here and abort if not enough data?
-			Size trafo_index = i + offset;				
-			transforms[trafo_index].setName("b_spline");
-			transforms[trafo_index].setParam("num_breakpoints", num_breakpoints);
-			transforms[trafo_index].setPairs(pairs);
-			LOG_INFO << "- " << pairs.size() << " data points for sample " 
-							 << trafo_index + 1 << "\n";
+			transforms.push_back(TransformationDescription(data));
+			LOG_INFO << "- " << data.size() << " data points for sample " 
+							 << i + offset + 1 << "\n";
 		}
 		LOG_INFO << endl;
 
 		if (!reference_given) reference_.clear(); // delete temporary reference
 	}
+
+
+	void MapAlignmentAlgorithmIdentification::getDefaultModel(String& model_type,
+																														Param& params)
+	{
+		model_type = "b_spline";
+		params.clear();
+		params.setValue("num_breakpoints", 5);
+	}
+
 
 } //namespace

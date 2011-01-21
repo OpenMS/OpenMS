@@ -37,6 +37,8 @@
 // #define V_MapAlignmentAlgorithm(a) std::cout << a << std::endl;
 #define V_MapAlignmentAlgorithm(a)
 
+using namespace std;
+
 namespace OpenMS
 {
 	//register products here
@@ -61,21 +63,21 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentAlgorithm::alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&)
+	void MapAlignmentAlgorithm::alignPeakMaps(vector< MSExperiment<> >&, vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 	}
 
-	void MapAlignmentAlgorithm::alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&)
+	void MapAlignmentAlgorithm::alignFeatureMaps(vector< FeatureMap<> >&, vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}
 
-	void MapAlignmentAlgorithm::alignConsensusMaps(std::vector<ConsensusMap>& cms, std::vector<TransformationDescription>& tf)
+	void MapAlignmentAlgorithm::alignConsensusMaps(vector<ConsensusMap>& cms, vector<TransformationDescription>& tf)
 	{
-    LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps." << std::endl;
+    LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps." << endl;
 
-		std::vector< FeatureMap<> > maps_f;
+		vector< FeatureMap<> > maps_f;
     for (Size i=0; i<cms.size(); ++i)
     {
       FeatureMap<> fm;
@@ -88,7 +90,7 @@ namespace OpenMS
     transformConsensusMaps(cms, tf);
 	}
 
-	void MapAlignmentAlgorithm::alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&)
+	void MapAlignmentAlgorithm::alignPeptideIdentifications(vector< vector< PeptideIdentification > >&, vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}
@@ -102,19 +104,15 @@ namespace OpenMS
 		}
 	}
 
-  void MapAlignmentAlgorithm::transformPeakMaps( std::vector< MSExperiment<> >& maps,
-                                                                const  std::vector<TransformationDescription>& given_trafos
-                                                              )
+  void MapAlignmentAlgorithm::transformPeakMaps(
+		vector< MSExperiment<> >& maps, 
+		const vector<TransformationDescription>& given_trafos)
   {
     V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformPeakMaps()");
 
     if ( given_trafos.size() != maps.size() )
     {
-      throw Exception::IllegalArgument
-        (__FILE__, __LINE__, __PRETTY_FUNCTION__,
-         String("MapAlignmentAlgorithm expects one given transformation (got: ")
-         + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
-        );
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MapAlignmentAlgorithm expects one given transformation (got: ") + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal");
     }
 
     for ( UInt index = 0; index < maps.size(); ++index )
@@ -129,135 +127,130 @@ namespace OpenMS
   void MapAlignmentAlgorithm::transformSinglePeakMap( MSExperiment<>& msexp, const TransformationDescription& trafo )
   {
     msexp.clearRanges();
-    trafo.init_();
     for ( MSExperiment<>::iterator mse_iter = msexp.begin(); mse_iter != msexp.end(); ++mse_iter )
     {
       DoubleReal rt = mse_iter->getRT();
-      (*trafo.trafo_)(rt);
-      mse_iter->setRT(rt);
+      mse_iter->setRT(trafo.apply(rt));
     }
     msexp.updateRanges();
     return;
   }
 
 
-  void MapAlignmentAlgorithm::transformFeatureMaps( std::vector< FeatureMap<> >& maps,
-                                                                    const std::vector<TransformationDescription>& given_trafos
-                                                                  )
-   {
-     V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformFeatureMaps()");
+  void MapAlignmentAlgorithm::transformFeatureMaps( vector< FeatureMap<> >& maps,
+																										const vector<TransformationDescription>& given_trafos
+		)
+	{
+		V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformFeatureMaps()");
+		
+		if ( given_trafos.size() != maps.size() )
+		{
+			throw Exception::IllegalArgument
+				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+				 String("MapAlignmentAlgorithm expects one given transformation (got: ")
+				 + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
+					);
+		}
 
-     if ( given_trafos.size() != maps.size() )
-     {
-       throw Exception::IllegalArgument
-         (__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          String("MapAlignmentAlgorithm expects one given transformation (got: ")
-          + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
-         );
-     }
+		for ( UInt index = 0; index < maps.size(); ++index )
+		{
+			FeatureMap<> & fm = maps[index];
+			const TransformationDescription& td = given_trafos[index];
+			transformSingleFeatureMap( fm, td );
+		}
 
-     for ( UInt index = 0; index < maps.size(); ++index )
-     {
-       FeatureMap<> & fm = maps[index];
-       const TransformationDescription& td = given_trafos[index];
-       transformSingleFeatureMap( fm, td );
-     }
+		return;
+	}
 
-     return;
-   }
-
-   void MapAlignmentAlgorithm::transformSingleFeatureMap( FeatureMap<>& fmap, const TransformationDescription& trafo )
-   {
-     trafo.init_();
-     for ( std::vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end(); ++fmit )
-     {
-       applyToFeature_(*fmit, trafo);
-     }
+	void MapAlignmentAlgorithm::transformSingleFeatureMap( FeatureMap<>& fmap, const TransformationDescription& trafo )
+	{
+		for ( vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end(); ++fmit )
+		{
+			applyToFeature_(*fmit, trafo);
+		}
 		 
-		 // adapt RT values of unassigned peptides:
-		 if (!fmap.getUnassignedPeptideIdentifications().empty())
-		 {
-			 transformSinglePeptideIdentification(
-				 fmap.getUnassignedPeptideIdentifications(), trafo);
-		 }
-     if (trafo.getMaxRTErrorEstimate() > 0)
-     {
-       LOG_WARN << "Maximal RT difference using alternative (linear) model was: " << trafo.getMaxRTErrorEstimate() << std::endl;
-     }
-     return;
-   }
+		// adapt RT values of unassigned peptides:
+		if (!fmap.getUnassignedPeptideIdentifications().empty())
+		{
+			transformSinglePeptideIdentification(
+				fmap.getUnassignedPeptideIdentifications(), trafo);
+		}
+		// if (trafo.getMaxRTErrorEstimate() > 0)
+		// {
+		//   LOG_WARN << "Maximal RT difference using alternative (linear) model was: " << trafo.getMaxRTErrorEstimate() << endl;
+		// }
+		return;
+	}
 
-   void MapAlignmentAlgorithm::applyToFeature_(
-		 Feature& feature, const TransformationDescription& trafo)
-   {
-     // V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::applyToFeature_()");
+	void MapAlignmentAlgorithm::applyToFeature_(
+		Feature& feature, const TransformationDescription& trafo)
+	{
+		// V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::applyToFeature_()");
 
-		 applyToBaseFeature_(feature, trafo);
+		applyToBaseFeature_(feature, trafo);
 
-     // loop over all convex hulls
-     std::vector<ConvexHull2D> & convex_hulls = feature.getConvexHulls();
-     for ( std::vector<ConvexHull2D>::iterator chiter = convex_hulls.begin();
-           chiter!= convex_hulls.end(); ++chiter )
-     {
-       // transform all hull point positions within convex hull
-       ConvexHull2D::PointArrayType points = chiter->getHullPoints();
-			 chiter->clear();
-       for ( ConvexHull2D::PointArrayType::iterator points_iter = points.begin();
-             points_iter != points.end();
-             ++points_iter
-           )
-       {
-         DoubleReal rt = (*points_iter)[Feature::RT];
-         (*trafo.trafo_)(rt);
-         (*points_iter)[Feature::RT] = rt;
-       }
-			 chiter->setHullPoints(points);
-     }
+		// loop over all convex hulls
+		vector<ConvexHull2D> & convex_hulls = feature.getConvexHulls();
+		for ( vector<ConvexHull2D>::iterator chiter = convex_hulls.begin();
+					chiter != convex_hulls.end(); ++chiter )
+		{
+			// transform all hull point positions within convex hull
+			ConvexHull2D::PointArrayType points = chiter->getHullPoints();
+			chiter->clear();
+			for ( ConvexHull2D::PointArrayType::iterator points_iter = points.begin();
+						points_iter != points.end();
+						++points_iter
+				)
+			{
+				DoubleReal rt = (*points_iter)[Feature::RT];
+				(*points_iter)[Feature::RT] = trafo.apply(rt);
+			}
+			chiter->setHullPoints(points);
+		}
 
-     // recurse into subordinates
-     for (std::vector<Feature>::iterator subiter = feature.getSubordinates().begin(); subiter != feature.getSubordinates().end(); ++subiter )
-     {
-       applyToFeature_(*subiter,trafo);
-     }
+		// recurse into subordinates
+		for (vector<Feature>::iterator subiter = feature.getSubordinates().begin(); subiter != feature.getSubordinates().end(); ++subiter )
+		{
+			applyToFeature_(*subiter,trafo);
+		}
 
-     return;
-   }
+		return;
+	}
 
 
   void MapAlignmentAlgorithm::transformConsensusMaps(
-		std::vector<ConsensusMap>& maps, 
-		const std::vector<TransformationDescription>& given_trafos)
-   {
-     V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformConsensusMaps()");
+		vector<ConsensusMap>& maps, 
+		const vector<TransformationDescription>& given_trafos)
+	{
+		V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformConsensusMaps()");
 
-     if ( given_trafos.size() != maps.size() )
-     {
-       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MapAlignmentAlgorithm expects one given transformation (got: ") + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal");
-     }
+		if ( given_trafos.size() != maps.size() )
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MapAlignmentAlgorithm expects one given transformation (got: ") + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal");
+		}
 
-     for (UInt index = 0; index < maps.size(); ++index)
-     {
-       ConsensusMap & cm = maps[index];
-       const TransformationDescription& td = given_trafos[index];
-       transformSingleConsensusMap(cm, td);
-     }
+		for (UInt index = 0; index < maps.size(); ++index)
+		{
+			ConsensusMap & cm = maps[index];
+			const TransformationDescription& td = given_trafos[index];
+			transformSingleConsensusMap(cm, td);
+		}
 
-     return;
-   }
+		return;
+	}
 
 	void MapAlignmentAlgorithm::transformSingleConsensusMap(
 		ConsensusMap& cmap, const TransformationDescription& trafo)
 	{
-		trafo.init_();
 		for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end(); 
 				 ++cmit)
 		{
 			applyToConsensusFeature_(*cmit, trafo);
 		}
-    if (trafo.getMaxRTErrorEstimate() > 0)
-    {
-      LOG_WARN << "Maximal RT difference using alternative (linear) model was: " << trafo.getMaxRTErrorEstimate() << std::endl;
-    }
+    // if (trafo.getMaxRTErrorEstimate() > 0)
+    // {
+    //   LOG_WARN << "Maximal RT difference using alternative (linear) model was: " << trafo.getMaxRTErrorEstimate() << endl;
+    // }
 
 		// adapt RT values of unassigned peptides:
 		if (!cmap.getUnassignedPeptideIdentifications().empty())
@@ -275,8 +268,7 @@ namespace OpenMS
 	{
 		// transform feature position:
 		DoubleReal rt = feature.getRT();
-		(*trafo.trafo_)(rt);
-		feature.setRT(rt);
+		feature.setRT(trafo.apply(rt));
 
 		// adapt RT values of annotated peptides:
 		if (!feature.getPeptideIdentifications().empty())
@@ -300,57 +292,68 @@ namespace OpenMS
 				 ++it)
 		{
 			DoubleReal rt = it->getRT();
-			(*trafo.trafo_)(rt);
-			it->asMutable().setRT(rt);
+			it->asMutable().setRT(trafo.apply(rt));
 		}
 		return;
 	}
 
 
-   void MapAlignmentAlgorithm::transformPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >& maps,
-                                                                                const std::vector<TransformationDescription>& given_trafos
-                                                                              )
-    {
-      V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformPeptideIdentifications()");
+	void MapAlignmentAlgorithm::transformPeptideIdentifications(vector< vector< PeptideIdentification > >& maps, const vector<TransformationDescription>& given_trafos)
+	{
+		V_MapAlignmentAlgorithm("Hi out there.  This is MapAlignmentAlgorithm::transformPeptideIdentifications()");
 
-      if ( given_trafos.size() != maps.size() )
-      {
-        throw Exception::IllegalArgument
-          (__FILE__, __LINE__, __PRETTY_FUNCTION__,
-           String("MapAlignmentAlgorithm expects one given transformation (got: ")
-           + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
+		if ( given_trafos.size() != maps.size() )
+		{
+			throw Exception::IllegalArgument
+				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+				 String("MapAlignmentAlgorithm expects one given transformation (got: ")
+				 + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
           );
-      }
+		}
 
-      for ( UInt map_index = 0; map_index < maps.size(); ++map_index )
-      {
-        V_MapAlignmentAlgorithm("map_index: " << map_index);
-        const TransformationDescription& td = given_trafos[map_index];
-        std::vector< PeptideIdentification >& pepids = maps[map_index];
-        transformSinglePeptideIdentification(pepids,td);
-      }
-      return;
-    }
+		for ( UInt map_index = 0; map_index < maps.size(); ++map_index )
+		{
+			V_MapAlignmentAlgorithm("map_index: " << map_index);
+			const TransformationDescription& td = given_trafos[map_index];
+			vector< PeptideIdentification >& pepids = maps[map_index];
+			transformSinglePeptideIdentification(pepids,td);
+		}
+		return;
+	}
 
-    void MapAlignmentAlgorithm::transformSinglePeptideIdentification( std::vector< PeptideIdentification >& pepids, const TransformationDescription& trafo )
-    {
-      trafo.init_();
-      const UInt meta_index_RT = MetaInfo::registry().getIndex("RT");
-      for ( UInt pepid_index = 0; pepid_index < pepids.size(); ++pepid_index )
-      {
-        V_MapAlignmentAlgorithm("pepid_index: " << pepid_index);
-        PeptideIdentification & pepid = pepids[pepid_index];
-        DataValue dv = pepid.getMetaValue(meta_index_RT);
-        if (dv!=DataValue::EMPTY)
-        {
-          DoubleReal rt(dv);
-          V_MapAlignmentAlgorithm("RT before: " << rt);
-          (*trafo.trafo_)(rt);
-          pepid.setMetaValue(meta_index_RT,rt);
-          V_MapAlignmentAlgorithm("RT after: " << rt);
-        }
-      }
-      return;
-    }
+	void MapAlignmentAlgorithm::transformSinglePeptideIdentification(vector< PeptideIdentification >& pepids, const TransformationDescription& trafo)
+	{
+		const UInt meta_index_RT = MetaInfo::registry().getIndex("RT");
+		for ( UInt pepid_index = 0; pepid_index < pepids.size(); ++pepid_index )
+		{
+			V_MapAlignmentAlgorithm("pepid_index: " << pepid_index);
+			PeptideIdentification & pepid = pepids[pepid_index];
+			DataValue dv = pepid.getMetaValue(meta_index_RT);
+			if (dv!=DataValue::EMPTY)
+			{
+				DoubleReal rt(dv);
+				V_MapAlignmentAlgorithm("RT before: " << rt);
+				rt = trafo.apply(rt);
+				V_MapAlignmentAlgorithm("RT after: " << rt);
+				pepid.setMetaValue(meta_index_RT, rt);
+			}
+		}
+		return;
+	}
+
+	void MapAlignmentAlgorithm::fitModel(const String& model_type, const Param& params, vector<TransformationDescription>& trafos)
+	{
+		for (vector<TransformationDescription>::iterator it = trafos.begin();
+				 it != trafos.end(); ++it)
+		{
+			it->fitModel(model_type, params);
+		}
+	}
+
+	void MapAlignmentAlgorithm::getDefaultModel(String& model_type, Param& params)
+	{
+		model_type = "none";
+		params.clear();
+	}
 
 } 

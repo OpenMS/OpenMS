@@ -61,6 +61,9 @@ namespace OpenMS
 
 			//Docu in base class
 			virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
+
+			/// Docu in base class
+			virtual void getDefaultModel(String& model_type, Param& params);
 			
 			///Creates a new instance of this class (for Factory)
 			static MapAlignmentAlgorithm* create()
@@ -184,21 +187,6 @@ namespace OpenMS
 			*/			
 			bool insideBand_(Size i,Size j,Size n,Size m,Int k_);
 			
-			/**
-		    @brief function to calculate a cubicspline to interpolate the Retention time
-
-			 	calculateSpline_(cubic spline) is needed to interpolate the Retention time for the whole length of the sequence.	
-			 	The data points are the points in which a match appeared. To get the rest of the Retention times a spline is necessary. The result of the spline is saved int the TransformationDescription Container.
-			 	
-			 	@param x the coordinate
-			 	@param y the retention times
-			 	@param aligned map
-			 	@param begin of the alignment in the aligned sequence 
-			 	@param end of the alignment in the aligned sequence 
-				@param transformation specific data points to recalulcate the spline
-			*/			
-			void calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,Size begin, Size end,std::vector<TransformationDescription>& transformation);
-		  
 		  /**
 			 	@brief calculate the size of the band for the alignment for two given Sequence
 			   		

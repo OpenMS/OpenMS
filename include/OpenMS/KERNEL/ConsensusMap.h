@@ -297,27 +297,41 @@ namespace OpenMS
 			//@}
 
 			/**
-				@brief Convert a FeatureMap (of any feature type) to a ConsensusMap.  Each
-				ConsensusFeature contains a map index, so this has to be given as well.
-				The previous content of output_map is cleared.
-				An arguable design decision is that the unique id of the FeatureMap is copied (!) to the ConsensusMap,
-				because that is the way it is meant to be used in the algorithms.
+				@brief Convert a FeatureMap (of any feature type) to a ConsensusMap.  
 
+				Each ConsensusFeature contains a map index, so this has to be given as
+				well. The previous content of @p output_map is cleared. An arguable
+				design decision is that the unique id of the FeatureMap is copied (!) to
+				the ConsensusMap, because that is the way it is meant to be used in the
+				algorithms.
+
+				Only the first (!) @p n elements are copied. (This parameter exists
+				mainly for compatibility with @p convert for MSExperiments. To use it in
+				a meaningful way, apply one of the sorting methods to @p input_map
+				beforehand.)
+ 
 				@param input_map_index The index of the input map.
 				@param input_map The container to be converted.
 				@param output_map The resulting ConsensusMap.
-
+				@param n The maximum number of elements to be copied.
 			*/
 			template <typename FeatureT>
-			static void convert(UInt64 const input_map_index, FeatureMap<FeatureT> const & input_map, ConsensusMap& output_map )
+				static void convert(UInt64 const input_map_index, 
+														FeatureMap<FeatureT> const & input_map, 
+														ConsensusMap& output_map, Size n = -1)
       {
+				if ( n > input_map.size() )
+				{
+					n = input_map.size();
+				}
+
 				output_map.clear(true);
-				output_map.reserve(input_map.size());
+				output_map.reserve(n);
 				
 				// An arguable design decision, see above.
         output_map.setUniqueId(input_map.getUniqueId());
 
-        for (UInt64 element_index = 0; element_index < input_map.size(); ++element_index )
+        for (UInt64 element_index = 0; element_index < n; ++element_index )
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, input_map[element_index] ) );
 				}
@@ -328,16 +342,19 @@ namespace OpenMS
 			}
 
 			/**
-				@brief Similar to convert, but copies only the @p n most intense elements from an MSExperiment.
-        Currently MSExperiment<> does not have a unique id but ConsensusMap has one, so we assign a new one here.
+				@brief Similar to @p convert for FeatureMaps.
+
+				Only the @p n most intense elements are copied.
+
+        Currently MSExperiment<> does not have a unique id but ConsensusMap has
+        one, so we assign a new one here.
 
 				@param input_map_index The index of the input map.
 				@param input_map The input map to be converted.
 				@param output_map The resulting ConsensusMap.
 				@param n The maximum number of elements to be copied.
-
 			*/
-			static void convert(UInt64 const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, Size n)
+			static void convert(UInt64 const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, Size n = -1)
 			{
 				output_map.clear(true);
 
@@ -363,14 +380,14 @@ namespace OpenMS
 			}
 
       /**
-				@brief Convert a ConsensusMap to a FeatureMap(of any feature type).
-				The previous content of output_map is cleared.
-				UID's of the elements and the container is copied if the @p keep_uids flag is set.
+				@brief Convert a ConsensusMap to a FeatureMap (of any feature type).
+
+				The previous content of output_map is cleared. UID's of the elements and
+				the container is copied if the @p keep_uids flag is set.
 
 				@param input_map The container to be converted.
         @param keep_uids Shall the UID's of the elements and the container be kept or created anew
 				@param output_map The resulting ConsensusMap.
-
 			*/
       template <typename FeatureT>
       static void convert(ConsensusMap const& input_map, const bool keep_uids, FeatureMap<FeatureT> & output_map )

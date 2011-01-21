@@ -39,9 +39,7 @@ namespace OpenMS
 	TransformationXMLFile::TransformationXMLFile()
 		: XMLHandler("", "1.0"),
 			XMLFile("/SCHEMAS/TrafoXML_1_0.xsd", "1.0"),
-			trafo_(0),
-			param_(),
-			pairs_()
+			params_(), data_(), model_type_()
 	{
 	}
 
@@ -50,17 +48,19 @@ namespace OpenMS
   	//Filename for error messages in XMLHandler
   	file_ = filename;
 
-  	transformation.clear();
-		trafo_ = &transformation;
-  	param_.clear();
-		pairs_.clear();
+  	params_.clear();
+		data_.clear();
+		model_type_.clear();
 		
-		parse_(filename,this);
+		parse_(filename, this);
+
+		transformation.setDataPoints(data_);
+		transformation.fitModel(model_type_, params_);
 	}
   					 
   void TransformationXMLFile::store(String filename, const TransformationDescription& transformation)
   {
-		if ( transformation.getName() == "" )
+		if ( transformation.getModelType() == "" )
 		{
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "will not write a transformation with empty name");
 		}
@@ -79,10 +79,13 @@ namespace OpenMS
 		os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << "\n";
 				
 		// open tag
-		os << "\t<Transformation name=\"" << transformation.getName() << "\">\n";
+		os << "\t<Transformation name=\"" << transformation.getModelType() 
+			 << "\">\n";
 
 		// write parameters
-		for ( Param::ParamIterator it = transformation.getParameters().begin(); it != transformation.getParameters().end(); ++it )
+		Param params;
+		transformation.getModelParameters(params);
+		for ( Param::ParamIterator it = params.begin(); it != params.end(); ++it )
 		{
 			if(it->value.valueType()!=DataValue::EMPTY_VALUE)
 			{
@@ -108,13 +111,13 @@ namespace OpenMS
 		}
 		
 		//write pairs
-		Size pairs_size = transformation.getPairs().size();
+		Size pairs_size = transformation.getDataPoints().size();
 		if (pairs_size!=0)
 		{
 			os << "\t\t<Pairs count=\"" << pairs_size << "\">\n";
 			for (Size i=0; i<pairs_size; ++i)
 			{
-				os << "\t\t\t<Pair from=\"" << transformation.getPairs()[i].first << "\" to=\"" << transformation.getPairs()[i].second << "\"/>\n";
+				os << "\t\t\t<Pair from=\"" << transformation.getDataPoints()[i].first << "\" to=\"" << transformation.getDataPoints()[i].second << "\"/>\n";
 			}
 			os << "\t\t</Pairs>\n";
 		}
@@ -146,22 +149,22 @@ namespace OpenMS
 		}
 		else if ( element == "Transformation" )
 		{
-			trafo_->setName(attributeAsString_(attributes,"name"));
+			model_type_ = attributeAsString_(attributes, "name");
 		}
 		else if ( element == "Param" )
 		{
 			String type = attributeAsString_(attributes,"type");
 			if ( type == "int" )
 			{
-				param_.setValue(attributeAsString_(attributes,"name"),attributeAsInt_(attributes,"value"));
+				params_.setValue(attributeAsString_(attributes,"name"),attributeAsInt_(attributes,"value"));
 			}
 			else if ( type == "float" )
 			{
-				param_.setValue(attributeAsString_(attributes,"name"),attributeAsDouble_(attributes,"value"));
+				params_.setValue(attributeAsString_(attributes,"name"),attributeAsDouble_(attributes,"value"));
 			}
 			else if ( type == "string" )
 			{
-				param_.setValue(attributeAsString_(attributes,"name"),String(attributeAsString_(attributes,"value")));
+				params_.setValue(attributeAsString_(attributes,"name"),String(attributeAsString_(attributes,"value")));
 			}
 			else
 			{
@@ -171,11 +174,11 @@ namespace OpenMS
 		}
 		else if ( element == "Pairs" )
 		{
-			pairs_.reserve(attributeAsInt_(attributes,"count"));
+			data_.reserve(attributeAsInt_(attributes,"count"));
 		}
 		else if ( element == "Pair" )
 		{
-			pairs_.push_back(make_pair(attributeAsDouble_(attributes,"from"),attributeAsDouble_(attributes,"to")));
+			data_.push_back(make_pair(attributeAsDouble_(attributes,"from"),attributeAsDouble_(attributes,"to")));
 		}
 		else
 		{
@@ -183,15 +186,4 @@ namespace OpenMS
 		}
 	}
 	
-	void TransformationXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
-	{
-		String element = sm_.convert(qname);
-	
-		if ( element == "Transformation" )
-		{
-			trafo_->setParameters(param_);
-			trafo_->setPairs(pairs_);
-		}
-	}
-
 } // namespace OpenMS

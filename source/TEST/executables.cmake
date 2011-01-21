@@ -358,6 +358,7 @@ set(analysis_executables_list
 	SimplePairFinder_test
 	StablePairFinder_test
 	TransformationDescription_test
+	TransformationModel_test
 	InclusionExclusionList_test
 )
 

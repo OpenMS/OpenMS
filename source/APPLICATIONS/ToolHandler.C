@@ -144,7 +144,6 @@ namespace OpenMS
 		util_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", "");
 		util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", "");
 		util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", "");
-		util_map["TrafoInverter"] = Internal::ToolDescription("TrafoInverter", "");
 
 		return util_map;
 	}

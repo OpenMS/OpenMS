@@ -232,7 +232,7 @@ namespace OpenMS
 							std::cout << calibrated_exp[spec][peak].getMZ()<< "\t";
 #endif
 							DoubleReal mz = calibrated_exp[spec][peak].getMZ();
-							trafo_.apply(mz);
+							mz = trafo_.apply(mz);
 							calibrated_exp[spec][peak].setMZ(mz);
 #ifdef DEBUG_CALIBRATION
 						std::cout	<< calibrated_exp[spec][peak].getMZ()<< std::endl;
@@ -351,7 +351,7 @@ namespace OpenMS
 						std::cout << exp[spec][peak].getMZ()<< "\t";
 #endif
 						DoubleReal mz = exp[spec][peak].getMZ();
-						trafo_.apply(mz);
+						mz = trafo_.apply(mz);
 						calibrated_exp[spec][peak].setMZ(mz);
 #ifdef DEBUG_CALIBRATION
 						std::cout << calibrated_exp[spec][peak].getMZ()<< std::endl;
@@ -444,7 +444,7 @@ namespace OpenMS
 							std::cout << exp[spec][peak].getMZ()<< "\t";											
 #endif
 							DoubleReal mz = exp[spec][peak].getMZ();
-							trafo_.apply(mz);
+							mz = trafo_.apply(mz);
 							calibrated_exp[spec][peak].setMZ(mz);
 
 #ifdef DEBUG_CALIBRATION

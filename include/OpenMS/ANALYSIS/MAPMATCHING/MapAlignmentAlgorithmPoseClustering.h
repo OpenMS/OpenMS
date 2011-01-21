@@ -69,6 +69,9 @@ namespace OpenMS
 		// Docu in base class
 		virtual void setReference(Size reference_index=0, const String& reference_file="");
 
+		// Docu in base class
+		virtual void getDefaultModel(String& model_type, Param& params);
+
 		/// Creates a new instance of this class (for Factory)
 		static MapAlignmentAlgorithm* create()
 		{
@@ -78,7 +81,7 @@ namespace OpenMS
 		/// Returns the product name (for the Factory)
 		static String getProductName()
 		{
-			return "pose_clustering_affine";
+			return "pose_clustering";
 		}
 
 	 protected:
@@ -90,15 +93,13 @@ namespace OpenMS
 		String reference_file_;
 
 		/**
-			@brief This will compute a linear regression based on all consensus
-			features which contain feature handles from the x and the y map.  If there
-			is only one pair, assume slope is one and set intercept accordingly.  If
-			there is no pair at all, throw an exception.
-
-			@throw Exception::Precondition if no consensus feature contains feature
-			handles from both maps
-		*/
-		TransformationDescription calculateRegression_(Size const index_x_map, Size const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
+			 Compute retention time transformations for feature maps or consensus maps
+		 */
+		template <typename MapType>
+			void computeTransformations_(std::vector<MapType>& maps, 
+																	 std::vector<TransformationDescription>& 
+																	 transformations, Size reference_index, 
+																	 Size max_num_peaks_considered = -1);
 
 	 private:
 

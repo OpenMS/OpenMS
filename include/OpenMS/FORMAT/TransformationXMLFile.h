@@ -79,19 +79,16 @@ namespace OpenMS
   	
 	 protected:
 		// Docu in base class
-		virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
-			
-		// Docu in base class
 		virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 			
 		/// @name Members for use during loading data
 		//@{
-		/// Pointer to fill in transformation data
-		TransformationDescription* trafo_;
 		/// Param to fill in during parse
-		Param param_;
-		/// Pairs vector
-		TransformationDescription::PairVector pairs_;
+		Param params_;
+		/// Data vector
+		TransformationDescription::DataPoints data_;
+		/// Model type
+		String model_type_;
 		//@}
 
   };

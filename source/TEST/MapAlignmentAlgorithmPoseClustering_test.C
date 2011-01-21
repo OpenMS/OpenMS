@@ -57,7 +57,7 @@ START_SECTION((static MapAlignmentAlgorithm* create()))
 END_SECTION
 
 START_SECTION((static String getProductName()))
-	TEST_EQUAL(MapAlignmentAlgorithmPoseClustering::getProductName(), "pose_clustering_affine")
+	TEST_EQUAL(MapAlignmentAlgorithmPoseClustering::getProductName(), "pose_clustering")
 END_SECTION
 
 START_SECTION((virtual void setReference(Size, const String&)))
@@ -73,7 +73,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), peak_maps[0]);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), peak_maps[1]);
   
-  MapAlignmentAlgorithm* alignment = Factory<MapAlignmentAlgorithm>::create("pose_clustering_affine");
+  MapAlignmentAlgorithm* alignment = Factory<MapAlignmentAlgorithm>::create("pose_clustering");
   std::vector<TransformationDescription> transformations;
   // Trafo cannot be computed, due to too few datapoints
   // -- the ideal solution would be to fix the trafo estimation

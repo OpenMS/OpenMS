@@ -88,7 +88,7 @@ namespace OpenMS
 		virtual void alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&);
 
 		/**
-			 @brief Define a reference for the alignment
+			 @brief Defines a reference for the alignment
 			 
 			 @param reference_index Index of input file to use as reference (1-based!)
 			 @param reference_file Path to external reference file
@@ -96,6 +96,10 @@ namespace OpenMS
 			 @exception Exception::InvalidParameter is thrown if the algorithm does not support references
 			*/
 		virtual void setReference(Size reference_index=0, const String& reference_file="");
+
+		/// Gets the default model (incl. parameters) for the alignment algorithm
+		virtual void getDefaultModel(String& model_type, Param& params);
+
 
     /// Applies the <i>given</i> transformations to peak maps
     static void transformPeakMaps( std::vector< MSExperiment<> >& maps, const std::vector<TransformationDescription>& given_trafos );
@@ -122,6 +126,13 @@ namespace OpenMS
     /// Applies the <i>given</i> transformations to a single peptide identification
     static void transformSinglePeptideIdentification( std::vector< PeptideIdentification >& pepids, const TransformationDescription& trafo );
 
+
+		/**
+			 @brief Fits a model with given parameters to the transformations
+
+			 This will not alter transformations of reference files (transformation type "identity").
+		*/
+		static void fitModel(const String& model_type, const Param& params, std::vector<TransformationDescription>& trafos);
 
 		/// Register all derived classes in this method
 		static void registerChildren();

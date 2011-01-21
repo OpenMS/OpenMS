@@ -76,6 +76,5 @@
   - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for probabilistic network as input for AdvancedSpectrumGenerator.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
   - @subpage UTILS_UniqueIdAssigner - Assign new unique ids to featureXML or consensusXML files.
-	- @subpage UTILS_TrafoInverter - Computes (approximate) inverses of retention time transformations.
 
 */

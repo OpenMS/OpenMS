@@ -35,7 +35,8 @@ namespace OpenMS
 
 	InternalCalibration::InternalCalibration()
 		:DefaultParamHandler("InternalCalibration"),
-		 ProgressLogger()
+		 ProgressLogger(),
+		 trafo_(TransformationDescription::DataPoints())
 	{
 		defaults_.setValue("mz_tolerance",1.,"Allowed tolerance between peak and reference m/z.");
 		defaults_.setMinFloat("mz_tolerance",0.);
@@ -86,32 +87,26 @@ namespace OpenMS
 			}
 #endif
 
-			DoubleReal cov00, cov01, cov11, sumsq, slope,intercept;
-			// TODO: what exactly is stride?? used 1 here as in the gsl-example :)
-			gsl_fit_linear (&(observed_masses[0]), 1, &(theoretical_masses[0]), 1, observed_masses.size(), &intercept,&slope,&cov00,&cov01,&cov11,&sumsq);
-			trafo_.setName("linear");
-			trafo_.setParam("slope",slope);
-			trafo_.setParam("intercept",intercept);
+			TransformationDescription::DataPoints data;
+			for (Size i = 0; i < observed_masses.size(); ++i)
+			{
+				data.push_back(std::make_pair(observed_masses[i], 
+																			theoretical_masses[i]));
+			}
+
+			trafo_ = TransformationDescription(data);
+			trafo_.fitModel("linear", Param());
 
 #ifdef DEBUG_CALIBRATION
 			// 			std::cout <<"\n\n---------------------------------\n\n"<< "after calibration "<<std::endl;
 			for(Size i = 0; i < observed_masses.size();++i)
 				{
-					DoubleReal new_mass = observed_masses[i];
-					trafo_.apply(new_mass);
+					DoubleReal new_mass = trafo_.apply(observed_masses[i]);
 
 					DoubleReal rel_error = (theoretical_masses[i]-(new_mass))/theoretical_masses[i] * 1e6;
 					std::cout << observed_masses[i]<<"\t"<<rel_error<<std::endl;
 				}
 #endif								
-			
-#ifdef DEBUG_CALIBRATION
-  	  printf ("# best fit: Y = %g + %g X\n", intercept, slope);
-      printf ("# covariance matrix:\n");
-      printf ("# [ %g, %g\n#   %g, %g]\n", 
-               cov00, cov01, cov01, cov11);
-      printf ("# sumsq = %g\n", sumsq);
-#endif
 	}
 
 
@@ -195,7 +190,7 @@ namespace OpenMS
 		for(Size f = 0; f < feature_map.size();++f)
 			{
 				DoubleReal mz = feature_map[f].getMZ();
-				trafo_.apply(mz);
+				mz = trafo_.apply(mz);
 				calibrated_feature_map[f].setMZ(mz);
 
 				// apply transformation to convex hulls and subordinates
@@ -203,7 +198,7 @@ namespace OpenMS
 					{
 						// subordinates
 						DoubleReal mz = calibrated_feature_map[f].getSubordinates()[s].getMZ();
-						trafo_.apply(mz);
+						mz = trafo_.apply(mz);
 						calibrated_feature_map[f].getSubordinates()[s].setMZ(mz);
 					}
 				for(Size s = 0; s < calibrated_feature_map[f].getConvexHulls().size();++s)
@@ -214,7 +209,7 @@ namespace OpenMS
 						for(Size p = 0; p < point_vec.size(); ++p)
 						{
 							DoubleReal mz = point_vec[p][1];
-							trafo_.apply(mz);
+							mz = trafo_.apply(mz);
 							point_vec[p][1] = mz;
 						}
 						calibrated_feature_map[f].getConvexHulls()[s].setHullPoints(point_vec);						

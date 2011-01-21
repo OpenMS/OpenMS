@@ -67,31 +67,10 @@ namespace OpenMS
 		defined in the base class.  It is provided here for "direct use" of this
 		class.
 		*/
-		void readGivenTrafos();
+		void readGivenTrafos(std::vector<TransformationDescription>&);
 
-		/**@brief Assign the given transformations.  This takes an internal copy.
-
-		Note that this bypasses the factory concept, since this method is not
-		defined in the base class.  It is provided here for "direct use" of this
-		class.
-		*/
-		void setGivenTrafos(const std::vector<TransformationDescription>& given_trafos);
-
-		/**@brief Returns the given transformations.
-
-		Note that this bypasses the factory concept, since this method is not
-		defined in the base class.  It is provided here for "direct use" of this
-		class.
-		*/
-		std::vector<TransformationDescription>& getGivenTrafos();
-		
-		/**@brief Returns the given transformations.
-
-		Note that this bypasses the factory concept, since this method is not
-		defined in the base class.  It is provided here for "direct use" of this
-		class.
-		*/
-		const std::vector<TransformationDescription>& getGivenTrafos() const;
+		/// Gets the default model (incl. parameters) for the alignment algorithm
+		void getDefaultModel(String& model_type, Param& params);
 
 		/// Creates a new instance of this class (for Factory)
 		static MapAlignmentAlgorithm* create()
@@ -104,10 +83,6 @@ namespace OpenMS
 		{
 			return "apply_given_trafo";
 		}
-
-	 protected:
-
-		std::vector<TransformationDescription> given_trafos_;
 		
 	 private:
 

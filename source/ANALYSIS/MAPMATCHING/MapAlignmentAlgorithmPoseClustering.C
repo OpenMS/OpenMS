@@ -32,10 +32,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <gsl/gsl_fit.h>
-
 #include <iostream>
 
+using namespace std;
 
 namespace OpenMS
 {
@@ -47,8 +46,8 @@ namespace OpenMS
 
 		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer().getParameters());
 		defaults_.insert("pairfinder:",StablePairFinder().getParameters());
-		defaults_.setValue("symmetric_regression","true","If true, linear regression will be based on (y-x) versus (x+y).\nIf false, a \"standard\" linear regression will be performed for y versus x.");
-		defaults_.setValidStrings("symmetric_regression",StringList::create("true,false"));
+		// defaults_.setValue("symmetric_regression","true","If true, linear regression will be based on (y-x) versus (x+y).\nIf false, a \"standard\" linear regression will be performed for y versus x.");
+		// defaults_.setValidStrings("symmetric_regression",StringList::create("true,false"));
 		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps. To use all peaks, set this to '-1'.");
 		defaults_.setMinInt("max_num_peaks_considered", -1);
 		//TODO 'max_num_peaks_considered' should apply to peaks and features!! (Clemens)
@@ -66,14 +65,12 @@ namespace OpenMS
 		reference_file_ = reference_file;
 	}
 
-	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps, std::vector<TransformationDescription>& transformations)
+	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(vector< MSExperiment<> >& maps, vector<TransformationDescription>& transformations)
 	{
 		// prepare transformations for output
 		transformations.clear();
-		transformations.resize(maps.size());
 
 		const Int max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
-		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		// reference map:
 		Size reference_index = reference_index_ - 1; // local index is 0-based
@@ -93,7 +90,7 @@ namespace OpenMS
 			Size max_count = 0;
 			for (Size m = 0; m < maps.size(); ++m)
 			{
-				// initialize getSize() by calling updateRanges()
+				// initialize "getSize()" by calling "updateRanges()"
 				maps[m].updateRanges(1);
 				if (maps[m].getSize() > max_count)
 				{
@@ -103,102 +100,116 @@ namespace OpenMS
 			}
 		}
 
-		startProgress(0, 10 * maps.size(), "aligning peak maps");
+		computeTransformations_(maps, transformations, reference_index, 
+														max_num_peaks_considered);
+	}
 
-    // build a consensus map of the elements of the reference map (take the highest peaks)
-    std::vector<ConsensusMap> input(2);
-		ConsensusMap::convert(reference_index, maps[reference_index], input[0], max_num_peaks_considered);
+
+	template <typename MapType>
+	void MapAlignmentAlgorithmPoseClustering::computeTransformations_(
+		vector<MapType>& maps, vector<TransformationDescription>& transformations,
+		Size reference_index, Size max_num_peaks_considered)
+	{
+		startProgress(0, 10 * maps.size(), "aligning input maps");
+
+    // build a consensus map of the elements of the reference map (for consensus
+    // map input, take only the highest peaks)
+    vector<ConsensusMap> input(2);
+		ConsensusMap::convert(reference_index, maps[reference_index], input[0], 
+													max_num_peaks_considered);
 
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer superimposer;
-    superimposer.setParameters(param_.copy("superimposer:",true));
+    superimposer.setParameters(param_.copy("superimposer:", true));
+		superimposer.setLogType(getLogType());
 
     StablePairFinder pairfinder;
-    pairfinder.setParameters(param_.copy("pairfinder:",true));
+    pairfinder.setParameters(param_.copy("pairfinder:", true));
+		pairfinder.setLogType(getLogType());
 
 		for (Size i = 0; i < maps.size(); ++i)
 		{
-			setProgress(10*i);
+			setProgress(10 * i);
 			if (i != reference_index)
 			{
 				// build scene_map
-				ConsensusMap::convert( i, maps[i], input[1], max_num_peaks_considered );
-				setProgress(10*i+1);
+				ConsensusMap::convert(i, maps[i], input[1], max_num_peaks_considered);
+				setProgress(10 * i + 1);
 
 				// run superimposer to find the global transformation
-	      std::vector<TransformationDescription> si_trafos;
+	      vector<TransformationDescription> si_trafos;
 	      superimposer.run(input, si_trafos);
-				setProgress(10*i+2);
+				setProgress(10 * i + 2);
 
-				//apply transformation to consensus feature and contained feature handles
-				for (Size j=0; j<input[1].size(); ++j)
+				// apply transformation to consensus features and contained feature
+				// handles
+				for (Size j = 0; j < input[1].size(); ++j)
 				{
 					//Calculate new RT
 					DoubleReal rt = input[1][j].getRT();
-					si_trafos[0].apply(rt);
-					//Set rt of consensus feature centroid
+					rt = si_trafos[0].apply(rt);
+					//Set RT of consensus feature centroid
 					input[1][j].setRT(rt);
 					//Set RT of consensus feature handles
 					input[1][j].begin()->asMutable().setRT(rt);
 				}
-				setProgress(10*i+3);
+				setProgress(10 * i + 3);
 
 	      //run pairfinder fo find pairs
 				ConsensusMap result;
-				pairfinder.run(input,result);
-				setProgress(10*i+4);
+				pairfinder.run(input, result);
+				setProgress(10 * i + 4);
 
 				// calculate the local transformation
-				TransformationDescription trafo;
-				try
+				si_trafos[0].invert(); // to undo the transformation applied above
+				TransformationDescription::DataPoints data;
+				for (ConsensusMap::Iterator it = result.begin(); it != result.end();
+						 ++it)
 				{
-					trafo = calculateRegression_(i,reference_index,result,symmetric_regression);
+					if (it->size() == 2) // two matching features
+					{
+						DoubleReal x = 0, y = 0;
+						for (ConsensusFeature::iterator feat_it = it->begin();
+								 feat_it != it->end(); ++feat_it)
+						{
+							// one feature should be from the reference map:
+							if (feat_it->getMapIndex() == reference_index)
+							{
+								y = feat_it->getRT();
+							}
+							// transform RT back to the original scale:
+							else x = si_trafos[0].apply(feat_it->getRT());
+						}
+						data.push_back(make_pair(x, y));
+					}
 				}
-				catch (Exception::Precondition & /*exception*/ ) // TODO is there a better way to deal with this situation?
-				{
-					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
-					trafo.setName("linear");
-					trafo.setParam("slope",1.0);
-					trafo.setParam("intercept",0.0);
-				}
-				setProgress(10*i+5);
-
-				// combine the two transformations
-				transformations[i].setName("linear");
-				transformations[i].setParam("slope",(DoubleReal)si_trafos[0].getParam("slope")*(DoubleReal)trafo.getParam("slope"));
-				transformations[i].setParam("intercept",(DoubleReal)trafo.getParam("slope")*(DoubleReal)si_trafos[0].getParam("intercept")+(DoubleReal)trafo.getParam("intercept"));
-
-				// apply transformation to all scans
-				for (Size j=0; j< maps[i].size(); ++j)
-				{
-					DoubleReal rt = maps[i][j].getRT();
-					transformations[i].apply(rt);
-					maps[i][j].setRT(rt);
-				}
-				
+				setProgress(10 * i + 5);
+				TransformationDescription trafo(data);
+				transformations.push_back(trafo);
 				setProgress(10*i+6);
 			}
-		}
-		
-		if (reference_file_.empty())
-		{
-			// set no transformation for reference map:
-			transformations[reference_index].setName("none");
-		}
-		else maps.resize(maps.size() - 1);
 
-		setProgress(10*maps.size());
+			else if (reference_file_.empty())
+			{
+				// set no transformation for reference map:
+				TransformationDescription trafo;
+				trafo.fitModel("identity");
+				transformations.push_back(trafo);
+			}
+		}
+
+		setProgress(10 * maps.size());
 		endProgress();
+
+		// reference file was added to "maps", has to be removed now:
+		if (!reference_file_.empty()) maps.resize(maps.size() - 1);
 	}
 
 
-	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(std::vector< FeatureMap<> >& maps, std::vector<TransformationDescription>& transformations)
+	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(vector< FeatureMap<> >& maps, vector<TransformationDescription>& transformations)
 	{
 		// prepare transformations for output
 		transformations.clear();
-		transformations.resize(maps.size());
-
-		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		// reference map:
 		Size reference_index = reference_index_ - 1; // local index is 0-based
@@ -226,10 +237,14 @@ namespace OpenMS
       }
     }
 
+		computeTransformations_(maps, transformations, reference_index);
+	}
+
+/*
 		startProgress(0, 10 * maps.size(), "aligning feature maps");
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-    std::vector<ConsensusMap> input(2);
+    vector<ConsensusMap> input(2);
 		ConsensusMap::convert(reference_index, maps[reference_index], input[0]);
 
 		// init superimposer and pairfinder with model and parameters
@@ -250,7 +265,7 @@ namespace OpenMS
 				setProgress(10*i+1);
 
 				// run superimposer to find the global transformation
-	      std::vector<TransformationDescription> si_trafos;
+	      vector<TransformationDescription> si_trafos;
 	      superimposer.run(input, si_trafos);
 				setProgress(10*i+2);
 
@@ -275,9 +290,9 @@ namespace OpenMS
 				{
 					trafo = calculateRegression_(i,reference_index,result,symmetric_regression);
 				}
-				catch (Exception::Precondition& /*exception*/ ) // TODO is there a better way to deal with this situation?
+				catch (Exception::Precondition& exception) // TODO is there a better way to deal with this situation?
 				{
-					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
+					cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << endl;
 					trafo.setName("linear");
 					trafo.setParam("slope",1.0);
 					trafo.setParam("intercept",0.0);
@@ -290,19 +305,8 @@ namespace OpenMS
 				transformations[i].setParam("intercept",(DoubleReal)trafo.getParam("slope")*(DoubleReal)si_trafos[0].getParam("intercept")+(DoubleReal)trafo.getParam("intercept"));
 
 				// apply transformation (global and local)
-#if 1 // do it the new way - "deep"
 				transformSingleFeatureMap(maps[i],transformations[i]);
-#else // do it the old way - "shallow", does not transform convex hulls etc.! - TODO remove this piece of code sooner or later
-				for (Size j = 0; j < maps[i].size(); ++j)
-				{
-					DoubleReal rt = maps[i][j].getRT();
-					// DoubleReal rt_old = rt;
-					transformations[i].apply(rt);
-					maps[i][j].setRT(rt);
-					// transformations[i].getPairs().push_back(TransformationDescription::PairVector::value_type(rt_old,rt));
-				}
-				// std::sort(transformations[i].getPairs().begin(),transformations[i].getPairs().end());
-#endif
+
 				setProgress(10*i+6);
 			}
 		}
@@ -316,15 +320,17 @@ namespace OpenMS
 		setProgress(10*maps.size());
 		endProgress();
 	}
+*/
 
+/*
 	TransformationDescription MapAlignmentAlgorithmPoseClustering::calculateRegression_(Size const index_x_map, Size const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const
 	{
 		// the result
 		TransformationDescription lm;
 
 		// coordinates of appropriate pairs will be stored here
-		std::vector<double> vec_x;
-		std::vector<double> vec_y;
+		vector<double> vec_x;
+		vector<double> vec_y;
 
 		// search for pairs, optionally apply coordinate transformation, store coordinates in vec_x and vec_y
 		FeatureHandle probe_x(index_x_map,Peak2D(),0);
@@ -367,18 +373,6 @@ namespace OpenMS
 		}
 		else
 		{
-			if ( vec_x.size() == 1 ) // degenerate case, but we still can do something
-			{
-				slope = 1.;
-				intercept = vec_y[0]-vec_x[0];
-			}
-			else // Oops, no pairs found at all!  Something went wrong outside.  Better throw an exception to indicate this fact.
-			{
-				throw Exception::Precondition
-					(__FILE__,__LINE__,__PRETTY_FUNCTION__,
-					 "not enough consensus features with feature handles from both maps"
-					);
-			}
 		}
 
 		// assign final result, undo optional coordinate transform
@@ -397,5 +391,15 @@ namespace OpenMS
 
 		return lm;
 	}
+*/
+
+	void MapAlignmentAlgorithmPoseClustering::getDefaultModel(String& model_type, 
+																														Param& params)
+	{
+		model_type = "linear";
+		params.clear();
+		params.setValue("symmetric_regression", "true");
+	}
+
 
 } //namespace

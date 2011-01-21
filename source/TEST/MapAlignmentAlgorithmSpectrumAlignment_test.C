@@ -61,6 +61,7 @@ START_SECTION((static String getProductName()))
 END_SECTION
 
 START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
+{
   MapAlignmentAlgorithmSpectrumAlignment ma;
   std::vector< MSExperiment<> > maps;
 	PeakMap map1;
@@ -105,21 +106,22 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 	maps.push_back(map1);
 	maps.push_back(map2);
 	std::vector<TransformationDescription> transformations;
-  ma.alignPeakMaps(maps,transformations);
-  Int counter =0;
+  ma.alignPeakMaps(maps, transformations);
+	Param params;
+	String model_type;
+	ma.getDefaultModel(model_type, params);
+	ma.fitModel(model_type, params, transformations);
+	ma.transformPeakMaps(maps, transformations);
 	maps[0].updateRanges(-1);
 	maps[1].updateRanges(-1);
   for (Size i=0; i< maps[0].size(); ++i)
   {
 		if((maps[0])[i].getMSLevel() <2)
 		{
-	  	if((maps[0])[i].getRT() != (maps[1])[i].getRT())
-	  	{
-	  		++counter;
-	  	}
+			TEST_REAL_SIMILAR(maps[0][i].getRT(), maps[1][i].getRT());
 		}
   }
-	TEST_EQUAL(counter, 0)
+}
 END_SECTION
 
 START_SECTION([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))

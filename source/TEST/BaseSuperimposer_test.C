@@ -49,9 +49,10 @@ class TestSuperimposer
 		if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
 		transformations.clear();
 		transformations.resize(1);
-		transformations[0].setName("linear");
-		transformations[0].setParam("slope",1.1);
-		transformations[0].setParam("intercept",5.0);
+		Param params;
+		params.setValue("slope",1.1);
+		params.setValue("intercept", 5.0);
+		transformations[0].fitModel("linear", params);
 	}
 };
 
@@ -71,15 +72,19 @@ START_SECTION((virtual ~BaseSuperimposer()))
 END_SECTION
 
 START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::vector<TransformationDescription>& transformations)=0))
+{
   std::vector<TransformationDescription> transformations;
   TestSuperimposer si;
 	std::vector<ConsensusMap> maps;
-	TEST_EXCEPTION(Exception::IllegalArgument,si.run(maps,transformations))
+	TEST_EXCEPTION(Exception::IllegalArgument, si.run(maps, transformations))
 	maps.resize(2);
   si.run(maps, transformations);
-  TEST_STRING_EQUAL(transformations[0].getName(),"linear");
-  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("slope"),1.1)
-  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("intercept"),5.0)
+  TEST_STRING_EQUAL(transformations[0].getModelType(), "linear");
+  Param params;
+	transformations[0].getModelParameters(params);
+  TEST_REAL_SIMILAR(params.getValue("slope"), 1.1)
+  TEST_REAL_SIMILAR(params.getValue("intercept"), 5.0)
+}
 END_SECTION
 
 START_SECTION((static void registerChildren()))

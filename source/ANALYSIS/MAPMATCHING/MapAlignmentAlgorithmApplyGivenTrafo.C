@@ -40,120 +40,68 @@ namespace OpenMS
 	{
 		setName("MapAlignmentAlgorithmApplyGivenTrafo");
 	
-		defaults_.setValue("transformations",StringList(),"file names of transformations to be used (TrafoXML format)");
-		defaults_.setValue("transformations_path","","optional path prepended to all transformations");
-		// defaults_.setValue("inverse","","do the inverse transformation"); // TODO would not this be nice.
+		defaults_.setValue("transformations", StringList(), "file names of transformations to be used (TrafoXML format)");
+		defaults_.setValue("transformations_path", "", "optional path prepended to all transformations");
+		defaults_.setValue("invert", "false", "compute and apply the inverse transformation");
+		defaults_.setValidStrings("invert", StringList::create("true,false"));
 		defaultsToParam_();
-		
-		return;
 	}
 
 	MapAlignmentAlgorithmApplyGivenTrafo::~MapAlignmentAlgorithmApplyGivenTrafo()
 	{
-		return;
-	}
-
-	void MapAlignmentAlgorithmApplyGivenTrafo::setGivenTrafos(const std::vector<TransformationDescription>& given_trafos)
-	{
-		given_trafos_ = given_trafos;
-		return;
-	}
-
-	std::vector<TransformationDescription>& MapAlignmentAlgorithmApplyGivenTrafo::getGivenTrafos()
-	{
-		return given_trafos_;
-	}
-	
-	const std::vector<TransformationDescription>& MapAlignmentAlgorithmApplyGivenTrafo::getGivenTrafos() const
-	{
-		return given_trafos_;
 	}
 
 
-	void MapAlignmentAlgorithmApplyGivenTrafo::alignPeakMaps( std::vector< MSExperiment<> >& maps,
-																														std::vector<TransformationDescription>& transformations
-																													)
+	void MapAlignmentAlgorithmApplyGivenTrafo::alignPeakMaps(std::vector< MSExperiment<> >& /* maps */, std::vector<TransformationDescription>& transformations)
 	{
-		std::cout << "Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::alignPeakMaps()" << std::endl;
-
-		if ( !transformations.empty() )
-		{
-			throw Exception::IllegalArgument
-				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-				 "MapAlignmentAlgorithmApplyGivenTrafo does not output transformations, the list must be empty"
-				);
-		}
+		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::alignPeakMaps()");
 		
-		readGivenTrafos();
-
-		transformPeakMaps( maps, given_trafos_ );
-
-		return;
+		readGivenTrafos(transformations);
 	}
 
 
-	void MapAlignmentAlgorithmApplyGivenTrafo::alignFeatureMaps( std::vector< FeatureMap<> >& maps,
-																															 std::vector<TransformationDescription>& transformations
-																														 )
+	void MapAlignmentAlgorithmApplyGivenTrafo::alignFeatureMaps(std::vector< FeatureMap<> >& /* maps */, std::vector<TransformationDescription>& transformations)
 	{
 		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::alignFeatureMaps()");
 
-		if ( !transformations.empty() )
-		{
-			throw Exception::IllegalArgument
-				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-				 "MapAlignmentAlgorithmApplyGivenTrafo does not output transformations, the list must be empty"
-				);
-		}
-		
-		readGivenTrafos();
-
-		transformFeatureMaps( maps, given_trafos_ );
-
-		return;
+		readGivenTrafos(transformations);
 	}
 
 
-	void MapAlignmentAlgorithmApplyGivenTrafo::alignPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >& maps,
-																																					std::vector<TransformationDescription>& transformations
-																																				)
+	void MapAlignmentAlgorithmApplyGivenTrafo::alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >& /* maps */, std::vector<TransformationDescription>& transformations)
 	{
 		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::alignPeptideIdentifications()");
 		
-		if ( !transformations.empty() )
-		{
-			throw Exception::IllegalArgument
-				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-				 "MapAlignmentAlgorithmApplyGivenTrafo does not output transformations, the list must be empty"
-				);
-		}
-		
-		readGivenTrafos();
-
-		transformPeptideIdentifications( maps, given_trafos_ );
-
-		return;
+		readGivenTrafos(transformations);
 	}
 
 
-	void MapAlignmentAlgorithmApplyGivenTrafo::readGivenTrafos()
+	void MapAlignmentAlgorithmApplyGivenTrafo::readGivenTrafos(std::vector<TransformationDescription>& transformations)
 	{
-		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::readGivenTrafos()");
+		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there. This is MapAlignmentAlgorithmApplyGivenTrafo::readGivenTrafos()");
 
 		StringList given_trafo_files = param_.getValue("transformations");
 		String transformations_path = param_.getValue("transformations_path");
 		TransformationXMLFile trafo_xml;
-		for ( StringList::const_iterator slcit = given_trafo_files.begin();
-					slcit != given_trafo_files.end();
-					++slcit
-				)
-		{
-			given_trafos_.push_back(TransformationDescription());
-			trafo_xml.load( transformations_path + *slcit, given_trafos_.back() );
-			// std::cout << "I just loaded this trafo:\n" << given_trafos.back() << "\n" << std::endl;
+		bool invert = (String(param_.getValue("invert")) == "true");
+
+		transformations.resize(given_trafo_files.size());
+		for (Size i = 0; i < given_trafo_files.size(); ++i)
+		{		
+			trafo_xml.load(transformations_path + given_trafo_files[i], 
+										 transformations[i]);
+			if (invert)
+			{
+				transformations[i].invert();
+			}
 		}
-		return;
 	}
 
+
+	void MapAlignmentAlgorithmApplyGivenTrafo::getDefaultModel(String& model_type, Param& params)
+	{
+		model_type = "none";
+		params.clear();
+	}
 
 } //namespace 

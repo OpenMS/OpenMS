@@ -65,8 +65,12 @@ namespace OpenMS
 	
 	void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector< MSExperiment<> >& peakmaps, std::vector<TransformationDescription>& transformation)
 	{
+		transformation.clear();
+		TransformationDescription trafo;
+		trafo.fitModel("identity");
+		transformation.push_back(trafo); // transformation of reference map
 		try
-		{ 	
+		{ 
 			std::vector<MSSpectrum<>* >spectrum_pointers;
 			msFilter_(peakmaps[0],spectrum_pointers);
 			fourierActivation_(spectrum_pointers);
@@ -85,6 +89,12 @@ namespace OpenMS
 		}
 	}
 	
+	void MapAlignmentAlgorithmSpectrumAlignment::getDefaultModel(String& model_type, Param& params)
+	{
+		model_type = "interpolated";
+		params.clear();
+		params.setValue("interpolation_type", "cspline");
+	}
 
 	void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<>* >& pattern, MSExperiment<>& aligned,std::vector<TransformationDescription>& transformation)
 	{
@@ -173,33 +183,16 @@ namespace OpenMS
 				{
 					std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
 				}*/
-		//calculate the spline
-		calculateSpline_(xcoordinate,ycoordinate,tempalign,(Size)0,tempalign.size()-1,transformation);
-		if(xcoordinate[0]!=0)
+
+		// store the data points defining the transformation:
+		TransformationDescription::DataPoints data;
+		for (Size i = 0; i < xcoordinate.size(); ++i)
 		{
-			for (Size i =0; i <= (Size)xcoordinate[0];++i)
-			{
-				Real rt = (i+1)*(ycoordinate[0]/(xcoordinate[0]+1));
-				(*tempalign[i]).setRT(rt);
-			}
+			DoubleReal rt = tempalign[xcoordinate[i]]->getRT();
+			data.push_back(std::make_pair(rt, ycoordinate[i]));
 		}
-		if((Size)xcoordinate[xcoordinate.size()-1]!=tempalign.size()-1)
-		{
-			Real slope= (ycoordinate[ycoordinate.size()-2]-ycoordinate[ycoordinate.size()-1])/(xcoordinate[xcoordinate.size()-2]-xcoordinate[xcoordinate.size()-1]);
-		
-			for (Size i = xcoordinate[xcoordinate.size()-1]; i < tempalign.size();++i)
-			{
-				Real rt = (i)*slope;
-				(*tempalign[i]).setRT(rt);
-			}
-		}
-		//todo plot the result!!!
-		/*	
-		for (Size i=0; i< tempalign.size();++i)
-		{
-			std::cout << (*tempalign[i]).getRT()<< " " << std::endl;
-		}
-		*/
+		transformation.push_back(TransformationDescription(data));
+
 		eraseFloatDataArrayEntry_(tempalign);
 	}
 
@@ -610,128 +603,6 @@ namespace OpenMS
 		return ktemp;
 	}
  
-	inline void  MapAlignmentAlgorithmSpectrumAlignment::calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,Size begin, Size end,std::vector<TransformationDescription>& transformation) 
-	{
-		if(x.size() >=3)
-		{
-			double *tempx =  new double [x.size()];
-			double *tempy = new double [x.size()];
-			
-			TransformationDescription::PairVector pair_vector;
-			for (Size i= 0 ; i <x.size(); ++i)
-			{
-				tempx[i]=x[i];
-				tempy[i]=y[i];
-				//fill pairs with the anchorpoints
-				pair_vector.push_back(std::make_pair((Real)x[i],(Real)y[i]));
-			}
-			//setting transformation by replacing the PairVector
-			TransformationDescription trans;
-			trans.setName("spline");
-			trans.setPairs(pair_vector);
-			transformation.push_back(trans);
-			gsl_interp_accel *acc = gsl_interp_accel_alloc();
-			gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, x.size());
-			gsl_spline_init(spline,tempx,tempy,x.size());
-
-			for (Size i = begin; i <= end; ++i)
-			{
-				(*aligned[i]).setRT(gsl_spline_eval(spline,i,acc));
-			}
-			delete[] tempx;
-			delete[] tempy;
-			gsl_spline_free(spline);
-			gsl_interp_accel_free(acc);
-		}
-		else
-		{/*
-		if(x.size()==0)
-		{
-				std::cerr << " For this part, there is no alignment possible " << std::endl;
-			}
-			else
-			{
-				if(x.size()==2)
-				{
-					if((Size)x[1]== begin &&(Size) x[0]==end)
-					{
-						Size distance = std::abs((Int)(begin-end));
-						Size difference = std::abs((Int)(y[1]-y[0]));
-						Real k= distance/difference; 
-						for (Size i=0; i<=distance; ++i)
-						{	
-							Real t=y[1]+i*k;
-							(*aligned[begin+i]).setRT(t);
-						}
-					}
-					else if((Size)x[1]!=begin &&(Size) x[0]==end)
-					{
-						if(y[1]>(*aligned[begin]).getRT())
-						{
-							x.push_back(begin);
-							y.push_back((*aligned[begin]).getRT());
-							calculateSpline_(x,y,aligned,begin,end);
-						}
-						else
-						{
-							Size difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
-							x.push_back(begin);
-							y.push_back((*aligned[x[1]]).getRT()-difference);
-							calculateSpline_(x,y,aligned,begin,end);
-						}
-					}
-					else if((Size)x[1]==begin &&(Size) x[0]!=end)
-					{
-						if(y[0]<(*aligned[end]).getRT())
-						{
-							x.push_back(end);
-							y.push_back((*aligned[end]).getRT());
-							ordering_(x,y);
-							calculateSpline_(x,y,aligned,begin,end);
-						}
-						else
-						{
-							Size difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
-							x.push_back(end);
-							y.push_back((*aligned[x[0]]).getRT()+difference);
-							ordering_(x,y);
-							calculateSpline_(x,y,aligned,begin,end);
-						}
-					}
-					else if((Size)x[1]!= begin &&(Size) x[0]!= end)
-					{
-						if(y[1]<(*aligned[begin]).getRT())
-						{
-							Size difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
-							x.push_back(begin);
-							y.push_back((*aligned[x[1]]).getRT()-difference);
-						}
-						else
-						{	
-							x.push_back(begin);
-							y.push_back((*aligned[begin]).getRT());
-											
-						}
-						if(y[0]>(*aligned[end]).getRT())
-						{
-							Size difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
-							x.push_back(end);
-							y.push_back((*aligned[x[0]]).getRT()+difference);
-							
-						}
-						else
-						{
-							x.push_back(end);
-							y.push_back((*aligned[end]).getRT());
-						}
-						ordering_(x,y);
-						calculateSpline_(x,y,aligned,begin,end);
-					}
-				}
-			}*/
-		}
-	}
-
 	inline	Real MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i,Size j, Size patternbegin, Size alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation)
 	{
 		if(!column_row_orientation)

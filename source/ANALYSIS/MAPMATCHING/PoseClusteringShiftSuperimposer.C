@@ -513,12 +513,15 @@ namespace OpenMS
     // set trafo
     {
       transformations.clear();
-      transformations.resize(1);
-      transformations[0].setName("linear");
-      transformations[0].setParam("slope", 1.0);
 
-      transformations[0].setParam("intercept", intercept);
-    }
+			Param params;
+      params.setValue("slope", 1.0);
+      params.setValue("intercept", intercept);
+
+			TransformationDescription trafo;
+			trafo.fitModel("linear", params);
+			transformations.push_back(trafo);
+     }
 
     setProgress(++actual_progress);
 

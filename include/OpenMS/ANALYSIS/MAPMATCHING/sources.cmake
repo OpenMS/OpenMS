@@ -25,6 +25,7 @@ QTClusterFinder.h
 SimplePairFinder.h
 StablePairFinder.h
 TransformationDescription.h
+TransformationModel.h
 )
 
 ### add path to the filenames

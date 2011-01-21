@@ -93,8 +93,8 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
 
   std::vector<TransformationDescription> transformations;
   PoseClusteringShiftSuperimposer pcat;
-#if 0 // switch this on for debugging
 	Param params;
+#if 0 // switch this on for debugging
   params.setValue("dump_buckets","tmp_PoseClusteringShiftSuperimposer_buckets");
   params.setValue("dump_pairs","tmp_PoseClusteringShiftSuperimposer_pairs");
   pcat.setParameters(params);
@@ -102,10 +102,11 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
 	pcat.run(input,transformations);
   
 	TEST_EQUAL(transformations.size(),1)
-  TEST_STRING_EQUAL(transformations[0].getName(),"linear")
-	TEST_EQUAL(transformations[0].getParameters().size(),2)
-  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("slope"),1.0)
-  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("intercept"),-20.4)
+  TEST_STRING_EQUAL(transformations[0].getModelType(), "linear")
+	transformations[0].getModelParameters(params);
+	TEST_EQUAL(params.size(), 2)    
+  TEST_REAL_SIMILAR(params.getValue("slope"), 1.0)
+  TEST_REAL_SIMILAR(params.getValue("intercept"), -20.4)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

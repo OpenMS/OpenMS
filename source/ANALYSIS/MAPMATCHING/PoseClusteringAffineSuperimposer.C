@@ -985,19 +985,23 @@ namespace OpenMS
     // set trafo
     {
       transformations.clear();
-      transformations.resize(1);
-      transformations[0].setName("linear");
 
-      const DoubleReal slope = (rt_high_image - rt_low_image) / (rt_high - rt_low);
-      transformations[0].setParam("slope", slope);
+			Param params;
+      const DoubleReal slope = ((rt_high_image - rt_low_image) / 
+																(rt_high - rt_low));
+      params.setValue("slope", slope);
 
       const DoubleReal intercept = rt_low_image - rt_low * slope;
-      transformations[0].setParam("intercept", intercept);
+      params.setValue("intercept", intercept);
 
       if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept*slope));
       }
+
+			TransformationDescription trafo;
+			trafo.fitModel("linear", params); // no data, but explicit parameters
+			transformations.push_back(trafo);
     }
 
     setProgress(++actual_progress);

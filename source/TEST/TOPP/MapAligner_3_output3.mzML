@@ -375,7 +375,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="53.7300109863281" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="53.0200004577637" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="300" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -407,7 +407,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="59.7000122070312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="59.0900005101349" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="300" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />

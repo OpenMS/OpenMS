@@ -95,23 +95,44 @@ protected:
 	void registerOptionsAndFlags_()
 	{
 		String formats = "mzML,featureXML,consensusXML,idXML";
-		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
-		setValidFormats_("in",StringList::create(formats));
-		registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",true);
-		setValidFormats_("out",StringList::create(formats));
-		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
-		setValidFormats_("transformations", StringList::create("trafoXML"));
-		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
+		registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks", true);
+		setValidFormats_("in", StringList::create(formats));
+		registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks", false);
+		setValidFormats_("out", StringList::create(formats));
+		registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks", false);
+		setValidFormats_("trafo_out", StringList::create("trafoXML"));
+		registerStringOption_("type", "<name>", "", "Map alignment algorithm type", true);
     setValidStrings_("type", ToolHandler::getTypes(toolName_()));
 		// TODO  Remove this hack when StringList becomes available in INIFileEditor. Transformations should be specified in algorithm section.
-		registerInputFileList_("given_transformations","<files>",StringList(),"Transformations to apply by the 'apply_given_trafo' algorithm",false);
-		setValidFormats_("given_transformations",StringList::create("trafoXML"));
+		registerInputFileList_("trafo_in", "<files>", StringList(), "Only for 'apply_given_trafo' algorithm: Transformations to apply.", false);
+		setValidFormats_("trafo_in", StringList::create("trafoXML"));
+		registerFlag_("invert", "Only for 'apply_given_trafo' algorithm: Invert transformations (approximatively) before applying them.");
+		addEmptyLine_();
+		addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
 
 		registerTOPPSubsection_("reference", "Options to define a reference file (currently only supported by the algorithms 'identification' and 'pose_clustering_affine')");
 		registerInputFile_("reference:file", "<file>", "", "File to use as reference (for the 'pose_clustering_affine' algorithm, same file format as input files required)\n", false);
 		setValidFormats_("reference:file", StringList::create(formats));
 		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set, but the selected algorithm may pick one if needed.", false);
 		setMinInt_("reference:index", 0);
+
+		registerTOPPSubsection_("model", "Options to control the modelling of retention time transformations from data");
+		registerStringOption_("model:type", "<name>", "default", "Type of model ('default' depends on the selected algorithm and also sets the model parameters below!)", false);
+		StringList model_types;
+		TransformationDescription::getModelTypes(model_types);
+		model_types.insert(model_types.begin(), "default");
+		setValidStrings_("model:type", model_types);
+		registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
+		registerIntOption_("model:num_breakpoints", "<number>", 5, "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.", false);
+		setMinInt_("model:num_breakpoints", 2);
+		registerStringOption_("model:interpolation_type", "<name>", "linear", "Only for 'interpolated' model: Type of interpolation to apply.", false);
+		StringList interpolation_types;
+		TransformationModelInterpolated::getInterpolationTypes(interpolation_types);
+		// "polynomial" interpolation is not suitable for RT data, so remove it:
+		StringList::Iterator pos = find(interpolation_types.begin(), 
+																		interpolation_types.end(), "polynomial"); 
+		interpolation_types.erase(pos); 
+		setValidStrings_("model:interpolation_type", interpolation_types);
 
     addEmptyLine_();
 		addText_("This tool takes a number of input files, aligns them and writes the results to the output files.");
@@ -128,25 +149,25 @@ protected:
 		// TODO  Remove this hack when StringList when become available in INIFileEditor.
 		if (type == "apply_given_trafo")
 		{
-			tmp.setValue("transformations", getStringList_("given_transformations"));
+			tmp.setValue("transformations", getStringList_("trafo_in"));
+			tmp.setValue("invert", getFlag_("invert") ? "true" : "false");
 		}
 
 		delete algo;
 		return tmp;
 	}
 
-	ExitCodes main_(int , const char**)
+	ExitCodes main_(int, const char**)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
 		StringList ins = getStringList_("in");
-
 		StringList outs = getStringList_("out");
-
-		StringList trafos = getStringList_("transformations");
-
+		StringList trafos = getStringList_("trafo_out");
 		String type = getStringOption_("type");
+		String model_type = getStringOption_("model:type");
+		Param model_params = getParam_().copy("model:", true);
 
 		ProgressLogger progresslogger;
 		progresslogger.setLogType(log_type_);
@@ -154,23 +175,28 @@ protected:
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
-		//check whether the number of input files equals the number of output files
-		if (ins.size()!=outs.size())
+		// check whether some kind of output file is given:
+		if (outs.empty() && trafos.empty())
+		{
+			writeLog_("Error: Either data output or transformation output files have to be provided!");
+			return ILLEGAL_PARAMETERS;
+		}
+		// check whether number of input files equals number of output files:
+		if (!outs.empty() && (ins.size() != outs.size()))
 		{
 			writeLog_("Error: The number of input and output files has to be equal!");
 			return ILLEGAL_PARAMETERS;
 		}
-		//check whether the number of input files equals the number of output files
-		if (trafos.size()!=0 && ins.size()!=trafos.size())
+		if (!trafos.empty() && (ins.size() != trafos.size()))
 		{
-			writeLog_("Error: The number of input and transformation files has to be equal!");
+			writeLog_("Error: The number of input and transformation output files has to be equal!");
 			return ILLEGAL_PARAMETERS;
 		}
-		//check whether all input files have the same type (this type is used to store the output type too)
+		// check whether all input files have the same type (this type is used to store the output type too):
 		FileTypes::Type in_type = FileHandler::getType(ins[0]);
-		for (Size i=1;i<ins.size();++i)
+		for (Size i = 1; i < ins.size(); ++i)
 		{
-			if (FileHandler::getType(ins[i])!=in_type)
+			if (FileHandler::getType(ins[i]) != in_type)
 			{
 				writeLog_("Error: All input files have to be in the same format!");
 				return ILLEGAL_PARAMETERS;
@@ -199,7 +225,7 @@ protected:
 		// TODO  Remove this hack when StringList when become available in INIFileEditor.
 		if (type == "apply_given_trafo")
 		{
-			alignment_param.setValue("transformations",getStringList_("given_transformations"));
+			alignment_param.setValue("transformations", getStringList_("trafo_in"));
 		}
 
 		writeDebug_("Used alignment parameters", alignment_param, 3);
@@ -208,6 +234,12 @@ protected:
 
 		// pass the reference parameters on to the algorithm:
 		alignment->setReference(reference_index, reference_file);
+
+		// get parameters for the model:
+		if (model_type == "default")
+		{
+			alignment->getDefaultModel(model_type, model_params);
+		}
 
 		std::vector<TransformationDescription> transformations;
 
@@ -220,7 +252,7 @@ protected:
 			std::vector< MSExperiment<> > peak_maps(ins.size());
 			MzMLFile f;
 			f.setLogType(log_type_);
-			for (Size i=0; i<ins.size(); ++i)
+			for (Size i = 0; i < ins.size(); ++i)
 			{
 		    f.load(ins[i], peak_maps[i]);
 			}
@@ -228,17 +260,22 @@ protected:
 			// try to align
 			try
 			{
-				alignment->alignPeakMaps(peak_maps,transformations);
+				alignment->alignPeakMaps(peak_maps, transformations);
 			}
 			catch (Exception::NotImplemented&)
 			{
 				writeLog_("Error: The algorithm '" + type + "' cannot be used for peak data!");
 				return INTERNAL_ERROR;
 			}
+			if (model_type != "none")
+			{
+				alignment->fitModel(model_type, model_params, transformations);
+			}
+			alignment->transformPeakMaps(peak_maps, transformations);
 
 			// write output
-			progresslogger.startProgress(0,outs.size(),"writing output files");
-			for (Size i=0; i<outs.size(); ++i)
+			progresslogger.startProgress(0, outs.size(), "writing output files");
+			for (Size i = 0; i < outs.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 				
@@ -258,8 +295,8 @@ protected:
 			std::vector< FeatureMap<> > feat_maps(ins.size());
 			FeatureXMLFile f;
 			// f.setLogType(log_type_); // TODO
-			progresslogger.startProgress(0,ins.size(),"loading input files");
-			for (Size i=0; i<ins.size(); ++i)
+			progresslogger.startProgress(0, ins.size(), "loading input files");
+			for (Size i = 0; i < ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 		    f.load(ins[i], feat_maps[i]);
@@ -269,17 +306,22 @@ protected:
 			// try to align
 			try
 			{
-				alignment->alignFeatureMaps(feat_maps,transformations);
+				alignment->alignFeatureMaps(feat_maps, transformations);
 			}
 			catch (Exception::NotImplemented&)
 			{
 				writeLog_("Error: The algorithm '" + type + "' cannot be used for feature data!");
 				return INTERNAL_ERROR;
 			}
+			if (model_type != "none")
+			{
+				alignment->fitModel(model_type, model_params, transformations);
+			}
+			alignment->transformFeatureMaps(feat_maps, transformations);
 
 			// write output
-			progresslogger.startProgress(0,outs.size(),"writing output files");
-			for (Size i=0; i<outs.size(); ++i)
+			progresslogger.startProgress(0, outs.size(), "writing output files");
+			for (Size i = 0; i < outs.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 				
@@ -299,8 +341,8 @@ protected:
 			std::vector<ConsensusMap> cons_maps(ins.size());
 			ConsensusXMLFile f;
 			// f.setLogType(log_type_); // TODO
-			progresslogger.startProgress(0,ins.size(),"loading input files");
-			for (Size i=0; i<ins.size(); ++i)
+			progresslogger.startProgress(0, ins.size(), "loading input files");
+			for (Size i = 0; i < ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 		    f.load(ins[i], cons_maps[i]);
@@ -310,17 +352,22 @@ protected:
 			// try to align
 			try
 			{
-				alignment->alignConsensusMaps(cons_maps,transformations);
+				alignment->alignConsensusMaps(cons_maps, transformations);
 			}
 			catch (Exception::NotImplemented&)
 			{
 				writeLog_("Error: The algorithm '" + type + "' cannot be used for consensus feature data!");
 				return INTERNAL_ERROR;
 			}
+			if (model_type != "none")
+			{
+				alignment->fitModel(model_type, model_params, transformations);
+			}
+			alignment->transformConsensusMaps(cons_maps, transformations);
 
 			// write output
-			progresslogger.startProgress(0,outs.size(),"writing output files");
-			for (Size i=0; i<outs.size(); ++i)
+			progresslogger.startProgress(0, outs.size(), "writing output files");
+			for (Size i = 0; i < outs.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 				
@@ -337,14 +384,14 @@ protected:
 		else if (in_type == FileTypes::IDXML)
 		{
 			// load input
-			std::vector<  std::vector<ProteinIdentification> > protein_ids_vec(ins.size());
-			std::vector<  std::vector<PeptideIdentification> > peptide_ids_vec(ins.size());
+			std::vector< std::vector<ProteinIdentification> > protein_ids_vec(ins.size());
+			std::vector< std::vector<PeptideIdentification> > peptide_ids_vec(ins.size());
 
 			IdXMLFile f;
 			// f.setLogType_(log_type_);
 
-			progresslogger.startProgress(0,ins.size(),"loading input files");
-			for (Size i=0; i<ins.size(); ++i)
+			progresslogger.startProgress(0, ins.size(), "loading input files");
+			for (Size i = 0; i < ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 				String document_id;
@@ -355,20 +402,26 @@ protected:
 			// try to align
 			try
 			{
-				alignment->alignPeptideIdentifications(peptide_ids_vec,transformations);
+				alignment->alignPeptideIdentifications(peptide_ids_vec, transformations);
 			}
 			catch (Exception::NotImplemented&)
 			{
 				writeLog_("Error: The algorithm '" + type + "' cannot be used for peptide data!");
 				return INTERNAL_ERROR;
 			}
+			if (model_type != "none")
+			{
+				alignment->fitModel(model_type, model_params, transformations);
+			}
+			alignment->transformPeptideIdentifications(peptide_ids_vec, 
+																								 transformations);
 
 			// write output
-			progresslogger.startProgress(0,outs.size(),"writing output files");
-			for (Size i=0; i<outs.size(); ++i)
+			progresslogger.startProgress(0, outs.size(), "writing output files");
+			for (Size i = 0; i < outs.size(); ++i)
 			{
 				progresslogger.setProgress(i);
-		    f.store( outs[i], protein_ids_vec[i], peptide_ids_vec[i] );
+		    f.store(outs[i], protein_ids_vec[i], peptide_ids_vec[i]);
 			}
 			progresslogger.endProgress();
 		}
@@ -381,11 +434,11 @@ protected:
 
 		delete alignment;
 
-		if (trafos.size()!=0)
+		if (trafos.size() != 0)
 		{
-			for (Size i=0; i<transformations.size(); ++i)
+			for (Size i = 0; i < transformations.size(); ++i)
 			{
-				TransformationXMLFile().store(trafos[i],transformations[i]);
+				TransformationXMLFile().store(trafos[i], transformations[i]);
 			}
 		}
 

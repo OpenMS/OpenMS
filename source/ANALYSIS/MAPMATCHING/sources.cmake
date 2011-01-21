@@ -25,6 +25,7 @@ QTClusterFinder.C
 SimplePairFinder.C
 StablePairFinder.C
 TransformationDescription.C
+TransformationModel.C
 )
 
 ### add path to the filenames
