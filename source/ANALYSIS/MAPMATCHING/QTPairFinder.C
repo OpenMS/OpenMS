@@ -86,7 +86,7 @@ void QTPairFinder::run(const std::vector<ConsensusMap>& input_maps,ConsensusMap 
 			input[i].push_back(*feature_it);
 		}
 	}
-	maps_size=input_maps.size();
+	maps_size = input_maps.size();
 
 	//Create the HashGrid an fill it with the BaseFeatures
 	HashGrid grid(max_pair_distance_rt,max_pair_distance_mz);
@@ -105,15 +105,19 @@ void QTPairFinder::run(const std::vector<ConsensusMap>& input_maps,ConsensusMap 
 	result_map.clear(false);
 	//Check if subelements should be kept and run the specific method
 	if (keep_subelements)
+	{
 		makeConsensus(grid,logger,result_map,input_maps);
+	}
 	else
-		makeConsensus(grid,logger,result_map);
+	{
+		makeConsensus(grid,logger,result_map);	
+	}
 	logger.endProgress();
 }
 
 void QTPairFinder::run(const std::vector<FeatureMap<> >& input_maps, ConsensusMap& result_map)
 {
-	if ( input_maps.size() < 2 )
+	if (input_maps.size() < 2)
 	{
 		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"more than on input maps required");
 	}
@@ -126,18 +130,18 @@ void QTPairFinder::run(const std::vector<FeatureMap<> >& input_maps, ConsensusMa
 
 	//Convert Features into BaseFeatures
 	vector<vector<BaseFeature> > input(input_maps.size());
-	for (Size i=0;i<input_maps.size();++i)
+	for (Size i = 0;i < input_maps.size(); ++i)
 	{
 		for (FeatureMap<>::const_iterator feature_it=input_maps[i].begin();feature_it!=input_maps[i].end();++feature_it)
 		{
 			input[i].push_back(*feature_it);
 		}
 	}
-	maps_size=input_maps.size();
+	maps_size = input_maps.size();
 
-	//Create the HashGrid an fill it with the BaseFeatures
-	HashGrid grid(max_pair_distance_rt,max_pair_distance_mz);
-	for (Size map_index=0; map_index < input_maps.size(); ++map_index)
+	// Create the HashGrid an fill it with the BaseFeatures
+	HashGrid grid(max_pair_distance_rt, max_pair_distance_mz);
+	for (Size map_index = 0; map_index < input_maps.size(); ++map_index)
 	{
 		for (Size feature_index=0; feature_index < input_maps[map_index].size(); ++ feature_index)
 		{
@@ -148,45 +152,51 @@ void QTPairFinder::run(const std::vector<FeatureMap<> >& input_maps, ConsensusMa
 	calculateDistances(grid);
 	ProgressLogger logger;
 	logger.setLogType(ProgressLogger::CMD);
-	logger.startProgress(0,grid.getNumberOfElements(),"linking features");
+	logger.startProgress(0, grid.getNumberOfElements(), "linking features");
 	result_map.clear(false);
-	makeConsensus(grid,logger,result_map);
+	makeConsensus(grid, logger, result_map);
 	logger.endProgress();
 }
 
 void QTPairFinder::calculateDistances(HashGrid& grid)
 {
 	//Iterate over all neighbor cells of every data point and calculate all possible distances
-	for (GridCells::iterator it=grid.begin();it!=grid.end();++it)
+	for (GridCells::iterator it = grid.begin(); it != grid.end(); ++it)
 	{
-		pair<int,int> act_coords=it->first;
+		pair<Size,Size> act_coords=it->first;
 		list<GridElement*>& elements=it->second;
-		int x=act_coords.first;
-		int y=act_coords.second;
+		Size x = act_coords.first;
+		Size y = act_coords.second;
 		for (list<GridElement*>::iterator center_element=elements.begin();center_element!=elements.end();++center_element)
 		{
 			GridFeature* center_feature_ptr = dynamic_cast<GridFeature*> (*center_element);
 			const BaseFeature& center_feature=center_feature_ptr->getFeature();
-			for (int i=x-1;i<=x+1;++i)
+			for (Size i = x - 1;i <= x + 1; ++i)
 			{
-				//Check the border cells
-				if (i<0 || i>grid.getGridSizeX())
-					continue;
-				for (int j=y-1;j<=y+1;++j)
+				//Check the border cells ///!!! > or >= ???
+				if (i < 0 || i > grid.getGridSizeX())
 				{
-					if (j<0 || j>grid.getGridSizeY())
-						continue;
+					continue;
+				}
+				for (Size j = y - 1; j <= y + 1; ++j)
+				{
+					if (j < 0 || j > grid.getGridSizeY())
+					{
+						continue;	
+					}
 					GridCells::iterator act_pos=grid.find(make_pair(i,j));
-					if (act_pos==grid.end())
+					if (act_pos == grid.end())
+					{
 						continue;
+					}
 
 					list<GridElement*>& neighbor_elements=act_pos->second;
 					for (list<GridElement*>::iterator neighbor_element=neighbor_elements.begin();neighbor_element!=neighbor_elements.end();++neighbor_element)
 					{
 						GridFeature* neighbor_feature_ptr = dynamic_cast<GridFeature*> (*neighbor_element);
-						if (center_feature_ptr!=neighbor_feature_ptr)
+						if (center_feature_ptr != neighbor_feature_ptr)
 						{
-							const BaseFeature& neighbor_feature=neighbor_feature_ptr->getFeature();
+							const BaseFeature& neighbor_feature = neighbor_feature_ptr->getFeature();
 							distances[make_pair(min(center_feature_ptr,neighbor_feature_ptr),max(center_feature_ptr,neighbor_feature_ptr))]=distance_(center_feature,neighbor_feature);
 						}
 					}
@@ -261,7 +271,7 @@ QTCluster QTPairFinder::QTClust(HashGrid& act_grid)
 
 void QTPairFinder::makeConsensus(HashGrid& grid,ProgressLogger& logger,ConsensusMap& result_map)
 {
-	Size grid_size=grid.getNumberOfElements();
+	Size grid_size = grid.getNumberOfElements();
 	while(grid.getNumberOfElements() > 0)
 	{
 		QTCluster act_cluster=QTClust(grid);

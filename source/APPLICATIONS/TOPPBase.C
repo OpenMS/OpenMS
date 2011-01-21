@@ -1331,7 +1331,7 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 
-    for(StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+    for (StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
 		{
 			String tmp(*it);
 			writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
@@ -2169,6 +2169,7 @@ namespace OpenMS
 		tools_map["InternalCalibration"] = StringList::create("");
 		tools_map["MapAligner"] = Factory<MapAlignmentAlgorithm>::registeredProducts();
 		tools_map["MapNormalizer"] = StringList::create("");
+		tools_map["MapStatistics"] = StringList::create("");
 		tools_map["MascotAdapter"] = StringList::create("");
 		tools_map["MascotAdapterOnline"] = StringList::create("");
 		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");

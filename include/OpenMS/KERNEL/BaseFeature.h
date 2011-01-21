@@ -47,9 +47,11 @@ namespace OpenMS
 		///@name Type definitions
 		//@{
 		/// Type of quality values
-		typedef	 DoubleReal QualityType;
+		typedef		Real QualityType;
 		/// Type of charge values
-		typedef Int ChargeType;
+		typedef		Int ChargeType;
+		/// Type of feature width/FWHM (RT)
+		typedef		Real WidthType;
 		//@}
 
 		/** @name Constructors and Destructor
@@ -74,10 +76,9 @@ namespace OpenMS
 		/// @name Quality methods
 		//@{
 		/// Non-mutable access to the overall quality
-		const QualityType& getQuality() const;
+		QualityType getQuality() const;
 		/// Set the overall quality
-		void setQuality(const QualityType& q);
-
+		void setQuality(QualityType q);
 		/// Compare by quality
 		struct QualityLess: std::binary_function<BaseFeature, BaseFeature, bool>
 		{
@@ -100,8 +101,14 @@ namespace OpenMS
 		};
 		//@}
 
+		/// Non-mutable access to the features width (full width at half max, FWHM)
+		WidthType getWidth() const;
+		/// Set the width of the feature (FWHM)
+		void setWidth(WidthType fwhm);
+
 		/// Non-mutable access to charge state
 		const ChargeType& getCharge() const;
+
 		/// Set charge state
 		void setCharge(const ChargeType& ch);
 
@@ -123,7 +130,6 @@ namespace OpenMS
 		/// sets the PeptideIdentification vector
 		void setPeptideIdentifications(const std::vector<PeptideIdentification>& peptides);
 
-
 	 protected:
 
 		/// Overall quality measure of the feature
@@ -132,9 +138,11 @@ namespace OpenMS
 		/// Charge of the peptide represented by this feature.  The default value is 0, which represents an unknown charge state.
 		ChargeType charge_;
 
+		/// Width (FWHM) for the feature. The default value is 0.0, a feature finding algorithm can compute this form the model.
+		WidthType width_;
+
 		/// Peptide PeptideIdentifications belonging to the feature
 		std::vector<PeptideIdentification> peptides_;
-
 	};
 
 } // namespace OpenMS

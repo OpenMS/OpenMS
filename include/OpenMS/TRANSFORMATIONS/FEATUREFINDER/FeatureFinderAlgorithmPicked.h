@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Oliver Kohlbacher $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -661,7 +661,7 @@ namespace OpenMS
 						//Step 3.3.2:
             //Gauss/EGH fit (first fit to find the feature boundaries)
 						//------------------------------------------------------------------
-						Int plot_nr=-1;
+						Int plot_nr = -1;
 
 
 #ifdef _OPENMP
@@ -679,14 +679,14 @@ namespace OpenMS
             traces[traces.max_trace].updateMaximum();
 
             // choose fitter
-            double egh_tau = 0;
+            double egh_tau = 0.0;
             TraceFitter<PeakType> * fitter = chooseTraceFitter_(traces, egh_tau);
 
 						fitter->setParameters(trace_fitter_params);
 						fitter->fit(traces);
 
 #if 0
-						TraceFitter<PeakType> * alt_fitter = new GaussTraceFitter<PeakType>();
+						TraceFitter<PeakType>* alt_fitter = new GaussTraceFitter<PeakType>();
 						Param alt_p;
 						alt_p.setValue("max_iteration",max_iterations);
 						alt_p.setValue("epsilon_abs",epsilon_abs);
@@ -711,7 +711,7 @@ namespace OpenMS
 						//Crop feature according to RT fit (2.5*sigma) and remove badly fitting traces
 						//------------------------------------------------------------------
             MassTraces new_traces;
-            cropFeature_(fitter,traces,new_traces);
+            cropFeature_(fitter, traces, new_traces);
 
 						//------------------------------------------------------------------
 						//Step 3.3.4:
@@ -747,58 +747,58 @@ namespace OpenMS
 						//------------------------------------------------------------------
 						Feature f;
 						//set label
-						f.setMetaValue(3,plot_nr);
+						f.setMetaValue(3, plot_nr);
 						f.setCharge(c);
 						f.setOverallQuality(final_score);
-						if (debug)
-						{
-							f.setMetaValue("score_fit",fit_score);
-							f.setMetaValue("score_correlation",correlation);
-              if (egh_tau!=0)
-              {
-                egh_tau = (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getTau();
-                f.setMetaValue("EGH_tau",egh_tau);
-                f.setMetaValue("EGH_height",(static_cast<EGHTraceFitter<PeakType>*>(fitter))->getHeight());
-                f.setMetaValue("EGH_sigma",(static_cast<EGHTraceFitter<PeakType>*>(fitter))->getSigmaSquare());
-              }
-						}
+						f.setMetaValue("score_fit",fit_score);
+						f.setMetaValue("score_correlation",correlation);
 						f.setRT(fitter->getCenter());
+						f.setWidth(fitter->getFWHM());
+
+						// Extract some of the model parameters.
+            if (egh_tau != 0.0)
+            {
+              egh_tau = (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getTau();
+              f.setMetaValue("EGH_tau", egh_tau);
+              f.setMetaValue("EGH_height",(static_cast<EGHTraceFitter<PeakType>*>(fitter))->getHeight());
+              f.setMetaValue("EGH_sigma",(static_cast<EGHTraceFitter<PeakType>*>(fitter))->getSigmaSquare());
+						}
 						
-						//Calculate the mass of the feature: maximum, average, monoisotopic            
-            if(reported_mz_=="maximum")
+						// Calculate the mass of the feature: maximum, average, monoisotopic            
+            if (reported_mz_ == "maximum")
 						{
 							f.setMZ(traces[traces.getTheoreticalmaxPosition()].getAvgMZ());
 						}
-            else if(reported_mz_=="average")
+            else if(reported_mz_ == "average")
 						{
 							DoubleReal total_intensity = 0.0;
 							DoubleReal average_mz = 0.0;
-	 						for (Size t=0; t<traces.size(); ++t)
+	 						for (Size t = 0; t < traces.size(); ++t)
 							{
-								for (Size p=0; p<traces[t].peaks.size(); ++p)
+								for (Size p = 0; p < traces[t].peaks.size(); ++p)
 								{
 									average_mz += traces[t].peaks[p].second->getMZ()*traces[t].peaks[p].second->getIntensity();
-									total_intensity+=traces[t].peaks[p].second->getIntensity();
+									total_intensity += traces[t].peaks[p].second->getIntensity();
 								}
 							}
 							average_mz /= total_intensity;
 							f.setMZ(average_mz);
 						}
-            else if(reported_mz_=="monoisotopic")
+            else if (reported_mz_ == "monoisotopic")
 						{
 							DoubleReal mono_mz = traces[traces.getTheoreticalmaxPosition()].getAvgMZ();
               mono_mz -= (Constants::PROTON_MASS_U/c) * (traces.getTheoreticalmaxPosition() + best_pattern.theoretical_pattern.trimmed_left);
 							f.setMZ(mono_mz);
 						}
 						
-						//Calculate intensity based on model only
+						// Calculate intensity based on model only
 						// - the model does not include the baseline, so we ignore it here
 						// - as we scaled the isotope distribution to 
 						f.setIntensity(
 						    fitter->getFeatureIntensityContribution() // was 2.5 * fitter->getHeight() * sigma
 						    / getIsotopeDistribution_(f.getMZ()).max);
 						//add convex hulls of mass traces
-						for (Size j=0; j<traces.size(); ++j)
+						for (Size j = 0; j < traces.size(); ++j)
 						{
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
@@ -815,7 +815,7 @@ namespace OpenMS
 						{
 							DoubleReal rt = map_[seeds[j].spectrum].getRT();
 							DoubleReal mz = map_[seeds[j].spectrum][seeds[j].peak].getMZ();
-							if (bb.encloses(rt,mz) && f.encloses(rt,mz))
+							if (bb.encloses(rt, mz) && f.encloses(rt, mz))
 							{
 								//set intensity to zero => the peak will be skipped!
 								seeds[j].intensity = 0.0;
@@ -1731,16 +1731,16 @@ namespace OpenMS
        *
        * @return A pointer to the trace fitter that should be used.
        */
-      TraceFitter<PeakType> * chooseTraceFitter_(MassTraces & /*traces*/, double & tau)
+      TraceFitter<PeakType> * chooseTraceFitter_(MassTraces & /*traces*/, double& tau)
       {
         // choose fitter
-        if(param_.getValue("feature:rt_shape") == "asymmetric")
+        if (param_.getValue("feature:rt_shape") == "asymmetric")
         {
           LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
           tau = -1.0;
           return new EGHTraceFitter<PeakType>();
         }
-        else // if(param_.getValue("feature:rt_shape") == "symmetric")
+        else // if (param_.getValue("feature:rt_shape") == "symmetric")
         {
           LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
           return new GaussTraceFitter<PeakType>();

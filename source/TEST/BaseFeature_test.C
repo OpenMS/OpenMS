@@ -55,13 +55,13 @@ START_SECTION((~BaseFeature()))
 }
 END_SECTION
 
-START_SECTION((const QualityType& getQuality() const))
+START_SECTION((QualityType getQuality() const))
 	BaseFeature p;
 	TEST_REAL_SIMILAR(p.getQuality(), 0.0)
 	// continued in "setQuality" test
 END_SECTION
 
-START_SECTION((void setQuality(const QualityType& q)))
+START_SECTION((void setQuality(QualityType q)))
 	BaseFeature p;
 	p.setQuality(123.456);
 	TEST_REAL_SIMILAR(p.getQuality(), 123.456)
@@ -69,6 +69,22 @@ START_SECTION((void setQuality(const QualityType& q)))
 	TEST_REAL_SIMILAR(p.getQuality(), -0.12345)
 	p.setQuality(0.0);
 	TEST_REAL_SIMILAR(p.getQuality(), 0.0)
+END_SECTION
+
+START_SECTION((WidthType getWidth() const))
+	BaseFeature p;
+	TEST_REAL_SIMILAR(p.getWidth(), 0.0)
+	// continued in "setWidth" test
+END_SECTION
+
+START_SECTION((void setWidth(WidthType w)))
+	BaseFeature p;
+	p.setWidth(123.456);
+	TEST_REAL_SIMILAR(p.getWidth(), 123.456)
+	p.setWidth(-0.12345);
+	TEST_REAL_SIMILAR(p.getWidth(), -0.12345)
+	p.setWidth(0.0);
+	TEST_REAL_SIMILAR(p.getWidth(), 0.0)
 END_SECTION
 
 START_SECTION([EXTRA](IntensityType getIntensity() const))

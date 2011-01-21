@@ -116,6 +116,11 @@ namespace OpenMS
       return x0_;
     }
 
+    DoubleReal getFWHM() const
+    {
+      return 2.0 * sigma_;
+    }
+
     /**
      * @brief Returns the sigma of the fitted gaussian model
      */

@@ -72,22 +72,22 @@ namespace OpenMS
 		return quality_;
 	}
 	/// Set the overall quality
-	void Feature::setOverallQuality( Feature::QualityType q )
+	void Feature::setOverallQuality(Feature::QualityType q)
 	{
 		quality_ = q;
 	}
 
 	/// Non-mutable access to the quality in dimension c
-	Feature::QualityType Feature::getQuality( Size index ) const
+	Feature::QualityType Feature::getQuality(Size index) const
 	{
-		OPENMS_PRECONDITION( index < 2, "Feature<2>::getQuality(Size): index overflow!" );
-		return qualities_[ index ];
+		OPENMS_PRECONDITION(index < 2, "Feature<2>::getQuality(Size): index overflow!");
+		return qualities_[index];
 	}
 	/// Set the quality in dimension c
-	void Feature::setQuality( Size index, Feature::QualityType q )
+	void Feature::setQuality(Size index, Feature::QualityType q)
 	{
-		OPENMS_PRECONDITION( index < 2, "Feature<2>::setQuality(Size): index overflow!" );
-		qualities_[ index ] = q;
+		OPENMS_PRECONDITION(index < 2, "Feature<2>::setQuality(Size): index overflow!");
+		qualities_[index] = q;
 	}
 
 	/// Non-mutable access to the model description
