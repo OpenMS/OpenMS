@@ -103,6 +103,10 @@ namespace OpenMS
 				upperq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.75);
 				max = data.back();
 			}
+			else
+			{
+				mean = variance = min = lowerq = median = upperq = max = 0.0;
+			}
 			return *this;
 		}
 		double mean, variance, min, lowerq, median, upperq, max;
@@ -145,9 +149,9 @@ class TOPPMapStatistics
 	vector<double> sliceStatistics(const FeatureMap<>& map, Size begin, Size end) const
 	{
 		// If we are asked to produce stats for an empty set, return an empty vector.
-		if (end <= begin || end >= map.size()) 
+		if (end <= begin || end > map.size()) 
 		{
-			return vector<double>();
+			return vector<double>(43);
 		}
 		
 		Size size = end - begin;
