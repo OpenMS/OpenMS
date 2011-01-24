@@ -180,7 +180,6 @@ namespace OpenMS
           // determine start and stop of isolation window
           DoubleReal isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
           DoubleReal isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
-          DoubleReal dx = isolation_window_upper_mz - isolation_window_lower_mz;
 
           if (!is_ms1_shown_)
           {
@@ -195,10 +194,7 @@ namespace OpenMS
           #endif
           emit spectrumSelected(ms1_spectrum_index);
           is_ms1_shown_ = true;
-          if (dx > 0.1)  // safeguard for minimum isolation window size
-          {
-            emit requestVisibleArea1D(isolation_window_lower_mz - 0.2 * dx, isolation_window_upper_mz +  0.2 * dx);
-          }
+          emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
         }
       }
     }
