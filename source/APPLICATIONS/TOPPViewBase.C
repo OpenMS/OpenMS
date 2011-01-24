@@ -122,8 +122,8 @@ namespace OpenMS
   using namespace Internal;
 	using namespace Math;
 
-  qreal TOPPViewBase::toppas_z_value_ = 42.0;
-  Int TOPPViewBase::toppas_node_offset_ = 0;
+qreal TOPPViewBase::toppas_z_value_ = 42.0;
+Int TOPPViewBase::toppas_node_offset_ = 0;
 
 TOPPViewBase::TOPPViewBase(QWidget* parent):
         QMainWindow(parent),
@@ -1515,21 +1515,26 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         views_tabwidget_->setCurrentIndex(2);
         views_tabwidget_->setTabEnabled(0, false);  // switch scan view off
         views_tabwidget_->setTabEnabled(1, false);  // switch identification view off
-
       } else if (sw)  // SpectrumWidget
       {
-        views_tabwidget_->setTabEnabled(0, true);
         const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
+        views_tabwidget_->setTabEnabled(0, true);
 
         if(hasPeptideIdentifications(map))
         {
           views_tabwidget_->setTabEnabled(1, true);
+          if (dynamic_cast<Spectrum2DWidget*>(w))
+          {
+            views_tabwidget_->setCurrentIndex(0);  // switch to scan tab for 2D widget
+          } else if (dynamic_cast<Spectrum1DWidget*>(w))
+          {
+            views_tabwidget_->setCurrentIndex(1);  // switch to identification tab for 1D widget
+          }
         } else
         {
           views_tabwidget_->setTabEnabled(1, false);
+          views_tabwidget_->setCurrentIndex(0); // stay on scan view tab
         }
-
-        views_tabwidget_->setCurrentIndex(0);
         setTOPPASTabEnabled(false);
       }
   	}
@@ -1927,6 +1932,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       layer_dock_widget_->show();
       filter_dock_widget_->show();
+      if (getActive2DWidget())  // currently 2D window is open
+      {
+        showSpectrumAs1D(0);
+      }
       view_behavior_ = identificationview_behavior_;
     } else if (views_tabwidget_->tabText(tab_index) == "TOPPAS view")
     {

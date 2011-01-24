@@ -235,18 +235,17 @@ namespace OpenMS
     current_spectrum_precursor_annotations_.clear();
   }
 
-
   void TOPPViewIdentificationViewBehavior::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
     SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
+    SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     AASequence aa_sequence = ph.getSequence();
 
     // get measured spectrum indices and spectrum
-    Size real_spectrum_layer_index = current_canvas->activeLayerIndex();
-    Size real_spectrum_index = current_layer.current_spectrum;
-    SpectrumType& real_spectrum = current_layer.getCurrentSpectrum();
+    Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
+    Size current_spectrum_index = current_layer.current_spectrum;
 
     const Param& tv_params = tv_->getParameters();
     Int charge = 1;
@@ -263,12 +262,12 @@ namespace OpenMS
       p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
       p.setValue("add_abundant_immonium_ions", tv_params.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
 
-      p.setValue("a_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-      p.setValue("b_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-      p.setValue("c_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-      p.setValue("x_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-      p.setValue("y_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-      p.setValue("z_intensity", real_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
+      p.setValue("a_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
+      p.setValue("b_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
+      p.setValue("c_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
+      p.setValue("x_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
+      p.setValue("y_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
+      p.setValue("z_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
       p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
       generator.setParameters(p);
 
@@ -337,7 +336,7 @@ namespace OpenMS
       Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
 
       // kind of a hack to check whether adding the layer was successful
-      if (real_spectrum_layer_index != theoretical_spectrum_layer_index)
+      if (current_spectrum_layer_index != theoretical_spectrum_layer_index)
       {
         // Ensure theoretical spectrum is drawn as dashed sticks
         tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
@@ -355,8 +354,8 @@ namespace OpenMS
           }
         }
         // activate real data layer and spectrum
-        tv_->getActive1DWidget()->canvas()->activateLayer(real_spectrum_layer_index);
-        tv_->getActive1DWidget()->canvas()->getCurrentLayer().current_spectrum = real_spectrum_index;
+        tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
+        tv_->getActive1DWidget()->canvas()->getCurrentLayer().current_spectrum = current_spectrum_index;
 
         // spectra alignment
         Param param;
@@ -367,7 +366,7 @@ namespace OpenMS
         param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance in the alignment");
         String sunit_is_ppm = unit_is_ppm ? "true" : "false";
         param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
-        tv_->getActive1DWidget()->performAlignment(real_spectrum_layer_index, theoretical_spectrum_layer_index, param);
+        tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
         tv_->updateLayerBar();
 
@@ -423,7 +422,27 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::activateBehavior()
   {
-    // no special handling of activation needed
+    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();    
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
+
+    // find first MS2 spectrum with peptide identification and set current spectrum to it
+    if (current_spectrum.getMSLevel() == 1)  // no fragment spectrum
+    {
+      for (Size i = 0; i < current_layer.getPeakData()->size(); ++i)
+      {
+        UInt ms_level = (*current_layer.getPeakData())[i].getMSLevel();
+        const vector<PeptideIdentification> peptide_ids = (*current_layer.getPeakData())[i].getPeptideIdentifications();
+        Size peptide_ids_count = peptide_ids.size();
+
+        if (ms_level != 2 || peptide_ids_count == 0)  // skip non ms2 spectra and spectra with no identification
+        {
+          continue;
+        }
+        current_layer.current_spectrum = i;
+        break;
+      }
+    }
   }
 
   void TOPPViewIdentificationViewBehavior::deactivateBehavior()
@@ -448,5 +467,4 @@ namespace OpenMS
       tv_->getActive1DWidget()->canvas()->repaint();
     }
   }
-
 }

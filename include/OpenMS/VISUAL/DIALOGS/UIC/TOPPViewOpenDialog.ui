@@ -24,14 +24,38 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QGroupBox" name="groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
         <string>Open as</string>
        </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
        <layout class="QVBoxLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item>
          <widget class="QRadioButton" name="window_">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>new window</string>
+           <string>new window                                </string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -40,8 +64,11 @@
         </item>
         <item>
          <widget class="QRadioButton" name="layer_">
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>new layer</string>
+           <string>new layer                                    </string>
           </property>
          </widget>
         </item>
@@ -50,8 +77,11 @@
           <property name="enabled">
            <bool>false</bool>
           </property>
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>merge into layer</string>
+           <string>merge into layer                           </string>
           </property>
          </widget>
         </item>
@@ -79,15 +109,27 @@
        <layout class="QVBoxLayout">
         <item>
          <widget class="QRadioButton" name="d1_">
+          <property name="minimumSize">
+           <size>
+            <width>92</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>1D</string>
+           <string>1D            </string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QRadioButton" name="d2_">
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>2D</string>
+           <string>2D            </string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -96,8 +138,11 @@
         </item>
         <item>
          <widget class="QRadioButton" name="d3_">
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>3D</string>
+           <string>3D            </string>
           </property>
          </widget>
         </item>
@@ -125,8 +170,11 @@
        <layout class="QVBoxLayout">
         <item>
          <widget class="QRadioButton" name="cutoff_">
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>on</string>
+           <string>on                    </string>
           </property>
          </widget>
         </item>
@@ -135,8 +183,11 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>off</string>
+           <string>off                    </string>
           </property>
           <property name="checked">
            <bool>true</bool>
