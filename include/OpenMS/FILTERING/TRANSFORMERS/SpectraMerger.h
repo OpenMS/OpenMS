@@ -312,6 +312,8 @@ namespace OpenMS
       sas.setParameters(p);
       std::vector< std::pair<Size, Size > > alignment;
 	    
+      Size count_peaks_aligned(0);
+      Size count_peaks_overall(0);
 
       // each BLOCK
 			for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
@@ -335,6 +337,8 @@ namespace OpenMS
           ++precursor_count;
         }
 
+        count_peaks_overall += consensus_spec.size();
+
         // block elements
 				for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
 				{
@@ -351,6 +355,9 @@ namespace OpenMS
           // merge data points
           sas.getSpectrumAlignment(alignment, consensus_spec, exp[*sit]);
           //std::cerr << "alignment of " << it->first << " with " << *sit << " yielded " << alignment.size() << " common peaks!\n";
+          count_peaks_aligned += alignment.size();
+          count_peaks_overall += exp[*sit].size();
+
           Size align_index(0);
           Size spec_b_index(0);
 
@@ -389,33 +396,7 @@ namespace OpenMS
         }
 
         if (consensus_spec.size()==0) continue;
-        else
-        {
-/*
-          // merge close-by peaks
-  				all_peaks.sortByPosition();
-          typename MapType::PeakType old_peak = *all_peaks.begin();
-          DoubleReal distance;
-		  	  for (typename MapType::SpectrumType::ConstIterator it = (++all_peaks.begin()); it != all_peaks.end(); ++it)
-		  	  {
-            if (mz_binning_unit=="Da") distance=fabs(old_peak.getMZ() - it->getMZ());   //Da delta
-            else distance= fabs(old_peak.getMZ() - it->getMZ())*1e6 / old_peak.getMZ(); //ppm delta
-
-		    	  if (distance < mz_binning_width)
-		    	  {
-		      	  old_peak.setIntensity(old_peak.getIntensity() + it->getIntensity());
-		    	  }
-   		 		  else
-    			  {
-      			  consensus_spec.push_back(old_peak);
-     		 		  old_peak = *it;
-    			  }
-  			  }
-          consensus_spec.push_back(old_peak); // store last peak
-
-          */
-          merged_spectra.push_back(consensus_spec);
-        }
+        else merged_spectra.push_back(consensus_spec);
 			}
 
       LOG_INFO << "Cluster sizes:\n";
@@ -423,7 +404,11 @@ namespace OpenMS
       {
         LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
       }
-      
+
+      char buffer[200]; 
+      sprintf (buffer, "%d/%d (%.2f %%) of blocked spectra", count_peaks_aligned , count_peaks_overall , float(count_peaks_aligned)/float(count_peaks_overall)*100 );
+      LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
+
       // remove all spectra that were within a cluster
       typename MapType::SpectrumType empty_spec;
       MapType exp_tmp;

@@ -41,6 +41,9 @@ namespace OpenMS
     defaults_.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", StringList::create("advanced"));
     defaults_.setValidStrings("mz_binning_width_unit", StringList::create("Da,ppm"));
 
+    defaults_.setValue("sort_blocks", "RT_ascending", "Sort blocks by <?> before merging them (useful for precursor order)", StringList::create("advanced"));
+    defaults_.setValidStrings("sort_blocks", StringList::create("RT_ascending, RT_descending"));
+
     // block merging
 		defaults_.setValue("block_method:ms_levels", IntList::create("1"), "Merge spectra of this level. All spectra with other MS levels remain untouched.");
 		defaults_.setMinInt("block_method:ms_levels", 1);

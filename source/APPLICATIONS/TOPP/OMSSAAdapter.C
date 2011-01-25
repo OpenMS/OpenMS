@@ -109,6 +109,50 @@ class TOPPOMSSAAdapter
 		}
 
 	protected:
+
+    struct Version
+    {
+      Version ()
+        : major(0), minor(0), patch(0)
+      {}
+
+      Version (Int maj, Int min, Int pat)
+        : major(maj), minor(min), patch(pat)
+      {}
+
+      Int major;
+      Int minor;
+      Int patch;
+
+      bool operator < (const Version& v) const
+      {
+        if (major > v.major) return false;
+        else if (major < v.major) return true;
+        else // ==
+        {
+          if (minor > v.minor) return false;
+          else if (minor < v.minor) return true;
+          else
+          {
+            return (patch < v.patch);
+          }
+        }
+
+      }
+    };
+
+    bool getVersion_(const String& version, Version& omssa_version_i) const
+    {
+      // we expect three components 
+      IntList nums = IntList::create(StringList::create(version,'.'));
+      if (nums.size()!=3) return false;
+
+      omssa_version_i.major =nums[0];
+      omssa_version_i.minor =nums[1];
+      omssa_version_i.patch =nums[2];
+      return true;
+    }
+
 		void registerOptionsAndFlags_()
 		{
 
@@ -332,6 +376,7 @@ class TOPPOMSSAAdapter
       bool success = qp.waitForFinished();
       String output (QString(qp.readAllStandardOutput ()));
 			String omssa_version;
+      Version omssa_version_i;
       if (!success || qp.exitStatus() != 0 || qp.exitCode()!=0)
 			{
         writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + call + "'. Make sure that the path to the OMSSA executable is correct!");
@@ -341,9 +386,9 @@ class TOPPOMSSAAdapter
       {
  			  vector<String> version_split;
 			  output.split(' ', version_split);
-			  if (version_split.size() == 2)
+			  if (version_split.size() == 2 && getVersion_(version_split[1], omssa_version_i))
         {
-          omssa_version = version_split[1];
+          omssa_version = version_split[1].removeWhitespaces();
           writeDebug_("Setting OMSSA version to " + omssa_version, 1);
         }
         else
@@ -386,7 +431,14 @@ class TOPPOMSSAAdapter
 			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
       if (getFlag_("precursor_mass_tolerance_unit_ppm"))
       {
-        parameters += " -teppm ";
+        if (omssa_version_i < Version(2,1,8))
+        {
+          writeLog_("This OMSSA version (" + omssa_version + ") does not support the 'precursor_mass_tolerance_unit_ppm' flag."
+                   +" Please disable it and set the precursor tolerance in Da."
+                   +" Required version is 2.1.8 and above.\n");
+          return ILLEGAL_PARAMETERS;
+        }
+        parameters += " -teppm "; // only from OMSSA 2.1.8 on
       }
 			parameters += " -zl " +  String(getIntOption_("min_precursor_charge")); //String(getIntOption_("zl"));
 			parameters += " -zh " +  String(getIntOption_("max_precursor_charge")); //String(getIntOption_("zh"));
