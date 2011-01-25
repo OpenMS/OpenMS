@@ -149,7 +149,7 @@ namespace OpenMS {
     // TODO: investigate if this can be hidden from the user by estimating it from "resolution"
     //       e.g. http://www.adronsystems.com/faqs.htm#rate states 8 points per peak on low-res instruments --> ~4 points at FWHM
     //defaults_.setValue("mz:sampling_rate",0.01,"detector interval(e.g. bin size in m/z).");
-    defaults_.setValue("mz:sampling_points", 4, "Number of raw data points per FWHM of the peak.");
+    defaults_.setValue("mz:sampling_points", 3, "Number of raw data points per FWHM of the peak.");
     defaults_.setMinInt("mz:sampling_points",2);
 
     // contaminants:
@@ -619,10 +619,10 @@ namespace OpenMS {
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate)
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
-        if(intensity <= 0.0) continue; // intensity cutoff (below that we don't want to see a signal)
+        if (intensity <= 0.0) continue; // intensity cutoff (below that we don't want to see a signal)
 
         point.setMZ(mz);
-        point.setIntensity( intensity );
+        point.setIntensity(intensity);
 
         //LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
 
@@ -936,11 +936,18 @@ namespace OpenMS {
 
     for(MSSimExperiment::iterator spectrum_it = experiment.begin() ; spectrum_it != experiment.end() ; ++spectrum_it)
     {
+      MSSimExperiment::SpectrumType new_spec = (*spectrum_it);
+      new_spec.clear(false);
       for(MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin() ; peak_it != (*spectrum_it).end() ; ++peak_it)
       {
-        SimIntensityType intensity = peak_it->getIntensity() + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev) + white_noise_mean;
-        peak_it->setIntensity( (intensity > 0.0 ? intensity : 0.0) );
+        SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+        if (intensity > 0.0)
+        {
+          peak_it->setIntensity(intensity);
+          new_spec.push_back(*peak_it);
+        }
       }
+      *spectrum_it = new_spec;
     }
   }
 
