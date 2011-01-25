@@ -38,7 +38,7 @@ using namespace std;
 typedef FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature> FFASS;
 
 FFASS* ptr;
-START_SECTION(FeatureFinderAlgorithmIsotopeWavelet())
+START_SECTION((FeatureFinderAlgorithmIsotopeWavelet()))
 	ptr = new FFASS;
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
@@ -55,7 +55,7 @@ START_SECTION(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
 END_SECTION
 
-START_SECTION(virtual void run())
+START_SECTION(void run())
 	NOT_TESTABLE
 END_SECTION
 

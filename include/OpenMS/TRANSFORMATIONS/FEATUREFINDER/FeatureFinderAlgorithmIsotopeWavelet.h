@@ -50,9 +50,7 @@ namespace OpenMS
 	/**
 		@brief Implements the isotope wavelet feature finder.
 
-		The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet.
-		In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please note that in
-		its current implementation the isotope wavelet feature finder is only applicable to raw data (not to picked data). 
+		The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet. In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please note that the algorithm implemented here is only marginally related to the algorithm presented in Schulz-Trieglaff et al. (2007, 2008), as no fitting procedure is applied anymore after the wavelet-based seeding step. The wavelet has been designed to extract even very lowly-abundant features (see Hussong et. al (2007, 2009)), usually featuring a very low signal-to-noise ratio. The wavelet in its current implementation is not able to resolve overlapping patterns (see also Hussong et. al (2009)) and slightly shifts masses to the right due to the construction of the wavelet.   
 		
 		@htmlinclude OpenMS_FeatureFinderAlgorithmIsotopeWavelet.parameters
 		
@@ -83,12 +81,14 @@ namespace OpenMS
 																	"As the 'optimal' value for this parameter is highly data dependent, we would recommend to start "
 																	"with -1, which will also extract features with very low signal-to-noise ratio. Subsequently, one "
 																	"might increase the threshold to find an optimized trade-off between false positives and true positives. "
-																	"Depending on the dynamic range of your spectra, suitable value ranges include: -1, [0:10] and if data "
+																	"Depending on the dynamic range of your spectra, suitable value ranges include: -1, [0:10], and if your data "
 																	"features even very high intensity values, t can also adopt values up to around 30. "
 																	"Please note that this parameter is not of an integer type, s.t. you can also use t:=0.1, e.g.");
-				
+				this->defaults_.setValue ("intensity_type", "ref", "Determines the intensity type returned for the identified features. 'ref' (default) returns the sum of the intensities of each isotopic peak within an isotope pattern. 'trans' refers to the intensity of the monoisotopic peak within the wavelet transform. 'corrected' refers also to the transformed intensity with an attempt to remove the effects of the convolution. While the latter ones might be preferable for qualitative analyses, 'ref' might be the best option to obtain quantitative results. Please note that intensity values might be spoiled (in particular for the option 'ref'), as soon as patterns overlap (see also the explanations given in the class documentation of FeatureFinderAlgorihtmIsotopeWavelet).", StringList::create("advanced"));
+				this->defaults_.setValidStrings("intensity_type",StringList::create("ref,trans,corrected"));
+	
 				this->defaults_.setValue ("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
-																	"potential peptide masses are checked for plausibility.", StringList::create("advanced")); 
+																	"potential peptide masses are checked for plausibility. In addition, a heuristic correcting potential mass shifts induced by the wavelet is applied.", StringList::create("advanced")); 
 				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 				
 				this->defaults_.setValue ("hr_data", "false", "Must be true in case of high-resolution data, i.e. "
@@ -107,9 +107,6 @@ namespace OpenMS
 				this->defaults_.setValue ("sweep_line:rt_interleave", 1, "Defines the maximum number of "
 							"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", StringList::create("advanced"));
 				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
-
-				this->defaults_.setValue ("int_corr", "false", "Experimental intensity correction.", StringList::create("advanced"));
-				this->defaults_.setValidStrings("int_corr",StringList::create("true,false"));
 
 				this->defaultsToParam_();
 		}
@@ -248,7 +245,7 @@ namespace OpenMS
 						
 						for (UInt t=0; t<num_gpus; ++t)
 						{
-							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, true, hr_data_, int_corr_);
+							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, true, hr_data_, intensity_type_);
 						};
 
 						static tbb::affinity_partitioner ap;
@@ -285,7 +282,7 @@ namespace OpenMS
 
 				if (!use_tbb_)
 				{
-					IsotopeWaveletTransform<PeakType>* iwt = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, use_cuda_, hr_data_, int_corr_);
+					IsotopeWaveletTransform<PeakType>* iwt = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size, use_cuda_, hr_data_, intensity_type_);
 					#ifdef OPENMS_HAS_CUDA
 						if (use_cuda_)
 						{
@@ -356,7 +353,7 @@ namespace OpenMS
 								for (UInt c=0; c<max_charge_; ++c)
 								{
 									new_spec = createHRData (i);
-									iwt->initializeScan (*new_spec);
+									iwt->initializeScan (*new_spec, c);
 									MSSpectrum<PeakType> c_trans (*new_spec);
 									
 									iwt->getTransformHighRes (c_trans, *new_spec, c);
@@ -534,8 +531,8 @@ namespace OpenMS
 		UInt max_charge_; ///<The maximal charge state we will consider
 		DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
 		UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
-		String use_gpus_;
-		bool use_tbb_, use_cuda_, check_PPMs_, hr_data_, int_corr_;
+		String use_gpus_, intensity_type_;
+		bool use_tbb_, use_cuda_, check_PPMs_, hr_data_;
 		std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
 			
 		#if defined(OPENMS_HAS_TBB) && defined(OPENMS_HAS_CUDA)
@@ -554,7 +551,7 @@ namespace OpenMS
 			IsotopeWavelet::setMaxCharge(max_charge_);
 			check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
 			hr_data_ = ( (String)(this->param_.getValue("hr_data"))=="true" );
-			int_corr_ = ( (String)(this->param_.getValue("int_corr"))=="true" );
+			intensity_type_ = ( (String)(this->param_.getValue("intensity_type")) );
 			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB)
 				use_gpus_ = this->param_.getValue ("parallel:use_gpus");
 				std::vector<String> tokens; 

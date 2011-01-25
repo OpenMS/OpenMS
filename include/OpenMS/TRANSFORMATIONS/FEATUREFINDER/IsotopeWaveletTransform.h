@@ -226,7 +226,7 @@ namespace OpenMS
  				* @param min_mz The smallest m/z value occurring in your map.
  				* @param max_mz The largest m/z value occurring in your map.
  				* @param max_charge The highest charge state you would like to consider. */
-			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size=0, const bool use_cuda=false, const bool hr_data=false, const bool skellam=false);
+			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size=0, const bool use_cuda=false, const bool hr_data=false, const String intenstype="ref");
 
 			/** @brief Destructor. */
 			virtual ~IsotopeWaveletTransform () ;
@@ -266,7 +266,7 @@ namespace OpenMS
 			virtual void identifyCharge (const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, 
 				const DoubleReal ampl_cutoff, const bool check_PPMs) ;
 							
-			virtual void initializeScan (const MSSpectrum<PeakType>& c_ref); 
+			virtual void initializeScan (const MSSpectrum<PeakType>& c_ref, const UInt c=0); 
 			
 			#ifdef OPENMS_HAS_CUDA
 				/** @brief Sets up all necessary arrays with correct boundaries and 'worst-case' sizes. 
@@ -535,19 +535,20 @@ namespace OpenMS
 			std::vector<DoubleReal> interpol_xs_, interpol_ys_;
 
 			Size max_scan_size_; 
-			UInt max_num_peaks_per_pattern_, max_charge_;
-			bool hr_data_, skellam_;
+			UInt max_num_peaks_per_pattern_, max_charge_, data_length_;
+			bool hr_data_;
+			String intenstype_;
 			Int from_max_to_left_, from_max_to_right_;
 			std::vector<int> indices_;
 			
 			MSSpectrum<PeakType> c_sorted_candidate_;
 			DoubleReal min_spacing_, max_mz_cutoff_;
-			std::vector<float> scores_, zeros_;	//hier muessen bestimmt noch einige sachen ins ifdef
+			std::vector<float> scores_, zeros_;
 
 			#ifdef OPENMS_HAS_CUDA
 				float *h_data_;		
 				int *h_pos_;
-				UInt largest_array_size_, overall_size_, block_size_, data_length_, to_load_, to_compute_;
+				UInt largest_array_size_, overall_size_, block_size_, to_load_, to_compute_;
 				Int num_elements_;
 				void* cuda_device_intens_;
 				void* cuda_device_pos_;
@@ -597,7 +598,7 @@ namespace OpenMS
 		max_mz_cutoff_ = 3;
 		max_num_peaks_per_pattern_ = 3;
 		hr_data_=false;
-		skellam_=false;
+		intenstype_="ref";
 		#ifdef OPENMS_HAS_CUDA 
 			largest_array_size_ = 0;
 			num_elements_ = 0;
@@ -607,12 +608,12 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size, const bool use_cuda, const bool hr_data, bool skellam) 
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size, const bool use_cuda, const bool hr_data, String intenstype) 
 	{
 		max_charge_ = max_charge;
 		max_scan_size_ = max_scan_size;
 		hr_data_ = hr_data;
-		skellam_ = skellam;
+		intenstype_ = intenstype;
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (max_charge);
 		if (max_scan_size <= 0) //only important for the CPU
 		{
@@ -769,18 +770,42 @@ namespace OpenMS
 
 	
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::initializeScan (const MSSpectrum<PeakType>& c_ref) 
+	void IsotopeWaveletTransform<PeakType>::initializeScan (const MSSpectrum<PeakType>& c_ref, const UInt c) 
 	{
+		data_length_ = c_ref.size();
 		computeMinSpacing(c_ref);
-		//CHANGED
-		max_mz_cutoff_ =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[c_ref.size()-1].getMZ(), max_charge_);
-		Int wavelet_length = (UInt) ceil(max_mz_cutoff_/min_spacing_);
+		Int wavelet_length=0, quarter_length=0;
+ 
+		if(hr_data_) //We have to check this separately, because the simply estimation for LowRes data is destroyed by large gaps
+		{
+			UInt c_mz_cutoff;
+			typename MSSpectrum<PeakType>::const_iterator start_iter, end_iter;
+			for (UInt i=0; i<data_length_; ++i)
+			{
+				c_mz_cutoff =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[i].getMZ(), c+1);
+				start_iter = c_ref.MZEnd(c_ref[i].getMZ());
+				end_iter = c_ref.MZBegin(c_ref[i].getMZ()+c_mz_cutoff);
+				wavelet_length = std::max ((long int) wavelet_length, distance(start_iter, end_iter)+1);
+				end_iter = c_ref.MZEnd(c_ref[i].getMZ()-Constants::IW_QUARTER_NEUTRON_MASS/DoubleReal(c+1.));
+				quarter_length = std::max ((long int) quarter_length, distance(end_iter, start_iter)+1);
+			}
+		}
+		else
+		{
+			//CHANGED
+			max_mz_cutoff_ =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[data_length_-1].getMZ(), max_charge_);
+			wavelet_length = (UInt) ceil(max_mz_cutoff_/min_spacing_);
+		};
+		//... done
+
+
 		if (wavelet_length > (Int) c_ref.size())
 		{
 			std::cout << "Warning: the extremal length of the wavelet is larger (" << wavelet_length << ") than the number of data points ("<< c_ref.size() << "). This might (!) severely affect the transform."<< std::endl;
 			std::cout << "Minimal spacing: " << min_spacing_ << std::endl;
 			std::cout << "Warning/Error generated at scan with RT " << c_ref.getRT() << "." << std::endl;
 		}; 
+
 		Int max_index = (UInt) (Constants::IW_QUARTER_NEUTRON_MASS/min_spacing_);
 		from_max_to_left_ = max_index;
 		from_max_to_right_ = wavelet_length-1-from_max_to_left_;
@@ -1278,7 +1303,7 @@ namespace OpenMS
 			c_score = scoreThis_ (candidates, IsotopeWavelet::getNumPeakCutOff(seed_mz*(c+1.)), seed_mz, c, threshold);
 		
 			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
-				if (trunc(seed_mz) == 838)
+				if (trunc(seed_mz) == 874)
 					std::cout << seed_mz << "\t" << c_score << std::endl;
 			#endif
 	
@@ -1481,14 +1506,14 @@ namespace OpenMS
 			{
 				c_score -= c_val;
 				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
-					if (trunc(seed_mz) == 838) std::cout << -c_val << std::endl;	
+					if (trunc(seed_mz) == 874) std::cout << -c_val << std::endl;	
 				#endif
 			}
 			else
 			{
 				c_score +=c_val;
 				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
-					if (trunc(seed_mz) == 838) std::cout << c_val << std::endl;	
+					if (trunc(seed_mz) == 874) std::cout << c_val << std::endl;	
 				#endif
 			};
 
@@ -1504,7 +1529,7 @@ namespace OpenMS
 		#endif
 
 		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
-			if (trunc(seed_mz) == 838)
+			if (trunc(seed_mz) == 874)
 				std::cout << "final_score: " <<  seed_mz << "\t" << c_score << "\t l_score: " << l_score << "\t" << c_score-l_score-mid_val << "\t" <<  c_score-mid_val << "\t" << ampl_cutoff << std::endl;
 		#endif
 
@@ -2302,12 +2327,13 @@ namespace OpenMS
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		UInt best_charge_index; DoubleReal best_charge_score, c_mz, c_RT; UInt c_charge;
-		DoubleReal av_intens=0, av_ref_intens=0, av_score=0, av_mz=0, av_RT=0, mz_cutoff;
+		DoubleReal av_intens=0, av_ref_intens=0, av_score=0, av_mz=0, av_RT=0, mz_cutoff, sum_of_ref_intenses_g;
 		bool restart=false;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=closed_boxes_.begin(); iter!=closed_boxes_.end(); ++iter)
 		{
+			sum_of_ref_intenses_g=0;
 			Box& c_box = iter->second;
 			std::vector<DoubleReal> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
 			restart=false;			
@@ -2317,7 +2343,7 @@ namespace OpenMS
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 			{
 				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-					if (trunc(box_iter->second.mz) == 838)
+					if (trunc(box_iter->second.mz) == 874)
 						std::cout << box_iter->second.c << "\t" <<  box_iter->second.intens  << "\t" << box_iter->second.score << std::endl;
 				#endif
 
@@ -2358,8 +2384,10 @@ namespace OpenMS
 			av_intens=0, av_ref_intens=0, av_score=0, av_mz=0, av_RT=0;
 			//Now, let's get the RT boundaries for the box
 			std::vector<DPosition<2> > point_set;
+			DoubleReal sum_of_ref_intenses_l;
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 			{
+				sum_of_ref_intenses_l=0;
 				c_mz = box_iter->second.mz;
 				c_RT = box_iter->second.RT;
    
@@ -2368,11 +2396,65 @@ namespace OpenMS
 				point_set.push_back (DPosition<2> (c_RT, c_mz - Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)); 
 				//-1 since we are already at the first peak and +0.75, since this includes the last peak of the wavelet as a whole
 				point_set.push_back (DPosition<2> (c_RT, c_mz + mz_cutoff/(DoubleReal)c_charge)); 
+				
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
+					std::cout << "Intenstype: " << intenstype_ << std::endl;
+				#endif
+				if (intenstype_ == "ref")
+				{
+					//Find monoisotopic max
+					const MSSpectrum<PeakType> & c_spec (map[box_iter->second.RT_index]);
+					typename MSSpectrum<PeakType>::const_iterator monop = c_spec.MZBegin(c_mz);
+					//'Correct' possible shift
+					for (unsigned int i=0; i<mz_cutoff; ++i)
+					{	
+						typename MSSpectrum<PeakType>::const_iterator h_iter=c_spec.MZBegin(c_mz+i*Constants::IW_NEUTRON_MASS/c_charge + Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)c_charge), hc_iter = c_spec.MZBegin(c_mz+i*Constants::IW_NEUTRON_MASS/c_charge);
+
+						hc_iter = c_spec.MZBegin(c_mz+i*Constants::IW_NEUTRON_MASS/c_charge);
+
+						while (h_iter != c_spec.begin())
+						{	 
+						
+							#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
+								if (trunc(c_mz)==874)
+								{
+									std::cout << "cmz: " << c_mz+i*Constants::IW_NEUTRON_MASS/c_charge << "\t" << hc_iter->getMZ() << "\t" << hc_iter->getIntensity() << "\t" << h_iter->getMZ() << "\t" << h_iter->getIntensity() << std::endl;
+								}
+							#endif
+
+							--h_iter;
+							if (h_iter->getIntensity() > hc_iter->getIntensity() || (h_iter->getIntensity() == hc_iter->getIntensity() && hc_iter->getIntensity() == 0))
+							{
+								hc_iter=h_iter;
+							}
+			
+							if (c_mz+i*Constants::IW_NEUTRON_MASS/c_charge - h_iter->getMZ() > Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)
+							{
+								break;
+							}
+						}
+						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
+							if (trunc(c_mz)==874)
+							{
+								std::cout << "c_mz: " << c_mz+i*Constants::IW_NEUTRON_MASS/c_charge << "\t" << hc_iter->getMZ() << "\t" << hc_iter->getIntensity() << "\t" << i*Constants::IW_NEUTRON_MASS/c_charge << "\t";
+							}
+						#endif
+						sum_of_ref_intenses_l += hc_iter->getIntensity();
+						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
+							if (trunc(c_mz)==874)
+							{		
+								std::cout << sum_of_ref_intenses_l <<  "********" << std::endl;
+							}
+						#endif
+					};
+				};
+
 				if (best_charge_index == box_iter->second.c)
 				{
 					av_score += box_iter->second.score;
 					av_intens += box_iter->second.intens;
 					av_ref_intens += box_iter->second.ref_intens;
+					sum_of_ref_intenses_g += sum_of_ref_intenses_l;
 					av_mz += c_mz*box_iter->second.intens;
 				};
 				av_RT += c_RT;
@@ -2384,7 +2466,7 @@ namespace OpenMS
 			av_RT /= (DoubleReal)c_box.size();
 			
 			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-				if (trunc(av_mz) == 838)
+				if (trunc(av_mz) == 874)
 					std::cout << av_mz << "\t" << best_charge_index << "\t" << best_charge_score << std::endl;
 			#endif
 
@@ -2395,13 +2477,22 @@ namespace OpenMS
 			c_feature.setConvexHulls (std::vector<ConvexHull2D> (1, c_conv_hull));
 
 			//This makes the intensity value independent of the m/z (the lambda) value (Skellam distribution)
-			if (skellam_)
+			if (intenstype_ == "corrected")
 			{
 				DoubleReal lambda = IsotopeWavelet::getLambdaL(av_mz*c_charge);
 				av_intens /= exp(-2*lambda) * boost::math::cyl_bessel_i(0, 2*lambda);
 			};
-			//DoubleReal breen (0.000594*av_mz*c_charge-0.03091);
-			//av_ref_intens /= exp(-breen);
+			if (intenstype_== "ref")
+			{	
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET	
+					if (trunc(c_mz)==874)
+					{		
+						std::cout << sum_of_ref_intenses_g <<  "####" << std::endl;
+					}
+				#endif
+
+				av_intens = sum_of_ref_intenses_g;
+			};
 	
 			c_feature.setMZ (av_mz);
 			c_feature.setIntensity (av_intens);
@@ -2437,8 +2528,8 @@ namespace OpenMS
 		{
 			reals = checkPPMTheoModel_ (ref, iter->getMZ(), c);
 			real_mz = reals.first, real_intens = reals.second;
-			if (real_mz <= 0 || real_intens <= 0)
-			{	
+			//if (real_mz <= 0 || real_intens <= 0)
+			//{	
 				typename MSSpectrum<PeakType>::const_iterator h_iter=ref_iter, hc_iter=ref_iter;
 				while (h_iter != ref.begin())
 				{	 
@@ -2465,7 +2556,7 @@ namespace OpenMS
 				}
 				real_mz = h_iter->getMZ();
 				real_intens = h_iter->getIntensity();
-			}
+			//}
 		}
 		else
 		{
@@ -2555,8 +2646,8 @@ namespace OpenMS
 		{
 			reals = checkPPMTheoModel_ (ref, iter->getMZ(), c);
 			real_mz = reals.first, real_intens = reals.second;
-			if (real_mz <= 0 || real_intens <= 0)
-			{	
+			//if (real_mz <= 0 || real_intens <= 0)
+			//{	
 				typename MSSpectrum<PeakType>::const_iterator h_iter=ref_iter, hc_iter=ref_iter;
 				while (h_iter != ref.begin())
 				{	 
@@ -2575,15 +2666,21 @@ namespace OpenMS
 						return (false);
 					}
 				}
+				++h_iter;
 				reals = checkPPMTheoModel_ (ref, h_iter->getMZ(), c);
 				real_mz = reals.first, real_intens = reals.second;
+				
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+					std::cout << "Plausibility check old_mz: " << iter->getMZ() << "\t" << real_mz << std::endl; 
+				#endif
+
 				if (real_mz <= 0 || real_intens <= 0)
 				{
 					return (false);
 				}
 				real_mz = h_iter->getMZ();
 				real_intens = h_iter->getIntensity();
-			}
+			//}
 		}
 		else
 		{
@@ -2659,12 +2756,15 @@ namespace OpenMS
 		DoubleReal ppms = getPPMs_(peptideMassRule_(mass), mass);
 		if (ppms >= Constants::PEPTIDE_MASS_RULE_THEO_PPM_BOUND)
 		{
-			//std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << "ISO_WAVE" << ")> " << "REJECT \t" << ppms 
-			//	<< " (rule: " << peptideMassRule_(mass) << " got: " << mass << ")" << std::endl;
+			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+				std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << "ISO_WAVE" << ")> " << "REJECT \t" << ppms << " (rule: " << peptideMassRule_(mass) << " got: " << mass << ")" << std::endl;
+			#endif
 			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
 		};
-			//std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << "ISO_WAVE" << ")> " << "ACCEPT \t" << ppms << " (rule: " 
-			//	<< peptideMassRule_(mass) << " got: " << mass << ")" << std::endl;
+		
+		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << "ISO_WAVE" << ")> " << "ACCEPT \t" << ppms << " (rule: " << peptideMassRule_(mass) << " got: " << mass << ")" << std::endl;
+		#endif
 		return (std::pair<DoubleReal, DoubleReal> (c_mz, ref.MZBegin(c_mz)->getIntensity()));	
 	}
 
