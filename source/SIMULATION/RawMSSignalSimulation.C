@@ -700,7 +700,7 @@ namespace OpenMS {
 			  rt = exp_iter->getRT();
         const DoubleReal& distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
-        if(intensity < 1) // intensity cutoff (below that we don't want to see a signal)
+        if(intensity <= 0.0) // intensity cutoff (below that we don't want to see a signal)
         {
           continue;
         }
