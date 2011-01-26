@@ -110,46 +110,46 @@ class TOPPOMSSAAdapter
 
 	protected:
 
-    struct Version
+    struct OMSSAVersion
     {
-      Version ()
-        : major(0), minor(0), patch(0)
+      OMSSAVersion ()
+        : omssa_major(0), omssa_minor(0), omssa_patch(0)
       {}
 
-      Version (Int maj, Int min, Int pat)
-        : major(maj), minor(min), patch(pat)
+      OMSSAVersion (Int maj, Int min, Int pat)
+        : omssa_major(maj), omssa_minor(min), omssa_patch(pat)
       {}
 
-      Int major;
-      Int minor;
-      Int patch;
+      Int omssa_major;
+      Int omssa_minor;
+      Int omssa_patch;
 
-      bool operator < (const Version& v) const
+      bool operator < (const OMSSAVersion& v) const
       {
-        if (major > v.major) return false;
-        else if (major < v.major) return true;
+        if (omssa_major > v.omssa_major) return false;
+        else if (omssa_major < v.omssa_major) return true;
         else // ==
         {
-          if (minor > v.minor) return false;
-          else if (minor < v.minor) return true;
+          if (omssa_minor > v.omssa_minor) return false;
+          else if (omssa_minor < v.omssa_minor) return true;
           else
           {
-            return (patch < v.patch);
+            return (omssa_patch < v.omssa_patch);
           }
         }
 
       }
     };
 
-    bool getVersion_(const String& version, Version& omssa_version_i) const
+    bool getVersion_(const String& version, OMSSAVersion& omssa_version_i) const
     {
       // we expect three components 
       IntList nums = IntList::create(StringList::create(version,'.'));
       if (nums.size()!=3) return false;
 
-      omssa_version_i.major =nums[0];
-      omssa_version_i.minor =nums[1];
-      omssa_version_i.patch =nums[2];
+      omssa_version_i.omssa_major =nums[0];
+      omssa_version_i.omssa_minor =nums[1];
+      omssa_version_i.omssa_patch =nums[2];
       return true;
     }
 
@@ -210,7 +210,7 @@ class TOPPOMSSAAdapter
 			//-ob <String> filename for binary asn.1 formatted search results
 			//-ox <String> filename for xml formatted search results
 			//-oc <String> filename for comma separated value (excel .csv) formatted search results
-			// output options of OMSSA are not necessary
+      // output options of OMSSA are not necessaryOMSSA
 
 			//The following options output the search parameters and search spectra in the output results. This is necessary for viewing result in the OMSSA browser:
 			//-w include spectra and search params in search results
@@ -376,7 +376,7 @@ class TOPPOMSSAAdapter
       bool success = qp.waitForFinished();
       String output (QString(qp.readAllStandardOutput ()));
 			String omssa_version;
-      Version omssa_version_i;
+      OMSSAVersion omssa_version_i;
       if (!success || qp.exitStatus() != 0 || qp.exitCode()!=0)
 			{
         writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + call + "'. Make sure that the path to the OMSSA executable is correct!");
@@ -431,7 +431,7 @@ class TOPPOMSSAAdapter
 			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
       if (getFlag_("precursor_mass_tolerance_unit_ppm"))
       {
-        if (omssa_version_i < Version(2,1,8))
+        if (omssa_version_i < OMSSAVersion(2,1,8))
         {
           writeLog_("This OMSSA version (" + omssa_version + ") does not support the 'precursor_mass_tolerance_unit_ppm' flag."
                    +" Please disable it and set the precursor tolerance in Da."

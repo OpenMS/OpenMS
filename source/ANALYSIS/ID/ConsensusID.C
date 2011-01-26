@@ -105,7 +105,6 @@ defaults_.setValidStrings("algorithm",StringList::create("ranked,average,PEPMatr
 		defaults_.setMinInt("PEPIons:MinNumberOfFragments",0);
 		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
 		defaults_.setMinInt("number_of_runs",0);
-		defaults_.setMinInt("min_number_of_engines",2);
 		defaults_.setValue("PEPMatrix:common", 1.1, "Similarity threshold to accept the best score. E.g. for a given spectrun: engine 1 -> pep 1 with score x1 and engine2 -> pep2 with score x2. The better score from {x1,x2} will be used if the degree of similarity between pep1 and pep2 >= common, Note that 0 <= degree of similarity <= 1. Values > 1 will disable this option.");
 		defaults_.setMinFloat("PEPMatrix:common",0);
 		defaults_.setMaxFloat("PEPMatrix:common",1.1);
