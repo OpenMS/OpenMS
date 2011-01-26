@@ -748,7 +748,7 @@ namespace OpenMS {
         p.setValue("egh:A", double(feature.getMetaValue("RT_width_gaussian"))/2.0 * 0.9); // make width a little smaller as this is only the 5% height cutoff
         p.setValue("egh:B", double(feature.getMetaValue("RT_width_gaussian"))/2.0 * 0.9);
       }
-      else if(feature.metaValueExists("RT_egh_sigma") && feature.metaValueExists("RT_egh_tau"))
+      else if(feature.metaValueExists("RT_egh_variance") && feature.metaValueExists("RT_egh_tau"))
       {
         // for CE we want wider profiles with higher MT
         DoubleReal width_factor(1); // default for HPLC
