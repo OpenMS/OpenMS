@@ -168,6 +168,7 @@ namespace OpenMS
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
 		registerStringOption_("write_ini","<file>","","Writes the default configuration file",false);
+    registerStringOption_("write_type","<file>","","Writes a minimal ini file, containing only the types available for this tool",false,true);
 		registerStringOption_("write_wsdl","<file>","","Writes the default WSDL file",false,true);
 		registerFlag_("no_progress","Disables progress logging to command line",true);
 		if (id_tag_support_)
@@ -272,6 +273,15 @@ namespace OpenMS
 		try
 		{
 #endif
+      // '-write_type' given
+      if (param_cmdline_.exists("write_type"))
+      {
+        String write_ini_file = param_cmdline_.getValue("write_type");
+			  outputFileWritable_(write_ini_file,"write_type");
+			  Param default_params = getDefaultParameters_();
+			  default_params.store(write_ini_file);
+			  return EXECUTION_OK;
+      }
 
 			// '-write_ini' given
 			if (param_cmdline_.exists("write_ini"))
@@ -923,7 +933,7 @@ namespace OpenMS
 					 << "You can write an example INI file using the '-write_ini' option." << "\n"
 					 << "Documentation of subsection parameters can be found in the" << "\n"
 					 << "doxygen documentation or the INIFileEditor." << "\n"
-					 << "Have a look at OpenMS/doc/index.html for more information." << "\n";
+					 << "Have a look at OpenMS documentation for more information." << "\n";
 		}
 		cerr << endl;
 	}
@@ -2019,137 +2029,129 @@ namespace OpenMS
 		//parameters
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
-			if (it->name!="ini" && it->name!="-help" && it->name!="-helphelp" && it->name!="instance" && it->name!="write_ini" && it->name!="write_wsdl")
+			if (it->name=="ini" || it->name=="-help" || it->name=="-helphelp" || it->name=="instance" || it->name=="write_ini" || it->name=="write_type" || it->name=="write_wsdl")
+			{ // do not store those params in ini file
+        continue;
+      }
+			String name = loc + it->name;
+			StringList tags;
+			if (it->advanced) tags.push_back("advanced");
+      if (it->required) tags.push_back("required");
+			if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST) tags.push_back("input file");
+			if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) tags.push_back("output file");
+			switch (it->type)
 			{
-				String name = loc + it->name;
-				StringList tags;
-				if (it->advanced) tags.push_back("advanced");
-        if (it->required) tags.push_back("required");
-				if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST) tags.push_back("input file");
-				if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) tags.push_back("output file");
-				switch (it->type)
-				{
-					case ParameterInformation::STRING:
-						tmp.setValue(name,(String)it->default_value, it->description, tags);
-						if (it->valid_strings.size() != 0)
-						{
-							tmp.setValidStrings(name,it->valid_strings);
-						}
-						break;
-					case ParameterInformation::INPUT_FILE:
-					case ParameterInformation::OUTPUT_FILE:
-						{
-							String formats;
-							if (it->valid_strings.size()!=0)
-							{
-								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
-								formats = String("(valid formats: '") + formats + "')";
-								if (!it->description.empty())
-								{
-									// if there's no whitespace at the end of the description,
-									// insert a space before "(valid formats: ...)":
-									char c = *(--it->description.end()); // last character
-									if ((c != ' ') && (c != '\t') && (c != '\n'))
-									{
-										formats = " " + formats;
-									}
-								}
-							}
-							tmp.setValue(name, (String)it->default_value, it->description + formats, tags);
-						}
-						break;
-					case ParameterInformation::DOUBLE:
-            tmp.setValue(name, it->default_value, it->description, tags);
-						if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
-						{
-							tmp.setMinFloat(name, it->min_float);
-						}
-						if (it->max_float!=std::numeric_limits<DoubleReal>::max())
-						{
-							tmp.setMaxFloat(name, it->max_float);
-						}
-						break;
-					case ParameterInformation::INT:
-						tmp.setValue(name,(Int)it->default_value, it->description, tags);
-						if (it->min_int!=-std::numeric_limits<Int>::max())
-						{
-							tmp.setMinInt(name, it->min_int);
-						}
-						if (it->max_int!=std::numeric_limits<Int>::max())
-						{
-							tmp.setMaxInt(name, it->max_int);
-						}
-						break;
-					case ParameterInformation::FLAG:
-						tmp.setValue(name,"false", it->description, tags);
-						tmp.setValidStrings(name,StringList::create("true,false"));
-						break;
-					case ParameterInformation::INPUT_FILE_LIST:
-					case ParameterInformation::OUTPUT_FILE_LIST:
-						{
-							String formats;
-							if (it->valid_strings.size()!=0)
-							{
-								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
-								formats = String("(valid formats: '") + formats + "')";
-								if (!it->description.empty())
-								{
-									// if there's no whitespace at the end of the description,
-									// insert a space before "(valid formats: ...)":
-									char c = *(--it->description.end()); // last character
-									if ((c != ' ') && (c != '\t') && (c != '\n'))
-									{
-										formats = " " + formats;
-									}
-								}
-							}
-							tmp.setValue(name,(StringList)it->default_value, it->description + formats, tags);
-						}
-						break;
-					case ParameterInformation::STRINGLIST:
-						tmp.setValue(name,(StringList)it->default_value, it->description, tags);
+				case ParameterInformation::STRING:
+					tmp.setValue(name,(String)it->default_value, it->description, tags);
+					if (it->valid_strings.size() != 0)
+					{
+						tmp.setValidStrings(name,it->valid_strings);
+					}
+					break;
+				case ParameterInformation::INPUT_FILE:
+				case ParameterInformation::OUTPUT_FILE:
+					{
+						String formats;
 						if (it->valid_strings.size()!=0)
 						{
-							tmp.setValidStrings(name,it->valid_strings);
+							formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
+							formats = String("(valid formats: '") + formats + "')";
+							if (!it->description.empty())
+							{
+								// if there's no whitespace at the end of the description,
+								// insert a space before "(valid formats: ...)":
+								char c = *(--it->description.end()); // last character
+								if ((c != ' ') && (c != '\t') && (c != '\n'))
+								{
+									formats = " " + formats;
+								}
+							}
 						}
-						break;
-					case ParameterInformation::INTLIST:
-						tmp.setValue(name,(IntList)it->default_value, it->description, tags);
-						if (it->min_int!=-std::numeric_limits<Int>::max())
+						tmp.setValue(name, (String)it->default_value, it->description + formats, tags);
+					}
+					break;
+				case ParameterInformation::DOUBLE:
+          tmp.setValue(name, it->default_value, it->description, tags);
+					if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+					{
+						tmp.setMinFloat(name, it->min_float);
+					}
+					if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+					{
+						tmp.setMaxFloat(name, it->max_float);
+					}
+					break;
+				case ParameterInformation::INT:
+					tmp.setValue(name,(Int)it->default_value, it->description, tags);
+					if (it->min_int!=-std::numeric_limits<Int>::max())
+					{
+						tmp.setMinInt(name, it->min_int);
+					}
+					if (it->max_int!=std::numeric_limits<Int>::max())
+					{
+						tmp.setMaxInt(name, it->max_int);
+					}
+					break;
+				case ParameterInformation::FLAG:
+					tmp.setValue(name,"false", it->description, tags);
+					tmp.setValidStrings(name,StringList::create("true,false"));
+					break;
+				case ParameterInformation::INPUT_FILE_LIST:
+				case ParameterInformation::OUTPUT_FILE_LIST:
+					{
+						String formats;
+						if (it->valid_strings.size()!=0)
 						{
-							tmp.setMinInt(name, it->min_int);
+							formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
+							formats = String("(valid formats: '") + formats + "')";
+							if (!it->description.empty())
+							{
+								// if there's no whitespace at the end of the description,
+								// insert a space before "(valid formats: ...)":
+								char c = *(--it->description.end()); // last character
+								if ((c != ' ') && (c != '\t') && (c != '\n'))
+								{
+									formats = " " + formats;
+								}
+							}
 						}
-						if (it->max_int!=std::numeric_limits<Int>::max())
-						{
-							tmp.setMaxInt(name, it->max_int);
-						}
-						break;
-					case ParameterInformation::DOUBLELIST:
-						tmp.setValue(name,(DoubleList)it->default_value, it->description, tags);
-						if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
-						{
-							tmp.setMinFloat(name, it->min_float);
-						}
-						if (it->max_float!=std::numeric_limits<DoubleReal>::max())
-						{
-							tmp.setMaxFloat(name, it->max_float);
-						}
-						break;
-					default:
-						break;
-				}
+						tmp.setValue(name,(StringList)it->default_value, it->description + formats, tags);
+					}
+					break;
+				case ParameterInformation::STRINGLIST:
+					tmp.setValue(name,(StringList)it->default_value, it->description, tags);
+					if (it->valid_strings.size()!=0)
+					{
+						tmp.setValidStrings(name,it->valid_strings);
+					}
+					break;
+				case ParameterInformation::INTLIST:
+					tmp.setValue(name,(IntList)it->default_value, it->description, tags);
+					if (it->min_int!=-std::numeric_limits<Int>::max())
+					{
+						tmp.setMinInt(name, it->min_int);
+					}
+					if (it->max_int!=std::numeric_limits<Int>::max())
+					{
+						tmp.setMaxInt(name, it->max_int);
+					}
+					break;
+				case ParameterInformation::DOUBLELIST:
+					tmp.setValue(name,(DoubleList)it->default_value, it->description, tags);
+					if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+					{
+						tmp.setMinFloat(name, it->min_float);
+					}
+					if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+					{
+						tmp.setMaxFloat(name, it->max_float);
+					}
+					break;
+				default:
+					break;
 			}
 		}
-		//subsections
-		for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
-		{
-			Param tmp2 = getSubsectionDefaults_(it->first);
-			if (!tmp2.empty())
-			{
-				tmp.insert(loc + it->first + ":",tmp2);
-				tmp.setSectionDescription(loc + it->first, it->second);
-			}
-		}
+
 		//subsections intrinsic to TOPP tool (i.e. a commandline param with a ':')
 		for(map<String,String>::const_iterator it = subsections_TOPP_.begin(); it!=subsections_TOPP_.end(); ++it)
 		{
@@ -2163,9 +2165,27 @@ namespace OpenMS
 		tmp.setSectionDescription(tool_name_, tool_description_);
 		tmp.setSectionDescription(tool_name_ + ":" + String(instance_number_), String("Instance '") + String(instance_number_) + "' section for '" + tool_name_ + "'");
 
-		// store "type" in INI-File (if given)
-		if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
+    if (param_cmdline_.exists("write_type"))
+    {
+      // minimal INI file version (no algorithm subsection, as we would need a valid 'type' for that)
+      // , currently tool with no '-type' won't have one in the minimal ini file as well (add an emtpy type here if that's required - can't think of a reason however)
+    }
+    else
+    {
+		  // store "type" in INI-File (if given)
+		  if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
 
+		  //subsections
+		  for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+		  {
+			  Param tmp2 = getSubsectionDefaults_(it->first);
+			  if (!tmp2.empty())
+			  {
+				  tmp.insert(loc + it->first + ":",tmp2);
+				  tmp.setSectionDescription(loc + it->first, it->second);
+			  }
+		  }
+    }
 
 		// 2nd stage, use TOPP tool defaults from home (if existing)
 		Param tool_user_defaults(getToolUserDefaults_(tool_name_));
