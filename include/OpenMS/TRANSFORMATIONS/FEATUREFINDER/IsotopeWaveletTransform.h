@@ -785,9 +785,9 @@ namespace OpenMS
 				c_mz_cutoff =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[i].getMZ(), c+1);
 				start_iter = c_ref.MZEnd(c_ref[i].getMZ());
 				end_iter = c_ref.MZBegin(c_ref[i].getMZ()+c_mz_cutoff);
-				wavelet_length = std::max ((long int) wavelet_length, distance(start_iter, end_iter)+1);
+				wavelet_length = std::max ((SignedSize) wavelet_length, distance(start_iter, end_iter)+1);
 				end_iter = c_ref.MZEnd(c_ref[i].getMZ()-Constants::IW_QUARTER_NEUTRON_MASS/DoubleReal(c+1.));
-				quarter_length = std::max ((long int) quarter_length, distance(end_iter, start_iter)+1);
+				quarter_length = std::max ((SignedSize) quarter_length, distance(end_iter, start_iter)+1);
 			}
 		}
 		else
