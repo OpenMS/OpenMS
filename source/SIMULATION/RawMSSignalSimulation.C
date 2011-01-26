@@ -758,15 +758,9 @@ namespace OpenMS {
         p.setValue("egh:tau", (DoubleReal) feature.getMetaValue("RT_egh_tau"));
         p.setValue("egh:sigma_square", ((DoubleReal) feature.getMetaValue("RT_egh_variance")) * width_factor);
       }
-      else // for compatibility reasons .. can be removed?
+      else 
       { 
-        // for CE we want wider profiles with higher MT
-        DoubleReal width_factor(1); // default for HPLC
-        if (feature.metaValueExists("RT_CE_width_factor")) width_factor = feature.getMetaValue("RT_CE_width_factor");
-
-        // TODO remove fixed values .. come up with a meaningfull model for elutionprofile shapes
-        p.setValue("egh:A", width_factor*10.0);
-        p.setValue("egh:B", width_factor*10.0);
+        throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Elution profile shape cannot be created. Wrong meta-values!", "");
       }
 
       elutionmodel->setParameters(p); // does the calculation

@@ -69,7 +69,114 @@ namespace OpenMS {
   {
   }
   
+  void RTSimulation::setDefaultParams_() 
+  {
+		defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
+    defaults_.setValidStrings("rt_column", StringList::create("none,HPLC,CE"));
+    
+    // scaling
+    defaults_.setValue("auto_scale","true","Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
+    defaults_.setValidStrings("auto_scale", StringList::create("true,false"));
 
+		// column settings
+    defaults_.setValue("total_gradient_time",2500.0,"The duration [s] of the gradient.");
+    defaults_.setMinFloat("total_gradient_time", 0.00001);
+
+    // rt scan window
+    defaults_.setValue("scan_window:min",500.0,"Start of RT Scan Window [s]");
+    defaults_.setMinFloat("scan_window:min",0);
+    defaults_.setValue("scan_window:max",1500.0,"End of RT Scan Window [s]");
+    defaults_.setMinFloat("scan_window:max",1);
+
+    // rt spacing
+    defaults_.setValue("sampling_rate", 2.0, "Time interval [s] between consecutive scans");
+    defaults_.setMinFloat("sampling_rate",0.01);
+    defaults_.setMaxFloat("sampling_rate",60.0);
+
+    // rt error
+    defaults_.setValue("variation:feature_stddev",3,"Standard deviation of shift in retention time [s] from predicted model (applied to every single feature independently)");
+    defaults_.setValue("variation:affine_offset",0,"Global offset in retention time [s] from predicted model");
+    defaults_.setValue("variation:affine_scale",1,"Global scaling in retention time from predicted model");
+    defaults_.setSectionDescription("variation","Random component that simulates technical/biological variation");
+
+    defaults_.setValue("column_condition:distortion", 1.0, "Distortion of the elution profiles. Good presets are 0.0 for a perfect elution profile, 1.0 for a slightly distorted elution profile and 2.0 for heavily distorted profile.");
+		
+    defaults_.setValue("profile_shape:width:value", 9, "Width of the Exponential Gaussian Hybrid distribution shape of the elution profile. This does not correspond directly to the width in [s].");
+    defaults_.setValue("profile_shape:width:variance", 1.6, "Random component of the width (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the variance (Note: The scale parameter has to be >= 0).");
+    defaults_.setMinFloat("profile_shape:width:variance",0.0);
+    defaults_.setSectionDescription("profile_shape:width","Width of the EGH elution shape, i.e. the sigma^2 parameter, which is computed using 'value' + rnd_cauchy('variance')");
+
+    defaults_.setValue("profile_shape:skewness:value", 0.1, "Asymmetric component of the EGH. Higher absolute(!) values lead to more skewness (negative values cause fronting, positive values cause tailing). Tau parameter of the EGH, i.e. time constant of the exponential decay of the Exponential Gaussian Hybrid distribution shape of the elution profile.");
+    defaults_.setValue("profile_shape:skewness:variance", 2.7, "Random component of skewness (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the time constant (Note: The scale parameter has to be > 0).");
+    defaults_.setMinFloat("profile_shape:skewness:variance",0.0);
+    defaults_.setSectionDescription("profile_shape:skewness","Skewness of the EGH elution shape, i.e. the tau parameter, which is computed using 'value' + rnd_cauchy('variance')");
+
+    // HPLC specific Parameters
+    defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
+
+    // CE specific Parameters
+    defaults_.setValue("CE:pH",3.0,"pH of buffer");
+    defaults_.setMinFloat("CE:pH", 0);
+    defaults_.setMaxFloat("CE:pH", 14);
+    
+    defaults_.setValue("CE:alpha",0.5,"Exponent Alpha used to calculate mobility");
+    defaults_.setMinFloat("CE:alpha", 0);
+    defaults_.setMaxFloat("CE:alpha", 1);
+
+    defaults_.setValue("CE:mu_eo",0.0,"Electroosmotic flow");
+    defaults_.setMinFloat("CE:mu_eo", 0);
+    defaults_.setMaxFloat("CE:mu_eo", 5);
+        
+    defaults_.setValue("CE:lenght_d", 70.0 ,"Length of capillary [cm] from injection site to MS");
+    defaults_.setMinFloat("CE:lenght_d", 0);
+    defaults_.setMaxFloat("CE:lenght_d", 1000);
+
+    defaults_.setValue("CE:length_total", 75.0 ,"Total length of capillary [cm]");
+    defaults_.setMinFloat("CE:length_total", 0);
+    defaults_.setMaxFloat("CE:length_total", 1000);
+    
+    defaults_.setValue("CE:voltage", 1000.0 ,"Voltage applied to capillary");
+    defaults_.setMinFloat("CE:voltage", 0);
+
+		defaultsToParam_();
+  }
+
+
+  void RTSimulation::updateMembers_()
+  {
+		rt_model_file_ = param_.getValue("HPLC:model_file");
+		if (! File::readable( rt_model_file_ ) )
+    { // look in OPENMS_DATA_PATH
+      rt_model_file_ = File::find( rt_model_file_ );
+    }
+		total_gradient_time_ = param_.getValue("total_gradient_time");
+		gradient_min_ = param_.getValue("scan_window:min");
+		gradient_max_ = param_.getValue("scan_window:max");
+    if(gradient_max_ > total_gradient_time_)
+    {
+      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
+    }
+    
+    rt_sampling_rate_    = param_.getValue("sampling_rate");
+
+    distortion_          = param_.getValue("column_condition:distortion");
+
+    egh_variance_location_  = param_.getValue("profile_shape:width:value");
+    egh_variance_scale_     = param_.getValue("profile_shape:width:variance");
+    if (egh_variance_scale_ < 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the variance has to be >= 0.");
+    }
+
+    egh_tau_location_    = param_.getValue("profile_shape:skewness:value");
+    egh_tau_scale_       = param_.getValue("profile_shape:skewness:variance");
+    if (egh_tau_scale_ < 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the time constant has to be >= 0.");
+    }
+
+  }
+  
   void RTSimulation::noRTColumn_(FeatureMapSim & features)
   {
     for(FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
@@ -155,8 +262,8 @@ namespace OpenMS {
       features[i].setRT(predicted_retention_times[i]);
 
       // determine shape parameters for EGH
-      DoubleReal variance = gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_) + egh_variance_location_;
-      DoubleReal tau = gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_) + egh_tau_location_;
+      DoubleReal variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
+      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_==0? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));;
 
       features[i].setMetaValue("RT_egh_variance", variance);
       features[i].setMetaValue("RT_egh_tau", tau);
@@ -415,110 +522,6 @@ namespace OpenMS {
     }
   }
   
-  void RTSimulation::updateMembers_()
-  {
-		rt_model_file_ = param_.getValue("HPLC:model_file");
-		if (! File::readable( rt_model_file_ ) )
-    { // look in OPENMS_DATA_PATH
-      rt_model_file_ = File::find( rt_model_file_ );
-    }
-		total_gradient_time_ = param_.getValue("total_gradient_time");
-		gradient_min_ = param_.getValue("scan_window:min");
-		gradient_max_ = param_.getValue("scan_window:max");
-    if(gradient_max_ > total_gradient_time_)
-    {
-      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
-    }
-    
-    rt_sampling_rate_    = param_.getValue("sampling_rate");
-
-    distortion_          = param_.getValue("column_condition:distortion");
-
-    egh_variance_location_  = param_.getValue("profile_shape:variance:value");
-    egh_variance_scale_     = param_.getValue("profile_shape:variance:scale");
-    if(!egh_variance_scale_ > 0.0)
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the variance has to be > 0.");
-    }
-
-    egh_tau_location_    = param_.getValue("profile_shape:tau:value");
-    egh_tau_scale_       = param_.getValue("profile_shape:tau:scale");
-    if(!egh_tau_scale_ > 0.0)
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the time constant has to be > 0.");
-    }
-
-  }
-  
-  void RTSimulation::setDefaultParams_() 
-  {
-		defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
-    defaults_.setValidStrings("rt_column", StringList::create("none,HPLC,CE"));
-    
-    // scaling
-    defaults_.setValue("auto_scale","true","Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
-    defaults_.setValidStrings("auto_scale", StringList::create("true,false"));
-
-		// column settings
-    defaults_.setValue("total_gradient_time",2500.0,"The duration [s] of the gradient.");
-    defaults_.setMinFloat("total_gradient_time", 0.00001);
-
-    // rt scan window
-    defaults_.setValue("scan_window:min",500.0,"Start of RT Scan Window [s]");
-    defaults_.setMinFloat("scan_window:min",0);
-    defaults_.setValue("scan_window:max",1500.0,"End of RT Scan Window [s]");
-    defaults_.setMinFloat("scan_window:max",1);
-
-    // rt spacing
-    defaults_.setValue("sampling_rate", 2.0, "Time interval [s] between consecutive scans");
-    defaults_.setMinFloat("sampling_rate",0.01);
-    defaults_.setMaxFloat("sampling_rate",60.0);
-
-    // rt error
-    defaults_.setValue("variation:feature_stddev",3,"Standard deviation of shift in retention time [s] from predicted model (applied to every single feature independently)");
-    defaults_.setValue("variation:affine_offset",0,"Global offset in retention time [s] from predicted model");
-    defaults_.setValue("variation:affine_scale",1,"Global scaling in retention time from predicted model");
-    defaults_.setSectionDescription("variation","Random component that simulates technical/biological variation");
-
-    defaults_.setValue("column_condition:distortion", 1.0, "Distortion of the elution profiles. Good presets are 0.0 for a perfect elution profile, 1.0 for a slightly distorted elution profile and 2.0 for heavily distorted profile.");
-		
-    defaults_.setValue("profile_shape:variance:value", 9, "Variance of the Exponential Gaussian Hybrid distribution shape of the elution profile.");
-    defaults_.setValue("profile_shape:variance:scale", 1.6, "Scale parameter for the lorentzian variation of the variance (Note: The scale parameter has to be > 0).");
-    defaults_.setMinFloat("profile_shape:variance:scale",0.0);
-
-    defaults_.setValue("profile_shape:tau:value", 0.1, "Time constant of the exponential decay of the Exponential Gaussian Hybrid distribution shape of the elution profile.");
-    defaults_.setValue("profile_shape:tau:scale", 2.7, "Scale parameter for the lorentzian variation of the time constant (Note: The scale parameter has to be > 0).");
-    defaults_.setMinFloat("profile_shape:tau:scale",0.0);
-
-    // HPLC specific Parameters
-    defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
-
-    // CE specific Parameters
-    defaults_.setValue("CE:pH",3.0,"pH of buffer");
-    defaults_.setMinFloat("CE:pH", 0);
-    defaults_.setMaxFloat("CE:pH", 14);
-    
-    defaults_.setValue("CE:alpha",0.5,"Exponent Alpha used to calculate mobility");
-    defaults_.setMinFloat("CE:alpha", 0);
-    defaults_.setMaxFloat("CE:alpha", 1);
-
-    defaults_.setValue("CE:mu_eo",0.0,"Electroosmotic flow");
-    defaults_.setMinFloat("CE:mu_eo", 0);
-    defaults_.setMaxFloat("CE:mu_eo", 5);
-        
-    defaults_.setValue("CE:lenght_d", 70.0 ,"Length of capillary [cm] from injection site to MS");
-    defaults_.setMinFloat("CE:lenght_d", 0);
-    defaults_.setMaxFloat("CE:lenght_d", 1000);
-
-    defaults_.setValue("CE:length_total", 75.0 ,"Total length of capillary [cm]");
-    defaults_.setMinFloat("CE:length_total", 0);
-    defaults_.setMaxFloat("CE:length_total", 1000);
-    
-    defaults_.setValue("CE:voltage", 1000.0 ,"Voltage applied to capillary");
-    defaults_.setMinFloat("CE:voltage", 0);
-
-		defaultsToParam_();
-  }
   
   bool RTSimulation::isRTColumnOn() const
   {
