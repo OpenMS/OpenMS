@@ -131,7 +131,7 @@ namespace OpenMS
 						peak_mass_tolerance(0.0),
 						precursor_tolerance(0.0)
 				{
-				};
+        }
 
 				bool operator == (const SearchParameters& rhs) const
 				{

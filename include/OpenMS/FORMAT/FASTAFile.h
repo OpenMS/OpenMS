@@ -64,14 +64,14 @@ namespace OpenMS
 					description(""),
 					sequence("")
 			{
-			};
+      }
 
 			FASTAEntry(String id, String desc, String seq)
 				: identifier(id),
 					description(desc),
 					sequence(seq)
 			{
-			};
+      }
 
 			bool operator == (const FASTAEntry& rhs) const
 			{

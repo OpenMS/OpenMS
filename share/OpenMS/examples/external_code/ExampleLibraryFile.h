@@ -39,6 +39,6 @@ namespace OpenMSExternal //optional namespace... however you like it
 			static std::string printSomething();
 	};
 
-	}
+}
 
 #endif // OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H

@@ -114,7 +114,8 @@ elseif (MSVC)
     ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
   endif()
-    
+elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")    
+  set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
