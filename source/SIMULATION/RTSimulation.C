@@ -107,7 +107,7 @@ namespace OpenMS {
     defaults_.setSectionDescription("profile_shape:width","Width of the EGH elution shape, i.e. the sigma^2 parameter, which is computed using 'value' + rnd_cauchy('variance')");
 
     defaults_.setValue("profile_shape:skewness:value", 0.1, "Asymmetric component of the EGH. Higher absolute(!) values lead to more skewness (negative values cause fronting, positive values cause tailing). Tau parameter of the EGH, i.e. time constant of the exponential decay of the Exponential Gaussian Hybrid distribution shape of the elution profile.");
-    defaults_.setValue("profile_shape:skewness:variance", 0.4, "Random component of skewness (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the time constant (Note: The scale parameter has to be > 0).");
+    defaults_.setValue("profile_shape:skewness:variance", 0.3, "Random component of skewness (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the time constant (Note: The scale parameter has to be > 0).");
     defaults_.setMinFloat("profile_shape:skewness:variance",0.0);
     defaults_.setSectionDescription("profile_shape:skewness","Skewness of the EGH elution shape, i.e. the tau parameter, which is computed using 'value' + rnd_cauchy('variance')");
 
