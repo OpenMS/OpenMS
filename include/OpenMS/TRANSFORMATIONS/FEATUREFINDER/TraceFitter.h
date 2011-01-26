@@ -136,6 +136,14 @@ namespace OpenMS
     }
 
     /**
+     * Returns the mass trace width at half max (FWHM)
+     */
+    virtual DoubleReal getFWHM() const
+    {
+      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    /**
      * Returns the theoretical value of the fitted model at position k in the passed Mass Trace
      */
     virtual DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & /* trace */, Size /* k */)

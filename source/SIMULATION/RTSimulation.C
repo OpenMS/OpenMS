@@ -40,58 +40,6 @@ using std::endl;
 
 namespace OpenMS {
 
-	/// PKA values as given in Rickard1991
-	void RTSimulation::getChargeContribution_(Map< String, double> & q_cterm, 
-																	 Map< String, double> & q_nterm,
-																	 Map< String, double> & q_aa_basic,
-																	 Map< String, double> & q_aa_acidic)
-	{
-		// the actual constants from the paper:
-		String aas = "ARNDCQEGHILKMFPSTWYVBZ";
-		const double cterm_pkas[] = { 3.20, 3.20, 2.75, 2.75, 2.75, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 2.75, 3.20 };
-		const double nterm_pkas[] = { 8.20, 8.20, 7.30, 8.60, 7.30, 7.70, 8.20,8.20,8.20,8.20,8.20, 7.70, 9.20, 7.7, 9.00, 7.30, 8.20, 8.20, 7.70, 8.20, 8.03, 8.00};
-
-		String aa_basic = "HRK";
-		double aa_basic_pkas[] = {6.20, 12.50, 10.30};
-
-		String aa_acidic = "DECY";
-		double aa_acidic_pkas[] = {3.50, 4.50, 10.30, 10.30};
-
-		// clear target structures
-		q_cterm.clear();
-		q_nterm.clear();
-		q_aa_basic.clear();
-		q_aa_acidic.clear();
-		
-		// get params
-		DoubleReal ph = param_.getValue("CE:pH");
-
-		// calculate charges according to constants and conditions:
-		
-		// C&N term
-		for (Size i = 0; i<aas.size(); ++i)
-		{
-			q_nterm[aas[i]] = + 1/( 1+std::pow(10, +ph - nterm_pkas[i] ));
-			q_cterm[aas[i]] = - 1/( 1+std::pow(10, -ph + cterm_pkas[i] ));
-		}
-		
-		// basic AA's
-		for (Size i = 0; i<aa_basic.size(); ++i)
-		{
-			q_aa_basic[aa_basic[i]]   = + 1/( 1+std::pow(10, +ph - aa_basic_pkas[i] ));
-		}
-
-		// acidic AA's
-		for (Size i = 0; i<aa_acidic.size(); ++i)
-		{
-			q_aa_acidic[aa_acidic[i]] = - 1/( 1+std::pow(10, -ph + aa_acidic_pkas[i] ));
-		}
-		// add values for ambigous AA according to dayhoff frequencies
-		q_aa_acidic["B"] = q_aa_acidic["D"]*(5.5/(5.5+4.3)) + 0*(4.3/(5.5+4.3)); // D~5.5; N~4.3
-		q_aa_acidic["Z"] = q_aa_acidic["E"]*(6.0/(6.0+3.9)) + 0*(3.9/(6.0+3.9)); // E~6.0; Q~3.9
-
-	}
-
   
   RTSimulation::RTSimulation(const SimRandomNumberGenerator& random_generator)
     : DefaultParamHandler("RTSimulation"), rnd_gen_(&random_generator)
@@ -118,44 +66,117 @@ namespace OpenMS {
   }
   
   RTSimulation::~RTSimulation()
-  {}
-  
-  /**
-   @brief Gets a feature map containing the peptides and predicts for those the retention times
-   */
-  void RTSimulation::predictRT(FeatureMapSim & features)
   {
-    LOG_INFO << "RT Simulation ... started" << std::endl;
+  }
+  
+  void RTSimulation::setDefaultParams_() 
+  {
+		defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
+    defaults_.setValidStrings("rt_column", StringList::create("none,HPLC,CE"));
+    
+    // scaling
+    defaults_.setValue("auto_scale","true","Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
+    defaults_.setValidStrings("auto_scale", StringList::create("true,false"));
 
-    predictFeatureRT_(features);
+		// column settings
+    defaults_.setValue("total_gradient_time",2500.0,"The duration [s] of the gradient.");
+    defaults_.setMinFloat("total_gradient_time", 0.00001);
 
-    for(FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
-        ++it_f)
-    {
-      // TODO: revise the process of rt shape generation
-      double symmetry = gsl_ran_flat (rnd_gen_->technical_rng, symmetry_down_, symmetry_up_);
-      double width = gsl_ran_flat (rnd_gen_->technical_rng, 5, 15);
-			// TODO: maybe this would be a better solution ..
-			//double width = 1;
-      it_f->setMetaValue("rt_symmetry", symmetry);
-      it_f->setMetaValue("rt_width", width);
+    // rt scan window
+    defaults_.setValue("scan_window:min",500.0,"Start of RT Scan Window [s]");
+    defaults_.setMinFloat("scan_window:min",0);
+    defaults_.setValue("scan_window:max",1500.0,"End of RT Scan Window [s]");
+    defaults_.setMinFloat("scan_window:max",1);
 
+    // rt spacing
+    defaults_.setValue("sampling_rate", 2.0, "Time interval [s] between consecutive scans");
+    defaults_.setMinFloat("sampling_rate",0.01);
+    defaults_.setMaxFloat("sampling_rate",60.0);
 
-      // Exponentially modified Gaussian
-      const DoubleReal decay_stretch = 5.0;
+    // rt error
+    defaults_.setValue("variation:feature_stddev",3,"Standard deviation of shift in retention time [s] from predicted model (applied to every single feature independently)");
+    defaults_.setValue("variation:affine_offset",0,"Global offset in retention time [s] from predicted model");
+    defaults_.setValue("variation:affine_scale",1,"Global scaling in retention time from predicted model");
+    defaults_.setSectionDescription("variation","Random component that simulates technical/biological variation");
 
-      // compute rt bounding box
-      DoubleReal bb_min = it_f->getRT() - decay_stretch*(width+fabs(symmetry));
-      DoubleReal bb_max = it_f->getRT() + decay_stretch*(width+fabs(symmetry));
-
-      it_f->setMetaValue("rt_bb_min",bb_min);
-      it_f->setMetaValue("rt_bb_max",bb_max);
-    }
+    defaults_.setValue("column_condition:distortion", 1.0, "Distortion of the elution profiles. Good presets are 0.0 for a perfect elution profile, 1.0 for a slightly distorted elution profile and 2.0 for heavily distorted profile.");
 		
-		//else if (param_.getValue("rt_column") == "CE") number_of_scans = Size((features.getMax()[0]+gradient_front_offset_) / rt_sampling_rate_);
+    defaults_.setValue("profile_shape:width:value", 9, "Width of the Exponential Gaussian Hybrid distribution shape of the elution profile. This does not correspond directly to the width in [s].");
+    defaults_.setValue("profile_shape:width:variance", 1.6, "Random component of the width (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the variance (Note: The scale parameter has to be >= 0).");
+    defaults_.setMinFloat("profile_shape:width:variance",0.0);
+    defaults_.setSectionDescription("profile_shape:width","Width of the EGH elution shape, i.e. the sigma^2 parameter, which is computed using 'value' + rnd_cauchy('variance')");
 
+    defaults_.setValue("profile_shape:skewness:value", 0.1, "Asymmetric component of the EGH. Higher absolute(!) values lead to more skewness (negative values cause fronting, positive values cause tailing). Tau parameter of the EGH, i.e. time constant of the exponential decay of the Exponential Gaussian Hybrid distribution shape of the elution profile.");
+    defaults_.setValue("profile_shape:skewness:variance", 0.3, "Random component of skewness (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the time constant (Note: The scale parameter has to be > 0).");
+    defaults_.setMinFloat("profile_shape:skewness:variance",0.0);
+    defaults_.setSectionDescription("profile_shape:skewness","Skewness of the EGH elution shape, i.e. the tau parameter, which is computed using 'value' + rnd_cauchy('variance')");
+
+    // HPLC specific Parameters
+    defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
+
+    // CE specific Parameters
+    defaults_.setValue("CE:pH",3.0,"pH of buffer");
+    defaults_.setMinFloat("CE:pH", 0);
+    defaults_.setMaxFloat("CE:pH", 14);
+    
+    defaults_.setValue("CE:alpha",0.5,"Exponent Alpha used to calculate mobility");
+    defaults_.setMinFloat("CE:alpha", 0);
+    defaults_.setMaxFloat("CE:alpha", 1);
+
+    defaults_.setValue("CE:mu_eo",0.0,"Electroosmotic flow");
+    defaults_.setMinFloat("CE:mu_eo", 0);
+    defaults_.setMaxFloat("CE:mu_eo", 5);
+        
+    defaults_.setValue("CE:lenght_d", 70.0 ,"Length of capillary [cm] from injection site to MS");
+    defaults_.setMinFloat("CE:lenght_d", 0);
+    defaults_.setMaxFloat("CE:lenght_d", 1000);
+
+    defaults_.setValue("CE:length_total", 75.0 ,"Total length of capillary [cm]");
+    defaults_.setMinFloat("CE:length_total", 0);
+    defaults_.setMaxFloat("CE:length_total", 1000);
+    
+    defaults_.setValue("CE:voltage", 1000.0 ,"Voltage applied to capillary");
+    defaults_.setMinFloat("CE:voltage", 0);
+
+		defaultsToParam_();
   }
 
+
+  void RTSimulation::updateMembers_()
+  {
+		rt_model_file_ = param_.getValue("HPLC:model_file");
+		if (! File::readable( rt_model_file_ ) )
+    { // look in OPENMS_DATA_PATH
+      rt_model_file_ = File::find( rt_model_file_ );
+    }
+		total_gradient_time_ = param_.getValue("total_gradient_time");
+		gradient_min_ = param_.getValue("scan_window:min");
+		gradient_max_ = param_.getValue("scan_window:max");
+    if(gradient_max_ > total_gradient_time_)
+    {
+      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
+    }
+    
+    rt_sampling_rate_    = param_.getValue("sampling_rate");
+
+    distortion_          = param_.getValue("column_condition:distortion");
+
+    egh_variance_location_  = param_.getValue("profile_shape:width:value");
+    egh_variance_scale_     = param_.getValue("profile_shape:width:variance");
+    if (egh_variance_scale_ < 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the variance has to be >= 0.");
+    }
+
+    egh_tau_location_    = param_.getValue("profile_shape:skewness:value");
+    egh_tau_scale_       = param_.getValue("profile_shape:skewness:variance");
+    if (egh_tau_scale_ < 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The scale parameter for the lorentzian variation of the time constant has to be >= 0.");
+    }
+
+  }
+  
   void RTSimulation::noRTColumn_(FeatureMapSim & features)
   {
     for(FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
@@ -165,8 +186,14 @@ namespace OpenMS {
     }
   }
 
-  void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
+
+  /**
+   @brief Gets a feature map containing the peptides and predicts for those the retention times
+   */
+  void RTSimulation::predictRT(FeatureMapSim & features)
   {
+    LOG_INFO << "RT Simulation ... started" << std::endl;
+
     vector< DoubleReal>  predicted_retention_times;
 		bool is_relative = (param_.getValue("auto_scale")=="true");
     if (param_.getValue("rt_column") == "none")
@@ -233,7 +260,15 @@ namespace OpenMS {
       }
       
       features[i].setRT(predicted_retention_times[i]);
-			fm_tmp.push_back(features[i]);
+
+      // determine shape parameters for EGH
+      DoubleReal variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
+      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_==0? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));;
+
+      features[i].setMetaValue("RT_egh_variance", variance);
+      features[i].setMetaValue("RT_egh_tau", tau);
+
+      fm_tmp.push_back(features[i]);
     }
     
     // print invalid features:
@@ -250,8 +285,61 @@ namespace OpenMS {
     features.updateRanges ();
     
   }
-  
-  void RTSimulation::calculateMT_(const FeatureMapSim & features, std::vector<DoubleReal>& predicted_retention_times)
+
+
+	/// PKA values as given in Rickard1991
+	void RTSimulation::getChargeContribution_(Map< String, double> & q_cterm, 
+																	 Map< String, double> & q_nterm,
+																	 Map< String, double> & q_aa_basic,
+																	 Map< String, double> & q_aa_acidic)
+	{
+		// the actual constants from the paper:
+		String aas = "ARNDCQEGHILKMFPSTWYVBZ";
+		const double cterm_pkas[] = { 3.20, 3.20, 2.75, 2.75, 2.75, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 2.75, 3.20 };
+		const double nterm_pkas[] = { 8.20, 8.20, 7.30, 8.60, 7.30, 7.70, 8.20,8.20,8.20,8.20,8.20, 7.70, 9.20, 7.7, 9.00, 7.30, 8.20, 8.20, 7.70, 8.20, 8.03, 8.00};
+
+		String aa_basic = "HRK";
+		double aa_basic_pkas[] = {6.20, 12.50, 10.30};
+
+		String aa_acidic = "DECY";
+		double aa_acidic_pkas[] = {3.50, 4.50, 10.30, 10.30};
+
+		// clear target structures
+		q_cterm.clear();
+		q_nterm.clear();
+		q_aa_basic.clear();
+		q_aa_acidic.clear();
+		
+		// get params
+		DoubleReal ph = param_.getValue("CE:pH");
+
+		// calculate charges according to constants and conditions:
+		
+		// C&N term
+		for (Size i = 0; i<aas.size(); ++i)
+		{
+			q_nterm[aas[i]] = + 1/( 1+std::pow(10, +ph - nterm_pkas[i] ));
+			q_cterm[aas[i]] = - 1/( 1+std::pow(10, -ph + cterm_pkas[i] ));
+		}
+		
+		// basic AA's
+		for (Size i = 0; i<aa_basic.size(); ++i)
+		{
+			q_aa_basic[aa_basic[i]]   = + 1/( 1+std::pow(10, +ph - aa_basic_pkas[i] ));
+		}
+
+		// acidic AA's
+		for (Size i = 0; i<aa_acidic.size(); ++i)
+		{
+			q_aa_acidic[aa_acidic[i]] = - 1/( 1+std::pow(10, -ph + aa_acidic_pkas[i] ));
+		}
+		// add values for ambigous AA according to dayhoff frequencies
+		q_aa_acidic["B"] = q_aa_acidic["D"]*(5.5/(5.5+4.3)) + 0*(4.3/(5.5+4.3)); // D~5.5; N~4.3
+		q_aa_acidic["Z"] = q_aa_acidic["E"]*(6.0/(6.0+3.9)) + 0*(3.9/(6.0+3.9)); // E~6.0; Q~3.9
+	}
+
+
+  void RTSimulation::calculateMT_(FeatureMapSim & features, std::vector<DoubleReal>& predicted_retention_times)
   {
 		Map< String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
 		getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
@@ -285,30 +373,45 @@ namespace OpenMS {
 			// ** determine mass of peptide
 			DoubleReal mass = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula().getAverageWeight();
 	
-			// ** mobility
-			DoubleReal mu = (auto_scale ? 0 : (DoubleReal)param_.getValue("CE:mu_eo")) + ( charge / std::pow(mass, alpha) );
-			
-			predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)
+			// ** mobility (mu = mu_ep + mu_eo = (q/MW^alpha) + mu_eo
+			DoubleReal mu = ( charge / std::pow(mass, alpha) ) + (auto_scale ? 0 : (DoubleReal)param_.getValue("CE:mu_eo"));
+			predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)  as "c = L_d*L_t/V"
     }
 		
 		// ** only when Auto-Scaling is active ** /
-		if (auto_scale)
+		std::vector<DoubleReal> rt_sorted(predicted_retention_times);
+		std::sort(rt_sorted.begin(), rt_sorted.end() );
+
+    DoubleReal max_rt = rt_sorted.back();
+    
+    if (auto_scale)
 		{
-			std::vector<DoubleReal> rt_sorted(predicted_retention_times);
-			std::sort(rt_sorted.begin(), rt_sorted.end() );
-			
-			// take 95th percentile (we want to avoid that few outliers with huge MT can compress the others to a small MT range):
-			DoubleReal mt_95p = rt_sorted[rt_sorted.size()*95/100];
+			max_rt = 1; // highest will be scaled to 1
+
+      //std::cerr << "minRT: " << rt_sorted[0] << "   max: " << rt_sorted.back() << "\n";
+			// normalize to 5th - 95th percentile (we want to avoid that few outliers with huge/small MT can compress the others to a small MT range):
+      DoubleReal mt_5p = rt_sorted[rt_sorted.size()*5/100];
+      DoubleReal mt_95p = rt_sorted[rt_sorted.size()*95/100];
 			// ... assume 95% MT range at 95th percentile
-			DoubleReal range = std::max(1.0, mt_95p*100/95 - rt_sorted[0]);
+			DoubleReal range = std::max(1.0, (mt_95p - mt_5p)*0.9);
 			
-			// scale MT's between 0 and 1 (except for outliers --> which will get > 1)
+      //std::cerr << " 5% MT: " << mt_5p << ",   95% MT: " << mt_95p << " Range: " << range << "\n";
+
+      DoubleReal new_offset = mt_5p - range*0.05;
+
+			// scale MT's between 0 and 1 (except for outliers --> which will get <0 or >1)
 			for (Size i = 0; i < features.size(); ++i)
 			{
-				predicted_retention_times[i] = (predicted_retention_times[i] - rt_sorted[0]) / range;
+				predicted_retention_times[i] = (predicted_retention_times[i] - new_offset) / range;
 			}
 		}
-
+    
+    // the width factor is 1.0 at MT=0 and reaches its max (default 2.0) at MT=max
+    DoubleReal rt_widening_max = 2.0;
+    for (Size i = 0; i < features.size(); ++i)
+		{
+      features[i].setMetaValue("RT_CE_width_factor", (predicted_retention_times[i]/max_rt * (rt_widening_max-1) + 1));
+    }
 				
   }
 
@@ -323,7 +426,7 @@ namespace OpenMS {
     UInt k_mer_length = 0;
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
-    Size max_number_of_peptides(param_.getValue("HPLC:max_number_of_peptides"));
+    Size max_number_of_peptides(2000); // hard coding pediction bins; larger values only take more memory, result is not affected
 
 		LOG_INFO << "Predicting RT ... ";
     
@@ -419,121 +522,6 @@ namespace OpenMS {
     }
   }
   
-  void RTSimulation::updateMembers_()
-  {
-		rt_model_file_ = param_.getValue("HPLC:model_file");
-		if (! File::readable( rt_model_file_ ) )
-    { // look in OPENMS_DATA_PATH
-      rt_model_file_ = File::find( rt_model_file_ );
-    }
-		total_gradient_time_ = param_.getValue("total_gradient_time");
-		gradient_min_ = param_.getValue("scan_window:min");
-		gradient_max_ = param_.getValue("scan_window:max");
-    if(gradient_max_ > total_gradient_time_)
-    {
-      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
-    }
-    
-    rt_sampling_rate_ = param_.getValue("sampling_rate");
-
-    String column_preset = param_.getValue("column_condition:preset");
-    if (column_preset == "poor")
-    {
-      distortion_    = 2.0;
-      symmetry_down_ = -100;
-      symmetry_up_   = +100;
-    }
-    else if (column_preset == "medium")
-    {
-      distortion_    = 1.0;
-      symmetry_down_ = -60;
-      symmetry_up_   = +60;
-    }
-    else if (column_preset == "good")
-    {
-      distortion_    = 0.0;
-      symmetry_down_ = -15;
-      symmetry_up_   = +15;
-    }
-    else 	// default is "none" so get user set parameters
-    {
-      distortion_    = param_.getValue("column_condition:distortion");
-      symmetry_up_   = param_.getValue("column_condition:symmetry_up");
-      symmetry_down_ = param_.getValue("column_condition:symmetry_down");
-    }
-
-  }
-  
-  void RTSimulation::setDefaultParams_() 
-  {
-		defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
-    defaults_.setValidStrings("rt_column", StringList::create("none,HPLC,CE"));
-    
-    // scaling
-    defaults_.setValue("auto_scale","true","Scale predicted RT's to given 'total_gradient_time'?");
-    defaults_.setValidStrings("auto_scale", StringList::create("true,false"));
-
-		// column settings
-    defaults_.setValue("total_gradient_time",2500.0,"The duration [s] of the gradient.");
-    defaults_.setMinFloat("total_gradient_time", 0.00001);
-
-    // rt scan window
-    defaults_.setValue("scan_window:min",500.0,"Start of RT Scan Window [s]");
-    defaults_.setMinFloat("scan_window:min",0);
-    defaults_.setValue("scan_window:max",1500.0,"End of RT Scan Window [s]");
-    defaults_.setMinFloat("scan_window:max",1);
-
-    // rt spacing
-    defaults_.setValue("sampling_rate", 2.0, "Time interval [s] between consecutive scans");
-    defaults_.setMinFloat("sampling_rate",0.01);
-    defaults_.setMaxFloat("sampling_rate",60.0);
-
-    // rt error
-    defaults_.setValue("variation:feature_stddev",3,"Standard deviation of shift in retention time [s] from predicted model (applied to every single feature independently)");
-    defaults_.setValue("variation:affine_offset",0,"Global offset in retention time [s] from predicted model");
-    defaults_.setValue("variation:affine_scale",1,"Global scaling in retention time from predicted model");
-    defaults_.setSectionDescription("variation","Random component that simulates technical/biological variation");
-
-    // column conditions
-    defaults_.setValue("column_condition:preset","medium","LC condition (none|good|medium|poor) if set to none the explicit values will be used.");
-    defaults_.setValidStrings("column_condition:preset", StringList::create("none,good,medium,poor"));
-
-    // todo: can we use EGH params for this?!
-    defaults_.setValue("column_condition:distortion", 1.0, "LC distortion (used only if preset is set to 'none')");
-    defaults_.setValue("column_condition:symmetry_up", -60.0, "LC symmetry up (used only if preset is set to 'none')");
-    defaults_.setValue("column_condition:symmetry_down", +60.0, "LC symmetry down (used only if preset is set to 'none')");
-		
-    // HPLC specific Parameters
-    defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
-    defaults_.setValue("HPLC:max_number_of_peptides",100000,"Maximal number of peptides considered at once");
-    defaults_.setMinInt("HPLC:max_number_of_peptides",1);
-
-    // CE specific Parameters
-    defaults_.setValue("CE:pH",3.0,"pH of buffer");
-    defaults_.setMinFloat("CE:pH", 0);
-    defaults_.setMaxFloat("CE:pH", 14);
-    
-    defaults_.setValue("CE:alpha",0.5,"Exponent Alpha used to calculate mobility");
-    defaults_.setMinFloat("CE:alpha", 0);
-    defaults_.setMaxFloat("CE:alpha", 1);
-
-    defaults_.setValue("CE:mu_eo",0.0,"Electroosmotic flow");
-    defaults_.setMinFloat("CE:mu_eo", 0);
-    defaults_.setMaxFloat("CE:mu_eo", 5);
-        
-    defaults_.setValue("CE:lenght_d", 70.0 ,"Length of capillary [cm] from injection site to MS");
-    defaults_.setMinFloat("CE:lenght_d", 0);
-    defaults_.setMaxFloat("CE:lenght_d", 1000);
-
-    defaults_.setValue("CE:length_total", 75.0 ,"Total length of capillary [cm]");
-    defaults_.setMinFloat("CE:length_total", 0);
-    defaults_.setMaxFloat("CE:length_total", 1000);
-    
-    defaults_.setValue("CE:voltage", 1000.0 ,"Voltage applied to capillary");
-    defaults_.setMinFloat("CE:voltage", 0);
-
-		defaultsToParam_();
-  }
   
   bool RTSimulation::isRTColumnOn() const
   {

@@ -344,7 +344,7 @@ START_SECTION((bool checkMaximalRTSpan(const DoubleReal max_rt_span)))
 }
 END_SECTION
 
-START_SECTION((virtual bool checkMinimalRTSpan(std::pair< DoubleReal, DoubleReal > const &rt_bounds, const DoubleReal min_rt_span)))
+START_SECTION((bool checkMinimalRTSpan(const std::pair< DoubleReal, DoubleReal > &rt_bounds, const DoubleReal min_rt_span)))
 {
   // is
   // (rt_bounds.second-rt_bounds.first) < min_rt_span * 5.0 * sigma_;
@@ -359,7 +359,7 @@ START_SECTION((virtual bool checkMinimalRTSpan(std::pair< DoubleReal, DoubleReal
 }
 END_SECTION
 
-START_SECTION((DoubleReal computeTheoretical(FeatureFinderAlgorithmPickedHelperStructs::MassTrace< PeakType > &trace, Size k)))
+START_SECTION((DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace< PeakType > &trace, Size k)))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
   mt.theoretical_int = 0.8;

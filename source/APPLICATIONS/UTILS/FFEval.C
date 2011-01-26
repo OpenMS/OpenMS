@@ -43,6 +43,15 @@ using namespace std;
 	
 	@brief Evaluation tool for feature detection algorithms.
 		
+
+  To plot the ROC curve you might use:
+
+@code
+  d = read.table("data.roc", skip=1, sep="\t")
+  plot(d[,3],d[,4], xlim=c(0,1),ylim=c(0,1), xlab="FDR",ylab="TPR",main="ROC with varying intensity")
+  lines(c(0,1),c(0,1))
+@endcode
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_FFEval.cli
 */

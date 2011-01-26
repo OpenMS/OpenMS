@@ -577,7 +577,9 @@ namespace OpenMS
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
-      void registerIntOption_( const String& name, const String& argument, Int default_value, const String& description, bool required = true, bool advanced = false );
+      void registerIntOption_(const String& name, const String& argument, 
+															Int default_value, const String& description, 
+															bool required = true, bool advanced = false );
 
       /**
       	@brief Registers a list of integers option.

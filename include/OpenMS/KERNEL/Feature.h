@@ -67,7 +67,7 @@ namespace OpenMS
 		Feature();
 
 		/// Copy constructor
-		Feature( const Feature& feature );
+		Feature(const Feature& feature);
 
 		/// Destructor
 		~Feature();
@@ -77,8 +77,9 @@ namespace OpenMS
 		//@{
 		/// Non-mutable access to the overall quality
 		QualityType getOverallQuality() const;
+
 		/// Set the overall quality
-		void setOverallQuality( QualityType q );
+		void setOverallQuality(QualityType q);
 
 		/// Non-mutable access to the quality in dimension c
 		QualityType getQuality( Size index ) const;
@@ -90,8 +91,10 @@ namespace OpenMS
 
 		/// Non-mutable access to the model description
 		const ModelDescription<2>& getModelDescription() const;
+
 		/// Mutable access to the model description
 		ModelDescription<2>& getModelDescription();
+
 		/// Set the model description
 		void setModelDescription( const ModelDescription<2>& q );
 		//@}
@@ -170,7 +173,7 @@ namespace OpenMS
 	 protected:
 
 		/// Quality measures for each dimension
-		QualityType qualities_[ 2 ];
+		QualityType qualities_[2];
 
 		/// Description of the theoretical model the feature was constructed with
 		ModelDescription<2> model_desc_;
@@ -186,7 +189,6 @@ namespace OpenMS
 
 		/// subordinate features (e.g. features that the ModelFitter discarded due to inferior quality)
 		std::vector<Feature> subordinates_;
-
 	};
 
 } // namespace OpenMS

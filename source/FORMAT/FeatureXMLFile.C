@@ -60,9 +60,20 @@ namespace OpenMS
 		map_->setLoadedFileType(file_);
 		map_->setLoadedFilePath(file_);
 
-		parse_(filename,this);
+		parse_(filename, this);
 
-    //reset members
+		// !!! Hack: set feature FWHM from meta info entries as 
+    // long as featureXML doesn't support a width entry.
+    // See also hack in BaseFeature::setFWHM().
+		for (FeatureMap<>::Iterator it = map_->begin(); it != map_->end(); ++it)
+		{
+			if (it->metaValueExists("FWHM"))
+			{
+				it->setWidth((double)it->getMetaValue("FWHM"));
+			}
+		}
+
+    // reset members
 		current_feature_ = 0;
     map_ = 0;
     last_meta_ = 0;
@@ -75,7 +86,7 @@ namespace OpenMS
 		identifier_id_.clear();
 		id_identifier_.clear();
     search_param_ = ProteinIdentification::SearchParameters();
-
+		
 		return;
 	}
 
@@ -353,15 +364,15 @@ namespace OpenMS
 			String name = attributeAsString_(attributes,s_name);
 			String type = attributeAsString_(attributes,s_type);
 
-			if(type=="int")
+			if (type == "int")
 			{
 				last_meta_->setMetaValue(name, attributeAsInt_(attributes,s_value));
 			}
-			else if (type=="float")
+			else if (type == "float")
 			{
 				last_meta_->setMetaValue(name, attributeAsDouble_(attributes,s_value));
 			}
-			else if (type=="string")
+			else if (type == "string")
 			{
 				last_meta_->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
 			}
@@ -375,8 +386,11 @@ namespace OpenMS
 			//check file version against schema version
 			String file_version="";
 			optionalAttributeAsString_(file_version,attributes,s_version);
-			if (file_version=="") file_version="1.0"; //default version is 1.0
-			if (file_version.toDouble()>version_.toDouble())
+			if (file_version == "") 
+			{
+				file_version="1.0"; //default version is 1.0
+			}
+			if (file_version.toDouble() > version_.toDouble())
 			{
 				warning(LOAD, String("The XML file (") + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
@@ -770,7 +784,7 @@ namespace OpenMS
 			os << indent <<	"\t\t\t<position dim=\"" << i << "\">" << precisionWrapper(feat.getPosition()[i]) << "</position>\n";
 		}
 		os << indent << "\t\t\t<intensity>" << precisionWrapper(feat.getIntensity()) << "</intensity>\n";
-		for (Size i=0; i<2;i++)
+		for (Size i = 0; i < 2; i++)
 		{
 			os << indent << "\t\t\t<quality dim=\"" << i << "\">" << precisionWrapper(feat.getQuality(i)) << "</quality>\n";
 		}
@@ -798,7 +812,7 @@ namespace OpenMS
 
 		Size hulls_count = hulls.size();
 
-		for (Size i=0;i<hulls_count; i++)
+		for (Size i = 0;i < hulls_count; i++)
 		{
 			os << indent << "\t\t\t<convexhull nr=\"" << i << "\">\n";
 
@@ -841,7 +855,7 @@ namespace OpenMS
 			writePeptideIdentification_(filename, os, feat.getPeptideIdentifications()[i], "PeptideIdentification", 3);
 		}
 
-		writeUserParam_("userParam", os, feat, indentation_level+3);
+		writeUserParam_("userParam", os, feat, indentation_level + 3);
 
 		os << indent << "\t\t</feature>\n";
 	}

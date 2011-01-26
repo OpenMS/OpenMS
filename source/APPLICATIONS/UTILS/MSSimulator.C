@@ -165,7 +165,7 @@ class TOPPMSSimulator
 
         // parsed abundance
         MetaInfoInterface data;
-        data.setMetaValue("intensity", 100.0);
+        data.setMetaValue("intensity", 10000.0);
         
         // Look for a relative quantity given in the comment line of a FASTA entry
 				// e.g. >BSA [#120]

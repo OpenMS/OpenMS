@@ -77,7 +77,49 @@ namespace OpenMS
 		spectrum.erase(remove_if(spectrum.begin(), spectrum.end(), range), spectrum.end());
 		@endcode
 	*/
-	
+
+
+	/**
+		@brief Predicate that determines if a class has a certain metavalue
+		
+		MetaContainer must be a MetaInfoInterface or have the same interface
+		
+		@ingroup RangeUtils
+	*/
+	template <class MetaContainer>
+	class HasMetaValue
+		: std::unary_function<MetaContainer, bool>
+	{
+		public:
+			/**
+				@brief Constructor
+				
+				@param metavalue MetaValue that needs to be present
+				@param reverse if @p reverse is true, operator() returns true if the metavalue does not exist
+			*/
+			HasMetaValue(String metavalue, bool reverse = false)
+				: 
+				metavalue_key_(metavalue),
+				reverse_(reverse)
+			{
+			}
+		
+			inline bool operator()(const MetaContainer& s) const
+			{
+				bool has_meta_value = s.metaValueExists(metavalue_key_);
+				if (reverse_)
+				{
+					return !has_meta_value; 
+				}
+				return has_meta_value;
+			}
+		
+		protected:
+			String metavalue_key_;
+			bool reverse_;
+	};
+
+
 	/**
 		@brief Predicate that determines if a spectrum lies inside/outside a specific retention time range
 		

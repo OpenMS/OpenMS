@@ -20,6 +20,7 @@ Residue.h
 ResidueDB.h
 ResidueModification.h
 TheoreticalSpectrumGenerator.h
+SvmTheoreticalSpectrumGenerator.h
 TrypticIterator.h
 AAIndex.h
 WeightWrapper.h

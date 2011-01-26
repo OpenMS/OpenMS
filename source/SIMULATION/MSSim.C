@@ -253,6 +253,22 @@ namespace OpenMS {
 
     labeler_->postRawTandemMSHook(feature_maps_,experiment_);
 
+    
+    // some last fixing of meta-values (this is impossible to do before as we do not know the final number of scans)
+
+    for (Size i=0;i<feature_maps_[0].size();++i)
+    {
+      Feature& f = feature_maps_[0][i];
+      PeptideIdentification& pi = f.getPeptideIdentifications()[0];
+      // search for closest scan index:
+      MSSimExperiment::ConstIterator it_rt = experiment_.RTBegin(f.getRT());
+      SignedSize scan_index = std::distance<MSSimExperiment::ConstIterator> (experiment_.begin(), it_rt);
+      pi.setMetaValue("RT_index", scan_index);
+      pi.setMetaValue("RT", f.getRT());
+    }
+
+
+
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
 
   }

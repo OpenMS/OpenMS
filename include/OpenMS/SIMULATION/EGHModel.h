@@ -116,13 +116,13 @@ namespace OpenMS
      */
     inline void evaluateEGH_(CoordinateType & rt, CoordinateType & egh_value)
     {
-      if((sigma_square_2_ + tau_ * rt) > 0)
+      CoordinateType denominator = sigma_square_2_ + tau_ * rt;
+
+      if(denominator > 0)
       {
         // evaluate egh ->
         egh_value = height_ * exp(
-            (-1 * rt * rt)
-            /
-            (sigma_square_2_ + tau_ * rt)
+            (-1 * rt * rt) / denominator
             );
       }
       else

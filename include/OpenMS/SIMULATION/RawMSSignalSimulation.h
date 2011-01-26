@@ -121,8 +121,11 @@ namespace OpenMS {
      @param activeFeature The current feature that is simulated
      */
     void samplePeptideModel1D_(const IsotopeModel & iso,
-                               const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
-                               MSSimExperiment & experiment, Feature & activeFeature);
+                               const SimCoordinateType mz_start,
+                               const SimCoordinateType mz_end,
+                               const SimCoordinateType mz_sampling_rate,
+                               MSSimExperiment & experiment,
+                               Feature & activeFeature);
 
     /**
      @brief Samples signales for the given 2D model
@@ -136,9 +139,11 @@ namespace OpenMS {
      @param activeFeature The current feature that is simulated
      */
     void samplePeptideModel2D_(const ProductModel<2> & pm,
-                             const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
-                             SimCoordinateType rt_start, SimCoordinateType rt_end,
-                             MSSimExperiment & experiment, Feature & activeFeature);
+                               const SimCoordinateType mz_start,
+                               const SimCoordinateType mz_end,
+                               const SimCoordinateType mz_sampling_rate,
+                               SimCoordinateType rt_start, SimCoordinateType rt_end,
+                               MSSimExperiment & experiment, Feature & activeFeature);
 
     /**
      @brief Add the correct Elution profile to the passed ProductModel
@@ -159,14 +164,14 @@ namespace OpenMS {
     /// Add a base line to the experiment
     void addBaseLine_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit);
 
-    /// Compress signales in a single RT scan given the m/z bin size
+    /// get the mz grid where all m/z values will be mapped to
+    void getSamplingGrid_(std::vector<SimCoordinateType>& grid, const SimCoordinateType mz_min, const SimCoordinateType mz_max, const Int step_Da );
+
+    /// Compress signales in a single RT scan (to merge signals which were sampled overlapping)
     void compressSignals_(MSSimExperiment & experiment);
 
-    /// worker function for compressSignals_
-    Size compressSignalsRun_(MSSimExperiment & experiment);
-
-		/// bin size in m/z dimension
-		SimCoordinateType mz_sampling_rate_;
+		/// number of points sampled per peak's FWHM
+		Int sampling_points_per_FWHM_;
 
 		/// Mean of peak m/z error
 		SimCoordinateType mz_error_mean_;
@@ -200,7 +205,7 @@ namespace OpenMS {
     /**
       @brief compute the peak's SD (gaussian) at a given m/z (internally the resolution model is used)
     */
-    DoubleReal getPeakSD_(const DoubleReal mz) const;
+    DoubleReal getPeakWidth_(const DoubleReal mz, const bool is_gaussian) const;
 
     /// Scaling factor of peak intensities
     SimIntensityType intensity_scale_;
@@ -239,7 +244,7 @@ namespace OpenMS {
       */
     std::vector< Size > threaded_random_numbers_index_;
 
-    static const Size THREADED_RANDOM_NUMBER_POOL_SIZE = 500;
+    static const Size THREADED_RANDOM_NUMBER_POOL_SIZE_ = 500;
 
     bool contaminants_loaded_;
   };

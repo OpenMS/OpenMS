@@ -51,7 +51,16 @@ namespace OpenMS
   	
 	 public:
 
+		
 		class FeatureHandleMutable_;
+
+		///@name Type definitions
+		//@{
+    /// Charge type
+    typedef Int ChargeType;
+		/// Feature width type
+		typedef Real WidthType;
+		//@}
 
     ///@name Constructors and destructor
     //@{
@@ -60,7 +69,8 @@ namespace OpenMS
 			: Peak2D(),
 			  UniqueIdInterface(),
 				map_index_(0),
-				charge_(0)
+				charge_(0),
+				width_(0)
 		{
 		}
 
@@ -68,17 +78,19 @@ namespace OpenMS
 		FeatureHandle(UInt64 map_index,const Peak2D& point, UInt64 element_index )
 			: Peak2D(point),
 			  map_index_(map_index),
-				charge_(0)
+				charge_(0),
+				width_(0)
 		{
       setUniqueId(element_index);
 		}
 
 		/// Constructor from map index and basic feature
-		FeatureHandle(UInt64 map_index, const BaseFeature& point)
-			: Peak2D(point),
-			  UniqueIdInterface(point),
+		FeatureHandle(UInt64 map_index, const BaseFeature& feature)
+			: Peak2D(feature),
+			  UniqueIdInterface(feature),
 				map_index_(map_index),
-				charge_(point.getCharge())
+				charge_(feature.getCharge()),
+				width_(feature.getWidth())
 		{
 		}
 
@@ -87,7 +99,8 @@ namespace OpenMS
 			: Peak2D(rhs),
         UniqueIdInterface(rhs),
 				map_index_(rhs.map_index_),
-				charge_(rhs.charge_)
+				charge_(rhs.charge_),
+				width_(rhs.width_)
 		{
 		}
 
@@ -98,6 +111,7 @@ namespace OpenMS
 			UniqueIdInterface::operator=(rhs);
 			map_index_ = rhs.map_index_;
 			charge_ = rhs.charge_;
+			width_ = rhs.width_;
 			
 			return *this;
 		}
@@ -137,24 +151,36 @@ namespace OpenMS
 		}
 
 		/// Sets the charge
-		void setCharge(Int charge)
+		void setCharge(ChargeType charge)
 		{
 			charge_ = charge;
 		}
 		/// Returns the charge
-		Int getCharge() const
+		ChargeType getCharge() const
 		{
 			return charge_;
+		}
+
+		/// Sets the width (FWHM)
+		void setWidth(WidthType width)
+		{
+			width_ = width;
+		}
+		/// Returns the width (FWHM)
+		WidthType getWidth() const
+		{
+			return width_;
 		}
 		//@}
 				
 		/// Equality operator
 		bool operator == (const FeatureHandle& i) const
 		{
-			return  (Peak2D::operator==(i)) &&
-			    (UniqueIdInterface::operator==(i)) &&
-			    (map_index_ == i.map_index_) &&
-			    (charge_ == i.charge_);
+			return  (Peak2D::operator==(i)) 
+							&& (UniqueIdInterface::operator==(i)) 
+							&& (map_index_ == i.map_index_) 
+							&& (charge_ == i.charge_) 
+							&& (width_ == i.width_);
 		}
 
 		/// Equality operator
@@ -167,15 +193,15 @@ namespace OpenMS
 		struct IndexLess
 			: std::binary_function < FeatureHandle, FeatureHandle, bool >
 		{
-			bool operator () ( FeatureHandle const & left, FeatureHandle const & right ) const
+			bool operator () (FeatureHandle const& left, FeatureHandle const& right) const
 			{
-				//if map indices are equal, use unique ids
-				if ( left.map_index_ == right.map_index_)
+				// if map indices are equal, use unique ids
+				if (left.map_index_ == right.map_index_)
 				{
 					return left.getUniqueId() < right.getUniqueId();
 				}
 				//else use map indices
-				return ( left.map_index_ < right.map_index_ );
+				return (left.map_index_ < right.map_index_);
 			}
 		};
 
@@ -185,6 +211,8 @@ namespace OpenMS
     UInt64 map_index_;
 		/// Charge of the feature
 		Int charge_;
+		/// Width of the feature (FWHM)
+		Real width_;
   };
 
 	/**@brief Helper class returned by FeatureHandle::asMutable(), which see.

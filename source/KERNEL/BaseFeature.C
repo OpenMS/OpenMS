@@ -32,23 +32,23 @@ using namespace std;
 namespace OpenMS
 {
 	BaseFeature::BaseFeature()
-		: RichPeak2D(), quality_(0.0), charge_(0), peptides_()
+		: RichPeak2D(), quality_(0.0), charge_(0), width_(0), peptides_()
 	{
 	}
 
 	BaseFeature::BaseFeature(const BaseFeature& rhs)
-		: RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_),
+		: RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
 			peptides_(rhs.peptides_)
 	{
 	}
 
 	BaseFeature::BaseFeature(const RichPeak2D& point)
-		: RichPeak2D(point), quality_(0.0), charge_(0), peptides_()
+		: RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
 	{
 	}
 
 	BaseFeature::BaseFeature(const Peak2D& point)
-		: RichPeak2D(point), quality_(0.0), charge_(0), peptides_()
+		: RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
 	{
 	}
 
@@ -59,6 +59,7 @@ namespace OpenMS
 		RichPeak2D::operator=(rhs);
 		quality_ = rhs.quality_;
 		charge_ = rhs.charge_;
+		width_ = rhs.width_;
 		peptides_ =  rhs.peptides_;
 
 		return *this;
@@ -66,8 +67,11 @@ namespace OpenMS
 
 	bool BaseFeature::operator==(const BaseFeature& rhs) const
 	{
-		return (RichPeak2D::operator==(rhs) && (quality_ == rhs.quality_) &&
-						(charge_ == rhs.charge_) && (peptides_ == rhs.peptides_));
+		return (RichPeak2D::operator==(rhs) 
+						&& (quality_ == rhs.quality_) 
+						&& (charge_ == rhs.charge_) 
+						&& (width_ == width_)
+						&& (peptides_ == rhs.peptides_));
 	}
 
 	bool BaseFeature::operator!=(const BaseFeature& rhs) const
@@ -79,14 +83,28 @@ namespace OpenMS
 	{
 	}
 		
-	const BaseFeature::QualityType& BaseFeature::getQuality() const
+	BaseFeature::QualityType BaseFeature::getQuality() const
 	{
 		return quality_;
 	}
 
-	void BaseFeature::setQuality(const BaseFeature::QualityType& quality)
+	void BaseFeature::setQuality(BaseFeature::QualityType quality)
 	{
 		quality_ = quality;
+	}
+	
+	BaseFeature::WidthType BaseFeature::getWidth() const
+	{
+		return width_;
+	}
+
+	void BaseFeature::setWidth(BaseFeature::WidthType fwhm)
+	{
+		// !!! Dirty hack: as long as featureXML doesn't support a width field,
+    // we abuse the meta information for this.
+		// See also FeatureXMLFile::readFeature_().
+		width_ = fwhm;
+		setMetaValue("FWHM", fwhm);
 	}
 	
 	const BaseFeature::ChargeType& BaseFeature::getCharge() const

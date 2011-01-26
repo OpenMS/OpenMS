@@ -27,7 +27,7 @@
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
-#include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 
 
@@ -56,6 +56,8 @@ namespace OpenMS
 		defaults_.setValidStrings("Precursor:use_dynamic_exclusion", StringList::create("true,false"));
 		defaults_.setValue("Precursor:exclusion_time",100.,"The time (in seconds) a feature is excluded after its last selection.");
 		defaults_.setMinFloat("Precursor:exclusion_time",0.);
+		defaults_.setValue("MS_E:add_single_spectra","false","If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MS_E_debug_spectra' attached, so they can be filtered out. Full MS_E spectra will have 'MS_E_FullSpectrum' instead.");
+		defaults_.setValidStrings("MS_E:add_single_spectra", StringList::create("true,false"));
 		
 		// sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
@@ -85,8 +87,13 @@ namespace OpenMS
 
   void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2)
   {
-    AdvancedTheoreticalSpectrumGenerator adv_spec_gen;
-    adv_spec_gen.loadProbabilisticModel();
+    SvmTheoreticalSpectrumGenerator svm_spec_gen;
+    Param p_gen =svm_spec_gen.getParameters();
+    p_gen.setValue("add_losses","true");
+    p_gen.setValue("add_isotopes","true"  );
+    svm_spec_gen.setParameters(p_gen);
+
+    svm_spec_gen.load();
     Param p;
     p.setValue("block_method:rt_block_size", features.size()); // merge all single spectra
     p.setValue("block_method:ms_levels", IntList::create("2"));
@@ -100,14 +107,29 @@ namespace OpenMS
     MSSimExperiment single_ms2_spectra;
     single_ms2_spectra.resize(features.size());
 
+
     // preparation & validation of input
     for (Size i_f=0;i_f<features.size();++i_f)
     {
       // sample MS2 spectra for each feature
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
-      //adv_spec_gen.simulate(single_ms2_spectra[i_f], seq, rnd_gen_->biological_rng,features[i_f].getCharge());
+      RichPeakSpectrum tmp_spec;      
+      svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng,features[i_f].getCharge());            
+      std::cerr<<"Spectrum with prec charge: "<<features[i_f].getCharge()<<std::endl;
+      for(Size peak=0; peak<tmp_spec.size(); ++peak)
+      {
+        Peak1D p=tmp_spec[peak];
+        single_ms2_spectra[i_f].push_back(p);
+      }
+      std::cerr<<tmp_spec.size()<<std::endl;
+
       single_ms2_spectra[i_f].setMSLevel(2);
+      Precursor prec;
+      prec.setMZ(features[i_f].getMZ());
+      single_ms2_spectra[i_f].setPrecursors(std::vector<Precursor>(1,prec));
+      single_ms2_spectra[i_f].setMetaValue("FeatureID",(String)features[i_f].getUniqueId());
+
 
       // validate features Metavalues exist and are valid:
       if (!features[i_f].metaValueExists("elution_profile_bounds")
@@ -127,6 +149,7 @@ namespace OpenMS
     }
 
     // creating the MS^E scan:
+    bool add_debug_spectra = ((String)param_.getValue("MS_E:add_single_spectra") == "true");
 
     for (Size i=0;i<experiment.size();++i)
     { // create MS2 for every MS scan
@@ -160,17 +183,30 @@ namespace OpenMS
         DoubleReal factor = elution_ints [i - elution_bounds[0] ];
         for (MSSimExperiment::SpectrumType::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
         {
-          it->setIntensity(it->getIntensity() * factor);
+          std::cerr<<"Old Intensity: "<<it->getIntensity()<<std::endl;
+          std::cerr<<"factor: "<<factor<<std::endl;
+          it->setIntensity(it->getIntensity() * factor * features[i_f].getIntensity());
+          std::cerr<<"New Intensity: "<<it->getIntensity()<<std::endl;
+          std::cerr<<"Feat Intensity: "<<features[i_f].getIntensity()*factor<<std::endl;
         }
       }
       
+      
       // debug: also add single spectra
-      for (Size ii=0;ii<MS2_spectra.size();++ii) ms2.push_back(MS2_spectra[ii]); // DEBUG
+      if (add_debug_spectra)
+      {
+        for (Size ii=0;ii<MS2_spectra.size();++ii)
+        {
+          ms2.push_back(MS2_spectra[ii]); // DEBUG
+          ms2.back().setMetaValue("MS_E_debug_spectra","true");          
+        }
+      }
 
       // merge all MS2 spectra 
       sm.mergeSpectraBlockWise(MS2_spectra);
       if (MS2_spectra.size()!=1) throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__,MS2_spectra.size() );
       // store merged spectrum
+      MS2_spectra[0].setMetaValue("MS_E_FullSpectrum","true");
       ms2.push_back(MS2_spectra[0]);
 
     }
@@ -195,20 +231,29 @@ namespace OpenMS
 		//** actual MS2 signal **//
 		std::cout << "MS2 features selected: " << ms2.size() << "\n";
 		
-		AdvancedTheoreticalSpectrumGenerator adv_spec_gen;
-		adv_spec_gen.loadProbabilisticModel();
+		SvmTheoreticalSpectrumGenerator svm_spec_gen;
+    svm_spec_gen.load();    
 		for (Size i = 0; i < ms2.size(); ++i)
     {
 		  IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
+      DoubleReal prec_intens = ms2[i].getPrecursors()[0].getIntensity();
 		  for(Size id =0; id<ids.size();++id)
 		  {
 		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
+        RichPeakSpectrum tmp_spec;
+        std::cerr<<"generate Spec for peptide: "<<seq<<std::endl;
+        svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
         //TODO: work around RichPeak1D restriction
+        for(Size peak=0; peak<tmp_spec.size(); ++peak)
+        {
+          Peak1D p=tmp_spec[peak];
+          p.setIntensity(p.getIntensity()*prec_intens);
+          ms2[i].push_back(p);
+        }
         //adv_spec_gen.simulate(ms2[i], seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
         // todo: rescale intensities! according to region within in the 2D Model of the feature
       }
     }
-
   }
 
   void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)

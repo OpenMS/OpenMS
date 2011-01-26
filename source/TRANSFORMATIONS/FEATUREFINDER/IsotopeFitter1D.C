@@ -110,7 +110,7 @@ namespace OpenMS
 			Param tmp;
 			tmp.setValue( "statistics:mean", statistics_.mean() );
 			tmp.setValue( "charge", static_cast<Int>( charge_ ) );
-			tmp.setValue( "isotope:stdev", isotope_stdev_ );
+			tmp.setValue( "isotope:mode:GaussianSD", isotope_stdev_ );
 			tmp.setValue( "isotope:maximum", max_isotope_ );
 
 			model->setParameters( tmp );

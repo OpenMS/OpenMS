@@ -232,7 +232,7 @@ namespace OpenMS
       egh_value = height_;
       min_ = - A_;
 
-      while(egh_value > threshold && egh_value > 1)
+      while(egh_value > threshold)
       {
         min_ -= A_;
 //        LOG_DEBUG << "Decreased feature (" << apex_rt_ << ") min_ to " << (min_ + apex_rt_) << "\n";
@@ -245,7 +245,7 @@ namespace OpenMS
       // go right .. B_ defines the step width
       egh_value = height_;
       max_ = B_;
-      while(egh_value > threshold && egh_value > 1)
+      while(egh_value > threshold)
       {
         max_ += B_;
 //        LOG_DEBUG << "Increased feature (" << apex_rt_ << ") max_ to " << (max_ + apex_rt_) << "\n";

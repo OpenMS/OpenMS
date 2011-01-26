@@ -205,13 +205,28 @@ class TOPPFeatureFinder
 			exp.updateRanges();
 		}
 
-		//ouput data
+		// A map for the resulting features
 		FeatureMap<> features;
 
-		//running algorithm
+		// Apply the feature finder
 		ff.run(type, exp, features, feafi_param, seeds);
-
 		features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+		// DEBUG ???
+		FeatureMap<>::Iterator it;
+		for (it = features.begin(); it != features.end(); ++it)
+		{
+			if (!it->isMetaEmpty())
+			{
+				vector<String> keys;
+				it->getKeys(keys);
+				cerr << "Feature " << it->getUniqueId() << endl;
+				for (Size i = 0; i < keys.size(); i++)
+				{
+					cerr << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+				}
+			}
+		}
 
 		//-------------------------------------------------------------
 		// writing files

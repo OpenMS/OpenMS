@@ -927,7 +927,7 @@ namespace OpenMS
 	}
 
 	
-		String String::operator+ (const String& s) const
+	String String::operator+ (const String& s) const
 	{
 		String tmp(*this);
 		tmp.insert(tmp.end(),s.begin(),s.end());
@@ -935,7 +935,7 @@ namespace OpenMS
 	}
 
 	
-		String String::operator+ (const std::string& s) const
+	String String::operator+ (const std::string& s) const
 	{
 		String tmp(*this);
 		tmp.insert(tmp.end(),s.begin(),s.end());
