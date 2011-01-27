@@ -36,6 +36,14 @@ namespace OpenMS
   /** 
 		@brief Extended isotope distribution approximated using linear interpolation.
 
+    This models a smoothed (widened) distribution, i.e. can be used to sample actual raw peaks (depending on the points you query).
+    If you only want the distribution (no widening), use either
+    EmpiricalFormula::getIsotopeDistribution() // for a certain sum formula
+    or
+    IsotopeDistribution::estimateFromPeptideWeight (double average_weight)  // for averagine
+
+    Peak widening is achieved by a Gaussian shape.
+
 		@htmlinclude OpenMS_ExtendedIsotopeModel.parameters
 	*/
 	class OPENMS_DLLAPI ExtendedIsotopeModel

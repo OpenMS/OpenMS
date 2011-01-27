@@ -104,13 +104,12 @@ namespace OpenMS
 		if (S_num) form.append("S").append(String(S_num));
 
 		EmpiricalFormula formula(form);
-		typedef IsotopeDistribution::iterator IsoIter;
 		IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
 		isotope_distribution.trimRight(trim_right_cutoff_);
 		isotope_distribution.renormalize();
 
 		// compute the average mass (-offset)
-		for (	IsoIter iter = isotope_distribution.begin(); iter != isotope_distribution.end(); ++iter)
+		for (IsotopeDistribution::iterator iter = isotope_distribution.begin(); iter != isotope_distribution.end(); ++iter)
 		{
 			isotopes_exact.push_back(iter->second);
 		}

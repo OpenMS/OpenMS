@@ -772,7 +772,7 @@ namespace OpenMS
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::initializeScan (const MSSpectrum<PeakType>& c_ref, const UInt c) 
 	{
-		data_length_ = c_ref.size();
+		data_length_ = (UInt) c_ref.size();
 		computeMinSpacing(c_ref);
 		Int wavelet_length=0, quarter_length=0;
  
