@@ -240,7 +240,7 @@ namespace OpenMS
     for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
     {
 			Int q = it->getCharge();
-			if (q==0) std::cerr << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
+			if (q==0) LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
     	DoubleReal adduct_mass;
     	Size index=fm.uniqueIdToIndex(it->getUniqueId());
     	if (index > fm.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, index, fm.size());

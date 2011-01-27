@@ -100,7 +100,7 @@ protected:
     registerIntOption_("missed_cleavages","<int>",0,"Number of missed cleavages used for protein digestion.\n",false);
     registerDoubleOption_("rel_rt_window_size","<double>",.05,"The relative factor for the rt_window_size, e.g. the window is calculated as [rt-rt*rel_rt_window_size,rt+rt*rel_rt_window_size].",false);
 		registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in fasta files.",false);
-		registerFlag_("rt_in_seconds","flag if the rt range should be specified in seconds");
+		registerFlag_("rt_in_seconds","Create lists with units as seconds instead of minutes (default is 'minutes')");
     //    setValidFormats_("out", StringList::create("TraML"));
   }
 
