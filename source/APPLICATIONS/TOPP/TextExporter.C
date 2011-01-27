@@ -477,7 +477,7 @@ namespace OpenMS
 							else 
 							{
 								output << "-1" << "-1";
-						}
+							}
 						}
             output << endl;
 
@@ -592,7 +592,7 @@ namespace OpenMS
 
           // -------------------------------------------------------------------
 
-          if ( !consensus_elements.empty() )
+          if (!consensus_elements.empty())
           {
             std::ofstream consensus_elements_file(consensus_elements.c_str());
             if (!consensus_elements_file)
@@ -628,7 +628,7 @@ namespace OpenMS
 					if (!consensus_features.empty())
           {
             std::ofstream consensus_features_file(consensus_features.c_str());
-            if ( !consensus_features_file )
+            if (!consensus_features_file)
             {
               throw Exception::UnableToCreateFile(__FILE__, __LINE__,
                 __PRETTY_FUNCTION__, consensus_features);
@@ -757,7 +757,7 @@ namespace OpenMS
 								{
 									StringList seqs(vector<String>(pep_it->begin(),
 																								 pep_it->end())),
-										accs(vector<String>(prot_it->begin(), prot_it->end()));
+											accs(vector<String>(prot_it->begin(), prot_it->end()));
 									for (StringList::iterator acc_it = accs.begin();
 											 acc_it != accs.end(); ++acc_it)
 									{
@@ -777,7 +777,7 @@ namespace OpenMS
           if (!out.empty())
           {
             std::ofstream outstr(out.c_str());
-            if ( !outstr )
+            if (!outstr)
             {
               throw Exception::UnableToCreateFile(__FILE__, __LINE__,
                 __PRETTY_FUNCTION__, out);
@@ -807,7 +807,7 @@ namespace OpenMS
 						// by String, not UInt, for implicit sorting.
             std::set<String> all_file_desc_meta_keys;
             std::vector<UInt> tmp_meta_keys;
-            for ( ConsensusMap::FileDescriptions::const_iterator fdit =
+            for (ConsensusMap::FileDescriptions::const_iterator fdit =
 								 consensus_map.getFileDescriptions().begin(); 
 								 fdit != consensus_map.getFileDescriptions().end(); ++fdit )
             {

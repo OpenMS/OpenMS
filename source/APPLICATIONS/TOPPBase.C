@@ -1418,7 +1418,7 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 
-    for(StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+    for (StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
 		{
 			String tmp(*it);
 			writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
