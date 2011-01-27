@@ -43,7 +43,7 @@ namespace OpenMS
 			convex_hull_(),
 			subordinates_()
 	{
-		std::fill( qualities_, qualities_ + 2, 0 );
+		std::fill( qualities_, qualities_ + 2, QualityType(0.0) );
 	}
 
 	/// Copy constructor

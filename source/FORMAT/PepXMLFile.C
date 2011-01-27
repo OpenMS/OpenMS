@@ -193,9 +193,9 @@ namespace OpenMS
 		f << "    <analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << "\n";
 		
 
-		Size count(1);
+		Int count(1);
 		for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
-				 it != peptide_ids.end(); ++it, count++)
+				 it != peptide_ids.end(); ++it, ++count)
 		{
 			if (it->getHits().size() > 0)
 			{
