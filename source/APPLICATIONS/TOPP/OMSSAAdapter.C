@@ -407,7 +407,6 @@ class TOPPOMSSAAdapter
       {
         db_name += ".psq";
       }
-      db_name = db_name.substr(0,db_name.size()-4);
 
       if (!File::readable(db_name))
       {
@@ -423,7 +422,8 @@ class TOPPOMSSAAdapter
         }
         db_name = full_db_name;
       }
-
+      
+      db_name = db_name.substr(0,db_name.size()-4); // OMSSA requires the filename without the .psq part
 
 			parameters += " -d "  +  db_name;
 			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
