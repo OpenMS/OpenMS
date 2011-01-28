@@ -265,9 +265,19 @@ namespace OpenMS {
       DoubleReal variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
       DoubleReal tau = egh_tau_location_ + (egh_tau_scale_==0? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));;
 
+      // resample variance if it is below 0
+      // try this only 10 times to avoid endless loop in case of
+      // a bad parameter combination
+      Size retry_variance_sampling=0;
+      while(variance <= 0 && retry_variance_sampling < 10)
+      {
+        variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
+        ++retry_variance_sampling;
+      }
+
       if (variance<=0)
       {
-        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Skipping feature!\n";
+        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Skipping feature!\n";
         deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
                                    String::number(predicted_retention_times[i],2)
                                    + "]");
