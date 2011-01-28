@@ -265,6 +265,15 @@ namespace OpenMS {
       DoubleReal variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
       DoubleReal tau = egh_tau_location_ + (egh_tau_scale_==0? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));;
 
+      if (variance<=0)
+      {
+        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Skipping feature!\n";
+        deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
+                                   String::number(predicted_retention_times[i],2)
+                                   + "]");
+        continue;
+      }
+
       features[i].setMetaValue("RT_egh_variance", variance);
       features[i].setMetaValue("RT_egh_tau", tau);
 

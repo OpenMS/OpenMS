@@ -56,9 +56,13 @@ namespace OpenMS
       defaults_.setValue("egh:A",100.0f,"Horizontal distance between the vertical line at the peak maximum (H) and the leading line where the EGH has H*alpha (e.g. the left half-max for alpha=0.5).");
       defaults_.setValue("egh:B",100.0f,"Horizontal distance between the vertical line at the peak maximum (H) and the trailing line where the EGH has H*alpha (e.g. the right half-max for alpha=0.5).");
       defaults_.setValue("egh:alpha", 0.5, "See egh:A and egh:B.");
+      defaults_.setMinFloat("egh:alpha",0.0);
+      defaults_.setMaxFloat("egh:alpha",1.0);
+
 
       defaults_.setValue("egh:tau",0.0, "Time constant of the exponential decay (tau is zero for gaussian peaks).", StringList::create("advanced"));
       defaults_.setValue("egh:sigma_square", 1803.4, "Standard deviation of the peak.", StringList::create("advanced"));
+      defaults_.setMinFloat("egh:sigma_square",0.0);
 
       defaults_.setValue("bounding_box:compute","true", "If true, the EGHModel will compute its own bounding box.");
       defaults_.setValidStrings("bounding_box:compute", StringList::create("true,false"));
