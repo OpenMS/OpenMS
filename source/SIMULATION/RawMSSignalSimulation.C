@@ -146,9 +146,7 @@ namespace OpenMS {
     defaults_.setSectionDescription("baseline","Baseline modeling for MALDI ionization");
 
     // mz sampling rate
-    // TODO: investigate if this can be hidden from the user by estimating it from "resolution"
     //       e.g. http://www.adronsystems.com/faqs.htm#rate states 8 points per peak on low-res instruments --> ~4 points at FWHM
-    //defaults_.setValue("mz:sampling_rate",0.01,"detector interval(e.g. bin size in m/z).");
     defaults_.setValue("mz:sampling_points", 3, "Number of raw data points per FWHM of the peak.");
     defaults_.setMinInt("mz:sampling_points",2);
 
@@ -164,7 +162,7 @@ namespace OpenMS {
     defaults_.setValue("variation:mz:error_stddev",0.0,"Standard deviation for m/z errors. Set to 0 to disable simulation of m/z errors.");
     defaults_.setValue("variation:mz:error_mean",0.0,"Average systematic m/z error (Da)");
 
-    defaults_.setValue("variation:intensity:scale", 1.0 , "Constant scale factor of the feature intensity. Set to 1.0 to get the real intensity values.");
+    defaults_.setValue("variation:intensity:scale", 100.0 , "Constant scale factor of the feature intensity. Set to 1.0 to get the real intensity values provided in the FASTA file.");
     defaults_.setMinFloat("variation:intensity:scale", 0.0);
     defaults_.setValue("variation:intensity:scale_stddev", 0.0 ,"Standard deviation of peak intensity (relative to the scaled peak height). Set to 0 to get simple rescaled intensities.");
     defaults_.setMinFloat("variation:intensity:scale_stddev", 0.0);
@@ -698,12 +696,10 @@ namespace OpenMS {
       for (exp_iter = exp_start; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
       {
 			  rt = exp_iter->getRT();
-        const DoubleReal& distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
+        DoubleReal distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
-        if(intensity <= 0.0) // intensity cutoff (below that we don't want to see a signal)
-        {
-          continue;
-        }
+        if(intensity <= 0.0) continue; // intensity cutoff (below that we don't want to see a signal)
+
         // update min&max
         if (rt_min > rt)  rt_min = rt;
         if (rt_max < rt)  rt_max = rt;
@@ -1038,7 +1034,7 @@ namespace OpenMS {
       point_count_after += experiment[i].size();
     }
 
-    std::cerr << "  Compressing data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
+    LOG_INFO << "  Compressing data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
 
     return;
   }

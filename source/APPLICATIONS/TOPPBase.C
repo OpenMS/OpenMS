@@ -1249,10 +1249,6 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, message);
 		}
 		String tmp = getParamAsString_(name, p.default_value);
-		if (p.required && tmp == p.default_value)
-		{
-			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, message);
-		}
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
 		// if required or set by user, do some validity checks

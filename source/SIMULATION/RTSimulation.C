@@ -99,8 +99,11 @@ namespace OpenMS {
     defaults_.setValue("variation:affine_scale",1,"Global scaling in retention time from predicted model");
     defaults_.setSectionDescription("variation","Random component that simulates technical/biological variation");
 
-    defaults_.setValue("column_condition:distortion", 1.0, "Distortion of the elution profiles. Good presets are 0.0 for a perfect elution profile, 1.0 for a slightly distorted elution profile and 2.0 for heavily distorted profile.");
-		
+    defaults_.setValue("column_condition:distortion", 1.0, "Distortion of the elution profiles. Good presets are 0.0 for a perfect elution profile, 1.0 for a slightly distorted elution profile and 2.0 for heavily distorted profile. Every peak's intensity in a scan is multiplied by exp(uniform(-d,+d)).");
+    defaults_.setMinFloat("column_condition:distortion", 0.0);
+    defaults_.setMaxFloat("column_condition:distortion", 4.0);
+
+
     defaults_.setValue("profile_shape:width:value", 9, "Width of the Exponential Gaussian Hybrid distribution shape of the elution profile. This does not correspond directly to the width in [s].");
     defaults_.setValue("profile_shape:width:variance", 1.6, "Random component of the width (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the variance (Note: The scale parameter has to be >= 0).");
     defaults_.setMinFloat("profile_shape:width:variance",0.0);
@@ -269,7 +272,7 @@ namespace OpenMS {
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
       Size retry_variance_sampling=0;
-      while(variance <= 0 && retry_variance_sampling < 10)
+      while(variance <= 0 && retry_variance_sampling < 9)
       {
         variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
         ++retry_variance_sampling;
@@ -277,7 +280,7 @@ namespace OpenMS {
 
       if (variance<=0)
       {
-        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Skipping feature!\n";
+        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Skipping feature!" << std::endl;
         deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
                                    String::number(predicted_retention_times[i],2)
                                    + "]");
@@ -578,7 +581,7 @@ namespace OpenMS {
         (*exp_it).setNativeID(spec_id);
 
         // dice & store distortion
-        DoubleReal distortion = exp(gsl_ran_flat (rnd_gen_->technical_rng, -distortion_, +distortion_));
+        DoubleReal distortion = (gsl_ran_flat (rnd_gen_->technical_rng, -distortion_, +distortion_));
         (*exp_it).setMetaValue("distortion", distortion);
 
         // TODO (for CE) store peak broadening parameter
@@ -599,7 +602,8 @@ namespace OpenMS {
     experiment.updateRanges();
     LOG_INFO << "done\n";
   }
-    
+
+//#define MSSIM_DEBUG_MOV_AVG_FILTER
 
   void RTSimulation::smoothRTDistortion_(MSSimExperiment & experiment)
   {
@@ -614,7 +618,7 @@ namespace OpenMS {
       previous = (DoubleReal) experiment[0].getMetaValue("distortion");
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-      LOG_DEBUG << "d <- c(" << previous << ", ";
+      LOG_WARN << "d <- c(" << previous << ", ";
       vector< DoubleReal > tmp;
 #endif
       for(Size scan = 1 ; scan < experiment.size() - 1 ; ++scan)
@@ -626,20 +630,20 @@ namespace OpenMS {
         previous = current;
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-        LOG_DEBUG << current << ", ";
+        LOG_WARN << current << ", ";
         tmp.push_back(smoothed);
 #endif
         experiment[scan].setMetaValue("distortion", smoothed);
       }
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-      LOG_DEBUG << next << ");" << endl;
-      LOG_DEBUG << "smoothed <- c(";
-      LOG_DEBUG << (DoubleReal) experiment[0].getMetaValue("distortion") << ", ";
+      LOG_WARN << next << ");" << endl;
+      LOG_WARN << "smoothed <- c(";
+      LOG_WARN << (DoubleReal) experiment[0].getMetaValue("distortion") << ", ";
       for(Size i = 0 ; i  < tmp.size() ; ++i) {
-        LOG_DEBUG << tmp[i] << ", ";
+        LOG_WARN << tmp[i] << ", ";
       }
-      LOG_DEBUG << next << ");" << endl;
+      LOG_WARN << next << ");" << endl;
 #endif
     }
   }
