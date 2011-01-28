@@ -161,8 +161,18 @@ namespace OpenMS
 				@brief If this member is set to false no checking if parameters in done;
 
 				The only reason to set this member to false is that the derived class has no parameters!
+        However, if a grand-child has defaults and you are using a base class cast, checking will
+        not be done when casting back to grand-child. To just omit the warning, use 'warn_empty_defaults_'
 			*/
 			bool check_defaults_;
+
+      /**
+				@brief If this member is set to false no warning is emitted when defaults are empty;
+
+				The only reason to set this member to false is that the derived class has no parameters!
+        @see check_defaults_
+			*/
+			bool warn_empty_defaults_;
 
 		private:
 			/// Hidden default C'tor (class name parameter is required!)

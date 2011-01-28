@@ -41,6 +41,7 @@ namespace OpenMS
     : DefaultParamHandler("BaseLabeler"),
       rng_(0)
   {
+    warn_empty_defaults_=false;
   }
 
   String BaseLabeler::getChannelIntensityName(const Size channel_index) const
