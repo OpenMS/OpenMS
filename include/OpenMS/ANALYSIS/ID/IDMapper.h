@@ -148,7 +148,7 @@ namespace OpenMS
 				@exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain "MZ" and "RT"
 			*/
 			template <typename FeatureType>
-				void annotate(FeatureMap<FeatureType>& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)
+			void annotate(FeatureMap<FeatureType>& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)
 			{
 				// std::cout << "Starting annotation..." << std::endl;
 				checkHits_(ids);
@@ -179,7 +179,7 @@ namespace OpenMS
 					// so the appropriate peptide mass can be used for matching
 					use_avg_mass = checkMassType_(map.getDataProcessing());
 				}
-				
+
 				// calculate feature bounding boxes only once:
 				std::vector< DBoundingBox<2> > boxes;				
 				DoubleReal min_rt = std::numeric_limits<DoubleReal>::max(), 
@@ -254,7 +254,8 @@ namespace OpenMS
 
 					DoubleList mz_values;
 					DoubleReal rt_value;
-					getRTandMZofID_(*id_it, rt_value, mz_values, use_avg_mass);
+					IntList charges;
+					getIDDetails_(*id_it, rt_value, mz_values, charges, use_avg_mass);
 
 					if ((rt_value < min_rt) || (rt_value > max_rt)) // RT out of bounds
 					{
@@ -272,11 +273,23 @@ namespace OpenMS
 					{
 						Feature& feat = map[*hash_it];
 
-						// iterate over m/z values (only one if "mz_ref." is "precursor"):
-						for (DoubleList::iterator mz_it = mz_values.begin();
-								 mz_it != mz_values.end(); ++mz_it)
+						bool check_charge = use_charge_; // need to check the charge state?
+						if (check_charge && (mz_values.size() == 1)) // check now
 						{
-							bool found_match = false;
+							if (!charges.contains(feat.getCharge())) continue;
+							check_charge = false; // don't need to check later
+						}
+
+						// iterate over m/z values (only one if "mz_ref." is "precursor"):
+						Size index = 0;
+						for (DoubleList::iterator mz_it = mz_values.begin();
+								 mz_it != mz_values.end(); ++mz_it, ++index)
+						{
+							if (check_charge && (charges[index] != feat.getCharge()))
+							{
+								continue; // charge states need to match
+							}
+
 							DPosition<2> id_pos(rt_value, *mz_it);
 							if (boxes[*hash_it].encloses(id_pos)) // potential match
 							{
@@ -289,6 +302,7 @@ namespace OpenMS
 									break; // "mz_it" loop
 								}
 								// else: check all the mass traces
+								bool found_match = false;
 								for (std::vector<ConvexHull2D>::iterator ch_it = 
 											 feat.getConvexHulls().begin(); ch_it != 
 											 feat.getConvexHulls().end(); ++ch_it)
@@ -354,6 +368,8 @@ namespace OpenMS
 			DoubleReal mz_tolerance_;
 			///Measure used for m/z
 			Measure measure_;
+			///Do charge states have to match?
+			bool use_charge_;
 			
 			/// compute absolute Da tolerance, for a given m/z,
 			/// when @p measure is MEASURE_DA, the value is unchanged,
@@ -366,10 +382,10 @@ namespace OpenMS
 			/// helper function that checks if all peptide hits are annotated with RT and MZ meta values
 			void checkHits_(const std::vector<PeptideIdentification>& ids) const;
 			
-			/// get RT and M/Z value(s) of a PeptideIdentification
+			/// get RT, m/z and charge value(s) of a PeptideIdentification
 			/// - multiple m/z values are returned if "mz_reference" is set to "peptide" (one for each PeptideHit)
 			/// - one m/z value is returned if "mz_reference" is set to "precursor"
-			void getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, DoubleList& mz_values, bool use_avg_mass=false) const;
+			void getIDDetails_(const PeptideIdentification& id, DoubleReal& rt_pep, DoubleList& mz_values, IntList& charges, bool use_avg_mass=false) const;
 
 			/// increase a bounding box by the given RT and m/z tolerances
 			void increaseBoundingBox_(DBoundingBox<2>& box);

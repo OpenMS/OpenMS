@@ -36,7 +36,8 @@ namespace OpenMS
   	: DefaultParamHandler("IDMapper"),
   		rt_tolerance_(5.0),
   		mz_tolerance_(20),
-  		measure_(MEASURE_PPM)
+  		measure_(MEASURE_PPM),
+			use_charge_(true)
   {
 		defaults_.setValue("rt_tolerance", rt_tolerance_, "RT tolerance (in seconds) for the matching"); 
 		defaults_.setMinFloat("rt_tolerance", 0);
@@ -47,6 +48,9 @@ namespace OpenMS
 		defaults_.setValue("mz_reference", "precursor", "source of m/z values for peptide identifications"); 
 		defaults_.setValidStrings("mz_reference", StringList::create("precursor,peptide"));
 		
+		defaults_.setValue("use_charge", "false", "For feature/consensus maps: Assign an ID only if its charge state matches that of the (consensus) feature.");
+		defaults_.setValidStrings("use_charge", StringList::create("true,false"));
+
 		defaultsToParam_();  
   }
 
@@ -55,7 +59,8 @@ namespace OpenMS
 	: DefaultParamHandler(cp),
 		rt_tolerance_(cp.rt_tolerance_),
   	mz_tolerance_(cp.mz_tolerance_),
-  	measure_(cp.measure_)
+  	measure_(cp.measure_),
+		use_charge_(cp.use_charge_)
 	{
 		updateMembers_();
 	}
@@ -68,6 +73,7 @@ namespace OpenMS
 		rt_tolerance_=rhs.rt_tolerance_;
   	mz_tolerance_=rhs.mz_tolerance_;
   	measure_=rhs.measure_;
+		use_charge_ = rhs.use_charge_;
 		updateMembers_();
 		
 		return *this;
@@ -78,6 +84,7 @@ namespace OpenMS
 		rt_tolerance_ = param_.getValue("rt_tolerance");
 		mz_tolerance_ = param_.getValue("mz_tolerance");
 		measure_ = param_.getValue("mz_measure")=="ppm"? MEASURE_PPM : MEASURE_DA;
+		use_charge_ = param_.getValue("use_charge") == "true";
 	}	
 	
 	void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
@@ -97,13 +104,14 @@ namespace OpenMS
 
 		DoubleList mz_values;
 		DoubleReal rt_pep;
+		IntList charges;
 		
 		//iterate over the peptide IDs
 		for (Size i=0; i<ids.size(); ++i)
 		{
 			if (ids[i].getHits().size()==0) continue;
 			
-			getRTandMZofID_(ids[i], rt_pep, mz_values);
+			getIDDetails_(ids[i], rt_pep, mz_values, charges);
 
 			//iterate over the features
 			for(Size cm_index = 0 ; cm_index<map.size(); ++cm_index)
@@ -112,14 +120,27 @@ namespace OpenMS
 				bool was_added=false; // was current pep-m/z matched?!
 
 				// iterate over m/z values of pepIds
-				for (Size i_mz=0;i_mz<mz_values.size();++i_mz)
+				for (Size i_mz = 0; i_mz < mz_values.size(); ++i_mz)
 				{
 					DoubleReal mz_pep = mz_values[i_mz];
+					
+					// charge states to use for checking:
+					IntList current_charges;
+					if (use_charge_)
+					{
+						// if "mz_ref." is "precursor", we have only one m/z value to check,
+						// but still one charge state per peptide hit that could match:
+						if (mz_values.size() == 1)
+						{
+							current_charges = charges;
+						}
+						else current_charges << charges[i_mz];
+					}
 					
 					//check if we compare distance from centroid or subelements
 					if (!measure_from_subelements)
 					{
-						if ( isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) )
+						if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (!use_charge_ || current_charges.contains(map[cm_index].getCharge())))
 						{
 							was_added = true;
 							map[cm_index].getPeptideIdentifications().push_back(ids[i]);
@@ -132,7 +153,7 @@ namespace OpenMS
 								it_handle != map[cm_index].getFeatures().end(); 
 								++it_handle)
 						{
-							if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()))
+							if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ())  && (!use_charge_ || current_charges.contains(it_handle->getCharge())))
 							{
 								was_added = true;
 								if (mapping[cm_index].count(i) == 0)
@@ -229,23 +250,27 @@ namespace OpenMS
 		}
 	}
 	
-	void IDMapper::getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, DoubleList& mz_values, bool use_avg_mass) const
+	void IDMapper::getIDDetails_(const PeptideIdentification& id, DoubleReal& rt_pep, DoubleList& mz_values, IntList& charges, bool use_avg_mass) const
 	{
 		mz_values.clear();
+		charges.clear();
 		
 		rt_pep = id.getMetaValue("RT");
 		
 		// collect m/z values of pepId
 		if (param_.getValue("mz_reference") == "precursor")
 		{ // use precursor m/z of pepId
-			mz_values.push_back(id.getMetaValue("MZ"));
+			mz_values << id.getMetaValue("MZ");
 		}
-		else if (param_.getValue("mz_reference") == "peptide")
-		{ // use mass of each pepHit (assuming H+ adducts)
-			for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin(); 
-					 hit_it != id.getHits().end(); ++hit_it)
-			{
-				Int charge = hit_it->getCharge();
+
+		for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin(); 
+				 hit_it != id.getHits().end(); ++hit_it)
+		{
+			Int charge = hit_it->getCharge();
+			charges << charge;
+
+			if (param_.getValue("mz_reference") == "peptide")
+			{ // use mass of each pepHit (assuming H+ adducts)
 				DoubleReal mass = use_avg_mass ? 
 					hit_it->getSequence().getAverageWeight(Residue::Full, charge) : 
 					hit_it->getSequence().getMonoWeight(Residue::Full, charge);
