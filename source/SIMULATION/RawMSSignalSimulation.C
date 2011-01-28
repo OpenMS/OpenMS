@@ -963,10 +963,10 @@ namespace OpenMS {
       for (; mz<(mz_cell+step_Da); mz+=sampling_rate)
       {
         grid.push_back(mz);
-        if (mz>mz_max) return; // stop recording, as last block is done (one more point than required)
+        if (mz>mz_max) return; // stop recording, as last block is done (one more point than required though - for grid search later)
       }
     }
-    grid.push_back(mz+sampling_rate); // one more point than required (for grid-matching later)
+    grid.push_back(mz+sampling_rate); // one more point if inner 'return;' was not reached
     return;
   }
 
@@ -986,8 +986,10 @@ namespace OpenMS {
     SimPointType p;
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
-      experiment[i].sortByPosition();
+      if (experiment.size()<=1) continue;
 
+      experiment[i].sortByPosition();
+      
 			// copy Spectrum and remove Peaks ..
 			MSSimExperiment::SpectrumType cont = experiment[i];
 			cont.clear(false);
@@ -996,22 +998,30 @@ namespace OpenMS {
       Size grid_pos_next(1);
 
       DoubleReal int_sum(0);
+      bool break_scan(false);
       // match points to closest grid point
 			for ( Size j = 0 ; j < experiment[i].size(); ++j )
 			{
         while (fabs(grid[grid_pos_next]-experiment[i][j].getMZ()) < fabs(grid[grid_pos]-experiment[i][j].getMZ()))
         {
-            if (int_sum>0) // we collected some points before --> save them
-            { 
-              p.setIntensity(int_sum);
-              p.setMZ( grid[grid_pos] );
-						  cont.push_back(p);
-              int_sum=0; // reset
-            }
+          if (int_sum>0) // we collected some points before --> save them
+          { 
+            p.setIntensity(int_sum);
+            p.setMZ( grid[grid_pos] );
+					  cont.push_back(p);
+            int_sum=0; // reset
+          }
 
-            ++grid_pos; // advance to next grid element
-            ++grid_pos_next;
+          ++grid_pos; // advance to next grid element
+          ++grid_pos_next;
+
+          if (grid_pos_next>= grid.size())
+          {
+            break_scan = true;
+            break;
+          }
         }
+        if (break_scan) break; // skip remaining points of the scan (we reached the end of the grid)
 
         int_sum += experiment[i][j].getIntensity();
 			}
@@ -1026,11 +1036,9 @@ namespace OpenMS {
       point_count_before += experiment[i].size(); // stats
 	    experiment[i] = cont;
       point_count_after += experiment[i].size();
-
-
     }
 
-    std::cerr << " point count: " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
+    std::cerr << "  Compressing data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
 
     return;
   }
