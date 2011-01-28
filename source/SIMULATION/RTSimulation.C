@@ -99,9 +99,9 @@ namespace OpenMS {
     defaults_.setValue("variation:affine_scale",1,"Global scaling in retention time from predicted model");
     defaults_.setSectionDescription("variation","Random component that simulates technical/biological variation");
 
-    defaults_.setValue("column_condition:distortion", 1.0, "Distortion of the elution profiles. Good presets are 0.0 for a perfect elution profile, 1.0 for a slightly distorted elution profile and 2.0 for heavily distorted profile. Every peak's intensity in a scan is multiplied by exp(uniform(-d,+d)).");
-    defaults_.setMinFloat("column_condition:distortion", 0.0);
-    defaults_.setMaxFloat("column_condition:distortion", 4.0);
+    defaults_.setValue("column_condition:distortion", 0, "Distortion of the elution profiles. Good presets are 0 for a perfect elution profile, 1 for a slightly distorted elution profile etc... For trapping instruments (e.g. Orbitrap) distortion should be >4.");
+    defaults_.setMinInt("column_condition:distortion", 0);
+    defaults_.setMaxInt("column_condition:distortion", 10);
 
 
     defaults_.setValue("profile_shape:width:value", 9, "Width of the Exponential Gaussian Hybrid distribution shape of the elution profile. This does not correspond directly to the width in [s].");
@@ -161,8 +161,6 @@ namespace OpenMS {
     }
     
     rt_sampling_rate_    = param_.getValue("sampling_rate");
-
-    distortion_          = param_.getValue("column_condition:distortion");
 
     egh_variance_location_  = param_.getValue("profile_shape:width:value");
     egh_variance_scale_     = param_.getValue("profile_shape:width:variance");
@@ -581,8 +579,7 @@ namespace OpenMS {
         (*exp_it).setNativeID(spec_id);
 
         // dice & store distortion
-        DoubleReal distortion = (gsl_ran_flat (rnd_gen_->technical_rng, -distortion_, +distortion_));
-        (*exp_it).setMetaValue("distortion", distortion);
+        (*exp_it).setMetaValue("distortion", 1);
 
         // TODO (for CE) store peak broadening parameter
         current_scan_rt += rt_sampling_rate_;
@@ -608,15 +605,14 @@ namespace OpenMS {
   void RTSimulation::smoothRTDistortion_(MSSimExperiment & experiment)
   {
     // how often do we move over the distortions
-    const UInt filter_iterations = 10;
+    const UInt filter_iterations = param_.getValue("column_condition:distortion");
 
     DoubleReal previous,current,next;
 
-    for(UInt fi = 0 ; fi <= filter_iterations ; ++fi )
+    for(UInt fi = 0 ; fi < filter_iterations ; ++fi )
     {
       // initialize the previous value on position 0
       previous = (DoubleReal) experiment[0].getMetaValue("distortion");
-
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
       LOG_WARN << "d <- c(" << previous << ", ";
       vector< DoubleReal > tmp;
@@ -627,6 +623,7 @@ namespace OpenMS {
         next = (DoubleReal) experiment[scan + 1].getMetaValue("distortion");
 
         DoubleReal smoothed = (previous + current + next) / 3.0;
+        smoothed *= gsl_ran_flat (rnd_gen_->technical_rng, 1.0-std::pow(fi+1.0,2)*0.01, 1.0+std::pow(fi+1.0,2)*0.01); // distortion gets worse round by round
         previous = current;
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER

@@ -132,9 +132,6 @@ namespace OpenMS
     /// bin size in rt dimension
     SimCoordinateType rt_sampling_rate_;
 
-    /// LC conditions (noise parameter)
-    DoubleReal distortion_;
-
     /// EGH tau value
     DoubleReal egh_tau_location_;
     /// EGH tau scale parameter of the lorentzian variation
