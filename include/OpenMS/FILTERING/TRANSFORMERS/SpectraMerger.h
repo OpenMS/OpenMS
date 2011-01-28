@@ -406,7 +406,8 @@ namespace OpenMS
       }
 
       char buffer[200]; 
-      sprintf (buffer, "%d/%d (%.2f %%) of blocked spectra", count_peaks_aligned , count_peaks_overall , float(count_peaks_aligned)/float(count_peaks_overall)*100 );
+      sprintf (buffer, "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned, 
+							 (int)count_peaks_overall, float(count_peaks_aligned)/float(count_peaks_overall) * 100. );
       LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
 
       // remove all spectra that were within a cluster

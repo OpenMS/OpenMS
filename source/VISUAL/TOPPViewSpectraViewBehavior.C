@@ -87,7 +87,7 @@ namespace OpenMS
     widget_1d->canvas()->activateSpectrum(index);
   }
 
-  void TOPPViewSpectraViewBehavior::deactivate1DSpectrum(int spectrum_index)
+  void TOPPViewSpectraViewBehavior::deactivate1DSpectrum(int /* spectrum_index */)
   {
     // no special handling of spectrum deactivation needed
   }

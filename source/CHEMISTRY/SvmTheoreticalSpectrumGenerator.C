@@ -122,98 +122,99 @@ namespace OpenMS
   }
 
 
-  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet2_(AASequence peptide, Size position, IonType type, Size precursor_charge, DescriptorSet &desc_set)
+  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet2_
+		(AASequence peptide, Size position, IonType type, Size /* precursor_charge */, DescriptorSet& desc_set)
   {
     ///map AA to integers
     static std::map<String,Size>aa_to_index;
     static std::map<String,DoubleReal>hydrophobicity, helicity, basicity;
 
-    int index=0;
+    int index = 0;
     //if the map was not yet generated (this is first call of this Function)
-    if(aa_to_index.empty())
+    if (aa_to_index.empty())
     {
-      ResidueDB *res_db;
-      res_db= ResidueDB::getInstance();
-      std::set<const Residue*>all_aa=res_db->getResidues("Natural20");
+      ResidueDB* res_db;
+      res_db = ResidueDB::getInstance();
+      std::set<const Residue*>all_aa = res_db->getResidues("Natural20");
       std::set<const Residue*>::const_iterator aa_it;
-      for(aa_it=all_aa.begin(); aa_it!=all_aa.end(); ++aa_it)
+      for (aa_it=all_aa.begin(); aa_it!=all_aa.end(); ++aa_it)
       {
-        aa_to_index[(*aa_it)->getOneLetterCode()]=index;
+        aa_to_index[(*aa_it)->getOneLetterCode()] = index;
         ++index;
       }
     }
 
-    if(hydrophobicity.empty())
+    if (hydrophobicity.empty())
     {
-      hydrophobicity["A"]=0.16;
-      hydrophobicity["C"]=2.5;
-      hydrophobicity["D"]=-2.49;
-      hydrophobicity["E"]=-1.5;
-      hydrophobicity["F"]=5;
-      hydrophobicity["G"]=-3.31;
-      hydrophobicity["H"]=-4.63;
-      hydrophobicity["I"]=4.76;
-      hydrophobicity["K"]=-5;
-      hydrophobicity["L"]=4.76;
-      hydrophobicity["M"]=3.23;
-      hydrophobicity["N"]=-3.79;
-      hydrophobicity["P"]=-4.92;
-      hydrophobicity["Q"]=-2.76;
-      hydrophobicity["R"]=-2.77;
-      hydrophobicity["S"]=-2.85;
-      hydrophobicity["T"]=-1.08;
-      hydrophobicity["V"]=3.02;
-      hydrophobicity["W"]=4.88;
-      hydrophobicity["Y"]=2;      
+      hydrophobicity["A"] = 0.16;
+      hydrophobicity["C"] = 2.5;
+      hydrophobicity["D"] = -2.49;
+      hydrophobicity["E"] = -1.5;
+      hydrophobicity["F"] = 5;
+      hydrophobicity["G"] = -3.31;
+      hydrophobicity["H"] = -4.63;
+      hydrophobicity["I"] = 4.76;
+      hydrophobicity["K"] = -5;
+      hydrophobicity["L"] = 4.76;
+      hydrophobicity["M"] = 3.23;
+      hydrophobicity["N"] = -3.79;
+      hydrophobicity["P"] = -4.92;
+      hydrophobicity["Q"] = -2.76;
+      hydrophobicity["R"] = -2.77;
+      hydrophobicity["S"] = -2.85;
+      hydrophobicity["T"] = -1.08;
+      hydrophobicity["V"] = 3.02;
+      hydrophobicity["W"] = 4.88;
+      hydrophobicity["Y"] = 2;      
     }
 
-    if(helicity.empty())
+    if (helicity.empty())
     {
-      helicity["A"]= 1.24;
-      helicity["C"]=0.79;
-      helicity["D"]=0.89;
-      helicity["E"]=0.85;
-      helicity["F"]=1.26;
-      helicity["G"]=1.15;
-      helicity["H"]=0.97;
-      helicity["I"]=1.28;
-      helicity["K"]=0.88;
-      helicity["L"]=1.28;
-      helicity["M"]=1.22;
-      helicity["N"]=0.94;
-      helicity["P"]=0.57;
-      helicity["Q"]=0.96;
-      helicity["R"]=0.95;
-      helicity["S"]=1;
-      helicity["T"]=1.09;
-      helicity["V"]=1.27;
-      helicity["W"]=1.07;
-      helicity["Y"]=1.11;      
+      helicity["A"] = 1.24;
+      helicity["C"] = 0.79;
+      helicity["D"] = 0.89;
+      helicity["E"] = 0.85;
+      helicity["F"] = 1.26;
+      helicity["G"] = 1.15;
+      helicity["H"] = 0.97;
+      helicity["I"] = 1.28;
+      helicity["K"] = 0.88;
+      helicity["L"] = 1.28;
+      helicity["M"] = 1.22;
+      helicity["N"] = 0.94;
+      helicity["P"] = 0.57;
+      helicity["Q"] = 0.96;
+      helicity["R"] = 0.95;
+      helicity["S"] = 1;
+      helicity["T"] = 1.09;
+      helicity["V"] = 1.27;
+      helicity["W"] = 1.07;
+      helicity["Y"] = 1.11;      
     }
 
 
-    if(basicity.empty())
+    if (basicity.empty())
     {
-      basicity["A"]= 206.4;
-      basicity["C"]= 206.2;
-      basicity["D"]= 208.6;
-      basicity["E"]= 215.5;
-      basicity["F"]= 212.1;
-      basicity["G"]= 202.7;
-      basicity["H"]= 223.7;
-      basicity["I"]= 209.6;
-      basicity["K"]= 221.8;
-      basicity["L"]= 209.6;
-      basicity["M"]= 213.3;
-      basicity["N"]= 212.8;
-      basicity["P"]= 214.4;
-      basicity["Q"]= 214.2;
-      basicity["R"]= 237.0;
-      basicity["S"]= 207.6;
-      basicity["T"]= 211.7;
-      basicity["V"]= 208.7;
-      basicity["W"]= 216.1;
-      basicity["Y"]= 213.1;      
+      basicity["A"] = 206.4;
+      basicity["C"] = 206.2;
+      basicity["D"] = 208.6;
+      basicity["E"] = 215.5;
+      basicity["F"] = 212.1;
+      basicity["G"] = 202.7;
+      basicity["H"] = 223.7;
+      basicity["I"] = 209.6;
+      basicity["K"] = 221.8;
+      basicity["L"] = 209.6;
+      basicity["M"] = 213.3;
+      basicity["N"] = 212.8;
+      basicity["P"] = 214.4;
+      basicity["Q"] = 214.2;
+      basicity["R"] = 237.0;
+      basicity["S"] = 207.6;
+      basicity["T"] = 211.7;
+      basicity["V"] = 208.7;
+      basicity["W"] = 216.1;
+      basicity["Y"] = 213.1;      
     }
 
 
@@ -716,7 +717,7 @@ namespace OpenMS
     bool add_losses = param_.getValue("add_losses").toBool();    
     bool add_first_nterminals = param_.getValue("add_first_nterminals").toBool();
     bool add_metainfo = param_.getValue("add_metainfo").toBool();
-    bool add_precursor_peaks = param_.getValue("add_precursor_peaks").toBool();
+    // bool add_precursor_peaks = param_.getValue("add_precursor_peaks").toBool();
 
     std::set<String>possible_n_term_losses;
     std::set<String>possible_c_term_losses;
@@ -762,11 +763,11 @@ namespace OpenMS
 
       std::vector<std::pair<IonType, DoubleReal> >peaks_to_generate;
 
-      for(Size type_nr=0; type_nr<ion_types_.size(); ++type_nr)
+      for (Size type_nr=0; type_nr<ion_types_.size(); ++type_nr)
       {        
         Residue::ResidueType residue = ion_types_[type_nr].residue;
         EmpiricalFormula loss_formula = ion_types_[type_nr].loss;
-        Int charge = ion_types_[type_nr].charge;
+        // Int charge = ion_types_[type_nr].charge;
 
         //std::cerr<<"prim type: "<<residue<<" "<<loss_formula<<"  "<<charge<<std::endl;
 
@@ -774,27 +775,27 @@ namespace OpenMS
         if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
         {
           //usually no b1, a1, c1 ion added
-          if(i<2 && !add_first_nterminals)
+          if((i < 2) && !add_first_nterminals)
           {
             continue;
           }          
           //if loss is not supported or no loss ions shall be generated -- continue
-          if(!loss_formula.isEmpty() && (!possible_n_term_losses.count(loss_formula.getString()) || !add_losses))
+          if (!loss_formula.isEmpty() && (!possible_n_term_losses.count(loss_formula.getString()) || !add_losses))
           {
             continue;
           }          
           ion = &prefix;
-          ion_nr=(UInt)i;
+          ion_nr = (UInt)i;
         }
         //same for c-terminal ions
         else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
         {
-          if(!loss_formula.isEmpty() && (!possible_c_term_losses.count(loss_formula.getString()) || !add_losses))
+          if (!loss_formula.isEmpty() && (!possible_c_term_losses.count(loss_formula.getString()) || !add_losses))
           {
             continue;
           }
           ion = &suffix;
-          ion_nr=(UInt)(peptide.size()-i);
+          ion_nr = (UInt)(peptide.size()-i);
         }
         else
         {
@@ -803,16 +804,16 @@ namespace OpenMS
 
         DescriptorSet descriptor;
         generateDescriptorSet2_(peptide,i-1,ion_types_[type_nr], precursor_charge, descriptor);
-        if(scaling_lower_!=scaling_upper_)
+        if (scaling_lower_!=scaling_upper_)
         {
           scaleDescriptorSet_(descriptor, scaling_lower_, scaling_upper_);
         }
 
-        DoubleReal predicted_intensity=0.0;
+        DoubleReal predicted_intensity = 0.0;
         Size predicted_class = svm_predict(class_models_[type_nr], &descriptor.descriptors[0]);
         //predicted_class = 1;
 
-        if(predicted_class==1)
+        if (predicted_class==1)
         {
           predicted_intensity = std::max(0.0, svm_predict(reg_models_[type_nr], &descriptor.descriptors[0]));
           peaks_to_generate.push_back(std::make_pair(ion_types_[type_nr],predicted_intensity));          
@@ -820,16 +821,18 @@ namespace OpenMS
 
         //binning the predicted intensity
         Size bin=0;
-        if(predicted_intensity>0)
+        if (predicted_intensity > 0)
         {
           bin = 1;
-          while(bin<number_intensity_levels_-1 && predicted_intensity>intensity_bin_boarders_[bin-1] )
+          while ((bin < number_intensity_levels_ - 1) && predicted_intensity>intensity_bin_boarders_[bin-1])
+					{
             ++bin;
+					}
         }
 
-        for(std::vector<IonType>::iterator it = secondary_types_[ion_types_[type_nr]].begin(); it!= secondary_types_[ion_types_[type_nr]].end(); ++it)
+        for (std::vector<IonType>::iterator it = secondary_types_[ion_types_[type_nr]].begin(); it!= secondary_types_[ion_types_[type_nr]].end(); ++it)
         {
-          if(!add_losses && !it->loss.isEmpty())
+          if (!add_losses && !it->loss.isEmpty())
           {
             continue;
           }

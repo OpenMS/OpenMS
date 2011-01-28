@@ -535,11 +535,9 @@ namespace OpenMS
         Spectrum3DCanvas::ExperimentType::ConstAreaIterator end_it = layer.getPeakData()->areaEndConst();
         // count peaks in area
         int count = 0;
-        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
-        {
-          count++;
-        }
-
+        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; 
+						 it != end_it; ++it, ++count) {}
+          
         int max_displayed_peaks = 100000;
         int step = 1;
         if (count > max_displayed_peaks)

@@ -48,7 +48,8 @@ namespace OpenMS
 			@note This iterator iterates over spectra with MS level 1 only!
 		*/
 		template<class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
-		class AreaIterator : public std::iterator<std::forward_iterator_tag, ValueT>
+		class AreaIterator 
+			: public std::iterator<std::forward_iterator_tag, ValueT>
 		{
 			public:
 				typedef DoubleReal CoordinateType;
@@ -88,6 +89,8 @@ namespace OpenMS
 						end_scan_(), 
 						current_peak_(), 
 						end_peak_(),
+						low_mz_(0.0), 
+						high_mz_(0.0),
 						is_end_(true)
 				{
 				}
@@ -101,7 +104,7 @@ namespace OpenMS
 				AreaIterator(const AreaIterator& rhs)
 					: is_end_(rhs.is_end_)
 				{
-	        //only copy iterators, if the assigned iterator is not the end iterator
+	        // only copy iterators, if the assigned iterator is not the end iterator
 	        if (!is_end_)
 	        {
 						first_ = rhs.first_;	
