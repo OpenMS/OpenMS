@@ -21,14 +21,14 @@
       <ITEM name="y_pos" value="0" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file" />
-        <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file,required" />
+        <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file,required" />
         <ITEM name="type" value="sgolay" type="string" description="smoothing filter type" restrictions="sgolay,gaussian" />
-        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm parameters section">
           <ITEM name="frame_length" value="11" type="int" description="The number of subsequent data points used for smoothing.#br#This number has to be uneven. If it is not, 1 will be added." />
           <ITEM name="polynomial_order" value="3" type="int" description="Order or the polynomial that is fitted." />
@@ -43,16 +43,16 @@
       <ITEM name="y_pos" value="0" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file" />
-        <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file,required" />
+        <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file,required" />
         <ITEM name="struc_elem_length" value="3" type="float" description="Length of the structuring element (should be wider than maximal peak width - see documentation)." />
         <ITEM name="struc_elem_unit" value="Thomson" type="string" description="Unit of &apos;struc_elem_length&apos; parameter." restrictions="Thomson,DataPoints" />
         <ITEM name="method" value="tophat" type="string" description="The name of the morphological filter to be applied. If you are unsure, use the default." restrictions="identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple" />
-        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
     <NODE name="3" description="">
@@ -63,14 +63,14 @@
       <ITEM name="y_pos" value="0" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="string" description="input profile data file (valid formats: &apos;mzML&apos;)" tags="input file" />
-        <ITEM name="out" value="" type="string" description="output peak file (valid formats: &apos;mzML&apos;)" tags="output file" />
+        <ITEM name="in" value="" type="string" description="input profile data file (valid formats: &apos;mzML&apos;)" tags="input file,required" />
+        <ITEM name="out" value="" type="string" description="output peak file (valid formats: &apos;mzML&apos;)" tags="output file,required" />
         <ITEM name="type" value="wavelet" type="string" description="peak detection algorithm type" restrictions="wavelet,high_res" />
-        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm parameters section">
           <ITEM name="signal_to_noise" value="1" type="float" description="Minimal signal to noise ratio for a peak to be picked." restrictions="0:" />
           <ITEM name="centroid_percentage" value="0.8" type="float" description="Percentage of the maximum height that the raw data points must exceed to be taken into account for the calculation of the centroid. If it is 1 the centroid position corresponds to the position of the highest intensity." tags="advanced" restrictions="0:1" />
@@ -91,8 +91,8 @@
           </NODE>
           <NODE name="optimization" description="">
             <ITEM name="iterations" value="15" type="int" description="maximal number of iterations for the fitting step" tags="advanced" restrictions="1:" />
-            <ITEM name="delta_abs_error" value="9.99999974737875e-05" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
-            <ITEM name="delta_rel_error" value="9.99999974737875e-05" type="float" description="if the relative error gets smaller than this value the fitting is stopped" tags="advanced" restrictions="0:" />
+            <ITEM name="delta_abs_error" value="9.99999974737875e-005" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
+            <ITEM name="delta_rel_error" value="9.99999974737875e-005" type="float" description="if the relative error gets smaller than this value the fitting is stopped" tags="advanced" restrictions="0:" />
             <NODE name="penalties" description="">
               <ITEM name="position" value="0" type="float" description="penalty term for the fitting of the position:If it differs too much from the initial one it can be penalized " tags="advanced" restrictions="0:" />
               <ITEM name="left_width" value="1" type="float" description="penalty term for the fitting of the left width:If the left width differs too much from the initial one during the fitting it can be penalized." tags="advanced" restrictions="0:" />
@@ -112,8 +112,8 @@
             <ITEM name="scaling" value="0.12" type="float" description="Initial scaling of the cwt used in the seperation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge." tags="advanced" restrictions="0:" />
             <NODE name="fitting" description="">
               <ITEM name="fwhm_threshold" value="0.7" type="float" description="If the fwhm of a peak is higher than fwhm_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started." tags="advanced" restrictions="0:" />
-              <ITEM name="eps_abs" value="9.99999974737875e-06" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
-              <ITEM name="eps_rel" value="9.99999974737875e-06" type="float" description="if the relative error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
+              <ITEM name="eps_abs" value="9.99999974737875e-006" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
+              <ITEM name="eps_rel" value="9.99999974737875e-006" type="float" description="if the relative error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
               <ITEM name="max_iteration" value="10" type="int" description="maximal number of iterations for the fitting step" tags="advanced" restrictions="1:" />
               <NODE name="penalties" description="">
                 <ITEM name="position" value="0" type="float" description="penalty term for the fitting of the peak position:If the position changes more than 0.5Da during the fitting it can be penalized as well as discrepancies of the peptide mass rule." tags="advanced" restrictions="0:" />
@@ -132,7 +132,7 @@
             <ITEM name="bin_count" value="30" type="int" description="number of bins for intensity values" tags="advanced" restrictions="3:" />
             <ITEM name="stdev_mp" value="3" type="float" description="multiplier for stdev" tags="advanced" restrictions="0.01:999" />
             <ITEM name="min_required_elements" value="10" type="int" description="minimum number of elements required in a window (otherwise it is considered sparse)" tags="advanced" restrictions="1:" />
-            <ITEM name="noise_for_empty_window" value="1e+20" type="float" description="noise value used for sparse windows" tags="advanced" />
+            <ITEM name="noise_for_empty_window" value="1e+020" type="float" description="noise value used for sparse windows" tags="advanced" />
           </NODE>
         </NODE>
       </NODE>

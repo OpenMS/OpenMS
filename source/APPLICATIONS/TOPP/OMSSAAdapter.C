@@ -167,7 +167,7 @@ class TOPPOMSSAAdapter
       registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance (Default: Dalton)", false);
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error in Dalton", false);
       registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
-      registerInputFile_("database", "<psq-file>", "", "NCBI formatted fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end if '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
+      registerInputFile_("database", "<psq-file>", "", "NCBI formatted fasta files. Only the psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
       registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
 			vector<String> all_mods;
@@ -184,7 +184,7 @@ class TOPPOMSSAAdapter
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
 			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-      registerInputFile_("omssa_executable", "", "", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
+      registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
       registerInputFile_("omssa_user_mods", "<file>", "", "additional <MSModSpec> subtrees of user modifications.\nSubtrees will be pasted into OMSSAAdapter generated user mod files.\nSee http://www.ncbi.nlm.nih.gov/data_specs/schema/OMSSA.mod.xsd for details about user mod file definition.", false, true, StringList::create("input file"));
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 

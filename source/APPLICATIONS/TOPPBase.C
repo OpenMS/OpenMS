@@ -1141,7 +1141,7 @@ namespace OpenMS
 
 	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced, const StringList& tags)
 	{
-    if (required && default_value!="") throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFile param ("+name+") with a non-empty default is forbidden!", default_value);
+    if (required && default_value!="" && !tags.contains("skipexists")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFile param ("+name+") with a non-empty default is forbidden!", default_value);
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
 	}
 

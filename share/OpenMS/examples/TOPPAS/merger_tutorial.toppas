@@ -23,21 +23,21 @@
       <ITEM name="y_pos" value="120" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
+        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
-        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
     <NODE name="5" description="">
@@ -80,21 +80,21 @@
       <ITEM name="y_pos" value="-60" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
+        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
-        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
     <NODE name="11" description="">
@@ -126,21 +126,21 @@
       <ITEM name="y_pos" value="-180" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
+        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
-        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
     <NODE name="4" description="">
@@ -162,21 +162,21 @@
       <ITEM name="y_pos" value="-60" type="float" description="" />
       <ITEM name="list_mode" value="false" type="string" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank(valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file(valid formats: &apos;mzML,featureXML&apos;)" tags="output file" />
+        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
          <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
         <ITEM name="user_ms_level" value="false" type="string" description="If this flag is set, the MS level given above is used" restrictions="true,false" />
-        <ITEM name="log" value="TOPP.log" type="string" description="Location of the log file" tags="advanced" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for software testing only)" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
       </NODE>
     </NODE>
     <NODE name="7" description="">
