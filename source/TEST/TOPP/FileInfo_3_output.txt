@@ -1,7 +1,7 @@
 
 -- General information --
 
-file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_3_input.featureXML
+file name: /Users/kohlbach/OpenMS-release/source/TEST/TOPP/FileInfo_3_input.featureXML
 file type: FeatureXML
 Number of features: 10
 
@@ -10,6 +10,7 @@ Ranges:
   mass-to-charge:  407.28 : 648.69
   intensity:       1376.00 : 6712.00
 
+Total ion current in features: 36739
 Charge distribution
 charge 2: 4
 charge 3: 6
@@ -39,32 +40,41 @@ Intensities:
   max: 6712
   variance: 3.49692e+06
 
+Feature FWHM in RT dimension:
+  mean: 0
+  min: 0
+  lower quartile: 0
+  median: 0
+  upper quartile: 0
+  max: 0
+  variance: 0
+
 Overall qualities:
   mean: 0.79855
   min: 0.746627
-  lower quartile: 0.75938625
+  lower quartile: 0.759386
   median: 0.799752
-  upper quartile: 0.8197615
+  upper quartile: 0.819762
   max: 0.883375
-  variance: 0.00209716938
+  variance: 0.00209717
 
 Qualities in retention time dimension:
-  mean: 50.8456478
-  min: 50.788159
-  lower quartile: 50.81471775
-  median: 50.841378
-  upper quartile: 50.875713
-  max: 50.913873
-  variance: 0.00163704738528893
+  mean: 50.8456
+  min: 50.7882
+  lower quartile: 50.8147
+  median: 50.8414
+  upper quartile: 50.8757
+  max: 50.9139
+  variance: 0.00163704
 
 Qualities in mass-to-charge dimension:
-  mean: 0.7215226
+  mean: 0.721523
   min: 0.661723
-  lower quartile: 0.6941975
-  median: 0.7178075
-  upper quartile: 0.74979875
+  lower quartile: 0.694197
+  median: 0.717808
+  upper quartile: 0.749799
   max: 0.778111
-  variance: 0.00160696407204445
+  variance: 0.00160696
 
 
 
