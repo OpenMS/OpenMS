@@ -444,8 +444,6 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::add1DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
-    SimIntensityType scale = getFeatureScaledIntensity_(active_feature.getIntensity(), 1.0);
-
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
@@ -602,7 +600,6 @@ namespace OpenMS {
 
     SimIntensityType intensity_sum(0.0);
     
-    Int start_scan = exp_start - experiment.begin();
     Int end_scan  = std::numeric_limits<Int>::min();
 
     // Sample the model ...
@@ -949,17 +946,26 @@ namespace OpenMS {
     }
     grid.clear();
     SimCoordinateType mz=mz_min; // declare is here, to ensure a smooth transition from one cell to the next
-    DoubleReal sampling_rate;
-    for (SimCoordinateType mz_cell=mz_min; mz_cell<=mz_max; mz_cell+=step_Da)
+    DoubleReal sampling_rate = 0.0;
+    for (SimCoordinateType mz_cell = mz_min; mz_cell <= mz_max; mz_cell += step_Da)
     {
       SimCoordinateType fwhm;
-      if (param_.getValue("peak_shape") == "Gaussian") fwhm = getPeakWidth_(mz_cell, true);
-      else fwhm = getPeakWidth_(mz, false);
+      if (param_.getValue("peak_shape") == "Gaussian")
+			{
+				fwhm = getPeakWidth_(mz_cell, true);
+			}
+      else 
+			{
+				fwhm = getPeakWidth_(mz, false);
+			}
       sampling_rate = (fwhm / sampling_points_per_FWHM_);
-      for (; mz<(mz_cell+step_Da); mz+=sampling_rate)
+      for (; mz < (mz_cell + step_Da); mz += sampling_rate)
       {
         grid.push_back(mz);
-        if (mz>mz_max) return; // stop recording, as last block is done (one more point than required though - for grid search later)
+        if (mz > mz_max)
+				{
+					return; // stop recording, as last block is done (one more point than required though - for grid search later)
+				}
       }
     }
     grid.push_back(mz+sampling_rate); // one more point if inner 'return;' was not reached

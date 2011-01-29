@@ -129,7 +129,7 @@ namespace OpenMS
     static std::map<String,Size>aa_to_index;
     static std::map<String,DoubleReal>hydrophobicity, helicity, basicity;
 
-    int index = 0;
+    Int index = 0;
     //if the map was not yet generated (this is first call of this Function)
     if (aa_to_index.empty())
     {
@@ -237,10 +237,10 @@ namespace OpenMS
       fragment=peptide.getSuffix(peptide.size()-(position+1));
     }
 
-    DoubleReal fragment_mass=(fragment.getMonoWeight(res_type,charge)-loss.getMonoWeight());
+    DoubleReal fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
 
-    Residue res_n=peptide.getResidue(position);
-    Residue res_c=peptide.getResidue(position+1);
+    Residue res_n = peptide.getResidue(position);
+    Residue res_c = peptide.getResidue(position + 1);
 
     String res_n_string=res_n.getOneLetterCode();
     String res_c_string=res_c.getOneLetterCode();;
@@ -250,16 +250,16 @@ namespace OpenMS
     svm_node node;
 
     //RB_C
-    node.index=index+aa_to_index[peptide.getResidue(position+1).getOneLetterCode()];
+    node.index = index + (Int)aa_to_index[peptide.getResidue(position+1).getOneLetterCode()];
     node.value=1;
     descriptors_tmp.push_back(node);
     index+=num_aa;
 
     //RB_N
-    node.index=index+aa_to_index[peptide.getResidue(position).getOneLetterCode()];
-    node.value=1;
+    node.index=index + (Int)aa_to_index[peptide.getResidue(position).getOneLetterCode()];
+    node.value = 1;
     descriptors_tmp.push_back(node);
-    index+=num_aa;
+    index += (Int)num_aa;
 
     //DB_N
     node.index=index++;
@@ -592,14 +592,14 @@ namespace OpenMS
 
     left_marker = info_file.search(left_marker, "<IntensityBinValues>");
     right_marker = info_file.search(left_marker, "</IntensityBinValues>");
-    while(++left_marker!=right_marker)
+    while (++left_marker != right_marker)
     {
       intensity_bin_values_.push_back(left_marker->toDouble());
     }
 
     left_marker = info_file.search(left_marker, "<IonType>");
     right_marker = info_file.search(left_marker, "</IonType>");
-    while(left_marker!=right_marker)
+    while (left_marker != right_marker)
     {
       //load type information
       ++left_marker;
@@ -851,7 +851,7 @@ namespace OpenMS
       }
 
 
-      for(Size i=0; i<peaks_to_generate.size(); ++i)
+      for (Size i=0; i<peaks_to_generate.size(); ++i)
       {
         IonType type = peaks_to_generate[i].first;
         DoubleReal intensity = peaks_to_generate[i].second;
@@ -867,8 +867,8 @@ namespace OpenMS
 
         if (add_isotopes)
         {          
-          IsotopeDistribution dist = ion_formula.getIsotopeDistribution(max_isotope);
-          UInt j=0;
+          IsotopeDistribution dist = ion_formula.getIsotopeDistribution((Int)max_isotope);
+          Size j = 0;
           for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
           {            
             p_.setMZ(mz_pos + (DoubleReal)j * Constants::NEUTRON_MASS_U / charge);
@@ -905,11 +905,11 @@ namespace OpenMS
     {      
       while(feature_index<(Size)it->index)
       {
-        double tmp_value=0;
+        double tmp_value = 0;
         scaleSingleFeature_(tmp_value, lower, upper, feature_min_[feature_index-1], feature_max_[feature_index-1]);
         if (tmp_value!=0)
         {
-          svm_node tmp_node={feature_index, tmp_value};
+          svm_node tmp_node = {(Int)feature_index, tmp_value};
           tmp_desc.push_back(tmp_node);
         }
         ++feature_index;
@@ -924,11 +924,11 @@ namespace OpenMS
 
     while(feature_index<=num_features)
     {
-      double tmp_value=0;            
+      double tmp_value = 0;            
       scaleSingleFeature_(tmp_value, lower, upper, feature_min_[feature_index-1], feature_max_[feature_index-1]);
-      if (tmp_value!=0)
+      if (tmp_value != 0)
       {
-        svm_node tmp_node={feature_index, tmp_value};
+        svm_node tmp_node={(Int)feature_index, tmp_value};
         tmp_desc.push_back(tmp_node);
       }
       ++feature_index;

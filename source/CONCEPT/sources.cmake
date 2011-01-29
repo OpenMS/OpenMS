@@ -12,6 +12,7 @@ LogConfigHandler.C
 ProgressLogger.C
 SingletonRegistry.C
 StreamHandler.C
+Types.C
 UniqueIdGenerator.C
 UniqueIdInterface.C
 UniqueIdIndexer.C

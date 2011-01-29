@@ -39,9 +39,10 @@ namespace OpenMS
  * A GridFeature can be stored in a HashGrid and points to a BaseFeature (Feature or ConsensusFeature). Used for QT feature grouping (see QTClusterFinder).
  */
 
-	class OPENMS_DLLAPI GridFeature : public GridElement
+	class OPENMS_DLLAPI GridFeature 
+		: public GridElement
 	{
-	private:
+		private:
 		/// Reference to the contained feature
 		const BaseFeature& feature_;
 

@@ -439,8 +439,14 @@ namespace OpenMS
 
 					// write header:
 					output.modifyStrings(false);
-					if (!no_ids) output << "#FEATURE" << "rt";
-					else output << "#rt";
+					if (!no_ids) 
+					{
+						output << "#FEATURE" << "rt";
+					}
+					else 
+					{
+						output << "#rt";
+					}
 					output << "mz" << "intensity";
 					if (!minimal)
 					{

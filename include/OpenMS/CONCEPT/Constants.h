@@ -73,7 +73,7 @@ namespace OpenMS
 		/**	Internal theshold for equality comparisons.
 				Default value is 1e-6.
 		*/
-		extern double EPSILON;
+		extern OPENMS_DLLAPI double EPSILON;
 		//@}
 			
 		/**	@name Chemical/physical constants.

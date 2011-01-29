@@ -102,19 +102,15 @@ namespace OpenMS
 		
 				/// Copy constructor
 				AreaIterator(const AreaIterator& rhs)
-					: is_end_(rhs.is_end_)
+					: first_(rhs.first_),
+					  current_scan_(rhs.current_scan_), 
+						end_scan_(rhs.end_scan_), 
+						current_peak_(rhs.current_peak_), 
+						end_peak_(rhs.end_peak_),
+						low_mz_(rhs.low_mz_), 
+						high_mz_(rhs.high_mz_),
+						is_end_(rhs.is_end_)
 				{
-	        // only copy iterators, if the assigned iterator is not the end iterator
-	        if (!is_end_)
-	        {
-						first_ = rhs.first_;	
-						current_scan_ = rhs.current_scan_;
-						end_scan_ = rhs.end_scan_;
-						current_peak_ = rhs.current_peak_;
-						end_peak_ = rhs.end_peak_;
-						low_mz_ = rhs.low_mz_;
-						high_mz_ = rhs.high_mz_;
-					}
 				}
 		
 				/// Assignment operator

@@ -139,12 +139,14 @@ namespace OpenMS
         throw Exception::ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,"MetaValue:elution_profile_***");
       }
       // check if values fit the experiment:
+			#ifdef OPENMS_ASSERTIONS
       const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
+      const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
+			#endif
       OPENMS_PRECONDITION(elution_bounds[0] < experiment.size(), "Elution profile out of bounds (left)");
       OPENMS_PRECONDITION(elution_bounds[2] < experiment.size(), "Elution profile out of bounds (right)");
       OPENMS_PRECONDITION(experiment[elution_bounds[0]].getRT() == elution_bounds[1], "Elution profile RT shifted (left)");
       OPENMS_PRECONDITION(experiment[elution_bounds[2]].getRT() == elution_bounds[3], "Elution profile RT shifted (right)");
-      const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
       OPENMS_PRECONDITION(elution_bounds[2] - elution_bounds[0] + 1 == elution_ints.size(), "Elution profile size does not match bounds");
     }
 

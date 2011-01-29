@@ -87,6 +87,16 @@ namespace OpenMS
 			// identify 
 			switch (QSysInfo::MacintoshVersion)
 			{
+				case QSysInfo::MV_10_2: 
+				{
+					info.os_version = "10.2";
+					break;
+				}
+				case QSysInfo::MV_10_3: 
+				{
+					info.os_version = "10.3";
+					break;
+				}
 				case QSysInfo::MV_10_4: 
 				{
 					info.os_version = "10.4";
@@ -102,6 +112,10 @@ namespace OpenMS
 					info.os_version = "10.6";
 					break;
 				}
+				default:
+				{
+					info.os_version = "unsupported";
+				}				
 			}
 
 			// identify architecture

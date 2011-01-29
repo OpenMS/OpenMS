@@ -191,7 +191,7 @@ class TOPPConsensusID
 							{
 								PeptideHit hit = *pit;
 								vector<PeptideHit>::const_iterator tip=pit+1;
-								if(hit.getSequence().size()>=min_length)
+								if (hit.getSequence().size()>=min_length)
 								{
 									if (hit.metaValueExists("scoring"))
 									{
@@ -199,7 +199,7 @@ class TOPPConsensusID
 									}
 									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
 									hits.push_back(hit);
-									if(!use_all_hits || pit->getScore() > 0.98)
+									if (!use_all_hits || pit->getScore() > 0.98)
 									{
 										break;
 									}
@@ -216,34 +216,32 @@ class TOPPConsensusID
 						tmp.rt = rt;
 						vector<PeptideHit> hits;
 						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+						{
+							PeptideHit hit = *pit;
+							vector<PeptideHit>::const_iterator tip=pit+1;
+							if (hit.getSequence().size()>=min_length)
 							{
-								PeptideHit hit = *pit;
-								DoubleReal h=t.getHits()[0].getScore();
-								vector<PeptideHit>::const_iterator tip=pit+1;
-								if(hit.getSequence().size()>=min_length)
+								if (hit.metaValueExists("scoring"))
 								{
-									if (hit.metaValueExists("scoring"))
-									{
-										String meta_value = (String)hit.getMetaValue("scoring");
-									}
-									hit.setMetaValue("scoring", pep_id_it->getIdentifier());
-									hits.push_back(hit);
-									if(!use_all_hits || pit->getScore() > 0.98)
-									{
-										break;
-									}
+									String meta_value = (String)hit.getMetaValue("scoring");
 								}
-      				}
+								hit.setMetaValue("scoring", pep_id_it->getIdentifier());
+								hits.push_back(hit);
+								if (!use_all_hits || pit->getScore() > 0.98)
+								{
+									break;
+								}
+							}
+     				}
 						t.setHits(hits);
 						tmp.ids.push_back(t);
 						prec_data.push_back(tmp);
 						writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
 					}
-
 				}
 				//iterate over prec_data and write to final only one peptide identification per rt mz
 
-				for(vector<IDData>::iterator fin = prec_data.begin(); fin != prec_data.end(); ++fin)
+				for (vector<IDData>::iterator fin = prec_data.begin(); fin != prec_data.end(); ++fin)
 				{
 					IDData tmp;
 					tmp.mz=fin->mz;
@@ -251,7 +249,7 @@ class TOPPConsensusID
 					PeptideIdentification t;
 					vector<PeptideHit> P;
 
-					for(vector<PeptideIdentification>::iterator tt = fin->ids.begin(); tt != fin->ids.end(); ++tt)
+					for (vector<PeptideIdentification>::iterator tt = fin->ids.begin(); tt != fin->ids.end(); ++tt)
 					{
 						for (vector<PeptideHit>::const_iterator pit = tt->getHits().begin(); pit != tt->getHits().end();++pit)
 							{

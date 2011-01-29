@@ -1,8 +1,8 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,44 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: Steffen Sass, Hendrik Weisser $
+// $Maintainer: Oliver Kohlbacher $
+// $Authors: Oliver Kohlbacher $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/GridFeature.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
-
-	GridFeature::GridFeature(const BaseFeature& feature, Size map_index,
-													 Size feature_index) : 
-		GridElement(feature.getRT(), feature.getMZ()), feature_(feature),
-		map_index_(map_index), feature_index_(feature_index)
+	namespace Internal
 	{
+		const char* OpenMS_locale = setlocale(LC_ALL, "C");
 	}
-
-	GridFeature::~GridFeature()
-	{
-	}
-
-	const BaseFeature& GridFeature::getFeature() const
-	{
-		return feature_;
-	}
-
-	Size GridFeature::getMapIndex()
-	{
-		return map_index_;
-	}
-
-	Size GridFeature::getFeatureIndex()
-	{
-		return feature_index_;
-	}
-
-	Int GridFeature::getID()
-	{
-		return (Int)feature_index_;
-	}
-
 }

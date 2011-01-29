@@ -416,7 +416,7 @@ namespace OpenMS
 		size_t left = pretty.find(context_left);
 		left+=sizeof(context_left);
 		size_t right = pretty.rfind(context_right);
-		if ( right <= left ) return pretty; // oops!
+		if (right <= left) return pretty; // oops!
 		return pretty.substr(left, right-left);
 #endif
 	}
@@ -428,7 +428,7 @@ namespace OpenMS
         locale settings (this overwrites the
         locale setting of the environment!)
     */
-    static const char* OpenMS_locale = setlocale(LC_ALL, "C");
+    extern OPENMS_DLLAPI const char* OpenMS_locale;
   }
 
 } // namespace OpenMS

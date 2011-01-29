@@ -152,16 +152,14 @@ namespace OpenMS
     ////
     ContainerType peak_shape_values_y;
     // fill a container with CoordinateType points (x values)
-    CoordinateType peak_width;
+    CoordinateType peak_width = 0.0;
     if (param_.getValue("isotope:mode:mode") == "Gaussian")
     {
       // Actual width for values in the smooth table for normal distribution
       peak_width = isotope_stdev_ * 4.0;  // MAGIC alert, num stdev for smooth table for normal distribution
       ContainerType peak_shape_values_x;
-      for ( DoubleReal coord = -peak_width;
-        coord <= peak_width;
-        coord += interpolation_step_
-        )
+      for (DoubleReal coord = -peak_width;	coord <= peak_width;
+        coord += interpolation_step_)
       {
         peak_shape_values_x.push_back(coord);
       }
@@ -176,10 +174,8 @@ namespace OpenMS
     {
       ContainerType peak_shape_values_x;
       peak_width = isotope_lorentz_fwhm_* 15.0; // MAGIC alert: Lorentzian has infinite support, but we need to stop sampling at some point: 15*FWHM
-      for ( DoubleReal coord = -peak_width;
-        coord <= peak_width;
-        coord += interpolation_step_
-        )
+      for (DoubleReal coord = -peak_width; coord <= peak_width;
+        coord += interpolation_step_)
       {
         peak_shape_values_y.push_back(gsl_ran_cauchy_pdf(coord, isotope_lorentz_fwhm_));
       }
