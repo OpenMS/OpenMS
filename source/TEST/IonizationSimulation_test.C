@@ -29,6 +29,9 @@
 
 ///////////////////////////
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
 ///////////////////////////
 
 using namespace OpenMS;
@@ -42,6 +45,11 @@ START_TEST(IonizationSimulation, "$Id$")
 IonizationSimulation* ptr = 0;
 const unsigned long rnd_gen_seed = 1;
 SimRandomNumberGenerator empty_rnd_gen;
+
+#ifdef _OPENMP
+omp_set_num_threads(1);
+#endif
+
 
 START_SECTION(IonizationSimulation())
 {
@@ -126,47 +134,49 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 	MSSimExperiment exp;
 	MSSimExperiment::SpectrumType spec;
 	exp.push_back(spec);
+
   esi_sim.ionize(esi_features, cm, exp);
     
   TEST_EQUAL(esi_features.size(), 24)
-  
-  TEST_EQUAL(esi_features[0].getCharge(), 1)
-  TEST_EQUAL(esi_features[0].getIntensity(), 7)
+  ABORT_IF(esi_features.size()!=24)
 
-  TEST_EQUAL(esi_features[1].getCharge(), 2)
+  TEST_EQUAL(esi_features[0].getCharge(), 1)
+  TEST_EQUAL(esi_features[0].getIntensity(), 8)
+
+  TEST_EQUAL(esi_features[1].getCharge(), 1)
   TEST_EQUAL(esi_features[1].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[2].getCharge(), 1)
-  TEST_EQUAL(esi_features[2].getIntensity(), 1)
+  TEST_EQUAL(esi_features[2].getCharge(), 5)
+  TEST_EQUAL(esi_features[2].getIntensity(), 2)
 
-  TEST_EQUAL(esi_features[3].getCharge(), 5)
-  TEST_EQUAL(esi_features[3].getIntensity(), 2)
+  TEST_EQUAL(esi_features[3].getCharge(), 7)
+  TEST_EQUAL(esi_features[3].getIntensity(), 1)
   
-  TEST_EQUAL(esi_features[4].getCharge(), 4)
-  TEST_EQUAL(esi_features[4].getIntensity(), 2)
+  TEST_EQUAL(esi_features[4].getCharge(), 6)
+  TEST_EQUAL(esi_features[4].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[5].getCharge(), 7)
+  TEST_EQUAL(esi_features[5].getCharge(), 6)
   TEST_EQUAL(esi_features[5].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[6].getCharge(), 7)
+  TEST_EQUAL(esi_features[6].getCharge(), 5)
   TEST_EQUAL(esi_features[6].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[7].getCharge(), 6)
+  TEST_EQUAL(esi_features[7].getCharge(), 5)
   TEST_EQUAL(esi_features[7].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[8].getCharge(), 6)
+  TEST_EQUAL(esi_features[8].getCharge(), 4)
   TEST_EQUAL(esi_features[8].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[9].getCharge(), 5)
-  TEST_EQUAL(esi_features[9].getIntensity(), 1)
+  TEST_EQUAL(esi_features[9].getCharge(), 3)
+  TEST_EQUAL(esi_features[9].getIntensity(), 2)
 
   TEST_EQUAL(esi_features[10].getCharge(), 3)
-  TEST_EQUAL(esi_features[10].getIntensity(), 4)
+  TEST_EQUAL(esi_features[10].getIntensity(), 2)
 
   TEST_EQUAL(esi_features[11].getCharge(), 2)
   TEST_EQUAL(esi_features[11].getIntensity(), 2)
   
-  TEST_EQUAL(esi_features[12].getCharge(), 3)
+  TEST_EQUAL(esi_features[12].getCharge(), 4)
   TEST_EQUAL(esi_features[12].getIntensity(), 1)
 
   TEST_EQUAL(esi_features[13].getCharge(), 3)
@@ -178,22 +188,22 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   TEST_EQUAL(esi_features[15].getCharge(), 1)
   TEST_EQUAL(esi_features[15].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[16].getCharge(), 3)
+  TEST_EQUAL(esi_features[16].getCharge(), 5)
   TEST_EQUAL(esi_features[16].getIntensity(), 2)
 
-	TEST_EQUAL(esi_features[17].getCharge(), 5)
-  TEST_EQUAL(esi_features[17].getIntensity(), 1)
+	TEST_EQUAL(esi_features[17].getCharge(), 3)
+  TEST_EQUAL(esi_features[17].getIntensity(), 2)
 
-  TEST_EQUAL(esi_features[18].getCharge(), 4)
+  TEST_EQUAL(esi_features[18].getCharge(), 5)
   TEST_EQUAL(esi_features[18].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[19].getCharge(), 4)
+  TEST_EQUAL(esi_features[19].getCharge(), 5)
   TEST_EQUAL(esi_features[19].getIntensity(), 1)
 
   TEST_EQUAL(esi_features[20].getCharge(), 4)
   TEST_EQUAL(esi_features[20].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[21].getCharge(), 3)
+  TEST_EQUAL(esi_features[21].getCharge(), 4)
   TEST_EQUAL(esi_features[21].getIntensity(), 1)
 
   TEST_EQUAL(esi_features[22].getCharge(), 3)

@@ -69,6 +69,31 @@ START_TEST(LogStream, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION(([EXTRA] OpenMP - test))
+{
+  // just see if this crashes with OpenMP
+  ostringstream stream_by_logger;
+  Log_debug.insert(stream_by_logger);
+  Log_info.insert(stream_by_logger);
+
+#ifdef _OPENMP
+omp_set_num_threads(8);
+#pragma omp parallel
+#endif
+  {
+    for (int i=0;i<10000;++i)
+    {
+      LOG_DEBUG << "1\n";
+      LOG_DEBUG << "2" << endl;
+      LOG_INFO << "1\n";
+      LOG_INFO << "2" << endl;
+    }
+  }
+
+  NOT_TESTABLE;
+}
+END_SECTION
+
 START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream* stream))
 {
   LogStream* l1 = 0;
@@ -468,30 +493,6 @@ START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
 END_SECTION
 
 
-START_SECTION(([EXTRA] OpenMP - test))
-{
-  // just see if this crashes with OpenMP
-  ostringstream stream_by_logger;
-  Log_debug.insert(stream_by_logger);
-  Log_info.insert(stream_by_logger);
-
-#ifdef _OPENMP
-omp_set_num_threads(3);
-#pragma omp parallel
-#endif
-  {
-    for (int i=0;i<1000;++i)
-    {
-      LOG_DEBUG << "1\n";
-      LOG_DEBUG << "2" << endl;
-      LOG_INFO << "1\n";
-      LOG_INFO << "2" << endl;
-    }
-  }
-
-  NOT_TESTABLE;
-}
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

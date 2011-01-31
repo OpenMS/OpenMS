@@ -1244,7 +1244,7 @@ namespace OpenMS
     {
       message += " [valid: " + StringList(p.valid_strings).concatenate(", ") + "]";
     }
-		if (p.required && getParam_(name).isEmpty())
+		if (p.required && (getParam_(name).isEmpty() || getParam_(name)==""))
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, message);
 		}

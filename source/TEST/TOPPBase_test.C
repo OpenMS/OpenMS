@@ -369,7 +369,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getStringOption("imleeewenit"));
 
 	//missing required parameters
-	const char* string_cl2[2] = {a1, a11};
+	const char* string_cl2[2] = {a1, a11}; // TOPPBaseTest -flag
 	TOPPBaseTestNOP tmp8(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
 
