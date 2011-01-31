@@ -81,6 +81,9 @@ foreach(i ${TEST_executables})
 	add_executable(${i} ${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+  if (OPENMP_FOUND AND NOT MSVC)
+		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+	endif()  
 endforeach(i)
 
 ## GUI tests special treatment
@@ -97,6 +100,9 @@ foreach(i ${GUI_executables_list})
 	add_executable(${i} GUI/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+  if (OPENMP_FOUND AND NOT MSVC)
+		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+	endif()  
 endforeach(i)
 
 ### GUI tests
