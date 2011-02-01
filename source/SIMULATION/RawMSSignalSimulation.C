@@ -984,7 +984,7 @@ namespace OpenMS {
     std::vector<SimCoordinateType> grid;
     getSamplingGrid_(grid, min_mz, max_mz, 5); // one Da more, to ensure we can walk the grid savely below
 
-    Size point_count_before = 0, point_count_after = 0;
+    Size point_count_before = 1, point_count_after = 0;
     SimPointType p;
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
