@@ -93,7 +93,7 @@ namespace OpenMS
 #pragma omp critical
 #endif
     {
-      clearCache_();
+      clearCache();
 		  if (incomplete_line_.size()>0) distribute_(incomplete_line_);
 		  delete [] pbuf_;
     }
@@ -212,7 +212,7 @@ namespace OpenMS
   }
 
 
-  void LogStreamBuf::clearCache_() 
+  void LogStreamBuf::clearCache()
   {
     // if there are any streams in our list, we
     // copy the line into that streams, too and flush them
@@ -227,6 +227,9 @@ namespace OpenMS
         distribute_(stream.str());
       }
     }
+    // remove all entries from cache
+    log_cache_.clear();
+    log_time_cache_.clear();
   }
 
 	int LogStreamBuf::sync() 

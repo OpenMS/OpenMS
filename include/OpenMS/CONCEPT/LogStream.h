@@ -193,6 +193,12 @@ namespace OpenMS
 			}
 		};
 
+    /**
+     * Checks if some of the cached entries where sent more then once
+     * to the LogStream and (if necessary) prints a corresponding messages
+     * into all affected Logs
+     */
+    void clearCache();
 
 		protected:
 		
@@ -250,12 +256,6 @@ namespace OpenMS
      */
     Size getNextLogCounter_();
 
-    /**
-     * Checks if some of the cached entries where sent more then once
-     * to the LogStream and (if necessary) prints a corresponding messages
-     * into all affected Logs
-     */
-    void clearCache_();
 		//@}
 
 	};
