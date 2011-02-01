@@ -134,7 +134,7 @@ namespace OpenMS {
     defaults_.setValue("resolution:type","linear","How does resolution change with increasing m/z?! QTOFs usually show 'constant' behaviour, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass.");
     defaults_.setValidStrings("resolution:type", StringList::create("constant,linear,sqrt"));
     
-    defaults_.setValue("peak_shape","Gaussian","Peak Shape used around each isotope peak.");
+    defaults_.setValue("peak_shape","Gaussian","Peak Shape used around each isotope peak (be aware that the area under the curve is constant for both types, but the maximal height will differ (~ 2:3 = Lorentz:Gaussian) due to the wider base of the Lorentzian.");
     defaults_.setValidStrings("peak_shape", StringList::create("Gaussian,Lorentzian"));
 
 

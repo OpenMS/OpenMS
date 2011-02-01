@@ -54,7 +54,7 @@ namespace OpenMS
     
     defaults_.setValue("isotope:mode:mode","Gaussian","Peak Shape used around each isotope peak.", StringList::create("advanced"));
     defaults_.setValidStrings("isotope:mode:mode", StringList::create("Gaussian,Lorentzian"));
-    defaults_.setValue("isotope:mode:LorentzFWHM",0.3,"Width of the Lorentzian (Cauchy) function applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
+    defaults_.setValue("isotope:mode:LorentzFWHM",0.3,"Full width of the Lorentzian (Cauchy) function applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
 		defaults_.setValue("isotope:mode:GaussianSD",0.1,"Standard deviation of Gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
 		
 
@@ -172,12 +172,11 @@ namespace OpenMS
     }
     else if (param_.getValue("isotope:mode:mode") == "Lorentzian")
     {
-      ContainerType peak_shape_values_x;
-      peak_width = isotope_lorentz_fwhm_* 15.0; // MAGIC alert: Lorentzian has infinite support, but we need to stop sampling at some point: 15*FWHM
+      peak_width = isotope_lorentz_fwhm_* 8.0; // MAGIC alert: Lorentzian has infinite support, but we need to stop sampling at some point: 8*FWHM
       for (DoubleReal coord = -peak_width; coord <= peak_width;
         coord += interpolation_step_)
       {
-        peak_shape_values_y.push_back(gsl_ran_cauchy_pdf(coord, isotope_lorentz_fwhm_));
+        peak_shape_values_y.push_back(gsl_ran_cauchy_pdf(coord, isotope_lorentz_fwhm_/2.0)); //cauchy is using HWHM not FWHM
       }
     }
 
@@ -212,7 +211,6 @@ namespace OpenMS
     // scale data so that integral over distribution equals one
     // multiply sum by interpolation_step_ -> rectangular approximation of integral
 		IntensityType factor = scaling_ / ( interpolation_step_ * std::accumulate(result.begin(), result.end(), IntensityType(0)) );
-
     for ( ContainerType::iterator iter = result.begin(); iter != result.end(); ++iter)
     {
       *iter *= factor;
