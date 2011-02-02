@@ -1014,9 +1014,9 @@ namespace OpenMS
 		DoubleReal intensity_max = 0.0;
 		DoubleReal intensity_sum = 0.0;
 
-	  float prec = 0.05f;
-		float mult = 1.0/prec;
-
+	  // divide visible range into 100 bins (much faster than using a constant, e.g. 0.05, leading to many peaks for large maps without more information)
+    float range = visible_area_.maxPosition()[0] - visible_area_.minPosition()[0];
+    float mult = 100.0f/(range<=0 ? 1 : range); 
 
     for (ExperimentType::ConstAreaIterator i = layer->getPeakData()->areaBeginConst(visible_area_.minPosition()[1],visible_area_.maxPosition()[1],visible_area_.minPosition()[0],visible_area_.maxPosition()[0]);
          i != layer->getPeakData()->areaEndConst();
