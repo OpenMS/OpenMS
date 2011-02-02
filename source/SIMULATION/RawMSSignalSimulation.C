@@ -444,6 +444,8 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::add1DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
+    SimIntensityType scale = getFeatureScaledIntensity_(active_feature.getIntensity(), 100.0);
+
     SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     ef += active_feature.getMetaValue("charge_adducts"); // adducts
@@ -454,7 +456,7 @@ namespace OpenMS {
     p1.setValue("statistics:mean", ef.getAverageWeight() / q);		
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:mode:mode", param_.getValue("peak_shape"));
-		p1.setValue("intensity_scaling",  0.001); // this removes the problem of to big isotope-model values   
+    p1.setValue("intensity_scaling",  0.001 * scale); // this removes the problem of to big isotope-model values
     p1.setValue("charge", q);
     DoubleReal fwhm;
     if (param_.getValue("peak_shape") == "Gaussian")
@@ -984,10 +986,11 @@ namespace OpenMS {
     std::vector<SimCoordinateType> grid;
     getSamplingGrid_(grid, min_mz, max_mz, 5); // one Da more, to ensure we can walk the grid savely below
 
-    Size point_count_before = 1, point_count_after = 0;
+    Size point_count_before = 0, point_count_after = 0;
     SimPointType p;
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
+      if (experiment[i].size()<=1) continue;
       experiment[i].sortByPosition();
       
 			// copy Spectrum and remove Peaks ..
@@ -1038,7 +1041,14 @@ namespace OpenMS {
       point_count_after += experiment[i].size();
     }
 
-    LOG_INFO << "  Compressing data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
+    if(point_count_before != 0)
+    {
+      LOG_INFO << "  Compressing data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
+    }
+    else
+    {
+      LOG_INFO << "  Not enough points in map .. did not compress!\n";
+    }
 
     return;
   }
