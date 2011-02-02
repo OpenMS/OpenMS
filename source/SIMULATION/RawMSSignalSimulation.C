@@ -988,8 +988,6 @@ namespace OpenMS {
     SimPointType p;
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
-      if (experiment.size()<=1) continue;
-
       experiment[i].sortByPosition();
       
 			// copy Spectrum and remove Peaks ..
