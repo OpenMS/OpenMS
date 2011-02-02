@@ -137,8 +137,8 @@ namespace OpenMS {
     defaults_.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1") , "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
     
     // maximal size of map in mz dimension
-    defaults_.setValue("mz:upper_measurement_limit",2500.0,"Upper m/z detecter limit.");
-    defaults_.setValue("mz:lower_measurement_limit",200.0,"Lower m/z detecter limit.");
+    defaults_.setValue("mz:upper_measurement_limit",2500.0,"Upper m/z detector limit.");
+    defaults_.setValue("mz:lower_measurement_limit",200.0,"Lower m/z detector limit.");
     
     defaultsToParam_();
   }
