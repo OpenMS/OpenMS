@@ -73,7 +73,8 @@ namespace OpenMS
 		tmp.toUpper();
     if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
 		{
-			return getTypeByContent(filename);
+      // no not use getTypeByContent() here, as this is deadly for output files!
+      return getTypeByFileName(filename.prefix(filename.size()-tmp.size()-1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
 		}
 
     return nameToType(tmp);
