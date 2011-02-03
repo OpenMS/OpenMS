@@ -137,8 +137,10 @@ namespace OpenMS {
     defaults_.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1") , "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
     
     // maximal size of map in mz dimension
-    defaults_.setValue("mz:upper_measurement_limit",2500.0,"Upper m/z detector limit.");
     defaults_.setValue("mz:lower_measurement_limit",200.0,"Lower m/z detector limit.");
+    defaults_.setMinFloat("mz:lower_measurement_limit",0.0);
+    defaults_.setValue("mz:upper_measurement_limit",2500.0,"Upper m/z detector limit.");
+    defaults_.setMinFloat("mz:upper_measurement_limit",0.0);
     
     defaultsToParam_();
   }
@@ -202,7 +204,12 @@ namespace OpenMS {
     // detector ranges
     maximal_mz_measurement_limit_ = param_.getValue("mz:upper_measurement_limit");
     minimal_mz_measurement_limit_ = param_.getValue("mz:lower_measurement_limit");
-    
+
+    if (minimal_mz_measurement_limit_ > maximal_mz_measurement_limit_)
+    {
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "m/z measurement limits do not define a valid interval!");
+    }
+
   }
   
   void IonizationSimulation::ionizeEsi_(FeatureMapSim & features, ConsensusMap & charge_consensus)

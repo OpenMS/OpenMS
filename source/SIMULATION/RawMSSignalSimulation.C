@@ -432,8 +432,9 @@ namespace OpenMS {
 
   OpenMS::DoubleReal RawMSSignalSimulation::getPeakWidth_( const DoubleReal mz, const bool is_gaussian ) const
   {
+    DoubleReal mz_local = std::max(mz, 400.0); // at least assume m/z=400, as otherwise FWHM might get redicously small
     // convert from resolution @ current m/z --> FWHM
-    DoubleReal fwhm = mz / getResolution_(mz, res_base_, res_model_);
+    DoubleReal fwhm = mz_local / getResolution_(mz_local, res_base_, res_model_);
     // Approximation for Gaussian-shaped signals,
     // i.e. sqrt(2*ln(2))*2 = 2.35482
     // , relating FWHM to Gaussian width
@@ -843,8 +844,8 @@ namespace OpenMS {
       c_map.push_back(feature);
     }
 
-    LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range_RT << " / " << contaminants_.size() << "\n";
-    LOG_INFO << "Contaminants out-of-MZ-range: " << out_of_range_MZ << " / " << contaminants_.size() << "\n";
+    LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range_RT << " / " << contaminants_.size() << std::endl;
+    LOG_INFO << "Contaminants out-of-MZ-range: " << out_of_range_MZ << " / " << contaminants_.size() << std::endl;
 
   }
 
@@ -981,44 +982,73 @@ namespace OpenMS {
     {
       throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
-    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
-    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
-    std::vector<SimCoordinateType> grid;
-    getSamplingGrid_(grid, min_mz, max_mz, 5); // one Da more, to ensure we can walk the grid savely below
-
-    Size point_count_before = 0, point_count_after = 0;
-    SimPointType p;
+    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;  // swapped starting positions
+    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;// ... adjusting borders with actual data
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
       if (experiment[i].size()<=1) continue;
       experiment[i].sortByPosition();
+      min_mz = std::min(min_mz, experiment[i].begin()->getMZ());
+      max_mz = std::max(max_mz, experiment[i].rbegin()->getMZ());
+    }
+    // prune with scan windows
+    min_mz = std::max(min_mz, experiment[0].getInstrumentSettings().getScanWindows()[0].begin);
+    max_mz = std::min(max_mz, experiment[0].getInstrumentSettings().getScanWindows()[0].end);
+
+    if (min_mz >= max_mz)
+    {
+      LOG_WARN << "No data to compress." << std::endl;
+      return;
+    }
+
+    typedef std::vector<SimCoordinateType>::iterator GridTypeIt;
+    std::vector<SimCoordinateType> grid;
+    getSamplingGrid_(grid, min_mz, max_mz, 5); // every 5 Da we adjust the sampling width by local FWHM
+
+    Size point_count_before(0), point_count_after(0);
+    SimPointType p;
+    for( Size i = 0 ; i < experiment.size() ; ++i )
+    {
+      if (experiment[i].size()<=1) continue;
       
 			// copy Spectrum and remove Peaks ..
 			MSSimExperiment::SpectrumType cont = experiment[i];
 			cont.clear(false);
 				
-      Size grid_pos(0);
-      Size grid_pos_next(1);
+      GridTypeIt grid_pos = grid.begin();
+      GridTypeIt grid_pos_next(grid_pos+1);
 
       DoubleReal int_sum(0);
       bool break_scan(false);
       // match points to closest grid point
-			for ( Size j = 0 ; j < experiment[i].size(); ++j )
-			{
-        while (fabs(grid[grid_pos_next]-experiment[i][j].getMZ()) < fabs(grid[grid_pos]-experiment[i][j].getMZ()))
+		  for ( Size j = 0 ; j < experiment[i].size(); ++j )
+		  {
+        Size advance_by_binary_search = 3;
+        while (fabs((*grid_pos_next)-experiment[i][j].getMZ()) < fabs((*grid_pos)-experiment[i][j].getMZ()))
         {
           if (int_sum>0) // we collected some points before --> save them
           { 
             p.setIntensity(int_sum);
-            p.setMZ( grid[grid_pos] );
-					  cont.push_back(p);
+            p.setMZ( *grid_pos );
+				    cont.push_back(p);
             int_sum=0; // reset
           }
+          
+          if (--advance_by_binary_search==0)
+          {
+            // advance using binary search
+            grid_pos_next = std::lower_bound(grid_pos, grid.end(), experiment[i][j].getMZ());
+            grid_pos = grid_pos_next-1; // this should always work, since we ran at least 3 steps forward before
+            advance_by_binary_search=10; // just so we do not run into here again
+          }
+          else
+          {
+            // advance to next grid element
+            ++grid_pos; 
+            ++grid_pos_next;
+          }
 
-          ++grid_pos; // advance to next grid element
-          ++grid_pos_next;
-
-          if (grid_pos_next>= grid.size())
+          if (grid_pos_next == grid.end())
           {
             break_scan = true;
             break;
@@ -1027,13 +1057,13 @@ namespace OpenMS {
         if (break_scan) break; // skip remaining points of the scan (we reached the end of the grid)
 
         int_sum += experiment[i][j].getIntensity();
-			}
+		  }
 				
       if (int_sum>0)// don't forget the last one
       { 
         p.setIntensity(int_sum);
-        p.setMZ( grid[grid_pos] );
-				cont.push_back(p);
+        p.setMZ( *grid_pos );
+			  cont.push_back(p);
       }
 
       point_count_before += experiment[i].size(); // stats
