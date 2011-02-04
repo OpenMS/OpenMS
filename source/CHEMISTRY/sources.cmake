@@ -22,6 +22,8 @@ ResidueModification.C
 TheoreticalSpectrumGenerator.C
 AdvancedTheoreticalSpectrumGenerator.C
 SvmTheoreticalSpectrumGenerator.C
+SvmTheoreticalSpectrumGeneratorTrainer.C
+SvmTheoreticalSpectrumGeneratorSet.C
 TrypticIterator.C
 WeightWrapper.C
 )
