@@ -295,6 +295,8 @@ set(chemistry_executables_list
   ResidueDB_test
   ResidueModification_test
   Residue_test
+  SvmTheoreticalSpectrumGenerator_test
+  SvmTheoreticalSpectrumGeneratorSet_test
   TheoreticalSpectrumGenerator_test
   TrypticIterator_test
 )
