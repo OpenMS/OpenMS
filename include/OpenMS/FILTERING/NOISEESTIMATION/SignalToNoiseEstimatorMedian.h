@@ -31,6 +31,7 @@
 
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <vector>
 
@@ -356,7 +357,7 @@ namespace OpenMS
       // warn if percentage of sparse windows is above 20%
       if (sparse_window_percent > 20) 
       {
-        std::cerr << "WARNING in SignalToNoiseEstimatorMedian: " 
+        LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: " 
                  << sparse_window_percent 
                  << "% of all windows were sparse. You should consider increasing 'win_len' or decreasing 'min_required_elements'" 
                  << std::endl;
@@ -365,7 +366,7 @@ namespace OpenMS
       // warn if percentage of possibly wrong median estimates is above 1%
       if (histogram_oob_percent > 1) 
       {
-        std::cerr << "WARNING in SignalToNoiseEstimatorMedian: " 
+        LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: " 
                  << histogram_oob_percent 
                  << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. " 
                  << "You should consider increasing 'max_intensity' (and maybe 'bin_count' with it, to keep bin width reasonable)" 
