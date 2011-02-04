@@ -101,7 +101,7 @@ START_SECTION((template < typename MapType > void mergeSpectraBlockWise(MapType 
 
 END_SECTION
 
-START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType &)))
+START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType &exp)))
 	PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_precursor.mzML"), exp);
 

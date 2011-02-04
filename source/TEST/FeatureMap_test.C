@@ -528,7 +528,7 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 
 END_SECTION
 
-START_SECTION((void clear(bool clear_meta_data)))
+START_SECTION((void clear(bool clear_meta_data=true)))
   FeatureMap<> map1;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);

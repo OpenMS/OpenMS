@@ -132,13 +132,6 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 }
 END_SECTION
 
-START_SECTION((void run(const ConsensusMap &consensus_map_in, const std::vector< PeptideIdentification > &peptide_ids, const std::vector< ProteinIdentification > &protein_ids, ConsensusMap &consensus_map_out)))
-{
-	NOT_TESTABLE
-	//not implemented yet!
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

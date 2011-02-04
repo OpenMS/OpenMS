@@ -104,7 +104,8 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 				ProteinHit hit(*it);
 				DoubleReal fdr(hit.getScore());
 				DoubleReal orig_score((DoubleReal)hit.getMetaValue("XTandem_score"));
-
+        
+        // it gets here, but neither of the conditions below are ever satisfied
 				if (orig_score < -1.8)
 				{
 					TEST_REAL_SIMILAR(fdr, 0)
