@@ -107,7 +107,10 @@ namespace OpenMS
 		void checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
 													const MSExperiment<InputPeakType>&experiment);
 
-		void updateExclusionList_(std::vector<std::pair<Size,Size> >& exclusion_list);
+		template <typename T>
+		void updateExclusionList_(std::vector<std::pair<T,Size> >& exclusion_list);
+
+    void updateExclusionList_(std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list);
   };
 
 	template <typename InputPeakType>
@@ -243,7 +246,10 @@ namespace OpenMS
 																																					 std::set<Int>& charges_set,
 																																					 bool feature_based)
 	{
-	
+
+		const DoubleReal window = param_.getValue("selection_window");
+		const DoubleReal excl_window = param_.getValue("min_peak_distance");
+
 		// get the mass ranges for each features for each scan it occurs in
 		std::vector<std::vector<std::pair<Size,Size> > >  indices;
 		getMassRanges(features,experiment,indices);
@@ -252,13 +258,13 @@ namespace OpenMS
 		{
 			rt_dist = experiment[1].getRT()-experiment[0].getRT();
 		}
-		
+
 		// feature based selection (e.g. with LC-MALDI)
 		if(feature_based)
 		{
 			// create ILP
 			ILPWrapper ilp_wrapper;
-		
+
 			std::vector<IndexTriple> variable_indices;
 			std::vector<int> solution_indices;
 			ilp_wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(features, experiment,variable_indices,
@@ -285,7 +291,7 @@ namespace OpenMS
 				p.setCharge(features[feature_index].getCharge());
 				pcs.push_back(p);
 				ms2_spec.setPrecursors(pcs);
-				ms2_spec.setRT(scan->getRT()+rt_dist/2.);
+				ms2_spec.setRT(scan->getRT()+rt_dist/2.0);
 				ms2_spec.setMSLevel(2);
 				// link ms2 spectrum with features overlapping its precursor
 				// Warning: this depends on the current order of features in the map
@@ -293,7 +299,7 @@ namespace OpenMS
 				ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
 				ms2.push_back(ms2_spec);
 				std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
-			
+
 			}
 #ifdef DEBUG_OPS
 			std::cout << solution_indices.size() << " out of " << features.size()
@@ -305,71 +311,163 @@ namespace OpenMS
 #ifdef DEBUG_OPS
 			std::cout << "scan based precursor selection"<<std::endl;
 #endif
-			// if the highest signals for each scan shall be selected we don't need an ILP formulation
-			std::vector<std::vector<std::pair<Size,DoubleReal> > > xics;			
-			calculateXICs_(features,indices,experiment,charges_set,xics);
+			// if the highest signals for each scan shall be selected we don't need an ILP formulation			
+
+			//cache the values for each feature
+			std::vector<DoubleList>feature_elution_bounds;
+			std::vector<DoubleList>elution_profile_intensities;
+			std::vector<DoubleList>isotope_intensities;
+
+			bool meta_values_present = false;
+
+			if(!features.empty() &&
+				 features[0].metaValueExists("elution_profile_bounds") &&
+				 features[0].metaValueExists("elution_profile_intensities") &&
+				 features[0].metaValueExists("isotope_intensities"))
+			{
+				for(Size feat=0; feat<features.size(); ++feat)
+				{
+					feature_elution_bounds.push_back(features[feat].getMetaValue("elution_profile_bounds"));
+					elution_profile_intensities.push_back(features[feat].getMetaValue("elution_profile_intensities"));
+					isotope_intensities.push_back(features[feat].getMetaValue("isotope_intensities"));
+				}
+				meta_values_present=true;
+			}
+
+			//for each feature cache for which scans it has to be considered
+			std::vector<std::vector<Size> >scan_features(experiment.size());			
+
+			for(Size feat=0; feat<features.size(); ++feat)
+			{
+				if(charges_set.count(features[feat].getCharge()))
+				{
+					Size lower_rt = features[feat].getConvexHull().getBoundingBox().minX();
+					Size upper_rt = features[feat].getConvexHull().getBoundingBox().maxX();
+					typename MSExperiment<InputPeakType>::ConstIterator it;
+					for(it = experiment.RTBegin(lower_rt); it!=experiment.RTEnd(upper_rt); ++it)
+					{
+						scan_features[it-experiment.begin()].push_back(feat);
+					}
+				}
+			}
 
 			bool dynamic_exclusion = param_.getValue("use_dynamic_exclusion") == "true" ? true : false;
-			std::vector<std::pair<Size,Size> > exclusion_list;
+			std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > > exclusion_list;
 			Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("exclusion_time") /(DoubleReal) rt_dist));
+			if(!dynamic_exclusion)
+			{
+				//if the dynamic exclusion if not active we use the eclusion list to guarantee no two peaks within min_peak_distance are selected for single scan
+				exclusion_specs=0;
+			}
+
+			std::map<Size , typename OpenMS::DBoundingBox<2> >bounding_boxes_f;
+			std::map<std::pair<Size, Size> , typename OpenMS::DBoundingBox<2> >bounding_boxes;
+			for(Size feature_num=0; feature_num<features.size(); ++feature_num)
+			{
+				if(charges_set.count(features[feature_num].getCharge()))
+				{
+					bounding_boxes_f.insert(std::make_pair(feature_num, features[feature_num].getConvexHull().getBoundingBox()));
+					const std::vector<ConvexHull2D>mass_traces = features[feature_num].getConvexHulls();
+					for(Size mass_trace_num=0; mass_trace_num<mass_traces.size(); ++mass_trace_num)
+					{
+						typename OpenMS::DBoundingBox<2>tmp_bbox = mass_traces[mass_trace_num].getBoundingBox();
+						tmp_bbox.setMinY(tmp_bbox.minY()-window);
+						tmp_bbox.setMaxY(tmp_bbox.maxY()+window);
+						bounding_boxes.insert(std::make_pair(std::make_pair(feature_num, mass_trace_num), tmp_bbox));
+					}
+				}
+			}
+
+			Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
 			// get best x signals for each scan
 			for(Size i = 0; i < experiment.size();++i)
-			{
-				Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
+			{				
 #ifdef DEBUG_OPS
 				std::cout << "scan "<<experiment[i].getRT() << ":";
 #endif
-				if(dynamic_exclusion) updateExclusionList_(exclusion_list);
-				for(Size j = 0; j < xics[i].size() && j < max_spec; ++j)
+
+				std::cerr << "scan "<<i<<std::endl;
+
+				updateExclusionList_(exclusion_list);
+				MSSpectrum<InputPeakType> scan = experiment[i];
+				scan.sortByIntensity(true);
+				Size selected_peaks=0 , j=0;
+
+				while(selected_peaks < max_spec && j<scan.size())
 				{
-					if(dynamic_exclusion)
+					DoubleReal peak_mz = scan[j].getMZ();
+					DoubleReal peak_rt = scan.getRT();					
+
+					std::map<std::pair<DoubleReal, DoubleReal>, Size>::const_iterator it_low=exclusion_list.lower_bound(std::make_pair(peak_mz,peak_mz));
+					if(it_low!=exclusion_list.end() && it_low->first.first<=peak_mz)
 					{
-						// check if feature is currently dynamically excluded
-						bool exclude = false;
-						for(Size excl_idx = 0; excl_idx < exclusion_list.size();++excl_idx)
-						{
-					    if((xics[i].end()-1-j)->first == exclusion_list[excl_idx].first)
-						  {
-							  exclude = true;
-							  break;
-						  }
-						}
-						if(exclude)
-						{
-							++max_spec;
-							continue;
-						}
+						++j;
+						//std::cerr<<"excluded! "<<peak_mz<<"    "<<j-1<<"   "<<exclusion_list.size()<<std::endl;
+						continue;
 					}
+					++selected_peaks;
+
+					//find all features (mass traces that are in the window around peak_mz)
 					typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
-					Precursor p;
 					std::vector< Precursor > pcs;
-					p.setIntensity(features[(xics[i].end()-1-j)->first].getIntensity());
-					p.setMZ(features[(xics[i].end()-1-j)->first].getMZ());
-					p.setCharge(features[(xics[i].end()-1-j)->first].getCharge());
-					pcs.push_back(p);
-					ms2_spec.setPrecursors(pcs);
-					ms2_spec.setMSLevel(2);
-					ms2_spec.setRT(experiment[i].getRT() + (j+1)*rt_dist/(max_spec+1) );
-					ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String((xics[i].end()-1-j)->first)));
-					ms2.push_back(ms2_spec);
-					if(dynamic_exclusion)
+					std::set<std::pair<Size, Size> > selected_mt;
+					IntList parent_feature_ids;
+
+					DoubleReal local_mz = peak_mz;
+					//std::cerr<<"MZ pos: "<<local_mz<<std::endl;
+					for(Size scan_feat_id=0; scan_feat_id<scan_features[i].size(); ++scan_feat_id)
 					{
-						//add feature to exclusion list
-						std::pair<Size,Size> pair(std::make_pair((xics[i].end()-1-j)->first,exclusion_specs+1));
-						exclusion_list.push_back(pair);
+						Size feature_num = scan_features[i][scan_feat_id];
+						if(bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
+						{
+							//std::cerr<<"enclosing feature: "<<feature_num<<std::endl;
+
+							//find a mass trace enclosing the point
+							DoubleReal feature_intensity=0;
+							for(Size mass_trace_num=0; mass_trace_num<features[feature_num].getConvexHulls().size(); ++mass_trace_num)
+							{
+								if(bounding_boxes[std::make_pair(feature_num, mass_trace_num)].encloses(DPosition<2>(peak_rt, local_mz)))
+								{
+									//std::cerr<<"enclosing MT:    "<<feature_num<<"   "<<mass_trace_num<<std::endl;
+
+									DoubleReal elu_factor=1.0, iso_factor=1.0;
+									//get the intensity factor for the position in the elution profile
+									if (meta_values_present)
+									{
+										elu_factor = elution_profile_intensities[feature_num][i -feature_elution_bounds[feature_num][0]];
+										iso_factor = isotope_intensities[feature_num][mass_trace_num];
+									}
+									feature_intensity+=features[feature_num].getIntensity() * iso_factor * elu_factor;
+								}
+							}
+							Precursor p;
+							p.setIntensity(feature_intensity);
+							p.setMZ(features[feature_num].getMZ());
+							p.setCharge(features[feature_num].getCharge());
+							pcs.push_back(p);
+							parent_feature_ids.push_back(feature_num);
+						}
 					}
-					// link ms2 spectrum with features overlapping its precursor
-					// Warning: this depends on the current order of features in the map
-					// Attention: make sure to name ALL features that overlap, not only one!
-#ifdef DEBUG_OPS
-					std::cout << " MS2 spectra generated at: " << experiment[i].getRT() << " x " << p.getMZ()
-										<< " int: "<<(xics[i].end()-1-j)->second<< "\n";
-#endif
+
+					if(!pcs.empty())
+					{
+						//std::cerr<<"scan "<<i<<"  added spectrum for features:  "<<parent_feature_ids<<std::endl;
+						ms2_spec.setPrecursors(pcs);
+						ms2_spec.setMSLevel(2);						
+						ms2_spec.setRT(experiment[i].getRT() + rt_dist/2.0); //(selected_peaks+1)*rt_dist/(max_spec+1) );
+						ms2_spec.setMetaValue("parent_feature_ids", parent_feature_ids);
+						ms2.push_back(ms2_spec);
+					}
+
+					//add m/z window to exclusion list
+					exclusion_list.insert(std::make_pair(std::make_pair(peak_mz-excl_window, peak_mz+excl_window), exclusion_specs+1));
+
+					++j;
 				}
 			}
 		}
-
 	}
+
 
 	template <typename InputPeakType>		
 	void OfflinePrecursorIonSelection::checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
@@ -446,7 +544,32 @@ namespace OpenMS
 			}
 		mass_ranges.swap(checked_mass_ranges);
 	}
-	
+
+	template<typename T>
+	void OfflinePrecursorIonSelection::updateExclusionList_(std::vector<std::pair<T,Size> >& exclusion_list)
+	{
+		for(Size i = 0; i < exclusion_list.size();++i)
+			{
+				if(exclusion_list[i].second > 0) --exclusion_list[i].second;
+			}
+		sort(exclusion_list.begin(),exclusion_list.end(),PairComparatorSecondElementMore<std::pair<T,Size> >());
+		typename std::vector<std::pair<T,Size> >::iterator iter = exclusion_list.begin();
+		while(iter != exclusion_list.end() && iter->second != 0) ++iter;
+		exclusion_list.erase(iter,exclusion_list.end());
+	}
+
+	inline  void OfflinePrecursorIonSelection::updateExclusionList_(std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list)
+	{
+		std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
+		for(it=exclusion_list.begin(); it!=exclusion_list.end(); ++it)
+		{
+			if((it->second--)==1)
+			{
+				exclusion_list.erase(it);
+			}
+		}
+	}
+
 }
 
 #endif //  OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTION_H
