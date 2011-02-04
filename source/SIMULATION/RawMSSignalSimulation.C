@@ -681,7 +681,7 @@ namespace OpenMS {
     SimCoordinateType mz_mono = active_feature.getMZ();
     Int q = active_feature.getCharge();
 
-    StringList isotope_intensities;
+    DoubleList isotope_intensities;
     for (	IsotopeDistribution::iterator iter = iso_dist.begin();
           iter != iso_dist.end(); ++iter)
     {
@@ -717,7 +717,7 @@ namespace OpenMS {
   		hull.addPoints(points);
       active_feature.getConvexHulls().push_back(hull);
 
-      isotope_intensities.push_back(String(iter->second));
+      isotope_intensities.push_back(iter->second);
     }
 
     active_feature.setMetaValue("isotope_intensities", isotope_intensities);
