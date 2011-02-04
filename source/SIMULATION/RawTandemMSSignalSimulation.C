@@ -27,8 +27,9 @@
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
-#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorSet.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/SYSTEM/File.h>
 
 
 namespace OpenMS
@@ -58,7 +59,18 @@ namespace OpenMS
 		defaults_.setMinFloat("Precursor:exclusion_time",0.);
 		defaults_.setValue("MS_E:add_single_spectra","false","If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MS_E_debug_spectra' attached, so they can be filtered out. Full MS_E spectra will have 'MS_E_FullSpectrum' instead.");
 		defaults_.setValidStrings("MS_E:add_single_spectra", StringList::create("true,false"));
-		
+		defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
+		defaults_.setMinInt("tandem_mode",0);
+		defaults_.setMaxInt("tandem_mode",2);
+		defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.dat", "File containing the Filenames of SVM Models for different charge variants");
+
+    subsections_.push_back("TandemSim:");
+    defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
+    Param svm_par=SvmTheoreticalSpectrumGenerator().getDefaults();
+    svm_par.remove("svm_mode");
+    svm_par.remove("model_file_name");
+    defaults_.insert("TandemSim:SVM:", svm_par);
+
 		// sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
     defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
@@ -86,14 +98,40 @@ namespace OpenMS
   {}
 
   void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2)
-  {
-    SvmTheoreticalSpectrumGenerator svm_spec_gen;
-    Param p_gen =svm_spec_gen.getParameters();
-    p_gen.setValue("add_losses","true");
-    p_gen.setValue("add_isotopes","true"  );
-    svm_spec_gen.setParameters(p_gen);
+  {   
+    //get tandem mode
+    Size tandem_mode=param_.getValue("tandem_mode");
 
-    svm_spec_gen.load();
+    Param simple_gen_params=param_.copy("TandemSim:Simple:", true);
+
+    TheoreticalSpectrumGenerator simple_generator;
+    simple_generator.setParameters(simple_gen_params);
+
+    SvmTheoreticalSpectrumGeneratorSet svm_spec_gen_set;
+    //this set will hold the precursor charages that have an Svm model
+    std::set<Size>svm_model_charges;
+
+    //if SVR or SVC shall be used
+    if(tandem_mode)
+    {
+      String svm_filename = param_.getValue("svm_model_set_file");
+      if (!File::readable( svm_filename ) )
+      { // look in OPENMS_DATA_PATH
+        svm_filename = File::find( svm_filename );
+      }
+
+      svm_spec_gen_set.load(svm_filename);
+      svm_spec_gen_set.getSupportedCharges(svm_model_charges);
+
+      //set the parameters for each model
+      Param svm_gen_params=param_.copy("TandemSim:SVM:", true);
+      std::set<Size>::iterator it;
+      for(it=svm_model_charges.begin(); it!=svm_model_charges.end(); ++it)
+      {
+        svm_spec_gen_set.getSvmModel(*it).setParameters(svm_gen_params);
+      }
+    }
+
     Param p;
     p.setValue("block_method:rt_block_size", features.size()); // merge all single spectra
     p.setValue("block_method:ms_levels", IntList::create("2"));
@@ -115,14 +153,21 @@ namespace OpenMS
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
       RichPeakSpectrum tmp_spec;      
-      svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng,features[i_f].getCharge());            
-      std::cerr<<"Spectrum with prec charge: "<<features[i_f].getCharge()<<std::endl;
+      Size prec_charge=features[i_f].getCharge();
+
+      if(tandem_mode && svm_model_charges.count(prec_charge))
+      {
+        svm_spec_gen_set.simulate(tmp_spec, seq, rnd_gen_->biological_rng, prec_charge);        
+      }
+      else
+      {
+        simple_generator.getSpectrum(tmp_spec, seq, prec_charge);        
+      }
       for(Size peak=0; peak<tmp_spec.size(); ++peak)
       {
         Peak1D p=tmp_spec[peak];
         single_ms2_spectra[i_f].push_back(p);
-      }
-      std::cerr<<tmp_spec.size()<<std::endl;
+      }      
 
       single_ms2_spectra[i_f].setMSLevel(2);
       Precursor prec;
@@ -139,15 +184,17 @@ namespace OpenMS
         throw Exception::ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,"MetaValue:elution_profile_***");
       }
       // check if values fit the experiment:
-			#ifdef OPENMS_ASSERTIONS
+
+      #ifdef OPENMS_ASSERTIONS
       const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
       const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
-			#endif
+
       OPENMS_PRECONDITION(elution_bounds[0] < experiment.size(), "Elution profile out of bounds (left)");
       OPENMS_PRECONDITION(elution_bounds[2] < experiment.size(), "Elution profile out of bounds (right)");
       OPENMS_PRECONDITION(experiment[elution_bounds[0]].getRT() == elution_bounds[1], "Elution profile RT shifted (left)");
-      OPENMS_PRECONDITION(experiment[elution_bounds[2]].getRT() == elution_bounds[3], "Elution profile RT shifted (right)");
+      OPENMS_PRECONDITION(experiment[elution_bounds[2]].getRT() == elution_bounds[3], "Elution profile RT shifted (right)");      
       OPENMS_PRECONDITION(elution_bounds[2] - elution_bounds[0] + 1 == elution_ints.size(), "Elution profile size does not match bounds");
+      #endif
     }
 
     // creating the MS^E scan:
@@ -184,15 +231,10 @@ namespace OpenMS
         const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
         DoubleReal factor = elution_ints [i - elution_bounds[0] ];
         for (MSSimExperiment::SpectrumType::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
-        {
-          std::cerr<<"Old Intensity: "<<it->getIntensity()<<std::endl;
-          std::cerr<<"factor: "<<factor<<std::endl;
-          it->setIntensity(it->getIntensity() * factor * features[i_f].getIntensity());
-          std::cerr<<"New Intensity: "<<it->getIntensity()<<std::endl;
-          std::cerr<<"Feat Intensity: "<<features[i_f].getIntensity()*factor<<std::endl;
+        {          
+          it->setIntensity(it->getIntensity() * factor * features[i_f].getIntensity());          
         }
       }
-      
       
       // debug: also add single spectra
       if (add_debug_spectra)
@@ -227,34 +269,73 @@ namespace OpenMS
 		ps.setParameters(param);
 		// different selection strategies for MALDI and ESI
 		bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";
-    ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);
+		ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);
 
 		
 		//** actual MS2 signal **//
 		std::cout << "MS2 features selected: " << ms2.size() << "\n";
-		
-		SvmTheoreticalSpectrumGenerator svm_spec_gen;
-    svm_spec_gen.load();    
+
+    TheoreticalSpectrumGenerator simple_generator;
+    Param simple_gen_params=param_.copy("TandemSim:Simple:", true);
+    simple_generator.setParameters(simple_gen_params);
+
+    //get tandem mode
+    Size tandem_mode=param_.getValue("tandem_mode");
+
+    SvmTheoreticalSpectrumGeneratorSet svm_spec_gen_set;
+    //this set will hold the precursor charages that have an Svm model
+    std::set<Size>svm_model_charges;
+
+    if(tandem_mode)
+    {
+      String svm_filename = param_.getValue("svm_model_set_file");
+      if (!File::readable( svm_filename ) )
+      { // look in OPENMS_DATA_PATH
+        svm_filename = File::find( svm_filename );
+      }
+
+      svm_spec_gen_set.load(svm_filename);
+      svm_spec_gen_set.getSupportedCharges(svm_model_charges);
+
+      //set the parameters for each model
+      Param svm_gen_params=param_.copy("TandemSim:SVM:", true);
+      std::set<Size>::iterator it;
+      for(it=svm_model_charges.begin(); it!=svm_model_charges.end(); ++it)
+      {
+        svm_spec_gen_set.getSvmModel(*it).setParameters(svm_gen_params);
+      }
+    }
+
 		for (Size i = 0; i < ms2.size(); ++i)
     {
 		  IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
       DoubleReal prec_intens = ms2[i].getPrecursors()[0].getIntensity();
+      MSSimExperiment tmp_spectra;
 		  for(Size id =0; id<ids.size();++id)
 		  {
-		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
+		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();        
         RichPeakSpectrum tmp_spec;
         std::cerr<<"generate Spec for peptide: "<<seq<<std::endl;
-        svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
-        //TODO: work around RichPeak1D restriction
+        Size prec_charge=features[ids[id]].getCharge();
+
+        if(tandem_mode && svm_model_charges.count(prec_charge))
+        {
+          svm_spec_gen_set.simulate(tmp_spec, seq, rnd_gen_->biological_rng, prec_charge);
+        }
+        else
+        {
+          simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+        }
+        //svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
+        //TODO: work around RichPeak1D restriction        
         for(Size peak=0; peak<tmp_spec.size(); ++peak)
         {
           Peak1D p=tmp_spec[peak];
           p.setIntensity(p.getIntensity()*prec_intens);
           ms2[i].push_back(p);
         }
-        //adv_spec_gen.simulate(ms2[i], seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
-        // todo: rescale intensities! according to region within in the 2D Model of the feature
       }
+      ms2[i].sortByPosition();
     }
   }
 
