@@ -352,7 +352,8 @@ namespace OpenMS
 			}
 
 			bool dynamic_exclusion = param_.getValue("use_dynamic_exclusion") == "true" ? true : false;
-			std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > > exclusion_list;
+			typedef std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > > ExclusionListType;
+      ExclusionListType exclusion_list;
 			Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("exclusion_time") /(DoubleReal) rt_dist));
 			if(!dynamic_exclusion)
 			{
@@ -398,7 +399,7 @@ namespace OpenMS
 					DoubleReal peak_mz = scan[j].getMZ();
 					DoubleReal peak_rt = scan.getRT();					
 
-					std::map<std::pair<DoubleReal, DoubleReal>, Size>::const_iterator it_low=exclusion_list.lower_bound(std::make_pair(peak_mz,peak_mz));
+					ExclusionListType::iterator it_low=exclusion_list.lower_bound(std::make_pair(peak_mz,peak_mz));
 					if(it_low!=exclusion_list.end() && it_low->first.first<=peak_mz)
 					{
 						++j;
