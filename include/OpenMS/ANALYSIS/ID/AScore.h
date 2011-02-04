@@ -40,7 +40,7 @@ namespace OpenMS
 			
 		@todo Docu
 	*/
-	class AScore
+	class OPENMS_DLLAPI AScore
 	{
 		public:
 			///Default constructor
