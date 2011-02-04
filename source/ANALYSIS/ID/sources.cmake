@@ -3,6 +3,7 @@ set(directory source/ANALYSIS/ID)
 
 ### list all filenames of the directory here
 set(sources_list
+AScore.C
 ConsensusID.C
 FalseDiscoveryRate.C
 HiddenMarkovModel.C

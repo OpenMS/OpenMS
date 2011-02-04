@@ -38,6 +38,7 @@ MascotAdapter
 MascotAdapterOnline
 NoiseFilter
 OMSSAAdapter
+PhosphoScoring
 PILISIdentification
 PILISModel
 PTModel
