@@ -294,9 +294,6 @@ namespace OpenMS
       /// No default copy constructor.  It is "declared away".
       TOPPBase( const TOPPBase& );
 
-      /// Debug level
-      Int debug_level_;
-
       /// All parameters relevant to this invocation of the program.
       Param param_;
 
@@ -893,6 +890,10 @@ namespace OpenMS
 			
       /// width of console we are currently in (if not determinable, set to 80 as default)
       int console_width_;
+
+      /// Debug level set by -debug
+      Int debug_level_;
+
   };
 
 } // namespace OpenMS

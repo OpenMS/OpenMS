@@ -490,10 +490,20 @@ namespace OpenMS
 					//-----------------------------------------------------------
 					//Step 3.1: Precalculate IsotopePattern score
 					//-----------------------------------------------------------
-					ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+String(c));
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif
+          {
+            ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+String(c));
+          }
 					for (Size s=0; s<map_.size(); ++s)
 					{
-						ff_->setProgress(s);
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif
+            {
+  						ff_->setProgress(s);
+            }
 						const SpectrumType& spectrum = map_[s];
 						for (Size p=0; p<spectrum.size(); ++p)
 						{
@@ -526,18 +536,33 @@ namespace OpenMS
 							}
 						}
 					}
-					ff_->endProgress();
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif
+          {
+            ff_->endProgress();
+          }
 					//-----------------------------------------------------------
 					//Step 3.2:
 					//Find seeds for this charge
 					//-----------------------------------------------------------		
           Size end_of_iteration = map_.size() - std::min((Size) min_spectra_ , map_.size());
-          ff_->startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ")+String(c));
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif
+          {
+            ff_->startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ")+String(c));
+          }
 					DoubleReal min_seed_score = param_.getValue("seed:min_score");
           //do nothing for the first few and last few spectra as the scans required to search for traces are missing
           for (Size s=min_spectra_; s<end_of_iteration; ++s)
 					{
-						ff_->setProgress(s);
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif    
+            {
+						  ff_->setProgress(s);
+            }
 
 						//iterate over peaks
 						for (Size p=0; p<map_[s].size(); ++p)
@@ -605,21 +630,36 @@ namespace OpenMS
 						}
 						FeatureXMLFile().store(String("debug/seeds_")+String(c)+".featureXML", seed_map);
 					}
-					ff_->endProgress();
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif    
+          {
+            ff_->endProgress();
+          }
 					std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
 					
 					//------------------------------------------------------------------
 					//Step 3.3:
 					//Extension of seeds
 					//------------------------------------------------------------------
-					ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+String(c));
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif    
+          {
+            ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+String(c));
+          }
 					for (Size i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
 						//Step 3.3.1:
 						//Extend all mass traces
 						//------------------------------------------------------------------
-						ff_->setProgress(i);
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif    
+            {
+						  ff_->setProgress(i);
+            }
 						log_ << std::endl << "Seed " << i << ":" << std::endl;
 						//If the intensity is zero this seed is already uses in another feature
 						const SpectrumType& spectrum = map_[seeds[i].spectrum];
@@ -810,7 +850,6 @@ namespace OpenMS
 						  features_->push_back(f);
             }
 
-
 						feature_candidates++;
 						
 						//----------------------------------------------------------------
@@ -827,10 +866,16 @@ namespace OpenMS
 							}
 						}
 					}
-					ff_->endProgress();
+#ifdef _OPENMP
+if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
+#endif    
+          {
+            ff_->endProgress();
+          }
 					std::cout << "Found " << feature_candidates << " feature candidates for charge " << c << "." << std::endl;
 				}
-					
+				// END OPENMP
+
 				//------------------------------------------------------------------
 				//Step 4:
 				//Resolve contradicting and overlapping features
