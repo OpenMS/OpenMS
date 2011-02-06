@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -64,25 +64,25 @@ namespace OpenMS
 			}
 			else // compute least-squares fit
 			{
-				double *x_ = new double[size], *y_ = new double[size];
+				vector<double> x(size), y(size);
 				for (size_t i = 0; i < size; ++i)
 				{
 					if (symmetric_)
 					{
-						x_[i] = data[i].second + data[i].first;
-						y_[i] = data[i].second - data[i].first;
+						x[i] = data[i].second + data[i].first;
+						y[i] = data[i].second - data[i].first;
 					}
 					else
 					{
-						x_[i] = data[i].first;
-						y_[i] = data[i].second;
+						x[i] = data[i].first;
+						y[i] = data[i].second;
 					}
 				}
 				double cov00, cov01, cov11, sumsq; // covariance values, sum of squares
-				gsl_fit_linear(x_, 1, y_, 1, size, &intercept_, &slope_, &cov00, &cov01,
-											 &cov11, &sumsq);
-				delete[] x_;
-				delete[] y_;
+				double *x_start = &(x[0]), *y_start = &(y[0]);
+				gsl_fit_linear(x_start, 1, y_start, 1, size, &intercept_, &slope_, 
+											 &cov00, &cov01, &cov11, &sumsq);
+
 				if (symmetric_) // undo coordinate transformation:
 				{
 					slope_ = (1.0 + slope_) / (1.0 - slope_);
@@ -142,8 +142,8 @@ namespace OpenMS
 			mapping[it->first].push_back(it->second);
 		}
 		size_ = mapping.size();
-		x_ = new double[size_];
-		y_ = new double[size_];
+		x_.resize(size_);
+		y_.resize(size_);
 		size_t i = 0;
 		for (map<DoubleReal, vector<DoubleReal> >::const_iterator it = 
 					 mapping.begin(); it != mapping.end(); ++it, ++i)
@@ -178,7 +178,8 @@ namespace OpenMS
 
 		interp_ = gsl_interp_alloc(type, size_);
 		acc_ = gsl_interp_accel_alloc();
-		gsl_interp_init(interp_, x_, y_, size_);
+		double *x_start = &(x_[0]), *y_start = &(y_[0]);
+		gsl_interp_init(interp_, x_start, y_start, size_);
 
 		// linear model for extrapolation:
 		TransformationModel::DataPoints lm_data(2);
@@ -189,8 +190,6 @@ namespace OpenMS
 
 	TransformationModelInterpolated::~TransformationModelInterpolated()
 	{
-		delete[] x_;
-		delete[] y_;
 		gsl_interp_free(interp_);
 		gsl_interp_accel_free(acc_);
 		delete lm_;
@@ -203,7 +202,9 @@ namespace OpenMS
 		{
 			return lm_->evaluate(value);
 		}
-		return gsl_interp_eval(interp_, x_, y_, value, acc_); // interpolate
+		// interpolate:
+		const double *x_start = &(x_[0]), *y_start = &(y_[0]);
+		return gsl_interp_eval(interp_, x_start, y_start, value, acc_);
 	}
 
 	void TransformationModelInterpolated::getParameters(Param& params) const
