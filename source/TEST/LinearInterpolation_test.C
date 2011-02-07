@@ -570,8 +570,16 @@ START_SECTION((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 			STATUS(lifd_big.getData());
 
 			std::vector < LIFD::ContainerType::value_type > big_infix ( lifd_big.getData().begin()+5, lifd_big.getData().begin()+10 );
-
-			TEST_EQUAL(lifd_small.getData(),big_infix);
+			TEST_EQUAL(lifd_small.getData().size(), big_infix.size())
+			ABORT_IF(lifd_small.getData().size() != big_infix.size())
+			
+			// test in loop to avoid clang++ compiler error
+			LIFD::ContainerType::const_iterator lifd_it = lifd_small.getData().begin();
+			std::vector < LIFD::ContainerType::value_type >::const_iterator big_infix_it = big_infix.begin();
+			for(;lifd_it != lifd_small.getData().end(), big_infix_it != big_infix.end() ; ++lifd_it , ++big_infix_it)
+			{
+				TEST_EQUAL(*lifd_it,*big_infix_it);
+			}
 		}
 
 	}
