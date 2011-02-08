@@ -159,22 +159,25 @@ namespace OpenMS
 	
 	Size EnzymaticDigestion::peptideCount(const AASequence& protein)
 	{
-		SignedSize count = 1;
-		AASequence::ConstIterator iterator = protein.begin();
-		while(nextCleavageSite_(protein,iterator), iterator != protein.end())
-		{
+    SignedSize count = 1;
+
+    // ?? wouldn't a for loop be more intuitive
+    //for(AASequence::ConstIterator iterator = protein.begin() ; iterator != protein.end() ; nextCleavageSite_(protein,iterator))
+    AASequence::ConstIterator iterator = protein.begin();
+    while(nextCleavageSite_(protein,iterator), iterator != protein.end())
+    {
 			++count;
 		}
-		
     if (use_log_model_) missed_cleavages_=0; // log model has missed cleavages build-in
 
 		//missed cleavages
-		Size sum = count;
-		for (SignedSize i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
+    Size sum = count;
+    // TODO: this loop crashes the clang compiler in release mode
+    //       with message "SCEVAddRecExpr operand is not loop-invariant!"
+    for (SignedSize i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
 		{
 			sum += count - i;
-		}
-		
+    }
 		return sum;
 	}
 
@@ -191,8 +194,10 @@ namespace OpenMS
 		if (missed_cleavages_ != 0) mc_iterators.push_back(protein.begin());
 		
 		AASequence::ConstIterator begin = protein.begin();
-		AASequence::ConstIterator end = protein.begin();
-		while(nextCleavageSite_(protein, end), end != protein.end())
+    AASequence::ConstIterator end = protein.begin();
+    // ?? wouldn't a for loop be more intuitive
+    //for(; end != protein.end() ; nextCleavageSite_(protein, end))
+    while(nextCleavageSite_(protein, end), end != protein.end())
 		{
 			++count;
 			if (missed_cleavages_ != 0) 
@@ -214,12 +219,14 @@ namespace OpenMS
 		{
 			//resize to number of fragments
 			Size sum = count;
-			for (SignedSize i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
+
+      // TODO: this loop crashes the clang compiler in release mode
+      //       with message "SCEVAddRecExpr operand is not loop-invariant!"
+      for (SignedSize i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				sum += count - i;
 			}
-
-			output.resize(sum);
+      output.resize(sum);
 			
 			//generate fragments with missed cleavages
 			Size pos = count;
