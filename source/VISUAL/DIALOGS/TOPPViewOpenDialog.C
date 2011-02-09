@@ -84,10 +84,12 @@ namespace OpenMS
 		if (!as_window)
 		{
 			layer_->setChecked(true);
+      layer_->setFocus();
 		}
 		else
 		{
 			window_->setChecked(true);
+      window_->setFocus();
 		}
 		connect(merge_combo_,SIGNAL(activated(int)),merge_,SLOT(click()));
 		
