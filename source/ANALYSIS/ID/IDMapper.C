@@ -135,6 +135,7 @@ namespace OpenMS
 							current_charges = charges;
 						}
 						else current_charges << charges[i_mz];
+						current_charges << 0; // "not specified" always matches
 					}
 					
 					//check if we compare distance from centroid or subelements
