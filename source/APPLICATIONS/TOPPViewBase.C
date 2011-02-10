@@ -4030,6 +4030,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     updateViewBar();
     updateFilterBar();
     updateMenu();
+
+    // temporarly remove and readd filename from watcher_ as a workaround for bug #233
+    watcher_->removeFile(filename);
+    watcher_->addFile(filename);
   }
 
   void TOPPViewBase::setTOPPASTabEnabled(bool enabled)
