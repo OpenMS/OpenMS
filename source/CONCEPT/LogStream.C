@@ -186,13 +186,14 @@ namespace OpenMS
   {
     std::string extra_message = "";
 
-    if(log_cache_.size() > 1) // check if we need to remove one of the entries
+    if (log_cache_.size() > 1) // check if we need to remove one of the entries
     {
       // get smallest key
       map<Size, string>::iterator it = log_time_cache_.begin();
 
       // check if message occurred more then once
-      if(log_cache_[it->second].counter != 0) {
+      if (log_cache_[it->second].counter != 0) 
+			{
         std::stringstream stream;
         stream << "<" << it->second << "> occurred " << ++log_cache_[it->second].counter << " times";
         extra_message = stream.str();
@@ -218,9 +219,9 @@ namespace OpenMS
     // copy the line into that streams, too and flush them
     map<std::string, LogCacheStruct >::iterator it = log_cache_.begin();
 
-    for(; it != log_cache_.end() ; ++it) 
+    for (; it != log_cache_.end() ; ++it) 
     {
-      if((it->second).counter != 0) 
+      if ((it->second).counter != 0) 
       {
         std::stringstream stream;
         stream << "<" << it->first << "> occurred " << ++(it->second).counter << " times";
