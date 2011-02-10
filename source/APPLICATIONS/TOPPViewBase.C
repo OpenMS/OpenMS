@@ -3856,6 +3856,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::fileChanged_(const String& filename)
   {
+    // check if file has been deleted
+    if (!QFileInfo(filename.toQString()).exists())
+    {
+      watcher_->removeFile(filename);
+      return;
+    }
+
     QWidgetList wl = ws_->windowList();
 
     // iterate over all windows and determine which need an update
