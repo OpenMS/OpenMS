@@ -371,7 +371,7 @@ namespace OpenMS
 	{
 	  Spectrum2DGoToDialog goto_dialog(this);
 	  //set range
-	  const DRange<3>& area = canvas()->getDataRange();
+    const DRange<2>& area = canvas()->getVisibleArea();
 	  goto_dialog.setRange(area.minY(),area.maxY(),area.minX(),area.maxX()); 
 	  //disable feature numbers if in peak layer
 	  goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type!=LayerData::DT_PEAK);

@@ -50,7 +50,7 @@ namespace OpenMS
 		//static timer counter
 		static int timer_id = 0;
 
-		//cout << "File changed: " << String(name) << endl;
+    //cout << "File changed: " << String(name) << endl;
 		//Look up if there is already a timer for this file
 		QTimer* timer = 0;	  
 		for (map<QString,QString>::const_iterator it=timers_.begin(); it!=timers_.end(); ++it)
