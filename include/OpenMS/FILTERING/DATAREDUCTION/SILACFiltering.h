@@ -129,24 +129,24 @@ namespace OpenMS
 
   /**
    * @brief structure for blacklist
-   * @param m/z and RT interval to be blacklisted
-   * @param charge of the generating filter
-   * @param mass separations of the generating filter
-   * @param m/z position of the blacklisted area relative to the mono-isotopic peak of the unlabelled peptide
+   * @param range m/z and RT interval to be blacklisted
+   * @param charge charge of the generating filter
+   * @param mass_separations mass separations of the generating filter
+   * @param relative_peak_position m/z position of the blacklisted area relative to the mono-isotopic peak of the unlabelled peptide
    */
    struct BlacklistEntry
    {
-	   DRange<2> range;
-	   Int charge;
-	   std::vector<DoubleReal> mass_separations;
-	   DoubleReal relative_peak_position;
+     DRange<2> range;
+     Int charge;
+     std::vector<DoubleReal> mass_separations;
+     DoubleReal relative_peak_position;
    };
 
      /**
       * @brief holds the range that is blacklisted for other filters and the filter that generated the blacklist entry
       */
      std::multimap<DoubleReal, BlacklistEntry> blacklist;
-     
+
   };
 }
 

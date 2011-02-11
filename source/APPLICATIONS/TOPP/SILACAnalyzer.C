@@ -203,18 +203,18 @@ class TOPPSILACAnalyzer
     registerOutputFile_("out", "<file>", "", "output file", false);
     setValidFormats_("out", StringList::create("consensusXML"));
     // create optional flag for additional clusters output file (.featureXML)
-    registerOutputFile_("out_clusters", "<file>", "", "Additional output file containing all clusters differed by colours.", false, true);
+    registerOutputFile_("out_clusters", "<file>", "", "Optional output file containing data points passing all filters, hence belonging to a SILAC pattern. Points of the same colour correspond to the mono-isotopic peak of the lightest peptide in a pattern.", false, true);
     setValidFormats_("out_clusters", StringList::create("featureXML"));
 
     // create section "labels" for adjusting masses of labels
-    registerSubsection_("labels", "Isotopic labels that can be selected for section \"sample\".");
+    registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
     // create section "sample" for adjusting sample parameters
-    registerSubsection_("sample", "Parameter adjusting for your sample.");
+    registerSubsection_("sample", "Parameter describing the sample and its labels.");
     // create section "algorithm" for adjusting algorithm parameters
-    registerSubsection_("algorithm", "Algorithm parameters section.");
+    registerSubsection_("algorithm", "Parameters for the algorithm.");
 
     // create flag for missing peaks
-    registerFlag_("algorithm:allow_missing_peaks", "Missing isotopic peaks in SILAC peptides allowed?", true);
+    registerFlag_("algorithm:allow_missing_peaks", "Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Should such peptides be included in the analysis?", true);
   }
 
 
@@ -233,7 +233,7 @@ class TOPPSILACAnalyzer
       // create labels that can be chosen in section "sample/labels"
       defaults.setValue("Arg6", 6.0201290268, "Arg6 mass shift", StringList::create("advanced"));
       defaults.setMinFloat("Arg6", 0.0);
-      defaults.setValue("Arg10", 10.0082685996, "Arg10 mass shift", StringList::create("advanced"));
+      defaults.setValue("Arg10", 10.008268600, "Arg10 mass shift", StringList::create("advanced"));
       defaults.setMinFloat("Arg10", 0.0);
       defaults.setValue("Lys4", 4.0251069836, "Lys4 mass shift", StringList::create("advanced"));
       defaults.setMinFloat("Lys4", 0.0);
@@ -241,6 +241,12 @@ class TOPPSILACAnalyzer
       defaults.setMinFloat("Lys6", 0.0);
       defaults.setValue("Lys8", 8.0141988132, "Lys8 mass shift", StringList::create("advanced"));
       defaults.setMinFloat("Lys8", 0.0);
+      defaults.setValue("dICPL4", 4.025107, "mass difference between isotope-coded protein labels ICPL 4 and ICPL 0", StringList::create("advanced"));
+      defaults.setMinFloat("dICPL4", 0.0);
+      defaults.setValue("dICPL6", 6.020129, "mass difference between isotope-coded protein labels ICPL 6 and ICPL 0", StringList::create("advanced"));
+      defaults.setMinFloat("dICPL6", 0.0);
+      defaults.setValue("dICPL10", 10.045236, "mass difference between isotope-coded protein labels ICPL 10 and ICPL 0", StringList::create("advanced"));
+      defaults.setMinFloat("dICPL10", 0.0);
       defaults.setValue("Methyl4", 4.0202, "Methyl4 mass shift", StringList::create("advanced"));
       defaults.setMinFloat("Methyl4", 0.0);
       defaults.setValue("Methyl8", 8.0202, "Methyl8 mass shift", StringList::create("advanced"));
@@ -253,12 +259,6 @@ class TOPPSILACAnalyzer
       defaults.setMinFloat("Methyl24", 0.0);
       defaults.setValue("Methyl32", 32.0202, "Methyl32 mass shift", StringList::create("advanced"));
       defaults.setMinFloat("Methyl32", 0.0);
-      defaults.setValue("dICPL4", 4.025107, "dICPL4 mass shift", StringList::create("advanced"));
-      defaults.setMinFloat("dICPL4", 0.0);
-      defaults.setValue("dICPL6", 6.020129, "dICPL6 mass shift", StringList::create("advanced"));
-      defaults.setMinFloat("dICPL6", 0.0);
-      defaults.setValue("dICPL10", 10.045236, "dICPL10 mass shift", StringList::create("advanced"));
-      defaults.setMinFloat("dICPL10", 0.0);
     }
 
 
@@ -268,11 +268,11 @@ class TOPPSILACAnalyzer
 
     if (section == "sample")
     {
-      defaults.setValue("labels", "[Arg6]", "Specify the labels for your sample. Doublets must be of style [label][label]... Triplets must be of style [label,label][label,label]... See section \"labels\" in advanced parameters for allowed labels.");
-      defaults.setValue("charge", "2:3", "Specify the charge range for your sample (charge_min:charge_max).");
-      defaults.setValue("missed_cleavages", 0 , "Specify the maximum number of missed cleavages.");
+      defaults.setValue("labels", "[Arg6]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'.");
+      defaults.setValue("charge", "2:3", "Range of charge states in the sample, i.e. min charge : max charge.");
+      defaults.setValue("missed_cleavages", 0 , "Maximum number of missed cleavages.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("peaks_per_peptide", "3:4", "Specify the range of peaks per peptide for your sample (peaks_per_peptide_min:peaks_per_peptide_max).", StringList::create("advanced"));
+      defaults.setValue("peaks_per_peptide", "3:4", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.", StringList::create("advanced"));
     }
 
 
@@ -282,18 +282,18 @@ class TOPPSILACAnalyzer
 
     if (section == "algorithm")
     {
-      defaults.setValue("mz_threshold", 0.1, "Specify an upper bound for your m/z range in [Th]. I.e. the range peptides have to elute in to be considered as one peptide.");
+      defaults.setValue("mz_threshold", 0.1, "Upper bound for the width [Th] of an isotopic peak.");
       defaults.setMinFloat("mz_threshold", 0.0);
-      defaults.setValue("rt_threshold", 50.0, "Specify an upper bound for your Retention time range in [s]. I.e. the range peptides have to elute in to be considered as one peptide.");
+      defaults.setValue("rt_threshold", 50.0, "Upper bound for the retention time [s] over which a characteristic peptide eludes. ");
       defaults.setMinFloat("rt_threshold", 0.0);
-      defaults.setValue("rt_scaling", 0.002, "Scaling factor for retention times (Cluster height [s] and cluster width [Th] should be of the same order, because the clustering algorithm works better for symmetric clusters.) In the majority of cases simply divide mz_threshold through rt_threshold.");
+      defaults.setValue("rt_scaling", 0.002, "Scaling factor for retention times. Height [s] and width [Th] of clusters in out_clusters should be of about the same order. The clustering algorithm works best for symmetric clusters. In the majority of cases, the ratio ( mz_threshold / rt_threshold ) should work well.");
       defaults.setMinFloat("rt_scaling", 0.0);
-      defaults.setValue("intensity_cutoff", 10.0, "Specify a threshold for intensity. All peaks below that threshold are not considered.");
+      defaults.setValue("intensity_cutoff", 10.0, "Lower bound for the intensity of isotopic peaks in a SILAC pattern.");
       defaults.setMinFloat("intensity_cutoff", 10.0);
-      defaults.setValue("intensity_correlation", 0.9, "Minimum Pearson correlation which measures how well intensity profiles of different isotopic peaks corrolate.", StringList::create("advanced"));
+      defaults.setValue("intensity_correlation", 0.9, "Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.", StringList::create("advanced"));
       defaults.setMinFloat("intensity_correlation", 0.0);
       defaults.setMaxFloat("intensity_correlation", 1.0);
-      defaults.setValue("model_deviation", 10.0, "Maximum factor by which the observed isotope ratios are allowed to differ from the isotope ratios of the theoretic averagine model, i.e. theoretic_ratio / model_deviation < observed_ratio < theoretic_ratio * model_deviation.");
+      defaults.setValue("model_deviation", 6.0, "Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).");
       defaults.setMinFloat("model_deviation", 1.0);
     }
 
@@ -313,6 +313,7 @@ class TOPPSILACAnalyzer
     out = getStringOption_("out");
     // get name of additional clusters output file (.featureXML)
     out_clusters = getStringOption_("out_clusters");
+
 
     //--------------------------------------------------
     // section labels
@@ -608,7 +609,7 @@ class TOPPSILACAnalyzer
     {
       filtering.addFilter(*filter_it);
     }
-    
+
     // perform filtering
     filtering.filterDataPoints();
 
@@ -617,7 +618,7 @@ class TOPPSILACAnalyzer
     {
       data.push_back(filter_it->getElements());
     }
-    
+
     // delete experiment
     exp.clear(true);
 
@@ -748,9 +749,6 @@ class TOPPSILACAnalyzer
   }
 
 
-
-
-
   ExitCodes main_(int , const char**)
   {
     handleParameters();
@@ -802,7 +800,6 @@ class TOPPSILACAnalyzer
         // hierarchical clustering
         CentroidLinkage method(rt_scaling);
         HashClustering c(*data_it, rt_threshold, mz_threshold, method);
-        c.setLogType(log_type_);
         c.performClustering();
         vector<Tree> current_subtrees;
         c.getSubtrees(current_subtrees);
@@ -950,7 +947,7 @@ class TOPPSILACAnalyzer
 
         all_pairs.push_back(consensus_feature);
         ++id;
-      }    
+      }
     }
 
 
