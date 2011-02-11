@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: $
+// $Authors: Lars Nilse, Steffen Sass, Holger Plattfaut $
 // --------------------------------------------------------------------------
 
 //OpenMS includes
@@ -37,22 +37,24 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
+
+//filtering
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
 
 //clustering
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-//~ #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/DATASTRUCTURES/HashGrid.h>
+#include <OpenMS/COMPARISON/CLUSTERING/HashClustering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/CentroidLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/QTClustering.h>
 
 //Contrib includes
-#include <gsl/gsl_histogram.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_fit.h>
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_errno.h>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
+
+#include <OpenMS/DATASTRUCTURES/DataPoint.h>
 
 //std includes
 #include <cmath>
@@ -60,8 +62,14 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <locale>
+#include <iomanip>
 
 using namespace OpenMS;
+using namespace std;
+
+typedef vector<BinaryTreeNode> Tree;
+typedef vector<DataPoint*> Cluster;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -71,23 +79,6 @@ using namespace OpenMS;
   @page TOPP_SILACAnalyzer SILACAnalyzer
 
   @brief Identifies peptide pairs in LC-MS data and determines their relative abundance.
-
-<CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ SILACAnalyzer \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper</td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
-		</tr>
-	</table>
-</CENTER>
 
   SILACAnalyzer is a tool for the fully automated analysis of quantitative proteomics data. It identifies pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we first explain the algorithm and then discuss the tuning of its parameters.
 
@@ -103,13 +94,10 @@ using namespace OpenMS;
 
   @image html SILACAnalyzer_algorithm.png
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SILACAnalyzer.cli
-
   <b>Parameter Tuning</b>
 
   SILACAnalyzer can either search for SILAC pairs (as described in the above paragraph) or triplets:
-  - type - double (for SILAC pairs), triple (for SILAC triplets)
+  - type - double (for SILAC pairs), triple (for SILAC triplets), double_triple (for SILAC pairs and SILAC triplets)
 
   <i>input:</i>
   - in [*.mzML] - LC-MS dataset to be analyzed
@@ -124,972 +112,987 @@ using namespace OpenMS;
   <i>optional output:</i>
   @n If -silac_debug is enabled, SILACAnalyzer generates a number of further files:
   - [*.dat] - contains the list of identified peptide pairs in a simple text file, c.f. *.consensusXML
-  - [*_clusters.dat] -  contains the complete set of data points of all peptide pairs in a simple text file, c.f. *.featureXML
-  - [*.input] - gnuplot script for the visualization of the results. Running (gnuplot *.input) generates a number of *.eps plots. The range of clusters to be plotted can be specified by the parameters -cluster_min/max.
+  - [*_silhouettes.dat] - contains the silhouette values for every generated subtree
+  - [*_silhouettes.R] - R script, which creates a silhouette plot of every subtree. It can be executed using <i>Rscript *_silhouettes.R </i>. If R is not installed see <a href="http://www.r-poject.org">http://www.r-poject.org</a>.
+  - [*_subtrees.featureXML] - contains the complete set of data points (retention time, m/z, intensity) of all peptide pairs. Data poins contained in the same subtree have the same color.
 
   The following parameters are straightforward:
   - mass_separation_light_medium - mass gap between light and medium isotopic envelopes [Da] (only relevant for the search for SILAC triplets, i.e. type triple)
   - mass_separation_light_heavy - mass gap between light and heavy isotopic envelopes [Da]
   - charge_min/max - range of charge states
-  - mz_step_width - step width with which the interpolated spectrum, Fig. (b), is scanned. The step width should be of about the same order with which the raw data were recorded, see Fig. (a).
 
   The remaining parameters should be tuned in the following order:
+  - mz_threshold - maximal m/z distance value of two data points belonging to one SILAC feature.
+  - rt_threshold - maximal RT distance value of two data points belonging to one SILAC feature.
   - intensity_cutoff - adjust the intensity cutoff such that the data points that pass the non-local filter (*.featureXML layer) form clear distinct clusters,  see Fig. (e). Ignore the coloring of the clusters at that stage.
   - rt_scaling - pick a representative cluster. rt_scaling = (width of the cluster in Da)/(height of the cluster in sec)
   - cluster_number_scaling - The clustering algorithm tries to determine the optimal number of clusters (i.e. the number of peptide pairs in the LC-MS data set). If neighboring clusters appear in the same color, the cluster number is too low. If a single cluster contains two colors, the cluster number is too high. The cluster number can be adjusted by this scaling factor.
   - optimal_silhouette_tolerance - The clustering algorithm tries to maximize the average-silhouette-width, see details in reference. The parameter specifies the relative tolerance (in %) by which the optimum can deviate from the maximum.
 
   <b>References:</b>
-  @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
-*/
+  @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard, "SILACAnalyzer - a tool for differential quantitation of stable isotope derived data", unpublished.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_SILACAnalyzer.cli
+ */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-struct SILACData
+bool clusterCompare( Cluster v1, Cluster v2)
 {
-  DoubleReal rt; // retention time
-  DoubleReal mz; // m/Z mass charge ratio
-  DoubleReal int1; // intensity at RT and m/z
-  DoubleReal int2; // intensity at RT and m/z + isotope_distance
-  DoubleReal int3; // intensity at RT and m/z + 2*isotope_distance
-  DoubleReal int4; // intensity at RT and m/z + envelope_distance_light_medium
-  DoubleReal int5; // intensity at RT and m/z + envelope_distance_light_medium + isotope_distance
-  DoubleReal int6; // intensity at RT and m/z + envelope_distance_light_medium + 2*isotope_distance
-  DoubleReal int7; // intensity at RT and m/z + envelope_distance_light_heavy
-  DoubleReal int8; // intensity at RT and m/z + envelope_distance_light_heavy + isotope_distance
-  DoubleReal int9; // intensity at RT and m/z + envelope_distance_light_heavy + 2*isotope_distance
-  Int cluster_id; // ID number of the cluster the data point belongs to
-  Int cluster_size; // number of points in cluster 'cluster_id'
-
-  SILACData();
-  SILACData(const SILACData &);
-  SILACData(DoubleReal rt_, DoubleReal mz_, DoubleReal int1_, DoubleReal int2_, DoubleReal int3_, DoubleReal int4_, DoubleReal int5_, DoubleReal int6_, DoubleReal int7_, DoubleReal int8_, DoubleReal int9_);
-  ~SILACData(){};
-  SILACData &operator=(const SILACData &rhs);
-  int operator==(const SILACData &rhs) const;
-  int operator<(const SILACData &rhs) const;
-};
-
-/// Default constructor
-inline SILACData::SILACData()
-{
-  rt = 0;
-  mz = 0;
-  int1 = 0;
-  int2 = 0;
-  int3 = 0;
-  int4 = 0;
-  int5 = 0;
-  int6 = 0;
-  int7 = 0;
-  int8 = 0;
-  int9 = 0;
-  cluster_id = 0;
-  cluster_size = 0;
-}
-/// Copy constructor
-inline SILACData::SILACData(const SILACData &copyin)
-{
-  rt = copyin.rt;
-  mz = copyin.mz;
-  int1 = copyin.int1;
-  int2 = copyin.int2;
-  int3 = copyin.int3;
-  int4 = copyin.int4;
-  int5 = copyin.int5;
-  int6 = copyin.int6;
-  int7 = copyin.int7;
-  int8 = copyin.int8;
-  int9 = copyin.int9;
-  cluster_id = copyin.cluster_id;
-  cluster_size = copyin.cluster_size;
-}
-/// Detailed constructor
-inline SILACData::SILACData(DoubleReal rt_, DoubleReal mz_, DoubleReal int1_, DoubleReal int2_, DoubleReal int3_, DoubleReal int4_, DoubleReal int5_, DoubleReal int6_, DoubleReal int7_, DoubleReal int8_, DoubleReal int9_)
-{
-  rt = rt_;
-  mz = mz_;
-  int1 = int1_;
-  int2 = int2_;
-  int3 = int3_;
-  int4 = int4_;
-  int5 = int5_;
-  int6 = int6_;
-  int7 = int7_;
-  int8 = int8_;
-  int9 = int9_;
-  cluster_id = 0;
-  cluster_size = 0;
-}
-
-SILACData& SILACData::operator=(const SILACData &rhs)
-{
-  this->rt = rhs.rt;
-  this->mz = rhs.mz;
-  this->int1 = rhs.int1;
-  this->int2 = rhs.int2;
-  this->int3 = rhs.int3;
-  this->int4 = rhs.int4;
-  this->int5 = rhs.int5;
-  this->int6 = rhs.int6;
-  this->int7 = rhs.int7;
-  this->int8 = rhs.int8;
-  this->int9 = rhs.int9;
-  this->cluster_id = rhs.cluster_id;
-  this->cluster_size = rhs.cluster_size;
-  return *this;
-}
-
-int SILACData::operator==(const SILACData &rhs) const
-{
-  if( this->rt != rhs.rt) return false;
-  if( this->mz != rhs.mz) return false;
-  if( this->int1 != rhs.int1) return false;
-  if( this->int2 != rhs.int2) return false;
-  if( this->int3 != rhs.int3) return false;
-  if( this->int4 != rhs.int4) return false;
-  if( this->int5 != rhs.int5) return false;
-  if( this->int6 != rhs.int6) return false;
-  if( this->int7 != rhs.int7) return false;
-  if( this->int8 != rhs.int8) return false;
-  if( this->int9 != rhs.int9) return false;
-  if( this->cluster_id != rhs.cluster_id) return false;
-  if( this->cluster_size != rhs.cluster_size) return false;
-  return true;
-}
-
-int SILACData::operator<(const SILACData &rhs) const // required for built-in STL functions like sort
-{
-  if ( this->cluster_size == rhs.cluster_size && this->cluster_id < rhs.cluster_id) return true;
-  if ( this->cluster_size < rhs.cluster_size ) return true;
-  return false;
+   return v1.size() > v2.size();
 }
 
 class TOPPSILACAnalyzer
-      : public TOPPBase
+: public TOPPBase
 {
+  private:
+
+    // input and output files
+    String in;
+    String out;
+    String out_clusters;
+
+    // section "sample"
+    String selected_labels;
+    Int charge_min;
+    Int charge_max;
+    Int missed_cleavages;
+    Int isotopes_per_peptide_min;
+    Int isotopes_per_peptide_max;
+    DoubleReal mz_stepwidth;
+
+    // section "algorithm"
+    DoubleReal mz_threshold;
+    DoubleReal rt_threshold;
+    DoubleReal rt_scaling;
+    DoubleReal intensity_cutoff;
+    DoubleReal intensity_correlation;
+    DoubleReal model_deviation;
+    bool allow_missing_peaks;
+
+    // section "labels"
+    map<String, DoubleReal> label_identifiers;
+    vector<vector <String> > SILAClabels;     // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
+    vector<vector <DoubleReal> > massShifts;      // list of mass shifts
+
+    vector<vector<DataPoint> > data;
+    ConsensusMap all_pairs;
+    FeatureMap<> all_cluster_points;
+    FeatureMap<> subtree_points;
+    MSExperiment<Peak1D> filter_exp;
+
   public:
     TOPPSILACAnalyzer()
-        : TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true)
+    : TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true)
     {
     }
 
-    void registerOptionsAndFlags_()
+
+  //--------------------------------------------------
+  // set structure of ini file
+  //--------------------------------------------------
+
+  void registerOptionsAndFlags_()
+  {
+    // create flag for input file (.mzML)
+    registerInputFile_("in", "<file>", "", "input file");
+    setValidFormats_("in", StringList::create("mzML"));
+    // create flag for output file (.consensusXML)
+    registerOutputFile_("out", "<file>", "", "output file", false);
+    setValidFormats_("out", StringList::create("consensusXML"));
+    // create optional flag for additional clusters output file (.featureXML)
+    registerOutputFile_("out_clusters", "<file>", "", "Additional output file containing all clusters differed by colours.", false, true);
+    setValidFormats_("out_clusters", StringList::create("featureXML"));
+
+    // create section "labels" for adjusting masses of labels
+    registerSubsection_("labels", "Isotopic labels that can be selected for section \"sample\".");
+    // create section "sample" for adjusting sample parameters
+    registerSubsection_("sample", "Parameter adjusting for your sample.");
+    // create section "algorithm" for adjusting algorithm parameters
+    registerSubsection_("algorithm", "Algorithm parameters section.");
+
+    // create flag for missing peaks
+    registerFlag_("algorithm:allow_missing_peaks", "Missing isotopic peaks in SILAC peptides allowed?", true);
+  }
+
+
+  // create prameters for sections (set default values and restrictions)
+  Param getSubsectionDefaults_(const String& section) const
+  {
+    Param defaults;
+
+
+    //--------------------------------------------------
+    // section labels
+    //--------------------------------------------------
+
+    if (section == "labels")
     {
-	    registerStringOption_("type","<name>","","SILAC experiment type", true);
-	    setValidStrings_("type", ToolHandler::getTypes(toolName_()) );
-
-      registerInputFile_("in","<file>","","input file");
-      setValidFormats_("in",StringList::create("mzML"));
-      registerOutputFile_("out","<file>","","output file", false);
-      setValidFormats_("out",StringList::create("consensusXML"));
-      registerOutputFile_("out_visual","<file>","","output file containing cluster information",false);
-      setValidFormats_("out_visual",StringList::create("featureXML"));
-
-      registerFlag_("silac_debug","Enables writing of debug information",true);
-      registerSubsection_("algorithm","Algorithm parameters section");
-
+      // create labels that can be chosen in section "sample/labels"
+      defaults.setValue("Arg6", 6.0201290268, "Arg6 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Arg6", 0.0);
+      defaults.setValue("Arg10", 10.0082685996, "Arg10 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Arg10", 0.0);
+      defaults.setValue("Lys4", 4.0251069836, "Lys4 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Lys4", 0.0);
+      defaults.setValue("Lys6", 6.0201290268, "Lys6 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Lys6", 0.0);
+      defaults.setValue("Lys8", 8.0141988132, "Lys8 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Lys8", 0.0);
+      defaults.setValue("Methyl4", 4.0202, "Methyl4 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Methyl4", 0.0);
+      defaults.setValue("Methyl8", 8.0202, "Methyl8 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Methyl8", 0.0);
+      defaults.setValue("Methyl12", 12.0202, "Methyl12 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Methyl12", 0.0);
+      defaults.setValue("Methyl16", 16.0202, "Methyl16 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Methyl16", 0.0);
+      defaults.setValue("Methyl24", 24.0202, "Methyl24 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Methyl24", 0.0);
+      defaults.setValue("Methyl32", 32.0202, "Methyl32 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("Methyl32", 0.0);
+      defaults.setValue("dICPL4", 4.025107, "dICPL4 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("dICPL4", 0.0);
+      defaults.setValue("dICPL6", 6.020129, "dICPL6 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("dICPL6", 0.0);
+      defaults.setValue("dICPL10", 10.045236, "dICPL10 mass shift", StringList::create("advanced"));
+      defaults.setMinFloat("dICPL10", 0.0);
     }
 
-    Param getSubsectionDefaults_(const String& /*section*/) const
+
+    //--------------------------------------------------
+    // section sample
+    //--------------------------------------------------
+
+    if (section == "sample")
     {
-      String type = getStringOption_("type");
-      Int SILAC_type = (type=="double" ?  2 : 3 );
-      Param tmp;
-
-      if (SILAC_type == 2)
-	  {
-			tmp.setValue("mass_separation_light_heavy",6.0202, "mass gap between light and heavy isotopic envelopes, [Da]" );
-	  }
-	  else if (SILAC_type == 3)
-	  {
-			tmp.setValue("mass_separation_light_medium" , 6.0202, "mass gap between light and medium isotopic envelopes, [Da]");
-			tmp.setValue("mass_separation_light_heavy" , 8.0202, "mass gap between light and heavy isotopic envelopes, [Da]");
-	  }
-
-	  tmp.setValue("charge_min", 2, "Charge state range begin");
-      tmp.setMinInt("charge_min", 1);
-
-      tmp.setValue("charge_max", 3, "Charge state range end");
-      tmp.setMinInt("charge_max",1);
-
-      tmp.setValue("intensity_cutoff", 5000.0, "intensity cutoff");
-      tmp.setMinFloat("intensity_cutoff", 0.0);
-
-      tmp.setValue("mz_step_width", 0.01, "step width with which the (interpolated) spectrum is scanned, m/Z (Th)");
-      tmp.setMinFloat("mz_step_width",0.0);
-
-      tmp.setValue("rt_scaling",0.05,"scaling factor of retention times (Cluster height [s] an\ncluster width [Th] should be of the same order. The clustering algorithms work better for\nsymmetric clusters.)");
-      tmp.setMinFloat("rt_scaling", 0.0);
-
-      tmp.setValue("optimal_silhouette_tolerance",0.0,"The partition with most clusters is chosen, which deviates from the optimal silhouette width at most by this percentage.");
-      tmp.setMinFloat("optimal_silhouette_tolerance",0.0);
-      tmp.setMaxFloat("optimal_silhouette_tolerance",100.0);
-
-      tmp.setValue("cluster_number_scaling", 1.0, "scaling factor of the number of clusters (The average-silhouette-width\nalgorithm returns an 'optimal' number of clusters. This number might need\nto be adjusted by this factor.)");
-      tmp.setMinFloat("cluster_number_scaling", 0.0);
-
-      tmp.setValue("cluster_min", 0, "Start of the clusters range to be plotted by the gnuplot script");
-      tmp.setMinInt("cluster_min", 0);
-
-      tmp.setValue("cluster_max", 2, "End of the clusters range to be plotted by the gnuplot script");
-      tmp.setMinInt("cluster_max", 0);
-
-
-      return tmp;
+      defaults.setValue("labels", "[Arg6]", "Specify the labels for your sample. Doublets must be of style [label][label]... Triplets must be of style [label,label][label,label]... See section \"labels\" in advanced parameters for allowed labels.");
+      defaults.setValue("charge", "2:3", "Specify the charge range for your sample (charge_min:charge_max).");
+      defaults.setValue("missed_cleavages", 0 , "Specify the maximum number of missed cleavages.");
+      defaults.setMinInt("missed_cleavages", 0);
+      defaults.setValue("peaks_per_peptide", "3:4", "Specify the range of peaks per peptide for your sample (peaks_per_peptide_min:peaks_per_peptide_max).", StringList::create("advanced"));
     }
 
-      ExitCodes main_(int , const char**)
+
+    //--------------------------------------------------
+    // section algorithm
+    //--------------------------------------------------
+
+    if (section == "algorithm")
     {
-      //-------------------------------------------------------------
-      // parameter handling
-      //-------------------------------------------------------------
-	  String type = getStringOption_("type");
-		DoubleReal mass_separation_light_medium;
-		if (type=="double") {
-		  mass_separation_light_medium = getParam_().getValue("algorithm:mass_separation_light_heavy");
-		}
-		else {
-		  mass_separation_light_medium = getParam_().getValue("algorithm:mass_separation_light_medium");
-		}
-	  DoubleReal mass_separation_light_heavy = getParam_().getValue("algorithm:mass_separation_light_heavy");
+      defaults.setValue("mz_threshold", 0.1, "Specify an upper bound for your m/z range in [Th]. I.e. the range peptides have to elute in to be considered as one peptide.");
+      defaults.setMinFloat("mz_threshold", 0.0);
+      defaults.setValue("rt_threshold", 50.0, "Specify an upper bound for your Retention time range in [s]. I.e. the range peptides have to elute in to be considered as one peptide.");
+      defaults.setMinFloat("rt_threshold", 0.0);
+      defaults.setValue("rt_scaling", 0.002, "Scaling factor for retention times (Cluster height [s] and cluster width [Th] should be of the same order, because the clustering algorithm works better for symmetric clusters.) In the majority of cases simply divide mz_threshold through rt_threshold.");
+      defaults.setMinFloat("rt_scaling", 0.0);
+      defaults.setValue("intensity_cutoff", 10.0, "Specify a threshold for intensity. All peaks below that threshold are not considered.");
+      defaults.setMinFloat("intensity_cutoff", 10.0);
+      defaults.setValue("intensity_correlation", 0.9, "Minimum Pearson correlation which measures how well intensity profiles of different isotopic peaks corrolate.", StringList::create("advanced"));
+      defaults.setMinFloat("intensity_correlation", 0.0);
+      defaults.setMaxFloat("intensity_correlation", 1.0);
+      defaults.setValue("model_deviation", 10.0, "Maximum factor by which the observed isotope ratios are allowed to differ from the isotope ratios of the theoretic averagine model, i.e. theoretic_ratio / model_deviation < observed_ratio < theoretic_ratio * model_deviation.");
+      defaults.setMinFloat("model_deviation", 1.0);
+    }
 
-      UInt charge_min = getParam_().getValue("algorithm:charge_min");
-      UInt charge_max = getParam_().getValue("algorithm:charge_max");
+    return defaults;
+  }
 
-      DoubleReal mz_step_width = getParam_().getValue("algorithm:mz_step_width");
-      DoubleReal intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
-      DoubleReal rt_scaling = getParam_().getValue("algorithm:rt_scaling");
-      DoubleReal optimal_silhouette_tolerance = getParam_().getValue("algorithm:optimal_silhouette_tolerance");
-      DoubleReal cluster_number_scaling = getParam_().getValue("algorithm:cluster_number_scaling");
-      int cluster_min = getParam_().getValue("algorithm:cluster_min");
-      int cluster_max = getParam_().getValue("algorithm:cluster_max");
 
-      String in = getStringOption_("in");
-      String out = getStringOption_("out");
-      String out_visual = getStringOption_("out_visual");
+  //--------------------------------------------------
+  // handle parameters (read in and format given parameters)
+  //--------------------------------------------------
 
-      //output variables
-      ConsensusMap all_pairs;
-	  all_pairs.getFileDescriptions()[0].filename = in;
-	  all_pairs.getFileDescriptions()[0].label = "light";
-	  all_pairs.getFileDescriptions()[1].filename = in;
-	  all_pairs.getFileDescriptions()[1].label = "medium";
-      all_pairs.getFileDescriptions()[2].filename = in;
-      all_pairs.getFileDescriptions()[2].label = "heavy";
-      all_pairs.setExperimentType("silac");
-      FeatureMap<> all_cluster_points;
+  void handleParameters()
+  {
+    // get input file (.mzML)
+    in = getStringOption_("in");
+    // get name of output file (.consensusXML)
+    out = getStringOption_("out");
+    // get name of additional clusters output file (.featureXML)
+    out_clusters = getStringOption_("out_clusters");
 
-      //--------------------------------------------------------------
-      // determine file name for debug output
-      //--------------------------------------------------------------
-      String debug_trunk = in;
-      if (in.has('.'))
+    //--------------------------------------------------
+    // section labels
+    //--------------------------------------------------
+
+    // create map of pairs (label as string, mass shift as double)
+    label_identifiers.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
+    label_identifiers.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
+    label_identifiers.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
+    label_identifiers.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
+    label_identifiers.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
+    label_identifiers.insert(make_pair("Methyl4", getParam_().getValue("labels:Methyl4")));
+    label_identifiers.insert(make_pair("Methyl8", getParam_().getValue("labels:Methyl8")));
+    label_identifiers.insert(make_pair("Methyl12", getParam_().getValue("labels:Methyl12")));
+    label_identifiers.insert(make_pair("Methyl16", getParam_().getValue("labels:Methyl16")));
+    label_identifiers.insert(make_pair("Methyl24", getParam_().getValue("labels:Methyl24")));
+    label_identifiers.insert(make_pair("Methyl32", getParam_().getValue("labels:Methyl32")));
+    label_identifiers.insert(make_pair("dICPL4", getParam_().getValue("labels:dICPL4")));
+    label_identifiers.insert(make_pair("dICPL6", getParam_().getValue("labels:dICPL6")));
+    label_identifiers.insert(make_pair("dICPL10", getParam_().getValue("labels:dICPL10")));
+
+    // create iterators for all labels to get corresponding mass shift
+    map<String,DoubleReal>::iterator arg6 = label_identifiers.find("Arg6");
+    map<String,DoubleReal>::iterator arg10 = label_identifiers.find("Arg10");
+    map<String,DoubleReal>::iterator lys4 = label_identifiers.find("Lys4");
+    map<String,DoubleReal>::iterator lys6 = label_identifiers.find("Lys6");
+    map<String,DoubleReal>::iterator lys8 = label_identifiers.find("Lys8");
+    map<String,DoubleReal>::iterator methyl4 = label_identifiers.find("Methyl4");
+    map<String,DoubleReal>::iterator methyl8 = label_identifiers.find("Methyl8");
+    map<String,DoubleReal>::iterator methyl12 = label_identifiers.find("Methyl12");
+    map<String,DoubleReal>::iterator methyl16 = label_identifiers.find("Methyl16");
+    map<String,DoubleReal>::iterator methyl24 = label_identifiers.find("Methyl24");
+    map<String,DoubleReal>::iterator methyl32 = label_identifiers.find("Methyl32");
+    map<String,DoubleReal>::iterator dicpl4 = label_identifiers.find("dICPL4");
+    map<String,DoubleReal>::iterator dicpl6 = label_identifiers.find("dICPL6");
+    map<String,DoubleReal>::iterator dicpl10 = label_identifiers.find("dICPL10");
+
+    // create string of all labels from advanced section "labels"
+    String labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Methyl4 Methyl8 Methyl12 Methyl16 Methyl24 Methyl32 dICPL4 dICPL6 dICPL10";
+
+
+    //--------------------------------------------------
+    // section sample
+    //--------------------------------------------------
+
+    // get selected labels
+    selected_labels = getParam_().getValue("sample:labels");
+
+    // get selected missed_cleavages
+    missed_cleavages = getParam_().getValue("sample:missed_cleavages");
+
+    // get selected charge range
+    String charge_string = getParam_().getValue("sample:charge");
+    DoubleReal charge_min_temp, charge_max_temp;
+    parseRange_(charge_string, charge_min_temp, charge_max_temp);
+    charge_min = (Int)charge_min_temp;
+    charge_max = (Int)charge_max_temp;
+
+    // check if charge_min is smaller than charge max, if not swap
+    if (charge_min > charge_max)
+      swap(charge_min, charge_max);
+
+    // get selected peaks range
+    String isotopes_per_peptide_string = getParam_().getValue("sample:peaks_per_peptide");
+    DoubleReal isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp;
+    parseRange_(isotopes_per_peptide_string, isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp);
+    isotopes_per_peptide_min = (Int)isotopes_per_peptide_min_temp;
+    isotopes_per_peptide_max = (Int)isotopes_per_peptide_max_temp;
+
+    //check if isotopes_per_peptide_min is smaller than isotopes_per_peptide_max, if not swap
+    if (isotopes_per_peptide_min > isotopes_per_peptide_max)
+      swap(isotopes_per_peptide_min, isotopes_per_peptide_max);
+
+
+    //--------------------------------------------------
+    // section algorithm
+    //--------------------------------------------------
+
+    // get selected mz_threshold
+    mz_threshold = getParam_().getValue("algorithm:mz_threshold");
+    // get selected rt_threshold
+    rt_threshold = getParam_().getValue("algorithm:rt_threshold");
+    // get selected rt_scaling
+    rt_scaling = getParam_().getValue("algorithm:rt_scaling");
+    // get selected intensity_cutoff
+    intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
+    // get selected intensity_correlation
+    intensity_correlation = getParam_().getValue("algorithm:intensity_correlation");
+    // get selected model_deviation
+    model_deviation = getParam_().getValue("algorithm:model_deviation");
+    // get flag for missing peaks
+    allow_missing_peaks = getFlag_("algorithm:allow_missing_peaks");
+
+
+    //--------------------------------------------------
+    // calculate all possible mass shifts for labelets from section "sample:labels" (concernig missed_cleavage)
+    //--------------------------------------------------
+
+    // split string of SILAC labels (selected_labels) and save in a list (SILAClabels)
+    vector<String> tempList; // temporary list of strings for SILAC labelets, e.g. "Lys6,Arg8"
+    boost::split( tempList, selected_labels, boost::is_any_of("[](){}") ); // any bracket allowed to separate labelets
+    for (unsigned i = 0; i < tempList.size(); i++)
+    {
+      if (tempList[i] != "")
       {
-        debug_trunk = in.prefix(in.find_last_of('.'));
+        vector<String> tempLabels;
+        boost::split( tempLabels, tempList[i], boost::is_any_of(",;: ") ); // various separators allowed to separate labels
+        SILAClabels.push_back(tempLabels);
       }
+    }
 
-      // number of clusters found for each charge state (filled with best_n, need to remember for gnuplot script)
-      int cluster_number[] = {1,1,1,1,1,1,1,1,1,1}; // maybe though with a vector even if more that 10 charge states are doubtfull?
-
-      //iterate over all charge states
-      for (UInt charge=charge_min; charge<=charge_max; ++charge)
+    cout << endl;
+    // print SILAC labels
+    for (unsigned i = 0; i < SILAClabels.size(); i++)
+    {
+      cout << "SILAC label " << i + 1 << ":   ";
+      for (unsigned j = 0; j < SILAClabels[i].size(); j++)
       {
-		std::cout << "charge state: " << charge << "+" << std::endl;
-		DoubleReal isotope_distance = 1.0 / (DoubleReal)charge;
-		DoubleReal envelope_distance_light_medium = mass_separation_light_medium / (DoubleReal)charge;
-		DoubleReal envelope_distance_light_heavy = mass_separation_light_heavy / (DoubleReal)charge;
-        // For each charge state run the experimental data (exp) are loaded again. Either the raw data (exp) or the distance matrix (distance_matrix) are in memory which keeps the memory footprint low.
+        cout << SILAClabels[i][j] << " ";
+      }
+      cout << endl;
+    }
+    cout << endl;
 
-        //-------------------------------------------------------------
-        // loading input
-        //-------------------------------------------------------------
-        MzMLFile file;
-        MSExperiment<Peak1D> exp;
+    // check if all selected labels are included in advanced section "labels"
+    for (unsigned i = 0; i < SILAClabels.size(); i++)
+    {
+      for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+      {
+        int found = labels.find(SILAClabels[i][j]);
 
-        file.setLogType(log_type_);
-        file.load(in,exp);
+        if (found < 0)
+          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,SILAClabels[i][j]);
+      }
+    }
 
-        //set input map size (only once)
-        if (charge==charge_min)
+    // generate list of mass shifts
+    for (Int ArgPerPeptide = 0; ArgPerPeptide <= missed_cleavages + 1; ArgPerPeptide++)
+    {
+      for (Int LysPerPeptide = 0; LysPerPeptide <= missed_cleavages + 1; LysPerPeptide++)
+      {
+        for (Int MethylPerPeptide = 0; MethylPerPeptide <= missed_cleavages + 1; MethylPerPeptide++)
         {
-          exp.updateRanges();
-		  all_pairs.getFileDescriptions()[0].size = exp.getSize();
-		  all_pairs.getFileDescriptions()[1].size = exp.getSize();
-          all_pairs.getFileDescriptions()[2].size = exp.getSize();
-        }
-
-        //-------------------------------------------------------------
-        // build SILACData structure
-        //-------------------------------------------------------------
-        ProgressLogger logger_;
-        std::vector<SILACData> data;
-
-        logger_.setLogType(log_type_);
-        logger_.startProgress(0,exp.size(),"reducing raw data");
-
-        // scan over the entire experiment and write to data structure
-        for (MSExperiment<>::Iterator rt_it=exp.begin(); rt_it!=exp.end(); ++rt_it)
-        {
-          logger_.setProgress(rt_it-exp.begin());
-          Size number_data_points = rt_it->size();
-          // spectra with less than 10 data points are being ignored
-          if (number_data_points>=10) {
-            // read one OpenMS spectrum into GSL structure
-            std::vector<DoubleReal> mz_vec;
-            std::vector<DoubleReal> intensity_vec;
-            mz_vec.resize(number_data_points);
-            intensity_vec.resize(number_data_points);
-            Int j = 0;
-            for (MSSpectrum<>::Iterator mz_it=rt_it->begin(); mz_it!=rt_it->end(); ++mz_it)
+          for (Int dICPLPerPeptide = 0; dICPLPerPeptide <= missed_cleavages + 1; dICPLPerPeptide++)
+          {
+            if ( ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide > 0 && ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide <= missed_cleavages + 1 )
             {
-              mz_vec[j] = mz_it->getMZ();
-              intensity_vec[j] = mz_it->getIntensity();
-              ++j;
-            }
-            DoubleReal mz_min = mz_vec[0];
-            DoubleReal mz_max = mz_vec[number_data_points-1];
-            // linear interpolation
-            // used for the detection of pairs (spline overestimates at noise level)
-            gsl_interp_accel *acc = gsl_interp_accel_alloc();
-            gsl_spline *spline = gsl_spline_alloc(gsl_interp_linear, number_data_points);
-            gsl_spline_init(spline, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
-            // spline interpolation
-            // used for exact ratio calculation (more accurate when real peak pairs are present)
-            gsl_interp_accel *acc2 = gsl_interp_accel_alloc();
-            gsl_spline *spline2 = gsl_spline_alloc(gsl_interp_cspline, number_data_points);
-            gsl_spline_init(spline2, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
-            for (DoubleReal mz=mz_min+isotope_distance; mz<mz_max-envelope_distance_light_heavy-3*isotope_distance; mz+=mz_step_width)
-            {
-              DoubleReal int_lin1 = gsl_spline_eval (spline, mz, acc);
-              DoubleReal int_lin2 = gsl_spline_eval (spline, mz+isotope_distance, acc);
-              DoubleReal int_lin3 = gsl_spline_eval (spline, mz+2*isotope_distance, acc);
-			  DoubleReal int_lin4 = gsl_spline_eval (spline, mz+envelope_distance_light_medium, acc);
-			  DoubleReal int_lin5 = gsl_spline_eval (spline, mz+envelope_distance_light_medium+isotope_distance, acc);
-			  DoubleReal int_lin6 = gsl_spline_eval (spline, mz+envelope_distance_light_medium+2*isotope_distance, acc);
-			  DoubleReal int_lin7 = gsl_spline_eval (spline, mz+envelope_distance_light_heavy, acc);
-			  DoubleReal int_lin8 = gsl_spline_eval (spline, mz+envelope_distance_light_heavy+isotope_distance, acc);
-			  DoubleReal int_lin9 = gsl_spline_eval (spline, mz+envelope_distance_light_heavy+2*isotope_distance, acc);
-			  DoubleReal int_spline1 = gsl_spline_eval (spline2, mz, acc2);
-              DoubleReal int_spline2 = gsl_spline_eval (spline2, mz+isotope_distance, acc2);
-              DoubleReal int_spline3 = gsl_spline_eval (spline2, mz+2*isotope_distance, acc2);
-			  DoubleReal int_spline4 = gsl_spline_eval (spline2, mz+envelope_distance_light_medium, acc2);
-			  DoubleReal int_spline5 = gsl_spline_eval (spline2, mz+envelope_distance_light_medium+isotope_distance, acc2);
-			  DoubleReal int_spline6 = gsl_spline_eval (spline2, mz+envelope_distance_light_medium+2*isotope_distance, acc2);
-			  DoubleReal int_spline7 = gsl_spline_eval (spline2, mz+envelope_distance_light_heavy, acc2);
-			  DoubleReal int_spline8 = gsl_spline_eval (spline2, mz+envelope_distance_light_heavy+isotope_distance, acc2);
-			  DoubleReal int_spline9 = gsl_spline_eval (spline2, mz+envelope_distance_light_heavy+2*isotope_distance, acc2);
-
-			  bool condDouble1 = (int_lin1 >= intensity_cutoff) && (int_lin2 >= intensity_cutoff) && (int_lin3 >= intensity_cutoff) && (int_lin7 >= intensity_cutoff) && (int_lin8 >= intensity_cutoff) && (int_lin9 >= intensity_cutoff); // all six intensities peak simultaneously
-			  bool condDouble2 = (int_spline1 >= int_spline2) && (int_spline2 >= int_spline3) && (int_spline7 >= int_spline8) && (int_spline8 >= int_spline9); // isotopic peaks within one envelop decrease
-			  bool condTriple1 = (int_lin1 >= intensity_cutoff) && (int_lin2 >= intensity_cutoff) && (int_lin3 >= intensity_cutoff) && (int_lin4 >= intensity_cutoff) && (int_lin5 >= intensity_cutoff) && (int_lin6 >= intensity_cutoff) && (int_lin7 >= intensity_cutoff) && (int_lin8 >= intensity_cutoff) && (int_lin9 >= intensity_cutoff); // all nine intensities peak simultaneously
-			  bool condTriple2 = (int_spline1 >= int_spline2) && (int_spline2 >= int_spline3) && (int_spline4 >= int_spline5) && (int_spline5 >= int_spline6) && (int_spline7 >= int_spline8) && (int_spline8 >= int_spline9); // isotopic peaks within one envelop decrease
-              if ((type=="double" && condDouble1 && condDouble2) || (type=="triple" && condTriple1 && condTriple2))
+              vector<DoubleReal> massShiftVector;
+              for (unsigned i = 0; i < SILAClabels.size(); i++)
               {
-                data.push_back(SILACData(rt_it->getRT(),mz,int_spline1,int_spline2,int_spline3,int_spline4,int_spline5,int_spline6,int_spline7,int_spline8,int_spline9));
+                DoubleReal massShift = 0;
+                // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There + Lys8There == 0) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
+                bool goAhead_Lys = false;
+                bool goAhead_Arg = false;
+                bool goAhead_Methyl = false;
+                bool goAhead_dICPL = false;
+
+                for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+                {
+                  Int Arg6There = 0;	// Is Arg6 in the SILAC label?
+                  Int Arg10There = 0;
+                  Int Lys4There = 0;
+                  Int Lys6There = 0;
+                  Int Lys8There = 0;
+                  Int Methyl4There = 0;
+                  Int Methyl8There = 0;
+                  Int Methyl12There = 0;
+                  Int Methyl16There = 0;
+                  Int Methyl24There = 0;
+                  Int Methyl32There = 0;
+                  Int dICPL4There = 0;
+                  Int dICPL6There = 0;
+                  Int dICPL10There = 0;
+
+                  if ( SILAClabels[i][j].find("Arg6") == 0 ) Arg6There = 1;
+                  if ( SILAClabels[i][j].find("Arg10") == 0 ) Arg10There = 1;
+                  if ( SILAClabels[i][j].find("Lys4") == 0 ) Lys4There = 1;
+                  if ( SILAClabels[i][j].find("Lys6") == 0 ) Lys6There = 1;
+                  if ( SILAClabels[i][j].find("Lys8") == 0 ) Lys8There = 1;
+                  if ( SILAClabels[i][j].find("Methyl4") == 0 ) Methyl4There = 1;
+                  if ( SILAClabels[i][j].find("Methyl8") == 0 ) Methyl8There = 1;
+                  if ( SILAClabels[i][j].find("Methyl12") == 0 ) Methyl12There = 1;
+                  if ( SILAClabels[i][j].find("Methyl16") == 0 ) Methyl16There = 1;
+                  if ( SILAClabels[i][j].find("Methyl24") == 0 ) Methyl24There = 1;
+                  if ( SILAClabels[i][j].find("Methyl32") == 0 ) Methyl32There = 1;
+                  if ( SILAClabels[i][j].find("dICPL4") == 0 ) dICPL4There = 1;
+                  if ( SILAClabels[i][j].find("dICPL6") == 0 ) dICPL6There = 1;
+                  if ( SILAClabels[i][j].find("dICPL10") == 0 ) dICPL10There = 1;
+
+                  goAhead_Arg = goAhead_Arg || !( (ArgPerPeptide != 0 && Arg6There + Arg10There == 0) );
+                  goAhead_Lys = goAhead_Lys || !( (LysPerPeptide != 0 && Lys4There + Lys6There + Lys8There == 0) );
+                  goAhead_Methyl = goAhead_Methyl || !( (MethylPerPeptide != 0 && Methyl4There + Methyl8There + Methyl12There + Methyl16There + Methyl24There + Methyl32There == 0) );
+                  goAhead_dICPL = goAhead_dICPL || !( (dICPLPerPeptide != 0 && dICPL4There + dICPL6There + dICPL10There == 0) );
+
+                  massShift = massShift + ArgPerPeptide * ( Arg6There * (arg6->second) + Arg10There * (arg10->second) ) + LysPerPeptide * ( Lys4There * (lys4->second) + Lys6There * (lys6->second) + Lys8There * (lys8->second) ) +  MethylPerPeptide * (Methyl4There * (methyl4->second) + Methyl8There * (methyl8->second) + Methyl12There * (methyl12->second) + Methyl16There * (methyl16->second) + Methyl24There * (methyl24->second) + Methyl32There * (methyl32->second) ) + dICPLPerPeptide * ( dICPL4There * (dicpl4->second) + dICPL6There * (dicpl6->second) + dICPL10There * (dicpl10->second) );
+                }
+
+                if (goAhead_Arg && goAhead_Lys && goAhead_Methyl && goAhead_dICPL)
+                  massShiftVector.push_back(massShift);
               }
+
+              if (!massShiftVector.empty())
+                massShifts.push_back(massShiftVector);
             }
-
-            gsl_spline_free(spline);
-            gsl_interp_accel_free(acc);
-            gsl_spline_free(spline2);
-            gsl_interp_accel_free(acc2);
           }
         }
-        exp.clear(true);
-        logger_.endProgress();
-
-        //-------------------------------------------------------------
-        // generate distance matrix and copy distance matrix
-        //-------------------------------------------------------------
-        DistanceMatrix<Real> distance_matrix;
-        distance_matrix.resize(data.size(),1);
-        for (Size i=0; i < data.size(); ++i)
-        {
-          for (Size j=0; j < i; ++j)
-          {
-            // shrink RT by factor rt_scaling in order to make clusters more symmetric
-            distance_matrix.setValueQuick(i,j, sqrt( (data[i].rt-data[j].rt)*(data[i].rt-data[j].rt)*rt_scaling*rt_scaling+(data[i].mz-data[j].mz)*(data[i].mz-data[j].mz) ) );
-          }
-        }
-
-        DistanceMatrix<Real> distance_matrix_copy(distance_matrix); //clustering method will mess with input matrix
-
-        //-------------------------------------------------------------
-        // conduct clustering
-        //-------------------------------------------------------------
-        //~ ClusterHierarchical ch;
-		AverageLinkage al;
-        al.setLogType(log_type_);
-        std::vector< BinaryTreeNode > tree;
-        al(distance_matrix_copy, tree, std::numeric_limits<float>::max());
-
-        //-----------------------------------------------------------------
-        // find number of clusters which maximizes average silhouette width
-        //-----------------------------------------------------------------
-
-        ClusterAnalyzer ca;
-        //choose asw that deviates at most the given percentage (optimal_silhouette_tolerance) from the max asw and contains the most clusters
-        std::vector< Real >asw = ca.averageSilhouetteWidth(tree,distance_matrix);
-        std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));
-        //~ std::vector< Real >::iterator max_el(max_element((asw.end()-((Int)data.size()/10) ),asw.end()));//only the first size/10 steps are reviewed
-        int best_n = (int)tree.size();
-        Real max_deviation((*max_el)*(optimal_silhouette_tolerance/100));
-        for (Size i = 0; i < asw.size(); ++i)
-        {
-          if(std::fabs(asw[i]-(*max_el))<=max_deviation)
-          {
-            best_n = int(tree.size() - i);
-            break;
-          }
-        }
-
-        //-------------------------------------------------------------
-        // choose appropriate(best) partition of data from best_n
-        //-------------------------------------------------------------
-        best_n = int(cluster_number_scaling * best_n); // slightly increase cluster number
-        std::vector< std::vector<Size> > best_n_clusters;
-        ca.cut(best_n, tree, best_n_clusters);
-        cluster_number[charge] = best_n;
-
-        //-------------------------------------------------------------
-        // count data points in each cluster
-        //-------------------------------------------------------------
-        std::vector<SignedSize> cluster_size(best_n,0); // number of points per cluster
-        for (Size i=0; i < cluster_size.size(); ++i)
-        {
-          cluster_size[i] = best_n_clusters[i].size();
-        }
-
-        //--------------------------------------------------------------
-        // fill in cluster_id and cluster_size in SILACData structure
-        //--------------------------------------------------------------
-        for (Size i=0; i < best_n_clusters.size(); ++i)
-        {
-          for (Size j=0; j < best_n_clusters[i].size(); ++j)
-          {
-            data[best_n_clusters[i][j]].cluster_id = (Int)i;
-            data[best_n_clusters[i][j]].cluster_size =(Int)best_n_clusters[i].size();
-          }
-        }
-        std::sort(data.begin(),data.end());
-        std::reverse(data.begin(),data.end()); // largest clusters first
-
-        //--------------------------------------------------------------
-        // update cluster_id
-        //--------------------------------------------------------------
-        Int k = -1;
-        Int new_id = best_n-1;
-        for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
-        {
-          if (it->cluster_id != k) ++new_id;
-          k = it->cluster_id;
-          it->cluster_id = new_id;
-        }
-        for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
-        {
-          it->cluster_id = it->cluster_id - best_n;
-        }
-
-        //--------------------------------------------------------------
-        // update cluster_size
-        //--------------------------------------------------------------
-        cluster_size = std::vector<SignedSize>(best_n,0);
-        k = -1;
-        for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
-        {
-          ++cluster_size[it->cluster_id];
-        }
-
-        //--------------------------------------------------------------
-        //create consensus features
-        //--------------------------------------------------------------
-        if (out!="")
-        {
-          for (int i=0; i<best_n; ++i)
-          {
-            DoubleReal rt = 0.0;
-            DoubleReal mz = 0.0;
-			DoubleReal int_l = 0.0;
-			DoubleReal int_m = 0.0;
-            DoubleReal int_h = 0.0;
-            // intensity vectors used for linear regression
-			std::vector<DoubleReal> i1(3*cluster_size[i]);
-			std::vector<DoubleReal> i2(3*cluster_size[i]);
-            std::vector<DoubleReal> i3(3*cluster_size[i]);
-            UInt j=0;
-            for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
-            {
-              if (it->cluster_id==i)
-              {
-				i1[3*j] = it->int1;
-				i2[3*j] = it->int4;
-                i3[3*j] = it->int7;
-				i1[3*j+1] = it->int2;
-				i2[3*j+1] = it->int5;
-                i3[3*j+1] = it->int8;
-				i1[3*j+2] = it->int3;
-				i2[3*j+2] = it->int6;
-                i3[3*j+2] = it->int9;
-
-                rt += it->rt;
-                if (it->int1>int_l)
-                {
-                  int_l = it->int1;
-                  mz = it->mz; // m/z of maximum intensity in the light cluster
-                }
-                if (it->int2>int_l)
-                {
-                  int_l = it->int2;
-                  mz = it->mz + isotope_distance;
-                }
-                if (it->int3>int_l)
-                {
-                  int_l = it->int3;
-                  mz = it->mz + 2.0 * isotope_distance;
-                }
-				if (it->int4>int_m)
-				{
-					int_m = it->int4;
-				}
-				if (it->int5>int_m)
-				{
-					int_m = it->int5;
-				}
-				if (it->int6>int_m)
-				{
-					int_m = it->int6;
-				}
-				if (it->int7>int_h)
-				{
-					int_h = it->int7;
-				}
-				if (it->int8>int_h)
-				{
-					int_h = it->int8;
-				}
-				if (it->int9>int_h)
-				{
-					int_h = it->int9;
-				}
-				++j;
-              }
-            }
-            rt /= (DoubleReal)(cluster_size[i]); // average retention time
-			Math::LinearRegression linear_reg_light_medium;
-			Math::LinearRegression linear_reg_light_heavy;
-			linear_reg_light_medium.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i2.begin());
-			linear_reg_light_heavy.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i3.begin());
-            //create consensus feature for light medium SILAC pair
-            ConsensusFeature pair_light_medium;
-            pair_light_medium.setRT(rt);
-            pair_light_medium.setMZ(mz);
-            pair_light_medium.setIntensity(linear_reg_light_medium.getSlope());
-            pair_light_medium.setCharge(charge);
-            pair_light_medium.setQuality(linear_reg_light_medium.getRSquared());
-            FeatureHandle handle;
-            handle.setRT(rt);
-            handle.setMZ(mz);
-            handle.setIntensity(int_l);
-            handle.setCharge(charge);
-            handle.setMapIndex(0);
-            handle.setUniqueId(i);
-            pair_light_medium.insert(handle);
-            handle.setRT(rt);
-            handle.setMZ(mz+envelope_distance_light_medium);
-            handle.setIntensity(int_m);
-            handle.setCharge(charge);
-            handle.setMapIndex(1);
-            handle.setUniqueId(i);
-            pair_light_medium.insert(handle);
-			if (type=="triple") {
-			  all_pairs.push_back(pair_light_medium);
-			}
-			//create consensus feature for light heavy SILAC pair
-            ConsensusFeature pair_light_heavy;
-			pair_light_heavy.setRT(rt);
-			pair_light_heavy.setMZ(mz);
-			pair_light_heavy.setIntensity(linear_reg_light_heavy.getSlope());
-			pair_light_heavy.setCharge(charge);
-			pair_light_heavy.setQuality(linear_reg_light_heavy.getRSquared());
-			handle.setRT(rt);
-			handle.setMZ(mz);
-			handle.setIntensity(int_l);
-			handle.setCharge(charge);
-			handle.setMapIndex(0);
-			handle.setUniqueId(i);
-			pair_light_heavy.insert(handle);
-			handle.setRT(rt);
-			handle.setMZ(mz+envelope_distance_light_heavy);
-			handle.setIntensity(int_h);
-			handle.setCharge(charge);
-			handle.setMapIndex(2);
-			handle.setUniqueId(i);
-			pair_light_heavy.insert(handle);
-			all_pairs.push_back(pair_light_heavy);
-          }
-        }
-
-
-        //--------------------------------------------------------------
-        //create features (for visualization)
-        //--------------------------------------------------------------
-        if (out_visual!="")
-        {
-          std::vector<String> colors;
-          // 16 HTML colors
-          colors.push_back("#00FFFF");
-          colors.push_back("#000000");
-          colors.push_back("#0000FF");
-          colors.push_back("#FF00FF");
-          colors.push_back("#008000");
-          colors.push_back("#808080");
-          colors.push_back("#00FF00");
-          colors.push_back("#800000");
-          colors.push_back("#000080");
-          colors.push_back("#808000");
-          colors.push_back("#800080");
-          colors.push_back("#FF0000");
-          colors.push_back("#C0C0C0");
-          colors.push_back("#008080");
-          colors.push_back("#FFFF00");
-
-		  for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
-          {
-            //visualize the light variant
-            Feature cluster_point;
-            cluster_point.setRT(it->rt);
-            cluster_point.setMZ(it->mz);
-            DoubleReal intensity = std::max(it->int1,it->int2);
-            intensity = std::max(intensity,it->int3);
-            cluster_point.setIntensity(intensity);
-            cluster_point.setCharge(charge);
-            cluster_point.setMetaValue("cluster_id",it->cluster_id);
-            cluster_point.setMetaValue("color",colors[it->cluster_id%colors.size()]);
-            all_cluster_points.push_back(cluster_point);
-          }
-          // required, as somehow the order of features on some datasets between Win & Linux is different and thus the TOPPtest might fail
-          all_cluster_points.sortByPosition();
-        }
-
-
-
-
-
-		//-------------------------------------------------------------
-		// generate debug output
-		//-------------------------------------------------------------
-		// strings repeatedly used in debug output
-		String light_medium_string = String(0.01*floor(mass_separation_light_medium*100+0.5));
-		String light_heavy_string = String(0.01*floor(mass_separation_light_heavy*100+0.5));
-
-		if (getFlag_("silac_debug"))
-        {
-		  String debug_suffix;
-		  if (type=="double") {
-			debug_suffix = "_" + light_heavy_string + "Da_" + String(charge) +"+";
-		  }
-		  else {
-			debug_suffix = "_" + light_medium_string + "Da_" + light_heavy_string + "Da_" + String(charge) +"+";
-		  }
-          // names of dat files
-          String debug_dat = debug_trunk + debug_suffix + ".dat";
-          String debug_clusters_dat = debug_trunk + debug_suffix + "_clusters.dat";
-
-          // write all cluster data points to *_clusters.dat
-          std::ofstream stream_clusters(debug_clusters_dat.c_str());
-		  if (type=="double") {
-			stream_clusters << "cluster_id cluster_size rt mz int1 int2 int3 int7 int8 int9" << std::endl;
-		  }
-		  else {
-			stream_clusters << "cluster_id cluster_size rt mz int1 int2 int3 int4 int5 int6 int7 int8 int9" << std::endl;
-		  }
-          Int current_id = -1;
-          for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
-          {
-            if (it->cluster_id != current_id) stream_clusters << std::endl << std::endl;
-			if (type=="double") {
-			  stream_clusters << it->cluster_id << " " << it->cluster_size << " "<< it->rt << " " << it->mz << " " << it->int1 << " " << it->int2 << " " << it->int3 << " " << it->int7 << " " << it->int8 << " " << it->int9 << std::endl;
-			}
-			else {
-			  stream_clusters << it->cluster_id << " " << it->cluster_size << " "<< it->rt << " " << it->mz << " " << it->int1 << " " << it->int2 << " " << it->int3 << " " << it->int4 << " " << it->int5 << " " << it->int6 << " " << it->int7 << " " << it->int8 << " " << it->int9 << std::endl;
-			}
-            current_id = it->cluster_id;
-          }
-          stream_clusters.close();
-
-          // write ratios of all cluster to *.dat
-          std::ofstream stream_ratios(debug_dat.c_str());
-		  if (type=="double") {
-			stream_ratios << "cluster_id cluster_size rt mz ratio_light_heavy" << std::endl;
-		  }
-		  else {
-			stream_ratios << "cluster_id cluster_size rt mz ratio_light_medium ratio_light_heavy" << std::endl;
-		  }
-          for (int i=0; i<best_n;++i)
-          {
-            DoubleReal rt = 0.0;
-            DoubleReal mz = 0.0;
-			DoubleReal int_l = 0.0;
-			DoubleReal int_m = 0.0;
-            DoubleReal int_h = 0.0;
-            // intensity vectors used for linear regression
-			std::vector<DoubleReal> i1(3*cluster_size[i]);
-			std::vector<DoubleReal> i2(3*cluster_size[i]);
-            std::vector<DoubleReal> i3(3*cluster_size[i]);
-            UInt j=0;
-             for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
-            {
-              if (it->cluster_id==i)
-              {
-				i1[3*j] = it->int1;
-				i2[3*j] = it->int4;
-                i3[3*j] = it->int7;
-				i1[3*j+1] = it->int2;
-				i2[3*j+1] = it->int5;
-                i3[3*j+1] = it->int8;
-				i1[3*j+2] = it->int3;
-				i2[3*j+2] = it->int6;
-                i3[3*j+2] = it->int9;
-
-                rt += it->rt;
-                if (it->int1>int_l)
-                {
-                  int_l = it->int1;
-                  mz = it->mz;
-                }
-                if (it->int2>int_l)
-                {
-                  int_l = it->int2;
-                  mz = it->mz + isotope_distance;
-                }
-                if (it->int3>int_l)
-                {
-                  int_l = it->int3;
-                  mz = it->mz + 2.0 * isotope_distance;
-                }
-				if (it->int4>int_m)
-				{
-				  int_m = it->int4;
-				}
-				if (it->int5>int_m)
-				{
-				  int_m = it->int5;
-				}
-				if (it->int6>int_m)
-				{
-				  int_m = it->int6;
-				}
-				if (it->int7>int_h)
-				{
-				  int_h = it->int7;
-				}
-				if (it->int8>int_h)
-				{
-				  int_h = it->int8;
-				}
-				if (it->int9>int_h)
-				{
-				  int_h = it->int9;
-				}
-				++j;
-              }
-            }
-            rt /= (DoubleReal)(cluster_size[i]); // average retention time
-			Math::LinearRegression linear_reg_light_medium;
-			Math::LinearRegression linear_reg_light_heavy;
-			linear_reg_light_medium.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i2.begin());
-			linear_reg_light_heavy.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i3.begin());
-			if (type=="double") {
-			  stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg_light_heavy.getSlope() << std::endl;
-			}
-			else {
-			  stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg_light_medium.getSlope() << " " << linear_reg_light_heavy.getSlope() << std::endl;
-			}
-          }
-          stream_ratios.close();
-        }
-
-      } //end iterate over all charge states
-
-
-      //--------------------------------------------------------------
-      //Store output
-      //--------------------------------------------------------------
-      if (out!="")
-      {
-
-        // assign unique ids
-        all_pairs.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-        //annotate output with data processing info
-        addDataProcessing_(all_pairs, getProcessingInfo_(DataProcessing::QUANTITATION));
-
-        ConsensusXMLFile c_file;
-        c_file.store(out,all_pairs);
       }
-
-      if (out_visual!="")
-      {
-        // assign unique ids
-        all_cluster_points.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-        FeatureXMLFile f_file;
-        f_file.store(out_visual,all_cluster_points);
-      }
-
-      //--------------------------------------------------------------
-      //write gnuplot script
-      //--------------------------------------------------------------
-	  // strings repeatedly used in debug output
-	  String light_medium_string = String(0.01*floor(mass_separation_light_medium*100+0.5));
-	  String light_heavy_string = String(0.01*floor(mass_separation_light_heavy*100+0.5));
-	  String rt_scaling_string = String(0.01*floor(rt_scaling*100+0.5));
-	  String optimal_silhouette_tolerance_string = String(0.01*floor(optimal_silhouette_tolerance*100+0.5));
-	  String cluster_number_scaling_string = String(0.01*floor(cluster_number_scaling*100+0.5));
-
-	  if (getFlag_("silac_debug"))
-      {
-        // first lines of the gnuplot script
-        String debug_gnuplotscript = debug_trunk + ".input";
-        std::ofstream stream_gnuplotscript(debug_gnuplotscript.c_str());
-        stream_gnuplotscript << "set terminal postscript eps enhanced colour" << std::endl;
-        stream_gnuplotscript << "set size 2.0, 2.0" << std::endl;
-        stream_gnuplotscript << "set size square" << std::endl << std::endl;
-        //iterate over all charge states
-        for (Size charge=charge_min; charge<=charge_max; ++charge)
-        {
-		  String debug_suffix;
-		  if (type=="double") {
-			debug_suffix = "_" + light_heavy_string + "Da_" + String(charge) +"+";
-		  }
-		  else {
-			debug_suffix = "_" + light_medium_string + "Da_" + light_heavy_string + "Da_" + String(charge) +"+";
-		  }
-          // names of dat files
-          String debug_dat = debug_trunk + debug_suffix + ".dat";
-          String debug_clusters_dat = debug_trunk + debug_suffix + "_clusters.dat";
-          // names of postscript files
-		  String debug_ratios_light_medium = debug_trunk + debug_suffix + "_ratios_light_medium.eps";
-		  String debug_ratios_light_heavy = debug_trunk + debug_suffix + "_ratios_light_heavy.eps";
-          String debug_sizes = debug_trunk + debug_suffix + "_sizes.eps";
-          String debug_clusters = debug_trunk + debug_suffix + "_clusters.eps";
-		  String debug_clustersIntLightMedium = debug_trunk + debug_suffix + "_clustersIntLightMedium.eps";
-		  String debug_clustersIntLightHeavy = debug_trunk + debug_suffix + "_clustersIntLightHeavy.eps";
-
-          // write *_clusters.eps
-          stream_gnuplotscript << "set output \"" + debug_clusters + "\"" << std::endl;
-		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-          stream_gnuplotscript << "set xlabel \'m/Z (Th)\'" << std::endl;
-          stream_gnuplotscript << "set ylabel \'RT (s)\'" << std::endl;
-          stream_gnuplotscript << "plot";
-          for (int i = cluster_min; i <= cluster_max; i++)// iterate over clusters
-          {
-            if (i != cluster_min) stream_gnuplotscript << ",";
-            stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 4:3 title \"cluster " + String(i) + "\"";
-          }
-          stream_gnuplotscript << std::endl;
-
-		  // write *_clustersIntLightMedium.eps
-		  if (type=="triple") {
-		    stream_gnuplotscript << "set output \"" + debug_clustersIntLightMedium + "\"" << std::endl;
-		    stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		    stream_gnuplotscript << "set xlabel \'intensity at m/Z\'" << std::endl;
-		    stream_gnuplotscript << "set ylabel \'intensity at m/Z + " + light_medium_string + "Th\'" << std::endl;
-		    stream_gnuplotscript << "plot";
-		    for (int i = cluster_min; i <= cluster_max; i++)// iterate over clusters
-		    {
-			  if (i != cluster_min) stream_gnuplotscript << ",";
-			  stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 5:8 title \"cluster " + String(i) + "\"";
-		    }
-		    stream_gnuplotscript << std::endl;
-		  }
-
-		  // write *_clustersIntLightHeavy.eps
-		  stream_gnuplotscript << "set output \"" + debug_clustersIntLightHeavy + "\"" << std::endl;
-		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-		  stream_gnuplotscript << "set xlabel \'intensity at m/Z\'" << std::endl;
-		  stream_gnuplotscript << "set ylabel \'intensity at m/Z + " + light_heavy_string + "Th\'" << std::endl;
-		  stream_gnuplotscript << "plot";
-		  for (int i = cluster_min; i <= cluster_max; i++)// iterate over clusters
-		  {
-			if (i != cluster_min) stream_gnuplotscript << ",";
-			if (type=="double") {
-				stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 5:8 title \"cluster " + String(i) + "\"";
-			}
-			else {
-				stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 5:11 title \"cluster " + String(i) + "\"";
-			}
-		  }
-		  stream_gnuplotscript << std::endl;
-
-		  // write *_ratios_light_medium.eps
-		  if (type=="triple") {
-		    stream_gnuplotscript << "set output \"" + debug_ratios_light_medium + "\"" << std::endl;
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		    stream_gnuplotscript << "set nokey" << std::endl;
-		    stream_gnuplotscript << "set xlabel \'m/Z\'" << std::endl;
-		    stream_gnuplotscript << "set ylabel \'ratio light medium\'" << std::endl;
-			stream_gnuplotscript << "plot \'" + debug_dat + "\' using 4:5";
-		    stream_gnuplotscript << std::endl;
-		  }
-
-		  // write *_ratios_light_heavy.eps
-          stream_gnuplotscript << "set output \"" + debug_ratios_light_heavy + "\"" << std::endl;
-		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-		  stream_gnuplotscript << "set nokey" << std::endl;
-          stream_gnuplotscript << "set xlabel \'m/Z\'" << std::endl;
-          stream_gnuplotscript << "set ylabel \'ratio light heavy\'" << std::endl;
-		  if (type=="double") {
-			stream_gnuplotscript << "plot \'" + debug_dat + "\' using 4:5";
-		  }
-		  else {
-			stream_gnuplotscript << "plot \'" + debug_dat + "\' using 4:6";
-		  }
-          stream_gnuplotscript << std::endl;
-
-          // write *_sizes.eps
-          stream_gnuplotscript << "set output \"" + debug_sizes + "\"" << std::endl;
-		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
-		  }
-		  stream_gnuplotscript << "set nokey" << std::endl;
-          stream_gnuplotscript << "set xlabel \'cluster ID\'" << std::endl;
-          stream_gnuplotscript << "set ylabel \'cluster size\'" << std::endl;
-          stream_gnuplotscript << "plot \'" + debug_dat + "\' using 1:2";
-          stream_gnuplotscript << std::endl;
-        }
-        stream_gnuplotscript.close();
-      }
-
-
-      return EXECUTION_OK;
     }
+
+    // sort the mass shift vector
+    sort(massShifts.begin(), massShifts.end());
+
+    // print mass shifts
+    for (unsigned i = 0; i < massShifts.size(); i++)
+    {
+      cout << "mass shift " << i + 1 << ":   ";
+      for (unsigned j = 0; j < massShifts[i].size(); j++)
+      {
+        cout << massShifts[i][j] << " ";
+      }
+      cout << endl;
+    }
+    cout << endl;
+
+    // get output variables
+    all_pairs.getFileDescriptions()[0].filename = in;
+    all_pairs.getFileDescriptions()[0].label = "light";
+    all_pairs.getFileDescriptions()[1].filename = in;
+    all_pairs.getFileDescriptions()[1].label = "medium";
+    all_pairs.getFileDescriptions()[2].filename = in;
+    all_pairs.getFileDescriptions()[2].label = "heavy";
+    all_pairs.setExperimentType("silac");
+  }
+
+
+  //--------------------------------------------------
+  // filtering
+  //--------------------------------------------------
+
+  // exp must only contain level 1 spectra
+  DoubleReal estimateMzSpacing(MSExperiment<Peak1D>& exp)
+  {
+    // estimate m/z step width
+    UInt i = 0;
+    while (i < exp.size() && exp[i].size() < 5)
+      ++i;
+
+    vector<Real> mz_spacing;
+
+    for (Size j = 1; j < exp[i].size(); ++j)
+    {
+      mz_spacing.push_back(exp[i][j].getMZ() - exp[i][j-1].getMZ());
+    }
+    sort(mz_spacing.begin(), mz_spacing.end());
+
+    return mz_spacing[mz_spacing.size() / 2];
+  }
+
+  vector<vector<DataPoint> > buildDataStructure(MSExperiment<Peak1D>& exp)
+  {
+    // extract level 1 spectra
+    IntList levels=IntList::create("1");
+    exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(levels, true)), exp.end());
+    list<SILACFilter> filters;
+
+    mz_stepwidth = estimateMzSpacing(exp);
+
+    // create filters for all numbers of isotopes per peptide, charge states and mass shifts
+    // iterate over all number for peaks per peptide (from max to min)
+    for (Int isotopes_per_peptide = isotopes_per_peptide_max; isotopes_per_peptide >= isotopes_per_peptide_min; isotopes_per_peptide--)
+    {
+      // iterate over all charge states (from max to min)
+      for (Int charge = charge_max; charge >= charge_min; charge--)
+      {
+        // iterate over all mass shifts
+        for (unsigned i = 0; i < massShifts.size(); i++)
+        {
+          // convert vector<DoubleReal> to set<DoubleReal> for SILACFilter
+          vector<DoubleReal> massShifts_set = massShifts[i];
+
+          //copy(massShifts[i].begin(), massShifts[i].end(), inserter(massShifts_set, massShifts_set.end()));
+          filters.push_back(SILACFilter(massShifts_set, charge, model_deviation, isotopes_per_peptide));
+        }
+      }
+    }
+
+    // create filtering
+    SILACFiltering filtering(exp, mz_stepwidth, intensity_cutoff, intensity_correlation, allow_missing_peaks);
+    filtering.setLogType(log_type_);
+
+    // register filters to the filtering
+    for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+    {
+      filtering.addFilter(*filter_it);
+    }
+    
+    // perform filtering
+    filtering.filterDataPoints();
+
+    // retrieve filtered data points
+    for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+    {
+      data.push_back(filter_it->getElements());
+    }
+    
+    // delete experiment
+    exp.clear(true);
+
+
+    //--------------------------------------------------
+    // combine DataPoints to improve the clustering
+    //--------------------------------------------------
+
+    // DataPoints that originate from filters with same charge state and mass shift(s)
+    // and whose filters only differ in number of isotopes per peptide are combined
+    // to get one cluster for peptides whose elution profile varies in number of isotopes per peptide
+
+    // perform combination only if the user specified a peaks_per_peptide range > 1
+    if (isotopes_per_peptide_min != isotopes_per_peptide_max)
+    {
+      // erase empty filter results from "data"
+      vector<vector<DataPoint> > data_temp;
+
+      for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+      {
+        if (data_it->size() != 0)
+        {
+          data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
+        }
+      }
+
+      data.swap(data_temp);     // data = data_temp
+      data_temp.clear();      // clear "data_temp"
+
+
+      // combine corresponding DataPoints
+      vector<DataPoint> data_combined;      // create "data_combined" to combine two DataPoints
+      vector<vector<DataPoint> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
+      vector<vector<DataPoint> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
+      vector<DataPoint>::iterator it_1;     // first inner iterator over elements of first DataPoint
+      vector<DataPoint>::iterator it_2;     // second inner iterator over elements of second DataPoint
+
+      while (data_it_1 < data.end() - 1)      // check for combining as long as first DataPoint is not second last elment of "data"
+      {
+        while (data_it_1->size() == 0 && data_it_1 < data.end() - 1)
+        {
+          data_it_1++;      // get next first DataPoint
+          data_it_2 = data_it_1 + 1;      // reset second iterator
+        }
+
+        if (data_it_1 == data.end() - 1 && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
+          break;      // stop combining
+
+        while (data_it_2->size() == 0 && data_it_2 < data.end())      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+        {
+          data_it_2++;      // get next second DataPoint
+        }
+
+        if (data_it_2 == data.end())      // if second iterator points to end of "data"
+        {
+          data_it_2 = data_it_1 + 1;      // reset second iterator
+        }
+
+        it_1 = data_it_1->begin();      // set first inner iterator to first element of first DataPoint
+        it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
+
+        // check if DataPoints are not empty
+        if (data_it_1->size() != 0 && data_it_2->size() != 0)
+        {
+          // check if DataPoints have the same charge state and mass shifts
+          if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
+          {
+            if (data_it_2 < data.end() - 1)     // if DataPpoints differ and second DataPoint is not second last element of "data"
+            {
+              data_it_2++;      // get next second DataPoint
+            }
+
+            else if (data_it_2 == data.end() - 1 && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
+            {
+              data_it_1++;      // get next first DataPoint
+              data_it_2 = data_it_1 + 1;      // reset second iterator
+            }
+
+            else
+            {
+              data_it_1++;      // get next first DataPoint
+            }
+          }
+
+          else
+          {
+            // perform combining
+            // insert the two DataPoints to combine in "data_combined"
+            data_combined.insert(data_combined.end(), data_it_1->begin(), data_it_1->end());
+            data_combined.insert(data_combined.end(), data_it_2->begin(), data_it_2->end());
+            (*data_it_1).swap(data_combined);     // insert "data_combined" at position of first Datapoint
+            (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
+            data_combined.clear();      // clear "data_combined"
+
+            if (data_it_2 < data.end() - 1)     // if second DataPoint is not second last element of "data"
+            {
+              data_it_2++;      // get next second DataPoint
+            }
+            else
+            {
+              data_it_2 = data_it_1 + 1;      // reset second iterator
+            }
+          }
+        }
+        else
+        {
+          data_it_1++;      // get next first DataPoint
+        }
+      }
+    }
+
+
+    // erase empty DataPoints from "data"
+    vector<vector<DataPoint> > data_temp;
+
+    for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+    {
+      if (data_it->size() != 0)
+      {
+        data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
+      }
+    }
+
+    data.swap(data_temp);     // data = data_temp
+    data_temp.clear();      // clear "data_temp"
+
+    return data;      // return "data" for clustering
+  }
+
+
+
+
+
+  ExitCodes main_(int , const char**)
+  {
+    handleParameters();
+
+
+    //--------------------------------------------------
+    // loading input from .mzML
+    //--------------------------------------------------
+
+    MzMLFile file;
+    MSExperiment<Peak1D> exp;
+
+    file.setLogType(log_type_);
+    file.load(in, exp);
+
+    // set size of input map
+    exp.updateRanges();
+
+    all_pairs.getFileDescriptions()[0].size = exp.getSize();
+    all_pairs.getFileDescriptions()[1].size = exp.getSize();
+    all_pairs.getFileDescriptions()[2].size = exp.getSize();
+
+
+    //--------------------------------------------------
+    // build SILACData structure
+    //--------------------------------------------------
+
+    vector<vector<DataPoint> > data=buildDataStructure(exp);
+
+
+    //--------------------------------------------------
+    // clustering
+    //--------------------------------------------------
+
+    vector<vector<Real> > silhouettes;
+    vector<Cluster> clusters;
+    vector<Tree> subtrees;
+
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+
+    progresslogger.startProgress(0, data.size(), "clustering data");
+
+    for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+    {
+      // check if there are at least two points for clustering
+      if (data_it->size() >= 2)
+      {
+        // hierarchical clustering
+        CentroidLinkage method(rt_scaling);
+        HashClustering c(*data_it, rt_threshold, mz_threshold, method);
+        c.setLogType(log_type_);
+        c.performClustering();
+        vector<Tree> current_subtrees;
+        c.getSubtrees(current_subtrees);
+        subtrees.insert(subtrees.end(), current_subtrees.begin(), current_subtrees.end());
+        vector<Cluster> current_clusters;
+        c.createClusters(current_clusters);
+        const vector<vector<Real> >& current_silhouettes = c.getSilhouetteValues();
+        silhouettes.insert(silhouettes.end(), current_silhouettes.begin(), current_silhouettes.end());
+
+        // QT clustering
+/*        DoubleReal isotope_distance = 1.000495 / (DoubleReal)data_it->front().charge;
+        QTClustering c(*data_it, rt_threshold, mz_threshold, isotope_distance);
+        c.setLogType(log_type_);
+        vector<Cluster> current_clusters =  c.performClustering();
+*/
+        clusters.insert(clusters.end(), current_clusters.begin(), current_clusters.end());
+
+        progresslogger.setProgress(data_it - data.begin());
+      }
+    }
+
+    progresslogger.endProgress();
+
+    sort(clusters.begin(), clusters.end(), clusterCompare);
+
+
+    //--------------------------------------------------
+    // create a map of SILAC type names
+    //--------------------------------------------------
+
+    map<Size,String> silac_types;
+    silac_types.insert(make_pair(0, "Singlet"));
+    silac_types.insert(make_pair(1, "Doublet"));
+    silac_types.insert(make_pair(2, "Triplet"));
+    silac_types.insert(make_pair(3, "Quadruplet"));
+
+
+    //--------------------------------------------------
+    // consensusXML output
+    //--------------------------------------------------
+
+    if (out != "")
+    {
+      Size id = 0;
+
+      // iterate over all clusters
+      for (vector<Cluster>::iterator cluster_it = clusters.begin(); cluster_it != clusters.end(); ++cluster_it)
+      {
+        DoubleReal rt = 0.0;
+        DoubleReal mz = 0.0;
+        DoubleReal total_intensity = 0.0;
+        Size mass_shifts_size = (*(cluster_it->begin()))->mass_shifts.size();
+        // create a vector with the maximum intensity of each isotope peak
+        vector<DoubleReal> max_intensities(mass_shifts_size,0.0);
+        // specify SILAC type
+        String silac_type = silac_types[mass_shifts_size];
+        Int charge = (*(cluster_it->begin()))->charge;
+
+        // add mass shifts as value for Quality
+        String mass_shift = "";
+        String mass_shift_2 = "";
+        DoubleReal mass_shift_final;
+
+        for (vector<DoubleReal>::iterator shift_it = (*(cluster_it->begin()))->mass_shifts.begin(); shift_it != (*(cluster_it->begin()))->mass_shifts.end(); ++shift_it)
+        {
+          DoubleReal mass_shift_current = *shift_it * charge;			// convert mass shift from Th to Da
+          mass_shift += "0" + (String)mass_shift_current;			// combine mass shifts as string
+        }
+
+        // format string of mass shifts
+        for (int i = 0; i < 2; ++i)
+        {
+          int found = mass_shift.find(".");
+          if (found > 0)
+          {
+            mass_shift_2 += mass_shift.substr(found - 2, 3);
+            mass_shift.erase(found, 1);
+
+            found = mass_shift_2.find(".");
+            mass_shift_2.erase(found, 1);
+          }
+        }
+
+        mass_shift_2.insert(2, ".");			// insert "." between the two mass shifts
+
+        // convert mass shits from string to DoubleReal (value for Quality has to be of type DoubleReal)
+        mass_shift_final = String(mass_shift_2).toDouble();
+
+        // intensity vector used for linear regression
+        vector<vector<DoubleReal> > intensities(mass_shifts_size);
+        // iterate over the cluster elements
+        for (Cluster::iterator el_it = cluster_it->begin(); el_it != cluster_it->end(); ++el_it)
+        {
+          // extract all SILAC pattern intensities of the current element
+          vector<vector<DoubleReal> >& element_intensities = (*el_it)->intensities;
+          // add monoisotopic intensity of the light peak to the total intensity
+          total_intensity += element_intensities[0][0];
+          // add monoisotopic RT position of the light peak to the total RT value, weighted by the intensity
+          rt += element_intensities[0][0] * (*el_it)->rt;
+          // iterate over all mass shifts of the element
+          for (Size i = 0; i < mass_shifts_size; ++i)
+          {
+            // create a temporary vector with all isotope pattern intensities of the current mass shift
+            vector<DoubleReal>& current_intensities=element_intensities[i];
+            intensities[i].insert(intensities[i].end(),current_intensities.begin(),current_intensities.end());
+
+            // find maximum intensity
+            vector<DoubleReal>::iterator max_position = max_element(current_intensities.begin(), current_intensities.end());
+            if (*max_position > max_intensities[i])
+            {
+              max_intensities[i] = *max_position;
+              mz = (*el_it)->mz;
+            }
+          }
+        }
+
+        // average retention time
+        rt /= total_intensity;
+
+         // create consensus feature for each mass shift !=0
+        ConsensusFeature consensus_feature;
+        consensus_feature.setRT(rt);
+        consensus_feature.setMZ(mz);
+        consensus_feature.setIntensity(max_intensities[0]);			// set intensity of light peptiide to intensity of consensus
+        consensus_feature.setCharge(charge);
+        consensus_feature.setQuality(mass_shift_final);			// set mass shifts as value for Quality (format: Da.Da)
+
+        // insert feature handle for each mass shift
+        for (Size l = 0; l < mass_shifts_size; ++l)
+        {
+          // perform linear regression for each mass shift != 0
+
+          Math::LinearRegression linear_reg;
+          linear_reg.computeRegressionNoIntercept(0.95, intensities[0].begin(), intensities[0].end(), intensities[l].begin());
+
+          FeatureHandle handle;
+          handle.setRT(rt);
+          handle.setMZ(mz+(*(cluster_it->begin()))->mass_shifts[l]);
+          handle.setIntensity(linear_reg.getSlope());			// set ratios as values for intensities: it(map="0") = l/l, it(map="1") = m/l, it(map="2") = h/l
+          handle.setCharge(charge);
+          handle.setMapIndex(l);
+          handle.setUniqueId(id);
+          consensus_feature.insert(handle);
+        }
+
+        all_pairs.push_back(consensus_feature);
+        ++id;
+      }    
+    }
+
+
+    //--------------------------------------------------
+    // featureXML output (out_clusters)
+    //--------------------------------------------------
+
+    if (out_clusters != "")
+    {
+      vector<String> colors;
+      // 16 HTML colors
+      colors.push_back("#00FFFF");
+      colors.push_back("#000000");
+      colors.push_back("#0000FF");
+      colors.push_back("#FF00FF");
+      colors.push_back("#008000");
+      colors.push_back("#808080");
+      colors.push_back("#00FF00");
+      colors.push_back("#800000");
+      colors.push_back("#000080");
+      colors.push_back("#808000");
+      colors.push_back("#800080");
+      colors.push_back("#FF0000");
+      colors.push_back("#C0C0C0");
+      colors.push_back("#008080");
+      colors.push_back("#FFFF00");
+
+      for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+      {
+        for (vector<DataPoint>::iterator it = data_it->begin(); it != data_it->end(); ++it)
+        {
+          // visualize the light variant
+          Feature cluster_point;
+          cluster_point.setRT(it->rt);
+          cluster_point.setMZ(it->mz);
+          cluster_point.setIntensity(it->intensities[0][0]);
+          cluster_point.setCharge(it->charge);
+          //cluster_point.setOverallQuality(it->quality);
+          cluster_point.setQuality(0, it->quality);
+
+          // add mass shifts as meta value and as value for OverallQuality
+          Int charge = it->charge;
+          String mass_shift_meta_value = "";
+          String mass_shift = "";
+          String mass_shift_2 = "";
+          DoubleReal mass_shift_final;
+
+          for (vector<DoubleReal>::iterator shift_it = it->mass_shifts.begin() + 1; shift_it != it->mass_shifts.end(); ++shift_it)
+          {
+            mass_shift_meta_value += ((String)*shift_it) + " ";			// mass shifts as meta value
+
+            DoubleReal mass_shift_current = *shift_it * charge;			// convert mass shift from Th to Da
+            mass_shift += "0" + (String)mass_shift_current;			// combine mass shifts as string
+          }
+
+          // format string of mass shifts
+          for (int i = 0; i < 2; ++i)
+          {
+            int found = mass_shift.find(".");
+            if (found > 0)
+            {
+              mass_shift_2 += mass_shift.substr(found - 2, 3);
+              mass_shift.erase(found, 1);
+
+              found = mass_shift_2.find(".");
+              mass_shift_2.erase(found, 1);
+            }
+          }
+
+          mass_shift_2.insert(2, ".");			// insert "." between the two mass shifts
+
+          // convert mass shits from string to DoubleReal (value for OverallQuality has to be of type DoubleReal)
+          mass_shift_final = String(mass_shift_2).toDouble();
+
+          cluster_point.setOverallQuality(mass_shift_final);			// set mass shifts as value for OverallQuality (format: Da.Da)
+          cluster_point.setMetaValue("SILAC type", silac_types[it->mass_shifts.size() - 1]);
+
+          if (mass_shift_meta_value != "" && it->mass_shifts.size() - 1 == 1)
+          {
+            cluster_point.setMetaValue("Mass shift (l/h)", mass_shift_meta_value);
+          }
+          else if (mass_shift_meta_value != "" && it->mass_shifts.size() - 1 == 2)
+          {
+            cluster_point.setMetaValue("Mass shift (l/m l/h)", mass_shift_meta_value);
+          }
+          else if (mass_shift_meta_value != "" )
+          {
+            cluster_point.setMetaValue("Mass shift", mass_shift_meta_value);
+          }
+
+          cluster_point.setMetaValue("Peaks per peptide", it->isotopes_per_peptide);
+          cluster_point.setMetaValue("Cluster id", it->cluster_id);
+          cluster_point.setMetaValue("Cluster size", it->cluster_size);
+          cluster_point.setMetaValue("color", colors[it->cluster_id%colors.size()]);
+          // cluster_point.setMetaValue("Feature_id", it->feature_id);
+
+          all_cluster_points.push_back(cluster_point);
+        }
+      }
+
+      // required, as somehow the order of features on some datasets between Win & Linux is different and thus the TOPPtest might fail
+      all_cluster_points.sortByPosition();
+    }
+
+
+    //--------------------------------------------------------------
+    // write output
+    //--------------------------------------------------------------
+
+    // consensusXML
+    if (out != "")
+    {
+      // assign unique ids
+      all_pairs.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+      // annotate output with data processing info
+      addDataProcessing_(all_pairs, getProcessingInfo_(DataProcessing::QUANTITATION));
+
+      ConsensusXMLFile c_file;
+      c_file.store(out, all_pairs);
+    }
+
+    // featureXML
+    if (out_clusters != "")
+    {
+      // assign unique ids
+      all_cluster_points.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+      FeatureXMLFile f_file;
+      f_file.store(out_clusters, all_cluster_points);
+    }
+
+    return EXECUTION_OK;
+  }
+
 };
+
 
 //@endcond
 
 int main(int argc, const char** argv )
 {
   TOPPSILACAnalyzer tool;
-  return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }

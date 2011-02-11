@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/hp-23/SILACAnalyzer_multimap/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" id="cm_16627578304933075941" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="SILACAnalyzer" version="version_string" />
+		<processingAction name="Quantitation" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="3">
+		<map id="0" name="SILACAnalyzer.mzML" label="light" size="19076">
+		</map>
+		<map id="1" name="SILACAnalyzer.mzML" label="medium" size="19076">
+		</map>
+		<map id="2" name="SILACAnalyzer.mzML" label="heavy" size="19076">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_13229490167902618598" quality="8" charge="2">
+			<centroid rt="6632.24218977311" mz="670.894327836023" it="542500"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="6632.24218977311" mz="670.894327836023" it="1" charge="2"/>
+				<element map="1" id="0" rt="6632.24218977311" mz="674.901427242623" it="2.20234" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5024549519481199379" quality="8" charge="2">
+			<centroid rt="6657.49328162911" mz="668.826168885659" it="305909"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="6657.49328162911" mz="668.826168885659" it="1" charge="2"/>
+				<element map="1" id="1" rt="6657.49328162911" mz="672.833268292259" it="2.30961" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6211693768620736135" quality="8" charge="2">
+			<centroid rt="6632.409" mz="668.312526689385" it="14957.9"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="6632.409" mz="668.312526689385" it="1" charge="2"/>
+				<element map="1" id="2" rt="6632.409" mz="672.319626095985" it="0.904484" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

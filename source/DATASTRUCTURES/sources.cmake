@@ -5,6 +5,7 @@ set(directory source/DATASTRUCTURES)
 set(sources_list
 Adduct.C
 BigString.C
+BinaryTreeNode.C
 ChargePair.C
 Compomer.C
 ConstRefVector.C
@@ -13,6 +14,8 @@ CVMappingTerm.C
 CVMappingRule.C
 CVReference.C
 CVMappings.C
+DataPoint.C
+DataSubset.C
 DBoundingBox.C
 DIntervalBase.C
 DPosition.C
@@ -32,6 +35,7 @@ MassExplainer.C
 Matrix.C
 Param.C
 QTCluster.C
+QTSILACCluster.C
 SparseVector.C
 String.C
 StringList.C

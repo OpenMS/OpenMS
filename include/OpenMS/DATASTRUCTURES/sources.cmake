@@ -5,6 +5,7 @@ set(directory include/OpenMS/DATASTRUCTURES)
 set(sources_list_h
 Adduct.h
 BigString.h
+BinaryTreeNode.h
 ChargePair.h
 Compomer.h
 ConstRefVector.h
@@ -13,6 +14,8 @@ CVMappingTerm.h
 CVMappingRule.h
 CVReference.h
 CVMappings.h
+DataPoint.h
+DataSubset.h
 DBoundingBox.h
 DIntervalBase.h
 DPosition.h
@@ -32,6 +35,8 @@ Map.h
 MassExplainer.h
 Matrix.h
 Param.h
+QTCluster.h
+QTSILACCluster.h
 SeqanIncludeWrapper.h
 SparseVector.h
 String.h
