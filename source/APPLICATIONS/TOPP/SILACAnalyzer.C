@@ -80,6 +80,23 @@ typedef vector<DataPoint*> Cluster;
 
   @brief Identifies peptide pairs in LC-MS data and determines their relative abundance.
 
+<CENTER>
+  <table>
+    <tr>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ SILACAnalyzer \f$ \longrightarrow \f$</td>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper</td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+    </tr>
+  </table>
+</CENTER>
+
   SILACAnalyzer is a tool for the fully automated analysis of quantitative proteomics data. It identifies pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we first explain the algorithm and then discuss the tuning of its parameters.
 
   <b>Algorithm</b>
@@ -94,47 +111,44 @@ typedef vector<DataPoint*> Cluster;
 
   @image html SILACAnalyzer_algorithm.png
 
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_SILACAnalyzer.cli
+
   <b>Parameter Tuning</b>
 
-  SILACAnalyzer can either search for SILAC pairs (as described in the above paragraph) or triplets:
-  - type - double (for SILAC pairs), triple (for SILAC triplets), double_triple (for SILAC pairs and SILAC triplets)
+  SILACAnalyzer can search for all types of SILAC patterns, i.e. doublets, triplets, quadruplets...
 
   <i>input:</i>
   - in [*.mzML] - LC-MS dataset to be analyzed
   - ini [*.ini] - file containing all parameters (see discussion below)
 
   <i>standard output:</i>
-  - out [*.consensusXML] - contains the list of identified peptide pairs (retention time and m/z of the lighter peptide, heavy-to-light ratio)
-  - out_visual [*.featureXML] - contains the complete set of data points (retention time, m/z, intensity) of all peptide pairs
+  - out [*.consensusXML] - contains the list of identified peptides (retention time and m/z of the lightest peptide, ratios to-light)
+  - out_clusters [*.featureXML] - contains the complete set of data points (retention time, m/z, charge, peaks per peptide, intensities, m/z shifts) of all peptides
 
   The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 
-  <i>optional output:</i>
-  @n If -silac_debug is enabled, SILACAnalyzer generates a number of further files:
-  - [*.dat] - contains the list of identified peptide pairs in a simple text file, c.f. *.consensusXML
-  - [*_silhouettes.dat] - contains the silhouette values for every generated subtree
-  - [*_silhouettes.R] - R script, which creates a silhouette plot of every subtree. It can be executed using <i>Rscript *_silhouettes.R </i>. If R is not installed see <a href="http://www.r-poject.org">http://www.r-poject.org</a>.
-  - [*_subtrees.featureXML] - contains the complete set of data points (retention time, m/z, intensity) of all peptide pairs. Data poins contained in the same subtree have the same color.
+  Parameters in section <i>algorithm:</i>
+  - <i>allow_missing_peaks</i> [false] - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
+  - mz_threshold [0.1] - Upper bound for the width [Th] of an isotopic peak.
+  - rt_threshold [50] - Upper bound for the retention time [s] over which a characteristic peptide elutes.
+  - rt_scaling [0.002] - Scaling factor for retention times. Height [s] and width [Th] of clusters in out_clusters should be of about the same order. The clustering algorithm works best for symmetric clusters. In the majority of cases, the ratio ( mz_threshold / rt_threshold ) should work well.
+  - intensity_cutoff [10] - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
+  - <i>intensity_correlation</i> [0.9] - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
+  - model_deviation [6] - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
 
-  The following parameters are straightforward:
-  - mass_separation_light_medium - mass gap between light and medium isotopic envelopes [Da] (only relevant for the search for SILAC triplets, i.e. type triple)
-  - mass_separation_light_heavy - mass gap between light and heavy isotopic envelopes [Da]
-  - charge_min/max - range of charge states
+  Parameters in section <i>labels:</i>
+  This section contains a list of all isotopic labels currently available for analysis of SILAC data with SILACAnalyzer.
 
-  The remaining parameters should be tuned in the following order:
-  - mz_threshold - maximal m/z distance value of two data points belonging to one SILAC feature.
-  - rt_threshold - maximal RT distance value of two data points belonging to one SILAC feature.
-  - intensity_cutoff - adjust the intensity cutoff such that the data points that pass the non-local filter (*.featureXML layer) form clear distinct clusters,  see Fig. (e). Ignore the coloring of the clusters at that stage.
-  - rt_scaling - pick a representative cluster. rt_scaling = (width of the cluster in Da)/(height of the cluster in sec)
-  - cluster_number_scaling - The clustering algorithm tries to determine the optimal number of clusters (i.e. the number of peptide pairs in the LC-MS data set). If neighboring clusters appear in the same color, the cluster number is too low. If a single cluster contains two colors, the cluster number is too high. The cluster number can be adjusted by this scaling factor.
-  - optimal_silhouette_tolerance - The clustering algorithm tries to maximize the average-silhouette-width, see details in reference. The parameter specifies the relative tolerance (in %) by which the optimum can deviate from the maximum.
+  Parameters in section <i>sample:</i>
+  - labels [Arg6] - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
+  - charge [2:3] - Range of charge states in the sample, i.e. min charge : max charge.
+  - missed_cleavages [0] - Maximum number of missed cleavages.
+  - <i>peaks_per_peptide</i> [3:4] - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
 
   <b>References:</b>
-  @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard, "SILACAnalyzer - a tool for differential quantitation of stable isotope derived data", unpublished.
-
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SILACAnalyzer.cli
- */
+  @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -284,7 +298,7 @@ class TOPPSILACAnalyzer
     {
       defaults.setValue("mz_threshold", 0.1, "Upper bound for the width [Th] of an isotopic peak.");
       defaults.setMinFloat("mz_threshold", 0.0);
-      defaults.setValue("rt_threshold", 50.0, "Upper bound for the retention time [s] over which a characteristic peptide eludes. ");
+      defaults.setValue("rt_threshold", 50.0, "Upper bound for the retention time [s] over which a characteristic peptide elutes. ");
       defaults.setMinFloat("rt_threshold", 0.0);
       defaults.setValue("rt_scaling", 0.002, "Scaling factor for retention times. Height [s] and width [Th] of clusters in out_clusters should be of about the same order. The clustering algorithm works best for symmetric clusters. In the majority of cases, the ratio ( mz_threshold / rt_threshold ) should work well.");
       defaults.setMinFloat("rt_scaling", 0.0);
