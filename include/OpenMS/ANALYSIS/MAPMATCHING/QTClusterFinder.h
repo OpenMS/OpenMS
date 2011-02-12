@@ -147,11 +147,8 @@ namespace OpenMS
 			 @brief Checks whether the peptide IDs of a cluster and a neighboring feature are compatible.
 			 
 			 A neighboring feature without identification is always compatible. Otherwise, the cluster and feature are compatible if the best peptide hits of each of their identifications have the same sequences.
-
-			 @note A cluster without identification is only compatible to features without identification, because otherwise features with different identifications could end up in the same cluster (we only compare to the cluster center).
 		*/
-		bool compatibleIDs_(const QTCluster& cluster, const GridFeature* neighbor) 
-			const;
+		bool compatibleIDs_(QTCluster& cluster, const GridFeature* neighbor);
 		
 		/// Sets algorithm parameters
 		void setParameters_();

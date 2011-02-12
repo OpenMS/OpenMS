@@ -30,18 +30,19 @@
 
 namespace OpenMS
 {
+	GridElement::GridElement() {}
 
-GridElement::GridElement() {}
-GridElement::GridElement(const GridElement& copy)
-{
-	mz = copy.mz;
-	rt = copy.rt;
-}
-GridElement::GridElement(DoubleReal rt_, DoubleReal mz_)
-{
-	mz = mz_;
-	rt = rt_;
-}
+	GridElement::GridElement(const GridElement& copy)
+	{
+		mz = copy.mz;
+		rt = copy.rt;
+	}
+
+	GridElement::GridElement(DoubleReal rt_, DoubleReal mz_)
+	{
+		mz = mz_;
+		rt = rt_;
+	}
 }
 
 

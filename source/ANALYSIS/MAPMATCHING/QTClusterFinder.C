@@ -291,21 +291,12 @@ DoubleReal QTClusterFinder::getDistance_(DoubleReal pos_diff_rt,
 }
 
 
-bool QTClusterFinder::compatibleIDs_(const QTCluster& cluster, 
-																		 const GridFeature* neighbor) const
+bool QTClusterFinder::compatibleIDs_(QTCluster& cluster, 
+																		 const GridFeature* neighbor)
 {
-	const vector<PeptideIdentification>& peptides = 
-		neighbor->getFeature().getPeptideIdentifications();
-	// a neighbor feature without identifications always matches:
-	if (peptides.empty()) return true;
-	set<AASequence> sequences;
-	for (vector<PeptideIdentification>::const_iterator pep_it = peptides.begin(); 
-			 pep_it != peptides.end(); ++pep_it)
-	{
-		if (pep_it->getHits().empty()) continue; // shouldn't be the case
-		sequences.insert(pep_it->getHits()[0].getSequence());
-	}
-	return (cluster.getAnnotations() == sequences);
+	if (cluster.getAnnotations().empty()) return true;
+	if (neighbor->getAnnotations().empty()) return true;
+	return (cluster.getAnnotations() == neighbor->getAnnotations());
 }
 
 

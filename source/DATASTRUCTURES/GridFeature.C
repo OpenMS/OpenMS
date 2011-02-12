@@ -27,14 +27,24 @@
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 
 	GridFeature::GridFeature(const BaseFeature& feature, Size map_index,
 													 Size feature_index) : 
 		GridElement(feature.getRT(), feature.getMZ()), feature_(feature),
-		map_index_(map_index), feature_index_(feature_index)
+		map_index_(map_index), feature_index_(feature_index), annotations_()
 	{
+		const vector<PeptideIdentification>& peptides = 
+			feature.getPeptideIdentifications();
+		for (vector<PeptideIdentification>::const_iterator pep_it = 
+					 peptides.begin(); pep_it != peptides.end(); ++pep_it)
+		{
+			if (pep_it->getHits().empty()) continue; // shouldn't be the case
+			annotations_.insert(pep_it->getHits()[0].getSequence());
+		}
 	}
 
 	GridFeature::~GridFeature()
@@ -46,19 +56,24 @@ namespace OpenMS
 		return feature_;
 	}
 
-	Size GridFeature::getMapIndex()
+	Size GridFeature::getMapIndex() const
 	{
 		return map_index_;
 	}
 
-	Size GridFeature::getFeatureIndex()
+	Size GridFeature::getFeatureIndex() const
 	{
 		return feature_index_;
 	}
 
-	Int GridFeature::getID()
+	Int GridFeature::getID() const
 	{
 		return (Int)feature_index_;
+	}
+
+	const set<AASequence>& GridFeature::getAnnotations() const
+	{
+		return annotations_;
 	}
 
 }

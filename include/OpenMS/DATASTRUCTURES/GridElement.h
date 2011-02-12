@@ -73,7 +73,7 @@ GridElement();
 		@brief gets the id of the element
 	*/
 
-	virtual Int getID() =0;
+	virtual Int getID() const = 0;
 
 };
 }
