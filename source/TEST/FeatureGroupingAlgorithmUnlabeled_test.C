@@ -36,7 +36,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-START_TEST(FeatureGroupingAlgorithmUnlabeled, "$Id FeatureFinder_test.C 139 2006-07-14 10:08:39Z ole_st $")
+START_TEST(FeatureGroupingAlgorithmUnlabeled, "$Id FeatureGroupingAlgorithmUnlabeled_test.C 139 2006-07-14 10:08:39Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
