@@ -104,10 +104,11 @@ typedef vector<DataPoint*> Cluster;
   The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
 
   We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
-  - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold and
-  - the intensities within the first envelope (at m/z, m/z+0.5 and m/z+1) and second envelope (at m/z+3, m/z+3.5 and m/z+4) decrease successively.
+  - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
+  - the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
+  - the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
 
-  Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster centers around the unlabelled peptide of a pair. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
+  Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
 
   @image html SILACAnalyzer_algorithm.png
 
@@ -116,37 +117,39 @@ typedef vector<DataPoint*> Cluster;
 
   <b>Parameter Tuning</b>
 
-  SILACAnalyzer can search for all types of SILAC patterns, i.e. doublets, triplets, quadruplets...
+  SILACAnalyzer can detect SILAC patterns of any number of peptides, i.e. doublets (pairs), triplets, quadruplets et cetera.
 
   <i>input:</i>
   - in [*.mzML] - LC-MS dataset to be analyzed
   - ini [*.ini] - file containing all parameters (see discussion below)
 
   <i>standard output:</i>
-  - out [*.consensusXML] - contains the list of identified peptides (retention time and m/z of the lightest peptide, ratios to-light)
-  - out_clusters [*.featureXML] - contains the complete set of data points (retention time, m/z, charge, peaks per peptide, intensities, m/z shifts) of all peptides
+  - out [*.consensusXML] - contains the list of identified peptides (retention time and m/z of the lightest peptide, ratios)
+
+  <i>optional output:</i>
+  - out_clusters [*.featureXML] - contains the complete set of data points passing the filters, see Fig. (e)
 
   The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 
   Parameters in section <i>algorithm:</i>
-  - <i>allow_missing_peaks</i> [false] - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
-  - mz_threshold [0.1] - Upper bound for the width [Th] of an isotopic peak.
-  - rt_threshold [50] - Upper bound for the retention time [s] over which a characteristic peptide elutes.
-  - rt_scaling [0.002] - Scaling factor for retention times. Height [s] and width [Th] of clusters in out_clusters should be of about the same order. The clustering algorithm works best for symmetric clusters. In the majority of cases, the ratio ( mz_threshold / rt_threshold ) should work well.
-  - intensity_cutoff [10] - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
-  - <i>intensity_correlation</i> [0.9] - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
-  - model_deviation [6] - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
-
-  Parameters in section <i>labels:</i>
-  This section contains a list of all isotopic labels currently available for analysis of SILAC data with SILACAnalyzer.
+  - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
+  - <i>mz_threshold</i> - Upper bound for the width [Th] of an isotopic peak.
+  - <i>rt_threshold</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
+  - <i>rt_scaling</i> - Scaling factor for retention times. Height [s] and width [Th] of clusters in out_clusters should be of about the same order. The clustering algorithm works best for symmetric clusters. In the majority of cases, the ratio ( mz_threshold / rt_threshold ) should work well.
+  - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
+  - <i>intensity_correlation</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
+  - <i>model_deviation</i> - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
 
   Parameters in section <i>sample:</i>
-  - labels [Arg6] - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
-  - charge [2:3] - Range of charge states in the sample, i.e. min charge : max charge.
-  - missed_cleavages [0] - Maximum number of missed cleavages.
-  - <i>peaks_per_peptide</i> [3:4] - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
+  - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
+  - <i>charge</i> - Range of charge states in the sample, i.e. min charge : max charge.
+  - <i>missed_cleavages</i> - Maximum number of missed cleavages.
+  - <i>peaks_per_peptide</i> - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
 
-  <b>References:</b>
+ Parameters in section <i>labels:</i>
+ This section contains a list of all isotopic labels currently available for analysis of SILAC data with SILACAnalyzer.
+ 
+ <b>References:</b>
   @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
 */
 
@@ -167,6 +170,9 @@ class TOPPSILACAnalyzer
     String in;
     String out;
     String out_clusters;
+
+    String out_filters;
+    String in_filters;
 
     // section "sample"
     String selected_labels;
@@ -219,6 +225,13 @@ class TOPPSILACAnalyzer
     // create optional flag for additional clusters output file (.featureXML)
     registerOutputFile_("out_clusters", "<file>", "", "Optional output file containing data points passing all filters, hence belonging to a SILAC pattern. Points of the same colour correspond to the mono-isotopic peak of the lightest peptide in a pattern.", false, true);
     setValidFormats_("out_clusters", StringList::create("featureXML"));
+
+    // create optional flag for additional output file (.txt) to store filter results
+    registerOutputFile_("out_filters", "<file>", "", "Optional output file containing all points that passed the filters as txt. Suitable as input for \"in_filters\" to perform clustering without preceding filtering process.", false, true);
+    //setValidFormats_("out_filters", StringList::create("txt"));
+    // create optional flag for additional input file (.txt) to load filter results
+    registerOutputFile_("in_filters", "<file>", "", "Optional input file containing all points that passed the filters as txt. Use output from \"out_filters\" to perform clustering only.", false, true);
+    //setValidFormats_("in_filters", StringList::create("txt"));
 
     // create section "labels" for adjusting masses of labels
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
@@ -327,6 +340,11 @@ class TOPPSILACAnalyzer
     out = getStringOption_("out");
     // get name of additional clusters output file (.featureXML)
     out_clusters = getStringOption_("out_clusters");
+
+    // get name of additional filters output file (.txt)
+    out_filters = getStringOption_("out_filters");
+    // get name of additional filters input file (.txt)
+    in_filters = getStringOption_("in_filters");
 
 
     //--------------------------------------------------
@@ -624,17 +642,392 @@ class TOPPSILACAnalyzer
       filtering.addFilter(*filter_it);
     }
 
-    // perform filtering
-    filtering.filterDataPoints();
-
-    // retrieve filtered data points
-    for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+    if (in_filters == "")     // check if option "in_filters" is not specified
     {
-      data.push_back(filter_it->getElements());
+
+      // perform filtering
+      filtering.filterDataPoints();
+
+      // retrieve filtered data points
+      for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+      {
+        data.push_back(filter_it->getElements());
+      }
     }
 
     // delete experiment
     exp.clear(true);
+
+
+    //--------------------------------------------------
+    // store filter results from vector<vector<DataPoint> > data to .txt
+    //--------------------------------------------------
+
+    if (out_filters != "" && in_filters == "")     // check if option "out_filters" is specified and "in_filters" is not
+    {
+      ofstream outfile;
+      outfile.open(out_filters.c_str());      // open ofstream to specified output file
+      outfile << setprecision(16);      // set precision of outfile to 16 to avoid losing digits
+
+      // vector of DataPoints
+      outfile << "<VectorOfDataPoints>" << "\n";
+
+      // iterate over outer DataPoint vector (vector<vector<DataPoint> >)
+      for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+      {
+        // DataPoints
+        outfile << "<DataPoints>" << "\n";
+
+        // iterate over inner DataPoint vector (vector<DataPoint>)
+        for (vector<DataPoint>::iterator it = data_it->begin(); it != data_it->end(); ++it)
+        {
+          // DataPoint
+          outfile << "<DataPoint>" << "\n";
+
+          // feature_id
+          outfile << "<feature_id>" << "\n";
+          outfile << it->feature_id << "\n";
+          outfile << "</feature_id>" << "\n";
+
+          // rt
+          outfile << "<rt>" << "\n";
+          outfile << it->rt << "\n";
+          outfile << "</rt>" << "\n";
+
+          // mz
+          outfile << "<mz>" << "\n";
+          outfile << it->mz << "\n";
+          outfile << "</mz>" << "\n";
+
+          // charge
+          outfile << "<charge>" << "\n";
+          outfile << it->charge << "\n";
+          outfile << "</charge>" << "\n";
+
+          // isotopes_per_peptide
+          outfile << "<isotopes_per_peptide>" << "\n";
+          outfile << it->isotopes_per_peptide << "\n";
+          outfile << "</isotopes_per_peptide>" << "\n";
+
+          // intensities
+          outfile << "<intensities>" << "\n";
+
+          // iterate over outer intensities vector (vector<vector<DoubleReal> >)
+          for (vector<vector<DoubleReal> >::iterator intensities_it = it->intensities.begin(); intensities_it != it->intensities.end(); ++intensities_it)
+          {
+            outfile << "<intensities_" << intensities_it - it->intensities.begin() << ">\n";
+
+            // // iterate over inner intensities vector (vector<DoubleReal>)
+            for (vector<DoubleReal>::iterator intensity_it = intensities_it->begin(); intensity_it != intensities_it->end(); ++intensity_it)
+            {
+              outfile << *intensity_it << "\n";
+            }
+            outfile << "</intensities_" << intensities_it - it->intensities.begin() << ">\n";
+          }
+          outfile << "</intensities>" << "\n";
+
+          // mass_shifts
+          outfile << "<mass_shifts>" << "\n";
+
+          // iterate over mass shifts vector (vector<DoubleReal>)
+          for (vector<DoubleReal>::iterator mass_shifts_it = it->mass_shifts.begin(); mass_shifts_it != it->mass_shifts.end(); ++mass_shifts_it)
+          {
+            outfile << *mass_shifts_it << "\n";
+          }
+          outfile << "</mass_shifts>" << "\n";
+
+          outfile << "</DataPoint>" << "\n";
+        }
+        outfile << "</DataPoints>" << "\n";
+      }
+      outfile << "</VectorOfDataPoints>" << "\n";
+
+      outfile.close();      // close ofstream and store output file
+    }
+
+
+    //--------------------------------------------------
+    // load filter results as vector<vector<DataPoint> > data from .txt
+    //--------------------------------------------------
+
+    if (in_filters != "")     // check if option "in_filters" is specified
+    {
+      vector<vector<DataPoint> > data_points_vector_in;
+      vector<DataPoint> data_points_in;
+      DataPoint data_point_in;
+
+      vector<vector<DoubleReal> > intensities_vector_in;
+      vector<DoubleReal> intensities_in;
+
+      vector<DoubleReal> mass_shifts_in;
+
+      ifstream infile;
+      infile.open(in_filters.c_str());      // open ifstream from specified input file
+
+      // check if infile can be opened
+      if (!infile.is_open())
+      {
+        cout << "Error: could not open " << in_filters << "..." << endl;
+      }
+      else
+      {
+        String temp;
+
+        // name cases and define states
+        const int VECTOR_OF_DATA_POINTS_STATE = 0;
+        const int DATA_POINTS_STATE = 1;
+        const int DATA_POINT_STATE = 2;
+        const int FEATURE_ID_STATE = 3;
+        const int RT_STATE = 4;
+        const int MZ_STATE = 5;
+        const int CHARGE_STATE = 6;
+        const int ISOTOPES_PER_PEPTIDE_STATE = 7;
+        const int VECTOR_OF_INTENSITIES_STATE = 8;
+        const int INTENSITIES_STATE = 9;
+        const int MASS_SHIFTS_STATE = 10;
+        const int END_STATE = 11;
+
+        // set start state
+        int state = VECTOR_OF_DATA_POINTS_STATE;
+
+        while(state != END_STATE)
+        {
+          switch(state)
+          {
+            // case and state 0: vector of data points
+          case VECTOR_OF_DATA_POINTS_STATE:
+            if (infile.eof())
+            {
+              cout << "eof" << endl;
+              state = END_STATE;
+            } else
+            {
+              getline(infile, temp);
+              if (temp != "")
+              {
+                state = DATA_POINTS_STATE;
+              } else
+              {
+                cout << "end state" << endl;
+                state = END_STATE;
+              }
+            }
+            break;
+
+            // case and state 1: data points
+                case DATA_POINTS_STATE:
+            getline (infile, temp);
+            if (String(temp).hasPrefix("</"))
+            {
+              state = VECTOR_OF_DATA_POINTS_STATE;
+            } else
+            {
+              state = DATA_POINT_STATE;
+            }
+            break;
+
+            // case and state 2: data point
+                case DATA_POINT_STATE:
+            getline(infile, temp);
+            if (String(temp).hasPrefix("</"))
+            {
+              data_points_vector_in.push_back(data_points_in);
+              // cout << "size of data_points_vector_in: " << data_points_vector_in.size() << endl;
+              data_points_in.clear();
+              // cout << "size of data_points_in.clear(): " << data_points_in.size() << endl;
+              state = DATA_POINTS_STATE;
+            } else
+            {
+              data_point_in.intensities.clear();
+              data_point_in.mass_shifts.clear();
+              state = FEATURE_ID_STATE;
+            }
+            break;
+
+            // case and state 3: feature_id
+                case FEATURE_ID_STATE:
+            getline(infile,temp);
+            getline(infile, temp);
+            data_point_in.feature_id = String(temp).toInt();
+            getline (infile, temp);
+            state = RT_STATE;
+            break;
+
+            // case and state 4: rt
+                case RT_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.rt = String(temp).toDouble();
+            getline (infile, temp);
+            state = MZ_STATE;
+            break;
+
+            // case and state 5: mz
+                case MZ_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.mz = String(temp).toDouble();
+            getline(infile, temp);
+            state = CHARGE_STATE;
+            break;
+
+            // case and state 6: charge
+                case CHARGE_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.charge = String(temp).toInt();
+
+            getline(infile, temp );
+            state = ISOTOPES_PER_PEPTIDE_STATE;
+            break;
+
+            //case and state  7: isotopes_per_peptide
+                case ISOTOPES_PER_PEPTIDE_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.isotopes_per_peptide = String(temp).toInt();
+            getline(infile, temp);
+            state = VECTOR_OF_INTENSITIES_STATE;
+            break;
+
+            // case and state 8: vector of intensities
+                case VECTOR_OF_INTENSITIES_STATE:
+            getline( infile, temp );
+            if (!String(temp).hasPrefix("</"))
+            {
+              state = INTENSITIES_STATE;
+            } else if (String(temp).hasPrefix("</"))
+            {
+              data_point_in.intensities.insert(data_point_in.intensities.end(), intensities_vector_in.begin(), intensities_vector_in.end());
+              intensities_vector_in.clear();
+              state = MASS_SHIFTS_STATE;
+            }
+            break;
+
+            // case and state 9: intesities
+                case INTENSITIES_STATE:
+            getline( infile, temp );
+            do
+            {
+              if(!String(temp).hasPrefix("<"))
+              {
+                DoubleReal intensity_in = String(temp).toDouble();
+                intensities_in.push_back(intensity_in);
+                // cout << "size of intensities_in: " << intensities_in.size() << endl;
+              }
+              getline( infile, temp );
+            } while (!String(temp).hasPrefix("</"));
+            intensities_vector_in.push_back(intensities_in);
+            // cout << "size of intensities_vector_in: " << intensities_vector_in.size() << endl;
+            intensities_in.clear();
+            state = VECTOR_OF_INTENSITIES_STATE;
+            break;
+
+            // case and state 10: mass_shifts
+                case MASS_SHIFTS_STATE:
+            getline( infile, temp );
+            do
+            {
+              if(!String(temp).hasPrefix("<"))
+              {
+                DoubleReal mass_shift_in = String(temp).toDouble();
+                mass_shifts_in.push_back(mass_shift_in);
+                // cout << "size of mass_shifts_in: " << mass_shifts_in.size() << endl;
+              }
+              getline( infile, temp );
+            } while (!String(temp).hasPrefix("</"));
+            data_point_in.mass_shifts.insert(data_point_in.mass_shifts.begin(), mass_shifts_in.begin(), mass_shifts_in.end());
+            mass_shifts_in.clear();
+            getline( infile, temp );      // temp steht auf </DataPoint>
+            data_points_in.push_back(data_point_in);
+            // cout << "size of data_points_in: " << data_points_in.size() << endl;
+            state = DATA_POINT_STATE;
+            break;
+
+                 default:
+            break;
+          }
+        }
+      }
+      infile.close();
+
+
+      //--------------------------------------------------
+      // store read in filter results from .txt to .txt to enable comparison of original and read in filter results
+      //--------------------------------------------------
+
+      ofstream outfil;
+      string out_filters_check = "check_" + in_filters;
+      outfil.open(out_filters_check.c_str());     // open ofstream to specified output file
+      outfil << setprecision(16);      // set precision of outfil to 16 to avoid losing digits
+
+      outfil << "<VectorOfDataPoints>" << "\n";
+      for (vector<vector<DataPoint> >::iterator data_it = data_points_vector_in.begin(); data_it != data_points_vector_in.end(); ++data_it)
+      {
+        outfil << "<DataPoints>" << "\n";
+
+        for (vector<DataPoint>::iterator it = data_it->begin(); it != data_it->end(); ++it)
+        {
+          // DataPoint
+          outfil << "<DataPoint>" << "\n";
+
+          // feature_id
+          outfil << "<feature_id>" << "\n";
+          outfil << it->feature_id << "\n";
+          outfil << "</feature_id>" << "\n";
+
+          // rt
+          outfil << "<rt>" << "\n";
+          outfil << it->rt << "\n";
+          outfil << "</rt>" << "\n";
+
+          // mz
+          outfil << "<mz>" << "\n";
+          outfil << it->mz << "\n";
+          outfil << "</mz>" << "\n";
+
+          // charge
+          outfil << "<charge>" << "\n";
+          outfil << it->charge << "\n";
+          outfil << "</charge>" << "\n";
+
+          // isotopes_per_peptide
+          outfil << "<isotopes_per_peptide>" << "\n";
+          outfil << it->isotopes_per_peptide << "\n";
+          outfil << "</isotopes_per_peptide>" << "\n";
+
+          // intensities
+          outfil << "<intensities>" << "\n";
+          for (vector<vector<DoubleReal> >::iterator intensities_it = it->intensities.begin(); intensities_it != it->intensities.end(); ++intensities_it)
+          {
+            outfil << "<intensities_" << intensities_it - it->intensities.begin() << ">\n";
+            for (vector<DoubleReal>::iterator intensity_it = intensities_it->begin(); intensity_it != intensities_it->end(); ++intensity_it)
+            {
+              outfil << *intensity_it << "\n";
+            }
+            outfil << "</intensities_" << intensities_it - it->intensities.begin() << ">\n";
+          }
+          outfil << "</intensities>" << "\n";
+
+          // mass_shifts
+          outfil << "<mass_shifts>" << "\n";
+          for (vector<DoubleReal>::iterator mass_shifts_it = it->mass_shifts.begin(); mass_shifts_it != it->mass_shifts.end(); ++mass_shifts_it)
+          {
+            outfil << *mass_shifts_it << "\n";
+          }
+          outfil << "</mass_shifts>" << "\n";
+
+          outfil << "</DataPoint>" << "\n";
+        }
+        outfil << "</DataPoints>" << "\n";
+      }
+      outfil << "</VectorOfDataPoints>" << "\n";
+
+      outfil.close();     // close ofstream
+
+      // set loaded filter results from .txt as input for clustering
+      data = data_points_vector_in;
+    }
 
 
     //--------------------------------------------------
@@ -961,7 +1354,7 @@ class TOPPSILACAnalyzer
 
         all_pairs.push_back(consensus_feature);
         ++id;
-      }
+      }    
     }
 
 
