@@ -161,8 +161,6 @@ namespace OpenMS
 	{
     SignedSize count = 1;
 
-    // ?? wouldn't a for loop be more intuitive
-    //for(AASequence::ConstIterator iterator = protein.begin() ; iterator != protein.end() ; nextCleavageSite_(protein,iterator))
     AASequence::ConstIterator iterator = protein.begin();
     while(nextCleavageSite_(protein,iterator), iterator != protein.end())
     {
@@ -172,10 +170,9 @@ namespace OpenMS
 
 		//missed cleavages
     Size sum = count;
-    // TODO: this loop crashes the clang compiler in release mode
-    //       with message "SCEVAddRecExpr operand is not loop-invariant!"
-    for (SignedSize i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
+    for (SignedSize i=1; i<count; ++i)
 		{
+      if (i > missed_cleavages_) break;
 			sum += count - i;
     }
 		return sum;
@@ -195,8 +192,6 @@ namespace OpenMS
 		
 		AASequence::ConstIterator begin = protein.begin();
     AASequence::ConstIterator end = protein.begin();
-    // ?? wouldn't a for loop be more intuitive
-    //for(; end != protein.end() ; nextCleavageSite_(protein, end))
     while(nextCleavageSite_(protein, end), end != protein.end())
 		{
 			++count;
@@ -220,10 +215,9 @@ namespace OpenMS
 			//resize to number of fragments
 			Size sum = count;
 
-      // TODO: this loop crashes the clang compiler in release mode
-      //       with message "SCEVAddRecExpr operand is not loop-invariant!"
-      for (SignedSize i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
-			{
+      for (SignedSize i=1; i<count; ++i)
+      {
+        if (i > missed_cleavages_) break;
 				sum += count - i;
 			}
       output.resize(sum);
