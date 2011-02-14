@@ -204,7 +204,7 @@ class TOPPFFEVal
 						last_match_index = a;
 					}
 					//Centroid is one trace off, but still contained in the convex hull
-					else if (f_i.getConvexHull().encloses(f_t.getPosition())
+					else if (f_i.getConvexHull().getBoundingBox().encloses(f_t.getPosition())
 									 &&
 									 (
 									  fabs(f_i.getMZ()+1.0/f_t.getCharge()-f_t.getMZ())<charge_mz_tol
