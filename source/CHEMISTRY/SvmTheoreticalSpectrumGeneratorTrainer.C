@@ -434,6 +434,7 @@ namespace OpenMS
         }*/
       }
     }
+
     // Now 2 Steps - first we train a SVM classifier to predict abundance or miss of a peak.
     // In second step we train a SVM regression model to predict intensities. This svm is trained
     // only with rows for abundant peaks
@@ -445,6 +446,7 @@ namespace OpenMS
       svm_param_reg.gamma=1.0/num_features;
     }
 
+    //Within this loop the SVR and SVC are trained for the primary ion types
     for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
     {
       if(!is_primary[type_nr])
@@ -481,6 +483,7 @@ namespace OpenMS
       svm_p_reg.x = input_training_reg;
 
       std::cerr<<training_output_reg.size()<<"  "<<training_input_reg.size()<<std::endl;
+
       //perform cross validation
       std::cerr<<"start cross validation for SVR model"<<std::endl;
       svm_cross_validation(&svm_p_reg, &svm_param_reg, n_fold, &predictions_reg[0]);
@@ -590,7 +593,8 @@ namespace OpenMS
       info_outfile.push_back(svm_model_file_reg);
       info_outfile.push_back("</SvmModelFileReg>");
       info_outfile.push_back("</IonType>");
-    }
+
+    }//End of training SVR and SVC for the primary types
 
     info_outfile.push_back("</PrimaryTypes>");
     info_outfile.push_back("<ScalingUpper>");
@@ -760,8 +764,10 @@ namespace OpenMS
         }
         info_outfile.push_back("</ConditionalProbabilities>");
         info_outfile.push_back("</IonType>");
-        }      
-    }
+        }
+
+    }//endif secondary types
+
     info_outfile.push_back("</SecondaryTypes>");
     info_outfile.store(info_outfile_name);
   }
