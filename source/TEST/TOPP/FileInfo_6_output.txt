@@ -1,97 +1,132 @@
 
 -- General information --
 
-file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_6_input.mzData
-file type: mzData
+File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_6_input.mzData
+File type: mzData
 
-peak type (metadata) : Peak data
-peak type (estimated): Raw data
-estimated raw data spacing: 0.994568 (min: 0.922302 max: 1.08313)
+Peak type (metadata): Peak data
+Peak type (estimated): Raw data
+Estimated raw data spacing: 0.994568 (min: 0.922302, max: 1.08313)
 
 Number of spectra: 2
-Number of peaks:   9
+Number of peaks: 9
 
 Ranges:
-  retention time:  474.56 : 475.32
-  mass-to-charge:  937.28 : 941.20
-  intensity:       1639.00 : 18025.00
+  retention time: 474.56 .. 475.32
+  mass-to-charge: 937.28 .. 941.20
+  intensity:      1639.00 .. 18025.00
 
 MS levels: 1
-Spectra of MS Level 1: 2
+Number of spectra per MS level:
+  level 1: 2
 
-Meta data array: SignalToNoise (for 2 spectra)
-Meta data array: area (for 2 spectra)
-Meta data array: fwhm (for 2 spectra)
-Meta data array: leftWidth (for 2 spectra)
-Meta data array: peakShape (for 2 spectra)
-Meta data array: rValue (for 2 spectra)
-Meta data array: rightWidth (for 2 spectra)
+Meta data array:
+  SignalToNoise: 2 spectra
+  area:          2 spectra
+  fwhm:          2 spectra
+  leftWidth:     2 spectra
+  peakShape:     2 spectra
+  rValue:        2 spectra
+  rightWidth:    2 spectra
 
 
 -- Detailed spectrum listing --
 
-spectrum 1 - mslevel:1 scanMode:Unknown peaks:4 RT:474.558 m/z:937.297-940.279
-spectrum 2 - mslevel:1 scanMode:Unknown peaks:5 RT:475.321 m/z:937.276-941.2
+Spectrum 1:
+  mslevel:  1
+  scanMode: Unknown
+  peaks:    4
+  RT:       474.558
+  m/z:      937.297 .. 940.279
+
+Spectrum 2:
+  mslevel:  1
+  scanMode: Unknown
+  peaks:    5
+  RT:       475.321
+  m/z:      937.276 .. 941.2
 
 -- Statistics --
 
 Intensities:
-  mean: 7317.89
-  min: 1639
+  num. of values: 9
+  mean:           7317.89
+  minimum:        1639
   lower quartile: 2297
-  median: 7224
+  median:         7224
   upper quartile: 8841
-  max: 18025
-  variance: 3.54513e+07
+  maximum:        18025
+  variance:       3.54513e+07
 
 Meta data: SignalToNoise
-  count: 9
-  min: 3.70
-  max: 43.76
-  mean: 17.20
-  median: 17.54
+  num. of values: 9
+  mean:           17.203
+  minimum:        3.70073
+  lower quartile: 5.18645
+  median:         17.5367
+  upper quartile: 21.462
+  maximum:        43.7567
+  variance:       200.564
 
 Meta data: area
-  count: 9
-  min: 491.43
-  max: 9114.07
-  mean: 3120.06
-  median: 2795.12
+  num. of values: 9
+  mean:           3120.06
+  minimum:        491.427
+  lower quartile: 894.825
+  median:         2795.12
+  upper quartile: 3475.5
+  maximum:        9114.07
+  variance:       8.55939e+06
 
 Meta data: fwhm
-  count: 9
-  min: 0.30
-  max: 0.45
-  mean: 0.38
-  median: 0.38
+  num. of values: 9
+  mean:           0.378863
+  minimum:        0.298877
+  lower quartile: 0.35631
+  median:         0.380894
+  upper quartile: 0.407996
+  maximum:        0.453745
+  variance:       0.00206432
 
 Meta data: leftWidth
-  count: 9
-  min: 4.83
-  max: 7.67
-  mean: 6.06
-  median: 6.29
+  num. of values: 9
+  mean:           6.06377
+  minimum:        4.83359
+  lower quartile: 5.60383
+  median:         6.29216
+  upper quartile: 6.41592
+  maximum:        7.66609
+  variance:       0.720992
 
 Meta data: peakShape
-  count: 9
-  min: 1.00
-  max: 1.00
-  mean: 1.00
-  median: 1.00
+  num. of values: 9
+  mean:           1
+  minimum:        1
+  lower quartile: 1
+  median:         1
+  upper quartile: 1
+  maximum:        1
+  variance:       0
 
 Meta data: rValue
-  count: 9
-  min: 0.96
-  max: 1.00
-  mean: 0.99
-  median: 1.00
+  num. of values: 9
+  mean:           0.986764
+  minimum:        0.957956
+  lower quartile: 0.978881
+  median:         0.997023
+  upper quartile: 0.997198
+  maximum:        0.998106
+  variance:       0.000215842
 
 Meta data: rightWidth
-  count: 9
-  min: 2.81
-  max: 6.22
-  mean: 3.97
-  median: 3.65
+  num. of values: 9
+  mean:           3.97387
+  minimum:        2.80987
+  lower quartile: 3.62904
+  median:         3.652
+  upper quartile: 3.90588
+  maximum:        6.22453
+  variance:       0.891829
 
 
 
