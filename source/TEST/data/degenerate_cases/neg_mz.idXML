@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:////share/usr/nahnsen/OpenMS_dev/OpenMS_release/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/raid/OpenMSTutorialPipelines20110216/basicIdentification/databases/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+		<FixedModification name="Carbamidomethyl (C)" />
+	</SearchParameters>
+	<IdentificationRun date="2011-02-16T18:43:03" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="BL_ORD_ID:11765" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="BL_ORD_ID:15645" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="BL_ORD_ID:16020" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="BL_ORD_ID:9320" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="BL_ORD_ID:9321" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="BL_ORD_ID:9323" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="BL_ORD_ID:9324" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="BL_ORD_ID:9325" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="BL_ORD_ID:9326" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="BL_ORD_ID:9328" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="BL_ORD_ID:9388" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="BL_ORD_ID:9423" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="-358.174682617188" RT="1554.4921875" >
+			<PeptideHit score="0.00207368044391276" sequence="SHC(Carbamidomethyl)IAEVEK" charge="3" aa_before="K" aa_after="D" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="-722.325378417969" RT="1736.66821289062" >
+			<PeptideHit score="0.0104239798075151" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="443.711242675781" RT="1738.03344726562" >
+			<PeptideHit score="0.00197580949067205" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="-569.752807617188" RT="1750.91589355469" >
+			<PeptideHit score="0.000802474796966751" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="431.205596923828" RT="1755.91577148438" >
+			<PeptideHit score="0.335274970375197" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="646.304504394531" RT="1759.0947265625" >
+			<PeptideHit score="0.977481035999719" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.165985107422" RT="1772.36950683594" >
+			<PeptideHit score="0.11030543617068" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="449.744232177734" RT="1776.05004882812" >
+			<PeptideHit score="0.027469533085917" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="569.752258300781" RT="1793.82604980469" >
+			<PeptideHit score="0.0413550812805396" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="431.205261230469" RT="1797.83959960938" >
+			<PeptideHit score="0.149866089586977" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.165954589844" RT="1800.23291015625" >
+			<PeptideHit score="0.00283759524357387" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="722.32470703125" RT="1804.15795898438" >
+			<PeptideHit score="8.12790564284961e-05" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="739.765930175781" RT="1837.71459960938" >
+			<PeptideHit score="0.682026693275872" sequence="ETYGDMADC(Carbamidomethyl)C(Carbamidomethyl)EK" charge="2" aa_before="R" aa_after="Q" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="325.491180419922" RT="1840.79333496094" >
+			<PeptideHit score="0.095044000440833" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="487.732299804688" RT="1875.54736328125" >
+			<PeptideHit score="0.0379143975798506" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="325.491241455078" RT="1877.39440917969" >
+			<PeptideHit score="0.220307512034611" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="487.732391357422" RT="1906.96594238281" >
+			<PeptideHit score="0.0669901607138199" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="722.327209472656" RT="1918.60864257812" >
+			<PeptideHit score="0.019859446015753" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="395.239349365234" RT="1933.40515136719" >
+			<PeptideHit score="0.00115086035763993" sequence="LVTDLTK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="487.732177734375" RT="1942.3701171875" >
+			<PeptideHit score="0.064841544615656" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="325.491119384766" RT="1946.90405273438" >
+			<PeptideHit score="0.689124975180972" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.165802001953" RT="1949.05554199219" >
+			<PeptideHit score="0.604820223473737" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="395.239044189453" RT="1959.77478027344" >
+			<PeptideHit score="0.769330185467624" sequence="LVTDLTK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="751.811462402344" RT="1968.10070800781" >
+			<PeptideHit score="0.109328132721941" sequence="EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK" charge="2" aa_before="K" aa_after="D" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.166046142578" RT="1970.11474609375" >
+			<PeptideHit score="0.338501939187395" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="487.732238769531" RT="1984.97546386719" >
+			<PeptideHit score="0.860579396122941" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.165863037109" RT="1994.03784179688" >
+			<PeptideHit score="0.600439051737721" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="350.229461669922" RT="1999.83911132812" >
+			<PeptideHit score="0.0968565610943234" sequence="VIGIAAR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="404.203002929688" RT="2003.33984375" >
+			<PeptideHit score="0.058633137047012" sequence="LAADDFR" charge="2" aa_before="K" aa_after="T" protein_refs="PH_3 PH_4 PH_5 PH_6 PH_7 PH_8 PH_9" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="379.71484375" RT="2010.87902832031" >
+			<PeptideHit score="0.00389476182066016" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="487.732208251953" RT="2013.36364746094" >
+			<PeptideHit score="0.120521261865011" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="461.747497558594" RT="2015.59265136719" >
+			<PeptideHit score="0.000368732241788625" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.165832519531" RT="2019.94262695312" >
+			<PeptideHit score="0.591547097838158" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="379.715118408203" RT="2032.04125976562" >
+			<PeptideHit score="0.00284511454958091" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="461.74755859375" RT="2038.95886230469" >
+			<PeptideHit score="0.000146687347621408" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.165924072266" RT="2046.43884277344" >
+			<PeptideHit score="0.831068313569479" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="300.165924072266" RT="2058.48608398438" >
+			<PeptideHit score="0.870586926738995" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="554.260375976562" RT="2058.83471679688" >
+			<PeptideHit score="0.126518217855621" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="379.715393066406" RT="2069.04321289062" >
+			<PeptideHit score="0.106041889313645" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="421.758056640625" RT="2091.08642578125" >
+			<PeptideHit score="0.0326752683677103" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_10" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="554.260559082031" RT="2098.17504882812" >
+			<PeptideHit score="0.0025255038700633" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="487.262908935547" RT="2138.17553710938" >
+			<PeptideHit score="0.295866636194939" sequence="NQYVLPEGERVR" charge="3" aa_before="R" aa_after="Y" protein_refs="PH_2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="421.758056640625" RT="2152.11376953125" >
+			<PeptideHit score="0.38477107029772" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_10" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="435.909851074219" RT="2295.90209960938" >
+			<PeptideHit score="0.0321764881014609" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="403.232177734375" RT="2315.3115234375" >
+			<PeptideHit score="0.604717707083566" sequence="AYLVPSR" charge="2" aa_before="R" aa_after="G" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="464.250213623047" RT="2321.49926757812" >
+			<PeptideHit score="0.001557658047902" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="403.231781005859" RT="2348.58276367188" >
+			<PeptideHit score="0.325202984013713" sequence="AYLVPSR" charge="2" aa_before="R" aa_after="G" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="464.250030517578" RT="2357.07421875" >
+			<PeptideHit score="0.000214157509127944" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="501.795013427734" RT="2380.93310546875" >
+			<PeptideHit score="0.0935037553671616" sequence="LVVSTQTALA" charge="2" aa_before="K" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="464.250335693359" RT="2398.77709960938" >
+			<PeptideHit score="7.52991788798703e-05" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="501.794891357422" RT="2431.52172851562" >
+			<PeptideHit score="0.0366877772432689" sequence="LVVSTQTALA" charge="2" aa_before="K" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="435.910125732422" RT="2488.0380859375" >
+			<PeptideHit score="3.51660972321646e-05" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="653.361755371094" RT="2490.31689453125" >
+			<PeptideHit score="0.156797095913859" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="526.261108398438" RT="2495.662109375" >
+			<PeptideHit score="0.00514177282732245" sequence="LKPDPNTLC(Carbamidomethyl)DEFK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_11" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
