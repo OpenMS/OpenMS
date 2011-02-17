@@ -26,8 +26,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGenerator_H
-#define OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGenerator_H
+#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
+#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
@@ -240,7 +240,7 @@ namespace OpenMS
     }
   }
 
-}
+} // namespace OpenMS
 
-#endif
+#endif // #ifdef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
 
