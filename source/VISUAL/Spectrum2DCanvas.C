@@ -327,10 +327,9 @@ namespace OpenMS
             rts.push_back(peak_map[i].getRT());
           }
           sort(rts.begin(), rts.end());
-          if (peak_map.size() > 2)
+          if (rts.size() > 2)
           {
             average_spacing_rt = (rts[rts.size()-1] - rts[0])/(DoubleReal)rts.size();
-            //cout << "avg:" << average_spacing_rt << endl;
           }
 				}
 			}
