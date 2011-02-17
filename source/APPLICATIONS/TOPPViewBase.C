@@ -3336,6 +3336,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
      }
 
+      // Set Intensity mode
+      w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+
       // set layer name
       String caption = layer.name + " (3D)";
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
