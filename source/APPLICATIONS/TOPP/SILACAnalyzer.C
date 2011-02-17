@@ -862,7 +862,7 @@ class TOPPSILACAnalyzer
         vector<DoubleReal> max_intensities(mass_shifts_size, 0.0);
         Int charge = (*(cluster_it->begin()))->charge;
 
-        DoubleReal mass_shift_final;
+        DoubleReal mass_shift_final = 0;
 
         // mass shifts as value for Quality in [Da] (i.e. 6008)
         for (vector<DoubleReal>::iterator shift_it = (*(cluster_it->begin()))->mass_shifts.begin(); shift_it != (*(cluster_it->begin()))->mass_shifts.end(); ++shift_it)
@@ -995,7 +995,7 @@ class TOPPSILACAnalyzer
 
           Int charge = it->charge;
           String mass_shift_meta_value = "";
-          DoubleReal mass_shift_final;
+          DoubleReal mass_shift_final = 0;
 
           // mass shifts as meta value in [Da] (i.e. (6.0201, 8.0141)) and mass shifts as value for OverallQuality in [Da] (i.e. 6008)
           for (vector<DoubleReal>::iterator shift_it = it->mass_shifts.begin() + 1; shift_it != it->mass_shifts.end(); ++shift_it)

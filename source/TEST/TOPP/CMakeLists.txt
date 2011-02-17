@@ -561,9 +561,20 @@ add_test("TOPP_TextExporter_7" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP
 add_test("TOPP_TextExporter_7_out1" ${DIFF} -whitelist "extracted from" -in1 TextExporter_7_consensus_tsv.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_7_consensus_tsv.tsv)
 
 ### SILACAnalyzer tests
-add_test("TOPP_SILACAnalyzer" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer.mzML -out SILACAnalyzer.tmp -out_clusters SILACAnalyzer_clus.tmp)
-add_test("TOPP_SILACAnalyzer_out1" ${DIFF} -in1 SILACAnalyzer.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.consensusXML)
-add_test("TOPP_SILACAnalyzer_out2" ${DIFF} -in1 SILACAnalyzer_clus.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.featureXML)
+# mzML
+add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer.mzML -out SILACAnalyzer.tmp -out_clusters SILACAnalyzer_clus.tmp)
+add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -in1 SILACAnalyzer.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.consensusXML)
+add_test("TOPP_SILACAnalyzer_1_out2" ${DIFF} -in1 SILACAnalyzer_clus.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.featureXML)
+# empty mzML
+add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_empty.mzML -out SILACAnalyzer_empty.tmp -out_clusters SILACAnalyzer_empty_clus.tmp)
+add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer_empty.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_empty.consensusXML)
+add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -in1 SILACAnalyzer_empty_clus.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_empty.featureXML)
+# mzML with negativ RT
+add_test("TOPP_SILACAnalyzer_3" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.mzML -out SILACAnalyzer_negativ.tmp -out_clusters SILACAnalyzer_negativ_clus.tmp)
+add_test("TOPP_SILACAnalyzer_3_out1" ${DIFF} -in1 SILACAnalyzer_negativ.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.consensusXML)
+add_test("TOPP_SILACAnalyzer_3_out2" ${DIFF} -in1 SILACAnalyzer_negativ_clus.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.featureXML)
+
+
 
 ### FeatureLinker tests
 # "labeled" algorithm:
