@@ -44,6 +44,7 @@ AdditiveSeries
 BaselineFilter
 "CompNovo -type CompNovo"
 ConsensusID
+ConsensusMapNormalizer
 DBExporter
 DBImporter
 DTAExtractor
@@ -174,6 +175,10 @@ add_test("TOPP_IDMerger_3_out1" ${DIFF} -in1 IDMerger_3_output.tmp -in2 ${DATA_D
 ### BaselineFilter tests
 add_test("TOPP_BaselineFilter_1" ${TOPP_BIN_PATH}/BaselineFilter -test -in ${DATA_DIR_TOPP}/BaselineFilter_input.mzML -out BaselineFilter.tmp -struc_elem_length 1.5)
 add_test("TOPP_BaselineFilter_1_out1" ${DIFF} -in1 BaselineFilter.tmp -in2 ${DATA_DIR_TOPP}/BaselineFilter_output.mzML)
+
+### ConsensusMapNormalizer tests
+add_test("TOPP_ConsensusMapNormalizer_1" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out ConsensusMapNormalizer.tmp)
+add_test("TOPP_ConsensusMapNormalizer_1_out1" ${DIFF} -in1 ConsensusMapNormalizer.tmp -in2 ${DATA_DIR_TOPP}/ConsensusMapNormalizer_output.consensusXML)
 
 ### MapNormalizer tests
 add_test("TOPP_MapNormalizer_1" ${TOPP_BIN_PATH}/MapNormalizer -test -in ${DATA_DIR_TOPP}/MapNormalizer_input.mzML -out MapNormalizer.tmp)

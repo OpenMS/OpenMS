@@ -5,6 +5,7 @@ set(directory include/OpenMS/ANALYSIS/MAPMATCHING)
 set(sources_list_h
 BaseGroupFinder.h
 BaseSuperimposer.h
+ConsensusMapNormalizerAlgorithm.h
 FeatureGroupingAlgorithm.h
 FeatureGroupingAlgorithmIdentification.h
 FeatureGroupingAlgorithmLabeled.h

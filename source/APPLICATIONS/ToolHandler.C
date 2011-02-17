@@ -51,6 +51,7 @@ namespace OpenMS
 		tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", "Signal processing and preprocessing");
     tools_map["CompNovo"] = Internal::ToolDescription("CompNovo", "Protein/peptide Identification", StringList::create("CompNovo,CompNovoCID"));
 		tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", "Protein/peptide Processing");
+		tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
 		tools_map["DBExporter"] = Internal::ToolDescription("DBExporter", "File Handling");
 		tools_map["DBImporter"] = Internal::ToolDescription("DBImporter", "File Handling");
 		tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
