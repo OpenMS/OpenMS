@@ -1002,6 +1002,14 @@ namespace OpenMS
 					PeakMap exp;
 					FileHandler().loadExperiment(in, exp);
 
+          if (exp.getChromatograms().size()==0)
+          {
+            writeLog_("File does not contain chromatograms. No output was generated!");
+            return INCOMPATIBLE_INPUT_DATA;
+          }
+
+          Size output_count(0);
+
 					ofstream outstr(out.c_str());
 					SVOutStream output(outstr, sep, replacement, quoting_method);
 					output.modifyStrings(false);
@@ -1009,6 +1017,7 @@ namespace OpenMS
 					{
 						if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
 						{
+              ++output_count;
 							output << "MRM Q1=" << it->getPrecursor().getMZ() << " Q3=" << it->getProduct().getMZ() << endl;
 							for (MSChromatogram<>::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
 							{
@@ -1018,6 +1027,9 @@ namespace OpenMS
 						}
 					}
 					outstr.close();
+
+          writeLog_("Found " + String() + " SRM spectra!");
+          if (output_count==0) writeLog_("No output was generated!!");
 				}
 
         return EXECUTION_OK;
