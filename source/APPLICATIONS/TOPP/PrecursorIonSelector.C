@@ -118,16 +118,23 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerStringOption_("in","<input file>","","feature map file");
-		registerStringOption_("out","<output file>","","modified feature map",false);
-		registerStringOption_("next_feat","<output file>","","feature map file with the selected precursors",false);
+    registerInputFile_("in","<input file>","","Input feature map file (featureXML)");
+    setValidFormats_("in", StringList::create("featureXML"));
+
+    registerOutputFile_("out","<output file>","","modified feature map",false);
+    setValidFormats_("out",StringList::create("featureXML"));
+
+    registerOutputFile_("next_feat","<output file>","","feature map (featureXML) file with the selected precursors",false);
+    setValidFormats_("next_feat",StringList::create("featureXML"));
+
 		registerStringOption_("ids","<idxml file>","","file containing results of identification (IdXML)");
 		registerIntOption_("num_precursors","<Int>",1,"number of precursors to be selected",false);
 		registerFlag_("load_preprocessing","The preprocessed db is loaded from file, not calculated.");
 		registerFlag_("store_preprocessing","The preprocessed db is stored.");
 		registerFlag_("simulation","Simulate the whole LC-MS/MS run.");
 		registerStringOption_("sim_results","<output file>","","File containing the results of the simulation run",false);
-		registerStringOption_("db_path","<db-file>","","db file",false);
+
+    registerInputFile_("db_path","<db-file>","","db file",false);
     addEmptyLine_();
     registerSubsection_("algorithm","Settings for the compound list creation and rescoring.");
 
@@ -136,7 +143,7 @@ protected:
 	Param getSubsectionDefaults_(const String& /* section*/) const
   {
 		Param param = PrecursorIonSelectionPreprocessing().getDefaults();
-		param.insert("",PrecursorIonSelection().getDefaults().copy(""));
+    param.insert("",PrecursorIonSelection().getDefaults().copy(""));
 		return param;
   }
 	 
@@ -146,8 +153,9 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-		String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    String in(getStringOption_("in"));
+    String out(getStringOption_("out"));
+
 		String next_prec = getStringOption_("next_feat");
 		String ids = getStringOption_("ids");
 		String db_path = getStringOption_("db_path");
@@ -168,21 +176,27 @@ protected:
 		//    pisp.setLogType(log_type_);
 		pisp.setParameters(pisp_param);
 
-		if(load_preprocessing)  pisp.loadPreprocessing();
+    if(load_preprocessing)
+    {
+      pisp.loadPreprocessing();
+    }
 		else if(db_path=="")
-			{
+    {
 				writeLog_("No database file specified. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
-			}
-		else pisp.dbPreprocessing(db_path,store_preprocessing);
+    }
+    else
+    {
+      pisp.dbPreprocessing(db_path,store_preprocessing);
+    }
 	
 		
 		//-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
 		Param pis_param = getParam_().copy("algorithm:",true);
-		pis_param.removeAll("preprocessing");
+    pis_param.removeAll("preprocessing");
 		writeDebug_("Parameters passed to PrecursorIonSelection", pis_param,3);
     PrecursorIonSelection pis;
 		//    pis.setLogType(log_type_);
@@ -206,22 +220,22 @@ protected:
     //-------------------------------------------------------------
 		
 		if(simulation)
-			{
-				pis.simulateRun(f_map,pep_ids,prot_ids,pisp,prec_num,sim_results);
-			}
+    {
+      pis.simulateRun(f_map,pep_ids,prot_ids,pisp,prec_num,sim_results);
+    }
 		else
-			{
+    {
 				
-				pis.rescore(f_map,pep_ids,prot_ids,pisp);
-				FeatureMap<> new_precursors;
-				pis.getNextPrecursors(f_map,new_precursors,prec_num);
+      pis.rescore(f_map,pep_ids,prot_ids,pisp);
+      FeatureMap<> new_precursors;
+      pis.getNextPrecursors(f_map,new_precursors,prec_num);
 
-				//-------------------------------------------------------------
-				// writing output
-				//-------------------------------------------------------------
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
 				
-				if(next_prec != "") f_file.store(next_prec,new_precursors);
-			}
+      if(next_prec != "") f_file.store(next_prec,new_precursors);
+    }
 
 		if(out != "") f_file.store(out,f_map);	
 		
