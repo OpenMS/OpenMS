@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
 #define OPENMS_DATASTRUCTURES_DATASUBSET_H
 
 #include <OpenMS/DATASTRUCTURES/DataPoint.h>
-#include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
+#include <OpenMS/DATASTRUCTURES/SILACTreeNode.h>
 #include <map>
 #include <list>
 #include <set>
@@ -128,7 +128,7 @@ public:
 	/**
 	 * Subtree of the hierarchical clustering tree representing the data points
 	 */
-	std::vector<BinaryTreeNode> tree;
+	std::vector<SILACTreeNode> tree;
 
 	/**
 	 * @brief detailed constructor

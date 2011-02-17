@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -34,42 +34,35 @@
 
 namespace OpenMS
 {
+  
+	/** @brief Elements of a binary tree used to represent a hierarchical clustering process
 
-/**
-		@brief A node of an hierarchical clustering tree.
-		@ingroup Datastructures
+			strict indexing/topology is assumed, i.e. node no. x represents clusteringstep no. x
+			left_child and right_child are each the lowest indices to elements of the merged clusters, distance is the distance of the two children
 	*/
+	class OPENMS_DLLAPI BinaryTreeNode
+	{
+		public:
+		/// constructor
+		BinaryTreeNode(const Size i, const Size j, const Real x);
 
-class OPENMS_DLLAPI BinaryTreeNode {
-public:
-/** @brief the first data point of the node
+		/// destructor
+		~BinaryTreeNode();
 
-		*/
-	DataPoint* data1;
-/** @brief the second data point of the node
+		/// copy constructor
+		BinaryTreeNode(const BinaryTreeNode& source);
 
-		*/
-	DataPoint* data2;
-/** @brief distance between the two points
+		/// assignment operator
+		BinaryTreeNode& operator = (const BinaryTreeNode& source);
 
-		*/
-	DoubleReal distance;
-/** @brief default constructor
+		Size left_child;
+		Size right_child;
+		Real distance;
 
-		*/
-	BinaryTreeNode();
-/** @brief detailed constructor
+		private:
+		BinaryTreeNode();
+	};
 
-			@param data1_ first data point
-			@param data2_ second data point
-			@param distance_ distance between the data points
-		*/
-	BinaryTreeNode(DataPoint* data1_,DataPoint* data2_,DoubleReal distance_);
-	bool operator==(const BinaryTreeNode &cp) const;
-	bool operator!=(const BinaryTreeNode &cp) const;
-	bool operator<(const BinaryTreeNode &cp) const;
-
-};
 }
 
 #endif /* BINARYTREENODE_H_ */

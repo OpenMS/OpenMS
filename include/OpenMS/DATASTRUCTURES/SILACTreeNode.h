@@ -21,38 +21,61 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Steffen Sass $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
+
+#ifndef OPENMS_DATASTRUCTURES_SILACTreeNode_H
+#define OPENMS_DATASTRUCTURES_SILACTreeNode_H
+
+#include <OpenMS/DATASTRUCTURES/DataPoint.h>
 
 
 namespace OpenMS
 {
 
-  BinaryTreeNode::BinaryTreeNode(const Size i, const Size j, const Real x) : left_child(i), right_child(j), distance(x)
-	{
-	}
+/**
+		@brief A node of an hierarchical clustering tree.
+		@ingroup Datastructures
+	*/
 
-	BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source) : left_child(source.left_child), right_child(source.right_child), distance(source.distance)
-	{
-	}
+class OPENMS_DLLAPI SILACTreeNode 
+{
+  public:
+    /** @brief the first data point of the node
 
-	BinaryTreeNode::~BinaryTreeNode()
-	{
-	}
+	  */
+	  DataPoint* data1;
 
-	BinaryTreeNode& BinaryTreeNode::operator = (const BinaryTreeNode& source)
-	{
-		if (this != &source)
-		{
-			left_child = source.left_child;
-			right_child = source.right_child;
-			distance = source.distance;
-		}
-		return *this;
-	}
+    /** @brief the second data point of the node
 
-}
+	  */
+	  DataPoint* data2;
 
+    /** @brief distance between the two points
+
+	  */
+	  DoubleReal distance;
+
+    /** @brief default constructor
+
+    */
+	  SILACTreeNode();
+
+    /** @brief detailed constructor
+
+			  @param data1_ first data point
+			  @param data2_ second data point
+			  @param distance_ distance between the data points
+	  */
+	  SILACTreeNode(DataPoint* data1_,DataPoint* data2_,DoubleReal distance_);
+	  bool operator==(const SILACTreeNode &cp) const;
+	  bool operator!=(const SILACTreeNode &cp) const;
+	  bool operator<(const SILACTreeNode &cp) const;
+
+};
+
+} // namespace
+
+#endif /* SILACTreeNode_H_ */

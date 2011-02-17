@@ -21,38 +21,46 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Steffen Sass $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
-
+#include <OpenMS/DATASTRUCTURES/SILACTreeNode.h>
+#include <cmath>
 
 namespace OpenMS
 {
+  SILACTreeNode::SILACTreeNode() {}
+  SILACTreeNode::SILACTreeNode(DataPoint* data1_,DataPoint* data2_,DoubleReal distance_)
+  {
+	  data1=data1_;
+	  data2=data2_;
+	  distance=distance_;
+  }
 
-  BinaryTreeNode::BinaryTreeNode(const Size i, const Size j, const Real x) : left_child(i), right_child(j), distance(x)
-	{
-	}
+  bool SILACTreeNode::operator==(const SILACTreeNode &cp) const
+  {
+	  if( this->data1 != cp.data1) return false;
+	  if( this->data2 != cp.data2) return false;
+	  if( this->distance != cp.distance) return false;
+	  return true;
+  }
 
-	BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source) : left_child(source.left_child), right_child(source.right_child), distance(source.distance)
-	{
-	}
+  bool SILACTreeNode::operator!=(const SILACTreeNode &cp) const
+  {
+	  return !(*this==cp);
+  }
 
-	BinaryTreeNode::~BinaryTreeNode()
-	{
-	}
-
-	BinaryTreeNode& BinaryTreeNode::operator = (const BinaryTreeNode& source)
-	{
-		if (this != &source)
-		{
-			left_child = source.left_child;
-			right_child = source.right_child;
-			distance = source.distance;
-		}
-		return *this;
-	}
-
+  bool SILACTreeNode::operator<(const SILACTreeNode &cp) const
+  {
+	  if (std::abs(this->distance - cp.distance) <= 0.00000001)
+    {
+		  return *(this->data1) < *(cp.data1);
+    }
+	  else
+    {
+		  return this->distance < cp.distance;
+    }
+  }
 }
 

@@ -38,6 +38,7 @@ Param.h
 QTCluster.h
 QTSILACCluster.h
 SeqanIncludeWrapper.h
+SILACTreeNode.h
 SparseVector.h
 String.h
 StringList.h

@@ -284,7 +284,7 @@ namespace OpenMS
       DoubleReal stepwidth = maxMzDeviation / 30;
 
       // n must be a power of two for gsl fast fourier transformation; take next higher size for n, which is a power of two and fill the rest with zeros
-      Size akimaMz_size = pow(2,(ceil(log2((3*maxMzDeviation)/stepwidth))));
+      Size akimaMz_size = pow(2,(ceil(log((3*maxMzDeviation)/stepwidth)/log(2.0))));
 
       akimaMz.clear();
       akimaMz.resize(akimaMz_size, 0.0);

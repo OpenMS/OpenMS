@@ -36,6 +36,7 @@ Matrix.C
 Param.C
 QTCluster.C
 QTSILACCluster.C
+SILACTreeNode.C
 SparseVector.C
 String.C
 StringList.C

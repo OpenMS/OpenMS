@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 
 
 #include <OpenMS/COMPARISON/CLUSTERING/HashClustering.h>
+#include <OpenMS/DATASTRUCTURES/SILACTreeNode.h>
 #include <map>
 #include <list>
 #include <limits>
@@ -68,7 +69,7 @@ namespace OpenMS
   void HashClustering::init()
   {
     min_distance=std::numeric_limits<DoubleReal>::max();
-    min_distance_subsets=std::pair<DataSubset*, DataSubset*>(0, 0);
+    min_distance_subsets=std::make_pair((DataSubset*)0, (DataSubset*)0);
     // Iterate over all cells in the grid
     for (GridElements::iterator it = grid.begin();it != grid.end(); ++it)
     {
@@ -154,10 +155,10 @@ namespace OpenMS
       std::swap(min_distance_subsets.first, min_distance_subsets.second);
     }
 
-    std::vector<BinaryTreeNode>& tree1 = min_distance_subsets.first->tree;
-    std::vector<BinaryTreeNode>& tree2 = min_distance_subsets.second->tree;
+    std::vector<SILACTreeNode>& tree1 = min_distance_subsets.first->tree;
+    std::vector<SILACTreeNode>& tree2 = min_distance_subsets.second->tree;
     tree1.insert(tree1.end(), tree2.begin(), tree2.end());
-    BinaryTreeNode act_node = BinaryTreeNode(min_distance_subsets.first->data_points.front(), min_distance_subsets.second->data_points.front(), min_distance);
+    SILACTreeNode act_node = SILACTreeNode(min_distance_subsets.first->data_points.front(), min_distance_subsets.second->data_points.front(), min_distance);
 
     // Append the new node
     tree1.insert(tree1.end(), 1, act_node);
@@ -364,7 +365,7 @@ namespace OpenMS
 
   std::vector< Real > HashClustering::averageSilhouetteWidth(DataSubset& subset)
   {
-    std::vector<BinaryTreeNode>& tree=subset.tree;
+    std::vector<SILACTreeNode>& tree=subset.tree;
 
     std::vector< Real > average_silhouette_widths; //for each step from the average silhouette widths of the clusters
     std::map<DataPoint*, Real > interdist_i; //for each element i holds the min. average intercluster distance in cluster containing i
@@ -373,7 +374,7 @@ namespace OpenMS
 
     // Initial leafs
     std::set<DataPoint*> leafs;
-    for (std::vector<BinaryTreeNode>::iterator it=tree.begin(); it!=tree.end(); ++it)
+    for (std::vector<SILACTreeNode>::iterator it=tree.begin(); it!=tree.end(); ++it)
     {
       leafs.insert(it->data1);
       leafs.insert(it->data2);
@@ -423,7 +424,7 @@ namespace OpenMS
     }
 
     // Subsequent cluster states after silhouette calc
-    for (std::vector<BinaryTreeNode>::iterator tree_it = tree.begin(); tree_it != tree.end(); ++tree_it)
+    for (std::vector<SILACTreeNode>::iterator tree_it = tree.begin(); tree_it != tree.end(); ++tree_it)
     {
 
       if (*tree_it == tree.back()) //last steps silhouettes would be all 0 respectively not defined
@@ -609,10 +610,10 @@ namespace OpenMS
   }
 
 
-  void HashClustering::cut(int cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, std::vector<BinaryTreeNode>& tree)
+  void HashClustering::cut(int cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, std::vector<SILACTreeNode>& tree)
   {
     std::set<DataPoint*> leafs;
-    for (std::vector<BinaryTreeNode>::iterator it = tree.begin(); it != tree.end(); ++it)
+    for (std::vector<SILACTreeNode>::iterator it = tree.begin(); it != tree.end(); ++it)
     {
       leafs.insert(it->data1).second;
       leafs.insert(it->data2).second;
@@ -631,7 +632,7 @@ namespace OpenMS
       cluster_map[*sit] = std::vector<DataPoint*>(1, *sit);
     }
     // Redo clustering till step (original.dimensionsize()-cluster_quantity)
-    std::vector<BinaryTreeNode>::iterator it = tree.begin();
+    std::vector<SILACTreeNode>::iterator it = tree.begin();
     for (unsigned int cluster_step = 0; cluster_step < tree.size() + 1 - cluster_quantity; ++cluster_step)
     {
       // Pushback elements of data2 to data1 (and then erase second)
@@ -659,7 +660,7 @@ namespace OpenMS
     std::sort(clusters.begin(), clusters.end());
   }
 
-  void HashClustering::getSubtrees(std::vector<std::vector<BinaryTreeNode> >& subtrees)
+  void HashClustering::getSubtrees(std::vector<std::vector<SILACTreeNode> >& subtrees)
   {
     // Extract the subtrees and append them to the subtree vector
     for (ElementMap::iterator it = grid.begin(); it != grid.end(); ++it)
@@ -670,7 +671,7 @@ namespace OpenMS
         DataSubset* subset_ptr = dynamic_cast<DataSubset*> (*lit);
         if (subset_ptr->size() < 2)
           continue;
-        std::vector<BinaryTreeNode> tree;
+        std::vector<SILACTreeNode> tree;
         tree.insert(tree.begin(), subset_ptr->tree.begin(), subset_ptr->tree.end());
         sort(tree.begin(), tree.end());
         subtrees.push_back(tree);

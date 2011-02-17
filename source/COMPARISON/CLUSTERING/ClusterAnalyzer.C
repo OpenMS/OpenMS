@@ -777,27 +777,4 @@ namespace OpenMS
 		return (x.distance < y.distance);
 	}
 
-	BinaryTreeNode::BinaryTreeNode(const Size i, const Size j, const Real x) : left_child(i), right_child(j), distance(x)
-	{
-	}
-
-	BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source) : left_child(source.left_child), right_child(source.right_child), distance(source.distance)
-	{
-	}
-
-	BinaryTreeNode::~BinaryTreeNode()
-	{
-	}
-
-	BinaryTreeNode& BinaryTreeNode::operator = (const BinaryTreeNode& source)
-	{
-		if (this != &source)
-		{
-			left_child = source.left_child;
-			right_child = source.right_child;
-			distance = source.distance;
-		}
-		return *this;
-	}
-
 }

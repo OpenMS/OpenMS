@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,7 @@
 
 namespace OpenMS
 {
+  class SILACTreeNode;
 /**
 		@brief Hierarchical clustering based on geometric hashing.
 
@@ -122,12 +123,12 @@ class OPENMS_DLLAPI HashClustering : public ProgressLogger
 	/**
    *@brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters
    *@param cluster_quantity Size giving the number of clusters
-   *@param tree vector of BinaryTreeNodes representing the clustering
+   *@param tree vector of SILACTreeNodes representing the clustering
    *@param clusters vector of vectors holding the clusters
-   *@see BinaryTreeNode
+   *@see SILACTreeNode
     after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
    */
-   void cut(int cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, std::vector<BinaryTreeNode>& tree);
+   void cut(int cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, std::vector<SILACTreeNode>& tree);
 
 public:
 
@@ -161,7 +162,7 @@ public:
 	 * @brief Gets the hierarchical clustering subtrees after clustering has been performed. If the data has not been clustered yet, the method returns an empty vector
 	 * @param subtrees vector of subtrees, which will be filled after the clustering process
 	 */
-   void getSubtrees(std::vector<std::vector<BinaryTreeNode> >& subtrees);
+   void getSubtrees(std::vector<std::vector<SILACTreeNode> >& subtrees);
 
 	/**
    * @brief Extracts the clusters out of the subtrees using average silhoutte widths. If the data has not been clustered yet, the method returns an empty vector
