@@ -1206,7 +1206,7 @@ namespace OpenMS
   }
 
   void TOPPASBase::openFilesInTOPPView(QVector<QStringList> all_files)
-  {
+  {    
     foreach (const QStringList& files, all_files)
     {
       if (files.size() > 0)
@@ -1214,10 +1214,25 @@ namespace OpenMS
         QProcess* p = new QProcess();
         p->setProcessChannelMode(QProcess::ForwardedChannels);
         QString toppview_executable;
-        toppview_executable = "TOPPView";
+        toppview_executable = "TOPPView";        
+        QStringList arg = files;
 
-        p->start(toppview_executable, files);
-        if(!p->waitForStarted())
+        if (files.size() > 1)
+        {
+          // ask user how to open multiple files
+          if ( !QMessageBox::question(
+                  this,
+                  tr("Open in separate windows? -- TOPPAS"),
+                  tr("How do you want to open the output files?"),
+                  tr("&Single window"), tr("&Separate windows"),
+                  QString::null, 0, 1 ) )
+          {
+            arg = files.join(" + ").split(" ", QString::SkipEmptyParts);
+          }
+        }
+
+        p->start(toppview_executable, arg);
+        if (!p->waitForStarted())
         {
           // execution failed
           std::cerr << p->errorString().toStdString() << std::endl;
