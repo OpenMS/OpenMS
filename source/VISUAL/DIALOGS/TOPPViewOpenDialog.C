@@ -55,11 +55,13 @@ namespace OpenMS
 		button_group->addButton(d3_);
 		if (!as_2d)
 		{
-			d3_->setChecked(true);
+      d1_->setChecked(true);
+      d1_->setFocus();
 		}
 		else
 		{
 			d2_->setChecked(true);
+      d2_->setFocus();
 		}
 
 		//init intensity cutoff
@@ -69,10 +71,12 @@ namespace OpenMS
 		if (!cutoff)
 		{
 			nocutoff_->setChecked(true);
+      cutoff_->setFocus();
 		}
 		else
 		{
 			cutoff_->setChecked(true);
+      cutoff_->setFocus();
 		}
 		
 		//init open as

@@ -1251,9 +1251,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);
 
+    // only one peak spectrum? disable 2D as default
+    if (peak_map->size() == 1)
+    {
+      maps_as_2d = false;
+    }
 
-		//set the window where (new layer) data could be opened in
-
+    // set the window where (new layer) data could be opened in
     // get EnhancedTabBarWidget with given id
     EnhancedTabBarWidgetInterface* tab_bar_target = window_(window_id);
 
