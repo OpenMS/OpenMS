@@ -70,6 +70,12 @@ set(CF_OPENMS_ADDCXX_FLAGS) ## see OpenMS/cmake/OpenMSConfig.cmake.in to see how
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 
+	# determine gcc version
+	execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GNUCXX_VERSION)
+	string(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${GNUCXX_VERSION})
+	list(GET GCC_VERSION_COMPONENTS 0 GNUCXX_MAJOR_VERSION)
+	list(GET GCC_VERSION_COMPONENTS 1 GNUCXX_MINOR_VERSION)
+
   add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long -Wno-variadic-macros)
   if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
 		add_definitions(--pedantic)
@@ -79,6 +85,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
 		add_definitions(-fmessage-length=0)
 	endif()
+
 	if (NOT OPENMS_64BIT_ARCHITECTURE AND ${GNUCXX_MAJOR_VERSION} MATCHES "4" AND ${GNUCXX_MINOR_VERSION} MATCHES "3")
 		add_definitions(-march=i486)
 	endif()
