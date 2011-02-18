@@ -94,7 +94,7 @@ namespace OpenMS
 			mzToXAxis(false);
 		}
 		//connect preferences change to the right slot
-		connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParamtersChanged_()));
+    connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParametersChanged_()));
 	}
 
 	Spectrum2DCanvas::~Spectrum2DCanvas()
@@ -935,12 +935,12 @@ namespace OpenMS
 	{
 		for (Size i=0; i<layers_.size();++i)
 		{
-			recalculateDotGradient_(i);
+      recalculateDotGradient_(i);
 		}
 		SpectrumCanvas::intensityModeChange_();
 	}
 
-	void Spectrum2DCanvas::recalculateDotGradient_(Size layer)
+  void Spectrum2DCanvas::recalculateDotGradient_(Size layer)
 	{
     getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
@@ -952,6 +952,11 @@ namespace OpenMS
       getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
     }
 	}
+
+  void Spectrum2DCanvas::recalculateCurrentLayerDotGradient()
+  {
+    recalculateDotGradient_(current_layer_);
+  }
 
 	void Spectrum2DCanvas::updateProjections()
 	{
@@ -2349,9 +2354,9 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::currentLayerParamtersChanged_()
+  void Spectrum2DCanvas::currentLayerParametersChanged_()
 	{
-		recalculateDotGradient_(activeLayerIndex());
+    recalculateDotGradient_(activeLayerIndex());
 
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
