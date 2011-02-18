@@ -89,7 +89,7 @@ namespace OpenMS
 		for (cf_it = map.begin(); cf_it != map.end(); ++cf_it)
 		{
 			progresslogger.setProgress(cf_it - map.begin());
-			ConsensusFeature::HandleSetType::iterator f_it;
+			ConsensusFeature::HandleSetType::const_iterator f_it;
 			for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
 			{	
 				f_it->asMutable().setIntensity(f_it->getIntensity() * ratios[f_it->getMapIndex()]);
