@@ -208,41 +208,49 @@ namespace OpenMS
     vector<UInt> best_companion_index_0(input_maps[0].size(), UInt(-1));
     vector<DoubleReal> best_companion_distance_0(input_maps[0].size());
     vector<DoubleReal> second_best_companion_distance_0(input_maps[0].size());
-    for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
+    for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
       DoubleReal best_distance = numeric_limits<DoubleReal>::max();
       DoubleReal second_best_distance = numeric_limits<DoubleReal>::max();
-      for ( UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1 )
+      for (UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1)
       {
         DoubleReal distance = distance_(input_maps[0][fi0], input_maps[1][fi1]);
-        if ( distance < best_distance )
-        {
-          second_best_distance = best_distance;
-          best_distance = distance;
-          best_companion_index_0[fi0] = fi1;
-        }
-      }
-      best_companion_distance_0[fi0] = best_distance;
-      second_best_companion_distance_0[fi0] = second_best_distance;
+				if (distance < second_best_distance)
+				{
+					if (distance < best_distance)
+					{
+						second_best_distance = best_distance;
+						best_distance = distance;
+						best_companion_index_0[fi0] = fi1;
+					}
+					else second_best_distance = distance;
+				}
+			}
+			best_companion_distance_0[fi0] = best_distance;
+			second_best_companion_distance_0[fi0] = second_best_distance;
     }
 
     // For each element in map 1, find its best friend in map 0
     vector<UInt> best_companion_index_1(input_maps[1].size(), UInt(-1));
     vector<DoubleReal> best_companion_distance_1(input_maps[1].size());
     vector<DoubleReal> second_best_companion_distance_1(input_maps[1].size());
-    for ( UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1 )
+    for (UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1)
     {
       DoubleReal best_distance = numeric_limits<DoubleReal>::max();
       DoubleReal second_best_distance = numeric_limits<DoubleReal>::max();
-      for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
+      for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
       {
         DoubleReal distance = distance_(input_maps[0][fi0], input_maps[1][fi1]);
-        if ( distance < best_distance )
-        {
-          second_best_distance = best_distance;
-          best_distance = distance;
-          best_companion_index_1[fi1] = fi0;
-        }
+				if (distance < second_best_distance)
+				{
+					if (distance < best_distance)
+					{
+						second_best_distance = best_distance;
+						best_distance = distance;
+						best_companion_index_1[fi1] = fi0;
+					}
+					else second_best_distance = distance;
+				}
       }
       best_companion_distance_1[fi1] = best_distance;
       second_best_companion_distance_1[fi1] = second_best_distance;
