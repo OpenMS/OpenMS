@@ -42,7 +42,7 @@ using namespace std;
 /**
 	@page TOPP_ConsensusMapNormalizer ConsensusMapNormalizer
 
-	@brief Normalizes maps of one consensusXML file.
+	@brief Normalization of intensities in a set of maps using robust regression.
 
 <CENTER>
 	<table>
@@ -58,15 +58,10 @@ using namespace std;
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
 		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SeedListGenerator </td>
-		</tr>
 	</table>
 </CENTER>
-
-This tool normalizes the maps of one consensusXML file by comparing every single map to the map with the highest number of features. Therefore it calculates the pairwise intensity ratios of all features of the two maps. Then it calculates the mean of all ratios within the given threshold, so that outliers will not be considered for the following normalization. Finally it adjusts the intensities of all maps by the corresponding mean of the ratios.
-
-Consensus maps can be created from feature maps (featureXML files) using the @ref TOPP_FeatureLinker.
+ 
+The tool normalizes the intensities of a set of maps (consensusXML file) using robust regression. Maps are normalized pair-wise relative to the map with the most features. Given two maps, peptide featues are classified as non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) or outliers. From the non-outliers an average intensity ratio is calculated and used for normalization.
 
 <B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ConsensusMapNormalizer.cli
@@ -94,7 +89,7 @@ protected:
 		registerOutputFile_("out", "<file>", "", "output file");
 		setValidFormats_("out", StringList::create("consensusXML"));
 		addEmptyLine_();
-		registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "threshold for the ratio", false);
+		registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "The parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
 		setMinFloat_("ratio_threshold", 0.001);
 		setMaxFloat_("ratio_threshold", 1.0);
 	}
