@@ -49,7 +49,9 @@ namespace OpenMS
    * This filtering can be used to extract SILAC features from an MS experiment. Several SILACFilters can be added to the filtering to search for specific SILAC patterns.
    * @see SILACFilter
    */
-   class OPENMS_DLLAPI SILACFiltering : public ProgressLogger{
+   class OPENMS_DLLAPI SILACFiltering
+     : public ProgressLogger
+   {
      friend class SILACFilter;
 
   private:
@@ -109,7 +111,7 @@ namespace OpenMS
    * @param intensity_correlation_ minimal intensity correlation between regions of different peaks
    * @param allow_missing_peaks flag for missing peaks
    */
-   SILACFiltering(MSExperiment<Peak1D>& exp_, DoubleReal mz_stepwidth_, DoubleReal intensity_cutoff_, DoubleReal intensity_correlation_, bool allow_missing_peaks);
+   SILACFiltering(MSExperiment<Peak1D>& exp_, const DoubleReal mz_stepwidth_, const DoubleReal intensity_cutoff_, const DoubleReal intensity_correlation_, const bool allow_missing_peaks_);
 
   /**
    * destructor

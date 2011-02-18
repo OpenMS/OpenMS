@@ -47,7 +47,8 @@ namespace OpenMS
   Int SILACFiltering::feature_id = 0;
   DoubleReal SILACFiltering::mz_min = 0;
 
-  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp_, DoubleReal mz_stepwidth_, DoubleReal intensity_cutoff_, DoubleReal intensity_correlation_, bool allow_missing_peaks_) : exp(exp_)
+  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp_, const DoubleReal mz_stepwidth_, const DoubleReal intensity_cutoff_, const DoubleReal intensity_correlation_, const bool allow_missing_peaks_) 
+    : exp(exp_)
   {
     mz_stepwidth = mz_stepwidth_;
     intensity_cutoff = intensity_cutoff_;
