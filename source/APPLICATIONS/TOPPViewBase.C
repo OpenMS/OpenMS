@@ -2551,8 +2551,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		QAction* action = qobject_cast<QAction *>(sender());
     if (action)
 		{
-      addDataFile(action->text(), true, true);
-		}
+      QString filename = action->text();
+      if (filename.endsWith(".toppas", Qt::CaseInsensitive))
+      {
+        addTOPPASFile(filename, true);
+      }
+      else
+      {
+        addDataFile(filename, true, true);
+      }
+    }
 	}
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
