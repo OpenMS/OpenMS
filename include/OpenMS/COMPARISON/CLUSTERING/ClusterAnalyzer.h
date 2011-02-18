@@ -31,6 +31,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 
 #include <vector>
 #include <set>
@@ -42,35 +43,6 @@
 namespace OpenMS
 {
   class String;
-
-	/** @brief Elements of a binary tree used to represent a hierarchical clustering process
-
-			strict indexing/topology is assumed, i.e. node no. x represents clusteringstep no. x
-			left_child and right_child are each the lowest indices to elements of the merged clusters, distance is the distance of the two children
-	*/
-	class OPENMS_DLLAPI BinaryTreeNode
-	{
-		public:
-		/// constructor
-		BinaryTreeNode(const Size i, const Size j, const Real x);
-
-		/// destructor
-		~BinaryTreeNode();
-
-		/// copy constructor
-		BinaryTreeNode(const BinaryTreeNode& source);
-
-		/// assignment operator
-		BinaryTreeNode& operator = (const BinaryTreeNode& source);
-
-		Size left_child;
-		Size right_child;
-		Real distance;
-
-		private:
-		BinaryTreeNode();
-	};
-
 
 	/**
 		@brief Bundles analyzing tools for a clustering (given as sequence of BinaryTreeNode's)
