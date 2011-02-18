@@ -204,6 +204,8 @@ namespace OpenMS
       p_.setMetaValue("IonName", name);
     }
     spec.push_back(p_);
+
+    spec.sortByPosition();
   }
 
 	void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
@@ -478,7 +480,6 @@ namespace OpenMS
       }
       spec.push_back(p_);
     }
-
     // loss peaks of the precursor
 
     //loss of water
@@ -558,7 +559,9 @@ namespace OpenMS
       }
       spec.push_back(p_);
     }
-	}
+
+    spec.sortByPosition();
+	}  
 
 }
 
