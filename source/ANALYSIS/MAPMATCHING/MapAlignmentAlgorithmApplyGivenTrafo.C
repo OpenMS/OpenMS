@@ -68,6 +68,14 @@ namespace OpenMS
 	}
 
 
+	void MapAlignmentAlgorithmApplyGivenTrafo::alignConsensusMaps(std::vector<ConsensusMap>& /* maps */, std::vector<TransformationDescription>& transformations)
+	{
+		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::alignConsensusMaps()");
+
+		readGivenTrafos(transformations);
+	}
+
+
 	void MapAlignmentAlgorithmApplyGivenTrafo::alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >& /* maps */, std::vector<TransformationDescription>& transformations)
 	{
 		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::alignPeptideIdentifications()");
