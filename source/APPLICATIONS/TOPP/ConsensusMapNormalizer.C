@@ -48,11 +48,11 @@ using namespace std;
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ ConsensusMapNormalizer \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ ConsensusMapNormalizer \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_FeatureLinker </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FeatureLinker </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinQuantifier </td>
 		</tr>
 		<tr>
