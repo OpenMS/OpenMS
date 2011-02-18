@@ -73,6 +73,7 @@ START_SECTION((~IDMapper()))
 END_SECTION
 
 START_SECTION((IDMapper(const IDMapper& cp)))
+{
 	IDMapper mapper;
 	Param p = mapper.getParameters();
 	p.setValue("rt_tolerance", 0.5);
@@ -81,20 +82,21 @@ START_SECTION((IDMapper(const IDMapper& cp)))
 	mapper.setParameters(p);
 	IDMapper m2(mapper);
 	TEST_EQUAL(m2.getParameters(), p);
-	
+}	
 END_SECTION
       
 
 START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
+{
 	IDMapper mapper;
 	Param p = mapper.getParameters();
 	p.setValue("rt_tolerance", 0.5);
 	p.setValue("mz_tolerance", 0.05);
-	p.setValue("mz_measure","ppm");
+	p.setValue("mz_measure", "ppm");
 	mapper.setParameters(p);
 	IDMapper m2=mapper;
 	TEST_EQUAL(m2.getParameters(), p);
-	
+}	
 END_SECTION
       
 
@@ -136,6 +138,7 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
 	p.setValue("rt_tolerance", 0.5);
 	p.setValue("mz_tolerance", 0.05);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 			
 	mapper.annotate(experiment, identifications, protein_identifications);
@@ -179,6 +182,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 	p.setValue("rt_tolerance", 0.0);
 	p.setValue("mz_tolerance", 0.0);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 	
 	mapper.annotate(fm,identifications,protein_identifications);
@@ -219,6 +223,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 	p.setValue("rt_tolerance", 4.0);
 	p.setValue("mz_tolerance", 1.5);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 
 mapper.annotate(fm2,identifications,protein_identifications, true, true);
@@ -254,7 +259,7 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
 	p.setValue("rt_tolerance", 0.0);
 	p.setValue("mz_tolerance", 0.0);
 	p.setValue("mz_measure", "Da");
-	p.setValue("use_charge", "true");
+	p.setValue("ignore_charge", "false");
 	mapper.setParameters(p);
 	
 	mapper.annotate(fm, identifications, protein_identifications);
@@ -288,7 +293,7 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
 	p.setValue("rt_tolerance", 4.0);
 	p.setValue("mz_tolerance", 3.0);
 	p.setValue("mz_measure","ppm");
-	p.setValue("use_charge", "false");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 
 	mapper.annotate(fm_ppm,identifications,protein_identifications);
@@ -328,6 +333,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 	Param p = mapper.getParameters();
 	p.setValue("mz_tolerance", 0.01);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 	
 	TOLERANCE_ABSOLUTE(0.01);
@@ -379,7 +385,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 
 		cm[0].getPeptideIdentifications().clear();
 		cm.getUnassignedPeptideIdentifications().clear();
-		p.setValue("use_charge","true");
+		p.setValue("ignore_charge", "false");
 		mapper.setParameters(p);
 		mapper.annotate(cm, peptide_ids, protein_ids);
 		TEST_EQUAL(cm[0].getPeptideIdentifications().size(), 0);

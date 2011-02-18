@@ -273,7 +273,8 @@ namespace OpenMS
 					{
 						Feature& feat = map[*hash_it];
 
-						bool check_charge = use_charge_; // need to check the charge state?
+						// need to check the charge state?
+						bool check_charge = !ignore_charge_;
 						if (check_charge && (mz_values.size() == 1)) // check now
 						{
 							if (!charges.contains(feat.getCharge())) continue;
@@ -368,8 +369,8 @@ namespace OpenMS
 			DoubleReal mz_tolerance_;
 			///Measure used for m/z
 			Measure measure_;
-			///Do charge states have to match?
-			bool use_charge_;
+			///Ignore charge states during matching?
+			bool ignore_charge_;
 			
 			/// compute absolute Da tolerance, for a given m/z,
 			/// when @p measure is MEASURE_DA, the value is unchanged,
