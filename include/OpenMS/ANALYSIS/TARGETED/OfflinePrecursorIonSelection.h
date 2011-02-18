@@ -563,6 +563,8 @@ namespace OpenMS
 	{
     std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
 
+    it = exclusion_list.begin();
+
     while(it!=exclusion_list.end())
 		{
 			if((it->second--)==1)
