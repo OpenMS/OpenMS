@@ -252,48 +252,55 @@ namespace OpenMS
     // element_pairs_->clear();
     for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
     {
-		// calculate separation between feature fi0 in map 0 and its best friend in map 1
-		DPosition<2> position_difference = input_maps[0][fi0].getPosition() - input_maps[1][best_companion_index_0[fi0]].getPosition();
-		if ( position_difference[RT] < 0 )
-		{
-			position_difference[RT] = -position_difference[RT];
-		}
-		if ( position_difference[MZ] < 0 )
-		{
-			position_difference[MZ] = -position_difference[MZ];
-		}
-		// The two features in map 0 and map 1 (fi0 and its best friend) should not be further apart than the user specified max_pair_distance.
-		if ((position_difference[RT] < max_pair_distance_[RT]) && (position_difference[MZ] < max_pair_distance_[MZ]) &&
-			(best_companion_distance_0[fi0] * second_nearest_gap_ <= second_best_companion_distance_0[fi0]))
-		{
-		// fi0 likes someone ...
-        UInt best_companion_of_fi0 = best_companion_index_0[fi0];
-		if ((best_companion_index_1[best_companion_of_fi0] == fi0) && 
-            (best_companion_distance_1[best_companion_of_fi0] * second_nearest_gap_ <= second_best_companion_distance_1[best_companion_of_fi0]) &&
-			// check if peptide IDs match:
-			(!use_IDs || compatibleIDs_(input_maps[0][fi0], input_maps[1][best_companion_of_fi0])))
-		{
-			// ... who likes him too ...
-			result_map.push_back(ConsensusFeature());
-			ConsensusFeature & f = result_map.back();
+			// calculate separation between feature fi0 in map 0 and its best friend in map 1
+			DPosition<2> position_difference = input_maps[0][fi0].getPosition() - input_maps[1][best_companion_index_0[fi0]].getPosition();
+			if ( position_difference[RT] < 0 )
+			{
+				position_difference[RT] = -position_difference[RT];
+			}
+			if ( position_difference[MZ] < 0 )
+			{
+				position_difference[MZ] = -position_difference[MZ];
+			}
+			// The two features in map 0 and map 1 (fi0 and its best friend) should not be further apart than the user specified max_pair_distance.
+			if ((position_difference[RT] < max_pair_distance_[RT]) && (position_difference[MZ] < max_pair_distance_[MZ]) && (best_companion_distance_0[fi0] * second_nearest_gap_ <= second_best_companion_distance_0[fi0]))
+			{
+				// fi0 likes someone ...
+				UInt best_companion_of_fi0 = best_companion_index_0[fi0];
+				if ((best_companion_index_1[best_companion_of_fi0] == fi0) && 
+						(best_companion_distance_1[best_companion_of_fi0] * second_nearest_gap_ <= second_best_companion_distance_1[best_companion_of_fi0]) &&
+						// check if peptide IDs match:
+						(!use_IDs || compatibleIDs_(input_maps[0][fi0], input_maps[1][best_companion_of_fi0])))
+				{
+					// ... who likes him too ...
+					result_map.push_back(ConsensusFeature());
+					ConsensusFeature & f = result_map.back();
+					
+					f.insert(input_maps[0][fi0]);
+					f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),input_maps[0][fi0].getPeptideIdentifications().begin(),input_maps[0][fi0].getPeptideIdentifications().end());
 
-			f.insert(input_maps[0][fi0]);
-			f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),input_maps[0][fi0].getPeptideIdentifications().begin(),input_maps[0][fi0].getPeptideIdentifications().end());
+					f.insert(input_maps[1][best_companion_of_fi0]);
+					f.getPeptideIdentifications().insert( f.getPeptideIdentifications().end(),input_maps[1][best_companion_of_fi0].getPeptideIdentifications().begin(),input_maps[1][best_companion_of_fi0].getPeptideIdentifications().end());
 
-			f.insert(input_maps[1][best_companion_of_fi0]);
-			f.getPeptideIdentifications().
-            insert( f.getPeptideIdentifications().end(),input_maps[1][best_companion_of_fi0].getPeptideIdentifications().begin(),input_maps[1][best_companion_of_fi0].getPeptideIdentifications().end());
+					f.computeConsensus();
+					DoubleReal quality = 1. - best_companion_distance_0[fi0];
+					DoubleReal quality0 = 1. - best_companion_distance_0[fi0] * second_nearest_gap_ / second_best_companion_distance_0[fi0];
+					DoubleReal quality1 = 1. - best_companion_distance_1[best_companion_of_fi0] * second_nearest_gap_ / second_best_companion_distance_1[best_companion_of_fi0];
+					quality = quality * quality0 * quality1; // TODO other formula?
 
-			f.computeConsensus();
-			DoubleReal quality = 1. - best_companion_distance_0[fi0];
-			DoubleReal quality0 = 1. - best_companion_distance_0[fi0] * second_nearest_gap_ / second_best_companion_distance_0[fi0];
-			DoubleReal quality1 = 1. - best_companion_distance_1[best_companion_of_fi0] * second_nearest_gap_ / second_best_companion_distance_1[best_companion_of_fi0];
-			f.setQuality(quality*quality0*quality1); // TODO other formula?
-
-			is_singleton[0][fi0] = false;
-			is_singleton[1][best_companion_of_fi0] = false;
-        }
-      }
+					// incorporate existing quality values:
+					Size size0 = max(input_maps[0][fi0].size(), size_t(1));
+					Size size1 = max(input_maps[1][best_companion_of_fi0].size(), size_t(1));
+					// quality contribution from first map:
+					quality0 = input_maps[0][fi0].getQuality() * (size0 - 1);
+					// quality contribution from second map:
+					quality1 = input_maps[1][best_companion_of_fi0].getQuality() * (size1 - 1);
+					f.setQuality((quality + quality0 + quality1) / (size0 + size1 - 1));
+				
+					is_singleton[0][fi0] = false;
+					is_singleton[1][best_companion_of_fi0] = false;
+				}
+			}
     }
 
     // write out unmatched consensus features
