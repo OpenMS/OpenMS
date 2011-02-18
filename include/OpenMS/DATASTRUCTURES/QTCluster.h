@@ -85,7 +85,7 @@ namespace OpenMS {
 		/// Has the cluster changed (if yes, quality needs to be recomputed)?
 		bool changed_;
 
-		/// Keep track of peptide IDs and use them for matching
+		/// Keep track of peptide IDs and use them for matching?
 		bool use_IDs_;
 
 		/**
