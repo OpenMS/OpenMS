@@ -98,19 +98,19 @@ namespace OpenMS
 
           // INTERPOLATION (Akima and Spline interpolation in order to have intensities at any m/z.)
           // Fill intensity and m/z vector for interpolation. Add zeros in the area with no data points to improve cubic spline fit
-          for (MSSpectrum<>::Iterator mz_it = rt_it->begin(); mz_it != rt_it->end(); ++mz_it)
+          for (MSSpectrum<>::Iterator mz_interpol_it = rt_it->begin(); mz_interpol_it != rt_it->end(); ++mz_interpol_it)
           {
-            if (mz_it->getMZ() > last_mz + 2 * mz_stepwidth) // If the mz gap is rather larger, fill in zeros. These addtional Stützstellen improve interpolation where no signal (i.e. data points) is.
+            if (mz_interpol_it->getMZ() > last_mz + 2 * mz_stepwidth) // If the mz gap is rather larger, fill in zeros. These addtional Stützstellen improve interpolation where no signal (i.e. data points) is.
             {
-              for (DoubleReal current_mz = last_mz + 2 * mz_stepwidth; current_mz < mz_it->getMZ() - 2 * mz_stepwidth; current_mz += mz_stepwidth)
+              for (DoubleReal current_mz = last_mz + 2 * mz_stepwidth; current_mz < mz_interpol_it->getMZ() - 2 * mz_stepwidth; current_mz += mz_stepwidth)
               {
                 mz_vec.push_back(current_mz);
                 intensity_vec.push_back(0.0);
               }
             }
-            mz_vec.push_back(mz_it->getMZ());
-            intensity_vec.push_back(mz_it->getIntensity());
-            last_mz = mz_it->getMZ();
+            mz_vec.push_back(mz_interpol_it->getMZ());
+            intensity_vec.push_back(mz_interpol_it->getIntensity());
+            last_mz = mz_interpol_it->getMZ();
           }
 
           // akima interpolation, returns 0 in regions with no raw data points
@@ -151,19 +151,19 @@ namespace OpenMS
               bool isBlacklisted = false;
 
               // iterate over the blacklist (Relevant blacklist entries are most likely among the last ones added.)
-              multimap<DoubleReal, BlacklistEntry>::iterator blacklistStart;
-              multimap<DoubleReal, BlacklistEntry>::iterator blacklistEnd;
+              multimap<DoubleReal, BlacklistEntry>::iterator blacklistStartCheck;
+              multimap<DoubleReal, BlacklistEntry>::iterator blacklistEndCheck;
               if (blacklist.size() > 40)    // Blacklist should be of certain size before we run ckeck only parts of it.
               {
-                blacklistStart = blacklist.lower_bound(rt - 100);
-                blacklistEnd = blacklist.lower_bound(rt);
+                blacklistStartCheck = blacklist.lower_bound(rt - 100);
+                blacklistEndCheck = blacklist.lower_bound(rt);
               }
               else
               {
-                blacklistStart = blacklist.begin();
-                blacklistEnd = blacklist.end();
+                blacklistStartCheck = blacklist.begin();
+                blacklistEndCheck = blacklist.end();
               }
-              for (multimap<DoubleReal, BlacklistEntry>::iterator blacklist_it = blacklistStart; blacklist_it != blacklistEnd; ++blacklist_it)
+              for (multimap<DoubleReal, BlacklistEntry>::iterator blacklist_check_it = blacklistStartCheck; blacklist_check_it != blacklistEndCheck; ++blacklist_check_it)
               {
                 
                 Int charge = (*filter_it)->getCharge();
@@ -173,8 +173,8 @@ namespace OpenMS
                 const vector<DoubleReal>& expectedMZshifts = (*filter_it)->getExpectedMZshifts();
                 for (vector<DoubleReal>::const_iterator expectedMZshifts_it = expectedMZshifts.begin(); expectedMZshifts_it != expectedMZshifts.end(); ++expectedMZshifts_it)
                 {
-                  bool inBlacklistEntry = blacklist_it->second.range.encloses(*expectedMZshifts_it + mz, rt);
-                  bool exception = (charge == blacklist_it->second.charge) && (mass_separations == blacklist_it->second.mass_separations) && (abs(*expectedMZshifts_it - blacklist_it->second.relative_peak_position)<0.01);
+                  bool inBlacklistEntry = blacklist_check_it->second.range.encloses(*expectedMZshifts_it + mz, rt);
+                  bool exception = (charge == blacklist_check_it->second.charge) && (mass_separations == blacklist_check_it->second.mass_separations) && (abs(*expectedMZshifts_it - blacklist_check_it->second.relative_peak_position)<0.01);
                   
                   if (inBlacklistEntry && !exception )
                   {
@@ -217,51 +217,51 @@ namespace OpenMS
                     // Does the current filter and relative peak position agree with the ones of the blacklist entry?
                     bool sameFilterAndPeakPosition = false;
                     
-                    multimap<DoubleReal, BlacklistEntry>::iterator blacklistStart;
-                    multimap<DoubleReal, BlacklistEntry>::iterator blacklistEnd;
+                    multimap<DoubleReal, BlacklistEntry>::iterator blacklistStartFill;
+                    multimap<DoubleReal, BlacklistEntry>::iterator blacklistEndFill;
                     if (blacklist.size() > 40)    // Blacklist should be of certain size before we run ckeck only parts of it.
-                        {
-                          blacklistStart = blacklist.lower_bound(rt - 100);
-                          blacklistEnd = blacklist.lower_bound(rt);
-                        }
-                        else
-                        {
-                          blacklistStart = blacklist.begin();
-                          blacklistEnd = blacklist.end();
-                        }
-                    for (multimap<DoubleReal, BlacklistEntry>::iterator blacklist_it = blacklistStart; blacklist_it != blacklistEnd; ++blacklist_it)
                     {
-                      overlap = blackArea.isIntersected(blacklist_it->second.range);
-                      sameFilterAndPeakPosition = (charge == blacklist_it->second.charge) && (mass_separations == blacklist_it->second.mass_separations) && (abs(relative_peak_position - blacklist_it->second.relative_peak_position)<0.01);
+                      blacklistStartFill = blacklist.lower_bound(rt - 100);
+                      blacklistEndFill = blacklist.lower_bound(rt);
+                    }
+                    else
+                    {
+                      blacklistStartFill = blacklist.begin();
+                      blacklistEndFill = blacklist.end();
+                    }
+                    for (multimap<DoubleReal, BlacklistEntry>::iterator blacklist_fill_it = blacklistStartFill; blacklist_fill_it != blacklistEndFill; ++blacklist_fill_it)
+                    {
+                      overlap = blackArea.isIntersected(blacklist_fill_it->second.range);
+                      sameFilterAndPeakPosition = (charge == blacklist_fill_it->second.charge) && (mass_separations == blacklist_fill_it->second.mass_separations) && (abs(relative_peak_position - blacklist_fill_it->second.relative_peak_position)<0.01);
                       
                       if (overlap && sameFilterAndPeakPosition)
                       {
                         // If new and old entry intersect, simply update (or replace) the old one.
-                        if (blackArea.minY() > (blacklist_it->second.range).minY())
-                         {
-                           // no new min RT => no change of key necessary
-                           (blacklist_it->second.range).setMinX(min(blackArea.minX(),(blacklist_it->second.range).minX()));
-                           (blacklist_it->second.range).setMaxX(max(blackArea.maxX(),(blacklist_it->second.range).maxX()));
-                           (blacklist_it->second.range).setMaxY(max(blackArea.maxY(),(blacklist_it->second.range).maxY()));
-                         }
-                         else
-                         {
-                           // new min RT => insert new BlacklistEntry and delete old one
-                           DRange<2> mergedArea;
-                           BlacklistEntry mergedEntry;
-                           mergedArea.setMinX(min(blackArea.minX(), (blacklist_it->second.range).minX()));
-                           mergedArea.setMaxX(max(blackArea.maxX(), (blacklist_it->second.range).maxX()));
-                           mergedArea.setMinY(blackArea.minY());
-                           mergedArea.setMaxY(max(blackArea.maxY(), (blacklist_it->second.range).maxY()));
-                           mergedEntry.range = mergedArea;
-                           mergedEntry.charge = blacklist_it->second.charge;
-                           mergedEntry.mass_separations = blacklist_it->second.mass_separations;
-                           mergedEntry.relative_peak_position = blacklist_it->second.relative_peak_position;
-                           
-                           // Simply insert the new and erase the old map BlacklistEntry. We break out of the loop anyhow.
-                           blacklist.insert(pair<DoubleReal, BlacklistEntry>(mergedEntry.range.minY(), mergedEntry));
-                           blacklist.erase(blacklist_it);
-                         }
+                        if (blackArea.minY() > (blacklist_fill_it->second.range).minY())
+                        {
+                          // no new min RT => no change of key necessary
+                          (blacklist_fill_it->second.range).setMinX(min(blackArea.minX(),(blacklist_fill_it->second.range).minX()));
+                          (blacklist_fill_it->second.range).setMaxX(max(blackArea.maxX(),(blacklist_fill_it->second.range).maxX()));
+                          (blacklist_fill_it->second.range).setMaxY(max(blackArea.maxY(),(blacklist_fill_it->second.range).maxY()));
+                        }
+                        else
+                        {
+                          // new min RT => insert new BlacklistEntry and delete old one
+                          DRange<2> mergedArea;
+                          BlacklistEntry mergedEntry;
+                          mergedArea.setMinX(min(blackArea.minX(), (blacklist_fill_it->second.range).minX()));
+                          mergedArea.setMaxX(max(blackArea.maxX(), (blacklist_fill_it->second.range).maxX()));
+                          mergedArea.setMinY(blackArea.minY());
+                          mergedArea.setMaxY(max(blackArea.maxY(), (blacklist_fill_it->second.range).maxY()));
+                          mergedEntry.range = mergedArea;
+                          mergedEntry.charge = blacklist_fill_it->second.charge;
+                          mergedEntry.mass_separations = blacklist_fill_it->second.mass_separations;
+                          mergedEntry.relative_peak_position = blacklist_fill_it->second.relative_peak_position;
+
+                          // Simply insert the new and erase the old map BlacklistEntry. We break out of the loop anyhow.
+                          blacklist.insert(pair<DoubleReal, BlacklistEntry>(mergedEntry.range.minY(), mergedEntry));
+                          blacklist.erase(blacklist_fill_it);
+                        }
                         
                         break;
                       }
@@ -279,16 +279,6 @@ namespace OpenMS
                     }
                   }
                   
-/*                  // DEBUG: save global blacklist
-                  ofstream blacklistFile;
-                  blacklistFile.open ("blacklist.csv");
-                  for (map<DoubleReal,BlacklistEntry>::iterator blacklist_it = blacklist.begin(); blacklist_it != blacklist.end(); ++blacklist_it)
-                  {
-                    blacklistFile << rt << ", " << (blacklist_it->second.range).minX() << ", " << (blacklist_it->second.range).maxX() << ", " << (blacklist_it->second.range).minY() << ", " << (blacklist_it->second.range).maxY() << ", " << (blacklist_it->second.charge) << ", " << (blacklist_it->second.mass_separations[0]) << ", " << (blacklist_it->second.relative_peak_position) << endl;
-                  }
-                  blacklistFile.close();
-*/
-
                   ++feature_id;
                 }
               }
@@ -296,7 +286,7 @@ namespace OpenMS
             
             last_mz = mz_it->getMZ();
           }
-      }
+        }
 
         // Clear the interpolations
         gsl_spline_free(spline_aki);
