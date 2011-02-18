@@ -553,16 +553,27 @@ namespace OpenMS
 		exclusion_list.erase(iter,exclusion_list.end());
 	}
 
+  inline bool isZero(const std::pair<std::pair<DoubleReal,DoubleReal>, Size> &in)
+  {
+    return false;
+    //return (in.second==0);
+  }
+
 	inline  void OfflinePrecursorIonSelection::updateExclusionList_(std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list)
 	{
-		std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
-		for(it=exclusion_list.begin(); it!=exclusion_list.end(); ++it)
+    std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
+
+    while(it!=exclusion_list.end())
 		{
 			if((it->second--)==1)
 			{
-				exclusion_list.erase(it);
+        exclusion_list.erase(it++);
 			}
-		}
+      else
+      {
+        ++it;
+      }
+    }
 	}
 
 }
