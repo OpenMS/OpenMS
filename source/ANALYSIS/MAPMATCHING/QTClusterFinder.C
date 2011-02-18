@@ -37,9 +37,6 @@ QTClusterFinder::QTClusterFinder(): BaseGroupFinder()
 {
 	BaseGroupFinder::setName(getProductName());
 
-	defaults_.setValue("keep_subelements", "false", "For consensusXML input: Keep the sub-features of the input in the output (by default the consensus centroids are used)");
-	defaults_.setValidStrings("keep_subelements", StringList::create("true,false"));
-
 	defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
 	defaults_.setValidStrings("use_identifications", StringList::create("true,false"));
 
