@@ -456,14 +456,16 @@ class TOPPSILACAnalyzer
     cout << endl;
 
     // check if all selected labels are included in advanced section "labels"
-    for (unsigned i = 0; i < SILAClabels.size(); i++)
+    for (Size i = 0; i < SILAClabels.size(); i++)
     {
-      for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+      for (Size j = 0; j < SILAClabels[i].size(); ++j)
       {
-        int found = labels.find(SILAClabels[i][j]);
+        Size found = labels.find(SILAClabels[i][j]);
 
         if (found < 0)
+        {
           throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,SILAClabels[i][j]);
+        }
       }
     }
 
@@ -574,9 +576,10 @@ class TOPPSILACAnalyzer
   DoubleReal estimateMzSpacing(MSExperiment<Peak1D>& exp)
   {
     // estimate m/z step width
-    UInt i = 0;
-    while (i < exp.size() && exp[i].size() < 5)
-      ++i;
+    Size i(0);
+    while (i < exp.size() && exp[i].size() < 5) ++i; // get a scan with at least 5 points
+
+    if (i>=exp.size()) return 0; // handle this in calling code
 
     vector<Real> mz_spacing;
 
