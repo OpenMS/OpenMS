@@ -104,7 +104,8 @@ namespace OpenMS {
     defaults_.setMaxInt("column_condition:distortion", 10);
 
 
-    defaults_.setValue("profile_shape:width:value", 9, "Width of the Exponential Gaussian Hybrid distribution shape of the elution profile. This does not correspond directly to the width in [s].");
+    defaults_.setValue("profile_shape:width:value", 9.0, "Width of the Exponential Gaussian Hybrid distribution shape of the elution profile. This does not correspond directly to the width in [s].");
+    defaults_.setMinFloat("profile_shape:width:value", 0.0);
     defaults_.setValue("profile_shape:width:variance", 1.6, "Random component of the width (set to 0 to disable randomness), i.e. scale parameter for the lorentzian variation of the variance (Note: The scale parameter has to be >= 0).");
     defaults_.setMinFloat("profile_shape:width:variance",0.0);
     defaults_.setSectionDescription("profile_shape:width","Width of the EGH elution shape, i.e. the sigma^2 parameter, which is computed using 'value' + rnd_cauchy('variance')");
@@ -264,7 +265,7 @@ namespace OpenMS {
 
       // determine shape parameters for EGH
       DoubleReal variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
-      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_==0? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));;
+      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_==0? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));
 
       // resample variance if it is below 0
       // try this only 10 times to avoid endless loop in case of
@@ -272,13 +273,33 @@ namespace OpenMS {
       Size retry_variance_sampling=0;
       while(variance <= 0 && retry_variance_sampling < 9)
       {
-        variance = egh_variance_location_ + (egh_variance_scale_==0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
+        variance = egh_variance_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_);
         ++retry_variance_sampling;
       }
 
       if (variance<=0)
       {
         LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Skipping feature!" << std::endl;
+        deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
+                                   String::number(predicted_retention_times[i],2)
+                                   + "]");
+        continue;
+      }
+
+      // resample tau if the value is to big
+      // try this only 10 times to avoid endless loop in case of
+      // a bad parameter combination
+      Size retry_tau_sampling=0;
+      while( fabs(tau - egh_tau_location_) > 10*egh_tau_scale_  && retry_tau_sampling < 9)
+      {
+        tau = egh_tau_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_);
+        ++retry_tau_sampling;
+      }
+
+
+      if(fabs(tau - egh_tau_location_) > 10*egh_tau_scale_)
+      {
+        LOG_ERROR << "Tau is to big for a reasonable feature. Tried to resample 10 times and then stopped. Skipping feature!" << std::endl;
         deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
                                    String::number(predicted_retention_times[i],2)
                                    + "]");
