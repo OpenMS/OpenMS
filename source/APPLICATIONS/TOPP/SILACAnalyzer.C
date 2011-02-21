@@ -676,20 +676,27 @@ class TOPPSILACAnalyzer
       vector<DataPoint>::iterator it_1;     // first inner iterator over elements of first DataPoint
       vector<DataPoint>::iterator it_2;     // second inner iterator over elements of second DataPoint
 
+      // todo: check if "data.size() >= 2" and abort otherwise, otherwise all operations below are dangerous!
+
+      // improvement: store "data.end() - 1" as own pointer. Makes stuff more readable and might even be faster
+
       while (data_it_1 < data.end() - 1)      // check for combining as long as first DataPoint is not second last elment of "data"
       {
         while (data_it_1->size() == 0 && data_it_1 < data.end() - 1)
         {
-          data_it_1++;      // get next first DataPoint
+          ++data_it_1;      // get next first DataPoint
           data_it_2 = data_it_1 + 1;      // reset second iterator
         }
 
         if (data_it_1 == data.end() - 1 && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
-          break;      // stop combining
-
-        while (data_it_2->size() == 0 && data_it_2 < data.end())      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+        // todo: why check both conditions?! above code should ensure either both OR none are true??
         {
-          data_it_2++;      // get next second DataPoint
+          break;      // stop combining
+        }
+
+        while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+        {
+          ++data_it_2;      // get next second DataPoint
         }
 
         if (data_it_2 == data.end())      // if second iterator points to end of "data"
@@ -708,18 +715,18 @@ class TOPPSILACAnalyzer
           {
             if (data_it_2 < data.end() - 1)     // if DataPpoints differ and second DataPoint is not second last element of "data"
             {
-              data_it_2++;      // get next second DataPoint
+              ++data_it_2;      // get next second DataPoint
             }
 
             else if (data_it_2 == data.end() - 1 && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
             {
-              data_it_1++;      // get next first DataPoint
+              ++data_it_1;      // get next first DataPoint
               data_it_2 = data_it_1 + 1;      // reset second iterator
             }
 
             else
             {
-              data_it_1++;      // get next first DataPoint
+              ++data_it_1;      // get next first DataPoint
             }
           }
 
@@ -727,15 +734,21 @@ class TOPPSILACAnalyzer
           {
             // perform combining
             // insert the two DataPoints to combine in "data_combined"
-            data_combined.insert(data_combined.end(), data_it_1->begin(), data_it_1->end());
-            data_combined.insert(data_combined.end(), data_it_2->begin(), data_it_2->end());
-            (*data_it_1).swap(data_combined);     // insert "data_combined" at position of first Datapoint
-            (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
-            data_combined.clear();      // clear "data_combined"
+            {
+              data_combined.insert(data_combined.end(), data_it_1->begin(), data_it_1->end());
+              data_combined.insert(data_combined.end(), data_it_2->begin(), data_it_2->end());
+              (*data_it_1).swap(data_combined);     // insert "data_combined" at position of first Datapoint
+              (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
+              data_combined.clear();      // clear "data_combined"
+            }
+						// todo:
+            // instead of above block, why not:
+            // (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end()); // append #2 to #1
+            // (*data_it_2).clear();                                                        // clear second Datapoint to keep iterators valid and to keep size of "data"
 
             if (data_it_2 < data.end() - 1)     // if second DataPoint is not second last element of "data"
             {
-              data_it_2++;      // get next second DataPoint
+              ++data_it_2;      // get next second DataPoint
             }
             else
             {
@@ -745,7 +758,7 @@ class TOPPSILACAnalyzer
         }
         else
         {
-          data_it_1++;      // get next first DataPoint
+          ++data_it_1;      // get next first DataPoint
         }
       }
     }
