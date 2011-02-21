@@ -460,7 +460,7 @@ class TOPPSILACAnalyzer
     {
       for (Size j = 0; j < SILAClabels[i].size(); ++j)
       {
-        Size found = labels.find(SILAClabels[i][j]);
+        Int found = labels.find(SILAClabels[i][j]);
 
         if (found < 0)
         {
@@ -576,10 +576,10 @@ class TOPPSILACAnalyzer
   DoubleReal estimateMzSpacing(MSExperiment<Peak1D>& exp)
   {
     // estimate m/z step width
-    Size i(0);
+    Size i = 0;
     while (i < exp.size() && exp[i].size() < 5) ++i; // get a scan with at least 5 points
 
-    if (i>=exp.size()) return 0; // handle this in calling code
+    if (i >= exp.size()) return 0; // handle this in calling code
 
     vector<Real> mz_spacing;
 
@@ -668,115 +668,102 @@ class TOPPSILACAnalyzer
       data.swap(data_temp);     // data = data_temp
       data_temp.clear();      // clear "data_temp"
 
-
-      // combine corresponding DataPoints
-      vector<DataPoint> data_combined;      // create "data_combined" to combine two DataPoints
-      vector<vector<DataPoint> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
-      vector<vector<DataPoint> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
-      vector<DataPoint>::iterator it_1;     // first inner iterator over elements of first DataPoint
-      vector<DataPoint>::iterator it_2;     // second inner iterator over elements of second DataPoint
-
-      // todo: check if "data.size() >= 2" and abort otherwise, otherwise all operations below are dangerous!
-
-      // improvement: store "data.end() - 1" as own pointer. Makes stuff more readable and might even be faster
-
-      while (data_it_1 < data.end() - 1)      // check for combining as long as first DataPoint is not second last elment of "data"
+      if (data.size() >= 2)
       {
-        while (data_it_1->size() == 0 && data_it_1 < data.end() - 1)
-        {
-          ++data_it_1;      // get next first DataPoint
-          data_it_2 = data_it_1 + 1;      // reset second iterator
-        }
+        // combine corresponding DataPoints
+        vector<vector<DataPoint> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
+        vector<vector<DataPoint> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
+        vector<vector<DataPoint> >::iterator data_it_end = data.end() - 1;      // pointer to second last elemnt of "data"
+        vector<DataPoint>::iterator it_1;     // first inner iterator over elements of first DataPoint
+        vector<DataPoint>::iterator it_2;     // second inner iterator over elements of second DataPoint
 
-        if (data_it_1 == data.end() - 1 && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
-        // todo: why check both conditions?! above code should ensure either both OR none are true??
+        while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
         {
-          break;      // stop combining
-        }
-
-        while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
-        {
-          ++data_it_2;      // get next second DataPoint
-        }
-
-        if (data_it_2 == data.end())      // if second iterator points to end of "data"
-        {
-          data_it_2 = data_it_1 + 1;      // reset second iterator
-        }
-
-        it_1 = data_it_1->begin();      // set first inner iterator to first element of first DataPoint
-        it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
-
-        // check if DataPoints are not empty
-        if (data_it_1->size() != 0 && data_it_2->size() != 0)
-        {
-          // check if DataPoints have the same charge state and mass shifts
-          if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
+          while (data_it_1->size() == 0 && data_it_1 < data_it_end)
           {
-            if (data_it_2 < data.end() - 1)     // if DataPpoints differ and second DataPoint is not second last element of "data"
-            {
-              ++data_it_2;      // get next second DataPoint
-            }
+            ++data_it_1;      // get next first DataPoint
+            data_it_2 = data_it_1 + 1;      // reset second iterator
+          }
 
-            else if (data_it_2 == data.end() - 1 && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
+          if (data_it_1 == data_it_end && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
+          {
+            break;      // stop combining
+          }
+
+          while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+          {
+            ++data_it_2;      // get next second DataPoint
+          }
+
+          if (data_it_2 == data.end())      // if second iterator points to end of "data"
+          {
+            data_it_2 = data_it_1 + 1;      // reset second iterator
+          }
+
+          it_1 = data_it_1->begin();      // set first inner iterator to first element of first DataPoint
+          it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
+
+          // check if DataPoints are not empty
+          if (data_it_1->size() != 0 && data_it_2->size() != 0)
+          {
+            // check if DataPoints have the same charge state and mass shifts
+            if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
             {
-              ++data_it_1;      // get next first DataPoint
-              data_it_2 = data_it_1 + 1;      // reset second iterator
+              if (data_it_2 < data_it_end)     // if DataPpoints differ and second DataPoint is not second last element of "data"
+              {
+                ++data_it_2;      // get next second DataPoint
+              }
+
+              else if (data_it_2 == data_it_end && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
+              {
+                ++data_it_1;      // get next first DataPoint
+                data_it_2 = data_it_1 + 1;      // reset second iterator
+              }
+
+              else
+              {
+                ++data_it_1;      // get next first DataPoint
+              }
             }
 
             else
             {
-              ++data_it_1;      // get next first DataPoint
+              // perform combining
+              (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end());      // append second DataPoint to first DataPoint
+              (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
+
+              if (data_it_2 < data_it_end)     // if second DataPoint is not second last element of "data"
+              {
+                ++data_it_2;      // get next second DataPoint
+              }
+              else
+              {
+                data_it_2 = data_it_1 + 1;      // reset second iterator
+              }
             }
           }
-
           else
           {
-            // perform combining
-            // insert the two DataPoints to combine in "data_combined"
-            {
-              data_combined.insert(data_combined.end(), data_it_1->begin(), data_it_1->end());
-              data_combined.insert(data_combined.end(), data_it_2->begin(), data_it_2->end());
-              (*data_it_1).swap(data_combined);     // insert "data_combined" at position of first Datapoint
-              (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
-              data_combined.clear();      // clear "data_combined"
-            }
-						// todo:
-            // instead of above block, why not:
-            // (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end()); // append #2 to #1
-            // (*data_it_2).clear();                                                        // clear second Datapoint to keep iterators valid and to keep size of "data"
-
-            if (data_it_2 < data.end() - 1)     // if second DataPoint is not second last element of "data"
-            {
-              ++data_it_2;      // get next second DataPoint
-            }
-            else
-            {
-              data_it_2 = data_it_1 + 1;      // reset second iterator
-            }
+            ++data_it_1;      // get next first DataPoint
           }
         }
-        else
+
+
+        // erase empty DataPoints from "data"
+        vector<vector<DataPoint> > data_temp;
+
+        for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
         {
-          ++data_it_1;      // get next first DataPoint
+          if (data_it->size() != 0)
+          {
+            data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
+          }
         }
+
+        data.swap(data_temp);     // data = data_temp
+        data_temp.clear();      // clear "data_temp"
       }
     }
-
-
-    // erase empty DataPoints from "data"
-    vector<vector<DataPoint> > data_temp;
-
-    for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
-    {
-      if (data_it->size() != 0)
-      {
-        data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
-      }
-    }
-
-    data.swap(data_temp);     // data = data_temp
-    data_temp.clear();      // clear "data_temp"
 
     return data;      // return "data" for clustering
   }

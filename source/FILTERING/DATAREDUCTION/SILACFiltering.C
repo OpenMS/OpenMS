@@ -287,13 +287,13 @@ namespace OpenMS
             
             last_mz = mz_it->getMZ();
           }
-        }
 
-        // Clear the interpolations
-        gsl_spline_free(spline_aki);
-        gsl_interp_accel_free(current_aki);
-        gsl_spline_free(spline_spl);
-        gsl_interp_accel_free(current_spl);
+          // Clear the interpolations
+          gsl_spline_free(spline_aki);
+          gsl_interp_accel_free(current_aki);
+          gsl_spline_free(spline_spl);
+          gsl_interp_accel_free(current_spl);
+        }
       }
     }
 
