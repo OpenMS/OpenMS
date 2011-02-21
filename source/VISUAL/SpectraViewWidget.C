@@ -175,6 +175,7 @@ namespace OpenMS
       QMenu* context_menu = new QMenu(spectra_treewidget_);
       context_menu->addAction("Show in 1D view");
       context_menu->addAction("Meta data");
+      context_menu->addAction("Center here");
 
       QAction* selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
       if (selected!=0 && selected->text()=="Show in 1D view")
@@ -185,6 +186,12 @@ namespace OpenMS
       {
         emit showSpectrumMetaData(spectrum_index);
       }
+      /** TODO
+      else if (selected!=0 && selected->text()=="Center here")
+      {
+        emit centerHere(spectrum_index);
+      }
+      **/
       delete (context_menu);
     }
   }

@@ -1350,11 +1350,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
 
-    if (merge_layer==-1) //add data to the window
+    if (merge_layer == -1) //add layer to the window
     {
 	    if (data_type == LayerData::DT_FEATURE) //features
 			{
-        if (!target_window->canvas()->addLayer(feature_map, filename)) return;
+        if (!target_window->canvas()->addLayer(feature_map, filename))
+        {
+          return;
+        }
 			}
 			else if (data_type == LayerData::DT_CONSENSUS) //consensus features
 			{
