@@ -51,12 +51,13 @@ namespace OpenMS
 
 //   }
 
-	void InclusionExclusionList::writeTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, String& out_path,IntList& charges,String rt_model_path,
-																						DoubleReal rel_rt_window_size,bool rt_in_seconds,Size missed_cleavages)
+	void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                            const String& out_path,
+                                            const IntList& charges,
+                                            const String rt_model_path,
+																						const DoubleReal rel_rt_window_size,
+                                            const bool rt_in_seconds,Size missed_cleavages)
 	{
-		EnzymaticDigestion digest;
-		digest.setMissedCleavages(missed_cleavages);
-		std::vector<FASTAFile::FASTAEntry>::iterator entry_iter = fasta_entries.begin();
 		std::ofstream outs(out_path.c_str());
 		outs.precision(8);
 		if(!outs)
@@ -64,12 +65,16 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
 		}
 
+		EnzymaticDigestion digest;
+		digest.setMissedCleavages(missed_cleavages);
+
     SimRandomNumberGenerator rnd_gen;
     RTSimulation rt_sim(rnd_gen);
 		Param rt_param;
 		rt_param.setValue("HPLC:model_file",rt_model_path);
 		rt_sim.setParameters(rt_param);
 		std::vector<AASequence> pep_seqs;
+		std::vector<FASTAFile::FASTAEntry>::const_iterator entry_iter = fasta_entries.begin();
 		for(;entry_iter != fasta_entries.end();++entry_iter)
 		{
 			// digest sequence
@@ -110,26 +115,17 @@ namespace OpenMS
 		}
 		std::vector<DoubleReal> rts;
 		rt_sim.wrapSVM(pep_seqs,rts);
+    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
 		for(Size i = 0; i < pep_seqs.size();++i)
 		{
 			for(Size c = 0; c < charges.size();++c)
 			{
-				// calculate m/z
+				// calculate exclusion window
 				DoubleReal mz = pep_seqs[i].getMonoWeight(Residue::Full,charges[c])/(DoubleReal)charges[c];
-				DoubleReal rt_start,rt_stop;
-				if(rt_in_seconds)
-				{
-					rt_start = (rts[i] - rel_rt_window_size * rts[i]); // RT in minutes
-					if(rt_start < 0.) rt_start = 0.;
-					rt_stop = (rts[i] + rel_rt_window_size * rts[i]) ; // RT in minutes
-				}
-				else
-				{
-					rt_start = (rts[i] - rel_rt_window_size * rts[i]) / 60.; // RT in minutes
-					if(rt_start < 0.) rt_start = 0.;
-					rt_stop = (rts[i] + rel_rt_window_size * rts[i]) / 60.; // RT in minutes
-				}
-				outs << mz << "\t"<< rt_start << "\t" << rt_stop << "\n";
+        DoubleReal rt_start = std::max(0.0, (rts[i] - rel_rt_window_size * rts[i])) * min_to_s_factor; 
+				DoubleReal rt_stop = (rts[i] + rel_rt_window_size * rts[i]) * min_to_s_factor;
+
+        outs << mz << "\t"<< rt_start << "\t" << rt_stop << "\n";
 			}
 		}
 
@@ -137,7 +133,10 @@ namespace OpenMS
 	}
     
 
-	void InclusionExclusionList::writeTargets(FeatureMap<>& map,String& out_path,DoubleReal rel_rt_window_size,bool rt_in_seconds)
+	void InclusionExclusionList::writeTargets(const FeatureMap<>& map,
+                                            const String& out_path,
+                                            const DoubleReal rel_rt_window_size,
+                                            const bool rt_in_seconds)
 	{
 		std::ofstream outs(out_path.c_str());
 		if(!outs)
@@ -145,20 +144,22 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
 		}
 
-    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0) ;
+    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
 		for(Size f = 0; f < map.size(); ++f)
 		{
-			DoubleReal rt_start =  map[f].getRT() - map[f].getRT() * rel_rt_window_size;
-			if(rt_start < 0.) rt_start = 0.;
-			DoubleReal rt_end =  map[f].getRT() + map[f].getRT() * rel_rt_window_size;
+      DoubleReal rt_start =  std::max(0.0, map[f].getRT() - map[f].getRT() * rel_rt_window_size) * min_to_s_factor;
+			DoubleReal rt_end =  (map[f].getRT() + map[f].getRT() * rel_rt_window_size) * min_to_s_factor;
 			
-			outs << map[f].getMZ() << "\t" << (rt_start*min_to_s_factor) <<"\t" << (rt_end*min_to_s_factor) << "\n";
+			outs << map[f].getMZ() << "\t" << rt_start <<"\t" << rt_end << "\n";
 		}
 		outs.close();
 	}
 	
-	void InclusionExclusionList::writeTargets(std::vector<PeptideIdentification>& pep_ids,String& out_path,
-																						DoubleReal rel_rt_window_size,IntList& charges,bool rt_in_seconds)
+	void InclusionExclusionList::writeTargets(const std::vector<PeptideIdentification>& pep_ids,
+                                            const String& out_path,
+																						const DoubleReal rel_rt_window_size,
+                                            const IntList& charges,
+                                            const bool rt_in_seconds)
 	{
 		std::ofstream outs(out_path.c_str());
 		outs.precision(8);
@@ -168,6 +169,8 @@ namespace OpenMS
 		}
 
     Size charge_invalid_count(0);
+
+    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
 
 		std::vector<PeptideIdentification>::const_iterator pep_id_iter = pep_ids.begin();
 		for(;pep_id_iter != pep_ids.end();++pep_id_iter)
@@ -181,20 +184,10 @@ namespace OpenMS
 				Exception::MissingInformation(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Peptide identification contains no RT information.");
 			}
 			DoubleReal rt = pep_id_iter->getMetaValue("RT");
-			DoubleReal rt_start,rt_stop;
-			if(rt_in_seconds)
-			{
-				rt_start = (rt - rel_rt_window_size * rt);
-				if(rt_start < 0.) rt_start = 0.;
-				rt_stop = (rt + rel_rt_window_size * rt); 
-			}
-			else
-			{
-				rt_start = (rt - rel_rt_window_size * rt) / 60.; // RT in minutes
-				if(rt_start < 0.) rt_start = 0.;
-				rt_stop = (rt + rel_rt_window_size * rt) / 60.; // RT in minutes
-			}
-			std::vector<PeptideHit>::const_iterator pep_hit_iter = pep_id_iter->getHits().begin();
+      DoubleReal rt_start = std::max(0.0, rt - rel_rt_window_size * rt) * min_to_s_factor;
+		  DoubleReal rt_stop = (rt + rel_rt_window_size * rt) * min_to_s_factor;
+
+      std::vector<PeptideHit>::const_iterator pep_hit_iter = pep_id_iter->getHits().begin();
 			for(;pep_hit_iter != pep_id_iter->getHits().end();++pep_hit_iter)
 			{
 				Int charge = pep_hit_iter->getCharge();
@@ -209,7 +202,7 @@ namespace OpenMS
 				for(Size c = 0; c < charges.size();++c)
 				{
 					DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full,charges[c])/(DoubleReal)charges[c];
-					outs << mz <<"\t"<<rt_start<<"\t"<<rt_stop<<"\n";
+					outs << mz << "\t" << rt_start << "\t" << rt_stop << "\n";
 					if(charges[c] == charge)
 					{
 						charge_found = true;
@@ -218,7 +211,7 @@ namespace OpenMS
         if(!charge_found) // if not already done, consider annotated charge of peptide (unless its 0)
 				{
 					DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge;
-					outs << mz <<"\t"<<rt_start<<"\t"<<rt_stop<<"\n";
+					outs << mz << "\t" << rt_start << "\t" << rt_stop << "\n";
 				}
 			}
 		}
