@@ -55,7 +55,12 @@ START_SECTION(~InclusionExclusionList())
 }
 END_SECTION
 
-START_SECTION((void writeTargets(std::vector< FASTAFile::FASTAEntry > &fasta_entries, String &out_path, IntList &charges, String rt_model_path, DoubleReal rel_rt_window_size, bool rt_in_seconds, Size missed_cleavages=0)))
+START_SECTION((void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                  const String& out_path,
+                                  const IntList& charges,
+                                  const String rt_model_path,
+                                  const DoubleReal rel_rt_window_size,
+                                  const bool rt_in_seconds,Size missed_cleavages)))
 {
 	// load data and write out file
 	InclusionExclusionList list;
@@ -82,7 +87,10 @@ START_SECTION((void writeTargets(std::vector< FASTAFile::FASTAEntry > &fasta_ent
 }
 END_SECTION
 
-START_SECTION((void writeTargets(FeatureMap<> &map, String &out_path, DoubleReal rel_rt_window_size, bool rt_in_seconds)))
+START_SECTION((void writeTargets(const FeatureMap<>& map,
+                                  const String& out_path,
+                                  const DoubleReal rel_rt_window_size,
+                                  const bool rt_in_seconds)))
 {
   InclusionExclusionList list;
 	FeatureMap<> map;
@@ -102,7 +110,11 @@ START_SECTION((void writeTargets(FeatureMap<> &map, String &out_path, DoubleReal
 }
 END_SECTION
 
-START_SECTION((void writeTargets(std::vector< PeptideIdentification > &pep_ids, String &out_path, DoubleReal rel_rt_window_size, IntList &charges, bool rt_in_seconds)))
+START_SECTION((void writeTargets(const std::vector<PeptideIdentification>& pep_ids,
+                                  const String& out_path,
+                                  const DoubleReal rel_rt_window_size,
+                                  const IntList& charges,
+                                  const bool rt_in_seconds)))
 {
   InclusionExclusionList list;
 	FeatureMap<> map;

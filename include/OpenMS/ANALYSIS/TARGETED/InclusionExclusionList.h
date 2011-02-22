@@ -65,15 +65,22 @@ namespace OpenMS
 
 			 @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
 		 */
-    void writeTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, String& out_path,IntList& charges,
-											String rt_model_path,DoubleReal rel_rt_window_size,bool rt_in_seconds,Size missed_cleavages = 0);
+    void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                            const String& out_path,
+                                            const IntList& charges,
+                                            const String rt_model_path,
+																						const DoubleReal rel_rt_window_size,
+                                            const bool rt_in_seconds,Size missed_cleavages);
 
 		/**
 			 @brief Writes inclusion or exclusion list of given feature map.
 
 			 @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
 		 */
-    void writeTargets(FeatureMap<>& map,String& out_path,DoubleReal rel_rt_window_size,bool rt_in_seconds);
+    void writeTargets(const FeatureMap<>& map,
+                      const String& out_path,
+                      const DoubleReal rel_rt_window_size,
+                      const bool rt_in_seconds);
 		
 		/**
 			 @brief Writes inclusion or exclusion list of given peptide ids (tab-delimited).
@@ -82,7 +89,11 @@ namespace OpenMS
 			 @exception Exception::InvalidSize is thrown if a peptide id contains more than one hit
 			 @exception Exception::MissingInformation is thrown if a peptide id contains no RT information
 		 */
-		void writeTargets(std::vector<PeptideIdentification>& pep_ids,String& out_path,DoubleReal rel_rt_window_size,IntList& charges,bool rt_in_seconds);
+		void writeTargets(const std::vector<PeptideIdentification>& pep_ids,
+                      const String& out_path,
+											const DoubleReal rel_rt_window_size,
+                      const IntList& charges,
+                      const bool rt_in_seconds);
   };
 
 }
