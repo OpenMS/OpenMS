@@ -29,17 +29,71 @@
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
-
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 
 #include <fstream>
 
 namespace OpenMS
 {
-  InclusionExclusionList::InclusionExclusionList()
+  InclusionExclusionList::InclusionExclusionList(const DoubleReal mz_tolerance, const bool mz_as_ppm)
+    : mz_tolerance_(mz_tolerance),
+      mz_as_ppm_(mz_as_ppm)
+  {}
+
+
+  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list)
   {
 
+		std::vector<BinaryTreeNode> tree;
+		// local scope to save memory - we do not need the clustering stuff later
+		{
+			WindowDistance_ llc(mz_tolerance_, mz_as_ppm_);
+			SingleLinkage sl;
+			DistanceMatrix<Real> dist; // will be filled
+			ClusterHierarchical ch;
+			
+      //ch.setThreshold(0.99);
+			// clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
+			ch.cluster<IEWindow, WindowDistance_>(list,llc,sl,tree,dist);
+		}
+
+    // extract the clusters
+    ClusterAnalyzer ca;
+    std::vector<std::vector<Size> > clusters;
+    // count number of real tree nodes (not the -1 ones):
+    Size node_count=0;
+    for (Size ii=0;ii<tree.size();++ii)
+		{
+			if (tree[ii].distance >= 1) tree[ii].distance=-1; // manually set to disconnect, as SingleLinkage does not support it
+      if (tree[ii].distance != -1) ++node_count;
+		}
+    ca.cut(list.size()-node_count, tree, clusters);
+
+
+    WindowList list_new;
+
+    for (Size i_outer=0;i_outer<clusters.size(); ++i_outer)
+    {
+      // for each cluster: create one new entry
+      IEWindow w_new = list[ clusters[i_outer][0] ]; // init with 0th element
+      // add all other elements
+      for (Size i_inner = 1; i_inner < clusters[i_outer].size(); ++i_inner)
+      {
+        Size cl_index = clusters[i_outer][i_inner];
+        w_new.MZ_ += list[cl_index].MZ_;
+        w_new.RTmax_ = std::max(w_new.RTmax_, list[cl_index].RTmax_); // expand RT range
+        w_new.RTmin_ = std::min(w_new.RTmin_, list[cl_index].RTmin_);
+      }
+      w_new.MZ_ /= clusters[i_outer].size(); // average m/z value
+      list_new.push_back(w_new);
+    }
+
+    // replace with clustered version
+    list = list_new;
   }
-    
+   
 
 //   void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
 //   {

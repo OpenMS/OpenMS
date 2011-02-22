@@ -44,14 +44,92 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI InclusionExclusionList 
   {
+  protected:
+    struct IEWindow
+    {
+      IEWindow(const DoubleReal RTmin, const DoubleReal RTmax, const DoubleReal MZ)
+        : RTmin_(RTmin),
+          RTmax_(RTmax),
+          MZ_(MZ)
+      {
+      }
+
+      DoubleReal RTmin_;
+      DoubleReal RTmax_;
+      DoubleReal MZ_;
+    };
+
+    /* Determine distance between two spectra
+
+      Distance is determined as 
+      
+        (d_rt/rt_max_ + d_mz/mz_max_) / 2
+
+    */
+    class WindowDistance_
+    {
+      public:
+      WindowDistance_(const DoubleReal mz_max, const bool mz_as_ppm)
+        : mz_max_(mz_max),
+          mz_as_ppm_(mz_as_ppm)
+      {
+      }
+      
+      // measure of SIMILARITY (not distance, i.e. 1-distance)!!
+      double operator()(const IEWindow& first, const IEWindow& second) const
+      {
+        // get MZ distance:
+        DoubleReal d_mz = fabs(first.MZ_ - second.MZ_);
+        if (mz_as_ppm_)
+        {
+          d_mz = d_mz/first.MZ_ * 1e6;
+        }
+        if (d_mz > mz_max_) {return 0;}
+        // mz is close enough ...
+
+        // is RT overlapping?
+        if (first.RTmin_ <= second.RTmin_ && second.RTmin_ <= first.RTmax_) return 1; // intersect #1
+        if (first.RTmin_ <= second.RTmax_ && second.RTmax_ <= first.RTmax_) return 1; // intersect #2
+        if (second.RTmin_ <= first.RTmin_ && first.RTmax_ <= second.RTmax_) return 1; // complete inclusion (only one case; the other is covered above)
+      
+        // not overlapping...
+        return 0;
+      }
+
+    protected:
+
+      DoubleReal mz_max_;
+      bool mz_as_ppm_;
+
+    }; // end of WindowDistance_
+
+        
+    typedef std::vector<IEWindow> WindowList;
+
+    /**
+      @brief Merges overlapping windows using m/z tolerance
+
+      We employ single linkage clustering to merge windows that:
+       - are close in m/z
+       - overlap in RT
+      All clusters found by this are merged such that:
+       - RT windows are extended
+       - m/z value is averaged over all windows
+    */
+    void mergeOverlappingWindows_(WindowList& list);
+
+
+    DoubleReal mz_tolerance_;
+    bool mz_as_ppm_;
+
   public:
     /** @name Constructors and destructors
      */
     //@{
     /// default constructor
-    InclusionExclusionList();
-    
-    
+    InclusionExclusionList(const DoubleReal mz_tolerance = 10, const bool mz_as_ppm=true);
+
+   
     //@}
 
 //     void loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
@@ -94,7 +172,9 @@ namespace OpenMS
 											const DoubleReal rel_rt_window_size,
                       const IntList& charges,
                       const bool rt_in_seconds);
+
   };
+
 
 }
 
