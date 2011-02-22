@@ -279,7 +279,6 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
-  AdvancedTheoreticalSpectrumGenerator_test
   EdwardsLippertIteratorTryptic_test
   EdwardsLippertIterator_test
   ElementDB_test
