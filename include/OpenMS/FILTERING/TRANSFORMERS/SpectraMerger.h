@@ -226,12 +226,12 @@ namespace OpenMS
 				
         //ch.setThreshold(0.99);
 				// clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
-				ch.cluster<BaseFeature,SpectraDistance_>(data,llc,sl,tree,dist);
+				ch.cluster<BaseFeature,SpectraDistance_>(data, llc, sl, tree, dist);
 			}
 
       // extract the clusters
       ClusterAnalyzer ca;
-      std::vector<std::vector<Size> > clusters;
+      std::vector< std::vector<Size> > clusters;
       // count number of real tree nodes (not the -1 ones):
       Size node_count=0;
       for (Size ii=0;ii<tree.size();++ii)

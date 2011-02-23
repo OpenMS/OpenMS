@@ -153,7 +153,7 @@ namespace OpenMS
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
       RichPeakSpectrum tmp_spec;      
-      Size prec_charge=features[i_f].getCharge();
+      Int prec_charge=features[i_f].getCharge();
 
       if(tandem_mode && svm_model_charges.count(prec_charge))
       {
@@ -316,7 +316,7 @@ namespace OpenMS
 		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();        
         RichPeakSpectrum tmp_spec;
         std::cerr<<"generate Spec for peptide: "<<seq<<std::endl;
-        Size prec_charge=features[ids[id]].getCharge();
+        Int prec_charge=features[ids[id]].getCharge();
 
         if(tandem_mode && svm_model_charges.count(prec_charge))
         {
