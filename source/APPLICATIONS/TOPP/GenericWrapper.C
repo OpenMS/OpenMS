@@ -170,17 +170,43 @@ class TOPPGenericWrapper
       }
     }
 
+    /**
+      @brief Simple compare struct to sort a vector of String by the length of
+      the contained strings
+
+      */
+    struct StringSizeLess
+        : std::binary_function<String, String, bool>
+    {
+      bool operator()(String const& left, String const& right) const
+      {
+        return (left.size() < right.size());
+      }
+    };
+
+
     void createFragment_(String& fragment, const Param& param)
     {
-      //std::cout << " fragment '" << fragment << "' --> '";
       // e.g.:  -input %BASENAME[%%in].mzML
-      // iterate through all input params and replace with values:
-      // @TODO: sort params by length of their name and replace from
-      //        longest to shortest,
-      //        otherwise: if A is a prefix of B and gets replaced first, the suffix of B remains and will cause trouble!
+
+      // we have to make this little detour param -> vector<String>
+      // to sort the param names by length, otherwise we have a
+      // problem with parameter substitution
+      // i.e., if A is a prefix of B and gets replaced first, the
+      // suffix of B remains and will cause trouble!
+      vector<String> param_names;
+      param_names.reserve(param.size());
       for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
       {
-        fragment.substitute("%%" + it->name, paramToString_(*it));
+        param_names.push_back(it->name);
+      }
+      // sort by length
+      std::sort(param_names.begin(),param_names.end(), reverseComparator( StringSizeLess() ));
+
+      // iterate through all input params and replace with values:
+      for (vector<String>::iterator it=param_names.begin(); it!=param_names.end(); ++it)
+      {
+        fragment.substitute("%%" + *it, paramToString_( param.getEntry(*it)));
       }
       if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
       
