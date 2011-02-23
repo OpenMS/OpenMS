@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: Alexandra Zerck $
+// $Authors: Alexandra Zerck, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -31,6 +31,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -107,6 +108,51 @@ START_SECTION((void writeTargets(const FeatureMap<>& map,
 	list.writeTargets(map,out2,rel_rt_window_size,rt_in_seconds);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_2_minutes_out.txt"),out2)
 	
+  /// test clustering
+  map.clear();
+  Feature f;
+  f.setCharge(1);
+  f.setRT(100);
+  
+  // close in m/z case
+  f.setMZ(1000);
+  map.push_back(f);
+  f.setMZ(1000.00001);
+  map.push_back(f);
+  
+  // non-overlapping RT case (singleton expected)
+  f.setRT(150);
+  map.push_back(f);
+
+  // overlapping RT case
+  f.setRT(1500);
+  map.push_back(f);
+  f.setRT(1510);
+  map.push_back(f);
+
+  // overlapping RT, but too far in m/z
+  f.setRT(1520);
+  f.setMZ(1001);
+  map.push_back(f);
+
+
+  list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+  TextFile tf;
+  tf.load(out);
+
+  TEST_EQUAL(tf.size(), 4);
+
+  // test exact m/z matching (no deviation allowed)
+  {
+  InclusionExclusionList list(0, true);
+  list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+  TextFile tf;
+  tf.load(out);
+
+  TEST_EQUAL(tf.size(), 5);
+  }
+
+
 }
 END_SECTION
 

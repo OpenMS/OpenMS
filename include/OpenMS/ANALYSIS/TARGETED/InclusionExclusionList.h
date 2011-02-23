@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: Alexandra Zerck $
+// $Authors: Alexandra Zerck, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_ANALYSIS_TARGETED_INCLUSIONEXCLUSIONLIST_H
@@ -121,6 +121,17 @@ namespace OpenMS
 
     DoubleReal mz_tolerance_;
     bool mz_as_ppm_;
+    
+    /**
+      @brief Writes the windows to the given file
+
+      Format for each window is:
+      <mz>\t<rt_start>\t<rt_stop>\n
+
+      @throws Exception::UnableToCreateFile when file cannot be created
+
+    */
+    void writeToFile_(const String& out_path, const WindowList& windows) const;
 
   public:
     /** @name Constructors and destructors

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: Alexandra Zerck$
+// $Authors: Alexandra Zerck, Chris Bielow$
 // --------------------------------------------------------------------------
 
 //#include <OpenMS/FORMAT/TraMLFile.h>
@@ -96,11 +96,21 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file (tab delimited).");
     //in fasta or featureXML
     registerIntList_("inclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the inclusion list compounds, space separated.",false);
+    setMinInt_("inclusion_charges", 1);
     registerIntList_("exclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the exclusion list compounds (for idXML and FASTA input), space separated.",false);
+    setMinInt_("exclusion_charges", 1);
     registerIntOption_("missed_cleavages","<int>",0,"Number of missed cleavages used for protein digestion.\n",false);
     registerDoubleOption_("rel_rt_window_size","<double>",.05,"The relative factor for the rt_window_size, e.g. the window is calculated as [rt-rt*rel_rt_window_size,rt+rt*rel_rt_window_size].",false);
-		registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in fasta files.",false);
+		setMinFloat_("rel_rt_window_size", 0.0);
+    setMaxFloat_("rel_rt_window_size", 10.0);
+    registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in fasta files.",false);
 		registerFlag_("rt_in_seconds","Create lists with units as seconds instead of minutes (default is 'minutes')");
+
+    registerDoubleOption_("mz_tol","<double>", 10, "Two inclusion/exclusion windows are merged when they overlap in RT and are close in m/z by this tolerance. Unit of this is defined in 'mz_tol_unit'.",false);
+		setMinFloat_("mz_tol", 0.0);
+		registerStringOption_("mz_tol_unit", "<unit>", "ppm", "Unit of 'mz_tol'", false);
+    setValidStrings_("mz_tol_unit", StringList::create("ppm,Da"));
+
     //    setValidFormats_("out", StringList::create("TraML"));
   }
 
@@ -115,12 +125,6 @@ protected:
     //input/output files
     String include(getStringOption_("include"));
     String exclude(getStringOption_("exclude")), out(getStringOption_("out"));
-		IntList incl_charges(getIntList_("inclusion_charges"));
-    IntList excl_charges(getIntList_("exclusion_charges"));
-    Int missed_cleavages(getIntOption_("missed_cleavages"));
-    DoubleReal rel_rt_window_size(getDoubleOption_("rel_rt_window_size"));
-    String rt_model_file(getStringOption_("rt_model"));
-    bool rt_in_seconds(getFlag_("rt_in_seconds"));
 
     if(include == "" && exclude == "")
     {
@@ -134,13 +138,23 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+		IntList incl_charges(getIntList_("inclusion_charges"));
+    IntList excl_charges(getIntList_("exclusion_charges"));
+    Int missed_cleavages(getIntOption_("missed_cleavages"));
+    DoubleReal rel_rt_window_size(getDoubleOption_("rel_rt_window_size"));
+    String rt_model_file(getStringOption_("rt_model"));
+    bool rt_in_seconds(getFlag_("rt_in_seconds"));
+
+    bool mz_tol_as_ppm (getStringOption_("mz_tol_unit") == "ppm");
+    DoubleReal mz_tol (getDoubleOption_("mz_tol"));
+
     //-------------------------------------------------------------
     // loading input: inclusion list part
     //-------------------------------------------------------------
 
 		FileHandler fh;
     TargetedExperiment exp;
-    InclusionExclusionList list;
+    InclusionExclusionList list(mz_tol, mz_tol_as_ppm);
     if(include != "")
     {
       FileTypes::Type in_type = fh.getType(include);
