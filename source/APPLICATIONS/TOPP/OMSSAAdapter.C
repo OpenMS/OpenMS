@@ -419,7 +419,7 @@ class TOPPOMSSAAdapter
       
       db_name = db_name.substr(0,db_name.size()-4); // OMSSA requires the filename without the .psq part
 
-      parameters += " -d "  + String(db_name).quote('"', String::QuotingMethod::NONE);
+      parameters += " -d "  + String(db_name).quote('"', String::NONE);
 			parameters += " -to " + String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
 			parameters += " -te " + String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
@@ -471,8 +471,8 @@ class TOPPOMSSAAdapter
 				parameters += " -mnm ";
 			}
 
-      parameters += " -fm " + String(unique_input_name).quote('"', String::QuotingMethod::NONE);
-			parameters += " -ox " + String(unique_output_name).quote('"', String::QuotingMethod::NONE);
+      parameters += " -fm " + String(unique_input_name).quote('"', String::NONE);
+			parameters += " -ox " + String(unique_output_name).quote('"', String::NONE);
 
 			if (getIntOption_("debug") == 0)
 			{
