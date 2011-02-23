@@ -131,7 +131,6 @@ OpenMSInfo
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
-SpectrumGeneratorNetworkTrainer
 #UniqueIdAssigner (not derived from TOPPBase)
 XMLValidator
 
