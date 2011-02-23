@@ -114,6 +114,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map,
   f.setCharge(1);
   f.setRT(100);
   
+  // start putting data in...
   // close in m/z case
   f.setMZ(1000);
   map.push_back(f);
@@ -144,8 +145,18 @@ START_SECTION((void writeTargets(const FeatureMap<>& map,
 
   // test exact m/z matching (no deviation allowed)
   {
-  InclusionExclusionList list(0, true);
+  InclusionExclusionList list(0, 0, true);
   list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+  TextFile tf;
+  tf.load(out);
+
+  TEST_EQUAL(tf.size(), 5);
+  }
+
+  // now test window overlap
+  {
+  InclusionExclusionList list(11, 0, true);
+  list.writeTargets(map,out,0,rt_in_seconds);
   TextFile tf;
   tf.load(out);
 

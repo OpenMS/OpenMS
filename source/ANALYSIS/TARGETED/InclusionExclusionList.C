@@ -37,19 +37,24 @@
 
 namespace OpenMS
 {
-  InclusionExclusionList::InclusionExclusionList(const DoubleReal mz_tolerance, const bool mz_as_ppm)
-    : mz_tolerance_(mz_tolerance),
+  InclusionExclusionList::InclusionExclusionList(const DoubleReal rt_tolerance,
+                                                 const DoubleReal mz_tolerance,
+                                                 const bool mz_as_ppm)
+    : rt_tolerance_(rt_tolerance),
+      mz_tolerance_(mz_tolerance),
       mz_as_ppm_(mz_as_ppm)
   {}
 
 
-  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list)
+  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list, const bool rt_in_seconds) const
   {
 
 		std::vector<BinaryTreeNode> tree;
 		// local scope to save memory - we do not need the clustering stuff later
 		{
-			WindowDistance_ llc(mz_tolerance_, mz_as_ppm_);
+      DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
+
+			WindowDistance_ llc(rt_tolerance_ * min_to_s_factor, mz_tolerance_, mz_as_ppm_);
 			SingleLinkage sl;
 			DistanceMatrix<Real> dist; // will be filled
 			ClusterHierarchical ch;
@@ -122,7 +127,8 @@ namespace OpenMS
                                             const IntList& charges,
                                             const String rt_model_path,
 																						const DoubleReal rel_rt_window_size,
-                                            const bool rt_in_seconds,Size missed_cleavages)
+                                            const bool rt_in_seconds,
+                                            Size missed_cleavages)
 	{
     WindowList result;
 
@@ -190,7 +196,7 @@ namespace OpenMS
 			}
 		}
 
-    mergeOverlappingWindows_(result);
+    mergeOverlappingWindows_(result, rt_in_seconds);
   	writeToFile_(out_path, result);
 	}
     
@@ -211,7 +217,7 @@ namespace OpenMS
       result.push_back(IEWindow(rt_start, rt_end, map[f].getMZ()));
 		}
 
-    mergeOverlappingWindows_(result);
+    mergeOverlappingWindows_(result, rt_in_seconds);
 		writeToFile_(out_path, result);
 	}
 	
@@ -273,7 +279,7 @@ namespace OpenMS
     
     if (charge_invalid_count>0) LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
 
-    mergeOverlappingWindows_(result);
+    mergeOverlappingWindows_(result, rt_in_seconds);
 		writeToFile_(out_path, result);
 	}
 

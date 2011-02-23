@@ -69,8 +69,9 @@ namespace OpenMS
     class WindowDistance_
     {
       public:
-      WindowDistance_(const DoubleReal mz_max, const bool mz_as_ppm)
-        : mz_max_(mz_max),
+      WindowDistance_(const DoubleReal rt_bridge, const DoubleReal mz_max, const bool mz_as_ppm)
+        : rt_bridge_(rt_bridge),
+          mz_max_(mz_max),
           mz_as_ppm_(mz_as_ppm)
       {
       }
@@ -92,14 +93,23 @@ namespace OpenMS
         if (first.RTmin_ <= second.RTmax_ && second.RTmax_ <= first.RTmax_) return 1; // intersect #2
         if (second.RTmin_ <= first.RTmin_ && first.RTmax_ <= second.RTmax_) return 1; // complete inclusion (only one case; the other is covered above)
       
+        // when windows to not overlap at all:
+        // ... are they at least close?
+        if ((fabs(first.RTmin_ - second.RTmax_) <= rt_bridge_) ||
+            (fabs(first.RTmax_ - second.RTmin_) <= rt_bridge_))
+        {
+          return 1;
+        }
+
         // not overlapping...
         return 0;
       }
 
     protected:
-
-      DoubleReal mz_max_;
-      bool mz_as_ppm_;
+      
+      DoubleReal rt_bridge_; // max rt distance between two windows in order to be considered overlapping
+      DoubleReal mz_max_;    // max m/z distance between two ...
+      bool mz_as_ppm_;       // m/z distance unit
 
     }; // end of WindowDistance_
 
@@ -116,9 +126,10 @@ namespace OpenMS
        - RT windows are extended
        - m/z value is averaged over all windows
     */
-    void mergeOverlappingWindows_(WindowList& list);
+    void mergeOverlappingWindows_(WindowList& list, const bool rt_in_seconds) const;
 
-
+    /// merging parameters:
+    DoubleReal rt_tolerance_;
     DoubleReal mz_tolerance_;
     bool mz_as_ppm_;
     
@@ -138,7 +149,7 @@ namespace OpenMS
      */
     //@{
     /// default constructor
-    InclusionExclusionList(const DoubleReal mz_tolerance = 10, const bool mz_as_ppm=true);
+    InclusionExclusionList(const DoubleReal rt_tolerance = 0.0, const DoubleReal mz_tolerance = 10, const bool mz_as_ppm=true);
 
    
     //@}

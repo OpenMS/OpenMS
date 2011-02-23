@@ -106,10 +106,14 @@ protected:
     registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in fasta files.",false);
 		registerFlag_("rt_in_seconds","Create lists with units as seconds instead of minutes (default is 'minutes')");
 
-    registerDoubleOption_("mz_tol","<double>", 10, "Two inclusion/exclusion windows are merged when they overlap in RT and are close in m/z by this tolerance. Unit of this is defined in 'mz_tol_unit'.",false);
-		setMinFloat_("mz_tol", 0.0);
-		registerStringOption_("mz_tol_unit", "<unit>", "ppm", "Unit of 'mz_tol'", false);
-    setValidStrings_("mz_tol_unit", StringList::create("ppm,Da"));
+    
+    registerDoubleOption_("merge:mz_tol","<delta m/z>", 10.0, "Two inclusion/exclusion windows are merged when they (almost) overlap in RT (see 'rt_tol') and are close in m/z by this tolerance. Unit of this is defined in 'mz_tol_unit'.",false);
+		setMinFloat_("merge:mz_tol", 0.0);
+		registerStringOption_("merge:mz_tol_unit", "<unit>", "ppm", "Unit of 'mz_tol'", false);
+    setValidStrings_("merge:mz_tol_unit", StringList::create("ppm,Da"));
+    registerDoubleOption_("merge:rt_tol","<RT[s]>", 1.1, "Maximal RT delta (in seconds) which would allow two windows in RT to overlap (which causes merging the windows). Two inclusion/exclusion windows are merged when they (almost) overlap in RT and are close in m/z by this tolerance (see 'mz_tol'). Unit of this param is [seconds].",false);
+		setMinFloat_("merge:rt_tol", 0.0);
+    registerTOPPSubsection_("merge","Options for merging two or more windows into a single window (some vendor instruments do not allow overlap)");
 
     //    setValidFormats_("out", StringList::create("TraML"));
   }
@@ -145,8 +149,9 @@ protected:
     String rt_model_file(getStringOption_("rt_model"));
     bool rt_in_seconds(getFlag_("rt_in_seconds"));
 
-    bool mz_tol_as_ppm (getStringOption_("mz_tol_unit") == "ppm");
-    DoubleReal mz_tol (getDoubleOption_("mz_tol"));
+    bool mz_tol_as_ppm (getStringOption_("merge:mz_tol_unit") == "ppm");
+    DoubleReal mz_tol (getDoubleOption_("merge:mz_tol"));
+    DoubleReal rt_tol (getDoubleOption_("merge:rt_tol"));
 
     //-------------------------------------------------------------
     // loading input: inclusion list part
@@ -154,7 +159,7 @@ protected:
 
 		FileHandler fh;
     TargetedExperiment exp;
-    InclusionExclusionList list(mz_tol, mz_tol_as_ppm);
+    InclusionExclusionList list(rt_tol, mz_tol, mz_tol_as_ppm);
     if(include != "")
     {
       FileTypes::Type in_type = fh.getType(include);
