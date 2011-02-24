@@ -170,6 +170,9 @@ add_test("TOPP_IDMerger_2_out1" ${DIFF} -in1 IDMerger_2_output.tmp -in2 ${DATA_D
 # conflicting IDs:
 add_test("TOPP_IDMerger_3" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML -out IDMerger_3_output.tmp)
 add_test("TOPP_IDMerger_3_out1" ${DIFF} -in1 IDMerger_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_3_output.idXML)
+# empty IDs:
+add_test("TOPP_IDMerger_4" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML -out IDMerger_4_output.tmp)
+add_test("TOPP_IDMerger_4_out1" ${DIFF} -in1 IDMerger_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_4_output.idXML)
 
 ### BaselineFilter tests
 add_test("TOPP_BaselineFilter_1" ${TOPP_BIN_PATH}/BaselineFilter -test -in ${DATA_DIR_TOPP}/BaselineFilter_input.mzML -out BaselineFilter.tmp -struc_elem_length 1.5)
@@ -332,6 +335,9 @@ add_test("TOPP_FileMerger_7_out1" ${DIFF} -in1 FileMerger.tmp -in2 ${DATA_DIR_TO
 ### IDRTCalibration tests
 add_test("TOPP_IDRTCalibration_1" ${TOPP_BIN_PATH}/IDRTCalibration -in ${DATA_DIR_TOPP}/IDRTCalibration_1_input.IdXML -out IDRTCalibration_1_output.tmp -calibrant_1_input 10 -calibrant_2_input 90)
 add_test("TOPP_IDRTCalibration_1_out1" ${DIFF} -in1 IDRTCalibration_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_1_output.IdXML)
+# test empty IDs
+add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -in ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML -out IDRTCalibration_2_output.tmp -calibrant_1_input 10 -calibrant_2_input 90)
+add_test("TOPP_IDRTCalibration_2_out1" ${DIFF} -in1 IDRTCalibration_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_2_output.IdXML)
 
 ### IDFileConverter tests
 add_test("TOPP_IDFileConverter_1" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/IDFileConverter_1_input_sequestoutdir -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input_mzfile.mzML -out IDFileConverter_1_output.tmp -out_type idXML -ignore_proteins_per_peptide )

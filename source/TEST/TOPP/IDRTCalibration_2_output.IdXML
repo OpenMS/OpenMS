@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:////Users/nilse/Software/OpenMS_Release1.8/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<SearchParameters charges="+0, +0" id="ID_1" db_version="0" mass_type="monoisotopic" peak_mass_tolerance="0.0" precursor_peak_tolerance="0.0" db="Unknown"/>
+<IdentificationRun date="1900-01-01T01:01:01.0Z" search_engine="Unknown" search_parameters_ref="ID_1" search_engine_version="0"/>
+</IdXML>
