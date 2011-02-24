@@ -128,7 +128,7 @@ class OPENMS_DLLAPI HashClustering : public ProgressLogger
    *@see SILACTreeNode
     after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
    */
-   void cut(int cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, std::vector<SILACTreeNode>& tree);
+   void cut_(const Size cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, const std::vector<SILACTreeNode>& tree);
 
 public:
 

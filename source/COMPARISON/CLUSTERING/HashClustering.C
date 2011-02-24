@@ -610,10 +610,10 @@ namespace OpenMS
   }
 
 
-  void HashClustering::cut(int cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, std::vector<SILACTreeNode>& tree)
+  void HashClustering::cut_(const Size cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, const std::vector<SILACTreeNode>& tree)
   {
     std::set<DataPoint*> leafs;
-    for (std::vector<SILACTreeNode>::iterator it = tree.begin(); it != tree.end(); ++it)
+    for (std::vector<SILACTreeNode>::const_iterator it = tree.begin(); it != tree.end(); ++it)
     {
       leafs.insert(it->data1).second;
       leafs.insert(it->data2).second;
@@ -627,12 +627,11 @@ namespace OpenMS
     std::set<DataPoint*>::iterator sit = leafs.begin();
     // ++it;
     for ( ; sit != leafs.end(); ++sit)
-
     {
       cluster_map[*sit] = std::vector<DataPoint*>(1, *sit);
     }
     // Redo clustering till step (original.dimensionsize()-cluster_quantity)
-    std::vector<SILACTreeNode>::iterator it = tree.begin();
+    std::vector<SILACTreeNode>::const_iterator it = tree.begin();
     for (unsigned int cluster_step = 0; cluster_step < tree.size() + 1 - cluster_quantity; ++cluster_step)
     {
       // Pushback elements of data2 to data1 (and then erase second)
@@ -732,7 +731,7 @@ namespace OpenMS
           }
 
           // Get clusters from the subtree
-          cut(best_n, act_clusters, subset_ptr->tree);
+          cut_(best_n, act_clusters, subset_ptr->tree);
         }
 
 

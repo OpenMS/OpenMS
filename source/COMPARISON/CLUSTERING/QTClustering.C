@@ -29,7 +29,9 @@
 #include <OpenMS/COMPARISON/CLUSTERING/QTClustering.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
+
 QTClustering::QTClustering(std::vector<DataPoint>& data,DoubleReal rt_diameter_, DoubleReal mz_diameter_) : grid(HashGrid(rt_diameter_,mz_diameter_))
 {
 	if(data.size()<2)
@@ -47,11 +49,11 @@ QTClustering::QTClustering(std::vector<DataPoint>& data,DoubleReal rt_diameter_,
 
 std::vector<std::vector<DataPoint*> > QTClustering::performClustering()
 {
-	Int number_of_elements=grid.getNumberOfElements();
-	startProgress(0,number_of_elements,"clustering data");
+	Size number_of_elements = grid.getNumberOfElements();
+	startProgress(0 ,number_of_elements, "clustering data");
 
 	//invoke the QTclust method on the elements in the grid until the grid is empty
-	while(grid.getNumberOfElements() > 0)
+	while (grid.getNumberOfElements() > 0)
 	{
 		setProgress(number_of_elements - grid.getNumberOfElements());
 		QTSILACCluster act_cluster=QTClust(grid);
@@ -152,4 +154,5 @@ QTClustering::InsufficientInput::InsufficientInput(const char* file, int line, c
 QTClustering::InsufficientInput::~InsufficientInput() throw()
 {
 }
+
 }
