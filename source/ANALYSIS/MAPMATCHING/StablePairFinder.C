@@ -163,13 +163,14 @@ namespace OpenMS
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
 			UInt fi1 = nn_index_0[fi0]; // nearest neighbor of "fi0" in map 1
-			cout << "index: " << fi0 << ", RT: " << input_maps[0][fi0].getRT()
-					 << ", MZ: " << input_maps[0][fi0].getMZ() << endl
-					 << "neighbor: " << fi1 << ", RT: " << input_maps[1][fi1].getRT()
-					 << ", MZ: " << input_maps[1][fi1].getMZ() << endl
-					 << "d(i,j): " << nn_distance_0[fi0].first << endl
-					 << "d2(i): " << nn_distance_0[fi0].second << endl
-					 << "d2(j): " << nn_distance_1[fi1].second << endl;		
+			// cout << "index: " << fi0 << ", RT: " << input_maps[0][fi0].getRT()
+			// 		 << ", MZ: " << input_maps[0][fi0].getMZ() << endl
+			// 		 << "neighbor: " << fi1 << ", RT: " << input_maps[1][fi1].getRT()
+			// 		 << ", MZ: " << input_maps[1][fi1].getMZ() << endl
+			// 		 << "d(i,j): " << nn_distance_0[fi0].first << endl
+			// 		 << "d2(i): " << nn_distance_0[fi0].second << endl
+			// 		 << "d2(j): " << nn_distance_1[fi1].second << endl;		
+
 			// criteria set by the parameters must be fulfilled:
 			if ((nn_distance_0[fi0].first < FeatureDistance::infinity) && 
 					(nn_distance_0[fi0].first * second_nearest_gap_ <= nn_distance_0[fi0].second))
@@ -179,7 +180,7 @@ namespace OpenMS
 						(nn_distance_1[fi1].first * second_nearest_gap_ <= nn_distance_1[fi1].second))
 				{
 					// ...nearest neighbor of "fi0" also satisfies constraints (yay!)
-					cout << "match!" << endl;
+					// cout << "match!" << endl;
 					result_map.push_back(ConsensusFeature());
 					ConsensusFeature& f = result_map.back();
 					
