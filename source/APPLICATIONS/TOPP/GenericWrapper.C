@@ -164,6 +164,11 @@ class TOPPGenericWrapper
       { // quote each element
         return "\"" + StringList(p.value).concatenate("\" \"") + "\"";
       }
+      else if(p.tags.count("input file")>0 || p.tags.count("output file"))
+      {
+        // ensure that file names are formated according to system spec
+        return File::absolutePath(p.value);
+      }
       else
       {
         return p.value;
