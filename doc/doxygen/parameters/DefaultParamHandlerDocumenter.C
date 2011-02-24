@@ -48,6 +48,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 #include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
@@ -329,6 +330,7 @@ int main (int argc , char** argv)
 	DOCME(ExtendedIsotopeModel);
 	DOCME(FalseDiscoveryRate);
 	DOCME(FeatureDeconvolution);
+	DOCME(FeatureDistance);
 	DOCME(FeatureGroupingAlgorithmLabeled);
 	DOCME(FeatureGroupingAlgorithmUnlabeled);
 	DOCME(GaussFilter);

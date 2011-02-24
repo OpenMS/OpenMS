@@ -319,6 +319,7 @@ set(analysis_executables_list
 	DeNovoPostScoring_test
 	FalseDiscoveryRate_test
 	FeatureDeconvolution_test
+	FeatureDistance_test
 	FeatureGroupingAlgorithmLabeled_test
 	FeatureGroupingAlgorithmQT_test
 	FeatureGroupingAlgorithmUnlabeled_test

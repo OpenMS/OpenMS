@@ -34,38 +34,29 @@ using namespace std;
 namespace OpenMS
 {
 
-	QTClusterFinder::QTClusterFinder(): BaseGroupFinder()
+	QTClusterFinder::QTClusterFinder(): 
+		BaseGroupFinder(), feature_distance_(FeatureDistance())
 	{
-		BaseGroupFinder::setName(getProductName());
+		setName(getProductName());
 
 		defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
 		defaults_.setValidStrings("use_identifications", StringList::create("true,false"));
 
-		defaults_.setValue("diff_exponent:RT", 1.0, "RT differences are raised to this power", StringList::create("advanced"));
-		defaults_.setMinFloat("diff_exponent:RT", 0.0);
+		defaults_.insert("", feature_distance_.getDefaults());
 
-		defaults_.setValue("diff_exponent:MZ", 2.0, "m/z differences are raised to this power", StringList::create("advanced"));
-		defaults_.setMinFloat("diff_exponent:MZ", 0.0);
-
-		defaults_.setSectionDescription("diff_exponent", "Absolute position differences are raised to this power (e.g. 1 for 'linear' distance, 2 for 'quadratic' distance).");
-
-		defaults_.setValue("max_distance:RT", 100.0, "Maximum allowed difference in RT for a pair");
-		defaults_.setMinFloat("max_distance:RT", 0.0);
-
-		defaults_.setValue("max_distance:MZ", 0.3, "Maximum allowed difference in MZ for a pair");
-		defaults_.setMinFloat("max_distance:MZ", 0.0);
-
-		BaseGroupFinder::defaultsToParam_();
+		defaultsToParam_();
 	}
 
 
-	void QTClusterFinder::setParameters_()
+	void QTClusterFinder::setParameters_(DoubleReal max_intensity)
 	{
-		diff_exp_rt_ = (DoubleReal) param_.getValue("diff_exponent:RT");
-		diff_exp_mz_ = (DoubleReal) param_.getValue("diff_exponent:MZ");
-		max_dist_mz_ = (DoubleReal) param_.getValue("max_distance:MZ");
-		max_dist_rt_ = (DoubleReal) param_.getValue("max_distance:RT");
 		use_IDs_ = String(param_.getValue("use_identifications")) == "true";
+		max_diff_rt_ = param_.getValue("distance_RT:max_difference");
+		max_diff_mz_ = param_.getValue("distance_MZ:max_difference");
+		Param distance_params = param_.copy("");
+		distance_params.remove("use_identifications");
+		feature_distance_ = FeatureDistance(max_intensity, true);
+		feature_distance_.setParameters(distance_params);
 	}
 
 
@@ -79,11 +70,19 @@ namespace OpenMS
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
 																			 "At least two input maps required");
 		}
-		setParameters_();
+
+		// set up the distance functor (and set other parameters):
+		DoubleReal max_intensity = input_maps[0].getMaxInt();
+		for (Size map_index = 1; map_index < num_maps_; ++map_index)
+		{
+			max_intensity = max(max_intensity, input_maps[map_index].getMaxInt());
+		}
+		setParameters_(max_intensity);
 
 		// create the hash grid and fill it with features:
+		// cout << "Hashing..." << endl;
 		list<GridFeature> grid_features;
-		HashGrid grid(max_dist_rt_, max_dist_mz_);
+		HashGrid grid(max_diff_rt_, max_diff_mz_);
 		for (Size map_index = 0; map_index < num_maps_; ++map_index)
 		{
 			for (Size feature_index = 0; feature_index < input_maps[map_index].size();
@@ -106,6 +105,7 @@ namespace OpenMS
 		}
 
 		// compute QT clustering:
+		// cout << "Clustering..." << endl;
 		list<QTCluster> clustering;
 		computeClustering_(grid, clustering);
 		// number of clusters == number of data points:
@@ -181,7 +181,8 @@ namespace OpenMS
 	{
 		clustering.clear();
 		distances_.clear();
-		DoubleReal max_distance = getDistance_(max_dist_rt_, max_dist_mz_);
+		// FeatureDistance produces normalized distances (between 0 and 1):
+		const DoubleReal max_distance = 1.0;
 
 		// iterate over all grid cells:
 		for (GridCells::iterator it = grid.begin(); it != grid.end(); ++it)
@@ -227,14 +228,12 @@ namespace OpenMS
 							{
 								DoubleReal dist = getDistance_(center_feature, 
 																							 neighbor_feature);
-								if (dist < 0) continue; // charge states don't match
-								DoubleReal dist_mz = abs(neighbor_feature->mz - 
-																				 center_feature->mz);
-								DoubleReal dist_rt = abs(neighbor_feature->rt - 
-																				 center_feature->rt);
+								if (dist == FeatureDistance::infinity) 
+								{
+									continue; // conditions not satisfied
+								}
 								// if neighbor point is a possible cluster point, add it:
-								if ((dist_mz <= max_dist_mz_) && (dist_rt <= max_dist_rt_) && 
-										(!use_IDs_ || compatibleIDs_(cluster, neighbor_feature)))
+								if (!use_IDs_ || compatibleIDs_(cluster, neighbor_feature))
 								{
 									cluster.add(neighbor_feature, dist);
 								}
@@ -248,7 +247,7 @@ namespace OpenMS
 	}
 
 
-	DoubleReal QTClusterFinder::getDistance_(GridFeature* left, 
+	DoubleReal QTClusterFinder::getDistance_(GridFeature* left,
 																					 GridFeature* right)
 	{
 		// look-up in the distance map:
@@ -261,35 +260,11 @@ namespace OpenMS
 		}
 		else // compute distance now and store it for later
 		{
-			DoubleReal dist = getDistance_(left->getFeature(), right->getFeature());
+			DoubleReal dist = feature_distance_(left->getFeature(), 
+																					right->getFeature()).second;
 			distances_[key] = dist;
 			return dist;
 		}
-	}
-
-
-	DoubleReal QTClusterFinder::getDistance_(const BaseFeature& left, 
-																					 const BaseFeature& right) const
-	{
-		if (left.getCharge() != right.getCharge()) return -1; // charges don't match
-		DPosition<2> pos_diff = left.getPosition() - right.getPosition();
-		return getDistance_(pos_diff[RT], pos_diff[MZ]);
-	}
-
-
-	DoubleReal QTClusterFinder::getDistance_(DoubleReal pos_diff_rt, 
-																					 DoubleReal pos_diff_mz) const
-	{
-		// RT:
-		pos_diff_rt = abs(pos_diff_rt) / max_dist_rt_;
-		pos_diff_rt = pow(pos_diff_rt, diff_exp_rt_);
-
-		// MZ:
-		pos_diff_mz = abs(pos_diff_mz) / max_dist_mz_;
-		pos_diff_mz = pow(pos_diff_mz, diff_exp_mz_);
-
-		DoubleReal result = pos_diff_rt + pos_diff_mz;
-		return result;
 	}
 
 

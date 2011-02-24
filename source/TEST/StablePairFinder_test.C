@@ -62,7 +62,7 @@ END_SECTION
 START_SECTION((static const String getProductName()))
 	StablePairFinder spf;
 
-  TEST_EQUAL(spf.getName() == "stable",true)
+  TEST_EQUAL(spf.getName() == "stable", true)
 END_SECTION
 
 START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
@@ -114,9 +114,6 @@ START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
 
   StablePairFinder spf;
 	Param param = spf.getDefaults();
-//	param.setValue("max_pair_distance:RT",50.0);
-//	param.setValue("max_pair_distance:MZ",5.0);
-//	param.setValue("second_nearest_gap",  2.0);
 	spf.setParameters(param);
 	ConsensusMap result;
 	spf.run(input,result);
@@ -185,8 +182,8 @@ START_SECTION(([EXTRA] void run(const std::vector<ConsensusMap>& input_maps, Con
 
   StablePairFinder spf;
 	Param param = spf.getDefaults();
-	param.setValue("max_pair_distance:RT", 1000.0);
-	param.setValue("max_pair_distance:MZ", 1000.0);
+	param.setValue("distance_RT:max_difference", 1000.0);
+	param.setValue("distance_MZ:max_difference", 1000.0);
 	param.setValue("second_nearest_gap", 2.0);
 	spf.setParameters(param);
 	ConsensusMap result;
