@@ -283,7 +283,7 @@ namespace OpenMS
     Size num_features=spec_gen.generateDescriptorSet(annotations[0],0,ion_types[0], 1, tmp_desc);
 
     //vectors to store the minimum and maximum value appearing in the training data for each feature (required for scaling)
-    std::map<std::pair<IonType,Size>, std::vector<DoubleReal> >observed_intensities;
+    ObservedIntensMap observed_intensities;
     std::map<Size, std::vector<DescriptorSet> >training_input;
     std::map<Size, std::vector<double> >training_output;
 
@@ -306,7 +306,7 @@ namespace OpenMS
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
       {        
         //store the intensities of the detected peaks for the given type in the actual spectrum (required for sec. type prob model)
-        countIntensities(input_spec_norm, annotations[spec_index], ion_types[type_nr], observed_intensities, peak_tolerance, number_of_regions);
+        countIntensities_(input_spec_norm, annotations[spec_index], ion_types[type_nr], observed_intensities, peak_tolerance, number_of_regions);
       }
 
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
@@ -482,7 +482,7 @@ namespace OpenMS
       svm_p_reg.y = output_training_reg;
       svm_p_reg.x = input_training_reg;
 
-      std::cerr<<training_output_reg.size()<<"  "<<training_input_reg.size()<<std::endl;
+      //std::cerr<<training_output_reg.size()<<"  "<<training_input_reg.size()<<std::endl;
 
       //perform cross validation
       std::cerr<<"start cross validation for SVR model"<<std::endl;
@@ -608,165 +608,20 @@ namespace OpenMS
     info_outfile.push_back("</MaxFeatures>");
     info_outfile.push_back("<MinFeatures>");
     info_outfile.insert(info_outfile.end(), min_features.begin(), min_features.end());
-    info_outfile.push_back("</MinFeatures>");
+    info_outfile.push_back("</MinFeatures>");    
 
+    //------------------------------------------------------------------------------------------
+    //----------------------Training prob. model for secondary types------------------
+    //------------------------------------------------------------------------------------------
     info_outfile.push_back("<SecondaryTypes>");
     info_outfile.push_back("<IntensityLevels>");
     info_outfile.push_back(number_of_intensity_levels);
     info_outfile.push_back("</IntensityLevels>");
 
-
-    //------------------------------------------------------------------------------------------
-    //----------------------Training prob. model for secondary types------------------
-    //------------------------------------------------------------------------------------------
     if(secondary_types)
     {
-      std::vector<DoubleReal>tmp;
-      for(Size region = 0; region < number_of_regions; ++ region)
-      {
-      //we start by binning the intensities. We select the bin boarders such that
-      //the intensities of the primary ions are equally split
-        std::vector<DoubleReal> &observed_b=observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
-        tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
-        std::vector<DoubleReal> &observed_y=observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
-        tmp.insert(tmp.end(),observed_y.begin(), observed_y.end());
-      }
-
-      std::vector<DoubleReal>bin_boarders(number_of_intensity_levels);
-      std::vector<DoubleReal>bin_values(number_of_intensity_levels);
-      std::sort(tmp.begin(), tmp.end());
-
-      //find the first nonzero
-      Size first_non_zero=0;
-      while(first_non_zero<tmp.size()&& tmp[first_non_zero]==0)
-      {
-        ++first_non_zero;
-      }      
-
-      Size non_zero_size=tmp.size()-first_non_zero;
-      Size prev_index=0;
-      for(Size i=1; i<number_of_intensity_levels; ++i)
-      {
-        Size index = i* (DoubleReal) non_zero_size/(number_of_intensity_levels-1)+first_non_zero;
-        DoubleReal count=0;
-        for(Size j=prev_index; j<index; ++j)
-        {
-          count+=tmp[j];
-        }
-        bin_boarders[i-1]=tmp[index-1];
-        bin_values[i-1]=count/(index-prev_index);
-        prev_index=index;
-
-        std::cerr<<index<<"  !!  "<<non_zero_size<<"  "<<tmp.size()<<std::endl;
-        std::cerr<<"boarder "<<bin_boarders[i-1]<<std::endl;
-        std::cerr<<"value "<<bin_values[i-1]<<std::endl;
-      }
-
-      info_outfile.push_back("<IntensityBinBoarders>");
-      for(Size i=0; i<number_of_intensity_levels-1; ++i)
-        info_outfile.push_back(bin_boarders[i]);
-      info_outfile.push_back("</IntensityBinBoarders>");
-      info_outfile.push_back("<IntensityBinValues>");
-      for(Size i=0; i<number_of_intensity_levels-1; ++i)
-        info_outfile.push_back(bin_values[i]);
-      info_outfile.push_back("</IntensityBinValues>");
-
-      //use the boarder values to bin the entries
-      for(Size region = 0; region < number_of_regions; ++ region)
-      {
-        for(Size i=0; i<ion_types.size(); ++i)
-        {
-          std::vector<DoubleReal> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
-          for(Size j=0; j<intensities.size(); ++j)
-          {
-            DoubleReal intens = intensities[j];
-            if(intens == 0.0|| intens == -1.0)
-              continue;
-
-            Size k=1;
-            while(k<number_of_intensity_levels-1 && intens>bin_boarders[k-1] )
-              ++k;
-
-            intensities[j]=k;
-          }
-        }
-      }
-
-      std::map<std::pair<IonType,Size>, std::vector<std::vector<DoubleReal> > >joint_counts;
-      std::map<std::pair<IonType,Size>,  std::vector<DoubleReal> >background_counts;
-
-      //count joint appearences of primary and secondary peaks
-      for(Size i=0; i<ion_types.size(); ++i)
-      {
-        const IonType & type = ion_types[i];
-        if(is_primary[i])
-          continue;
-
-        IonType primary_type=IonType(Residue::BIon);
-
-        if(type.residue == Residue::YIon ||
-           type.residue == Residue::XIon ||
-           type.residue == Residue::ZIon)
-        {
-          primary_type=IonType(Residue::YIon);
-        }
-        for(Size region =0; region < number_of_regions; ++region)
-        {
-          joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,0));
-          background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, 0);
-          const std::vector<DoubleReal> &secondary = observed_intensities[std::make_pair(type, region)];
-          const std::vector<DoubleReal> &primary = observed_intensities[std::make_pair(primary_type, region)];
-          std::cerr<<primary.size()<<"  ::::   "<<secondary.size()<<std::endl;
-          std::cerr<<primary_type.residue<<"  ::::   "<<type.residue<<std::endl;
-
-          for(Size j=0; j<primary.size(); ++j)
-          {
-            if(secondary[j]!=-1.0)
-            {
-              ++joint_counts[std::make_pair(type, region)][(Size)secondary[j]][(Size)primary[j]];
-              ++background_counts[std::make_pair(type, region)][(Size)primary[j]];
-            }
-          }
-        }
-      }
-
-      //compute conditional probabilities and store them in the outfile
-      for(Size i=0; i<ion_types.size(); ++i)
-      {
-        const IonType & type = ion_types[i];
-        if(is_primary[i])
-          continue;
-
-        info_outfile.push_back("<IonType>");
-        info_outfile.push_back(type.residue);
-        info_outfile.push_back(type.loss.getString());
-        info_outfile.push_back(type.charge);
-        info_outfile.push_back("<ConditionalProbabilities>");
-
-        for(Size region =0; region < number_of_regions; ++region)
-        {          
-          info_outfile.push_back("<Region "+ String(region) + ">");
-          std::vector<DoubleReal> & back_counts = background_counts[std::make_pair(type, region)];
-
-          for(Size prim=0; prim<number_of_intensity_levels; ++prim)
-          {
-            for(Size sec=0; sec<number_of_intensity_levels; ++sec)
-            {
-              if(back_counts[prim]!=0)
-              {
-                joint_counts[std::make_pair(type, region)][sec][prim]= joint_counts[std::make_pair(type, region)][sec][prim]/back_counts[prim];
-                info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
-                std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
-              }
-            }
-          }
-          info_outfile.push_back("</Region " + String(region) + ">");
-        }
-        info_outfile.push_back("</ConditionalProbabilities>");
-        info_outfile.push_back("</IonType>");
-        }
-
-    }//endif secondary types
+      trainSecondaryTypes_(info_outfile, number_of_regions, number_of_intensity_levels, observed_intensities, ion_types, is_primary);
+    }
 
     info_outfile.push_back("</SecondaryTypes>");
     info_outfile.store(info_outfile_name);
@@ -813,9 +668,160 @@ namespace OpenMS
   }
 
 
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile &info_outfile,
+                                                                    Size number_of_regions,
+                                                                    Size number_of_intensity_levels,
+                                                                    ObservedIntensMap &observed_intensities,
+                                                                    const std::vector<IonType> &ion_types,
+                                                                    const std::vector<bool> &is_primary
+                                                                    )
+  {
+    std::vector<DoubleReal>tmp;
+    for(Size region = 0; region < number_of_regions; ++ region)
+    {
+    //we start by binning the intensities. We select the bin boarders such that
+    //the intensities of the primary ions are equally split
+      std::vector<DoubleReal> &observed_b=observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
+      tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
+      std::vector<DoubleReal> &observed_y=observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
+      tmp.insert(tmp.end(),observed_y.begin(), observed_y.end());
+    }
+
+    std::vector<DoubleReal>bin_boarders(number_of_intensity_levels);
+    std::vector<DoubleReal>bin_values(number_of_intensity_levels);
+    std::sort(tmp.begin(), tmp.end());
+
+    //find the first nonzero
+    Size first_non_zero=0;
+    while(first_non_zero<tmp.size()&& tmp[first_non_zero]==0)
+    {
+      ++first_non_zero;
+    }
+
+    Size non_zero_size=tmp.size()-first_non_zero;
+    Size prev_index=0;
+    for(Size i=1; i<number_of_intensity_levels; ++i)
+    {
+      Size index = i* (DoubleReal) non_zero_size/(number_of_intensity_levels-1)+first_non_zero;
+      DoubleReal count=0;
+      for(Size j=prev_index; j<index; ++j)
+      {
+        count+=tmp[j];
+      }
+      bin_boarders[i-1]=tmp[index-1];
+      bin_values[i-1]=count/(index-prev_index);
+      prev_index=index;
+
+      //std::cerr<<index<<"  !!  "<<non_zero_size<<"  "<<tmp.size()<<std::endl;
+      //std::cerr<<"boarder "<<bin_boarders[i-1]<<std::endl;
+      //std::cerr<<"value "<<bin_values[i-1]<<std::endl;
+    }
+
+    info_outfile.push_back("<IntensityBinBoarders>");
+    for(Size i=0; i<number_of_intensity_levels-1; ++i)
+      info_outfile.push_back(bin_boarders[i]);
+    info_outfile.push_back("</IntensityBinBoarders>");
+    info_outfile.push_back("<IntensityBinValues>");
+    for(Size i=0; i<number_of_intensity_levels-1; ++i)
+      info_outfile.push_back(bin_values[i]);
+    info_outfile.push_back("</IntensityBinValues>");
+
+    //use the boarder values to bin the entries
+    for(Size region = 0; region < number_of_regions; ++ region)
+    {
+      for(Size i=0; i<ion_types.size(); ++i)
+      {
+        std::vector<DoubleReal> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
+        for(Size j=0; j<intensities.size(); ++j)
+        {
+          DoubleReal intens = intensities[j];
+          if(intens == 0.0|| intens == -1.0)
+            continue;
+
+          Size k=1;
+          while(k<number_of_intensity_levels-1 && intens>bin_boarders[k-1] )
+            ++k;
+
+          intensities[j]=k;
+        }
+      }
+    }
+
+    std::map<std::pair<IonType,Size>, std::vector<std::vector<DoubleReal> > >joint_counts;
+    std::map<std::pair<IonType,Size>,  std::vector<DoubleReal> >background_counts;
+
+    //count joint appearences of primary and secondary peaks
+    for(Size i=0; i<ion_types.size(); ++i)
+    {
+      const IonType & type = ion_types[i];
+      if(is_primary[i])
+        continue;
+
+      IonType primary_type=IonType(Residue::BIon);
+
+      if(type.residue == Residue::YIon ||
+         type.residue == Residue::XIon ||
+         type.residue == Residue::ZIon)
+      {
+        primary_type=IonType(Residue::YIon);
+      }
+      for(Size region =0; region < number_of_regions; ++region)
+      {
+        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,0));
+        background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, 0);
+        const std::vector<DoubleReal> &secondary = observed_intensities[std::make_pair(type, region)];
+        const std::vector<DoubleReal> &primary = observed_intensities[std::make_pair(primary_type, region)];
+
+        for(Size j=0; j<primary.size(); ++j)
+        {
+          if(secondary[j]!=-1.0)
+          {
+            ++joint_counts[std::make_pair(type, region)][(Size)secondary[j]][(Size)primary[j]];
+            ++background_counts[std::make_pair(type, region)][(Size)primary[j]];
+          }
+        }
+      }
+    }
+
+    //compute conditional probabilities and store them in the outfile
+    for(Size i=0; i<ion_types.size(); ++i)
+    {
+      const IonType & type = ion_types[i];
+      if(is_primary[i])
+        continue;
+
+      info_outfile.push_back("<IonType>");
+      info_outfile.push_back(type.residue);
+      info_outfile.push_back(type.loss.getString());
+      info_outfile.push_back(type.charge);
+      info_outfile.push_back("<ConditionalProbabilities>");
+
+      for(Size region =0; region < number_of_regions; ++region)
+      {
+        info_outfile.push_back("<Region "+ String(region) + ">");
+        std::vector<DoubleReal> & back_counts = background_counts[std::make_pair(type, region)];
+
+        for(Size prim=0; prim<number_of_intensity_levels; ++prim)
+        {
+          for(Size sec=0; sec<number_of_intensity_levels; ++sec)
+          {
+            if(back_counts[prim]!=0)
+            {
+              joint_counts[std::make_pair(type, region)][sec][prim]= joint_counts[std::make_pair(type, region)][sec][prim]/back_counts[prim];
+              info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
+              std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
+            }
+          }
+        }
+        info_outfile.push_back("</Region " + String(region) + ">");
+      }
+      info_outfile.push_back("</ConditionalProbabilities>");
+      info_outfile.push_back("</IonType>");
+      }
+  }
 
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities(const PeakSpectrum &spectrum,
+  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum &spectrum,
                                            const AASequence &annotation,
                                            IonType type,
                                            std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > & observed_intensities,
