@@ -69,7 +69,6 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
@@ -403,7 +402,6 @@ int main (int argc , char** argv)
 	DOCME(MascotGenericFile);
 	DOCME(PILISNeutralLossModel);
 	DOCME(PILISModelGenerator);
-	DOCME(AdvancedTheoreticalSpectrumGenerator);
 	DOCME(FeatureGroupingAlgorithmIdentification);
 	DOCME(OfflinePrecursorIonSelection);
 	DOCME(TOPPViewBase);
