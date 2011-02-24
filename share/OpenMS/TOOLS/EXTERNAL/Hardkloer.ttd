@@ -7,7 +7,7 @@
 		<external>
       <text>
         <onstartup>Calling Hardklor ... Wrapper was tested with "Hardklor" v1.34, report issues to the OpenMS team at www.OpenMS.de</onstartup>
-        <onfail>Please check everything .. this is still work in progress.</onfail>
+        <onfail>Please check everything ... this is still work in progress.</onfail>
         <onfinish>Hardklor finished successfully.</onfinish>
       </text>    
 		  // currently disregarded by TOPPAS, but might become useful
@@ -23,7 +23,7 @@
        NOTE: Input and output need to be the first parameters to avoid 
              runtime problems
        -->
-		  <cloptions> %23 %24 -a %1 -cdm %2 -chMin %3 -chMax %4 -corr %5 -d %6 -hdat %7 -mdat %9 %10 -p %11 -res %12 %13 -sl %17 -sn %18 -snWin %19 -win %22 %26 %25 %28</cloptions>
+		  <cloptions> "%23" "%24" -a %1 -cdm %2 -chMin %3 -chMax %4 -corr %5 -d %6 -hdat "%7" -mdat "%9" %10 -p %11 -res %12 %13 -sl %17 -sn %18 -snWin %19 -win %22 %26 %25 %28</cloptions>
 		  // the actual executable (usually it should be in your PATH, to avoid having to specify a full path to it)
 		  <path>hardklor</path>
       // sets the working directory to this path before calling the external tool. Some tools write to the current working directory
