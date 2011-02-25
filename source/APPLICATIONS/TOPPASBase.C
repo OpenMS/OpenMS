@@ -429,7 +429,9 @@ namespace OpenMS
 		String file_name = w->getScene()->getSaveFileName();
 		if (file_name != "")
 		{
-			if (!file_name.hasSuffix(".toppas"))
+      // accept also upper case TOPPAS extensions, since
+      // we also support them while loading
+      if (!file_name.toLower().hasSuffix(".toppas"))
 			{
 				file_name += ".toppas";
 			}
@@ -437,7 +439,13 @@ namespace OpenMS
 		}
 		else
 		{
-      TOPPASBase::savePipelineAs(w, current_path_.toQString());
+      QString savedFileName = TOPPASBase::savePipelineAs(w, current_path_.toQString());
+      // update tab title
+      if(savedFileName != "")
+      {
+        QString caption = File::basename(savedFileName).toQString();
+        tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+      }
 		}
 	}
 	
@@ -463,13 +471,13 @@ namespace OpenMS
     QString file_name = QFileDialog::getSaveFileName(w, tr("Save workflow"), current_path, tr("TOPPAS pipelines (*.toppas)"));
 		if (file_name != "")
 		{
-			if (!file_name.endsWith(".toppas"))
+      if (!file_name.endsWith(".toppas", Qt::CaseInsensitive))
 			{
 				file_name += ".toppas";
 			}
 			w->getScene()->store(file_name);
       QString caption = File::basename(file_name).toQString();
-      w->setWindowTitle(caption);     
+      w->setWindowTitle(caption);
 		}
     return file_name;
 	}
