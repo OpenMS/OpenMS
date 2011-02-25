@@ -110,6 +110,9 @@ protected:
 		vector<double> results = ConsensusMapNormalizerAlgorithm::computeCorrelation(map, ratio_threshold);
 		ConsensusMapNormalizerAlgorithm::normalizeMaps(map, results);
 
+		//annotate output with data processing info
+		addDataProcessing_(map, getProcessingInfo_(DataProcessing::NORMALIZATION));
+
 		String out = getStringOption_("out");
 		infile.store(out, map);
 

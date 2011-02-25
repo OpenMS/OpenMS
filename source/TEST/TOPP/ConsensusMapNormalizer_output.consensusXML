@@ -20,6 +20,11 @@
 		<userParam type="float" name="parameter: algorithm:max_distance:RT" value="50"/>
 		<userParam type="float" name="parameter: algorithm:max_distance:MZ" value="0.002"/>
 	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="ConsensusMapNormalizer" version="version_string" />
+		<processingAction name="Intensity normalization" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
 	<mapList count="20">
 		<map id="0" name="file0_3.featureXML" unique_id="9744763932795263903" label="" size="13217">
 		</map>
