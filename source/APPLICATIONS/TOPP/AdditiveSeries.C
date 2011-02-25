@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -102,7 +102,7 @@ class AdditiveSeries
 		registerOutputFile_("out","<file>","","output XML file containg regression line and confidence interval");
 		registerDoubleOption_("mz_tolerance","<tol>",1.0, "Tolerance in m/z dimension",false);
 		registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
-
+    registerDoubleList_("concentrations","<concentrations>", DoubleList(), "Spiked concentrations");
 		addEmptyLine_();
 		addText_("  Feature/standard position:");
 		registerDoubleOption_("feature_rt","<rt>",std::numeric_limits<double>::quiet_NaN(), "RT position of the feature");
@@ -116,31 +116,7 @@ class AdditiveSeries
 		registerStringOption_("out_gp","<name>","","base file name (3 files with different extensions are created)",false);
 		registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
 		registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
-
-		registerSubsection_("in","Input featureXML section");
-		registerSubsection_("concentrations","Spiked concentrations section");
-	}
-
-	Param getSubsectionDefaults_(const String& section) const
-	{
-		if (section=="in")
-		{
-			Param tmp;
-			tmp.setValue("1","data/file1.xml");
-			tmp.setValue("2","data/file2.xml");
-			tmp.setValue("3","data/file3.xml");
-			return tmp;
-		}
-		else if (section=="concentrations")
-		{
-			Param tmp;
-			tmp.setValue("1",1.0);
-			tmp.setValue("2",2.0);
-			tmp.setValue("3",3.0);
-			return tmp;
-		}
-		return Param();
-	}
+  }
 
 
   // searches for a features with coordinates within the tolerance in this map
@@ -389,25 +365,6 @@ class AdditiveSeries
 		// fetching list of files
 		StringList files = getStringList_("in");
 
-		//vector<String> files;
-		//Param file_param = add_param.copy("files:",true);
-		//Param::ParamIterator pit = file_param.begin();
-		//while (pit != file_param.end() )
-		//{
-		//	files.push_back(pit->value);
-		//	pit++;
-		//}
-
-		// read the spiked concentrations
-		vector<double> sp_concentrations;
-		Param file_param = add_param.copy("concentrations:",true);
-		Param::ParamIterator pit = file_param.begin();
-		while (pit != file_param.end() )
-		{
-			sp_concentrations.push_back((double)(pit->value));
-			pit++;
-		}
-
 		// collect features
 		vector<DoubleReal> intensities;
 		vector<String>::const_iterator cit = files.begin();
@@ -423,6 +380,9 @@ class AdditiveSeries
 			}
 			cit++;
 		}
+
+		// read the spiked concentrations
+    DoubleList sp_concentrations = getDoubleList_("concentrations");
 
 		vector<double> sp_concentrations2;
 		for (Size i=0; i<sp_concentrations.size(); i++)
