@@ -304,6 +304,7 @@ set(chemistry_executables_list
 
 
 set(analysis_executables_list
+	AScore_test
 	BaseGroupFinder_test
 	BaseSuperimposer_test
 	CompNovoIdentificationBase_test 
