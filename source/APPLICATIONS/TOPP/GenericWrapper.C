@@ -33,6 +33,7 @@
 
 #include <QtCore/QProcess>
 #include <QFileInfo>
+#include <QDir>
 
 #include <typeinfo>
 
@@ -158,16 +159,28 @@ class TOPPGenericWrapper
 
 	protected:
 
+    /**
+      @brief format filenames and quote stringlists
+    */
     String paramToString_(const Param::ParamEntry& p)
     {
+      
       if (p.value.valueType() == DataValue::STRING_LIST)
       { // quote each element
-        return "\"" + StringList(p.value).concatenate("\" \"") + "\"";
+        StringList val(p.value);
+        if (p.tags.count("input file") || p.tags.count("output file"))
+        {
+          for (Size i=0;i<val.size();++i)
+          {
+            val[i] = QDir::toNativeSeparators(val[i].toQString());
+          }
+        }
+        return "\"" + val.concatenate("\" \"") + "\"";
       }
-      else if(p.tags.count("input file")>0 || p.tags.count("output file"))
+      if (p.tags.count("input file") || p.tags.count("output file"))
       {
         // ensure that file names are formated according to system spec
-        return File::absolutePath(p.value);
+        return QDir::toNativeSeparators(p.value.toQString());
       }
       else
       {
@@ -272,7 +285,6 @@ class TOPPGenericWrapper
       {
         if (type == gw.types[i]) 
         {
-          //std::cout << "found: " << tools_external_[i].param << "\n";
           return gw.external_details[i].param;
         }
       }
