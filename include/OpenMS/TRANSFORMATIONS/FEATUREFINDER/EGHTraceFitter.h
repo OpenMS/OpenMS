@@ -172,6 +172,13 @@ namespace OpenMS
       return height_ * (fwhm_bound_.second - fwhm_bound_.first);
     }
 
+    DoubleReal getFWHM() const
+    {
+
+      std::pair<DoubleReal, DoubleReal> bounds = getAlphaBoundaries_(0.5);
+      return bounds.second - bounds.first;
+    }
+
     virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const & trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
     {
       std::stringstream s;
@@ -223,13 +230,6 @@ namespace OpenMS
 
       return bounds;
     }
-
-    DoubleReal getFWHM() const
-    {
-			std::pair<DoubleReal, DoubleReal> bounds = getAlphaBoundaries_(0.5);
-      return bounds.second - bounds.first;
-    }
-
 
     void getOptimizedParameters_(gsl_multifit_fdfsolver * fdfsolver)
     {

@@ -139,6 +139,12 @@ START_SECTION((virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelp
 }
 END_SECTION
 
+START_SECTION((virtual DoubleReal getFWHM() const))
+{
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getFWHM())
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
