@@ -13,6 +13,12 @@ if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_
 	set(CMAKE_CXX_FLAGS_RELEASE_SAVED ${CMAKE_CXX_FLAGS_RELEASE})
 	#disable optimization for tests
 	set(CMAKE_CXX_FLAGS_RELEASE "-O0")
+	if(MT_ENABLE_OPENMP AND ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	  # disable OPENMP for Mac OS X/gcc, see
+	  # https://sourceforge.net/apps/trac/open-ms/ticket/280
+	  # bug for details
+	  STRING(REPLACE "-fopenmp" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	endif()
 endif()
 
 
@@ -81,7 +87,9 @@ foreach(i ${TEST_executables})
 	add_executable(${i} ${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
-  if (OPENMP_FOUND AND NOT MSVC)
+	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
+	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
+  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()  
 endforeach(i)
@@ -100,7 +108,9 @@ foreach(i ${GUI_executables_list})
 	add_executable(${i} GUI/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
-  if (OPENMP_FOUND AND NOT MSVC)
+	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
+	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
+  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()  
 endforeach(i)
