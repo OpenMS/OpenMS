@@ -102,6 +102,14 @@ START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
+START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
+{
+  // we do not modify the map in this step
+  dummyLabeler.postIonizationHook(empty);
+  NOT_TESTABLE
+}
+END_SECTION
+
 MSSimExperiment exp;
 START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
 {
