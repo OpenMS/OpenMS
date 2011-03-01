@@ -414,7 +414,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setMaxInt(intlist2,6);
 	p2.setValue(doublelist2,DoubleList::create("1.2,2.33"),"doubelist with restrictions");
 	p2.setMinFloat(doublelist2,0.2);
-	p2.setMaxFloat(doublelist2,5.4);	
+	p2.setMaxFloat(doublelist2,5.4);
 	TEST_EQUAL(p1,p2)
 END_SECTION
 
@@ -592,7 +592,7 @@ START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))
 	const char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp_topp(sizeof(tmp_argv)/sizeof(*tmp_argv),tmp_argv);
 
-	Param good_params;
+	Param good_params = tmp_topp.getParam();
 	good_params.setValue( "TOPPBaseTest:stringoption", "toolcommon" );
 	good_params.setValue( "ini", OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini") );
 	good_params.setValue( "stringoption", "instance1" );

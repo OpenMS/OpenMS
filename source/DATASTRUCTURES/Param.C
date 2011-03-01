@@ -608,24 +608,14 @@ namespace OpenMS
 
 	void Param::remove(const String& key)
 	{
-		ParamNode* node = root_.findParentOf(key);
-		if (node!=0)
-		{
-			String suffix = node->suffix(key);
-			for (Param::ParamNode::EntryIterator it = node->entries.begin(); it!=node->entries.end(); ++it)
-			{
-				if (it->name==suffix)
-				{
-					it = node->entries.erase(it);
-					break;
-				}
-			}
-		}
+    // this function was broken. We need to remove dead subtrees (without any entries)
+    // to ensure sanity of structure.
+		removeAll(key);
 	}
 
 	void Param::removeAll(const String& prefix)
 	{
-		if (prefix.hasSuffix(':')) //we have to delete one node only
+		if (prefix.hasSuffix(':')) //we have to delete one node only (and its subnodes)
 		{
 			ParamNode* node = root_.findParentOf(prefix.chop(1));
 			if (node!=0)
@@ -633,16 +623,22 @@ namespace OpenMS
 				Param::ParamNode::NodeIterator it = node->findNode(node->suffix(prefix.chop(1)));
 				if (it!=node->nodes.end())
 				{
-					node->nodes.erase(it);
+          String name = it->name;
+          node->nodes.erase(it); // will automatically delete subnodes
+          if (node->nodes.size() == 0  && node->entries.size() == 0)
+          {
+            // delete last section name (could be partial)
+            removeAll(prefix.chop(name.size()+1)); // '+1' for the tailing ':'
+          }
 				}
 			}
 		}
-		else //we have to delete all entries and nodes starting with the suffix
+		else //we have to delete all entries and nodes starting with the prefix
 		{
 			ParamNode* node = root_.findParentOf(prefix);
 			if (node!=0)
 			{			
-				String suffix = node->suffix(prefix);
+				String suffix = node->suffix(prefix); // name behind last ":"
 				
 				for (Param::ParamNode::NodeIterator it = node->nodes.begin(); it!=node->nodes.end();/*do nothing*/)
 				{
@@ -666,6 +662,12 @@ namespace OpenMS
 						++it;
 					}
 				}
+        // the parent node might now be empty (delete it as well - otherwise the trace might be broken)
+        if (node->nodes.size() == 0 && node->entries.size() == 0)
+        {
+          // delete last section name (could be partial)
+          removeAll(prefix.chop(suffix.size()));
+        }
 			}
 		}
 	}
@@ -733,6 +735,9 @@ namespace OpenMS
 
 	void Param::store(const String& filename) const
 	{
+    // hint: the handling of 'getTrace()' is vulnerable to an unpruned tree (a path of nodes, but no entries in them), i.e.
+    //       too many closing tags are written to the INI file, but no openening ones.
+    //       This currently cannot happen, as removeAll() was fixed to prune the tree, just keep it in mind.
 
 		//open file
 		ofstream os_;
@@ -805,10 +810,10 @@ namespace OpenMS
 						os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"string\"";
 						break;
 					case DataValue::INT_LIST:
-						os << indentation << " <ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"int\"";
+						os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"int\"";
 						break;
 					case DataValue::DOUBLE_LIST:
-						os << indentation << " <ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"float\"";
+						os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"float\"";
 						break;
 					default:
 						break;
@@ -946,7 +951,8 @@ namespace OpenMS
 		  const std::vector< ParamIterator::TraceInfo >& trace = it.getTrace();
 		  for(std::vector< ParamIterator::TraceInfo >::const_iterator it2 = trace.begin(); it2!=trace.end(); ++it2)
 		  {
-			  indentation.resize(indentation.size()-2);
+        Size ss = indentation.size();
+        indentation.resize(ss-2);
 			  os << indentation << "</NODE>" << "\n";	
 		  }
     }
@@ -1224,7 +1230,7 @@ namespace OpenMS
 		}
 	}
 
-  void Param::update(const Param& old_version, const bool report_new_params)
+  void Param::update(const Param& old_version, const bool report_new_params, const bool only_update_old, Logger::LogStream& stream)
   {
 		// augment
 		for(Param::ParamIterator it = old_version.begin(); it != old_version.end();++it)
@@ -1236,16 +1242,17 @@ namespace OpenMS
 				{	
 					if (this->getValue(it.getName()) != it->value)
 					{
-						LOG_WARN << "Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
+						stream << "Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
 					}
 					continue;
 				}
 				// param 'type': do not override!
-				else if (it.getName().hasSuffix(":type"))
+        else if (it.getName().hasSuffix(":type") && 
+                 it.getName().toQString().count(':')==2) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
 				{	
 					if (this->getValue(it.getName()) != it->value)
 					{
-						LOG_WARN << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
+						stream << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
 					}
 					continue;
 				}
@@ -1262,12 +1269,12 @@ namespace OpenMS
 						if (entry.isValid(s))
 						{
 							// overwrite default value
-							LOG_WARN << "Overriding Default-Parameter '" << it.getName() << "' with new value " << it->value << "\n"; 
+							stream << "Overriding Default-Parameter '" << it.getName() << "' with new value " << it->value << "\n"; 
 							this->setValue(it.getName(),it->value, entry.description, this->getTags(it.getName()));
 						}
 						else
 						{
-							LOG_WARN << "Parameter '" << it.getName() << "' does not fit into new restriction settings! Ignoring..."; 
+							stream << "Parameter '" << it.getName() << "' does not fit into new restriction settings! Ignoring..."; 
 						}
 					}
 					else
@@ -1277,26 +1284,44 @@ namespace OpenMS
 				}
 				else
 				{
-					LOG_WARN << "Parameter '" << it.getName() << "' has changed value type! Ignoring...\n"; 
+					stream << "Parameter '" << it.getName() << "' has changed value type! Ignoring...\n"; 
 				}
 			}
 			else
 			{
-				LOG_WARN << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Ignoring...\n"; 
+        if (!only_update_old)
+        {
+				  stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Ignoring...\n"; 
+        }
+        else
+        {
+          stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! But leaving it there..." << std::endl; 
+          Param::ParamEntry entry = old_version.getEntry (it.getName());
+          String prefix = "";
+          if (it.getName().has(':')) prefix = it.getName().substr(0, 1+it.getName().find_last_of(':'));
+          this->root_.insert(entry, prefix);//->setValue(it.getName(), entry.value, entry.description, entry.tags);
+        }
 			}
 		}
 
     // print new parameters (unique to this Param, but not in old one)
-    if (report_new_params)
-    {
-      // list new parameters not known to old version (just nice to know)
- 		  for(Param::ParamIterator it = this->begin(); it != this->end();++it)
-		  {
-			  if (!old_version.exists(it.getName()))
+    // list new parameters not known to old version (just nice to know)
+	  for(Param::ParamIterator it = this->begin(); it != this->end();/* do nothing */)
+	  {
+		  if (!old_version.exists(it.getName()))
+      {
+        if (report_new_params)
         {
-          LOG_WARN << "Information: New Parameter '" << it.getName() << "' not contained in old parameter file.\n"; 
+          stream << "Information: New Parameter '" << it.getName() << "' not contained in old parameter file.\n"; 
+        }
+        if (only_update_old) 
+        {
+          this->removeAll(it.getName());
+          it = this->begin(); // reset it, as it just became invalid
+          continue;
         }
       }
+      ++it;
     }
 
   }
@@ -1329,13 +1354,17 @@ namespace OpenMS
 		
 	Param::ParamIterator::ParamIterator()
 		: root_(0),
-			current_(0)
+			current_(0),
+      stack_(),
+      trace_()
 	{	
 	}
 	
 	Param::ParamIterator::ParamIterator(const Param::ParamNode& root)
 		: root_(&root),
-			current_(-1)
+			current_(-1),
+      stack_(),
+      trace_()
 	{
 		//Empty Param => begin == end iterator
 		if (root_->entries.size()==0 && root_->nodes.size()==0)

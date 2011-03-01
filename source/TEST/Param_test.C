@@ -977,31 +977,30 @@ START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const)
 END_SECTION
 
 START_SECTION((void remove(const String& key)))
+
+	// this essentially tests removeAll(), as remove() is just an alias
 	Param p2(p);
 	p2.setValue("test:string2","test,test");
 	
 	TEST_EQUAL(p2.size(),7)
-	
-	p2.remove("test");
-	TEST_EQUAL(p2.size(),7)
-	
+
 	p2.remove("test2");
-	TEST_EQUAL(p2.size(),7)
-	
-	p2.remove("test:strin");
-	TEST_EQUAL(p2.size(),7)
+	TEST_EQUAL(p2.size(),4)
 	
 	p2.remove("test:string");
-	TEST_EQUAL(p2.size(),6)
+	TEST_EQUAL(p2.size(),2)
 
-	p2.remove("test:string2");
-	TEST_EQUAL(p2.size(),5)
-
+  p2.remove("test:strin");
+	TEST_EQUAL(p2.size(),2)
+	
 	p2.remove("test:float");
-	TEST_EQUAL(p2.size(),4)
+	TEST_EQUAL(p2.size(),1)
 
 	p2.remove("test:int");
-	TEST_EQUAL(p2.size(),3)
+	TEST_EQUAL(p2.size(),0)
+	
+	p2.remove("test");
+	TEST_EQUAL(p2.size(),0)
 
 END_SECTION
 
@@ -1664,6 +1663,7 @@ START_SECTION((void update(const Param& old_version, const bool report_new_param
   //old.setValue("recently_removed_float",1.1f,"float");  // should not make it into new param
   old.setValue("old_type","a string","string");
   old.setValue("some:version","1.2","old version");
+  old.setValue("some:1:type","unlabeled","type");
   old.setValue("some:type","unlabeled","type");
 	old.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
 	old.setValue("intlist",IntList::create("3"),"intlist");
@@ -1671,12 +1671,14 @@ START_SECTION((void update(const Param& old_version, const bool report_new_param
   Param defaults = common;
   defaults.setValue("old_type",3,"old_type has evolved from string to int"); // as type has changed, this value should be kept
   defaults.setValue("some:version","1.9","new version"); // this value should be kept (due to its reserved name)
-  defaults.setValue("some:type","information","type");   // this value should be kept (due to its reserved name)
+  defaults.setValue("some:1:type","information","type");   // this value should be kept (due to its reserved name at depth 2)
+  defaults.setValue("some:type","information","type");   // this value should NOT be kept (wrong depth)
   defaults.setValue("new_value",3,"new param not present in old");
   
   Param expected = defaults;
 	expected.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
 	expected.setValue("intlist",IntList::create("3"),"intlist");
+  expected.setValue("some:type","unlabeled","type");
   
   // update()
   defaults.update(old);
