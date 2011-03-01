@@ -61,7 +61,7 @@ namespace OpenMS
 			found = without_phospho_str.find("(Phospho)");
 		}
 		AASequence without_phospho(without_phospho_str);
-		Int number_of_STY = without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y");
+		Size number_of_STY = without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y");
 		if(real_spectrum.size() == 0 || number_of_phospho_sites < 1 || number_of_STY == 0)
 		{
 			return PeptideHit(-1,0,hit.getCharge(),without_phospho);
@@ -265,7 +265,7 @@ namespace OpenMS
 			vector<Size>& hps = permutations[ranking.rbegin()->second/*it->second*/]; //highest peptide score
 			for(Size i = 0; i < hps.size(); ++i)
 			{
-				map<DoubleReal,Size>::reverse_iterator rev = ranking.rbegin();
+				multimap<DoubleReal,Size>::reverse_iterator rev = ranking.rbegin();
 				sites[i].first = hps[i];
 				sites[i].seq_1 = rev->second;//it->second;
 				bool peptide_not_found = true;
