@@ -206,7 +206,6 @@ namespace OpenMS
 		 	DoubleReal score_first = -10* log10(P_first);
 		 	DoubleReal score_second = -10* log10(P_second);
 		 	DoubleReal AScore_first = score_first - score_second;
-		 	DoubleReal AScore_second =score_second - score_first;
 		 	phospho.setMetaValue("AScore_"+String(rank),AScore_first);
 		 	++rank;
 		/* 	hp->AScore = AScore_first;
@@ -228,18 +227,24 @@ namespace OpenMS
 		return phospho;
 	}
 	
-	DoubleReal AScore::computeCumulativeScore(UInt N,UInt n, DoubleReal p)
+	DoubleReal AScore::computeCumulativeScore(UInt N, UInt n, DoubleReal p)
 	{
-		if(n > N)	return -1.0;
+		if (n > N)
+		{
+			return -1.0;
+		}
 		DoubleReal score = 0.0;
-		for(UInt k = n; k <= N ; ++k)
+		for (UInt k = n; k <= N ; ++k)
 		{
 			DoubleReal coeff = boost::math::binomial_coefficient<DoubleReal>((DoubleReal)N, k);
-			DoubleReal pow1 = pow((double)p,k);
-			DoubleReal pow2 = pow(double(1-p),double(N-k));
-			score += coeff*pow1*pow2;
+			DoubleReal pow1 = pow((double)p, (int)k);
+			DoubleReal pow2 = pow(double(1 - p), double(N - k));
+			score += coeff * pow1 * pow2;
 		}
-		if(score == 0.0) return 1.0;
+		if (score == 0.0)
+		{
+			return 1.0;
+		}
 		return score;
 	}
 	
