@@ -396,7 +396,7 @@ START_SECTION((DoubleReal getFWHM() const))
 {
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getFWHM(), 2.0 * expected_sigma)
 }
-END_SECTIONs
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
