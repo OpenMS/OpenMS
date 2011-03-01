@@ -426,12 +426,12 @@ namespace OpenMS
 			return;
 		}
 		
-		String file_name = w->getScene()->getSaveFileName();
+		QString file_name = w->getScene()->getSaveFileName().toQString();
 		if (file_name != "")
 		{
       // accept also upper case TOPPAS extensions, since
       // we also support them while loading
-      if (!file_name.toLower().hasSuffix(".toppas"))
+      if (!file_name.endsWith(".toppas", Qt::CaseInsensitive))
 			{
 				file_name += ".toppas";
 			}
