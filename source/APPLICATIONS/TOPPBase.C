@@ -487,7 +487,8 @@ namespace OpenMS
             param_cmdline_.setValue("type", p_tmp.getValue(getIniLocation_() + "type"));
           }
           param_inifile_ = this->getDefaultParameters_();
-          param_inifile_.update(p_tmp, false, true, Logger::LogStream()); // silently update (no not trust INI file), but leave unknown params
+          Logger::LogStream null_stream;
+          param_inifile_.update(p_tmp, false, true, null_stream); // silently update (no not trust INI file), but leave unknown params
         }
         else
         { // fill param with default values:
