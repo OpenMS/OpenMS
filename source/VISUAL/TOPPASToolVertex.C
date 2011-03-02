@@ -820,7 +820,7 @@ namespace OpenMS
 							          + QDir::separator()
                         + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
 							          + QDir::separator();
-            if (f.length()>150) LOG_WARN << "Warning: the temporary path '" << f << "' used in TOPPAS has many characters.\n" 
+						if (f.length()>150) LOG_WARN << "Warning: the temporary path '" << String(f) << "' used in TOPPAS has many characters.\n"
                                          << "         TOPPAS might not be able to write files properly.\n";
 
 						f += QString(input_file_basenames.first()
@@ -843,7 +843,7 @@ namespace OpenMS
 								          + QDir::separator()
 								          + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
 								          + QDir::separator();
-              if (f.length()>150) LOG_WARN << "Warning: the temporary path '" << f << "' used in TOPPAS has many characters.\n" 
+							if (f.length()>150) LOG_WARN << "Warning: the temporary path '" << String(f) << "' used in TOPPAS has many characters.\n"
                                            << "         TOPPAS might not be able to write files properly.\n";
               f += input_file;
 							QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
