@@ -297,7 +297,7 @@ namespace OpenMS
     std::map<Size, std::vector<double> >training_output;
 
     Size spec_index=0;
-    Size x=5;
+    Size x=1;
     //run over all input spectra
     for (PeakMap::const_iterator map_it = spectra.begin(); map_it < spectra.end(); map_it+=x, spec_index+=x)
     {
