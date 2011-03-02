@@ -79,7 +79,7 @@ namespace OpenMS
     }
     TextFile file(filename);
 
-    Param sim_param;
+    Param sim_param = SvmTheoreticalSpectrumGenerator().getDefaults();
     for(Size line_num=1; line_num<file.size(); ++line_num)
     {
       String line(file[line_num]);
@@ -92,7 +92,7 @@ namespace OpenMS
         OpenMS::Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file[line_num]," Invalid entry in SVM model File");
       }
 
-      //load the model into the map      
+      //load the model into the map
       sim_param.setValue("model_file_name", File::path(filename)+"/"+spl[1]);
       simulators_[precursor_charge].setParameters(sim_param);
       simulators_[precursor_charge].load();
