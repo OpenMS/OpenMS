@@ -419,6 +419,157 @@ START_SECTION((bool passes(const ConsensusFeature& consensus_feature) const))
 
 END_SECTION
 
+DataFilters::DataFilter* df_ptr;
+START_SECTION(([DataFilters::DataFilter] DataFilter()))
+{
+  df_ptr = new DataFilters::DataFilter();
+  TEST_NOT_EQUAL(df_ptr, 0)
+
+  delete df_ptr;
+}
+END_SECTION
+
+START_SECTION(([DataFilters::DataFilter] String toString() const ))
+{
+  DataFilters::DataFilter df1;
+  df1.field = DataFilters::INTENSITY;
+  df1.op = DataFilters::LESS_EQUAL;
+  df1.value = 25.3;
+
+  TEST_EQUAL(df1.toString(), "Intensity <= 25.3")
+
+  df1.field = DataFilters::META_DATA;
+  df1.meta_name = "meta-value";
+  df1.op = DataFilters::EXISTS;
+  df1.value_is_numerical = false;
+
+  TEST_EQUAL(df1.toString(), "Meta::meta-value exists")
+
+  df1.op = DataFilters::EQUAL;
+  df1.value_string = "value";
+  TEST_EQUAL(df1.toString(), "Meta::meta-value = \"value\"")
+}
+END_SECTION
+
+START_SECTION(([DataFilters::DataFilter] void fromString(const String &filter)))
+{
+  DataFilters::DataFilter df1;
+  df1.fromString("Intensity <= 25.3");
+  TEST_EQUAL(df1.field, DataFilters::INTENSITY)
+  TEST_EQUAL(df1.op, DataFilters::LESS_EQUAL)
+  TEST_EQUAL(df1.value, 25.3)
+  TEST_EQUAL(df1.value_is_numerical, true)
+
+  DataFilters::DataFilter df2;
+  df2.fromString("Meta::meta-value exists");
+  TEST_EQUAL(df2.field, DataFilters::META_DATA)
+  TEST_EQUAL(df2.op, DataFilters::EXISTS)
+  TEST_EQUAL(df2.meta_name, "meta-value")
+
+  DataFilters::DataFilter df3;
+  df3.fromString("Meta::meta-value = \"value\"");
+  TEST_EQUAL(df3.field, DataFilters::META_DATA)
+  TEST_EQUAL(df3.op, DataFilters::EQUAL)
+  TEST_EQUAL(df3.meta_name, "meta-value")
+  TEST_EQUAL(df3.value_string, "value")
+  TEST_EQUAL(df3.value_is_numerical, false)
+
+  // test some wrong cases
+  DataFilters::DataFilter exception_filter;
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Intensity <> 24.5"))
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Intensity < 24.5"))
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Insenity = 2.0"))
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Charge = text-value"))
+}
+END_SECTION
+
+START_SECTION(([DataFilters::DataFilter] bool operator==(const DataFilter &rhs) const ))
+{
+  DataFilters::DataFilter df1,df2,df3;
+
+  TEST_EQUAL(df1==df2, true)
+
+  // field
+  df1.field = DataFilters::CHARGE;
+  df2.field = DataFilters::CHARGE;
+  df3.field = DataFilters::INTENSITY;
+
+  TEST_EQUAL(df1==df2,true)
+  TEST_EQUAL(df1==df3,false)
+  df3.field = DataFilters::CHARGE;
+
+  // op
+  df1.op = DataFilters::EQUAL;
+  df2.op = DataFilters::EQUAL;
+  df3.op = DataFilters::GREATER_EQUAL;
+
+  TEST_EQUAL(df1==df2,true)
+  TEST_EQUAL(df1==df3,false)
+  df3.op = DataFilters::EQUAL;
+
+  // value_is_numerical
+  df1.value = 0.0;
+  df2.value = 0.0;
+  df3.value = 0.2;
+
+  TEST_EQUAL(df1==df2,true)
+  TEST_EQUAL(df1==df3,false)
+
+  // TODO
+  // the other fields are not tested .. check this
+  // String value for comparison (for meta data)
+  // String value_string;
+  // Name of the considered meta information
+  // String meta_name;
+  // Bool value that indicates if the specified value is numerical
+  // bool value_is_numerical;
+}
+END_SECTION
+
+START_SECTION(([DataFilters::DataFilter] bool operator!=(const DataFilter &rhs) const ))
+{
+  DataFilters::DataFilter df1,df2,df3;
+
+  TEST_EQUAL(df1==df2, true)
+
+  // field
+  df1.field = DataFilters::CHARGE;
+  df2.field = DataFilters::CHARGE;
+  df3.field = DataFilters::INTENSITY;
+
+  TEST_EQUAL(df1!=df2,false)
+  TEST_EQUAL(df1!=df3,true)
+  df3.field = DataFilters::CHARGE;
+
+  // op
+  df1.op = DataFilters::EQUAL;
+  df2.op = DataFilters::EQUAL;
+  df3.op = DataFilters::GREATER_EQUAL;
+
+  TEST_EQUAL(df1!=df2,false)
+  TEST_EQUAL(df1!=df3,true)
+  df3.op = DataFilters::EQUAL;
+
+  // value_is_numerical
+  df1.value = 0.0;
+  df2.value = 0.0;
+  df3.value = 0.2;
+
+  TEST_EQUAL(df1!=df2,false)
+  TEST_EQUAL(df1!=df3,true)
+
+  // TODO
+  // the other fields are not tested .. check this
+  // String value for comparison (for meta data)
+  // String value_string;
+  // Name of the considered meta information
+  // String meta_name;
+  // Bool value that indicates if the specified value is numerical
+  // bool value_is_numerical;
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
