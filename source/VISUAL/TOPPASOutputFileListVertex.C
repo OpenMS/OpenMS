@@ -145,10 +145,14 @@ namespace OpenMS
 					std::cerr << "The file '" << String(f) << "' does not exist!" << std::endl;
 					continue;
 				}
-				QString new_file = parent_dir + QDir::separator() + getOutputDir().toQString()+QDir::separator()+File::basename(f).toQString();
+				QString new_file = parent_dir 
+                           + QDir::separator()
+                           + getOutputDir().toQString()
+                           + QDir::separator()
+                           + File::basename(f).toQString().left(190); // ensure 190 char filename (we might append more and reach ~NTFS limit)
 				if (new_file.endsWith("_tmp"))
 				{
-					new_file.truncate(new_file.size() - 4);
+					new_file.chop(4);
 				}
 				new_file += "_processed";
 				// get file type and rename
@@ -157,6 +161,9 @@ namespace OpenMS
 				{
 					new_file += "."+(FileHandler::typeToName(ft)).toQString();
 				}
+
+        new_file = QDir::toNativeSeparators(new_file);
+
 				if (File::exists(new_file))
 				{
 					QFile::remove(new_file);
@@ -214,26 +221,6 @@ namespace OpenMS
     return files_;
   }
 
-  /*
-	void TOPPASOutputFileListVertex::openInTOPPView()
-	{
-		QProcess* p = new QProcess();
-		p->setProcessChannelMode(QProcess::ForwardedChannels);
-    QString toppview_executable;
-    toppview_executable = "TOPPView";
-
-    p->start(toppview_executable, files_);
-    if(!p->waitForStarted())
-    {
-      // execution failed
-      std::cerr << p->errorString().toStdString() << std::endl;
-#if defined(Q_WS_MAC)
-      std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
-#endif
-
-    }
-	}
-  */
 	bool TOPPASOutputFileListVertex::isFinished()
 	{
 		return finished_;
