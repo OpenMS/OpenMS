@@ -59,78 +59,72 @@ namespace OpenMS
   /**
    * @brief number of peptides [i.e. number of labelled peptides +1, e.g. for SILAC triplet =3]
    */
-   Int numberOfPeptides;
+   Int number_of_peptides_;
 
   /**
    * @brief charge of the ions to search for
    */
-   Int charge;
+   Int charge_;
 
   /**
    * @brief number of peaks per peptide to search for
    */
-   Int isotopes_per_peptide;
+   Int isotopes_per_peptide_;
 
   /**
    * @brief mass shift(s) in [Da] to search for
    */
-   std::vector<DoubleReal> mass_separations;
+   std::vector<DoubleReal> mass_separations_;
 
   /**
    * @brief peak positions of SILAC pattern
    */
-   std::vector<DoubleReal> peak_positions;
+   std::vector<DoubleReal> peak_positions_;
 
   /**
   * @brief m/z separtion between individual peptides [e.g. {0 Th, 4 Th, 5 Th}]
   */
-  std::vector<DoubleReal> mz_peptide_separations;
+  std::vector<DoubleReal> mz_peptide_separations_;
 
   /**
   * @brief m/z shifts relative to mono-isotopic peak of unlabelled peptide
   */
-  std::vector<DoubleReal> expectedMZshifts;
+  std::vector<DoubleReal> expected_mz_shifts_;
 
-     /**
+  /**
    * @brief distance between isotopic peaks of a peptide in [Th]
    */
-   DoubleReal isotope_distance;
+   DoubleReal isotope_distance_;
 
   /**
    * @brief holds the recognized features
    */
-   std::vector<DataPoint> elements;
+   std::vector<DataPoint> elements_;
 
   /**
    * @brief maximal value of which a predicted SILAC feature may deviate from the averagine model
    */
-   DoubleReal model_deviation;
+   DoubleReal model_deviation_;
 
   /**
    * @brief m/z at which the filter is currently applied to
    */
-   DoubleReal current_mz;
+   DoubleReal current_mz_;
 
   /**
    * @brief exact m/z shift of isotopic peaks in a SILAC pattern relative to the mono-isotopic peak of the light peptide, peptides (row) x isotope (column)
    */
-   std::vector<std::vector<DoubleReal> > exact_shifts;
+   std::vector<std::vector<DoubleReal> > exact_shifts_;
 
   /**
    * @brief intensities at mz + exact_shifts in a SILAC pattern, where mz is the m/z of the mono-isotopic peak of light peptide
    */
-   std::vector<std::vector<DoubleReal> > exact_intensities;
+   std::vector<std::vector<DoubleReal> > exact_intensities_;
 
   /**
    * @brief expected m/z shift of isotopic peaks in a SILAC pattern relative to the mono-isotopic peak of the light peptide, peptides (row) x isotope (column)
    */
-   std::vector<std::vector<DoubleReal> > expected_shifts;
-
-  /**
-   * @brief returns the predicted peak width at position mz
-   * @param mz mz position of the peak
-   */
-   static DoubleReal getPeakWidth(DoubleReal mz);
+   std::vector<std::vector<DoubleReal> > expected_shifts_;
 
   /**
    * @brief Computes the actual m/z shift between the position mz and a region about expectedMzShift away. Returns -1 if there is no correlation between mz and signal in interval [mz + expectedMzShift - maxMzDeviation, mz + expectedMzShift + maxMzDeviation].
@@ -146,7 +140,34 @@ namespace OpenMS
    * @param rt RT value of the position
    * @param mz m/z value of the position
    */
-   bool isSILACPattern(DoubleReal rt, DoubleReal mz);
+   bool isSILACPattern(DoubleReal rt, DoubleReal mz);  
+
+   public:  
+
+  /**
+   * @brief default constructor
+   */
+   SILACFilter();
+
+  /**
+   * @brief detailed constructor for SILAC pair filtering
+   * @param mass_separations all mass shifts of the filter
+   * @param charge charge of the ions to search for
+   * @param model_deviation maximum deviation from the averagine model
+   * @param isotopes_per_peptide number of peaks per petide to search for
+   */
+   SILACFilter(std::vector<DoubleReal> mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide);
+
+  /**
+   * @brief destructor
+   */
+   virtual ~SILACFilter();
+
+  /**
+   * @brief returns the predicted peak width at position mz
+   * @param mz mz position of the peak
+   */
+   static DoubleReal getPeakWidth(DoubleReal mz);
 
   /**
    * @brief gets the m/z values of all peaks , which belong the last identified feature
@@ -156,43 +177,7 @@ namespace OpenMS
   /**
    * @brief gets the m/z shifts relative to mono-isotopic peak of unlabelled peptide
    */
-   std::vector<DoubleReal> getExpectedMZshifts();
-
-   public:
-
-  /**
-   * @brief double identifier (2)
-   */
-   static const Int DOUBLE = 2;
-
-  /**
-   * @brief triple identifier (3)
-   */
-   static const Int TRIPLE = 3;
-
-  /**
-   * @brief returns the SILAC type of the filter. Either DOUBLE (2) or TRIPLE (3)
-   */
-   Int getSILACType();
-
-  /**
-   * @brief detailed constructor for SILAC pair filtering
-   * @param mass_separations_ all mass shifts of the filter
-   * @param charge_ charge of the ions to search for
-   * @param model_deviation_ maximum deviation from the averagine model
-   * @param isotopes_per_peptide_ number of peaks per petide to search for
-   */
-   SILACFilter(std::vector<DoubleReal> mass_separations_, Int charge_, DoubleReal model_deviation_, Int isotopes_per_peptide_);
-
-  /**
-   * @brief destructor
-   */
-   virtual ~SILACFilter();
-
-  /**
-   * @brief returns the distance between two isotope peaks
-   */
-   DoubleReal getIsotopeDistance();
+   std::vector<DoubleReal> getExpectedMzShifts();
 
   /**
    * @brief returns all identified elements

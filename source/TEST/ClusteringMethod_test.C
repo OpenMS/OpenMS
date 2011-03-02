@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -22,58 +22,56 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
+// $Authors: Lars Nilse, Holger Plattfaut $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_CENTROIDLINKAGE_H
-#define OPENMS_COMPARISON_CLUSTERING_CENTROIDLINKAGE_H
+#include <OpenMS/CONCEPT/ClassTest.h>
 
+///////////////////////////
 #include <OpenMS/COMPARISON/CLUSTERING/ClusteringMethod.h>
+///////////////////////////
 
-namespace OpenMS
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(ClusteringMethod, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+ClusteringMethod* ptr = 0;
+START_SECTION(ClusteringMethod())
 {
-
-/**
- * @brief Clustering method with computes the distances of two clusters as the distance of their cluster centroids.
- *
- * Also known as <i>Unweighted Pair-Group Method using Centroids</i>, or UPGMC.
- * @ingroup SpectraClustering
- */
-
-  class OPENMS_DLLAPI CentroidLinkage : public ClusteringMethod {
-  public:
-
-  /**
-   * @brief default constructor
-   */
-   CentroidLinkage();
-
-  /**
-   * @brief destructor
-   */
-   ~CentroidLinkage();
-
-  /**
-	 * @brief detailed constructor
-	 * @param rt_scaling_ value fpr sclaling distances in RT direction
-	 */
-   CentroidLinkage(DoubleReal rt_scaling_);
-
-  /**
-	 * @brief gets the distance between two DataSubsets
-	 * @param subset1 first subset
-	 * @param subset2 second subset
-	 */
-   DoubleReal getDistance(DataSubset& subset1,DataSubset& subset2);
-
-  /**
-	 * @brief gets the distance between two DataPoints
-	 * @param DataPoint1 first data point
-	 * @param DataPoint1 second data point
-	 */
-   DoubleReal getDistance(DataPoint& point1,DataPoint& point2);
-
-  };
+	NOT_TESTABLE
 }
+END_SECTION
 
-#endif /* CENTROIDLINKAGE_H_ */
+START_SECTION(~ClusteringMethod())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((ClusteringMethod(DoubleReal rt_scaling_)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((virtual DoubleReal getDistance(DataSubset &subset1, DataSubset &subset2)=0))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((virtual DoubleReal getDistance(DataPoint &point1, DataPoint &point2)=0))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+

@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
 // --------------------------------------------------------------------------
 
 
@@ -37,65 +37,71 @@
 namespace OpenMS
 {
 
-  typedef std::map<std::pair<int,int>, std::list<GridElement*> > GridElements;
+  typedef std::map<std::pair<int, int>, std::list<GridElement*> > GridElements;
 
-  HashClustering::HashClustering(std::vector<DataPoint>& data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod& method_) : grid(HashGrid(rt_threshold,mz_threshold))
+  HashClustering::HashClustering(std::vector<DataPoint>& data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod& method)
+    : grid_(HashGrid(rt_threshold, mz_threshold))
   {
     if(data.size() < 2)
     {
       throw InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The data set contains not enough elements");
     }
 
-    method=&method_;
+    method_ =&method;
 
     for (std::vector<DataPoint>::iterator it = data.begin(); it != data.end(); ++it)
     {
-      grid.insert(new DataSubset(*it));
+      grid_.insert(new DataSubset(*it));
     }
     init();
   }
 
+  HashClustering::~HashClustering()
+  {
+
+  }
+
   DoubleReal HashClustering::getDistance(DataSubset& subset1, DataSubset& subset2)
   {
-    return method->getDistance(subset1, subset2);
+    return method_->getDistance(subset1, subset2);
   }
 
   DoubleReal HashClustering::getDistance(DataPoint& point1, DataPoint& point2)
   {
-    return method->getDistance(point1, point2);
+    return method_->getDistance(point1, point2);
   }
 
   // Calculate initial distances
   void HashClustering::init()
   {
-    min_distance=std::numeric_limits<DoubleReal>::max();
-    min_distance_subsets=std::make_pair((DataSubset*)0, (DataSubset*)0);
+    min_distance_ = std::numeric_limits<DoubleReal>::max();
+    min_distance_subsets_ = std::make_pair((DataSubset*)0, (DataSubset*)0);
     // Iterate over all cells in the grid
-    for (GridElements::iterator it = grid.begin();it != grid.end(); ++it)
+    for (GridElements::iterator it = grid_.begin(); it != grid_.end(); ++it)
     {
-      std::pair<int,int> act_coords = it->first;
+      std::pair<int ,int> act_coords = it->first;
       std::list<GridElement*>& elements = it->second;
-      int x=act_coords.first;
-      int y=act_coords.second;
+      int x = act_coords.first;
+      int y = act_coords.second;
 
       // Iterate over the upper right cells and calculate the distances between the elements of the current cell and this five neighbor cells
       for (int i = x - 1; i <= x + 1; ++i)
       {
-        if (i < 0 || i > grid.getGridSizeX())
+        if (i < 0 || i > grid_.getGridSizeX())
         {
           continue;
         }
 
-        for (int j=y;j<=y+1;++j)
+        for (int j = y; j <= y + 1; ++j)
         {
-          if (j < 0 || j > grid.getGridSizeY() || (i == x - 1 && j == y))
+          if (j < 0 || j > grid_.getGridSizeY() || (i == x - 1 && j == y))
           {
             continue;
           }
 
-          GridElements::iterator act_pos = grid.find(std::make_pair(i, j));
+          GridElements::iterator act_pos = grid_.find(std::make_pair(i, j));
 
-          if (act_pos == grid.end())
+          if (act_pos == grid_.end())
           {
             continue;
           }
@@ -106,7 +112,7 @@ namespace OpenMS
           {
             for (std::list<GridElement*>::iterator neighbor_element = neighbor_elements.begin(); neighbor_element != neighbor_elements.end(); ++neighbor_element)
             {
-              if ((i == x && j == y && (*current_element)->getID()>(*neighbor_element)->getID()) || *current_element == *neighbor_element)
+              if ((i == x && j == y && (*current_element)->getID() > (*neighbor_element)->getID()) || *current_element == *neighbor_element)
               {
                 continue;
               }
@@ -116,17 +122,17 @@ namespace OpenMS
               DoubleReal act_distance=getDistance(*element_ptr, *neighbor_ptr);
 
               // Store distances in distance map
-              std::pair<DistanceSet::iterator,bool> position = distances.insert(DistanceEntry(element_ptr, neighbor_ptr,act_distance));
+              std::pair<DistanceSet::iterator,bool> position = distances_.insert(DistanceEntry(element_ptr, neighbor_ptr, act_distance));
 
               if (position.second)
               {
                 // If distance was inserted, insert a pointer to this distance in the current DataSubset
                 element_ptr->distance_iterators.insert(std::make_pair(neighbor_ptr, position.first));
                 // Remember minimal distance and corresponding DataSubsets
-                if (act_distance < min_distance)
+                if (act_distance < min_distance_)
                 {
-                  min_distance = act_distance;
-                  min_distance_subsets=std::make_pair(element_ptr, neighbor_ptr);
+                  min_distance_ = act_distance;
+                  min_distance_subsets_ = std::make_pair(element_ptr, neighbor_ptr);
                 }
               }
             }
@@ -144,30 +150,30 @@ namespace OpenMS
     // Merge the two subtrees of the minimal distance DataSubset, append a new node and insert it to the first DataSubset
 
     // check if one of the two pointer is a NULL pointer
-    if (min_distance_subsets.first == 0 || min_distance_subsets.second == 0)
+    if (min_distance_subsets_.first == 0 || min_distance_subsets_.second == 0)
     {
       return;
     }
 
     // Determine that the id of the first element is always smaller than the id of the second element
-    if (min_distance_subsets.first->data_points.front() > min_distance_subsets.second->data_points.front())
+    if (min_distance_subsets_.first->data_points.front() > min_distance_subsets_.second->data_points.front())
     {
-      std::swap(min_distance_subsets.first, min_distance_subsets.second);
+      std::swap(min_distance_subsets_.first, min_distance_subsets_.second);
     }
 
-    std::vector<SILACTreeNode>& tree1 = min_distance_subsets.first->tree;
-    std::vector<SILACTreeNode>& tree2 = min_distance_subsets.second->tree;
+    std::vector<SILACTreeNode>& tree1 = min_distance_subsets_.first->tree;
+    std::vector<SILACTreeNode>& tree2 = min_distance_subsets_.second->tree;
     tree1.insert(tree1.end(), tree2.begin(), tree2.end());
-    SILACTreeNode act_node = SILACTreeNode(min_distance_subsets.first->data_points.front(), min_distance_subsets.second->data_points.front(), min_distance);
+    SILACTreeNode act_node = SILACTreeNode(min_distance_subsets_.first->data_points.front(), min_distance_subsets_.second->data_points.front(), min_distance_);
 
     // Append the new node
     tree1.insert(tree1.end(), 1, act_node);
-    DataSubset& subset1=*min_distance_subsets.first;
-    DataSubset& subset2=*min_distance_subsets.second;
+    DataSubset& subset1=*min_distance_subsets_.first;
+    DataSubset& subset2=*min_distance_subsets_.second;
 
     // Remember old position
-    int x = subset1.mz / grid.getMZThreshold();
-    int y = subset1.rt / grid.getRTThreshold();
+    int x = subset1.mz / grid_.getMZThreshold();
+    int y = subset1.rt / grid_.getRTThreshold();
 
     // Calculate new centroid
     DoubleReal mz_centroid = (subset1.mz * subset1.size()) + (subset2.mz * subset2.size());
@@ -179,31 +185,31 @@ namespace OpenMS
 
     // Insert all data points from subset2 to subset1
     subset1.data_points.insert(subset1.data_points.end(), subset2.data_points.begin(), subset2.data_points.end());
-    grid.removeElement(&subset2);
+    grid_.removeElement(&subset2);
 
     // Calculate new position
-    int x_new = subset1.mz / grid.getMZThreshold();
-    int y_new = subset1.rt / grid.getRTThreshold();
+    int x_new = subset1.mz / grid_.getMZThreshold();
+    int y_new = subset1.rt / grid_.getRTThreshold();
 
     // Iterate over all distances from subset1 and recalculate them
     for (IteratorMap::iterator dist_it = subset1.distance_iterators.begin(); dist_it != subset1.distance_iterators.end();)
     {
       DistanceEntry entry =* (dist_it->second);
-      int n_x = entry.data_point->mz / grid.getMZThreshold();
-      int n_y = entry.data_point->rt / grid.getRTThreshold();
+      int n_x = entry.data_point->mz / grid_.getMZThreshold();
+      int n_y = entry.data_point->rt / grid_.getRTThreshold();
 
       DoubleReal new_distance = getDistance(subset1, *(entry.data_point));
 
       // Check, if the distance is valid, i.e. the DataSubset, to which the distance points, lies in one of the four upper right cells and the distance does not point from subset1 to itself or subset2. Delete it instead.
       if (abs(x_new - n_x) >= 2 || abs(y_new - n_y) >= 2 || (y_new > n_y) || (y_new == n_y && x_new == n_x + 1) || (x_new == n_x && y_new == n_y) || entry.data_point->getID() == entry.owner->getID() || entry.data_point == &subset2)
       {
-        distances.erase(dist_it->second);
+        distances_.erase(dist_it->second);
         subset1.distance_iterators.erase(dist_it++);
       }
       else
       {
         entry.distance = new_distance;
-        distances.replace(dist_it->second,entry);
+        distances_.replace(dist_it->second, entry);
         ++dist_it;
       }
     }
@@ -211,21 +217,21 @@ namespace OpenMS
     for (IteratorMap::iterator dist_it = subset2.distance_iterators.begin(); dist_it != subset2.distance_iterators.end(); ++dist_it)
     {
       DistanceEntry entry = *(dist_it->second);
-      int n_x = entry.data_point->mz /  grid.getMZThreshold();
-      int n_y = entry.data_point->rt /  grid.getRTThreshold();
+      int n_x = entry.data_point->mz /  grid_.getMZThreshold();
+      int n_y = entry.data_point->rt /  grid_.getRTThreshold();
 
       DoubleReal new_distance=getDistance(subset1, *(entry.data_point));
 
       // Check, if the distance is valid, i.e. the DataSubset, to which the distance points, lies in one of the four upper right cells and the distance does not point from subset2 to itself or subset1. Delete it instead.
       if (abs(x_new - n_x) >= 2 || abs(y_new - n_y) >= 2 || (y_new > n_y) || (y_new == n_y && x_new == n_x + 1) || (x_new == n_x && y_new == n_y) || entry.data_point->getID() == entry.owner->getID() || entry.data_point == &subset1)
       {
-        distances.erase(dist_it->second);
+        distances_.erase(dist_it->second);
       }      
       else
       {
         entry.owner = &subset1;
         entry.distance = new_distance;
-        bool replaced = distances.replace(dist_it->second,entry);
+        bool replaced = distances_.replace(dist_it->second,entry);
 
         if (replaced)
         {
@@ -233,7 +239,7 @@ namespace OpenMS
         }
         else
         {
-          distances.erase(dist_it->second);
+          distances_.erase(dist_it->second);
         }
       }
     }
@@ -241,15 +247,15 @@ namespace OpenMS
     std::set<std::pair<int, int> > traverse_set;
     if (x != x_new || y != y_new)
     {
-      grid.removeElement(&subset1, x, y);
-      grid.insert(&subset1);
+      grid_.removeElement(&subset1, x, y);
+      grid_.insert(&subset1);
       for (int i = x_new - 1; i <= x_new + 1; ++i)
       {
-        if (i < 0 || i > grid.getGridSizeX())
+        if (i < 0 || i > grid_.getGridSizeX())
           continue;
         for (int j = y_new - 1; j <= y_new; ++j)
         {
-          if (j < 0 || j > grid.getGridSizeY() || (i == x_new + 1 && j == y_new))
+          if (j < 0 || j > grid_.getGridSizeY() || (i == x_new + 1 && j == y_new))
             continue;
           traverse_set.insert(std::make_pair(i, j));
         }
@@ -257,25 +263,25 @@ namespace OpenMS
     }
     for (int i = x - 1; i <= x + 1; ++i)
     {
-      if (i < 0 || i > grid.getGridSizeX())
+      if (i < 0 || i > grid_.getGridSizeX())
         continue;
 
       for (int j = y - 1; j <= y; ++j)
       {
-        if (j < 0 || j > grid.getGridSizeY() || (i == x + 1 && j == y))
+        if (j < 0 || j > grid_.getGridSizeY() || (i == x + 1 && j == y))
           continue;
         traverse_set.insert(std::make_pair(i, j));
       }
     }
-    x = subset2.mz / grid.getMZThreshold();
-    y = subset2.rt / grid.getRTThreshold();
+    x = subset2.mz / grid_.getMZThreshold();
+    y = subset2.rt / grid_.getRTThreshold();
     for (int i = x - 1; i <= x + 1; ++i)
     {
-      if (i < 0 || i > grid.getGridSizeX())
+      if (i < 0 || i > grid_.getGridSizeX())
         continue;
       for (int j = y - 1; j <= y; ++j)
       {
-        if (j < 0 || j > grid.getGridSizeY() || (i == x + 1 && j == y))
+        if (j < 0 || j > grid_.getGridSizeY() || (i == x + 1 && j == y))
           continue;
         traverse_set.insert(std::make_pair(i, j));
       }
@@ -286,8 +292,8 @@ namespace OpenMS
     {
       x = set_it->first;
       y = set_it->second;
-      ElementMap::iterator act_pos = grid.find(std::make_pair(x, y));
-      if (act_pos == grid.end())
+      ElementMap::iterator act_pos = grid_.find(std::make_pair(x, y));
+      if (act_pos == grid_.end())
         continue;
       std::list<GridElement*>& neighbor_elements=act_pos->second;
 
@@ -301,7 +307,7 @@ namespace OpenMS
         IteratorMap::iterator pos = neighbor_ptr->distance_iterators.find(&subset2);
         if (pos!=neighbor_ptr->distance_iterators.end())
         {
-          distances.erase(pos->second);
+          distances_.erase(pos->second);
           neighbor_ptr->distance_iterators.erase(pos);
         }
         pos=neighbor_ptr->distance_iterators.find(&subset1);
@@ -311,7 +317,7 @@ namespace OpenMS
         {
           if (pos != neighbor_ptr->distance_iterators.end())
           {
-            distances.erase(pos->second);
+            distances_.erase(pos->second);
             neighbor_ptr->distance_iterators.erase(pos);
           }
         }
@@ -321,31 +327,31 @@ namespace OpenMS
         {
           if (pos != neighbor_ptr->distance_iterators.end())
           {
-            distances.replace(pos->second, DistanceEntry(neighbor_ptr, &subset1, act_distance));
+            distances_.replace(pos->second, DistanceEntry(neighbor_ptr, &subset1, act_distance));
           }
           else
           {
-            std::pair<DistanceSet::iterator, bool> new_pos = distances.insert(DistanceEntry(neighbor_ptr, &subset1, act_distance));
+            std::pair<DistanceSet::iterator, bool> new_pos = distances_.insert(DistanceEntry(neighbor_ptr, &subset1, act_distance));
             neighbor_ptr->distance_iterators.insert(std::make_pair(&subset1, new_pos.first));
           }
         }
       }
     }
-    delete(min_distance_subsets.second);
+    delete(min_distance_subsets_.second);
   }
 
 
   void HashClustering::updateMinElements()
   {
-    DistanceSet::index<Dist>::type& dist_elements = distances.get<Dist>();
+    DistanceSet::index<Dist>::type& dist_elements = distances_.get<Dist>();
 
     // Since the distance set is sorted by the distances, it is sufficient to take the first element as the minimal distance element
     DistanceSet::index<Dist>::type::iterator dist_pos = dist_elements.begin();
     if (dist_pos!=dist_elements.end())
     {
       DistanceEntry entry =* dist_pos;
-      min_distance = entry.distance;
-      min_distance_subsets=std::make_pair(entry.owner, entry.data_point);
+      min_distance_ = entry.distance;
+      min_distance_subsets_ = std::make_pair(entry.owner, entry.data_point);
     }
   }
 
@@ -359,7 +365,7 @@ namespace OpenMS
       // Find the two new minimal distance DataSubsets
       updateMinElements();
     }
-    while(distances.size() > 0);
+    while(distances_.size() > 0);
   }
 
 
@@ -662,7 +668,7 @@ namespace OpenMS
   void HashClustering::getSubtrees(std::vector<std::vector<SILACTreeNode> >& subtrees)
   {
     // Extract the subtrees and append them to the subtree vector
-    for (ElementMap::iterator it = grid.begin(); it != grid.end(); ++it)
+    for (ElementMap::iterator it = grid_.begin(); it != grid_.end(); ++it)
     {
       std::list<GridElement*>& elements = it->second;
       for (std::list<GridElement*>::iterator lit = elements.begin(); lit != elements.end(); ++lit)
@@ -687,7 +693,7 @@ namespace OpenMS
     Size cluster_id = 0;
 
     // Run silhoutte optimization for all subtrees and find the appropriate best_n
-    for (ElementMap::iterator it = grid.begin(); it != grid.end(); ++it)
+    for (ElementMap::iterator it = grid_.begin(); it != grid_.end(); ++it)
     {
       std::list<GridElement*>& elements=it->second;
       for (std::list<GridElement*>::iterator lit = elements.begin(); lit != elements.end(); ++lit)
@@ -707,7 +713,7 @@ namespace OpenMS
         }
         sort(subset_ptr->tree.begin(), subset_ptr->tree.end());
         std::vector< Real > asw = averageSilhouetteWidth(*subset_ptr);
-        silhouettes.push_back(asw);
+        silhouettes_.push_back(asw);
 
         // Look only in the front area of the silhoutte values to avoid getting the wrong number
         std::vector< Real >::iterator max_el(max_element(asw.begin() + 0.9 * asw.size(), asw.end()));
@@ -755,7 +761,7 @@ namespace OpenMS
 
   std::vector<std::vector<Real> > HashClustering::getSilhouetteValues()
   {
-    return silhouettes;
+    return silhouettes_;
   }
 
   HashClustering::InsufficientInput::InsufficientInput(const char* file, int line, const char* function, const char* message) throw()

@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
 // --------------------------------------------------------------------------
 
 
@@ -36,40 +36,50 @@
 namespace OpenMS
 {
 
-/**
- * @brief Base class for all distance computing hierarchical clustering methods, which are used in HashClustering.
- * @see HashClustering
- * @ingroup SpectraClustering
- */
+  /**
+   * @brief Base class for all distance computing hierarchical clustering methods, which are used in HashClustering.
+   * @see HashClustering
+   * @ingroup SpectraClustering
+   */
 
-class OPENMS_DLLAPI ClusteringMethod {
+  class OPENMS_DLLAPI ClusteringMethod {
 
-public:
-	/**
+  public:
+  /**
 	 * @brief scale the distances in RT direction to get more oval clusters
 	 */
-	DoubleReal rt_scaling;
-	/**
+   DoubleReal rt_scaling;
+
+  /**
 	 * @brief default constructor
 	 */
-	ClusteringMethod();
-	/**
+   ClusteringMethod();
+
+  /**
 	 * @brief detailed constructor
 	 * @param rt_scaling value for scaling the distances in RT direction
 	 */
-	ClusteringMethod(DoubleReal rt_scaling_);
-	/**
+   ClusteringMethod(DoubleReal rt_scaling_);
+
+  /**
+   * @brief destructor
+   */
+   virtual ~ClusteringMethod();
+
+  /**
 	 * @brief gets the distance between two DataSubsets (calculation may be different than distance calculation of two DataPoints)
 	 * @param subset1 first subset
 	 * @param subset2 second subset
 	 */
-	virtual DoubleReal getDistance(DataSubset& subset1,DataSubset& subset2) = 0;
-	/**
+   virtual DoubleReal getDistance(DataSubset& subset1,DataSubset& subset2) = 0;
+
+  /**
 	 * @brief gets the distance between two DataPoints
 	 * @param DataPoint1 first data point
 	 * @param DataPoint1 second data point
 	 */
-	virtual DoubleReal getDistance(DataPoint& point1,DataPoint& point2) = 0;
-};
+   virtual DoubleReal getDistance(DataPoint& point1,DataPoint& point2) = 0;
+
+  };
 }
 #endif /* CLUSTERINGMETHOD_H_ */

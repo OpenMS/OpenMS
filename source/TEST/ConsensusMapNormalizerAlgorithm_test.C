@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,28 +21,52 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
+// $Maintainer: Lars Nilse$
+// $Authors: Hendrik Brauer, Oiver Kohlbacher$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusteringMethod.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-namespace OpenMS
+///////////////////////////
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithm.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(ConsensusMapNormalizerAlgorithm, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+ConsensusMapNormalizerAlgorithm* ptr = 0;
+START_SECTION(ConsensusMapNormalizerAlgorithm())
 {
-  ClusteringMethod::ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::~ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::ClusteringMethod(DoubleReal rt_scaling_)
-  {
-    rt_scaling=rt_scaling_;
-  }
+	ptr = new ConsensusMapNormalizerAlgorithm();
+	TEST_NOT_EQUAL(ptr, 0)
 }
+END_SECTION
 
+START_SECTION(~ConsensusMapNormalizerAlgorithm())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((static std::vector<double> computeCorrelation(const ConsensusMap &map, const double &ratio_threshold)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((static void normalizeMaps(ConsensusMap &map, const std::vector< double > &ratios)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
 

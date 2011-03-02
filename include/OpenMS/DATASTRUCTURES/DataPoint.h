@@ -98,7 +98,8 @@ public:
 	DataPoint(const DataPoint &copyin);
 	
 	/// destructor
-	~DataPoint(){};
+  ~DataPoint(){};
+
   DataPoint& operator = (const DataPoint &rhs);
   bool operator == (const DataPoint &rhs) const;
   bool operator != (const DataPoint &rhs) const;

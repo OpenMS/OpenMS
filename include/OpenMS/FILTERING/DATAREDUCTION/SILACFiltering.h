@@ -36,9 +36,9 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
-#include<list>
-#include<map>
-#include<vector>
+#include <list>
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -59,59 +59,64 @@ namespace OpenMS
   /**
    * @brief holds all filters used in the filtering
    */
-   std::list<SILACFilter*> filters;
+   std::list<SILACFilter*> filters_;
 
   /**
    * @brief average m/z distance between scanned data points
    */
-   static DoubleReal mz_stepwidth;
+   DoubleReal mz_stepwidth_;
 
   /**
    * @brief minimal intensity of SILAC features
    */
-   static DoubleReal intensity_cutoff;
+   static DoubleReal intensity_cutoff_;
 
   /**
    * @brief minimal intensity correlation between regions of different peaks
    */
-   static DoubleReal intensity_correlation;
+   static DoubleReal intensity_correlation_;
 
   /**
    * @brief flag for missing peaks
    */
-   static bool allow_missing_peaks;
+   static bool allow_missing_peaks_;
 
-   static gsl_interp_accel* current_aki;
-   static gsl_interp_accel* current_spl;
-   static gsl_spline* spline_aki;
-   static gsl_spline* spline_spl;
+   static gsl_interp_accel* current_aki_;
+   static gsl_interp_accel* current_spl_;
+   static gsl_spline* spline_aki_;
+   static gsl_spline* spline_spl_;
 
   /**
    * @brief current feature id
    */
-   static Int feature_id;
+   static Int feature_id_;
 
   /**
    * @brief lowest m/z value of the experiment
    */
-   static DoubleReal mz_min;
+   static DoubleReal mz_min_;
 
   /**
    * @brief raw data
    */
-   MSExperiment<Peak1D>& exp;
+   MSExperiment<Peak1D>& exp_;
 
   public:
 
   /**
    * @brief detailed constructor
    * @param exp raw data
-   * @param mz_stepwidth_ average m/z distance between scanned data points
-   * @param intensity_cutoff_ minimal intensity of SILAC features
-   * @param intensity_correlation_ minimal intensity correlation between regions of different peaks
+   * @param mz_stepwidth average m/z distance between scanned data points
+   * @param intensity_cutoff minimal intensity of SILAC features
+   * @param intensity_correlation minimal intensity correlation between regions of different peaks
    * @param allow_missing_peaks flag for missing peaks
    */
-   SILACFiltering(MSExperiment<Peak1D>& exp_, const DoubleReal mz_stepwidth_, const DoubleReal intensity_cutoff_, const DoubleReal intensity_correlation_, const bool allow_missing_peaks_);
+   SILACFiltering(MSExperiment<Peak1D>& exp, const DoubleReal mz_stepwidth, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks);
+
+  /**
+   * @brief default constructor
+   */
+   SILACFiltering();
 
   /**
    * destructor
@@ -144,10 +149,10 @@ namespace OpenMS
      DoubleReal relative_peak_position;
    };
 
-     /**
-      * @brief holds the range that is blacklisted for other filters and the filter that generated the blacklist entry
-      */
-     std::multimap<DoubleReal, BlacklistEntry> blacklist;
+  /**
+   * @brief holds the range that is blacklisted for other filters and the filter that generated the blacklist entry
+   */
+   std::multimap<DoubleReal, BlacklistEntry> blacklist;
 
   };
 }

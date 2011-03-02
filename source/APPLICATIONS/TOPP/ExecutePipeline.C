@@ -47,9 +47,10 @@ using namespace std;
 	@brief Executes workflows created by TOPPAS.
  
   <B> *.trf files </B>
+
  A TOPPAS resource file (<TT>*.trf</TT>) specifies the locations of input files for a pipeline. It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For two input nodes 1 and 2 with files (<TT>dataA.mzML</TT>, <TT>dataB.mzML</TT>) and (<TT>dataC.mzML</TT>) respectively it has the following format. 
  
-  <CODE>
+  \code
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="1" description="">
@@ -64,7 +65,7 @@ using namespace std;
     </ITEMLIST>
   </NODE>
 </PARAMETERS> 
-  </CODE>
+  \endcode
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ExecutePipeline.cli

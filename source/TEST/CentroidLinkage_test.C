@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -22,27 +22,59 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
+// $Authors: Lars Nilse, Holger Plattfaut $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusteringMethod.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-namespace OpenMS
+///////////////////////////
+#include <OpenMS/COMPARISON/CLUSTERING/CentroidLinkage.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(CentroidLinkage, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+CentroidLinkage* ptr = 0;
+START_SECTION(CentroidLinkage())
 {
-  ClusteringMethod::ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::~ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::ClusteringMethod(DoubleReal rt_scaling_)
-  {
-    rt_scaling=rt_scaling_;
-  }
+	ptr = new CentroidLinkage();
+	TEST_NOT_EQUAL(ptr, 0)
 }
+END_SECTION
+
+START_SECTION(~CentroidLinkage())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((CentroidLinkage(DoubleReal rt_scaling_)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((DoubleReal getDistance(DataSubset &subset1, DataSubset &subset2)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((DoubleReal getDistance(DataPoint &point1, DataPoint &point2)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
 
 

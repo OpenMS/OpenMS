@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -22,27 +22,50 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
+// $Authors: Lars Nilse, Holger Plattfaut $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusteringMethod.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-namespace OpenMS
+///////////////////////////
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(SILACFiltering, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+SILACFiltering* ptr = 0;
+START_SECTION(SILACFiltering())
 {
-  ClusteringMethod::ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::~ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::ClusteringMethod(DoubleReal rt_scaling_)
-  {
-    rt_scaling=rt_scaling_;
-  }
+	NOT_TESTABLE
 }
+END_SECTION
 
+START_SECTION(~SILACFiltering())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((SILACFiltering(MSExperiment< Peak1D > &exp_, const DoubleReal rt_threshold_, const DoubleReal mz_threshold_, const DoubleReal mz_stepwidth_, const DoubleReal intensity_cutoff_, const DoubleReal intensity_correlation_, const bool allow_missing_peaks_)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void addFilter(SILACFilter &filter)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
 

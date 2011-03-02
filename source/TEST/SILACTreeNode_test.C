@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -22,27 +22,63 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
+// $Authors: Lars Nilse, Holger Plattfaut $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusteringMethod.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-namespace OpenMS
+///////////////////////////
+#include <OpenMS/DATASTRUCTURES/SILACTreeNode.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(SILACTreeNode, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+SILACTreeNode* ptr = 0;
+START_SECTION(SILACTreeNode())
 {
-  ClusteringMethod::ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::~ClusteringMethod()
-  {
-
-  }
-
-  ClusteringMethod::ClusteringMethod(DoubleReal rt_scaling_)
-  {
-    rt_scaling=rt_scaling_;
-  }
+	ptr = new SILACTreeNode();
+	TEST_NOT_EQUAL(ptr, 0)
 }
+END_SECTION
 
+START_SECTION(~SILACTreeNode())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((SILACTreeNode(DataPoint *data1_, DataPoint *data2_, DoubleReal distance_)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((bool operator==(const SILACTreeNode &cp) const ))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((bool operator!=(const SILACTreeNode &cp) const ))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((bool operator<(const SILACTreeNode &cp) const ))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
 

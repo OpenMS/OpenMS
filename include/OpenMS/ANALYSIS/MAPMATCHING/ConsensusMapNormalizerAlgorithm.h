@@ -40,20 +40,20 @@ namespace OpenMS
 	class OPENMS_DLLAPI ConsensusMapNormalizerAlgorithm
 	{
 	private:
+    /// copy constructor is not implemented -> private
+    ConsensusMapNormalizerAlgorithm(const ConsensusMapNormalizerAlgorithm &copyin);
+
+    /// assignment operator is not implemented -> private
+    ConsensusMapNormalizerAlgorithm& operator = (const ConsensusMapNormalizerAlgorithm &rhs);
+
+  public:
 		/// default constructor is not implemented -> private
 		ConsensusMapNormalizerAlgorithm();
-
-		/// copy constructor is not implemented -> private
-		ConsensusMapNormalizerAlgorithm(const ConsensusMapNormalizerAlgorithm& );
 
 		/// destructor is not implemented -> private
 		virtual ~ConsensusMapNormalizerAlgorithm();
 
-		/// assignment operator is not implemented -> private
-		ConsensusMapNormalizerAlgorithm& operator = (const ConsensusMapNormalizerAlgorithm& );
-
-	public:
-		/**
+    /**
 		 * @brief determines the ratio of all maps to the map with the most features
 		 * @param map ConsensusMap
 		 * @param ratio_threshold threshold for the ratio

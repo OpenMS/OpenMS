@@ -38,6 +38,7 @@ QTCluster.C
 QTSILACCluster.C
 SILACTreeNode.C
 SparseVector.C
+SILACTreeNode.C
 String.C
 StringList.C
 SuffixArray.C

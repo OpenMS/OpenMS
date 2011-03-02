@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
 // --------------------------------------------------------------------------
 
 
@@ -30,16 +30,29 @@
 
 namespace OpenMS
 {
-CentroidLinkage::CentroidLinkage(DoubleReal rt_scaling_) : ClusteringMethod(rt_scaling_)
-{
-}
-DoubleReal CentroidLinkage::getDistance(DataSubset& subset1,DataSubset& subset2)
-{
-	return sqrt(pow(subset1.rt-subset2.rt,2)*rt_scaling*rt_scaling+pow(subset1.mz-subset2.mz,2));
-}
-DoubleReal CentroidLinkage::getDistance(DataPoint& point1,DataPoint& point2)
-{
-	return sqrt(pow(point1.rt-point2.rt,2)*rt_scaling*rt_scaling+pow(point1.mz-point2.mz,2));
-}
+  CentroidLinkage::CentroidLinkage()
+  {
+
+  }
+
+  CentroidLinkage::~CentroidLinkage()
+  {
+
+  }
+
+  CentroidLinkage::CentroidLinkage(DoubleReal rt_scaling_) : ClusteringMethod(rt_scaling_)
+  {
+
+  }
+
+  DoubleReal CentroidLinkage::getDistance(DataSubset& subset1,DataSubset& subset2)
+  {
+    return sqrt(pow(subset1.rt-subset2.rt,2)*rt_scaling*rt_scaling+pow(subset1.mz-subset2.mz,2));
+  }
+
+  DoubleReal CentroidLinkage::getDistance(DataPoint& point1,DataPoint& point2)
+  {
+    return sqrt(pow(point1.rt-point2.rt,2)*rt_scaling*rt_scaling+pow(point1.mz-point2.mz,2));
+  }
 }
 

@@ -33,6 +33,16 @@ using namespace std;
 
 namespace OpenMS
 {
+  ConsensusMapNormalizerAlgorithm::ConsensusMapNormalizerAlgorithm()
+  {
+
+  }
+
+  ConsensusMapNormalizerAlgorithm::~ConsensusMapNormalizerAlgorithm()
+  {
+
+  }
+
 	vector<double> ConsensusMapNormalizerAlgorithm::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold)
 	{
 		UInt number_of_features = map.size();

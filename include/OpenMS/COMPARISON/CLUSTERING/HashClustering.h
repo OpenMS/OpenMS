@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
 // --------------------------------------------------------------------------
 
 
@@ -38,7 +38,8 @@
 namespace OpenMS
 {
   class SILACTreeNode;
-/**
+
+  /**
 		@brief Hierarchical clustering based on geometric hashing.
 
 		Only elements in the surrounding are clustered.
@@ -47,7 +48,7 @@ namespace OpenMS
 
 		@see ClusterHierarchical
 		@ingroup SpectraClustering
-	*/
+   */
 
 class OPENMS_DLLAPI HashClustering : public ProgressLogger
 {
@@ -56,32 +57,32 @@ class OPENMS_DLLAPI HashClustering : public ProgressLogger
 	/**
 	 * @brief current minimal distance
 	 */
-   DoubleReal min_distance;
+   DoubleReal min_distance_;
 
 	/**
 	 * @brief two DataSubsets with current minimal distance
 	 */
-   std::pair<DataSubset*,DataSubset*> min_distance_subsets;
+   std::pair<DataSubset*,DataSubset*> min_distance_subsets_;
 
 	/**
 	 * @brief set of distances
 	 */
-   DistanceSet distances;
+   DistanceSet distances_;
 
 	/**
 	 * @brief method which is used to calculate the distances
 	 */
-   ClusteringMethod* method;
+   ClusteringMethod* method_;
 
 	/**
 	 * @brief the grid for geometric hashing
 	 */
-   HashGrid grid;
+   HashGrid grid_;
 
 	/**
 	 * @brief average silhoutte widths for each subtree
 	 */
-   std::vector<std::vector<Real> > silhouettes;
+   std::vector<std::vector<Real> > silhouettes_;
 
 	/**
 	 * @brief Calculates initial distances
@@ -121,21 +122,21 @@ class OPENMS_DLLAPI HashClustering : public ProgressLogger
    std::vector< Real > averageSilhouetteWidth(DataSubset& subset);
 
 	/**
-   *@brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters
-   *@param cluster_quantity Size giving the number of clusters
-   *@param tree vector of SILACTreeNodes representing the clustering
-   *@param clusters vector of vectors holding the clusters
-   *@see SILACTreeNode
-    after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
+   * @brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters
+   * @param cluster_quantity Size giving the number of clusters
+   * @param tree vector of SILACTreeNodes representing the clustering
+   * @param clusters vector of vectors holding the clusters
+   * @see SILACTreeNode
+   * after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
    */
    void cut_(const Size cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, const std::vector<SILACTreeNode>& tree);
 
-public:
+  public:
 
 	/**
-   *@brief Exception thrown if not enough data (<2) is used
-		If the set of data to be clustered contains only one data point,
-		clustering algorithms would fail for obvious reasons.
+   * @brief Exception thrown if not enough data (<2) is used
+   * If the set of data to be clustered contains only one data point,
+   * clustering algorithms would fail for obvious reasons.
 	 */
    class OPENMS_DLLAPI InsufficientInput : public Exception::BaseException
    {
@@ -144,14 +145,24 @@ public:
        virtual ~InsufficientInput() throw();
    };
 
+  /**
+   * @brief default constructor
+   */
+   HashClustering();
+
+  /**
+   * @brief destructor
+   */
+   ~HashClustering();
+
 	/**
 	 * @brief Detailed constructor
 	 * @param data this data points will be clustered
 	 * @param rt_threshold height of the grid cells
 	 * @param mz_threshold width of the grid cells
-	 * @param method_ method to use for calculating distances
+   * @param method method to use for calculating distances
 	 */
-   HashClustering(std::vector<DataPoint>& data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod& method_);
+   HashClustering(std::vector<DataPoint>& data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod& method);
 
 	/**
 	 * @brief Starts the clustering and returns a vector of subtrees when finished
@@ -175,7 +186,7 @@ public:
    */
    std::vector<std::vector<Real> > getSilhouetteValues();
 
-};
+  };
 
 }
 
