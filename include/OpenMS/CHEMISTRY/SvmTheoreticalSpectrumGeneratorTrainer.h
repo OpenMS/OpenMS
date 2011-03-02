@@ -25,8 +25,8 @@
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGeneratorTrainer_H
-#define OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGeneratorTrainer_H
+#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
+#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
@@ -35,6 +35,14 @@
 
 namespace OpenMS
 {
+  /**
+   @brief Train Svm models that are used by SvmTheoreticalSpectrumGenerator
+
+   @htmlinclude OpenMS_SvmTheoreticalSpectrumGeneratorTrainer.parameters
+
+   @ingroup Chemistry
+   */
+
   class OPENMS_DLLAPI SvmTheoreticalSpectrumGeneratorTrainer: public DefaultParamHandler
   {
     typedef SvmTheoreticalSpectrumGenerator::IonType IonType;
