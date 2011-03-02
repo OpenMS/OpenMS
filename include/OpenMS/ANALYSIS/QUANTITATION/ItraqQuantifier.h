@@ -75,7 +75,7 @@ namespace OpenMS
     ItraqQuantifier& operator = (const ItraqQuantifier& rhs);
 
 		/**
-		 *	@brief using the raw iTRAQ intensities we apply isotope correction, normalization (using median) and protein inference
+		 *	@brief using the raw iTRAQ intensities we apply isotope correction, normalization (using median)
 		 *	
 		 *	@param consensus_map_in Raw iTRAQ intensities from previous step
 		 *	@param consensus_map_out Postprocessed iTRAQ ratios for peptides
