@@ -248,7 +248,7 @@ namespace OpenMS
     std::vector<svm_node> descriptors_tmp;
     descriptors_tmp.reserve(50);
 
-    Size charge=type.charge;
+    Int charge=type.charge;
     Residue::ResidueType res_type = type.residue;
     EmpiricalFormula  loss = type.loss;
 
@@ -279,7 +279,7 @@ namespace OpenMS
     node.index = index + (Int)aa_to_index_[peptide.getResidue(position+1).getOneLetterCode()];
     node.value = 1;
     descriptors_tmp.push_back(node);
-    index+=num_aa;
+    index+= (Int)num_aa;
 
     //RB_N
     node.index = index + (Int)aa_to_index_[peptide.getResidue(position).getOneLetterCode()];
@@ -784,13 +784,13 @@ namespace OpenMS
       std::vector<bool> predicted_class(peptide.size (), false);
 
 #pragma omp parallel for
-      for (Size i = 1; i < peptide.size(); ++i)
+      for (SignedSize i = 1; i < (SignedSize)peptide.size(); ++i)
       {
         //determine whether type is N- or C-terminal
         if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
         {
           //usually no b1, a1, c1 ion added
-          if((i < 2) && !add_first_nterminals)
+          if ((i < 2) && !add_first_nterminals)
           {
             continue;
           }
@@ -810,7 +810,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR<< "requested unsupported ion type" << std::endl;
+          LOG_ERROR<< "Requested unsupported ion type" << std::endl;
         }
 
         DescriptorSet descriptor;
@@ -820,12 +820,12 @@ namespace OpenMS
           scaleDescriptorSet_(descriptor, mp_.scaling_lower, mp_.scaling_upper);
         }
 
-        if(simulation_type == 0)
+        if (simulation_type == 0)
         {
           predicted_class[i] = svm_predict(mp_.class_models[type_nr].get()->model, &descriptor.descriptors[0]);
         }
 
-        if(simulation_type == 1)
+        if (simulation_type == 1)
         {
           predicted_intensity[i] = std::max(0.0, svm_predict(mp_.reg_models[type_nr].get()->model, &descriptor.descriptors[0]));
           predicted_intensity[i] = std::min(1.0, predicted_intensity[i]);
@@ -841,23 +841,23 @@ namespace OpenMS
 
         Size bin = 0;
 
-        if(simulation_type == 0)
+        if (simulation_type == 0)
         {
-          if(predicted_class[i] == 1 && mp_.static_intensities[residue] != 0)
+          if (predicted_class[i] == 1 && mp_.static_intensities[residue] != 0)
           {
             DoubleReal intens = mp_.static_intensities[residue];
-            if(!loss_formula.isEmpty())
+            if (!loss_formula.isEmpty())
             {
               intens = intens*relative_loss_intens;
             }
-            if(intens > 0)
+            if (intens > 0)
             {
               peaks_to_generate.push_back(std::make_pair(std::make_pair(mp_.ion_types[type_nr],intens), i));
             }
           }
         }
 
-        else if(simulation_type == 1)
+        else if (simulation_type == 1)
         {
           peaks_to_generate.push_back(std::make_pair(std::make_pair(mp_.ion_types[type_nr],predicted_intensity[i]), i));
 
@@ -873,29 +873,29 @@ namespace OpenMS
         }
 
         //now generate all secondary types for the primary one
-        for(std::vector<IonType>::iterator it = mp_.secondary_types[mp_.ion_types[type_nr]].begin(); it!= mp_.secondary_types[mp_.ion_types[type_nr]].end(); ++it)
+        for (std::vector<IonType>::iterator it = mp_.secondary_types[mp_.ion_types[type_nr]].begin(); it!= mp_.secondary_types[mp_.ion_types[type_nr]].end(); ++it)
         {
           if (hide_type_[*it] || ( !add_losses && !it->loss.isEmpty() ) )
           {
             continue;
           }
 
-          if(simulation_type == 0)
+          if (simulation_type == 0)
           {
-            if(predicted_class[i] !=0 && mp_.static_intensities[it->residue] != 0  && hide_type_[*it] == false) //no secondary ion if primary is classified as missing
+            if (predicted_class[i] !=0 && mp_.static_intensities[it->residue] != 0  && hide_type_[*it] == false) //no secondary ion if primary is classified as missing
             {
               DoubleReal intens = mp_.static_intensities[it->residue];
-              if(!it->loss.isEmpty())
+              if (!it->loss.isEmpty())
               {
                 intens = intens*relative_loss_intens;
               }
-              if(intens > 0)
+              if (intens > 0)
               {
                 peaks_to_generate.push_back(std::make_pair(std::make_pair(*it,intens), i));
               }
             }
           }
-          else if(simulation_type == 1)
+          else if (simulation_type == 1)
           {
             //sample intensities for secondary types
             Size region = std::min(mp_.number_regions-1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal)/peptide.getMonoWeight()));
@@ -904,7 +904,7 @@ namespace OpenMS
             Size binned_int = gsl_ran_discrete(rng, gsl_gen);
             gsl_ran_discrete_free(gsl_gen);
 
-            if(binned_int != 0)
+            if (binned_int != 0)
             {
               peaks_to_generate.push_back(std::make_pair( std::make_pair(*it,mp_.intensity_bin_values[binned_int-1]), i));
             }
