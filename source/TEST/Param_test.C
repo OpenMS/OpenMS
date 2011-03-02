@@ -978,29 +978,59 @@ END_SECTION
 
 START_SECTION((void remove(const String& key)))
 
-	// this essentially tests removeAll(), as remove() is just an alias
 	Param p2(p);
 	p2.setValue("test:string2","test,test");
 	
 	TEST_EQUAL(p2.size(),7)
-
-	p2.remove("test2");
-	TEST_EQUAL(p2.size(),4)
-	
-	p2.remove("test:string");
-	TEST_EQUAL(p2.size(),2)
-
-  p2.remove("test:strin");
-	TEST_EQUAL(p2.size(),2)
-	
-	p2.remove("test:float");
-	TEST_EQUAL(p2.size(),1)
-
-	p2.remove("test:int");
-	TEST_EQUAL(p2.size(),0)
 	
 	p2.remove("test");
-	TEST_EQUAL(p2.size(),0)
+	TEST_EQUAL(p2.size(),7)
+	
+	p2.remove("test2");
+	TEST_EQUAL(p2.size(),7)
+	
+	p2.remove("test:strin");
+	TEST_EQUAL(p2.size(),7)
+	
+	p2.remove("test:string");
+	TEST_EQUAL(p2.size(),6)
+
+	p2.remove("test:string2");
+	TEST_EQUAL(p2.size(),5)
+
+	p2.remove("test:float");
+	TEST_EQUAL(p2.size(),4)
+
+	p2.remove("test:int");
+	TEST_EQUAL(p2.size(),3)
+
+  // test deletion of nodes (when using a trailing ':')
+  p2 = p;
+	p2.setValue("test:string2","an entry");
+  p2.setValue("test:string2:e1","subnode with entries");
+  p2.setValue("test:string2:sn2","subsubnode with entries");
+  p2.setValue("test:string2:sn2:e1","subsubnode with entries");
+  p2.setValue("test:string2:sn2:e2","subsubnode with entries");
+  
+  Param p3 = p2;
+
+  TEST_EQUAL(p2.size(),11)
+
+  std::cout << "p2 is " << p2 << "\n";
+
+  p2.remove("test:"); // test subtree removal
+	TEST_EQUAL(p2.size(),3)
+
+
+  p3.remove("test:string2:sn2:e2:"); // nothing should happen
+  TEST_EQUAL(p3.size(),11)
+
+  p3.remove("test:string2:sn2:e1");  // delete one, the parent node is still populated
+  TEST_EQUAL(p3.size(),10)
+
+  p3.remove("test:string2:sn2:e2");  // delete last entry in subnode sn2
+  TEST_EQUAL(p3.size(),9)
+
 
 END_SECTION
 

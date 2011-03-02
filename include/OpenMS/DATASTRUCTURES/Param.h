@@ -347,14 +347,21 @@ namespace OpenMS
 			///Insert all values of @p param and adds the prefix @p prefix.
 			void insert(const String& prefix, const Param& param);
 			/**
-				@brief Remove the entry @p key
-				@note This is an alias for removeAll() since OpenMS 1.8
+				@brief Remove the entry @p key or a section @p key (when suffix is ':')
+				
+        Remove deletes either an entry or a section (when @p key ends with ':'),
+        by matching the exact name. No partial matches are accepted.
+
+        If an empty internal node remains, the tree is pruned until every node has either a successor node
+        or a leaf, i.e. no naked nodes remain.
+
 			*/
 			void remove(const String& key);
 			/**
         @brief Remove all entries that start with @p prefix 
 
         Partial are valid as well. All entries and sections which match the prefix are deleted.
+
         If an empty internal node remains, the tree is pruned until every node has either a successor node
         or a leaf, i.e. no naked nodes remain.
 

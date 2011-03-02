@@ -608,9 +608,45 @@ namespace OpenMS
 
 	void Param::remove(const String& key)
 	{
-    // this function was broken. We need to remove dead subtrees (without any entries)
-    // to ensure sanity of structure.
-		removeAll(key);
+    String keyname = key;
+		if (key.hasSuffix(':')) // delete section
+		{
+      keyname = key.chop(1);
+
+      ParamNode* node_parent = root_.findParentOf(keyname);
+			if (node_parent!=0)
+			{
+				Param::ParamNode::NodeIterator it = node_parent->findNode(node_parent->suffix(keyname));
+				if (it!=node_parent->nodes.end())
+				{
+          String name = it->name;
+          node_parent->nodes.erase(it); // will automatically delete subnodes
+          if (node_parent->nodes.size() == 0  && node_parent->entries.size() == 0)
+          {
+            // delete last section name (could be partial)
+            remove( keyname.chop(name.size()) ); // keep last ':' to indicate deletion of a section
+          }
+				}
+			}
+    }
+    else
+    {
+		  ParamNode* node = root_.findParentOf(keyname);
+		  if (node!=0)
+		  {
+        String entryname = node->suffix(keyname); // get everything beyond last ':'
+        Param::ParamNode::EntryIterator it = node->findEntry(entryname);
+			  if (it!=node->entries.end())
+			  {
+          node->entries.erase(it); // delete entry
+          if (node->nodes.size() == 0  && node->entries.size() == 0)
+          {
+            // delete if section is now empty
+            remove( keyname.chop(entryname.size()) ); // keep last ':' to indicate deletion of a section
+          }
+			  }
+		  }
+    }
 	}
 
 	void Param::removeAll(const String& prefix)
