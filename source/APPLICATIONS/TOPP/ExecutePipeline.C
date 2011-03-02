@@ -46,9 +46,15 @@ using namespace std;
 
 	@brief Executes workflows created by TOPPAS.
  
+  This tool is the non-GUI, i.e. command line version for non-interactive execution of TOPPAS pipelines.
+  In order to really use this tool in batch-mode, you can provide a TOPPAS resource file (.trf) which specifies the
+  input files for the input nodes in your pipeline.
+
   <B> *.trf files </B>
 
- A TOPPAS resource file (<TT>*.trf</TT>) specifies the locations of input files for a pipeline. It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For two input nodes 1 and 2 with files (<TT>dataA.mzML</TT>, <TT>dataB.mzML</TT>) and (<TT>dataC.mzML</TT>) respectively it has the following format. 
+ A TOPPAS resource file (<TT>*.trf</TT>) specifies the locations of input files for a pipeline. 
+ It is an XML file following the normal TOPP INI file schema, i.e. it can be edited using the INIFileEditor or filled using a script (we do NOT provide one - sorry).
+ It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For two input nodes 1 and 2 with files (<TT>dataA.mzML</TT>, <TT>dataB.mzML</TT>) and (<TT>dataC.mzML</TT>) respectively it has the following format. 
  
   \code
 <?xml version="1.0" encoding="ISO-8859-1"?>
