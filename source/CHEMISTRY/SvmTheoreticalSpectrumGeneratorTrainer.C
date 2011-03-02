@@ -71,32 +71,41 @@ namespace OpenMS
     defaults_.setValue("svm:svc_type", 0, "Type of the SVC: 0=C_SVC 1=NU_SVC");
     defaults_.setMinInt("svm:svc_type",0);
     defaults_.setMaxInt("svm:svc_type",1);
+
     defaults_.setValue("svm:svr_type", 1, "Type of the SVR: 0=EPSILON_SVR 1=NU_SVR");
     defaults_.setMinInt("svm:svr_type",0);
     defaults_.setMaxInt("svm:svr_type",1);
+
     defaults_.setValue("svm:kernel_type", 2, "Type of the kernel:  0=LINEAR 1=POLY 2=RBF 3=SIGMOID");
     defaults_.setMinInt("svm:kernel_type",0);
     defaults_.setMaxInt("svm:kernel_type",3);
+
     defaults_.setValue("svm:degree", 3, "For POLY");
     defaults_.setMinInt("svm:degree",1);
+
     defaults_.setValue("svm:gamma", 0.0, "For POLY/RBF/SIGMOID");
     defaults_.setMinFloat("svm:gamma",0.0);
+
     defaults_.setValue("svm:coef0", 0.0, "For POLY/SIGMOID");
     defaults_.setMinFloat("svm:coef0",0.0);
-    defaults_.setValue("svm:cache_size", 2, "Size of kernel cache in MB");
+
+    defaults_.setValue("svm:cache_size", 100, "Size of kernel cache in MB");
     defaults_.setMinInt("svm:cache_size",1);
+
     defaults_.setValue("svm:eps", 0.001, "Stopping criterion");
     defaults_.setValue("svm:C", 1.0, "Cost of constraint violation");
     defaults_.setValue("svm:nu", 0.5, "for NU_SVC, ONE_CLASS and NU_SVR");
     defaults_.setValue("svm:p", 0.1, "The epsilon for the loss function in epsilon-SVR");
     defaults_.setValue("svm:shrinking", "true", "whether shrinking is performed");
+
     defaults_.setValidStrings("svm:shrinking", StringList::create("true,false"));
-    defaults_.setValue("svm:n_fold", 2, "n_fold cross validation is performed");
+    defaults_.setValue("svm:n_fold", 5, "n_fold cross validation is performed");
     defaults_.setMinInt("svm:n_fold",1);
     defaults_.setValue("svm:scaling", "true", "whether feature values should be scaled");
     defaults_.setValidStrings("svm:scaling", StringList::create("true,false"));
     defaults_.setValue("svm:scaling_lower", 0.0, "lower bound for scaling");
     defaults_.setValue("svm:scaling_upper", 1.0, "lower bound for scaling");
+
     defaults_.setSectionDescription("svm", "Parameters controlling SVM trainig behaviour. All parameter names are chosen as in the libSVM library. Please refer to libSVM documentation for explanation");
 
     defaultsToParam_();
@@ -280,7 +289,7 @@ namespace OpenMS
     AASequence prefix, suffix;
 
     DescriptorSet tmp_desc;
-    Size num_features=spec_gen.generateDescriptorSet(annotations[0],0,ion_types[0], 1, tmp_desc);
+    Size num_features=spec_gen.generateDescriptorSet_(annotations[0],0,ion_types[0], 1, tmp_desc);
 
     //vectors to store the minimum and maximum value appearing in the training data for each feature (required for scaling)
     ObservedIntensMap observed_intensities;
@@ -288,7 +297,7 @@ namespace OpenMS
     std::map<Size, std::vector<double> >training_output;
 
     Size spec_index=0;
-    Size x=1;
+    Size x=5;
     //run over all input spectra
     for (PeakMap::const_iterator map_it = spectra.begin(); map_it < spectra.end(); map_it+=x, spec_index+=x)
     {
@@ -353,7 +362,7 @@ namespace OpenMS
           }
 
           DescriptorSet descriptors;
-          spec_gen.generateDescriptorSet(annotations[spec_index],frag_pos-1,ion_types[type_nr], precursor_charge, descriptors);
+          spec_gen.generateDescriptorSet_(annotations[spec_index],frag_pos-1,ion_types[type_nr], precursor_charge, descriptors);
 
           training_input[type_nr].push_back(descriptors);
           training_output[type_nr].push_back(observed_peak_intensity);          
@@ -613,13 +622,14 @@ namespace OpenMS
     //------------------------------------------------------------------------------------------
     //----------------------Training prob. model for secondary types------------------
     //------------------------------------------------------------------------------------------
-    info_outfile.push_back("<SecondaryTypes>");
-    info_outfile.push_back("<IntensityLevels>");
-    info_outfile.push_back(number_of_intensity_levels);
-    info_outfile.push_back("</IntensityLevels>");
 
+    info_outfile.push_back("<SecondaryTypes>");
     if(secondary_types)
     {
+      info_outfile.push_back("<IntensityLevels>");
+      info_outfile.push_back(number_of_intensity_levels);
+      info_outfile.push_back("</IntensityLevels>");
+
       trainSecondaryTypes_(info_outfile, number_of_regions, number_of_intensity_levels, observed_intensities, ion_types, is_primary);
     }
 

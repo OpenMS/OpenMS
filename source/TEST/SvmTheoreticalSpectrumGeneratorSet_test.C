@@ -55,6 +55,14 @@ START_SECTION(SvmTheoreticalSpectrumGeneratorSet())
   TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
+START_SECTION(SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet& source))
+  NOT_TESTABLE //is tested in getSupportedCharges test
+END_SECTION
+
+START_SECTION(SvmTheoreticalSpectrumGeneratorSet& operator =(const SvmTheoreticalSpectrumGeneratorSet& tsg))
+  NOT_TESTABLE //is tested in getSupportedCharges test
+END_SECTION
+
 START_SECTION(~SvmTheoreticalSpectrumGeneratorSet())
   delete ptr;
 END_SECTION
@@ -67,8 +75,24 @@ START_SECTION(void load(String))
 END_SECTION
 
 START_SECTION(void getSupportedCharges(std::set<Size>&charges))
+
     std::set<Size>charges;
     gen_set.getSupportedCharges(charges);
+    TEST_EQUAL(charges.size(), 3)
+    TEST_EQUAL(*(charges.begin()) , 1)
+    TEST_EQUAL(*(--charges.end()), 3)
+
+    charges.clear ();
+    SvmTheoreticalSpectrumGeneratorSet gen_set_copy(gen_set);
+    gen_set_copy.getSupportedCharges(charges);
+    TEST_EQUAL(charges.size(), 3)
+    TEST_EQUAL(*(charges.begin()) , 1)
+    TEST_EQUAL(*(--charges.end()), 3)
+
+    charges.clear ();
+    SvmTheoreticalSpectrumGeneratorSet gen_set_assign;
+    gen_set_assign = gen_set;
+    gen_set_assign.getSupportedCharges(charges);
     TEST_EQUAL(charges.size(), 3)
     TEST_EQUAL(*(charges.begin()) , 1)
     TEST_EQUAL(*(--charges.end()), 3)
@@ -85,6 +109,11 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
     gsl_rng_set(rnd_gen, 0);
     RichPeakSpectrum spec;
     AASequence peptide("IFSQVGK");
+
+    Param p = gen_set.getSvmModel(2).getDefaults();
+    p.setValue("hide_losses", "true");
+    gen_set.getSvmModel(2).setParameters(p);
+
     gen_set.simulate(spec, peptide,rnd_gen,2);
     gsl_rng_free(rnd_gen);
 

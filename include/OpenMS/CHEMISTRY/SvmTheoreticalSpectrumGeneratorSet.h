@@ -26,8 +26,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGeneratorSet_H
-#define OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGeneratorSet_H
+#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
+#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
 
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
