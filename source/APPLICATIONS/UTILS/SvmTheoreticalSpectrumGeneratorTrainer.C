@@ -43,9 +43,9 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_SpectrumGeneratorSvmTheoreticalSpectrumGeneratorTrainer SpectrumGeneratorSvmTheoreticalSpectrumGeneratorTrainer
+  @page UTILS_SvmTheoreticalSpectrumGeneratorTrainer SvmTheoreticalSpectrumGeneratorTrainer
 
-  @brief Trainer for Svm model as input for SvmSpectrumGenerator.
+  @brief Trainer for Svm model as input for SvmTheoreticalSpectrumGenerator.
 
   This application requires a list of annotated spectra and generates a trained svm for each selected
   ion type (i.e. a,b,c,x,y,z + losses). It uses the libsvm library and all svmlib parameters are accessible
