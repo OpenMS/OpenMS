@@ -59,7 +59,7 @@ using namespace std;
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_Resampler </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder (Wavelet)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
 		</tr>
 	</table>
 </CENTER>
