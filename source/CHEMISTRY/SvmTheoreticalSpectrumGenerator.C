@@ -734,8 +734,8 @@ namespace OpenMS
 
     Int simulation_type = (Int)param_.getValue("svm_mode");
 
-    std::vector<std::set<String> > possible_n_term_losses(peptide.size ());
-    std::vector<std::set<String> > possible_c_term_losses(peptide.size ());
+		std::vector<std::set<String> > possible_n_term_losses(peptide.size());
+    std::vector<std::set<String> > possible_c_term_losses(peptide.size());
 
     UInt ion_nr=0;
     gsl_ran_discrete_t * gsl_gen=0;
@@ -756,8 +756,7 @@ namespace OpenMS
       }
 
       //check for possible losses on the c-terminal ions
-      possible_c_term_losses.clear();
-      for(Size pos = i; pos<peptide.size(); ++pos)
+			for(Size pos = i; pos<peptide.size(); ++pos)
       {
         if (peptide[pos].hasNeutralLoss())
         {
