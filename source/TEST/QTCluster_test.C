@@ -55,7 +55,7 @@ hit.setSequence("CCC");
 bf.getPeptideIdentifications()[1].insertHit(hit);
 GridFeature gf(bf, 123, 456);
 
-START_SECTION((QTCluster(GridFeature*, Size, DoubleReal, bool)))
+START_SECTION((QTCluster(GridFeature* center_point, Size num_maps, DoubleReal max_distance, bool use_IDs)))
 {
 	qtc_ptr = new QTCluster(&gf, 2, 11.1, false);
 	TEST_NOT_EQUAL(qtc_ptr, 0);
@@ -90,21 +90,21 @@ END_SECTION
 
 GridFeature gf2(bf, 789, 1011);
 
-START_SECTION((void add(GridFeature*, DoubleReal)))
+START_SECTION((void add(GridFeature* element, DoubleReal distance)))
 {
 	cluster.add(&gf2, 3.3);
 	TEST_EQUAL(cluster.size(), 2);
 }
 END_SECTION
 
-START_SECTION((bool operator<(QTCluster&)))
+START_SECTION((bool operator<(QTCluster& cluster)))
 {
 	QTCluster cluster2(&gf, 2, 11.1, false);
 	TEST_EQUAL(cluster2 < cluster, true);
 }
 END_SECTION
 
-START_SECTION((void getElements(map<Size, GridFeature*>&)))
+START_SECTION((void getElements(std::map<Size, GridFeature*>& elements)))
 {
 	map<Size, GridFeature*> elements;
 	cluster.getElements(elements);
@@ -114,7 +114,7 @@ START_SECTION((void getElements(map<Size, GridFeature*>&)))
 }
 END_SECTION
 
-START_SECTION((bool update(const map<Size, GridFeature*>&)))
+START_SECTION((bool update(const std::map<Size, GridFeature*>& removed)))
 {
 	map<Size, GridFeature*> removed;
 	removed[789] = &gf2;

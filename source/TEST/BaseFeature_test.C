@@ -77,7 +77,7 @@ START_SECTION((WidthType getWidth() const))
 	// continued in "setWidth" test
 END_SECTION
 
-START_SECTION((void setWidth(WidthType w)))
+START_SECTION((void setWidth(WidthType fwhm)))
 	BaseFeature p;
 	p.setWidth(123.456);
 	TEST_REAL_SIMILAR(p.getWidth(), 123.456)
@@ -286,7 +286,7 @@ START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType& lef
 	TEST_EQUAL(oql(lhs,f1), 1);
 END_SECTION
 
-START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType &left, BaseFeature const &right) const ))
+START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType& left, const QualityType& right) const ))
 	BaseFeature f1, f2;
 	f1.setQuality(0.94);
 	f2.setQuality(0.78);

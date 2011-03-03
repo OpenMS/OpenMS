@@ -42,7 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 GridFeature* gf_ptr = 0;
-START_SECTION((GridFeature(const BaseFeature&, Size, Size)))
+START_SECTION((GridFeature(const BaseFeature& feature, Size map_index, Size feature_index)))
 {
 	BaseFeature bf;
 	gf_ptr = new GridFeature(bf, 0, 0);
@@ -56,7 +56,7 @@ START_SECTION((~GridFeature()))
 }
 END_SECTION
 
-START_SECTION((BaseFeature& getFeature() const))
+START_SECTION((const BaseFeature& getFeature() const))
 {
 	BaseFeature bf;
 	bf.setRT(1.1);
