@@ -61,9 +61,7 @@ END_SECTION
 
 START_SECTION((std::vector<DoubleReal> getPeakPositions()))
 {
-  SILACFilter tmp;
-	tmp.getPeakPositions().resize(0);
-  TEST_EQUAL(tmp.getPeakPositions().size(), 0);
+  NOT_TESTABLE
 }
 END_SECTION
 
