@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ data.push_back(make_pair(0.0, 1.0));
 data.push_back(make_pair(1.0, 2.0));
 data.push_back(make_pair(1.0, 4.0));
 
-START_SECTION((DoubleReal evaluate(DoubleReal)))
+START_SECTION((virtual DoubleReal evaluate(const DoubleReal value) const))
 {
 	// null model (identity):
 	TransformationModel tm;
@@ -161,7 +161,7 @@ START_SECTION((DoubleReal evaluate(DoubleReal)))
 }
 END_SECTION
 
-START_SECTION((void getParameters(Param&) const))
+START_SECTION((virtual void getParameters(Param& params) const))
 {
 	TransformationModel tm;
 	Param p_in, p_out;

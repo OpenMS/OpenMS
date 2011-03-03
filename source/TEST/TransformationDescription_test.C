@@ -67,7 +67,7 @@ START_SECTION((TransformationDescription(const DataPoints& data)))
 }
 END_SECTION
 
-START_SECTION((const DataPoints& getDataPoints()))
+START_SECTION((const DataPoints& getDataPoints() const))
 {
 	TransformationDescription td;
 	TEST_EQUAL(td.getDataPoints().empty(), true);
@@ -101,7 +101,6 @@ START_SECTION((DoubleReal apply(DoubleReal value) const))
 }
 END_SECTION
 
-
 START_SECTION((const String& getModelType() const))
 {
 	TransformationDescription td;
@@ -109,7 +108,19 @@ START_SECTION((const String& getModelType() const))
 }
 END_SECTION
 
-START_SECTION((void fitModel(const String& model_type, const Param& params)))
+START_SECTION((static void getModelTypes(StringList& result)))
+{
+	StringList result;
+	TransformationDescription::getModelTypes(result);
+	TEST_EQUAL(result.size(), 3);
+	TEST_EQUAL(result[0], "linear");
+	TEST_EQUAL(result[1], "b_spline");
+	TEST_EQUAL(result[2], "interpolated");
+}
+END_SECTION
+
+
+START_SECTION((void fitModel(const String& model_type, const Param& params=Param())))
 {
 	TransformationDescription td(data);
 	Param params;
@@ -131,7 +142,7 @@ START_SECTION((void fitModel(const String& model_type, const Param& params)))
 }
 END_SECTION
 
-START_SECTION((const Param& getModelParameters() const))
+START_SECTION((void getModelParameters(Param& params) const))
 {
 	TransformationDescription td;
 	Param params;
