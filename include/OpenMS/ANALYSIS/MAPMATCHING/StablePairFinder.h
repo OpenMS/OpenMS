@@ -35,8 +35,7 @@ namespace OpenMS
   /**
    @brief This class implements a pair finding algorithm for consensus features.
 
-   It offers a method to determine element pairs across two element maps.
-   The corresponding features must be aligned, but may have small position deviations.
+   It offers a method to determine pairs across two consensus maps. The corresponding consensus features must be aligned, but may have small position deviations.
 
 	 The distance measure is implemented in class @ref FeatureDistance - see there for details.
 
@@ -44,7 +43,7 @@ namespace OpenMS
 
 	 Depending on parameter @p use_identifications, peptide identifications annotated to the features may have to be compatible (i.e. no annotation or the same annotation) for a pairing to occur.
 
-   Stability criterion: The distance to the nearest neighbor must be smaller than the distance to the second-nearest neighbor by a certain factor, see parameter @p second_nearest_gap.
+   Stability criterion: The distance to the nearest neighbor must be smaller than the distance to the second-nearest neighbor by a certain factor, see parameter @p second_nearest_gap. There is a non-trivial relation between this parameter and the maximum allowed difference (in RT or m/z) of the distance measure: If @p second_nearest_gap is greater than one, lowering @p max_difference may in fact lead to more - rather than fewer - pairings, because it increases the distance difference between the nearest and the second-nearest neighbor, so that the constraint imposed by @p second_nearest_gap may be fulfilled more often.
 
 	 <B> Quality calculation </B>
 

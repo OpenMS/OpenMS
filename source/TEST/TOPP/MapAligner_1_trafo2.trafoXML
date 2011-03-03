@@ -2,7 +2,7 @@
 <TrafoXML version="1.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Transformation name="linear">
 		<Param  type="string" name="symmetric_regression" value="false"/>
-		<Pairs count="126">
+		<Pairs count="129">
 			<Pair from="2558.42" to="1273.21"/>
 			<Pair from="3095.38" to="1541.69"/>
 			<Pair from="1818.97" to="903.484"/>
@@ -20,21 +20,24 @@
 			<Pair from="2294.68" to="1141.34"/>
 			<Pair from="2619.72" to="1303.86"/>
 			<Pair from="1833.07" to="910.533"/>
+			<Pair from="1973.33" to="980.666"/>
 			<Pair from="1957.1" to="972.55"/>
 			<Pair from="1985.54" to="986.768"/>
 			<Pair from="1946.4" to="967.201"/>
 			<Pair from="2521.3" to="1254.65"/>
+			<Pair from="1959.31" to="973.657"/>
 			<Pair from="1948.15" to="968.075"/>
+			<Pair from="1976.25" to="982.123"/>
 			<Pair from="2461.94" to="1224.97"/>
 			<Pair from="2638.18" to="1313.09"/>
 			<Pair from="2647.88" to="1317.94"/>
 			<Pair from="2186.64" to="1087.32"/>
 			<Pair from="2608.04" to="1298.02"/>
+			<Pair from="2579.5" to="1283.75"/>
 			<Pair from="2594.6" to="1291.3"/>
 			<Pair from="2385.08" to="1186.54"/>
 			<Pair from="2401.64" to="1194.82"/>
 			<Pair from="2416.42" to="1202.21"/>
-			<Pair from="2372" to="1180"/>
 			<Pair from="1837.32" to="912.659"/>
 			<Pair from="2715.36" to="1351.68"/>
 			<Pair from="2730.1" to="1359.05"/>
@@ -43,7 +46,6 @@
 			<Pair from="2507.64" to="1247.82"/>
 			<Pair from="2491.38" to="1239.69"/>
 			<Pair from="2616.22" to="1302.11"/>
-			<Pair from="2601.54" to="1294.77"/>
 			<Pair from="2040.08" to="1014.04"/>
 			<Pair from="2623.34" to="1305.67"/>
 			<Pair from="2558.42" to="1273.21"/>
@@ -55,13 +57,14 @@
 			<Pair from="2585.46" to="1286.73"/>
 			<Pair from="2614.04" to="1301.02"/>
 			<Pair from="2588.18" to="1288.09"/>
-			<Pair from="2317.66" to="1152.83"/>
+			<Pair from="2335.42" to="1161.71"/>
 			<Pair from="2387.42" to="1187.71"/>
-			<Pair from="2312.16" to="1150.08"/>
 			<Pair from="2348.6" to="1168.3"/>
 			<Pair from="2508.14" to="1248.07"/>
+			<Pair from="2492.4" to="1240.2"/>
 			<Pair from="2285.04" to="1136.52"/>
 			<Pair from="2363.04" to="1175.52"/>
+			<Pair from="2299.52" to="1143.76"/>
 			<Pair from="2271.9" to="1129.95"/>
 			<Pair from="2311.04" to="1149.52"/>
 			<Pair from="2381.26" to="1184.63"/>
@@ -79,7 +82,6 @@
 			<Pair from="2746.92" to="1367.46"/>
 			<Pair from="2763.72" to="1375.86"/>
 			<Pair from="2556.7" to="1272.35"/>
-			<Pair from="2558.54" to="1273.27"/>
 			<Pair from="2545.52" to="1266.76"/>
 			<Pair from="2508.08" to="1248.04"/>
 			<Pair from="2479" to="1233.5"/>
@@ -90,8 +92,10 @@
 			<Pair from="2532.9" to="1260.45"/>
 			<Pair from="2720.86" to="1354.43"/>
 			<Pair from="2716.62" to="1352.31"/>
+			<Pair from="2730.72" to="1359.36"/>
 			<Pair from="2717.14" to="1352.57"/>
 			<Pair from="2092.92" to="1040.46"/>
+			<Pair from="2078.08" to="1033.04"/>
 			<Pair from="2107.12" to="1047.56"/>
 			<Pair from="2354.4" to="1171.2"/>
 			<Pair from="2326.14" to="1157.07"/>
@@ -100,14 +104,12 @@
 			<Pair from="2527.24" to="1257.62"/>
 			<Pair from="1886.81" to="937.406"/>
 			<Pair from="2035.46" to="1011.73"/>
-			<Pair from="2107.92" to="1047.96"/>
 			<Pair from="1895.04" to="941.522"/>
 			<Pair from="2147.5" to="1067.75"/>
 			<Pair from="2013.62" to="1000.81"/>
 			<Pair from="2030.42" to="1009.21"/>
 			<Pair from="2043.06" to="1015.53"/>
-			<Pair from="2380.92" to="1184.46"/>
-			<Pair from="2394.22" to="1191.11"/>
+			<Pair from="2058.14" to="1023.07"/>
 			<Pair from="2432.44" to="1210.22"/>
 			<Pair from="2663.82" to="1325.91"/>
 			<Pair from="2637.96" to="1312.98"/>
@@ -129,6 +131,7 @@
 			<Pair from="2433.06" to="1210.53"/>
 			<Pair from="2750.14" to="1369.07"/>
 			<Pair from="2607.21" to="1297.6"/>
+			<Pair from="2595.24" to="1291.62"/>
 		</Pairs>
 	</Transformation>
 </TrafoXML>
