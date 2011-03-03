@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer, Chris Bielow $
-// $Authors: Nico Pfeifer $
+// $Maintainer: Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_METADATA_PROTEINIDENTIFICATION_H

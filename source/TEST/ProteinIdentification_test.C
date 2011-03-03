@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer, Chris Bielow $
-// $Authors: Nico Pfeifer $
+// $Maintainer: Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -446,6 +446,127 @@ START_SECTION((void assignRanks()))
 	TEST_EQUAL(id.getHits()[2].getRank(), 3)
 END_SECTION
 
+START_SECTION((Size computeCoverage(const std::vector< PeptideIdentification > &pep_ids)))
+	ProteinIdentification id;
+	
+  // prep hit
+  ProteinHit hit;
+	hit.setAccession("P1");
+  hit.setSequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"
+                  "DKPAKNIILLIGDGMGDSEITAARNYAEGAGGFFKGIDALPLTGQYTHYALNKKTGKPDY"
+                  "VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA");
+  id.insertHit(hit);
+	hit.setAccession("P2");
+  hit.setSequence("PEMPVLENRAAQGDITAPPGGARRLTGDQTAALRDSLS");
+  id.insertHit(hit);
+
+  // prep peptides
+  std::vector<PeptideIdentification> pep_ids;
+  PeptideIdentification pid;
+  PeptideHit phit(0,0,1,"");
+  phit.setProteinAccessions(StringList::create("P1"));
+  phit.setSequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS");
+  pid.insertHit( phit );
+  phit.setSequence("DKPAKNIILLIGDGMGDSEITAARNYAEGAGGFFKGIDALPLTGQYTHYALNKKTGKPDY");
+  pid.insertHit( phit );
+  phit.setSequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS");  // should not count
+  pid.insertHit( phit );
+  pep_ids.push_back(pid);
+
+  PeptideIdentification pid2;
+  PeptideHit phit2(0,0,1,"");
+  phit2.setProteinAccessions(StringList::create("P1"));
+  phit2.setSequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS");
+  pid2.insertHit( phit2 ); // should not count
+  pep_ids.push_back(pid2);
+
+  id.computeCoverage(pep_ids);
+
+  TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 200.0/3.0);
+  TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 0.0);
+
+  phit2.setSequence("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA");
+  pid2.insertHit( phit2 ); 
+  pep_ids.push_back(pid2);
+
+  id.computeCoverage(pep_ids);
+
+  TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 100.0);
+  TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 0.0);
+
+  pep_ids.clear();
+  PeptideIdentification pid3;
+  PeptideHit phit3(0,0,1,"");
+  phit3.setProteinAccessions(StringList::create("P2"));
+  phit3.setSequence("PEMPVLENRAAQGDITAPP"); // 1st half
+  pid3.insertHit( phit3 ); 
+  phit3.setSequence("GGARRLTGDQTAALRDSLS"); // 2nd half
+  pid3.insertHit( phit3 ); 
+  phit3.setSequence("RAAQGDITAPPGGARRLTG"); // middle half
+  pid3.insertHit( phit3 ); 
+  
+  pep_ids.push_back(pid3);
+
+  id.computeCoverage(pep_ids);
+
+  TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 0.0);
+  TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 150.0);
+
+END_SECTION
+
+START_SECTION(( [ProteinIdentification::ProteinGroup] ProteinGroup() ))
+  ProteinIdentification::ProteinGroup p;
+  
+  TEST_EQUAL(p.probability, 0)
+  TEST_EQUAL(p.accessions.size(), 0)
+
+END_SECTION
+
+START_SECTION(( [ProteinIdentification::ProteinGroup] bool operator==(const ProteinGroup rhs) const ))
+  ProteinIdentification::ProteinGroup p, p_c;
+
+  p.probability = 0.5;
+  TEST_NOT_EQUAL(p==p_c, true)
+
+  p.probability = 0.0;
+  p.accessions.push_back("bla");
+  TEST_NOT_EQUAL(p==p_c, true)
+
+  p_c = p;
+
+  TEST_EQUAL(p==p_c, true)
+
+END_SECTION
+
+START_SECTION(( [ProteinIdentification::SearchParameters] SearchParameters() ))
+  ProteinIdentification::SearchParameters sp;
+  
+  TEST_EQUAL( sp.db.size(), 0)
+  TEST_EQUAL( sp.db_version.size(), 0)
+  TEST_EQUAL( sp.taxonomy.size(), 0)
+  TEST_EQUAL( sp.charges.size(), 0)
+  TEST_EQUAL( sp.mass_type, 0)
+  TEST_EQUAL( sp.fixed_modifications.size(), 0)
+  TEST_EQUAL( sp.variable_modifications.size(), 0)
+  TEST_EQUAL( sp.enzyme, ProteinIdentification::UNKNOWN_ENZYME)
+  TEST_EQUAL( sp.missed_cleavages, 0)
+  TEST_EQUAL( sp.peak_mass_tolerance, 0.0)
+  TEST_EQUAL( sp.precursor_tolerance, 0.0)
+
+
+END_SECTION
+
+START_SECTION(( [ProteinIdentification::SearchParameters] bool operator==(const SearchParameters &rhs) const ))
+  ProteinIdentification::SearchParameters sp, sp_n;
+  sp_n.charges = "1,2,3";
+  TEST_EQUAL(sp==sp_n, false)
+END_SECTION
+
+START_SECTION(( [ProteinIdentification::SearchParameters] bool operator!=(const SearchParameters &rhs) const ))
+  ProteinIdentification::SearchParameters sp, sp_n;
+  sp_n.charges = "1,2,3";
+  TEST_EQUAL(sp!=sp_n, true)
+END_SECTION
 
 START_SECTION((const vector<ProteinGroup>& getProteinGroups() const))
 	ProteinIdentification id;
