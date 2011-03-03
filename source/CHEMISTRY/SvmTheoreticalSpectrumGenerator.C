@@ -30,7 +30,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
+
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #define DEBUG
 
