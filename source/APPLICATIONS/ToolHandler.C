@@ -138,7 +138,7 @@ namespace OpenMS
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", "", Factory<BaseLabeler>::registeredProducts());
 		util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", "");
 		util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", "");
-		util_map["SpectrumGeneratorNetworkTrainer"] = Internal::ToolDescription("SpectrumGeneratorNetworkTrainer", "");
+		util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", "");
 		util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", "");
 		util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", "");
 		util_map["UniqueIdAssigner"] = Internal::ToolDescription("UniqueIdAssigner", "");
