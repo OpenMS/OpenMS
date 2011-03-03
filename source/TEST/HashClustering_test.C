@@ -52,7 +52,7 @@ START_SECTION(~HashClustering())
 }
 END_SECTION
 
-START_SECTION((HashClustering(std::vector< DataPoint > &data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod &method_)))
+START_SECTION((HashClustering(std::vector< DataPoint > &data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod &method)))
 {
   NOT_TESTABLE
 }

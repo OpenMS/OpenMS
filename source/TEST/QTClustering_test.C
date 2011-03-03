@@ -52,7 +52,7 @@ START_SECTION(~QTClustering())
 }
 END_SECTION
 
-START_SECTION((QTClustering(std::vector< DataPoint > &data, DoubleReal rt_diameter_, DoubleReal mz_diameter_)))
+START_SECTION((QTClustering(std::vector< DataPoint > &data, DoubleReal rt_diameter, DoubleReal mz_diameter)))
 {
   NOT_TESTABLE
 }

@@ -84,6 +84,7 @@ START_SECTION((void insert(GridElement *const element)))
   HashGrid tmp;
 	DataPoint tmp2;
 	tmp.insert(&tmp2);
+	TEST_EQUAL(tmp.size(), 1);
 }
 END_SECTION
 

@@ -54,7 +54,7 @@ START_SECTION(~QTSILACCluster())
 }
 END_SECTION
 
-START_SECTION((QTSILACCluster(DataPoint *center_point_)))
+START_SECTION((QTSILACCluster(DataPoint *center_point)))
 {
   NOT_TESTABLE
 }

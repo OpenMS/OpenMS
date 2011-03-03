@@ -53,17 +53,39 @@ START_SECTION(~SILACFilter())
 }
 END_SECTION
 
-START_SECTION((SILACFilter(std::vector< DoubleReal > mass_separations_, Int charge_, DoubleReal model_deviation_, Int isotopes_per_peptide_)))
+START_SECTION((SILACFilter(std::vector< DoubleReal > mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((std::vector<DataPoint> getElemenets()))
+START_SECTION((std::vector<DoubleReal> getPeakPositions()))
+{
+  SILACFilter tmp;
+	tmp.getPeakPositions().resize(0);
+  TEST_EQUAL(tmp.getPeakPositions().size(), 0);
+}
+END_SECTION
+
+START_SECTION((std::vector<DoubleReal> getExpectedMzShifts()))
+{
+  SILACFilter tmp;
+	tmp.getExpectedMzShifts().resize(0);
+  TEST_EQUAL(tmp.getExpectedMzShifts().size(), 0);
+}
+END_SECTION
+
+START_SECTION((std::vector<DataPoint> getElements()))
 {
   SILACFilter tmp;
 	tmp.getElements().resize(0);
   TEST_EQUAL(tmp.getElements().size(), 0);
+}
+END_SECTION
+
+START_SECTION((DoubleReal getPeakWidth(DoubleReal mz)))
+{
+  NOT_TESTABLE
 }
 END_SECTION
 

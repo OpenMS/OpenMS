@@ -52,13 +52,19 @@ START_SECTION(~SILACFiltering())
 }
 END_SECTION
 
-START_SECTION((SILACFiltering(MSExperiment< Peak1D > &exp_, const DoubleReal rt_threshold_, const DoubleReal mz_threshold_, const DoubleReal mz_stepwidth_, const DoubleReal intensity_cutoff_, const DoubleReal intensity_correlation_, const bool allow_missing_peaks_)))
+START_SECTION((SILACFiltering(MSExperiment< Peak1D > &exp, const DoubleReal mz_stepwidth, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION((void addFilter(SILACFilter &filter)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void filterDataPoints()))
 {
   NOT_TESTABLE
 }
