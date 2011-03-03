@@ -68,7 +68,7 @@ START_SECTION((static const String getProductName()))
 }
 END_SECTION
 
-START_SECTION((void run(const vector<FeatureMap<> >&, ConsensusMap&)))
+START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusMap& result_map)))
 {
   vector<FeatureMap<> > input(2);
   Feature feat1;
@@ -237,7 +237,7 @@ START_SECTION((void run(const vector<FeatureMap<> >&, ConsensusMap&)))
 }
 END_SECTION
 
-START_SECTION((void run(const std::vector<ConsensusMap>&, ConsensusMap&)))
+START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map)))
 {
 	NOT_TESTABLE; // same as "run" for feature maps (tested above)
 }

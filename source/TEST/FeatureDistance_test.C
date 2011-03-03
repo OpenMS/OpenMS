@@ -42,7 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 FeatureDistance* d_ptr = 0;
-START_SECTION((FeatureDistance(DoubleReal = 1.0, DoubleReal = 1.0, bool = false)))
+START_SECTION((FeatureDistance(DoubleReal max_intensity=1.0, bool force_constraints=false)))
 {
 	d_ptr = new FeatureDistance();
 	TEST_NOT_EQUAL(d_ptr, 0);
@@ -55,7 +55,7 @@ START_SECTION((~FeatureDistance()))
 }
 END_SECTION
 
-START_SECTION((operator()(const BaseFeature&, const BaseFeature&)))
+START_SECTION((std::pair<bool, DoubleReal> operator()(const BaseFeature& left, const BaseFeature& right)))
 {
 	FeatureDistance dist(1000.0, false);
 	Param param = dist.getDefaults();
@@ -99,7 +99,7 @@ START_SECTION((operator()(const BaseFeature&, const BaseFeature&)))
 }
 END_SECTION
 
-START_SECTION((FeatureDistance& operator=(const FeatureDistance&)))
+START_SECTION((FeatureDistance& operator=(const FeatureDistance& other)))
 {
 	FeatureDistance dist(1000.0, true);
 	Param param = dist.getDefaults();

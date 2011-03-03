@@ -60,7 +60,7 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentAlgorithmPoseClustering::getProductName(), "pose_clustering")
 END_SECTION
 
-START_SECTION((virtual void setReference(Size, const String&)))
+START_SECTION((virtual void setReference(Size reference_index=0, const String& reference_file="")))
 {
 	NOT_TESTABLE; // only some internal variables are set
 }
@@ -85,6 +85,17 @@ START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std:
 {
   // Tested extensively in TEST/TOPP.  See MapAligner_test.
   NOT_TESTABLE;
+}
+END_SECTION
+
+START_SECTION((virtual void getDefaultModel(String& model_type, Param& params)))
+{
+	String model_type;
+	Param params;
+	MapAlignmentAlgorithmPoseClustering aligner;
+	aligner.getDefaultModel(model_type, params);
+	TEST_EQUAL(model_type, "linear");
+	TEST_EQUAL(params.getValue("symmetric_regression"), "true");
 }
 END_SECTION
 

@@ -107,6 +107,7 @@ START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<
 	}
 
 	// test parameter check:
+	params.clear();
 	params.setValue("min_run_occur", 3);
 	aligner->setParameters(params);
 	TEST_EXCEPTION(Exception::InvalidParameter, 
@@ -132,13 +133,33 @@ START_SECTION((virtual void alignFeatureMaps(std::vector<FeatureMap<> >&, std::v
 END_SECTION
 
 
-START_SECTION((virtual void setReference(Size, const String&)))
+START_SECTION((virtual void alignConsensusMaps(std::vector<ConsensusMap>&, std::vector<TransformationDescription>&)))
+{
+	// largely the same as "alignPeptideIdentifications"
+  NOT_TESTABLE;
+}
+END_SECTION
+
+
+START_SECTION((virtual void setReference(Size reference_index=0, const String& reference_file="")))
 {
 	MapAlignmentAlgorithm* aligner = Factory<MapAlignmentAlgorithm>::create(
 		"identification");
 	aligner->setReference(1); // nothing happens
 	TEST_EXCEPTION(Exception::FileNotFound, 
 								 aligner->setReference(0, "not-a-real-file.idXML"));
+}
+END_SECTION
+
+
+START_SECTION((virtual void getDefaultModel(String& model_type, Param& params)))
+{
+	String model_type;
+	Param params;
+	MapAlignmentAlgorithmIdentification aligner;
+	aligner.getDefaultModel(model_type, params);
+	TEST_EQUAL(model_type, "b_spline");
+	TEST_EQUAL(params.getValue("num_breakpoints"), 5);
 }
 END_SECTION
 
