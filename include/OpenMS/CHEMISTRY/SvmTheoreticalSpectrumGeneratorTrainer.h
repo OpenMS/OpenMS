@@ -40,6 +40,10 @@ namespace OpenMS
 
    @htmlinclude OpenMS_SvmTheoreticalSpectrumGeneratorTrainer.parameters
 
+   This class implements the algorithm used by the homonymous tool which can be
+   used to train models for MS/MS spectrum simulation. Please refer to the documentation
+   of the tool @ref UTILS_SvmTheoreticalSpectrumGeneratorTrainer for detailed descriptions.
+
    @ingroup Chemistry
    */
 
@@ -89,6 +93,12 @@ namespace OpenMS
 
       /// Normalizes the intensity of the peaks in the input data
       void normalizeIntensity(PeakSpectrum &S) const;
+
+    protected:
+
+      /// Write a training file that can be passed to libsvm command line tools
+      void write_training_file_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename);
+
 
 
 

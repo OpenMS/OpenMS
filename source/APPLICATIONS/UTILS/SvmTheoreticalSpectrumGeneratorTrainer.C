@@ -32,8 +32,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
-//#define SGNT_DEBUG
-#undef SGNT_DEBUG
 
 using namespace std;
 using namespace OpenMS;
@@ -55,7 +53,7 @@ using namespace OpenMS;
   @note This tool is experimental!
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SpectrumGeneratorNetworkTrainer.cli
+  @verbinclude UTILS_SvmTheoreticalSpectrumGeneratorTrainer.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -84,6 +82,7 @@ public:
     registerIntOption_("precursor_charge", "<Int>", 2, "Precursor charge state used for model training", false);
     setMinInt_("precursor_charge",1);
     setMaxInt_("precursor_charge",3);
+    registerFlag_("write_training_files", "No models are trained but input training files for libSVM command line tools are produced");
 
     registerSubsection_("algorithm", "");
   }
@@ -91,6 +90,7 @@ public:
   Param getSubsectionDefaults_(const String& /* section*/) const
   {
     Param tmp = SvmTheoreticalSpectrumGeneratorTrainer().getDefaults();
+    tmp.remove("write_training_files");
     return tmp;
   }
 
@@ -112,6 +112,8 @@ public:
     SvmTheoreticalSpectrumGeneratorTrainer trainer;
 
     Param param = getParam_().copy("algorithm:",true);
+    String write_files = getFlag_("write_training_files") ? "true" : "false";
+    param.setValue("write_training_files", write_files);
     trainer.setParameters(param);
 
     //-------------------------------------------------------------
