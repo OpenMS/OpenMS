@@ -1,8 +1,6 @@
-#RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
-#PROTEIN	score	rank	accession	coverage	sequence
-#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	accessions	predicted_rt	rt_first_dim	predicted_rt_first_dim
-PEPTIDE	1234.5	675.9	0.9	0	DEF	1	A	B	PROT1;PROT2	-1	-1	-1
-PEPTIDE	1234.5	675.9	1.4	0	ZZZZ	1	 	 		-1	-1	-1
-PEPTIDE	-1	-1	44.4	0	PEP3	2	 	 		-1	-1	-1
-PEPTIDE	-1	-1	33.3	0	PEP4	2	 	 		-1	-1	-1
-PEPTIDE	-1	-1	1.4	0	PEP5	1	 	 	PROT3	-1	-1	-1
+#rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions	predicted_rt	rt_first_dim	predicted_rt_first_dim
+1234.5	675.9	0	0	TC(Carboxymethyl)VADESHAGC(Carboxymethyl)EK	2	K	S	MOWSE	Mascot_2006-01-12T12:13:14	PROT1;PROT2	359.97071	4	0.51502823
+1234.5	675.9	0	0	KC(Carboxymethyl)PSPC(Carboxymethyl)QLQAER	2	K	A	MOWSE	Mascot_2006-01-12T12:13:14	PROT1	892.75323	4	4.7040273
+-1	-1	0	0	KC(Carboxymethyl)PSPC(Carboxymethyl)QLQAER	2	K	A	MOWSE	Mascot_2006-01-12T12:13:14	PROT2	892.75323	6	4.7040273
+-1	-1	0.001507159	0	KC(Carboxymethyl)PSPC(Carboxymethyl)QLQAER	2	K	A	MOWSE	Mascot_2006-01-12T12:13:14	PROT2	892.75323	6	4.7040273
+-1	-1	0	0	EYEATLEEC(Carboxymethyl)C(Carboxymethyl)AK	2	K	D	MOWSE	Mascot_2007-01-12T12:13:14	PROT1	900.57296	6	3.9354399

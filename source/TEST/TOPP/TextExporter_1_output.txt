@@ -1,24 +1,29 @@
-#FEATURE	rt	mz	intensity	charge	width(FWHM)	overall_quality	rt_quality	mz_quality	rt_start	rt_end
-#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier
-#UNASSIGNEDPEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier
+#RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
+#PROTEIN	score	rank	accession	coverage	sequence
+#UNASSIGNEDPEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions
+#FEATURE	rt	mz	intensity	charge	width	quality	rt_quality	mz_quality	rt_start	rt_end
+#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions
+RUN	Mascot_2006-03-09T11:31:52		higher-score-better	2006-03-09T11:31:52		db=, db_version=, taxonomy=, charges=, mass_type=monoisotopic, fixed_modifications=, variable_modifications=, enzyme=Unknown, missed_cleavages=0, peak_mass_tolerance=0, precursor_mass_tolerance=0
+PROTEIN	0	0	ABCDE	-1	
+PROTEIN	0	0	FGHIJ	-1	
+UNASSIGNEDPEPTIDE	-1	-1	4324.433	0	F	23	X	Y		Mascot_2006-03-09T11:31:52	FGHIJ
 FEATURE	5	500	100	1	0	1	1	1	-1	-1
 FEATURE	20	600	100	1	0	1	1	1	-1	-1
 FEATURE	11	558	100	1	0	2	1	1	10	12
-PEPTIDE	90	1001	35	0	A	3	 	 	bla	Mascot_2006-03-09T11:31:52
+PEPTIDE	90	1001	35	0	A	3	 	 	bla	Mascot_2006-03-09T11:31:52	ABCDE
 FEATURE	9	566	100	1	0	3	1	1	-1	-1
 FEATURE	11	566	100	1	0	4	1	1	-1	-1
 FEATURE	10	559	100	1	0	5	1	1	-1	-1
 FEATURE	10	566	100	1	0	6	1	1	-1	-1
-PEPTIDE	90	1001	35	0	E	3	 	 	bla	Mascot_2006-03-09T11:31:52
+PEPTIDE	90	1001	35	0	E	3	 	 	bla	Mascot_2006-03-09T11:31:52	ABCDE
 FEATURE	10	573	100	1	0	7	1	1	-1	-1
 FEATURE	15	530	100	2	0	8	1	1	-1	-1
-PEPTIDE	90	1001	35	0	C	3	 	 	bla	Mascot_2006-03-09T11:31:52
+PEPTIDE	90	1001	35	0	C	3	 	 	bla	Mascot_2006-03-09T11:31:52	ABCDE
 FEATURE	14	531	100	2	0	9	1	1	-1	-1
 FEATURE	14	534	100	2	0	10	1	1	-1	-1
-PEPTIDE	90	1001	35	0	D	3	 	 	bla	Mascot_2006-03-09T11:31:52
+PEPTIDE	90	1001	35	0	D	3	 	 	bla	Mascot_2006-03-09T11:31:52	ABCDE
 FEATURE	14	537	100	2	0	11	1	1	-1	-1
 FEATURE	15	534	100	2	0	12	1	1	-1	-1
 FEATURE	13	534	100	2	0	13	1	1	-1	-1
 FEATURE	18	550	100	1	0	14	1	1	-1	-1
 FEATURE	17	558	100	2	0	15	1	1	-1	-1
-UNASSIGNEDPEPTIDE	-1	-1	4324.433	0	F	23	X	Y		Mascot_2006-03-09T11:31:52

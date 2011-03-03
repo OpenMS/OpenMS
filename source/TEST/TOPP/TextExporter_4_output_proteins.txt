@@ -1,6 +1,5 @@
 #RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
 #PROTEIN	score	rank	accession	coverage	sequence
-#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	accessions	predicted_rt
 RUN	Mascot_2006-01-12T12:13:14	MOWSE	higher-score-better	2006-01-12T12:13:14	2.1.0	db=MSDB, db_version=1.0, taxonomy=, charges=+1, +2, mass_type=average, fixed_modifications=, variable_modifications=, enzyme=Trypsin, missed_cleavages=0, peak_mass_tolerance=0.3, precursor_mass_tolerance=1
 PROTEIN	34.4000015258789	0	PROT1	42.8571428571429	ABCDEFG
 PROTEIN	24.3999996185303	0	PROT2	37.5	DEFGHIGK
