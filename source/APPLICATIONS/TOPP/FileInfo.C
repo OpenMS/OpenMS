@@ -63,7 +63,7 @@ using namespace std;
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
 		</tr>
 	</table>
 </CENTER>
