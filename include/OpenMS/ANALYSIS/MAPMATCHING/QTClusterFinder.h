@@ -66,7 +66,7 @@ namespace OpenMS
 
 	 @see FeatureGroupingAlgorithmQT
 
-   @htmlinclude OpenMS_QTPairFinder.parameters
+   @htmlinclude OpenMS_QTClusterFinder.parameters
 
    @ingroup FeatureGrouping
 */
