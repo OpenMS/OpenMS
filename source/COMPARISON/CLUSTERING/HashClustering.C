@@ -36,6 +36,7 @@
 
 namespace OpenMS
 {
+  Int cluster_id = 0;
 
   typedef std::map<std::pair<int, int>, std::list<GridElement*> > GridElements;
 
@@ -690,8 +691,6 @@ namespace OpenMS
 
   void HashClustering::createClusters(std::vector<Cluster>& clusters)
   {
-    Size cluster_id = 0;
-
     // Run silhoutte optimization for all subtrees and find the appropriate best_n
     for (ElementMap::iterator it = grid_.begin(); it != grid_.end(); ++it)
     {
@@ -753,10 +752,8 @@ namespace OpenMS
           ++cluster_id;
           clusters.push_back(*cluster_it);
         }
-
       }
     }
-
   }
 
   std::vector<std::vector<Real> > HashClustering::getSilhouetteValues()

@@ -800,6 +800,48 @@ class TOPPSILACAnalyzer
 
 
     //--------------------------------------------------
+    // remove isolated DataPoints from filter results (i.e. DataPoints with only few immediate neighbours)
+    //--------------------------------------------------
+
+    Int immediate_neighbour_threshold = 5;      // maximum number of DataPoints within neighbourhood
+    DoubleReal rt_neighbourhood = 10;     // size of neighbourhood for RT (+ and -)
+    DoubleReal mz_neighbourhood = 0.02;     // size of neighbourhood for m/z (+ and -)
+
+    vector<vector<DataPoint> > data_2;
+
+    for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+    {
+      vector<DataPoint> single_layer;
+
+      for (vector<DataPoint>::iterator it = data_it->begin(); it != data_it->end(); ++it)
+      {
+        Int immediate_neighbours = 0;
+
+        for (vector<DataPoint>::iterator it_2 = data_it->begin(); it_2 != data_it->end(); ++it_2)
+        {
+          DoubleReal distance_mz = abs(it->mz - it_2->mz);
+          DoubleReal distance_rt = abs(it->rt - it_2->rt);
+
+          if (distance_rt < rt_neighbourhood && distance_mz < mz_neighbourhood)
+          {
+            ++immediate_neighbours;
+          }
+        }
+
+        if (immediate_neighbours > immediate_neighbour_threshold)
+        {
+          single_layer.push_back(*it);
+        }
+      }
+
+      data_2.push_back(single_layer);
+    }
+
+    data.swap(data_2);      // data = data_2
+    data_2.clear();
+
+
+    //--------------------------------------------------
     // clustering
     //--------------------------------------------------
 
