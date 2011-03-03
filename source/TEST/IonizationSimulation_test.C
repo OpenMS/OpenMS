@@ -44,7 +44,13 @@ START_TEST(IonizationSimulation, "$Id$")
 
 IonizationSimulation* ptr = 0;
 const unsigned long rnd_gen_seed = 1;
-SimRandomNumberGenerator empty_rnd_gen;
+SimRandomNumberGenerator rnd_gen;
+
+// init reproducible rnd_gen
+rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
+gsl_rng_set(rnd_gen.technical_rng, 0);
+rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
+gsl_rng_set(rnd_gen.biological_rng, 0);
 
 #ifdef _OPENMP
 omp_set_num_threads(1);
@@ -59,7 +65,7 @@ END_SECTION
 
 START_SECTION((IonizationSimulation(const SimRandomNumberGenerator& )))
 {
-  ptr = new IonizationSimulation(empty_rnd_gen);
+  ptr = new IonizationSimulation(rnd_gen);
   TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
@@ -72,7 +78,7 @@ END_SECTION
 
 START_SECTION((IonizationSimulation(const IonizationSimulation &source)))
 {
-  IonizationSimulation source(empty_rnd_gen);
+  IonizationSimulation source(rnd_gen);
   Param p = source.getParameters();
   p.setValue("ionization_type","MALDI");
   source.setParameters(p);
@@ -85,7 +91,7 @@ END_SECTION
 
 START_SECTION((IonizationSimulation& operator=(const IonizationSimulation &source)))
 {
-  IonizationSimulation ion_sim1(empty_rnd_gen);
+  IonizationSimulation ion_sim1(rnd_gen);
   IonizationSimulation ion_sim2(ion_sim1);
   
 	Param p = ion_sim1.getParameters();
