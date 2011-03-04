@@ -21,13 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QSysInfo>
 #include <QDir>
@@ -199,33 +200,33 @@ namespace OpenMS
 
 int main( int /*argc*/, const char** /*argv*/ )
 {
-	cout << "OpenMS Version:" << endl;
-	cout << "==================" << endl;
-	cout << "Version      : " << VersionInfo::getVersion() << endl;
-	cout << "Build time   : " << VersionInfo::getTime() << endl;
-	cout << "SVN revision : " << VersionInfo::getRevision() << endl;
-	cout << endl;
-	cout << "Installation information:" << endl;
-	cout << "==================" << endl;
-	cout << "Data path    : " << OPENMS_DATA_PATH << endl;
-  cout << "Temp path    : " << String(QDir::tempPath ()) << endl;
-  cout << "Userdata path: " << String(QDir::homePath ()) << endl;
+	cout << "OpenMS Version:" << "\n";
+	cout << "==================" << "\n";
+	cout << "Version      : " << VersionInfo::getVersion() << "\n";
+	cout << "Build time   : " << VersionInfo::getTime() << "\n";
+	cout << "SVN revision : " << VersionInfo::getRevision() << "\n";
+	cout << "\n";
+	cout << "Installation information:" << "\n";
+	cout << "==================" << "\n";
+  cout << "Data path    : " << File::getOpenMSDataPath() << "\n";
+  cout << "Temp path    : " << File::getTempDirectory() << "\n";
+  cout << "Userdata path: " << File::getUserDirectory() << "\n";
 
-	cout << endl;
-	cout << "Build information:" << endl;
-	cout << "==================" << endl;
-	cout << "Source path  : " << OPENMS_SOURCE_PATH << endl;
-	cout << "Binary path  : " << OPENMS_BINARY_PATH << endl;
-	cout << endl;
+	cout << "\n";
+	cout << "Build information:" << "\n";
+	cout << "==================" << "\n";
+	cout << "Source path  : " << OPENMS_SOURCE_PATH << "\n";
+	cout << "Binary path  : " << OPENMS_BINARY_PATH << "\n";
+	cout << "\n";
 
   OpenMS::Internal::OpenMSOSInfo info = OpenMS::Internal::getOSInfo();
   // experimental: OS information
-  cout << "OS Information:" << endl;
-	cout << "==================" << endl;
-  cout << "Name: " << info.getOSAsString() << endl;
-  cout << "Version: " << info.os_version << endl;
-  cout << "Architecture: " << info.getArchAsString() << endl;
-	cout << endl;
+  cout << "OS Information:" << "\n";
+	cout << "==================" << "\n";
+  cout << "Name: " << info.getOSAsString() << "\n";
+  cout << "Version: " << info.os_version << "\n";
+  cout << "Architecture: " << info.getArchAsString() << "\n";
+	cout << "\n";
 
 
 	return 0;
