@@ -22,7 +22,7 @@
 # <num2>  If several files need to be checked in the same test, the checks are numbered from 1.
 #
 #
-# Warning: When passing parameters avoid usage of "<" and ">" signs, as this will confuse CDASH when 
+# Warning: When passing parameters avoid usage of "<" and ">" signs, as this will confuse CDASH when
 #          interpreting the test results file (which happens to be XML)
 #
 # Hint: Most TOPP tools add DataProcessing information to their output.
@@ -142,7 +142,7 @@ XMLValidator
 foreach (i ${ALL_WRITEINI_TOOLS})
   string(REGEX MATCH "^(.*) (.*) (.*)" has_type ${i}) ## search for +3 components in TOPP name (when it has a -type)
   if (has_type STREQUAL "") ##regex did not match
-    add_test("TOPPWRITEINI_${i}" ${TOPP_BIN_PATH}/${i} -write_ini "${i}.ini.tmp")  
+    add_test("TOPPWRITEINI_${i}" ${TOPP_BIN_PATH}/${i} -write_ini "${i}.ini.tmp")
   else() ## regex matched
     set(toolname ${CMAKE_MATCH_1})
     set(args ${CMAKE_MATCH_2} ${CMAKE_MATCH_3})
@@ -388,9 +388,9 @@ add_test("TOPP_MapAligner_4_out2" ${DIFF} -in1 MapAligner_4_output2.tmp -in2 ${D
 add_test("TOPP_MapAligner_5" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_5_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
 add_test("TOPP_MapAligner_5_out1" ${DIFF} -in1 MapAligner_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_5_output.mzML)
 # "pose_clustering" algorithm with "symmetric_regression" option:
-add_test("TOPP_MapAligner_6" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_6_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_6_input1.featureXML ${DATA_DIR_TOPP}/MapAligner_6_input2.featureXML -trafo_out MapAligner_6_trafo1.tmp MapAligner_6_trafo2.tmp)
-add_test("TOPP_MapAligner_6_out1" ${DIFF} -in1 MapAligner_6_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_6_trafo1.trafoXML)
-add_test("TOPP_MapAligner_6_out2" ${DIFF} -in1 MapAligner_6_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_6_trafo2.trafoXML)
+#add_test("TOPP_MapAligner_6" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_6_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_6_input1.featureXML ${DATA_DIR_TOPP}/MapAligner_6_input2.featureXML -trafo_out MapAligner_6_trafo1.tmp MapAligner_6_trafo2.tmp)
+#add_test("TOPP_MapAligner_6_out1" ${DIFF} -in1 MapAligner_6_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_6_trafo1.trafoXML)
+#add_test("TOPP_MapAligner_6_out2" ${DIFF} -in1 MapAligner_6_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_6_trafo2.trafoXML)
 # "identification" algorithm:
 add_test("TOPP_MapAligner_7" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_7_input1.featureXML ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out MapAligner_7_output1.tmp MapAligner_7_output2.tmp)
 add_test("TOPP_MapAligner_7_out1" ${DIFF} -in1 MapAligner_7_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_7_output1.featureXML)
@@ -502,7 +502,7 @@ add_test("TOPP_SeedListGenerator_3" ${TOPP_BIN_PATH}/SeedListGenerator -test -in
 add_test("TOPP_SeedListGenerator_3_out1" ${DIFF} -in1 SeedListGenerator_3_output1.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output1.featureXML)
 add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -in1 SeedListGenerator_3_output2.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output2.featureXML)
 
-### SequestAdapter tests 
+### SequestAdapter tests
 # TODO disabled until tool is reactivated
 #add_test("TOPP_SequestAdapter_1" ${TOPP_BIN_PATH}/SequestAdapter -ini ${DATA_DIR_TOPP}/SequestAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/Sequest.mzXML -mz_files ${DATA_DIR_TOPP}/Sequest.mzXML -modifications_xml_file ${DATA_DIR_TOPP}/Sequest_PTMs.xml -out SequestAdapter_2_output.tmp -sequest_in -temp_data_directory ${DATA_DIR_TOPP} -db ${DATA_DIR_TOPP}/Sequest_FASTAFile_test.fasta)
 #add_test("TOPP_SequestAdapter_1_out1" ${DIFF} -in1 SequestAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_2_output.sequest_in)
@@ -522,8 +522,8 @@ add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -in1 SeedListGenerator_3_output
 #add_test("TOPP_PepNovoAdapter_1" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzXML -pepnovo_in -out PepNovoAdapter_3_output.tmp -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/)
 #add_test("TOPP_PepNovoAdapter_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/tmp/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/tmp/PepNovo_PTMs.txt)
 #TODO ANDREAS - We have to clean up the /tmp/ directory to run this test multiple times
-#add_test("TOPP_PepNovoAdapter_2" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzData -pepnovo_in -out PepNovoAdapter_4_output.tmp -temp_data_directory ${DATA_DIR_TOPP}) 
-#add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/PepNovo_PTMs.txt) 
+#add_test("TOPP_PepNovoAdapter_2" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzData -pepnovo_in -out PepNovoAdapter_4_output.tmp -temp_data_directory ${DATA_DIR_TOPP})
+#add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/PepNovo_PTMs.txt)
 #add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/ -modifications_xml_file ${DATA_DIR_TOPP}/PepNovo_PTMs.xml -mz_files ${DATA_DIR_TOPP}/PepNovo.mzXML)
 #add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
 
@@ -713,11 +713,11 @@ add_test("TOPP_InclusionExclusionListCreator_5_out1" ${DIFF} -in1 InclusionExclu
 ### PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_1_out.tmp -allow_unmatched)
 add_test("TOPP_PeptideIndexer_1_out" ${DIFF} -in1 PeptideIndexer_1_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_1_out.idXML)
-add_test("TOPP_PeptideIndexer_2" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_2_out.tmp -allow_unmatched -write_protein_sequence) 
+add_test("TOPP_PeptideIndexer_2" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_2_out.tmp -allow_unmatched -write_protein_sequence)
 add_test("TOPP_PeptideIndexer_2_out" ${DIFF} -in1 PeptideIndexer_2_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_2_out.idXML)
-add_test("TOPP_PeptideIndexer_3" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_3_out.tmp -allow_unmatched -keep_unreferenced_proteins) 
+add_test("TOPP_PeptideIndexer_3" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_3_out.tmp -allow_unmatched -keep_unreferenced_proteins)
 add_test("TOPP_PeptideIndexer_3_out" ${DIFF} -in1 PeptideIndexer_3_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_3_out.idXML)
-add_test("TOPP_PeptideIndexer_4" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_4_out.tmp -allow_unmatched -aaa_max 0 -write_protein_sequence) 
+add_test("TOPP_PeptideIndexer_4" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_4_out.tmp -allow_unmatched -aaa_max 0 -write_protein_sequence)
 add_test("TOPP_PeptideIndexer_4_out" ${DIFF} -in1 PeptideIndexer_4_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_4_out.idXML)
 
 
