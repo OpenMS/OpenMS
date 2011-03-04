@@ -1103,7 +1103,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
   }
 
-  std::set<String> TOPPViewBase::getFilenamesOfOpenFiles()
+  std::set<String> TOPPViewBase::getFilenamesOfOpenFiles_()
   {
     set<String> filename_set;
     // iterate over all windows
