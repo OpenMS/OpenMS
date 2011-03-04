@@ -90,8 +90,8 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
   vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
   String document_id;
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids_withProtScores.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids_withProtScores.idXML"), rev_prot_ids, rev_pep_ids, document_id);
   ptr->apply(fwd_prot_ids, rev_prot_ids);
   TOLERANCE_ABSOLUTE(0.001)
 	
@@ -110,9 +110,9 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 				{
 					TEST_REAL_SIMILAR(fdr, 0)
 				}
-				if ((orig_score == -1.7))
+				if ((orig_score == 0.0))
 				{
-					TEST_REAL_SIMILAR(fdr, 0.0617284)
+					TEST_REAL_SIMILAR(fdr, 0.897384)
 				}
 			}
 		}
