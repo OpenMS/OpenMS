@@ -235,6 +235,16 @@ START_SECTION(void load(const String &filename))
 	NOT_TESTABLE
 END_SECTION
 
+START_SECTION(bool isRefining() const )
+  XTandemInfile file;
+  TEST_EQUAL(file.isRefining()==true, true)
+END_SECTION
+
+START_SECTION(void setRefine(const bool refine))
+  XTandemInfile file;
+  file.setRefine(false);
+  TEST_EQUAL(file.isRefining()==false, true)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
