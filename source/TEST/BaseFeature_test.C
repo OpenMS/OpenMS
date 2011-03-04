@@ -41,6 +41,8 @@ START_TEST(BaseFeature, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
+typedef BaseFeature::QualityType QualityType;
+
 BaseFeature* feat_ptr = 0;
 START_SECTION((BaseFeature()))
 {
@@ -63,11 +65,11 @@ END_SECTION
 
 START_SECTION((void setQuality(QualityType q)))
 	BaseFeature p;
-	p.setQuality(123.456);
+  p.setQuality((QualityType) 123.456);
 	TEST_REAL_SIMILAR(p.getQuality(), 123.456)
-	p.setQuality(-0.12345);
+  p.setQuality((QualityType)-0.12345);
 	TEST_REAL_SIMILAR(p.getQuality(), -0.12345)
-	p.setQuality(0.0);
+  p.setQuality((QualityType)0.0);
 	TEST_REAL_SIMILAR(p.getQuality(), 0.0)
 END_SECTION
 
@@ -148,7 +150,7 @@ START_SECTION((BaseFeature(const BaseFeature &feature)))
 	p.setIntensity(123.456f);
 	p.setPosition(pos);
 	p.setMetaValue("cluster_id",4711);
-  p.setQuality(0.9);
+  p.setQuality((QualityType)0.9);
 
 	BaseFeature copy_of_p(p);
 	BaseFeature::PositionType pos2 = copy_of_p.getPosition();
@@ -169,7 +171,7 @@ START_SECTION((BaseFeature& operator=(const BaseFeature& rhs)))
 	BaseFeature p;
 	p.setIntensity(123.456f);
 	p.setPosition(pos);
-  p.setQuality(0.9);
+  p.setQuality((QualityType)0.9);
 
 	BaseFeature copy_of_p;
 	copy_of_p = p;
@@ -191,10 +193,10 @@ START_SECTION((bool operator==(const BaseFeature &rhs) const))
 	TEST_EQUAL(p1 == p2, true)
 
 	p1.setIntensity(5.0f);
-  p1.setQuality(0.9);
+  p1.setQuality((QualityType)0.9);
 	TEST_EQUAL(p1 == p2, false)
 	p2.setIntensity(5.0f);
-  p2.setQuality(0.9);
+  p2.setQuality((QualityType)0.9);
 	TEST_EQUAL(p1 == p2, true)
 
 	p1.getPosition()[0] = 5;
@@ -256,8 +258,8 @@ END_SECTION
 
 START_SECTION(([BaseFeature::QualityLess] bool operator()(BaseFeature const &left, BaseFeature const &right) const ))
 	BaseFeature f1, f2;
-	f1.setQuality(0.94);
-	f2.setQuality(0.78);
+  f1.setQuality((QualityType)0.94);
+  f2.setQuality((QualityType)0.78);
 	BaseFeature::QualityLess oql;
 	
 	TEST_EQUAL(oql(f1, f2), 0);
@@ -266,8 +268,8 @@ END_SECTION
 
 START_SECTION(([BaseFeature::QualityLess] bool operator()(BaseFeature const &left, const QualityType &right) const ))
 	BaseFeature f1, f2;
-	f1.setQuality(0.94);
-	f2.setQuality(0.78);
+  f1.setQuality((QualityType)0.94);
+  f2.setQuality((QualityType)0.78);
 	BaseFeature::QualityType rhs = f1.getQuality();
 	BaseFeature::QualityLess oql;
  
@@ -277,8 +279,8 @@ END_SECTION
 
 START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType& left, const BaseFeature& right) const))
 	BaseFeature f1, f2;
-	f1.setQuality(0.94);
-	f2.setQuality(0.78);	
+  f1.setQuality((QualityType)0.94);
+  f2.setQuality((QualityType)0.78);
 	BaseFeature::QualityType lhs = f2.getQuality();
 	BaseFeature::QualityLess oql;
 	
@@ -288,8 +290,8 @@ END_SECTION
 
 START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType& left, const QualityType& right) const ))
 	BaseFeature f1, f2;
-	f1.setQuality(0.94);
-	f2.setQuality(0.78);
+  f1.setQuality((QualityType)0.94);
+  f2.setQuality((QualityType)0.78);
 	BaseFeature::QualityType lhs = f1.getQuality();
 	BaseFeature::QualityType rhs = f2.getQuality();
 	BaseFeature::QualityLess oql;

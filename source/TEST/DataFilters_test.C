@@ -43,7 +43,9 @@ START_TEST(DataFilters, "$Id$")
 
 using namespace OpenMS;
 using namespace std;
-	
+
+typedef BaseFeature::QualityType QualityType;
+
 ///constructor and destructor test
 DataFilters* ptr;
 START_SECTION((DataFilters()))
@@ -240,7 +242,7 @@ END_SECTION
 Feature feature_1;
 feature_1.setIntensity(1000.00f);
 feature_1.setCharge(4);
-feature_1.setOverallQuality(31.3334);
+feature_1.setOverallQuality((QualityType)31.3334);
 feature_1.setMetaValue(String("test_int"), 5);
 feature_1.setMetaValue(String("test_double"), 23.42);
 feature_1.setMetaValue(String("test_string"), String("hello world 1"));
@@ -248,7 +250,7 @@ feature_1.setMetaValue(String("test_string"), String("hello world 1"));
 Feature feature_2;
 feature_2.setIntensity(122.01f);
 feature_2.setCharge(3);
-feature_2.setOverallQuality(0.002);
+feature_2.setOverallQuality((QualityType)0.002);
 feature_2.setMetaValue(String("test_int"), 10);
 feature_2.setMetaValue(String("test_double"), 0.042);
 feature_2.setMetaValue(String("test_string"), String("hello world 2"));
@@ -256,7 +258,7 @@ feature_2.setMetaValue(String("test_string"), String("hello world 2"));
 Feature feature_3;
 feature_3.setIntensity(55.0f);
 feature_3.setCharge(4);
-feature_3.setOverallQuality(1);
+feature_3.setOverallQuality((QualityType) 1.);
 feature_3.setMetaValue(String("test_int"), 0);
 feature_3.setMetaValue(String("test_double"), 100.01);
 feature_3.setMetaValue(String("test_string"), String("hello world 3"));
@@ -265,17 +267,17 @@ feature_3.setMetaValue(String("test_string"), String("hello world 3"));
 ConsensusFeature c_feature_1;
 c_feature_1.setIntensity(1000.00f);
 c_feature_1.setCharge(4);
-c_feature_1.setQuality(31.3334);
+c_feature_1.setQuality((QualityType) 31.3334);
 
 ConsensusFeature c_feature_2;
 c_feature_2.setIntensity(122.01f);
 c_feature_2.setCharge(3);
-c_feature_2.setQuality(0.002);
+c_feature_2.setQuality((QualityType) 0.002);
 
 ConsensusFeature c_feature_3;
 c_feature_3.setIntensity(55.0f);
 c_feature_3.setCharge(4);
-c_feature_3.setQuality(1);
+c_feature_3.setQuality((QualityType) 1.);
 
 ///construct some test peaks
 MSSpectrum<Peak1D> spec;

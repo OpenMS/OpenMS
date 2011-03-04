@@ -89,7 +89,7 @@ START_SECTION((StringList(const QStringList &rhs)))
   q_str_list << "First Element" << "Second Element" << "Third Element";
 
   StringList str_list(q_str_list);
-  TEST_EQUAL(str_list.size(), q_str_list.size())
+  TEST_EQUAL((int)str_list.size(), q_str_list.size())
   ABORT_IF((int)str_list.size() != q_str_list.size())
   for(Size i = 0 ; i < str_list.size() ; ++i)
   {
