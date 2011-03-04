@@ -3,6 +3,14 @@
 ------------------------------------------------------------------------------------------
 
 TOPP tools:
+- MODIFIED:
+  - MapAligner: separated data extraction from transformation modelling - this allows to combine different algorithms and models; new option "invert"; reworked parameters (please see the MapAligner documentation and update your INI files)
+  - FeatureLinker: now able to link consensus maps; added new experimental algorithm "unabeled_qt"; improved quality calculation in "unlabeled" algorithm
+  - IDMapper, FeatureLinker ("unlabeled"/"unlabeled_qt" algorithms): now consider charge states by default (use parameter "ignore_charge" if you want to avoid this)
+  - FileInfo: improved formatting of output
+  - TextExporter: unified output formats
+  - FileConverter: added conversion to consensusXML
+  - ProteinQuantifier: redefined meaning of parameter combination "top 0"/"consensus:fix_peptides"
 
 UTIL tools:
 
@@ -17,6 +25,24 @@ Changes to the Build System:
 Fixed Issues:
 
 Detailed list of changes to specific OpenMS classes:
+- NEW:
+  - BaseFeature: parent of Feature and ConsensusFeature
+  - FeatureGroupingAlgorithmQT, QTClusterFinder, QTCluster, GridFeature: feature grouping for unlabeled data based on QT clustering
+  - FeatureDistance: distance measure for features
+  - TransformationModel: different models for retention time transformations
+- MODIFIED:
+  - Feature, ConsensusFeature: moved common parts to BaseFeature
+  - StablePairFinder: moved distance calculation to FeatureDistance
+  - TransformationDescription: reworked, some functionality moved to TransformationModel
+  - all MapAlignmentAlgorithm... classes, PoseClustering[Affine/Shift]Superimposer, TransformationXMLFile, InternalCalibration: adapted to changes in RT alignment/transformation modelling
+  - FeatureGroupingAlgorithm: support linking of consensus maps; new algorithm "unlabeled_qt"
+  - BaseGroupFinder: new algorithm "qt"
+  - IDMapper: consider charge states for matching
+  - PepXMLFile: use E-value (instead of hyperscore) as score for X! Tandem results
+  - FileHandler: accept endings ".pep.xml" and ".prot.xml" for pepXML/protXML
+  - FeatureMap, ConsensusMap: "clear" also clears meta data by default
+  - ConsensusMap: adapted signature of "convert" for feature maps (to mirror that for peak maps)
+
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.7                                      ----
