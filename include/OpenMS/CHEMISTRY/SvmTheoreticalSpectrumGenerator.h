@@ -39,9 +39,13 @@
 namespace OpenMS
 {
   /**
-   @brief Generates theoretical spectra with support vector machines.
+   @brief Simulates ms2 spectra with support vector machines.
 
-   The models are generated with the @ref UTILS_SvmTheoreticalSpectrumGeneratorTrainer
+   The models are generated with the @ref UTILS_SvmTheoreticalSpectrumGeneratorTrainer. \n
+   Two modes are supported:\n
+   - Only a prediction of abundant/missing is performed and for abundant peaks are generated with user defined intensity. \n
+   - The intensity is predicted using SVM-regression (only for the primary ion types b and y). For the secondary types a Baesian model is used.
+
 
    @htmlinclude OpenMS_SvmTheoreticalSpectrumGenerator.parameters
 

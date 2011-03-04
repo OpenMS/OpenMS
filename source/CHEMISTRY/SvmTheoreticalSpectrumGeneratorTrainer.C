@@ -38,9 +38,7 @@
 #include <sstream>
 
 namespace OpenMS
-{  
-#define DEBUG
-
+{
   SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer() :
       DefaultParamHandler("SvmTheoreticalSpectrumGeneratorTrainer")
   {
@@ -49,7 +47,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
     defaults_.setValidStrings("write_training_files", StringList::create("true,false"));
 
-    defaults_.setValue("number_intensity_levels", 7, "The number of bins the peak intensities are mapped to");
+    defaults_.setValue("number_intensity_levels", 7, "The number of intensity bins (for secondary type models)");
     defaults_.setValue("number_regions", 3, "The number of regions each spectrum is split to (for secondary type models)");
     defaults_.setValue("parent_tolerance", 2.5, "The maximum difference between theoretical and experimental parent mass to accept training spectrum");
     defaults_.setValue("peak_tolerance", 0.5, "The maximum mass error for a peak to the expected mass of some ion type");
@@ -172,10 +170,10 @@ for the selected primary ion types. They can be used as input for LibSVM command
     //----------- BEGIN OF PARAMETER READING-------------------------
 
     //upper and lower bounds for rescaling of features
-    double upper=0.0;
-    double lower=0.0;
+    double upper = 0.0;
+    double lower = 0.0;
 
-    bool secondary_types=false;
+    bool secondary_types = false;
 
 
     Size number_of_intensity_levels = (UInt) param_.getValue("number_intensity_levels");
@@ -370,8 +368,8 @@ for the selected primary ion types. They can be used as input for LibSVM command
     std::map<Size, std::vector<DescriptorSet> >training_input;
     std::map<Size, std::vector<double> >training_output;
 
-    Size spec_index=0;
-    Size x=30;
+    Size spec_index = 0;
+    Size x = 1;
     //run over all input spectra
     for (PeakMap::const_iterator map_it = spectra.begin(); map_it < spectra.end(); map_it+=x, spec_index+=x)
     {      
@@ -461,24 +459,24 @@ for the selected primary ion types. They can be used as input for LibSVM command
         std::vector<svm_node>::iterator it;
         for(Size train_row=0; train_row<training_input[type_nr].size(); ++train_row)
         {
-          Size index=0;
-          for(it=training_input[type_nr][train_row].descriptors.begin(); it!=training_input[type_nr][train_row].descriptors.end(); ++it)
+          Size index = 0;
+          for(it = training_input[type_nr][train_row].descriptors.begin(); it != training_input[type_nr][train_row].descriptors.end(); ++it)
           {
-            while( (Int) index<it->index-1)
+            while( (Int) index < it->index-1)
             {
-              min_features[index]=std::min(min_features[index], 0.0);
-              max_features[index]=std::max(max_features[index],0.0);
+              min_features[index] = std::min(min_features[index], 0.0);
+              max_features[index] = std::max(max_features[index],0.0);
               ++index;
             }
-            min_features[index]=std::min(min_features[index], it->value);
-            max_features[index]=std::max(max_features[index], it->value);
+            min_features[index] = std::min(min_features[index], it->value);
+            max_features[index] = std::max(max_features[index], it->value);
             ++index;
           }
 
           while(index<num_features)
           {
-            min_features[index]=std::min(min_features[index], 0.0);
-            max_features[index]=std::max(max_features[index],0.0);
+            min_features[index] = std::min(min_features[index], 0.0);
+            max_features[index] = std::max(max_features[index],0.0);
             ++index;
           }
         }
@@ -487,7 +485,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
       //now use the min-max entries to scale the features
       //we have to set the private members feature_min and feature_max to call the scaleDescriptorSet method
       spec_gen.mp_.feature_min = min_features;
-      spec_gen.mp_.feature_max=max_features;
+      spec_gen.mp_.feature_max = max_features;
 
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
       {
@@ -526,7 +524,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
       training_input_reg.reserve(training_input[type_nr].size());
       training_output_reg.reserve(training_output[type_nr].size());
 
-      for(Size i=0; i<training_output[type_nr].size(); ++i)
+      for(Size i = 0; i < training_output[type_nr].size(); ++i)
       {
         training_input_reg.push_back(training_input[type_nr][i]);
         training_output_reg.push_back(std::max(0.0,training_output[type_nr][i]));
@@ -798,28 +796,32 @@ for the selected primary ion types. They can be used as input for LibSVM command
       ++first_non_zero;
     }
 
-    Size non_zero_size=tmp.size()-first_non_zero;
-    Size prev_index=0;
+    Size non_zero_size = tmp.size()-first_non_zero;
+    Size prev_index = 0;
     for(Size i=1; i<number_of_intensity_levels; ++i)
     {
-      Size index = i* (DoubleReal) non_zero_size/(number_of_intensity_levels-1)+first_non_zero;
-      DoubleReal count=0;
-      for(Size j=prev_index; j<index; ++j)
+      Size index = i* (DoubleReal) non_zero_size/(number_of_intensity_levels-1) + first_non_zero;
+      DoubleReal count = 0;
+      for(Size j = prev_index; j < index; ++j)
       {
-        count+=tmp[j];
+        count += tmp[j];
       }
-      bin_boarders[i-1]=tmp[index-1];
-      bin_values[i-1]=count/(index-prev_index);
-      prev_index=index;      
+      bin_boarders[i-1] = tmp[index-1];
+      bin_values[i-1] = count/(index-prev_index);
+      prev_index = index;
     }
 
     info_outfile.push_back("<IntensityBinBoarders>");
-    for(Size i=0; i<number_of_intensity_levels-1; ++i)
+    for(Size i = 0; i < number_of_intensity_levels-1; ++i)
+    {
       info_outfile.push_back(bin_boarders[i]);
+    }
     info_outfile.push_back("</IntensityBinBoarders>");
     info_outfile.push_back("<IntensityBinValues>");
-    for(Size i=0; i<number_of_intensity_levels-1; ++i)
+    for(Size i = 0; i < number_of_intensity_levels-1; ++i)
+    {
       info_outfile.push_back(bin_values[i]);
+    }
     info_outfile.push_back("</IntensityBinValues>");
 
     //use the boarder values to bin the entries
@@ -892,14 +894,14 @@ for the selected primary ion types. They can be used as input for LibSVM command
       info_outfile.push_back(type.charge);
       info_outfile.push_back("<ConditionalProbabilities>");
 
-      for(Size region =0; region < number_of_regions; ++region)
+      for(Size region = 0; region < number_of_regions; ++region)
       {
         info_outfile.push_back("<Region "+ String(region) + ">");
         std::vector<DoubleReal> & back_counts = background_counts[std::make_pair(type, region)];
 
-        for(Size prim=0; prim<number_of_intensity_levels; ++prim)
+        for(Size prim = 0; prim < number_of_intensity_levels; ++prim)
         {
-          for(Size sec=0; sec<number_of_intensity_levels; ++sec)
+          for(Size sec = 0; sec < number_of_intensity_levels; ++sec)
           {
             if(back_counts[prim]!=0)
             {
@@ -925,12 +927,12 @@ for the selected primary ion types. They can be used as input for LibSVM command
                                            Size number_of_regions
                                            )
   {
-    Residue::ResidueType residue=type.residue;
-    EmpiricalFormula loss=type.loss;
+    Residue::ResidueType residue = type.residue;
+    EmpiricalFormula loss = type.loss;
     Size charge = type.charge;
 
-    std::set<String>possible_n_term_losses;
-    std::set<String>possible_c_term_losses;
+    std::set<String> possible_n_term_losses;
+    std::set<String> possible_c_term_losses;
     DoubleReal true_offset_mass = -1.;
 
 
@@ -952,7 +954,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
       }
       //check for possible losses on the c-terminal ions
       possible_c_term_losses.clear();
-      for(Size pos=frag_pos;pos<annotation.size();++pos)
+      for(Size pos = frag_pos; pos < annotation.size(); ++pos)
       {
         if (annotation[pos].hasNeutralLoss())
         {
@@ -1005,21 +1007,21 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
   void SvmTheoreticalSpectrumGeneratorTrainer::write_training_file_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename)
   {
-    std::cerr<<"Creating Training File "<< filename;
+    std::cerr<<"Creating Training File.. "<< filename;
     TextFile file;
-    for(Size i=0; i<training_input.size(); ++i)
+    for(Size i = 0; i < training_input.size(); ++i)
     {
       std::stringstream ss;
       ss<<training_output[i]<<" ";
       std::vector<svm_node>::iterator it_debug;
       for(it_debug=training_input[i].descriptors.begin(); it_debug < training_input[i].descriptors.end() - 1; ++it_debug)
       {
-        ss<<" "<<it_debug->index<<":"<<it_debug->value;
+        ss<<" "<< it_debug->index << ":" << it_debug->value;
       }
       file.push_back (ss.str());
     }
     file.store(filename);
-    std::cerr<<"  Done"<<std::endl;
+    std::cerr<<" Done" <<std::endl;
   }
 
 

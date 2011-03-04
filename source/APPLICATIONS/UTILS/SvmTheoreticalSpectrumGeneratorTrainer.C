@@ -39,16 +39,14 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
-
+//\link CHEMISTRY_SvmTheoreticalSpectrumGeneratorTrainer.
 /**
   @page UTILS_SvmTheoreticalSpectrumGeneratorTrainer SvmTheoreticalSpectrumGeneratorTrainer
 
-  @brief Trainer for Svm model as input for SvmTheoreticalSpectrumGenerator.
+  @brief Trainer for SVM model as input for SvmTheoreticalSpectrumGenerator.
 
-  This application requires a list of annotated spectra and generates a trained svm for each selected
-  ion type (i.e. a,b,c,x,y,z + losses). It uses the libsvm library and all svmlib parameters are accessible
-  by user. Please refer to the libsvm manuals for more detailed explanation of the parameters. The default
-  values are choses as in the svm-training tool delivered with libsvm.
+  This application requires mzML file with ms2 spectra and annotations in an idXml file and trains a SVM model usable by
+  SvmTheoreticalSpectrumGenerator. Please refer to the documentation of the corresponding class @ref OpenMS::SvmTheoreticalSpectrumGeneratorTrainer
 
   @note This tool is experimental!
 
@@ -67,7 +65,7 @@ class SvmTheoreticalSpectrumGeneratorTrainerTOPP
 
 public:
   SvmTheoreticalSpectrumGeneratorTrainerTOPP() :
-      TOPPBase("SvmTheoreticalSpectrumGeneratorTrainerTOPP", "Trainer for SVM models as input for SvmSpectrumGenerator", false)
+      TOPPBase("SvmTheoreticalSpectrumGeneratorTrainer", "Trainer for SVM models as input for SvmTheoreticalSpectrumGenerator", false)
   {
   }
 
