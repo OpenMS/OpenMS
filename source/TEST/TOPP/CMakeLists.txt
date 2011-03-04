@@ -413,6 +413,9 @@ add_test("TOPP_MapAligner_11_out2" ${DIFF} -in1 MapAligner_11_output2.tmp -in2 $
 add_test("TOPP_MapAligner_12" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_7_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_12_input1.consensusXML ${DATA_DIR_TOPP}/MapAligner_12_input2.consensusXML -out MapAligner_12_output1.tmp MapAligner_12_output2.tmp)
 add_test("TOPP_MapAligner_12_out1" ${DIFF} -in1 MapAligner_12_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_12_output1.consensusXML)
 add_test("TOPP_MapAligner_12_out2" ${DIFF} -in1 MapAligner_12_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_12_output2.consensusXML)
+# "apply_given_trafo" algorithm with "invert" option:
+add_test("TOPP_MapAligner_13" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -invert -in ${DATA_DIR_TOPP}/MapAligner_1_output2.featureXML -trafo_in ${DATA_DIR_TOPP}/MapAligner_1_trafo2.trafoXML -trafo_out MapAligner_13_output.tmp)
+add_test("TOPP_MapAligner_13_out1" ${DIFF} -in1 MapAligner_13_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_13_trafo.trafoXML)
 
 ### MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)
