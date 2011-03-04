@@ -803,9 +803,6 @@ class TOPPSILACAnalyzer
     // remove isolated DataPoints from filter results (i.e. DataPoints with only few immediate neighbours)
     //--------------------------------------------------
 
-    bool removeIsolatedDataPoints = true;
-
-    if (removeIsolatedDataPoints == true)
     {
       Int immediate_neighbour_threshold = 5;      // maximum number of DataPoints within neighbourhood
       DoubleReal rt_neighbourhood = 10;     // size of neighbourhood for RT (+ and -)
