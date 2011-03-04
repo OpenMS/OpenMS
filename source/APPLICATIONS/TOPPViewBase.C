@@ -3089,14 +3089,27 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 
 		//load id data
-    QString name = QFileDialog::getOpenFileName(this,"Select protein identification data",current_path_.toQString(),"idXML files (*.idXML);; all files (*.*)");
+    QString name = QFileDialog::getOpenFileName(this,
+                                                "Select protein identification data",
+                                                current_path_.toQString(),
+                                                "idXML files (*.idXML);; all files (*.*)");
 
 		if(name!="")
 		{
 			vector<PeptideIdentification> identifications;
 			vector<ProteinIdentification> protein_identifications;
-			String document_id;
-			IdXMLFile().load(name, protein_identifications, identifications, document_id);
+  
+      try
+      {
+  			String document_id;
+  			IdXMLFile().load(name, protein_identifications, identifications, document_id);
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::warning(this, "Error", QString("Loading of idXML file failed! (") + e.what() + ")");
+			  return;
+      }
+
       IDMapper mapper;
 			if (layer.type==LayerData::DT_PEAK)
 			{
@@ -3110,11 +3123,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			}
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
-        mapper.annotate(*layer.getFeatureMap(),identifications,protein_identifications);
+        mapper.annotate(*layer.getFeatureMap(), identifications, protein_identifications);
 			}
 			else
 			{
-        mapper.annotate(*layer.getConsensusMap(),identifications,protein_identifications);
+        mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
 			}
 		}
     updateViewBar();
