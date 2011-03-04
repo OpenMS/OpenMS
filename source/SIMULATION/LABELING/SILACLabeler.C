@@ -42,6 +42,7 @@ namespace OpenMS
     setName("SILACLabeler");
     defaults_.setValue("SILAC_modification", "UniMod:188", "SILAC modification that will be added to the labeled channel.");
     defaults_.setValue("SILAC_specificities","R,K", "Comma separated list of amino acids that will be modified.");
+    defaults_.setValue("SILAC_fixed_rtshift", 0.0, "Fixed retention time shift between labeled pairs. If set to 0.0 only the retention times, computed by the RT model step are used.");
     defaultsToParam_();
   }
 
@@ -155,20 +156,23 @@ namespace OpenMS
       // check if we have a pair ..
       if(unlabeled_features_index.has(unmodified_sequence.toUnmodifiedString()))
       {
-        // guarantee uniqueness
-        unlabeled_features_index[unmodified_sequence.toUnmodifiedString()].ensureUniqueId();
+        // own scope as we don't know what happens to 'f_modified' once we call erase() below
+        {
+          Feature& f_modified = unlabeled_features_index[unmodified_sequence.toUnmodifiedString()];
+          // guarantee uniqueness
+          f_modified.ensureUniqueId();
 
-        // add features to final map
-        final_feature_map.push_back(*lf_iter);
-        final_feature_map.push_back(unlabeled_features_index[unmodified_sequence.toUnmodifiedString()]);
+          // add features to final map
+          final_feature_map.push_back(*lf_iter);
+          final_feature_map.push_back(f_modified);
 
-        // create consensus feature
-        ConsensusFeature cf;
-        cf.insert(0, *lf_iter);
-        cf.insert(0, unlabeled_features_index[unmodified_sequence.toUnmodifiedString()]);
+          // create consensus feature
+          ConsensusFeature cf;
+          cf.insert(0, *lf_iter);
+          cf.insert(0, f_modified);
 
-        consensus_.push_back(cf);
-
+          consensus_.push_back(cf);
+        }
         // remove unlabeled feature
         unlabeled_features_index.erase(unmodified_sequence.toUnmodifiedString());
       }
@@ -194,9 +198,53 @@ namespace OpenMS
     consensus_.getFileDescriptions()[0] = map_description;
   }
 
-  void SILACLabeler::postRTHook(FeatureMapSimVector & /* features_to_simulate */)
+  void SILACLabeler::postRTHook(FeatureMapSimVector & features_to_simulate)
   {
-    // no changes to the features .. nothing todo here
+    DoubleReal rt_shift = param_.getValue("SILAC_fixed_rtshift");
+
+    if(rt_shift != 0.0)
+    {
+
+      Map<UInt64, Feature*> id_map;
+      FeatureMapSim& feature_map = features_to_simulate[0];
+      for(FeatureMapSim::Iterator it = feature_map.begin() ; it != feature_map.end() ; ++it)
+      {
+        id_map.insert(std::make_pair<UInt64,Feature*>(it->getUniqueId(), &(*it)));
+      }
+
+      // recompute RT of pairs
+      for(ConsensusMap::Iterator consensus_it = consensus_.begin() ; consensus_it != consensus_.end() ; ++consensus_it)
+      {
+        ConsensusFeature& cf = *consensus_it;
+
+        // check if these features are still available and were not removed during RT sim
+        bool complete = true;
+
+        for(ConsensusFeature::iterator cfit = cf.begin() ; cfit != cf.end() ; ++cfit)
+        {
+          complete &= id_map.has(cfit->getUniqueId());
+        }
+
+        if(complete)
+        {
+          Feature* f1 = id_map[(cf.begin())->getUniqueId()];
+          Feature* f2 = id_map[(++cf.begin())->getUniqueId()];
+
+          // the lighter one should be the unmodified one
+          EmpiricalFormula ef1 = (f1->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula();
+          EmpiricalFormula ef2 = (f2->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula();
+
+          if(ef1.getMonoWeight() < ef2.getMonoWeight())
+          {
+            f2->setRT(f1->getRT() + rt_shift);
+          }
+          else
+          {
+            f1->setRT(f2->getRT() + rt_shift);
+          }
+        }
+      }
+    }
   }
 
   void SILACLabeler::postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
