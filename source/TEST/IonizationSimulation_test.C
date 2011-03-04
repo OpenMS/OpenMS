@@ -32,12 +32,20 @@
 #ifdef _OPENMP
 	#include <omp.h>
 #endif
+
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
 START_TEST(IonizationSimulation, "$Id$")
+
+#ifdef __APPLE__
+// needed to disable OpenMP multithreading in the library
+#include <stdlib.h>
+setenv("OMP_NUM_THREADS" , "1", 1);
+#endif
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
