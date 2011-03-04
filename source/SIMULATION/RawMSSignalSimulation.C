@@ -920,23 +920,51 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::addWhiteNoise_(MSSimExperiment &experiment)
   {
+    LOG_INFO << "Adding detector/white noise to spectra ..." << std::endl;
+
     // get white noise parameters
     DoubleReal white_noise_mean = param_.getValue("noise:white:mean");
     DoubleReal white_noise_stddev = param_.getValue("noise:white:stddev");
+
+    // grid is constant over scans, so we compute it only once
+    std::vector<SimCoordinateType> grid;
+    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
+    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
+    getSamplingGrid_(grid, min_mz, max_mz, 5); // every 5 Da we adjust the sampling width by local FWHM
 
     for(MSSimExperiment::iterator spectrum_it = experiment.begin() ; spectrum_it != experiment.end() ; ++spectrum_it)
     {
       MSSimExperiment::SpectrumType new_spec = (*spectrum_it);
       new_spec.clear(false);
-      for(MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin() ; peak_it != (*spectrum_it).end() ; ++peak_it)
+
+      std::vector<SimCoordinateType>::iterator grid_it = grid.begin();
+      MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin();
+      for( ; grid_it != grid.end() ;  ++grid_it)
       {
-        SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
-        if (intensity > 0.0)
+        // if peak is in grid
+        if(*grid_it == peak_it->getMZ())
         {
-          peak_it->setIntensity(intensity);
-          new_spec.push_back(*peak_it);
+          SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+          if (intensity > 0.0)
+          {
+            peak_it->setIntensity(intensity);
+            new_spec.push_back(*peak_it);
+          }
+          ++peak_it;
+        }
+        else // we have no point here, generate one if noise is above 0
+        {
+          SimIntensityType intensity = white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+          if(intensity > 0.0)
+          {
+            MSSimExperiment::SpectrumType::PeakType noise_peak;
+            noise_peak.setMZ(*grid_it);
+            noise_peak.setIntensity(intensity);
+            new_spec.push_back(noise_peak);
+          }
         }
       }
+
       *spectrum_it = new_spec;
     }
   }
@@ -982,18 +1010,8 @@ namespace OpenMS {
     {
       throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
-    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;  // swapped starting positions
-    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;// ... adjusting borders with actual data
-    for( Size i = 0 ; i < experiment.size() ; ++i )
-    {
-      if (experiment[i].size()<=1) continue;
-      experiment[i].sortByPosition();
-      min_mz = std::min(min_mz, experiment[i].begin()->getMZ());
-      max_mz = std::max(max_mz, experiment[i].rbegin()->getMZ());
-    }
-    // prune with scan windows
-    min_mz = std::max(min_mz, experiment[0].getInstrumentSettings().getScanWindows()[0].begin);
-    max_mz = std::min(max_mz, experiment[0].getInstrumentSettings().getScanWindows()[0].end);
+    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
+    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
 
     if (min_mz >= max_mz)
     {
