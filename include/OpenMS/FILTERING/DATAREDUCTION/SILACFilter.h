@@ -59,7 +59,7 @@ namespace OpenMS
   /**
    * @brief number of peptides [i.e. number of labelled peptides +1, e.g. for SILAC triplet =3]
    */
-   Int number_of_peptides_;
+   Size number_of_peptides_;
 
   /**
    * @brief charge of the ions to search for

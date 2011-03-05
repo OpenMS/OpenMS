@@ -45,8 +45,8 @@ namespace OpenMS
 
 	vector<double> ConsensusMapNormalizerAlgorithm::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold)
 	{
-		UInt number_of_features = map.size();
-		UInt number_of_maps = map.getFileDescriptions().size();
+    Size number_of_features = map.size();
+    Size number_of_maps = map.getFileDescriptions().size();
 		vector<vector<double> > feature_int(number_of_maps);
 		//get map with most features, resize feature_int
 		UInt map_with_most_features = 0;
@@ -79,7 +79,7 @@ namespace OpenMS
 				if (feature_int[map_with_most_features][k] != 0.0 && feature_int[j][k] != 0.0)
 				{	
 					double ratio = feature_int[map_with_most_features][k] / feature_int[j][k];
-					if (ratio > ratio_threshold && ratio < 1/ratio_threshold)
+          if (ratio > ratio_threshold && ratio < 1 / ratio_threshold)
 					{
 						ratios.push_back(ratio);
 					}

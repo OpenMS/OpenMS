@@ -31,7 +31,6 @@
 
 namespace OpenMS
 {
-
   QTClustering::QTClustering(std::vector<DataPoint>& data,DoubleReal rt_diameter, DoubleReal mz_diameter) : grid_(HashGrid(rt_diameter, mz_diameter))
   {
     if(data.size()<2)
@@ -71,7 +70,7 @@ namespace OpenMS
       }
     }
 
-    Size cluster_id = 0;
+    Int cluster_id = 0;
 
     //put the clusters in the cluster vector
     std::vector<std::vector<DataPoint*> > cluster_vector;

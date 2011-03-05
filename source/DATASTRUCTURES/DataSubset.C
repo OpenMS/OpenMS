@@ -46,12 +46,14 @@ namespace OpenMS
 	  rt = data_point.rt;
 	  mz = data_point.mz;
   }
+
   DataSubset::DataSubset(const DataSubset& copy) :GridElement(copy)
   {
 	  data_points = copy.data_points;
     tree.insert(tree.begin(),copy.tree.begin(), copy.tree.end());
 	  distance_iterators = copy.distance_iterators;
   }
+
   DataSubset::DataSubset(const DataSubset* copy_ptr)
   {
     data_points = copy_ptr->data_points;
@@ -60,6 +62,7 @@ namespace OpenMS
     mz = copy_ptr->mz;
     rt = copy_ptr->rt;
   }
+
   Int DataSubset::operator < (const DataSubset &el) const
   {
     std::list<DataPoint*> data1 = this->data_points;
@@ -97,12 +100,12 @@ namespace OpenMS
     return !(*this != el);
   }
 
-  int DataSubset::size()
+  Size DataSubset::size()
   {
 	  return data_points.size();
   }
 
-  int DataSubset::getID() const
+  Int DataSubset::getID() const
   {
 	  return data_points.front()->feature_id;
   }

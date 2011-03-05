@@ -47,7 +47,6 @@ namespace OpenMS
 {
   class DataSubset;
 
-
   /**
    * @brief structure for Distance
    */
@@ -62,7 +61,6 @@ namespace OpenMS
    * @ingroup Datastructures
    */
   struct DistanceEntry
-
   {
   /**
 	 * @brief DataSubset to which the distance points
@@ -175,7 +173,7 @@ namespace OpenMS
   /**
 	 * @brief gets the number of DataPoints in the subset
 	 */    
-   Int size();
+   Size size();
 
   /**
 	 * @brief gets the id of the DataSubset
