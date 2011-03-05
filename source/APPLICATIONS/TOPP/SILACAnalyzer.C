@@ -432,7 +432,7 @@ class TOPPSILACAnalyzer
     // split string of SILAC labels (selected_labels) and save in a list (SILAClabels)
     vector<String> tempList; // temporary list of strings for SILAC labelets, e.g. "Lys6,Arg8"
     boost::split( tempList, selected_labels, boost::is_any_of("[](){}") ); // any bracket allowed to separate labelets
-    for (unsigned i = 0; i < tempList.size(); i++)
+    for (UInt i = 0; i < tempList.size(); i++)
     {
       if (tempList[i] != "")
       {
@@ -444,10 +444,10 @@ class TOPPSILACAnalyzer
 
     cout << endl;
     // print SILAC labels
-    for (unsigned i = 0; i < SILAClabels.size(); i++)
+    for (UInt i = 0; i < SILAClabels.size(); i++)
     {
       cout << "SILAC label " << i + 1 << ":   ";
-      for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+      for (UInt j = 0; j < SILAClabels[i].size(); j++)
       {
         cout << SILAClabels[i][j] << " ";
       }
@@ -456,9 +456,9 @@ class TOPPSILACAnalyzer
     cout << endl;
 
     // check if all selected labels are included in advanced section "labels"
-    for (Size i = 0; i < SILAClabels.size(); i++)
+    for (UInt i = 0; i < SILAClabels.size(); i++)
     {
-      for (Size j = 0; j < SILAClabels[i].size(); ++j)
+      for (UInt j = 0; j < SILAClabels[i].size(); ++j)
       {
         Int found = labels.find(SILAClabels[i][j]);
 
@@ -481,7 +481,7 @@ class TOPPSILACAnalyzer
             if ( ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide > 0 && ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide <= missed_cleavages + 1 )
             {
               vector<DoubleReal> massShiftVector;
-              for (unsigned i = 0; i < SILAClabels.size(); i++)
+              for (UInt i = 0; i < SILAClabels.size(); i++)
               {
                 DoubleReal massShift = 0;
                 // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There + Lys8There == 0) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
@@ -490,7 +490,7 @@ class TOPPSILACAnalyzer
                 bool goAhead_Methyl = false;
                 bool goAhead_dICPL = false;
 
-                for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+                for (UInt j = 0; j < SILAClabels[i].size(); j++)
                 {
                   Int Arg6There = 0;	// Is Arg6 in the SILAC label?
                   Int Arg10There = 0;
@@ -546,10 +546,10 @@ class TOPPSILACAnalyzer
     sort(massShifts.begin(), massShifts.end());
 
     // print mass shifts
-    for (unsigned i = 0; i < massShifts.size(); i++)
+    for (UInt i = 0; i < massShifts.size(); i++)
     {
       cout << "mass shift " << i + 1 << ":   ";
-      for (unsigned j = 0; j < massShifts[i].size(); j++)
+      for (UInt j = 0; j < massShifts[i].size(); j++)
       {
         cout << massShifts[i][j] << " ";
       }
@@ -609,7 +609,7 @@ class TOPPSILACAnalyzer
       for (Int charge = charge_max; charge >= charge_min; charge--)
       {
         // iterate over all mass shifts
-        for (unsigned i = 0; i < massShifts.size(); i++)
+        for (UInt i = 0; i < massShifts.size(); i++)
         {
           // convert vector<DoubleReal> to set<DoubleReal> for SILACFilter
           vector<DoubleReal> massShifts_set = massShifts[i];
