@@ -38,6 +38,9 @@ namespace OpenMS
   /**
    @brief Loads SvmTheoreticalSpectrumGenerator instances for different charges
 
+   The input file contains pairs of charge and svm models separated by a ":"
+   (see share/OpenMS/examples/simulation/SvmModelSet.model)
+
    @htmlinclude OpenMS_SvmTheoreticalSpectrumGeneratorSet.parameters
 
    @ingroup Chemistry
