@@ -42,7 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 typedef BaseFeature::QualityType QualityType;
-
+typedef BaseFeature::WidthType WidthType;
 BaseFeature* feat_ptr = 0;
 START_SECTION((BaseFeature()))
 {
@@ -82,11 +82,11 @@ END_SECTION
 START_SECTION((void setWidth(WidthType fwhm)))
 	BaseFeature p;
 	p.setWidth(123.456);
-	TEST_REAL_SIMILAR(p.getWidth(), 123.456)
+	TEST_REAL_SIMILAR(p.getWidth(), (WidthType) 123.456)
 	p.setWidth(-0.12345);
-	TEST_REAL_SIMILAR(p.getWidth(), -0.12345)
+	TEST_REAL_SIMILAR(p.getWidth(), (WidthType) -0.12345)
 	p.setWidth(0.0);
-	TEST_REAL_SIMILAR(p.getWidth(), 0.0)
+	TEST_REAL_SIMILAR(p.getWidth(), (WidthType) 0.0)
 END_SECTION
 
 START_SECTION([EXTRA](IntensityType getIntensity() const))

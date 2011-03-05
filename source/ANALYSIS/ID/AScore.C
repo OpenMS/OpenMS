@@ -61,7 +61,7 @@ namespace OpenMS
 			found = without_phospho_str.find("(Phospho)");
 		}
 		AASequence without_phospho(without_phospho_str);
-		Size number_of_STY = without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y");
+		Int number_of_STY = Int(without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y"));
 		if(real_spectrum.size() == 0 || number_of_phospho_sites < 1 || number_of_STY == 0)
 		{
 			return PeptideHit(-1,0,hit.getCharge(),without_phospho);
@@ -130,12 +130,12 @@ namespace OpenMS
 				end_window = real_spectrum.MZBegin((current_window+1) *100);	
 			}	
 		}
-		///prepeare peak depth for all windows in the actual spectrum - END
+		///prepare peak depth for all windows in the actual spectrum - END
 		UInt N;
 		vector< vector<DoubleReal> >::iterator side_scores = peptide_site_scores.begin();
 		for(vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it < th_spectra.end(); ++it, ++side_scores) //each theoretical spectrum
 		{
-			N = it->size();//real oder theo!!
+			N = UInt(it->size()); //real or theo!!
 			UInt i= 1;
 			side_scores->resize(10);
 			while(i <= 10)
@@ -185,7 +185,7 @@ namespace OpenMS
 		{
 		 	vector<RichPeakSpectrum> site_determining_ions;
 		 	compute_site_determining_ions(th_spectra, *hp, hit.getCharge(), site_determining_ions);
-		 	N = site_determining_ions[0].size(); // all possiblities have the same number
+		 	N = UInt(site_determining_ions[0].size()); // all possiblities have the same number
 		 	DoubleReal p = (DoubleReal)hp->peak_depth/100;
 		 	Int n = 0;
 		 	//Auslagern

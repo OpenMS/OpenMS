@@ -88,7 +88,7 @@ END_SECTION
 START_SECTION((void add(DataPoint *element)))
 {
   QTSILACCluster tmp;
-	DataPoint* tmp2;
+	DataPoint* tmp2 = NULL;
 	tmp.add(tmp2);
 	TEST_EQUAL(tmp.size(), 1);
 }
