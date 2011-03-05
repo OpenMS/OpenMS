@@ -57,7 +57,7 @@ namespace OpenMS
     while (grid_.getNumberOfElements() > 0)
     {
       setProgress(number_of_elements - grid_.getNumberOfElements());
-      QTSILACCluster act_cluster = QTClust(grid_);
+      QTSILACCluster act_cluster = QTClust_(grid_);
 
       //store the current cluster
       clusters_.push_back(act_cluster);
@@ -93,7 +93,7 @@ namespace OpenMS
     return cluster_vector;
   }
 
-  QTSILACCluster QTClustering::QTClust(HashGrid& act_grid)
+  QTSILACCluster QTClustering::QTClust_(HashGrid& act_grid)
   {
     //return single element clusters
     if (act_grid.getNumberOfElements() == 1)

@@ -54,7 +54,7 @@ namespace OpenMS
     {
       grid_.insert(new DataSubset(*it));
     }
-    init();
+    init_();
   }
 
   HashClustering::~HashClustering()
@@ -62,18 +62,18 @@ namespace OpenMS
 
   }
 
-  DoubleReal HashClustering::getDistance(DataSubset& subset1, DataSubset& subset2)
+  DoubleReal HashClustering::getDistance_(DataSubset& subset1, DataSubset& subset2)
   {
     return method_->getDistance(subset1, subset2);
   }
 
-  DoubleReal HashClustering::getDistance(DataPoint& point1, DataPoint& point2)
+  DoubleReal HashClustering::getDistance_(DataPoint& point1, DataPoint& point2)
   {
     return method_->getDistance(point1, point2);
   }
 
   // Calculate initial distances
-  void HashClustering::init()
+  void HashClustering::init_()
   {
     min_distance_ = std::numeric_limits<DoubleReal>::max();
     min_distance_subsets_ = std::make_pair((DataSubset*)0, (DataSubset*)0);
@@ -120,7 +120,7 @@ namespace OpenMS
 
               DataSubset* element_ptr = dynamic_cast<DataSubset*> (*current_element);
               DataSubset* neighbor_ptr = dynamic_cast<DataSubset*> (*neighbor_element);
-              DoubleReal act_distance=getDistance(*element_ptr, *neighbor_ptr);
+              DoubleReal act_distance = getDistance_(*element_ptr, *neighbor_ptr);
 
               // Store distances in distance map
               std::pair<DistanceSet::iterator,bool> position = distances_.insert(DistanceEntry(element_ptr, neighbor_ptr, act_distance));
@@ -146,7 +146,7 @@ namespace OpenMS
   typedef std::map<GridElement*,DistanceSet::iterator> IteratorMap;
   typedef std::map<std::pair<int, int>, std::list<GridElement*> > ElementMap;
 
-  void HashClustering::merge()
+  void HashClustering::merge_()
   {
     // Merge the two subtrees of the minimal distance DataSubset, append a new node and insert it to the first DataSubset
 
@@ -199,7 +199,7 @@ namespace OpenMS
       int n_x = entry.data_point->mz / grid_.getMZThreshold();
       int n_y = entry.data_point->rt / grid_.getRTThreshold();
 
-      DoubleReal new_distance = getDistance(subset1, *(entry.data_point));
+      DoubleReal new_distance = getDistance_(subset1, *(entry.data_point));
 
       // Check, if the distance is valid, i.e. the DataSubset, to which the distance points, lies in one of the four upper right cells and the distance does not point from subset1 to itself or subset2. Delete it instead.
       if (abs(x_new - n_x) >= 2 || abs(y_new - n_y) >= 2 || (y_new > n_y) || (y_new == n_y && x_new == n_x + 1) || (x_new == n_x && y_new == n_y) || entry.data_point->getID() == entry.owner->getID() || entry.data_point == &subset2)
@@ -221,7 +221,7 @@ namespace OpenMS
       int n_x = entry.data_point->mz /  grid_.getMZThreshold();
       int n_y = entry.data_point->rt /  grid_.getRTThreshold();
 
-      DoubleReal new_distance=getDistance(subset1, *(entry.data_point));
+      DoubleReal new_distance = getDistance_(subset1, *(entry.data_point));
 
       // Check, if the distance is valid, i.e. the DataSubset, to which the distance points, lies in one of the four upper right cells and the distance does not point from subset2 to itself or subset1. Delete it instead.
       if (abs(x_new - n_x) >= 2 || abs(y_new - n_y) >= 2 || (y_new > n_y) || (y_new == n_y && x_new == n_x + 1) || (x_new == n_x && y_new == n_y) || entry.data_point->getID() == entry.owner->getID() || entry.data_point == &subset1)
@@ -304,7 +304,7 @@ namespace OpenMS
         if (*lit == &subset1)
           continue;
         DataSubset* neighbor_ptr = dynamic_cast<DataSubset*> (*lit);
-        DoubleReal act_distance = getDistance(subset1, *neighbor_ptr);
+        DoubleReal act_distance = getDistance_(subset1, *neighbor_ptr);
         IteratorMap::iterator pos = neighbor_ptr->distance_iterators.find(&subset2);
         if (pos!=neighbor_ptr->distance_iterators.end())
         {
@@ -342,7 +342,7 @@ namespace OpenMS
   }
 
 
-  void HashClustering::updateMinElements()
+  void HashClustering::updateMinElements_()
   {
     DistanceSet::index<Dist>::type& dist_elements = distances_.get<Dist>();
 
@@ -361,16 +361,16 @@ namespace OpenMS
     do
     {
       // Merge the two subsets
-      merge();
+      merge_();
 
       // Find the two new minimal distance DataSubsets
-      updateMinElements();
+      updateMinElements_();
     }
     while(distances_.size() > 0);
   }
 
 
-  std::vector< Real > HashClustering::averageSilhouetteWidth(DataSubset& subset)
+  std::vector< Real > HashClustering::averageSilhouetteWidth_(DataSubset& subset)
   {
     std::vector<SILACTreeNode>& tree=subset.tree;
 
@@ -405,14 +405,14 @@ namespace OpenMS
       std::set<DataPoint*>::iterator jt = leafs.begin();
       for ( ; *jt !=*it; ++jt)
       {
-        if(getDistance(**it, **jt)<interdist_i[*it])
+        if(getDistance_(**it, **jt) < interdist_i[*it])
         {
-          interdist_i[*it] = getDistance(**it, **jt);
+          interdist_i[*it] = getDistance_(**it, **jt);
           cluster_with_interdist[*it] = *jt;
         }
-        if(getDistance(**it, **jt)<interdist_i[*jt])
+        if(getDistance_(**it, **jt) < interdist_i[*jt])
         {
-          interdist_i[*jt] = getDistance(**it, **jt);
+          interdist_i[*jt] = getDistance_(**it, **jt);
           cluster_with_interdist[*jt] = *it;
         }
       }
@@ -451,11 +451,11 @@ namespace OpenMS
             Real interdist_merged = 0;
             for (unsigned int j = 0; j < clusters[tree_it->data1].size(); ++j)
             {
-              interdist_merged += getDistance(**it, *clusters[tree_it->data1][j]);
+              interdist_merged += getDistance_(**it, *clusters[tree_it->data1][j]);
             }
             for (unsigned int j = 0; j < clusters[tree_it->data2].size(); ++j)
             {
-              interdist_merged += getDistance(**it, *clusters[tree_it->data2][j]);
+              interdist_merged += getDistance_(**it, *clusters[tree_it->data2][j]);
             }
             interdist_merged /= (Real)(clusters[tree_it->data1].size() + clusters[tree_it->data2].size());
 
@@ -480,7 +480,7 @@ namespace OpenMS
             Real interdist_merged = 0;
             for (unsigned int j = 0; j < clusters[k].size(); ++j)
             {
-              interdist_merged += getDistance(**it, *clusters[k][j]);
+              interdist_merged += getDistance_(**it, *clusters[k][j]);
             }
             interdist_merged += (clusters[cluster_with_interdist[*it]].size()*interdist_i[*it]);
             interdist_merged /= (Real)(clusters[k].size()+clusters[cluster_with_interdist[*it]].size());
@@ -505,7 +505,7 @@ namespace OpenMS
                   Real min_interdist_i = 0;
                   for (unsigned int v = 0; v < uit->second.size(); ++v)
                   {
-                    min_interdist_i += getDistance(*uit->second[v], **it);
+                    min_interdist_i += getDistance_(*uit->second[v], **it);
                   }
                   min_interdist_i /= (Real)uit->second.size();
                   if (min_interdist_i < interdist_i[*it])
@@ -540,7 +540,7 @@ namespace OpenMS
             intradist_i[*it] *= clusters[l].size() - 1;
             for (unsigned int j = 0; j < clusters[k].size(); ++j)
             {
-              intradist_i[*it] += getDistance(**it, *clusters[k][j]);
+              intradist_i[*it] += getDistance_(**it, *clusters[k][j]);
             }
             intradist_i[*it] /= (Real)(clusters[k].size()+(clusters[l].size()-1));
           }
@@ -560,7 +560,7 @@ namespace OpenMS
                 Real av_interdist_i=0;
                 for (unsigned int v = 0; v < uit->second.size(); ++v)
                 {
-                  av_interdist_i += getDistance(*uit->second[v],**it);
+                  av_interdist_i += getDistance_(*uit->second[v],**it);
                 }
                 av_interdist_i /= (Real)uit->second.size();
                 if (av_interdist_i < interdist_i[*it])
@@ -711,7 +711,7 @@ namespace OpenMS
           continue;
         }
         sort(subset_ptr->tree.begin(), subset_ptr->tree.end());
-        std::vector< Real > asw = averageSilhouetteWidth(*subset_ptr);
+        std::vector< Real > asw = averageSilhouetteWidth_(*subset_ptr);
         silhouettes_.push_back(asw);
 
         // Look only in the front area of the silhoutte values to avoid getting the wrong number

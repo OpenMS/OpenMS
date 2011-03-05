@@ -41,7 +41,7 @@ namespace OpenMS
 
   ClusteringMethod::ClusteringMethod(DoubleReal rt_scaling_)
   {
-    rt_scaling=rt_scaling_;
+    rt_scaling = rt_scaling_;
   }
 }
 

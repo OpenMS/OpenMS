@@ -133,14 +133,14 @@ namespace OpenMS
    * @param expectedMzShift poitive m/z shift at which we would expect a correlating signal [e.g. 4.02 Th]
    * @param maxMzDeviation maximum allowed deviation between expected and actual shift [In the above example the shift is 0.0011 Th.]
    */
-   DoubleReal computeActualMzShift(DoubleReal mz, DoubleReal expectedMzShift, DoubleReal maxMzDeviation);
+   DoubleReal computeActualMzShift_(DoubleReal mz, DoubleReal expectedMzShift, DoubleReal maxMzDeviation);
 
   /**
    * @brief returns true if there exists a SILAC feature at the given position, which corresponds to the filter's properties
    * @param rt RT value of the position
    * @param mz m/z value of the position
    */
-   bool isSILACPattern(DoubleReal rt, DoubleReal mz);  
+   bool isSILACPattern_(DoubleReal rt, DoubleReal mz);
 
    public:  
 

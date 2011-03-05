@@ -73,7 +73,7 @@ namespace OpenMS {
 	 * @brief recursive QT clustering method
 	 * @param act_grid the data points to be clustered in the current step
 	 */
-   QTSILACCluster QTClust(HashGrid& act_grid);
+   QTSILACCluster QTClust_(HashGrid& act_grid);
 
   public:
   /**
@@ -107,7 +107,9 @@ namespace OpenMS {
    class OPENMS_DLLAPI InsufficientInput : public Exception::BaseException
    {
    public:
+
      InsufficientInput(const char* file, int line, const char* function, const char* message= "not enough data points to cluster anything") throw();
+
      virtual ~InsufficientInput() throw();
    };
 

@@ -80,7 +80,7 @@ namespace OpenMS
 
   }
 
-  bool SILACFilter::isSILACPattern(DoubleReal rt, DoubleReal mz)
+  bool SILACFilter::isSILACPattern_(DoubleReal rt, DoubleReal mz)
   {
     current_mz_ = mz;
     bool missing_peak_seen_yet = false;  // Did we encounter a missing peak in this SILAC pattern yet?
@@ -101,7 +101,7 @@ namespace OpenMS
 
       for (Int isotope = 0; isotope < isotopes_per_peptide_; isotope++) // loop over isotopic peaks within a peptide [0=mono-isotopic peak etc.]
       {
-        DoubleReal deltaMZ = computeActualMzShift(mz, mz_peptide_separations_[peptide] + isotope * isotope_distance_, getPeakWidth(mz));
+        DoubleReal deltaMZ = computeActualMzShift_(mz, mz_peptide_separations_[peptide] + isotope * isotope_distance_, getPeakWidth(mz));
 
         if ( deltaMZ < 0)
         {
@@ -295,7 +295,7 @@ namespace OpenMS
   }
 
 
-  DoubleReal SILACFilter::computeActualMzShift(DoubleReal mz, DoubleReal expectedMzShift, DoubleReal maxMzDeviation)
+  DoubleReal SILACFilter::computeActualMzShift_(DoubleReal mz, DoubleReal expectedMzShift, DoubleReal maxMzDeviation)
   {
     if (expectedMzShift <= 0.0)
     {
