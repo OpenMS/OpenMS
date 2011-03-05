@@ -748,9 +748,13 @@ for the selected primary ion types. They can be used as input for LibSVM command
     std::vector<DoubleReal>intensities(S.size());
     for(Size i=0; i<S.size(); ++i)
     {
-      intensities[i]=log(S[i].getIntensity() * 100);
-      max_intens=std::max(max_intens, intensities[i]);
-      min_intens=std::min(min_intens, intensities[i]);
+      //std::cerr<<"before norm: "<<S[i].getIntensity()<<std::endl;
+      if(S[i].getIntensity()>0)
+      {
+        intensities[i]=log(S[i].getIntensity() * 100);
+        max_intens=std::max(max_intens, intensities[i]);
+        min_intens=std::min(min_intens, intensities[i]);
+      }
     }
 
     DoubleReal lower = 0;
@@ -758,10 +762,18 @@ for the selected primary ion types. They can be used as input for LibSVM command
     //normalize intensities to one
     for(Size i=0; i<S.size(); ++i)
     {
-      DoubleReal intens = lower + (upper-lower) *
+      if(S[i].getIntensity()>0)
+      {
+        DoubleReal intens = lower + (upper-lower) *
                              (intensities[i]-min_intens)/
                              (max_intens-min_intens);
-      S[i].setIntensity(intens);
+        S[i].setIntensity(intens);
+      }
+      else
+      {
+        S[i].setIntensity(0);
+      }
+      //std::cerr<<"normed intens: "<<S[i].getIntensity()<<std::endl;
     }
   }
 
