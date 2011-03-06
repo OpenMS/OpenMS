@@ -37,6 +37,11 @@
 using namespace OpenMS;
 using namespace std;
 
+#ifdef _MSC_VER  // disable optimization in VS only for this test (as its size triggers 'heap-overflow' during compile otherwise)
+#pragma warning (disable: 4748) // disable warning that occurs when switching optimzation off (as /GS is still enabled)
+#pragma optimize( "", off )
+#endif
+
 START_TEST(Param, "$Id$")
 
 //////////////////// Param::ParamEntry /////////////////////////////
