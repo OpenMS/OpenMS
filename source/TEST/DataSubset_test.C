@@ -77,7 +77,7 @@ START_SECTION((Int operator<(const DataSubset &el) const ))
 }
 END_SECTION
 
-START_SECTION((Int size()))
+START_SECTION((Size size()))
 {
   DataSubset tmp;
 	TEST_EQUAL(tmp.size(), 0);
@@ -106,4 +106,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

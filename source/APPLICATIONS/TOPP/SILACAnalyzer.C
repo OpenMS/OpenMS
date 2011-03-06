@@ -460,7 +460,7 @@ class TOPPSILACAnalyzer
     {
       for (UInt j = 0; j < SILAClabels[i].size(); ++j)
       {
-        Int found = labels.find(SILAClabels[i][j]);
+        Int found = (Int) labels.find(SILAClabels[i][j]);
 
         if (found < 0)
         {
