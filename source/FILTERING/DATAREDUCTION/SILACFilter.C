@@ -51,7 +51,7 @@ namespace OpenMS
     isotopes_per_peptide_ = isotopes_per_peptide;   // isotopic peaks per peptide
 
     isotope_distance_ = 1.000495 / (DoubleReal)charge_;    // distance between isotopic peaks of a peptide [Th]
-    number_of_peptides_ = mass_separations_.size();    // number of labelled peptides +1 [e.g. for SILAC triplet =3]
+    number_of_peptides_ = (Int) mass_separations_.size();    // number of labelled peptides +1 [e.g. for SILAC triplet =3]
     
     // m/z shifts from mass shifts
     mz_peptide_separations_.push_back(0.0);
@@ -93,7 +93,7 @@ namespace OpenMS
     exact_intensities_.clear();
     expected_shifts_.clear();
 
-    for (Int peptide = 0; peptide <= number_of_peptides_; peptide++) // loop over labelled peptides [e.g. for SILAC triplets: 0=light 1=medium 2=heavy]
+    for (Size peptide = 0; peptide <= number_of_peptides_; ++peptide) // loop over labelled peptides [e.g. for SILAC triplets: 0=light 1=medium 2=heavy]
     {
       std::vector<DoubleReal> exact_shifts_singlePeptide;
       std::vector<DoubleReal> exact_intensities_singlePeptide;
@@ -148,9 +148,9 @@ namespace OpenMS
     // COMPLETE INTENSITY FILTER (Check that all of the intensities are above the cutoff.)
     //---------------------------------------------------------------
     missing_peak_seen_yet = false;  // Did we encounter a missing peak in this SILAC pattern yet?
-    for (Int peptide = 0; peptide <= number_of_peptides_; peptide++)
+    for (Size peptide = 0; peptide <= number_of_peptides_; ++peptide)
     {
-      for (Int isotope = 0; isotope < isotopes_per_peptide_; isotope++)
+      for (Size isotope = 0; isotope < isotopes_per_peptide_; ++isotope)
       {
         if (exact_intensities_[peptide][isotope] < SILACFiltering::intensity_cutoff_)
         {
@@ -180,9 +180,9 @@ namespace OpenMS
     // CORRELATION FILTER 1 (Check for every peptide that peak one correlates to following peaks of the same peptide)
     //---------------------------------------------------------------
     missing_peak_seen_yet = false;
-    for (Int peptide = 0; peptide <= number_of_peptides_; peptide++)
+    for (Size peptide = 0; peptide <= number_of_peptides_; ++peptide)
     {
-      for (Int isotope2 = 1; isotope2 < isotopes_per_peptide_; isotope2++)
+      for (Size isotope2 = 1; isotope2 < isotopes_per_peptide_; ++isotope2)
       {
         std::vector<DoubleReal> intensities1;    // intensities in region around first peak of peptide
         std::vector<DoubleReal> intensities2;    // intensities in region around following peak
@@ -219,7 +219,7 @@ namespace OpenMS
     //---------------------------------------------------------------
     // CORRELATION FILTER 2 (Check that the monoisotopic peak correlates to every first peak of following peptides)
     //---------------------------------------------------------------
-    for (Int peptide = 0; peptide < number_of_peptides_; peptide++)
+    for (Size peptide = 0; peptide < number_of_peptides_; ++peptide)
     {
       std::vector<DoubleReal> intensities3;    // intensities in region around monoisotopic peak
       std::vector<DoubleReal> intensities4;    // intensities in region around first peak of following peptide
@@ -248,14 +248,14 @@ namespace OpenMS
     missing_peak_seen_yet = false;
     if (isotopes_per_peptide_ > 1)
     {
-      for (Int peptide = 0; peptide <= number_of_peptides_; peptide++)
+      for (Size peptide = 0; peptide <= number_of_peptides_; ++peptide)
       {
         IsotopeDistribution isoDistribution;    // isotope distribution of an averagine peptide
         isoDistribution.estimateFromPeptideWeight((mz + exact_shifts_[peptide][0]) * charge_);    // mass of averagine peptide
         DoubleReal averagineIntensity_mono = isoDistribution.getContainer()[0].second;    // intensity of monoisotopic peak of the averagine model
         DoubleReal intensity_mono = exact_intensities_[peptide][0];    // intensity around the (potential) monoisotopic peak in the real data
 
-        for (Int isotope = 1; isotope < isotopes_per_peptide_; isotope++)
+        for (Int isotope = 1; isotope < isotopes_per_peptide_; ++isotope)
         {
           DoubleReal averagineIntensity = isoDistribution.getContainer()[isotope].second;
           DoubleReal intensity = exact_intensities_[peptide][isotope];
@@ -439,9 +439,9 @@ namespace OpenMS
   std::vector<DoubleReal> SILACFilter::getPeakPositions()
 	{
     peak_positions_.clear();
-    for (Int peptide = 0; peptide <= number_of_peptides_; peptide++)
+    for (Size peptide = 0; peptide <= number_of_peptides_; ++peptide)
 		{
-      for (Int isotope = 0; isotope < isotopes_per_peptide_; isotope++)
+      for (Size isotope = 0; isotope < isotopes_per_peptide_; ++isotope)
 			{
         peak_positions_.push_back(current_mz_ + expected_shifts_[peptide][isotope]);
 			}

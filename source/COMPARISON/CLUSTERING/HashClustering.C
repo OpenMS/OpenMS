@@ -747,7 +747,7 @@ namespace OpenMS
           for (Cluster::iterator element_it = cluster_it->begin(); element_it != cluster_it->end(); ++element_it)
           {
             (*element_it)->cluster_id = cluster_id;
-            (*element_it)->cluster_size = cluster_it->size();
+            (*element_it)->cluster_size = (Int) cluster_it->size();
           }
           ++cluster_id;
           clusters.push_back(*cluster_it);

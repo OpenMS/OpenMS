@@ -81,11 +81,11 @@ END_SECTION
 
 START_SECTION((void setWidth(WidthType fwhm)))
 	BaseFeature p;
-	p.setWidth(123.456);
+	p.setWidth((WidthType) 123.456);
 	TEST_REAL_SIMILAR(p.getWidth(), (WidthType) 123.456)
-	p.setWidth(-0.12345);
+	p.setWidth((WidthType) -0.12345);
 	TEST_REAL_SIMILAR(p.getWidth(), (WidthType) -0.12345)
-	p.setWidth(0.0);
+	p.setWidth((WidthType) 0.0);
 	TEST_REAL_SIMILAR(p.getWidth(), (WidthType) 0.0)
 END_SECTION
 

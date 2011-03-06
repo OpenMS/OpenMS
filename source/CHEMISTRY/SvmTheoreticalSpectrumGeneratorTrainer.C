@@ -326,7 +326,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
     for (Size index = 0; index < spectra.size(); ++index)
     {
       //test whether annotation for spectrum match. If theoretical and empirical mass differ too much skip this spectrum
-      Size empirical_charge=spectra[index].getPrecursors()[0].getCharge();
+      Int empirical_charge=spectra[index].getPrecursors()[0].getCharge();
       DoubleReal empirical_parent_mass=spectra[index].getPrecursors()[0].getMZ();
       DoubleReal theoretical_parent_mass=annotations[index].getMonoWeight(Residue::Full, empirical_charge)/empirical_charge;
 
@@ -547,7 +547,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
         }
 
         svm_problem svm_p_reg;
-        svm_p_reg.l = training_input_reg.size();
+        svm_p_reg.l = (int) training_input_reg.size();
         svm_p_reg.y = output_training_reg;
         svm_p_reg.x = input_training_reg;        
 
@@ -632,7 +632,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
         }
 
         svm_problem svm_p_class;
-        svm_p_class.l = training_output[type_nr].size();
+        svm_p_class.l = (int) training_output[type_nr].size();
         svm_p_class.y = output_training_class;
         svm_p_class.x = input_training_class;
 
@@ -941,7 +941,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
   {
     Residue::ResidueType residue = type.residue;
     EmpiricalFormula loss = type.loss;
-    Size charge = type.charge;
+    Int charge = type.charge;
 
     std::set<String> possible_n_term_losses;
     std::set<String> possible_c_term_losses;

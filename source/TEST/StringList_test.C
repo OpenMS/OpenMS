@@ -93,7 +93,7 @@ START_SECTION((StringList(const QStringList &rhs)))
   ABORT_IF((int)str_list.size() != q_str_list.size())
   for(Size i = 0 ; i < str_list.size() ; ++i)
   {
-    TEST_EQUAL(str_list[i], String(q_str_list[i]))
+    TEST_EQUAL(str_list[i], String(q_str_list[(int)i]))
   }
 }
 END_SECTION

@@ -416,7 +416,7 @@ namespace OpenMS
 					//std::cerr<<"MZ pos: "<<local_mz<<std::endl;
 					for(Size scan_feat_id=0; scan_feat_id<scan_features[i].size(); ++scan_feat_id)
 					{
-						Size feature_num = scan_features[i][scan_feat_id];
+						UInt feature_num = scan_features[i][scan_feat_id];
 						if(bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
 						{
 							//find a mass trace enclosing the point
@@ -553,7 +553,7 @@ namespace OpenMS
 		exclusion_list.erase(iter,exclusion_list.end());
 	}
 
-  inline bool isZero(const std::pair<std::pair<DoubleReal,DoubleReal>, Size> &in)
+  inline bool isZero(const std::pair<std::pair<DoubleReal,DoubleReal>, Size> & /*in*/)
   {
     return false;
     //return (in.second==0);

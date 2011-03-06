@@ -70,7 +70,7 @@ namespace OpenMS
       }
     }
 
-    Int cluster_id = 0;
+    Int cluster_id (0);
 
     //put the clusters in the cluster vector
     std::vector<std::vector<DataPoint*> > cluster_vector;
