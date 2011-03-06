@@ -1,13 +1,13 @@
 /**
  	
-	@page install_mac Building OpenMS on Mac OS X
+  @page install_mac Building OpenMS on Mac OS X
 
   @section install_mac_read Read this section first!
   
   This document addresses %OpenMS users and explains the
   installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
 	encouraged to <b>download the binary installer</b>
-	(see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
+	(see <a href="http://www.OpenMS.de" target="_blank">here</a>),
 	instead of building %OpenMS from sources. 
   Be aware though that we do not provide binary installers for every MacOS version.
   For more information read the install instructions for the TOPP binaries.
