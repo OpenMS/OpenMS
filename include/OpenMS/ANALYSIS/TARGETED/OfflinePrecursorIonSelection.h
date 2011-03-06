@@ -553,11 +553,6 @@ namespace OpenMS
 		exclusion_list.erase(iter,exclusion_list.end());
 	}
 
-  inline bool isZero(const std::pair<std::pair<DoubleReal,DoubleReal>, Size> & /*in*/)
-  {
-    return false;
-    //return (in.second==0);
-  }
 
 	inline  void OfflinePrecursorIonSelection::updateExclusionList_(std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list)
 	{
