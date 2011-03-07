@@ -877,8 +877,8 @@ for the selected primary ion types. They can be used as input for LibSVM command
       }
       for(Size region =0; region < number_of_regions; ++region)
       {
-        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,0));
-        background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, 0);
+        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,1));
+        background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, number_of_intensity_levels);
         const std::vector<DoubleReal> &secondary = observed_intensities[std::make_pair(type, region)];
         const std::vector<DoubleReal> &primary = observed_intensities[std::make_pair(primary_type, region)];
 
@@ -918,9 +918,9 @@ for the selected primary ion types. They can be used as input for LibSVM command
             if(back_counts[prim]!=0)
             {
               joint_counts[std::make_pair(type, region)][sec][prim] = joint_counts[std::make_pair(type, region)][sec][prim]/back_counts[prim];
-              info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
               //std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
             }
+            info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
           }
         }
         info_outfile.push_back("</Region " + String(region) + ">");
