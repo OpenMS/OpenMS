@@ -181,9 +181,14 @@ namespace OpenMS {
     defaults_.setValue("noise:white:mean", 0.0, "Mean value of white noise being added to each measured signal.");
     defaults_.setValue("noise:white:stddev", 0.0, "Standard deviation of white noise being added to each measured signal.");
 
+    // detector noise
+    defaults_.setValue("noise:detector:mean", 2.0, "Mean value of the detector noise being added to the complete measurement.");
+    defaults_.setValue("noise:detector:stddev", 1.0, "Standard deviation of the detector noise being added to the complete measurement.");
+
     defaults_.setSectionDescription("noise", "Parameters modelling noise in mass spectrometry measurements.");
     defaults_.setSectionDescription("noise:shot", "Parameters regarding shot noise modelling.");
     defaults_.setSectionDescription("noise:white", "Parameters regarding white noise modelling.");
+    defaults_.setSectionDescription("noise:detector", "Parameters regarding detector noise modelling.");
 
     defaultsToParam_();
   }
@@ -364,8 +369,9 @@ namespace OpenMS {
       Size compress_size_intermediate = 20000 / thread_count; // compress map every X features, (10.000 feature are ~ 2 GB at 0.002 sampling rate)
       Size compress_count = 0; // feature count (for each thread)
       int current_thread(0);
-
+#ifdef _OPENMP
 #pragma omp parallel for private(current_thread) firstprivate(compress_count)
+#endif
       for (SignedSize f = 0 ; f < (SignedSize)features.size() ; ++f)
       {
         #ifdef _OPENMP // update experiment index if necessary
@@ -374,7 +380,9 @@ namespace OpenMS {
         add2DSignal_(features[f], *(experiments[current_thread]));
 
         // progresslogger, only master thread sets progress (no barrier here)
+#ifdef _OPENMP
         #pragma omp atomic
+#endif
         ++progress;
         if (current_thread == 0) this->setProgress(progress);
 
@@ -426,8 +434,11 @@ namespace OpenMS {
     addShotNoise_(experiment, minimal_mz_measurement_limit, maximal_mz_measurement_limit);
     compressSignals_(experiment);
 
-    // finally add white noise to the simulated data
+    // add white noise to the simulated data
     addWhiteNoise_(experiment);
+
+    // add detector noise the simulated data
+    addDetectorNoise_(experiment);
   }
 
   OpenMS::DoubleReal RawMSSignalSimulation::getPeakWidth_( const DoubleReal mz, const bool is_gaussian ) const
@@ -920,11 +931,44 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::addWhiteNoise_(MSSimExperiment &experiment)
   {
-    LOG_INFO << "Adding detector/white noise to spectra ..." << std::endl;
+    LOG_INFO << "Adding white noise to spectra ..." << std::endl;
 
     // get white noise parameters
     DoubleReal white_noise_mean = param_.getValue("noise:white:mean");
     DoubleReal white_noise_stddev = param_.getValue("noise:white:stddev");
+
+    // grid is constant over scans, so we compute it only once
+    std::vector<SimCoordinateType> grid;
+    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
+    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
+    getSamplingGrid_(grid, min_mz, max_mz, 5); // every 5 Da we adjust the sampling width by local FWHM
+
+    for(MSSimExperiment::iterator spectrum_it = experiment.begin() ; spectrum_it != experiment.end() ; ++spectrum_it)
+    {
+      MSSimExperiment::SpectrumType new_spec = (*spectrum_it);
+      new_spec.clear(false);
+
+      for(MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin() ; peak_it != (*spectrum_it).end() ; ++peak_it)
+      {
+        SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+        if (intensity > 0.0)
+        {
+          peak_it->setIntensity(intensity);
+          new_spec.push_back(*peak_it);
+        }
+      }
+
+      *spectrum_it = new_spec;
+    }
+  }
+
+  void RawMSSignalSimulation::addDetectorNoise_(MSSimExperiment &experiment)
+  {
+    LOG_INFO << "Adding detector noise to spectra ..." << std::endl;
+
+    // get white noise parameters
+    DoubleReal detector_noise_mean = param_.getValue("noise:detector:mean");
+    DoubleReal detector_noise_stddev = param_.getValue("noise:detector:stddev");
 
     // grid is constant over scans, so we compute it only once
     std::vector<SimCoordinateType> grid;
@@ -944,7 +988,7 @@ namespace OpenMS {
         // if peak is in grid
         if(*grid_it == peak_it->getMZ())
         {
-          SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+          SimIntensityType intensity = peak_it->getIntensity() + detector_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
           if (intensity > 0.0)
           {
             peak_it->setIntensity(intensity);
@@ -954,7 +998,7 @@ namespace OpenMS {
         }
         else // we have no point here, generate one if noise is above 0
         {
-          SimIntensityType intensity = white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+          SimIntensityType intensity = detector_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
           if(intensity > 0.0)
           {
             MSSimExperiment::SpectrumType::PeakType noise_peak;
@@ -967,7 +1011,9 @@ namespace OpenMS {
 
       *spectrum_it = new_spec;
     }
+
   }
+
 
   void RawMSSignalSimulation::getSamplingGrid_(std::vector<SimCoordinateType>& grid, const SimCoordinateType mz_min, const SimCoordinateType mz_max, const Int step_Da )
   {

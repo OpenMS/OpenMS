@@ -161,6 +161,9 @@ namespace OpenMS {
     /// Add white noise to the experiment
     void addWhiteNoise_(MSSimExperiment & experiment);
 
+    /// Add detector noise to the experiment
+    void addDetectorNoise_(MSSimExperiment &experiment);
+
     /// Add a base line to the experiment
     void addBaseLine_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit);
 
