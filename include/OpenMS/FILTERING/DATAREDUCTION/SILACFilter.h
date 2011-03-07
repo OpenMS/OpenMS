@@ -69,7 +69,7 @@ namespace OpenMS
   /**
    * @brief number of peaks per peptide to search for
    */
-   Int isotopes_per_peptide_;
+   Size isotopes_per_peptide_;
 
   /**
    * @brief mass shift(s) in [Da] to search for

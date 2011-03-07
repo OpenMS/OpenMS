@@ -58,13 +58,13 @@ START_SECTION((ClusteringMethod(DoubleReal rt_scaling_)))
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getDistance(DataSubset &subset1, DataSubset &subset2) = 0))
+START_SECTION((virtual DoubleReal getDistance(DataSubset &subset1, DataSubset &subset2)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getDistance(DataPoint &point1, DataPoint &point2) = 0))
+START_SECTION((virtual DoubleReal getDistance(DataPoint &point1, DataPoint &point2)=0))
 {
   NOT_TESTABLE
 }
@@ -74,3 +74,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

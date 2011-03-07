@@ -63,7 +63,7 @@ namespace OpenMS
     expected_mz_shifts_.clear();
     for (std::vector<DoubleReal>::iterator it = mz_peptide_separations_.begin(); it != mz_peptide_separations_.end(); ++it)
     {
-      for (Int i = 0; i < isotopes_per_peptide_; i++)
+      for (Size i = 0; i < isotopes_per_peptide_; i++)
       {
         expected_mz_shifts_.push_back(*it + i * isotope_distance_);
       }
@@ -99,7 +99,7 @@ namespace OpenMS
       std::vector<DoubleReal> exact_intensities_singlePeptide;
       std::vector<DoubleReal> expected_shifts_singlePeptide;
 
-      for (Int isotope = 0; isotope < isotopes_per_peptide_; isotope++) // loop over isotopic peaks within a peptide [0=mono-isotopic peak etc.]
+      for (Size isotope = 0; isotope < isotopes_per_peptide_; isotope++) // loop over isotopic peaks within a peptide [0=mono-isotopic peak etc.]
       {
         DoubleReal deltaMZ = computeActualMzShift_(mz, mz_peptide_separations_[peptide] + isotope * isotope_distance_, getPeakWidth(mz));
 
@@ -255,7 +255,7 @@ namespace OpenMS
         DoubleReal averagineIntensity_mono = isoDistribution.getContainer()[0].second;    // intensity of monoisotopic peak of the averagine model
         DoubleReal intensity_mono = exact_intensities_[peptide][0];    // intensity around the (potential) monoisotopic peak in the real data
 
-        for (Int isotope = 1; isotope < isotopes_per_peptide_; ++isotope)
+        for (Size isotope = 1; isotope < isotopes_per_peptide_; ++isotope)
         {
           DoubleReal averagineIntensity = isoDistribution.getContainer()[isotope].second;
           DoubleReal intensity = exact_intensities_[peptide][isotope];

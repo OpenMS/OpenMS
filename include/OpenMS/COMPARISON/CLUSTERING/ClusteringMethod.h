@@ -71,14 +71,14 @@ namespace OpenMS
 	 * @param subset1 first subset
 	 * @param subset2 second subset
 	 */
-   virtual DoubleReal getDistance(DataSubset& subset1, DataSubset& subset2) = 0;
+   virtual DoubleReal getDistance(DataSubset& subset1, DataSubset& subset2)=0;
 
   /**
 	 * @brief gets the distance between two DataPoints
 	 * @param DataPoint1 first data point
 	 * @param DataPoint1 second data point
 	 */
-   virtual DoubleReal getDistance(DataPoint& point1, DataPoint& point2) = 0;
+   virtual DoubleReal getDistance(DataPoint& point1, DataPoint& point2)=0;
 
   };
 }
