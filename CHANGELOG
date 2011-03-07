@@ -17,7 +17,11 @@ UTIL tools:
 OpenMS library improvements:
 
 TOPPView improvements:
-
+- NEW:
+  - Identification View (load idXML through Tools->annotate with identifications)
+  - 1D view now supports vector graphics export when saving an image
+  - Peaks in 2D view are drawn as circles at a high zoom level
+  - TOPPAS pipelines can be edited and run directly from TOPPView
 TOPPAS improvements:
 
 Changes to the Build System:
