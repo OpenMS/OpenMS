@@ -175,7 +175,7 @@ namespace OpenMS {
     // shot noise
     defaults_.setValue("noise:shot:rate",0.0,"Poisson rate of shot noise per unit m/z. Set to 0 to disable simulation of shot noise.");
     defaults_.setMinFloat("noise:shot:rate",0.0);
-    defaults_.setValue("noise:shot:int-mean",50.0,"Shot noise intensity mean (gaussian distributed).");
+    defaults_.setValue("noise:shot:intensity-mean",1.0,"Shot noise intensity mean (exponentially distributed with given mean).");
 
     // white noise
     defaults_.setValue("noise:white:mean", 0.0, "Mean value of white noise being added to each measured signal.");
@@ -863,42 +863,48 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit)
   {
+    const SimCoordinateType window_size = 100.0;
+
     // we model the amount of (background) noise as Poisson process
     // i.e. the number of noise data points per unit m/z interval follows a Poisson
-    // distribution. Noise intensity is assumed to be Gaussian-distributed.
+    // distribution. Noise intensity is assumed to be exponentially-distributed.
+    DoubleReal rate = param_.getValue("noise:shot:rate");
+    DoubleReal intensity_mean = param_.getValue("noise:shot:intensity-mean");
 
-    DoubleReal rate    = param_.getValue("noise:shot:rate");
-    if (rate == 0.0) return;
-    DoubleReal it_mean = param_.getValue("noise:shot:int-mean");
+    // avoid sampling 0 values
+    if (rate == 0.0 || intensity_mean == 0.0) return;
 
-    const UInt num_intervals = 100;
-    SimCoordinateType interval_size = ( maximal_mz_measurement_limit -  minimal_mz_measurement_limit) / num_intervals;
-    SimPointType point;
+    // we distribute the rate in 100 Th windows
+    DoubleReal scaled_rate = rate * window_size;
+    SimPointType shot_noise_peak;
 
     LOG_INFO << "Adding shot noise to spectra ..." << std::endl;
-    LOG_INFO << "Interval size: "  << interval_size << ", poisson rate: " << rate << std::endl;
+    Size num_intervals = std::ceil((maximal_mz_measurement_limit - minimal_mz_measurement_limit) / window_size);
 
-    for (MSSimExperiment::Iterator it_exp=experiment.begin(); it_exp != experiment.end() ; ++it_exp)
+    for (MSSimExperiment::Iterator spectrum_it=experiment.begin(); spectrum_it != experiment.end() ; ++spectrum_it)
     {
+      SimCoordinateType mz_lw = minimal_mz_measurement_limit;
+      SimCoordinateType mz_up = window_size + minimal_mz_measurement_limit;
 
       for (Size j=0;j<num_intervals;++j)
       {
-        UInt counts = gsl_ran_poisson ( rnd_gen_->technical_rng, rate);
-        SimCoordinateType mz_lw = j * interval_size + minimal_mz_measurement_limit;
-        SimCoordinateType mz_up = (j+1) * interval_size + minimal_mz_measurement_limit;
-
+        UInt counts = gsl_ran_poisson ( rnd_gen_->technical_rng, scaled_rate);
         for (UInt c=0; c<counts;++c)
         {
-          SimCoordinateType mz  = gsl_ran_flat(rnd_gen_->technical_rng, mz_lw, mz_up );
-          SimCoordinateType it = gsl_ran_exponential(rnd_gen_->technical_rng,it_mean);
-          if(it > 0.0)
+          SimCoordinateType mz        = gsl_ran_flat(rnd_gen_->technical_rng, mz_lw, mz_up );
+          SimCoordinateType intensity = gsl_ran_exponential(rnd_gen_->technical_rng,intensity_mean);
+
+          // we only add points if they have an intensity>0 and are inside of the measurement range
+          if(mz < maximal_mz_measurement_limit)
           {
-            point.setIntensity(it);
-            point.setMZ(mz);
-            it_exp->push_back(point);
+            shot_noise_peak.setIntensity(intensity);
+            shot_noise_peak.setMZ(mz);
+            spectrum_it->push_back(shot_noise_peak);
           }
         }
 
+        mz_lw += window_size;
+        mz_up += window_size;
       }
     } // end of each scan
 
@@ -937,11 +943,10 @@ namespace OpenMS {
     DoubleReal white_noise_mean = param_.getValue("noise:white:mean");
     DoubleReal white_noise_stddev = param_.getValue("noise:white:stddev");
 
-    // grid is constant over scans, so we compute it only once
-    std::vector<SimCoordinateType> grid;
-    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
-    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
-    getSamplingGrid_(grid, min_mz, max_mz, 5); // every 5 Da we adjust the sampling width by local FWHM
+		if(white_noise_mean == 0.0 && white_noise_stddev == 0.0)
+		{
+			return;
+		}
 
     for(MSSimExperiment::iterator spectrum_it = experiment.begin() ; spectrum_it != experiment.end() ; ++spectrum_it)
     {
@@ -969,6 +974,11 @@ namespace OpenMS {
     // get white noise parameters
     DoubleReal detector_noise_mean = param_.getValue("noise:detector:mean");
     DoubleReal detector_noise_stddev = param_.getValue("noise:detector:stddev");
+
+		if(detector_noise_mean == 0.0 && detector_noise_stddev == 0.0) 
+		{
+			return;
+		}
 
     // grid is constant over scans, so we compute it only once
     std::vector<SimCoordinateType> grid;
@@ -1149,11 +1159,11 @@ namespace OpenMS {
 
     if(point_count_before != 0)
     {
-      LOG_INFO << "  Compressing data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
+      LOG_INFO << "Compressed data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after*100/point_count_before) << "%)\n";
     }
     else
     {
-      LOG_INFO << "  Not enough points in map .. did not compress!\n";
+      LOG_INFO << "Not enough points in map .. did not compress!\n";
     }
 
     return;
