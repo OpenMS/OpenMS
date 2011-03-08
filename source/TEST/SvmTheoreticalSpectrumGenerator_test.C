@@ -108,7 +108,8 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
       TEST_EQUAL(spec[i].getIntensity(),(exp[0][i]).getIntensity());
       }
   }
-  END_SECTION
+END_SECTION
+delete ptr;
 
 START_SECTION(void load())
 //This method is already used(and therefore tested) in the simulation test

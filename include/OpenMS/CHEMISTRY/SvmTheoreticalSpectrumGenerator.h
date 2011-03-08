@@ -135,6 +135,7 @@ namespace OpenMS
         if(model != 0)
         {
           svm_destroy_model(model);
+          model = 0;
         }
       }
 
