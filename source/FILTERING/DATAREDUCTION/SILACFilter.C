@@ -286,7 +286,7 @@ namespace OpenMS
     newElement.rt = rt;
     newElement.mz = mz;
     newElement.charge = charge_;
-    newElement.isotopes_per_peptide = isotopes_per_peptide_;
+    newElement.isotopes_per_peptide = (Int) isotopes_per_peptide_;
     newElement.intensities.insert(newElement.intensities.begin(), exact_intensities_.begin(), exact_intensities_.end());
     newElement.mass_shifts.insert(newElement.mass_shifts.begin(), mz_peptide_separations_.begin(), mz_peptide_separations_.end());
     elements_.push_back(newElement);

@@ -416,7 +416,7 @@ namespace OpenMS
 					//std::cerr<<"MZ pos: "<<local_mz<<std::endl;
 					for(Size scan_feat_id=0; scan_feat_id<scan_features[i].size(); ++scan_feat_id)
 					{
-						UInt feature_num = scan_features[i][scan_feat_id];
+						Size feature_num = scan_features[i][scan_feat_id];
 						if(bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
 						{
 							//find a mass trace enclosing the point
@@ -440,7 +440,7 @@ namespace OpenMS
 							p.setMZ(features[feature_num].getMZ());
 							p.setCharge(features[feature_num].getCharge());
 							pcs.push_back(p);
-							parent_feature_ids.push_back(feature_num);
+							parent_feature_ids.push_back((Int)feature_num);
 						}
 					}
 
