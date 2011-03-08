@@ -982,11 +982,11 @@ namespace OpenMS {
       new_spec.clear(false);
 
       std::vector<SimCoordinateType>::iterator grid_it = grid.begin();
-      MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin();
+      MSSimExperiment::SpectrumType::iterator peak_it = spectrum_it->begin();
       for( ; grid_it != grid.end() ;  ++grid_it)
       {
         // if peak is in grid
-        if(*grid_it == peak_it->getMZ())
+        if(peak_it != spectrum_it->end() && *grid_it == peak_it->getMZ())
         {
           SimIntensityType intensity = peak_it->getIntensity() + detector_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
           if (intensity > 0.0)
@@ -1069,12 +1069,23 @@ namespace OpenMS {
     std::vector<SimCoordinateType> grid;
     getSamplingGrid_(grid, min_mz, max_mz, 5); // every 5 Da we adjust the sampling width by local FWHM
 
+    if (grid.size() < 3)
+    {
+      LOG_WARN << "Data spacing is weird - either you selected a very small intervall or a very low resolution - or both. Not compressing." << std::endl;
+      return;
+    }
+
     Size point_count_before(0), point_count_after(0);
     SimPointType p;
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
       if (experiment[i].size()<=1) continue;
       
+      if (experiment[i].isSorted()==false) // this should be true - however we check
+      {
+        experiment[i].sortByPosition();
+      }
+
 			// copy Spectrum and remove Peaks ..
 			MSSimExperiment::SpectrumType cont = experiment[i];
 			cont.clear(false);
@@ -1121,7 +1132,8 @@ namespace OpenMS {
         if (break_scan) break; // skip remaining points of the scan (we reached the end of the grid)
 
         int_sum += experiment[i][j].getIntensity();
-		  }
+
+		  } // end of scan
 				
       if (int_sum>0)// don't forget the last one
       { 
