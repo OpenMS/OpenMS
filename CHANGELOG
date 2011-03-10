@@ -99,6 +99,8 @@ Detailed list of changes to specific OpenMS classes:
   - FeatureGroupingAlgorithmQT, QTClusterFinder, QTCluster, GridFeature: feature grouping for unlabeled data based on QT clustering
   - FeatureDistance: distance measure for features
   - TransformationModel: different models for retention time transformations
+  - SvmTheoreticalSpectrumGenerator: simulator for MS/MS spectra
+
 - MODIFIED:
   - Feature, ConsensusFeature: moved common parts to BaseFeature
   - StablePairFinder: moved distance calculation to FeatureDistance
@@ -112,6 +114,7 @@ Detailed list of changes to specific OpenMS classes:
   - FeatureMap, ConsensusMap: "clear" also clears meta data by default
   - ConsensusMap: adapted signature of "convert" for feature maps (to mirror that for peak maps)
   - Param: remove() and ::removeAll() now delete empty nodes which have no subnodes nor entries (otherwise writing paramXML breaks)
+  - TheoreticalSpectrumGenerator: getSpectrum() now generates all selected ion types not only b- and y-ions
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.7                                      ----
