@@ -73,6 +73,11 @@ using namespace std;
     <li>Simulation of 1D spectra</li>
   </ul>
 
+  <p>
+   Actually only a test model for MS/MS simulation is shipped with OpenMS. <br>
+   Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
+  </p>
+
 	@note This tool is experimental!	
 
 	<B>The command line parameters of this tool are:</B>

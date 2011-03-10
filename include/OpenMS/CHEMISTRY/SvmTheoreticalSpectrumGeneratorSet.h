@@ -41,6 +41,11 @@ namespace OpenMS
    The input file contains pairs of charge and svm models separated by a ":"
    (see share/OpenMS/examples/simulation/SvmModelSet.model)
 
+   <p>
+   Actually only a test model is shipped with OpenMS.<br>
+   Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
+   </p>
+
    @htmlinclude OpenMS_SvmTheoreticalSpectrumGeneratorSet.parameters
 
    @ingroup Chemistry
