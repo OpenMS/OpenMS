@@ -262,12 +262,12 @@ namespace OpenMS
       p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
       p.setValue("add_abundant_immonium_ions", tv_params.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
 
-      p.setValue("a_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-      p.setValue("b_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-      p.setValue("c_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-      p.setValue("x_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-      p.setValue("y_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-      p.setValue("z_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
+      p.setValue("a_intensity", current_spectrum.getMaxInt() * 0.80);
+      p.setValue("b_intensity", current_spectrum.getMaxInt() * 1.00);
+      p.setValue("c_intensity", current_spectrum.getMaxInt() * 0.90);
+      p.setValue("x_intensity", current_spectrum.getMaxInt() * 0.85);
+      p.setValue("y_intensity", current_spectrum.getMaxInt() * 0.95);
+      p.setValue("z_intensity", current_spectrum.getMaxInt() * 0.75);
       p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
       generator.setParameters(p);
 
@@ -361,11 +361,7 @@ namespace OpenMS
         Param param;
 
         DoubleReal tolerance = tv_params.getValue("preferences:idview:tolerance");
-        bool unit_is_ppm = tv_params.getValue("preferences:idview:is_relative_tolerance").toBool();
-
         param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance in the alignment");
-        String sunit_is_ppm = unit_is_ppm ? "true" : "false";
-        param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
         tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
         tv_->updateLayerBar();
