@@ -838,17 +838,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     // identification view tab
     QListWidget* id_view_ions = dlg.findChild<QListWidget*>("ions_list_widget");
-    QDoubleSpinBox* a_intensity = dlg.findChild<QDoubleSpinBox*>("a_intensity");
-    QDoubleSpinBox* b_intensity = dlg.findChild<QDoubleSpinBox*>("b_intensity");
-    QDoubleSpinBox* c_intensity = dlg.findChild<QDoubleSpinBox*>("c_intensity");
-    QDoubleSpinBox* x_intensity = dlg.findChild<QDoubleSpinBox*>("x_intensity");
-    QDoubleSpinBox* y_intensity = dlg.findChild<QDoubleSpinBox*>("y_intensity");
-    QDoubleSpinBox* z_intensity = dlg.findChild<QDoubleSpinBox*>("z_intensity");
-
     QDoubleSpinBox* tolerance = dlg.findChild<QDoubleSpinBox*>("tolerance");
-    QCheckBox* is_relative_tolerance = dlg.findChild<QCheckBox*>("unit_is_ppm");
-
-    QDoubleSpinBox* relative_loss_intensity = dlg.findChild<QDoubleSpinBox*>("relative_loss_intensity");
     QSpinBox* max_isotopes = dlg.findChild<QSpinBox*>("max_isotopes");
     QSpinBox* charge = dlg.findChild<QSpinBox*>("charge");
 
@@ -905,16 +895,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
 
     // id view
-    a_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:a_intensity"));
-    b_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:b_intensity"));
-    c_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:c_intensity"));
-    x_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:x_intensity"));
-    y_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:y_intensity"));
-    z_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:z_intensity"));
-    tolerance->setValue((DoubleReal)param_.getValue("preferences:idview:tolerance"));
-
-    relative_loss_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:relative_loss_intensity"));
     max_isotopes->setValue((Int)param_.getValue("preferences:idview:max_isotope"));
+    tolerance->setValue((DoubleReal)param_.getValue("preferences:idview:tolerance"));
     charge->setValue((Int)param_.getValue("preferences:idview:charge"));
 
     if(a_ions.size() == 0)
@@ -1007,15 +989,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       ai_ions[0]->setCheckState(state);
     }
 
-    if(is_relative_tolerance == 0)
-    {
-      showLogMessage_(LS_ERROR,"", "String 'unit is ppm' doesn't exist in identification dialog.");
-    } else
-    {
-      Qt::CheckState state = param_.getValue("preferences:idview:is_relative_tolerance").toBool() == true ? Qt::Checked : Qt::Unchecked;
-      is_relative_tolerance->setCheckState(state);
-    }
-
     // --------------------------------------------------------------------
     // Execute dialog and update parameter object with user modified values
 		if (dlg.exec())
@@ -1055,13 +1028,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			param_.setValue("preferences:3d:dot:line_width",line_width_3D->value());
 
       // id view
-      param_.setValue("preferences:idview:a_intensity", a_intensity->value(), "Default intensity of a-ions");
-      param_.setValue("preferences:idview:b_intensity", b_intensity->value(), "Default intensity of b-ions");
-      param_.setValue("preferences:idview:c_intensity", c_intensity->value(), "Default intensity of c-ions");
-      param_.setValue("preferences:idview:x_intensity", x_intensity->value(), "Default intensity of x-ions");
-      param_.setValue("preferences:idview:y_intensity", y_intensity->value(), "Default intensity of y-ions");
-      param_.setValue("preferences:idview:z_intensity", z_intensity->value(), "Default intensity of z-ions");
-      param_.setValue("preferences:idview:relative_loss_intensity", relative_loss_intensity->value(), "Relativ loss in percent");
       param_.setValue("preferences:idview:max_isotope", max_isotopes->value(), "Maximum number of isotopes");
       param_.setValue("preferences:idview:charge", charge->value(), "Charge state");
       param_.setValue("preferences:idview:tolerance", tolerance->value(), "Alignment tolerance");
@@ -1097,8 +1063,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       ai_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
       param_.setValue("preferences:idview:add_abundant_immonium_ions", checked, "Show abundant immonium ions");
 
-      is_relative_tolerance->checkState() == Qt::Checked ? checked = "true" : checked = "false";
-      param_.setValue("preferences:idview:is_relative_tolerance", checked, "Use ppm instead of Da for the automatic alignment");
 			savePreferences();
 		}
   }

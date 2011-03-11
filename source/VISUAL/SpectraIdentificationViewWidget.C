@@ -58,12 +58,6 @@ namespace OpenMS
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 
     // id view
-    defaults_.setValue("a_intensity", 1.0, "Default intensity of a-ions");
-    defaults_.setValue("b_intensity", 1.0, "Default intensity of b-ions");
-    defaults_.setValue("c_intensity", 1.0, "Default intensity of c-ions");
-    defaults_.setValue("x_intensity", 1.0, "Default intensity of x-ions");
-    defaults_.setValue("y_intensity", 1.0, "Default intensity of y-ions");
-    defaults_.setValue("z_intensity", 1.0, "Default intensity of z-ions");
     defaults_.setValue("relative_loss_intensity", 0.1, "Relativ loss in percent");
     defaults_.setValue("max_isotope", 2, "Maximum number of isotopes");
     defaults_.setValue("charge", 1, "Charge state");
@@ -77,8 +71,7 @@ namespace OpenMS
     defaults_.setValue("add_losses", "false", "Show neutral losses");
     defaults_.setValue("add_isotopes", "false", "Show isotopes");
     defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
-    defaults_.setValue("is_relative_tolerance", "true", "If true, the mass tolerance is interpreted as ppm otherwise in Dalton");
-    defaults_.setValue("tolerance", 10.0, "Mass tolerance used in the automatic alignment. Unit depends on 'is_relative_tolerance.");
+    defaults_.setValue("tolerance", 10.0, "Mass tolerance used in the automatic alignment.");
 
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     table_widget_ = new QTableWidget(this);

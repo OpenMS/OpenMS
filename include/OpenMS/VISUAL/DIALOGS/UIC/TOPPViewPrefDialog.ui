@@ -33,7 +33,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -641,73 +641,6 @@ p, li { white-space: pre-wrap; }
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <item>
-               <widget class="QLabel" name="spin_label">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Charge:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="charge">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="value">
-                 <number>1</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QLabel" name="max_iso_label">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777213</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="whatsThis">
-                 <string>Defines the maximal isotopic peak which is added</string>
-                </property>
-                <property name="text">
-                 <string>Max Isotope:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="max_isotopes">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="value">
-                 <number>2</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
              <widget class="QLabel" name="generate_label">
@@ -838,156 +771,77 @@ p, li { white-space: pre-wrap; }
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QLabel" name="label_15">
+            <layout class="QFormLayout" name="formLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="chargeLabel">
                <property name="text">
-                <string>A-ions</string>
+                <string>Charge:</string>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="a_intensity">
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="charge">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="value">
-                <double>1.000000000000000</double>
+                <number>1</number>
                </property>
               </widget>
              </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <item>
-              <widget class="QLabel" name="label_16">
-               <property name="text">
-                <string>B-ions</string>
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="max_isotopes">
+               <property name="enabled">
+                <bool>false</bool>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="b_intensity">
                <property name="value">
-                <double>1.000000000000000</double>
+                <number>2</number>
                </property>
               </widget>
              </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <item>
-              <widget class="QLabel" name="label_23">
+             <item row="2" column="0">
+              <widget class="QLabel" name="max_iso_label">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777213</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="whatsThis">
+                <string>Defines the maximal isotopic peak which is added</string>
+               </property>
                <property name="text">
-                <string>C-ions</string>
+                <string>Max Isotope:</string>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="c_intensity">
-               <property name="value">
-                <double>1.000000000000000</double>
+             <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="tolerance">
+               <property name="decimals">
+                <number>5</number>
                </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QLabel" name="label_24">
-               <property name="text">
-                <string>X-ions</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="x_intensity">
-               <property name="value">
-                <double>1.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <widget class="QLabel" name="label_25">
-               <property name="text">
-                <string>Y-ions</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="y_intensity">
-               <property name="value">
-                <double>1.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QLabel" name="label_26">
-               <property name="text">
-                <string>Z-ions</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="z_intensity">
-               <property name="value">
-                <double>1.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_9">
-             <item>
-              <widget class="QLabel" name="label_27">
-               <property name="text">
-                <string>Relative loss</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="relative_loss_intensity">
                <property name="maximum">
-                <double>1.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.010000000000000</double>
+                <double>99999.990000000005239</double>
                </property>
                <property name="value">
-                <double>0.100000000000000</double>
+                <double>1.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="tolerance_2">
+               <property name="text">
+                <string>Tolerance (Da)</string>
                </property>
               </widget>
              </item>
             </layout>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="unit_is_ppm">
-             <property name="text">
-              <string>use relative tolerance (ppm)</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QDoubleSpinBox" name="tolerance">
-             <property name="maximum">
-              <double>99999.990000000005239</double>
-             </property>
-             <property name="value">
-              <double>10.000000000000000</double>
-             </property>
-            </widget>
            </item>
           </layout>
          </widget>
