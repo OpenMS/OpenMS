@@ -65,11 +65,17 @@ include (cmake/macros.cmake)
 ########################################################
 
 ## Fill this with compile flags that external projects should use as well
-## for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS 
+## for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS
 set(CF_OPENMS_ADDCXX_FLAGS) ## see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	
+
+	# determine gcc version
+	execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GNUCXX_VERSION)
+	string(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${GNUCXX_VERSION})
+	list(GET GCC_VERSION_COMPONENTS 0 GNUCXX_MAJOR_VERSION)
+	list(GET GCC_VERSION_COMPONENTS 1 GNUCXX_MINOR_VERSION)
+
   add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long -Wno-variadic-macros)
   if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
 		add_definitions(--pedantic)
@@ -78,6 +84,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	## Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
 	if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
 		add_definitions(-fmessage-length=0)
+	endif()
+
+	if (NOT OPENMS_64BIT_ARCHITECTURE AND ${GNUCXX_MAJOR_VERSION} MATCHES "4" AND ${GNUCXX_MINOR_VERSION} MATCHES "3")
+		add_definitions(-march=i486)
 	endif()
 
 elseif (MSVC)
@@ -95,6 +105,14 @@ elseif (MSVC)
 	## disable explicit template instantiation request for partially defined classes
 	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4661")
 
+	## disable warning: "decorated name length exceeded, name was truncated"
+	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4503")
+	
+  # disable incremental linking
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /INCREMENTAL:NO")
+  SET(CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS_DEBUG} /INCREMENTAL:NO")
+  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /INCREMENTAL:NO")
+	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
 
@@ -114,7 +132,7 @@ elseif (MSVC)
     ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
   endif()
-elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")    
+elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
@@ -130,8 +148,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	message(STATUS "Setting CMAKE_OSX_DEPLOYMENT_TARGET to 10.5")
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE INTERNAL "Set OS X Deployment Target to 10.5 to build packages compatible to leopard" FORCE )
-  # force 10.5 SDK 
-  set (CMAKE_OSX_SYSROOT "/Developer/SDKs/MacOSX10.5.sdk") 
+  # force 10.5 SDK
+  set (CMAKE_OSX_SYSROOT "/Developer/SDKs/MacOSX10.5.sdk")
 	# due to some awkward updates of cmake in the 2.8.x series we need to add the following
   find_library(CARBON NAMES Carbon)
   find_package(OpenGL)
@@ -673,7 +691,7 @@ foreach(i ${TOPP_executables})
 
     # extra work for pseudo-mac-bundle
     # move prepared package to RUNTIME_OUTPUT
-    file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app" 
+    file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
       DESTINATION "${PROJECT_BINARY_DIR}/bin")
   else()
 		add_executable(${i} ${TOPP_DIR}${i}.C)
@@ -816,7 +834,7 @@ if (MSVC)
 	get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
 #  string(REPLACE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} "" OPENMS_OUTDIRSUFFIX ${WIN32_DLLPATH})
 #  message(STATUS "outdir suffix is:  ${OPENMS_OUTDIRSUFFIX}")
-  
+
 	## copy OpenMS.dll to test executables dir
 	file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
 	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/source/TEST/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TARGET)

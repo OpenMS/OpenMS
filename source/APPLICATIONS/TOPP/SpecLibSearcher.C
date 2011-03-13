@@ -25,7 +25,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/Factory.h>
@@ -90,7 +90,7 @@ class TOPPSpecLibSearcher
 		void registerOptionsAndFlags_()
 		{
 			registerInputFileList_("in","<files>",StringList::create(""),"Input files");
-			setValidFormats_("in",StringList::create("mzData"));
+      setValidFormats_("in",StringList::create("mzML"));
 			registerInputFile_("lib","<file>","","searchable spectral library(MSP format)");
 			registerOutputFileList_("out","<files>",StringList::create(""),"Output files. Have to be as many as input files");
 			setValidFormats_("out",StringList::create("idXML"));
@@ -167,7 +167,7 @@ class TOPPSpecLibSearcher
 			MSPFile spectral_library;
 			RichPeakMap query, library;
 			//spectrum which will be identified
-			MzDataFile spectra;
+      MzMLFile spectra;
 			spectra.setLogType(log_type_);
 
 			time_t start_build_time = time(NULL);
@@ -310,10 +310,19 @@ class TOPPSpecLibSearcher
 					bool peak_ok = true;
 					query[j].sortByIntensity(true);
 					DoubleReal min_high_intensity = 0;
-					if(!query[j].empty())
-					{
-						min_high_intensity = (1/cut_peaks_below)*query[j][0].getIntensity();
-					}
+
+          if(query[j].empty() || query[j].getMSLevel()!=2 )
+          {
+            continue;
+          }
+          if(query[j].getPrecursors().empty())
+          {
+            writeLog_("Warning MS2 spectrum without precursor information");
+            continue;
+          }
+
+          min_high_intensity = (1/cut_peaks_below)*query[j][0].getIntensity();
+
 					query[j].sortByPosition();
 					for(UInt k = 0; k < query[j].size() && k < max_peaks; ++k)
 					{
@@ -333,7 +342,7 @@ class TOPPSpecLibSearcher
 					else
 					{
 						peak_ok = false;
-					}
+					}          
 					DoubleReal query_MZ = query[j].getPrecursors()[0].getMZ();
 					if(peak_ok)
 					{

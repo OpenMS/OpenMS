@@ -7,6 +7,7 @@ AdditiveSeries
 BaselineFilter
 CompNovo
 ConsensusID
+ConsensusMapNormalizer
 DBExporter
 DBImporter
 DTAExtractor

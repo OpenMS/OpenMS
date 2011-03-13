@@ -64,17 +64,18 @@ namespace OpenMS
 		/// Return the minor version number. The part of the release number after the dot.
 		static Int getMinorVersion();
 
-		/**@brief Return the revision number from revision control system, e.g. Subversion.
+    /**
+      @brief Return the revision number from revision control system, e.g. Subversion.
 
-		On released versions of OpenMS (not from SVN), the result is "exported".
-		The result can be possibly be "" on some platforms, which means that
-		revision info is unavailable.  You should check for both cases in your
-		code.
+      On released versions of OpenMS (not from SVN), the result is "exported".
+      The result can be possibly be "" on some platforms, which means that
+      revision info is unavailable.  You should check for both cases in your
+      code.
 
-		@internal Finding out what the revision number is requires some tricks at
-		compile time: From CONCEPT/Makefile, we invoke the @c svnversion command
-		(with working directory OpenMS/) and store its output in a file that is
-		included by VersionInfo.C.
+      @internal Finding out what the revision number is requires some tricks at
+      compile time: From CONCEPT/Makefile, we invoke the @c svnversion command
+      (with working directory OpenMS/) and store its output in a file that is
+      included by VersionInfo.C.
 		*/
 		static String getRevision();
 

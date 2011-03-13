@@ -40,6 +40,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
+#include <QDir>
 
 using namespace OpenMS;
 using namespace std;
@@ -349,20 +350,13 @@ class TOPPOMSSAAdapter
 
 		ExitCodes main_(int , const char**)
 		{
-			// instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
-			String ini_location;
+			String parameters;
 			// path to the log file
 			String logfile(getStringOption_("log"));
 			String omssa_executable(getStringOption_("omssa_executable"));
-			String inputfile_name;
-			String outputfile_name;
-			PeakMap map;
-
-			String parameters;
-			String unique_name = File::getUniqueName(); // body for the tmp files
+      String unique_name = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString()); // body for the tmp files
 			String unique_input_name = unique_name + "_OMSSA.mgf";
 			String unique_output_name = unique_name + "_OMSSA.xml";
-			String unique_version_name = unique_name + "_OMSSA_version";
 			String unique_usermod_name = unique_name + "_OMSSA_user_mod_file.xml";
 
 			//-------------------------------------------------------------
@@ -397,8 +391,8 @@ class TOPPOMSSAAdapter
         }
       }
       // parse arguments
-			inputfile_name = getStringOption_("in");
-			outputfile_name = getStringOption_("out");
+			String inputfile_name = getStringOption_("in");
+			String outputfile_name = getStringOption_("out");
       String db_name = String(getStringOption_("database"));
       // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
@@ -425,10 +419,10 @@ class TOPPOMSSAAdapter
       
       db_name = db_name.substr(0,db_name.size()-4); // OMSSA requires the filename without the .psq part
 
-			parameters += " -d "  +  db_name;
-			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
+      parameters += " -d "  + String(db_name).quote('"', String::NONE);
+			parameters += " -to " + String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
-			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
+			parameters += " -te " + String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
       if (getFlag_("precursor_mass_tolerance_unit_ppm"))
       {
         if (omssa_version_i < OMSSAVersion(2,1,8))
@@ -477,8 +471,8 @@ class TOPPOMSSAAdapter
 				parameters += " -mnm ";
 			}
 
-			parameters += " -fm " + unique_input_name;
-			parameters += " -ox " + unique_output_name;
+      parameters += " -fm " + String(unique_input_name).quote('"', String::NONE);
+			parameters += " -ox " + String(unique_output_name).quote('"', String::NONE);
 
 			if (getIntOption_("debug") == 0)
 			{
@@ -524,68 +518,50 @@ class TOPPOMSSAAdapter
 			if (getStringList_("fixed_modifications").size() != 0)
 			{
 				set<String> mod_names = mod_set.getFixedModificationNames();
-				String mod_list;
+				StringList mod_list;
 				for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
 				{
 					if (mods_map.has(*it))
 					{
-						if (mod_list != "")
-						{
-							mod_list += ",";
-						}
-						mod_list += String(mods_map[*it]);
+            mod_list.push_back(String(mods_map[*it]));
 					}
 					else
 					{
-						if (mod_list != "")
-						{
-							mod_list += ",";
-						}
-						mod_list += String(user_mod_num);
-
+            mod_list.push_back(String(user_mod_num));
 						// add this to the usermods
 						user_mods.push_back(make_pair(user_mod_num++, *it));
             writeDebug_("Inserting unknown fixed modification: '" + *it + "' into OMSSA", 1);
 					}
 				}
-				if (mod_list != "")
+        if (mod_list.size() > 0)
 				{
-					parameters += " -mf " + mod_list;
+          parameters += " -mf " + mod_list.concatenate(",");
 				}
 			}
 
 			if (getStringList_("variable_modifications").size() != 0)
 			{
 				set<String> mod_names = mod_set.getVariableModificationNames();
-				String mod_list;
+				StringList mod_list;
 
         for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
         {
           if (mods_map.has(*it))
           {
-            if (mod_list != "")
-            {
-              mod_list += ",";
-            }
-            mod_list += String(mods_map[*it]);
+            mod_list.push_back(String(mods_map[*it]));
           }
           else
           {
-            if (mod_list != "")
-            {
-              mod_list += ",";
-            }
-            mod_list += String(user_mod_num);
-
+            mod_list.push_back(String(user_mod_num));
             // add this to the usermods
             user_mods.push_back(make_pair(user_mod_num++, *it));
             writeDebug_("Inserting unknown variable modification: '" + *it + "' into OMSSA", 1);
           }
         }
 
-				if (mod_list != "")
+        if (mod_list.size() > 0)
 				{
-					parameters += " -mv " + mod_list;
+          parameters += " -mv " + mod_list.concatenate(",");
 				}
 			}
 
@@ -594,7 +570,7 @@ class TOPPOMSSAAdapter
       if (user_mods.size() != 0 || additional_user_mods_filename != "")
 			{
 				writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
-				parameters += " -mux " + File::absolutePath(unique_usermod_name);
+				parameters += " -mux " + (File::absolutePath(unique_usermod_name));
 				ofstream out(unique_usermod_name.c_str());
 				out << "<?xml version=\"1.0\"?>" << endl;
 				out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << endl;
@@ -687,6 +663,7 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 
 			MzMLFile mzml_infile;
+      PeakMap map;
 			mzml_infile.setLogType(log_type_);
 			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> peptide_ids;
@@ -708,7 +685,7 @@ class TOPPOMSSAAdapter
       // or PATH
 
 			writeDebug_("omssa_executable " + parameters, 5);
-      Int status = QProcess::execute(omssa_executable.toQString(), QStringList(parameters.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
+      Int status = QProcess::execute((omssa_executable+" "+parameters).toQString());
 			if (status != 0)
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");

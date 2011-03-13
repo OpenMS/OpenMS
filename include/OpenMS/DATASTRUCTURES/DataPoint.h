@@ -106,7 +106,7 @@ public:
 	/**
 	 * @brief gets the ID of the data point
 	 */
-	Int getID();
+	Int getID() const;
 };
 }
 

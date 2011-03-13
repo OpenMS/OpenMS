@@ -12,7 +12,7 @@
         <onfinish>Tool finished successfully.</onfinish>
       </text>    
 		  <e_category>FileConversion</e_category>
-		  <cloptions>-o "%1" --mzML %2</cloptions>
+		  <cloptions>-o "%1" --mzML "%2"</cloptions>
 		  <path>msconvert</path>
 		  <mappings>
 			<mapping id="1" cl="%TMP" />

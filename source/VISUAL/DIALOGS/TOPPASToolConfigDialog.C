@@ -167,10 +167,10 @@ namespace OpenMS
 			//store current parameters
 			arg_param_.store(tmp_ini_file.toStdString());
 			//restore other parameters that might be missing
-			String call = tool_name_ + " -write_ini " + String(filename_);
+			String call = tool_name_ + " -write_ini " + String(filename_) + " -ini " + String(tmp_ini_file);
 			if (tool_type_ != "")
 			{
-				call += " -type " + tool_type_ + " -ini " + String(tmp_ini_file);
+				call += " -type " + tool_type_;
 			}
 			
 			if (system(call.c_str()) != 0)

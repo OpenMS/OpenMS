@@ -30,6 +30,16 @@
                 <xs:documentation>Tolerance in RT dimension</xs:documentation>
               </xs:annotation>
             </xs:element>
+            <xs:element name="concentrations" default="[]">
+              <xs:annotation>
+                <xs:documentation>Spiked concentrations</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:doublelist">
+                  <xs:pattern value="^$|[^,](,[^,]+)*"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
             <xs:element name="feature_rt" type="xs:double" default="nan">
               <xs:annotation>
                 <xs:documentation>RT position of the feature</xs:documentation>
@@ -112,18 +122,6 @@
                   <xs:enumeration value="false"/>
                 </xs:restriction>
               </xs:simpleType>
-            </xs:element>
-            <xs:element name="concentrations:1" type="xs:double" default="1">
-            </xs:element>
-            <xs:element name="concentrations:2" type="xs:double" default="2">
-            </xs:element>
-            <xs:element name="concentrations:3" type="xs:double" default="3">
-            </xs:element>
-            <xs:element name="in:1" type="xs:string" default="data/file1.xml">
-            </xs:element>
-            <xs:element name="in:2" type="xs:string" default="data/file2.xml">
-            </xs:element>
-            <xs:element name="in:3" type="xs:string" default="data/file3.xml">
             </xs:element>
           </xs:sequence>
         </xs:complexType>

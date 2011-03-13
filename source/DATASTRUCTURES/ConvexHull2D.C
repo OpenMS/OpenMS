@@ -177,7 +177,7 @@ namespace OpenMS
     if (map_points_.size()<3) return 0; // we need at least one "middle" scan
 
     HullPointType compressed_map;
-    DBoundingBox<1> last_range;
+
     compressed_map[map_points_.begin()->first] = map_points_.begin()->second; // copy first scan
     HullPointType::ConstIterator pred_it = map_points_.begin();
     HullPointType::ConstIterator middle_it = pred_it; middle_it++;

@@ -37,7 +37,7 @@ namespace OpenMS
   		rt_tolerance_(5.0),
   		mz_tolerance_(20),
   		measure_(MEASURE_PPM),
-			use_charge_(true)
+			ignore_charge_(false)
   {
 		defaults_.setValue("rt_tolerance", rt_tolerance_, "RT tolerance (in seconds) for the matching"); 
 		defaults_.setMinFloat("rt_tolerance", 0);
@@ -48,8 +48,8 @@ namespace OpenMS
 		defaults_.setValue("mz_reference", "precursor", "source of m/z values for peptide identifications"); 
 		defaults_.setValidStrings("mz_reference", StringList::create("precursor,peptide"));
 		
-		defaults_.setValue("use_charge", "false", "For feature/consensus maps: Assign an ID only if its charge state matches that of the (consensus) feature.");
-		defaults_.setValidStrings("use_charge", StringList::create("true,false"));
+		defaults_.setValue("ignore_charge", "false", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.");
+		defaults_.setValidStrings("ignore_charge", StringList::create("true,false"));
 
 		defaultsToParam_();  
   }
@@ -60,7 +60,7 @@ namespace OpenMS
 		rt_tolerance_(cp.rt_tolerance_),
   	mz_tolerance_(cp.mz_tolerance_),
   	measure_(cp.measure_),
-		use_charge_(cp.use_charge_)
+		ignore_charge_(cp.ignore_charge_)
 	{
 		updateMembers_();
 	}
@@ -73,7 +73,7 @@ namespace OpenMS
 		rt_tolerance_=rhs.rt_tolerance_;
   	mz_tolerance_=rhs.mz_tolerance_;
   	measure_=rhs.measure_;
-		use_charge_ = rhs.use_charge_;
+		ignore_charge_ = rhs.ignore_charge_;
 		updateMembers_();
 		
 		return *this;
@@ -84,7 +84,7 @@ namespace OpenMS
 		rt_tolerance_ = param_.getValue("rt_tolerance");
 		mz_tolerance_ = param_.getValue("mz_tolerance");
 		measure_ = param_.getValue("mz_measure")=="ppm"? MEASURE_PPM : MEASURE_DA;
-		use_charge_ = param_.getValue("use_charge") == "true";
+		ignore_charge_ = param_.getValue("ignore_charge") == "true";
 	}	
 	
 	void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
@@ -126,7 +126,7 @@ namespace OpenMS
 					
 					// charge states to use for checking:
 					IntList current_charges;
-					if (use_charge_)
+					if (!ignore_charge_)
 					{
 						// if "mz_ref." is "precursor", we have only one m/z value to check,
 						// but still one charge state per peptide hit that could match:
@@ -135,12 +135,13 @@ namespace OpenMS
 							current_charges = charges;
 						}
 						else current_charges << charges[i_mz];
+						current_charges << 0; // "not specified" always matches
 					}
 					
 					//check if we compare distance from centroid or subelements
 					if (!measure_from_subelements)
 					{
-						if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (!use_charge_ || current_charges.contains(map[cm_index].getCharge())))
+						if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || current_charges.contains(map[cm_index].getCharge())))
 						{
 							was_added = true;
 							map[cm_index].getPeptideIdentifications().push_back(ids[i]);
@@ -153,7 +154,7 @@ namespace OpenMS
 								it_handle != map[cm_index].getFeatures().end(); 
 								++it_handle)
 						{
-							if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ())  && (!use_charge_ || current_charges.contains(it_handle->getCharge())))
+							if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ())  && (ignore_charge_ || current_charges.contains(it_handle->getCharge())))
 							{
 								was_added = true;
 								if (mapping[cm_index].count(i) == 0)

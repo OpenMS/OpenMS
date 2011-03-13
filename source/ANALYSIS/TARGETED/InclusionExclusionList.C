@@ -22,24 +22,95 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: Alexandra Zerck $
+// $Authors: Alexandra Zerck, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
-
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 
 #include <fstream>
 
 namespace OpenMS
 {
-  InclusionExclusionList::InclusionExclusionList()
+  InclusionExclusionList::InclusionExclusionList(const DoubleReal rt_tolerance,
+                                                 const DoubleReal mz_tolerance,
+                                                 const bool mz_as_ppm)
+    : rt_tolerance_(rt_tolerance),
+      mz_tolerance_(mz_tolerance),
+      mz_as_ppm_(mz_as_ppm)
+  {}
+
+
+  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list, const bool rt_in_seconds) const
   {
 
+		std::vector<BinaryTreeNode> tree;
+		// local scope to save memory - we do not need the clustering stuff later
+		{
+      DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
+
+			WindowDistance_ llc(rt_tolerance_ * min_to_s_factor, mz_tolerance_, mz_as_ppm_);
+			SingleLinkage sl;
+			DistanceMatrix<Real> dist; // will be filled
+			ClusterHierarchical ch;
+			
+      //ch.setThreshold(0.99);
+			// clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
+			ch.cluster<IEWindow, WindowDistance_>(list, llc, sl, tree, dist);
+		}
+
+    // extract the clusters
+    ClusterAnalyzer ca;
+    std::vector< std::vector<Size> > clusters;
+    // count number of real tree nodes (not the -1 ones):
+    Size node_count=0;
+    for (Size ii=0;ii<tree.size();++ii)
+		{
+			if (tree[ii].distance >= 1) tree[ii].distance=-1; // manually set to disconnect, as SingleLinkage does not support it
+      if (tree[ii].distance != -1) ++node_count;
+		}
+    ca.cut(list.size()-node_count, tree, clusters);
+
+
+    WindowList list_new;
+
+    Map <Size, Size> cluster_sizes;
+
+    for (Size i_outer=0;i_outer<clusters.size(); ++i_outer)
+    {
+      // for each cluster: create one new entry
+      IEWindow w_new = list[ clusters[i_outer][0] ]; // init with 0th element
+      // add all other elements
+      for (Size i_inner = 1; i_inner < clusters[i_outer].size(); ++i_inner)
+      {
+        Size cl_index = clusters[i_outer][i_inner];
+        w_new.MZ_ += list[cl_index].MZ_;
+        w_new.RTmax_ = std::max(w_new.RTmax_, list[cl_index].RTmax_); // expand RT range
+        w_new.RTmin_ = std::min(w_new.RTmin_, list[cl_index].RTmin_);
+      }
+      w_new.MZ_ /= clusters[i_outer].size(); // average m/z value
+      list_new.push_back(w_new);
+
+      ++cluster_sizes[ clusters[i_outer].size() ]; // for stats
+    }
+
+    LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
+    for (Map <Size, Size>::const_iterator it=cluster_sizes.begin(); it!=cluster_sizes.end();++it)
+    {
+      LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+    }
+    LOG_INFO << " --> Window count before: " << list.size() << "\n"
+             << "     Window count after : " << list_new.size() << "\n";
+
+    // replace with clustered version
+    list = list_new;
   }
-    
+   
 
 //   void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
 //   {
@@ -51,18 +122,18 @@ namespace OpenMS
 
 //   }
 
-	void InclusionExclusionList::writeTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, String& out_path,IntList& charges,String rt_model_path,
-																						DoubleReal rel_rt_window_size,bool rt_in_seconds,Size missed_cleavages)
+	void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                            const String& out_path,
+                                            const IntList& charges,
+                                            const String rt_model_path,
+																						const DoubleReal rel_rt_window_size,
+                                            const bool rt_in_seconds,
+                                            Size missed_cleavages)
 	{
+    WindowList result;
+
 		EnzymaticDigestion digest;
 		digest.setMissedCleavages(missed_cleavages);
-		std::vector<FASTAFile::FASTAEntry>::iterator entry_iter = fasta_entries.begin();
-		std::ofstream outs(out_path.c_str());
-		outs.precision(8);
-		if(!outs)
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
-		}
 
     SimRandomNumberGenerator rnd_gen;
     RTSimulation rt_sim(rnd_gen);
@@ -70,6 +141,7 @@ namespace OpenMS
 		rt_param.setValue("HPLC:model_file",rt_model_path);
 		rt_sim.setParameters(rt_param);
 		std::vector<AASequence> pep_seqs;
+		std::vector<FASTAFile::FASTAEntry>::const_iterator entry_iter = fasta_entries.begin();
 		for(;entry_iter != fasta_entries.end();++entry_iter)
 		{
 			// digest sequence
@@ -110,64 +182,56 @@ namespace OpenMS
 		}
 		std::vector<DoubleReal> rts;
 		rt_sim.wrapSVM(pep_seqs,rts);
+    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
 		for(Size i = 0; i < pep_seqs.size();++i)
 		{
 			for(Size c = 0; c < charges.size();++c)
 			{
-				// calculate m/z
+				// calculate exclusion window
 				DoubleReal mz = pep_seqs[i].getMonoWeight(Residue::Full,charges[c])/(DoubleReal)charges[c];
-				DoubleReal rt_start,rt_stop;
-				if(rt_in_seconds)
-				{
-					rt_start = (rts[i] - rel_rt_window_size * rts[i]); // RT in minutes
-					if(rt_start < 0.) rt_start = 0.;
-					rt_stop = (rts[i] + rel_rt_window_size * rts[i]) ; // RT in minutes
-				}
-				else
-				{
-					rt_start = (rts[i] - rel_rt_window_size * rts[i]) / 60.; // RT in minutes
-					if(rt_start < 0.) rt_start = 0.;
-					rt_stop = (rts[i] + rel_rt_window_size * rts[i]) / 60.; // RT in minutes
-				}
-				outs << mz << "\t"<< rt_start << "\t" << rt_stop << "\n";
+        DoubleReal rt_start = std::max(0.0, (rts[i] - rel_rt_window_size * rts[i])) * min_to_s_factor; 
+				DoubleReal rt_stop = (rts[i] + rel_rt_window_size * rts[i]) * min_to_s_factor;
+
+        result.push_back(IEWindow(rt_start, rt_stop, mz));
 			}
 		}
 
-		outs.close();
+    mergeOverlappingWindows_(result, rt_in_seconds);
+  	writeToFile_(out_path, result);
 	}
     
 
-	void InclusionExclusionList::writeTargets(FeatureMap<>& map,String& out_path,DoubleReal rel_rt_window_size,bool rt_in_seconds)
+	void InclusionExclusionList::writeTargets(const FeatureMap<>& map,
+                                            const String& out_path,
+                                            const DoubleReal rel_rt_window_size,
+                                            const bool rt_in_seconds)
 	{
-		std::ofstream outs(out_path.c_str());
-		if(!outs)
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
-		}
+    WindowList result;
 
-    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0) ;
+    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
 		for(Size f = 0; f < map.size(); ++f)
 		{
-			DoubleReal rt_start =  map[f].getRT() - map[f].getRT() * rel_rt_window_size;
-			if(rt_start < 0.) rt_start = 0.;
-			DoubleReal rt_end =  map[f].getRT() + map[f].getRT() * rel_rt_window_size;
+      DoubleReal rt_start =  std::max(0.0, map[f].getRT() - map[f].getRT() * rel_rt_window_size) * min_to_s_factor;
+			DoubleReal rt_end =  (map[f].getRT() + map[f].getRT() * rel_rt_window_size) * min_to_s_factor;
 			
-			outs << map[f].getMZ() << "\t" << (rt_start*min_to_s_factor) <<"\t" << (rt_end*min_to_s_factor) << "\n";
-		}
-		outs.close();
-	}
-	
-	void InclusionExclusionList::writeTargets(std::vector<PeptideIdentification>& pep_ids,String& out_path,
-																						DoubleReal rel_rt_window_size,IntList& charges,bool rt_in_seconds)
-	{
-		std::ofstream outs(out_path.c_str());
-		outs.precision(8);
-		if(!outs)
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
+      result.push_back(IEWindow(rt_start, rt_end, map[f].getMZ()));
 		}
 
+    mergeOverlappingWindows_(result, rt_in_seconds);
+		writeToFile_(out_path, result);
+	}
+	
+	void InclusionExclusionList::writeTargets(const std::vector<PeptideIdentification>& pep_ids,
+                                            const String& out_path,
+																						const DoubleReal rel_rt_window_size,
+                                            const IntList& charges,
+                                            const bool rt_in_seconds)
+	{
+    WindowList result;
+
     Size charge_invalid_count(0);
+
+    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
 
 		std::vector<PeptideIdentification>::const_iterator pep_id_iter = pep_ids.begin();
 		for(;pep_id_iter != pep_ids.end();++pep_id_iter)
@@ -181,20 +245,10 @@ namespace OpenMS
 				Exception::MissingInformation(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Peptide identification contains no RT information.");
 			}
 			DoubleReal rt = pep_id_iter->getMetaValue("RT");
-			DoubleReal rt_start,rt_stop;
-			if(rt_in_seconds)
-			{
-				rt_start = (rt - rel_rt_window_size * rt);
-				if(rt_start < 0.) rt_start = 0.;
-				rt_stop = (rt + rel_rt_window_size * rt); 
-			}
-			else
-			{
-				rt_start = (rt - rel_rt_window_size * rt) / 60.; // RT in minutes
-				if(rt_start < 0.) rt_start = 0.;
-				rt_stop = (rt + rel_rt_window_size * rt) / 60.; // RT in minutes
-			}
-			std::vector<PeptideHit>::const_iterator pep_hit_iter = pep_id_iter->getHits().begin();
+      DoubleReal rt_start = std::max(0.0, rt - rel_rt_window_size * rt) * min_to_s_factor;
+		  DoubleReal rt_stop = (rt + rel_rt_window_size * rt) * min_to_s_factor;
+
+      std::vector<PeptideHit>::const_iterator pep_hit_iter = pep_id_iter->getHits().begin();
 			for(;pep_hit_iter != pep_id_iter->getHits().end();++pep_hit_iter)
 			{
 				Int charge = pep_hit_iter->getCharge();
@@ -209,7 +263,7 @@ namespace OpenMS
 				for(Size c = 0; c < charges.size();++c)
 				{
 					DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full,charges[c])/(DoubleReal)charges[c];
-					outs << mz <<"\t"<<rt_start<<"\t"<<rt_stop<<"\n";
+					result.push_back(IEWindow(rt_start,rt_stop,mz));
 					if(charges[c] == charge)
 					{
 						charge_found = true;
@@ -218,15 +272,37 @@ namespace OpenMS
         if(!charge_found) // if not already done, consider annotated charge of peptide (unless its 0)
 				{
 					DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge;
-					outs << mz <<"\t"<<rt_start<<"\t"<<rt_stop<<"\n";
+          result.push_back(IEWindow(rt_start,rt_stop,mz));
 				}
 			}
 		}
     
     if (charge_invalid_count>0) LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
 
-		outs.close();
-						
+    mergeOverlappingWindows_(result, rt_in_seconds);
+		writeToFile_(out_path, result);
 	}
+
+
+  void InclusionExclusionList::writeToFile_(const String& out_path,
+							                              const WindowList& windows) const
+	{
+
+		std::ofstream outs(out_path.c_str());
+		outs.precision(8);
+		if(!outs)
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
+		}
+
+    for (Size i=0; i<windows.size(); ++i)
+    {
+      outs << windows[i].MZ_ << "\t" << windows[i].RTmin_ << "\t" << windows[i].RTmax_ << "\n";
+    }
+
+
+    outs.close();
+
+  }
 
 } // namespace

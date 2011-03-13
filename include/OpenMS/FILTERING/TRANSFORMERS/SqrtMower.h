@@ -67,11 +67,22 @@ namespace OpenMS
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
-		{
+		{      
+      bool warning = false;
 			for (typename SpectrumType::Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
-			{
-				it->setIntensity(std::sqrt(it->getIntensity()));
+      {
+        DoubleReal intens = it->getIntensity();        
+        if(intens<0)
+        {
+          intens=0;
+          warning=true;
+        }
+        it->setIntensity(std::sqrt(intens));
 			}
+      if(warning)
+      {
+        std::cerr<<"Warning negative intensities were set to zero"<<std::endl;
+      }
 			return;
 		}
 

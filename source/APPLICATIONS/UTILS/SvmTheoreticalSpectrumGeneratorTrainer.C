@@ -32,8 +32,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
-//#define SGNT_DEBUG
-#undef SGNT_DEBUG
 
 using namespace std;
 using namespace OpenMS;
@@ -41,21 +39,19 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
-
+//\link CHEMISTRY_SvmTheoreticalSpectrumGeneratorTrainer.
 /**
-  @page UTILS_SpectrumGeneratorSvmTheoreticalSpectrumGeneratorTrainer SpectrumGeneratorSvmTheoreticalSpectrumGeneratorTrainer
+  @page UTILS_SvmTheoreticalSpectrumGeneratorTrainer SvmTheoreticalSpectrumGeneratorTrainer
 
-  @brief Trainer for Svm model as input for SvmSpectrumGenerator.
+  @brief Trainer for SVM model as input for SvmTheoreticalSpectrumGenerator.
 
-  This application requires a list of annotated spectra and generates a trained svm for each selected
-  ion type (i.e. a,b,c,x,y,z + losses). It uses the libsvm library and all svmlib parameters are accessible
-  by user. Please refer to the libsvm manuals for more detailed explanation of the parameters. The default
-  values are choses as in the svm-training tool delivered with libsvm.
+  This application requires mzML file with ms2 spectra and annotations in an idXml file and trains a SVM model usable by
+  SvmTheoreticalSpectrumGenerator. Please refer to the documentation of the corresponding class @ref OpenMS::SvmTheoreticalSpectrumGeneratorTrainer
 
   @note This tool is experimental!
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SpectrumGeneratorNetworkTrainer.cli
+  @verbinclude UTILS_SvmTheoreticalSpectrumGeneratorTrainer.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -69,7 +65,7 @@ class SvmTheoreticalSpectrumGeneratorTrainerTOPP
 
 public:
   SvmTheoreticalSpectrumGeneratorTrainerTOPP() :
-      TOPPBase("SvmTheoreticalSpectrumGeneratorTrainerTOPP", "Trainer for SVM models as input for SvmSpectrumGenerator", false)
+      TOPPBase("SvmTheoreticalSpectrumGeneratorTrainer", "Trainer for SVM models as input for SvmTheoreticalSpectrumGenerator", false)
   {
   }
 
@@ -84,6 +80,7 @@ public:
     registerIntOption_("precursor_charge", "<Int>", 2, "Precursor charge state used for model training", false);
     setMinInt_("precursor_charge",1);
     setMaxInt_("precursor_charge",3);
+    registerFlag_("write_training_files", "No models are trained but input training files for libSVM command line tools are produced");
 
     registerSubsection_("algorithm", "");
   }
@@ -91,6 +88,7 @@ public:
   Param getSubsectionDefaults_(const String& /* section*/) const
   {
     Param tmp = SvmTheoreticalSpectrumGeneratorTrainer().getDefaults();
+    tmp.remove("write_training_files");
     return tmp;
   }
 
@@ -112,6 +110,8 @@ public:
     SvmTheoreticalSpectrumGeneratorTrainer trainer;
 
     Param param = getParam_().copy("algorithm:",true);
+    String write_files = getFlag_("write_training_files") ? "true" : "false";
+    param.setValue("write_training_files", write_files);
     trainer.setParameters(param);
 
     //-------------------------------------------------------------

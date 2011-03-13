@@ -58,6 +58,9 @@ namespace OpenMS
       /// as the base implementation will forward the data to the FeatureMap version of group()
 			virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out);
 
+			/// Transfers subelements (grouped features) from input consensus maps to the result consensus map
+			void transferSubelements(const std::vector<ConsensusMap>& maps, ConsensusMap& out) const;
+
 			/// Register all derived classes in this method
 			static void registerChildren();
 

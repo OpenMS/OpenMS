@@ -71,19 +71,15 @@ namespace OpenMS
       SpectraDistance_()
         : DefaultParamHandler("SpectraDistance")
       {
-        defaults_.setValue("rt_tolerance", 10.0, "Maximal RT distance (in [s]) for two spectra's precursor.s");
-        defaults_.setValue("rt_weight", 1, "Multiplier for RT distance, to determine distance (delta m/z * weight + delta rt * weight < threshold).");
+        defaults_.setValue("rt_tolerance", 10.0, "Maximal RT distance (in [s]) for two spectra's precursors.");
         defaults_.setValue("mz_tolerance", 1.0, "Maximal m/z distance (in Da) for two spectra's precursors.");
-        defaults_.setValue("mz_weight", 10, "Multiplier for m/z distance, to determine distance (delta m/z * weight + delta rt * weight < threshold).");
         defaultsToParam_();
       }
       
       void updateMembers_()
       {
         rt_max_ = (DoubleReal) param_.getValue("rt_tolerance");
-        rt_weight_ = (DoubleReal) param_.getValue("rt_weight");
         mz_max_ = (DoubleReal) param_.getValue("mz_tolerance");
-        mz_weight_ = (DoubleReal) param_.getValue("mz_weight");
 
         return;
       }
@@ -111,10 +107,7 @@ namespace OpenMS
 
     protected:
       DoubleReal rt_max_;
-      DoubleReal rt_weight_;
       DoubleReal mz_max_;
-      DoubleReal mz_weight_;
-      DoubleReal max_possible_distance_;
 
     }; // end of SpectraDistance
 
@@ -233,12 +226,12 @@ namespace OpenMS
 				
         //ch.setThreshold(0.99);
 				// clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
-				ch.cluster<BaseFeature,SpectraDistance_>(data,llc,sl,tree,dist);
+				ch.cluster<BaseFeature,SpectraDistance_>(data, llc, sl, tree, dist);
 			}
 
       // extract the clusters
       ClusterAnalyzer ca;
-      std::vector<std::vector<Size> > clusters;
+      std::vector< std::vector<Size> > clusters;
       // count number of real tree nodes (not the -1 ones):
       Size node_count=0;
       for (Size ii=0;ii<tree.size();++ii)

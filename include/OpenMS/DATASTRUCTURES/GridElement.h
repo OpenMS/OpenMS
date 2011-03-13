@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
 // --------------------------------------------------------------------------
 
 
@@ -35,7 +35,7 @@
 namespace OpenMS
 {
 
-/**
+  /**
 		@brief Base class of all elements, which can be stored in a HashGrid.
 
 		All GridElements must have an m/z and RT value, as well as an unique identifier.
@@ -43,41 +43,47 @@ namespace OpenMS
 		@ingroup Datastructures
 	*/
 
-class OPENMS_DLLAPI GridElement {
-public :
-/**
-		@brief default constructor
-	*/
-GridElement();
-/** @brief copy constructor
+  class OPENMS_DLLAPI GridElement {
+  public :
 
-			@param source  this GridElement will be copied
-		*/
-	GridElement(const GridElement& copy);
-/**
-		@brief m/z value of the element
-	*/
-	DoubleReal mz;
-/**
-		@brief RT value of the element
-	*/
-	DoubleReal rt;
+  /**
+   * @brief default constructor
+   */
+   GridElement();
+
+  /**
+   * @brief destructor
+   */
+   ~GridElement();
+
+  /** @brief copy constructor
+   * 	@param source  this GridElement will be copied
+   */
+   GridElement(const GridElement& copy);
+
+  /**
+   * @brief m/z value of the element
+   */
+   DoubleReal mz;
+
+  /**
+   *@brief RT value of the element
+   */
+   DoubleReal rt;
 
 	/**
 	 * @brief detailed constructor
 	 * @param rt RT value of the element
 	 * @param mz m/z value of the element
 	 */
-	GridElement(DoubleReal rt_, DoubleReal mz_);
-/**
-		@brief gets the id of the element
-	*/
+   GridElement(DoubleReal rt_, DoubleReal mz_);
 
-	virtual Int getID() =0;
+  /**
+   * @brief gets the id of the element
+	*/  
+	virtual Int getID() const = 0;
 
-};
+  };
 }
-
-
 
 #endif /* GRIDELEMENT_H_ */

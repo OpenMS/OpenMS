@@ -30,6 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <QStringList>
 
 using namespace OpenMS;
 using namespace std;
@@ -79,6 +80,21 @@ START_SECTION((static StringList create( const char * const * list, UInt size ))
 
 	StringList list3 = StringList::create(0,0);
 	TEST_EQUAL(list3.size(),0);
+}
+END_SECTION
+
+START_SECTION((StringList(const QStringList &rhs)))
+{
+  QStringList q_str_list;
+  q_str_list << "First Element" << "Second Element" << "Third Element";
+
+  StringList str_list(q_str_list);
+  TEST_EQUAL((int)str_list.size(), q_str_list.size())
+  ABORT_IF((int)str_list.size() != q_str_list.size())
+  for(Size i = 0 ; i < str_list.size() ; ++i)
+  {
+    TEST_EQUAL(str_list[i], String(q_str_list[(int)i]))
+  }
 }
 END_SECTION
 

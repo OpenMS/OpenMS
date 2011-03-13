@@ -122,7 +122,7 @@ struct FoundProteinFunctor
 
 
 namespace seqan
-  {
+{
 
   // saving some memory for the SA
   template <>

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ namespace OpenMS
 			mzToXAxis(false);
 		}
 		//connect preferences change to the right slot
-		connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParamtersChanged_()));
+    connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParametersChanged_()));
 	}
 
 	Spectrum2DCanvas::~Spectrum2DCanvas()
@@ -327,10 +327,9 @@ namespace OpenMS
             rts.push_back(peak_map[i].getRT());
           }
           sort(rts.begin(), rts.end());
-          if (peak_map.size() > 2)
+          if (rts.size() > 2)
           {
             average_spacing_rt = (rts[rts.size()-1] - rts[0])/(DoubleReal)rts.size();
-            //cout << "avg:" << average_spacing_rt << endl;
           }
 				}
 			}
@@ -936,12 +935,12 @@ namespace OpenMS
 	{
 		for (Size i=0; i<layers_.size();++i)
 		{
-			recalculateDotGradient_(i);
+      recalculateDotGradient_(i);
 		}
 		SpectrumCanvas::intensityModeChange_();
 	}
 
-	void Spectrum2DCanvas::recalculateDotGradient_(Size layer)
+  void Spectrum2DCanvas::recalculateDotGradient_(Size layer)
 	{
     getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
@@ -953,6 +952,11 @@ namespace OpenMS
       getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
     }
 	}
+
+  void Spectrum2DCanvas::recalculateCurrentLayerDotGradient()
+  {
+    recalculateDotGradient_(current_layer_);
+  }
 
 	void Spectrum2DCanvas::updateProjections()
 	{
@@ -1591,53 +1595,79 @@ namespace OpenMS
 		Real it = 0.0;
 		Int charge = 0;
 		DoubleReal quality = 0.0;
-    Size size = 0;
-		if (getCurrentLayer().type==LayerData::DT_FEATURE)
-		{
-      mz = peak.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
-      rt = peak.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
-      it = peak.getFeature(*getCurrentLayer().getFeatureMap()).getIntensity();
-      charge  = peak.getFeature(*getCurrentLayer().getFeatureMap()).getCharge();
-      quality = peak.getFeature(*getCurrentLayer().getFeatureMap()).getOverallQuality();
-		}
-		else if (getCurrentLayer().type==LayerData::DT_PEAK)
-		{
-      mz = peak.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-      rt = peak.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
-      it = peak.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
-		}
-		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
-		{
-      mz = peak.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
-      rt = peak.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
-      it = peak.getFeature(*getCurrentLayer().getConsensusMap()).getIntensity();
-      charge  = peak.getFeature(*getCurrentLayer().getConsensusMap()).getCharge();
-      quality = peak.getFeature(*getCurrentLayer().getConsensusMap()).getQuality();
-      size =  peak.getFeature(*getCurrentLayer().getConsensusMap()).getFeatures().size();
-		}
-		else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
-		{
-			//TODO CHROM
-		}
-		else if (getCurrentLayer().type == LayerData::DT_IDENT)
-		{
-			// TODO IDENT
-		}
-		
+    Size size = 0;    
+    ConsensusFeature::HandleSetType sub_features;
+
+    switch(getCurrentLayer().type)
+    {
+    case LayerData::DT_FEATURE :
+      {
+        const Feature& f = peak.getFeature(*getCurrentLayer().getFeatureMap());
+        mz = f.getMZ();
+        rt = f.getRT();
+        it = f.getIntensity();
+        charge  = f.getCharge();
+        quality = f.getOverallQuality();
+      }
+      break;
+    case LayerData::DT_PEAK :
+      {
+        const Peak1D& p = peak.getPeak(*getCurrentLayer().getPeakData());
+        const MSSpectrum<>& s = peak.getSpectrum(*getCurrentLayer().getPeakData());
+        mz = p.getMZ();
+        rt = s.getRT();
+        it = p.getIntensity();
+      }
+      break;
+    case LayerData::DT_CONSENSUS :
+      {
+        const ConsensusFeature& cf = peak.getFeature(*getCurrentLayer().getConsensusMap());
+
+        mz = cf.getMZ();
+        rt = cf.getRT();
+        it = cf.getIntensity();
+        charge  = cf.getCharge();
+        quality = cf.getQuality();
+        sub_features = cf.getFeatures();
+        size =  sub_features.size();
+      }
+      break;
+
+    case LayerData::DT_CHROMATOGRAM :
+      // TODO implement
+      break;
+
+    case LayerData::DT_IDENT :
+      // TODO implement
+      break;
+
+    default:
+      break;
+    }
+
 		//draw text			
 		QStringList lines;
     lines.push_back("RT: " + QString::number(rt,'f',2));
     lines.push_back("m/z: " + QString::number(mz,'f',2));
 		lines.push_back("Int: " + QString::number(it,'f',2));
-		if (getCurrentLayer().type==LayerData::DT_FEATURE || getCurrentLayer().type==LayerData::DT_CONSENSUS)
+
+    if (getCurrentLayer().type == LayerData::DT_FEATURE || getCurrentLayer().type==LayerData::DT_CONSENSUS)
 		{
 			lines.push_back("Charge: " + QString::number(charge));
 			lines.push_back("Quality: " + QString::number(quality,'f',4));
 		}
-    if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+
+    if (getCurrentLayer().type == LayerData::DT_CONSENSUS)
     {
       lines.push_back("Size: " + QString::number(size));
+      for ( ConsensusFeature::HandleSetType::const_iterator it = sub_features.begin(); it != sub_features.end(); ++it)
+      {
+        lines.push_back("Feature m/z:" + QString::number(it->getMZ(),'f',2) +
+                               "  rt:" + QString::number(it->getRT(),'f',2) +
+                               "  intensity:" + QString::number(it->getIntensity(),'f',2));
+      }
     }
+
 		drawText_(painter, lines);
 	}
 
@@ -2350,9 +2380,9 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::currentLayerParamtersChanged_()
+  void Spectrum2DCanvas::currentLayerParametersChanged_()
 	{
-		recalculateDotGradient_(activeLayerIndex());
+    recalculateDotGradient_(activeLayerIndex());
 
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);

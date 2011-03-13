@@ -29,11 +29,12 @@
 #define OPENMS_DATASTRUCTURES_PARAM_H
 
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
 #include <set>
@@ -42,6 +43,7 @@
 
 namespace OpenMS
 {	
+
 	/**
 		@brief Management and storage of parameters / INI files.
 		
@@ -345,11 +347,25 @@ namespace OpenMS
 			///Insert all values of @p param and adds the prefix @p prefix.
 			void insert(const String& prefix, const Param& param);
 			/**
-				@brief Remove the entry @p key
-				@note This method does not remove subnodes. Use removeAll() to do that.
+				@brief Remove the entry @p key or a section @p key (when suffix is ':')
+				
+        Remove deletes either an entry or a section (when @p key ends with ':'),
+        by matching the exact name. No partial matches are accepted.
+
+        If an empty internal node remains, the tree is pruned until every node has either a successor node
+        or a leaf, i.e. no naked nodes remain.
+
 			*/
 			void remove(const String& key);
-			///Remove all entries that start with @p prefix 
+			/**
+        @brief Remove all entries that start with @p prefix 
+
+        Partial are valid as well. All entries and sections which match the prefix are deleted.
+
+        If an empty internal node remains, the tree is pruned until every node has either a successor node
+        or a leaf, i.e. no naked nodes remain.
+
+        */
 			void removeAll(const String& prefix);
 			/**
 				@brief Returns a new Param object containing all entries that start with @p prefix.
@@ -405,9 +421,11 @@ namespace OpenMS
         Not transferred are parameters with name "version" (to preserve the new version) or "type" (to preserve layout).
 
         @param old_version Old version of param, which contains the useful settings to be rescued
+        @param report_new_params Report params contained in this param, but not in old version
+        @param only_update_old Delete all entries not contained in old, i.e. update old params when contained in this param and keep old ones
 
       **/
-      void update(const Param& old_version, const bool report_new_params=false);
+      void update(const Param& old_version, const bool report_new_params=false, const bool only_update_old=false, Logger::LogStream& stream=LOG_WARN);
       
       //@}
 			

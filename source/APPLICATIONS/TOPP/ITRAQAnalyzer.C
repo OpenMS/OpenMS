@@ -151,27 +151,33 @@ class TOPPITRAQAnalyzer
 
 
 		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the programm to quit then)
-		if (getStringOption_("id_pool").trim().length()>0) getDocumentIDTagger_().tag(consensus_map_raw);
+		if (getStringOption_("id_pool").trim().length()>0) getDocumentIDTagger_().tag(consensus_map_quant);
 
 		// annotate output file with MetaInformation
 		Param metainfo_param(getParam_().copy("algorithm:MetaInformation:",true));
 		for (Param::ParamIterator it = metainfo_param.begin(); it!=metainfo_param.end(); ++it)
 		{
-			consensus_map_raw.setMetaValue (it->name, it->value);
+			consensus_map_quant.setMetaValue (it->name, it->value);
 		}
 
 
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-		ConsensusXMLFile cm_file;
 
 		//annotate output with data processing info
-		addDataProcessing_(consensus_map_raw, getProcessingInfo_(DataProcessing::QUANTITATION));
 		addDataProcessing_(consensus_map_quant, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-		cm_file.store(out,consensus_map_raw);
-		cm_file.store(out+"_quant",consensus_map_quant);
+    // add filename references
+    for (ConsensusMap::FileDescriptions::iterator it = consensus_map_quant.getFileDescriptions().begin();
+                                                  it != consensus_map_quant.getFileDescriptions().end();
+                                                  ++it)
+    {
+      it->second.filename = in;
+    }
+
+		ConsensusXMLFile cm_file;
+		cm_file.store(out, consensus_map_quant);
 
 		return EXECUTION_OK;
 	}

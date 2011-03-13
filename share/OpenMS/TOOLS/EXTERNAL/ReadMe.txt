@@ -37,6 +37,10 @@ After adding/removing *.ttd files you need to restart any open instances of TOPP
 == For experienced Users ==
 ===========================
 
+Hints -- read(!):
+ - When mapping filenames while building the command line in 'cloptions', wrap them in QUOTES! (to avoid the 'spaces in filenames' problem)
+ - Find a good name for <type> - it should be descriptive duplicate names are not allowed
+
 If you want to wrap your own tools and write custom *.ttd files,
 a good starting point is the 
 

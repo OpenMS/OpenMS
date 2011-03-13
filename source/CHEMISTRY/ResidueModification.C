@@ -255,10 +255,10 @@ namespace OpenMS
 	}
 
 	void ResidueModification::setSourceClassification(const String& classification)
-	{
+	{   
 		String c = classification;
 		c.toLower();
-		if (c == "artifact")
+    if (c == "artifact" || c == "artefact") // unimod uses Artefact (BE) not Artifcat (AE)
 		{
 			classification_ = ARTIFACT;
 			return;
@@ -272,7 +272,69 @@ namespace OpenMS
 		{
 			classification_ = HYPOTHETICAL;
 			return;
-		}
+		}  
+    if (c == "post-translational")
+    {
+      classification_ = POSTTRANSLATIONAL;
+      return;
+    }
+    if (c == "multiple")
+    {
+      classification_ = MULTIPLE;
+      return;
+    }
+    if (c == "chemical derivative")
+    {
+      classification_ = CHEMICAL_DERIVATIVE;
+      return;
+    }
+    if (c == "isotopic label")
+    {
+      classification_ = ISOTOPIC_LABEL;
+      return;
+    }
+    if (c == "pre-translational")
+    {
+      classification_ = PRETRANSLATIONAL;
+      return;
+    }
+    if (c == "other glycosylation")
+    {
+      classification_ = OTHER_GLYCOSYLATION;
+      return;
+    }
+    if (c == "n-linked glycosylation")
+    {
+      classification_ = NLINKED_GLYCOSYLATION;
+      return;
+    }
+    if (c == "aa substitution")
+    {
+      classification_ = AA_SUBSTITUTION;
+      return;
+    }
+    if (c == "other")
+    {
+      classification_ = OTHER;
+      return;
+    }
+    if (c == "non-standard residue")
+    {
+      classification_ = NONSTANDARD_RESIDUE;
+      return;
+    }
+    if (c == "co-translational")
+    {
+      classification_ = COTRANSLATIONAL;
+      return;
+    }
+    if (c == "o-linked glycosylation")
+    {
+      classification_ = OLINKED_GLYCOSYLATION;
+      return;
+    }
+
+    classification_ = UNKNOWN;
 
 		//cerr << "ResidueModification: Unknown source classification '" << classification << "'" << endl;
 		return;
@@ -291,10 +353,24 @@ namespace OpenMS
 		}
 		switch (classification)
 		{
-			case ARTIFACT: return "Artifact";
-			case NATURAL:  return "Natural";
-			case HYPOTHETICAL: return "Hypothetical";
-			default: return "Unknown";
+    case ARTIFACT: return "Artefact"; // return Artefact (BE) not Artifcat (AE)
+    case NATURAL:  return "Natural";
+    case HYPOTHETICAL: return "Hypothetical";
+    case POSTTRANSLATIONAL: return "Post-translational";
+    case MULTIPLE:  return "Multiple";
+    case CHEMICAL_DERIVATIVE: return "Chemical derivative";
+    case ISOTOPIC_LABEL: return "Isotopic label";
+    case PRETRANSLATIONAL:  return "Pre-translational";
+    case OTHER_GLYCOSYLATION: return "Other glycosylation";
+    case NLINKED_GLYCOSYLATION: return "N-linked glycosylation";
+    case AA_SUBSTITUTION:  return "AA substitution";
+    case OTHER: return "Other";
+    case NONSTANDARD_RESIDUE: return "Non-standard residue";
+    case COTRANSLATIONAL: return "Co-translational";
+    case OLINKED_GLYCOSYLATION:  return "O-linked glycosylation";      
+    case UNKNOWN:  return "";
+
+    default: return "Unknown";
 		}
 		return "Unknown";
 	}

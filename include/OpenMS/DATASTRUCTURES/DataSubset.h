@@ -153,7 +153,7 @@ public:
 	/**
 	 * @brief gets the id of the DataSubset
 	 */
-	Int getID();
+	Int getID() const;
 	bool operator !=(const DataSubset &el) const;
   bool operator ==(const DataSubset &el) const;
 };

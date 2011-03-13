@@ -361,6 +361,7 @@ namespace OpenMS
 				exclusion_specs=0;
 			}
 
+			//cache bounding boxes of features and mass traces (mass trace bb are also widened for effective discovery of enclosing peaks in intervalls)
 			std::map<Size , typename OpenMS::DBoundingBox<2> >bounding_boxes_f;
 			std::map<std::pair<Size, Size> , typename OpenMS::DBoundingBox<2> >bounding_boxes;
 			for(Size feature_num=0; feature_num<features.size(); ++feature_num)
@@ -385,9 +386,7 @@ namespace OpenMS
 			{				
 #ifdef DEBUG_OPS
 				std::cout << "scan "<<experiment[i].getRT() << ":";
-#endif
-
-				std::cerr << "scan "<<i<<std::endl;
+#endif				
 
 				updateExclusionList_(exclusion_list);
 				MSSpectrum<InputPeakType> scan = experiment[i];
@@ -402,8 +401,7 @@ namespace OpenMS
 					ExclusionListType::iterator it_low=exclusion_list.lower_bound(std::make_pair(peak_mz,peak_mz));
 					if(it_low!=exclusion_list.end() && it_low->first.first<=peak_mz)
 					{
-						++j;
-						//std::cerr<<"excluded! "<<peak_mz<<"    "<<j-1<<"   "<<exclusion_list.size()<<std::endl;
+						++j;						
 						continue;
 					}
 					++selected_peaks;
@@ -421,16 +419,12 @@ namespace OpenMS
 						Size feature_num = scan_features[i][scan_feat_id];
 						if(bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
 						{
-							//std::cerr<<"enclosing feature: "<<feature_num<<std::endl;
-
 							//find a mass trace enclosing the point
 							DoubleReal feature_intensity=0;
 							for(Size mass_trace_num=0; mass_trace_num<features[feature_num].getConvexHulls().size(); ++mass_trace_num)
 							{
 								if(bounding_boxes[std::make_pair(feature_num, mass_trace_num)].encloses(DPosition<2>(peak_rt, local_mz)))
 								{
-									//std::cerr<<"enclosing MT:    "<<feature_num<<"   "<<mass_trace_num<<std::endl;
-
 									DoubleReal elu_factor=1.0, iso_factor=1.0;
 									//get the intensity factor for the position in the elution profile
 									if (meta_values_present)
@@ -446,7 +440,7 @@ namespace OpenMS
 							p.setMZ(features[feature_num].getMZ());
 							p.setCharge(features[feature_num].getCharge());
 							pcs.push_back(p);
-							parent_feature_ids.push_back(feature_num);
+							parent_feature_ids.push_back((Int)feature_num);
 						}
 					}
 
@@ -559,16 +553,24 @@ namespace OpenMS
 		exclusion_list.erase(iter,exclusion_list.end());
 	}
 
+
 	inline  void OfflinePrecursorIonSelection::updateExclusionList_(std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list)
 	{
-		std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
-		for(it=exclusion_list.begin(); it!=exclusion_list.end(); ++it)
+    std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
+
+    it = exclusion_list.begin();
+
+    while(it!=exclusion_list.end())
 		{
 			if((it->second--)==1)
 			{
-				exclusion_list.erase(it);
+        exclusion_list.erase(it++);
 			}
-		}
+      else
+      {
+        ++it;
+      }
+    }
 	}
 
 }

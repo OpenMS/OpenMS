@@ -48,16 +48,16 @@ using namespace std;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_??? (or other ID engines) </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_??? </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_???? </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PeptideIndexer </td>
 		</tr>
 	</table>
 </CENTER>
-
-	TODO: docu
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+	
+	Tool for phosphorylation analysis and site localization.
+	Input files are a MSMS spectrum file as well as the corresponding identification file. Firstly, the two files are mapped. Secondly, The tools uses at the moment an implementation of the Ascore according to Beausoleil et al. in order to localize the most probable phosphorylation sites.
+For details: Beausoleil et al.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PhosphoScoring.cli
@@ -81,15 +81,12 @@ class TOPPPhosphoScoring
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "mzML", false);
+			registerInputFile_("in", "<file>", "", "Input file which contains MSMS spectra", false);
 			setValidFormats_("in", StringList::create("mzML"));
 			registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
 			setValidFormats_("id", StringList::create("idXML"));
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
 			registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.5,"Fragment mass error",false);
-		//	registerStringOption_("type", "If set, the FDR of the proteins only is calculated");
-		//	setValidFormats_("type",StringList::create("ascore"));
-			//registerSubsection_("algorithm","Parameter section for the FDR calculation algorithm");
 
 			addEmptyLine_();
 		}
@@ -105,7 +102,6 @@ class TOPPPhosphoScoring
 			String id(getStringOption_("id"));
 			String out(getStringOption_("out"));
 			DoubleReal fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
-			//String type(getStringOption_("type"));
       AScore scoring_function;
 	    MzMLFile f;
 	    f.setLogType(log_type_);
@@ -139,29 +135,31 @@ class TOPPPhosphoScoring
 						PeptideHit scored_hit = *hit;
 						RichPeakSpectrum& temp  = *it;
 						//compute number of possible phosphorylation sites
-						/*String without_phospho_str(scored_hit.getSequence().toString());
-						size_t found = without_phospho_str.find("(Phospho)");
-						while(found != string::npos)
+						Int number_of_phospho_sites = 0;
 						{
-							without_phospho_str.erase(found,String("(Phospho)").size());
-							found = without_phospho_str.find("(Phospho)");
+							String without_phospho_str(scored_hit.getSequence().toString());
+							size_t found = without_phospho_str.find("(Phospho)");
+							while(found != string::npos)
+							{
+								without_phospho_str.erase(found,String("(Phospho)").size());
+								found = without_phospho_str.find("(Phospho)");
+							}
+							AASequence without_phospho(without_phospho_str);
+							DoubleReal prec = hits->getMetaValue("MZ");
+							DoubleReal prec_mz =prec * scored_hit.getCharge();
+							prec_mz -= scored_hit.getCharge();
+							DoubleReal mono_weight = without_phospho.getMonoWeight();
+							DoubleReal ha = prec_mz - mono_weight;
+							DoubleReal nps = ha / 79.966331; // 79.966331 = mass of HPO3
+							number_of_phospho_sites = (Int)floor(nps + 0.5);
 						}
-						AASequence without_phospho(without_phospho_str);
-						DoubleReal prec = hits->getMetaValue("MZ");
-						DoubleReal prec_mz =prec * scored_hit.getCharge();
-						prec_mz -= scored_hit.getCharge();
-						DoubleReal mono_weight = without_phospho.getMonoWeight();
-						DoubleReal ha = prec_mz - mono_weight;
-						DoubleReal nps = ha / 79.966331 ;*/
-
-						//if(fabs( 1- nps)<= 0.1 || nps >= 1 )
-						//{
-							scoring_function.compute(scored_hit, temp, fragment_mass_tolerance);
-						//}
-						scored_peptides.push_back(scored_hit);
+						PeptideHit phospho_sites;
+						phospho_sites = scoring_function.compute(scored_hit, temp, fragment_mass_tolerance,number_of_phospho_sites);
+						scored_peptides.push_back(phospho_sites);
 					}
 
 					PeptideIdentification new_hits(*hits);
+					new_hits.setScoreType("PhosphoScore");
 					new_hits.setHits(scored_peptides);
 					pep_out.push_back(new_hits);
 				}
@@ -182,6 +180,5 @@ int main( int argc, const char** argv )
 {
 	TOPPPhosphoScoring tool;
 	return tool.main(argc,argv);
-	//Teste den hier es müssten 3 verschiedene theoretische Modelle entstehen = GCTSERGRYRIL
 }
 

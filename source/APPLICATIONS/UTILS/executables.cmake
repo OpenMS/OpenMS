@@ -27,7 +27,6 @@ OpenMSInfo
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
-SpectrumGeneratorNetworkTrainer
 SvmTheoreticalSpectrumGeneratorTrainer
 UniqueIdAssigner
 XMLValidator

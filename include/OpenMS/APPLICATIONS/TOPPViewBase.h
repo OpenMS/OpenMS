@@ -442,7 +442,7 @@ namespace OpenMS
       void initializeDefaultParameters_();
 
       /// unique list of files referenced by all layers
-       std::set<String> getFilenamesOfOpenFiles();
+       std::set<String> getFilenamesOfOpenFiles_();
 
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);

@@ -86,7 +86,11 @@ namespace OpenMS
 	class OPENMS_DLLAPI TransformationModelLinear: public TransformationModel
 	{
 	public:
-		/// Constructor
+		/**
+			@brief Constructor
+			
+			@exception IllegalArgument is thrown if neither data points nor explicit parameters (slope/intercept) are given.
+		*/
 		TransformationModelLinear(const DataPoints& data, const Param& params);
 
 		/// Destructor
@@ -101,7 +105,11 @@ namespace OpenMS
 		/// Gets the "real" parameters
 		void getParameters(DoubleReal& slope, DoubleReal& intercept) const;
 
-		/// Computes the inverse
+		/**
+			 @brief Computes the inverse
+
+			 @exception DivisionByZero is thrown if the slope is zero.
+		*/
 		void invert();
 		
 	protected:
@@ -127,7 +135,11 @@ namespace OpenMS
 		public TransformationModel
 	{
 	public:
-		/// Constructor
+		/**
+			 @brief Constructor
+
+			 @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
+		*/
 		TransformationModelInterpolated(const DataPoints& data, 
 																		const Param& params);
 		
@@ -145,7 +157,7 @@ namespace OpenMS
 
 	protected:
 		/// Data coordinates
-		double *x_, *y_;
+		std::vector<double> x_, y_;
 		/// Number of data points
 		size_t size_;
 		/// Look-up accelerator
@@ -167,7 +179,11 @@ namespace OpenMS
 	class OPENMS_DLLAPI TransformationModelBSpline: public TransformationModel
 	{
 	public:
-		/// Constructor
+		/**
+			 @brief Constructor
+
+			 @exception IllegalArgument is thrown if not enough data points are given or if the required parameter @p num_breakpoints is missing.
+		*/
 		TransformationModelBSpline(const DataPoints& data, const Param& params);
 		
 		/// Destructor

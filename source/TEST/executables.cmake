@@ -27,17 +27,25 @@ set(datastructures_executables_list
 	DIntervalBase_test
 	DPosition_test
 	DRange_test
+	DataPoint_test
+	DataSubset_test
 	DataValue_test
 	DateTime_test
 	Date_test
 	DefaultParamHandler_test
 	DistanceMatrix_test
 	DoubleList_test
+	GridElement_test
+	GridFeature_test
+	HashGrid_test
 	IntList_test
 	Map_test
 	MassExplainer_test
 	Matrix_test
+	QTCluster_test
+	QTSILACCluster_test
 	RangeManager_test
+	SILACTreeNode_test
 	SparseVector_test
 	StringList_test
 	String_test
@@ -236,6 +244,8 @@ set(filtering_executables_list
   ParentPeakMower_test
   PeakMarker_test
   PreprocessingFunctor_test
+  SILACFilter_test
+  SILACFiltering_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
@@ -256,14 +266,18 @@ set(comparison_executables_list
   BinnedSpectrumCompareFunctor_test
   BinnedSpectrum_test
   BinnedSumAgreeingIntensities_test
+  CentroidLinkage_test
+  ClusteringMethod_test
   ClusterAnalyzer_test
   ClusterFunctor_test
   ClusterHierarchical_test
   CompareFouriertransform_test
   CompleteLinkage_test
   EuclideanSimilarity_test
+  HashClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
+  QTClustering_test
   SingleLinkage_test
   SpectraSTSimilarityScore_test
   SpectrumAlignmentScore_test
@@ -277,7 +291,6 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
-  AdvancedTheoreticalSpectrumGenerator_test
   EdwardsLippertIteratorTryptic_test
   EdwardsLippertIterator_test
   ElementDB_test
@@ -296,6 +309,7 @@ set(chemistry_executables_list
   ResidueModification_test
   Residue_test
   SvmTheoreticalSpectrumGenerator_test
+  SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGeneratorSet_test
   TheoreticalSpectrumGenerator_test
   TrypticIterator_test
@@ -303,6 +317,7 @@ set(chemistry_executables_list
 
 
 set(analysis_executables_list
+	AScore_test
 	BaseGroupFinder_test
 	BaseSuperimposer_test
 	CompNovoIdentificationBase_test 
@@ -312,13 +327,16 @@ set(analysis_executables_list
 	CompNovoIonScoringCID_test
 	CompNovoIonScoring_test
 	ConsensusID_test
+	ConsensusMapNormalizerAlgorithm_test
 	DeNovoAlgorithm_test
 	DeNovoIdentification_test
 	DeNovoIonScoring_test
 	DeNovoPostScoring_test
 	FalseDiscoveryRate_test
 	FeatureDeconvolution_test
+	FeatureDistance_test
 	FeatureGroupingAlgorithmLabeled_test
+	FeatureGroupingAlgorithmQT_test
 	FeatureGroupingAlgorithmUnlabeled_test
 	FeatureGroupingAlgorithm_test
 	FeatureHandle_test
@@ -355,6 +373,7 @@ set(analysis_executables_list
 	PrecursorIonSelection_test
 	ProteinInference_test
 	ProtonDistributionModel_test
+	QTClusterFinder_test
 	ReactionMonitoringTransition_test
 	SVMWrapper_test
 	SimplePairFinder_test

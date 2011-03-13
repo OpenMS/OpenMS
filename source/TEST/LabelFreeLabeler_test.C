@@ -53,13 +53,6 @@ START_SECTION(~LabelFreeLabeler())
 }
 END_SECTION
 
-
-START_SECTION((void preCheck(Param &param) const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((void setUpHook(FeatureMapSimVector &)))
 {
   FeatureMapSimVector feature_maps;
@@ -136,38 +129,65 @@ START_SECTION((void setUpHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
+// just to call the methods once
+LabelFreeLabeler dummyLabeler;
+FeatureMapSimVector empty;
+
+START_SECTION((void preCheck(Param &param) const ))
+{
+  Param p;
+  dummyLabeler.preCheck(p);
+
+  // preCheck has no content
+  NOT_TESTABLE
+}
+END_SECTION
+
 START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 {
+  // we do not modify the map in this step
+  dummyLabeler.postDigestHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION((void postRTHook(FeatureMapSimVector &)))
 {
+  // we do not modify the map in this step
+  dummyLabeler.postRTHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
 {
+  // we do not modify the map in this step
+  dummyLabeler.postDetectabilityHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
 {
+  // we do not modify the map in this step
+  dummyLabeler.postIonizationHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION((void postRawMSHook(FeatureMapSimVector &)))
 {
+  // we do not modify the map in this step
+  dummyLabeler.postRawMSHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
 
+MSSimExperiment exp;
 START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
 {
+  // we do not modify the map in this step
+  dummyLabeler.postRawTandemMSHook(empty,exp);
   NOT_TESTABLE
 }
 END_SECTION

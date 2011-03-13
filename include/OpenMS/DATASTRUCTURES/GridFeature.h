@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -52,6 +52,9 @@ namespace OpenMS
 		/// Index of the feature in the map
 		Size feature_index_;
 
+		/// Set of peptide sequences annotated to the feature
+		std::set<AASequence> annotations_;
+
 	public:
 		/**
 		 * @brief Detailed constructor
@@ -68,13 +71,17 @@ namespace OpenMS
 		virtual ~GridFeature();
 
 		/// Returns the map index
-		Size getMapIndex();
+		Size getMapIndex() const;
 		
 		/// Returns the feature index
-		Size getFeatureIndex();
+		Size getFeatureIndex() const;
 
 		/// Returns the ID of the GridFeature (same as the feature index)
-		Int getID();
+		Int getID() const;
+
+		/// Return the set of peptide sequences annotated to the cluster center
+		const std::set<AASequence>& getAnnotations() const;
+
 	};
 }
 

@@ -418,7 +418,7 @@ namespace OpenMS
 				{
 					String other_ext = *it;
 					other_ext.toLower();
-					if (extension == other_ext || extension == "gz")
+					if (extension == other_ext || extension == "gz" || extension == "bz2")
 					{
 						type_mismatch = false;
 						break;

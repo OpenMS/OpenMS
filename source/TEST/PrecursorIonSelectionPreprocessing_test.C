@@ -87,7 +87,7 @@ START_SECTION((const std::vector<DoubleReal> & getMasses(String acc) const))
 END_SECTION
 
 	
-	START_SECTION(void dbPreprocessing(String db_path, bool save=true))
+START_SECTION(void dbPreprocessing(String db_path, bool save=true))
 	std::map<String,std::vector<DoubleReal> > prot_map = ptr->getProtMasses();
 	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION

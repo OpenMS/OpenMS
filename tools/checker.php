@@ -609,6 +609,7 @@ $GLOBALS["all_tests"] = array(
 				"SampleTreatment_test.C",
 				"Exception_Base_test.C",
 				"NumericDiff.C",
+				"ExampleLibraryFile.C",
 				);
 					
 				if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/APPLICATIONS/UTILS/"))

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: Alexandra Zerck $
+// $Authors: Alexandra Zerck, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -31,6 +31,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -55,7 +56,7 @@ START_SECTION(~InclusionExclusionList())
 }
 END_SECTION
 
-START_SECTION((void writeTargets(std::vector< FASTAFile::FASTAEntry > &fasta_entries, String &out_path, IntList &charges, String rt_model_path, DoubleReal rel_rt_window_size, bool rt_in_seconds, Size missed_cleavages=0)))
+START_SECTION((void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const String& out_path, const IntList& charges, const String rt_model_path, const DoubleReal rel_rt_window_size, const bool rt_in_seconds,Size missed_cleavages)))
 {
 	// load data and write out file
 	InclusionExclusionList list;
@@ -82,7 +83,7 @@ START_SECTION((void writeTargets(std::vector< FASTAFile::FASTAEntry > &fasta_ent
 }
 END_SECTION
 
-START_SECTION((void writeTargets(FeatureMap<> &map, String &out_path, DoubleReal rel_rt_window_size, bool rt_in_seconds)))
+START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path, const DoubleReal rel_rt_window_size, const bool rt_in_seconds)))
 {
   InclusionExclusionList list;
 	FeatureMap<> map;
@@ -99,10 +100,66 @@ START_SECTION((void writeTargets(FeatureMap<> &map, String &out_path, DoubleReal
 	list.writeTargets(map,out2,rel_rt_window_size,rt_in_seconds);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_2_minutes_out.txt"),out2)
 	
+  /// test clustering
+  map.clear();
+  Feature f;
+  f.setCharge(1);
+  f.setRT(100);
+  
+  // start putting data in...
+  // close in m/z case
+  f.setMZ(1000);
+  map.push_back(f);
+  f.setMZ(1000.00001);
+  map.push_back(f);
+  
+  // non-overlapping RT case (singleton expected)
+  f.setRT(150);
+  map.push_back(f);
+
+  // overlapping RT case
+  f.setRT(1500);
+  map.push_back(f);
+  f.setRT(1510);
+  map.push_back(f);
+
+  // overlapping RT, but too far in m/z
+  f.setRT(1520);
+  f.setMZ(1001);
+  map.push_back(f);
+
+
+  list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+  TextFile tf;
+  tf.load(out);
+
+  TEST_EQUAL(tf.size(), 4);
+
+  // test exact m/z matching (no deviation allowed)
+  {
+  InclusionExclusionList list(0, 0, true);
+  list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+  TextFile tf;
+  tf.load(out);
+
+  TEST_EQUAL(tf.size(), 5);
+  }
+
+  // now test window overlap
+  {
+  InclusionExclusionList list(11, 0, true);
+  list.writeTargets(map,out,0,rt_in_seconds);
+  TextFile tf;
+  tf.load(out);
+
+  TEST_EQUAL(tf.size(), 5);
+  }
+
+
 }
 END_SECTION
 
-START_SECTION((void writeTargets(std::vector< PeptideIdentification > &pep_ids, String &out_path, DoubleReal rel_rt_window_size, IntList &charges, bool rt_in_seconds)))
+START_SECTION((void writeTargets(const std::vector<PeptideIdentification>& pep_ids, const String& out_path, const DoubleReal rel_rt_window_size, const IntList& charges, const bool rt_in_seconds)))
 {
   InclusionExclusionList list;
 	FeatureMap<> map;

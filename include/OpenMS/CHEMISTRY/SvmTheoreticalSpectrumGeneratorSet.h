@@ -26,8 +26,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGeneratorSet_H
-#define OPENMS_CHEMISTRY_SvmTheoreticalSpectrumGeneratorSet_H
+#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
+#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
 
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -37,6 +37,14 @@ namespace OpenMS
 {
   /**
    @brief Loads SvmTheoreticalSpectrumGenerator instances for different charges
+
+   The input file contains pairs of charge and svm models separated by a ":"
+   (see share/OpenMS/examples/simulation/SvmModelSet.model)
+
+   <p>
+   Actually only a test model is shipped with OpenMS.<br>
+   Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
+   </p>
 
    @htmlinclude OpenMS_SvmTheoreticalSpectrumGeneratorSet.parameters
 

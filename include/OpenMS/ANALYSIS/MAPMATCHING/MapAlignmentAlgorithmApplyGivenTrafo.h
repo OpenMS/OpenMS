@@ -58,6 +58,9 @@ namespace OpenMS
 		virtual void alignFeatureMaps( std::vector< FeatureMap<> >&, std::vector<TransformationDescription>& );
 
 		// Docu in base class
+		virtual void alignConsensusMaps( std::vector< ConsensusMap >&, std::vector<TransformationDescription>& );
+
+		// Docu in base class
 		virtual void alignPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>& );
 
 

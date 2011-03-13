@@ -519,13 +519,13 @@ namespace OpenMS
 
 	void ClusterAnalyzer::cut(const Size cluster_quantity, const std::vector<BinaryTreeNode>& tree, std::vector<std::vector<Size> >& clusters)
 	{
-		if(cluster_quantity==0)
+		if (cluster_quantity==0)
 		{
-			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "minimal partitioning contains one cluster, not zero");
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "You requested 0 clusters. Minimal partitioning contains one cluster, not zero.");
 		}
-		if(cluster_quantity>=tree.size()+1)
+		if (cluster_quantity > tree.size()+1)
 		{
-			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partitioning contains singleton clusters, further separation is not possible");
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cluster count exceeds node count. No partitioning exists.");
 		}
 
 		std::set<Size> leafs;

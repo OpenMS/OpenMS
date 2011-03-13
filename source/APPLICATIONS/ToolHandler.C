@@ -51,6 +51,7 @@ namespace OpenMS
 		tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", "Signal processing and preprocessing");
     tools_map["CompNovo"] = Internal::ToolDescription("CompNovo", "Protein/peptide Identification", StringList::create("CompNovo,CompNovoCID"));
 		tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", "Protein/peptide Processing");
+		tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
 		tools_map["DBExporter"] = Internal::ToolDescription("DBExporter", "File Handling");
 		tools_map["DBImporter"] = Internal::ToolDescription("DBImporter", "File Handling");
 		tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
@@ -137,7 +138,7 @@ namespace OpenMS
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", "", Factory<BaseLabeler>::registeredProducts());
 		util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", "");
 		util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", "");
-		util_map["SpectrumGeneratorNetworkTrainer"] = Internal::ToolDescription("SpectrumGeneratorNetworkTrainer", "");
+		util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", "");
 		util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", "");
 		util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", "");
 		util_map["UniqueIdAssigner"] = Internal::ToolDescription("UniqueIdAssigner", "");

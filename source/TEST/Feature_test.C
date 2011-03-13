@@ -41,6 +41,8 @@ START_TEST(Feature, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
+typedef OpenMS::BaseFeature::QualityType QualityType;
+
 Feature* d_ptr = 0;
 START_SECTION((Feature()))
 {
@@ -58,32 +60,32 @@ END_SECTION
 START_SECTION((QualityType getOverallQuality() const))
 	Feature p;
 	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
-	p.setOverallQuality(123.456);
+	p.setOverallQuality((QualityType)123.456);
 	TEST_REAL_SIMILAR(p.getOverallQuality(), 123.456)
-	p.setOverallQuality(-0.12345);
+	p.setOverallQuality((QualityType)-0.12345);
 	TEST_REAL_SIMILAR(p.getOverallQuality(), -0.12345)
-	p.setOverallQuality(0.0);
+	p.setOverallQuality( (QualityType)0.0);
 	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
 END_SECTION
 
 START_SECTION((void setOverallQuality(QualityType q)))
 	Feature p;
-	p.setOverallQuality(123.456);
+	p.setOverallQuality((QualityType)123.456);
 	TEST_REAL_SIMILAR(p.getOverallQuality(), 123.456)
-	p.setOverallQuality(-0.12345);
+	p.setOverallQuality( (QualityType)-0.12345);
 	TEST_REAL_SIMILAR(p.getOverallQuality(), -0.12345)
-	p.setOverallQuality(0.0);
+	p.setOverallQuality( (QualityType)0.0);
 	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
 END_SECTION
 
 START_SECTION((QualityType getQuality(Size index) const ))
 	Feature p;
 	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
-	p.setQuality(0, 123.456);
+	p.setQuality( 0, (QualityType)123.456);
 	TEST_REAL_SIMILAR(p.getQuality(0), 123.456)
-	p.setQuality(0, -0.12345);
+	p.setQuality( 0, (QualityType)-0.12345);
 	TEST_REAL_SIMILAR(p.getQuality(0), -0.12345)
-	p.setQuality(0, 0.0);
+	p.setQuality( 0, (QualityType)0.0);
 	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
 	TEST_REAL_SIMILAR(p.getQuality(1), 0.0)
   TEST_PRECONDITION_VIOLATED(p.getQuality(10))
@@ -91,14 +93,14 @@ END_SECTION
 
 START_SECTION((void setQuality(Size index, QualityType q)))
 	Feature p;
-	p.setQuality(1, 123.456);
+	p.setQuality( 1, (QualityType)123.456);
 	TEST_REAL_SIMILAR(p.getQuality(1), 123.456)
-	p.setQuality(1, -0.12345);
+	p.setQuality( 1, (QualityType)-0.12345);
 	TEST_REAL_SIMILAR(p.getQuality(1), -0.12345)
-	p.setQuality(1, 0.0);
+	p.setQuality( 1, (QualityType)0.0);
 	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
 	TEST_REAL_SIMILAR(p.getQuality(1), 0.0)
-  TEST_PRECONDITION_VIOLATED(p.setQuality(10,1.0))
+  TEST_PRECONDITION_VIOLATED(p.setQuality( 10, (QualityType)1.0))
 END_SECTION
 
 START_SECTION((const ModelDescription<2>& getModelDescription() const))
@@ -218,9 +220,9 @@ START_SECTION((Feature(const Feature &feature)))
 	p.setIntensity(123.456f);
 	p.setPosition(pos);
 	p.setMetaValue("cluster_id",4711);
-  p.setOverallQuality(0.9);
-  p.setQuality(0, 0.1);
-  p.setQuality(1, 0.2);
+  p.setOverallQuality( (QualityType)0.9);
+  p.setQuality( 0, (QualityType)0.1);
+  p.setQuality( 1, (QualityType)0.2);
   ModelDescription<2> desc;
   desc.setName("gauss");
   p.setModelDescription(desc);
@@ -260,9 +262,9 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
 	Feature p;
 	p.setIntensity(123.456f);
 	p.setPosition(pos);
-  p.setOverallQuality(0.9);
-  p.setQuality(0, 0.1);
-  p.setQuality(1, 0.2);
+  p.setOverallQuality( (QualityType)0.9);
+  p.setQuality( 0, (QualityType)0.1);
+  p.setQuality( 1, (QualityType)0.2);
   ModelDescription<2> desc;
   desc.setName("gauss");
   p.setModelDescription(desc);
@@ -304,13 +306,13 @@ START_SECTION((bool operator==(const Feature &rhs) const))
 	TEST_EQUAL(p1==p2, true)
 
 	p1.setIntensity(5.0f);
-  p1.setOverallQuality(0.9);
-  p1.setQuality(0, 0.1);
+  p1.setOverallQuality( (QualityType)0.9);
+  p1.setQuality(0, (QualityType)0.1);
   p1.setModelDescription(desc);
 	TEST_EQUAL(p1==p2, false)
 	p2.setIntensity(5.0f);
-  p2.setOverallQuality(0.9);
-  p2.setQuality(0, 0.1);
+  p2.setOverallQuality( (QualityType)0.9);
+  p2.setQuality(0, (QualityType)0.1);
   p2.setModelDescription(desc);
 	TEST_EQUAL(p1==p2, true)
 
@@ -360,8 +362,8 @@ END_SECTION
 
 START_SECTION(([Feature::OverallQualityLess] bool operator () ( Feature const & left, Feature const & right ) const))
 	Feature f1, f2;
-	f1.setOverallQuality(0.94);
-	f2.setOverallQuality(0.78);
+	f1.setOverallQuality( (QualityType)0.94);
+	f2.setOverallQuality( (QualityType)0.78);
 	Feature::OverallQualityLess oql;
 	
 	TEST_EQUAL(oql(f1,f2), 0);
@@ -370,8 +372,8 @@ END_SECTION
 
 START_SECTION(([Feature::OverallQualityLess] bool operator () ( Feature const & left, QualityType right ) const))
 	Feature f1, f2;
-	f1.setOverallQuality(0.94);
-	f2.setOverallQuality(0.78);
+	f1.setOverallQuality( (QualityType)0.94);
+	f2.setOverallQuality( (QualityType)0.78);
 	
 	Feature::QualityType rhs = f1.getOverallQuality();
 	
@@ -383,8 +385,8 @@ END_SECTION
 
 START_SECTION(([Feature::OverallQualityLess] bool operator () ( QualityType left, Feature const & right ) const))
 	Feature f1, f2;
-	f1.setOverallQuality(0.94);
-	f2.setOverallQuality(0.78);
+	f1.setOverallQuality( (QualityType)0.94);
+	f2.setOverallQuality( (QualityType)0.78);
 	
 	Feature::QualityType lhs = f2.getOverallQuality();
 	Feature::OverallQualityLess oql;
@@ -395,8 +397,8 @@ END_SECTION
 
 START_SECTION(([Feature::OverallQualityLess] bool operator () ( QualityType left, QualityType right ) const))
 	Feature f1, f2;
-	f1.setOverallQuality(0.94);
-	f2.setOverallQuality(0.78);
+	f1.setOverallQuality( (QualityType)0.94);
+	f2.setOverallQuality( (QualityType)0.78);
 	
 	Feature::QualityType lhs = f1.getOverallQuality();
 	Feature::QualityType rhs = f2.getOverallQuality();

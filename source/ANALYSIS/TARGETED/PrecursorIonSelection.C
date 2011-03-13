@@ -240,6 +240,7 @@ namespace OpenMS
 		p.setValue("rt_tolerance", 0.2);
 		p.setValue("mz_tolerance", 0.05);
 		p.setValue("mz_measure","Da");
+    p.setValue("ignore_charge","true");
 		mapper.setParameters(p);
 
 		mapper.annotate(features,filtered_pep_ids,prot_ids);
@@ -501,6 +502,7 @@ namespace OpenMS
 		p.setValue("rt_tolerance", 0.2);
 		p.setValue("mz_tolerance", 0.05);
 		p.setValue("mz_measure","Da");
+    p.setValue("ignore_charge","true");
 		mapper.setParameters(p);
 		mapper.annotate(features,filtered_pep_ids,prot_ids,true);
 		

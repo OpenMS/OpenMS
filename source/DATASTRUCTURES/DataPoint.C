@@ -88,7 +88,7 @@ bool DataPoint::operator<(const DataPoint &rhs) const // required for built-in S
 	return this->feature_id < rhs.feature_id;
 }
 
-int DataPoint::getID()
+int DataPoint::getID() const
 {
 	return feature_id;
 }

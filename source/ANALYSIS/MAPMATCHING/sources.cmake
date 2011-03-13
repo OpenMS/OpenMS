@@ -5,6 +5,8 @@ set(directory source/ANALYSIS/MAPMATCHING)
 set(sources_list
 BaseGroupFinder.C
 BaseSuperimposer.C
+ConsensusMapNormalizerAlgorithm.C
+FeatureDistance.C
 FeatureGroupingAlgorithm.C
 FeatureGroupingAlgorithmIdentification.C
 FeatureGroupingAlgorithmLabeled.C

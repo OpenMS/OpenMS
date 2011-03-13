@@ -287,7 +287,7 @@ namespace OpenMS
 			if (param_cmdline_.exists("write_ini"))
       {
         String write_ini_file = param_cmdline_.getValue("write_ini");
-			  outputFileWritable_(write_ini_file,"write_ini");
+			  outputFileWritable_(write_ini_file, "write_ini");
 			  Param default_params = getDefaultParameters_();
 			  // check if augmentation with -ini param is needed
 			  DataValue in_ini;
@@ -473,18 +473,32 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			{
 				DataValue value_ini;
-				if (param_cmdline_.exists("ini")) value_ini = param_cmdline_.getValue("ini");
+
+        if (param_cmdline_.exists("ini")) value_ini = param_cmdline_.getValue("ini");
 				if (!value_ini.isEmpty())
 				{
 					writeDebug_( "INI file: " + (String)value_ini, 1 );
 					writeDebug_( "INI location: " + getIniLocation_(), 1);
-					param_inifile_.load( (String)value_ini );
+          Param p_tmp;
+          p_tmp.load( (String)value_ini );
+          // little hack: getDefaultParameters() requires to have 'type' from commandline
+          if (p_tmp.exists(getIniLocation_() + "type"))
+          {
+            param_cmdline_.setValue("type", p_tmp.getValue(getIniLocation_() + "type"));
+          }
+          param_inifile_ = this->getDefaultParameters_();
+          Logger::LogStream null_stream;
+          param_inifile_.update(p_tmp, false, true, null_stream); // silently update (no not trust INI file), but leave unknown params
         }
         else
         { // fill param with default values:
           param_inifile_ = this->getDefaultParameters_();
         }
+
         // dissect INI file params:
+				// (keep in mind: we currently cannot write all parts of an INI file
+				// in the same way we read it in, i.e. the "common" section
+				// cannot the written, but only be read
 				param_instance_ = param_inifile_.copy( getIniLocation_(), true);
 				writeDebug_("Parameters from instance section:",param_instance_,2);
 				param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true );

@@ -79,6 +79,11 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
   gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
   gsl_rng_set(rnd_gen, 0);
   RichPeakSpectrum spec;
+
+  Param p = ptr->getDefaults();
+  p.setValue ("hide_losses", "true");
+  ptr->setParameters (p);
+
   ptr->load();
   ptr->simulate(spec, peptide,rnd_gen,1);
   gsl_rng_free(rnd_gen);
@@ -103,7 +108,8 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
       TEST_EQUAL(spec[i].getIntensity(),(exp[0][i]).getIntensity());
       }
   }
-  END_SECTION
+END_SECTION
+delete ptr;
 
 START_SECTION(void load())
 //This method is already used(and therefore tested) in the simulation test
@@ -151,6 +157,18 @@ SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""
 SvmTheoreticalSpectrumGenerator::IonType type2(Residue::YIon, EmpiricalFormula(""), 2);
 TEST_EQUAL(type<type2, true)
 END_SECTION
+
+
+SvmTheoreticalSpectrumGenerator::SvmModel* ptr_m = 0;
+START_SECTION([SvmTheoreticalSpectrumGenerator::SvmModel] SvmModel())
+    ptr_m = new SvmTheoreticalSpectrumGenerator::SvmModel;
+    TEST_NOT_EQUAL(ptr_m, 0)
+END_SECTION
+
+START_SECTION([SvmTheoreticalSpectrumGenerator::SvmModel] ~SvmModel())
+    delete ptr_m;
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

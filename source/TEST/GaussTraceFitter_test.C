@@ -392,6 +392,11 @@ START_SECTION((virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelp
 }
 END_SECTION
 
+START_SECTION((DoubleReal getFWHM() const))
+{
+  TEST_REAL_SIMILAR(gaussian_trace_fitter.getFWHM(), 2.0 * expected_sigma)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

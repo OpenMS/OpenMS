@@ -30,8 +30,13 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <map>
 #include <cmath>
+#include <algorithm> //find
 #include <boost/math/special_functions/binomial.hpp>
+
+#include <iostream>
 
 using namespace std;
 
@@ -46,65 +51,49 @@ namespace OpenMS
 	{
 	}
 
-	PeptideHit AScore::compute(PeptideHit& hit, RichPeakSpectrum& real_spectrum, DoubleReal fmt)
+	PeptideHit AScore::compute(PeptideHit& hit, RichPeakSpectrum& real_spectrum, DoubleReal fmt, Int number_of_phospho_sites)
 	{
-		if(real_spectrum.size() == 0)
+		String without_phospho_str(hit.getSequence().toString());
+		size_t found = without_phospho_str.find("(Phospho)");
+		while(found != string::npos)
 		{
-			return hit;
+			without_phospho_str.erase(found,String("(Phospho)").size());
+			found = without_phospho_str.find("(Phospho)");
 		}
-		//TODO Masse berechnen um zu wissen, ob es sich um multiple handelt oder nicht!!
+		AASequence without_phospho(without_phospho_str);
+		Int number_of_STY = Int(without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y"));
+		if(real_spectrum.size() == 0 || number_of_phospho_sites < 1 || number_of_STY == 0)
+		{
+			return PeptideHit(-1,0,hit.getCharge(),without_phospho);
+		}	
 		TheoreticalSpectrumGenerator spectrum_generator;
 		vector<RichPeakSpectrum> th_spectra; //typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
-
-		for(RichPeakSpectrum::iterator it = real_spectrum.begin(); it < real_spectrum.end(); ++it)
-		{
-			//cout<<it->getMZ()<< " ";
-		}	
-		//cout<<endl;
-		//cout<<"produce ts"<<endl;	
 		///produce theoretical spectra
+		if(number_of_STY < number_of_phospho_sites)
 		{
-			const AASequence sequence(hit.getSequence().toUnmodifiedString());
-			if((sequence.getNumberOf("S") + sequence.getNumberOf("T") + sequence.getNumberOf("Y")) <= 1) //only compute score if there is more than one possibility
+			number_of_phospho_sites = number_of_STY;
+		}
+		//Int number_of_permutations = (Int)boost::math::binomial_coefficient<DoubleReal>((DoubleReal)number_of_STY, number_of_phospho_sites);
+		vector<Size> tupel(computeTupel_(without_phospho));
+		vector<vector<Size> > permutations(computePermutations_(tupel,number_of_phospho_sites));
+		//cout<<"number of permutations "<<permutations.size();//<< " - " << number_of_permutations;
+		th_spectra.resize(permutations.size());
+		for(Size i = 0;i < permutations.size(); ++i)
+		{
+			AASequence temp(without_phospho);
+			Size permu = 0;
+			for(Size as = 0; as < temp.size(); ++as)
 			{
-				return hit;
-			}
-			th_spectra.resize((sequence.getNumberOf("S") + sequence.getNumberOf("T") + sequence.getNumberOf("Y")));
-			const String& unmodified = sequence.toUnmodifiedString();
-			Size next_th=0;
-			//cout<<AASequence(String("T(Phospho)TAT")).getNumberOf("T")<<endl;
-			//cout<<"S: "<<sequence.getNumberOf("S") <<" T: "<<sequence.getNumberOf("T") <<" Y: "<<sequence.getNumberOf("Y") <<" total: " <<(sequence.getNumberOf("S") + sequence.getNumberOf("T") + sequence.getNumberOf("Y"))<<endl;
-		//	cout<<"#theoretical: "<<th_spectra.size()<<endl;
-			for(Size i = 0; i < unmodified.size(); ++i)
-			{
-				if(unmodified[i] == 'Y' || unmodified[i] == 'T' || unmodified[i] == 'S')
+				if(as == permutations[i][permu])
 				{
-					//cout<<AASequence(String(unmodified.prefix(i+1) + "(Phospho)" + unmodified.suffix(unmodified.size() - i - 1))).toString()<<endl;
-					//cout<<AASequence(String(unmodified.prefix(i+1) + "(Phospho)" + unmodified.suffix(unmodified.size() - i - 1))).isValid()<<endl;
-				/*	Param param(spectrum_generator.getDefaults());
-					param.setValue("a_intensity",0.0);
-					param.setValue("x_intensity",0.0);
-					param.setValue("c_intensity",0.0);
-					param.setValue("z_intensity",0.0);
-					param.setValue("relative_loss_intensity",0.0);
-					param.setValue("precursor_intensity",0.0);
-					param.setValue("precursor_H2O_intensity",0.0);
-					param.setValue("precursor_NH3_intensity",0.0);
-					spectrum_generator.setParameters(param);*/
-					String str(unmodified.prefix(i+1) + "(Phospho)" + unmodified.suffix(unmodified.size() - i - 1));
-					spectrum_generator.getSpectrum(th_spectra[next_th], AASequence(str),hit.getCharge() );
-					th_spectra[next_th].setName(str);
-						//cout<<str<<" , #peaks: "<<th_spectra[next_th].size()<<endl;
-						for(RichPeakSpectrum::iterator it = th_spectra[next_th].begin(); it < th_spectra[next_th].end(); ++it)
-						{
-							//cout<<it->getMZ()<< " ";
-						}	
-						//cout<<endl;
-					//cout<<next_th<<endl;
-					//th_spectra[next_th].sortByPosition();
-					++next_th;
+					temp.setModification(as,"Phospho");
+					++permu;
 				}
+				if(permu == permutations[i].size()) break;
 			}
+			spectrum_generator.addPeaks(th_spectra[i], temp,Residue::BIon,hit.getCharge() );
+			spectrum_generator.addPeaks(th_spectra[i], temp,Residue::YIon,hit.getCharge() );
+			th_spectra[i].setName(temp.toString());
 		}
 		///produce theoretical spectra - END
 		
@@ -112,20 +101,13 @@ namespace OpenMS
 		{
 			real_spectrum.sortByPosition();
 		}
-		//cout<<"prepare peak depth"<<endl;
-		vector< vector<Real> > peptide_site_scores(th_spectra.size());
+		vector< vector<DoubleReal> > peptide_site_scores(th_spectra.size());
 		vector< RichPeakSpectrum > windows_with_all_peak_depths; 
 		///prepare peak depth for all windows in the actual spectrum
 		{
-			//DPosition<1> highest_peak = real_spectrum.getMax();
-		//	cout<<"real_size(): "<<real_spectrum.size()<<endl;
-		//	cout<<"groesster?: "<<real_spectrum[real_spectrum.size()-1].getMZ()<<endl;
-			//cout<<"highest_peak: "<<highest_peak[0]<<endl;
-			Real biggest_window = real_spectrum[real_spectrum.size()-1].getMZ();
-			//cout<<"biggest_window: "<<biggest_window<<endl;
+			DoubleReal biggest_window = real_spectrum[real_spectrum.size()-1].getMZ();
 			Size number_of_windows = 1;
 			if(biggest_window > 100) number_of_windows = ceil(biggest_window/100);
-		//	cout<<"number_of_windows: "<<number_of_windows<<endl;
 			windows_with_all_peak_depths.resize(number_of_windows);
 			RichPeakSpectrum::Iterator begin_window = real_spectrum.MZBegin(0);
 			RichPeakSpectrum::Iterator end_window = real_spectrum.MZBegin(100);
@@ -148,427 +130,366 @@ namespace OpenMS
 				end_window = real_spectrum.MZBegin((current_window+1) *100);	
 			}	
 		}
-		//cout<<"windows....size: "<<windows_with_all_peak_depths.size()<<endl;
-		///prepeare peak depth for all windows in the actual spectrum - END
-	//	cout<<"compute matched ions"<<endl;
+		///prepare peak depth for all windows in the actual spectrum - END
 		UInt N;
-		vector< vector<Real> >::iterator side_scores = peptide_site_scores.begin();
+		vector< vector<DoubleReal> >::iterator side_scores = peptide_site_scores.begin();
 		for(vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it < th_spectra.end(); ++it, ++side_scores) //each theoretical spectrum
 		{
-			N = it->size();//real oder theo!!
-			//cout<<it->getName()<<":  "<<endl;
+			N = UInt(it->size()); //real or theo!!
 			UInt i= 1;
 			side_scores->resize(10);
 			while(i <= 10)
 			{		
-				//cout<<"depth: "<<i<<endl;
 				//Auslagern
 				UInt n = 0;
 				for(Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth ) //each 100 m/z window 
 				{
-					UInt nmi = numberOfMatchedIons_(*it, windows_with_all_peak_depths[depth],depth,fmt);
-					n += numberOfMatchedIons_(*it, windows_with_all_peak_depths[depth],depth,fmt);
-					//cout<<nmi<<" ";
+					n += numberOfMatchedIons_(*it, windows_with_all_peak_depths[depth],i,fmt);
 				}
-				//cout<<"n: "<<n <<endl;
 				//auslagern_end
-				Real p = (Real)i/100;
-			//	cout<<"p: "<<p <<"/////////////////////////////////////////"<<endl;
-		//		cout<<"dudl"<<endl;
-				Real cum_socre = computeCumulativeScore(N,n,p);
-				//cout<<"Cumulative Score: "<<cum_socre << " avec N: "<<N <<" n: " <<n << " p: "<<p<< " -10*log:" <<(-10* log10(cum_socre))<<endl;
+				DoubleReal p = (DoubleReal)i/100;
+				DoubleReal cum_socre = computeCumulativeScore(N,n,p);
 				(*side_scores)[i-1]= (-10* log10(cum_socre));//computeCumulativeScore(N,n,p);
-		//		cout<<"wtf"<<endl;
 				++i;
 			}
 		}
-	//	cout<<"twohighestpeaks"<<endl;
-		Size first,second, peak_depth;
-		computeTwoHighestPeptides(peptide_site_scores,first,second,peak_depth);
-		//cout<<"first: "<<first<<" ,second: "<<second<<" ,peak_depth: "<<peak_depth<<endl; 
-		///Calculate AScore
-	//	cout<<"site_determing_ions"<<endl;
-		vector<RichPeakSpectrum> site_determining_ions;
-		compute_site_determining_ions(hit, first,second, site_determining_ions);
-		N = site_determining_ions[0].size(); // all possiblities have the same number
-		//cout<<"site_determining_ions"<<endl;
-		for(RichPeakSpectrum::iterator it = site_determining_ions[0].begin(); it < site_determining_ions[0].end(); ++it)
+		vector<ProbablePhosphoSites> highest_peptides;
+		PeptideHit phospho;
+		if(permutations[0].size() < permutations.size())
 		{
-			//cout<<it->getMZ()<< " ";
+			computeHighestPeptides(peptide_site_scores,highest_peptides, permutations);
+			phospho.setScore(peptideScore_(peptide_site_scores[highest_peptides[0].seq_1]));
+			//phospho.setSequence(AASequence(th_spectra[highest_peptides[0].seq_1].getName()));
 		}
-		//cout<<endl;
-		for(RichPeakSpectrum::iterator it = site_determining_ions[1].begin(); it < site_determining_ions[1].end(); ++it)
 		{
-			//cout<<it->getMZ()<< " ";
-		}
-		//cout<<endl;
-		Real p = (Real)peak_depth/100;
-		Int n = 0;
-	//	cout<<"P_first"<<endl;		
-		//Auslagern
-		for(Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth ) //each 100 m/z window 
-		{
-			n += numberOfMatchedIons_(site_determining_ions[0], windows_with_all_peak_depths[depth],depth,fmt);
-		}
-		//cout<<"N: "<<N << " n: "<< n <<" p: "<<p <<" peak_depth: "<<peak_depth<<endl;
-		//auslagern_end
-		Real P_first = computeCumulativeScore(N,n,p);
-		n = 0;
-	//	cout<<"P_second"<<endl;	
-		//Auslagern
-		for(Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth ) //each 100 m/z window 
-		{
-			n += numberOfMatchedIons_(site_determining_ions[1], windows_with_all_peak_depths[depth],depth,fmt);
-		}
-		//auslagern_end
-		//cout<<"n: "<<n<<endl;
-		//cout<<"N: "<<N << " n: "<< n <<" p: "<<p <<" peak_depth: "<<peak_depth<<endl;
-		Real P_second = computeCumulativeScore(N,n,p);
-		Real score_first = -10* log10(P_first);
-		Real score_second = -10* log10(P_second);
-		Real AScore_first = score_first - score_second;
-		Real AScore_second =score_second - score_first;
-		
-		/*	cout<<"****************************************************"<<endl;
-			cout<<"Peptide: "<<hit.getSequence().toString()<< " , charge: "<<hit.getCharge() <<" , Precursor: "<<real_spectrum.getPrecursors()[0].getMZ()<<" , MonoWeight: "<< hit.getSequence().getMonoWeight()<<", #peaks: "<<real_spectrum.size()<< " , mascot score: "<<hit.getScore()<<endl;
-			cout<<"P_first: "<<P_first<<endl;
-			cout<<"P_second: "<<P_second<<endl;
-			cout<<"score_first: "<<score_first <<" , score_second: "<<score_second<<endl;
-			cout<<"\nfirst: "<<th_spectra[first].getName()<<", Peptide Score: " << score_first<<" , AScore: "<<AScore_first<<endl;
-			cout<<"\nsecond: "<<th_spectra[second].getName()<<", Peptide Score: " << score_second<<" , AScore: "<<AScore_second<<endl;*/
-		if(AScore_first > AScore_second)
-		{
-			hit.setMetaValue("PeptideScore",score_first);
-			hit.setMetaValue("AScore",AScore_first);
-			hit.setMetaValue("Phospho-Sites",th_spectra[first].getName());
-		}
-		else
-		{
-			hit.setMetaValue("PeptideScore",score_second);
-			hit.setMetaValue("AScore",AScore_second);
-			hit.setMetaValue("Phospho-Sites",th_spectra[second].getName());		
-		}
-		return hit;
-		
-		/****/
-	/*	Real highest_peak = real_spectrum.getMax().getIntensity();
-		Int biggest_window = ceil(highest_peak);
-		Int number_of_windows = 1;
-		if(biggest_window > 100) number_of_windows = biggest_window/100;
-		Int N = real_spectrum.size();
-		UInt i = 1;
-		MSSpectrum<>::Iterator begin_window = real_spectrum.MZBegin(0);
-		MSSpectrum<>::Iterator end_window = real_spectrum.MZBegin(100);
-		while(i <= 10)
-		{
-			Int n = 0;
-			for(Int current_window = 1; current_window <= biggest_window;++current_window)
+			multimap<DoubleReal,Size> ranking;
+			for(Size it = 0;it < peptide_site_scores.size(); ++it)
 			{
-				MSSpectrum<> window(begin_window, end_window);
-				window.sortIntensity(true);
-				Int matched_ions = 0;
-				for(UInt match = 0 ; match < i && match < window.size();++match)
-				{
-					Size nearest_peak = th_spectrum.findNearest(window[match].getMZ());
-					if(fabs(th_spectrum[nearest_peak].getMZ() - window[match].getMZ()) < fmt) ++matched_ions;
-				}
-				n += matched_ions;
-				
-				begin_window = ++end_window;
-				end_window = real_spectrum.MZBegin(current_window*100);
+				DoubleReal current_score = peptideScore_(peptide_site_scores[it]);
+				ranking.insert(pair<DoubleReal,Size>(current_score,it));
 			}
-			Real p = i/100;
-			Real P = ...
-			begin_window = real_spectrum.MZBegin(0)		;
-			end_window = real_spectrum.MZBegin(100);			
-			++i;
-		}*/
-		
-//!erstmal das Spektrum in 100 m/z Fenster aufteilen.
-
-//!N = total number of fragment ions for the peptide
-//!i = 1 // peak depth
-//!while(i<= 10)				// peak depth testen von 1 bis 10 so wie in Figure 3b				
-//!	n =  0  // number of ions matched to the spectrum
-//!	for_each mass window
-//!		overlay top i peaks with predicted b- and y- ions(by intensity)
-//!		n = matched_ions + n
-//!	p = i/100
-//!	P_i(X)  =  sum_(k=n)^N  (N über k) p^k(1-p)^(N-k) // am besten auf Seite 1286 nochmal nachschauen :D
-//!	Score_i = -10 * log(P_i(X))
-//!	i++
-
-//!Am Ende kann man Score_i wie auf Seite 1291unten zusammenfügen. // 1)
-
-//!Dann nimmt man die zwei Möglichkeiten mit dem höchsten score, wie bei 1) ausgerechnet.
-
-//!Eigentlicher AScore:
-
-//!Man nimmt von den besten Möglichkeiten des Peptides die "peak depth", bei der Score unterschied am größten ist.
-//!Und berechnet P(X) dafür nochmals. Allerdings mit dem Unterschied, dass man nur die "site-determining ions"  verwendet.
-		
-		
+			phospho.setScore(ranking.rbegin()->first);
+			phospho.setSequence(AASequence(th_spectra[ranking.rbegin()->second].getName()));
+		}
+		phospho.setCharge(hit.getCharge());
+	 	phospho.setMetaValue("Search_engine_sequence",hit.getSequence().toString());
+		///Calculate AScore
+		//Int add_ascores = (Int)highest_peptides.size()/permutations[0].size();
+		//Int count_ascores = 0;
+		//vector<ProbablePhosphoSites>::iterator winner = highest_peptides.begin();
+		//vector<ProbablePhosphoSites>::iterator actual = winner;
+		//DoubleReal ascore_addition = 0.0;
+		//DoubleReal highest_addition = 0.0;
+		Int rank = 1;
+		for(vector<ProbablePhosphoSites>::iterator hp = highest_peptides.begin(); hp< highest_peptides.end();++hp)
+		{
+		 	vector<RichPeakSpectrum> site_determining_ions;
+		 	compute_site_determining_ions(th_spectra, *hp, hit.getCharge(), site_determining_ions);
+		 	N = UInt(site_determining_ions[0].size()); // all possiblities have the same number
+		 	DoubleReal p = (DoubleReal)hp->peak_depth/100;
+		 	Int n = 0;
+		 	//Auslagern
+		 	for(Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth ) //each 100 m/z window 
+		 	{
+				n += numberOfMatchedIons_(site_determining_ions[0], windows_with_all_peak_depths[depth],(Size)p,fmt);
+			}
+		 //auslagern_end
+		 	DoubleReal P_first = computeCumulativeScore(N,n,p);
+		 	Int n2 = 0;
+		 	//Auslagern
+		 	for(Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth ) //each 100 m/z window 
+		 	{
+				n2 += numberOfMatchedIons_(site_determining_ions[1], windows_with_all_peak_depths[depth],(Size)p,fmt);
+		 	}
+		 	//auslagern_end
+		 	DoubleReal P_second = computeCumulativeScore(N,n2,p);
+		 	DoubleReal score_first = -10* log10(P_first);
+		 	DoubleReal score_second = -10* log10(P_second);
+		 	DoubleReal AScore_first = score_first - score_second;
+		 	phospho.setMetaValue("AScore_"+String(rank),AScore_first);
+		 	++rank;
+		/* 	hp->AScore = AScore_first;
+		 	++count_ascores;
+		 	ascore_addition += AScore_first;
+		 	if(count_ascores == add_ascores)
+		 	{
+		 		
+		 		count_ascores = 0;
+		 		if(ascore_addition > highest_addition)
+		 		{
+		 			highest_addition = ascore_addition;
+		 			winner = actual;
+		 		}
+		 		actual = hp;
+		 		ascore_addition = 0;
+		 	}*/
+		}
+		return phospho;
 	}
 	
-	Real AScore::computeCumulativeScore(UInt N,UInt n, Real p)
+	DoubleReal AScore::computeCumulativeScore(UInt N, UInt n, DoubleReal p)
 	{
-	//	cout<<"1 ";
-		Real score = 0.0;
-	//	cout<<"2 ";
-		if(n > N)	return score;
-	//	cout<<"3 ";
-		for(UInt k = n; k <= N ; ++k)
+		if (n > N)
 		{
-		//	cout<<"p: "<<p<<" ,k: "<<k<<" , "<<boost::math::binomial_coefficient<Real>(N, k)<<"*"<<pow((double)p,(double)k)<<"*"<<pow(double(1-p),double(N-k))<<"="<<boost::math::binomial_coefficient<Real>(N, k)*pow((double)p,(double)k)*pow(double(1-p),double(N-k))<<endl;
-		//	cout<<"3.1 ";
-		//	cout.flush();
-			DoubleReal coeff = boost::math::binomial_coefficient<DoubleReal>((Real)N, k);
-		//	cout<<"3.2 ";
-		//	cout.flush();
-			Real pow1 = pow((double)p,(double)k);
-		//	cout<<"3.3 ";
-		//	cout.flush();
-			Real pow2 = pow(double(1-p),double(N-k));
-		//	cout<<"3.4 ";
-		//	cout.flush();
-			score += coeff*pow1*pow2;
-		//	cout<<"3.5 ";
-		//	cout.flush();
+			return -1.0;
 		}
-		//cout<<"4 ";
-	//	cout<<"cumulativeScore: "<<score<<endl;
+		DoubleReal score = 0.0;
+		for (UInt k = n; k <= N ; ++k)
+		{
+			DoubleReal coeff = boost::math::binomial_coefficient<DoubleReal>((DoubleReal)N, k);
+			DoubleReal pow1 = pow((double)p, (int)k);
+			DoubleReal pow2 = pow(double(1 - p), double(N - k));
+			score += coeff * pow1 * pow2;
+		}
+		if (score == 0.0)
+		{
+			return 1.0;
+		}
 		return score;
 	}
 	
-	void AScore::computeTwoHighestPeptides( vector< vector<Real> >& peptide_site_scores,Size& first,Size& second, Size& peak_depth)
+	void AScore::computeHighestPeptides( std::vector< std::vector<DoubleReal> >& peptide_site_scores,std::vector<ProbablePhosphoSites>& sites, vector<vector<Size> >& permutations)
 	{
-		first = 0;	
-		second = 0;
-		Real first_score = 0.0;
-		Real second_score = 0.0;
-		peak_depth = 1;
+		sites.clear();
+		sites.resize(permutations[0].size());
+		multimap<DoubleReal,Size> ranking;
 		for(Size it = 0;it < peptide_site_scores.size(); ++it)
 		{
-			Real current_score = (peptide_site_scores[it][0]*0.5
-														+peptide_site_scores[it][1]*0.75
-														+peptide_site_scores[it][2]//*1
-														+peptide_site_scores[it][3]//*1
-														+peptide_site_scores[it][4]//*1
-														+peptide_site_scores[it][5]//*1
-														+peptide_site_scores[it][6]*0.75
-														+peptide_site_scores[it][7]*0.5
-														+peptide_site_scores[it][8]*0.25
-														+peptide_site_scores[it][9]*0.25)
-														/10;
-	//		cout<<"current_score:"<< current_score<<endl;
-			if(current_score > first_score)
-			{
-				second_score = first_score;
-				first_score = current_score;
-				second = first;
-				first = it;
-			
-			}
-			else if(current_score > second_score)
-			{
-				second_score = current_score;
-				second = it;
-			}
+			DoubleReal current_score = peptideScore_(peptide_site_scores[it]);
+			ranking.insert(pair<DoubleReal,Size>(current_score,it));
 		}
-		if(second == first) ++second;
-		Real current_peak_depth = 0.0;
-		vector<Real>::iterator first_it = peptide_site_scores[first].begin();
-		Size depth = 1;
-		//cout<<"---"<<endl;
-		for(vector<Real>::iterator second_it = peptide_site_scores[second].begin(); second_it < peptide_site_scores[second].end(); ++second_it, ++first_it)
-		{
-		//	cout<<"current: "<<current_peak_depth<<" ,first: "<<*first_it<<" ,second: "<<*second_it <<" ,fabs: "<<fabs(*first_it - *second_it)<<endl;
-			if(fabs(*first_it - *second_it) > current_peak_depth)
+		pair<multimap<DoubleReal,Size>::iterator,multimap<DoubleReal,Size>::iterator> ret;
+		ret = ranking.equal_range(ranking.rbegin()->first);
+	//	for(map<DoubleReal,Size>::iterator it = ret.first; it != ret.second;++it )
+	//	{
+			vector<Size>& hps = permutations[ranking.rbegin()->second/*it->second*/]; //highest peptide score
+			for(Size i = 0; i < hps.size(); ++i)
 			{
-				current_peak_depth = fabs(*first_it - *second_it);
-				peak_depth = depth;
-				//cout<<current_peak_depth<<endl;
+				multimap<DoubleReal,Size>::reverse_iterator rev = ranking.rbegin();
+				sites[i].first = hps[i];
+				sites[i].seq_1 = rev->second;//it->second;
+				bool peptide_not_found = true;
+				do{
+					++rev;
+					for(Size j = 0; j < hps.size();++j)
+					{
+						if(j == i)
+						{						
+							if(find(permutations[rev->second].begin(),permutations[rev->second].end(), hps[j]) != permutations[rev->second].end())
+							{
+							peptide_not_found = true;
+							break;
+							}
+							else
+							{
+								peptide_not_found = false;
+							}
+						}
+						else if(find(permutations[rev->second].begin(),permutations[rev->second].end(), hps[j]) == permutations[rev->second].end())
+						{
+							peptide_not_found = true;
+							break;
+						}
+						else
+						{
+							peptide_not_found = false;
+						}
+					}
+				}while(peptide_not_found);
+				sites[i].seq_2 = rev->second;
+				for(Size j = 0; j < permutations[sites[i].seq_2].size();++j)
+				{
+					if(find(permutations[sites[i].seq_1].begin(),permutations[sites[i].seq_1].end(), permutations[sites[i].seq_2][j]) == permutations[sites[i].seq_1].end())
+					{
+						sites[i].second = permutations[sites[i].seq_2][j];
+						break;
+					}
+				}
 			}
-			++depth;
+		//}
+		for(Size i = 0; i < sites.size(); ++i)
+		{
+			DoubleReal current_peak_depth = 0.0;
+			sites[i].peak_depth = 1;
+			vector<DoubleReal>::iterator first_it = peptide_site_scores[sites[i].seq_1].begin();
+			Size depth = 1;
+			for(vector<DoubleReal>::iterator second_it = peptide_site_scores[sites[i].seq_2].begin(); second_it < peptide_site_scores[sites[i].seq_2].end(); ++second_it, ++first_it)
+			{
+				if((*first_it - *second_it) > current_peak_depth)
+				{
+					current_peak_depth = *first_it - *second_it;
+					sites[i].peak_depth = depth;
+				}
+				++depth;
+			}	
 		}
 	}
-	void AScore::compute_site_determining_ions(PeptideHit& hit, Size first,Size second, vector<RichPeakSpectrum>& site_determining_ions)
+	
+	void AScore::compute_site_determining_ions(vector<RichPeakSpectrum>& th_spectra, ProbablePhosphoSites& candidates,Int charge, vector<RichPeakSpectrum>& site_determining_ions)
 	{
-		const String& unmodified = hit.getSequence().toUnmodifiedString();
-		Size first_AA = 0;
-		Size second_AA = 0;
-		Size count = 0;
-		for(Size i = 0; i < unmodified.size(); ++i)
-		{
-			if(unmodified[i] == 'Y' || unmodified[i] == 'T' || unmodified[i] == 'S')
-			{
-
-				if(count == first) first_AA = i;
-				if(count == second) second_AA = i;
-				++count;
-			}
-		}
+		site_determining_ions.clear();
 		site_determining_ions.resize(2);
 		TheoreticalSpectrumGenerator spectrum_generator;
-	/*	Param param(spectrum_generator.getDefaults());
-		param.setValue("a_intensity",0.0);
-		param.setValue("x_intensity",0.0);
-		param.setValue("c_intensity",0.0);
-		param.setValue("z_intensity",0.0);
-		param.setValue("relative_loss_intensity",0.0);
-		param.setValue("precursor_intensity",0.0);
-		param.setValue("precursor_H2O_intensity",0.0);
-		param.setValue("precursor_NH3_intensity",0.0);
-		spectrum_generator.setParameters(param);		*/
-		//cout<<"Site determining ions von: "<<unmodified<<endl;
-		//cout<<"first: "<<first<<" , " <<first_AA<<" , second: "<<second <<" , "<<second_AA<<endl;
-		if(first_AA < second_AA)
+		AASequence pref, suf, pref_with_phospho_first,pref_with_phospho_second,suf_with_phospho_first,suf_with_phospho_second;
+		RichPeakSpectrum prefix, suffix,prefix_with_phospho_first, prefix_with_phospho_second, suffix_with_phospho_second, suffix_with_phospho_first;		
+		AASequence first(th_spectra[candidates.seq_1].getName());
+		AASequence second(th_spectra[candidates.seq_2].getName());
+		if(candidates.first < candidates.second)
 		{
-			AASequence pref(unmodified.prefix(first_AA));
-			AASequence suf(unmodified.suffix(unmodified.size()-second_AA-1));
-			AASequence pref_with_phospho_first(unmodified.prefix(first_AA+1) + "(Phospho)"+ unmodified.substr(first_AA+1,second_AA - first_AA) );
-			AASequence pref_with_phospho_second(unmodified.prefix(first_AA+1)+ unmodified.substr(first_AA+1,second_AA - first_AA) + "(Phospho)" );
-			AASequence suf_with_phospho_first(unmodified.substr(first_AA,1)+"(Phospho)" + unmodified.suffix(unmodified.size()-first_AA-1));
-			AASequence suf_with_phospho_second(unmodified.substr(first_AA,second_AA - first_AA+1) +"(Phospho)"+ unmodified.suffix(unmodified.size()-second_AA-1));
-			//cout<<"prefix: "<<pref.toString()<<endl;
-			//cout<<"suffix: "<<suf.toString()<<endl;
-			//cout<<"pref_with_phospho_first: "<<pref_with_phospho_first.toString()<<" pref_with_phospho_second: "<<pref_with_phospho_second.toString()<<endl;
-			//cout<<"suff_with_phospho_first: "<<suf_with_phospho_first.toString()<<"suff_with_phospho_second: "<<suf_with_phospho_second.toString()<<endl;
-			RichPeakSpectrum prefix, suffix,prefix_with_phospho_first, prefix_with_phospho_second, suffix_with_phospho_second, suffix_with_phospho_first;
-			spectrum_generator.addPeaks(prefix, pref, Residue::BIon,hit.getCharge());
-			spectrum_generator.addPeaks(suffix, suf, Residue::YIon, hit.getCharge());
-			spectrum_generator.addPeaks(prefix_with_phospho_first, pref_with_phospho_first, Residue::BIon,hit.getCharge());
-			spectrum_generator.addPeaks(prefix_with_phospho_second, pref_with_phospho_second, Residue::BIon,hit.getCharge());
-			spectrum_generator.addPeaks(suffix_with_phospho_first, suf_with_phospho_first, Residue::YIon,hit.getCharge());
-			spectrum_generator.addPeaks(suffix_with_phospho_second, suf_with_phospho_second, Residue::YIon,hit.getCharge());
-			if(prefix.size() > 0)
-			{
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_first.begin(); it < prefix_with_phospho_first.end(); ++it)
-				{
-					if(it->getMZ() > prefix[prefix.size()-1].getMZ()) site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_second.begin(); it < prefix_with_phospho_second.end(); ++it)
-				{
-					if(it->getMZ() > prefix[prefix.size()-1].getMZ()) site_determining_ions[1].push_back(*it);
-				}
-			}
-			else
-			{
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_first.begin(); it < prefix_with_phospho_first.end(); ++it)
-				{
-					site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_second.begin(); it < prefix_with_phospho_second.end(); ++it)
-				{
-					site_determining_ions[1].push_back(*it);
-				}				
-			}
-			if(suffix.size() > 0)
-			{
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_first.begin(); it < suffix_with_phospho_first.end(); ++it)
-				{
-					if(it->getMZ() > suffix[suffix.size()-1].getMZ()) site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_second.begin(); it < suffix_with_phospho_second.end(); ++it)
-				{
-					if(it->getMZ() > suffix[suffix.size()-1].getMZ()) site_determining_ions[1].push_back(*it);
-				}
-			}
-			else
-			{
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_first.begin(); it < suffix_with_phospho_first.end(); ++it)
-				{
-					site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_second.begin(); it < suffix_with_phospho_second.end(); ++it)
-				{
-					site_determining_ions[1].push_back(*it);
-				}
-			}
-			
-			//cout<<"größe: "<<site_determining_ions[0].size() <<" "<<site_determining_ions[1].size()<<endl;
-	//		spectrum_generator.getSpectrum(site_determining_ions[0], AASequence(String(unmodified.substr(first_AA,1)+ "(Phospho)" + unmodified.substr(first_AA+1,second_AA - first_AA))),hit.getCharge() );
-	//		cout<<unmodified.substr(first_AA,second_AA - first_AA+1) + "(Phospho)"<<endl;
-	//		spectrum_generator.getSpectrum(site_determining_ions[1], AASequence(String(unmodified.substr(first_AA,second_AA - first_AA+1) + "(Phospho)")),hit.getCharge() );
+			pref.setStringSequence(first.getPrefix(candidates.first+1).toString());
+			suf.setStringSequence(second.getSuffix(second.size() - candidates.second-1).toString());
+			pref_with_phospho_first.setStringSequence(first.getPrefix(candidates.second+1).toString());
+			pref_with_phospho_second.setStringSequence(second.getPrefix(candidates.second+1).toString());
+			suf_with_phospho_first.setStringSequence(first.getSuffix(first.size() - candidates.first).toString());
+			suf_with_phospho_second.setStringSequence(second.getSuffix(second.size() - candidates.first).toString());	
 		}
 		else
 		{
-			AASequence pref(unmodified.prefix(second_AA));
-			AASequence suf(unmodified.suffix(unmodified.size()-first_AA-1));
-			AASequence pref_with_phospho_second(unmodified.prefix(second_AA+1) + "(Phospho)"+ unmodified.substr(second_AA+1,first_AA - second_AA) );
-			AASequence pref_with_phospho_first(unmodified.prefix(second_AA+1)+ unmodified.substr(second_AA+1,first_AA - first_AA) + "(Phospho)" );
-			AASequence suf_with_phospho_second(unmodified.substr(second_AA,1)+"(Phospho)" + unmodified.suffix(unmodified.size()-second_AA-1));
-			AASequence suf_with_phospho_first(unmodified.substr(second_AA,first_AA - second_AA+1) +"(Phospho)"+ unmodified.suffix(unmodified.size()-first_AA-1));
-			//cout<<"prefix: "<<pref.toString()<<endl;
-			//cout<<"suffix: "<<suf.toString()<<endl;
-			//cout<<"pref_with_phospho_first: "<<pref_with_phospho_first.toString()<<" pref_with_phospho_second: "<<pref_with_phospho_second.toString()<<endl;
-			//cout<<"suff_with_phospho_first: "<<suf_with_phospho_first.toString()<<"suff_with_phospho_second: "<<suf_with_phospho_second.toString()<<endl;
-			RichPeakSpectrum prefix, suffix,prefix_with_phospho_first, prefix_with_phospho_second, suffix_with_phospho_second, suffix_with_phospho_first;
-			spectrum_generator.addPeaks(prefix, pref, Residue::BIon,hit.getCharge());
-			spectrum_generator.addPeaks(suffix, suf, Residue::YIon, hit.getCharge());
-			spectrum_generator.addPeaks(prefix_with_phospho_first, pref_with_phospho_first, Residue::BIon,hit.getCharge());
-			spectrum_generator.addPeaks(prefix_with_phospho_second, pref_with_phospho_second, Residue::BIon,hit.getCharge());
-			spectrum_generator.addPeaks(suffix_with_phospho_first, suf_with_phospho_first, Residue::YIon,hit.getCharge());
-			spectrum_generator.addPeaks(suffix_with_phospho_second, suf_with_phospho_second, Residue::YIon,hit.getCharge());
-			if(prefix.size() > 0)
-			{
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_first.begin(); it < prefix_with_phospho_first.end(); ++it)
-				{
-					if(it->getMZ() > prefix[prefix.size()-1].getMZ()) site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_second.begin(); it < prefix_with_phospho_second.end(); ++it)
-				{
-					if(it->getMZ() > prefix[prefix.size()-1].getMZ()) site_determining_ions[1].push_back(*it);
-				}
-			}
-			else
-			{
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_first.begin(); it < prefix_with_phospho_first.end(); ++it)
-				{
-					site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = prefix_with_phospho_second.begin(); it < prefix_with_phospho_second.end(); ++it)
-				{
-					site_determining_ions[1].push_back(*it);
-				}				
-			}
-			if(suffix.size() > 0)
-			{
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_first.begin(); it < suffix_with_phospho_first.end(); ++it)
-				{
-					if(it->getMZ() > suffix[suffix.size()-1].getMZ()) site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_second.begin(); it < suffix_with_phospho_second.end(); ++it)
-				{
-					if(it->getMZ() > suffix[suffix.size()-1].getMZ()) site_determining_ions[1].push_back(*it);
-				}
-			}
-			else
-			{
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_first.begin(); it < suffix_with_phospho_first.end(); ++it)
-				{
-					site_determining_ions[0].push_back(*it);
-				}
-				for(RichPeakSpectrum::iterator it = suffix_with_phospho_second.begin(); it < suffix_with_phospho_second.end(); ++it)
-				{
-					site_determining_ions[1].push_back(*it);
-				}
-			}			
-			
-			//spectrum_generator.getSpectrum(site_determining_ions[0], AASequence(String(unmodified.substr(second_AA,1) + "(Phospho)" + unmodified.substr(second_AA+1,first_AA - second_AA))),hit.getCharge() );
-			//spectrum_generator.getSpectrum(site_determining_ions[1], AASequence(String(unmodified.substr(second_AA,first_AA - second_AA+1) + "(Phospho)")),hit.getCharge() );
+			pref.setStringSequence(second.getPrefix(candidates.second+1).toString());
+			suf.setStringSequence(first.getSuffix(first.size() - candidates.first-1).toString());
+			pref_with_phospho_first.setStringSequence(first.getPrefix(candidates.first+1).toString());
+			pref_with_phospho_second.setStringSequence(second.getPrefix(candidates.first+1).toString());
+			suf_with_phospho_first.setStringSequence(first.getSuffix(first.size() - candidates.second).toString());
+			suf_with_phospho_second.setStringSequence(second.getSuffix(first.size() - candidates.second).toString());
 		}
+		spectrum_generator.addPeaks(prefix, pref, Residue::BIon,charge);
+		spectrum_generator.addPeaks(suffix, suf, Residue::YIon, charge);
+		spectrum_generator.addPeaks(prefix_with_phospho_first, pref_with_phospho_first, Residue::BIon,charge);
+		spectrum_generator.addPeaks(prefix_with_phospho_second, pref_with_phospho_second, Residue::BIon,charge);
+		spectrum_generator.addPeaks(suffix_with_phospho_first, suf_with_phospho_first, Residue::YIon,charge);
+		spectrum_generator.addPeaks(suffix_with_phospho_second, suf_with_phospho_second, Residue::YIon,charge);
+		if(prefix.size() > 0)
+		{
+			for(RichPeakSpectrum::iterator it = prefix_with_phospho_first.begin(); it < prefix_with_phospho_first.end(); ++it)
+			{
+				if(it->getMZ() > prefix[prefix.size()-1].getMZ()) site_determining_ions[0].push_back(*it);
+			}
+			for(RichPeakSpectrum::iterator it = prefix_with_phospho_second.begin(); it < prefix_with_phospho_second.end(); ++it)
+			{
+				if(it->getMZ() > prefix[prefix.size()-1].getMZ()) site_determining_ions[1].push_back(*it);
+			}
+		}
+		else
+		{
+			for(RichPeakSpectrum::iterator it = prefix_with_phospho_first.begin(); it < prefix_with_phospho_first.end(); ++it)
+			{
+				site_determining_ions[0].push_back(*it);
+			}
+			for(RichPeakSpectrum::iterator it = prefix_with_phospho_second.begin(); it < prefix_with_phospho_second.end(); ++it)
+			{
+				site_determining_ions[1].push_back(*it);
+			}				
+		}
+		if(suffix.size() > 0)
+		{
+			for(RichPeakSpectrum::iterator it = suffix_with_phospho_first.begin(); it < suffix_with_phospho_first.end(); ++it)
+			{
+				if(it->getMZ() > suffix[suffix.size()-1].getMZ()) site_determining_ions[0].push_back(*it);
+			}
+			for(RichPeakSpectrum::iterator it = suffix_with_phospho_second.begin(); it < suffix_with_phospho_second.end(); ++it)
+			{
+				if(it->getMZ() > suffix[suffix.size()-1].getMZ()) site_determining_ions[1].push_back(*it);
+			}
+		}
+		else
+		{
+			RichPeakSpectrum::iterator it1 = suffix_with_phospho_first.begin();
+			RichPeakSpectrum::iterator it2 = suffix_with_phospho_second.begin();
+			if(suf.size() > 0)
+			{	
+				++it1;
+				++it2;
+			}
+			for(; it1 < suffix_with_phospho_first.end(); ++it1)
+			{
+				site_determining_ions[0].push_back(*it1);
+			}
+			for(; it2 < suffix_with_phospho_second.end(); ++it2)
+			{
+				site_determining_ions[1].push_back(*it2);
+			}
+		}		
+		site_determining_ions[0].sortByPosition();
+		site_determining_ions[1].sortByPosition();		
 	}
+	
 	Int AScore::numberOfMatchedIons_(const RichPeakSpectrum& th,const RichPeakSpectrum& windows ,Size depth, DoubleReal fmt)
 	{
 		Int n = 0;
-		for(Size i = 0; i < windows.size() && i < depth; ++i)
+		for(Size i = 0; i < windows.size() && i <= depth; ++i)
 		{
 				Size nearest_peak = th.findNearest(windows[i].getMZ());
 				if(nearest_peak < th.size() && fabs(th[nearest_peak].getMZ() - windows[i].getMZ()) < fmt) ++n;
 		}
 		return n;
 	}
+	DoubleReal AScore::peptideScore_(std::vector<DoubleReal>& scores)
+	{
+		return (scores[0]*0.5
+						+scores[1]*0.75
+						+scores[2]//*1
+						+scores[3]//*1
+						+scores[4]//*1
+						+scores[5]//*1
+						+scores[6]*0.75
+						+scores[7]*0.5
+						+scores[8]*0.25
+						+scores[9]*0.25)
+						/10;
+	}
 	
+	vector<Size> AScore::computeTupel_(AASequence& without_phospho)
+	{
+		vector<Size> tupel;
+		String unmodified = without_phospho.toUnmodifiedString();
+		for(Size i = 0; i < unmodified.size();++i)
+		{
+			if(unmodified[i] == 'Y' || unmodified[i] == 'T' || unmodified[i] == 'S')
+			{
+				tupel.push_back(i);
+			}
+		}
+		return tupel;
+	}
+	
+	vector<vector<Size> > AScore::computePermutations_(vector<Size> tupel,Int number_of_phospho_sites)
+	{
+		if(number_of_phospho_sites == 1)
+		{
+			vector<vector<Size>  > permutations;
+			for(Size i = 0; i < tupel.size(); ++i)
+			{
+				vector<Size> temp;
+				temp.push_back(tupel[i]);
+				permutations.push_back(temp);
+			}
+			return permutations;
+		}
+		else if(tupel.size() == (Size)number_of_phospho_sites)
+		{
+			vector<vector<Size> > permutations;
+			permutations.push_back(tupel);
+			return permutations;
+		}
+		else
+		{
+			vector<vector<Size> > permutations;
+			vector<Size> head;
+			vector<vector<Size> > tail;
+			head.push_back(tupel[0]);
+			vector<Size> tupel_left(++tupel.begin(),tupel.end());
+			Int tail_phospho_sites = number_of_phospho_sites - 1;
+			tail = computePermutations_(tupel_left,tail_phospho_sites);
+			for(vector<vector<Size> >::iterator it = tail.begin(); it < tail.end(); ++it)
+			{
+				vector<Size> temp(head);
+				temp.insert(temp.end(), it->begin(),it->end());
+				permutations.push_back(temp);
+			}
+			vector<vector<Size> > other_possibilities(computePermutations_(tupel_left, number_of_phospho_sites));
+			permutations.insert(permutations.end(),other_possibilities.begin(),other_possibilities.end());
+			return permutations;
+		}
+	}
 } // namespace OpenMS
 

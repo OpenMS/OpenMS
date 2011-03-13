@@ -35,20 +35,24 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 #include <stdio.h>
 #include <gsl/gsl_statistics_double.h>
+#include <sstream>
 
 namespace OpenMS
-{  
-#define DEBUG
-
+{
   SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer() :
       DefaultParamHandler("SvmTheoreticalSpectrumGeneratorTrainer")
-  {    
-    defaults_.setValue("number_intensity_levels", 7, "The number of bins the peak intensities are mapped to");
+  {
+    defaults_.setValue("write_training_files", "false", "If set to true no models are trained but files (<Filename>_<ion_type>_training.dat) are produced \
+for the selected primary ion types. They can be used as input for LibSVM command line tools");
+
+    defaults_.setValidStrings("write_training_files", StringList::create("true,false"));
+
+    defaults_.setValue("number_intensity_levels", 7, "The number of intensity bins (for secondary type models)");
     defaults_.setValue("number_regions", 3, "The number of regions each spectrum is split to (for secondary type models)");
     defaults_.setValue("parent_tolerance", 2.5, "The maximum difference between theoretical and experimental parent mass to accept training spectrum");
     defaults_.setValue("peak_tolerance", 0.5, "The maximum mass error for a peak to the expected mass of some ion type");
 
-    defaults_.setValue("add_b_ions", "false", "Train simulator for b-ions");
+    defaults_.setValue("add_b_ions", "true", "Train simulator for b-ions");
     defaults_.setValidStrings("add_b_ions", StringList::create("true,false"));
     defaults_.setValue("add_y_ions", "true", "Train simulator for y-ions");
     defaults_.setValidStrings("add_y_ions", StringList::create("true,false"));
@@ -61,43 +65,81 @@ namespace OpenMS
     defaults_.setValue("add_z_ions", "false", "Train simulator for z-ions");
     defaults_.setValidStrings("add_z_ions", StringList::create("true,false"));
 
-    defaults_.setValue("add_losses", "true", "Train simulator for neutral losses of H2O and NH3 for b-ions and y-ions");
+    defaults_.setValue("add_losses", "false", "Train simulator for neutral losses of H2O and NH3 for b-ions and y-ions");
     defaults_.setValidStrings("add_losses", StringList::create("true,false"));
     defaults_.setValue("add_b2_ions", "false", "Train simulator for doubly charged b-ions");
     defaults_.setValidStrings("add_b2_ions", StringList::create("true,false"));
-    defaults_.setValue("add_y2_ions", "true", "Train simulator for double charged y-ions");
+    defaults_.setValue("add_y2_ions", "false", "Train simulator for double charged y-ions");
     defaults_.setValidStrings("add_y2_ions", StringList::create("true,false"));
 
     defaults_.setValue("svm:svc_type", 0, "Type of the SVC: 0=C_SVC 1=NU_SVC");
     defaults_.setMinInt("svm:svc_type",0);
     defaults_.setMaxInt("svm:svc_type",1);
+
     defaults_.setValue("svm:svr_type", 1, "Type of the SVR: 0=EPSILON_SVR 1=NU_SVR");
     defaults_.setMinInt("svm:svr_type",0);
     defaults_.setMaxInt("svm:svr_type",1);
-    defaults_.setValue("svm:kernel_type", 2, "Type of the kernel:  0=LINEAR 1=POLY 2=RBF 3=SIGMOID");
-    defaults_.setMinInt("svm:kernel_type",0);
-    defaults_.setMaxInt("svm:kernel_type",3);
-    defaults_.setValue("svm:degree", 3, "For POLY");
-    defaults_.setMinInt("svm:degree",1);
-    defaults_.setValue("svm:gamma", 0.0, "For POLY/RBF/SIGMOID");
-    defaults_.setMinFloat("svm:gamma",0.0);
-    defaults_.setValue("svm:coef0", 0.0, "For POLY/SIGMOID");
-    defaults_.setMinFloat("svm:coef0",0.0);
-    defaults_.setValue("svm:cache_size", 2, "Size of kernel cache in MB");
+
+    defaults_.setValue("svm:svc:kernel_type", 2, "Type of the kernel:  0=LINEAR 1=POLY 2=RBF 3=SIGMOID");
+    defaults_.setMinInt("svm:svc:kernel_type",0);
+    defaults_.setMaxInt("svm:svc:kernel_type",3);
+
+    defaults_.setValue("svm:svr:kernel_type", 2, "Type of the kernel:  0=LINEAR 1=POLY 2=RBF 3=SIGMOID");
+    defaults_.setMinInt("svm:svr:kernel_type",0);
+    defaults_.setMaxInt("svm:svr:kernel_type",3);
+
+
+    defaults_.setValue("svm:svc:degree", 3, "For POLY");
+    defaults_.setMinInt("svm:svc:degree",1);
+
+    defaults_.setValue("svm:svr:degree", 3, "For POLY");
+    defaults_.setMinInt("svm:svr:degree",1);
+
+    defaults_.setValue("svm:svc:gamma", 0.0, "For POLY/RBF/SIGMOID");
+    defaults_.setMinFloat("svm:svc:gamma",0.0);
+
+    defaults_.setValue("svm:svr:gamma", 0.0, "For POLY/RBF/SIGMOID");
+    defaults_.setMinFloat("svm:svr:gamma",0.0);
+
+    defaults_.setValue("svm:svc:coef0", 0.0, "For POLY/SIGMOID");
+    defaults_.setMinFloat("svm:svc:coef0",0.0);
+
+    defaults_.setValue("svm:svr:coef0", 0.0, "For POLY/SIGMOID");
+    defaults_.setMinFloat("svm:svr:coef0",0.0);
+
+    defaults_.setValue("svm:svc:eps", 0.001, "Stopping criterion");
+    defaults_.setValue("svm:svr:eps", 0.001, "Stopping criterion");
+
+    defaults_.setValue("svm:svc:C", 1.0, "Cost of constraint violation");
+    defaults_.setValue("svm:svr:C", 1.0, "Cost of constraint violation");
+
+    defaults_.setValue("svm:svr:p", 0.1, "The epsilon for the loss function in epsilon-SVR");
+
+    defaults_.setValue("svm:svc:nu", 0.5, "For NU_SVC, ONE_CLASS and NU_SVR");
+    defaults_.setValue("svm:svr:nu", 0.5, "For NU_SVC, ONE_CLASS and NU_SVR");
+
+    defaults_.setValue("svm:cache_size", 100, "Size of kernel cache in MB");
     defaults_.setMinInt("svm:cache_size",1);
-    defaults_.setValue("svm:eps", 0.001, "Stopping criterion");
-    defaults_.setValue("svm:C", 1.0, "Cost of constraint violation");
-    defaults_.setValue("svm:nu", 0.5, "for NU_SVC, ONE_CLASS and NU_SVR");
-    defaults_.setValue("svm:p", 0.1, "The epsilon for the loss function in epsilon-SVR");
-    defaults_.setValue("svm:shrinking", "true", "whether shrinking is performed");
+
+    defaults_.setValue("svm:shrinking", "true", "Perform shrinking");
     defaults_.setValidStrings("svm:shrinking", StringList::create("true,false"));
-    defaults_.setValue("svm:n_fold", 2, "n_fold cross validation is performed");
+
+    defaults_.setValue("svm:n_fold", 5, "n_fold cross validation is performed");
     defaults_.setMinInt("svm:n_fold",1);
-    defaults_.setValue("svm:scaling", "true", "whether feature values should be scaled");
+
+    defaults_.setValue("svm:scaling", "true", "Apply scaling of feature values");
     defaults_.setValidStrings("svm:scaling", StringList::create("true,false"));
-    defaults_.setValue("svm:scaling_lower", 0.0, "lower bound for scaling");
-    defaults_.setValue("svm:scaling_upper", 1.0, "lower bound for scaling");
+
+    defaults_.setValue("svm:scaling_lower", 0.0, "Lower bound for scaling");
+    defaults_.setValue("svm:scaling_upper", 1.0, "Upper bound for scaling");
+
+    defaults_.setValue("svm:svc:balancing", "true", "Use class balanced SVC training");
+    defaults_.setValidStrings("svm:svc:balancing", StringList::create("true,false"));
+
     defaults_.setSectionDescription("svm", "Parameters controlling SVM trainig behaviour. All parameter names are chosen as in the libSVM library. Please refer to libSVM documentation for explanation");
+    defaults_.setSectionDescription("svm:svc", "Parameters for svm - classification of missing/abundant");
+    defaults_.setSectionDescription("svm:svr", "Parameters for svm - regression of peak intensities");
+
 
     defaultsToParam_();
   }
@@ -122,19 +164,23 @@ namespace OpenMS
   {
   }
 
+
   void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap &spectra, const std::vector<AASequence>&annotations, String filename, Size precursor_charge)
   {
+    //----------- BEGIN OF PARAMETER READING-------------------------
+
     //upper and lower bounds for rescaling of features
-    double upper=0.0;
-    double lower=0.0;
+    double upper = 0.0;
+    double lower = 0.0;
 
-    bool secondary_types=false;
+    bool secondary_types = false;
 
-    //read the options
+
     Size number_of_intensity_levels = (UInt) param_.getValue("number_intensity_levels");
     Size number_of_regions = (UInt) param_.getValue("number_regions");
     DoubleReal parent_tolerance = param_.getValue("parent_tolerance");
     DoubleReal peak_tolerance = param_.getValue("peak_tolerance");
+    bool write_outfiles = param_.getValue("write_training_files").toBool();
 
     //build set of ion types
     std::vector<IonType> ion_types;
@@ -211,36 +257,59 @@ namespace OpenMS
       secondary_types=true;
     }
 
-    svm_parameter svm_param;    
-    svm_param.kernel_type = param_.getValue("svm:kernel_type");
-    svm_param.degree = param_.getValue("svm:degree");
-    svm_param.coef0 = param_.getValue("svm:coef0");
-    svm_param.cache_size = param_.getValue("svm:cache_size");
-    svm_param.eps = param_.getValue("svm:eps");
-    svm_param.C = param_.getValue("svm:C");
-    svm_param.nr_weight = 0;
-    svm_param.gamma = param_.getValue("svm:gamma");
-    //svm_param.nr_weight = param_.getValue("svm:nr_weight");
-    svm_param.weight_label = 0;
-    svm_param.weight = 0;
-    svm_param.nu = param_.getValue("svm:nu");
-    svm_param.p=param_.getValue("svm:p");
-    svm_param.shrinking = param_.getValue("svm:shrinking").toBool();
-    svm_param.probability = 0;
+    //-----------------------LOADING THE SVM PARAMETERS------------------
 
-    svm_parameter svm_param_class = svm_param;
-    svm_param_class.svm_type=param_.getValue("svm:svc_type");
-    svm_parameter svm_param_reg = svm_param;
-    svm_param_reg.svm_type=3+(Int)param_.getValue("svm:svr_type");
 
     int n_fold = param_.getValue("svm:n_fold");
 
-    bool scaling =param_.getValue("svm:scaling").toBool();
+    bool scaling = param_.getValue("svm:scaling").toBool();
     if (scaling)
     {
       upper=param_.getValue("svm:scaling_upper");
       lower=param_.getValue("svm:scaling_lower");
     }
+
+
+    //-----------------------loading svr parameters
+    svm_parameter svm_param_reg;
+    svm_param_reg.cache_size = param_.getValue("svm:cache_size");
+    svm_param_reg.shrinking = param_.getValue("svm:shrinking").toBool();
+    svm_param_reg.nr_weight = 0;
+
+    svm_param_reg.svm_type = 3 + (Int)param_.getValue("svm:svr_type");
+    svm_param_reg.kernel_type = param_.getValue("svm:svr:kernel_type");
+    svm_param_reg.degree = param_.getValue("svm:svr:degree");
+    svm_param_reg.coef0 = param_.getValue("svm:svr:coef0");
+
+    svm_param_reg.eps = param_.getValue("svm:svr:eps");
+    svm_param_reg.C = param_.getValue("svm:svr:C");
+    svm_param_reg.gamma = param_.getValue("svm:svr:gamma");
+    svm_param_reg.nu = param_.getValue("svm:svr:nu");
+    svm_param_reg.p=param_.getValue("svm:svr:p");
+    svm_param_reg.probability = 0;
+
+    //-----------------------loading svc parameters
+    svm_parameter svm_param_class;
+    svm_param_class.cache_size = param_.getValue("svm:cache_size");
+    svm_param_class.shrinking = param_.getValue("svm:shrinking").toBool();
+    svm_param_class.nr_weight = 0;
+
+    svm_param_class.svm_type = (Int)param_.getValue("svm:svc_type");
+    svm_param_class.kernel_type = param_.getValue("svm:svc:kernel_type");
+    svm_param_class.degree = param_.getValue("svm:svc:degree");
+    svm_param_class.coef0 = param_.getValue("svm:svc:coef0");
+
+    svm_param_class.eps = param_.getValue("svm:svc:eps");
+    svm_param_class.C = param_.getValue("svm:svc:C");
+    svm_param_class.gamma = param_.getValue("svm:svc:gamma");
+    svm_param_class.nu = param_.getValue("svm:svc:nu");
+    svm_param_class.probability = 0;
+
+    bool balancing = param_.getValue("svm:svc:balancing").toBool();
+
+
+    //----------- END OF PARAMETER READING-------------------------
+
 
     String info_outfile_name = filename + ".info";
     TextFile info_outfile;
@@ -253,21 +322,23 @@ namespace OpenMS
     //count number of usable spectra
     Size usable_spectra=spectra.size();
     std::vector<bool>is_spectrum_usable(spectra.size(), true);
-    for (Size index=0; index<spectra.size();++index)
+
+    for (Size index = 0; index < spectra.size(); ++index)
     {
       //test whether annotation for spectrum match. If theoretical and empirical mass differ too much skip this spectrum
-      Size empirical_charge=spectra[index].getPrecursors()[0].getCharge();
+      Int empirical_charge=spectra[index].getPrecursors()[0].getCharge();
       DoubleReal empirical_parent_mass=spectra[index].getPrecursors()[0].getMZ();
       DoubleReal theoretical_parent_mass=annotations[index].getMonoWeight(Residue::Full, empirical_charge)/empirical_charge;
-      if (abs(empirical_parent_mass-theoretical_parent_mass)>parent_tolerance)
+
+      if (abs(empirical_parent_mass-theoretical_parent_mass) > parent_tolerance)
       {
-        is_spectrum_usable[index]=false;
+        is_spectrum_usable[index] = false;
         --usable_spectra;
         std::cerr << "skipping spectrum " << index <<" due to parent mass missmatch"<<std::endl;
       }
-      else if (precursor_charge !=empirical_charge)
+      else if (precursor_charge != empirical_charge)
       {
-        is_spectrum_usable[index]=false;
+        is_spectrum_usable[index] = false;
         --usable_spectra;
         std::cerr << "skipping spectrum " << index <<" due to wrong precursor charge"<<std::endl;
       }
@@ -280,19 +351,28 @@ namespace OpenMS
     AASequence prefix, suffix;
 
     DescriptorSet tmp_desc;
-    Size num_features=spec_gen.generateDescriptorSet(annotations[0],0,ion_types[0], 1, tmp_desc);
+    Size num_features = spec_gen.generateDescriptorSet_(annotations[0],0,ion_types[0], 1, tmp_desc);
+
+    //use number of features to adapt gamma parameter if set to 0 (same is used in svm-train.c)
+    if(svm_param_class.gamma == 0)
+    {
+      svm_param_class.gamma = 1.0/num_features;
+    }
+    if(svm_param_reg.gamma == 0)
+    {
+      svm_param_reg.gamma = 1.0/num_features;
+    }
 
     //vectors to store the minimum and maximum value appearing in the training data for each feature (required for scaling)
-    std::map<std::pair<IonType,Size>, std::vector<DoubleReal> >observed_intensities;
+    ObservedIntensMap observed_intensities;
     std::map<Size, std::vector<DescriptorSet> >training_input;
     std::map<Size, std::vector<double> >training_output;
 
-    Size spec_index=0;
-    Size x=1;
+    Size spec_index = 0;
+    Size x = 1;
     //run over all input spectra
     for (PeakMap::const_iterator map_it = spectra.begin(); map_it < spectra.end(); map_it+=x, spec_index+=x)
-    {
-      //std::cerr<<spec_index<<std::endl;
+    {      
       if (!is_spectrum_usable[spec_index])
       {
         continue;
@@ -306,7 +386,7 @@ namespace OpenMS
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
       {        
         //store the intensities of the detected peaks for the given type in the actual spectrum (required for sec. type prob model)
-        countIntensities(input_spec_norm, annotations[spec_index], ion_types[type_nr], observed_intensities, peak_tolerance, number_of_regions);
+        countIntensities_(input_spec_norm, annotations[spec_index], ion_types[type_nr], observed_intensities, peak_tolerance, number_of_regions);
       }
 
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
@@ -353,7 +433,7 @@ namespace OpenMS
           }
 
           DescriptorSet descriptors;
-          spec_gen.generateDescriptorSet(annotations[spec_index],frag_pos-1,ion_types[type_nr], precursor_charge, descriptors);
+          spec_gen.generateDescriptorSet_(annotations[spec_index],frag_pos-1,ion_types[type_nr], precursor_charge, descriptors);
 
           training_input[type_nr].push_back(descriptors);
           training_output[type_nr].push_back(observed_peak_intensity);          
@@ -379,24 +459,24 @@ namespace OpenMS
         std::vector<svm_node>::iterator it;
         for(Size train_row=0; train_row<training_input[type_nr].size(); ++train_row)
         {
-          Size index=0;
-          for(it=training_input[type_nr][train_row].descriptors.begin(); it!=training_input[type_nr][train_row].descriptors.end(); ++it)
+          Size index = 0;
+          for(it = training_input[type_nr][train_row].descriptors.begin(); it != training_input[type_nr][train_row].descriptors.end(); ++it)
           {
-            while( (Int) index<it->index-1)
+            while( (Int) index < it->index-1)
             {
-              min_features[index]=std::min(min_features[index], 0.0);
-              max_features[index]=std::max(max_features[index],0.0);
+              min_features[index] = std::min(min_features[index], 0.0);
+              max_features[index] = std::max(max_features[index],0.0);
               ++index;
             }
-            min_features[index]=std::min(min_features[index], it->value);
-            max_features[index]=std::max(max_features[index], it->value);
+            min_features[index] = std::min(min_features[index], it->value);
+            max_features[index] = std::max(max_features[index], it->value);
             ++index;
           }
 
           while(index<num_features)
           {
-            min_features[index]=std::min(min_features[index], 0.0);
-            max_features[index]=std::max(max_features[index],0.0);
+            min_features[index] = std::min(min_features[index], 0.0);
+            max_features[index] = std::max(max_features[index],0.0);
             ++index;
           }
         }
@@ -405,7 +485,7 @@ namespace OpenMS
       //now use the min-max entries to scale the features
       //we have to set the private members feature_min and feature_max to call the scaleDescriptorSet method
       spec_gen.mp_.feature_min = min_features;
-      spec_gen.mp_.feature_max=max_features;
+      spec_gen.mp_.feature_max = max_features;
 
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
       {
@@ -418,33 +498,16 @@ namespace OpenMS
         for(Size train_row=0; train_row<training_input[type_nr].size(); ++train_row)
         {
           spec_gen.scaleDescriptorSet_(training_input[type_nr][train_row],lower, upper);
-        }
-        /*
-        //DEBUG OUTPUT
-        std::cerr<<"SCALED"<<std::endl;
-        for(Size ii=0; ii<training_input[type_nr].size(); ++ii)
-        {
-          std::cerr<<std::max(0.0,training_output[type_nr][ii])<<" ";
-          std::vector<svm_node>::iterator it_debug;
-          for(it_debug=training_input[type_nr][ii].descriptors.begin(); it_debug!=training_input[type_nr][ii].descriptors.end()-1; ++it_debug)
-          {
-            std::cerr<<" "<<it_debug->index<<":"<<it_debug->value;
-          }
-          std::cerr<<std::endl;
-        }*/
+        }        
       }
     }
+
+
     // Now 2 Steps - first we train a SVM classifier to predict abundance or miss of a peak.
     // In second step we train a SVM regression model to predict intensities. This svm is trained
-    // only with rows for abundant peaks
+    // only with rows for abundant peaks    
 
-    //adapt gamma parameter if set to 0 (same is used in svm-train.c)
-    if(svm_param.gamma==0)
-    {
-      svm_param_class.gamma=1.0/num_features;
-      svm_param_reg.gamma=1.0/num_features;
-    }
-
+    //Within this loop the SVR and SVC are trained for the primary ion types
     for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
     {
       if(!is_primary[type_nr])
@@ -461,65 +524,79 @@ namespace OpenMS
       training_input_reg.reserve(training_input[type_nr].size());
       training_output_reg.reserve(training_output[type_nr].size());
 
-      for(Size i=0; i<training_output[type_nr].size(); ++i)
+      for(Size i = 0; i < training_output[type_nr].size(); ++i)
       {
         training_input_reg.push_back(training_input[type_nr][i]);
         training_output_reg.push_back(std::max(0.0,training_output[type_nr][i]));
       }
 
-      std::vector<double>predictions_reg(training_input_reg.size(), 0);
-      svm_node ** input_training_reg =new svm_node * [training_input_reg.size()];
-      double * output_training_reg = &training_output_reg[0];
-      for(Size i=0; i<training_input_reg.size(); ++i)
-      {
-        input_training_reg[i]=&(training_input_reg[i].descriptors[0]);
+      String svm_model_file_reg;
+      if(write_outfiles)
+      {        
+        write_training_file_(training_input_reg, training_output_reg, String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+                             ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.dat");
       }
-
-      svm_problem svm_p_reg;
-      svm_p_reg.l = training_input_reg.size();
-      svm_p_reg.y = output_training_reg;
-      svm_p_reg.x = input_training_reg;
-
-      std::cerr<<training_output_reg.size()<<"  "<<training_input_reg.size()<<std::endl;
-      //perform cross validation
-      std::cerr<<"start cross validation for SVR model"<<std::endl;
-      svm_cross_validation(&svm_p_reg, &svm_param_reg, n_fold, &predictions_reg[0]);
-      std::cerr<<"DONE"<<std::endl;	
-
-      //compute cross correlation coefficient of predicted and true intensities      
-      double coeff_reg =  gsl_stats_correlation(&training_output_reg[0], 1, &predictions_reg[0], 1, training_output_reg.size());
-      std::cerr<<"Correlation Coefficient: "<<coeff_reg<<std::endl;
-
-      //train and store
-      svm_model *model_reg =  svm_train(&svm_p_reg, &svm_param_reg);
-      String svm_model_file_reg=filename + "_" + ion_types[type_nr].residue + "_" + ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.svm";
-      if(svm_save_model(svm_model_file_reg.c_str(), model_reg)==-1)
+      else
       {
-        throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_reg);
-      }
+        std::vector<double> predictions_reg(training_input_reg.size(), 0);
+        svm_node ** input_training_reg = new svm_node * [training_input_reg.size()];
+        double * output_training_reg = &training_output_reg[0];
+        for(Size i = 0; i < training_input_reg.size(); ++i)
+        {
+          input_training_reg[i] = &(training_input_reg[i].descriptors[0]);
+        }
 
-      svm_destroy_model(model_reg);
-      svm_destroy_param(&svm_param_reg);
+        svm_problem svm_p_reg;
+        svm_p_reg.l = (int) training_input_reg.size();
+        svm_p_reg.y = output_training_reg;
+        svm_p_reg.x = input_training_reg;        
+
+        if(n_fold > 1)
+        {
+          //perform cross validation
+          std::cerr<<"start cross validation for SVR model"<<std::endl;
+          svm_cross_validation(&svm_p_reg, &svm_param_reg, n_fold, &predictions_reg[0]);
+
+          //compute cross correlation coefficient of predicted and true intensities
+          double coeff_reg =  gsl_stats_correlation(&training_output_reg[0], 1, &predictions_reg[0], 1, training_output_reg.size());
+          std::cerr<<"Correlation Coefficient: "<<coeff_reg<<std::endl;
+        }
+
+        //train and store
+        svm_model *model_reg =  svm_train(&svm_p_reg, &svm_param_reg);
+
+        svm_model_file_reg = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+                             ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.svm";
+
+        if(svm_save_model(svm_model_file_reg.c_str(), model_reg)==-1)
+        {
+          throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_reg);
+        }
+
+        svm_destroy_model(model_reg);
+        delete [] input_training_reg;
+
+      }//end of else
+
 
       //------------------------------------------------------------------------------------------
       //----------------------------------Training of SVC Model-----------------------------
       //------------------------------------------------------------------------------------------
 
       //make binary
-      for(Size i=0; i<training_input[type_nr].size(); ++i)
+      for(Size i=0; i<training_output[type_nr].size(); ++i)
       {
-        training_output[type_nr][i]= training_output[type_nr][i]!=-1 ? 1:0 ; //if peak was abundant class 1 else 0
+        training_output[type_nr][i] = training_output[type_nr][i] != -1 ? 1:0 ; //if peak was abundant class 1 else 0
       }
 
-      //create balanced set
-      bool balancing =true;
+      //create balanced set      
       if(balancing)
       {
         std::vector<std::vector<Size> >training_data_by_class(2);
         std::vector<double>::const_iterator it;
         std::vector<DescriptorSet>tmp_training;
         std::vector<double>tmp_output;
-        for(it=training_output[type_nr].begin(); it!=training_output[type_nr].end(); ++it)
+        for(it = training_output[type_nr].begin(); it != training_output[type_nr].end(); ++it)
         {
           training_data_by_class[*it].push_back(it-training_output[type_nr].begin());
         }
@@ -527,69 +604,93 @@ namespace OpenMS
         std::random_shuffle(training_data_by_class[0].begin(),training_data_by_class[0].end() );
         std::random_shuffle(training_data_by_class[1].begin(),training_data_by_class[1].end() );
 
-        for(Size num=0; num<min_size; ++num)
+        for(Size num = 0; num < min_size; ++num)
         {
-          for(Size intens=0; intens<2; ++intens)
+          for(Size intens = 0; intens < 2; ++intens)
           {
             tmp_training.push_back(training_input[type_nr][training_data_by_class[intens][num]]);
             tmp_output.push_back(intens);
           }
         }
-        training_input[type_nr]=tmp_training;
-        training_output[type_nr]=tmp_output;
+        training_input[type_nr] = tmp_training;
+        training_output[type_nr] = tmp_output;
       }
 
-      double * output_training_class = &training_output[type_nr][0];
-      svm_node ** input_training_class =new svm_node * [training_input[type_nr].size()];
-      for(Size i=0; i<training_input[type_nr].size(); ++i)
+      if(write_outfiles)
       {
-        input_training_class[i]=&(training_input[type_nr][i].descriptors[0]);
+        write_training_file_(training_input[type_nr], training_output[type_nr], String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+                             ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.dat");
       }
 
-      svm_problem svm_p_class;
-      svm_p_class.l = training_output[type_nr].size();
-      svm_p_class.y = output_training_class;
-      svm_p_class.x = input_training_class;      
+      else
+      {        
+        double * output_training_class = &training_output[type_nr][0];
+        svm_node ** input_training_class = new svm_node * [training_input[type_nr].size()];
+        for(Size i = 0; i < training_input[type_nr].size(); ++i)
+        {
+          input_training_class[i] = &(training_input[type_nr][i].descriptors[0]);
+        }
 
-      //perform cross validation
-      std::vector<double>predictions_class(training_input[type_nr].size(), 0);
-      std::cerr<<"start cross validation for SVC model"<<std::endl;
-      svm_cross_validation(&svm_p_class, &svm_param_class, n_fold, &predictions_class[0]);
+        svm_problem svm_p_class;
+        svm_p_class.l = (int) training_output[type_nr].size();
+        svm_p_class.y = output_training_class;
+        svm_p_class.x = input_training_class;
 
-      Size TP=0, FP=0, TN=0, FN=0;
-      for(Size i=0; i<predictions_class.size(); ++i)
-      {
-        if(predictions_class[i]==0 && output_training_class[i]==0) ++TN;
-        if(predictions_class[i]==1 && output_training_class[i]==1) ++TP;
-        if(predictions_class[i]==1 && output_training_class[i]==0) ++FP;
-        if(predictions_class[i]==0 && output_training_class[i]==1) ++FN;
-      }
-      std::cerr<<"TP: "<<TP<<"  TN: "<<TN<<"  FP: "<<FP<<" FN: "<<FN<<std::endl;
+        //perform cross validation
+        if(n_fold > 1)
+        {
+          std::cerr<<"start cross validation for SVC model"<<std::endl;
+          std::vector<double> predictions_class(training_input[type_nr].size(), 0.);
+          svm_cross_validation(&svm_p_class, &svm_param_class, n_fold, &predictions_class[0]);
 
-      //train and store
-      svm_model *model_class =  svm_train(&svm_p_class, &svm_param_class);
-      String svm_model_file_class=filename + "_" + ion_types[type_nr].residue + "_" + ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.svm";
-      if(svm_save_model(svm_model_file_class.c_str(), model_class)==-1)
-      {
-        throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_class);
-      }
+          Size TP = 0, FP = 0, TN = 0, FN = 0;
+          for(Size i=0; i<predictions_class.size(); ++i)
+          {
+            if(predictions_class[i] == 0 && output_training_class[i] == 0) ++TN;
+            if(predictions_class[i] == 1 && output_training_class[i] == 1) ++TP;
+            if(predictions_class[i] == 1 && output_training_class[i] == 0) ++FP;
+            if(predictions_class[i] == 0 && output_training_class[i] == 1) ++FN;
+          }
+          std::cerr<<"TP: "<<TP<<"  TN: "<<TN<<"  FP: "<<FP<<" FN: "<<FN<<std::endl;
+        }
 
-      svm_destroy_model(model_class);
-      svm_destroy_param(&svm_param_class);
+        //train and store
+        svm_model *model_class =  svm_train(&svm_p_class, &svm_param_class);
+
+        String svm_model_file_class = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+                                      ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.svm";
+
+        if(svm_save_model(svm_model_file_class.c_str(), model_class) == -1)
+        {
+          throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_class);
+        }
+
+        svm_destroy_model(model_class);
+        delete [] input_training_class;
 
 
-      //add entries to info file
-      info_outfile.push_back("<IonType>");
-      info_outfile.push_back(ion_types[type_nr].residue);
-      info_outfile.push_back(ion_types[type_nr].loss.getString());
-      info_outfile.push_back(ion_types[type_nr].charge);
-      info_outfile.push_back("<SvmModelFileClass>");
-      info_outfile.push_back(svm_model_file_class);
-      info_outfile.push_back("</SvmModelFileClass>");
-      info_outfile.push_back("<SvmModelFileReg>");
-      info_outfile.push_back(svm_model_file_reg);
-      info_outfile.push_back("</SvmModelFileReg>");
-      info_outfile.push_back("</IonType>");
+        //add entries to info file
+        info_outfile.push_back("<IonType>");
+        info_outfile.push_back(ion_types[type_nr].residue);
+        info_outfile.push_back(ion_types[type_nr].loss.getString());
+        info_outfile.push_back(ion_types[type_nr].charge);
+        info_outfile.push_back("<SvmModelFileClass>");
+        info_outfile.push_back(svm_model_file_class);
+        info_outfile.push_back("</SvmModelFileClass>");
+        info_outfile.push_back("<SvmModelFileReg>");
+        info_outfile.push_back(svm_model_file_reg);
+        info_outfile.push_back("</SvmModelFileReg>");
+        info_outfile.push_back("</IonType>");
+
+      }//end of else
+
+    }//End of training SVR and SVC for the primary types
+
+
+    //If we are only generating the outfiles we can terminare here
+    if(write_outfiles)
+    {
+      return;
     }
 
     info_outfile.push_back("</PrimaryTypes>");
@@ -604,164 +705,22 @@ namespace OpenMS
     info_outfile.push_back("</MaxFeatures>");
     info_outfile.push_back("<MinFeatures>");
     info_outfile.insert(info_outfile.end(), min_features.begin(), min_features.end());
-    info_outfile.push_back("</MinFeatures>");
-
-    info_outfile.push_back("<SecondaryTypes>");
-    info_outfile.push_back("<IntensityLevels>");
-    info_outfile.push_back(number_of_intensity_levels);
-    info_outfile.push_back("</IntensityLevels>");
-
+    info_outfile.push_back("</MinFeatures>");    
 
     //------------------------------------------------------------------------------------------
     //----------------------Training prob. model for secondary types------------------
     //------------------------------------------------------------------------------------------
+
+    info_outfile.push_back("<SecondaryTypes>");
     if(secondary_types)
     {
-      std::vector<DoubleReal>tmp;
-      for(Size region = 0; region < number_of_regions; ++ region)
-      {
-      //we start by binning the intensities. We select the bin boarders such that
-      //the intensities of the primary ions are equally split
-        std::vector<DoubleReal> &observed_b=observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
-        tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
-        std::vector<DoubleReal> &observed_y=observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
-        tmp.insert(tmp.end(),observed_y.begin(), observed_y.end());
-      }
+      info_outfile.push_back("<IntensityLevels>");
+      info_outfile.push_back(number_of_intensity_levels);
+      info_outfile.push_back("</IntensityLevels>");
 
-      std::vector<DoubleReal>bin_boarders(number_of_intensity_levels);
-      std::vector<DoubleReal>bin_values(number_of_intensity_levels);
-      std::sort(tmp.begin(), tmp.end());
-
-      //find the first nonzero
-      Size first_non_zero=0;
-      while(first_non_zero<tmp.size()&& tmp[first_non_zero]==0)
-      {
-        ++first_non_zero;
-      }      
-
-      Size non_zero_size=tmp.size()-first_non_zero;
-      Size prev_index=0;
-      for(Size i=1; i<number_of_intensity_levels; ++i)
-      {
-        Size index = i* (DoubleReal) non_zero_size/(number_of_intensity_levels-1)+first_non_zero;
-        DoubleReal count=0;
-        for(Size j=prev_index; j<index; ++j)
-        {
-          count+=tmp[j];
-        }
-        bin_boarders[i-1]=tmp[index-1];
-        bin_values[i-1]=count/(index-prev_index);
-        prev_index=index;
-
-        std::cerr<<index<<"  !!  "<<non_zero_size<<"  "<<tmp.size()<<std::endl;
-        std::cerr<<"boarder "<<bin_boarders[i-1]<<std::endl;
-        std::cerr<<"value "<<bin_values[i-1]<<std::endl;
-      }
-
-      info_outfile.push_back("<IntensityBinBoarders>");
-      for(Size i=0; i<number_of_intensity_levels-1; ++i)
-        info_outfile.push_back(bin_boarders[i]);
-      info_outfile.push_back("</IntensityBinBoarders>");
-      info_outfile.push_back("<IntensityBinValues>");
-      for(Size i=0; i<number_of_intensity_levels-1; ++i)
-        info_outfile.push_back(bin_values[i]);
-      info_outfile.push_back("</IntensityBinValues>");
-
-      //use the boarder values to bin the entries
-      for(Size region = 0; region < number_of_regions; ++ region)
-      {
-        for(Size i=0; i<ion_types.size(); ++i)
-        {
-          std::vector<DoubleReal> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
-          for(Size j=0; j<intensities.size(); ++j)
-          {
-            DoubleReal intens = intensities[j];
-            if(intens == 0.0|| intens == -1.0)
-              continue;
-
-            Size k=1;
-            while(k<number_of_intensity_levels-1 && intens>bin_boarders[k-1] )
-              ++k;
-
-            intensities[j]=k;
-          }
-        }
-      }
-
-      std::map<std::pair<IonType,Size>, std::vector<std::vector<DoubleReal> > >joint_counts;
-      std::map<std::pair<IonType,Size>,  std::vector<DoubleReal> >background_counts;
-
-      //count joint appearences of primary and secondary peaks
-      for(Size i=0; i<ion_types.size(); ++i)
-      {
-        const IonType & type = ion_types[i];
-        if(is_primary[i])
-          continue;
-
-        IonType primary_type=IonType(Residue::BIon);
-
-        if(type.residue == Residue::YIon ||
-           type.residue == Residue::XIon ||
-           type.residue == Residue::ZIon)
-        {
-          primary_type=IonType(Residue::YIon);
-        }
-        for(Size region =0; region < number_of_regions; ++region)
-        {
-          joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,0));
-          background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, 0);
-          const std::vector<DoubleReal> &secondary = observed_intensities[std::make_pair(type, region)];
-          const std::vector<DoubleReal> &primary = observed_intensities[std::make_pair(primary_type, region)];
-          std::cerr<<primary.size()<<"  ::::   "<<secondary.size()<<std::endl;
-          std::cerr<<primary_type.residue<<"  ::::   "<<type.residue<<std::endl;
-
-          for(Size j=0; j<primary.size(); ++j)
-          {
-            if(secondary[j]!=-1.0)
-            {
-              ++joint_counts[std::make_pair(type, region)][(Size)secondary[j]][(Size)primary[j]];
-              ++background_counts[std::make_pair(type, region)][(Size)primary[j]];
-            }
-          }
-        }
-      }
-
-      //compute conditional probabilities and store them in the outfile
-      for(Size i=0; i<ion_types.size(); ++i)
-      {
-        const IonType & type = ion_types[i];
-        if(is_primary[i])
-          continue;
-
-        info_outfile.push_back("<IonType>");
-        info_outfile.push_back(type.residue);
-        info_outfile.push_back(type.loss.getString());
-        info_outfile.push_back(type.charge);
-        info_outfile.push_back("<ConditionalProbabilities>");
-
-        for(Size region =0; region < number_of_regions; ++region)
-        {          
-          info_outfile.push_back("<Region "+ String(region) + ">");
-          std::vector<DoubleReal> & back_counts = background_counts[std::make_pair(type, region)];
-
-          for(Size prim=0; prim<number_of_intensity_levels; ++prim)
-          {
-            for(Size sec=0; sec<number_of_intensity_levels; ++sec)
-            {
-              if(back_counts[prim]!=0)
-              {
-                joint_counts[std::make_pair(type, region)][sec][prim]= joint_counts[std::make_pair(type, region)][sec][prim]/back_counts[prim];
-                info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
-                std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
-              }
-            }
-          }
-          info_outfile.push_back("</Region " + String(region) + ">");
-        }
-        info_outfile.push_back("</ConditionalProbabilities>");
-        info_outfile.push_back("</IonType>");
-        }      
+      trainSecondaryTypes_(info_outfile, number_of_regions, number_of_intensity_levels, observed_intensities, ion_types, is_primary);
     }
+
     info_outfile.push_back("</SecondaryTypes>");
     info_outfile.store(info_outfile_name);
   }
@@ -789,9 +748,13 @@ namespace OpenMS
     std::vector<DoubleReal>intensities(S.size());
     for(Size i=0; i<S.size(); ++i)
     {
-      intensities[i]=log(S[i].getIntensity() * 100);
-      max_intens=std::max(max_intens, intensities[i]);
-      min_intens=std::min(min_intens, intensities[i]);
+      //std::cerr<<"before norm: "<<S[i].getIntensity()<<std::endl;
+      if(S[i].getIntensity()>0)
+      {
+        intensities[i]=log(S[i].getIntensity() * 100);
+        max_intens=std::max(max_intens, intensities[i]);
+        min_intens=std::min(min_intens, intensities[i]);
+      }
     }
 
     DoubleReal lower = 0;
@@ -799,17 +762,176 @@ namespace OpenMS
     //normalize intensities to one
     for(Size i=0; i<S.size(); ++i)
     {
-      DoubleReal intens = lower + (upper-lower) *
+      if(S[i].getIntensity()>0)
+      {
+        DoubleReal intens = lower + (upper-lower) *
                              (intensities[i]-min_intens)/
                              (max_intens-min_intens);
-      S[i].setIntensity(intens);
+        S[i].setIntensity(intens);
+      }
+      else
+      {
+        S[i].setIntensity(0);
+      }
+      //std::cerr<<"normed intens: "<<S[i].getIntensity()<<std::endl;
     }
   }
 
 
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile &info_outfile,
+                                                                    Size number_of_regions,
+                                                                    Size number_of_intensity_levels,
+                                                                    ObservedIntensMap &observed_intensities,
+                                                                    const std::vector<IonType> &ion_types,
+                                                                    const std::vector<bool> &is_primary
+                                                                    )
+  {
+    std::vector<DoubleReal>tmp;
+    for(Size region = 0; region < number_of_regions; ++ region)
+    {
+    //we start by binning the intensities. We select the bin boarders such that
+    //the intensities of the primary ions are equally split
+      std::vector<DoubleReal> &observed_b=observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
+      tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
+      std::vector<DoubleReal> &observed_y=observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
+      tmp.insert(tmp.end(),observed_y.begin(), observed_y.end());
+    }
+
+    std::vector<DoubleReal>bin_boarders(number_of_intensity_levels);
+    std::vector<DoubleReal>bin_values(number_of_intensity_levels);
+    std::sort(tmp.begin(), tmp.end());
+
+    //find the first nonzero
+    Size first_non_zero=0;
+    while(first_non_zero<tmp.size()&& tmp[first_non_zero]==0)
+    {
+      ++first_non_zero;
+    }
+
+    Size non_zero_size = tmp.size()-first_non_zero;
+    Size prev_index = 0;
+    for(Size i=1; i<number_of_intensity_levels; ++i)
+    {
+      Size index = i* (DoubleReal) non_zero_size/(number_of_intensity_levels-1) + first_non_zero;
+      DoubleReal count = 0;
+      for(Size j = prev_index; j < index; ++j)
+      {
+        count += tmp[j];
+      }
+      bin_boarders[i-1] = tmp[index-1];
+      bin_values[i-1] = count/(index-prev_index);
+      prev_index = index;
+    }
+
+    info_outfile.push_back("<IntensityBinBoarders>");
+    for(Size i = 0; i < number_of_intensity_levels-1; ++i)
+    {
+      info_outfile.push_back(bin_boarders[i]);
+    }
+    info_outfile.push_back("</IntensityBinBoarders>");
+    info_outfile.push_back("<IntensityBinValues>");
+    for(Size i = 0; i < number_of_intensity_levels-1; ++i)
+    {
+      info_outfile.push_back(bin_values[i]);
+    }
+    info_outfile.push_back("</IntensityBinValues>");
+
+    //use the boarder values to bin the entries
+    for(Size region = 0; region < number_of_regions; ++ region)
+    {
+      for(Size i=0; i<ion_types.size(); ++i)
+      {
+        std::vector<DoubleReal> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
+        for(Size j=0; j<intensities.size(); ++j)
+        {
+          DoubleReal intens = intensities[j];
+          if(intens == 0.0|| intens == -1.0)
+            continue;
+
+          Size k=1;
+          while(k<number_of_intensity_levels-1 && intens>bin_boarders[k-1] )
+            ++k;
+
+          intensities[j]=k;
+        }
+      }
+    }
+
+    std::map<std::pair<IonType,Size>, std::vector<std::vector<DoubleReal> > >joint_counts;
+    std::map<std::pair<IonType,Size>,  std::vector<DoubleReal> >background_counts;
+
+    //count joint appearences of primary and secondary peaks
+    for(Size i=0; i<ion_types.size(); ++i)
+    {
+      const IonType & type = ion_types[i];
+      if(is_primary[i])
+        continue;
+
+      IonType primary_type=IonType(Residue::BIon);
+
+      if(type.residue == Residue::YIon ||
+         type.residue == Residue::XIon ||
+         type.residue == Residue::ZIon)
+      {
+        primary_type=IonType(Residue::YIon);
+      }
+      for(Size region =0; region < number_of_regions; ++region)
+      {
+        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,1));
+        background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, number_of_intensity_levels);
+        const std::vector<DoubleReal> &secondary = observed_intensities[std::make_pair(type, region)];
+        const std::vector<DoubleReal> &primary = observed_intensities[std::make_pair(primary_type, region)];
+
+        for(Size j=0; j<primary.size(); ++j)
+        {
+          if(secondary[j]!=-1.0)
+          {
+            ++joint_counts[std::make_pair(type, region)][(Size)secondary[j]][(Size)primary[j]];
+            ++background_counts[std::make_pair(type, region)][(Size)primary[j]];
+          }
+        }
+      }
+    }
+
+    //compute conditional probabilities and store them in the outfile
+    for(Size i=0; i<ion_types.size(); ++i)
+    {
+      const IonType & type = ion_types[i];
+      if(is_primary[i])
+        continue;
+
+      info_outfile.push_back("<IonType>");
+      info_outfile.push_back(type.residue);
+      info_outfile.push_back(type.loss.getString());
+      info_outfile.push_back(type.charge);
+      info_outfile.push_back("<ConditionalProbabilities>");
+
+      for(Size region = 0; region < number_of_regions; ++region)
+      {
+        info_outfile.push_back("<Region "+ String(region) + ">");
+        std::vector<DoubleReal> & back_counts = background_counts[std::make_pair(type, region)];
+
+        for(Size prim = 0; prim < number_of_intensity_levels; ++prim)
+        {
+          for(Size sec = 0; sec < number_of_intensity_levels; ++sec)
+          {
+            if(back_counts[prim]!=0)
+            {
+              joint_counts[std::make_pair(type, region)][sec][prim] = joint_counts[std::make_pair(type, region)][sec][prim]/back_counts[prim];
+              //std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
+            }
+            info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
+          }
+        }
+        info_outfile.push_back("</Region " + String(region) + ">");
+      }
+      info_outfile.push_back("</ConditionalProbabilities>");
+      info_outfile.push_back("</IonType>");
+      }
+  }
 
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities(const PeakSpectrum &spectrum,
+  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum &spectrum,
                                            const AASequence &annotation,
                                            IonType type,
                                            std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > & observed_intensities,
@@ -817,12 +939,12 @@ namespace OpenMS
                                            Size number_of_regions
                                            )
   {
-    Residue::ResidueType residue=type.residue;
-    EmpiricalFormula loss=type.loss;
-    Size charge = type.charge;
+    Residue::ResidueType residue = type.residue;
+    EmpiricalFormula loss = type.loss;
+    Int charge = type.charge;
 
-    std::set<String>possible_n_term_losses;
-    std::set<String>possible_c_term_losses;
+    std::set<String> possible_n_term_losses;
+    std::set<String> possible_c_term_losses;
     DoubleReal true_offset_mass = -1.;
 
 
@@ -844,7 +966,7 @@ namespace OpenMS
       }
       //check for possible losses on the c-terminal ions
       possible_c_term_losses.clear();
-      for(Size pos=frag_pos;pos<annotation.size();++pos)
+      for(Size pos = frag_pos; pos < annotation.size(); ++pos)
       {
         if (annotation[pos].hasNeutralLoss())
         {
@@ -892,6 +1014,26 @@ namespace OpenMS
       }
       observed_intensities[std::make_pair(type, region)].push_back(observed_peak_intensity);
     }
+  }
+
+
+  void SvmTheoreticalSpectrumGeneratorTrainer::write_training_file_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename)
+  {
+    std::cerr<<"Creating Training File.. "<< filename;
+    TextFile file;
+    for(Size i = 0; i < training_input.size(); ++i)
+    {
+      std::stringstream ss;
+      ss<<training_output[i]<<" ";
+      std::vector<svm_node>::iterator it_debug;
+      for(it_debug=training_input[i].descriptors.begin(); it_debug < training_input[i].descriptors.end() - 1; ++it_debug)
+      {
+        ss<<" "<< it_debug->index << ":" << it_debug->value;
+      }
+      file.push_back (ss.str());
+    }
+    file.store(filename);
+    std::cerr<<" Done" <<std::endl;
   }
 
 

@@ -1,22 +1,23 @@
 
 -- General information --
 
-file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_1_input.txt
-file type: DTA
+File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_1_input.txt
+File type: DTA
 
-peak type (metadata) : Unknown
-peak type (estimated): Peak data
+Peak type (metadata): Unknown
+Peak type (estimated): Peak data
 
 Number of spectra: 1
-Number of peaks:   57
+Number of peaks: 57
 
 Ranges:
-  retention time:  -1.00 : -1.00
-  mass-to-charge:  261.30 : 783.50
-  intensity:       3672.00 : 272411.00
+  retention time: -1.00 .. -1.00
+  mass-to-charge: 261.30 .. 783.50
+  intensity:      3672.00 .. 272411.00
 
 MS levels: 1
-Spectra of MS Level 1: 1
+Number of spectra per MS level:
+  level 1: 1
 
 
 

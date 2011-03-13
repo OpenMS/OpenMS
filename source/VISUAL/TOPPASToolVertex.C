@@ -138,7 +138,8 @@ namespace OpenMS
 			ini_file += type_.toQString() + "_";
 		}
 		ini_file += File::getUniqueName().toQString() + "_tmp.ini";
-		
+    ini_file = QDir::toNativeSeparators(ini_file);
+
 		String call = name_ + " -write_ini " + ini_file;
 		if (type_ != "")
 		{
@@ -432,13 +433,13 @@ namespace OpenMS
 		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		QString ini_file = File::getTempDirectory().toQString()
-							+QDir::separator()
-							+getOutputDir().toQString()
-							+QDir::separator()
-							+name_.toQString();
+						           + QDir::separator()
+						           + getOutputDir().toQString()
+						           + QDir::separator()
+						           + name_.toQString();
 		if (type_ != "")
 		{
-			ini_file += "_"+type_.toQString();
+			ini_file += "_" + type_.toQString();
 		}
 		ini_file += ".ini";
 		// do not write the ini yet - we might need to alter it
@@ -483,7 +484,7 @@ namespace OpenMS
         bool store_to_ini = false;
         // check for GenericWrapper input/output files and put them in INI file:
         if (param_name.hasPrefix("ETool:")) store_to_ini = true;
-        if (!store_to_ini) args << "-"+param_name.toQString();
+        if (!store_to_ini) args << "-" + param_name.toQString();
 				
         QStringList file_list;
 
@@ -540,7 +541,7 @@ namespace OpenMS
             bool store_to_ini = false;
             // check for GenericWrapper input/output files and put them in INI file:
             if (param_name.hasPrefix("ETool:")) store_to_ini = true;
-            if (!store_to_ini) args << "-"+param_name.toQString();
+            if (!store_to_ini) args << "-" + param_name.toQString();
 
 						const QStringList& output_files = current_output_files_[param_index];
 
@@ -562,7 +563,7 @@ namespace OpenMS
 			}
       
       // each iteration might have different params (input/output items which are registered in subsections (GenericWrapper stuff))
-      QString ini_file_iteration = (String(ini_file) + String(num_iterations_)).toQString();
+      QString ini_file_iteration = QDir::toNativeSeparators( ini_file + QString::number(num_iterations_) );
       writeParam_(param_tmp, ini_file_iteration);
       args << "-ini" << ini_file_iteration;
 
@@ -574,7 +575,7 @@ namespace OpenMS
 			connect(ts,SIGNAL(terminateCurrentPipeline()),p,SLOT(kill()));
 			
 			//enqueue process
-			std::cout << "TOPPAS: Enqueue: " << name_ << " " << String(args.join(" ")) << std::endl;
+			std::cout << "Enqueue: " << name_ << " \"" << String(args.join("\" \"")) << "\"" << std::endl;
 			ts->enqueueProcess(p, name_.toQString(), args);
 		}
 		
@@ -814,38 +815,48 @@ namespace OpenMS
 					if (in_parameter_has_list_type_ && out_params[param_index].type == IOInfo::IOT_FILE)
 					{
 						QString f = File::getTempDirectory().toQString()
-							+QDir::separator()
-							+getOutputDir().toQString()
-							+QDir::separator()
-              +out_params[param_index].param_name.remove(':').toQString()
-							+QDir::separator()
-							+input_file_basenames.first()
-							+"_to_"
-							+input_file_basenames.last()
-							+"_merged_tmp"+QString::number(uid_++);
+							          + QDir::separator()
+							          + getOutputDir().toQString()
+							          + QDir::separator()
+                        + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
+							          + QDir::separator();
+						if (f.length()>150) LOG_WARN << "Warning: the temporary path '" << String(f) << "' used in TOPPAS has many characters.\n"
+                                         << "         TOPPAS might not be able to write files properly.\n";
+
+						f += QString(input_file_basenames.first()
+                         + "_to_"
+                         + input_file_basenames.last()
+                         + "_merged");
+            f = f.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
+            f += "_tmp" + QString::number(uid_++);
+            f = QDir::toNativeSeparators(f);
 						current_output_files_[param_index].push_back(f);
 					}
 					else
+          // single input file
 					{
-						foreach (const QString& str, input_file_basenames)
+						foreach (const QString& input_file, input_file_basenames)
 						{
 							QString f = File::getTempDirectory().toQString()
-								+QDir::separator()
-								+getOutputDir().toQString()
-								+QDir::separator()
-								+out_params[param_index].param_name.remove(':').toQString()
-								+QDir::separator()
-								+str;
-							QRegExp rx("_tmp\\d+$");
+								          + QDir::separator()
+								          + getOutputDir().toQString()
+								          + QDir::separator()
+								          + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
+								          + QDir::separator();
+							if (f.length()>150) LOG_WARN << "Warning: the temporary path '" << String(f) << "' used in TOPPAS has many characters.\n"
+                                           << "         TOPPAS might not be able to write files properly.\n";
+              f += input_file;
+							QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
 							int tmp_index = rx.indexIn(f);
-							//std::cout << "tmp_index: " << tmp_index << std::endl;
-							if (tmp_index != -1)
+              if (tmp_index != -1)
 							{
 								f = f.left(tmp_index);
 							}
-							f += "_tmp" + QString::number(uid_++);
+              f = f.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
+              f += "_tmp" + QString::number(uid_++);
+              f = QDir::toNativeSeparators(f);
 							current_output_files_[param_index].push_back(f);
-						}
+            }
 					}
 
 					break; // we are done, don't push_back further file names for this parameter

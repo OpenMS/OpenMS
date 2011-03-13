@@ -62,12 +62,11 @@ END_SECTION
 START_SECTION((static const String getProductName()))
 	StablePairFinder spf;
 
-  TEST_EQUAL(spf.getName() == "stable",true)
+  TEST_EQUAL(spf.getName() == "stable", true)
 END_SECTION
 
 START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
 {
-
   std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;
@@ -115,9 +114,6 @@ START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
 
   StablePairFinder spf;
 	Param param = spf.getDefaults();
-//	param.setValue("similarity:max_pair_distance:RT",50.0);
-//	param.setValue("similarity:max_pair_distance:MZ",5.0);
-//	param.setValue("similarity:second_nearest_gap",  2.0);
 	spf.setParameters(param);
 	ConsensusMap result;
 	spf.run(input,result);
@@ -160,6 +156,89 @@ START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
   STATUS(*it);
 	STATUS(ind6);
   TEST_EQUAL(*(it) == ind6, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
+{
+	// test quality calculation:
+	std::vector<ConsensusMap> input(2);
+  Feature feat1, feat2, feat3;
+  PositionType pos1(100, 100);
+  PositionType pos2(200, 200);
+  PositionType pos3(300, 300);
+  feat1.setPosition(pos1);
+  feat1.setIntensity(100.0);
+  feat1.setUniqueId(0);
+  feat2.setPosition(pos2);
+  feat2.setIntensity(200.0);
+  feat2.setUniqueId(1);
+  feat3.setPosition(pos3);
+  feat3.setIntensity(300.0);
+  feat3.setUniqueId(2);
+  // ConsensusFeature cons1(feat1);
+  // ConsensusFeature cons2(feat2);
+  // ConsensusFeature cons3(feat3);
+
+  StablePairFinder spf;
+	Param param = spf.getDefaults();
+	param.setValue("distance_RT:max_difference", 1000.0);
+	param.setValue("distance_MZ:max_difference", 1000.0);
+	param.setValue("second_nearest_gap", 2.0);
+	spf.setParameters(param);
+	ConsensusMap result;
+
+	// best case:
+  input[0].push_back(ConsensusFeature(0, feat1));
+	input[1].push_back(ConsensusFeature(1, feat1));
+	spf.run(input, result);
+	TEST_EQUAL(result.size(), 1);
+	TEST_EQUAL(result[0].size(), 2);
+	TEST_EQUAL(result[0].getQuality(), 1.0);
+	input[0] = result;
+	input[1][0] = ConsensusFeature(2, feat1);
+	spf.run(input, result);
+	TEST_EQUAL(result.size(), 1);
+	TEST_EQUAL(result[0].size(), 3);
+	TEST_EQUAL(result[0].getQuality(), 1.0);
+
+	// worst case:
+	input[0].clear();
+	spf.run(input, result);
+	TEST_EQUAL(result.size(), 1);
+	TEST_EQUAL(result[0].size(), 1);
+	TEST_EQUAL(result[0].getQuality(), 0.0);
+	
+	// intermediate cases:
+	// basis: feat1 < feat2 < feat3
+	input[1].clear();
+	input[0].push_back(ConsensusFeature(0, feat1));
+	input[1].push_back(ConsensusFeature(1, feat2));
+	spf.run(input, result);
+	ConsensusFeature cons1 = result[0];
+	TEST_EQUAL(cons1.size(), 2);
+	input[0] = result;
+	input[1][0] = ConsensusFeature(2, feat3);
+	spf.run(input, result);
+	ConsensusFeature cons2 = result[0];
+	TEST_EQUAL(cons2.size(), 3);
+	TEST_EQUAL(cons1.getQuality() > 0.0, true);
+	TEST_EQUAL(cons2.getQuality() > 0.0, true);
+	TEST_EQUAL(cons1.getQuality() < 1.0, true);
+	TEST_EQUAL(cons2.getQuality() < 1.0, true);
+	// quality(feat1, feat2) > quality((feat1, feat2), feat3):
+	TEST_EQUAL(cons1.getQuality() > cons2.getQuality(), true);
+	input[0].clear();
+	input[0].push_back(ConsensusFeature(1, feat2));
+	spf.run(input, result);
+	ConsensusFeature cons3 = result[0];
+	// quality(feat2, feat3) > quality(feat1, feat2), feat3):
+	TEST_EQUAL(cons3.getQuality() > cons2.getQuality(), true);
+	input[0][0] = ConsensusFeature(0, feat1);
+	spf.run(input, result);
+	ConsensusFeature cons4 = result[0];
+	// quality(feat1, feat3) < quality(feat1, feat2), feat3):
+	TEST_EQUAL(cons4.getQuality() < cons2.getQuality(), true);	
 }
 END_SECTION
 

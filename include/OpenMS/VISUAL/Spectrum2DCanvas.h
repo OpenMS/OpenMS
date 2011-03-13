@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -84,6 +84,9 @@ namespace OpenMS
         /// Merges the peptide identifications in @p peptides into the peptide layer @p i
         void mergeIntoLayer(Size i, std::vector<PeptideIdentification>& peptides);
 
+        /// recalculates the dot gradient of the active layer
+        void recalculateCurrentLayerDotGradient();
+
     signals:
         /// Sets the data for the horizontal projection
         void showProjectionHorizontal(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes);
@@ -123,7 +126,7 @@ namespace OpenMS
     protected slots:
 
         /// Reacts on changed layer paramters
-        void currentLayerParamtersChanged_();
+        void currentLayerParametersChanged_();
 
     protected:
         // Docu in base class
@@ -249,8 +252,6 @@ namespace OpenMS
         virtual void intensityModeChange_();
         // DOcu in base class
         virtual void recalculateSnapFactor_();
-        /// recalculates the dot gradient of a layer
-        void recalculateDotGradient_(Size layer);
 
         /// m/z projection data
         ExperimentType projection_mz_;
@@ -303,6 +304,8 @@ namespace OpenMS
             point.setY( height() - int((y-visible_area_.minY())/visible_area_.height()*height()));
           }
         }
+        /// recalculates the dot gradient of a layer
+        void recalculateDotGradient_(Size layer);
 
         /// Highlights a single peak and prints coordinates to screen
         void highlightPeak_(QPainter& p, const PeakIndex& peak);

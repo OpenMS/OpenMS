@@ -1103,7 +1103,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
   }
 
-  std::set<String> TOPPViewBase::getFilenamesOfOpenFiles()
+  std::set<String> TOPPViewBase::getFilenamesOfOpenFiles_()
   {
     set<String> filename_set;
     // iterate over all windows
@@ -1251,9 +1251,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);
 
+    // only one peak spectrum? disable 2D as default
+    if (peak_map->size() == 1)
+    {
+      maps_as_2d = false;
+    }
 
-		//set the window where (new layer) data could be opened in
-
+    // set the window where (new layer) data could be opened in
     // get EnhancedTabBarWidget with given id
     EnhancedTabBarWidgetInterface* tab_bar_target = window_(window_id);
 
@@ -1346,11 +1350,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
 
-    if (merge_layer==-1) //add data to the window
+    if (merge_layer == -1) //add layer to the window
     {
 	    if (data_type == LayerData::DT_FEATURE) //features
 			{
-        if (!target_window->canvas()->addLayer(feature_map, filename)) return;
+        if (!target_window->canvas()->addLayer(feature_map, filename))
+        {
+          return;
+        }
 			}
 			else if (data_type == LayerData::DT_CONSENSUS) //consensus features
 			{
@@ -1632,6 +1639,20 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (w)
     {
       intensity_button_group_->button(index)->setChecked(true);
+      Spectrum2DWidget* w2d = dynamic_cast<Spectrum2DWidget*>(w);
+      // 2D widget and intensity mode changed?
+      if (w2d && w2d->canvas()->getIntensityMode() != index)
+      {
+        if (index == OpenMS::SpectrumCanvas::IM_LOG)
+        {
+          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString());
+          w2d->canvas()->recalculateCurrentLayerDotGradient();
+        } else if (index != OpenMS::SpectrumCanvas::IM_LOG)
+        {
+          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLinearIntensityMode().toString());
+          w2d->canvas()->recalculateCurrentLayerDotGradient();
+        }
+      }
     	w->setIntensityMode((OpenMS::SpectrumCanvas::IntensityModes)index);
   	}
   }
@@ -2533,8 +2554,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		QAction* action = qobject_cast<QAction *>(sender());
     if (action)
 		{
-      addDataFile(action->text(), true, true);
-		}
+      QString filename = action->text();
+      if (filename.endsWith(".toppas", Qt::CaseInsensitive))
+      {
+        addTOPPASFile(filename, true);
+      }
+      else
+      {
+        addDataFile(filename, true, true);
+      }
+    }
 	}
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
@@ -3060,14 +3089,27 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 
 		//load id data
-    QString name = QFileDialog::getOpenFileName(this,"Select protein identification data",current_path_.toQString(),"idXML files (*.idXML);; all files (*.*)");
+    QString name = QFileDialog::getOpenFileName(this,
+                                                "Select protein identification data",
+                                                current_path_.toQString(),
+                                                "idXML files (*.idXML);; all files (*.*)");
 
 		if(name!="")
 		{
 			vector<PeptideIdentification> identifications;
 			vector<ProteinIdentification> protein_identifications;
-			String document_id;
-			IdXMLFile().load(name, protein_identifications, identifications, document_id);
+  
+      try
+      {
+  			String document_id;
+  			IdXMLFile().load(name, protein_identifications, identifications, document_id);
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::warning(this, "Error", QString("Loading of idXML file failed! (") + e.what() + ")");
+			  return;
+      }
+
       IDMapper mapper;
 			if (layer.type==LayerData::DT_PEAK)
 			{
@@ -3081,11 +3123,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			}
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
-        mapper.annotate(*layer.getFeatureMap(),identifications,protein_identifications);
+        mapper.annotate(*layer.getFeatureMap(), identifications, protein_identifications);
 			}
 			else
 			{
-        mapper.annotate(*layer.getConsensusMap(),identifications,protein_identifications);
+        mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
 			}
 		}
     updateViewBar();
@@ -3331,6 +3373,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
      {
         w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
      }
+
+      // Set Intensity mode
+      setIntensityMode(SpectrumCanvas::IM_SNAP);
 
       // set layer name
       String caption = layer.name + " (3D)";
@@ -3856,6 +3901,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::fileChanged_(const String& filename)
   {
+    // check if file has been deleted
+    if (!QFileInfo(filename.toQString()).exists())
+    {
+      watcher_->removeFile(filename);
+      return;
+    }
+
     QWidgetList wl = ws_->windowList();
 
     // iterate over all windows and determine which need an update
@@ -4023,6 +4075,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     updateViewBar();
     updateFilterBar();
     updateMenu();
+
+    // temporarly remove and readd filename from watcher_ as a workaround for bug #233
+    watcher_->removeFile(filename);
+    watcher_->addFile(filename);
   }
 
   void TOPPViewBase::setTOPPASTabEnabled(bool enabled)

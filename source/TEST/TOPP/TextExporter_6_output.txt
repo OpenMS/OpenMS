@@ -1,4 +1,4 @@
-#rt	mz	intensity	charge	width(FWHM)	overall_quality	rt_quality	mz_quality	rt_start	rt_end
+#rt	mz	intensity	charge	width	quality	rt_quality	mz_quality	rt_start	rt_end
 5	500	100	1	0	1	1	1	-1	-1
 20	600	100	1	0	1	1	1	-1	-1
 11	558	100	1	0	2	1	1	10	12

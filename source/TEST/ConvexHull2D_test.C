@@ -34,7 +34,7 @@
 
 ///////////////////////////
 
-START_TEST(DRange<D>, "$id$")
+START_TEST(ConvexHull2D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -231,6 +231,59 @@ START_SECTION((bool addPoint(const PointType& point)))
 	TEST_EQUAL(tmp.addPoint(DPosition<2>(3.0,2.5)),false)
 	TEST_EQUAL(tmp.addPoint(DPosition<2>(3.0,2.0)),false)
 	TEST_EQUAL(tmp.addPoint(DPosition<2>(0.5,0.5)),true)	
+END_SECTION
+
+START_SECTION((Size compress()))
+{
+  ConvexHull2D tmp;
+
+  tmp.addPoint(DPosition<2>(1.,1.));
+  tmp.addPoint(DPosition<2>(1.,10.));
+
+  tmp.addPoint(DPosition<2>(2.,1.));
+  tmp.addPoint(DPosition<2>(2.,10.));
+
+  tmp.addPoint(DPosition<2>(3.,1.));
+  tmp.addPoint(DPosition<2>(3.,10.));
+
+  // should remove all but 2 points, since all points are located on a single line
+  TEST_EQUAL(tmp.compress() , 1)
+  // second call should remove no points
+  TEST_EQUAL(tmp.compress() , 0)
+
+  // TODO .. needs more testing
+
+  /*
+  tmp.addPoint(DPosition<2>(1.,1.));
+  tmp.addPoint(DPosition<2>(1.,2.));
+  tmp.addPoint(DPosition<2>(1.,3.));
+  tmp.addPoint(DPosition<2>(1.,4.));
+  tmp.addPoint(DPosition<2>(1.,5.));
+  tmp.addPoint(DPosition<2>(1.,6.));
+  tmp.addPoint(DPosition<2>(1.,7.));
+  tmp.addPoint(DPosition<2>(1.,8.));
+  tmp.addPoint(DPosition<2>(1.,9.));
+  */
+
+
+  /*
+  tmp.addPoint(DPosition<2>(0.5,1.5));
+  tmp.addPoint(DPosition<2>(1.0,1.5));
+  tmp.addPoint(DPosition<2>(1.2,1.5));
+  tmp.addPoint(DPosition<2>(1.3,1.5));
+  tmp.addPoint(DPosition<2>(1.5,1.5));
+  tmp.addPoint(DPosition<2>(3.0,1.5));
+  tmp.addPoint(DPosition<2>(4.0,1.5));
+  tmp.addPoint(DPosition<2>(5.0,1.5));
+  tmp.addPoint(DPosition<2>(6.0,1.5));
+
+  // we can again remove all but two points from the newly added line
+  // TODO: why are only 5 points removed (ask Chris)
+  TEST_EQUAL(tmp.compress() , 5)
+  // second call should remove no points
+  TEST_EQUAL(tmp.compress() , 0)
+  */
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

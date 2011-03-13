@@ -95,7 +95,7 @@ protected:
       "Sequest: Directory containing the .out files\n"
       "pepXML: Single pepXML file.\n"
       "protXML: Single protXML file.\n"
-	"xml: Single mascot XML file.\n"
+	    "xml: Single mascot XML file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
     setValidFormats_("out", StringList::create("idXML,pepXML"));
@@ -246,7 +246,7 @@ protected:
 
       writeDebug_("All files processed.", 3);
 
-    } // ! directory
+  } // ! directory
 	else
 	{
 		FileTypes::Type in_type = fh.getType(in);

@@ -48,6 +48,8 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 #include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
@@ -68,7 +70,6 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
@@ -329,6 +330,7 @@ int main (int argc , char** argv)
 	DOCME(ExtendedIsotopeModel);
 	DOCME(FalseDiscoveryRate);
 	DOCME(FeatureDeconvolution);
+	DOCME(FeatureDistance);
 	DOCME(FeatureGroupingAlgorithmLabeled);
 	DOCME(FeatureGroupingAlgorithmUnlabeled);
 	DOCME(GaussFilter);
@@ -369,6 +371,7 @@ int main (int argc , char** argv)
 	DOCME(PeakPickerHiRes);
 	DOCME(PoseClusteringAffineSuperimposer);
 	DOCME(PoseClusteringShiftSuperimposer);
+	DOCME(QTClusterFinder);
 	DOCME(SavitzkyGolayFilter);
 	DOCME(SimplePairFinder);
 	DOCME(StablePairFinder);
@@ -401,7 +404,6 @@ int main (int argc , char** argv)
 	DOCME(MascotGenericFile);
 	DOCME(PILISNeutralLossModel);
 	DOCME(PILISModelGenerator);
-	DOCME(AdvancedTheoreticalSpectrumGenerator);
 	DOCME(FeatureGroupingAlgorithmIdentification);
 	DOCME(OfflinePrecursorIonSelection);
 	DOCME(TOPPViewBase);

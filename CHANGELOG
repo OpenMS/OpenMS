@@ -3,20 +3,118 @@
 ------------------------------------------------------------------------------------------
 
 TOPP tools:
-
+- MODIFIED:
+  - MapAligner: separated data extraction from transformation modelling - this allows to combine different algorithms and models; new option "invert"; reworked parameters (please see the MapAligner documentation and update your INI files)
+  - FeatureLinker: now able to link consensus maps; added new experimental algorithm "unabeled_qt"; improved quality calculation in "unlabeled" algorithm
+  - IDMapper, FeatureLinker ("unlabeled"/"unlabeled_qt" algorithms): now consider charge states by default (use parameter "ignore_charge" if you want to avoid this)
+  - FileInfo: improved formatting of output
+  - TextExporter: unified output formats
+  - FileConverter: added conversion to consensusXML
+  - ProteinQuantifier: redefined meaning of parameter combination "top 0"/"consensus:fix_peptides"
+  - ITRAQAnalyzer: isotope corrected quantitation result is written to "-out" instead of the uncorrected values
+  - GenericWrapper: now supports arbitrary external programs, when a .ttd file is present (see <OpenMS>/share/OpenMS/TOOLS/EXTERNAL)
+  
 UTIL tools:
 
-OpenMS library improvements:
-
 TOPPView improvements:
+- NEW:
+  - Identification View (load idXML through Tools->annotate with identifications)
+  - 1D view now supports vector graphics export when saving an image
+  - Peaks in 2D view are drawn as circles at a high zoom level
+  - TOPPAS pipelines can be edited and run directly from TOPPView
 
 TOPPAS improvements:
+- MODIFIED:
+  - improved stability when using longer filenames
+  - minor fixes (see bug tickets below)
+
+OpenMS library improvements:
+- Stability and consistency fixes mostly (see bug tickets below)
 
 Changes to the Build System:
+- minor only
+
 
 Fixed Issues:
+#277 	Crash upon annotation with idXML
+#271 	Filename generation in TOPPAS broken
+#278 	TOPP tools update only values from INI files, not restrictions
+#273 	TOPPAS appends an extra "toppas" when saving files with uppercase TOPPAS extension
+#272 	TOPPAS doesn't update the tab title after saving a new pipeline
+#261 	ProteinQuantifier: handling of mod. peptides during protein quantification
+#153 	"Unlabeled" FeatureLinker produces quality values that make no sense
+#220 	TOPPAS: mzML.gz files are not recognized as correct input
+#260 	InclusionExclusionListCreator creates invalid lists for Thermo instruments
+#269 	OMSSAAdapter crashes when run from directory containing spaces
+#267 	bug in StablePairfinder (distances)
+#266 	TOPPAS "store" button for vertex' INI files always writes default INI
+#129 	TOPPAS: Allow opening files in one layer
+#105 	TOPPAS: Split TOPPAS.ini into Resource and Workflow files
+#262 	PrecursorIonSelector handles input/output arguments incorrectly
+#100 	TOPPView memory consumption high when copying data
+#257 	CLang++ crashes with "SCEVAddRecExpr operand is not loop-invariant!" on EnzymaticDigestion
+#233 	TOPPView's updateLayer does not reload all data
+#247 	TOPPView: crashes if file is deleted while opened
+#66 	"Tools -> Go to" coordinates should default to current view
+#239 	seg. fault when loading featureXML into TOPPView from the wrong context
+#221 	TOPPView: when loading a new layer, the zoom should not reset
+#222 	IDMapper should support mapping charge-matched entities only
+#255 	TOPPView's Projection is showing only single peaks at high zoom
+#253 	TOPP tools should be able to write their type into ini file, without knowing it a priori
+#252 	OMSSAAdapter crashes when v2.1.7 and 'precursor_mass_tolerance_unit_ppm' are used
+#251 	XTandem Adapter ignores "no_refinement" flag
+#198 	add Proteowizward to Windows binary installer
+#246 	TOPPView: Update Layer broken
+#149 	Support external tools not derived from TOPPBase
+#245 	PeptideIndexer fails on ambiguous AA's
+#244 	merging by Precursor in SpectraMerger
+#242 	Protein coverage should be reported
+#237 	RT corrections via BSpline transformation is unreliable for sparse regions (e.g. borders and extrapolation)
+#235 	TOPPAS input file name lists should be sorted
+#231 	FeatureFinder has faulty Averagine model
+#229 	Digestor UTIL cannot write FASTA output
+#27 	generate publication ready figures in SVG format - 1D view
+#215 	FeatureFinder crashes with Segmentation fault
+#213 	TOPPView crashs when loading mzML and featureXML
+#224 	PepXMLFile produces invalid files (mod_aminoacid_mass position is 1-based)
+#225 	msInspect pepXML parser can not handle OpenMS pepXML due to massdiff attribute
+#223 	TOPPAS restores wrong parameter name when deleting an input/output edge
+#217 	Caching in LogStream is not thread safe
+#218 	FF should work on non-sorted data, but gracefully exit on negative m/z values
+#214 	MapAligner crashes on certain data
+#211 	TOPPAS: IDFilter RTPredict linking not possible
+#150 	TOPPAS does not use user environment to find executables
+#208 	Windows: hide extra console window when starting GUI apps
+#207 	Projections show wrong axis names
+#179 	adapt to command/console width
+#206 	Parameter names should include subsection
+#204 	TOPPView "Go To" Dialog should support UniqueID's
+#202 	"Open file" dialog: "readable files" should include .gz files
+#191 	changing from 1D to 2D,3D View and 3D to 2D if MS1 spectra are present
+#196 	NoiseFilter, PeakPicker, BaselineFilter crash on certain input-data
 
 Detailed list of changes to specific OpenMS classes:
+- NEW:
+  - BaseFeature: parent of Feature and ConsensusFeature
+  - FeatureGroupingAlgorithmQT, QTClusterFinder, QTCluster, GridFeature: feature grouping for unlabeled data based on QT clustering
+  - FeatureDistance: distance measure for features
+  - TransformationModel: different models for retention time transformations
+  - SvmTheoreticalSpectrumGenerator: simulator for MS/MS spectra
+
+- MODIFIED:
+  - Feature, ConsensusFeature: moved common parts to BaseFeature
+  - StablePairFinder: moved distance calculation to FeatureDistance
+  - TransformationDescription: reworked, some functionality moved to TransformationModel
+  - all MapAlignmentAlgorithm... classes, PoseClustering[Affine/Shift]Superimposer, TransformationXMLFile, InternalCalibration: adapted to changes in RT alignment/transformation modelling
+  - FeatureGroupingAlgorithm: support linking of consensus maps; new algorithm "unlabeled_qt"
+  - BaseGroupFinder: new algorithm "qt"
+  - IDMapper: consider charge states for matching
+  - PepXMLFile: use E-value (instead of hyperscore) as score for X! Tandem results
+  - FileHandler: accept endings ".pep.xml" and ".prot.xml" for pepXML/protXML
+  - FeatureMap, ConsensusMap: "clear" also clears meta data by default
+  - ConsensusMap: adapted signature of "convert" for feature maps (to mirror that for peak maps)
+  - Param: remove() and ::removeAll() now delete empty nodes which have no subnodes nor entries (otherwise writing paramXML breaks)
+  - TheoreticalSpectrumGenerator: getSpectrum() now generates all selected ion types not only b- and y-ions
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.7                                      ----

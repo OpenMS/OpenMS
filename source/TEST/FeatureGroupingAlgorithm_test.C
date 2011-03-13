@@ -44,7 +44,7 @@ namespace OpenMS
 	 : public FeatureGroupingAlgorithm
 	{
 		public:
-			void group(const std::vector< FeatureMap<> >&, ConsensusMap& map)
+			void group(const vector< FeatureMap<> >&, ConsensusMap& map)
 			{
 			  map.getFileDescriptions()[0].filename = "bla";
 				map.getFileDescriptions()[0].size = 5;
@@ -67,9 +67,9 @@ START_SECTION((virtual ~FeatureGroupingAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
+START_SECTION((virtual void group(const vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
 	FGA fga;
-	std::vector< FeatureMap<> > in;
+	vector< FeatureMap<> > in;
 	ConsensusMap map;
 	fga.group(in,map);
 	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
@@ -82,6 +82,64 @@ START_SECTION((static void registerChildren()))
 	TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(), 3)
 }
 END_SECTION
+
+START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, ConsensusMap& out) const))
+{
+	vector<ConsensusMap> maps(2);
+	maps[0].getFileDescriptions()[0].filename = "file1";
+	maps[0].getFileDescriptions()[0].size = 1;
+	maps[0].getFileDescriptions()[1].filename = "file2";
+	maps[0].getFileDescriptions()[1].size = 1;
+	maps[1].getFileDescriptions()[0].filename = "file3";
+	maps[1].getFileDescriptions()[0].size = 1;
+	maps[1].getFileDescriptions()[1].filename = "file4";
+	maps[1].getFileDescriptions()[1].size = 1;
+
+	Feature feat1, feat2, feat3, feat4;
+
+  FeatureHandle handle1(0, feat1), handle2(1, feat2), handle3(0, feat3), 
+		handle4(1, feat4);
+
+	maps[0].resize(1);
+	maps[0][0].insert(handle1);
+	maps[0][0].insert(handle2);
+	maps[0][0].setUniqueId(1);
+	maps[1].resize(1);
+	maps[1][0].insert(handle3);
+	maps[1][0].insert(handle4);
+	maps[1][0].setUniqueId(2);
+
+	ConsensusMap out;
+	FeatureHandle handle5(0, static_cast<BaseFeature>(maps[0][0]));
+	FeatureHandle handle6(1, static_cast<BaseFeature>(maps[1][0]));
+	out.resize(1);
+	out[0].insert(handle5);
+	out[0].insert(handle6);
+
+	// need an instance of FeatureGroupingAlgorithm:
+	String algo_name = Factory<FeatureGroupingAlgorithm>::registeredProducts()[0];
+	FeatureGroupingAlgorithm* algo = Factory<FeatureGroupingAlgorithm>::create(
+		algo_name);
+
+	algo->transferSubelements(maps, out);
+
+	TEST_EQUAL(out.getFileDescriptions().size(), 4);
+	TEST_EQUAL(out.getFileDescriptions()[0].filename, "file1");
+	TEST_EQUAL(out.getFileDescriptions()[3].filename, "file4");	
+	TEST_EQUAL(out.size(), 1);
+	TEST_EQUAL(out[0].size(), 4);
+
+	ConsensusFeature::HandleSetType group = out[0].getFeatures();
+	ConsensusFeature::HandleSetType::const_iterator it = group.begin();
+	handle3.setMapIndex(2);
+	handle4.setMapIndex(3);
+	TEST_EQUAL(*it++ == handle1, true);
+	TEST_EQUAL(*it++ == handle2, true);
+	TEST_EQUAL(*it++ == handle3, true);
+	TEST_EQUAL(*it++ == handle4, true);
+}
+END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////

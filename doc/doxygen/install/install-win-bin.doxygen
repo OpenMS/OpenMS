@@ -3,26 +3,36 @@
 	@page install_win_bin Installation on Windows
   
 	In order to install the binary package of TOPP, simply download and execute the installer from http://www.OpenMS.de and follow the instructions.
-	You need an administator account to install the OpenMS binary package!
+	Run the installer under the user account that later runs %OpenMS - do NOT install using your admin account!
+	You will be asked for an admin authentification, but only AFTER you start the installer as normal user.
 	
-	The windows binary version works on many versions of windows including Win2000, WinXP, VISTA and Windows,
-	and installation should take you a few minutes only. We also supply a 64bit version, which can deal with larger LC/MS files, due to more allocatable system memory. If your operating
-	system supports	64bit and has more than 2Gigabytes of RAM, we strongly encourage you to use the 64bit version.
+	The windows binary version works on many versions of windows including Win2000, WinXP, VISTA and Win7.
+	Installation should take you a few minutes only. We also supply a 64bit version, which can deal with larger LC/MS files, due to more allocatable system memory. If your operating
+	system supports	64bit and has more than 3 Gigabytes of RAM, we strongly encourage you to use the 64bit version.
 	
 	
 	<H2>Known Issues:</H2><br>
+
 	<b>Problem</b>:<br>
-	During installation, an error message pops up, saying <i>The installation of the Visual Studio redistributable package ... failed. ..."</i>.<br>
+	During installation, an error message pops up, saying <i>"The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work.</i><br>
 	<b>Solution</b>:<br>
-  First of all, we'd like to stretch that is a problem of a Microsoft package - we cannot do anything about it.<br>
-  The error message will give you the location where the redistributable package was extracted to. Go to this folder and run the executable (usually named 'vcredist2008...') as an
-  administrator (right-click -> Run-As). You will likely receive an error message (this is also the reason why the OpenMS setup complained about it).
-  Now you have to find a solution yourself. If you're lucky the error message is instructive and the problem is easy to fix.<br>
-  For some messages we have a receipe:<br>
-  <ul>
-  <li>Error: "Error opening installation log file"<br>
-      Fix: the system environment variables might be messed up. There should be a %TMP% and a %TEMP% variable, and both should contain ONE(!) directory only, which exists and is writable. So open a command line and type "set". You can see the TMP and TEMP entries and check their content. Fix accordingly.
-  </ul>
+	This should only happen if you selected to install the "Third Party - Proteowizard" components.
+	The reason is usually that .NET 3.5 SP1 <tt>is</tt> already installed (see Windows Control Panel).
+	If its not installed, follow the instructions of the error message.
+
+
+	<b>Problem</b>:<br>
+	During installation, an error message pops up, saying <i>"The installation of the Visual Studio redistributable package ... failed. ...".</i><br>
+	<b>Solution</b>:<br>
+	First of all, we'd like to stretch that is a problem of a Microsoft package - we cannot do anything about it.<br>
+	The error message will give you the location where the redistributable package was extracted to. Go to this folder and run the executable (usually named 'vcredist2008...') as an
+	administrator (right-click -> Run-As). You will likely receive an error message (this is also the reason why the %OpenMS setup complained about it).
+	Now you have to find a solution yourself. If you're lucky the error message is instructive and the problem is easy to fix.<br>
+	For some messages we have a receipe:<br>
+	<ul>
+	<li>Error: "Error opening installation log file"<br>
+	    Fix: the system environment variables might be messed up. There should be a %TMP% and a %TEMP% variable, and both should contain ONE(!) directory only, which exists and is writable. So open a command line and type "set". You can see the TMP and TEMP entries and check their content. Fix accordingly.
+	</ul>
 
 */
 

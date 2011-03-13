@@ -51,11 +51,12 @@ namespace OpenMS
 	
 	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files)
 		:	TOPPASVertex(),
-			files_(files),
+			files_(),
 			key_()
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
+    setFilenames(files);
 	}
 	
 	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs)
@@ -92,7 +93,9 @@ namespace OpenMS
 		TOPPASInputFilesDialog tifd(files_);
 		if (tifd.exec())
 		{
-			tifd.getFilenames(files_);
+      QStringList updated_filelist;
+			tifd.getFilenames(updated_filelist);
+      this->setFilenames(updated_filelist); // to correct filenames (separators etc)
 			qobject_cast<TOPPASScene*>(scene())->setChanged(true);
 			qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 			emit somethingHasChanged();
@@ -237,7 +240,11 @@ namespace OpenMS
 	
 	void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
 	{
-		files_ = files;
+    files_.clear();
+    foreach (QString file, files)
+    {
+      files_ << QDir::toNativeSeparators(file);
+    }
 	}
 	
 }

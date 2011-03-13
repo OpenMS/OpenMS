@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -58,7 +58,12 @@ namespace OpenMS
 	class OPENMS_DLLAPI MultiGradient
 	{
 		public:
-	
+    /// Returns the default gradient for linear intensity mode
+    static MultiGradient getDefaultGradientLinearIntensityMode();
+
+    /// Returns the default gradient for linear intensity mode
+    static MultiGradient getDefaultGradientLogarithmicIntensityMode();
+
 		/// Interploation mode. 
 		enum InterpolationMode 
 		{
@@ -66,10 +71,17 @@ namespace OpenMS
 			IM_STAIRS   ///< IM_STAIRS returns the color of the next lower position
 		};
 		
-		///Constructor
+    /// Constructor
 		MultiGradient();
-		///Destructor
+
+    /// Copy constructor
+    MultiGradient(const MultiGradient& multigradient);
+
+    /// Destructor
 		~MultiGradient();
+
+    /// Assignment operator
+    MultiGradient& operator = ( const MultiGradient& rhs );
 	
 		/// sets or replaces the color at position @p position
     void insert(DoubleReal position, QColor color);

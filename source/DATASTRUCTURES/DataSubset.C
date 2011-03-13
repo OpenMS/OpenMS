@@ -90,7 +90,7 @@ int DataSubset::size()
 	return data_points.size();
 }
 
-int DataSubset::getID()
+int DataSubset::getID() const
 {
 	return data_points.front()->feature_id;
 }

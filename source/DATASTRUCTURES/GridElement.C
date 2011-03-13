@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
 // --------------------------------------------------------------------------
 
 
@@ -30,18 +30,27 @@
 
 namespace OpenMS
 {
+  GridElement::GridElement()
+  {
 
-GridElement::GridElement() {}
-GridElement::GridElement(const GridElement& copy)
-{
-	mz = copy.mz;
-	rt = copy.rt;
-}
-GridElement::GridElement(DoubleReal rt_, DoubleReal mz_)
-{
-	mz = mz_;
-	rt = rt_;
-}
+  }
+
+  GridElement::~GridElement()
+  {
+
+  }
+
+	GridElement::GridElement(const GridElement& copy)
+	{
+		mz = copy.mz;
+		rt = copy.rt;
+	}
+
+	GridElement::GridElement(DoubleReal rt_, DoubleReal mz_)
+	{
+		mz = mz_;
+		rt = rt_;
+	}
 }
 
 

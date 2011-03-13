@@ -10,11 +10,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 include(executables.cmake)
 
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
-	set(CMAKE_CXX_FLAGS_RELEASE_SAVED ${CMAKE_CXX_FLAGS_RELEASE})
 	#disable optimization for tests
+	set(CMAKE_CXX_FLAGS_RELEASE_SAVED ${CMAKE_CXX_FLAGS_RELEASE})
 	set(CMAKE_CXX_FLAGS_RELEASE "-O0")
+	if(MT_ENABLE_OPENMP AND ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	  # disable OPENMP for Mac OS X/gcc, see
+	  # https://sourceforge.net/apps/trac/open-ms/ticket/280
+	  # bug for details
+	  STRING(REPLACE "-fopenmp" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	endif()
 endif()
-
 
 ### CONCEPT
 add_custom_target(CONCEPT_TEST)
@@ -81,7 +86,9 @@ foreach(i ${TEST_executables})
 	add_executable(${i} ${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
-  if (OPENMP_FOUND AND NOT MSVC)
+	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
+	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
+  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()  
 endforeach(i)
@@ -100,7 +107,9 @@ foreach(i ${GUI_executables_list})
 	add_executable(${i} GUI/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
-  if (OPENMP_FOUND AND NOT MSVC)
+	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
+	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
+  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()  
 endforeach(i)
@@ -112,7 +121,7 @@ add_dependencies(GUI_TEST ${GUI_executables_list})
 ### add gui tests to executables list
 set(TEST_executables ${TEST_executables} TOPPView_test)
 
-if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX)
+if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
 	set(${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE_SAVED})
 endif()
 

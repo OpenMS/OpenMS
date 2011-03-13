@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef vector<BinaryTreeNode> Tree;
+typedef vector<SILACTreeNode> Tree;
 typedef vector<DataPoint*> Cluster;
 
 //-------------------------------------------------------------
@@ -432,7 +432,7 @@ class TOPPSILACAnalyzer
     // split string of SILAC labels (selected_labels) and save in a list (SILAClabels)
     vector<String> tempList; // temporary list of strings for SILAC labelets, e.g. "Lys6,Arg8"
     boost::split( tempList, selected_labels, boost::is_any_of("[](){}") ); // any bracket allowed to separate labelets
-    for (unsigned i = 0; i < tempList.size(); i++)
+    for (UInt i = 0; i < tempList.size(); i++)
     {
       if (tempList[i] != "")
       {
@@ -444,10 +444,10 @@ class TOPPSILACAnalyzer
 
     cout << endl;
     // print SILAC labels
-    for (unsigned i = 0; i < SILAClabels.size(); i++)
+    for (UInt i = 0; i < SILAClabels.size(); i++)
     {
       cout << "SILAC label " << i + 1 << ":   ";
-      for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+      for (UInt j = 0; j < SILAClabels[i].size(); j++)
       {
         cout << SILAClabels[i][j] << " ";
       }
@@ -456,14 +456,16 @@ class TOPPSILACAnalyzer
     cout << endl;
 
     // check if all selected labels are included in advanced section "labels"
-    for (unsigned i = 0; i < SILAClabels.size(); i++)
+    for (UInt i = 0; i < SILAClabels.size(); i++)
     {
-      for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+      for (UInt j = 0; j < SILAClabels[i].size(); ++j)
       {
-        int found = labels.find(SILAClabels[i][j]);
+        Int found = (Int) labels.find(SILAClabels[i][j]);
 
         if (found < 0)
+        {
           throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,SILAClabels[i][j]);
+        }
       }
     }
 
@@ -479,7 +481,7 @@ class TOPPSILACAnalyzer
             if ( ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide > 0 && ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide <= missed_cleavages + 1 )
             {
               vector<DoubleReal> massShiftVector;
-              for (unsigned i = 0; i < SILAClabels.size(); i++)
+              for (UInt i = 0; i < SILAClabels.size(); i++)
               {
                 DoubleReal massShift = 0;
                 // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There + Lys8There == 0) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
@@ -488,7 +490,7 @@ class TOPPSILACAnalyzer
                 bool goAhead_Methyl = false;
                 bool goAhead_dICPL = false;
 
-                for (unsigned j = 0; j < SILAClabels[i].size(); j++)
+                for (UInt j = 0; j < SILAClabels[i].size(); j++)
                 {
                   Int Arg6There = 0;	// Is Arg6 in the SILAC label?
                   Int Arg10There = 0;
@@ -544,10 +546,10 @@ class TOPPSILACAnalyzer
     sort(massShifts.begin(), massShifts.end());
 
     // print mass shifts
-    for (unsigned i = 0; i < massShifts.size(); i++)
+    for (UInt i = 0; i < massShifts.size(); i++)
     {
       cout << "mass shift " << i + 1 << ":   ";
-      for (unsigned j = 0; j < massShifts[i].size(); j++)
+      for (UInt j = 0; j < massShifts[i].size(); j++)
       {
         cout << massShifts[i][j] << " ";
       }
@@ -574,9 +576,10 @@ class TOPPSILACAnalyzer
   DoubleReal estimateMzSpacing(MSExperiment<Peak1D>& exp)
   {
     // estimate m/z step width
-    UInt i = 0;
-    while (i < exp.size() && exp[i].size() < 5)
-      ++i;
+    Size i = 0;
+    while (i < exp.size() && exp[i].size() < 5) ++i; // get a scan with at least 5 points
+
+    if (i >= exp.size()) return 0; // handle this in calling code
 
     vector<Real> mz_spacing;
 
@@ -606,7 +609,7 @@ class TOPPSILACAnalyzer
       for (Int charge = charge_max; charge >= charge_min; charge--)
       {
         // iterate over all mass shifts
-        for (unsigned i = 0; i < massShifts.size(); i++)
+        for (UInt i = 0; i < massShifts.size(); i++)
         {
           // convert vector<DoubleReal> to set<DoubleReal> for SILACFilter
           vector<DoubleReal> massShifts_set = massShifts[i];
@@ -665,102 +668,102 @@ class TOPPSILACAnalyzer
       data.swap(data_temp);     // data = data_temp
       data_temp.clear();      // clear "data_temp"
 
-
-      // combine corresponding DataPoints
-      vector<DataPoint> data_combined;      // create "data_combined" to combine two DataPoints
-      vector<vector<DataPoint> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
-      vector<vector<DataPoint> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
-      vector<DataPoint>::iterator it_1;     // first inner iterator over elements of first DataPoint
-      vector<DataPoint>::iterator it_2;     // second inner iterator over elements of second DataPoint
-
-      while (data_it_1 < data.end() - 1)      // check for combining as long as first DataPoint is not second last elment of "data"
+      if (data.size() >= 2)
       {
-        while (data_it_1->size() == 0 && data_it_1 < data.end() - 1)
+        // combine corresponding DataPoints
+        vector<vector<DataPoint> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
+        vector<vector<DataPoint> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
+        vector<vector<DataPoint> >::iterator data_it_end = data.end() - 1;      // pointer to second last elemnt of "data"
+        vector<DataPoint>::iterator it_1;     // first inner iterator over elements of first DataPoint
+        vector<DataPoint>::iterator it_2;     // second inner iterator over elements of second DataPoint
+
+        while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
         {
-          data_it_1++;      // get next first DataPoint
-          data_it_2 = data_it_1 + 1;      // reset second iterator
-        }
-
-        if (data_it_1 == data.end() - 1 && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
-          break;      // stop combining
-
-        while (data_it_2->size() == 0 && data_it_2 < data.end())      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
-        {
-          data_it_2++;      // get next second DataPoint
-        }
-
-        if (data_it_2 == data.end())      // if second iterator points to end of "data"
-        {
-          data_it_2 = data_it_1 + 1;      // reset second iterator
-        }
-
-        it_1 = data_it_1->begin();      // set first inner iterator to first element of first DataPoint
-        it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
-
-        // check if DataPoints are not empty
-        if (data_it_1->size() != 0 && data_it_2->size() != 0)
-        {
-          // check if DataPoints have the same charge state and mass shifts
-          if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
+          while (data_it_1->size() == 0 && data_it_1 < data_it_end)
           {
-            if (data_it_2 < data.end() - 1)     // if DataPpoints differ and second DataPoint is not second last element of "data"
-            {
-              data_it_2++;      // get next second DataPoint
-            }
+            ++data_it_1;      // get next first DataPoint
+            data_it_2 = data_it_1 + 1;      // reset second iterator
+          }
 
-            else if (data_it_2 == data.end() - 1 && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
+          if (data_it_1 == data_it_end && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
+          {
+            break;      // stop combining
+          }
+
+          while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+          {
+            ++data_it_2;      // get next second DataPoint
+          }
+
+          if (data_it_2 == data.end())      // if second iterator points to end of "data"
+          {
+            data_it_2 = data_it_1 + 1;      // reset second iterator
+          }
+
+          it_1 = data_it_1->begin();      // set first inner iterator to first element of first DataPoint
+          it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
+
+          // check if DataPoints are not empty
+          if (data_it_1->size() != 0 && data_it_2->size() != 0)
+          {
+            // check if DataPoints have the same charge state and mass shifts
+            if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
             {
-              data_it_1++;      // get next first DataPoint
-              data_it_2 = data_it_1 + 1;      // reset second iterator
+              if (data_it_2 < data_it_end)     // if DataPpoints differ and second DataPoint is not second last element of "data"
+              {
+                ++data_it_2;      // get next second DataPoint
+              }
+
+              else if (data_it_2 == data_it_end && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
+              {
+                ++data_it_1;      // get next first DataPoint
+                data_it_2 = data_it_1 + 1;      // reset second iterator
+              }
+
+              else
+              {
+                ++data_it_1;      // get next first DataPoint
+              }
             }
 
             else
             {
-              data_it_1++;      // get next first DataPoint
+              // perform combining
+              (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end());      // append second DataPoint to first DataPoint
+              (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
+
+              if (data_it_2 < data_it_end)     // if second DataPoint is not second last element of "data"
+              {
+                ++data_it_2;      // get next second DataPoint
+              }
+              else
+              {
+                data_it_2 = data_it_1 + 1;      // reset second iterator
+              }
             }
           }
-
           else
           {
-            // perform combining
-            // insert the two DataPoints to combine in "data_combined"
-            data_combined.insert(data_combined.end(), data_it_1->begin(), data_it_1->end());
-            data_combined.insert(data_combined.end(), data_it_2->begin(), data_it_2->end());
-            (*data_it_1).swap(data_combined);     // insert "data_combined" at position of first Datapoint
-            (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
-            data_combined.clear();      // clear "data_combined"
-
-            if (data_it_2 < data.end() - 1)     // if second DataPoint is not second last element of "data"
-            {
-              data_it_2++;      // get next second DataPoint
-            }
-            else
-            {
-              data_it_2 = data_it_1 + 1;      // reset second iterator
-            }
+            ++data_it_1;      // get next first DataPoint
           }
         }
-        else
+
+
+        // erase empty DataPoints from "data"
+        vector<vector<DataPoint> > data_temp;
+
+        for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
         {
-          data_it_1++;      // get next first DataPoint
+          if (data_it->size() != 0)
+          {
+            data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
+          }
         }
+
+        data.swap(data_temp);     // data = data_temp
+        data_temp.clear();      // clear "data_temp"
       }
     }
-
-
-    // erase empty DataPoints from "data"
-    vector<vector<DataPoint> > data_temp;
-
-    for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
-    {
-      if (data_it->size() != 0)
-      {
-        data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
-      }
-    }
-
-    data.swap(data_temp);     // data = data_temp
-    data_temp.clear();      // clear "data_temp"
 
     return data;      // return "data" for clustering
   }
@@ -793,7 +796,50 @@ class TOPPSILACAnalyzer
     // build SILACData structure
     //--------------------------------------------------
 
-    vector<vector<DataPoint> > data=buildDataStructure(exp);
+    vector<vector<DataPoint> > data = buildDataStructure(exp);
+
+
+    //--------------------------------------------------
+    // remove isolated DataPoints from filter results (i.e. DataPoints with only few immediate neighbours)
+    //--------------------------------------------------
+
+    {
+      Int immediate_neighbour_threshold = 5;      // maximum number of DataPoints within neighbourhood
+      DoubleReal rt_neighbourhood = 10;     // size of neighbourhood for RT (+ and -)
+      DoubleReal mz_neighbourhood = 0.02;     // size of neighbourhood for m/z (+ and -)
+
+      vector<vector<DataPoint> > data_2;
+
+      for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+      {
+        vector<DataPoint> single_layer;
+
+        for (vector<DataPoint>::iterator it = data_it->begin(); it != data_it->end(); ++it)
+        {
+          Int immediate_neighbours = 0;
+
+          for (vector<DataPoint>::iterator it_2 = data_it->begin(); it_2 != data_it->end(); ++it_2)
+          {
+            DoubleReal distance_mz = abs(it->mz - it_2->mz);
+            DoubleReal distance_rt = abs(it->rt - it_2->rt);
+
+            if (distance_rt < rt_neighbourhood && distance_mz < mz_neighbourhood)
+            {
+              ++immediate_neighbours;
+            }
+          }
+
+          if (immediate_neighbours > immediate_neighbour_threshold)
+          {
+            single_layer.push_back(*it);
+          }
+        }
+
+        data_2.push_back(single_layer);
+      }
+
+      data.swap(data_2);      // data = data_2
+    }
 
 
     //--------------------------------------------------

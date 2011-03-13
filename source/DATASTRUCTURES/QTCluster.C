@@ -21,12 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
+
+#include <numeric> // for "accumulate"
 
 using namespace std;
 
@@ -40,43 +42,22 @@ namespace OpenMS
 	QTCluster::QTCluster(GridFeature* center_point, Size num_maps, 
 											 DoubleReal max_distance, bool use_IDs) :
 		center_point_(center_point), neighbors_(), max_distance_(max_distance), 
-		num_maps_(num_maps), quality_(0.0), changed_(false), annotations_()
+		num_maps_(num_maps), quality_(0.0), changed_(false), use_IDs_(use_IDs),
+		annotations_()
 	{
-		if (use_IDs)
-		{
-			const vector<PeptideIdentification>& peptides = 
-				center_point->getFeature().getPeptideIdentifications();
-			for (vector<PeptideIdentification>::const_iterator pep_it = 
-						 peptides.begin(); pep_it != peptides.end(); ++pep_it)
-			{
-				if (pep_it->getHits().empty()) continue; // shouldn't be the case
-				annotations_.insert(pep_it->getHits()[0].getSequence());
-			}
-		}
+		if (use_IDs) annotations_ = center_point->getAnnotations();
 	}
 
 	QTCluster::~QTCluster()
 	{
 	}
 
-	QTCluster& QTCluster::operator=(const QTCluster& rhs)
-	{
-		center_point_ = rhs.center_point_;
-		neighbors_ = rhs.neighbors_;
-		max_distance_ = rhs.max_distance_;
-		num_maps_ = rhs.num_maps_;
-		quality_ = rhs.quality_;
-		changed_ = rhs.changed_;
-		annotations_ = rhs.annotations_;
-		return *this;
-	}
-
-	DoubleReal QTCluster::getCenterRT()
+	DoubleReal QTCluster::getCenterRT() const
 	{
 		return center_point_->rt;
 	}
 
-	DoubleReal QTCluster::getCenterMZ()
+	DoubleReal QTCluster::getCenterMZ() const
 	{
 		return center_point_->mz;
 	}
@@ -93,6 +74,9 @@ namespace OpenMS
 
 	void QTCluster::add(GridFeature* element, DoubleReal distance)
 	{
+		// maybe TODO: check here if distance is smaller than max. distance?
+		// maybe TODO: check here if peptide annotations are compatible?
+		// (currently, both is done in QTClusterFinder)
 		Size map_index = element->getMapIndex();
 		if (map_index != center_point_->getMapIndex())
 		{
@@ -101,14 +85,41 @@ namespace OpenMS
 		}
 	}
 
-	void QTCluster::getElements(map<Size, GridFeature*>& elements) const
+	void QTCluster::getElements(map<Size, GridFeature*>& elements)
 	{
 		elements.clear();
 		elements[center_point_->getMapIndex()] = center_point_;
-		for (NeighborMap::const_iterator it = neighbors_.begin(); 
-				 it != neighbors_.end(); ++it)
+		if (neighbors_.empty()) return;
+		// if necessary, compute the optimal annotation for the cluster first:
+		if (changed_ && use_IDs_ && center_point_->getAnnotations().empty())
 		{
-			elements[it->first] = it->second.begin()->second;
+			optimizeAnnotations_();
+		}
+		if (annotations_.empty() || !center_point_->getAnnotations().empty())
+		{
+			// no need to take annotations into account:
+			for (NeighborMap::const_iterator it = neighbors_.begin(); 
+					 it != neighbors_.end(); ++it)
+			{
+				elements[it->first] = it->second.begin()->second;
+			}
+		}
+		else // find elements that are compatible with the optimal annotation:
+		{
+			for (NeighborMap::const_iterator n_it = neighbors_.begin(); 
+					 n_it != neighbors_.end(); ++n_it)
+			{
+				for (multimap<DoubleReal, GridFeature*>::const_iterator df_it = 
+							 n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
+				{
+					const set<AASequence>& current = df_it->second->getAnnotations();
+					if (current.empty() || (current == annotations_))
+					{
+						elements[n_it->first] = df_it->second;
+						break; // found the best element for this input map
+					}
+				}
+			}
 		}
 	}
 
@@ -131,8 +142,13 @@ namespace OpenMS
 			{
 				if (feat_it->second == rm_it->second) // remove this neighbor
 				{
+					if (!use_IDs_ || (annotations_ == rm_it->second->getAnnotations()))
+					{
+						changed_ = true;
+					}
+					// else: removed neighbor doesn't have optimal annotation, so it can't
+					// be a "true" cluster element => no need to recompute the quality
 					pos->second.erase(feat_it);
-					changed_ = true;
 					break;
 				}
 			}
@@ -156,25 +172,108 @@ namespace OpenMS
 
 	void QTCluster::computeQuality_()
 	{
-		DoubleReal internal_distance = 0.0;
-		Size counter = 0;
-		for (NeighborMap::iterator it = neighbors_.begin(); it != neighbors_.end();
-				 ++it)
-		{
-			internal_distance += it->second.begin()->first;
-			counter++;
-		}
 		Size num_other = num_maps_ - 1;
-		// add max. distance for missing cluster elements:
-		internal_distance += (num_other - counter) * max_distance_;
+		DoubleReal internal_distance = 0.0;
+		if (!use_IDs_ || !center_point_->getAnnotations().empty() || 
+				neighbors_.empty())
+		{
+			// if the cluster center is annotated with peptide IDs, the neighbors can
+			// consist only of features with compatible IDs, so we don't need to check
+			// again here
+			Size counter = 0;
+			for (NeighborMap::iterator it = neighbors_.begin(); 
+					 it != neighbors_.end(); ++it)
+			{
+				internal_distance += it->second.begin()->first;
+				counter++;
+			}
+			// add max. distance for missing cluster elements:
+			internal_distance += (num_other - counter) * max_distance_;
+		}
+		else // find the annotation that gives the best quality
+		{
+			internal_distance = optimizeAnnotations_();
+		}
+		
 		// normalize:
 		internal_distance /= num_other;
 		quality_ = (max_distance_ - internal_distance) / max_distance_;
 	}
 
-	const set<AASequence>& QTCluster::getAnnotations() const
+	const set<AASequence>& QTCluster::getAnnotations()
 	{
+		if (changed_ && use_IDs_ && center_point_->getAnnotations().empty() &&
+				!neighbors_.empty()) optimizeAnnotations_();
 		return annotations_;
+	}
+
+	DoubleReal QTCluster::optimizeAnnotations_()
+	{
+		// mapping: peptides -> best distance per input map
+		map<set<AASequence>, vector<DoubleReal> > seq_table;
+
+		for (NeighborMap::iterator n_it = neighbors_.begin(); 
+				 n_it != neighbors_.end(); ++n_it)
+		{
+			Size map_index = n_it->first;
+			for (multimap<DoubleReal, GridFeature*>::iterator df_it = 
+						 n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
+			{
+				DoubleReal dist = df_it->first;
+				const set<AASequence>& current = df_it->second->getAnnotations();
+				map<set<AASequence>, vector<DoubleReal> >::iterator pos = 
+					seq_table.find(current);
+				if (pos == seq_table.end()) // new set of annotations
+				{
+					seq_table[current].resize(num_maps_, max_distance_);
+					seq_table[current][map_index] = dist;
+				}
+				else // new dist. value for this input map
+				{
+					pos->second[map_index] = min(dist, pos->second[map_index]);
+				}
+				if (current.empty()) // unannotated feature
+				{
+					// no need to check further (annotation-specific distances are worse
+					// than this unspecific one):
+					break;
+				}
+			}
+		}
+
+		// combine annotation-specific and unspecific distances:
+		map<set<AASequence>, vector<DoubleReal> >::iterator unspecific =
+			seq_table.find(set<AASequence>());
+		if (unspecific != seq_table.end())
+		{
+			for (map<set<AASequence>, vector<DoubleReal> >::iterator it = 
+						 seq_table.begin(); it != seq_table.end(); ++it)
+			{
+				if (it == unspecific) continue;
+				for (Size i = 0; i < num_maps_; ++i)
+				{
+					it->second[i] = min(it->second[i], unspecific->second[i]);
+				}
+			}
+		}
+
+		// compute distance totals -> best annotation set has smallest value:
+		map<set<AASequence>, vector<DoubleReal> >::iterator best_pos = 
+			seq_table.begin();
+		DoubleReal best_total = num_maps_ * max_distance_;
+		for (map<set<AASequence>, vector<DoubleReal> >::iterator it = 
+					 seq_table.begin(); it != seq_table.end(); ++it)
+		{
+			DoubleReal total = accumulate(it->second.begin(), it->second.end(), 0.0);
+			if (total < best_total)
+			{
+				best_pos = it;
+				best_total = total;
+			}
+		}
+		if (best_pos != seq_table.end()) annotations_ = best_pos->first;	
+		// one "max_dist." too many (from the input map of the cluster center):
+		return best_total - max_distance_;
 	}
 
 }

@@ -200,9 +200,11 @@ class TOPPIDMerger
 		StringList file_names = getStringList_("in");
 		String out = getStringOption_("out");
 
-		if (file_names.size() < 2)
+		if (file_names.size() < 1)
 		{
-			writeLog_("Less than two filenames given. Aborting!");
+      // this also allows exactly 1 file, because it might be usefull for
+      // a TOPPAS pipeline containing an IDMerger, to run only with one file
+			writeLog_("Less than one filename given. Aborting!");
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}

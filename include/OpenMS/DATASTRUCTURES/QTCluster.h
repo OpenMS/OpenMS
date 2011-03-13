@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -80,12 +80,19 @@ namespace OpenMS {
 		Size num_maps_;
 
 		/// Quality of the cluster
-		Size quality_;
+		DoubleReal quality_;
 
 		/// Has the cluster changed (if yes, quality needs to be recomputed)?
 		bool changed_;
 
-		/// Set of peptide sequences annotated to the cluster center
+		/// Keep track of peptide IDs and use them for matching?
+		bool use_IDs_;
+
+		/**
+		 * @brief Set of annotations of the cluster
+		 *
+		 * The set of peptide sequences that is compatible to the cluster center and results in the best cluster quality.
+		 */
 		std::set<AASequence> annotations_;
 
 		/// Base constructor (not accessible)
@@ -94,13 +101,22 @@ namespace OpenMS {
 		/// Computes the quality of the cluster
 		void computeQuality_();
 
+		/**
+		 * @brief Finds the optimal annotation (peptide sequences) for the cluster
+		 *
+		 * The optimal annotation is the one that results in the best quality. It is stored in @p annotations_;
+		 *
+		 * @returns The total distance between cluster elements and the center.
+		 */
+		DoubleReal optimizeAnnotations_();
+
 	public:
 		/**
 		 * @brief Detailed constructor
 		 * @param center_point Pointer to the center point
 		 * @param num_maps Number of input maps
 		 * @param max_distance Maximum allowed distance of two points
-		 * @param use_IDs Store peptide annotations in @p annotations_?
+		 * @param use_IDs Use peptide annotations?
 		 */
 		QTCluster(GridFeature* center_point, Size num_maps, 
 							DoubleReal max_distance, bool use_IDs);
@@ -108,20 +124,17 @@ namespace OpenMS {
 		/// Destructor
 		virtual ~QTCluster();
 
-		/// Assignment operator
-		QTCluster& operator=(const QTCluster& rhs);
-
 		/// Returns the RT value of the cluster
-		DoubleReal getCenterRT();
+		DoubleReal getCenterRT() const;
 
 		/// Returns the m/z value of the cluster center
-		DoubleReal getCenterMZ();
+		DoubleReal getCenterMZ() const;
 
 		/// Returns the size of the cluster (number of elements, incl. center)
 		Size size() const;
 
 		/// Compare by quality
-		bool operator<(QTCluster &cluster);
+		bool operator<(QTCluster& cluster);
 
 		/**
 		 * @brief Adds a new element/neighbor to the cluster
@@ -131,8 +144,8 @@ namespace OpenMS {
 		 */
 		void add(GridFeature* element, DoubleReal distance);
 
-		/// Non-mutable access to the clustered elements
-		void getElements(std::map<Size, GridFeature*>& elements) const;
+		/// Gets the clustered elements
+		void getElements(std::map<Size, GridFeature*>& elements);
 
 		/**
 		 * @brief Updates the cluster after data points were removed
@@ -144,7 +157,7 @@ namespace OpenMS {
 		DoubleReal getQuality();
 
 		/// Return the set of peptide sequences annotated to the cluster center
-		const std::set<AASequence>& getAnnotations() const;
+		const std::set<AASequence>& getAnnotations();
 
 	};
 }

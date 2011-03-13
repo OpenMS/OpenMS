@@ -192,40 +192,42 @@ class TOPPIDMassAccuracy
 				}
 			}
 
-			// generate precursor statistics
+			// generate precursor statistics        
 			vector<MassDifference> precursor_diffs;
-			for (Size i = 0; i != maps.size(); ++i)
-			{
-				for (Size j = 0; j != maps[i].size(); ++j)
-				{
-					if (maps[i][j].getPeptideIdentifications().size() == 0)
-					{
-						continue;
-					}
-					for (vector<PeptideIdentification>::const_iterator it = maps[i][j].getPeptideIdentifications().begin(); it != maps[i][j].getPeptideIdentifications().end(); ++it)
-					{
-						if (it->getHits().size() > 0)
-						{
-							PeptideHit hit = *it->getHits().begin();
-							if (!hit.getSequence().isValid())
-							{
-								continue;
-							}
-							MassDifference md;
-							Int charge = hit.getCharge();
-							if (charge == 0)
-							{
-								charge = 1;
-							}
-							md.exp_mz = (DoubleReal)it->getMetaValue("MZ");
-							md.theo_mz = (hit.getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U)/(DoubleReal)charge;
-							md.charge = charge;
-							precursor_diffs.push_back(md);
-						}
-					}
-				}
-			}
-
+      if (getStringOption_("precursor_out") != "")
+      {
+        for (Size i = 0; i != maps.size(); ++i)
+        {
+          for (Size j = 0; j != maps[i].size(); ++j)
+          {
+            if (maps[i][j].getPeptideIdentifications().size() == 0)
+            {
+              continue;
+            }
+            for (vector<PeptideIdentification>::const_iterator it = maps[i][j].getPeptideIdentifications().begin(); it != maps[i][j].getPeptideIdentifications().end(); ++it)
+            {
+              if (it->getHits().size() > 0)
+              {
+                PeptideHit hit = *it->getHits().begin();
+                if (!hit.getSequence().isValid())
+                {
+                  continue;
+                }
+                MassDifference md;
+                Int charge = hit.getCharge();
+                if (charge == 0)
+                {
+                  charge = 1;
+                }
+                md.exp_mz = (DoubleReal)it->getMetaValue("MZ");
+                md.theo_mz = (hit.getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U)/(DoubleReal)charge;
+                md.charge = charge;
+                precursor_diffs.push_back(md);
+              }
+            }
+          }
+        }
+      }
 
 			// generate fragment ions statistics
 			vector<MassDifference> fragment_diffs;
@@ -235,47 +237,50 @@ class TOPPIDMassAccuracy
 			Param sa_param(sa.getParameters());
 			sa_param.setValue("tolerance", fragment_mass_tolerance);
 			sa.setParameters(sa_param);
-			for (Size i = 0; i != maps.size(); ++i)
-			{
-				for (Size j = 0; j != maps[i].size(); ++j)
-				{
-					if (maps[i][j].getPeptideIdentifications().size() == 0)
-					{
-						continue;
-					}
-					for (vector<PeptideIdentification>::const_iterator it = maps[i][j].getPeptideIdentifications().begin(); it != maps[i][j].getPeptideIdentifications().end(); ++it)
-					{
-						if (it->getHits().size() > 0)
-						{
-							PeptideHit hit = *it->getHits().begin();
 
-							if (!hit.getSequence().isValid())
-							{
-								continue;
-							}
-							RichPeakSpectrum theo_spec;
-							tsg.addPeaks(theo_spec, hit.getSequence(), Residue::YIon);
-							tsg.addPeaks(theo_spec, hit.getSequence(), Residue::BIon);
-						
-							vector<pair<Size, Size> > pairs;
-							sa.getSpectrumAlignment(pairs, theo_spec, maps[i][j]);
-							//cerr << hit.getSequence() << " " << hit.getSequence().getSuffix(1).getFormula() << " " << hit.getSequence().getSuffix(1).getFormula().getMonoWeight() << endl;
-							for (vector<pair<Size, Size> >::const_iterator pit = pairs.begin(); pit != pairs.end(); ++pit)
-							{
-								MassDifference md;
-								md.exp_mz = maps[i][j][pit->second].getMZ();
-								md.theo_mz = theo_spec[pit->first].getMZ();
-								//cerr.precision(15);
-								//cerr << md.exp_mz << " " << md.theo_mz << " " << md.exp_mz - md.theo_mz << endl;
-								md.intensity = maps[i][j][pit->second].getIntensity();
-								md.charge = hit.getCharge();
-								fragment_diffs.push_back(md);
-							}
-						}
-					}
-				}
-			}
+      if (getStringOption_("fragment_out") != "")
+      {
+        for (Size i = 0; i != maps.size(); ++i)
+        {
+          for (Size j = 0; j != maps[i].size(); ++j)
+          {
+            if (maps[i][j].getPeptideIdentifications().size() == 0)
+            {
+              continue;
+            }
+            for (vector<PeptideIdentification>::const_iterator it = maps[i][j].getPeptideIdentifications().begin(); it != maps[i][j].getPeptideIdentifications().end(); ++it)
+            {
+              if (it->getHits().size() > 0)
+              {
+                PeptideHit hit = *it->getHits().begin();
 
+                if (!hit.getSequence().isValid())
+                {
+                  continue;
+                }
+                RichPeakSpectrum theo_spec;
+                tsg.addPeaks(theo_spec, hit.getSequence(), Residue::YIon);
+                tsg.addPeaks(theo_spec, hit.getSequence(), Residue::BIon);
+
+                vector<pair<Size, Size> > pairs;
+                sa.getSpectrumAlignment(pairs, theo_spec, maps[i][j]);
+                //cerr << hit.getSequence() << " " << hit.getSequence().getSuffix(1).getFormula() << " " << hit.getSequence().getSuffix(1).getFormula().getMonoWeight() << endl;
+                for (vector<pair<Size, Size> >::const_iterator pit = pairs.begin(); pit != pairs.end(); ++pit)
+                {
+                  MassDifference md;
+                  md.exp_mz = maps[i][j][pit->second].getMZ();
+                  md.theo_mz = theo_spec[pit->first].getMZ();
+                  //cerr.precision(15);
+                  //cerr << md.exp_mz << " " << md.theo_mz << " " << md.exp_mz - md.theo_mz << endl;
+                  md.intensity = maps[i][j][pit->second].getIntensity();
+                  md.charge = hit.getCharge();
+                  fragment_diffs.push_back(md);
+                }
+              }
+            }
+          }
+        }
+      }
 			
 			//-------------------------------------------------------------
       // writing output

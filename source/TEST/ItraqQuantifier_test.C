@@ -71,7 +71,7 @@ START_SECTION((ItraqQuantifier(Int itraq_type, const Param &param)))
 {
 	Param p;
 	p.setValue("isotope_correction_values", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
-  ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
+	ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
 	TEST_EQUAL((StringList) iq.getParameters().getValue("isotope_correction_values"),StringList::create( "114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
 	
 	// this should go wrong
@@ -86,7 +86,7 @@ START_SECTION((ItraqQuantifier(const ItraqQuantifier &cp)))
 {
 	Param p;
 	p.setValue("isotope_correction_values", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
-  ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
+	ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
 
 	ItraqQuantifier iq_cp(iq);
 	
@@ -99,7 +99,7 @@ START_SECTION((ItraqQuantifier& operator=(const ItraqQuantifier &rhs)))
 {
 	Param p;
 	p.setValue("isotope_correction_values", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
-  ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
+	ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
 
 	ItraqQuantifier iq_cp;
 	iq_cp = iq;
@@ -112,7 +112,7 @@ END_SECTION
 
 START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_map_out)))
 {
-  ConsensusXMLFile cm_file;
+	ConsensusXMLFile cm_file;
 	ConsensusMap cm_in, cm_out;
 	cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
 
@@ -125,9 +125,9 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 	String cm_file_out;// = OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML");
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
-	
-  WHITELIST("<?xml-stylesheet");
-  // WHITELIST("<?xml-stylesheet,consensusElement id=");
+
+	WHITELIST("<?xml-stylesheet");
+	// WHITELIST("<?xml-stylesheet,consensusElement id=");
 	TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"));
 }
 END_SECTION

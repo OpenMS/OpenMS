@@ -73,6 +73,7 @@ START_SECTION((~IDMapper()))
 END_SECTION
 
 START_SECTION((IDMapper(const IDMapper& cp)))
+{
 	IDMapper mapper;
 	Param p = mapper.getParameters();
 	p.setValue("rt_tolerance", 0.5);
@@ -81,24 +82,26 @@ START_SECTION((IDMapper(const IDMapper& cp)))
 	mapper.setParameters(p);
 	IDMapper m2(mapper);
 	TEST_EQUAL(m2.getParameters(), p);
-	
+}	
 END_SECTION
       
 
 START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
+{
 	IDMapper mapper;
 	Param p = mapper.getParameters();
 	p.setValue("rt_tolerance", 0.5);
 	p.setValue("mz_tolerance", 0.05);
-	p.setValue("mz_measure","ppm");
+	p.setValue("mz_measure", "ppm");
 	mapper.setParameters(p);
 	IDMapper m2=mapper;
 	TEST_EQUAL(m2.getParameters(), p);
-	
+}	
 END_SECTION
       
 
 START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType > &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids)))
+{
 	//load id
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;
@@ -135,6 +138,7 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
 	p.setValue("rt_tolerance", 0.5);
 	p.setValue("mz_tolerance", 0.05);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 			
 	mapper.annotate(experiment, identifications, protein_identifications);
@@ -155,11 +159,13 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
 	TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)	
 	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
 	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), "HSKLSAK")
+}
 END_SECTION
 
 
 
 START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))
+{
 	//load id data
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;
@@ -176,6 +182,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 	p.setValue("rt_tolerance", 0.0);
 	p.setValue("mz_tolerance", 0.0);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 	
 	mapper.annotate(fm,identifications,protein_identifications);
@@ -216,6 +223,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 	p.setValue("rt_tolerance", 4.0);
 	p.setValue("mz_tolerance", 1.5);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 
 mapper.annotate(fm2,identifications,protein_identifications, true, true);
@@ -244,6 +252,39 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
 	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[6].getHits()[0].getSequence(),"I")
 	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[7].getHits()[0].getSequence(),"L")
 	
+	// ******* test charge-specific matching *******
+
+	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm);
+	
+	p.setValue("rt_tolerance", 0.0);
+	p.setValue("mz_tolerance", 0.0);
+	p.setValue("mz_measure", "Da");
+	p.setValue("ignore_charge", "false");
+	mapper.setParameters(p);
+	
+	mapper.annotate(fm, identifications, protein_identifications);
+
+	//test protein ids
+	TEST_EQUAL(fm.getProteinIdentifications().size(), 1)
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits().size(), 2)
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits()[0].getAccession(), 
+						 "ABCDE")
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits()[1].getAccession(), 
+						 "FGHIJ")
+	
+	//test peptide ids
+	TEST_EQUAL(fm[0].getPeptideIdentifications().size(), 3)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),"C")
+	
+	//test unassigned peptide ids
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications().size(), 7)
+
+
 	// ******* PPM test *******
 	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.idXML"), protein_identifications, identifications);
 	
@@ -252,6 +293,7 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
 	p.setValue("rt_tolerance", 4.0);
 	p.setValue("mz_tolerance", 3.0);
 	p.setValue("mz_measure","ppm");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 
 	mapper.annotate(fm_ppm,identifications,protein_identifications);
@@ -281,7 +323,7 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
 	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[0].getHits()[1].getSequence(),"DEADA")
 	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"DEADAA")
 	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"DEADAAA")
-	
+}	
 END_SECTION
 
 
@@ -291,9 +333,9 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 	Param p = mapper.getParameters();
 	p.setValue("mz_tolerance", 0.01);
 	p.setValue("mz_measure","Da");
+	p.setValue("ignore_charge", "true");
 	mapper.setParameters(p);
 	
-
 	TOLERANCE_ABSOLUTE(0.01);
 		
 	std::vector<ProteinIdentification> protein_ids;
@@ -325,6 +367,32 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 		TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out2.consensusXML"));
 	}
 	
+	// check charge-specific matching:
+	{
+		ConsensusMap cm;
+		cm.resize(1);
+		cm[0].setRT(4101.48);
+		cm[0].setMZ(117.1);
+		cm[0].setCharge(2);
+
+		mapper.annotate(cm, peptide_ids, protein_ids);
+
+		TEST_EQUAL(cm[0].getPeptideIdentifications().size(), 1);
+		TEST_EQUAL(cm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),
+							 "ACSF");
+		TEST_EQUAL(cm.getUnassignedPeptideIdentifications().size(), 
+							 peptide_ids.size() - 1);
+
+		cm[0].getPeptideIdentifications().clear();
+		cm.getUnassignedPeptideIdentifications().clear();
+		p.setValue("ignore_charge", "false");
+		mapper.setParameters(p);
+		mapper.annotate(cm, peptide_ids, protein_ids);
+		TEST_EQUAL(cm[0].getPeptideIdentifications().size(), 0);
+		TEST_EQUAL(cm.getUnassignedPeptideIdentifications().size(), 
+							 peptide_ids.size());
+	}
+
 }
 END_SECTION
 

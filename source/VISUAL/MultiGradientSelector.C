@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -272,11 +272,11 @@ namespace OpenMS
 		{
       if (result->text()=="grey - yellow - red - purple - blue - black")
       {         
-        gradient_.fromString("Linear|0,#eeeeee;1,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");
+        gradient_ = MultiGradient::getDefaultGradientLinearIntensityMode();
       }
 			if (result->text()=="grey - black")
 			{
-				gradient_.fromString("Linear|0,#CCCCCC;100,#000000");
+        gradient_ = MultiGradient::getDefaultGradientLogarithmicIntensityMode();
 			}
 			else if (result->text()=="yellow - red - purple - blue - black")
 			{
