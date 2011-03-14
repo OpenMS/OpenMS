@@ -246,43 +246,43 @@ START_SECTION((Size compress()))
   tmp.addPoint(DPosition<2>(3.,1.));
   tmp.addPoint(DPosition<2>(3.,10.));
 
-  // should remove all but 2 points, since all points are located on a single line
+  DBoundingBox<2> beforeCompress = tmp.getBoundingBox();
+
   TEST_EQUAL(tmp.compress() , 1)
+
   // second call should remove no points
   TEST_EQUAL(tmp.compress() , 0)
 
-  // TODO .. needs more testing
 
-  /*
-  tmp.addPoint(DPosition<2>(1.,1.));
-  tmp.addPoint(DPosition<2>(1.,2.));
-  tmp.addPoint(DPosition<2>(1.,3.));
-  tmp.addPoint(DPosition<2>(1.,4.));
-  tmp.addPoint(DPosition<2>(1.,5.));
-  tmp.addPoint(DPosition<2>(1.,6.));
-  tmp.addPoint(DPosition<2>(1.,7.));
-  tmp.addPoint(DPosition<2>(1.,8.));
-  tmp.addPoint(DPosition<2>(1.,9.));
-  */
+  TEST_EQUAL(tmp.getBoundingBox(), beforeCompress)
 
+  tmp.addPoint(DPosition<2>(4.,1.));
+  tmp.addPoint(DPosition<2>(4.,10.));
 
-  /*
-  tmp.addPoint(DPosition<2>(0.5,1.5));
-  tmp.addPoint(DPosition<2>(1.0,1.5));
-  tmp.addPoint(DPosition<2>(1.2,1.5));
-  tmp.addPoint(DPosition<2>(1.3,1.5));
-  tmp.addPoint(DPosition<2>(1.5,1.5));
-  tmp.addPoint(DPosition<2>(3.0,1.5));
-  tmp.addPoint(DPosition<2>(4.0,1.5));
-  tmp.addPoint(DPosition<2>(5.0,1.5));
-  tmp.addPoint(DPosition<2>(6.0,1.5));
+  tmp.addPoint(DPosition<2>(5.,2.));
+  tmp.addPoint(DPosition<2>(5.,10.));
 
-  // we can again remove all but two points from the newly added line
-  // TODO: why are only 5 points removed (ask Chris)
-  TEST_EQUAL(tmp.compress() , 5)
+  tmp.addPoint(DPosition<2>(6.,1.));
+  tmp.addPoint(DPosition<2>(6.,10.));
+
+  beforeCompress = tmp.getBoundingBox();
+
+  TEST_EQUAL(tmp.compress() , 1)
+
   // second call should remove no points
   TEST_EQUAL(tmp.compress() , 0)
-  */
+
+  TEST_EQUAL(tmp.getBoundingBox(), beforeCompress)
+
+  // check if encloses still works correct
+
+  TEST_EQUAL(tmp.encloses(DPosition<2>(1.1, 5.)), true)
+  TEST_EQUAL(tmp.encloses(DPosition<2>(2.1, 5.)), true)
+  TEST_EQUAL(tmp.encloses(DPosition<2>(3.1, 5.)), true)
+  TEST_EQUAL(tmp.encloses(DPosition<2>(4.1, 5.)), true)
+  TEST_EQUAL(tmp.encloses(DPosition<2>(5.1, 5.)), true)
+  TEST_EQUAL(tmp.encloses(DPosition<2>(5.1, 1.)), false)
+  TEST_EQUAL(tmp.encloses(DPosition<2>(5.9, 5.)), true)
 }
 END_SECTION
 

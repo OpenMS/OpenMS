@@ -173,7 +173,9 @@ namespace OpenMS
 
   Size ConvexHull2D::compress()
   {
-    // if the m/z span is always the same in consecutive scans, keep the min&max scan only)
+    // iterate over rt scans and check if the m/z span is always the same in consecutive scans
+    // keep the min&max scan only
+    //
     if (map_points_.size()<3) return 0; // we need at least one "middle" scan
 
     HullPointType compressed_map;
@@ -187,7 +189,7 @@ namespace OpenMS
 		{
       if (pred_it->second==middle_it->second && middle_it->second==succ_it->second)
       {
-        // middle is identical in range --> skip
+        // middle is identical in m/z range .. do not add to the compressed_map
       }
       else
       {

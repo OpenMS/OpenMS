@@ -110,6 +110,10 @@ namespace OpenMS
         Removes points from the hull which lie on a straight line and do not contribute to
         the hulls shape. Should be called before saving to disk.
         
+        Example: Consider a series of 3 scans with the same dimension in m/z. After calling
+        compress, the points from the second scan will be removed, since they do not contribute
+        to the convex hull.
+
         @returns Number of removed scans
       **/
       Size compress();
