@@ -345,7 +345,7 @@ class TOPPPeptideIndexer
 			writeDebug_("Collecting peptides...", 1);
 
       FoundProteinFunctor func; // stores the matches (need to survive local scope which follows)
-			Map<String,Size> acc_to_prot; // build map accessions to proteins
+			Map<String,Size> acc_to_prot; // build map: accessions to proteins
 
       { // new scope - forget data after search
 
@@ -540,7 +540,8 @@ class TOPPPeptideIndexer
         for (vector<ProteinHit>::iterator p_hit = prot_ids[run_idx].getHits().begin(); p_hit != prot_ids[run_idx].getHits().end(); ++p_hit)
 				{
           const String& acc = p_hit->getAccession();
-          if (masterset.find(acc_to_prot[acc]) != masterset.end())
+          if (acc_to_prot.has(acc) // accession needs to exist in new FASTA file
+              && masterset.find(acc_to_prot[acc]) != masterset.end())
           { // this accession was there already
             new_protein_hits.push_back(*p_hit);
             String seq;
