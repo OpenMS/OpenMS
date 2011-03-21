@@ -622,7 +622,9 @@ endif()
 
 ### OpenMS_GUI lib
 ADD_LIBRARY(OpenMS_GUI ${OpenMSVisual_sources})
-set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS "/FORCE:MULTIPLE" "/INCREMENTAL:NO" "/wd4006") ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+if (MSVC)
+	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS "/FORCE:MULTIPLE" "/INCREMENTAL:NO" "/wd4006") ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+endif()	
 
 
 ## update the openms_svn_revision.h file before compiling OpenMS

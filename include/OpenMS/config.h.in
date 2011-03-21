@@ -145,5 +145,8 @@
 #ifndef OPENMS_DLLAPI //leave empty when not building DLL
 # define OPENMS_DLLAPI
 #endif
+#ifndef OPENMS_GUI_DLLAPI //leave empty when not building DLL
+# define OPENMS_GUI_DLLAPI
+#endif
 
 #endif // OPENMS_CONFIG_H
