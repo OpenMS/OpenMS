@@ -85,7 +85,7 @@ namespace OpenMS
 	
 		@ingroup TOPPAS_elements
 	*/
-	class OPENMS_DLLAPI TOPPASVertex
+	class OPENMS_GUI_DLLAPI TOPPASVertex
 		: public QObject,
 			public QGraphicsItem
 	{

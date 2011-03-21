@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI Spectrum1DGoToDialog
+	class OPENMS_GUI_DLLAPI Spectrum1DGoToDialog
 		: public QDialog,
 			public Ui::Spectrum1DGoToDialogTemplate
 	{

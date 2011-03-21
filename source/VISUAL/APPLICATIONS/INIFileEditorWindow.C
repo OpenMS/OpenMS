@@ -25,7 +25,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/INIFileEditorWindow.h>
+#include <OpenMS/VISUAL/APPLICATIONS/INIFileEditorWindow.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 

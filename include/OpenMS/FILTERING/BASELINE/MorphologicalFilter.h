@@ -89,6 +89,11 @@ namespace OpenMS
 					++(*this);
 					return tmp;
 				}
+				
+        bool operator==(const IntensityIteratorWrapper&	rhs) const
+				{
+					return base==rhs.base;
+				}
 
 				bool operator!=(const IntensityIteratorWrapper&	rhs) const
 				{

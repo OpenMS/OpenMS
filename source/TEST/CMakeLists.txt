@@ -41,10 +41,6 @@ add_dependencies(SYSTEM_TEST ${system_executables_list})
 add_custom_target(KERNEL_TEST)
 add_dependencies(KERNEL_TEST ${kernel_executables_list})
 
-### VISUAL
-add_custom_target(VISUAL_TEST)
-add_dependencies(VISUAL_TEST ${visual_executables_list})
-
 ### FORMAT
 add_custom_target(FORMAT_TEST)
 add_dependencies(FORMAT_TEST ${format_executables_list})
@@ -81,6 +77,10 @@ add_dependencies(TRANSFORMATIONS_TEST ${transformations_executables_list})
 add_custom_target(SIMULATION_TEST)
 add_dependencies(SIMULATION_TEST ${simulation_executables_list})
 
+### VISUAL
+add_custom_target(VISUAL_TEST)
+add_dependencies(VISUAL_TEST ${visual_executables_list})
+
 ### tests
 foreach(i ${TEST_executables})
 	add_executable(${i} ${i}.C)
@@ -91,6 +91,11 @@ foreach(i ${TEST_executables})
   if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()  
+endforeach(i)
+
+### tests of classes from GUI lib:
+foreach(i ${visual_executables_list})
+	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 
 ## GUI tests special treatment
@@ -105,7 +110,7 @@ QT4_WRAP_CPP(mocced_GUI_executables_list_C ${GUI_executables_list_C})
 foreach(i ${GUI_executables_list})
 	SET_SOURCE_FILES_PROPERTIES(GUI/${i}.C PROPERTIES OBJECT_DEPENDS ${mocced_GUI_executables_list_C})
 	add_executable(${i} GUI/${i}.C)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
+	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
 	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)

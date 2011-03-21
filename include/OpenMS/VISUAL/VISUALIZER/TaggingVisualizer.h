@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type Tagging.
 	*/
-	class OPENMS_DLLAPI TaggingVisualizer
+	class OPENMS_GUI_DLLAPI TaggingVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Tagging>
 	{

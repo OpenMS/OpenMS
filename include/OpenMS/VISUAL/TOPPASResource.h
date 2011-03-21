@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup TOPPAS_elements
 	*/
-	class OPENMS_DLLAPI TOPPASResource
+	class OPENMS_GUI_DLLAPI TOPPASResource
 		: QObject
 	{
 		Q_OBJECT

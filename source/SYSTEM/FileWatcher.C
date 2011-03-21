@@ -99,4 +99,6 @@ namespace OpenMS
   	timers_.erase(timer->objectName());
   }
 
+  //OPENMS_DLLAPI FileWatcher myFileWatcher_instance; // required, such that the moc file get generated during building OpenMS.dll, not later during OpenMS_GUI.dll as DLL flags are wrong then
+
 } // namespace OpenMS

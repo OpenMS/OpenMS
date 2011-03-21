@@ -130,10 +130,15 @@
 
 #ifdef OPENMS_WINDOWSPLATFORM
 # ifdef BUILD_SHARED_LIBS
-#  ifdef OpenMS_EXPORTS  //automatically defined by CMake when building a dll
+#  if defined OpenMS_EXPORTS  //automatically defined by CMake when building OpenMS dll
 #    define OPENMS_DLLAPI  __declspec( dllexport )
 #  else
 #    define OPENMS_DLLAPI  __declspec( dllimport )
+#  endif
+#  if defined OpenMS_GUI_EXPORTS  //automatically defined by CMake when building OpenMS-GUI dll
+#    define OPENMS_GUI_DLLAPI  __declspec( dllexport )
+#  else
+#    define OPENMS_GUI_DLLAPI  __declspec( dllimport )
 #  endif
 # endif
 #endif

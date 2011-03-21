@@ -56,17 +56,17 @@ namespace OpenMS
 		
 		@ingroup System
 	*/
-	class OPENMS_DLLAPI FileWatcher
+	class FileWatcher
 		: public QFileSystemWatcher //find out why ICC requires public instead of protected
 	{
     Q_OBJECT
     
     public:
     	///Constructor
-    	FileWatcher(QObject* parent=0);
+    	OPENMS_DLLAPI FileWatcher(QObject* parent=0);
 			
 			///Destructor
-			virtual ~FileWatcher();
+			OPENMS_DLLAPI virtual ~FileWatcher();
 			    	
     	///Sets the delay in seconds (default: 1s)
     	inline void setDelayInSeconds(DoubleReal delay)
@@ -88,13 +88,13 @@ namespace OpenMS
     	
     signals:
     	///Delayed file change signal
-    	void fileChanged(const String&);
+    	OPENMS_DLLAPI void fileChanged(const String&);
     
     protected slots:
 			/// Slot that is connected to the fileChanged signal in order to track the changes
-    	void monitorFileChanged_(const QString& name);
+    	OPENMS_DLLAPI void monitorFileChanged_(const QString& name);
 			/// Slot that is called when the delay is over
-    	void timerTriggered_();
+    	OPENMS_DLLAPI void timerTriggered_();
 
     protected:
     	/// A map that links timer name and file
@@ -103,6 +103,7 @@ namespace OpenMS
     	DoubleReal delay_in_seconds_;
 	};
 
+ // OPENMS_DLLAPI extern FileWatcher myFileWatcher_instance;
 }
 
 #endif // OPENMS_SYSTEM_FILE_H

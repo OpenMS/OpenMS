@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type Precursor.
 	*/
-	class OPENMS_DLLAPI PrecursorVisualizer
+	class OPENMS_GUI_DLLAPI PrecursorVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Precursor>
 	{

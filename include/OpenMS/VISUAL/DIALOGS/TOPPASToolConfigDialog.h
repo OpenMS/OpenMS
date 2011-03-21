@@ -51,7 +51,7 @@ namespace OpenMS
 		@ingroup TOPPAS_elements
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI TOPPASToolConfigDialog
+	class OPENMS_GUI_DLLAPI TOPPASToolConfigDialog
 		: public QDialog
 	{
 		Q_OBJECT

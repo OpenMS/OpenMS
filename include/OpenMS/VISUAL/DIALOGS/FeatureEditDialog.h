@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI FeatureEditDialog
+	class OPENMS_GUI_DLLAPI FeatureEditDialog
 		: public QDialog,
   		public Ui::FeatureEditDialogTemplate
 	{

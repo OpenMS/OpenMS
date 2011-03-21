@@ -51,7 +51,7 @@ namespace OpenMS
 	
 		@ingroup TOPPAS_elements
 	*/
-	class OPENMS_DLLAPI TOPPASMergerVertex
+	class OPENMS_GUI_DLLAPI TOPPASMergerVertex
 		: public TOPPASVertex
 	{
 		Q_OBJECT

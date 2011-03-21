@@ -37,7 +37,7 @@ endforeach(i)
 QT4_WRAP_CPP(mocced_sources ${sources})
 
 ### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${mocced_sources})
+set(OpenMSVisual_sources ${OpenMSVisual_sources} ${mocced_sources})
 
 source_group("Source Files\\OpenMS\\VISUAL\\DIALOGS" FILES ${mocced_sources})
 
@@ -64,6 +64,7 @@ TOPPASInputFilesDialog.h
 TOPPASOutputFilesDialog.h
 TOPPASToolConfigDialog.h
 TOPPASIOMappingDialog.h
+TOPPASVertexNameDialog.h
 )
 
 ### add path to the filenames
@@ -75,5 +76,5 @@ endforeach(i)
 ### source group definition
 source_group("Header Files\\OpenMS\\VISUAL\\DIALOGS" FILES ${sources_h})
 
-set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+set(OpenMSVisual_sources_h ${OpenMSVisual_sources_h} ${sources_h})
 

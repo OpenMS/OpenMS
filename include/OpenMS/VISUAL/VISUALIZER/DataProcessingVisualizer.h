@@ -42,7 +42,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type DataProcessing.
 	*/
-	class OPENMS_DLLAPI DataProcessingVisualizer
+	class OPENMS_GUI_DLLAPI DataProcessingVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<DataProcessing>
 	{

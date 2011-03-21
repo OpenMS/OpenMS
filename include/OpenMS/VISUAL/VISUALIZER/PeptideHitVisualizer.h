@@ -41,7 +41,7 @@ namespace OpenMS
 	
 		This class provides all functionality to view the meta information of an object of type PeptideHit.
 	*/
-	class OPENMS_DLLAPI PeptideHitVisualizer
+	class OPENMS_GUI_DLLAPI PeptideHitVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<PeptideHit>
 	{

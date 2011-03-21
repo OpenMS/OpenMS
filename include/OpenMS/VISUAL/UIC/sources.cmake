@@ -16,5 +16,5 @@ endforeach(i)
 QT4_WRAP_UI_OWN(uiced_sources ${sources})
 
 ### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${uiced_sources})
+set(OpenMSVisual_sources ${OpenMSVisual_sources} ${uiced_sources})
 

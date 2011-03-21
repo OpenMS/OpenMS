@@ -40,7 +40,7 @@ namespace OpenMS
 		@ingroup TOPPAS_elements
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI TOPPASInputFileDialog
+	class OPENMS_GUI_DLLAPI TOPPASInputFileDialog
 		: public QDialog,
 			public Ui::TOPPASInputFileDialogTemplate
 	{

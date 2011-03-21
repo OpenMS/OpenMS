@@ -39,7 +39,7 @@ class QDropEvent;
 
 namespace OpenMS
 {
-	class OPENMS_DLLAPI EnhancedWorkspace
+	class OPENMS_GUI_DLLAPI EnhancedWorkspace
 		: public QWorkspace
 	{
 		Q_OBJECT

@@ -668,7 +668,7 @@ class TOPPRTModel
 						}
 					}				
 				}
-			}
+			} // end ! textfile input
 			
 			// Getting a non redundant training set. If there are several copies of one peptide,
 			// the standard deviation is calculated. If this std is less or equal to the

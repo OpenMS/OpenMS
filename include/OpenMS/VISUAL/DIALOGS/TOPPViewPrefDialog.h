@@ -40,7 +40,7 @@ namespace OpenMS
 			
 			@ingroup TOPPView_elements
 		*/
-		class OPENMS_DLLAPI TOPPViewPrefDialog
+		class OPENMS_GUI_DLLAPI TOPPViewPrefDialog
 			: public QDialog,
 	  		public Ui::TOPPViewPrefDialogTemplate
 		{

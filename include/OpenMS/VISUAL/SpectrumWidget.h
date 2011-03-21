@@ -61,7 +61,7 @@ namespace OpenMS
 		
 		@todo Add support to store the displayed data as SVG image (HiWi)
 	*/
-	class OPENMS_DLLAPI SpectrumWidget 
+	class OPENMS_GUI_DLLAPI SpectrumWidget 
     : public QWidget,
       public EnhancedTabBarWidgetInterface
 	{

@@ -57,7 +57,7 @@ namespace OpenMS
 	
 		@ingroup TOPPAS_elements
 	*/
-	class OPENMS_DLLAPI TOPPASScene
+	class OPENMS_GUI_DLLAPI TOPPASScene
 		:	public QGraphicsScene
 	{
 		Q_OBJECT

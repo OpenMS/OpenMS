@@ -3,9 +3,6 @@ set(directory include/OpenMS/APPLICATIONS)
 
 ### list all MOC filenames of the directory here
 set(sources_list
-INIFileEditorWindow.h
-TOPPViewBase.h
-TOPPASBase.h
 )
 
 ### add path to the filenames
@@ -24,11 +21,8 @@ source_group("Source Files\\OpenMS\\APPLICATIONS" FILES ${mocced_sources})
 
 ### list all header files of the directory here
 set(sources_list_h
-INIFileEditorWindow.h
 ToolHandler.h
 TOPPBase.h
-TOPPViewBase.h
-TOPPASBase.h
 )
 
 ### add path to the filenames

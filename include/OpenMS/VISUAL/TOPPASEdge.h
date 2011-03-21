@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@ingroup TOPPAS_elements
 	*/
-	class OPENMS_DLLAPI TOPPASEdge
+	class OPENMS_GUI_DLLAPI TOPPASEdge
 		: public QObject,
 			public QGraphicsItem
 	{

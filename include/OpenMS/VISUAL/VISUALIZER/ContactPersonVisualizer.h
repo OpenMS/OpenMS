@@ -42,7 +42,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type ContactPerson.
 	*/
-	class OPENMS_DLLAPI ContactPersonVisualizer
+	class OPENMS_GUI_DLLAPI ContactPersonVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<ContactPerson>
 	{

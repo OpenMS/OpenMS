@@ -26,15 +26,36 @@
 // $Authors: Timo Sachsenberg, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
 #include <OpenMS/VISUAL/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/Annotation1DTextItem.h>
@@ -46,34 +67,15 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/METADATA/Precursor.h>
 
 // OpenMS TOPPAS
-#include <OpenMS/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>

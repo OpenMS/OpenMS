@@ -43,7 +43,7 @@ namespace OpenMS
 	/**
 		@brief shows the ParamEditor widget in a QMainWindow with a toolbar
 	*/
-	class OPENMS_DLLAPI INIFileEditorWindow
+	class OPENMS_GUI_DLLAPI INIFileEditorWindow
 		: public QMainWindow
 	{
 		Q_OBJECT

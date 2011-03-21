@@ -30,7 +30,7 @@
 #include <QTimer>
 #include <QQueue>
 
-#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 

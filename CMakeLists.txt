@@ -108,11 +108,6 @@ elseif (MSVC)
 	## disable warning: "decorated name length exceeded, name was truncated"
 	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4503")
 	
-  # disable incremental linking
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /INCREMENTAL:NO")
-  SET(CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS_DEBUG} /INCREMENTAL:NO")
-  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /INCREMENTAL:NO")
-	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
 
@@ -625,6 +620,11 @@ else()
 	ADD_LIBRARY(OpenMS ${OpenMS_sources})
 endif()
 
+### OpenMS_GUI lib
+ADD_LIBRARY(OpenMS_GUI ${OpenMSVisual_sources})
+set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS "/FORCE:MULTIPLE" "/INCREMENTAL:NO" "/wd4006") ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+
+
 ## update the openms_svn_revision.h file before compiling OpenMS
 if (OPENMS_HAS_SVNVERSION)
 	# build the updater executable
@@ -650,25 +650,25 @@ endif()
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
 set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF} ${CONTRIB_BOOST_IO} ${CONTRIB_IMSLIB} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB})
 if (TBB_FOUND)
-	set (OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES} ${TBB_LIBRARIES})
+	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
-
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
 target_link_libraries(OpenMS ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
-set(OPENMS_LIBRARIES OpenMS)
+## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
+## we fix this by adding the dependencies of OpenMS directly to the executables as well.
+set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES})
 if (MSVC) ## Windows
-	## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
-	## we fix this by adding the dependencies of OpenMS directly to the executables as well.
-	set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-#elseif (NOT APPLE) ## Linux
-else()
-	set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES})
+	list(APPEND OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES})
 endif()
+
+## link libraries for GUI Tools
+set(OPENMS_GUI_LIBRARIES optimized OpenMS_GUI${CMAKE_RELEASE_POSTFIX} debug OpenMS_GUI${CMAKE_DEBUG_POSTFIX} OpenMS ${QT_LIBRARIES})
 
 ## directory for OpenMS(d).lib (required for linking executables)
 if (MSVC)
@@ -676,27 +676,10 @@ if (MSVC)
 endif()
 
 ####### TOPP #########
-include(source/APPLICATIONS/TOPP/executables.cmake)
-
-set(TOPP_DIR source/APPLICATIONS/TOPP/)
+set(TOPP_DIR source/APPLICATIONS/TOPP)
+include(${TOPP_DIR}/executables.cmake)
 foreach(i ${TOPP_executables})
-	set(resource_file ${CMAKE_SOURCE_DIR}/${TOPP_DIR}${i}.rc)
-	set(resource_dir ${CMAKE_SOURCE_DIR}/${TOPP_DIR}/${i}-resources/)
-	## add icons to TOPPView and INIFileEditor
-	if (MSVC AND EXISTS ${resource_file})
-		Message(STATUS "Setting resource file ${resource_file} for ${i}")
-		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
-  elseif(APPLE AND EXISTS ${resource_dir})
-    add_executable(${i} ${TOPP_DIR}${i}.C)
-
-    # extra work for pseudo-mac-bundle
-    # move prepared package to RUNTIME_OUTPUT
-    file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
-      DESTINATION "${PROJECT_BINARY_DIR}/bin")
-  else()
-		add_executable(${i} ${TOPP_DIR}${i}.C)
-	endif()
-
+	add_executable(${i} ${TOPP_DIR}/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	if (OPENMP_FOUND AND NOT MSVC)
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
@@ -708,7 +691,6 @@ add_dependencies(TOPP ${TOPP_executables})
 ##### UTILS ########
 set(UTILS_executables)
 include(source/APPLICATIONS/UTILS/executables.cmake)
-
 foreach(i ${UTILS_executables})
 	add_executable(${i} source/APPLICATIONS/UTILS/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
@@ -716,6 +698,42 @@ endforeach(i)
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
+##### GUI tools ########
+set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
+include(${GUI_DIR}/executables.cmake)
+foreach(i ${GUI_executables})
+	set(resource_file ${CMAKE_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
+	set(resource_dir ${CMAKE_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
+	## add icons to TOPPView and INIFileEditor
+	if (MSVC AND EXISTS ${resource_file})
+		Message(STATUS "Setting resource file ${resource_file} for ${i}")
+		add_executable(${i} ${GUI_DIR}/${i}.C ${resource_file})
+	elseif(APPLE AND EXISTS ${resource_dir})
+		add_executable(${i} ${GUI_DIR}/${i}.C)
+		# extra work for pseudo-mac-bundle
+		# move prepared package to RUNTIME_OUTPUT
+		file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
+		DESTINATION "${PROJECT_BINARY_DIR}/bin")
+	else()
+		add_executable(${i} ${GUI_DIR}/${i}.C)
+	endif()
+
+	## append visual lib as dependency for GUI tools
+	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+	if (OPENMP_FOUND AND NOT MSVC)
+		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+	endif()
+endforeach(i)
+add_custom_target(GUI)
+add_dependencies(GUI ${GUI_executables})
+
+## some regular TOPP/UTILS need the GUI lib
+set(executables_withGUIlibDep ${TOPP_executables_with_GUIlib} ${UTILS_executables_with_GUIlib})
+foreach(i ${executables_withGUIlibDep}) 
+	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+endforeach(i)
+
+	
 ##### Doc progs ####
 set(OpenMS_doc_executables)
 include(doc/doxygen/parameters/executables.cmake)
@@ -832,14 +850,12 @@ if (MSVC)
 	## copy OpenMS.dll to test executables dir
 	get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
 	get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
-#  string(REPLACE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} "" OPENMS_OUTDIRSUFFIX ${WIN32_DLLPATH})
-#  message(STATUS "outdir suffix is:  ${OPENMS_OUTDIRSUFFIX}")
 
-	## copy OpenMS.dll to test executables dir
+	## copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
 	file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
 	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/source/TEST/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TARGET)
-  # create target path if not exists
-  add_custom_command(TARGET OpenMS
+	# create target path if not exists
+	add_custom_command(TARGET OpenMS
                     POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
@@ -854,9 +870,18 @@ if (MSVC)
                     COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/source/TEST/bin/$(ConfigurationName)"
-										COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
+					COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
                     COMMENT "Library build. Copying OpenMS(d).dll to test binary dir"
                     VERBATIM)
+
+	## copy OpenMS_GUI.dll
+	add_custom_command(TARGET OpenMS_GUI
+                    POST_BUILD
+					COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
+                    COMMENT "GUI Library build. Copying OpenMS_GUI(d).dll to test binary dir"
+                    VERBATIM)
+
+					
 else()
   add_custom_command(TARGET OpenMS
                     POST_BUILD
@@ -993,7 +1018,7 @@ else()
 	set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
 	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
 	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
-  set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
+	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
 	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
 

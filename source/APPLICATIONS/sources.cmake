@@ -3,11 +3,8 @@ set(directory source/APPLICATIONS)
 
 ### list all filenames of the directory here
 set(sources_list
-INIFileEditorWindow.C
 ToolHandler.C
 TOPPBase.C
-TOPPViewBase.C
-TOPPASBase.C
 )
 
 ### add path to the filenames

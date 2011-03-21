@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type ExperimentalSettings.
 	*/
-	class OPENMS_DLLAPI ExperimentalSettingsVisualizer
+	class OPENMS_GUI_DLLAPI ExperimentalSettingsVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<ExperimentalSettings>
 	{

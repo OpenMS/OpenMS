@@ -43,7 +43,7 @@ namespace OpenMS
 
 		This class provides all functionality to view the meta information of an object of type PeptideIdentification.		
 	*/
-	class OPENMS_DLLAPI PeptideIdentificationVisualizer
+	class OPENMS_GUI_DLLAPI PeptideIdentificationVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<PeptideIdentification>
 	{

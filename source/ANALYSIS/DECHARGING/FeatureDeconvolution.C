@@ -525,20 +525,28 @@ namespace OpenMS
 		out_q.close();
 #endif
 
-		LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
-						 << " and avg hit-size of " << (1.0*overallHits/feature_relation.size())
-						 << std::endl;
+    if (feature_relation.size() == 0)
+    {
+      LOG_INFO << "Found NO putative edges. The output generated will be trivial (only singleton clusters and no pairings). "
+        << "Your parameters might need revision or the input was ill-formed." << std::endl;
+    }
+    else
+    {
+		  LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
+						   << " and avg hit-size of " << (1.0*overallHits/feature_relation.size())
+						   << std::endl;
 
-		// -------------------------- //
-		// ** compute ILP solution ** //
-		// -------------------------- //
-		
-		// forward set of putative edges to ILP
-		ILPDCWrapper lp_wrapper;
-		// compute best solution
-		DoubleReal ilp_score = lp_wrapper.compute(me, fm_out, feature_relation);
-		LOG_INFO << "ILP score is: " << ilp_score << std::endl;
-		
+		  // -------------------------- //
+		  // ** compute ILP solution ** //
+		  // -------------------------- //
+  		
+		  // forward set of putative edges to ILP
+		  ILPDCWrapper lp_wrapper;
+		  // compute best solution
+		  DoubleReal ilp_score = lp_wrapper.compute(me, fm_out, feature_relation);
+		  LOG_INFO << "ILP score is: " << ilp_score << std::endl;
+    }
+
 		// prepare output consensusMaps
 		cons_map.setProteinIdentifications( fm_out.getProteinIdentifications() );
 		cons_map_p.setProteinIdentifications( fm_out.getProteinIdentifications() );

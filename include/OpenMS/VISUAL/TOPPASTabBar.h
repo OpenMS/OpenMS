@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class OPENMS_DLLAPI TOPPASTabBar
+	class OPENMS_GUI_DLLAPI TOPPASTabBar
 		: public QTabBar
 	{
 		Q_OBJECT

@@ -60,7 +60,7 @@ namespace OpenMS
   
     @ingroup TOPPAS_elements
   */
-  class OPENMS_DLLAPI TOPPASBase 
+  class OPENMS_GUI_DLLAPI TOPPASBase 
   	: public QMainWindow, 
   		public DefaultParamHandler
   {

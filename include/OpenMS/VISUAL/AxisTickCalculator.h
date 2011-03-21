@@ -40,7 +40,7 @@ namespace OpenMS
 	
 		@ingroup Visual
 	*/
-  class OPENMS_DLLAPI AxisTickCalculator 
+  class OPENMS_GUI_DLLAPI AxisTickCalculator 
 	{
 		public:
 	 

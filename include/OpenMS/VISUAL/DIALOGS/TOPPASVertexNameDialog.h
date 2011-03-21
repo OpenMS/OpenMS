@@ -39,7 +39,7 @@ namespace OpenMS
 		@ingroup TOPPAS_elements
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI TOPPASVertexNameDialog
+	class OPENMS_GUI_DLLAPI TOPPASVertexNameDialog
 		: public QDialog,
 			public Ui::TOPPASVertexNameDialogTemplate
 	{

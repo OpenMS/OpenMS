@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class OPENMS_DLLAPI ColorSelector
+	class OPENMS_GUI_DLLAPI ColorSelector
 		: public QWidget
 	{
 		Q_OBJECT

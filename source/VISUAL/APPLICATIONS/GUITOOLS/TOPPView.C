@@ -46,7 +46,7 @@
 #include <QtGui/QSplashScreen>
 
 //OpenMS
-#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 

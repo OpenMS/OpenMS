@@ -563,23 +563,20 @@ namespace OpenMS
 	{      
 		vector< pair<Int, DoubleReal> > temp_encoded_vector_left;
 		vector< pair<Int, DoubleReal> > temp_encoded_vector_right;
-		bool is_right_border = false;
 		
 		vectors.clear();
 		for (Size i = 0; i < sequences.size(); i++)
 		{	
-			is_right_border = false;
+      std::cerr << "Seq is: " << sequences[i] << "\n";
 			if (sequences[i].size() > border_length)
 			{
-				encodeOligo(sequences[i].getPrefix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_left, is_right_border);
-				is_right_border = true;
-				encodeOligo(sequences[i].getSuffix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_right, is_right_border);
+				encodeOligo(sequences[i].getPrefix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_left, false);
+				encodeOligo(sequences[i].getSuffix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_right, true);
 			}
 			else
 			{
-				encodeOligo(sequences[i], k_mer_length, allowed_characters, temp_encoded_vector_left, is_right_border);
-				is_right_border = true;
-				encodeOligo(sequences[i], k_mer_length, allowed_characters, temp_encoded_vector_right, is_right_border);
+				encodeOligo(sequences[i], k_mer_length, allowed_characters, temp_encoded_vector_left, false);
+				encodeOligo(sequences[i], k_mer_length, allowed_characters, temp_encoded_vector_right, true);
 			}
 			temp_encoded_vector_left.insert(temp_encoded_vector_left.end(), temp_encoded_vector_right.begin(), temp_encoded_vector_right.end());
 			stable_sort(temp_encoded_vector_left.begin(), temp_encoded_vector_left.end(), cmpOligos_);

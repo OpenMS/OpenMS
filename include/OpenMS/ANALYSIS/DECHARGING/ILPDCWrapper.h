@@ -49,7 +49,8 @@ namespace OpenMS {
 		///Destructor
 		virtual ~ILPDCWrapper();
 
-		/// compute optimal solution and return value of objective function
+		/// Compute optimal solution and return value of objective function
+    /// If the input feature map is empty, a warning is issued and -1 is returned.
 		/// @return value of objective function
 		///		and @p pairs will have all realized edges set to "active"
 		DoubleReal compute(const MassExplainer& me, const FeatureMap<> fm, PairsType& pairs);

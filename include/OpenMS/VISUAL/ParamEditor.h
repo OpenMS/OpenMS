@@ -58,7 +58,7 @@ namespace OpenMS
 			
 			This handles editing of items.
 		*/
-		class OPENMS_DLLAPI ParamEditorDelegate 
+		class OPENMS_GUI_DLLAPI ParamEditorDelegate 
 			: public QItemDelegate
 		{
 			Q_OBJECT
@@ -98,7 +98,7 @@ namespace OpenMS
 		};
 		
 		/// QTreeWidget that emits a signal whenever a new row is selected
-		class OPENMS_DLLAPI ParamTree
+		class OPENMS_GUI_DLLAPI ParamTree
 			: public QTreeWidget
 		{
 			Q_OBJECT
@@ -131,7 +131,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class OPENMS_DLLAPI ParamEditor  
+	class OPENMS_GUI_DLLAPI ParamEditor  
 		: public QWidget,
 			public Ui::ParamEditorTemplate
 	{

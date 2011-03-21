@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type Digestion.
 	*/
-	class OPENMS_DLLAPI DigestionVisualizer
+	class OPENMS_GUI_DLLAPI DigestionVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Digestion>
 	{

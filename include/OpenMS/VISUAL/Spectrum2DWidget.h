@@ -51,7 +51,7 @@ namespace OpenMS
 		
 		@ingroup SpectrumWidgets
 	*/
-	class OPENMS_DLLAPI Spectrum2DWidget 
+	class OPENMS_GUI_DLLAPI Spectrum2DWidget 
 		: public SpectrumWidget
 	{
 		Q_OBJECT

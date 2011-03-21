@@ -1,4 +1,5 @@
 set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
+set(OpenMSVisual_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
 include(source/CONCEPT/sources.cmake)
@@ -35,15 +36,19 @@ include(source/COMPARISON/CLUSTERING/sources.cmake)
 include(source/COMPARISON/SPECTRA/sources.cmake)
 include(source/SIMULATION/sources.cmake)
 include(source/SIMULATION/LABELING/sources.cmake)
+include(source/APPLICATIONS/sources.cmake)
+
+## added to OpenMSVisual library: ${OpenMSVisual_sources}
+include(source/VISUAL/APPLICATIONS/sources.cmake)
 include(source/VISUAL/DIALOGS/sources.cmake)
 include(source/VISUAL/VISUALIZER/sources.cmake)
 include(source/VISUAL/sources.cmake)
 include(include/OpenMS/VISUAL/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
 include(include/OpenMS/VISUAL/DIALOGS/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
-include(source/APPLICATIONS/sources.cmake)
 
 
 set(OpenMS_sources_h  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
+set(OpenMSVisual_sources_h  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
 include (include/OpenMS/CONCEPT/sources.cmake)
@@ -82,16 +87,23 @@ include (include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
 include (include/OpenMS/TRANSFORMATIONS/RAW2PEAK/sources.cmake)
 include (include/OpenMS/SIMULATION/sources.cmake)
 include (include/OpenMS/SIMULATION/LABELING/sources.cmake)
+include (include/OpenMS/APPLICATIONS/sources.cmake)
+
+## added to OpenMSVisual library: ${OpenMSVisual_sources}
+include (include/OpenMS/VISUAL/APPLICATIONS/sources.cmake)
 include (include/OpenMS/VISUAL/sources.cmake)						## MOC sources are included here
 include (include/OpenMS/VISUAL/DIALOGS/sources.cmake)   ## and here ...
 include (include/OpenMS/VISUAL/VISUALIZER/sources.cmake)## and here ...
-include (include/OpenMS/APPLICATIONS/sources.cmake)
 
 ## add configured config.h&Co to source group
 source_group("Header Files\\OpenMS" FILES ${OPENMS_CONFIGURED_FILES})
 ## merge all headers to sources (for source group view in VS)
 list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OPENMS_CONFIGURED_FILES})
 
+## merge all headers to sources (for source group view in VS)
+list(APPEND OpenMSVisual_sources ${OpenMSVisual_sources_h} ${OPENMS_CONFIGURED_FILES})
+
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?
 list(REMOVE_DUPLICATES OpenMS_sources)
+list(REMOVE_DUPLICATES OpenMSVisual_sources)

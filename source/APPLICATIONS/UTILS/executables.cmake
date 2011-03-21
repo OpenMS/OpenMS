@@ -2,7 +2,7 @@
 set(directory source/APPLICATIONS/UTILS)
 
 ### list all filenames of the directory here
-set(executables_list
+set(UTILS_executables
 CVInspector
 CaapConvert
 DeMeanderize
@@ -32,12 +32,15 @@ UniqueIdAssigner
 XMLValidator
 )
 
-### pass source file list to the upper instance
-set(UTILS_executables ${UTILS_executables} ${executables_list})
+## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
+set(UTILS_executables_with_GUIlib
+HistView
+ImageCreator
+)
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${executables_list})
+foreach(i ${UTILS_executables})
 	list(APPEND sources_VS "${i}.C")
 endforeach(i)
 source_group("" FILES ${sources_VS})

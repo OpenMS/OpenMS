@@ -53,7 +53,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class OPENMS_DLLAPI HistogramWidget
+	class OPENMS_GUI_DLLAPI HistogramWidget
 		: public QWidget
 	{
 		Q_OBJECT

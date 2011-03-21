@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@ingroup TOPPAS_elements
   */
-  class OPENMS_DLLAPI TOPPASWidget
+  class OPENMS_GUI_DLLAPI TOPPASWidget
     : public QGraphicsView,
       public EnhancedTabBarWidgetInterface
   {

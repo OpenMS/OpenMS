@@ -5,7 +5,7 @@ set(concept_executables_list
 	Factory_test
 	FuzzyStringComparator_test
 	SingletonRegistry_test
-  StreamHandler_test
+	StreamHandler_test
 	VersionInfo_test
 	LogConfigHandler_test
 	LogStream_test
@@ -464,7 +464,6 @@ set(TEST_executables
 		${datastructures_executables_list}
 		${kernel_executables_list}
 		${metadata_executables_list}
-		${visual_executables_list}
 		${format_executables_list}
 		${math_executables_list}
 		${filtering_executables_list}
@@ -474,5 +473,6 @@ set(TEST_executables
 		${applications_executables_list}
 		${transformations_executables_list}
 		${simulation_executables_list}
+		${visual_executables_list}
 		## NO GUI lists here! (GUI is handled in source/TEST/CMakeLists.txt separately)
 		)

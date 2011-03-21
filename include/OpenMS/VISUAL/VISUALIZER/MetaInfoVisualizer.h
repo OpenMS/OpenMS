@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		Meta information is an array of Type-Name-Value tupels. Classes that have a MetaInfo objects as a member can use this class to edit the MetaInfo object.
 	*/
-	class OPENMS_DLLAPI MetaInfoVisualizer
+	class OPENMS_GUI_DLLAPI MetaInfoVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<MetaInfoInterface>
 	{

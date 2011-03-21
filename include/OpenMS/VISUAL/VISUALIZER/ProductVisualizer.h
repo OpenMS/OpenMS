@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type Product.
 	*/
-	class OPENMS_DLLAPI ProductVisualizer
+	class OPENMS_GUI_DLLAPI ProductVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Product>
 	{

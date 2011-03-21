@@ -47,7 +47,7 @@ namespace OpenMS
 	/**
 		@brief Editor for editing int, double and string lists (including output and input file lists)
 	*/	
-	class OPENMS_DLLAPI ListEditor
+	class OPENMS_GUI_DLLAPI ListEditor
 		:public QDialog
 	{
 		Q_OBJECT
@@ -97,7 +97,7 @@ namespace OpenMS
 	*/	
 	namespace Internal
 	{
-		class OPENMS_DLLAPI ListTable
+		class OPENMS_GUI_DLLAPI ListTable
 			: public QListWidget
 		{
 			Q_OBJECT
@@ -129,7 +129,7 @@ namespace OpenMS
 			
 			This handles editing of items.
 		*/
-		class OPENMS_DLLAPI ListEditorDelegate 
+		class OPENMS_GUI_DLLAPI ListEditorDelegate 
 			: public QItemDelegate
 		{
 			Q_OBJECT

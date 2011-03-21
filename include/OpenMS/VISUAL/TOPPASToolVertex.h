@@ -45,7 +45,7 @@ namespace OpenMS
 	
 		@ingroup TOPPAS_elements
 	*/
-	class OPENMS_DLLAPI TOPPASToolVertex
+	class OPENMS_GUI_DLLAPI TOPPASToolVertex
 		: public TOPPASVertex
 	{
 		Q_OBJECT

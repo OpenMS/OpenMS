@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class OPENMS_DLLAPI TOPPASTreeView
+	class OPENMS_GUI_DLLAPI TOPPASTreeView
 		: public QTreeWidget
 	{
 		Q_OBJECT

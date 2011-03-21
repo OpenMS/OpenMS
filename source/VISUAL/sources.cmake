@@ -56,7 +56,7 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${sources})
+set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\VISUAL" FILES ${sources})
@@ -66,4 +66,4 @@ source_group("Source Files\\VISUAL" FILES ${sources})
 # add   : icons are added to source/VISUAL/ICONS/resources.qrc
 # remove: after removing an icon, you have to rerun 'cmake' to fix the dependencies
 QT4_ADD_RESOURCES(qt_resource_file source/VISUAL/ICONS/resources.qrc)
-set(OpenMS_sources ${OpenMS_sources} ${qt_resource_file})
+set(OpenMSVisual_sources ${OpenMSVisual_sources} ${qt_resource_file})

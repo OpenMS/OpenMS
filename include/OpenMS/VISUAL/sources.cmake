@@ -51,7 +51,7 @@ endforeach(i)
 QT4_WRAP_CPP(mocced_sources ${sources})
 
 ### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${mocced_sources})
+set(OpenMSVisual_sources ${OpenMSVisual_sources} ${mocced_sources})
 
 source_group("Source Files\\OpenMS\\VISUAL" FILES ${mocced_sources})
 
@@ -83,13 +83,24 @@ Spectrum3DOpenGLCanvas.h
 Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
+ListEditor.h
 TOPPASWidget.h
 TOPPASScene.h
 TOPPASVertex.h
+TOPPASToolVertex.h
+TOPPASInputFileListVertex.h
+TOPPASOutputFileListVertex.h
+TOPPASMergerVertex.h
 TOPPASEdge.h
 TOPPASTabBar.h
 TOPPASTreeView.h
+TOPPASResource.h
+TOPPASResources.h
+TOPPViewBehaviorInterface.h
+TOPPViewIdentificationViewBehavior.h
+TOPPViewSpectraViewBehavior.h
 EnhancedWorkspace.h
+EnhancedTabBarWidgetInterface.h
 )
 
 ### add path to the filenames
@@ -101,5 +112,5 @@ endforeach(i)
 ### source group definition
 source_group("Header Files\\OpenMS\\VISUAL" FILES ${sources_h})
 
-set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+set(OpenMSVisual_sources_h ${OpenMSVisual_sources_h} ${sources_h})
 

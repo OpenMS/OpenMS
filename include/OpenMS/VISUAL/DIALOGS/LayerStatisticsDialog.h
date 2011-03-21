@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI LayerStatisticsDialog
+	class OPENMS_GUI_DLLAPI LayerStatisticsDialog
 		: public QDialog,
   		public Ui::LayerStatisticsDialogTemplate
 	{

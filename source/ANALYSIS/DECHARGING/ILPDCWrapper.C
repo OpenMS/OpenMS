@@ -88,6 +88,11 @@ namespace OpenMS {
 	{
     DoubleReal score = 0;
 
+    if (fm.size()==0)
+    {
+      LOG_INFO << "ILPDC wrapper received empty feature list. Nothing to compute! Exiting..." << std::endl;
+      return -1;
+    }
     // check number of components:
     using namespace boost;
     {

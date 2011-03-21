@@ -91,7 +91,7 @@ namespace OpenMS
 
 		@ingroup Visual
 	*/
-  class OPENMS_DLLAPI MetaDataBrowser 
+  class OPENMS_GUI_DLLAPI MetaDataBrowser 
   	: public QDialog
   {
     Q_OBJECT

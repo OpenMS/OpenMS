@@ -49,7 +49,7 @@ namespace OpenMS
 		@ingroup TOPPAS_elements
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI TOPPASIOMappingDialog
+	class OPENMS_GUI_DLLAPI TOPPASIOMappingDialog
 		: public QDialog,
 			public Ui::TOPPASIOMappingDialogTemplate
 	{

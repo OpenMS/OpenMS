@@ -57,7 +57,7 @@
 #include <QtCore/QDir>
 
 //OpenMS
-#include <OpenMS/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h> 
 #include <OpenMS/CONCEPT/LogStream.h>
 

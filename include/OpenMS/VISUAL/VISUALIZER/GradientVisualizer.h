@@ -46,7 +46,7 @@ namespace OpenMS
 		
 		Each HPLC objects contains a gradient object. A gradient objects contains a list of eluents, timepoints and percentage values. Values can be added to the list, or the whole list can be deleted.
 	*/
-	class OPENMS_DLLAPI GradientVisualizer
+	class OPENMS_GUI_DLLAPI GradientVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Gradient>
 	{

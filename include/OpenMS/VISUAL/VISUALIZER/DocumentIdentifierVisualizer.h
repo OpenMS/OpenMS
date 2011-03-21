@@ -42,7 +42,7 @@ namespace OpenMS
 
 		This class provides all functionality to view the meta information of an object of type DocumentIdentifier.
 	*/
-	class OPENMS_DLLAPI DocumentIdentifierVisualizer
+	class OPENMS_GUI_DLLAPI DocumentIdentifierVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<DocumentIdentifier>
 	{

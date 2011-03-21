@@ -55,7 +55,7 @@ namespace OpenMS
 	
 		@ingroup Visual
 	*/
-	class OPENMS_DLLAPI MultiGradient
+	class OPENMS_GUI_DLLAPI MultiGradient
 	{
 		public:
     /// Returns the default gradient for linear intensity mode

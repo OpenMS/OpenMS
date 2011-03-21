@@ -53,7 +53,7 @@ namespace OpenMS
 		
 		Visualizers are mainly used by the MetaDataBrowser.
 	*/
-	class OPENMS_DLLAPI BaseVisualizerGUI
+	class OPENMS_GUI_DLLAPI BaseVisualizerGUI
 		: public QWidget
 	{
 		Q_OBJECT

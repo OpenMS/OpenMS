@@ -43,7 +43,7 @@ namespace OpenMS
 	
 		This class provides all functionality to view the meta information of an object of type Identification.	
 	*/
-	class OPENMS_DLLAPI ProteinIdentificationVisualizer
+	class OPENMS_GUI_DLLAPI ProteinIdentificationVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<ProteinIdentification>
 	{

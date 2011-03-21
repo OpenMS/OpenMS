@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type ProteinHit.
 	*/
-	class OPENMS_DLLAPI ProteinHitVisualizer
+	class OPENMS_GUI_DLLAPI ProteinHitVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<ProteinHit>
 	{

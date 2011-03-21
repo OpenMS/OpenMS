@@ -41,7 +41,7 @@ namespace OpenMS
 	
 		@ingroup Dialogs
 	*/
-	class OPENMS_DLLAPI HistogramDialog
+	class OPENMS_GUI_DLLAPI HistogramDialog
 		: public QDialog
 	{
 		Q_OBJECT

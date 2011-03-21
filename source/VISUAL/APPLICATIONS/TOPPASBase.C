@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h> 

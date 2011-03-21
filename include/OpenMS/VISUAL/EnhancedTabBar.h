@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class OPENMS_DLLAPI EnhancedTabBar
+	class OPENMS_GUI_DLLAPI EnhancedTabBar
 		: public QTabBar
 	{
 		Q_OBJECT

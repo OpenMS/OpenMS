@@ -53,7 +53,7 @@ namespace OpenMS
 				
 		@ingroup SpectrumWidgets
 	*/
-	class OPENMS_DLLAPI Spectrum1DCanvas 
+	class OPENMS_GUI_DLLAPI Spectrum1DCanvas 
 		: public SpectrumCanvas
 	{
 		Q_OBJECT

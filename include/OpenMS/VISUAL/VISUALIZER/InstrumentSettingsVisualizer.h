@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type InstrumentSettings.
 	*/
-	class OPENMS_DLLAPI InstrumentSettingsVisualizer
+	class OPENMS_GUI_DLLAPI InstrumentSettingsVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<InstrumentSettings>
 	{
