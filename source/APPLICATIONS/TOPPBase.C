@@ -64,10 +64,10 @@ namespace OpenMS
 			id_tag_support_(id_tag_support),
 			id_tagger_(tool_name),
 			instance_number_(-1),
-			debug_level_(-1),
 			version_(version),
 			log_type_(ProgressLogger::NONE),
-			test_mode_(false)
+			test_mode_(false),
+			debug_level_(-1)
 	{
 		// if version is empty, use the OpenMS/TOPP version and date/time
 		if (version_=="")
