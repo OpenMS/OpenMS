@@ -2549,7 +2549,7 @@ namespace OpenMS
 					}
 				}
 				reals = checkPPMTheoModel_ (ref, h_iter->getMZ(), c);
-				DoubleReal real_mz = reals.first, real_intens = reals.second;
+				real_mz = reals.first, real_intens = reals.second;
 				if (real_mz <= 0 || real_intens <= 0)
 				{
 					return (false);
