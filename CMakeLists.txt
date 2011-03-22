@@ -623,7 +623,8 @@ endif()
 ### OpenMS_GUI lib
 ADD_LIBRARY(OpenMS_GUI ${OpenMSVisual_sources})
 if (MSVC)
-	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS "/FORCE:MULTIPLE" "/INCREMENTAL:NO" "/wd4006") ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+	set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
+	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()	
 
 
@@ -755,7 +756,7 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	include(source/EXAMPLES/executables.cmake)
 	foreach(i ${EXAMPLES_executables})
 	  add_executable(${i} source/EXAMPLES/${i}.C)
-	  target_link_libraries(${i} ${OPENMS_LIBRARIES})
+	  target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 	endforeach(i)
 	add_custom_target(Tutorials_build)
 	add_dependencies(Tutorials_build ${EXAMPLES_executables})
