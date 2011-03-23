@@ -125,7 +125,7 @@ namespace OpenMS {
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
     defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
 
-    defaults_.setValue("esi:ionized_residues", StringList::create("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ESI ionization. This parameter will be ignored during MALDI ionization.");
+    defaults_.setValue("esi:ionized_residues", StringList::create("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization.");
     StringList valid_ionized_residues = StringList::create("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");
     defaults_.setValidStrings("esi:ionized_residues", valid_ionized_residues);
 		defaults_.setValue("esi:charge_impurity", StringList::create("H+:1"), "List of charged ions that contribute to charge with weight of occurence (which must not sum to 1), e.g. ['H:1'] or ['H:0.7' 'Na:0.3']");
@@ -405,7 +405,7 @@ namespace OpenMS {
   
   UInt IonizationSimulation::countIonizedResidues_(const AASequence& seq) const
   {
-    UInt count = 0;
+    UInt count = 1; // +1 for N-term
     for (Size i = 0; i<seq.size(); ++i)
     {
       // check for basic residues
