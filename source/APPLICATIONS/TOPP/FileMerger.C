@@ -106,6 +106,8 @@ class TOPPFileMerger
 		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("mzML,featureXML"));
 
+    registerFlag_("annotate_file_origin","Store the original filename in each feature (MetaValue: file_origin).");
+
 		addEmptyLine_();
 		addText_ ("Flags for non-FeatureXML input/output:");
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
@@ -150,14 +152,24 @@ class TOPPFileMerger
 		// calculations
 		//-------------------------------------------------------------
 
+    bool annotate_file_origin =  getFlag_("annotate_file_origin");
+
 		if (force_type == FileTypes::FEATUREXML)
 		{
 			FeatureMap<> out;
-			for (Size i = 0; i < file_list.size();++i)
+      for (Size i = 0; i < file_list.size(); ++i)
 			{
 				FeatureMap<> map;
 				FeatureXMLFile fh;
 				fh.load(file_list[i], map);
+
+        if(annotate_file_origin)
+        {
+          for(FeatureMap<>::iterator it = map.begin(); it != map.end(); ++it)
+          {
+            it->setMetaValue("file_origin", DataValue(file_list[i]));
+          }
+        }
 				out += map;
 			}
 

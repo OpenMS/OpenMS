@@ -188,7 +188,9 @@ class TOPPIDMerger
 		setValidFormats_("in",StringList::create("idXML"));
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("idXML"));
+    registerFlag_("annotate_file_origin","Store the original filename in each protein/peptide identification (MetaValue: file_origin).");
 		registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case.");
+
 	}
 
 	ExitCodes main_(int , const char**)
@@ -230,6 +232,7 @@ class TOPPIDMerger
 		}
 		else
 		{
+      bool annotate_file_origin =  getFlag_("annotate_file_origin");
 			set<String> used_ids;
 			for (StringList::Iterator file_it = file_names.begin(); 
 					 file_it != file_names.end(); ++file_it)
@@ -237,6 +240,24 @@ class TOPPIDMerger
 				vector<ProteinIdentification> additional_proteins;
 				vector<PeptideIdentification> additional_peptides;
 				IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
+
+        // set MetaValue file_origin if flag is set
+        if (annotate_file_origin)
+        {
+          for (vector<ProteinIdentification>::iterator prot_it =
+                 additional_proteins.begin(); prot_it !=
+                 additional_proteins.end(); ++prot_it)
+          {
+            prot_it->setMetaValue("file_origin", DataValue(*file_it));
+          }
+
+          for (vector<PeptideIdentification>::iterator pep_it =
+                 additional_peptides.begin(); pep_it !=
+                 additional_peptides.end(); ++pep_it)
+          {
+            pep_it->setMetaValue("file_origin", DataValue(*file_it));
+          }
+        }
 
 				for (vector<ProteinIdentification>::iterator prot_it = 
 							 additional_proteins.begin(); prot_it != 
