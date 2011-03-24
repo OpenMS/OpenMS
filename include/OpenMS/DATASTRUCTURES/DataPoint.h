@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
 // --------------------------------------------------------------------------
 
 
@@ -98,7 +98,8 @@ public:
 	DataPoint(const DataPoint &copyin);
 	
 	/// destructor
-	~DataPoint(){};
+  ~DataPoint(){};
+
   DataPoint& operator = (const DataPoint &rhs);
   bool operator == (const DataPoint &rhs) const;
   bool operator != (const DataPoint &rhs) const;

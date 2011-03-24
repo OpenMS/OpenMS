@@ -42,8 +42,8 @@ START_TEST(DataSubset, "$Id$")
 DataSubset* ptr = 0;
 START_SECTION(DataSubset())
 {
-	//ptr = new DataSubset();
-	//TEST_NOT_EQUAL(ptr, 0)
+	ptr = new DataSubset();
+	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
@@ -79,8 +79,8 @@ END_SECTION
 
 START_SECTION((Size size()))
 {
-  //DataSubset tmp;
-	//TEST_EQUAL(tmp.size(), 0);
+  DataSubset tmp;
+	TEST_EQUAL(tmp.size(), 0);
 }
 END_SECTION
 

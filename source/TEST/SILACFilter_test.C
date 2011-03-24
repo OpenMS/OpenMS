@@ -42,14 +42,14 @@ START_TEST(SILACFilter, "$Id$")
 SILACFilter* ptr = 0;
 START_SECTION(SILACFilter())
 {
-	//ptr = new SILACFilter();
-	//TEST_NOT_EQUAL(ptr, 0)
+	ptr = new SILACFilter();
+	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
 START_SECTION(~SILACFilter())
 {
-	//delete ptr;
+	delete ptr;
 }
 END_SECTION
 
@@ -73,18 +73,18 @@ END_SECTION
 
 START_SECTION((std::vector<DataPoint> getElements()))
 {
-  //SILACFilter tmp;
-	//tmp.getElements().resize(0);
-  //TEST_EQUAL(tmp.getElements().size(), 0);
+  SILACFilter tmp;
+	tmp.getElements().resize(0);
+  TEST_EQUAL(tmp.getElements().size(), 0);
 }
 END_SECTION
 
 START_SECTION((DoubleReal getPeakWidth(DoubleReal mz)))
 {
-	//SILACFilter tmp;
-  //DoubleReal mz = 500;
-	//DoubleReal peak_width = 5 * (1.889e-7 * pow (mz, 1.5));
-	//TEST_REAL_SIMILAR(tmp.getPeakWidth(mz), peak_width);
+	SILACFilter tmp;
+  DoubleReal mz = 500;
+	DoubleReal peak_width = 5 * (1.889e-7 * pow (mz, 1.5));
+	TEST_REAL_SIMILAR(tmp.getPeakWidth(mz), peak_width);
 	
 }
 END_SECTION
@@ -97,9 +97,9 @@ END_SECTION
 
 START_SECTION((std::vector<DoubleReal> getMassSeparations()))
 {
-  //SILACFilter tmp;
-  //tmp.getMassSeparations().resize(0);
-  //TEST_EQUAL(tmp.getMassSeparations().size(), 0);
+  SILACFilter tmp;
+  tmp.getMassSeparations().resize(0);
+  TEST_EQUAL(tmp.getMassSeparations().size(), 0);
 }
 END_SECTION
 

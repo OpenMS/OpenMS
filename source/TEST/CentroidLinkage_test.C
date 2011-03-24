@@ -42,14 +42,14 @@ START_TEST(CentroidLinkage, "$Id$")
 CentroidLinkage* ptr = 0;
 START_SECTION(CentroidLinkage())
 {
-	//ptr = new CentroidLinkage();
-	//TEST_NOT_EQUAL(ptr, 0)
+	ptr = new CentroidLinkage();
+	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
 START_SECTION(~CentroidLinkage())
 {
-	//delete ptr;
+	NOT_TESTABLE
 }
 END_SECTION
 

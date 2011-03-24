@@ -21,13 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_DATASTRUCTURES_SILACTreeNode_H
-#define OPENMS_DATASTRUCTURES_SILACTreeNode_H
+#ifndef OPENMS_DATASTRUCTURES_SILACTREENODE_H
+#define OPENMS_DATASTRUCTURES_SILACTREENODE_H
 
 #include <OpenMS/DATASTRUCTURES/DataPoint.h>
 

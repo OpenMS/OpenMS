@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,21 +21,28 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusteringMethod.h>
 
 namespace OpenMS
 {
-ClusteringMethod::ClusteringMethod()
-{
-}
-ClusteringMethod::ClusteringMethod(DoubleReal rt_scaling_)
-{
-	rt_scaling=rt_scaling_;
-}
+  ClusteringMethod::ClusteringMethod()
+  {
+
+  }
+
+  ClusteringMethod::~ClusteringMethod()
+  {
+
+  }
+
+  ClusteringMethod::ClusteringMethod(DoubleReal rt_scaling_)
+  {
+    rt_scaling = rt_scaling_;
+  }
 }
 
 

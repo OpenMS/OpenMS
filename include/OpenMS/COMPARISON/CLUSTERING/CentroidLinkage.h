@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2010 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_CENTROIDLINKAGE_H
@@ -40,26 +40,40 @@ namespace OpenMS
  * @ingroup SpectraClustering
  */
 
-class OPENMS_DLLAPI CentroidLinkage : public ClusteringMethod {
-public:
-	/**
+  class OPENMS_DLLAPI CentroidLinkage : public ClusteringMethod {
+  public:
+
+  /**
+   * @brief default constructor
+   */
+   CentroidLinkage();
+
+  /**
+   * @brief destructor
+   */
+   ~CentroidLinkage();
+
+  /**
 	 * @brief detailed constructor
 	 * @param rt_scaling_ value fpr sclaling distances in RT direction
 	 */
-	CentroidLinkage(DoubleReal rt_scaling_);
-	/**
+   CentroidLinkage(DoubleReal rt_scaling_);
+
+  /**
 	 * @brief gets the distance between two DataSubsets
 	 * @param subset1 first subset
 	 * @param subset2 second subset
 	 */
-	DoubleReal getDistance(DataSubset& subset1,DataSubset& subset2);
-	/**
+   DoubleReal getDistance(DataSubset& subset1,DataSubset& subset2);
+
+  /**
 	 * @brief gets the distance between two DataPoints
 	 * @param DataPoint1 first data point
 	 * @param DataPoint1 second data point
 	 */
-	DoubleReal getDistance(DataPoint& point1,DataPoint& point2);
-};
+   DoubleReal getDistance(DataPoint& point1,DataPoint& point2);
+
+  };
 }
 
 #endif /* CENTROIDLINKAGE_H_ */

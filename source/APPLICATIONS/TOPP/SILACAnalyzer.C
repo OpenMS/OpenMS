@@ -171,6 +171,9 @@ class TOPPSILACAnalyzer
     String out;
     String out_clusters;    
 
+    String out_filters;
+    String in_filters;
+
     // section "sample"
     String selected_labels;
     Int charge_min;
@@ -200,10 +203,12 @@ class TOPPSILACAnalyzer
     FeatureMap<> subtree_points;
     MSExperiment<Peak1D> filter_exp;
 
+
   public:
     TOPPSILACAnalyzer()
     : TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true)
     {
+
     }
 
 
@@ -222,6 +227,13 @@ class TOPPSILACAnalyzer
     // create optional flag for additional clusters output file (.featureXML)
     registerOutputFile_("out_clusters", "<file>", "", "Optional output file containing data points passing all filters, hence belonging to a SILAC pattern. Points of the same colour correspond to the mono-isotopic peak of the lightest peptide in a pattern.", false, true);
     setValidFormats_("out_clusters", StringList::create("featureXML"));
+
+    // create optional flag for additional output file (.txt) to store filter results
+    registerOutputFile_("out_filters", "<file>", "", "Additional output file containing all points that passed the filters as txt. Suitable as input for \"in_filters\" to perform clustering without preceding filtering process.", false, true);
+    //setValidFormats_("out_filters", StringList::create("txt"));
+    // create optional flag for additional input file (.txt) to load filter results
+    registerOutputFile_("in_filters", "<file>", "", "Additional input file containing all points that passed the filters as txt. Use output from \"out_filters\" to perform clustering only.", false, true);
+    //setValidFormats_("in_filters", StringList::create("txt"));
 
     // create section "labels" for adjusting masses of labels
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
@@ -330,6 +342,11 @@ class TOPPSILACAnalyzer
     out = getStringOption_("out");
     // get name of additional clusters output file (.featureXML)
     out_clusters = getStringOption_("out_clusters");
+
+    // get name of additional filters output file (.txt)
+    out_filters = getStringOption_("out_filters");
+    // get name of additional filters input file (.txt)
+    in_filters = getStringOption_("in_filters");
 
 
     //--------------------------------------------------
@@ -542,6 +559,15 @@ class TOPPSILACAnalyzer
       }
     }
 
+    // create zero-mass-shift to search for peptides if no label is specified
+    if (massShifts.size() == 0)
+    {
+      DoubleReal mass_shift_peptide = 0;
+      vector<DoubleReal> mass_shift_vector_peptide;
+      mass_shift_vector_peptide.push_back(mass_shift_peptide);
+      massShifts.push_back(mass_shift_vector_peptide);
+    }
+
     // sort the mass shift vector
     sort(massShifts.begin(), massShifts.end());
 
@@ -556,15 +582,6 @@ class TOPPSILACAnalyzer
       cout << endl;
     }
     cout << endl;
-
-    // get output variables
-    all_pairs.getFileDescriptions()[0].filename = in;
-    all_pairs.getFileDescriptions()[0].label = "light";
-    all_pairs.getFileDescriptions()[1].filename = in;
-    all_pairs.getFileDescriptions()[1].label = "medium";
-    all_pairs.getFileDescriptions()[2].filename = in;
-    all_pairs.getFileDescriptions()[2].label = "heavy";
-    all_pairs.setExperimentType("silac");
   }
 
 
@@ -620,27 +637,323 @@ class TOPPSILACAnalyzer
       }
     }
 
-    // create filtering
-    SILACFiltering filtering(exp, mz_stepwidth, intensity_cutoff, intensity_correlation, allow_missing_peaks);
-    filtering.setLogType(log_type_);
-
-    // register filters to the filtering
-    for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+    if (in_filters == "")     // check if option "in_filters" is not specified
     {
-      filtering.addFilter(*filter_it);
-    }
+      // create filtering
+      SILACFiltering filtering(exp, mz_stepwidth, intensity_cutoff, intensity_correlation, allow_missing_peaks);
+      filtering.setLogType(log_type_);
 
-    // perform filtering
-    filtering.filterDataPoints();
+      // register filters to the filtering
+      for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+      {
+        filtering.addFilter(*filter_it);
+      }
 
-    // retrieve filtered data points
-    for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
-    {
-      data.push_back(filter_it->getElements());
+      // perform filtering
+      filtering.filterDataPoints();
+
+      // retrieve filtered data points
+      for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+      {
+        data.push_back(filter_it->getElements());
+      }
     }
 
     // delete experiment
     exp.clear(true);
+
+
+    //--------------------------------------------------
+    // store filter results from vector<vector<DataPoint> > data to .txt
+    //--------------------------------------------------
+
+    if (out_filters != "" && in_filters == "")     // check if option "out_filters" is specified and "in_filters" is not
+    {
+      ofstream outfile;
+      outfile.open(out_filters.c_str());      // open ofstream to specified output file
+      outfile << setprecision(16);      // set precision of outfile to 16 to avoid losing digits
+
+      // vector of DataPoints
+      outfile << "<VectorOfDataPoints>" << "\n";
+
+      // iterate over outer DataPoint vector (vector<vector<DataPoint> >)
+      for (vector<vector<DataPoint> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+      {
+        // DataPoints
+        outfile << "<DataPoints>" << "\n";
+
+        // iterate over inner DataPoint vector (vector<DataPoint>)
+        for (vector<DataPoint>::iterator it = data_it->begin(); it != data_it->end(); ++it)
+        {
+          // DataPoint
+          outfile << "<DataPoint>" << "\n";
+
+          // feature_id
+          outfile << "<feature_id>" << "\n";
+          outfile << it->feature_id << "\n";
+          outfile << "</feature_id>" << "\n";
+
+          // rt
+          outfile << "<rt>" << "\n";
+          outfile << it->rt << "\n";
+          outfile << "</rt>" << "\n";
+
+          // mz
+          outfile << "<mz>" << "\n";
+          outfile << it->mz << "\n";
+          outfile << "</mz>" << "\n";
+
+          // charge
+          outfile << "<charge>" << "\n";
+          outfile << it->charge << "\n";
+          outfile << "</charge>" << "\n";
+
+          // isotopes_per_peptide
+          outfile << "<isotopes_per_peptide>" << "\n";
+          outfile << it->isotopes_per_peptide << "\n";
+          outfile << "</isotopes_per_peptide>" << "\n";
+
+          // intensities
+          outfile << "<intensities>" << "\n";
+
+          // iterate over outer intensities vector (vector<vector<DoubleReal> >)
+          for (vector<vector<DoubleReal> >::iterator intensities_it = it->intensities.begin(); intensities_it != it->intensities.end(); ++intensities_it)
+          {
+            outfile << "<intensities_" << intensities_it - it->intensities.begin() << ">\n";
+
+            // // iterate over inner intensities vector (vector<DoubleReal>)
+            for (vector<DoubleReal>::iterator intensity_it = intensities_it->begin(); intensity_it != intensities_it->end(); ++intensity_it)
+            {
+              outfile << *intensity_it << "\n";
+            }
+            outfile << "</intensities_" << intensities_it - it->intensities.begin() << ">\n";
+          }
+          outfile << "</intensities>" << "\n";
+
+          // mass_shifts
+          outfile << "<mass_shifts>" << "\n";
+
+          // iterate over mass shifts vector (vector<DoubleReal>)
+          for (vector<DoubleReal>::iterator mass_shifts_it = it->mass_shifts.begin(); mass_shifts_it != it->mass_shifts.end(); ++mass_shifts_it)
+          {
+            outfile << *mass_shifts_it << "\n";
+          }
+          outfile << "</mass_shifts>" << "\n";
+
+          outfile << "</DataPoint>" << "\n";
+        }
+        outfile << "</DataPoints>" << "\n";
+      }
+      outfile << "</VectorOfDataPoints>" << "\n";
+
+      outfile.close();      // close ofstream and store output file
+    }
+
+
+    //--------------------------------------------------
+    // load filter results as vector<vector<DataPoint> > data from .txt
+    //--------------------------------------------------
+
+    if (in_filters != "")     // check if option "in_filters" is specified
+    {
+      vector<vector<DataPoint> > data_points_vector_in;
+      vector<DataPoint> data_points_in;
+      DataPoint data_point_in;
+
+      vector<vector<DoubleReal> > intensities_vector_in;
+      vector<DoubleReal> intensities_in;
+
+      vector<DoubleReal> mass_shifts_in;
+
+      ifstream infile;
+      infile.open(in_filters.c_str());      // open ifstream from specified input file
+
+      // check if infile can be opened
+      if (!infile.is_open())
+      {
+        cout << "Error: could not open " << in_filters << "..." << endl;
+      }
+      else
+      {
+        String temp;
+
+        // name cases and define states
+        const int VECTOR_OF_DATA_POINTS_STATE = 0;
+        const int DATA_POINTS_STATE = 1;
+        const int DATA_POINT_STATE = 2;
+        const int FEATURE_ID_STATE = 3;
+        const int RT_STATE = 4;
+        const int MZ_STATE = 5;
+        const int CHARGE_STATE = 6;
+        const int ISOTOPES_PER_PEPTIDE_STATE = 7;
+        const int VECTOR_OF_INTENSITIES_STATE = 8;
+        const int INTENSITIES_STATE = 9;
+        const int MASS_SHIFTS_STATE = 10;
+        const int END_STATE = 11;
+
+        // set start state
+        int state = VECTOR_OF_DATA_POINTS_STATE;
+
+        while(state != END_STATE)
+        {
+          switch(state)
+          {
+            // case and state 0: vector of data points
+          case VECTOR_OF_DATA_POINTS_STATE:
+            if (infile.eof())
+            {
+              cout << "eof" << endl;
+              state = END_STATE;
+            } else
+            {
+              getline(infile, temp);
+              if (temp != "")
+              {
+                state = DATA_POINTS_STATE;
+              } else
+              {
+                cout << "end state" << endl;
+                state = END_STATE;
+              }
+            }
+            break;
+
+            // case and state 1: data points
+                        case DATA_POINTS_STATE:
+            getline (infile, temp);
+            if (String(temp).hasPrefix("</"))
+            {
+              state = VECTOR_OF_DATA_POINTS_STATE;
+            } else
+            {
+              state = DATA_POINT_STATE;
+            }
+            break;
+
+            // case and state 2: data point
+                        case DATA_POINT_STATE:
+            getline(infile, temp);
+            if (String(temp).hasPrefix("</"))
+            {
+              data_points_vector_in.push_back(data_points_in);
+              // cout << "size of data_points_vector_in: " << data_points_vector_in.size() << endl;
+              data_points_in.clear();
+              // cout << "size of data_points_in.clear(): " << data_points_in.size() << endl;
+              state = DATA_POINTS_STATE;
+            } else
+            {
+              data_point_in.intensities.clear();
+              data_point_in.mass_shifts.clear();
+              state = FEATURE_ID_STATE;
+            }
+            break;
+
+            // case and state 3: feature_id
+                        case FEATURE_ID_STATE:
+            getline(infile,temp);
+            getline(infile, temp);
+            data_point_in.feature_id = String(temp).toInt();
+            getline (infile, temp);
+            state = RT_STATE;
+            break;
+
+            // case and state 4: rt
+                        case RT_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.rt = String(temp).toDouble();
+            getline (infile, temp);
+            state = MZ_STATE;
+            break;
+
+            // case and state 5: mz
+                        case MZ_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.mz = String(temp).toDouble();
+            getline(infile, temp);
+            state = CHARGE_STATE;
+            break;
+
+            // case and state 6: charge
+                        case CHARGE_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.charge = String(temp).toInt();
+
+            getline(infile, temp );
+            state = ISOTOPES_PER_PEPTIDE_STATE;
+            break;
+
+            //case and state  7: isotopes_per_peptide
+                        case ISOTOPES_PER_PEPTIDE_STATE:
+            getline(infile, temp);
+            getline(infile, temp);
+            data_point_in.isotopes_per_peptide = String(temp).toInt();
+            getline(infile, temp);
+            state = VECTOR_OF_INTENSITIES_STATE;
+            break;
+
+            // case and state 8: vector of intensities
+                        case VECTOR_OF_INTENSITIES_STATE:
+            getline( infile, temp );
+            if (!String(temp).hasPrefix("</"))
+            {
+              state = INTENSITIES_STATE;
+            } else if (String(temp).hasPrefix("</"))
+            {
+              data_point_in.intensities.insert(data_point_in.intensities.end(), intensities_vector_in.begin(), intensities_vector_in.end());
+              intensities_vector_in.clear();
+              state = MASS_SHIFTS_STATE;
+            }
+            break;
+
+            // case and state 9: intesities
+                        case INTENSITIES_STATE:
+            getline( infile, temp );
+            do
+            {
+              if(!String(temp).hasPrefix("<"))
+              {
+                DoubleReal intensity_in = String(temp).toDouble();
+                intensities_in.push_back(intensity_in);
+              }
+              getline( infile, temp );
+            } while (!String(temp).hasPrefix("</"));
+            intensities_vector_in.push_back(intensities_in);
+            intensities_in.clear();
+            state = VECTOR_OF_INTENSITIES_STATE;
+            break;
+
+            // case and state 10: mass_shifts
+                        case MASS_SHIFTS_STATE:
+            getline( infile, temp );
+            do
+            {
+              if(!String(temp).hasPrefix("<"))
+              {
+                DoubleReal mass_shift_in = String(temp).toDouble();
+                mass_shifts_in.push_back(mass_shift_in);
+              }
+              getline( infile, temp );
+            } while (!String(temp).hasPrefix("</"));
+            data_point_in.mass_shifts.insert(data_point_in.mass_shifts.begin(), mass_shifts_in.begin(), mass_shifts_in.end());
+            mass_shifts_in.clear();
+            getline( infile, temp );      // temp steht auf </DataPoint>
+            data_points_in.push_back(data_point_in);
+            state = DATA_POINT_STATE;
+            break;
+
+                         default:
+            break;
+          }
+        }
+      }
+      infile.close();
+
+      // set loaded filter results from .txt as input for clustering
+      data = data_points_vector_in;
+    }
 
 
     //--------------------------------------------------
@@ -670,6 +983,7 @@ class TOPPSILACAnalyzer
 
       if (data.size() >= 2)
       {
+        Int temp = 0;
         // combine corresponding DataPoints
         vector<vector<DataPoint> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
         vector<vector<DataPoint> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
@@ -678,7 +992,7 @@ class TOPPSILACAnalyzer
         vector<DataPoint>::iterator it_2;     // second inner iterator over elements of second DataPoint
 
         while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
-        {
+        {          
           while (data_it_1->size() == 0 && data_it_1 < data_it_end)
           {
             ++data_it_1;      // get next first DataPoint
@@ -686,7 +1000,7 @@ class TOPPSILACAnalyzer
           }
 
           if (data_it_1 == data_it_end && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
-          {
+          {            
             break;      // stop combining
           }
 
@@ -696,7 +1010,7 @@ class TOPPSILACAnalyzer
           }
 
           if (data_it_2 == data.end())      // if second iterator points to end of "data"
-          {
+          {            
             data_it_2 = data_it_1 + 1;      // reset second iterator
           }
 
@@ -708,10 +1022,16 @@ class TOPPSILACAnalyzer
           {
             // check if DataPoints have the same charge state and mass shifts
             if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
-            {
+            {              
               if (data_it_2 < data_it_end)     // if DataPpoints differ and second DataPoint is not second last element of "data"
               {
+                temp++;
                 ++data_it_2;      // get next second DataPoint
+                if (temp > 50000)
+                {                  
+                  ++data_it_1;
+                  temp = 0;
+                }
               }
 
               else if (data_it_2 == data_it_end && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
@@ -727,7 +1047,7 @@ class TOPPSILACAnalyzer
             }
 
             else
-            {
+            {              
               // perform combining
               (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end());      // append second DataPoint to first DataPoint
               (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
@@ -747,7 +1067,6 @@ class TOPPSILACAnalyzer
             ++data_it_1;      // get next first DataPoint
           }
         }
-
 
         // erase empty DataPoints from "data"
         vector<vector<DataPoint> > data_temp;
@@ -786,10 +1105,6 @@ class TOPPSILACAnalyzer
 
     // set size of input map
     exp.updateRanges();
-
-    all_pairs.getFileDescriptions()[0].size = exp.getSize();
-    all_pairs.getFileDescriptions()[1].size = exp.getSize();
-    all_pairs.getFileDescriptions()[2].size = exp.getSize();
 
 
     //--------------------------------------------------
@@ -863,6 +1178,7 @@ class TOPPSILACAnalyzer
         // hierarchical clustering
         CentroidLinkage method(rt_scaling);
         HashClustering c(*data_it, rt_threshold, mz_threshold, method);
+        // c.removeIsolatedPoints();
         c.performClustering();
         vector<Tree> current_subtrees;
         c.getSubtrees(current_subtrees);
@@ -888,6 +1204,77 @@ class TOPPSILACAnalyzer
 
     sort(clusters.begin(), clusters.end(), clusterCompare);
 
+
+/*    // store silhouettes for all subtrees as .csv
+    Size silhouette_number = 1;
+
+    ofstream silhouettesFile;
+    silhouettesFile.open ("silhouettes.csv");
+
+    for (std::vector<std::vector<Real> >::iterator asw_vector_it = silhouettes.begin(); asw_vector_it != silhouettes.end(); ++asw_vector_it)
+    {
+      silhouettesFile << silhouette_number;
+
+      for (std::vector<Real>::iterator asw_it = asw_vector_it->begin(); asw_it != asw_vector_it->end(); ++asw_it)
+      {
+        silhouettesFile << "," << *asw_it;
+      }
+
+      silhouettesFile << endl;
+      silhouette_number++;
+    }
+
+    silhouettesFile.close();
+
+    // store all subtrees as .featureXML
+    std::vector<String> colors;
+    // 15 HTML colors
+    colors.push_back("#00FFFF");
+    colors.push_back("#000000");
+    colors.push_back("#0000FF");
+    colors.push_back("#FF00FF");
+    colors.push_back("#008000");
+    colors.push_back("#808080");
+    colors.push_back("#00FF00");
+    colors.push_back("#800000");
+    colors.push_back("#000080");
+    colors.push_back("#808000");
+    colors.push_back("#800080");
+    colors.push_back("#FF0000");
+    colors.push_back("#C0C0C0");
+    colors.push_back("#008080");
+    colors.push_back("#FFFF00");
+
+    Size subtree_number = 1;
+
+    for (std::vector<std::vector<SILACTreeNode> >::iterator subtree_it = subtrees.begin(); subtree_it != subtrees.end(); ++subtree_it)
+    {
+      std::set<DataPoint*> leafs;
+
+      for (std::vector<SILACTreeNode>::iterator tree_it = subtree_it->begin(); tree_it != subtree_it->end(); ++tree_it)
+      {
+        leafs.insert(tree_it->data1);
+        leafs.insert(tree_it->data2);
+      }
+
+      for (std::set<DataPoint*>::iterator leafs_it = leafs.begin(); leafs_it != leafs.end(); ++leafs_it)
+      {
+        //visualize the light variant
+        Feature tree_point;
+        tree_point.setRT((*leafs_it)->rt);
+        tree_point.setMZ((*leafs_it)->mz);
+        tree_point.setIntensity((*leafs_it)->intensities[0][0]);
+        tree_point.setCharge((*leafs_it)->charge);
+        tree_point.setMetaValue("subtree", subtree_number);
+        tree_point.setMetaValue("color", colors[subtree_number%colors.size()]);
+        subtree_points.push_back(tree_point);
+      }
+
+      ++subtree_number;
+    }
+
+    //subtree_points.sortByPosition();
+*/
 
     //--------------------------------------------------
     // consensusXML output
@@ -999,7 +1386,17 @@ class TOPPSILACAnalyzer
 
         all_pairs.push_back(consensus_feature);
         ++id;
-      }    
+      }
+
+      // set type of experiment
+      all_pairs.setExperimentType("silac");
+
+      // set mapList entries
+      for (UInt i = 0; i <= massShifts[0].size(); i++)
+      {
+        all_pairs.getFileDescriptions()[i].filename = in;
+        all_pairs.getFileDescriptions()[i].size = id;
+      }      
     }
 
 
@@ -1010,7 +1407,7 @@ class TOPPSILACAnalyzer
     if (out_clusters != "")
     {
       vector<String> colors;
-      // 16 HTML colors
+      // 15 HTML colors
       colors.push_back("#00FFFF");
       colors.push_back("#000000");
       colors.push_back("#0000FF");
@@ -1121,11 +1518,20 @@ class TOPPSILACAnalyzer
     // featureXML
     if (out_clusters != "")
     {
+      // clusters
       // assign unique ids
       all_cluster_points.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
       FeatureXMLFile f_file;
       f_file.store(out_clusters, all_cluster_points);
+
+/*      // subtrees
+      // assign unique ids
+      subtree_points.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+      FeatureXMLFile t_file;
+      t_file.store("subtrees.featureXML", subtree_points);
+*/
     }
 
     return EXECUTION_OK;

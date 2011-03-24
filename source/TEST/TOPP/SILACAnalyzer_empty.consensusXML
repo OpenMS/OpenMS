@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/hp-23/OpenMS_head_11-02-2011/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/hp-23/SILACAnalyzer/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.4" id="cm_16627578304933075941" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="SILACAnalyzer" version="version_string" />
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
-	<mapList count="3">
-		<map id="0" name="SILACAnalyzer_empty.mzML" label="light" size="13">
+	<mapList count="2">
+		<map id="0" name="SILACAnalyzer_empty.mzML" label="" size="0">
 		</map>
-		<map id="1" name="SILACAnalyzer_empty.mzML" label="medium" size="13">
-		</map>
-		<map id="2" name="SILACAnalyzer_empty.mzML" label="heavy" size="13">
+		<map id="1" name="SILACAnalyzer_empty.mzML" label="" size="0">
 		</map>
 	</mapList>
 	<consensusElementList>

@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Steffen Sass $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
 // --------------------------------------------------------------------------
 
 
@@ -38,7 +38,8 @@
 namespace OpenMS
 {
   class SILACTreeNode;
-/**
+
+  /**
 		@brief Hierarchical clustering based on geometric hashing.
 
 		Only elements in the surrounding are clustered.
@@ -47,7 +48,7 @@ namespace OpenMS
 
 		@see ClusterHierarchical
 		@ingroup SpectraClustering
-	*/
+   */
 
 class OPENMS_DLLAPI HashClustering : public ProgressLogger
 {
@@ -56,86 +57,86 @@ class OPENMS_DLLAPI HashClustering : public ProgressLogger
 	/**
 	 * @brief current minimal distance
 	 */
-   DoubleReal min_distance;
+   DoubleReal min_distance_;
 
 	/**
 	 * @brief two DataSubsets with current minimal distance
 	 */
-   std::pair<DataSubset*,DataSubset*> min_distance_subsets;
+   std::pair<DataSubset*,DataSubset*> min_distance_subsets_;
 
 	/**
 	 * @brief set of distances
 	 */
-   DistanceSet distances;
+   DistanceSet distances_;
 
 	/**
 	 * @brief method which is used to calculate the distances
 	 */
-   ClusteringMethod* method;
+   ClusteringMethod* method_;
 
 	/**
 	 * @brief the grid for geometric hashing
 	 */
-   HashGrid grid;
+   HashGrid grid_;
 
 	/**
 	 * @brief average silhoutte widths for each subtree
 	 */
-   std::vector<std::vector<Real> > silhouettes;
+   std::vector<std::vector<Real> > silhouettes_;
 
 	/**
 	 * @brief Calculates initial distances
 	 */
-   void init();
+   void init_();
 
 	/**
 	 * @brief Merges two DataSubsets
 	 */
-   void merge();
+   void merge_();
 
 	/**
 	 * @brief Finds the two DataSubsets with minimal distance
 	 * @param subset1 first DataSubset
 	 * @param subset2 second DataSubset
 	 */
-   void updateMinElements();
+   void updateMinElements_();
 
 	/**
    * @brief Calculates the distance of two DataSubsets using <i>getDistance</i> of the clustering method
    * @param subset1 first DataSubset
 	 * @param subset2 second DataSubset
 	 */
-   DoubleReal getDistance(DataSubset& subset1, DataSubset& subset2);
+   DoubleReal getDistance_(DataSubset& subset1, DataSubset& subset2);
 
 	/**
 	 * @brief Calculates the distance of two DataPoints using <i>getDistance</i> of the clustering method
 	 * @param point1 first DataPoint
 	 * @param point2 second DataPoint
 	 */
-   DoubleReal getDistance(DataPoint& point1, DataPoint& point2);
+   DoubleReal getDistance_(DataPoint& point1, DataPoint& point2);
 
 	/**
 	 * @brief Calculates the silhouette values for any possible cluster number
 	 * @param tree hierarchical clustering tree
 	 */
-   std::vector< Real > averageSilhouetteWidth(DataSubset& subset);
+   std::vector<Real> averageSilhouetteWidth_(DataSubset& subset);
 
 	/**
-   *@brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters
-   *@param cluster_quantity Size giving the number of clusters
-   *@param tree vector of SILACTreeNodes representing the clustering
-   *@param clusters vector of vectors holding the clusters
-   *@see SILACTreeNode
-    after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
+   * @brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters
+   * @param cluster_quantity Size giving the number of clusters
+   * @param tree vector of SILACTreeNodes representing the clustering
+   * @param clusters vector of vectors holding the clusters
+   * @see SILACTreeNode
+   * after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
    */
-   void cut(int cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, std::vector<SILACTreeNode>& tree);
+   void cut_(const Size cluster_quantity, std::vector< std::vector<DataPoint*> >& clusters, const std::vector<SILACTreeNode>& tree);
 
-public:
+  public:
 
 	/**
-   *@brief Exception thrown if not enough data (<2) is used
-		If the set of data to be clustered contains only one data point,
-		clustering algorithms would fail for obvious reasons.
+   * @brief Exception thrown if not enough data (<2) is used
+   * If the set of data to be clustered contains only one data point,
+   * clustering algorithms would fail for obvious reasons.
 	 */
    class OPENMS_DLLAPI InsufficientInput : public Exception::BaseException
    {
@@ -144,14 +145,29 @@ public:
        virtual ~InsufficientInput() throw();
    };
 
+  /**
+   * @brief default constructor
+   */
+   HashClustering();
+
+  /**
+   * @brief destructor
+   */
+   ~HashClustering();
+
 	/**
 	 * @brief Detailed constructor
 	 * @param data this data points will be clustered
 	 * @param rt_threshold height of the grid cells
 	 * @param mz_threshold width of the grid cells
-	 * @param method_ method to use for calculating distances
+   * @param method method to use for calculating distances
 	 */
-   HashClustering(std::vector<DataPoint>& data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod& method_);
+   HashClustering(std::vector<DataPoint>& data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod& method);
+
+  /**
+   * @brief remove points that have no immediate neighbours
+   */
+//   void removeIsolatedPoints();
 
 	/**
 	 * @brief Starts the clustering and returns a vector of subtrees when finished
@@ -175,7 +191,7 @@ public:
    */
    std::vector<std::vector<Real> > getSilhouetteValues();
 
-};
+  };
 
 }
 
