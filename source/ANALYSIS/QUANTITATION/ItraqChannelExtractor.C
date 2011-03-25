@@ -256,7 +256,7 @@ namespace OpenMS
 
 	void ItraqChannelExtractor::setDefaultParams_()
 	{
-		defaults_.setValue("select_activation",Precursor::NamesOfActivationMethod[Precursor::HCID],"Operate only on MSn scans where any of its percursors features a certain activation method (usually HCD for iTRAQ)\n");
+		defaults_.setValue("select_activation",Precursor::NamesOfActivationMethod[Precursor::HCID],"Operate only on MSn scans where any of its percursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.\n");
 		StringList activation_list(std::vector<std::string>(Precursor::NamesOfActivationMethod, &Precursor::NamesOfActivationMethod[Precursor::SIZE_OF_ACTIVATIONMETHOD-1]));
 		activation_list.push_back(""); // allow disabling this
 		defaults_.setValidStrings("select_activation",activation_list);

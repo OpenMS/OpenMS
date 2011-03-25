@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<userParam type="int" name="itraq:scans_noquant" value="0"/>
+	<userParam type="int" name="itraq:scans_total" value="1"/>
+	<userParam type="string" name="Program" value="OpenMS::ITRAQAnalyzer"/>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="ITRAQAnalyzer" version="version_string" />
+		<processingAction name="Quantitation" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="4">
+		<map id="0" name="ITRAQAnalyzer_input_1.mzML" label="iTRAQ_114_l1" size="1">
+			<userParam type="int" name="channel_name" value="114"/>
+			<userParam type="int" name="channel_id" value="0"/>
+			<userParam type="string" name="channel_description" value="l1"/>
+			<userParam type="float" name="channel_center" value="114.11"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="1" name="ITRAQAnalyzer_input_1.mzML" label="iTRAQ_115_l2" size="1">
+			<userParam type="int" name="channel_name" value="115"/>
+			<userParam type="int" name="channel_id" value="1"/>
+			<userParam type="string" name="channel_description" value="l2"/>
+			<userParam type="float" name="channel_center" value="115.11"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="2" name="ITRAQAnalyzer_input_1.mzML" label="iTRAQ_116_l3" size="1">
+			<userParam type="int" name="channel_name" value="116"/>
+			<userParam type="int" name="channel_id" value="2"/>
+			<userParam type="string" name="channel_description" value="l3"/>
+			<userParam type="float" name="channel_center" value="116.11"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="3" name="ITRAQAnalyzer_input_1.mzML" label="iTRAQ_117_lung" size="1">
+			<userParam type="int" name="channel_name" value="117"/>
+			<userParam type="int" name="channel_id" value="3"/>
+			<userParam type="string" name="channel_description" value="lung"/>
+			<userParam type="float" name="channel_center" value="117.11"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_16627578304933075941" quality="0">
+			<centroid rt="-1" mz="1.0036382333855" it="4048.74"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="-1" mz="114.11" it="1055.24"/>
+				<element map="1" id="0" rt="-1" mz="115.11" it="984.262"/>
+				<element map="2" id="0" rt="-1" mz="116.11" it="975.567"/>
+				<element map="3" id="0" rt="-1" mz="117.11" it="1033.67"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

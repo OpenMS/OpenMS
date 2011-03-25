@@ -191,6 +191,7 @@ namespace OpenMS
 				}
 				#endif
 
+        Peak2D::IntensityType cf_intensity(0);
 				// write back the values to the map
 				for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[i].begin();
 						 it_elements != consensus_map_in[i].end();
@@ -204,15 +205,18 @@ namespace OpenMS
 					//this has become useless (even for comparison of methods)
 					handle.setIntensity ( Peak2D::IntensityType(gsl_vector_get (gsl_x, index)) );
 					#else
-					handle.setIntensity ( Peak2D::IntensityType( m_x(index, 0)) );
+					handle.setIntensity ( Peak2D::IntensityType( m_x(index, 0)) ); 
 					#endif
 
 					consensus_map_out[i].insert(handle);
 					
+          cf_intensity += handle.getIntensity(); // sum up all channels for CF
+
 					#ifdef ITRAQ_DEBUG
 					std::cout <<  it_elements->getIntensity() << " -> " << handle.getIntensity () << std::endl;
 					#endif
 				}
+        consensus_map_out[i].setIntensity(cf_intensity); // set overall intensity of CF (sum of all channels)
 
 			}
 			
@@ -413,7 +417,7 @@ namespace OpenMS
 							hd.setIntensity(hd.getIntensity() / peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]][0]);
 						}
 						cf.insert(hd);
-					}					
+					}
 					// replace consensusFeature with updated intensity
 					consensus_map_out[i] = cf;
 				} // ! adjust ratios
