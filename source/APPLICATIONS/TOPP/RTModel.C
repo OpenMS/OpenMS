@@ -233,11 +233,10 @@ class TOPPRTModel
 														  std::vector<DoubleReal>&  labels)
 	  {
 	      TextFile text_file(filename.c_str(), true);
-	      TextFile::iterator it;
 	      std::vector<String> parts;
 	      labels.clear();	
 	      
-	      it = text_file.begin();	
+	      TextFile::iterator it = text_file.begin();	
 	      while(it != text_file.end())
 	      {
 				  it->split(' ', parts);
@@ -856,10 +855,6 @@ class TOPPRTModel
 																										allowed_amino_acid_characters,
 																										svm.getIntParameter(SVMWrapper::BORDER_LENGTH),
 																										training_sample.sequences);
-			}			
-																													
-			if (temp_type == SVMWrapper::OLIGO)
-			{
 				training_sample.labels = training_retention_times;
 			}
 			
