@@ -88,10 +88,11 @@ START_TEST(<?php print $class; ?>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 <?php print $class; ?>* ptr = 0;
+<?php print $class; ?>* null_ptr = 0;
 START_SECTION(<?php print $class; ?>())
 {
 	ptr = new <?php print $class; ?>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
