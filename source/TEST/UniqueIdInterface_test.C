@@ -40,10 +40,11 @@ START_TEST(UniqueIdInterface, "$Id$")
 /////////////////////////////////////////////////////////////
 
 UniqueIdInterface* ptr = 0;
+UniqueIdInterface* nullPointer = 0;
 START_SECTION(UniqueIdInterface())
 {
 	ptr = new UniqueIdInterface();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

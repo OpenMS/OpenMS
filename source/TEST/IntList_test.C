@@ -41,9 +41,10 @@ START_TEST(IntList, "$$")
 /////////////////////////////////////////////////////////////
 
 IntList* ptr = 0;
+IntList* nullPointer = 0;
 START_SECTION(IntList())
 	ptr = new IntList;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~IntList())

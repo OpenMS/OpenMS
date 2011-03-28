@@ -40,9 +40,10 @@ START_TEST(ContactPerson, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ContactPerson* ptr = 0;
+ContactPerson* nullPointer = 0;
 START_SECTION(ContactPerson())
 	ptr = new ContactPerson();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~ContactPerson())

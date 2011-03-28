@@ -42,10 +42,11 @@ START_TEST(IDDecoyProbability, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IDDecoyProbability* ptr = 0;
+IDDecoyProbability* nullPointer = 0;
 START_SECTION(IDDecoyProbability())
 {
 	ptr = new IDDecoyProbability();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

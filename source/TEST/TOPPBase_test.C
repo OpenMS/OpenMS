@@ -233,9 +233,10 @@ class TOPPBaseTestNOP
 /////////////////////////////////////////////////////////////
 
 TOPPBaseTest* ptr = 0;
+TOPPBaseTest* nullPointer = 0;
 START_SECTION((TOPPBase(const String &name, const String &description, bool official=true, bool id_tag_support=false, const String &version="")))
 	ptr = new TOPPBaseTest();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~TOPPBase()))

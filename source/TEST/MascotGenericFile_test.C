@@ -41,10 +41,11 @@ START_TEST(MascotGenericFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MascotGenericFile* ptr = 0;
+MascotGenericFile* nullPointer = 0;
 START_SECTION(MascotGenericFile())
 {
 	ptr = new MascotGenericFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

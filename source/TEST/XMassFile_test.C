@@ -43,9 +43,10 @@ START_TEST(XMassFile, "$Id$")
 using namespace OpenMS;
 
 XMassFile* ptr = 0;
+XMassFile* nullPointer = 0;
 START_SECTION(XMassFile())
 	ptr = new XMassFile;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~XMassFile())

@@ -44,9 +44,10 @@ START_TEST(LabeledPairFinder, "$Id LabeledPairFinder_test.C 139 2006-07-14 10:08
 /////////////////////////////////////////////////////////////
 
 LabeledPairFinder* ptr = 0;
+LabeledPairFinder* nullPointer = 0;
 START_SECTION((LabeledPairFinder()))
 	ptr = new LabeledPairFinder();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~LabeledPairFinder()))

@@ -40,10 +40,11 @@ START_TEST(ChromatogramSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ChromatogramSettings* ptr = 0;
+ChromatogramSettings* nullPointer = 0;
 START_SECTION(ChromatogramSettings())
 {
 	ptr = new ChromatogramSettings();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

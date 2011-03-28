@@ -40,10 +40,11 @@ START_TEST(MSSim, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MSSim* ptr = 0;
+MSSim* nullPointer = 0;
 START_SECTION(MSSim())
 {
 	ptr = new MSSim();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

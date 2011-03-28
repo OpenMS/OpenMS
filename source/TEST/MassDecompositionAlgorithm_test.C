@@ -41,10 +41,11 @@ START_TEST(MassDecompositionAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MassDecompositionAlgorithm* ptr = 0;
+MassDecompositionAlgorithm* nullPointer = 0;
 START_SECTION(MassDecompositionAlgorithm())
 {
 	ptr = new MassDecompositionAlgorithm();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

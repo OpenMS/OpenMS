@@ -41,10 +41,11 @@ START_TEST(BinnedSpectrum, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BinnedSpectrum* ptr = 0;
+BinnedSpectrum* nullPointer = 0;
 START_SECTION(BinnedSpectrum())
 {
 	ptr = new BinnedSpectrum();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
   TEST_EXCEPTION(BinnedSpectrum::NoSpectrumIntegrated,ptr->setBinning();)
 }
 END_SECTION

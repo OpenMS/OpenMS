@@ -58,6 +58,7 @@ typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
 
 {
 	ExtenderType* ptr = 0;
+	ExtenderType* nullPointer = 0;
 
 	START_SECTION((SimpleExtender(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
 		{

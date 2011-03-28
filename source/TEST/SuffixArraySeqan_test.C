@@ -46,6 +46,7 @@ START_TEST(SuffixArraySeqan, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SuffixArraySeqan* ptr = 0;
+SuffixArraySeqan* nullPointer = 0;
 const String text = "$AAARAA$ARARP$";
 
 SuffixArraySeqan* sa = new SuffixArraySeqan(text,"");

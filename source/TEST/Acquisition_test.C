@@ -40,9 +40,10 @@ START_TEST(Acquisition, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Acquisition* ptr = 0;
+Acquisition* nullPointer = 0;
 START_SECTION(Acquisition())
 	ptr = new Acquisition();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~Acquisition())

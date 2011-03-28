@@ -44,9 +44,10 @@ START_TEST(SignalToNoiseEstimatorMeanIterative, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SignalToNoiseEstimatorMeanIterative< >* ptr = 0;
+SignalToNoiseEstimatorMeanIterative< >* nullPointer = 0;
 START_SECTION((SignalToNoiseEstimatorMeanIterative()))
         ptr = new SignalToNoiseEstimatorMeanIterative<>;
-        TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
         SignalToNoiseEstimatorMeanIterative<> sne;
 END_SECTION
 

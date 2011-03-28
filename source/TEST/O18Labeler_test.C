@@ -41,10 +41,11 @@ START_TEST(O18Labeler, "$Id$")
 /////////////////////////////////////////////////////////////
 
 O18Labeler* ptr = 0;
+O18Labeler* nullPointer = 0;
 START_SECTION(O18Labeler())
 {
 	ptr = new O18Labeler();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

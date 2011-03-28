@@ -43,10 +43,11 @@ START_TEST(SingleLinkage, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SingleLinkage* ptr = 0;
+SingleLinkage* nullPointer = 0;
 START_SECTION(SingleLinkage())
 {
 	ptr = new SingleLinkage();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -46,10 +46,11 @@ START_TEST(String, "$Id$")
 DateTime date;
 date.set("27.01.2005 17:47:41");
 MascotOutfile* ptr = 0;
+MascotOutfile* nullPointer = 0;
 
 START_SECTION((MascotOutfile()))
 	ptr = new MascotOutfile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((void load(String filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &peptide_identifications, Real p=0.05)))

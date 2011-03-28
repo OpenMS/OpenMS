@@ -104,6 +104,7 @@ class TestModel : public BaseModel<2>
 
 // default ctor
 TestModel* ptr = 0;
+TestModel* nullPointer = 0;
 START_SECTION((BaseModel()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL((Size)ptr, 0)

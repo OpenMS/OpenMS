@@ -43,6 +43,7 @@ using namespace OpenMS;
 using namespace std;
 
 MSExperiment<>* ptr = 0;
+MSExperiment<>* nullPointer = 0;
 START_SECTION((MSExperiment()))
 {
 	ptr = new MSExperiment<>;

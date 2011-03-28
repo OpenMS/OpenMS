@@ -43,9 +43,10 @@ START_TEST(MSPFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MSPFile* ptr = 0;
+MSPFile* nullPointer = 0;
 START_SECTION((MSPFile()))
 	ptr = new MSPFile;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~MSPFile()))

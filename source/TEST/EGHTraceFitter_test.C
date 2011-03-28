@@ -253,10 +253,11 @@ DoubleReal expected_tau = 0.0;
 /////////////////////////////////////////////////////////////
 
 EGHTraceFitter<Peak1D>* ptr = 0;
+EGHTraceFitter<Peak1D>* nullPointer = 0;
 START_SECTION(EGHTraceFitter())
 {
 	ptr = new EGHTraceFitter<Peak1D>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -42,10 +42,11 @@ START_TEST(DocumentIDTagger, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DocumentIDTagger* ptr = 0;
+DocumentIDTagger* nullPointer = 0;
 START_SECTION(DocumentIDTagger())
 {
 	ptr = new DocumentIDTagger("someTOPPTool");
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -44,11 +44,12 @@ START_TEST(BiGaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BiGaussFitter1D* ptr = 0;
+BiGaussFitter1D* nullPointer = 0;
 START_SECTION(BiGaussFitter1D())
 {
   ptr = new BiGaussFitter1D();
   TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -112,7 +113,7 @@ START_SECTION((Fitter1D* create()))
 {
   Fitter1D* ptr = BiGaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

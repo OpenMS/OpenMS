@@ -54,13 +54,14 @@ enum
 };
 
 ModelFitterType* ptr = 0;
+ModelFitterType* nullPointer = 0;
 START_SECTION((ModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
 	MSExperiment<PeakType> input;
 	FeatureMap<FeatureType> features;
 	FeatureFinder ff;
 	ptr = new ModelFitterType(&input,&features,&ff);
   TEST_EQUAL(ptr->getName(), "ModelFitter")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~ModelFitter()))

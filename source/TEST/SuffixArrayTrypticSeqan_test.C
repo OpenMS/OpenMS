@@ -46,6 +46,7 @@ START_TEST(SuffixArrayTrypticSeqan, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SuffixArrayTrypticSeqan* ptr = 0;
+SuffixArrayTrypticSeqan* nullPointer = 0;
 const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticSeqan* sa = new SuffixArrayTrypticSeqan(text,"");

@@ -42,10 +42,11 @@ START_TEST(CompNovoIdentificationCID, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CompNovoIdentificationCID* ptr = 0;
+CompNovoIdentificationCID* nullPointer = 0;
 START_SECTION(CompNovoIdentificationCID())
 {
 	ptr = new CompNovoIdentificationCID();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

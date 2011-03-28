@@ -40,10 +40,11 @@ START_TEST(CVTerm, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CVTerm* ptr = 0;
+CVTerm* nullPointer = 0;
 START_SECTION(CVTerm())
 {
 	ptr = new CVTerm();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

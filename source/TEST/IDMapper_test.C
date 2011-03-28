@@ -63,9 +63,10 @@ START_TEST(IDMapper, "$Id$")
 using namespace std;
 
 IDMapper* ptr = 0;
+IDMapper* nullPointer = 0;
 START_SECTION((IDMapper()))
 	ptr = new IDMapper();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~IDMapper()))

@@ -40,10 +40,11 @@ START_TEST(ModificationDefinition, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ModificationDefinition* ptr = 0;
+ModificationDefinition* nullPointer = 0;
 START_SECTION(ModificationDefinition())
 {
 	ptr = new ModificationDefinition();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

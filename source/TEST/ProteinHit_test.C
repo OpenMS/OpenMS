@@ -52,9 +52,10 @@ String accession = "PROOE34";
 
 
 ProteinHit* ptr = 0;	
+ProteinHit* nullPointer = 0;
 START_SECTION(ProteinHit())
 	ptr = new ProteinHit();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~ProteinHit())

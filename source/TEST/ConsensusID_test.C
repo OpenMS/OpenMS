@@ -42,9 +42,10 @@ START_TEST(ResidueDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConsensusID* ptr = 0;
+ConsensusID* nullPointer = 0;
 START_SECTION(ConsensusID())
 	ptr = new ConsensusID();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~ConsensusID())

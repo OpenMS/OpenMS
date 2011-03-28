@@ -40,10 +40,11 @@ START_TEST(CVReference, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CVReference* ptr = 0;
+CVReference* nullPointer = 0;
 START_SECTION(CVReference())
 {
 	ptr = new CVReference();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

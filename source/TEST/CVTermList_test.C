@@ -40,10 +40,11 @@ START_TEST(CVTermList, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CVTermList* ptr = 0;
+CVTermList* nullPointer = 0;
 START_SECTION(CVTermList())
 {
 	ptr = new CVTermList();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -81,9 +81,10 @@ START_TEST(PersistentObject, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Dummy* ptr = 0;
+Dummy* nullPointer = 0;
 START_SECTION((PersistentObject()))
 	ptr = new Dummy();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~PersistentObject()))

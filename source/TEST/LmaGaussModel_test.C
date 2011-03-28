@@ -43,10 +43,11 @@ using std::stringstream;
 
 // default ctor
 LmaGaussModel* ptr = 0;
+LmaGaussModel* nullPointer = 0;
 START_SECTION((LmaGaussModel()))
 	ptr = new LmaGaussModel();
   TEST_EQUAL(ptr->getName(), "LmaGaussModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -62,7 +63,7 @@ END_SECTION
 START_SECTION((static BaseModel<1>* create()))
 	BaseModel<1>* ptr = LmaGaussModel::create();
 	TEST_EQUAL(ptr->getName(), "LmaGaussModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // assignment operator

@@ -41,10 +41,11 @@ START_TEST(ChromatogramTools, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ChromatogramTools* ptr = 0;
+ChromatogramTools* nullPointer = 0;
 START_SECTION(ChromatogramTools())
 {
 	ptr = new ChromatogramTools();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

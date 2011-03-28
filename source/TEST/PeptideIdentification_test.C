@@ -59,9 +59,10 @@ peptide_hits.push_back(peptide_hit);
 
 
 PeptideIdentification* ptr = 0;
+PeptideIdentification* nullPointer = 0;
 START_SECTION((PeptideIdentification()))
 	ptr = new PeptideIdentification();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~PeptideIdentification()))

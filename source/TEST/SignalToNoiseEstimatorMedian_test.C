@@ -41,9 +41,10 @@ START_TEST(SignalToNoiseEstimatorMedian, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SignalToNoiseEstimatorMedian< >* ptr = 0;
+SignalToNoiseEstimatorMedian< >* nullPointer = 0;
 START_SECTION((SignalToNoiseEstimatorMedian()))
 	ptr = new SignalToNoiseEstimatorMedian<>;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 	SignalToNoiseEstimatorMedian<> sne;
 END_SECTION
 

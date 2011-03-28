@@ -44,9 +44,10 @@ START_TEST(ResidueDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 AASequence* ptr = 0;
+AASequence* nullPointer = 0;
 START_SECTION(AASequence())
 	ptr = new AASequence();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~AASequence())

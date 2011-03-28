@@ -44,10 +44,11 @@ START_TEST(PosteriorErrorProbabilityModel, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PosteriorErrorProbabilityModel* ptr = 0;
+PosteriorErrorProbabilityModel* nullPointer = 0;
 START_SECTION(PosteriorErrorProbabilityModel())
 {
 	ptr = new PosteriorErrorProbabilityModel();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

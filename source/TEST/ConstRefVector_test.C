@@ -45,9 +45,10 @@ START_TEST(ConstRefVector, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConstRefVector<PeakArrayType>* ptr = 0;
+ConstRefVector<PeakArrayType>* nullPointer = 0;
 START_SECTION((ConstRefVector()))
 	ptr = new ConstRefVector<PeakArrayType>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~ConstRefVector()))

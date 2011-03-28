@@ -41,10 +41,11 @@ START_TEST(ProtXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ProtXMLFile* ptr = 0;
+ProtXMLFile* nullPointer = 0;
 ProtXMLFile file;
 START_SECTION(ProtXMLFile())
 	ptr = new ProtXMLFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~ProtXMLFile())

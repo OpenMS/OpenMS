@@ -40,10 +40,11 @@ START_TEST(TargetedExperiment, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TargetedExperiment* ptr = 0;
+TargetedExperiment* nullPointer = 0;
 START_SECTION(TargetedExperiment())
 {
 	ptr = new TargetedExperiment();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -41,10 +41,11 @@ START_TEST(GaussFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GaussFitter* ptr = 0;
+GaussFitter* nullPointer = 0;
 START_SECTION(GaussFitter())
 {
 	ptr = new GaussFitter();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

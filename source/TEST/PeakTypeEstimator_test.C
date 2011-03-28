@@ -45,10 +45,11 @@ START_TEST(String, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakTypeEstimator* ptr = 0;
+PeakTypeEstimator* nullPointer = 0;
 
 START_SECTION(([EXTRA]PeakTypeEstimator()))
 	ptr = new PeakTypeEstimator();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(([EXTRA] ~PeakTypeEstimator()))

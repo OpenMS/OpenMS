@@ -42,9 +42,10 @@ START_TEST(FeatureGroupingAlgorithmLabeled, "$Id FeatureFinder_test.C 139 2006-0
 /////////////////////////////////////////////////////////////
 
 FeatureGroupingAlgorithmLabeled* ptr = 0;
+FeatureGroupingAlgorithmLabeled* nullPointer = 0;
 START_SECTION((FeatureGroupingAlgorithmLabeled()))
 	ptr = new FeatureGroupingAlgorithmLabeled();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~FeatureGroupingAlgorithmLabeled()))

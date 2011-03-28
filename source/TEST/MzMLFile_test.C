@@ -180,9 +180,10 @@ START_TEST(MzMLFile, "$Id$")
 /*
 
 MzMLFile* ptr = 0;
+MzMLFile* nullPointer = 0;
 START_SECTION((MzMLFile()))
 	ptr = new MzMLFile;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~MzMLFile()))

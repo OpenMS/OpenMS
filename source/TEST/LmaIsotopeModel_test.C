@@ -44,10 +44,11 @@ using std::stringstream;
 
 // default ctor
 LmaIsotopeModel* ptr = 0;
+LmaIsotopeModel* nullPointer = 0;
 START_SECTION((LmaIsotopeModel()))
 	ptr = new LmaIsotopeModel();
   	TEST_EQUAL(ptr->getName(), "LmaIsotopeModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -63,7 +64,7 @@ END_SECTION
 START_SECTION((static BaseModel<1>* create()))
 	BaseModel<1>* ptr = LmaIsotopeModel::create();
 	TEST_EQUAL(ptr->getName(), "LmaIsotopeModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // assignment operator

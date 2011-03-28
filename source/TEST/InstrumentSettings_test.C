@@ -40,9 +40,10 @@ START_TEST(InstrumentSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 
 InstrumentSettings* ptr = 0;
+InstrumentSettings* nullPointer = 0;
 START_SECTION((InstrumentSettings()))
 	ptr = new InstrumentSettings();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~InstrumentSettings()))

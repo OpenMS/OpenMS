@@ -41,10 +41,11 @@ START_TEST(GammaDistributionFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GammaDistributionFitter* ptr = 0;
+GammaDistributionFitter* nullPointer = 0;
 START_SECTION(GammaDistributionFitter())
 {
 	ptr = new GammaDistributionFitter();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

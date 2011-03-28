@@ -40,9 +40,10 @@ START_TEST(ContinuousWaveletTransformNumIntegration, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ContinuousWaveletTransformNumIntegration* ptr = 0;
+ContinuousWaveletTransformNumIntegration* nullPointer = 0;
 START_SECTION((ContinuousWaveletTransformNumIntegration()))
   ptr = new ContinuousWaveletTransformNumIntegration();
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~ContinuousWaveletTransformNumIntegration()))

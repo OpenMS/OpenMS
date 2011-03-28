@@ -40,10 +40,11 @@ START_TEST(EGHModel, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EGHModel* ptr = 0;
+EGHModel* nullPointer = 0;
 START_SECTION(EGHModel())
 {
 	ptr = new EGHModel();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -186,7 +187,7 @@ START_SECTION((static BaseModel<1>* create()))
 {
   BaseModel<1>* ptr = EGHModel::create();
   TEST_EQUAL(ptr->getName(), "EGHModel")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

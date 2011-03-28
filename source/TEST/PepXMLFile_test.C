@@ -42,10 +42,11 @@ START_TEST(PepXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PepXMLFile* ptr = 0;
+PepXMLFile* nullPointer = 0;
 PepXMLFile file;
 START_SECTION(PepXMLFile())
 	ptr = new PepXMLFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~PepXMLFile())

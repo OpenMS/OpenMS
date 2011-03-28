@@ -43,10 +43,11 @@ START_TEST(String, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TextFile* ptr = 0;
+TextFile* nullPointer = 0;
 
 START_SECTION((TextFile()))
 	ptr = new TextFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~TextFile()))

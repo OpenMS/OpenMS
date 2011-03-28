@@ -41,6 +41,7 @@ START_TEST(QTSILACCluster, "$Id$")
 /////////////////////////////////////////////////////////////
 
 QTSILACCluster* ptr = 0;
+QTSILACCluster* nullPointer = 0;
 START_SECTION(QTSILACCluster())
 {
 	//ptr = new QTSILACCluster();

@@ -41,10 +41,11 @@ START_TEST(TraceFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TraceFitter<Peak1D>* ptr = 0;
+TraceFitter<Peak1D>* nullPointer = 0;
 START_SECTION(TraceFitter())
 {
 	ptr = new TraceFitter<Peak1D>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

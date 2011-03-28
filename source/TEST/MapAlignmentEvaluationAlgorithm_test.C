@@ -58,9 +58,10 @@ START_TEST(MapAlignmentEvaluation, "$Id MapAlignmentEvaluationAlgorithm_test.C 1
 /////////////////////////////////////////////////////////////
 
 MAEA* ptr = 0;
+MAEA* nullPointer = 0;
 START_SECTION((MapAlignmentEvaluationAlgorithm()))
 	ptr = new MAEA();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~MapAlignmentEvaluationAlgorithm()))

@@ -46,9 +46,10 @@ START_TEST(MS2File, "$Id$")
 
 
 MS2File* ptr = 0;
+MS2File* nullPointer = 0;
 START_SECTION((MS2File()))
 	ptr = new MS2File;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~MS2File()))

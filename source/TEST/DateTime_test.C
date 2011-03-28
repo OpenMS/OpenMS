@@ -45,6 +45,7 @@ START_TEST(DateTime, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DateTime* ptr = 0;
+DateTime* nullPointer = 0;
 START_SECTION((DateTime& operator= (const DateTime& source)))
   DateTime date, date2;
   date.set("2006-12-12 11:59:59");
@@ -55,7 +56,7 @@ END_SECTION
 
 START_SECTION((DateTime()))
 	ptr = new DateTime();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((DateTime(const DateTime& date)))

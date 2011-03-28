@@ -44,10 +44,11 @@ START_TEST(ILPWrapper, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ILPWrapper* ptr = 0;
+ILPWrapper* nullPointer = 0;
 START_SECTION(ILPWrapper())
 {
 	ptr = new ILPWrapper();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

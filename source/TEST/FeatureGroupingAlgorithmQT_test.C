@@ -42,9 +42,10 @@ START_TEST(FeatureGroupingAlgorithmQT, "$Id FeatureGroupingAlgorithmQT_test.C 79
 /////////////////////////////////////////////////////////////
 
 FeatureGroupingAlgorithmQT* ptr = 0;
+FeatureGroupingAlgorithmQT* nullPointer = 0;
 START_SECTION((FeatureGroupingAlgorithmQT()))
 	ptr = new FeatureGroupingAlgorithmQT();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~FeatureGroupingAlgorithmQT()))

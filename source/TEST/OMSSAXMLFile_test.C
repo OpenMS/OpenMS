@@ -48,6 +48,7 @@ using namespace std;
 
 OMSSAXMLFile xml_file;
 OMSSAXMLFile* ptr;
+OMSSAXMLFile* nullPointer = 0;
 ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications; 
 vector<PeptideIdentification> peptide_identifications2; 
@@ -57,7 +58,7 @@ PeptideHit peptide_hit;
 
 START_SECTION((OMSSAXMLFile()))
 	ptr = new OMSSAXMLFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~OMSSAXMLFile())

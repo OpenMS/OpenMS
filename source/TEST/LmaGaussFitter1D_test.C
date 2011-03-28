@@ -42,10 +42,11 @@ START_TEST(LmaGaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 LmaGaussFitter1D* ptr = 0;
+LmaGaussFitter1D* nullPointer = 0;
 START_SECTION(LmaGaussFitter1D())
 	ptr = new LmaGaussFitter1D();
   TEST_EQUAL(ptr->getName(), "LmaGaussFitter1D")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((LmaGaussFitter1D(const  LmaGaussFitter1D &source)))
@@ -105,7 +106,7 @@ END_SECTION
 START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = LmaGaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "LmaGaussFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((const String getProductName()))

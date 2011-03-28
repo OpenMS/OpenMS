@@ -46,9 +46,10 @@ START_TEST(FeatureHandle, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FeatureHandle* ptr = 0;
+FeatureHandle* nullPointer = 0;
 START_SECTION((FeatureHandle()))
 	ptr = new FeatureHandle();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~FeatureHandle()))

@@ -38,10 +38,11 @@ using namespace OpenMS;
 START_TEST(GzipInputStream, "$Id$")
 
 GzipInputStream* ptr = 0;
+GzipInputStream* nullPointer = 0;
 START_SECTION(GzipInputStream(const char *const file_name))
 	TEST_EXCEPTION(Exception::FileNotFound, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	ptr = new GzipInputStream(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->getIsOpen(),true)
 END_SECTION
 
@@ -53,7 +54,7 @@ START_SECTION(GzipInputStream(const String& file_name))
 	TEST_EXCEPTION(Exception::FileNotFound, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	String filename(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	ptr = new GzipInputStream(filename);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->getIsOpen(),true)
 	delete ptr;
 END_SECTION

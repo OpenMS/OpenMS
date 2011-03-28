@@ -43,9 +43,10 @@ using namespace Math;
 using namespace std;
 
 LinearRegression* ptr;
+LinearRegression* nullPointer = 0;
 START_SECTION((LinearRegression()))
   ptr = new LinearRegression;
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~LinearRegression()))

@@ -46,10 +46,11 @@ using namespace OpenMS;
 using namespace std;
 
 CompareFouriertransform* ptr = 0;
+CompareFouriertransform* nullPointer = 0;
 
 START_SECTION(CompareFouriertransform())
 	ptr = new CompareFouriertransform();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(virtual ~CompareFouriertransform())

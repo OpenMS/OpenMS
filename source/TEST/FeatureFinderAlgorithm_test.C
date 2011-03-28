@@ -86,9 +86,10 @@ START_TEST(FeatureFinderAlgorithm, "$Id FeatureFinder_test.C 139 2006-07-14 10:0
 /////////////////////////////////////////////////////////////
 
 FFA<Peak1D,Feature>* ptr = 0;
+FFA<Peak1D,Feature>* nullPointer = 0;
 START_SECTION((FeatureFinderAlgorithm()))
 	ptr = new FFA<Peak1D,Feature>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~FeatureFinderAlgorithm()))

@@ -46,11 +46,12 @@ using namespace OpenMS;
 using namespace std;
 
 PTMXMLFile* ptr = 0;
+PTMXMLFile* nullPointer = 0;
 PTMXMLFile xml_file;
 
 START_SECTION((PTMXMLFile()))
 	ptr = new PTMXMLFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))

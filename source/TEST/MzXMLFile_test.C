@@ -51,9 +51,10 @@ START_TEST(MzXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MzXMLFile* ptr = 0;
+MzXMLFile* nullPointer = 0;
 START_SECTION((MzXMLFile()))
 	ptr = new MzXMLFile;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~MzXMLFile()))

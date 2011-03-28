@@ -40,9 +40,10 @@ using namespace OpenMS;
 using namespace std;
 
 ControlledVocabulary* ptr = 0;
+ControlledVocabulary* nullPointer = 0;
 START_SECTION((ControlledVocabulary()))
 	ptr = new ControlledVocabulary();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~ControlledVocabulary()))

@@ -45,6 +45,7 @@ START_TEST(SuffixArrayTrypticCompressed, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SuffixArrayTrypticCompressed* ptr = 0;
+SuffixArrayTrypticCompressed* nullPointer = 0;
 const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticCompressed* sa = new SuffixArrayTrypticCompressed(text, "");

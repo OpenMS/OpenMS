@@ -44,10 +44,11 @@ CVMappings mapping;
 ControlledVocabulary cv;
 
 MzDataValidator* ptr = 0;
+MzDataValidator* nullPointer = 0;
 START_SECTION((MzDataValidator(const CVMappings &mapping, const ControlledVocabulary &cv)))
 {
 	ptr = new MzDataValidator(mapping, cv);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

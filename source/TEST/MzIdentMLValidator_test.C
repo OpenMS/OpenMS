@@ -46,9 +46,10 @@ CVMappings mapping;
 ControlledVocabulary cv;
 
 SemanticValidator* ptr = 0;
+SemanticValidator* nullPointer = 0;
 START_SECTION((MzIdentMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
 	ptr = new MzIdentMLValidator(mapping,cv);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~MzIdentMLValidator()))

@@ -43,9 +43,10 @@ START_TEST(ANDIFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ANDIFile* ptr = 0;
+ANDIFile* nullPointer = 0;
 START_SECTION((ANDIFile()))
 	ptr = new ANDIFile;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~ANDIFile()))

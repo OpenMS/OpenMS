@@ -42,10 +42,11 @@ START_TEST(BinnedSpectralContrastAngle, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BinnedSpectralContrastAngle* ptr = 0;
+BinnedSpectralContrastAngle* nullPointer = 0;
 START_SECTION(BinnedSpectralContrastAngle())
 {
 	ptr = new BinnedSpectralContrastAngle();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

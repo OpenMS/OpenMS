@@ -43,9 +43,10 @@ DateTime time;
 time.set("2000-10-09 08:07:40");
 
 DataProcessing* ptr = 0;
+DataProcessing* nullPointer = 0;
 START_SECTION(DataProcessing())
 	ptr = new DataProcessing();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~DataProcessing())

@@ -38,9 +38,10 @@ START_TEST(String, "$Id$")
 
 
 SequestOutfile* ptr = 0;
+SequestOutfile* nullPointer = 0;
 START_SECTION(SequestOutfile())
 	ptr = new SequestOutfile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~SequestOutfile())

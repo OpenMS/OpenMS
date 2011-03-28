@@ -59,9 +59,10 @@ std::cout.precision(writtenDigits<>(DoubleReal()));
 std::cerr.precision(writtenDigits<>(DoubleReal()));
 
 DRange<2>* ptr = 0;
+DRange<2>* nullPointer = 0;
 START_SECTION(DRange())
 	ptr = new DRange<2>;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~DRange())

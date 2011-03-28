@@ -40,10 +40,11 @@ START_TEST(MassDecomposition, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MassDecomposition* ptr = 0;
+MassDecomposition* nullPointer = 0;
 START_SECTION(MassDecomposition())
 {
 	ptr = new MassDecomposition();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

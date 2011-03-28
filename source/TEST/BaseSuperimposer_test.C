@@ -62,9 +62,10 @@ START_TEST(BaseSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestSuperimposer* ptr = 0;
+TestSuperimposer* nullPointer = 0;
 START_SECTION((BaseSuperimposer()))
 	ptr = new TestSuperimposer();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~BaseSuperimposer()))

@@ -40,9 +40,10 @@ START_TEST(ScanWindow, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ScanWindow* ptr = 0;
+ScanWindow* nullPointer = 0;
 START_SECTION((ScanWindow()))
 	ptr = new ScanWindow();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~ScanWindow()))

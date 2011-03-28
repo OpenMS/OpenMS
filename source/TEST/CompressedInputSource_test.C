@@ -40,12 +40,13 @@ using namespace OpenMS;
 START_TEST(CompressedInputSource, "$Id$")
 
 CompressedInputSource* ptr = 0;
+CompressedInputSource* nullPointer = 0;
 START_SECTION(CompressedInputSource(const   String& file_path, const char * header,xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager))
 	char header[2];
 	header[0] = 'B';
 	header[1] = 'Z';
 	ptr = new CompressedInputSource(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"),header);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 START_SECTION((~CompressedInputSource()))
 	delete ptr;
@@ -57,7 +58,7 @@ START_SECTION(CompressedInputSource(const XMLCh *const file_path, const char *he
 	header[1] = 'Z';
 	String filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()),header);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
 

@@ -51,6 +51,7 @@ setenv("OMP_NUM_THREADS" , "1", 1);
 /////////////////////////////////////////////////////////////
 
 IonizationSimulation* ptr = 0;
+IonizationSimulation* nullPointer = 0;
 const unsigned long rnd_gen_seed = 1;
 SimRandomNumberGenerator rnd_gen;
 
@@ -74,7 +75,7 @@ END_SECTION
 START_SECTION((IonizationSimulation(const SimRandomNumberGenerator& )))
 {
   ptr = new IonizationSimulation(rnd_gen);
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -40,9 +40,10 @@ START_TEST(HPLC, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HPLC* ptr = 0;
+HPLC* nullPointer = 0;
 START_SECTION(HPLC())
 	ptr = new HPLC();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~HPLC())

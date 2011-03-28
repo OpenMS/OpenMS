@@ -77,9 +77,10 @@ outfile_content.store(input_file_name2);
 
 
 InspectOutfile* ptr = 0;
+InspectOutfile* nullPointer = 0;
 START_SECTION(InspectOutfile())
 	ptr = new InspectOutfile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~InspectOutfile())

@@ -40,9 +40,10 @@ START_TEST(Product, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Product* ptr = 0;
+Product* nullPointer = 0;
 START_SECTION((Product()))
 	ptr = new Product();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~Product()))

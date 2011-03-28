@@ -56,9 +56,10 @@ MascotXMLFile xml_file;
 protein_hits.push_back(protein_hit);
 
 ProteinIdentification* ptr = 0;
+ProteinIdentification* nullPointer = 0;
 START_SECTION((ProteinIdentification()))
 	ptr = new ProteinIdentification();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~ProteinIdentification()))

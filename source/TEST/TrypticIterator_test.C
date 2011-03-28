@@ -41,9 +41,10 @@ START_TEST(TrypticIterator, "$Id$")
 typedef std::pair <String, String> FASTAEntry;
 
 TrypticIterator* ptr = 0;
+TrypticIterator* nullPointer = 0;
 START_SECTION(TrypticIterator())
 	ptr = new TrypticIterator();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~TrypticIterator())

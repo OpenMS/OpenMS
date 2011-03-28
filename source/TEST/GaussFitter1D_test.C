@@ -42,11 +42,12 @@ START_TEST(GaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GaussFitter1D* ptr = 0;
+GaussFitter1D* nullPointer = 0;
 START_SECTION(GaussFitter1D())
 {
 	ptr = new GaussFitter1D();
   TEST_EQUAL(ptr->getName(), "GaussFitter1D")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -100,7 +101,7 @@ START_SECTION((Fitter1D* create()))
 {
   Fitter1D* ptr = GaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "GaussFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

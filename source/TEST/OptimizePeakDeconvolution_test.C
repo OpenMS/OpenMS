@@ -41,9 +41,10 @@ START_TEST(OptimizePeakDeconvolution, "$Id$")
 /////////////////////////////////////////////////////////////
 
 OptimizePeakDeconvolution* ptr = 0;
+OptimizePeakDeconvolution* nullPointer = 0;
 START_SECTION((OptimizePeakDeconvolution   ( )))
 	ptr = new OptimizePeakDeconvolution();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~OptimizePeakDeconvolution()))

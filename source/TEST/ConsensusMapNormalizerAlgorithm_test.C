@@ -40,10 +40,11 @@ START_TEST(ConsensusMapNormalizerAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConsensusMapNormalizerAlgorithm* ptr = 0;
+ConsensusMapNormalizerAlgorithm* nullPointer = 0;
 START_SECTION(ConsensusMapNormalizerAlgorithm())
 {
 	ptr = new ConsensusMapNormalizerAlgorithm();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

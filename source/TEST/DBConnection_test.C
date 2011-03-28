@@ -43,9 +43,10 @@ START_TEST(DBConnection, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DBConnection* ptr = 0;
+DBConnection* nullPointer = 0;
 START_SECTION((DBConnection()))
 	ptr = new DBConnection();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~DBConnection()))

@@ -56,9 +56,10 @@ for (Size i=1;i<10;i+=1)
 }
 
 MascotInfile* ptr = 0;
+MascotInfile* nullPointer = 0;
 START_SECTION((MascotInfile()))
 	ptr = new MascotInfile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~MascotInfile()))

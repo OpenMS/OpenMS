@@ -40,6 +40,7 @@ START_TEST(QTClustering, "$Id$")
 /////////////////////////////////////////////////////////////
 
 QTClustering* ptr = 0;
+QTClustering* nullPointer = 0;
 START_SECTION(QTClustering())
 {
 	NOT_TESTABLE

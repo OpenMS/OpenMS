@@ -45,10 +45,11 @@ using std::stringstream;
 
 // default ctor
 BiGaussModel* ptr = 0;
+BiGaussModel* nullPointer = 0;
 START_SECTION((BiGaussModel()))
 	ptr = new BiGaussModel();
         TEST_EQUAL(ptr->getName(), "BiGaussModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -64,7 +65,7 @@ END_SECTION
 START_SECTION( static BaseModel<1>* create() )
 	BaseModel<1>* ptr = BiGaussModel::create();
 	TEST_EQUAL(ptr->getName(), "BiGaussModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // assignment operator

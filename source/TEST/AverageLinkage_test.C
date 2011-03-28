@@ -44,10 +44,11 @@ START_TEST(AverageLinkage, "$Id$")
 /////////////////////////////////////////////////////////////
 
 AverageLinkage* ptr = 0;
+AverageLinkage* nullPointer = 0;
 START_SECTION(AverageLinkage())
 {
 	ptr = new AverageLinkage();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

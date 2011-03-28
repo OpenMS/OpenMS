@@ -42,10 +42,11 @@ START_TEST(CompNovoIonScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CompNovoIonScoring* ptr = 0;
+CompNovoIonScoring* nullPointer = 0;
 START_SECTION(CompNovoIonScoring())
 {
 	ptr = new CompNovoIonScoring();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

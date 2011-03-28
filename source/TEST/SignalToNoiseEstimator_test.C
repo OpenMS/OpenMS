@@ -77,9 +77,10 @@ START_TEST(SignalToNoiseEstimator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestSignalToNoiseEstimator* ptr = 0;
+TestSignalToNoiseEstimator* nullPointer = 0;
 START_SECTION((SignalToNoiseEstimator()))
 	ptr = new TestSignalToNoiseEstimator();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 

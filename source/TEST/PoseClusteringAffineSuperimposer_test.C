@@ -43,9 +43,10 @@ START_TEST(PoseClusteringAffineSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PoseClusteringAffineSuperimposer* ptr = 0;
+PoseClusteringAffineSuperimposer* nullPointer = 0;
 START_SECTION((PoseClusteringAffineSuperimposer()))
 	ptr = new PoseClusteringAffineSuperimposer();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~PoseClusteringAffineSuperimposer()))

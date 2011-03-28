@@ -42,6 +42,7 @@ START_TEST(QTClusterFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 QTClusterFinder* ptr = 0;
+QTClusterFinder* nullPointer = 0;
 START_SECTION((QTClusterFinder()))
 {
 	ptr = new QTClusterFinder();

@@ -40,9 +40,10 @@ START_TEST(PrecursorIonSelectionPreprocessing, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PrecursorIonSelectionPreprocessing* ptr = 0;
+PrecursorIonSelectionPreprocessing* nullPointer = 0;
 START_SECTION(PrecursorIonSelectionPreprocessing())
 	ptr = new PrecursorIonSelectionPreprocessing();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~PrecursorIonSelectionPreprocessing())

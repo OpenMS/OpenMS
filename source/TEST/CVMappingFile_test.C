@@ -40,10 +40,11 @@ START_TEST(CVMappingFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CVMappingFile* ptr = 0;
+CVMappingFile* nullPointer = 0;
 START_SECTION(CVMappingFile())
 {
 	ptr = new CVMappingFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

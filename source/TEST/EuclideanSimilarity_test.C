@@ -41,10 +41,11 @@ START_TEST(EuclideanSimilarity, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EuclideanSimilarity* ptr = 0;
+EuclideanSimilarity* nullPointer = 0;
 START_SECTION(EuclideanSimilarity())
 {
 	ptr = new EuclideanSimilarity();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

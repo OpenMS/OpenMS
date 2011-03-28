@@ -58,9 +58,10 @@ START_TEST(FeatureGroupingAlgorithm, "$Id FeatureFinder_test.C 139 2006-07-14 10
 /////////////////////////////////////////////////////////////
 
 FGA* ptr = 0;
+FGA* nullPointer = 0;
 START_SECTION((FeatureGroupingAlgorithm()))
 	ptr = new FGA();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~FeatureGroupingAlgorithm()))

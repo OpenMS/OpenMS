@@ -42,10 +42,11 @@ START_TEST(BinnedSumAgreeingIntensities, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BinnedSumAgreeingIntensities* ptr = 0;
+BinnedSumAgreeingIntensities* nullPointer = 0;
 START_SECTION(BinnedSumAgreeingIntensities())
 {
 	ptr = new BinnedSumAgreeingIntensities();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

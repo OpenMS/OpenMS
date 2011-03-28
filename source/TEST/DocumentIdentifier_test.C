@@ -42,10 +42,11 @@ START_TEST(DocumentIdentifier, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DocumentIdentifier* ptr = 0;
+DocumentIdentifier* nullPointer = 0;
 START_SECTION(DocumentIdentifier())
 {
 	ptr = new DocumentIdentifier();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

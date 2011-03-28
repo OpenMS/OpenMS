@@ -44,11 +44,12 @@ START_TEST(EGHFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EGHFitter1D* ptr = 0;
+EGHFitter1D* nullPointer = 0;
 START_SECTION(EGHFitter1D())
 {
 	ptr = new EGHFitter1D();
 	TEST_EQUAL(ptr->getName(), "EGHFitter1D")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -174,7 +175,7 @@ START_SECTION((static Fitter1D* create()))
 {
   Fitter1D* ptr = EGHFitter1D::create();
   TEST_EQUAL(ptr->getName(), "EGHFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

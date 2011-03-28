@@ -40,10 +40,11 @@ START_TEST(DataPoint, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DataPoint* ptr = 0;
+DataPoint* nullPointer = 0;
 START_SECTION(DataPoint())
 {
 	ptr = new DataPoint();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

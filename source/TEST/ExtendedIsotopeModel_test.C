@@ -46,10 +46,11 @@ using std::stringstream;
 
 // default ctor
 ExtendedIsotopeModel* ptr = 0;
+ExtendedIsotopeModel* nullPointer = 0;
 START_SECTION((ExtendedIsotopeModel()))
 	ptr = new ExtendedIsotopeModel();
   TEST_EQUAL(ptr->getName(), "ExtendedIsotopeModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -60,7 +61,7 @@ END_SECTION
 START_SECTION(static BaseModel<1>* create())
 	BaseModel<1>* ptr = ExtendedIsotopeModel::create();
 	TEST_EQUAL(ptr->getName(), "ExtendedIsotopeModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((static const String getProductName()))

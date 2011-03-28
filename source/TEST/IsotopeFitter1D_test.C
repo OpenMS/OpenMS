@@ -42,11 +42,12 @@ START_TEST(IsotopeFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IsotopeFitter1D* ptr = 0;
+IsotopeFitter1D* nullPointer = 0;
 START_SECTION(IsotopeFitter1D())
 {
 	ptr = new IsotopeFitter1D();
   TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -107,7 +108,7 @@ END_SECTION
 START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = IsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((const String getProductName()))

@@ -43,10 +43,11 @@ START_TEST(ItraqQuantifier, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ItraqQuantifier* ptr = 0;
+ItraqQuantifier* nullPointer = 0;
 START_SECTION(ItraqQuantifier())
 {
 	ptr = new ItraqQuantifier();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -40,10 +40,11 @@ START_TEST(SILACTreeNode, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SILACTreeNode* ptr = 0;
+SILACTreeNode* nullPointer = 0;
 START_SECTION(SILACTreeNode())
 {
 	ptr = new SILACTreeNode();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

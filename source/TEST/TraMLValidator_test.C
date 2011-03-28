@@ -44,10 +44,11 @@ CVMappings mapping;
 ControlledVocabulary cv;
 
 TraMLValidator* ptr = 0;
+TraMLValidator* nullPointer = 0;
 START_SECTION((TraMLValidator(const CVMappings &mapping, const ControlledVocabulary &cv)))
 {
 	ptr = new TraMLValidator(mapping, cv);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

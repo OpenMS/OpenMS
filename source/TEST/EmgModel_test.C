@@ -47,10 +47,11 @@ using std::stringstream;
 
 // default ctor
 EmgModel* ptr = 0;
+EmgModel* nullPointer = 0;
 START_SECTION((EmgModel()))
 	ptr = new EmgModel();
   	TEST_EQUAL(ptr->getName(), "EmgModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -66,7 +67,7 @@ END_SECTION
 START_SECTION((static BaseModel<1>* create()))
 	BaseModel<1>* ptr = EmgModel::create();
 	TEST_EQUAL(ptr->getName(), "EmgModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // assignment operator

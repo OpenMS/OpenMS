@@ -46,6 +46,7 @@ START_TEST(ModifierRep, "$Id$")
 typedef std::pair <String, String> FASTAEntry;
 
 ModifierRep* ptr = 0;
+ModifierRep* nullPointer = 0;
 
 START_SECTION(ModifierRep())
 	ptr = new ModifierRep();

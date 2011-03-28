@@ -63,10 +63,11 @@ TOLERANCE_ABSOLUTE(0.0001)
 
 // default ctor
 ProductModel* ptr = 0;
+ProductModel* nullPointer = 0;
 START_SECTION((ProductModel()))
 	ptr = new ProductModel();
 	TEST_EQUAL(ptr->getName(), "ProductModel2D")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -77,7 +78,7 @@ END_SECTION
 START_SECTION( static const String getProductName() )
 	ptr = new ProductModel();
 	TEST_EQUAL(ptr->getName(), "ProductModel2D")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 

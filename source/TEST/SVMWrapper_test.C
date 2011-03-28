@@ -46,11 +46,12 @@ using namespace OpenMS;
 using namespace std;
 
 SVMWrapper* ptr;
+SVMWrapper* nullPointer = 0;
 SVMWrapper svm;
 
 START_SECTION((SVMWrapper()))
 	ptr = new SVMWrapper();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((DoubleReal getDoubleParameter(SVM_parameter_type type)))

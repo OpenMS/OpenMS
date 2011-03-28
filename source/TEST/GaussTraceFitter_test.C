@@ -253,10 +253,11 @@ DoubleReal expected_x0 = 680.1;
 /////////////////////////////////////////////////////////////
 
 GTF* ptr = 0;
+GTF* nullPointer = 0;
 START_SECTION(GaussTraceFitter())
 {
 	ptr = new GTF();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

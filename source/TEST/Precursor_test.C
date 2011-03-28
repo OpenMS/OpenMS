@@ -40,9 +40,10 @@ START_TEST(Precursor, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Precursor* ptr = 0;
+Precursor* nullPointer = 0;
 START_SECTION((Precursor()))
 	ptr = new Precursor();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~Precursor()))

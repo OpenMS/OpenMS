@@ -40,10 +40,11 @@ START_TEST(SILACFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SILACFilter* ptr = 0;
+SILACFilter* nullPointer = 0;
 START_SECTION(SILACFilter())
 {
 	ptr = new SILACFilter();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

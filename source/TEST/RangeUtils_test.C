@@ -45,9 +45,10 @@ using namespace std;
 //InRTRange
 
 InRTRange<MSSpectrum<> >* ptr = 0;
+InRTRange<MSSpectrum<> >* nullPointer = 0;
 START_SECTION((InRTRange(double min, double max, bool reverse = false)))
 	ptr = new InRTRange<MSSpectrum<> >(5,10,false);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(([EXTRA]~InRTRange()))

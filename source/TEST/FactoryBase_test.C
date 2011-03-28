@@ -40,10 +40,11 @@ START_TEST(FactoryBase, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FactoryBase* ptr = 0;
+FactoryBase* nullPointer = 0;
 START_SECTION(FactoryBase())
 {
         ptr = new FactoryBase();
-        TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

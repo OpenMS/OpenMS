@@ -55,10 +55,11 @@ tsg.getSpectrum(spec2, AASequence("DFPIANGEK"), 1);
 tsg.getSpectrum(spec3, AASequence("DFPIANGEREK"), 1);
 
 PILISNeutralLossModel* ptr = 0;
+PILISNeutralLossModel* nullPointer = 0;
 START_SECTION(PILISNeutralLossModel())
 {
 	ptr = new PILISNeutralLossModel();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

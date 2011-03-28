@@ -40,10 +40,11 @@ START_TEST(MascotRemoteQuery, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MascotRemoteQuery* ptr = 0;
+MascotRemoteQuery* nullPointer = 0;
 START_SECTION(MascotRemoteQuery(QObject *parent=0))
 {
 	ptr = new MascotRemoteQuery();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

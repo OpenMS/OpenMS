@@ -84,9 +84,10 @@ class TestHandler
 };
 
 DefaultParamHandler* ptr = 0;
+DefaultParamHandler* nullPointer = 0;
 START_SECTION((DefaultParamHandler(const String& name)))
 	ptr = new DefaultParamHandler("dummy");
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~DefaultParamHandler()))

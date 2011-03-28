@@ -43,10 +43,11 @@ START_TEST(ItraqChannelExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ItraqChannelExtractor* ptr = 0;
+ItraqChannelExtractor* nullPointer = 0;
 START_SECTION(ItraqChannelExtractor())
 {
 	ptr = new ItraqChannelExtractor();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -40,10 +40,11 @@ START_TEST(SparseVector, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SparseVector<double>* ptr = 0;
+SparseVector<double>* nullPointer = 0;
 START_SECTION(SparseVector())
 {
 	ptr = new SparseVector<double>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

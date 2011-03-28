@@ -42,10 +42,11 @@ START_TEST(PeakAlignment, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakAlignment* ptr = 0;
+PeakAlignment* nullPointer = 0;
 START_SECTION(PeakAlignment())
 {
 	ptr = new PeakAlignment();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

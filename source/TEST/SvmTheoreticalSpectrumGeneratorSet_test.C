@@ -48,11 +48,12 @@ START_TEST(SvmTheoreticalSpectrumGeneratorSet, "$Id: SvmTheoreticalSpectrumGener
 using namespace OpenMS;
 using namespace std;
 
-SvmTheoreticalSpectrumGeneratorSet *ptr = 0;
+SvmTheoreticalSpectrumGeneratorSet* ptr = 0;
+SvmTheoreticalSpectrumGeneratorSet* nullPointer = 0;
 
 START_SECTION(SvmTheoreticalSpectrumGeneratorSet())
   ptr = new SvmTheoreticalSpectrumGeneratorSet();
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet& source))

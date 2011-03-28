@@ -42,6 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 TransformationModel* ptr = 0;
+TransformationModel* nullPointer = 0;
 START_SECTION((TransformationModel()))
 {
 	ptr = new TransformationModel();

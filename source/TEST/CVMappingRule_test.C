@@ -40,10 +40,11 @@ START_TEST(CVMappingRule, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CVMappingRule* ptr = 0;
+CVMappingRule* nullPointer = 0;
 START_SECTION(CVMappingRule())
 {
 	ptr = new CVMappingRule();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

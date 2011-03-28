@@ -43,9 +43,10 @@ using namespace OpenMS;
 using namespace std;
 
 ConvexHull2D* ptr = 0;
+ConvexHull2D* nullPointer = 0;
 START_SECTION((ConvexHull2D()))
 	ptr = new ConvexHull2D;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(([EXTRA] ~ConvexHull2D()))

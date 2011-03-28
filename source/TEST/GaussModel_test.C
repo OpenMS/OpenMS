@@ -44,10 +44,11 @@ using std::stringstream;
 
 // default ctor
 GaussModel* ptr = 0;
+GaussModel* nullPointer = 0;
 START_SECTION((GaussModel()))
 	ptr = new GaussModel();
   TEST_EQUAL(ptr->getName(), "GaussModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -64,7 +65,7 @@ END_SECTION
 START_SECTION(static BaseModel<1>* create())
 	BaseModel<1>* ptr = GaussModel::create();
 	TEST_EQUAL(ptr->getName(), "GaussModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // assignment operator

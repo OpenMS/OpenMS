@@ -40,6 +40,7 @@ START_TEST(ClusteringMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ClusteringMethod* ptr = 0;
+ClusteringMethod* nullPointer = 0;
 START_SECTION(ClusteringMethod())
 {
 	NOT_TESTABLE

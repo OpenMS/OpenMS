@@ -128,9 +128,10 @@ using std::stringstream;
 
 // default ctor
 TestModel* ptr = 0;
+TestModel* nullPointer = 0;
 START_SECTION((InterpolationModel()))
 	ptr = new TestModel();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor

@@ -75,10 +75,11 @@ START_TEST(UniqueIdIndexer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DummyVectorIndexed* ptr = 0;
+DummyVectorIndexed* nullPointer = 0;
 START_SECTION((UniqueIdIndexer()))
 {
   ptr = new DummyVectorIndexed();
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

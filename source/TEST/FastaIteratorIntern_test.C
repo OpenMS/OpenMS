@@ -43,10 +43,11 @@ START_TEST(FastaIteratorIntern, "$Id$")
 typedef std::pair <String, String> FASTAEntry;
 
 FastaIteratorIntern* ptr = 0;
+FastaIteratorIntern* nullPointer = 0;
 
 START_SECTION(FastaIteratorIntern())
 	ptr = new FastaIteratorIntern();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~FastaIteratorIntern())

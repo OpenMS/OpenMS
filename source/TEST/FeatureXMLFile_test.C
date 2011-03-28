@@ -50,9 +50,10 @@ START_TEST(FeatureXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FeatureXMLFile* ptr = 0;
+FeatureXMLFile* nullPointer = 0;
 START_SECTION((FeatureXMLFile()))
 	ptr = new FeatureXMLFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~FeatureXMLFile()))

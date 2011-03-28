@@ -41,10 +41,11 @@ START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FeatureFinderAlgorithmMRM<Peak1D, Feature>* ptr = 0;
+FeatureFinderAlgorithmMRM<Peak1D, Feature>* nullPointer = 0;
 START_SECTION(FeatureFinderAlgorithmMRM())
 {
 	ptr = new FeatureFinderAlgorithmMRM<Peak1D, Feature>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

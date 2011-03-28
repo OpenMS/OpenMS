@@ -42,10 +42,11 @@ START_TEST(ModificationsDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ModificationsDB* ptr = 0;
+ModificationsDB* nullPointer = 0;
 START_SECTION(ModificationsDB* getInstance())
 {
 	ptr = ModificationsDB::getInstance();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

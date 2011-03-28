@@ -40,9 +40,10 @@ using namespace std;
 START_TEST(Bzip2Ifstream_test, "$Id$")
 
 Bzip2Ifstream* ptr = 0;
+Bzip2Ifstream* nullPointer = 0;
 START_SECTION((Bzip2Ifstream()))
 	ptr = new Bzip2Ifstream;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~Bzip2Ifstream()))

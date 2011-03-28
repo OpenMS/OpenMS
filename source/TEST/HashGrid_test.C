@@ -42,10 +42,11 @@ START_TEST(HashGrid, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HashGrid* ptr = 0;
+HashGrid* nullPointer = 0;
 START_SECTION(HashGrid())
 {
 	ptr = new HashGrid();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

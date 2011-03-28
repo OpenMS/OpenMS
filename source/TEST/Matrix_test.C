@@ -45,6 +45,7 @@ using namespace OpenMS;
 using namespace std;
 
 Matrix<int>* ptr = 0;
+Matrix<int>* nullPointer = 0;
 START_SECTION((Matrix()))
 {
 	ptr = new Matrix<int>;

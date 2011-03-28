@@ -40,10 +40,11 @@ START_TEST(PepXMLFileMascot, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PepXMLFileMascot* ptr = 0;
+PepXMLFileMascot* nullPointer = 0;
 PepXMLFileMascot file;
 START_SECTION(PepXMLFileMascot())
 	ptr = new PepXMLFileMascot();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~PepXMLFileMascot())

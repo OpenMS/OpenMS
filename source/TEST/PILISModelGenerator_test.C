@@ -43,9 +43,10 @@ using namespace OpenMS;
 using namespace std;
 
 PILISModelGenerator* ptr = 0;
+PILISModelGenerator* nullPointer = 0;
 START_SECTION(PILISModelGenerator())
 	ptr = new PILISModelGenerator();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~PILISModelGenerator())

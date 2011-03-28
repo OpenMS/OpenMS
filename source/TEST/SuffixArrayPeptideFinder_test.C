@@ -44,6 +44,7 @@ START_TEST(SuffixArrayPeptideFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SuffixArrayPeptideFinder* ptr = 0;
+SuffixArrayPeptideFinder* nullPointer = 0;
 
 
 START_SECTION(SuffixArrayPeptideFinder(const String& filename, const String& method, const WeightWrapper::WEIGHTMODE weight_mode=WeightWrapper::MONO))
@@ -52,7 +53,7 @@ START_SECTION(SuffixArrayPeptideFinder(const String& filename, const String& met
 	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticCompressed");
 	TEST_EXCEPTION(Exception::InvalidValue,new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"bla"));
 	TEST_EXCEPTION(Exception::FileNotFound,new SuffixArrayPeptideFinder("FileThatNotExists","seqan"));
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 

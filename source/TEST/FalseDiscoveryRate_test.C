@@ -41,10 +41,11 @@ START_TEST(FalseDiscoveryRate, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FalseDiscoveryRate* ptr = 0;
+FalseDiscoveryRate* nullPointer = 0;
 START_SECTION(FalseDiscoveryRate())
 {
 	ptr = new FalseDiscoveryRate();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

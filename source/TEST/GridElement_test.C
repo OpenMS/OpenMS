@@ -40,6 +40,7 @@ START_TEST(GridElement, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GridElement* ptr = 0;
+GridElement* nullPointer = 0;
 START_SECTION(GridElement())
 {
 	NOT_TESTABLE

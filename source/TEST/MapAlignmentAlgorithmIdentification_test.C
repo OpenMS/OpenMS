@@ -44,9 +44,10 @@ START_TEST(MapAlignmentAlgorithmIdentification, "$Id$")
 
 
 MapAlignmentAlgorithmIdentification* ptr = 0;
+MapAlignmentAlgorithmIdentification* nullPointer = 0;
 START_SECTION((MapAlignmentAlgorithmIdentification()))
 	ptr = new MapAlignmentAlgorithmIdentification();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 	

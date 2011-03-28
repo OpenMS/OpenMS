@@ -58,9 +58,10 @@ vector<String> references;
 
 date.set("2006-03-09 11:31:52");
 
+MascotXMLFile* nullPointer = 0;
 START_SECTION((MascotXMLFile()))
 	ptr = new MascotXMLFile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data)))

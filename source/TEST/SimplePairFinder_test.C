@@ -46,9 +46,10 @@ START_TEST(SimplePairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SimplePairFinder* ptr = 0;
+SimplePairFinder* nullPointer = 0;
 START_SECTION((SimplePairFinder()))
 	ptr = new SimplePairFinder();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~SimplePairFinder()))

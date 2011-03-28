@@ -41,10 +41,11 @@ START_TEST(FalseDiscoveryRate, "$Id$")
 /////////////////////////////////////////////////////////////
 
 AScore* ptr = 0;
+AScore* nullPointer = 0;
 START_SECTION(AScore())
 {
 	ptr = new AScore();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

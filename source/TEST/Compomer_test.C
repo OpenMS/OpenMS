@@ -39,10 +39,11 @@ START_TEST(Compomer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Compomer* ptr = 0;
+Compomer* nullPointer = 0;
 START_SECTION(Compomer())
 {
 	ptr = new Compomer();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

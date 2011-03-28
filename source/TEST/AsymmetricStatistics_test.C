@@ -83,10 +83,11 @@ START_TEST(AsymmetricStatistics, "$Id$")
 /////////////////////////////////////////////////////////////
 
 AsymmetricStatistics<double>* ptr = 0;
+AsymmetricStatistics<double>* nullPointer = 0;
 START_SECTION(AsymmetricStatistics())
 {
 	ptr = new AsymmetricStatistics<double>();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

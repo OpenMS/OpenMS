@@ -43,11 +43,12 @@ START_TEST(LmaIsotopeFitter1D, "$Id$")
 
 
 LmaIsotopeFitter1D* ptr = 0;
+LmaIsotopeFitter1D* nullPointer = 0;
 START_SECTION(LmaIsotopeFitter1D())
 {
   ptr = new LmaIsotopeFitter1D();
   TEST_EQUAL(ptr->getName(), "LmaIsotopeFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -113,7 +114,7 @@ START_SECTION((Fitter1D* create()))
 {
   Fitter1D* ptr = LmaIsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "LmaIsotopeFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

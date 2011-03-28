@@ -46,10 +46,11 @@ using namespace OpenMS;
 using namespace std;
 
 SpectrumAlignment* ptr = 0;
+SpectrumAlignment* nullPointer = 0;
 
 START_SECTION(SpectrumAlignment())
 	ptr = new SpectrumAlignment();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(virtual ~SpectrumAlignment())

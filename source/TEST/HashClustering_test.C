@@ -40,6 +40,7 @@ START_TEST(HashClustering, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HashClustering* ptr = 0;
+HashClustering* nullPointer = 0;
 START_SECTION(HashClustering())
 {
 	NOT_TESTABLE

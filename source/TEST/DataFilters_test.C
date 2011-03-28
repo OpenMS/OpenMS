@@ -48,9 +48,10 @@ typedef BaseFeature::QualityType QualityType;
 
 ///constructor and destructor test
 DataFilters* ptr;
+DataFilters* nullPointer = 0;
 START_SECTION((DataFilters()))
 	ptr = new DataFilters();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(([EXTRA]~DataFilters()))

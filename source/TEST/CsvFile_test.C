@@ -42,9 +42,10 @@ START_TEST(DTAFile, "$Id$")
 using namespace OpenMS;
 
 CsvFile* ptr = 0;
+CsvFile* nullPointer = 0;
 START_SECTION(CsvFile())
 	ptr = new CsvFile;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~CsvFile())

@@ -45,9 +45,10 @@ using namespace OpenMS;
 using namespace std;
 
 FeaFiModule<Peak1D,Feature>* ptr = 0;
+FeaFiModule<Peak1D,Feature>* nullPointer = 0;
 START_SECTION((FeaFiModule(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
 	ptr = new FeaFiModule<Peak1D,Feature>(0,0,0);
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~FeaFiModule()))

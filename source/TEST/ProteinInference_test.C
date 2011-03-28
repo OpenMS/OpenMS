@@ -41,10 +41,11 @@ START_TEST(ProteinInference, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ProteinInference* ptr = 0;
+ProteinInference* nullPointer = 0;
 START_SECTION(ProteinInference())
 {
 	ptr = new ProteinInference();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

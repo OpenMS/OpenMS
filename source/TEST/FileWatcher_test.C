@@ -39,9 +39,10 @@ START_TEST(ControlledVocabulary, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FileWatcher* ptr = 0;
+FileWatcher* nullPointer = 0;
 START_SECTION(FileWatcher(QObject *parent=0))
 	ptr = new FileWatcher();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~FileWatcher())

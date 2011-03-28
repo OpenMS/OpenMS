@@ -42,10 +42,11 @@ START_TEST(ClusterAnalyzer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ClusterAnalyzer* ptr = 0;
+ClusterAnalyzer* nullPointer = 0;
 START_SECTION(ClusterAnalyzer())
 {
 	ptr = new ClusterAnalyzer();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

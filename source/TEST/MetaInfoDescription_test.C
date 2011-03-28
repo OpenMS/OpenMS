@@ -40,9 +40,10 @@ START_TEST(MetaInfoDescription, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MetaInfoDescription* ptr = 0;
+MetaInfoDescription* nullPointer = 0;
 START_SECTION((MetaInfoDescription()))
 	ptr = new MetaInfoDescription();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~MetaInfoDescription()))

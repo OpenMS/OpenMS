@@ -43,10 +43,11 @@ using namespace OpenMS;
 using namespace std;
 
 PILISScoring* ptr = 0;
+PILISScoring* nullPointer = 0;
 String filename(OPENMS_GET_TEST_DATA_PATH("IDFilter_test2.idXML"));
 START_SECTION(PILISScoring())
 	ptr = new PILISScoring();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~PILISScoring())

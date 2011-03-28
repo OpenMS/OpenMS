@@ -40,10 +40,11 @@ START_TEST(NonNegativeLeastSquaresSolver, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NonNegativeLeastSquaresSolver* ptr = 0;
+NonNegativeLeastSquaresSolver* nullPointer = 0;
 START_SECTION(NonNegativeLeastSquaresSolver())
 {
 	ptr = new NonNegativeLeastSquaresSolver();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

@@ -40,9 +40,10 @@ START_TEST(MassAnalyzer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MassAnalyzer* ptr = 0;
+MassAnalyzer* nullPointer = 0;
 START_SECTION((MassAnalyzer()))
 	ptr = new MassAnalyzer();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~MassAnalyzer()))

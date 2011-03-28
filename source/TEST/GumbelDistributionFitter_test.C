@@ -41,10 +41,11 @@ START_TEST(GumbelDistributionFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GumbelDistributionFitter* ptr = 0;
+GumbelDistributionFitter* nullPointer = 0;
 START_SECTION(GumbelDistributionFitter())
 {
 	ptr = new GumbelDistributionFitter();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -160,7 +161,7 @@ END_SECTION
 GumbelDistributionFitter::GumbelDistributionFitResult* p = 0;
 START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult()))
 p =  new GumbelDistributionFitter::GumbelDistributionFitResult;
-TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 TEST_REAL_SIMILAR(p->a, 1.0)
 TEST_REAL_SIMILAR(p->b, 2.0)
 END_SECTION

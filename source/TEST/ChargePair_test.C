@@ -41,10 +41,11 @@ START_TEST(ChargePair, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ChargePair* ptr = 0;
+ChargePair* nullPointer = 0;
 START_SECTION(ChargePair())
 {
 	ptr = new ChargePair();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

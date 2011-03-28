@@ -45,10 +45,11 @@ using namespace OpenMS;
 using namespace std;
 
 TheoreticalSpectrumGenerator* ptr = 0;
+TheoreticalSpectrumGenerator* nullPointer = 0;
 
 START_SECTION(TheoreticalSpectrumGenerator())
 	ptr = new TheoreticalSpectrumGenerator();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))

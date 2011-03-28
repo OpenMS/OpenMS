@@ -43,10 +43,11 @@ START_TEST(InclusionExclusionList, "$Id$")
 /////////////////////////////////////////////////////////////
 
 InclusionExclusionList* ptr = 0;
+InclusionExclusionList* nullPointer = 0;
 START_SECTION(InclusionExclusionList())
 {
 	ptr = new InclusionExclusionList();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

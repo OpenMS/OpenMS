@@ -40,9 +40,10 @@ START_TEST(IonSource, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IonSource* ptr = 0;
+IonSource* nullPointer = 0;
 START_SECTION((IonSource()))
 	ptr = new IonSource();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~IonSource()))

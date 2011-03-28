@@ -48,10 +48,11 @@ using std::stringstream;
 
 // default ctor
 IsotopeModel* ptr = 0;
+IsotopeModel* nullPointer = 0;
 START_SECTION((IsotopeModel()))
 	ptr = new IsotopeModel();
   TEST_EQUAL(ptr->getName(), "IsotopeModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor
@@ -62,7 +63,7 @@ END_SECTION
 START_SECTION(static BaseModel<1>* create())
 	BaseModel<1>* ptr = IsotopeModel::create();
 	TEST_EQUAL(ptr->getName(), "IsotopeModel")
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((static const String getProductName()))

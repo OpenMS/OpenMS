@@ -41,9 +41,10 @@ START_TEST(DoubleList, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DoubleList* ptr = 0;
+DoubleList* nullPointer = 0;
 START_SECTION(DoubleList())
 	ptr = new DoubleList;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~DoubleList())

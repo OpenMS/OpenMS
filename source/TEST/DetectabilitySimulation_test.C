@@ -40,10 +40,11 @@ START_TEST(DetectabilitySimulation, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DetectabilitySimulation* ptr = 0;
+DetectabilitySimulation* nullPointer = 0;
 START_SECTION(DetectabilitySimulation())
 {
 	ptr = new DetectabilitySimulation();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

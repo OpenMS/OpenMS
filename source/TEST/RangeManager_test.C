@@ -120,9 +120,10 @@ START_TEST(RangeManager, "RangeManager")
 /////////////////////////////////////////////////////////////
 
 RM* ptr;
+RM* nullPointer = 0;
 START_SECTION((RangeManager()))
 	ptr = new RM();
-  TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~RangeManager()))

@@ -40,10 +40,11 @@ START_TEST(ItraqConstants, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ItraqConstants* ptr = 0;
+ItraqConstants* nullPointer = 0;
 START_SECTION(ItraqConstants())
 {
 	ptr = new ItraqConstants();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 

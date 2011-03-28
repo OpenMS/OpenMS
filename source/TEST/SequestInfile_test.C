@@ -47,9 +47,10 @@ START_TEST(SequestInfile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SequestInfile* ptr = 0;
+SequestInfile* nullPointer = 0;
 START_SECTION(SequestInfile())
 	ptr = new SequestInfile();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~SequestInfile())

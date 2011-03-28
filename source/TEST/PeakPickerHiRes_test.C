@@ -42,9 +42,10 @@ START_TEST(PeakPickerHiRes, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakPickerHiRes* ptr = 0;
+PeakPickerHiRes* nullPointer = 0;
 START_SECTION((PeakPickerHiRes()))
   ptr = new PeakPickerHiRes();
-TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 	END_SECTION
 
 START_SECTION((virtual ~PeakPickerHiRes()))

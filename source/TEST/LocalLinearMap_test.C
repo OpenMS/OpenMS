@@ -50,12 +50,13 @@ START_TEST(LocalLinearMap, "$Id$")
 /////////////////////////////////////////////////////////////
 
 LocalLinearMap* ptr = 0;
+LocalLinearMap* nullPointer = 0;
 LocalLinearMap llm;
 
 
 START_SECTION(LocalLinearMap())
 	ptr = new LocalLinearMap();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->getLLMParam().xdim, llm.getLLMParam().xdim)
 	TEST_EQUAL(ptr->getLLMParam().ydim, llm.getLLMParam().ydim)
 	TEST_EQUAL(ptr->getLLMParam().radius, llm.getLLMParam().radius)

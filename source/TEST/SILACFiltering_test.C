@@ -40,6 +40,7 @@ START_TEST(SILACFiltering, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SILACFiltering* ptr = 0;
+SILACFiltering* nullPointer = 0;
 START_SECTION(SILACFiltering())
 {
 	NOT_TESTABLE
