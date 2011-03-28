@@ -10,7 +10,7 @@
 ##  $3 -> fullpath to executables
 ##  $4 -> lib-path
 
-for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest
+for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest QtSvg
 do
     # change association to Qt libs
     $1 -change $2/$lib.framework/Versions/4/$lib \

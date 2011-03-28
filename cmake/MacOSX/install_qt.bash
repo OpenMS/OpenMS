@@ -9,7 +9,7 @@
 ##  $2 -> target path
 ##  $3 -> install_name_tool
 
-for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest
+for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest QtSvg
 do
     # copy Qt library
     cp -Rf $1/$lib.framework $2
@@ -28,6 +28,10 @@ done
 $3 -change $1/QtGui.framework/Versions/4/QtGui \
     @executable_path/../lib/QtGui.framework/Versions/4/QtGui \
     $2/QtOpenGL.framework/Versions/4/QtOpenGL
+
+$3 -change $1/QtGui.framework/Versions/4/QtGui \
+    @executable_path/../lib/QtGui.framework/Versions/4/QtGui \
+    $2/QtSvg.framework/Versions/4/QtSvg
 
 #delete debug stuff
 find $2 -name "*debug*" -not -name "*.h" -exec rm -f {} \;

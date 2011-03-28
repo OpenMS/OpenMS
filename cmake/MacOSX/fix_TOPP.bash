@@ -9,7 +9,7 @@
 ##  $2 -> QT_LIBRARY_DIR
 ##  $3 -> path-to-tool/tool
 
-for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest
+for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest QtSvg
 do
     # change association of Qt libs
     $1 -change $2/$lib.framework/Versions/4/$lib \
