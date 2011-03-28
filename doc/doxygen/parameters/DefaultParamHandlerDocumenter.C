@@ -153,8 +153,8 @@
 #include <OpenMS/SIMULATION/EGHModel.h>
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
-#include <OpenMS/APPLICATIONS/TOPPASBase.h>
-#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
 using namespace std;
 using namespace OpenMS;
