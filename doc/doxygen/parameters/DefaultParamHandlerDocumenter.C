@@ -278,12 +278,13 @@ void writeParameters(const String& class_name, const Param& param)
       << "  <td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td>\n"
       << "</tr>\n";
 	}
-	f << "</table>" << "\n";
-	f << "\n" << "<b>Note:</b>" << "\n";
-	f << "<UL>" << "\n";
-	f << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n";
-	f << "  <LI> Advanced parameter names are italic." << "\n";
-	f << "</UL>" << "\n";
+	f << "</table>" << "\n"
+	  << "<br>" << "\n"
+    << "<b>Note:</b>" << "\n"
+	  << "<UL style=\"margin-top:0px;\">" << "\n"
+	  << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n"
+	  << "  <LI> Advanced parameter names are italic." << "\n"
+	  << "</UL>" << "\n";
   f.close();
 }
 
