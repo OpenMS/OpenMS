@@ -207,22 +207,22 @@ namespace OpenMS
       ///Sets the baseline to the lowest contained peak of the trace
       void updateBaseline()
       {
-        if (this->size()==0)
+        if (this->size() == 0)
         {
           baseline = 0.0;
           return;
         }
         bool first = true;
-        for (Size i=0; i<this->size(); ++i)
+        for (Size i=0 ; i < this->size() ; ++i)
         {
-          for (Size j=0; j<this->at(i).peaks.size(); ++j)
+          for (Size j=0 ; j < this->at(i).peaks.size() ; ++j)
           {
             if (first)
             {
-              baseline = baseline = this->at(i).peaks[j].second->getIntensity();
+              baseline = this->at(i).peaks[j].second->getIntensity();
               first = false;
             }
-            if (this->at(i).peaks[j].second->getIntensity()<baseline)
+            if (this->at(i).peaks[j].second->getIntensity() < baseline)
             {
               baseline = this->at(i).peaks[j].second->getIntensity();
             }

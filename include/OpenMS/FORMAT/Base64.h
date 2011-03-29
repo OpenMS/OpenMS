@@ -432,7 +432,6 @@ namespace OpenMS
 		register UInt b;
 
 		UInt offset = 0;
-		bool convert = false;
 		int inc = 1;
 		UInt written = 0;
 
@@ -443,7 +442,6 @@ namespace OpenMS
 
 		if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
-			convert = true;
 			offset = (element_size - 1);		// other endian
 			inc = -1;
 		}
@@ -746,7 +744,6 @@ namespace OpenMS
 		register UInt b;
 
 		UInt offset = 0;
-		bool convert = false;
 		int inc = 1;
 		UInt written = 0;
 
@@ -757,7 +754,6 @@ namespace OpenMS
 
 		if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
-			convert = true;
 			offset = (element_size - 1);		// other endian
 			inc = -1;
 		}

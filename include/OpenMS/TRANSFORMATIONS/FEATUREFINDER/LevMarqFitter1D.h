@@ -145,11 +145,7 @@ namespace OpenMS
     
           gsl_vector_view x = gsl_vector_view_array( x_init, p );
         
-          const gsl_rng_type * type;
-          gsl_rng * r;
           gsl_rng_env_setup();
-          type = gsl_rng_default;
-          r = gsl_rng_alloc ( type );
           
           // set up the function to be fit
           f.f = (residual); // the function of residuals
