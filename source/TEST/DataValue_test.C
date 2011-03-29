@@ -44,9 +44,10 @@ using namespace std;
 
 // default ctor
 DataValue* dv_ptr = 0;
+DataValue* dv_nullPointer = 0;
 START_SECTION((DataValue()))
 	dv_ptr = new DataValue;
-	TEST_NOT_EQUAL(dv_ptr, 0)
+  TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)
 END_SECTION
 
 // destructor

@@ -171,12 +171,13 @@ START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& pare
 END_SECTION
 
 
-ControlledVocabulary::CVTerm * cvterm;
+ControlledVocabulary::CVTerm * cvterm = 0;
+ControlledVocabulary::CVTerm * cvtermNullPointer = 0;
 
 START_SECTION(([ControlledVocabulary::CVTerm] CVTerm()))
 {
   cvterm = new ControlledVocabulary::CVTerm();
-  TEST_NOT_EQUAL(cvterm, 0)
+  TEST_NOT_EQUAL(cvterm, cvtermNullPointer)
 }
 END_SECTION
 

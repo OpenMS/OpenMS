@@ -43,9 +43,10 @@ START_TEST(SpectrumPrecursorComparator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SpectrumPrecursorComparator* e_ptr = 0;
+SpectrumPrecursorComparator* e_nullPointer = 0;
 START_SECTION(SpectrumPrecursorComparator())
 	e_ptr = new SpectrumPrecursorComparator;
-	TEST_NOT_EQUAL(e_ptr, 0)
+	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION(~SpectrumPrecursorComparator())

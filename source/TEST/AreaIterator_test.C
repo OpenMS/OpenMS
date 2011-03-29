@@ -45,6 +45,7 @@ typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Ma
 typedef Internal::AreaIterator<Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> CAI;
 
 AI* ptr1 = 0, *ptr2 = 0;
+AI* nullPointer = 0;
 
 Map exp;
 exp.resize(5);
@@ -77,12 +78,12 @@ exp[4][1].setMZ(510.1);
 
 START_SECTION((AreaIterator()))
 	ptr1 = new AI();
-	TEST_NOT_EQUAL(ptr1,0)
+  TEST_NOT_EQUAL(ptr1,nullPointer)
 END_SECTION
 
 START_SECTION((AreaIterator(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz)))
 	ptr2 = new AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(0), 0, 0);
-	TEST_NOT_EQUAL(ptr2,0)
+  TEST_NOT_EQUAL(ptr2,nullPointer)
 END_SECTION
 
 START_SECTION((~AreaIterator()))

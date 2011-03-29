@@ -64,7 +64,7 @@ END_SECTION
 START_SECTION((BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps)))
 {
   bs1 = new BinnedSpectrum(1.5,2,s1);
-  TEST_NOT_EQUAL(bs1,0)
+  TEST_NOT_EQUAL(bs1,nullPointer)
 }
 END_SECTION
 

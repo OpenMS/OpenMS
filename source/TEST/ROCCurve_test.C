@@ -50,11 +50,12 @@ using namespace OpenMS;
 using namespace std;
 using namespace OpenMS::Math;
 
-ROCCurve* rcp;
+ROCCurve* rcp = 0;
+ROCCurve* rcp_nullPointer = 0;
 
 START_SECTION((ROCCurve()))
   rcp = new ROCCurve();
-  TEST_NOT_EQUAL(rcp, 0)
+  TEST_NOT_EQUAL(rcp, rcp_nullPointer)
 END_SECTION
 
 START_SECTION((void insertPair(double score, bool clas)))

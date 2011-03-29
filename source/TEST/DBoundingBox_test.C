@@ -29,8 +29,6 @@
 
 ///////////////////////////
 
-// Includes go here....
-
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
 /////////////////////////////////////////////////////////////
@@ -46,9 +44,10 @@ typedef DBoundingBox<1> BB1;
 typedef DBoundingBox<2> BB2;
 
 BB1* ptr1 = 0;
+BB1* nullPointer1 = 0;
 START_SECTION(DBoundingBox())
 	ptr1 = new BB1;
-	TEST_NOT_EQUAL(ptr1, 0)
+  TEST_NOT_EQUAL(ptr1, nullPointer1)
 END_SECTION
 
 START_SECTION(~DBoundingBox())
@@ -56,9 +55,10 @@ START_SECTION(~DBoundingBox())
 END_SECTION
 
 BB2* ptr2 = 0;
+BB2* nullPointer2 = 0;
 START_SECTION([EXTRA] DBoundingBox())
 	ptr2 = new BB2;
-	TEST_NOT_EQUAL(ptr2, 0)
+  TEST_NOT_EQUAL(ptr2, nullPointer2)
 END_SECTION
 
 START_SECTION([EXTRA] ~DBoundingBox())

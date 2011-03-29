@@ -226,10 +226,12 @@ START_SECTION(([EXTRA] "struct SimpleTopHat, used as reference implementation"))
 END_SECTION
 
 MorphologicalFilter* tophat_ptr = 0;
+MorphologicalFilter* tophat_nullPointer = 0;
+
 START_SECTION((MorphologicalFilter()))
 {
   tophat_ptr = new MorphologicalFilter;
-  TEST_NOT_EQUAL(tophat_ptr, 0);
+  TEST_NOT_EQUAL(tophat_ptr, tophat_nullPointer);
 }
 END_SECTION
 

@@ -69,10 +69,11 @@ START_SECTION((CompNovoIonScoringBase& operator=(const CompNovoIonScoringBase &s
 }
 END_SECTION
 
-CompNovoIonScoringBase::IonScore * ptr;
+CompNovoIonScoringBase::IonScore * ptr = 0;
+CompNovoIonScoringBase::IonScore * nullPointer = 0;
 START_SECTION([CompNovoIonScoringBase::IonScore] IonScore())
 	ptr=new CompNovoIonScoringBase::IonScore();
-	TEST_NOT_EQUAL(ptr,0)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION([CompNovoIonScoringBase::IonScore] IonScore(const IonScore &rhs))

@@ -44,11 +44,12 @@ START_TEST(SeedListGenerator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SeedListGenerator* slg_ptr = 0;
+SeedListGenerator* slg_nullPointer = 0;
 
 START_SECTION((SeedListGenerator()))
 {
 	slg_ptr = new SeedListGenerator();
-  TEST_NOT_EQUAL(slg_ptr, 0);
+  TEST_NOT_EQUAL(slg_ptr, slg_nullPointer);
 }
 END_SECTION
 

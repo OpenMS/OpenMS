@@ -49,9 +49,10 @@ START_TEST(FeatureMap, "$Id$")
 
 
 FeatureMap<>* pl_ptr = 0;
+FeatureMap<>* nullPointer = 0;
 START_SECTION((FeatureMap()))
 	pl_ptr = new FeatureMap<>();
-	TEST_NOT_EQUAL(pl_ptr, 0)
+  TEST_NOT_EQUAL(pl_ptr, nullPointer)
 
 	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::maxPositive())
 	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::minNegative())

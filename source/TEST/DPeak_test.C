@@ -40,10 +40,11 @@ START_TEST(DPeak<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DPeak<1>::Type* ptr1 = 0;
+DPeak<1>::Type* nullPointer1 = 0;
 START_SECTION(DPeak())
 {
 	ptr1 = new DPeak<1>::Type();
-	TEST_NOT_EQUAL(ptr1, 0);
+  TEST_NOT_EQUAL(ptr1, nullPointer1);
 }
 END_SECTION
 
@@ -54,10 +55,11 @@ START_SECTION(~DPeak())
 END_SECTION
 
 DPeak<2>::Type* ptr2 = 0;
+DPeak<2>::Type* nullPointer2 = 0;
 START_SECTION([EXTRA]DPeak())
 {
 	ptr2 = new DPeak<2>::Type();
-	TEST_NOT_EQUAL(ptr2, 0);
+  TEST_NOT_EQUAL(ptr2, nullPointer2);
 }
 END_SECTION
 

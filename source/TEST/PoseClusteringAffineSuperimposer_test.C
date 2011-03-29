@@ -44,6 +44,8 @@ START_TEST(PoseClusteringAffineSuperimposer, "$Id$")
 
 PoseClusteringAffineSuperimposer* ptr = 0;
 PoseClusteringAffineSuperimposer* nullPointer = 0;
+BaseSuperimposer* base_nullPointer = 0;
+
 START_SECTION((PoseClusteringAffineSuperimposer()))
 	ptr = new PoseClusteringAffineSuperimposer();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -56,7 +58,7 @@ END_SECTION
 START_SECTION((static BaseSuperimposer* create()))
   BaseSuperimposer* base_ptr = 0;
 	base_ptr = PoseClusteringAffineSuperimposer::create();
-	TEST_NOT_EQUAL(base_ptr, 0)
+  TEST_NOT_EQUAL(base_ptr, base_nullPointer)
 END_SECTION
 
 START_SECTION((static const String getProductName()))

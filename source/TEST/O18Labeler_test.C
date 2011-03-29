@@ -40,8 +40,10 @@ START_TEST(O18Labeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-O18Labeler* ptr = 0;
-O18Labeler* nullPointer = 0;
+O18Labeler*  ptr = 0;
+O18Labeler*  nullPointer = 0;
+BaseLabeler* base_nullPointer = 0;
+
 START_SECTION(O18Labeler())
 {
 	ptr = new O18Labeler();
@@ -200,7 +202,7 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = O18Labeler::create();
-  TEST_NOT_EQUAL(labeler, 0)
+  TEST_NOT_EQUAL(labeler, base_nullPointer)
   delete labeler;
 }
 END_SECTION

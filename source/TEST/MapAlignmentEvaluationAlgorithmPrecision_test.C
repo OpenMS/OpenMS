@@ -45,6 +45,7 @@ START_TEST(MapAlignmentEvaluationAlgorithmPrecision, "$Id MapAlignmentEvaluation
 
 MapAlignmentEvaluationAlgorithmPrecision* ptr = 0;
 MapAlignmentEvaluationAlgorithmPrecision* nullPointer = 0;
+
 START_SECTION((MapAlignmentEvaluationAlgorithmPrecision()))
 	ptr = new MapAlignmentEvaluationAlgorithmPrecision();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -54,10 +55,11 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithmPrecision()))
 	delete ptr;
 END_SECTION
 
+MapAlignmentEvaluationAlgorithm* base_nullPointer = 0;
 START_SECTION((static MapAlignmentEvaluationAlgorithm* create()))
 	MapAlignmentEvaluationAlgorithm* ptr2 = 0;
 	ptr2 = MapAlignmentEvaluationAlgorithmPrecision::create();
-	TEST_NOT_EQUAL(ptr2, 0)
+  TEST_NOT_EQUAL(ptr2, base_nullPointer)
 END_SECTION
 
 START_SECTION((static String getProductName()))

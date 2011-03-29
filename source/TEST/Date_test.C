@@ -43,9 +43,11 @@ START_TEST(Date, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Date* s_ptr = 0;
+Date* s_nullPointer= 0;
+
 START_SECTION((Date()))
 	s_ptr = new Date();
-	TEST_NOT_EQUAL(s_ptr, 0)
+  TEST_NOT_EQUAL(s_ptr, s_nullPointer)
 END_SECTION
 
 START_SECTION(([EXTRA]~Date()))

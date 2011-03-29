@@ -44,10 +44,11 @@ START_TEST(Histogram, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Histogram<float,float>* dis_ptr = 0;
+Histogram<float,float>* dis_nullPointer = 0;
 
 START_SECTION((Histogram()))
 	dis_ptr = new Histogram<float,float>();
-	TEST_NOT_EQUAL(dis_ptr, 0)
+  TEST_NOT_EQUAL(dis_ptr, dis_nullPointer)
 END_SECTION
 
 START_SECTION((~Histogram()))

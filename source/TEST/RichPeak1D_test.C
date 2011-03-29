@@ -41,9 +41,10 @@ START_TEST(RichPeak1D<D>, "$Id$")
 using namespace OpenMS;
 
 RichPeak1D* d10_ptr = 0;
+RichPeak1D* d10_nullPointer = 0;
 START_SECTION((RichPeak1D()))
 	d10_ptr = new RichPeak1D;
-	TEST_NOT_EQUAL(d10_ptr, 0)
+  TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)
 END_SECTION
 
 START_SECTION((~RichPeak1D()))

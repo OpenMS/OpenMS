@@ -46,9 +46,11 @@ START_TEST(IsotopeMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IsotopeMarker* e_ptr = 0;
+IsotopeMarker* e_nullPointer = 0;
+
 START_SECTION((IsotopeMarker()))
 	e_ptr = new IsotopeMarker;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~IsotopeMarker()))

@@ -44,9 +44,11 @@ START_TEST(Normalizer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Normalizer* e_ptr = 0;
+Normalizer* e_nullPointer = 0;
+
 START_SECTION((Normalizer()))
 	e_ptr = new Normalizer;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~Normalizer()))

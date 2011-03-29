@@ -47,6 +47,8 @@ START_TEST(SimplePairFinder, "$Id$")
 
 SimplePairFinder* ptr = 0;
 SimplePairFinder* nullPointer = 0;
+BaseGroupFinder* base_nullPointer = 0;
+
 START_SECTION((SimplePairFinder()))
 	ptr = new SimplePairFinder();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -59,7 +61,7 @@ END_SECTION
 START_SECTION((static BaseGroupFinder* create()))
 	BaseGroupFinder* base_ptr = 0;
 	base_ptr = SimplePairFinder::create();
-	TEST_NOT_EQUAL(base_ptr, 0)
+  TEST_NOT_EQUAL(base_ptr, base_nullPointer)
 END_SECTION
 
 START_SECTION((static const String getProductName()))

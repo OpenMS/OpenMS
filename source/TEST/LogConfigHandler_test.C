@@ -169,9 +169,10 @@ START_SECTION((ostream& getStream(const String &stream_name)))
 }
 END_SECTION
 
+LogConfigHandler* nullPointer = 0;
 START_SECTION((static LogConfigHandler& getInstance()))
 {
-  TEST_NOT_EQUAL(&LogConfigHandler::getInstance(), 0)
+  TEST_NOT_EQUAL(&LogConfigHandler::getInstance(), nullPointer)
 }
 END_SECTION
 

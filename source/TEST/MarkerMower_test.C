@@ -45,9 +45,11 @@ START_TEST(MarkerMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MarkerMower* e_ptr = 0;
+MarkerMower* e_nullPointer = 0;
+
 START_SECTION((MarkerMower()))
 	e_ptr = new MarkerMower;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~MarkerMower()))

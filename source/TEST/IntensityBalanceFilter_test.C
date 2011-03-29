@@ -44,9 +44,11 @@ START_TEST(IntensityBalanceFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IntensityBalanceFilter* e_ptr = 0;
+IntensityBalanceFilter* e_nullPointer = 0;
+
 START_SECTION((IntensityBalanceFilter()))
 	e_ptr = new IntensityBalanceFilter;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~IntensityBalanceFilter()))

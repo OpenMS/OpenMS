@@ -44,9 +44,10 @@ START_TEST(TICFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TICFilter* e_ptr = 0;
+TICFilter* e_nullPointer = 0;
 START_SECTION((TICFilter()))
 	e_ptr = new TICFilter;
-	TEST_NOT_EQUAL(e_ptr, 0)
+	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~TICFilter()))

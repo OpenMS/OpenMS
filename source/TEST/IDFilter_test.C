@@ -62,10 +62,12 @@ vector< FASTAFile::FASTAEntry > proteins;
 proteins.push_back(FASTAFile::FASTAEntry("Q824A5", "test description 1", "LHASGITVTEIPVTATNFK"));
 proteins.push_back(FASTAFile::FASTAEntry("Q872T5", "test description 2", "THPYGHAIVAGIERYPSK"));
 
-IDFilter* ptr;
+IDFilter* ptr = 0;
+IDFilter* nullPointer = 0;
+
 START_SECTION((IDFilter()))
 	ptr = new IDFilter();
-	TEST_NOT_EQUAL(ptr, 0);
+  TEST_NOT_EQUAL(ptr, nullPointer);
 END_SECTION
 
 START_SECTION((~IDFilter()))

@@ -101,11 +101,13 @@ START_SECTION((LinearInterpolation(KeyType scale=1., KeyType offset=0.)))
 }
 END_SECTION
 
+LIFD * lifd_nullPointer = 0;
+
 START_SECTION(~LinearInterpolation())
 {
 	LIFD * lifd_ptr = 0;
 	lifd_ptr = new LIFD;
-	TEST_NOT_EQUAL(lifd_ptr,0);
+  TEST_NOT_EQUAL(lifd_ptr,lifd_nullPointer);
 	delete lifd_ptr;
 }
 END_SECTION

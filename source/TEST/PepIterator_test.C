@@ -129,15 +129,24 @@ END_SECTION
 START_SECTION((void registerChildren()))
 {
 	PepIterator* p1 = Factory<PepIterator>::create("EdwardsLippertIterator");
-	TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIterator*>(p1),0)
-	p1 = Factory<PepIterator>::create("EdwardsLippertIteratorTryptic");
-	TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIteratorTryptic*>(p1),0)
-	p1 = Factory<PepIterator>::create("TrypticIterator");
-	TEST_NOT_EQUAL(dynamic_cast<TrypticIterator*>(p1),0)
-	p1 = Factory<PepIterator>::create("FastaIterator");
-	TEST_NOT_EQUAL(dynamic_cast<FastaIterator*>(p1),0)
-	p1 = Factory<PepIterator>::create("FastaIteratorIntern");
-	TEST_NOT_EQUAL(dynamic_cast<FastaIteratorIntern*>(p1),0)
+  EdwardsLippertIterator* el_nullPointer = 0;
+  TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIterator*>(p1),el_nullPointer)
+
+  p1 = Factory<PepIterator>::create("EdwardsLippertIteratorTryptic");
+  EdwardsLippertIteratorTryptic* elt_nullPointer = 0;
+  TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIteratorTryptic*>(p1),elt_nullPointer)
+
+  p1 = Factory<PepIterator>::create("TrypticIterator");
+  TrypticIterator* tryp_nullPointer = 0;
+  TEST_NOT_EQUAL(dynamic_cast<TrypticIterator*>(p1),tryp_nullPointer)
+
+  p1 = Factory<PepIterator>::create("FastaIterator");
+  FastaIterator* fasta_nullPointer = 0;
+  TEST_NOT_EQUAL(dynamic_cast<FastaIterator*>(p1),fasta_nullPointer)
+
+  p1 = Factory<PepIterator>::create("FastaIteratorIntern");
+  FastaIteratorIntern* fastaIn_nullPointer = 0;
+  TEST_NOT_EQUAL(dynamic_cast<FastaIteratorIntern*>(p1),fastaIn_nullPointer)
 }
 END_SECTION
 

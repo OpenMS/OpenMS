@@ -46,9 +46,11 @@ START_TEST(ComplementMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ComplementMarker* e_ptr = 0;
+ComplementMarker* e_nullPointer = 0;
+
 START_SECTION((ComplementMarker()))
 	e_ptr = new ComplementMarker;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~ComplementMarker()))

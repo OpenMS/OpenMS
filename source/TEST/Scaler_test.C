@@ -46,9 +46,10 @@ START_TEST(Scaler, "$Id$")
 TOLERANCE_ABSOLUTE(0.01)
 
 Scaler* e_ptr = 0;
+Scaler* e_nullPointer = 0;
 START_SECTION((Scaler()))
 	e_ptr = new Scaler;
-	TEST_NOT_EQUAL(e_ptr, 0)
+	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~Scaler()))

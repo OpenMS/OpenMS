@@ -284,11 +284,12 @@ START_SECTION((CVTerm& operator=(const CVTerm &rhs)))
 }
 END_SECTION
 
-CVTerm::Unit* ptr_unit;
+CVTerm::Unit* ptr_unit = 0;
+CVTerm::Unit* nullPointer_unit = 0;
 START_SECTION(([CVTerm::Unit] Unit()))
 {
   ptr_unit = new CVTerm::Unit();
-  TEST_NOT_EQUAL(ptr_unit, 0)
+  TEST_NOT_EQUAL(ptr_unit, nullPointer_unit)
 }
 END_SECTION
 

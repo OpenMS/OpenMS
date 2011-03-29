@@ -34,11 +34,6 @@
 
 ///////////////////////////
 
-START_TEST(BaseModel, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
 using namespace OpenMS;
 using std::stringstream;
 
@@ -101,13 +96,14 @@ class TestModel : public BaseModel<2>
 
 };
 
+START_TEST(BaseModel, "$Id$")
 
 // default ctor
 TestModel* ptr = 0;
 TestModel* nullPointer = 0;
 START_SECTION((BaseModel()))
 	ptr = new TestModel();
-	TEST_NOT_EQUAL((Size)ptr, 0)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 // destructor

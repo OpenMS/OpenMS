@@ -123,47 +123,49 @@ NOT_TESTABLE
 END_SECTION
 
 SvmTheoreticalSpectrumGenerator::IonType* ptr_t = 0;
+SvmTheoreticalSpectrumGenerator::IonType* nullPointer_t = 0;
 START_SECTION([SvmTheoreticalSpectrumGenerator::IonType] IonType())
-ptr_t = new SvmTheoreticalSpectrumGenerator::IonType();
-TEST_NOT_EQUAL(ptr_t, 0)
-delete ptr_t;
+  ptr_t = new SvmTheoreticalSpectrumGenerator::IonType();
+  TEST_NOT_EQUAL(ptr_t, nullPointer_t)
+  delete ptr_t;
 END_SECTION
 
 START_SECTION([SvmTheoreticalSpectrumGenerator::IonType] IonType(Residue::ResidueType residue, EmpiricalFormula loss=EmpiricalFormula(), Int charge=1))
-SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
-TEST_EQUAL(type.residue, Residue::BIon)
-TEST_EQUAL(type.loss, EmpiricalFormula(""))
-TEST_EQUAL(type.charge, 2)
+  SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+  TEST_EQUAL(type.residue, Residue::BIon)
+  TEST_EQUAL(type.loss, EmpiricalFormula(""))
+  TEST_EQUAL(type.charge, 2)
 END_SECTION
 
 START_SECTION([SvmTheoreticalSpectrumGenerator::IonType] IonType(const IonType &rhs))
-SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
-SvmTheoreticalSpectrumGenerator::IonType copy(type);
-TEST_EQUAL(type.residue, copy.residue)
-TEST_EQUAL(type.charge, copy.charge)
-TEST_EQUAL(type.loss, copy.loss)
+  SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+  SvmTheoreticalSpectrumGenerator::IonType copy(type);
+  TEST_EQUAL(type.residue, copy.residue)
+  TEST_EQUAL(type.charge, copy.charge)
+  TEST_EQUAL(type.loss, copy.loss)
 END_SECTION
 
 START_SECTION([SvmTheoreticalSpectrumGenerator::IonType] IonType& operator=(const IonType &rhs))
-SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
-SvmTheoreticalSpectrumGenerator::IonType copy;
-copy=type;
-TEST_EQUAL(type.residue, copy.residue)
-TEST_EQUAL(type.charge, copy.charge)
-TEST_EQUAL(type.loss, copy.loss)
+  SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+  SvmTheoreticalSpectrumGenerator::IonType copy;
+  copy=type;
+  TEST_EQUAL(type.residue, copy.residue)
+  TEST_EQUAL(type.charge, copy.charge)
+  TEST_EQUAL(type.loss, copy.loss)
 END_SECTION
 
 START_SECTION([SvmTheoreticalSpectrumGenerator::IonType] bool operator<(const IonType &rhs) const)
-SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
-SvmTheoreticalSpectrumGenerator::IonType type2(Residue::YIon, EmpiricalFormula(""), 2);
-TEST_EQUAL(type<type2, true)
+  SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
+  SvmTheoreticalSpectrumGenerator::IonType type2(Residue::YIon, EmpiricalFormula(""), 2);
+  TEST_EQUAL(type<type2, true)
 END_SECTION
 
 
 SvmTheoreticalSpectrumGenerator::SvmModel* ptr_m = 0;
+SvmTheoreticalSpectrumGenerator::SvmModel* nullPointer_m = 0;
 START_SECTION([SvmTheoreticalSpectrumGenerator::SvmModel] SvmModel())
     ptr_m = new SvmTheoreticalSpectrumGenerator::SvmModel;
-    TEST_NOT_EQUAL(ptr_m, 0)
+    TEST_NOT_EQUAL(ptr_m, nullPointer_m)
 END_SECTION
 
 START_SECTION([SvmTheoreticalSpectrumGenerator::SvmModel] ~SvmModel())

@@ -42,10 +42,11 @@ using namespace OpenMS;
 using namespace std;
 
 FeatureDistance* d_ptr = 0;
+FeatureDistance* d_nullPointer = 0;
 START_SECTION((FeatureDistance(DoubleReal max_intensity=1.0, bool force_constraints=false)))
 {
 	d_ptr = new FeatureDistance();
-	TEST_NOT_EQUAL(d_ptr, 0);
+  TEST_NOT_EQUAL(d_ptr, d_nullPointer);
 }
 END_SECTION
 

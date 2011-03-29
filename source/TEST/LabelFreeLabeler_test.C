@@ -41,6 +41,7 @@ START_TEST(LabelFreeLabeler, "$Id$")
 
 LabelFreeLabeler* ptr = 0;
 LabelFreeLabeler* nullPointer = 0;
+BaseLabeler*      base_nullPointer = 0;
 START_SECTION(LabelFreeLabeler())
 {
 	ptr = new LabelFreeLabeler();
@@ -196,7 +197,7 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = LabelFreeLabeler::create();
-  TEST_NOT_EQUAL(labeler, 0)
+  TEST_NOT_EQUAL(labeler, base_nullPointer)
   delete labeler;
 }
 END_SECTION

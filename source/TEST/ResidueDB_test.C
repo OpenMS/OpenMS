@@ -156,8 +156,9 @@ END_SECTION
 START_SECTION(Size getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
 	const Residue* mod_res = 0;
+  const Residue* mod_res_nullPointer = 0;
 	mod_res = ptr->getModifiedResidue("Carbamidomethyl (C)");
-	TEST_NOT_EQUAL(mod_res, 0)
+  TEST_NOT_EQUAL(mod_res, mod_res_nullPointer)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
 END_SECTION
 

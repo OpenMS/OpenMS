@@ -142,7 +142,7 @@ END_SECTION
 START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = SingleLinkage::create();
-	TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cf) , 0)
+  TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cf) , nullPointer)
 }
 END_SECTION
 

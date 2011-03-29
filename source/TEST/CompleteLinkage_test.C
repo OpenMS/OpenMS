@@ -148,7 +148,7 @@ END_SECTION
 START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = CompleteLinkage::create();
-	TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cf) , 0)
+  TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cf) , nullPointer)
 }
 END_SECTION
 

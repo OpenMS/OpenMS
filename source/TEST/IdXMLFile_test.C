@@ -42,10 +42,11 @@ START_TEST(IdXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IdXMLFile* ptr;
+IdXMLFile* ptr = 0;
+IdXMLFile* nullPointer = 0;
 START_SECTION((IdXMLFile()))
 	ptr = new IdXMLFile();
-	TEST_NOT_EQUAL(ptr,0)
+  TEST_NOT_EQUAL(ptr,nullPointer)
 END_SECTION
 
 START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )

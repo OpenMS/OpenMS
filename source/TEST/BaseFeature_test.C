@@ -44,10 +44,12 @@ using namespace std;
 typedef BaseFeature::QualityType QualityType;
 typedef BaseFeature::WidthType WidthType;
 BaseFeature* feat_ptr = 0;
+BaseFeature* feat_nullPointer = 0;
+
 START_SECTION((BaseFeature()))
 {
 	feat_ptr = new BaseFeature;
-	TEST_NOT_EQUAL(feat_ptr, 0);
+  TEST_NOT_EQUAL(feat_ptr, feat_nullPointer);
 }
 END_SECTION
 

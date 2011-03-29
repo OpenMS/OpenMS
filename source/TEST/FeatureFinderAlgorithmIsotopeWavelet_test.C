@@ -37,10 +37,13 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature> FFASS;
 
-FFASS* ptr;
+FFASS* ptr = 0;
+FFASS* nullPointer = 0;
+FeatureFinderAlgorithm<Peak1D,Feature>* ffA_nullPointer = 0;
+
 START_SECTION((FeatureFinderAlgorithmIsotopeWavelet()))
 	ptr = new FFASS;
-	TEST_NOT_EQUAL(ptr,0)
+  TEST_NOT_EQUAL(ptr,nullPointer)
 END_SECTION
 
 START_SECTION(IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRDataCuda(const UInt i, IsotopeWaveletTransform< PeakType > *iwt))
@@ -61,7 +64,7 @@ END_SECTION
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFASS::create();
-	TEST_NOT_EQUAL(ptr2,0)
+  TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
 	delete ptr2;
 END_SECTION
 

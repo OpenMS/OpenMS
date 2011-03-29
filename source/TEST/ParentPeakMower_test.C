@@ -44,9 +44,11 @@ START_TEST(ParentPeakMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ParentPeakMower* e_ptr = 0;
+ParentPeakMower* e_nullPointer = 0;
+
 START_SECTION((ParentPeakMower()))
 	e_ptr = new ParentPeakMower;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~ParentPeakMower()))

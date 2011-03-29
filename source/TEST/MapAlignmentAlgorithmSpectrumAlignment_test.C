@@ -44,6 +44,7 @@ START_TEST(MapAlignmentAlgorithmSpectrumAlignment, "$Id$")
 
 MapAlignmentAlgorithmSpectrumAlignment* ptr = 0;
 MapAlignmentAlgorithmSpectrumAlignment* nullPointer = 0;
+MapAlignmentAlgorithm* base_nullPointer = 0;
 START_SECTION((MapAlignmentAlgorithmSpectrumAlignment()))
 	ptr = new MapAlignmentAlgorithmSpectrumAlignment();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -54,7 +55,7 @@ START_SECTION((virtual ~MapAlignmentAlgorithmSpectrumAlignment()))
 END_SECTION
 
 START_SECTION((static MapAlignmentAlgorithm* create()))
-	TEST_NOT_EQUAL(MapAlignmentAlgorithmSpectrumAlignment::create(),0)
+  TEST_NOT_EQUAL(MapAlignmentAlgorithmSpectrumAlignment::create(),base_nullPointer)
 END_SECTION
 
 START_SECTION((static String getProductName()))

@@ -44,6 +44,7 @@ START_TEST(MapAlignmentAlgorithmPoseClustering, "$Id$")
 
 MapAlignmentAlgorithmPoseClustering* ptr = 0;
 MapAlignmentAlgorithmPoseClustering* nullPointer = 0;
+MapAlignmentAlgorithm* base_nullPointer = 0;
 START_SECTION((MapAlignmentAlgorithmPoseClustering()))
 	ptr = new MapAlignmentAlgorithmPoseClustering();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -54,7 +55,7 @@ START_SECTION((virtual ~MapAlignmentAlgorithmPoseClustering()))
 END_SECTION
 
 START_SECTION((static MapAlignmentAlgorithm* create()))
-	TEST_NOT_EQUAL(MapAlignmentAlgorithmPoseClustering::create(),0)
+  TEST_NOT_EQUAL(MapAlignmentAlgorithmPoseClustering::create(),base_nullPointer)
 END_SECTION
 
 START_SECTION((static String getProductName()))

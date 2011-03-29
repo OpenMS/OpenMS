@@ -47,9 +47,10 @@ TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Digestion* dv_ptr = 0;
+Digestion* dv_nullPointer = 0;
 START_SECTION((Digestion()))
 	dv_ptr = new Digestion;
-	TEST_NOT_EQUAL(dv_ptr, 0)
+  TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)
 END_SECTION
 
 // destructor

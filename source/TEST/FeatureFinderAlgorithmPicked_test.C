@@ -47,10 +47,13 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmPicked<Peak1D,Feature> FFPP;
 
-FFPP* ptr;
+FFPP* ptr = 0;
+FFPP* nullPointer = 0;
+FeatureFinderAlgorithm<Peak1D,Feature>* ffA_nullPointer = 0;
+
 START_SECTION((FeatureFinderAlgorithmPicked()))
 	ptr = new FFPP;
-	TEST_NOT_EQUAL(ptr,0)
+  TEST_NOT_EQUAL(ptr,nullPointer)
 END_SECTION
 
 START_SECTION((~FeatureFinderAlgorithmPicked()))
@@ -64,7 +67,7 @@ END_SECTION
 	
 START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFPP::create();
-	TEST_NOT_EQUAL(ptr2,0)
+  TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
 	delete ptr2;
 END_SECTION
 

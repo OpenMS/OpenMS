@@ -80,10 +80,11 @@ END_SECTION
 //MSLevelRange
 
 InMSLevelRange<MSSpectrum<> >* ptr2 = 0;
+InMSLevelRange<MSSpectrum<> >* nullPointer2 = 0;
 START_SECTION((MSLevelRange(const IntList& levels, bool reverse = false)))
 	IntList tmp;
 	ptr2 = new InMSLevelRange<MSSpectrum<> >(tmp,false);
-	TEST_NOT_EQUAL(ptr2, 0)
+  TEST_NOT_EQUAL(ptr2, nullPointer2)
 END_SECTION
 
 START_SECTION(([EXTRA]~InMSLevelRange()))
@@ -118,9 +119,10 @@ END_SECTION
 //HasScanMode
 
 HasScanMode<MSSpectrum<> >* ptr2_1 = 0;
+HasScanMode<MSSpectrum<> >* nullPointer2_1 = 0;
 START_SECTION((HasScanMode(Int mode, bool reverse = false)))
 	ptr2_1 = new HasScanMode<MSSpectrum<> >(1,false);
-	TEST_NOT_EQUAL(ptr2, 0)
+  TEST_NOT_EQUAL(ptr2_1, nullPointer2_1)
 END_SECTION
 
 START_SECTION(([EXTRA]~HasScanMode()))
@@ -142,9 +144,10 @@ END_SECTION
 //InMzRange
 
 InMzRange<Peak1D >* ptr3 = 0;
+InMzRange<Peak1D >* nullPointer3 = 0;
 START_SECTION((InMzRange(double min, double max, bool reverse = false)))
 	ptr3 = new InMzRange<Peak1D >(5.0,10.0,false);
-	TEST_NOT_EQUAL(ptr3, 0)
+  TEST_NOT_EQUAL(ptr3, nullPointer3)
 END_SECTION
 
 START_SECTION(([EXTRA]~InMzRange()))
@@ -175,9 +178,10 @@ END_SECTION
 //IntensityRange
 
 InIntensityRange<Peak1D >* ptr4 = 0;
+InIntensityRange<Peak1D >* nullPointer4 = 0;
 START_SECTION((IntensityRange(double min, double max, bool reverse = false)))
 	ptr4 = new InIntensityRange<Peak1D >(5.0,10.0,false);
-	TEST_NOT_EQUAL(ptr4, 0)
+  TEST_NOT_EQUAL(ptr4, nullPointer4)
 END_SECTION
 
 START_SECTION(([EXTRA]~InIntensityRange()))
@@ -209,9 +213,10 @@ END_SECTION
 //IsEmptySpectrum
 
 IsEmptySpectrum<MSSpectrum<> >* ptr47 = 0;
+IsEmptySpectrum<MSSpectrum<> >* nullPointer47 = 0;
 START_SECTION((IsEmptySpectrum(bool reverse = false)))
 	ptr47 = new IsEmptySpectrum<MSSpectrum<> >();
-	TEST_NOT_EQUAL(ptr47, 0)
+  TEST_NOT_EQUAL(ptr47, nullPointer47)
 END_SECTION
 
 START_SECTION(([EXTRA]~IsEmptySpectrum()))
@@ -232,9 +237,10 @@ END_SECTION
 //IsZoomSpectrum
 
 IsZoomSpectrum<MSSpectrum<> >* ptr48 = 0;
+IsZoomSpectrum<MSSpectrum<> >* nullPointer48 = 0;
 START_SECTION((IsZoomSpectrum(bool reverse = false)))
 	ptr48 = new IsZoomSpectrum<MSSpectrum<> >();
-	TEST_NOT_EQUAL(ptr48, 0)
+  TEST_NOT_EQUAL(ptr48, nullPointer48)
 END_SECTION
 
 START_SECTION(([EXTRA]~IsZoomSpectrum()))
@@ -255,9 +261,10 @@ END_SECTION
 //HasActivationMethod
 
 HasActivationMethod<MSSpectrum<> >* ptr49 = 0;
+HasActivationMethod<MSSpectrum<> >* nullPointer49 = 0;
 START_SECTION((HasActivationMethod(const StringList& methods, bool reverse = false)))
 	ptr49 = new HasActivationMethod<MSSpectrum<> >(StringList::create(""));
-	TEST_NOT_EQUAL(ptr49, 0)
+  TEST_NOT_EQUAL(ptr49, nullPointer49)
 END_SECTION
 
 START_SECTION(([EXTRA]~HasActivationMethod()))

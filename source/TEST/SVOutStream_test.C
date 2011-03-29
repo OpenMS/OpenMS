@@ -42,12 +42,13 @@ START_TEST(SVOutStream, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SVOutStream* sv_ptr = 0;
+SVOutStream* sv_nullPointer = 0;
 
 START_SECTION((SVOutStream(std::ostream &out, const String &sep="\t", const String &replacement="_", String::QuotingMethod quoting=String::DOUBLE)))
 {
 	stringstream strstr;
 	sv_ptr = new SVOutStream(strstr);
-  TEST_NOT_EQUAL(sv_ptr, 0);
+  TEST_NOT_EQUAL(sv_ptr, sv_nullPointer);
 }
 END_SECTION
 

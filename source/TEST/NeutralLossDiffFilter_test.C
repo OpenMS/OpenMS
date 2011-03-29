@@ -44,9 +44,11 @@ START_TEST(NeutralLossDiffFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NeutralLossDiffFilter* e_ptr = 0;
+NeutralLossDiffFilter* e_nullPointer = 0;
+
 START_SECTION((NeutralLossDiffFilter()))
 	e_ptr = new NeutralLossDiffFilter;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~NeutralLossDiffFilter()))

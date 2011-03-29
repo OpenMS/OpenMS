@@ -163,7 +163,7 @@ START_SECTION(static const String getProductName())
 END_SECTION
 			
 START_SECTION(static PepIterator* create())
-	TEST_NOT_EQUAL(EdwardsLippertIterator::create(), 0)
+  TEST_NOT_EQUAL(EdwardsLippertIterator::create(), nullPointer)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -42,6 +42,8 @@ START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
 
 FeatureFinderAlgorithmMRM<Peak1D, Feature>* ptr = 0;
 FeatureFinderAlgorithmMRM<Peak1D, Feature>* nullPointer = 0;
+FeatureFinderAlgorithm<Peak1D,Feature>* ffA_nullPointer = 0;
+
 START_SECTION(FeatureFinderAlgorithmMRM())
 {
 	ptr = new FeatureFinderAlgorithmMRM<Peak1D, Feature>();
@@ -93,7 +95,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 {
   FeatureFinderAlgorithm<Peak1D, Feature>* ptr2 = 0;
 	ptr2 = FeatureFinderAlgorithmMRM<Peak1D, Feature>::create();
-	TEST_NOT_EQUAL(ptr2, 0)
+  TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
 	delete ptr;
 }
 END_SECTION

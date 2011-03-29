@@ -90,12 +90,13 @@ END_SECTION
 typedef BilinearInterpolation < float, double > BIFD;
 
 BIFD * bifd_ptr = 0;
+BIFD * bifd_nullPointer = 0;
 
 START_SECTION(BilinearInterpolation())
 {
 	BIFD bifd;
 	bifd_ptr = new BIFD;
-	TEST_NOT_EQUAL(bifd_ptr,0);
+  TEST_NOT_EQUAL(bifd_ptr,bifd_nullPointer);
 }
 END_SECTION
 

@@ -62,7 +62,7 @@ START_SECTION(SuffixArrayTrypticCompressed(const String &st, const String &filen
 	TEST_EQUAL(sTree,"AA\nAAARAA\nARARP\nARP");
 	TEST_EQUAL(lcp,"2120");
 	TEST_EQUAL(skip,"1210");
-	TEST_NOT_EQUAL(ptr, 0);
+  TEST_NOT_EQUAL(ptr, nullPointer);
 	TEST_EXCEPTION (Exception::FileNotFound,ptr = new SuffixArrayTrypticCompressed(text,"FileThatNotExists"));
 END_SECTION
 

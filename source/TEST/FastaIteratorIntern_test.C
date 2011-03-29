@@ -163,7 +163,7 @@ END_SECTION
 
 START_SECTION(static PepIterator* create())
 	ptr = new FastaIteratorIntern();
-	TEST_NOT_EQUAL(ptr->create(),0);
+  TEST_NOT_EQUAL(ptr->create(),nullPointer);
 END_SECTION
 
 

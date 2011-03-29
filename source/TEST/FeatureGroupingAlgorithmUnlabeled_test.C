@@ -53,9 +53,10 @@ START_SECTION((virtual ~FeatureGroupingAlgorithmUnlabeled()))
 END_SECTION
 
 START_SECTION((static FeatureGroupingAlgorithm* create()))
-	FeatureGroupingAlgorithm* ptr2 = 0;
+  FeatureGroupingAlgorithm* ptr2 = 0;
+  FeatureGroupingAlgorithm* base_NullPointer = 0;
 	ptr2 = FeatureGroupingAlgorithmUnlabeled::create();
-	TEST_NOT_EQUAL(ptr2, 0)
+  TEST_NOT_EQUAL(ptr2, base_NullPointer)
 END_SECTION
 
 START_SECTION((static String getProductName()))

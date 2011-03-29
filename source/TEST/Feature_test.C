@@ -44,10 +44,11 @@ using namespace std;
 typedef OpenMS::BaseFeature::QualityType QualityType;
 
 Feature* d_ptr = 0;
+Feature* nullPointer = 0;
 START_SECTION((Feature()))
 {
 	d_ptr = new Feature;
-	TEST_NOT_EQUAL(d_ptr, 0);
+  TEST_NOT_EQUAL(d_ptr, nullPointer);
 }
 END_SECTION
 

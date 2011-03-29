@@ -44,9 +44,11 @@ START_TEST(ComplementFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ComplementFilter* e_ptr = 0;
+ComplementFilter* e_nullPointer = 0;
+
 START_SECTION((ComplementFilter()))
 	e_ptr = new ComplementFilter;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~ComplementFilter()))

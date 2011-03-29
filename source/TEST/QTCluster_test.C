@@ -42,6 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 QTCluster* qtc_ptr = 0;
+QTCluster* qtc_nullPointer = 0;
 
 BaseFeature bf;
 bf.setRT(1.1);
@@ -58,7 +59,7 @@ GridFeature gf(bf, 123, 456);
 START_SECTION((QTCluster(GridFeature* center_point, Size num_maps, DoubleReal max_distance, bool use_IDs)))
 {
 	qtc_ptr = new QTCluster(&gf, 2, 11.1, false);
-	TEST_NOT_EQUAL(qtc_ptr, 0);
+  TEST_NOT_EQUAL(qtc_ptr, qtc_nullPointer);
 }
 END_SECTION
 

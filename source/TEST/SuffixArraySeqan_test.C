@@ -56,7 +56,7 @@ START_SECTION((SuffixArraySeqan(const String &st, const String &filename, const 
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("$A",""));
 	ptr = new SuffixArraySeqan(text,"");
-	TEST_NOT_EQUAL(ptr, 0);
+  TEST_NOT_EQUAL(ptr, nullPointer);
 	TEST_EXCEPTION (Exception::FileNotFound,new SuffixArraySeqan(text,"FileThatNotExists"));
 }
 END_SECTION

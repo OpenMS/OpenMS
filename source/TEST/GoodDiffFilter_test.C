@@ -44,9 +44,11 @@ START_TEST(GoodDiffFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GoodDiffFilter* e_ptr = 0;
+GoodDiffFilter* e_nullPointer = 0;
+
 START_SECTION((GoodDiffFilter()))
 	e_ptr = new GoodDiffFilter;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~GoodDiffFilter()))

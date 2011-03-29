@@ -41,9 +41,10 @@ START_TEST(EnzymaticDigestion, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EnzymaticDigestion* e_ptr = 0;
+EnzymaticDigestion* e_nullPointer = 0;
 START_SECTION((EnzymaticDigestion()))
 	e_ptr = new EnzymaticDigestion;
-	TEST_NOT_EQUAL(e_ptr, 0)
+	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION([EXTRA] ~EnzymaticDigestion())

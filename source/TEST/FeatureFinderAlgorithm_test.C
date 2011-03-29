@@ -87,6 +87,11 @@ START_TEST(FeatureFinderAlgorithm, "$Id FeatureFinder_test.C 139 2006-07-14 10:0
 
 FFA<Peak1D,Feature>* ptr = 0;
 FFA<Peak1D,Feature>* nullPointer = 0;
+
+MSExperiment<Peak1D>* map_nullPointer = 0;
+FeatureMap<Feature>*  featureMap_nullPointer = 0;
+FeatureFinder*        ff_nullPointer = 0;
+
 START_SECTION((FeatureFinderAlgorithm()))
 	ptr = new FFA<Peak1D,Feature>();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -112,18 +117,18 @@ END_SECTION
 
 START_SECTION((void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff)))
 	FFA<Peak1D,Feature> ffa;
-	TEST_EQUAL(ffa.getMap(),0)
-	TEST_EQUAL(ffa.getFeatures(),0)
-	TEST_EQUAL(ffa.getFF(),0)
+  TEST_EQUAL(ffa.getMap(),map_nullPointer)
+  TEST_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
+  TEST_EQUAL(ffa.getFF(),ff_nullPointer)
 	
 	MSExperiment<Peak1D> map;
 	FeatureMap<Feature> features;
 	FeatureFinder ff;
 	ffa.setData(map, features, ff);
 
-	TEST_NOT_EQUAL(ffa.getMap(),0)
-	TEST_NOT_EQUAL(ffa.getFeatures(),0)
-	TEST_NOT_EQUAL(ffa.getFF(),0)	
+  TEST_NOT_EQUAL(ffa.getMap(),map_nullPointer)
+  TEST_NOT_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
+  TEST_NOT_EQUAL(ffa.getFF(),ff_nullPointer)
 END_SECTION
 
 START_SECTION((virtual void setSeeds(const FeatureMapType& seeds)))

@@ -52,9 +52,10 @@ END_SECTION
 #define GOOD_TYPEDEF(Type)											\
 {																								\
 	Type* ptr = 0;																\
+  Type* nullPointer = 0;												\
   START_SECTION(Type())																	\
     ptr = new Type;															\
-    TEST_NOT_EQUAL(ptr, 0)											\
+    TEST_NOT_EQUAL(ptr, nullPointer)											\
 END_SECTION																					\
   START_SECTION(~Type())																\
     delete ptr;																	\

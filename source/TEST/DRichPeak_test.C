@@ -40,10 +40,11 @@ START_TEST(DRichPeak<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DRichPeak<1>::Type* ptr1 = 0;
+DRichPeak<1>::Type* nullPointer1 = 0;
 START_SECTION(DRichPeak())
 {
 	ptr1 = new DRichPeak<1>::Type();
-	TEST_NOT_EQUAL(ptr1, 0);
+  TEST_NOT_EQUAL(ptr1, nullPointer1);
 }
 END_SECTION
 
@@ -54,10 +55,11 @@ START_SECTION(~DRichPeak())
 END_SECTION
 
 DRichPeak<2>::Type* ptr2 = 0;
+DRichPeak<2>::Type* nullPointer2 = 0;
 START_SECTION([EXTRA]DRichPeak())
 {
 	ptr2 = new DRichPeak<2>::Type();
-	TEST_NOT_EQUAL(ptr2, 0);
+  TEST_NOT_EQUAL(ptr2, nullPointer2);
 }
 END_SECTION
 

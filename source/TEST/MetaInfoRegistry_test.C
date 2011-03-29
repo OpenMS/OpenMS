@@ -42,9 +42,10 @@ using namespace OpenMS;
 using namespace std;
 
 MetaInfoRegistry* test;
+MetaInfoRegistry* nullPointer;
 START_SECTION((MetaInfoRegistry()))
 	test = new MetaInfoRegistry;
-	TEST_NOT_EQUAL(test, 0)
+  TEST_NOT_EQUAL(test, nullPointer)
 END_SECTION
 
 

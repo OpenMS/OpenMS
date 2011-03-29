@@ -41,10 +41,12 @@ START_TEST(PeakShape, "$Id$")
 
 using namespace OpenMS;
 
-PeakShape* peakshape_ptr=0;
+PeakShape* peakshape_ptr = 0;
+PeakShape* peakshape_nullPointer = 0;
+
 START_SECTION((PeakShape()))
   peakshape_ptr = new PeakShape;
-  TEST_NOT_EQUAL(peakshape_ptr, 0)
+  TEST_NOT_EQUAL(peakshape_ptr, peakshape_nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~PeakShape()))

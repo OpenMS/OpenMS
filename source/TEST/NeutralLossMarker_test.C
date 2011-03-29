@@ -46,9 +46,11 @@ START_TEST(NeutralLossMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NeutralLossMarker* e_ptr = 0;
+NeutralLossMarker* e_nullPointer = 0;
+
 START_SECTION((NeutralLossMarker()))
 	e_ptr = new NeutralLossMarker;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~NeutralLossMarker()))

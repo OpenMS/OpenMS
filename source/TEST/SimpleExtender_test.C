@@ -66,8 +66,8 @@ typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
 			FeatureMap<FeatureType> features;
 			FeatureFinder ff;
 			ptr = new ExtenderType(&map,&features,&ff);
-			TEST_EQUAL(ptr->getName(), "SimpleExtender");
-			TEST_NOT_EQUAL(ptr, 0);
+      TEST_EQUAL(ptr->getName(), "SimpleExtender")
+      TEST_NOT_EQUAL(ptr, nullPointer)
 		}
 END_SECTION
 		

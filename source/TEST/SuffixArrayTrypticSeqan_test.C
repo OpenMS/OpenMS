@@ -55,7 +55,7 @@ START_SECTION(SuffixArrayTrypticSeqan(const String &st, const String &filename, 
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("$A",""));
 	ptr = new SuffixArrayTrypticSeqan(text,"");
-	TEST_NOT_EQUAL(ptr, 0);
+  TEST_NOT_EQUAL(ptr, nullPointer);
 	TEST_EXCEPTION (Exception::FileNotFound,new SuffixArrayTrypticSeqan(text,"FileThatNotExists"));
 	
 END_SECTION

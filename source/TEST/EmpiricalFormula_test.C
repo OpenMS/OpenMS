@@ -44,9 +44,10 @@ START_TEST(ElementDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EmpiricalFormula* e_ptr = 0;
+EmpiricalFormula* e_nullPointer = 0;
 START_SECTION(EmpiricalFormula())
 	e_ptr = new EmpiricalFormula;
-	TEST_NOT_EQUAL(e_ptr, 0)
+	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION(~EmpiricalFormula())
@@ -55,7 +56,7 @@ END_SECTION
 
 START_SECTION(EmpiricalFormula(const String& rhs))
 	e_ptr = new EmpiricalFormula("C4");
-	TEST_NOT_EQUAL(e_ptr, 0)
+	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
@@ -237,8 +238,9 @@ END_SECTION
 
 START_SECTION(const ElementDB* getElementDB() const)
 	const ElementDB* db = 0;
+  const ElementDB* db_nullPointer = 0;
 	db = e_ptr->getElementDB();
-	TEST_NOT_EQUAL(db, 0);
+  TEST_NOT_EQUAL(db, db_nullPointer);
 	TEST_EQUAL(db->getElement("C")->getSymbol(), "C")
 END_SECTION
 

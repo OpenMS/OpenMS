@@ -46,10 +46,11 @@ START_TEST(FuzzyStringComparator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FuzzyStringComparator* inst_ptr = 0;
+FuzzyStringComparator* nullPointer = 0;
 START_SECTION((FuzzyStringComparator()))
 {
 	inst_ptr = new FuzzyStringComparator;
-	TEST_NOT_EQUAL(inst_ptr, 0);
+  TEST_NOT_EQUAL(inst_ptr, nullPointer);
 }
 END_SECTION
 

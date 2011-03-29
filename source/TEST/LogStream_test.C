@@ -98,17 +98,19 @@ omp_set_num_threads(8);
 }
 END_SECTION
 
+LogStream* nullPointer = 0;
+
 START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream* stream))
 {
   LogStream* l1 = 0;
   l1 = new LogStream((LogStreamBuf*)0);
-  TEST_NOT_EQUAL(l1, 0)
+  TEST_NOT_EQUAL(l1, nullPointer)
   delete l1;
 
   LogStream* l2 = 0;
   LogStreamBuf* lb2 = new LogStreamBuf();
   l2 = new LogStream(lb2);
-  TEST_NOT_EQUAL(l2, 0)
+  TEST_NOT_EQUAL(l2, nullPointer)
   delete l2;
 }
 END_SECTION

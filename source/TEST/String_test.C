@@ -47,9 +47,10 @@ START_TEST(String, "$Id$")
 /////////////////////////////////////////////////////////////
 
 String* s_ptr = 0;
+String* s_nullPointer = 0;
 START_SECTION((String()))
 	s_ptr = new String;
-	TEST_NOT_EQUAL(s_ptr, 0)
+  TEST_NOT_EQUAL(s_ptr, s_nullPointer)
 END_SECTION
 
 START_SECTION(([EXTRA] ~String()))

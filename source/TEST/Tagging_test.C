@@ -47,9 +47,10 @@ TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Tagging* dv_ptr = 0;
+Tagging* dv_nullPointer = 0;
 START_SECTION((Tagging()))
 	dv_ptr = new Tagging;
-	TEST_NOT_EQUAL(dv_ptr, 0)
+  TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)
 END_SECTION
 
 // destructor

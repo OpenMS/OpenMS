@@ -43,10 +43,11 @@ START_TEST(DIntervalBase, "$Id$")
 	
 //1D check
 DIntervalBase<1>* ptr1 = 0;
+DIntervalBase<1>* nullPointer1 = 0;
 
 START_SECTION((DIntervalBase()))
 	ptr1 = new DIntervalBase<1>;
-	TEST_NOT_EQUAL(ptr1, 0)
+  TEST_NOT_EQUAL(ptr1, nullPointer1)
 END_SECTION
 
 START_SECTION((~DIntervalBase()))
@@ -55,10 +56,11 @@ END_SECTION
 
 //2D check
 DIntervalBase<2>* ptr2 = 0;
+DIntervalBase<2>* nullPointer2 = 0;
 
 START_SECTION([EXTRA] DIntervalBase())
 	ptr2 = new DIntervalBase<2>;
-	TEST_NOT_EQUAL(ptr2, 0)
+  TEST_NOT_EQUAL(ptr2, nullPointer2)
 END_SECTION
 
 START_SECTION([EXTRA] ~DIntervalBase())

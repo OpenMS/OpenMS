@@ -40,9 +40,10 @@ START_TEST(Map, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Map<int, int>* map_ptr;
+Map<int, int>* map_nullPointer;
 START_SECTION((Map()))
 	map_ptr = new Map<int, int>;
-	TEST_NOT_EQUAL(map_ptr, 0)
+  TEST_NOT_EQUAL(map_ptr, map_nullPointer)
 END_SECTION
 
 START_SECTION((~Map()))

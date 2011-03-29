@@ -43,9 +43,10 @@ START_TEST(Residue, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Residue* e_ptr = 0;
+Residue* e_nullPointer = 0;
 START_SECTION((Residue()))
 	e_ptr = new Residue();
-	TEST_NOT_EQUAL(e_ptr, 0)
+	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~Residue()))

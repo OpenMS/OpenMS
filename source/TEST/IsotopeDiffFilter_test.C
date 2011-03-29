@@ -44,9 +44,11 @@ START_TEST(IsotopeDiffFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IsotopeDiffFilter* e_ptr = 0;
+IsotopeDiffFilter* e_nullPointer = 0;
+
 START_SECTION((IsotopeDiffFilter()))
 	e_ptr = new IsotopeDiffFilter;
-	TEST_NOT_EQUAL(e_ptr, 0)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~IsotopeDiffFilter()))
