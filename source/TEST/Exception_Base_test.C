@@ -38,10 +38,9 @@ START_TEST(Exception::Base, "$Id$")
 
 Exception::BaseException* e_ptr = 0;
 Exception::BaseException* e_nullPointer = 0;
-Exception::BaseException* nullPointer = 0;
 START_SECTION(Base() )
 	e_ptr = new Exception::BaseException;
-  TEST_NOT_EQUAL(e_ptr, nullPointer)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION(~Base() )

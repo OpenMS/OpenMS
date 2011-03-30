@@ -54,8 +54,6 @@
 #include <QtGui/QMessageBox>
 
 //boost
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/median.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
 
