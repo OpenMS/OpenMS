@@ -44,8 +44,7 @@ namespace OpenMS
 	{
 		Q_OBJECT
 		
-		public:
-			
+		public:			
 			/// Constructor
 			EnhancedWorkspace(QWidget* parent);
 			
@@ -59,7 +58,7 @@ namespace OpenMS
 		
 		protected:
 			
-			///@name reimplemented Qt events
+      ///@name Reimplemented Qt events
       //@{
      	void dragEnterEvent(QDragEnterEvent* event);
 			void dragMoveEvent(QDragMoveEvent* event);

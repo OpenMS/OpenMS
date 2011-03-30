@@ -25,44 +25,52 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION1DPEAKITEM_H
-#define OPENMS_VISUAL_ANNOTATION1DPEAKITEM_H
+#ifndef OPENMS_VISUAL_ANNOTATION1DDISTANCEITEM_H
+#define OPENMS_VISUAL_ANNOTATION1DDISTANCEITEM_H
 
-#include <OpenMS/VISUAL/Annotation1DItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <vector>
 
 namespace OpenMS
 {
-  /** @brief A peak annotation item
+	/** @brief An annotation item which represents a measured distance between two peaks.
 			@see Annotation1DItem
 	*/
-	class Annotation1DPeakItem
+	class Annotation1DDistanceItem
 		: public Annotation1DItem
-	{	
-		public:			
+	{
+		
+		public:
 			/// Constructor
-      Annotation1DPeakItem(const PointType& peak_position, const QString& text);
+			Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point);
 			/// Copy constructor
-			Annotation1DPeakItem(const Annotation1DPeakItem& rhs);
+			Annotation1DDistanceItem(const Annotation1DDistanceItem& rhs);
 			/// Destructor
-			virtual ~Annotation1DPeakItem();
+			virtual ~Annotation1DDistanceItem();
 			// Docu in base class
-      virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
+			virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
 			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 			// Docu in base class
-			virtual void move(const PointType& /*delta*/);
-      /// Sets the position of the label (in MZ / intensity coordinates)
-			void setPosition(const PointType& position);
-      /// Sets the anker position of the label (peak) (in MZ / intensity coordinates)
-      const PointType& getPeakPosition() const;
-			/// Returns the position of the peak (in MZ / intensity coordinates)
- 			const PointType& getPosition() const;
+			virtual void move(const PointType& delta);
+			/// Sets the start point of the measured distance line
+			void setStartPoint(const PointType& start);
+			/// Sets the peak index of the end peak of the measurement
+			void setEndPoint(const PointType& end);
+			/// Returns the start point as (MZ,intensity)
+			const PointType& getStartPoint() const;
+			/// Returns the end point as (MZ,intensity)
+			const PointType& getEndPoint() const;
+      /// Set tick lines for the distance item
+      void setTicks(const std::vector<DoubleReal>& ticks);
+		protected:		
+			/// The start point of the measured distance line
+			PointType start_point_;
+			/// The end point of the measured distance line
+			PointType end_point_;
+      /// Additional tick lines for the distance item
+      std::vector<DoubleReal> ticks_;
 			
-		protected:
-      /// The position of the anker (peak) (in MZ / intensity coordinates)
-      PointType peak_position_;      
-      /// The position of the label (in MZ / intensity coordinates)
-			PointType position_;			
 	};
 } // namespace OpenMS
 

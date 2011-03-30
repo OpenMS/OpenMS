@@ -25,7 +25,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 #include <QtGui/QPainter>

@@ -25,11 +25,11 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/Annotations1DContainer.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 
-#include <OpenMS/VISUAL/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
 #include <QtCore/QPoint>
 #include <QtCore/QObject>

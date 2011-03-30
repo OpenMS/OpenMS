@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_ANNOTATION1DTEXTITEM_H
 #define OPENMS_VISUAL_ANNOTATION1DTEXTITEM_H
 
-#include <OpenMS/VISUAL/Annotation1DItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
 namespace OpenMS
 {
@@ -42,31 +42,40 @@ namespace OpenMS
 
 			/// Constructor
       Annotation1DTextItem(const PointType& position, const QString& text, const int flags = Qt::AlignCenter);
+
 			/// Copy constructor
 			Annotation1DTextItem(const Annotation1DTextItem& rhs);
+
 			/// Destructor
 			virtual ~Annotation1DTextItem();
+
 			// Docu in base class
 			virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
+
 			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
+
 			// Docu in base class
 			virtual void move(const PointType& delta);
+
 			/// Sets the position of the item (in MZ / intensity coordinates)
 			void setPosition(const PointType& position);
+
 			/// Returns the position of the item (in MZ / intensity coordinates)
  			const PointType& getPosition() const;
+
       /// Set Qt flags (default: Qt::AlignCenter)
       void setFlags(int flags);
+
       /// Get Qt flags
       int getFlags() const;
 
-		protected:
-		
+    protected:
+
 			/// The position of the item (in MZ / intensity coordinates)
 			PointType position_;
-      int flags_;
-			
+
+      int flags_;			
 	};
 } // namespace OpenMS
 

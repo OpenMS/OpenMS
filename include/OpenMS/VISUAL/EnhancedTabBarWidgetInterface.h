@@ -32,16 +32,21 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Widgets that are placed into an EnhancedTabBar must implement this interface
+
+    @ingroup Visual
+  */
   class EnhancedTabBarWidgetInterface
   {
     public:
       /// Destructor
       virtual ~EnhancedTabBarWidgetInterface() {};
 
-      /// get the EnhancedTabBar window id
+      /// get the EnhancedTabBar unique window id
       virtual Int getWindowId() = 0;
 
-      /// set the EnhancedTabBar window id
+      /// set the EnhancedTabBar unique window id
       virtual void setWindowId(Int window_id) = 0;
   };
 }  // namespace OpenMS

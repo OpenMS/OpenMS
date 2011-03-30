@@ -95,7 +95,7 @@ namespace OpenMS
 			/// returns the actual legend text
 			const String& getLegend();
 			
-			///returns the currently used grid lines
+      /// returns the currently used grid lines
 			const GridVector& gridLines();
 	
 			/// sets the axis to logarithmic scale
@@ -121,6 +121,7 @@ namespace OpenMS
 
       /// Actual painting takes place here
       void paint(QPainter* painter, QPaintEvent* e);
+
 		public slots:
 		
 			///sets min/max of the axis
@@ -132,41 +133,47 @@ namespace OpenMS
 		protected:
 			/// Vector that defines the position of the ticks/gridlines and the shown values on axis
 			GridVector grid_line_;
+
 			/// format of axis scale (linear or logarithmic)
 			bool is_log_;
+
 			/// display of legend enabled or not
 			bool show_legend_;
+
 			/// Position of the axis (right, left, top, down as defined in ALIGNMENT_ENUM)
 			Alignment alignment_;
+
 			/// true if axis label are displayed in inverse order (left to right or bottom to top)
 			bool inverse_orientation_;
+
 			/// margin of axis
 			UInt margin_;
+
 			/// minimum value on the axis
 			DoubleReal min_;
+
 			/// maximum value on the axis
 			DoubleReal max_;
+
 			/// text/unit on axis
 			String legend_;
+
 			/// maximum number of tick levels (default=2)
 			UInt tick_level_;
+
 			/// true if k/M/G units can be used
-			bool allow_short_numbers_;			
+      bool allow_short_numbers_;
+
       /// Reimplemented Qt event (calls paint with "this")
 			void paintEvent(QPaintEvent*);
-	
+
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
-			inline DoubleReal scale_(DoubleReal x)
-			{
-        return (is_log_)? Math::roundDecimal(pow(10,x),-8) : Math::roundDecimal(x,-8);
-			}
-			
+      DoubleReal scale_(DoubleReal x);
+
 			/// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number
 			void getShortenedNumber_(QString& short_num, DoubleReal number);
-
  	};
 } // namespace OpenMS
-
 
 #endif
 

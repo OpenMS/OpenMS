@@ -59,7 +59,7 @@ namespace OpenMS
 	{
 		setAxisBounds(0.0,100.0);
 		
-	 	if (alignment==RIGHT || alignment==LEFT )	
+    if (alignment == RIGHT || alignment == LEFT )
 	 	{
 			setMinimumSize(30,100);
 			setSizePolicy(QSizePolicy::Fixed,QSizePolicy::MinimumExpanding);
@@ -72,8 +72,7 @@ namespace OpenMS
 		
 		resize(minimumSize());
 	}
-	
-	
+		
 	AxisWidget::~AxisWidget()
 	{
 	}
@@ -119,7 +118,7 @@ namespace OpenMS
     // shrink font size if text does not fit
     UInt font_size = font().pointSize();
     UInt max_width = 0;
-    if (grid_line_.size()>=1) //check big intervals only
+    if (grid_line_.size() >= 1) //check big intervals only
     {
       QFontMetrics metrics(QFont(font().family(),font_size));
       for (Size i=0; i<grid_line_[0].size(); i++)
@@ -152,15 +151,19 @@ namespace OpenMS
     }
 
     //painting tick levels
-    for (Size i = 0; i!=grid_line_.size(); i++)
+    for (Size i = 0; i != grid_line_.size(); i++)
     {
-      // iust draw text on big intervalls
-      if (is_log_ && i>0) break;
+      // just draw text on big intervalls
+      if (is_log_ && i > 0)
+      {
+        break;
+      }
 
       QColor text_color;
       UInt tick_size = 0;
       QFontMetrics metrics(font());
-      if (i==0) //big intervals
+
+      if (i == 0) //big intervals
       {
         painter->setFont(QFont(font().family(), UInt(font_size)));
         metrics = QFontMetrics(painter->font());
@@ -178,7 +181,7 @@ namespace OpenMS
       //painting all ticks of the level
       UInt i_beg = (horizontal_alignment)? 0 : h;
       UInt i_end = (horizontal_alignment)? w : 0;
-      for (Size j = 0; j!=grid_line_[i].size(); j++)
+      for (Size j = 0; j != grid_line_[i].size(); j++)
       {
         UInt tick_pos;
         if (inverse_orientation_)
@@ -270,7 +273,7 @@ namespace OpenMS
     }
 
     //painting legend
-    if (show_legend_ && legend_!="")
+    if (show_legend_ && legend_ != "")
     {
       // style settings
       painter->setFont(font());
@@ -294,7 +297,6 @@ namespace OpenMS
           break;
       }
     }
-
   }
 
 	void AxisWidget::setAxisBounds(DoubleReal min, DoubleReal max)
@@ -307,7 +309,7 @@ namespace OpenMS
 		if (is_log_)
 		{
 			//abort if no change
-			if (min_== linear2log(min) && max_ == linear2log(max)) return;
+      if (min_ == linear2log(min) && max_ == linear2log(max)) return;
 			
 			min_ = linear2log(min);
 			max_ = linear2log(max);
@@ -317,7 +319,7 @@ namespace OpenMS
 		else
 		{
 			//abort if no change
-			if (min_==min && max_==max) return;
+      if (min_ == min && max_ == max) return;
 			
 			min_ = min; 
 			max_ = max;
@@ -362,8 +364,7 @@ namespace OpenMS
 		  update();
 	  }
 	}
-	
-	
+		
 	void AxisWidget::showLegend(bool show_legend)
 	{
 		if (show_legend_ != show_legend)
@@ -416,7 +417,7 @@ namespace OpenMS
 	
 	void AxisWidget::setTickLevel(UInt level)
 	{
-		if (level==1 || level==2)
+    if (level == 1 || level == 2)
 		{
 			tick_level_ = level;
 		}
@@ -466,6 +467,10 @@ namespace OpenMS
   	return max_;
   }
 
+  DoubleReal AxisWidget::scale_(DoubleReal x)
+  {
+    return (is_log_) ? Math::roundDecimal(pow(10,x),-8) : Math::roundDecimal(x,-8);
+  }
 
 } //Namespace
 

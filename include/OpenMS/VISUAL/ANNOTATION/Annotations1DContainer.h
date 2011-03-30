@@ -48,53 +48,68 @@ namespace OpenMS
 		: public std::list<Annotation1DItem*>
 	{
 		public:
-		
+      /// Default constructor
+      Annotations1DContainer();
+
+      /// Copy constructor
+      Annotations1DContainer(const Annotations1DContainer& rhs);
+
+      /// Assignment operator
+      Annotations1DContainer& operator= (const Annotations1DContainer& rhs);
+
+      /// Destructor
+      virtual ~Annotations1DContainer();
+
 			/// Iterator for the 1D annotations
 			typedef std::list<Annotation1DItem*>::iterator Iterator;
+
 			/// Const iterator for the 1D annotations
 			typedef std::list<Annotation1DItem*>::const_iterator ConstIterator;
+
 			/// Type of the Points
 			typedef DPosition<2> PointType;
+
 			/// Coordinate type
 			typedef DoubleReal CoordinateType;
-			
-			/// Default constructor
-			Annotations1DContainer();
-			/// Copy constructor
-			Annotations1DContainer(const Annotations1DContainer& rhs);
-			/// Destructor
-			virtual ~Annotations1DContainer();	
-			/// Assignment operator
-			Annotations1DContainer& operator= (const Annotations1DContainer& rhs);
-			
+						
 			/** @brief Returns a pointer to the item at @p pos, or 0, if not existent
 					
 					If more than one item's bounding box encloses @p pos , the one in the
 					foreground is returned.
 			*/
 			Annotation1DItem* getItemAt(const QPoint& pos) const;
+
 			/// Selects the item at @p pos on the canvas, if it exists.
 			void selectItemAt(const QPoint& pos);
+
 			/// Deselects the item at @p pos on the canvas, if it exists.
 			void deselectItemAt(const QPoint& pos);
+
 			/// Selects all items
 			void selectAll();
+
 			/// Deselects all items
 			void deselectAll();
+
 			/// Removes the selected items
 			void removeSelectedItems();
+
 			/// Sets the pen_
 			void setPen(const QPen& pen);
+
 			/// Returns the pen_
 			const QPen& getPen() const;
+
 			/// Sets the selected_pen_
 			void setSelectedPen(const QPen& pen);
+
 			/// Returns the selected_pen_
 			const QPen& getSelectedPen() const;
 			
-			/// The pen with which the items are drawn
+      /// The pen used to draw items
 			QPen pen_;
-			/// The pen which is used if an item is selected
+
+      /// The pen used to draw selected items
 			QPen selected_pen_;
 	};
 	

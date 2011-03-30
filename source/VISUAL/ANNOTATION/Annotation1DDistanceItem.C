@@ -25,7 +25,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 #include <QtCore/QPoint>

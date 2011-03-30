@@ -42,6 +42,7 @@ include(source/APPLICATIONS/sources.cmake)
 include(source/VISUAL/APPLICATIONS/sources.cmake)
 include(source/VISUAL/DIALOGS/sources.cmake)
 include(source/VISUAL/VISUALIZER/sources.cmake)
+include(source/VISUAL/ANNOTATION/sources.cmake)
 include(source/VISUAL/sources.cmake)
 include(include/OpenMS/VISUAL/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
 include(include/OpenMS/VISUAL/DIALOGS/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib

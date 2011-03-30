@@ -86,17 +86,17 @@ namespace OpenMS
 
 	void HistogramWidget::showSplitters(bool on)
 	{
-		show_splitters_=on;
+    show_splitters_ = on;
 	}
 
 	void HistogramWidget::setRightSplitter(DoubleReal pos)
 	{
-		right_splitter_=min(dist_.maxBound(),pos);
+    right_splitter_ = min(dist_.maxBound(),pos);
 	}
 
 	void HistogramWidget::setLeftSplitter(DoubleReal pos)
 	{
-		left_splitter_=max(dist_.minBound(),pos);
+    left_splitter_ = max(dist_.minBound(),pos);
 	}
 
 	void HistogramWidget::setLegend(const String& legend)
@@ -112,16 +112,16 @@ namespace OpenMS
 			//left
 			Int p = margin_ + UInt(((left_splitter_-dist_.minBound())/(dist_.maxBound()-dist_.minBound()))*(width()-2*margin_));
 			//cout << "Mouse: " << e->x() << " p: " << p << " splitter: " << left_splitter_ << endl;
-			if (e->x()>=p && e->x()<=p+5)
+      if (e->x() >= p && e->x() <= p+5)
 			{
-				moving_splitter_=1;
+        moving_splitter_ = 1;
 			}
 
 			//right
 			p = margin_ + UInt(((right_splitter_-dist_.minBound())/(dist_.maxBound()-dist_.minBound()))*(width()-2*margin_));
-			if (e->x()<=p && e->x()>=p-5)
+      if (e->x() <= p && e->x() >= p-5)
 			{
-				moving_splitter_=2;
+        moving_splitter_ = 2;
 			}
 		}
 		else
@@ -135,16 +135,16 @@ namespace OpenMS
 		if (show_splitters_ && (e->buttons() & Qt::LeftButton))
 		{
 			//left
-			if (moving_splitter_==1)
+      if (moving_splitter_ == 1)
 			{
 				left_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.maxBound()-dist_.minBound())+dist_.minBound();
 				//upper bound
-				if (left_splitter_>right_splitter_-(dist_.maxBound()-dist_.minBound())/50.0)
+        if (left_splitter_ > right_splitter_-(dist_.maxBound()-dist_.minBound())/50.0)
 				{
 					left_splitter_ = right_splitter_-(dist_.maxBound()-dist_.minBound())/50.0;
 				}
 				//lower bound
-				if (left_splitter_<dist_.minBound())
+        if (left_splitter_ < dist_.minBound())
 				{
 					left_splitter_=dist_.minBound();
 				}
@@ -157,14 +157,14 @@ namespace OpenMS
 
 				right_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.maxBound()-dist_.minBound())+dist_.minBound();
 				//upper bound
-				if (right_splitter_<left_splitter_+(dist_.maxBound()-dist_.minBound())/50.0)
+        if (right_splitter_ < left_splitter_+(dist_.maxBound()-dist_.minBound())/50.0)
 				{
 					right_splitter_ = left_splitter_+(dist_.maxBound()-dist_.minBound())/50.0;
 				}
 				//lower bound
-				if (right_splitter_>dist_.maxBound())
+        if (right_splitter_ > dist_.maxBound())
 				{
-					right_splitter_=dist_.maxBound();
+          right_splitter_ = dist_.maxBound();
 				}
 				update();
 			}
@@ -261,9 +261,9 @@ namespace OpenMS
 		pen.setColor(QColor(100,125,175));
 		painter.setPen(pen);
 
-		for (Size i=0; i<dist.size();++i)
+    for (Size i = 0; i < dist.size(); ++i)
 		{
-			if (dist[i]!=0)
+      if (dist[i] != 0)
 			{
 				UInt bin_pos = UInt((DoubleReal(i)/(dist.size()-1))*(w-margin_));
 				UInt bin_height = UInt(((DoubleReal)dist[i]/dist.maxValue())*(h-margin_));
@@ -272,8 +272,8 @@ namespace OpenMS
 		}
 
 		//calculate total intensity
-		DoubleReal total_sum=0;
-		for (Size i=0; i<dist.size();++i)
+    DoubleReal total_sum = 0;
+    for (Size i = 0; i < dist.size(); ++i)
 		{
 			total_sum += dist[i];
 		}
@@ -283,7 +283,7 @@ namespace OpenMS
 		QPoint last_point(1,h);
 		QPoint point;
 		DoubleReal int_sum=0;
-		for (Size i=0; i<dist.size();++i)
+    for (Size i=0; i < dist.size(); ++i)
 		{
 			int_sum += dist[i];
 			point.setX(UInt((DoubleReal(i)/(dist.size()-1))*(w-margin_)));
@@ -298,7 +298,6 @@ namespace OpenMS
 		update();
 	}
 
-
 	void HistogramWidget::showContextMenu(const QPoint& pos)
 	{
 		//create menu
@@ -312,11 +311,11 @@ namespace OpenMS
 		//change according to selected value
 		if (result!=0)
 		{
-			if (result->text()=="Normal mode")
+      if (result->text() == "Normal mode")
 			{
 				setLogMode(false);
 			}
-			else if (result->text()=="Log mode")
+      else if (result->text() == "Log mode")
 			{
 				setLogMode(true);
 			}
@@ -328,6 +327,4 @@ namespace OpenMS
 		log_mode_ = log_mode;
 		if (!buffer_.isNull()) invalidate_();
 	}
-
-
 } //namespace OpenMS

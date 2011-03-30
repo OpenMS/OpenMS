@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
-#include <OpenMS/VISUAL/Annotations1DContainer.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 
 #include <boost/shared_ptr.hpp>

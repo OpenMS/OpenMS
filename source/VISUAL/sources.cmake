@@ -3,11 +3,6 @@ set(directory source/VISUAL)
 
 ### list all filenames of the directory here
 set(sources_list
-Annotation1DDistanceItem.C
-Annotation1DItem.C
-Annotation1DPeakItem.C
-Annotation1DTextItem.C
-Annotations1DContainer.C
 AxisTickCalculator.C
 AxisWidget.C
 ColorSelector.C

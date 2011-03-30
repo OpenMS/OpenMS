@@ -57,11 +57,13 @@ namespace OpenMS
 		public:
 			/// Constructor
 			EnhancedTabBar( QWidget * parent = 0);
+
 			/// Destructor
 			~EnhancedTabBar();
 			
 			/// Adds a new tab with the name @p text and the identifier @p id
 			int addTab(const String& text, int id);
+
 			/// Selects the tab with identifier @p id
 			void setCurrentId(int id);
 			
@@ -72,11 +74,13 @@ namespace OpenMS
 		signals:
 			/// Signal that indicates that the current tab changed
 			void currentIdChanged(int id);
+
 			/// Signal that indicates that the tab with identifier @p id is about to be removed (double click or context menu)
 			void aboutToCloseId(int id);
 
 			/// Signal that is emitted, when a drag-and-drop action ends on a tab
 			void dropOnTab(const QMimeData* data, QWidget* source, int id);			
+
 			/// Signal that is emitted, when a drag-and-drop action ends on the unused space on the right side of the tabs.
 			void dropOnWidget(const QMimeData* data, QWidget* source);
 			
@@ -89,7 +93,7 @@ namespace OpenMS
 			void dropEvent(QDropEvent* e);
 			//@}
 			
-			///Returns the QTabBar index of the tab at position @p pos. If there is no tab at that position -1 is returned.
+      /// Returns the QTabBar index of the tab at position @p pos. If there is no tab at that position -1 is returned.
 			int tabAt_(const QPoint& pos);
 
 		protected slots:

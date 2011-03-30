@@ -25,7 +25,7 @@
 // $Authors: Johannes Junker, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/Annotation1DTextItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 #include <QtGui/QPainter>

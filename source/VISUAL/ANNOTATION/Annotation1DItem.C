@@ -25,7 +25,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/Annotation1DItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
 #include <QtGui/QPainter>
 
