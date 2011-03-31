@@ -105,7 +105,10 @@ namespace OpenMS
     if (tag_ == "ttd" || tag_=="category" || tag_=="e_category" || tag_=="type") return;
     if (td_.is_internal)
     {
-      if (tag_ == "name") return;
+      if (tag_ == "name")
+      {
+        return;
+      }
     }
     else if (!td_.is_internal)
     {

@@ -105,6 +105,21 @@ namespace OpenMS
 		tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
 		tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Protein/peptide Identification");
 
+    // INTERNAL tools
+    // this operation is expensive, as we need to parse configuration files (*.ttd)
+    std::vector<Internal::ToolDescription> internal_tools = getInternalTools_();
+    for (std::vector<Internal::ToolDescription>::const_iterator it = internal_tools.begin(); it != internal_tools.end(); ++it)
+    {
+      if (tools_map.find(it->name) == tools_map.end())
+      {
+        tools_map[it->name] = *it;
+      } else
+      {
+        throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
+      }
+    }
+
+    // EXTERNAL tools
     // this operation is expensive, as we need to parse configuration files (*.ttd)
     if (includeGenericWrapper)
     {
@@ -185,12 +200,25 @@ namespace OpenMS
     return tools_external_;
   }
 
+  std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()
+  {
+    if (!tools_internal_loaded_)
+    {
+      loadInternalToolConfig_();
+      tools_internal_loaded_ = true;
+    }
+    return tools_internal_;
+  }
 
   String ToolHandler::getExternalToolsPath()
   {
     return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
   }
 
+  String ToolHandler::getInternalToolsPath()
+  {
+    return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
+  }
 
   void ToolHandler::loadExternalToolConfig_()
   {
@@ -209,7 +237,23 @@ namespace OpenMS
     }
     tools_external_.name = "GenericWrapper";
     tools_external_.category = "EXTERNAL";
+  }
 
+  void ToolHandler::loadInternalToolConfig_()
+  {
+    QStringList files = getInternalToolConfigFiles_();
+    for (int i = 0; i < files.size(); ++i)
+    {
+      ToolDescriptionFile tdf;
+      std::vector<Internal::ToolDescription> tools;
+      tdf.load(String(files[i]), tools);
+      // add every tool from file to list
+      for (Size i_t = 0; i_t < tools.size(); ++i_t)
+      {
+          tools_internal_.push_back(tools[i_t]);
+          tools_external_.category = "INTERNAL";
+      }
+    }
   }
 
   QStringList ToolHandler::getExternalToolConfigFiles_()
@@ -245,7 +289,41 @@ namespace OpenMS
     return all_files;
   }
 
-  Internal::ToolDescription ToolHandler::tools_external_ = Internal::ToolDescription();
+  QStringList ToolHandler::getInternalToolConfigFiles_()
+  {
+    QStringList paths;
+    // *.ttd default path
+    paths << getInternalToolsPath().toQString();
+    // OS-specific path
+#ifdef OPENMS_WINDOWSPLATFORM
+    paths << (getInternalToolsPath()+"/WINDOWS").toQString();
+#else
+    paths << (getInternalToolsPath()+"/LINUX").toQString();
+#endif
+    // additional environment
+    if (getenv("OPENMS_TTD_INTERNAL_PATH")!=0)
+    {
+      paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
+    }
+
+    QStringList all_files;
+    for (int p = 0; p < paths.size(); ++p)
+    {
+      QDir dir(paths[p], "*.ttd");
+      QStringList files = dir.entryList();
+      for (int i = 0; i < files.size(); ++i)
+      {
+        files[i] = dir.absolutePath()+QDir::separator()+files[i];
+      }
+      all_files << files;
+    }
+    return all_files;
+  }
+
+  // static
+  Internal::ToolDescription ToolHandler::tools_external_ = Internal::ToolDescription();  
+  std::vector<Internal::ToolDescription> ToolHandler::tools_internal_;
   bool ToolHandler::tools_external_loaded_ = false;
+  bool ToolHandler::tools_internal_loaded_ = false;
 
 } // namespace

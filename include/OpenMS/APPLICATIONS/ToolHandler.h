@@ -83,16 +83,21 @@ namespace OpenMS
 
       static String getExternalToolsPath();
 
+      static String getInternalToolsPath();
+
   private:
       
       static Internal::ToolDescription getExternalTools_();
       static QStringList getExternalToolConfigFiles_();
       static void loadExternalToolConfig_();
-
       static Internal::ToolDescription tools_external_;
       static bool tools_external_loaded_;
 
-
+      static std::vector<Internal::ToolDescription> getInternalTools_();
+      static QStringList getInternalToolConfigFiles_();
+      static void loadInternalToolConfig_();
+      static std::vector<Internal::ToolDescription> tools_internal_;
+      static bool tools_internal_loaded_;
   };
 
 } // namespace OpenMS
