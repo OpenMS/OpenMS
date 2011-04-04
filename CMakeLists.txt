@@ -790,6 +790,11 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	add_subdirectory(source/TEST EXCLUDE_FROM_ALL) ## configure the Test project (but do not add it to OpenMS itself)
 endif()
 
+#### CPP CHECK TESTS #### 
+find_package(cppcheck)
+if( CPPCHECK_FOUND )
+	include( cmake/cppcheck.cmake )
+endif()
 
 ##### targets list #####
 if (MSVC)
