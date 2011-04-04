@@ -399,12 +399,12 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
   {
     Spectrum1DWidget* spectrum_widget_1D = tv_->getActive1DWidget();
-    Spectrum1DCanvas* canvas_1D = spectrum_widget_1D->canvas();
-
-    // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
-    // before activating the next normal spectrum
     if (spectrum_widget_1D)
     {
+      Spectrum1DCanvas* canvas_1D = spectrum_widget_1D->canvas();
+
+      // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
+      // before activating the next normal spectrum
       Size lc = canvas_1D->getLayerCount();
       for(Size i=0; i!=lc; ++i)
       {
