@@ -692,10 +692,11 @@ add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_executables})
 
 ##### UTILS ########
+set(UTILS_DIR source/APPLICATIONS/UTILS)
 set(UTILS_executables)
-include(source/APPLICATIONS/UTILS/executables.cmake)
+include(${UTILS_DIR}/executables.cmake)
 foreach(i ${UTILS_executables})
-	add_executable(${i} source/APPLICATIONS/UTILS/${i}.C)
+	add_executable(${i} ${UTILS_DIR}/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
 add_custom_target(UTILS)

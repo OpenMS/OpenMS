@@ -55,17 +55,28 @@ if(CPPCHECK_FOUND)
   add_cppcheck_sources("OpenMS_GUI" ${OpenMSVisual_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
 
   # TOPP checks
+  set(TOPP_cppcheck_sources)
   foreach(i ${TOPP_executables})
-    add_cppcheck( ${i} STYLE FAIL_ON_WARNINGS )
+    list(APPEND TOPP_cppcheck_sources ${TOPP_DIR}/${i}.C)
   endforeach()
+
+  add_cppcheck_sources("TOPP" ${TOPP_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
 
   # UTILS checks
+  set(UTILS_cppcheck_sources)
   foreach(i ${UTILS_executables})
-    add_cppcheck( ${i} STYLE FAIL_ON_WARNINGS )
+    list(APPEND UTILS_cppcheck_sources ${UTILS_DIR}/${i}.C)
   endforeach()
 
-  # TEST checks
+  add_cppcheck_sources("UTILS" ${UTILS_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
 
+  # GUI_TOOLS checks
+  set(GUI_TOOLS_cppcheck_sources)
+  foreach(i ${GUI_executables})
+    list(APPEND GUI_TOOLS_cppcheck_sources ${GUI_DIR}/${i}.C)
+  endforeach()
+
+  add_cppcheck_sources("GUI_TOOLS" ${GUI_TOOLS_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
 
 else()
   message(STATUS "Missing CPPCHECK executable .. Abort CppCheck")
