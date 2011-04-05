@@ -94,7 +94,8 @@ END_SECTION
 
 START_SECTION(virtual const XMLCh* getContentType() const )
 	GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
-	TEST_EQUAL(gzip2.getContentType(),0)
+  XMLCh* xmlch_nullPointer = 0;
+  TEST_EQUAL(gzip2.getContentType(),xmlch_nullPointer)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

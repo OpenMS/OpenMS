@@ -257,17 +257,17 @@ START_SECTION(([Param::ParamNode] NodeIterator findNode(const String& name)))
 END_SECTION
 
 START_SECTION(([Param::ParamNode] Param::ParamNode* findParentOf(const String& name)))
-	TEST_EQUAL(pn.findParentOf("A"),0)
+  TEST_EQUAL(pn.findParentOf("A"),pn_nullPointer)
 	TEST_EQUAL(pn.findParentOf("B"),&pn)
 	TEST_EQUAL(pn.findParentOf("C"),&pn)
 	TEST_EQUAL(pn.findParentOf("C:D"),&(pn.nodes[0]))
 	TEST_EQUAL(pn.findParentOf("C:E"),&(pn.nodes[0]))
-	TEST_EQUAL(pn.findParentOf("F"),0)
+  TEST_EQUAL(pn.findParentOf("F"),pn_nullPointer)
 	TEST_EQUAL(pn.findParentOf("B:G"),&(pn.nodes[1]))
-	TEST_EQUAL(pn.findParentOf("X"),0)
-	TEST_EQUAL(pn.findParentOf("H:X"),0)
-	TEST_EQUAL(pn.findParentOf("H:C:X"),0)
-	TEST_EQUAL(pn.findParentOf("H:C:"),0)
+  TEST_EQUAL(pn.findParentOf("X"),pn_nullPointer)
+  TEST_EQUAL(pn.findParentOf("H:X"),pn_nullPointer)
+  TEST_EQUAL(pn.findParentOf("H:C:X"),pn_nullPointer)
+  TEST_EQUAL(pn.findParentOf("H:C:"),pn_nullPointer)
 END_SECTION
 
 START_SECTION(([Param::ParamNode] ParamEntry* findEntryRecursive(const String& name)))

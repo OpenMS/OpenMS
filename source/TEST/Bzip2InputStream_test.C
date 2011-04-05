@@ -94,7 +94,8 @@ END_SECTION
 
 START_SECTION(virtual const XMLCh* getContentType() const)
 	Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-	TEST_EQUAL(bzip2.getContentType(),0)
+  XMLCh* xmlch_nullPointer = 0;
+  TEST_EQUAL(bzip2.getContentType(),xmlch_nullPointer)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

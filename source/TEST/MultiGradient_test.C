@@ -43,9 +43,10 @@ START_TEST(MultiGradient, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MultiGradient* d10_ptr = 0;
+MultiGradient* d10_nullPointer = 0;
 START_SECTION((MultiGradient()))
 	d10_ptr = new MultiGradient();
-	TEST_NOT_EQUAL(d10_ptr, 0)
+  TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)
 END_SECTION
 
 START_SECTION((~MultiGradient()))

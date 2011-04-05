@@ -57,7 +57,8 @@ END_SECTION
 
 START_SECTION(BaseModel<D>* createModel())
 	BaseModel<2>* ptr = ModelDescription<2>().createModel();
-	TEST_EQUAL(ptr, 0)	// no name is set, should be zero pointer
+  BaseModel<2>* baseModel_nullPointer = 0;
+  TEST_EQUAL(ptr, baseModel_nullPointer)	// no name is set, should be zero pointer
 END_SECTION
 
 START_SECTION( virtual bool operator==(const ModelDescription &rhs) const )
