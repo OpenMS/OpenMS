@@ -47,7 +47,10 @@ namespace OpenMS
 
 			/**
 				@brief Map illegal key exception
-	
+	  
+        Thrown when trying to access an element with operator[], which is not contained in the Map
+        , i.e. no default ctor is called (as done in std::map)
+
 				@ingroup Exceptions
 			*/
 			class IllegalKey

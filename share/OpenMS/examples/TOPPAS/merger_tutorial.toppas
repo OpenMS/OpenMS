@@ -28,7 +28,7 @@
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
-         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
+        <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
@@ -64,7 +64,7 @@
         <LISTITEM value="data/merger_tutorial/rt_12.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
-      <ITEM name="y_pos" value="180" type="float" description="" />
+      <ITEM name="y_pos" value="60" type="float" description="" />
     </NODE>
     <NODE name="9" description="">
       <ITEM name="toppas_type" value="merger" type="string" description="" />
@@ -85,7 +85,7 @@
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
-         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
+        <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
@@ -116,7 +116,7 @@
         <LISTITEM value="data/merger_tutorial/rt_9.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-580" type="float" description="" />
-      <ITEM name="y_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="180" type="float" description="" />
     </NODE>
     <NODE name="6" description="">
       <ITEM name="toppas_type" value="tool" type="string" description="" />
@@ -131,7 +131,7 @@
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
-         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
+        <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
@@ -142,12 +142,6 @@
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
       </NODE>
-    </NODE>
-    <NODE name="4" description="">
-      <ITEM name="toppas_type" value="merger" type="string" description="" />
-      <ITEM name="x_pos" value="-360" type="float" description="" />
-      <ITEM name="y_pos" value="-180" type="float" description="" />
-      <ITEM name="round_based" value="true" type="string" description="" />
     </NODE>
     <NODE name="12" description="">
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
@@ -167,7 +161,7 @@
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
-         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
+        <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
         <ITEM name="rt_filename" value="false" type="string" description="If this flag is set FileMerger tries to guess the rt of the file name.#br#This option is useful for merging DTA file, which should contain the string#br#&apos;rt&apos; directly followed by a floating point number:#br#i.e. my_spectrum_rt2795.15.dta" restrictions="true,false" />
         <ITEM name="ms_level" value="2" type="int" description="this option is useful for use with DTA files which does not #br#contain MS level information. The given level is assigned to the spectra." />
@@ -188,6 +182,12 @@
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
       <ITEM name="x_pos" value="-180" type="float" description="" />
       <ITEM name="y_pos" value="320" type="float" description="" />
+    </NODE>
+    <NODE name="4" description="">
+      <ITEM name="toppas_type" value="merger" type="string" description="" />
+      <ITEM name="x_pos" value="-360" type="float" description="" />
+      <ITEM name="y_pos" value="-180" type="float" description="" />
+      <ITEM name="round_based" value="true" type="string" description="" />
     </NODE>
   </NODE>
   <NODE name="edges" description="">
@@ -215,7 +215,7 @@
     </NODE>
     <NODE name="2" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="0/4" type="string" description="" />
+        <ITEM name="" value="3/5" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -226,7 +226,7 @@
     </NODE>
     <NODE name="3" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="1/4" type="string" description="" />
+        <ITEM name="" value="2/5" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
@@ -237,28 +237,6 @@
     </NODE>
     <NODE name="4" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="3/5" type="string" description="" />
-      </NODE>
-      <NODE name="source_out_param" description="">
-        <ITEM name="" value="-1" type="int" description="" />
-      </NODE>
-      <NODE name="target_in_param" description="">
-        <ITEM name="" value="-1" type="int" description="" />
-      </NODE>
-    </NODE>
-    <NODE name="5" description="">
-      <NODE name="source/target" description="">
-        <ITEM name="" value="2/5" type="string" description="" />
-      </NODE>
-      <NODE name="source_out_param" description="">
-        <ITEM name="" value="-1" type="int" description="" />
-      </NODE>
-      <NODE name="target_in_param" description="">
-        <ITEM name="" value="-1" type="int" description="" />
-      </NODE>
-    </NODE>
-    <NODE name="6" description="">
-      <NODE name="source/target" description="">
         <ITEM name="" value="6/9" type="string" description="" />
       </NODE>
       <NODE name="source_out_param" description="">
@@ -268,7 +246,7 @@
         <ITEM name="" value="-1" type="int" description="" />
       </NODE>
     </NODE>
-    <NODE name="7" description="">
+    <NODE name="5" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="10/12" type="string" description="" />
       </NODE>
@@ -279,7 +257,7 @@
         <ITEM name="" value="-1" type="int" description="" />
       </NODE>
     </NODE>
-    <NODE name="8" description="">
+    <NODE name="6" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="9/10" type="string" description="" />
       </NODE>
@@ -290,18 +268,7 @@
         <ITEM name="" value="0" type="int" description="" />
       </NODE>
     </NODE>
-    <NODE name="9" description="">
-      <NODE name="source/target" description="">
-        <ITEM name="" value="4/6" type="string" description="" />
-      </NODE>
-      <NODE name="source_out_param" description="">
-        <ITEM name="" value="-1" type="int" description="" />
-      </NODE>
-      <NODE name="target_in_param" description="">
-        <ITEM name="" value="0" type="int" description="" />
-      </NODE>
-    </NODE>
-    <NODE name="10" description="">
+    <NODE name="7" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="5/8" type="string" description="" />
       </NODE>
@@ -312,7 +279,7 @@
         <ITEM name="" value="0" type="int" description="" />
       </NODE>
     </NODE>
-    <NODE name="11" description="">
+    <NODE name="8" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="13/15" type="string" description="" />
       </NODE>
@@ -323,7 +290,7 @@
         <ITEM name="" value="-1" type="int" description="" />
       </NODE>
     </NODE>
-    <NODE name="12" description="">
+    <NODE name="9" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="11/13" type="string" description="" />
       </NODE>
@@ -334,7 +301,7 @@
         <ITEM name="" value="0" type="int" description="" />
       </NODE>
     </NODE>
-    <NODE name="13" description="">
+    <NODE name="10" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="8/14" type="string" description="" />
       </NODE>
@@ -345,7 +312,7 @@
         <ITEM name="" value="-1" type="int" description="" />
       </NODE>
     </NODE>
-    <NODE name="14" description="">
+    <NODE name="11" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="6/7" type="string" description="" />
       </NODE>
@@ -354,6 +321,39 @@
       </NODE>
       <NODE name="target_in_param" description="">
         <ITEM name="" value="-1" type="int" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="12" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="0/4" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="-1" type="int" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="-1" type="int" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="13" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="1/4" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="-1" type="int" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="-1" type="int" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="14" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="4/6" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="-1" type="int" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="0" type="int" description="" />
       </NODE>
     </NODE>
   </NODE>
