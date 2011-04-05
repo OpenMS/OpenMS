@@ -1632,7 +1632,7 @@ namespace OpenMS
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
 	 	DoubleReal c_mz, av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
-		DoubleReal virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
+		DoubleReal virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
@@ -1640,7 +1640,7 @@ namespace OpenMS
 
 			Box& c_box = iter->second;
 			av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
-			virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
+			virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
 
 			//Now, let's get the RT boundaries for the box
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
@@ -2218,14 +2218,14 @@ namespace OpenMS
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
 	 	DoubleReal c_mz, av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
-		DoubleReal virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
+		DoubleReal virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 		{	
 			Box& c_box = iter->second;
 			av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
-			virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
+			virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
 
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 			{
@@ -2404,7 +2404,6 @@ namespace OpenMS
 				{
 					//Find monoisotopic max
 					const MSSpectrum<PeakType> & c_spec (map[box_iter->second.RT_index]);
-					typename MSSpectrum<PeakType>::const_iterator monop = c_spec.MZBegin(c_mz);
 					//'Correct' possible shift
 					for (unsigned int i=0; i<mz_cutoff; ++i)
 					{	

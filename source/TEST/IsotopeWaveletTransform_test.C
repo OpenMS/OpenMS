@@ -43,8 +43,8 @@ START_TEST(IsotopeWaveletTransform, "$Id$")
 MSExperiment<> map;
 MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test.mzData"), map);
 map.updateRanges();
-IsotopeWaveletTransform<Peak1D>* iw = NULL;
-IsotopeWaveletTransform<Peak1D>::TransSpectrum* test2 = NULL;
+IsotopeWaveletTransform<Peak1D>* iw = 0;
+IsotopeWaveletTransform<Peak1D>::TransSpectrum* test2 = 0;
 MSSpectrum<Peak1D>* spec = new MSSpectrum<Peak1D> (map[0]);
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] TransSpectrum())
@@ -55,7 +55,7 @@ END_SECTION
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] TransSpectrum(const MSSpectrum<PeakType>* reference))
 	test2 = new IsotopeWaveletTransform<Peak1D>::TransSpectrum (spec);
 	const MSSpectrum<Peak1D>* ref = test2->getRefSpectrum();
-	TEST_NOT_EQUAL (ref, NULL)
+	TEST_NOT_EQUAL (ref, 0)
 END_SECTION
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] DoubleReal getRT () const )
@@ -113,7 +113,7 @@ END_SECTION
 
 START_SECTION((IsotopeWaveletTransform(const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const Size max_scan_size=0, const bool use_cuda=false, const bool hr_data=false, const String intenstype="ref")))
 	iw = new IsotopeWaveletTransform<Peak1D> (map[0].begin()->getMZ(), (map[0].end()-1)->getMZ(), 1);
-	TEST_NOT_EQUAL (iw, NULL)
+	TEST_NOT_EQUAL (iw, 0)
 END_SECTION
 
 START_SECTION(void initializeScan(const MSSpectrum< PeakType > &c_ref, const UInt c=0))
