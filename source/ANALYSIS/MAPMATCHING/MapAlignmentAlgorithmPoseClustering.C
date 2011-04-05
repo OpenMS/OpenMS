@@ -210,7 +210,7 @@ namespace OpenMS
 		transformations.clear();
 
 		// reference map:
-		Size reference_index = reference_index_ - 1; // local index is 0-based
+		Size reference_index(0);
 		if (!reference_file_.empty())
 		{
 			if (FileHandler::getType(reference_file_) != FileTypes::FEATUREXML)
