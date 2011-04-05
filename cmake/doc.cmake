@@ -60,8 +60,8 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation";
-										COMMAND ${CMAKE_COMMAND} -E echo "";   
-										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html 
+										COMMAND ${CMAKE_COMMAND} -E echo "";
+										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html
 										COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile
 										COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
 										COMMAND ${CMAKE_COMMAND} -E echo "";
@@ -79,8 +79,8 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating internal html documentation";
-										COMMAND ${CMAKE_COMMAND} -E echo "";   
-										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html 
+										COMMAND ${CMAKE_COMMAND} -E echo "";
+										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html
 										COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile_internal
 										COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
 										COMMAND ${CMAKE_COMMAND} -E echo "";
@@ -98,7 +98,7 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating XML documentation";
-										COMMAND ${CMAKE_COMMAND} -E echo "";   
+										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/xml_output
 										COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile_xml
 										COMMAND ${CMAKE_COMMAND} -E echo "";
@@ -114,7 +114,7 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class documentation";
-										COMMAND ${CMAKE_COMMAND} -E echo "";   
+										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html
 										COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile_noclass
 										COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
@@ -133,7 +133,7 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP/UTILS documentation";
-										COMMAND ${CMAKE_COMMAND} -E echo "";   
+										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html
 										COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile_noclass
 										COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
@@ -152,7 +152,7 @@ if (DOXYGEN_FOUND)
 											COMMAND ${CMAKE_COMMAND} -E echo ""
 											COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 											COMMAND ${CMAKE_COMMAND} -E echo "Creating DOT html documentation";
-											COMMAND ${CMAKE_COMMAND} -E echo "";   
+											COMMAND ${CMAKE_COMMAND} -E echo "";
 											COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html-dot
 											COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile_dot
 											COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
@@ -171,16 +171,25 @@ if (DOXYGEN_FOUND)
 else()
 	Message(STATUS "Doxygen not found. Disabling all documentation targets!")
 endif()
-									
+
 if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 	#######################################################################
 	# doc_tutorials target
 	set(DOC_TUTORIALS_ACTIVE TRUE)
+
+		set(DOXYGEN_BUGGY "1.6.3")
+EXEC_PROGRAM(${DOXYGEN_EXECUTABLE}
+    ARGS "--version"
+    OUTPUT_VARIABLE DOXYGEN_VERSION)
+if (DOXYGEN_VERSION STRGREATER DOXYGEN_BUGGY)
+    MESSAGE(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
+endif ()
+
 	add_custom_target(doc_tutorials
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating OpenMS pdf tutorial";
-										COMMAND ${CMAKE_COMMAND} -E echo "";   
+										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/OpenMS_tutorial/latex_output
 										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/ doxygen Doxyfile
 										COMMAND ${CMAKE_COMMAND} -E copy doc/OpenMS_tutorial/refman_overwrite.tex doc/OpenMS_tutorial/latex_output/refman.tex
@@ -190,12 +199,12 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/latex_output/	pdflatex refman.tex
 										COMMAND ${CMAKE_COMMAND} -E copy doc/OpenMS_tutorial/latex_output/refman.pdf doc/OpenMS_tutorial.pdf
 										COMMAND ${CMAKE_COMMAND} -E echo "";
-										COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"; 
-										COMMAND ${CMAKE_COMMAND} -E echo "doc/OpenMS_tutorial.pdf"; 
-										COMMAND ${CMAKE_COMMAND} -E echo ""; 
+										COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:";
+										COMMAND ${CMAKE_COMMAND} -E echo "doc/OpenMS_tutorial.pdf";
+										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating TOPP/TOPPView pdf tutorial";
-										COMMAND ${CMAKE_COMMAND} -E echo "";   
+										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/TOPP_tutorial/latex_output
 										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/ doxygen Doxyfile
 										COMMAND ${CMAKE_COMMAND} -E copy doc/TOPP_tutorial/refman_overwrite.tex doc/TOPP_tutorial/latex_output/refman.tex
@@ -205,9 +214,9 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/latex_output/	pdflatex refman.tex
 										COMMAND ${CMAKE_COMMAND} -E copy doc/TOPP_tutorial/latex_output/refman.pdf doc/TOPP_tutorial.pdf
 										COMMAND ${CMAKE_COMMAND} -E echo "";
-										COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"; 
-										COMMAND ${CMAKE_COMMAND} -E echo "doc/TOPP_tutorial.pdf"; 
-										COMMAND ${CMAKE_COMMAND} -E echo ""; 
+										COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:";
+										COMMAND ${CMAKE_COMMAND} -E echo "doc/TOPP_tutorial.pdf";
+										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMENT "Build the OpenMS/TOPP pdf tutorial"
 										VERBATIM)
 else()
