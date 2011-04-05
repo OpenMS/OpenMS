@@ -22,14 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
-#include <QtCore/QDir>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
@@ -49,9 +49,9 @@ namespace OpenMS
 			dfs_parent_(0),
 			topo_sort_marked_(false),
 			topo_nr_(0),
-			subtree_finished_(false),
-			files_known_(false),
-			already_started_(false),
+      round_total_ (-1),
+      round_counter_ (0),
+      finished_(false),
 			reachable_(true)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -71,9 +71,9 @@ namespace OpenMS
 			dfs_parent_(rhs.dfs_parent_),
 			topo_sort_marked_(rhs.topo_sort_marked_),
 			topo_nr_(rhs.topo_nr_),
-			subtree_finished_(rhs.subtree_finished_),
-			files_known_(rhs.files_known_),
-			already_started_(rhs.already_started_),
+      round_total_ (rhs.round_total_),
+      round_counter_ (rhs.round_counter_),
+      finished_(rhs.finished_),
 			reachable_(rhs.reachable_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -98,16 +98,116 @@ namespace OpenMS
 		dfs_parent_ = rhs.dfs_parent_;
 		topo_sort_marked_ = rhs.topo_sort_marked_;
 		topo_nr_ = rhs.topo_nr_;
-		subtree_finished_ = rhs.subtree_finished_;
-		files_known_ = rhs.files_known_;
-		already_started_ = rhs.already_started_;
+
+    round_total_ = rhs.round_total_;
+    round_counter_ = rhs.round_counter_;
+    finished_ = rhs.finished_;
 		reachable_ = rhs.reachable_;
 		
 		setPos(rhs.pos());
 		
 		return *this;
 	}
-	
+
+  
+  bool TOPPASVertex::isUpstreamReady()
+  {
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getSourceVertex();
+			if (!tv->isFinished())
+			{
+				// some tool that we depend on has not finished execution yet --> do not start yet
+				debugOut_("Not run (parent not finished)");
+				
+				__DEBUG_END_METHOD__
+				return false;
+			}
+		}
+    std::cerr << "upstream of " << this->getTopoNr() << " is ready!\n";
+    return true;
+  }
+
+
+  bool TOPPASVertex::buildRoundPackages(RoundPackages& pkg, String& error_msg)
+  { // check all incoming edges for this node and construct the package
+    
+    if (inEdgesBegin() == inEdgesEnd())
+    {
+      error_msg = "buildRoundPackages() called on vertex with no input edges!";
+      std::cerr << error_msg;
+      return false;
+    }
+
+    TOPPASVertex* tv_tmp = (*inEdgesBegin())->getSourceVertex();
+    int round_common = tv_tmp->round_total_; // the first sets the pace
+
+    if (round_common <= 0)
+    {
+      error_msg =  "Number of input rounds is 0 or negative. This cannot be! Aborting!\n";
+      std::cerr << error_msg;
+      return false;
+    }
+    pkg.clear();
+    pkg.resize(round_common);
+
+    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{ // all incoming edges should have the same number of rounds!
+			TOPPASVertex* tv = (*it)->getSourceVertex();
+      if (round_common != tv->round_total_)
+      {
+        error_msg = String("Number of rounds for incoming edges of #") + this->getTopoNr() + " are not equal. No idea on how to combine them!";
+        std::cerr << error_msg;
+        return false;
+      }
+
+      // fill files for each round
+      int param_index_src_out = (*it)->getSourceOutParam();
+      int param_index_tgt_in = (*it)->getTargetInParam();
+      for (int round=0; round<round_common; ++round)
+      {
+        VertexRoundPackage rpg;
+        rpg.edge = *it;
+        rpg.filenames = tv->getFileNames(param_index_src_out, round);
+        
+        while (pkg[round].count(param_index_tgt_in)) ++param_index_tgt_in; //hack for merger vertices, as they have multiple incoming edges with -1 as index
+        
+        pkg[round][param_index_tgt_in] = rpg; // index by incoming edge number
+      }
+    }
+    return true;
+  }
+
+  QStringList TOPPASVertex::getFileNames(int param_index, int round) const
+  {
+    if (round >= output_files_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, round, output_files_.size());
+    RoundPackage rp = output_files_[round];
+    if (rp.find(param_index) == rp.end()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, param_index, rp.size()); // index could be larger (its a map, but nevertheless)
+    return rp[param_index].filenames;
+  }
+
+  QStringList TOPPASVertex::getFileNames() const
+  {
+    // concatenate over all rounds
+    QStringList fl;
+
+    for (Size r=0; r<output_files_.size(); ++r)
+    {
+      for (RoundPackage::const_iterator it  = output_files_[r].begin();
+                                        it != output_files_[r].end();
+                                        ++it)
+      {
+        fl.append(it->second.filenames); 
+      }
+    }
+    return fl;
+  }
+
+  const TOPPASVertex::RoundPackages& TOPPASVertex::getOutputFiles() const
+  {
+    return output_files_;
+  }
+
 	void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* e)
 	{
 		if (!(e->modifiers() & Qt::ControlModifier))
@@ -273,187 +373,57 @@ namespace OpenMS
 		topo_nr_ = nr;
 	}
 	
-	String TOPPASVertex::get3CharsNumber_(UInt number)
+	String TOPPASVertex::get3CharsNumber_(UInt number) const
 	{
 		String num_str(number);
-		int diff = 3 - (int)(num_str.size());
-		if (diff <= 0)
-		{
-			return num_str;
-		}
-		else
-		{
-			String res;
-			for (int i = 0; i < diff; ++i)
-			{
-				res += "0";
-			}
-			res += num_str;
-			return res;
-		}
+    num_str.fillLeft('0', 3);
+		return num_str;
 	}
 	
-	bool TOPPASVertex::removeDirRecursively_(const QString& dir_name)
-	{
-		bool fail = false;
-		
-		QDir dir(dir_name);
-		QStringList files = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
-		foreach (const QString& file_name, files)
-		{
-			if (!dir.remove(file_name))
-			{
-				std::cerr << "Could not remove file " << String(file_name) << "!" << std::endl;
-				fail = true;
-			}
-		}
-		QStringList contained_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-		foreach (const QString& contained_dir, contained_dirs)
-		{
-			if (!removeDirRecursively_(dir_name+QDir::separator()+contained_dir))
-			{
-				fail = true;
-			}
-		}
-		
-		QDir parent_dir(dir_name);
-		if (parent_dir.cdUp())
-		{
-			if (!parent_dir.rmdir(dir_name))
-			{
-				std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
-				fail = true;
-			}
-		}
-		
-		return !fail;
-	}
-	
-	void TOPPASVertex::checkIfSubtreeFinished()
-	{
-		__DEBUG_BEGIN_METHOD__
-		
-		// check if entire subtree below this node is finished now, else return
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-		{
-			TOPPASVertex* target = (*it)->getTargetVertex();
-			if (!target->isSubtreeFinished())
-			{
-				debugOut_(String("Child ")+target->getTopoNr()+": subtree NOT finished. Returning.");
-				__DEBUG_END_METHOD__
-				return;
-			}
-		}
-		
-		debugOut_("Subtrees of all children finished! Notifying parents...");
-		subtree_finished_ = true;
-    // tell parents
-    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASVertex* source = (*it)->getSourceVertex();
-			debugOut_(String("Notifying parent ")+source->getTopoNr());
-			source->checkIfSubtreeFinished();
-		}
-		
-		__DEBUG_END_METHOD__
-	}
-	
-	bool TOPPASVertex::isSubtreeFinished()
-	{
-		return subtree_finished_;
-	}
-	
-	void TOPPASVertex::setSubtreeFinished(bool b)
-	{
-		subtree_finished_ = b;
-	}
 	
 	void TOPPASVertex::reset(bool reset_all_files)
 	{
 		__DEBUG_BEGIN_METHOD__
 		
-		subtree_finished_ = false;
-		sc_files_per_round_ = 0;
-		sc_files_total_ = 0;
-		sc_list_length_checked_ = false;
+    round_total_ = -1;
+    round_counter_ = 0;
+
+		finished_ = false;
 		reachable_ = true;
-		if (reset_all_files)
-		{
-			files_known_ = false;
-			already_started_ = false;
-		}
-		update(boundingRect());
+
+    update(boundingRect());
 		
 		__DEBUG_END_METHOD__
 	}
 	
-	void TOPPASVertex::resetSubtree(bool including_this_node)
+  bool TOPPASVertex::isFinished()
 	{
-		__DEBUG_BEGIN_METHOD__
-		
-		if (including_this_node)
-		{
-			reset(false);
-			files_known_ = false;
-		}
-		
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-		{
-			TOPPASVertex* tv = (*it)->getTargetVertex();
-			tv->resetSubtree(true);
-		}
-		
-		__DEBUG_END_METHOD__
+		return finished_;
 	}
+
+  void TOPPASVertex::run()
+  {
+    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+  }
 	
-	void TOPPASVertex::checkListLengths(QStringList& /*unequal_per_round*/, QStringList& /*unequal_over_entire_run*/)
-	{
-	}
-	
-	int TOPPASVertex::getScFilesPerRound()
-	{
-		return sc_files_per_round_;
-	}
-	
-	int TOPPASVertex::getScFilesTotal()
-	{
-		return sc_files_total_;
-	}
-	
-	bool TOPPASVertex::isScListLengthChecked()
-	{
-		return sc_list_length_checked_;
-	}
-	
-	bool TOPPASVertex::areAllUpstreamMergersFinished()
+	bool TOPPASVertex::allInputsReady()
 	{
 		__DEBUG_BEGIN_METHOD__
 		
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
-			TOPPASVertex* source = (*it)->getSourceVertex();
-			debugOut_(String("Checking parent ")+source->getTopoNr());
-			if (!source->areAllUpstreamMergersFinished())
-			{
+		  TOPPASVertex* tv = qobject_cast<TOPPASVertex*>((*it)->getSourceVertex());
+		  if (tv && !tv->isFinished())
+		  {
+		    // some (reachable) tool that we depend on has not finished execution yet --> do not start yet
 				__DEBUG_END_METHOD__
-				return false;
-			}
+		    return false;
+		  }
 		}
 		
 		__DEBUG_END_METHOD__
 		return true;
 	}
-	
-	bool TOPPASVertex::isAlreadyStarted()
-	{
-		return already_started_;
-	}
-	
-	void TOPPASVertex::setAlreadyStarted(bool b)
-	{
-		already_started_ = b;
-	}
-	
 	void TOPPASVertex::markUnreachable()
 	{
 		reachable_ = false;

@@ -140,7 +140,7 @@ namespace OpenMS
 			void toolCrashed();
 			/// Called when a tool execution fails
 			void toolFailed();
-			/// Called when a pipeline execution ended successfully in an output vertex
+			/// Called when a file was successfully written to an output vertex
 			void outputVertexFinished(const String& file);
 			/// Called when a TOPP tool produces (error) output.
 			void updateTOPPOutputLog(const QString& out);
@@ -152,8 +152,8 @@ namespace OpenMS
 			void sendClipboardContent();
       /// Refreshes the parameters of the TOPP tools of the current workflow and stores an updated workflow including the current parameters
       void refreshParameters();
-      /// Opens each StringList of files in a new TOPPView instance
-      void openFilesInTOPPView(QVector<QStringList> all_files);
+      /// Open files in a new TOPPView instance
+      void openFilesInTOPPView(QStringList all_files);
     protected slots:
 		
 			/** @name Tabbar slots

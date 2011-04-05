@@ -63,6 +63,9 @@ namespace OpenMS
 			*/
 			static bool remove(const String& file);
 
+ 			/// Removes the specified directory (absolute path). Returns true if successful.
+			static bool removeDirRecursively(const String& dir_name);
+
 			/// Replaces the relative path in the argument with the absolute path.
 			static String absolutePath(const String& file);
 

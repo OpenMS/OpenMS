@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_TOPPASTOOLVERTEX_H
@@ -121,9 +121,9 @@ namespace OpenMS
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 			
 			/// Returns the name of the tool
-			const String& getName();
+			const String& getName() const;
 			/// Returns the type of the tool
-			const String& getType();
+			const String& getType() const;
 			/// Fills @p input_infos with the required input file/list parameters together with their valid types.
 			void getInputParameters(QVector<IOInfo>& input_infos);
 			/// Fills @p output_infos with the required output file/list parameters together with their valid types.
@@ -138,22 +138,15 @@ namespace OpenMS
 			virtual void setTopoNr(UInt nr);
 			// documented in base class
 			virtual void reset(bool reset_all_files = false);
-			// documented in base class
-			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
-			/// Returns whether this node has already been processed during the current pipeline execution
-			bool isFinished();
 			/// Sets the Param object of this tool
 			void setParam(const Param& param);
 			/// Returns the Param object of this tool
 			const Param& getParam();
 			/// Checks if all parent nodes have finished the tool execution and, if so, runs the tool
-			void runToolIfInputReady();
-			/// Returns a vector containing the lists of current output files for all output parameters
-			const QVector<QStringList>& getCurrentOutputFileNames();
-			/// Returns a vector of output files that have already been written (during all merging rounds)
-			const QVector<QStringList>& getAllWrittenOutputFileNames();
+			void run();
 			/// Updates the vector containing the lists of current output files for all output parameters
-			void updateCurrentOutputFileNames();
+      /// using the input files as guidance
+			void updateCurrentOutputFileNames(const RoundPackages& pkg);
 			/// Sets the progress color
 			void setProgressColor(const QColor& c);
 			/// Returns the progress color
@@ -162,8 +155,10 @@ namespace OpenMS
 			void editParam();
 			/// Returns the number of iterations this tool has to perform
 			int numIterations();
+      /// Returns the full directory (including preceding tmp path)
+      String getFullOutputDirectory() const;
 			/// Returns the directory where this tool stores its output files
-			String getOutputDir();
+			String getOutputDir() const;
 			/// Creates all necessary directories
 			void createDirs();			
       /// Opens the folder where the file is contained
@@ -210,6 +205,9 @@ namespace OpenMS
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
 			//@}
 			
+
+      /// renames SUFFICES of the output files created by the TOPP tool by inspecting file content
+      bool renameOutput_();
 			/// Initializes the parameters with standard values (from -write_ini), uses the parameters from the old_ini_file if given, returns if parameters have changed (if old_ini_file was given)
 			bool initParam_(const QString& old_ini_file = "");
 			/// Fills @p io_infos with the required input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
@@ -217,10 +215,6 @@ namespace OpenMS
 			/// Writes @p param to the @p ini_file
 			void writeParam_(const Param& param, const QString& ini_file);
 			
-      /// When building the commandline and INI file to call a TOPP/UTIL, this function picks a list or a single file, depending on operation mode
-      /// Also index checking is done
-      QStringList getFileArgument_(const QStringList& source_files, const int index, const bool as_list) const;
-
 			/// The name of the tool
 			String name_;
 			/// The type of the tool, or "" if it does not have a type
@@ -229,22 +223,8 @@ namespace OpenMS
 			String tmp_path_;
 			/// The parameters of the tool
 			Param param_;
-			/// Stores whether this node has already been processed during the current pipeline execution
-			bool finished_;
-			/// Stores the current output file names for each output parameter
-			QVector<QStringList> current_output_files_;
-			/// Stores all output files that have already been written (during all merging rounds)
-			QVector<QStringList> all_written_output_files_;
 			/// Color representing the progress (red = failed, yellow = processing, green = finished, else: gray)
 			QColor progress_color_;
-			/// The number of the current iteration
-			int iteration_nr_;
-			/// The overall number of iterations to perform within the current call
-			int num_iterations_;
-			/// The length of (all) input lists
-			int input_list_length_;
-			/// Stores whether the "-in" parameter has list type
-			bool in_parameter_has_list_type_;
 			/// UID for output files
 			static UInt uid_;
 	};

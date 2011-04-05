@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_TOPPASINPUTFILELISTVERTEX_H
@@ -54,22 +54,18 @@ namespace OpenMS
 			virtual ~TOPPASInputFileListVertex();
 			/// Assignment operator
 			TOPPASInputFileListVertex& operator= (const TOPPASInputFileListVertex& rhs);
-			/// Returns the list of files
-      const QStringList& getInputFilenames();
 			/// Sets the list of files
 			void setFilenames(const QStringList& files);
 			/// Starts all tools below this node
-			void startPipeline();
+			virtual void run();
 			// documented in base class
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			// documented in base class
 			virtual QRectF boundingRect() const;
 			// documented in base class
 			virtual QPainterPath shape () const;
-			// documented in base class
-			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
 			/// Checks if the given list of file names is valid
-			bool fileNamesValid(const QStringList& files);
+			bool fileNamesValid();
 			/// Shows the dialog for editing the files
 			void showFilesDialog();
       /// Opens the folders of the input files
@@ -83,8 +79,6 @@ namespace OpenMS
 			
 		protected:
 		
-			/// The file names
-			QStringList files_;
 			/// The key of this input node (for applying resources from a resource file)
 			QString key_;
 		

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
@@ -42,7 +42,6 @@ namespace OpenMS
 {
 	TOPPASInputFileListVertex::TOPPASInputFileListVertex()
 		:	TOPPASVertex(),
-			files_(),
 			key_()
 	{
 		pen_color_ = Qt::black;
@@ -51,7 +50,6 @@ namespace OpenMS
 	
 	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files)
 		:	TOPPASVertex(),
-			files_(),
 			key_()
 	{
 		pen_color_ = Qt::black;
@@ -61,7 +59,6 @@ namespace OpenMS
 	
 	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs)
 		:	TOPPASVertex(rhs),
-			files_(rhs.files_),
 			key_()
 	{
 		pen_color_ = Qt::black;
@@ -77,7 +74,6 @@ namespace OpenMS
 	{
 		TOPPASVertex::operator=(rhs);
 		
-		files_ = rhs.files_;
 		key_ = rhs.key_;
 		
 		return *this;
@@ -90,7 +86,7 @@ namespace OpenMS
 	
 	void TOPPASInputFileListVertex::showFilesDialog()
 	{
-		TOPPASInputFilesDialog tifd(files_);
+    TOPPASInputFilesDialog tifd(this->getFileNames());
 		if (tifd.exec())
 		{
       QStringList updated_filelist;
@@ -102,10 +98,7 @@ namespace OpenMS
 		}
 	}
 	
-  const QStringList& TOPPASInputFileListVertex::getInputFilenames()
-	{
-		return files_;
-	}
+
 	
 	void TOPPASInputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
@@ -128,8 +121,9 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		QString text = QString::number(files_.size())+" input file"
-										+(files_.size() == 1 ? "" : "s");
+    QString text = QString::number(getFileNames().size())
+                   + " input file"
+									 + (getFileNames().size() == 1 ? "" : "s");
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 
@@ -151,18 +145,26 @@ namespace OpenMS
 		return shape;
 	}
 	
-	bool TOPPASInputFileListVertex::fileNamesValid(const QStringList& /*files*/)
+	bool TOPPASInputFileListVertex::fileNamesValid()
 	{
-		// some more checks TODO..
-		return true;
+    QStringList fl = getFileNames();
+    foreach (const QString& file, fl)
+		{
+      if (!File::exists(file))
+      {
+				return false;
+      }
+		}
+    return true;
 	}
 	
 	void TOPPASInputFileListVertex::openContainingFolder()
 	{
     std::set<String> directories;
-    for (int i=0;i<files_.size();++i)
+    QStringList fl = getFileNames();
+    for (int i = 0; i < fl.size(); ++i)
     { // collect unique directories
-      QFileInfo fi(files_[i]);
+      QFileInfo fi(fl[i]);
       directories.insert(String(QFileInfo(fi.canonicalFilePath()).path()));
     }
 
@@ -177,54 +179,23 @@ namespace OpenMS
     }
 	}
 	
-	void TOPPASInputFileListVertex::startPipeline()
+	void TOPPASInputFileListVertex::run()
 	{
-		if (files_.empty())
-		{
-			return;
-		}
-		
+    round_total_   = (int) output_files_.size(); // for now each file is one round; for the future we might allow to create blocks of files (e.g. for replicate measurements)
+    round_counter_ = (int) round_total_;
+
+    this->finished_ = true; // input node is ready to go (file check was already done)
+
+    std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
+
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
-			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
-			if (ttv)
+			if (tv)
 			{
-				if (!ttv->isAlreadyStarted())
-				{
-					ttv->runToolIfInputReady();
-					ttv->setAlreadyStarted(true);
-				}
-				continue;
-			}
-			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
-			if (mv)
-			{
-				if (!mv->isAlreadyStarted())
-				{
-					mv->forwardPipelineExecution();
-					mv->setAlreadyStarted(true);
-				}
-				continue;
+				tv->run();
 			}
 		}
-	}
-	
-	void TOPPASInputFileListVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run)
-	{
-		__DEBUG_BEGIN_METHOD__
-		
-		sc_files_per_round_ = files_.size();
-		sc_files_total_ = sc_files_per_round_;
-		sc_list_length_checked_ = true;
-		
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-		{
-			TOPPASVertex* tv = (*it)->getTargetVertex();
-			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
-		}
-		
-		__DEBUG_END_METHOD__
 	}
 	
 	void TOPPASInputFileListVertex::setKey(const QString& key)
@@ -240,10 +211,11 @@ namespace OpenMS
 	
 	void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
 	{
-    files_.clear();
-    foreach (QString file, files)
+    output_files_.clear();
+    output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
+    for (int f=0; f<files.size(); ++f)
     {
-      files_ << QDir::toNativeSeparators(file);
+      output_files_[f][-1].filenames << QDir::toNativeSeparators(files[f]);
     }
 	}
 	

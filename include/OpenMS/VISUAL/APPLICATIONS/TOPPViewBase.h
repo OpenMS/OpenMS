@@ -356,12 +356,12 @@ namespace OpenMS
       void toolCrashed();
       /// Called when a tool execution fails
       void toolFailed();
-      /// Called when a pipeline execution ended successfully in an output vertex
+			/// Called when a file was successfully written to an output vertex
       void outputVertexFinished(const String& file);
       /// Called when a TOPP tool produces (error) output.
       void updateTOPPOutputLog(const QString& out);
-      /// Opens each StringList of files in this TOPPView instance
-      void openFilesInTOPPView(QVector<QStringList> all_files);
+      /// Open files in this TOPPView instance (also updated 'recently opened files' list)
+      void openFilesInTOPPView(QStringList all_files);
       //@}
 
       /** @name Toolbar slots

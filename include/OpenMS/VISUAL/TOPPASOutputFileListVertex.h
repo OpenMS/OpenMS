@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_TOPPASOUTPUTFILELISTVERTEX_H
@@ -62,19 +62,17 @@ namespace OpenMS
 			// documented in base class
 			virtual void reset(bool reset_all_files = false);
 			/// Called when the parent node has finished execution
-			void finish();
-			/// Returns whether we are finished
-			bool isFinished();
-			/// Returns the directory where the output files are stored
-			String getOutputDir();
-			/// Creates all necessary directories
-			void createDirs();
+			virtual void run();
+      /// Returns the full directory (including preceding output path as selected by user)
+      String getFullOutputDirectory() const;
+      /// Returns the directory where the output files are stored
+			String getOutputDir() const;
+			/// Creates the output directory for this node
+			String createOutputDir();
 			/// Sets the topological sort number and removes invalidated tmp files
 			virtual void setTopoNr(UInt nr);
       /// Opens the folders of the output files
       void openContainingFolder();
-      /// Returns the vector of output files
-      const QStringList& getAllWrittenOutputFileNames();
 
 		public slots:
 		
@@ -89,11 +87,9 @@ namespace OpenMS
 			void iAmDone();
 			
 		protected:
-		
-			/// Stores whether the pipeline ending in this vertex has finished already
-			bool finished_;
-			/// The output file names
-			QStringList files_;
+      // convenience members, not required for operation, but for progress during copying
+		  int files_written_; //< files that were already written
+      int files_total_;   //< total number of files from upstream
 	};
 }
 

@@ -73,6 +73,42 @@ namespace OpenMS
 	  return true;
 	}
 	
+	bool File::removeDirRecursively(const String& dir_name)
+	{
+		bool fail = false;
+		QString path = dir_name.toQString();
+    QDir dir(path);
+		QStringList files = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+		foreach (const QString& file_name, files)
+		{
+			if (!dir.remove(file_name))
+			{
+				std::cerr << "Could not remove file " << String(file_name) << "!" << std::endl;
+				fail = true;
+			}
+		}
+		QStringList contained_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+		foreach (const QString& contained_dir, contained_dirs)
+		{
+			if (!removeDirRecursively(path + QDir::separator() + contained_dir))
+			{
+				fail = true;
+			}
+		}
+		
+		QDir parent_dir(path);
+		if (parent_dir.cdUp())
+		{
+			if (!parent_dir.rmdir(path))
+			{
+				std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
+				fail = true;
+			}
+		}
+		
+		return !fail;
+	}
+
 	String File::absolutePath(const String& file)
 	{
 		QFileInfo fi(file.toQString());

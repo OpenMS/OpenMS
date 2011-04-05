@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
@@ -92,8 +92,8 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		QString text = QString::number(files_.size())+" output file"
-										+(files_.size() == 1 ? "" : "s");
+    QString text =  QString::number(files_written_) + "/" 
+                  + QString::number(files_total_) + " output file" + (files_total_ == 1 ? "" : "s");
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 		
@@ -115,75 +115,108 @@ namespace OpenMS
 		return shape;
 	}
 	
-	void TOPPASOutputFileListVertex::finish()
+	void TOPPASOutputFileListVertex::run()
 	{
 		__DEBUG_BEGIN_METHOD__
 		
 		// copy tmp files to output dir
 		
+    // get incoming edge and preceding vertex
 		TOPPASEdge* e = *inEdgesBegin();
-		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
-		const QVector<QStringList>& output_files = tv->getCurrentOutputFileNames();
-		int param_index = e->getSourceOutParam();
-		if (output_files.size() <= param_index)
-		{
-			std::cerr << "Parent tool has no output files. This is a bug, please report it!" << std::endl;
+		TOPPASVertex* tv = e->getSourceVertex();
+    RoundPackages pkg = tv->getOutputFiles();
+    if (pkg.size()==0)
+    {
+			std::cerr << "A problem occured while grabbing files from the parent tool. This is a bug, please report it!" << std::endl;
 			__DEBUG_END_METHOD__
 			return;
 		}
-		const QStringList& tmp_file_names = output_files[param_index];
-		QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
-		
-		createDirs();
 
-		if (!tmp_file_names.isEmpty())
-		{
-			foreach (const QString& f, tmp_file_names)
-			{
-				if (!File::exists(f))
-				{
-					std::cerr << "The file '" << String(f) << "' does not exist!" << std::endl;
-					continue;
-				}
-				QString new_file = parent_dir 
-                           + QDir::separator()
-                           + getOutputDir().toQString()
+		String full_dir = createOutputDir(); // create output dir
+
+    round_total_ = (int) pkg.size(); // take number of rounds from previous tool(s) - should all be equal
+    round_counter_ = 0;        // once round_counter_ reaches round_total_, we are done
+
+    // clear output file list
+		output_files_.clear();
+    output_files_.resize(pkg.size()); // #rounds
+
+    files_total_ = 0;
+    files_written_ = 0;
+
+    bool dry_run = qobject_cast<TOPPASScene*>(scene())->isDryRun();
+
+    int param_index_src = e->getSourceOutParam();
+    int param_index_me = e->getTargetInParam();
+    for (int round=0; round < pkg.size(); ++round)
+    {
+      foreach (const QString& f, pkg[round][param_index_src].filenames)
+		  {
+			  if (!dry_run && !File::exists(f))
+			  {
+				  std::cerr << "The file '" << String(f) << "' does not exist!" << std::endl;
+				  continue;
+			  }
+        QString new_file = full_dir.toQString()
                            + QDir::separator()
                            + File::basename(f).toQString().left(190); // ensure 190 char filename (we might append more and reach ~NTFS limit)
-				if (new_file.endsWith("_tmp"))
-				{
-					new_file.chop(4);
-				}
-				new_file += "_processed";
-				// get file type and rename
-				FileTypes::Type ft = FileHandler::getTypeByContent(f);
-				if (ft != FileTypes::UNKNOWN)
-				{
-					new_file += "."+(FileHandler::typeToName(ft)).toQString();
-				}
+			
+        // remove "_tmp<number>" if its a suffix
+        QRegExp rx("_tmp\\d+$");
+			  int tmp_index = rx.indexIn(new_file);
+        if (tmp_index != -1) new_file = new_file.left(tmp_index);
+			
+        // get file type and rename
+			  FileTypes::Type ft = (dry_run ? FileTypes::UNKNOWN : FileHandler::getTypeByContent(f)); // this will access the file physically
+			  if (ft != FileTypes::UNKNOWN)
+			  {
+          QString suffix = QString(".") + FileHandler::typeToName(ft).toQString();
+          if (!new_file.endsWith(suffix)) new_file += suffix;
+			  }
 
-        new_file = QDir::toNativeSeparators(new_file);
+        // only scheduled for writing
+        output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_file));
+        ++files_total_; 
+		  }
+    }
 
-				if (File::exists(new_file))
-				{
-					QFile::remove(new_file);
-				}
-				if (!QFile::copy(f, new_file))
-				{
-					std::cerr << "Could not copy tmp output file " << String(f) << " to " << String(new_file) << std::endl;
-				}
-				else
-				{
-					files_.push_back(new_file);
-					emit outputFileWritten(new_file);
-				}
-			}
-		}
-		
-		update(boundingRect());
-		
+    // do the actual copying
+    if (dry_run) // assume the copy worked
+    {
+      files_written_ = files_total_;
+      update(boundingRect()); // repaint
+    }
+    else
+    {
+      for (int round=0; round < pkg.size(); ++round)
+      {
+        round_counter_ = round; // for global update, in case someone asks
+        for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
+		    {
+          QString file_from = pkg[round][param_index_src].filenames[i];
+          QString file_to   = output_files_[round][param_index_me].filenames[i];
+			    if (File::exists(file_to))
+			    {
+				    if (!QFile::remove(file_to))
+            {
+              std::cerr << "Could not delete old output file " << String(file_to) << " before overwriting with new one."<< std::endl;
+            }
+			    }
+			    if (!QFile::copy(file_from, file_to))
+			    {
+				    std::cerr << "Could not copy tmp output file " << String(file_from) << " to " << String(file_to) << std::endl;
+			    }
+			    else
+			    {
+            ++files_written_;
+				    emit outputFileWritten(file_to);
+			    }
+        }
+        update(boundingRect()); // repaint
+      }
+    }
+
 		finished_ = true;
-		checkIfSubtreeFinished();
 		emit iAmDone();
 		
 		__DEBUG_END_METHOD__
@@ -198,54 +231,38 @@ namespace OpenMS
 
 	void TOPPASOutputFileListVertex::openContainingFolder()
 	{
-    std::set<String> directories;
-    for (int i=0;i<files_.size();++i)
-    { // collect unique directories
-      QFileInfo fi(files_[i]);
-      directories.insert(String(QFileInfo(fi.canonicalFilePath()).path()));
-    }
-
-    // open them
-    for (std::set<String>::const_iterator it=directories.begin();it!=directories.end();++it)
+    QString path = getFullOutputDirectory().toQString();
+    if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
     {
-      QString path = QDir::toNativeSeparators(it->toQString());
-      if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
-      {
-        QMessageBox::warning(0, "Open Folder Error", String("The folder " + path + " could not be opened!").toQString());
-      }
+      QMessageBox::warning(0, "Open Folder Error", "The folder " + path + " could not be opened!");
     }
 	}
 
-  const QStringList& TOPPASOutputFileListVertex::getAllWrittenOutputFileNames()
+  String TOPPASOutputFileListVertex::getFullOutputDirectory() const
   {
-    return files_;
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    String dir = String(ts->getOutDir()).substitute("\\", "/");
+    return QDir::cleanPath((dir.ensureLastChar('/') + getOutputDir()).toQString() );
   }
 
-	bool TOPPASOutputFileListVertex::isFinished()
+	String TOPPASOutputFileListVertex::getOutputDir() const
 	{
-		return finished_;
+    String dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_);
+    return dir;
 	}
 	
-	String TOPPASOutputFileListVertex::getOutputDir()
+	String TOPPASOutputFileListVertex::createOutputDir()
 	{
-		String dir = String("TOPPAS_out")+String(QDir::separator())+get3CharsNumber_(topo_nr_);
-		
-		return dir;
-	}
-	
-	void TOPPASOutputFileListVertex::createDirs()
-	{
-		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		QString out_dir = ts->getOutDir();
-		QDir current_dir(out_dir);
-		String new_dir = getOutputDir();
-		if (!File::exists(String(out_dir)+String(QDir::separator())+new_dir))
+    String full_dir = getFullOutputDirectory();
+		if (!File::exists(full_dir))
 		{
-			if (!current_dir.mkpath(new_dir.toQString()))
+			QDir dir;
+      if (!dir.mkpath(full_dir.toQString()))
 			{
-				std::cerr << "Could not create path " << new_dir << std::endl;
+				std::cerr << "Could not create path " << full_dir << std::endl;
 			}
 		}
+    return full_dir;
 	}
 	
 	void TOPPASOutputFileListVertex::setTopoNr(UInt nr)
@@ -262,12 +279,13 @@ namespace OpenMS
 	{
 		__DEBUG_BEGIN_METHOD__
 		
-		TOPPASVertex::reset();
-		finished_ = false;
+		files_total_ = 0;
+    files_written_ = 0;
+
+    TOPPASVertex::reset();
 		
 		if (reset_all_files)
 		{
-			files_.clear();
 			// do not actually delete the output files here
 		}
 		

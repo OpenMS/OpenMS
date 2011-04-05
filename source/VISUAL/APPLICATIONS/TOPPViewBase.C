@@ -2651,7 +2651,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
       connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
       connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
-      connect(scene, SIGNAL(openInTOPPView(QVector<QStringList>)), this, SLOT(openFilesInTOPPView(QVector<QStringList>)));
+      connect(scene, SIGNAL(openInTOPPView(QStringList)), this, SLOT(openFilesInTOPPView(QStringList)));
     }
 
     //connect vertex signals/slots for log messages
@@ -4300,25 +4300,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   void TOPPViewBase::outputVertexFinished(const String& file)
   {
-    String text = "Output file '"+file+"' written.";
+    String text = "Output file '" + file + "' written.";
     showLogMessage_(LS_NOTICE, text, "");
   }
 
   void TOPPViewBase::updateTOPPOutputLog(const QString& out)
   {
-    TOPPASToolVertex* sender = qobject_cast<TOPPASToolVertex*>(QObject::sender());
-    if (!sender)
-    {
-      return;
-    }
-    /*
-    QString text = (sender->getName()).toQString();
-    if (sender->getType() != "")
-    {
-      text += " ("+(sender->getType()).toQString()+")";
-    }
-    text += ":\n" + out;
-    */
     QString text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
                         // we need to rethink this (probably only trigger this slot when tool 100% finished)
 
@@ -4329,14 +4316,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     log_->append(text);
   }
 
-  void TOPPViewBase::openFilesInTOPPView(QVector<QStringList> all_files)
+  void TOPPViewBase::openFilesInTOPPView(QStringList files)
   {
-    foreach(QStringList sl, all_files)
+    foreach(QString s, files)
     {
-      foreach(QString s, sl)
-      {
-        addDataFile(s, false, false, s);
-      }
+      addDataFile(s, false, false, s);
     }
   }
 

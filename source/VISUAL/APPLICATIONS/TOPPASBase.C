@@ -352,7 +352,7 @@ namespace OpenMS
         connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
         connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
         connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
-        connect(scene, SIGNAL(openInTOPPView(QVector<QStringList>)), this, SLOT(openFilesInTOPPView(QVector<QStringList>)));
+        connect(scene, SIGNAL(openInTOPPView(QStringList)), this, SLOT(openFilesInTOPPView(QStringList)));
       }
 			else
 			{
@@ -380,10 +380,17 @@ namespace OpenMS
 					connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 					continue;
 				}
+
+        TOPPASMergerVertex* tmv = qobject_cast<TOPPASMergerVertex*>(*it);
+				if (tmv)
+				{
+          connect (tmv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
+        }
+
 				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
 				if (oflv)
 				{
-					connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+					connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&))); 
 					continue;
 				}
 			}
@@ -962,12 +969,13 @@ namespace OpenMS
 		{
 			tv = new TOPPASOutputFileListVertex();
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
-			connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+			connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&))); 
 			scene->connectOutputVertexSignals(oflv);
 		}
 		else if (tool_name == "<Merger>")
 		{
 			tv = new TOPPASMergerVertex();
+      connect (tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
 		}
 		else // node is a TOPP tool
 		{	
@@ -1109,19 +1117,6 @@ namespace OpenMS
 	
 	void TOPPASBase::updateTOPPOutputLog(const QString& out)
 	{
-		TOPPASToolVertex* sender = qobject_cast<TOPPASToolVertex*>(QObject::sender());
-		if (!sender)
-		{
-			return;
-		}
-    /*
-		QString text = (sender->getName()).toQString();
-		if (sender->getType() != "")
-		{
-			text += " ("+(sender->getType()).toQString()+")";
-		}
-		text += ":\n" + out;
-    */
     QString text = out; // shortened version for now (if we reintroduce simultaneous tool execution, 
                         // we need to rethink this (probably only trigger this slot when tool 100% finished)
 
@@ -1213,41 +1208,37 @@ namespace OpenMS
     return "";
   }
 
-  void TOPPASBase::openFilesInTOPPView(QVector<QStringList> all_files)
+  void TOPPASBase::openFilesInTOPPView(QStringList files)
   {    
-    foreach (const QStringList& files, all_files)
+    if (files.size() > 0)
     {
-      if (files.size() > 0)
+      QProcess* p = new QProcess();
+      p->setProcessChannelMode(QProcess::ForwardedChannels);
+      QString toppview_executable = "TOPPView";        
+      QStringList arg = files;
+
+      if (files.size() > 1)
       {
-        QProcess* p = new QProcess();
-        p->setProcessChannelMode(QProcess::ForwardedChannels);
-        QString toppview_executable;
-        toppview_executable = "TOPPView";        
-        QStringList arg = files;
-
-        if (files.size() > 1)
+        // ask user how to open multiple files
+        if ( !QMessageBox::question(
+                this,
+                tr("Open in separate windows? -- TOPPAS"),
+                tr("How do you want to open the output files?"),
+                tr("&Single window"), tr("&Separate windows"),
+                QString::null, 0, 1 ) )
         {
-          // ask user how to open multiple files
-          if ( !QMessageBox::question(
-                  this,
-                  tr("Open in separate windows? -- TOPPAS"),
-                  tr("How do you want to open the output files?"),
-                  tr("&Single window"), tr("&Separate windows"),
-                  QString::null, 0, 1 ) )
-          {
-            arg = files.join(" + ").split(" ", QString::SkipEmptyParts);
-          }
+          arg = files.join(" + ").split(" ", QString::SkipEmptyParts);
         }
+      }
 
-        p->start(toppview_executable, arg);
-        if (!p->waitForStarted())
-        {
-          // execution failed
-          std::cerr << p->errorString().toStdString() << std::endl;
+      p->start(toppview_executable, arg);
+      if (!p->waitForStarted())
+      {
+        // execution failed
+        std::cerr << p->errorString().toStdString() << std::endl;
 #if defined(Q_WS_MAC)
-          std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
+        std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
 #endif
-        }
       }
     }
   }

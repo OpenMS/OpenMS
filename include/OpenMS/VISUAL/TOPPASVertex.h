@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_TOPPASVERTEX_H
@@ -61,6 +61,7 @@
 // ----------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
@@ -90,7 +91,8 @@ namespace OpenMS
 			public QGraphicsItem
 	{
 		Q_OBJECT
-		
+    Q_INTERFACES(QGraphicsItem)
+
 		public:
 			
 			/// The container for in/out edges
@@ -99,7 +101,29 @@ namespace OpenMS
 			typedef EdgeContainer::iterator EdgeIterator;
 			/// A const iterator for in/out edges
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
-			
+			/// Info for one edge and round, to be passed to next node
+      struct VertexRoundPackage
+      {
+        VertexRoundPackage()
+          : filenames(),
+            edge(0)
+        {
+        }
+        QStringList filenames; //< filenames passed from upstream node in this round
+        TOPPASEdge* edge; //< edge that connects the upstream node to the current one
+      };
+
+      /// all infos to process one round for a vertex (from all incoming vertices)
+      /// indexing via "parameter_index" of adjacent edge (could later be param_name) -> filenames
+      /// Index for input and output edges is (-1) implicitly, thus we need signed type
+      /// warning: the index refers to either input OR output (depending on if this structure is used for input files storage or output files storage)
+      typedef std::map<Int, VertexRoundPackage> RoundPackage;
+      typedef RoundPackage::const_iterator RoundPackageConstIt;
+      typedef RoundPackage::iterator RoundPackageIt;
+
+      /// all information a node needs to process all rounds
+      typedef std::vector<RoundPackage> RoundPackages;
+
 			/// The color of a vertex during depth-first search
 			enum DFS_COLOR
 			{
@@ -117,6 +141,14 @@ namespace OpenMS
 			/// Assignment operator
 			TOPPASVertex& operator= (const TOPPASVertex& rhs);
 			
+      /// get the round package for this node from upstream
+      /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
+      /// returns false on failure
+      bool buildRoundPackages(RoundPackages& pkg, String& error_msg);
+
+      /// check if all upstream nodes are ready to go ( 'finished_' is true)
+      bool isUpstreamReady();
+
 			/// Returns the bounding rectangle of this item
 			virtual QRectF boundingRect() const = 0;
 			/// Returns a more precise shape
@@ -161,32 +193,35 @@ namespace OpenMS
 			UInt getTopoNr();
 			/// Sets the topological sort number (overridden in tool and output vertices)
 			virtual void setTopoNr(UInt nr);
-			/// Checks if the tools in the subtree below this node have finished and if yes, propagates this upwards
-			virtual void checkIfSubtreeFinished();
-			/// Returns if all mergers further upstream in the pipeline have finished merging already
-			virtual bool areAllUpstreamMergersFinished();
 			/// Resets the status
 			virtual void reset(bool reset_all_files = false);
-			/// Returns whether all tools in the subtree below this node are finished
-			virtual bool isSubtreeFinished();
-			/// Resets the subtree below this node
-			virtual void resetSubtree(bool including_this_node = true);
-			/// Recursive sanity check for mergers and tools
-			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
-			/// Used in sanity check, returns the overall number of files at this node over all merging rounds
-			int getScFilesTotal();
-			/// Used in sanity check, returns the number of files at this node per merging round
-			int getScFilesPerRound();
-			/// Used in sanity check, returns if this node has already been checked
-			bool isScListLengthChecked();
-			/// Returns whether this node has already been started by an input file node
-			bool isAlreadyStarted();
-			/// Sets whether this node has already been started by an input file node
-			void setAlreadyStarted(bool b);
 			/// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
 			virtual void markUnreachable();
 			/// Returns whether this node is reachable
 			bool isReachable();
+			/// Returns whether this node has already been processed during the current pipeline execution
+			bool isFinished();
+      /// run the tool (either ToolVertex, Merger, or OutputNode)
+      /// @exception NotImplemented
+      virtual void run();
+      
+      /**
+        @brief gets filenames for a certain output parameter (from this vertex), for a certain TOPPAS round
+
+
+      */
+      QStringList getFileNames(int param_index, int round) const;
+
+      /// get all output files for all parameters for all rounds
+      QStringList getFileNames() const;
+
+      // get the output structure directly
+      const RoundPackages& getOutputFiles() const;
+
+
+      /// check if all upstream nodes are finished
+      bool allInputsReady();
+
 		
 		public slots:
 		
@@ -230,20 +265,18 @@ namespace OpenMS
 			bool topo_sort_marked_;
 			/// The number in a topological sort of the entire graph
 			UInt topo_nr_;
-			/// Indicates whether all tools in the subtree below this node are finished
-			bool subtree_finished_;
-			/// Used during sanity check, stores the number of files at this node per merging round
-			int sc_files_per_round_;
-			/// Used during sanity check, stores the overall number of files at this node over all merging rounds
-			int sc_files_total_;
-			/// Used during sanity check, stores if this node has been checked already
-			bool sc_list_length_checked_;
-			/// Stores if the file names for the current call are already known
-			bool files_known_;
-			/// Stores if this node has already been started by an input file node
-			bool already_started_;
+			/// Stores the current output file names for each output parameter
+			RoundPackages output_files_;
+      /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)
+      int round_total_;
+      /// currently finished number of rounds (TODO: do we need that?)
+      int round_counter_;
+			/// Stores whether this node has already been processed during the current pipeline execution
+			bool finished_;
 			/// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
 			bool reachable_;
+
+
 			
 			#ifdef TOPPAS_DEBUG
 			// Indentation level for nicer debug output
@@ -262,9 +295,7 @@ namespace OpenMS
 			/// Moves the target pos of the edge which is just being created to @p pos
 			virtual void moveNewEdgeTo_(const QPointF& pos);
 			/// Returns a three character string (i.e. 001 instead of 1) for the given @p number
-			String get3CharsNumber_(UInt number);
-			/// Removes the specified directory (absolute path). Returns true if successful.
-			bool removeDirRecursively_(const QString& dir_name);
+			String get3CharsNumber_(UInt number) const;
 			
 			/// Displays the debug output @p message, if TOPPAS_DEBUG is defined
 			void debugOut_(const String&
