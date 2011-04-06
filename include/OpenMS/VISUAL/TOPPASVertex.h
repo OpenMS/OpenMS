@@ -91,7 +91,7 @@ namespace OpenMS
 			public QGraphicsItem
 	{
 		Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
+    //Q_INTERFACES(QGraphicsItem)  // works only >Qt4.6
 
 		public:
 			

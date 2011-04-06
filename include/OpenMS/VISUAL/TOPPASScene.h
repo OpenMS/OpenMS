@@ -151,7 +151,7 @@ namespace OpenMS
 			/// Updates all edge colors (color of green and yellow edges can change when edges are added/removed)
 			void updateEdgeColors();
       /// Called when user fires "Resume" action, to clear downstream nodes from previous results
-      void TOPPASScene::resetDownstream(TOPPASVertex* vertex);
+      void resetDownstream(TOPPASVertex* vertex);
 			/// Runs the pipeline
 			void runPipeline();
 			/// Stores the pipeline to @p file

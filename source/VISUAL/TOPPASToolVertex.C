@@ -671,7 +671,7 @@ namespace OpenMS
           bool success = file.rename(name_old_to_new[it->second.filenames[fi]].toQString());
           if (!success)
           {
-            std::cerr << "Could not rename " << it->second.filenames[fi] << " to " << name_old_to_new[it->second.filenames[fi]] << "\n";
+            std::cerr << "Could not rename " << String(it->second.filenames[fi]) << " to " << name_old_to_new[it->second.filenames[fi]] << "\n";
             return false;
           }
           it->second.filenames[fi] = name_old_to_new[it->second.filenames[fi]].toQString();
