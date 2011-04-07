@@ -594,6 +594,10 @@ namespace OpenMS
 		{
 			String id(tv->getTopoNr()-1);
 			
+      // common for all vertices
+      save_param.setValue("vertices:"+id+":recycle_output", DataValue(tv->isRecyclingEnabled() ? "true" : "false"));
+
+      // vertex subclasses
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
 			if (iflv)
 			{
@@ -630,7 +634,6 @@ namespace OpenMS
 				save_param.insert("vertices:"+id+":parameters:", ttv->getParam());
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
-				save_param.setValue("vertices:"+id+":list_mode", DataValue("false")); // obsolete, but keep it for compatibility with older versions..
 				continue;
 			}
 
@@ -684,7 +687,7 @@ namespace OpenMS
     {
       StringList substrings;
       it.getName().split(':', substrings);
-      if (substrings.back() == "toppas_type") // next node (all nodes begin with "toppas_type")
+      if (substrings.back() == "toppas_type") // next node (all nodes have a "toppas_type")
       {
         current_vertex = 0;
       	current_type = (it->value).toString();
@@ -747,6 +750,13 @@ namespace OpenMS
 					
 					current_vertex->setPos(QPointF(x,y));
 					
+          // vertex parameters:
+          if (vertices_param.exists(current_id + ":recycle_output")) // only sine TOPPAS 1.9, so does not need to exist
+          {
+            String recycle = vertices_param.getValue(current_id + ":recycle_output");
+				    current_vertex->setRecycling(recycle == "true" ? true : false);
+          }
+
 					addVertex(current_vertex);
 					
 					connectVertexSignals(current_vertex);
@@ -1431,49 +1441,47 @@ namespace OpenMS
 				}
 			}
 
-			QList<QSet<QString> > all_actions;
+      QSet<QString> action;
 
 			if (found_tool)
 			{
-				QSet<QString> tool_actions;
-				tool_actions.insert("Edit parameters");
-				tool_actions.insert("Resume");
-				tool_actions.insert("Open files in TOPPView");
-				tool_actions.insert("Open containing folder");
-				all_actions.push_back(tool_actions);
+				action.insert("Edit parameters");
+				action.insert("Resume");
+				action.insert("Open files in TOPPView");
+				action.insert("Open containing folder");
 			}
 
 			if (found_input)
 			{
-				QSet<QString> input_actions;
-				input_actions.insert("Change name");
-				input_actions.insert("Change files");
-				input_actions.insert("Open files in TOPPView");
-				input_actions.insert("Open containing folder");
-				all_actions.push_back(input_actions);
+				action.insert("Change name");
+				action.insert("Change files");
+				action.insert("Open files in TOPPView");
+				action.insert("Open containing folder");
 			}
 
 			if (found_output)
 			{
-				QSet<QString> output_actions;
-				output_actions.insert("Open files in TOPPView");
-				output_actions.insert("Open containing folder");
-				all_actions.push_back(output_actions);
+				action.insert("Open files in TOPPView");
+				action.insert("Open containing folder");
 			}
 
 			if (found_edge)
 			{
-				QSet<QString> edge_actions;
-				edge_actions.insert("Edit I/O mapping");
-				all_actions.push_back(edge_actions);
+				action.insert("Edit I/O mapping");
 			}
 
 			if (found_merger)
 			{
-				QSet<QString> merger_actions;
-				merger_actions.insert("Change mode");
-				all_actions.push_back(merger_actions);
+				action.insert("Change mode");
 			}
+
+      if (found_input || found_tool || found_merger)
+      {
+				action.insert("Change recycling mode");
+      }
+
+ 			QList< QSet<QString> > all_actions;
+			all_actions.push_back(action);
 
 			QSet<QString> supported_actions_set = all_actions.first();
 			foreach (const QSet<QString>& action_set, all_actions)
@@ -1530,6 +1538,18 @@ namespace OpenMS
 			
 			foreach (QGraphicsItem* gi, selectedItems())
 			{
+
+        if (text == "Change recycling mode")
+        {
+          TOPPASVertex* tv = dynamic_cast<TOPPASVertex*>(gi);
+          if (tv)
+          {
+            tv->invertRecylingMode();
+            tv->update(tv->boundingRect());
+          }
+          continue;
+        }
+
 				TOPPASEdge* edge = dynamic_cast<TOPPASEdge*>(gi);
 				if (edge)
 				{
@@ -1624,6 +1644,7 @@ namespace OpenMS
 					
 					continue;
 				}
+
 			}
 		}
 		
@@ -1836,7 +1857,7 @@ namespace OpenMS
 		connect(ttv, SIGNAL(toolFailed()), this, SLOT(logToolFailed()));
 		connect(ttv, SIGNAL(toolCrashed()), this, SLOT(logToolCrashed()));
 		
-		connect(ttv,SIGNAL(toolFailed()),this,SLOT(pipelineErrorSlot()));
+		connect(ttv,SIGNAL(toolFailed(const QString&)),this,SLOT(pipelineErrorSlot(QString)));
 		connect(ttv,SIGNAL(toolCrashed()),this,SLOT(pipelineErrorSlot()));
 
     connect(ttv, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));

@@ -146,7 +146,8 @@ namespace OpenMS
 			void run();
 			/// Updates the vector containing the lists of current output files for all output parameters
       /// using the input files as guidance
-			void updateCurrentOutputFileNames(const RoundPackages& pkg);
+      /// Returns true on success, on failure the error_message is filled
+			bool updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_message);
 			/// Sets the progress color
 			void setProgressColor(const QColor& c);
 			/// Returns the progress color
@@ -194,7 +195,7 @@ namespace OpenMS
 			/// Emitted when the tool crashes
 			void toolCrashed();
 			/// Emitted when the tool execution fails
-			void toolFailed();
+			void toolFailed(const QString& message = "");
 			/// Emitted from forwardTOPPOutput() to forward the signal outside
 			void toppOutputReady(const QString& out);
 		

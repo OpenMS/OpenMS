@@ -377,6 +377,7 @@ namespace OpenMS
 					connect (tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
 					connect (tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
 					connect (tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+          connect (tv, SIGNAL(toolFailed(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 					connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 					continue;
 				}

@@ -100,13 +100,21 @@ namespace OpenMS
   		text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 	  	painter->drawText(-(int)(text_boundings.width()/2.0), 31, text);
     }
-		
+
 		//topo sort number
 		qreal x_pos = -36.0;
 		qreal y_pos = -23.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 		
-		__DEBUG_END_METHOD__
+		
+		// recycling status
+    if (this->allow_output_recycling_)
+    {
+      painter->setPen(Qt::green);
+      painter->drawChord(-7,-32, 14, 14, 0*16, 180*16);
+    }
+
+    __DEBUG_END_METHOD__
 	}
 	
 	QRectF TOPPASMergerVertex::boundingRect() const

@@ -204,6 +204,12 @@ namespace OpenMS
       /// run the tool (either ToolVertex, Merger, or OutputNode)
       /// @exception NotImplemented
       virtual void run();
+      /// invert status of recycling
+      bool invertRecylingMode();
+      /// get status of recycling
+      bool isRecyclingEnabled() const;
+      /// set status of recycling
+      void setRecycling(const bool is_enabled);
       
       /**
         @brief gets filenames for a certain output parameter (from this vertex), for a certain TOPPAS round
@@ -275,7 +281,8 @@ namespace OpenMS
 			bool finished_;
 			/// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
 			bool reachable_;
-
+      /// shall subsequent tools be allowed to recycle the output of this node to match the number of rounds imposed by other parent nodes?
+      bool allow_output_recycling_;
 
 			
 			#ifdef TOPPAS_DEBUG

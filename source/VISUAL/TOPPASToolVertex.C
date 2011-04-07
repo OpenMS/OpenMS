@@ -346,12 +346,7 @@ namespace OpenMS
 			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
 			painter->drawText(-(int)(text_boundings.width()/2.0), +(int)(text_boundings.height()/1.33), type_.toQString());
 		}
-		
-		// progress light
-		painter->setPen(Qt::black);
-		painter->setBrush(progress_color_);
-		painter->drawEllipse(46,-52, 14, 14);
-		
+
 		//topo sort number
 		qreal x_pos = -64.0;
 		qreal y_pos = -41.0; 
@@ -364,6 +359,18 @@ namespace OpenMS
       QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 			painter->drawText((int)(62.0-text_boundings.width()), 48, text);
 		}
+
+		// recycling status
+    if (this->allow_output_recycling_)
+    {
+      painter->setPen(Qt::green);
+      painter->drawChord(-7,-52, 14, 14, 0*16, 180*16);
+    }
+		
+		// progress light
+		painter->setPen(Qt::black);
+		painter->setBrush(progress_color_);
+		painter->drawEllipse(46,-52, 14, 14);
 	}
 	
 	QRectF TOPPASToolVertex::boundingRect() const
@@ -416,12 +423,16 @@ namespace OpenMS
     if (!success)
     {
       std::cerr << "Could not retrieve input files from upstream nodes...\n";
-      emit toolFailed();
+      emit toolFailed(error_msg.toQString());
       return;
     }
 		
 		// all inputs are ready --> GO!
-		updateCurrentOutputFileNames(pkg); // based on input, we prepare output names
+		if (!updateCurrentOutputFileNames(pkg, error_msg)) // based on input, we prepare output names
+    {
+      emit toolFailed(error_msg.toQString());
+      return;
+    }
 		
 		createDirs();
 
@@ -691,27 +702,36 @@ namespace OpenMS
 		param_ = param;
 	}
 	
-	void TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages& pkg)
+	bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_msg)
 	{
     if (pkg.size() < 1)
     {
-      std::cerr << "Less than one round received from upstream tools. Something is fishy!\n";
-      return;
+      error_msg = "Less than one round received from upstream tools. Something is fishy!\n";
+      std::cerr << error_msg;
+      return false;
     }
 
     // look for the input with the most files in round 0 (as this is the maximal number of output files we can produce)
     // we assume the number of files is equal in all rounds...
-    int max_size_index = pkg[0].begin()->first;
-    int max_size = pkg[0].begin()->second.filenames.size();
+    // however, we upstream nodes which use 'recycling' of input, as the names will always be the same
+    int max_size_index = -1;
+    int max_size = -1;
     for (RoundPackageConstIt it  = pkg[0].begin();
                              it != pkg[0].end();
                              ++it)
     {
-      if (it->second.filenames.size() > max_size)
+      if (it->second.filenames.size() > max_size && !it->second.edge->getSourceVertex()->isRecyclingEnabled())
       {
         max_size_index = it->first;
         max_size       = it->second.filenames.size();
       }
+    }
+
+    if (max_size_index == -1)
+    {
+      error_msg = "Did not find upstream nodes with unrecycled names. Something is fishy!\n";
+      std::cerr << error_msg;
+      return false;
     }
 
     // use input names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
@@ -796,6 +816,7 @@ namespace OpenMS
         }
 			}
 		}
+    return true;
 	}
 
 	void TOPPASToolVertex::forwardTOPPOutput()

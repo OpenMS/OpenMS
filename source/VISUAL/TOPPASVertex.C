@@ -52,7 +52,8 @@ namespace OpenMS
       round_total_ (-1),
       round_counter_ (0),
       finished_(false),
-			reachable_(true)
+			reachable_(true),
+      allow_output_recycling_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -74,7 +75,8 @@ namespace OpenMS
       round_total_ (rhs.round_total_),
       round_counter_ (rhs.round_counter_),
       finished_(rhs.finished_),
-			reachable_(rhs.reachable_)
+			reachable_(rhs.reachable_),
+      allow_output_recycling_(rhs.allow_output_recycling_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -103,6 +105,7 @@ namespace OpenMS
     round_counter_ = rhs.round_counter_;
     finished_ = rhs.finished_;
 		reachable_ = rhs.reachable_;
+    allow_output_recycling_ = rhs.allow_output_recycling_;
 		
 		setPos(rhs.pos());
 		
@@ -134,13 +137,51 @@ namespace OpenMS
     
     if (inEdgesBegin() == inEdgesEnd())
     {
-      error_msg = "buildRoundPackages() called on vertex with no input edges!";
+      error_msg = "buildRoundPackages() called on vertex with no input edges!\n";
       std::cerr << error_msg;
       return false;
     }
 
-    TOPPASVertex* tv_tmp = (*inEdgesBegin())->getSourceVertex();
-    int round_common = tv_tmp->round_total_; // the first sets the pace
+    // -- determine number of rounds from incoming edges
+    int round_common = -1; // number of rounds common to all
+    int no_recycle_count = 0; // number of edges that do NOT do recycling (there needs to be at least one)
+    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{ // all incoming edges should have the same number of rounds (or should be set to 'recycle') !
+			TOPPASVertex* tv = (*it)->getSourceVertex();
+      if (tv->allow_output_recycling_) continue;
+      
+      ++no_recycle_count;
+      if (round_common == -1) round_common = tv->round_total_; // first non-recycler sets the pace
+
+      if (round_common != tv->round_total_)
+      {
+        error_msg = String("Number of rounds for incoming edges of #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle this input?\n";
+        std::cerr << error_msg;
+        return false;
+      }
+    }
+
+    // -- we demand at least one node with no recyling to allow to determine number of rounds
+    if (no_recycle_count == 0) 
+    {
+      error_msg = String("Number of rounds of #") + this->getTopoNr() + " cannot be determined as all input nodes have recycling enabled. Disable for at least one input!\n";
+      std::cerr << error_msg;
+      return false;
+    }
+
+    // -- check if rounds from recyling nodes are an integer part of total rounds, i.e. total_rounds = X * node_rounds, X from N+
+    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{ // look at all all recycling edges 
+			TOPPASVertex* tv = (*it)->getSourceVertex();
+      if (!tv->allow_output_recycling_) continue;
+
+      if (round_common % tv->round_total_ != 0) // modulo should be 0, if not ...
+      {
+        error_msg = String(tv->round_total_) + " rounds for incoming edges of #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Did you want to recycle this input?\n";
+        std::cerr << error_msg;
+        return false;
+      }
+    }
 
     if (round_common <= 0)
     {
@@ -154,12 +195,6 @@ namespace OpenMS
     for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{ // all incoming edges should have the same number of rounds!
 			TOPPASVertex* tv = (*it)->getSourceVertex();
-      if (round_common != tv->round_total_)
-      {
-        error_msg = String("Number of rounds for incoming edges of #") + this->getTopoNr() + " are not equal. No idea on how to combine them!";
-        std::cerr << error_msg;
-        return false;
-      }
 
       // fill files for each round
       int param_index_src_out = (*it)->getSourceOutParam();
@@ -168,9 +203,11 @@ namespace OpenMS
       {
         VertexRoundPackage rpg;
         rpg.edge = *it;
-        rpg.filenames = tv->getFileNames(param_index_src_out, round);
+        int upstream_round = round;
+        if (tv->allow_output_recycling_ && upstream_round >= tv->round_total_) upstream_round %= tv->round_total_;
+        rpg.filenames = tv->getFileNames(param_index_src_out, upstream_round);
         
-        while (pkg[round].count(param_index_tgt_in)) ++param_index_tgt_in; //hack for merger vertices, as they have multiple incoming edges with -1 as index
+        while (pkg[round].count(param_index_tgt_in)) --param_index_tgt_in; //hack for merger vertices, as they have multiple incoming edges with -1 as index
         
         pkg[round][param_index_tgt_in] = rpg; // index by incoming edge number
       }
@@ -405,7 +442,25 @@ namespace OpenMS
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
-	
+
+  bool TOPPASVertex::invertRecylingMode()
+  {
+    allow_output_recycling_ = !allow_output_recycling_;
+		emit somethingHasChanged();
+    return allow_output_recycling_;
+  }
+
+  bool TOPPASVertex::isRecyclingEnabled() const
+  {
+    return allow_output_recycling_;
+  }
+
+	void TOPPASVertex::setRecycling(const bool is_enabled)
+  {
+    allow_output_recycling_ = is_enabled;
+    emit somethingHasChanged();
+  }
+
 	bool TOPPASVertex::allInputsReady()
 	{
 		__DEBUG_BEGIN_METHOD__

@@ -131,7 +131,15 @@ namespace OpenMS
     qreal x_pos = -63.0;
     qreal y_pos = -19.0;
     painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
-	}
+	
+		// recycling status
+    if (this->allow_output_recycling_)
+    {
+      painter->setPen(Qt::green);
+      painter->drawChord(-7,-32, 14, 14, 0*16, 180*16);
+    }
+		
+  }
 	
 	QRectF TOPPASInputFileListVertex::boundingRect() const
 	{
