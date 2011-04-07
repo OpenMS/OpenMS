@@ -50,12 +50,7 @@ namespace OpenMS
     Q_OBJECT
 
     public:
-      virtual void 	start ( const QString & program, const QStringList & arguments, OpenMode mode = ReadWrite )
-      {
-        // don't do anything...
-        std::cout << "fake process " << program.toStdString() << " called.\n";
-        emit finished ( 0, QProcess::NormalExit);
-      }
+      virtual void 	start ( const QString & program, const QStringList & arguments, OpenMode mode = ReadWrite );
   };
 
 	/**

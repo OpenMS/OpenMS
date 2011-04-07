@@ -48,6 +48,15 @@
 
 namespace OpenMS
 {
+
+  
+  void FakeProcess::start ( const QString & program, const QStringList & /*arguments*/, OpenMode /*mode = ReadWrite*/ )
+  {
+    // don't do anything...
+    std::cout << "fake process " << program.toStdString() << " called.\n";
+    emit finished ( 0, QProcess::NormalExit);
+  }
+
 	TOPPASScene::TOPPASScene(QObject* parent, const String& tmp_path, bool gui)
 		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
