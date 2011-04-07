@@ -272,38 +272,42 @@ namespace OpenMS
 			}
 			
 			//-----------------------------------------------------------------------------------------------
-			//determine number of shown scans
-			UInt scans = 0;
-      ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + scans/2;
-
-      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it!=peak_map.RTEnd(rt_max); ++it)
+      // Determine number of shown scans (MS1)
+      Size n_ms1_scans = 0;
+      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.RTEnd(rt_max); ++it)
 			{
-        if (it->getMSLevel()==1)
+        if (it->getMSLevel() == 1)
         {
-          ++scans;
+          ++n_ms1_scans;
         }
 			}
 
-      Int peaks = 0;
-      for  (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2!=it->MZEnd(mz_max); ++it2)
+      // create iterator on scan in the middle of the map (these usually have MS2 and therefor larger spacing)
+      ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + n_ms1_scans / 2;
+
+      Size n_peaks_in_middle_scan = 0;
+      for  (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2 != it->MZEnd(mz_max); ++it2)
       {
-        ++peaks;
+        ++n_peaks_in_middle_scan;
       }
 
       // determine spacing for whole data
       DoubleReal min_spacing_mz = 1.0;
       DoubleReal average_spacing_rt = 1.0;
+      Size n_scans = peak_map.size();
 			{           
         vector<Real> mz_spacing;
-        for(Size i=0; i!= peak_map.size(); ++i)
+        for (Size i = 0; i != n_scans; ++i)
         {
           // skipp non MS1 and empty spectra
-          if (peak_map[i].getMSLevel() != 1 || peak_map[i].size() == 0)
+          Size ms_level = peak_map[i].getMSLevel() ;
+          Size n_peaks = peak_map[i].size();
+          if (ms_level != 1 || n_peaks < 2)
           {
             continue;
           }          
-          DoubleReal current_average_mz_spacing =  (peak_map[i][peak_map[i].size()-1].getMZ()- peak_map[i][0].getMZ())/peak_map[i].size();
-          mz_spacing.push_back(current_average_mz_spacing);
+          DoubleReal current_mz_spacing =  (peak_map[i][n_peaks - 1].getMZ() - peak_map[i][0].getMZ()) / n_peaks;
+          mz_spacing.push_back(current_mz_spacing);
         }
         sort(mz_spacing.begin(), mz_spacing.end());
         min_spacing_mz = mz_spacing.size() != 0 ? mz_spacing[0] : 1.0;
@@ -315,10 +319,12 @@ namespace OpenMS
 
         {
           vector<Real> rts;
-          for(Size i=0; i!= peak_map.size(); ++i)
+          for(Size i = 0; i != n_scans; ++i)
           {
-            // skip non MS1 and empty spectra
-            if (peak_map[i].getMSLevel()!=1 || peak_map[i].size()==0)
+            // skipp non MS1 and empty spectra
+            Size ms_level = peak_map[i].getMSLevel() ;
+            Size n_peaks = peak_map[i].size();
+            if (ms_level != 1 || n_peaks == 0)
             {
               continue;
             }
@@ -327,21 +333,20 @@ namespace OpenMS
           sort(rts.begin(), rts.end());
           if (rts.size() > 2)
           {
-            average_spacing_rt = (rts[rts.size()-1] - rts[0])/(DoubleReal)rts.size();
+            average_spacing_rt = (rts[rts.size() - 1] - rts[0])/(DoubleReal)rts.size();
           }
 				}
 			}
 
-			//-----------------------------------------------------------------------------------------------
-      //many data points than pixels?: we paint the maximum shown intensity per pixel
-      if (peaks*scans>mz_pixel_count*rt_pixel_count)
+      // Determine whether several peaks are expected to be drawn on the same pixel
+      if (n_peaks_in_middle_scan > mz_pixel_count ||  n_ms1_scans > rt_pixel_count)
 			{
+        // overlapping data points expected: draw maximum intensity
         paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
 			}
-			//-----------------------------------------------------------------------------------------------
-      //few data points: more expensive drawing of all datapoints (circles or points depending on zoom level)
 			else
 			{
+        // few data points expected: more expensive drawing of all datapoints (circles or points depending on zoom level)
         paintAllIntensities_(layer_index, min_spacing_mz, average_spacing_rt, painter);
 			}
 
@@ -477,6 +482,7 @@ namespace OpenMS
     // when data is zoomed in to single peaks these are visualized as circles
     //
     Int circle_size = 0;
+
     if(isMzToXAxis())
     {
       circle_size = min((Int)(pixel_width * minimum_spacing_mz),(Int)(pixel_height * average_spacing_rt))/2.0;
