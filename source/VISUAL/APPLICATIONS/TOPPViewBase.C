@@ -1134,27 +1134,28 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   	String abs_filename = File::absolutePath(filename);
 
-  	//check if the file exists
+    // check if the file exists
     if (!File::exists(abs_filename))
     {
-    	showLogMessage_(LS_ERROR,"Open file error",String("The file '")+abs_filename+"' does not exist!");
+      showLogMessage_(LS_ERROR, "Open file error",String("The file '") + abs_filename + "' does not exist!");
     	setCursor(Qt::ArrowCursor);
       return;
     }
 
-		//determine file type
+    // determine file type
   	FileHandler fh;
 		FileTypes::Type file_type = fh.getType(abs_filename);
-		if (file_type==FileTypes::UNKNOWN)
+    if (file_type == FileTypes::UNKNOWN)
 		{
-			showLogMessage_(LS_ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
+      showLogMessage_(LS_ERROR,"Open file error",String("Could not determine file type of '") + abs_filename + "'!");
     	setCursor(Qt::ArrowCursor);
       return;
 		}
-		//abort if file type unsupported
-		if (file_type==FileTypes::INI)
+
+    // abort if file type unsupported
+    if (file_type == FileTypes::INI)
 		{
-			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
+      showLogMessage_(LS_ERROR,"Open file error",String("The type '") + fh.typeToName(file_type) + "' is not supported!");
    		setCursor(Qt::ArrowCursor);
       return;
 		}
@@ -1177,12 +1178,12 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     try
     {
-	    if (file_type==FileTypes::FEATUREXML)
+      if (file_type == FileTypes::FEATUREXML)
 	    {
         FeatureXMLFile().load(abs_filename, *feature_map);
 				data_type = LayerData::DT_FEATURE;
       }
-      else if (file_type==FileTypes::CONSENSUSXML)
+      else if (file_type == FileTypes::CONSENSUSXML)
 	    {
         ConsensusXMLFile().load(abs_filename, *consensus_map);
 				data_type = LayerData::DT_CONSENSUS;
@@ -1205,7 +1206,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
     catch(Exception::BaseException& e)
     {
-    	showLogMessage_(LS_ERROR,"Error while loading file",e.what());
+      showLogMessage_(LS_ERROR,"Error while loading file", e.what());
     	setCursor(Qt::ArrowCursor);
       return;
     }
@@ -1214,8 +1215,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     peak_map_sptr->sortSpectra(true);
     peak_map_sptr->updateRanges(1);
 
-    //try to add the data
-		if (caption=="")
+    // try to add the data
+    if (caption == "")
 		{
 			caption = File::basename(abs_filename);
     }
@@ -1226,7 +1227,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     addData(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, data_type, false, show_options, true, abs_filename, caption, window_id, spectrum_id);
 
-  	//add to recent file
+    // add to recent file
     if (add_to_recent)
     {
       addRecentFile_(filename);
@@ -1235,7 +1236,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     // watch file contents for changes
     watcher_->addFile(abs_filename);
 
-    //reset cursor
+    // reset cursor
     setCursor(Qt::ArrowCursor);
   }
 
@@ -1334,7 +1335,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		//determine the window to open the data in
 		if (as_new_window) //new window
     {
-      if (!is_2D) //1d
+      if (!is_2D) // 1d
       {
         target_window = new Spectrum1DWidget(getSpectrumParameters(1), ws_);
       }
@@ -3352,7 +3353,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::showCurrentPeaksAs3D()
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-    if (layer.type==LayerData::DT_PEAK)
+
+    if (layer.type == LayerData::DT_PEAK)
     {
       //open new 3D widget
       Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
@@ -3367,7 +3369,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
      if (getActive1DWidget()) // switch from 1D to 3D
      {
        //TODO:
-       //- distinguish between survey scan and fragment scan (only makes sense for survey scan?)
+       //- doesnt make sense for fragment scan
        //- build new Area with mz range equal to 1D visible range
        //- rt range either overall MS1 data range or some convenient window
 
@@ -3376,13 +3378,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
      }
 
-      // Set Intensity mode
-      setIntensityMode(SpectrumCanvas::IM_SNAP);
-
       // set layer name
       String caption = layer.name + " (3D)";
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       showSpectrumWidgetInWindow(w, caption);
+
+      // set intensity mode (after spectrum has been added!)
+      setIntensityMode(SpectrumCanvas::IM_SNAP);
+
       updateLayerBar();
       updateViewBar();
       updateFilterBar();
