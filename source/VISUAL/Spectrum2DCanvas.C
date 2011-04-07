@@ -931,7 +931,7 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::intensityModeChange_()
 	{
-		for (Size i=0; i<layers_.size();++i)
+    for (Size i = 0; i < layers_.size(); ++i)
 		{
       recalculateDotGradient_(i);
 		}
@@ -1203,20 +1203,24 @@ namespace OpenMS
 			return;
 		}
 
-		//unselect all peaks
-		selected_peak_.clear();
-		measurement_start_.clear();
-
-		//remove the data
+    // remove the data
 		layers_.erase(layers_.begin()+layer_index);
 
-		//update visible area and boundaries
+    // update visible area and boundaries
+    DRange<3> old_data_range = overall_data_range_;
 		recalculateRanges_(0,1,2);
 
-		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+    // only reset zoom if data range has been changed
+    if (old_data_range != overall_data_range_)
+    {
+      resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
+    }
 
-		//update current layer if it became invalid
-		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
+    // update current layer if it became invalid
+    if (current_layer_ != 0 && current_layer_ >= getLayerCount())
+    {
+      current_layer_ = getLayerCount()-1;
+    }
 
 		if (layers_.empty())
 		{
@@ -1226,19 +1230,24 @@ namespace OpenMS
 			return;
 		}
 
+    // unselect all peaks
+    selected_peak_.clear();
+    measurement_start_.clear();
+
 		intensityModeChange_();
+
 		emit layerActivated(this);
 	}
 
 	//change the current layer
 	void Spectrum2DCanvas::activateLayer(Size layer_index)
 	{
-		if (layer_index >= getLayerCount() || layer_index==current_layer_)
+    if (layer_index >= getLayerCount() || layer_index == current_layer_)
 		{
-			return ;
+      return;
 		}
 
-		//unselect all peaks
+    // unselect all peaks
 		selected_peak_.clear();
 		measurement_start_.clear();
 
