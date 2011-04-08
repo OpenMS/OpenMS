@@ -53,8 +53,10 @@ endif()
 
 if (CMAKE_SIZEOF_VOID_P MATCHES "8")
 	set(OPENMS_64BIT_ARCHITECTURE 1 CACHE INTERNAL "Architecture-bits")
+	MESSAGE(STATUS "Architecture: 64 bit")
 else()
 	set(OPENMS_64BIT_ARCHITECTURE 0 CACHE INTERNAL "Architecture-bits")
+	MESSAGE(STATUS "Architecture: 32 bit")
 endif()
 
 # some of our own macros (OPENMS_CHECKLIB, QT4_WRAP_UI_OWN, ...)
@@ -199,6 +201,7 @@ set(MT_ENABLE_OPENMP ON CACHE BOOL "Should OpenMP support be enabled")
 if (MT_ENABLE_OPENMP)
 	find_package(OpenMP)
 endif()
+MESSAGE(STATUS "OPENMP: ${MT_ENABLE_OPENMP}")
 
 if (OPENMP_FOUND)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}") ## do NOT use add_definitions() here, because RC.exe on windows will fail
