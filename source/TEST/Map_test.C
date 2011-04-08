@@ -39,8 +39,8 @@ START_TEST(Map, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Map<int, int>* map_ptr;
-Map<int, int>* map_nullPointer;
+Map<int, int>* map_ptr = 0;
+Map<int, int>* map_nullPointer = 0;
 START_SECTION((Map()))
 	map_ptr = new Map<int, int>;
   TEST_NOT_EQUAL(map_ptr, map_nullPointer)
