@@ -1252,8 +1252,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 											(data_type == LayerData::DT_CONSENSUS) ||
 											(data_type == LayerData::DT_IDENT));
 
-		bool is_2D = (data_type != LayerData::DT_CHROMATOGRAM);
-
     // only one peak spectrum? disable 2D as default
     if (peak_map->size() == 1)
     {
@@ -1285,17 +1283,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			dialog.disableLocation(true);
 		}
 
-		//disable 1d/2d/3d option for features and single scans
+    //disable 1d/2d/3d option for feature/consensus/identification maps
 		if (mergeable)
 		{
 			dialog.disableDimension(true);
 		}
-		else if (!is_2D)
-		{
-			dialog.disableDimension(false);
-		}
-		//disable cutoff for features and single scans
-    if (mergeable || !is_2D)
+
+    //disable cutoff for feature/consensus/identification maps
+    if (mergeable)
     {
       dialog.disableCutoff(false);
     }
@@ -1335,11 +1330,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		//determine the window to open the data in
 		if (as_new_window) //new window
     {
-      if (!is_2D) // 1d
-      {
-        target_window = new Spectrum1DWidget(getSpectrumParameters(1), ws_);
-      }
-      else if (maps_as_1d) // 2d in 1d window
+      if (maps_as_1d) // 2d in 1d window
       {
         target_window = new Spectrum1DWidget(getSpectrumParameters(1), ws_);
       }
@@ -1347,7 +1338,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       {
         target_window = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
       }
-      else //3d
+      else // 3d
       {
         target_window = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
       }
@@ -1375,7 +1366,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         if (!target_window->canvas()->addLayer(peak_map,filename)) return;
 
 	      //calculate noise
-        if (use_intensity_cutoff && is_2D)
+        if (use_intensity_cutoff)
 	      {
           DoubleReal cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
 					//create filter
@@ -1387,7 +1378,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 					DataFilters filters;
 					filters.add(filter);
           target_window->canvas()->setFilters(filters);
-        } else if (is_2D)  // no mower, hide zeros if wanted
+        } else  // no mower, hide zeros if wanted
         {
           Int n_zeros = TOPPViewBase::countMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData()));
           if (n_zeros > 0)
