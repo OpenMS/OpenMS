@@ -341,6 +341,7 @@ namespace OpenMS
         // Ensure theoretical spectrum is drawn as dashed sticks
         tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
         tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
+
         // Add ion names as annotations to the theoretical spectrum
         for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
         {
@@ -353,6 +354,7 @@ namespace OpenMS
             tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
           }
         }
+
         // activate real data layer and spectrum
         tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
         tv_->getActive1DWidget()->canvas()->getCurrentLayer().current_spectrum = current_spectrum_index;
@@ -369,7 +371,6 @@ namespace OpenMS
         tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
         tv_->updateLayerBar();
-
         tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
       }
     }
