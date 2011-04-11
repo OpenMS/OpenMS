@@ -2381,7 +2381,7 @@ namespace OpenMS
           QList<QVariant> chroms_idx;
           for (vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
           {
-            chroms_idx.push_back(*vit);
+            chroms_idx.push_back((unsigned int)*vit);
           }
           a->setData(chroms_idx);
 
