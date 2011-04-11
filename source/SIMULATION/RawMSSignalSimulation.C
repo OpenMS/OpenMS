@@ -188,7 +188,7 @@ namespace OpenMS {
     defaults_.setSectionDescription("noise", "Parameters modelling noise in mass spectrometry measurements.");
     defaults_.setSectionDescription("noise:shot", "Parameters regarding shot noise modelling.");
     defaults_.setSectionDescription("noise:white", "Parameters regarding white noise modelling.");
-    defaults_.setSectionDescription("noise:detector", "Parameters regarding detector noise modelling.");
+    defaults_.setSectionDescription("noise:detector", "Parameters regarding detector noise modelling (set both parameters to 0 to disable it).");
 
     defaultsToParam_();
   }
@@ -286,11 +286,16 @@ namespace OpenMS {
     contaminants_loaded_=true;
   }
 
-  void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, FeatureMapSim & c_map)
+  void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, MSSimExperiment & experiment_ct, FeatureMapSim & c_map)
   {
 		LOG_INFO << "Raw MS1 Simulation ... ";
     // TODO: check if signal intensities scale linear with actual abundance, e.g. DOI: 10.1021/ac0202280 for NanoFlow-ESI
 
+    // we rely on the same size of Raw and Peak Map
+    if (experiment.size() != experiment_ct.size())
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, experiment_ct.size());
+    }
 
     if (param_.getValue("enabled") == "false")
     {
@@ -319,7 +324,7 @@ namespace OpenMS {
           feature_it != features.end();
           ++feature_it,++progress)
       {
-        add1DSignal_(*feature_it,experiment);
+        add1DSignal_(*feature_it, experiment, experiment_ct);
         this->setProgress(progress);
       }
     }
@@ -327,6 +332,10 @@ namespace OpenMS {
     {
       std::vector < MSSimExperiment*> experiments; // pointer to experiment(s)
       experiments.push_back(&experiment); // the master thread gets the original (just a reference, no copying here)
+
+      std::vector < MSSimExperiment*> experiments_ct; // pointer to experiment(s)
+      experiments_ct.push_back(&experiment_ct); // the master thread gets the original (just a reference, no copying here)
+
 
 #ifdef _OPENMP
       // prepare random numbers for the different threads
@@ -336,8 +345,10 @@ namespace OpenMS {
 
       threaded_random_numbers_.resize(thread_count);
       threaded_random_numbers_index_.resize(thread_count);
-      experiments.reserve(thread_count); // !reserve! 
+      experiments.reserve(thread_count); // !reserve!
+      experiments_ct.reserve(thread_count); // !reserve!
       std::vector < MSSimExperiment> experiments_tmp(thread_count-1); // holds MSExperiments for slave threads
+      std::vector < MSSimExperiment> experiments_ct_tmp(thread_count-1); // holds MSExperiments (centroided) for slave threads
 
       for(Size i=0 ; i<thread_count; ++i)
       {
@@ -349,17 +360,21 @@ namespace OpenMS {
       {
         // prepare a temporary experiment to store the results
         MSSimExperiment e_tmp = experiment;
+        MSSimExperiment e_ct_tmp = experiment_ct;
         // remove actual data
-        for(MSSimExperiment::Iterator temp_it = e_tmp.begin(); temp_it != e_tmp.end(); ++temp_it)
+        for(Size i = 0; i< e_tmp.size(); ++i)
         {
-          temp_it->clear(false);
+          e_tmp[i].clear(false);
+          e_ct_tmp[i].clear(false);
         }
         // each slave thread gets a copy
         for (Size i=1; i<thread_count; ++i)
         {
           experiments_tmp[i-1] = e_tmp;
+          experiments_ct_tmp[i-1] = e_ct_tmp;
           // assign it to the list of experiments (this is no real copy, but a reference!)
           experiments.push_back(&(experiments_tmp[i-1]));
+          experiments_ct.push_back(&(experiments_ct_tmp[i-1]));
         }
       }
 #else
@@ -377,7 +392,7 @@ namespace OpenMS {
         #ifdef _OPENMP // update experiment index if necessary
           current_thread = omp_get_thread_num();
         #endif
-        add2DSignal_(features[f], *(experiments[current_thread]));
+        add2DSignal_(features[f], *(experiments[current_thread]), *(experiments_ct[current_thread]));
 
         // progresslogger, only master thread sets progress (no barrier here)
 #ifdef _OPENMP
@@ -396,19 +411,20 @@ namespace OpenMS {
       } // ! raw signal sim
 
 #ifdef _OPENMP // merge back other experiments
-      for (Size i=1;i<experiments.size();++i)
+      for (Size i=1; i<experiments.size(); ++i)
       {
-        MSSimExperiment::Iterator org_it = experiment.begin();
-        MSSimExperiment::Iterator temp_it = experiments[i]->begin();
-
         // copy peak data from temporal experiment
-        for(; org_it != experiment.end() ; ++org_it, ++temp_it)
+        for(Size scan=0; scan < experiment.size(); ++scan)
         {
-          if(temp_it->empty()) continue; // we do not care if the spectrum wasn't touched at all
+          if ((*experiments[i])[scan].empty()) continue; // we do not care if the spectrum wasn't touched at all
           // append all points from temp to org
-          org_it->insert(org_it->end(), temp_it->begin(), temp_it->end());
+          experiment[scan].insert(experiment[scan].end(), (*experiments[i])[scan].begin(), (*experiments[i])[scan].end());
           // delete from child experiment to save memory (otherwise the merge would double it!)
-          temp_it->clear(false);
+          (*experiments[i])[scan].clear(false);
+
+          // peak GT ( small, so no need to compress)
+          experiment_ct[scan].insert(experiment_ct[scan].end(), (*experiments_ct[i])[scan].begin(), (*experiments_ct[i])[scan].end());
+
         }
       }
 #endif
@@ -424,7 +440,7 @@ namespace OpenMS {
     // build contaminant feature map & add raw signal
     if (experiment.size() > 1) // LC/MS only currently
     {
-      createContaminants_(c_map, experiment);
+      createContaminants_(c_map, experiment, experiment_ct);
     }
 
     if ((String)param_.getValue("ionization_type")=="MALDI")
@@ -454,7 +470,7 @@ namespace OpenMS {
     return fwhm;
   }
 
-  void RawMSSignalSimulation::add1DSignal_(Feature & active_feature, MSSimExperiment & experiment)
+  void RawMSSignalSimulation::add1DSignal_(Feature & active_feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct)
   {
     SimIntensityType scale = getFeatureScaledIntensity_(active_feature.getIntensity(), 100.0);
 
@@ -491,10 +507,10 @@ namespace OpenMS {
     
     SimCoordinateType mz_sampling_rate = fwhm / sampling_points_per_FWHM_;
 
-    samplePeptideModel1D_(isomodel, mz_start, mz_end, mz_sampling_rate, experiment, active_feature);
+    samplePeptideModel1D_(isomodel, mz_start, mz_end, mz_sampling_rate, experiment, experiment_ct, active_feature);
   }
 
-  void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment)
+  void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct)
   {
     SimIntensityType scale = getFeatureScaledIntensity_(active_feature.getIntensity(), 1.0);
 
@@ -560,7 +576,7 @@ namespace OpenMS {
     SimCoordinateType mz_sampling_rate = fwhm / sampling_points_per_FWHM_;
     // add peptide to GLOBAL MS map
     // add CH and new intensity to feature
-    samplePeptideModel2D_(pm, mz_start, mz_end, mz_sampling_rate, rt_start, rt_end, experiment, active_feature);
+    samplePeptideModel2D_(pm, mz_start, mz_end, mz_sampling_rate, rt_start, rt_end, experiment, experiment_ct, active_feature);
   }
 
 
@@ -568,13 +584,27 @@ namespace OpenMS {
 																										const SimCoordinateType mz_start,
                                                     const SimCoordinateType mz_end,
                                                     const SimCoordinateType mz_sampling_rate,
-																										MSSimExperiment & experiment, Feature & active_feature)
+																										MSSimExperiment & experiment,
+                                                    MSSimExperiment & experiment_ct,
+                                                    Feature & active_feature)
   {
     SimIntensityType intensity_sum = 0.0;
 
     //LOG_DEBUG << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
 
     SimPointType point;
+
+    // centroided GT
+    for (IsotopeDistribution::const_iterator iter = pm.getIsotopeDistribution().begin();
+         iter != pm.getIsotopeDistribution().end(); ++iter)
+    {
+      point.setMZ(iter->first);
+      point.setIntensity( iter->second );
+
+      if ( point.getIntensity() <= 0.0) continue;
+
+      experiment_ct[0].push_back(point);
+    }
 
     for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate)
     {
@@ -601,11 +631,13 @@ namespace OpenMS {
                                                     SimCoordinateType rt_start,
                                                     SimCoordinateType rt_end,
                                                     MSSimExperiment & experiment,
+                                                    MSSimExperiment & experiment_ct,
                                                     Feature & active_feature)
   {
     if (rt_start <=0) rt_start = 0;
 
     MSSimExperiment::iterator exp_start = experiment.RTBegin(rt_start);
+    MSSimExperiment::iterator exp_ct_start = experiment_ct.RTBegin(rt_start);
 
     if(exp_start == experiment.end() )
     {
@@ -619,12 +651,28 @@ namespace OpenMS {
     // Sample the model ...
     SimCoordinateType rt(0);
     MSSimExperiment::iterator exp_iter = exp_start;
-    for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
+    MSSimExperiment::iterator exp_ct_iter = exp_ct_start;
+    for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter, ++exp_ct_iter)
     {
 			rt = exp_iter->getRT();
       DoubleReal distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
       SimPointType point;
 
+      DoubleReal rt_intensity = ((EGHModel*)pm.getModel(0))->getIntensity(rt);
+
+      // centroided GT
+      for (IsotopeDistribution::const_iterator iter = ((IsotopeModel*)pm.getModel(1))->getIsotopeDistribution().begin();
+           iter != ((IsotopeModel*)pm.getModel(1))->getIsotopeDistribution().end(); ++iter)
+      {
+        point.setMZ(iter->first);
+        point.setIntensity( iter->second * rt_intensity * distortion );
+
+        if ( point.getIntensity() <= 0.0) continue;
+
+        exp_ct_iter->push_back(point);
+      }
+
+      // RAW signal
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate)
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
@@ -803,7 +851,7 @@ namespace OpenMS {
       feature.setMetaValue("elution_profile_bounds", elution_bounds);
   }
 
-  void RawMSSignalSimulation::createContaminants_(FeatureMapSim & c_map, MSSimExperiment & exp)
+  void RawMSSignalSimulation::createContaminants_(FeatureMapSim & c_map, MSSimExperiment & exp, MSSimExperiment & exp_ct)
   {
     if(exp.size() == 1)
     {
@@ -851,7 +899,7 @@ namespace OpenMS {
       feature.setMetaValue("sum_formula", contaminants_[i].sf.getString()); // formula without adducts
       feature.setCharge(contaminants_[i].q);
       feature.setMetaValue("charge_adducts","H"+String(contaminants_[i].q));  // adducts separately
-      add2DSignal_(feature, exp);
+      add2DSignal_(feature, exp, exp_ct);
       c_map.push_back(feature);
     }
 
@@ -975,8 +1023,9 @@ namespace OpenMS {
     DoubleReal detector_noise_mean = param_.getValue("noise:detector:mean");
     DoubleReal detector_noise_stddev = param_.getValue("noise:detector:stddev");
 
-		if(detector_noise_mean == 0.0 && detector_noise_stddev == 0.0) 
+		if (detector_noise_mean == 0.0 && detector_noise_stddev == 0.0) 
 		{
+      LOG_INFO << "Detector noise was disabled." << std::endl;
 			return;
 		}
 

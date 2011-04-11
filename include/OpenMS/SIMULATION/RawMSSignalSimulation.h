@@ -77,7 +77,7 @@ namespace OpenMS {
     void loadContaminants();
 
     /// fill experiment with signals and noise
-    void generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, FeatureMapSim & contaminants);
+    void generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, MSSimExperiment & experiment_ct, FeatureMapSim & contaminants);
 
   protected:
 
@@ -100,16 +100,18 @@ namespace OpenMS {
 
      @param feature The feature which should be simulated
      @param experiment The experiment to which the simulated signals should be added
+     @param experiment_ct Ground truth for picked peaks
      */
-    void add1DSignal_(Feature & feature, MSSimExperiment & experiment);
+    void add1DSignal_(Feature & feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct);
 
     /**
      @brief Add a 2D signal for a single feature
 
      @param feature The feature which should be simulated
      @param experiment The experiment to which the simulated signals should be added
+     @param experiment_ct Ground truth for picked peaks
      */
-    void add2DSignal_(Feature & feature, MSSimExperiment & experiment);
+    void add2DSignal_(Feature & feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct);
 
     /**
      @brief Samples signales for the given 1D model
@@ -118,6 +120,7 @@ namespace OpenMS {
      @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
      @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
      @param experiment Experiment to which the sampled signales will be added
+     @param experiment_ct Experiment to which the centroided Ground Truth sampled signales will be added
      @param activeFeature The current feature that is simulated
      */
     void samplePeptideModel1D_(const IsotopeModel & iso,
@@ -125,6 +128,7 @@ namespace OpenMS {
                                const SimCoordinateType mz_end,
                                const SimCoordinateType mz_sampling_rate,
                                MSSimExperiment & experiment,
+                               MSSimExperiment & experiment_ct,
                                Feature & activeFeature);
 
     /**
@@ -136,14 +140,18 @@ namespace OpenMS {
      @param rt_start Start coordinate (in rt dimension) of the region where the signals will be sampled
      @param rt_end End coordinate (in rt dimension) of the region where the signals will be sampled
      @param experiment Experiment to which the sampled signales will be added
+     @param experiment_ct Experiment to which the centroided Ground Truth sampled signales will be added
      @param activeFeature The current feature that is simulated
      */
     void samplePeptideModel2D_(const ProductModel<2> & pm,
                                const SimCoordinateType mz_start,
                                const SimCoordinateType mz_end,
                                const SimCoordinateType mz_sampling_rate,
-                               SimCoordinateType rt_start, SimCoordinateType rt_end,
-                               MSSimExperiment & experiment, Feature & activeFeature);
+                               SimCoordinateType rt_start,
+                               SimCoordinateType rt_end,
+                               MSSimExperiment & experiment,
+                               MSSimExperiment & experiment_ct,
+                               Feature & activeFeature);
 
     /**
      @brief Add the correct Elution profile to the passed ProductModel
@@ -153,7 +161,7 @@ namespace OpenMS {
     /**
      @brief build contaminant feature map
     */
-    void createContaminants_(FeatureMapSim & contaminants, MSSimExperiment & exp);
+    void createContaminants_(FeatureMapSim & contaminants, MSSimExperiment & exp, MSSimExperiment & exp_ct);
 
     /// Add shot noise to the experimet
     void addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit);

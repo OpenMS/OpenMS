@@ -567,7 +567,6 @@ namespace OpenMS
 		vectors.clear();
 		for (Size i = 0; i < sequences.size(); i++)
 		{	
-      std::cerr << "Seq is: " << sequences[i] << "\n";
 			if (sequences[i].size() > border_length)
 			{
 				encodeOligo(sequences[i].getPrefix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_left, false);

@@ -212,6 +212,8 @@ namespace OpenMS {
     }
     rt_sim.createExperiment(experiment_);
 
+    peak_map_ = experiment_; // initial Ground Truth for peak map is the same as for raw data
+
     // post rt sim labeling
     labeler_->postRTHook(feature_maps_);
 
@@ -239,7 +241,7 @@ namespace OpenMS {
     // debug
     verbosePrintFeatureMap(feature_maps_, "ION sim done");
 
-    raw_sim.generateRawSignals(feature_maps_.front(), experiment_, contaminants_map_);
+    raw_sim.generateRawSignals(feature_maps_.front(), experiment_, peak_map_, contaminants_map_);
 
     // post raw sim labeling
     labeler_->postRawMSHook(feature_maps_);
@@ -367,5 +369,10 @@ namespace OpenMS {
     return labeler_->getConsensus();
   }
  
+  MSSimExperiment const & MSSim::getPeakMap() const
+  {
+    return peak_map_;
+  }
+
 
 }

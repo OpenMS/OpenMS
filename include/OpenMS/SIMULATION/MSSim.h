@@ -92,11 +92,14 @@ namespace OpenMS
 		/// Access the charge consensus map of simulated features
     ConsensusMap const & getChargeConsensus() const;
 
-		/// Access the contaminants feature mapmap of simulated features
+		/// Access the contaminants feature map of simulated features
     FeatureMapSim const & getContaminants() const;
 
     /// Access the labeling consensus map of simulated features
     ConsensusMap const & getLabelingConsensus() const;
+
+    /// Access the labeling consensus map of simulated features
+    MSSimExperiment const & getPeakMap() const;
 
     /// Returns the default parameters for simulation including the labeling technique with name @p labeling_name
     Param getParameters(const String& labeling_name) const;
@@ -112,6 +115,8 @@ namespace OpenMS
 		void updateMembers_();        
     
     MSSimExperiment experiment_;
+
+    MSSimExperiment peak_map_;
     
     FeatureMapSimVector feature_maps_;
 

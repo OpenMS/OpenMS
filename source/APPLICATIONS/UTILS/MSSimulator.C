@@ -103,6 +103,7 @@ class TOPPMSSimulator
       // I/O settings
       registerInputFileList_("in","<files>",StringList::create(""),"Input protein sequences in FASTA format",true,false);
       registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",true);
+      registerOutputFile_("out_pm","<file>","","output (simulated MS map) in mzML format (picked GT)",false);
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
       registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)",false);
@@ -234,24 +235,22 @@ class TOPPMSSimulator
       SimRandomNumberGenerator rnd_gen;
 
       rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-      if(getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random")
+      if (getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random")
       {
         gsl_rng_set(rnd_gen.biological_rng, time(0));
       }
       else
-      {
-        // use gsl default seed to get reproducible experiments
+      { // use gsl default seed to get reproducible experiments
         gsl_rng_set(rnd_gen.biological_rng, 0);
       }
 
       rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
-      if(getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random")
+      if (getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random")
       {
         gsl_rng_set(rnd_gen.technical_rng, time(0));
       }
       else
-      {
-        // use gsl default seed to get reproducible experiments
+      { // use gsl default seed to get reproducible experiments
         gsl_rng_set(rnd_gen.technical_rng, 0);
       }
 
@@ -269,6 +268,13 @@ class TOPPMSSimulator
       writeLog_(String("Storing simulated map in: ") + outputfile_name);
       MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
       
+      String pxml_out = getStringOption_("out_pm");
+			if (pxml_out != "")
+			{
+				writeLog_(String("Storing simulated features in: ") + pxml_out);
+				MzMLFile().store(pxml_out, ms_simulation.getPeakMap());
+			}
+
       String fxml_out = getStringOption_("out_fm");
 			if (fxml_out != "")
 			{
