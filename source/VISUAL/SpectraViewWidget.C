@@ -457,7 +457,8 @@ namespace OpenMS
       exp = *cl.getPeakData();
 
       // collect all precursors
-      std::set<Precursor, Precursor::MZLess> precursors;
+      typedef std::set<Precursor, Precursor::MZLess> PCSetType;
+      PCSetType precursors;
       for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         precursors.insert(iter->getPrecursor());
@@ -465,7 +466,7 @@ namespace OpenMS
 
       // determine product chromatograms for each precursor
       std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
-      for (std::set<Precursor>::iterator pit = precursors.begin(); pit != precursors.end(); ++pit)
+      for (PCSetType::const_iterator pit = precursors.begin(); pit != precursors.end(); ++pit)
       {
         for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
         {

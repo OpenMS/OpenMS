@@ -2326,7 +2326,8 @@ namespace OpenMS
       exp = *layer.getPeakData();
 
       // collect all precursor that fall into the mz rt window
-      set<Precursor, Precursor::MZLess> precursor_in_rt_mz_window;
+      typedef std::set<Precursor, Precursor::MZLess> PCSetType;
+      PCSetType precursor_in_rt_mz_window;
       for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         if ( mz + 10.0 >= iter->getPrecursor().getMZ() &&
@@ -2340,7 +2341,7 @@ namespace OpenMS
 
       // determine product chromatograms for each precursor
       map<Precursor, vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
-      for (set<Precursor>::iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
+      for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
       {
         for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
         {
