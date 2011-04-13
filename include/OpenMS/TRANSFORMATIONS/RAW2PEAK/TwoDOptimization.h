@@ -345,7 +345,6 @@ namespace OpenMS
 				//last_rt = current_rt;
 				current_rt = (ms_exp_it+curr_scan)->getRT();
 				typename MSExperiment<OutputPeakType>::SpectrumType::Iterator peak_it  = (ms_exp_it+curr_scan)->begin();
-				typename MSExperiment<OutputPeakType>::SpectrumType::Iterator peak_it_last  = (ms_exp_it+curr_scan)->end();
 
 				// copy cluster information of least scan
 				iso_last_scan = iso_curr_scan;
@@ -387,7 +386,6 @@ namespace OpenMS
 													searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
 			  
 												DoubleReal delta_mz = fabs(*it - curr_mz);
-												std::vector<DoubleReal>::iterator itneu = iso_last_scan.begin();
 												//std::cout << delta_mz << " "<< tolerance_mz << std::endl;
 												if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
 													{
@@ -490,7 +488,6 @@ namespace OpenMS
 													searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
 			  
 												DoubleReal delta_mz = fabs(*it - curr_mz);
-												std::vector<DoubleReal>::iterator itneu = iso_last_scan.begin();
 												//												std::cout << delta_mz << " "<< tolerance_mz << std::endl;
 												if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
 													{
@@ -1023,8 +1020,6 @@ namespace OpenMS
 				std::cout << exp_it->getRT() << " vs "<< iter->getRT()<<std::endl;
 #endif
 				// now the right mz
-				IsotopeCluster::IndexSet::const_iterator j=(iso_map_iter->second.peaks.begin());
-																		
 				IsotopeCluster::IndexPair pair;
 				pair.first =  iso_map_iter->second.peaks.begin()->first + i;
 				IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks.begin(),
