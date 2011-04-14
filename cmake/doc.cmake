@@ -177,12 +177,13 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 	# doc_tutorials target
 	set(DOC_TUTORIALS_ACTIVE TRUE)
 
-		set(DOXYGEN_BUGGY "1.6.3")
-EXEC_PROGRAM(${DOXYGEN_EXECUTABLE}
+  set(DOXYGEN_START_BUGGY "1.6.3")
+  set(DOXYGEN_END_BUGGY "1.7.2")
+  EXEC_PROGRAM(${DOXYGEN_EXECUTABLE}
     ARGS "--version"
     OUTPUT_VARIABLE DOXYGEN_VERSION)
-if (DOXYGEN_VERSION STRGREATER DOXYGEN_BUGGY)
-    MESSAGE(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
+if (DOXYGEN_VERSION STRGREATER DOXYGEN_START_BUGGY AND DOXYGEN_VERSION STRLESS DOXYGEN_END_BUGGY )
+  MESSAGE(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
 endif ()
 
 	add_custom_target(doc_tutorials
