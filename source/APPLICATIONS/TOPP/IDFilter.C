@@ -197,8 +197,10 @@ class TOPPIDFilter
 		registerIntOption_("min_length","<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
 		setMinInt_("min_length", 0);
 
-    registerFlag_("unique","If a peptide hit occurs more than once, only one instance is kept.");
-		registerFlag_("unique_per_protein","Only peptides matching exactly one protein are kept.");
+    registerFlag_("unique","If a peptide hit occurs more than once, only one instance is kept. This will (for instance) remove \
+                            redundant identifications from multiple charge states or concurrent CID+HCD spectra. \
+                            If you are aiming towards quantitation, you probably do *not* want to use this flag!");
+		registerFlag_("unique_per_protein","Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
 
     //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
