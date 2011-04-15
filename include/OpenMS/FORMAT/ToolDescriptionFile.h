@@ -25,8 +25,8 @@
 // $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_TOOLDESCRIPTORFILE_H
-#define OPENMS_FORMAT_TOOLDESCRIPTORFILE_H
+#ifndef OPENMS_FORMAT_TOOLDESCRIPTIONFILE_H
+#define OPENMS_FORMAT_TOOLDESCRIPTIONFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -74,4 +74,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_TOOLDESCRIPTORFILE_H
+#endif // OPENMS_FORMAT_TOOLDESCRIPTIONFILE_H

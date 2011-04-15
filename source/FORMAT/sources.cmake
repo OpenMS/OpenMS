@@ -52,7 +52,7 @@ SequestOutfile.C
 SpecArrayFile.C
 SVOutStream.C
 TextFile.C
-ToolDescriptorFile.C
+ToolDescriptionFile.C
 TransformationXMLFile.C
 UnimodXMLFile.C
 XMassFile.C

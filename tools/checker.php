@@ -610,9 +610,10 @@ $GLOBALS["all_tests"] = array(
 				"Exception_Base_test.C",
 				"NumericDiff.C",
 				"ExampleLibraryFile.C",
+        "TestExternalCode.C"
 				);
 					
-				if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/APPLICATIONS/UTILS/"))
+				if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/APPLICATIONS/UTILS/") && !beginsWith($f,"source/VISUAL/APPLICATIONS/GUITOOLS/") )
 				{
 					if (endsWith($f,"_test.C"))
 					{

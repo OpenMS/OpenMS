@@ -313,6 +313,7 @@ set(chemistry_executables_list
   SvmTheoreticalSpectrumGeneratorSet_test
   TheoreticalSpectrumGenerator_test
   TrypticIterator_test
+  WeightWrapper_test
 )
 
 
