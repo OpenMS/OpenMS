@@ -218,7 +218,7 @@ namespace OpenMS
 			void finishHoveringEdge();
 			/// Checks whether all output vertices are finished, and if yes, emits entirePipelineFinished() (called by finished output vertices)
 			void checkIfWeAreDone();
-			/// Called by vertices at which an error occured during pipeline execution
+			/// Called by vertices at which an error occurred during pipeline execution
 			void pipelineErrorSlot(const QString msg = "");
 			/// Moves all selected items by dx, dy
 			void moveSelectedItems(qreal dx, qreal dy);
@@ -228,6 +228,8 @@ namespace OpenMS
 			void setPipelineRunning(bool b = true);
 			/// Called by a finished QProcess to indicate that we are free to start a new one
       void processFinished();
+      /// dirty solution: when using ExecutePipeline this slot is called when the pipeline crashes. This will quit the app
+      void quitWithError();
 
 
 			///@name Slots for printing log/error output when no GUI is available

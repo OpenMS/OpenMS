@@ -1966,6 +1966,11 @@ namespace OpenMS
   {
     return dry_run_;
   }
+
+  void TOPPASScene::quitWithError()
+  {
+    exit(1);
+  }
 	
 } //namespace OpenMS
 

@@ -107,8 +107,10 @@ class TOPPExecutePipeline
 
 		QApplication a(argc, const_cast<char**>(argv), false);
 		TOPPASScene ts(0, QDir::tempPath()+QDir::separator(), false);
-		a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()));
-		a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()));
+		if (!a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
+		if (!a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR; // for some reason this slot does not get called, plus it would return "success", which we do not want
+    if (!a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &ts, SLOT(quitWithError()))) return UNKNOWN_ERROR;  // ... thus we use this
+    
 		ts.load(toppas_file);
 
 		if (resource_file != "")

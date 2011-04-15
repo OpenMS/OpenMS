@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="1" description="">
+    <ITEMLIST name="url_list" type="string" description="">
+      <LISTITEM value="file:${DATA_DIR_TOPP}/ExecutePipeline_1.mzML"/>
+      <LISTITEM value="file:${DATA_DIR_TOPP}/ExecutePipeline_2.mzML"/>
+    </ITEMLIST>
+  </NODE>
+  <NODE name="2" description="">
+    <ITEMLIST name="url_list" type="string" description="">
+      <LISTITEM value="file:${DATA_DIR_TOPP}/ExecutePipeline_1.fasta"/>
+    </ITEMLIST>
+  </NODE>
+</PARAMETERS>
