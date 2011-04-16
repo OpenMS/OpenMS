@@ -48,7 +48,7 @@ START_SECTION(WeightWrapper())
 }
 END_SECTION
 
-START_SECTION(~WeightWrapper())
+START_SECTION(virtual ~WeightWrapper())
 {
 	delete ptr;
 }
@@ -60,12 +60,6 @@ START_SECTION((WeightWrapper(const WEIGHTMODE weight_mode)))
   TEST_EQUAL(ww.getWeightMode(), WeightWrapper::MONO)
   WeightWrapper ww2(WeightWrapper::AVERAGE);
   TEST_EQUAL(ww2.getWeightMode(), WeightWrapper::AVERAGE)
-}
-END_SECTION
-
-START_SECTION((virtual ~WeightWrapper()))
-{
-  NOT_TESTABLE // d'tor doesn't do anything...
 }
 END_SECTION
 

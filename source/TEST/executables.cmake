@@ -344,6 +344,7 @@ set(analysis_executables_list
 	HiddenMarkovModel_test
 	IDDecoyProbability_test
 	IDMapper_test
+  ILPDCWrapper_test
 	ILPWrapper_test
 	ItraqChannelExtractor_test
 	ItraqConstants_test
@@ -386,6 +387,7 @@ set(analysis_executables_list
 
 set(applications_executables_list
   TOPPBase_test
+  ToolHandler_test
 )
 
 set(transformations_executables_list
