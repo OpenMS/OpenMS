@@ -78,7 +78,7 @@ namespace OpenMS
 				feature_map = fmap;
 
 				bool first_line = true;
-				for (Size i=1; i<input.size(); ++i)
+				for (Size i=0; i<input.size(); ++i)
 				{
 					String line = input[i];
 					
@@ -98,7 +98,7 @@ namespace OpenMS
 					
           if (parts.size()<18) 
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"", String("Failed to convert line ")  + String(i+1) + "not enough columns (expected 18 or more, got " + String(parts.size()) + ")");
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"", String("Failed to convert line ")  + String(i+1) + ". Not enough columns (expected 18 or more, got " + String(parts.size()) + ")");
           }
 
 					//create feature
@@ -142,7 +142,7 @@ namespace OpenMS
 					}
 					catch (Exception::BaseException /*&e*/)
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"", String("Failed to convert value in column ") + String(column_to_convert+1) + "into a number (line '" + (i+1) + ")");
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"", String("Failed to convert value in column ") + String(column_to_convert+1) + " into a number (line '" + (i+1) + ")");
 					}
 					f.setMetaValue("description",parts[17]);
 					feature_map.push_back(f);
@@ -158,7 +158,7 @@ namespace OpenMS
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
       */
       template <typename SpectrumType>
-      void store(const String& filename, const SpectrumType& spectrum) const
+      void store(const String& /*filename*/, const SpectrumType& /*spectrum*/) const
       {
         throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }

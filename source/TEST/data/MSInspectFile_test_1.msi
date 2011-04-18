@@ -1,0 +1,5 @@
+## this is just a comment
+scan	time	mz	accurateMZ	mass	intensity	charge	chargeStates	kl	background	median	peaks	scanFirst	scanLast	scanCount	totalIntensity	sumSquaresDist	description
+3	12.92	501.51	501.2	1001	45677	2	2	0.98	0.11	211	231	1	5	5	324234242	231234	example_feature
+# ignored line
+4	22.92	601.51	601.2	1201	245677	5	6	0.99	0.22	211	231	1	5	5	111111111	222222	example_feature_2
