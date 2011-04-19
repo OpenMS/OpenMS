@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Chris Bielow, Mathias Walzer $
+// $Maintainer:  Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_TOOLDESCRIPTIONHANDLER_H
@@ -69,7 +69,7 @@ namespace OpenMS
 			// Docu in base class
       virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
-			//Docu in base class
+			// NOT IMPLEMENTED
 			virtual void writeTo(std::ostream& os);
 
       // Retrieve parsed tool description

@@ -185,6 +185,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   TextFile_test
+  ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
   UnimodXMLFile_test

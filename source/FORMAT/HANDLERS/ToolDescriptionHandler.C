@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Chris Bielow, Mathias Walzer $
+// $Maintainer:  Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ToolDescriptionHandler.h>
@@ -186,7 +186,7 @@ namespace OpenMS
 
 	void ToolDescriptionHandler::writeTo(std::ostream& /*os*/)
 	{
-		// TODO
+		throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 
   void ToolDescriptionHandler::setToolDescriptions(const std::vector<ToolDescription>& tds)

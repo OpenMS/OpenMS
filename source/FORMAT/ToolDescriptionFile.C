@@ -21,12 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Mathias Walzer $
+// $Maintainer:  Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
-//#include <OpenMS/FORMAT/VALIDATORS/ToolDescriptorValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/HANDLERS/ToolDescriptionHandler.h>
