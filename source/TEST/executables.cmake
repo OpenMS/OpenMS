@@ -143,6 +143,7 @@ set(format_executables_list
   CsvFile_test
   DTA2DFile_test
   DTAFile_test
+  EDTAFile_test
   FASTAFile_test
   FeatureXMLFile_test
   FileHandler_test
@@ -151,6 +152,7 @@ set(format_executables_list
   IdXMLFile_test
   InspectInfile_test
   InspectOutfile_test
+  KroenikFile_test
   LibSVMEncoder_test
   MS2File_test
   MSPFile_test
@@ -184,6 +186,7 @@ set(format_executables_list
   SemanticValidator_test
   SequestInfile_test
   SequestOutfile_test
+  SpecArrayFile_test
   TextFile_test
   ToolDescriptionFile_test
   TraMLFile_test

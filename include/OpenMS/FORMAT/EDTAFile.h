@@ -170,7 +170,7 @@ namespace OpenMS
 							if (headers.size()<=j || headers[j]=="")
 							{
                 throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
-								  String("Error: Missing meta data header for column ") + (j+i) + "!"
+								  String("Error: Missing meta data header for column ") + (j+1) + "!"
                   + String("Offending header line: '") + header_trimmed + "'  (line 1)");
 							}
 							//add meta value
@@ -205,6 +205,7 @@ namespace OpenMS
       template <typename SpectrumType>
       void store(const String& filename, const SpectrumType& spectrum) const
       {
+        std::cerr << "Store() for EDTAFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
         throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
   };

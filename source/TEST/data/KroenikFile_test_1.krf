@@ -1,0 +1,4 @@
+File	First	Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications
+lala	3	5	3	1	1001.1	1000.0	123450	999999	60.1	66.2	63.2	0.98	Carbamido
+l22ala	8	9	2	2	502.1	500.0	2123450	9999	61.1	64.2	62.2	0.8	Carbamido2
+LLlala	5	4	4	6	402.1	700.0	2222123450	1999	161.1	164.2	162.2	0.68	Carbamido3

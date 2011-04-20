@@ -94,7 +94,7 @@ namespace OpenMS
 					if (parts.size() != 14)
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", 
-              String("Failed parsing in line ") + String(i+1) + ": missing 14 tab-separated entries (got " + String(parts.size()) + ")\nLine was: " + line);
+              String("Failed parsing in line ") + String(i+1) + ": missing 14 tab-separated entries (got " + String(parts.size()) + ")\nLine was: '" + line + "'");
 					}
 					//create feature
 					Feature f;
@@ -150,6 +150,7 @@ namespace OpenMS
       template <typename SpectrumType>
       void store(const String& filename, const SpectrumType& spectrum) const
       {
+        std::cerr << "Store() for KroenikFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
         throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
   };

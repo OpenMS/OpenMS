@@ -160,7 +160,7 @@ namespace OpenMS
       template <typename SpectrumType>
       void store(const String& filename, const SpectrumType& spectrum) const
       {
-        std::cerr << "Store() for MSInspect not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
+        std::cerr << "Store() for MsInspectFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
         throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
   };

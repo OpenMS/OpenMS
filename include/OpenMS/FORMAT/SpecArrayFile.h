@@ -46,6 +46,8 @@ namespace OpenMS
            m/z	     rt(min)	       snr	      charge	   intensity
 
     Every subsequent line is a feature.
+    Entries are separated by Tab (\t).
+    
   	
   	@ingroup FileIO
   */
@@ -89,7 +91,7 @@ namespace OpenMS
 
 					Feature f;
 					try
-					{						
+					{
 						f.setMZ(parts[0].toDouble());
 						f.setRT(parts[1].toDouble() *60.0);
 						f.setMetaValue("s/n",parts[2].toDouble());
@@ -114,6 +116,7 @@ namespace OpenMS
       template <typename SpectrumType>
       void store(const String& filename, const SpectrumType& spectrum) const
       {
+        std::cerr << "Store() for SpecArrayFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
         throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
   };
