@@ -131,7 +131,7 @@ namespace OpenMS
 		{
 			readOutHeader(result_filename, line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
 		}
-		catch( Exception::ParseError p_e )
+    catch( Exception::ParseError & p_e )
 		{
 			result_file.close();
 			result_file.clear();
@@ -551,7 +551,7 @@ namespace OpenMS
 			// get the according record in the index file
 			if ( index_length < Int((*wr_i + 1) * record_length_) ) // if the file is too short
 			{
-				delete(index_record);
+        delete [] index_record;
 				database.close();
 				database.clear();
 				index.close();
@@ -615,7 +615,7 @@ namespace OpenMS
 		
 		
 		if ( empty_records ) wanted_records.clear();
-		delete(index_record);
+    delete [] index_record;
 		database.close();
 		database.clear();
 		index.close();
@@ -832,7 +832,7 @@ namespace OpenMS
 			append = true;
 		}
 		
-		delete(record);
+    delete [] record;
 		
 		// close the filestreams
 		database.close();

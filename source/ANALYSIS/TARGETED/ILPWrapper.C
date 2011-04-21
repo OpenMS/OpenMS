@@ -197,8 +197,8 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 			std::cout << stop-start << " "<<name<<std::endl;
 			std::cout << "added row"<<std::endl;
 #endif
-			delete entries;
-			delete indices;
+      delete [] entries;
+      delete [] indices;
 			
 		}
 
@@ -242,8 +242,8 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
-			delete entries;
-			delete indices;
+      delete [] entries;
+      delete [] indices;
 			
 		}
 

@@ -524,8 +524,8 @@ namespace OpenMS
 						problem->x[*indices_iterator];
 					problems[partition_index]->y[actual_partition_size] = 
 						problem->y[*indices_iterator];
-					actual_partition_size++;
-					indices_iterator++;
+          ++actual_partition_size;
+          ++indices_iterator;
 				}
 			}			
 		}
@@ -593,8 +593,8 @@ namespace OpenMS
 						problem.sequences[*indices_iterator];
 					problems[partition_index].labels[actual_partition_size] = 
 						problem.labels[*indices_iterator];
-					actual_partition_size++;
-					indices_iterator++;
+          ++actual_partition_size;
+          ++indices_iterator;
 				}
 			}			
 		}
@@ -774,8 +774,8 @@ namespace OpenMS
 			if (it == end_values_map.end())  throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No end value given for svm parameter grid search");
 			else end_values[actual_index] = it->second;
 
-      start_values_iterator++;
-			actual_index++;
+      ++start_values_iterator;
+      ++actual_index;
 		}
 
     // estimate number of training runs:

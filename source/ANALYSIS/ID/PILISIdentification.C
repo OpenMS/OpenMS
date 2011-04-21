@@ -264,7 +264,7 @@ namespace OpenMS
 				AASequence seq(it1->first);
       	getSpectrum_(sim_spec, it1->first, it1->second);
 			}
-			catch (Exception::ParseError e)
+      catch (Exception::ParseError& e)
 			{
 				cerr << "Peptide sequence " << it1->first << " cannot be processed" << endl;
 				continue;
