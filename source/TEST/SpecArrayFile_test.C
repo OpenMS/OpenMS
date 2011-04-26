@@ -72,7 +72,7 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
   TEST_EQUAL(double(fm[0].getMetaValue("s/n")), 3.2)
   TEST_EQUAL(fm[1].getRT(),  40.1*60)
   TEST_REAL_SIMILAR(fm[1].getMZ(), 700.1	)
-  TEST_EQUAL(fm[1].getIntensity(), 224343534)
+  TEST_EQUAL(fm[1].getIntensity(), 222432)
   TEST_EQUAL(fm[1].getCharge(), 3)
   TEST_EQUAL(double(fm[1].getMetaValue("s/n")), 2.2)
 
