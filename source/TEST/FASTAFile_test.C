@@ -97,7 +97,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
 	vector<FASTAFile::FASTAEntry> data;
 	FASTAFile file;
 	
-	TEST_EXCEPTION(Exception::FileNotFound, file.load("bla",data))
+	TEST_EXCEPTION(Exception::FileNotFound, file.load("FASTAFile_test_this_file_does_not_exist",data))
 	
 	file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
 	sequences_iterator = data.begin();
