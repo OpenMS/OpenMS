@@ -63,7 +63,7 @@ namespace OpenMS
 		
 		TOPPASScene can also be used without a visualizing TOPPASWidget (i.e., without a gui) which can
 		be indicated via the constructor. In this case, the signals for log message output are connected
-		to standard out. This is utilized for the TOPPAS -execute command line switch.
+		to standard out. This is utilized for the ExecutePipeline tool.
 	
 		@ingroup TOPPAS_elements
 	*/
@@ -285,7 +285,7 @@ namespace OpenMS
 			String file_name_;
 			/// The path for temporary files
 			String tmp_path_;
-			/// Are we in a GUI or is the scene used by TOPPAS -execute (at the command line)?
+			/// Are we in a GUI or is the scene used by ExecutePipeline (at the command line)?
 			bool gui_;
 			/// The directory where the output files will be written
 			QString out_dir_;
@@ -293,7 +293,7 @@ namespace OpenMS
 			bool changed_;
 			/// Indicates if a pipeline is currently running
 			bool running_;
-      /// true if an error occured during pipeline execution
+      /// true if an error occurred during pipeline execution
       bool error_occured_;
 			/// Indicates if the output directory has been specified by the user already
 			bool user_specified_out_dir_;
