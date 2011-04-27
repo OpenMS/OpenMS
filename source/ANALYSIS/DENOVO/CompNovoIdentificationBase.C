@@ -335,7 +335,7 @@ namespace OpenMS
     	for (String::Iterator p = s.begin(); p <s.end(); p++ )
     	{
       	char c = *p;
-      	s.erase(p);
+      	p = s.erase(p);
       	permute_(prefix + c, s , permutations);
       	s.insert(p, c);
     	}
