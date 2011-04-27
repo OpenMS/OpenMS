@@ -189,7 +189,7 @@ class AdditiveSeries
 				// 				f2_sum += iter->getIntensity();
 			}
 
-			iter++;
+			++iter;
 		}	// end of while
 
 		if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0)
@@ -317,7 +317,7 @@ class AdditiveSeries
 
 			results.close();
 		}
-		catch (string s)
+		catch (string& s)
 		{
 			cout << s <<  endl;
 			return 1;
@@ -378,7 +378,7 @@ class AdditiveSeries
 			{
 				flags.push_back(false);
 			}
-			cit++;
+			++cit;
 		}
 
 		// read the spiked concentrations

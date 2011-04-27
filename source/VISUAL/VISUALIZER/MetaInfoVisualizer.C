@@ -105,7 +105,7 @@ namespace OpenMS
 		
 		//Remove label
 		std::vector<std::pair<UInt,QLabel*> >::iterator iter;
-		for(iter = metalabels_.begin(); iter < metalabels_.end(); iter++ ) 
+		for(iter = metalabels_.begin(); iter < metalabels_.end(); ++iter ) 
 		{	 
 	     if( (*iter).first == id)
 			 {	
@@ -119,7 +119,7 @@ namespace OpenMS
 		
 		//Remove QLineEdit	
 		std::vector<std::pair<UInt,QLineEdit*> >::iterator iter2; 
-		for(iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); iter2++ ) 
+		for(iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); ++iter2 ) 
 		{
 	     if( (*iter2).first == id)
 			 {
@@ -135,7 +135,7 @@ namespace OpenMS
 		
 		//Remove QButton  
 		std::vector<std::pair<UInt,QAbstractButton*> >::iterator iter3; 
-		for(iter3 = metabuttons_.begin(); iter3 < metabuttons_.end(); iter3++ ) 
+		for(iter3 = metabuttons_.begin(); iter3 < metabuttons_.end(); ++iter3 ) 
 		{
 	     if( (*iter3).first == id)
 			 {	
@@ -243,7 +243,7 @@ namespace OpenMS
 	{
 		//Store QLineEdit information
 		std::vector<std::pair<UInt,QLineEdit*> >::iterator iter2; 
-		for(iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); iter2++ ) 
+		for(iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); ++iter2 ) 
 		{
 			UInt index = (*iter2).first;
 			String value(((*iter2).second)->text());
@@ -279,7 +279,7 @@ namespace OpenMS
 				loadData_(keys_[i]);
 			}
 		}
-		catch(exception e)
+		catch(exception& e)
 		{
 			cout<<"Error while trying to restore original metainfo data. "<<e.what()<<endl;
 		} 

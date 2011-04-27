@@ -2595,7 +2595,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   void TOPPViewBase::openFileDialog()
   {
 	 	QStringList files = getFileList_();
-    for(QStringList::iterator it = files.begin(); it!=files.end(); it++)
+    for(QStringList::iterator it = files.begin(); it!=files.end(); ++it)
 		{
       QString filename = *it;
       if (filename.endsWith(".toppas", Qt::CaseInsensitive))
@@ -2801,7 +2801,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
 	 	QStringList files = getFileList_(File::getOpenMSDataPath() + "/examples/");
 
-    for(QStringList::iterator it = files.begin(); it != files.end(); it++)
+    for(QStringList::iterator it = files.begin(); it != files.end(); ++it)
 		{
       QString filename = *it;
       if (filename.endsWith(".toppas", Qt::CaseInsensitive))
@@ -2836,7 +2836,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 			{
 				db.connect((String)param_.getValue("preferences:db:name"), (String)param_.getValue("preferences:db:login"),(String)param_.getValue("DBPassword"),(String)param_.getValue("preferences:db:host"),(UInt)param_.getValue("preferences:db:port"));
 			}
-			catch (DBConnection::InvalidQuery er)
+			catch (DBConnection::InvalidQuery& er)
 			{
 				param_.remove("DBPassword");
 				showLogMessage_(LS_ERROR,"Unable to log in to the database server",String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
@@ -3740,7 +3740,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	 	QStringList files = getFileList_();
 		FileHandler fh;
 		fh.getOptions().setMetadataOnly(true);
-		for(QStringList::iterator it=files.begin();it!=files.end();it++)
+		for (QStringList::iterator it = files.begin(); it!=files.end(); ++it)
 		{
 			ExperimentType exp;
 			try

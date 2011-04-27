@@ -344,7 +344,7 @@ namespace OpenMS
 			
 			if (index < prefix.size()) 
 			{
-				char	buffer[64];
+				char	buffer[64] = "";
 				char*	buf = &(buffer[0]);
 
 				switch (prefix[index + 1]) 
@@ -358,32 +358,32 @@ namespace OpenMS
 						break;
 
 					case 'T':	// time: HH:MM:SS
-						strftime(buf, BUFFER_LENGTH - 1, "%H:%M:%S", localtime(&time));
+						strftime(buf, 64, "%H:%M:%S", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 't': // time: HH:MM	
-						strftime(buf, BUFFER_LENGTH - 1, "%H:%M", localtime(&time));
+						strftime(buf, 64, "%H:%M", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 'D':	// date: DD.MM.YYYY
-						strftime(buf, BUFFER_LENGTH - 1, "%Y/%m/%d", localtime(&time));
+						strftime(buf, 64, "%Y/%m/%d", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 'd':	// date: DD.MM.
-						strftime(buf, BUFFER_LENGTH - 1, "%m/%d", localtime(&time));
+						strftime(buf, 64, "%m/%d", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 'S':	// time+date: DD.MM.YYYY, HH:MM:SS
-						strftime(buf, BUFFER_LENGTH - 1, "%Y/%m/%d, %H:%M:%S", localtime(&time));
+						strftime(buf, 64, "%Y/%m/%d, %H:%M:%S", localtime(&time));
 						result.append(buf);
 						break;
 
 					case 's':	// time+date: DD.MM., HH:MM
-						strftime(buf, BUFFER_LENGTH - 1, "%m/%d, %H:%M", localtime(&time));
+						strftime(buf, 64, "%m/%d, %H:%M", localtime(&time));
 						result.append(buf);
 						break;
 

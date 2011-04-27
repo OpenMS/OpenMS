@@ -270,7 +270,7 @@ class TOPPInspectAdapter
 				{
 					PTMXMLFile().load(modifications_filename, PTM_informations);
 				}
-				catch ( Exception::ParseError pe )
+				catch ( Exception::ParseError& pe )
 				{
 					writeLog_(pe.getMessage());
 					return PARSE_ERROR;
@@ -350,7 +350,7 @@ class TOPPInspectAdapter
 					{
 						inspect_outfile.getExperiment(experiment, type, string_buffer); // may throw an exception if the filetype could not be determined
 					}
-					catch(Exception::ParseError pe )
+					catch(Exception::ParseError& pe )
 					{
 						writeLog_(pe.getMessage());
 						return PARSE_ERROR;
@@ -578,17 +578,17 @@ class TOPPInspectAdapter
 					{
 						inspect_infile.handlePTMs(string_buffer, modifications_filename, monoisotopic);
 					}
-					catch ( Exception::FileNotFound fnf_e )
+					catch ( Exception::FileNotFound& fnf_e )
 					{
 						writeLog_("No modifications XML file given. Aborting!");
 						return INPUT_FILE_NOT_FOUND;
 					}
-					catch ( Exception::FileNotReadable fnr_e )
+					catch ( Exception::FileNotReadable& fnr_e )
 					{
 						writeLog_("Modifications XML file is not readable. Aborting!");
 						return INPUT_FILE_NOT_READABLE;
 					}
-					catch ( Exception::ParseError p_e )
+					catch ( Exception::ParseError& p_e )
 					{
 						writeLog_(String(p_e.getMessage()) + ". Aborting!");
 						return PARSE_ERROR;
@@ -840,7 +840,7 @@ class TOPPInspectAdapter
 						{
 							vector< Size > corrupted_lines = inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
 						}
-						catch( Exception::ParseError pe )
+						catch( Exception::ParseError& pe )
 						{
 							writeLog_(pe.getMessage());
 							exit_code = INPUT_FILE_CORRUPT;

@@ -337,10 +337,9 @@ namespace OpenMS
     QStringList labels;
     labels << "Gradient" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem* item;
 		if(parent == 0)
 		{
-			item = new QTreeWidgetItem(treeview_, labels );
+			new QTreeWidgetItem(treeview_, labels );
 		}
 		else
 		{
@@ -624,14 +623,13 @@ namespace OpenMS
     QStringList labels;
     labels << "MetaInfo" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem* item;
 		if(parent == 0)
 		{
-			item = new QTreeWidgetItem(treeview_, labels );
+			new QTreeWidgetItem(treeview_, labels );
 		}
 		else
 		{
-			item = new QTreeWidgetItem(parent, labels );
+			new QTreeWidgetItem(parent, labels );
 		}
 		connectVisualizer_(visualizer);
 	}
@@ -976,14 +974,13 @@ namespace OpenMS
     QStringList labels;
     labels << "Tagging" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem* item;
 		if(parent == 0)
 		{
-			item = new QTreeWidgetItem(treeview_, labels );
+			new QTreeWidgetItem(treeview_, labels );
 		}
 		else
 		{
-			item = new QTreeWidgetItem(parent, labels );
+			new QTreeWidgetItem(parent, labels );
 		}
 		connectVisualizer_(visualizer);
 	}
@@ -997,14 +994,13 @@ namespace OpenMS
     QStringList labels;
     labels << "DocumentIdentifier" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem* item;
 		if(parent == 0)
 		{
-			item = new QTreeWidgetItem(treeview_, labels );
+			new QTreeWidgetItem(treeview_, labels );
 		}
 		else
 		{
-			item = new QTreeWidgetItem(parent, labels );
+			new QTreeWidgetItem(parent, labels );
 		}
 		connectVisualizer_(visualizer);
 	}
