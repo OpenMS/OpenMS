@@ -343,7 +343,7 @@ namespace OpenMS
 		}
 		else
 		{
-			item = new QTreeWidgetItem(parent, labels );
+			new QTreeWidgetItem(parent, labels );
 		}
 		connectVisualizer_(visualizer);
 	}

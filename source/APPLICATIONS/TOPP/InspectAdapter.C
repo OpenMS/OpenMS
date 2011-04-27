@@ -578,12 +578,12 @@ class TOPPInspectAdapter
 					{
 						inspect_infile.handlePTMs(string_buffer, modifications_filename, monoisotopic);
 					}
-					catch ( Exception::FileNotFound& fnf_e )
+					catch ( Exception::FileNotFound& /*fnf_e*/ )
 					{
 						writeLog_("No modifications XML file given. Aborting!");
 						return INPUT_FILE_NOT_FOUND;
 					}
-					catch ( Exception::FileNotReadable& fnr_e )
+					catch ( Exception::FileNotReadable& /*fnr_e*/ )
 					{
 						writeLog_("Modifications XML file is not readable. Aborting!");
 						return INPUT_FILE_NOT_READABLE;
