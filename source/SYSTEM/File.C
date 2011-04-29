@@ -50,6 +50,10 @@
 
 using namespace std;
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 namespace OpenMS 
 {
 	
@@ -62,13 +66,15 @@ namespace OpenMS
     if (path_checked) return spath; // short route. Only inquire the path once. The result will be the same every time.
 
     char path[1024];
-    int size = sizeof(path);
 
 #ifdef OPENMS_WINDOWSPLATFORM
+    int size = sizeof(path);
     if( GetModuleFileName( NULL, path, size ) )
 #elif  defined(__APPLE__)
+    uint size = sizeof(path);
     if (_NSGetExecutablePath(path, &size) == 0)
 #else // LINUX
+    int size = sizeof(path);
     int ch = readlink("/proc/self/exe", path, size);
     if (ch != -1)
 #endif
