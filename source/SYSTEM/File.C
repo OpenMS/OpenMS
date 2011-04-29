@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  define NOMINMAX
-#  include <Windows.h>  // for 'GetCurrentProcessId()'
+#  include <Windows.h>  // for GetCurrentProcessId() && GetModuleFileName()
 #else
 #  include <unistd.h>   // for 'getpid()'
 #endif
@@ -53,6 +53,50 @@ using namespace std;
 namespace OpenMS 
 {
 	
+  String File::getExecutablePath()
+  {
+    // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
+    static String spath = "";
+    static bool path_checked = false;
+
+    if (path_checked) return spath; // short route. Only inquire the path once. The result will be the same every time.
+
+    char path[1024];
+    int size = sizeof(path);
+
+#ifdef OPENMS_WINDOWSPLATFORM
+    if( GetModuleFileName( NULL, path, size ) )
+#elif  defined(__APPLE__)
+    if (_NSGetExecutablePath(path, &size) == 0)
+#else // LINUX
+    int ch = readlink("/proc/self/exe", path, size);
+    if (ch != -1)
+#endif
+    { 
+      std::cerr << "O PATH is: " << path << "\n";
+      spath = File::path(String(path));
+      if (File::exists(spath)) // check if directory exists
+      {
+        // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
+        spath.ensureLastChar('/');
+      }
+      else
+      {
+        std::cerr << "Path extracted from Executable Path does not exist! Returning empty string!\n";
+        spath = "";
+      }
+    }
+    else
+    {
+      std::cerr << "Cannot get Executable Path! Not using a path prefix!\n";
+    }
+
+    std::cerr << "Executable Path is: " << spath << "\n";
+    
+    path_checked = true; // enable short route for next run
+    return spath;
+  }
+
 	bool File::exists(const String& file)
 	{
 		QFileInfo fi(file.toQString());

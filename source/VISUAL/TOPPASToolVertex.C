@@ -122,7 +122,7 @@ namespace OpenMS
 	bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
 	{
 		Param tmp_param;
-		QString ini_file = QDir::tempPath() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
+		QString ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
 		if (type_ != "")
 		{
 			ini_file += type_.toQString() + "_";
@@ -130,7 +130,7 @@ namespace OpenMS
 		ini_file += File::getUniqueName().toQString() + "_tmp.ini";
     ini_file = QDir::toNativeSeparators(ini_file);
 
-		String call = name_ + " -write_ini " + ini_file;
+		String call = File::getExecutablePath() + name_ + " -write_ini " + ini_file;
 		if (type_ != "")
 		{
 			call += " -type " + type_;
@@ -565,8 +565,8 @@ namespace OpenMS
 			connect(p, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(executionFinished(int,QProcess::ExitStatus)));
       
 			//enqueue process
-			std::cout << "Enqueue: " << name_ << " \"" << String(args.join("\" \"")) << "\"" << std::endl;
-			ts->enqueueProcess(p, name_.toQString(), args);
+			std::cout << "Enqueue: " << File::getExecutablePath() + name_ << " \"" << String(args.join("\" \"")) << "\"" << std::endl;
+			ts->enqueueProcess(p, (File::getExecutablePath() + name_).toQString(), args);
 		}
 
     // run pending processes
@@ -972,7 +972,7 @@ namespace OpenMS
 
 	bool TOPPASToolVertex::refreshParameters()
 	{
-		QString old_ini_file = QDir::tempPath() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
+		QString old_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
 		if (type_ != "")
 		{
 			old_ini_file += type_.toQString() + "_";

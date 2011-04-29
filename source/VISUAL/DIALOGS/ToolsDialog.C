@@ -152,18 +152,17 @@ namespace OpenMS
 			return;
 		}
 		
-		String call = getTool()+" -write_ini "+ini_file_+" -log "+ini_file_+".log";
+		String call = File::getExecutablePath() + getTool() + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
 
 		if (i!=-1)
 		{
 			call += " -type " + String(type_combo_->currentText());
 		}
-		
-		if(system(call.c_str())!=0)
+		if (system(call.c_str())!=0)
 		{
 			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
 		}
-		else if(!File::exists(ini_file_))
+		else if (!File::exists(ini_file_))
 		{
 			QMessageBox::critical(this,"Error",(String("Could not open '")+ini_file_+"'!").c_str());
 		}

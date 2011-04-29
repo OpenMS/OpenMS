@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -40,6 +40,10 @@ using namespace std;
 START_TEST(TextFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
+
+START_SECTION((static String getExecutablePath()))
+	TEST_NOT_EQUAL(File::getExecutablePath().size(), 0)
+END_SECTION
 
 START_SECTION((static bool exists(const String &file)))
 	TEST_EQUAL(File::exists("does_not_exists.txt"), false)

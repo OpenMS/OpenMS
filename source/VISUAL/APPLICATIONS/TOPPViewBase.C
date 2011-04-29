@@ -154,7 +154,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
             );
 
           //set temporary path
-          toppas_tmp_path_ = QDir::tempPath() + QDir::separator();
+          toppas_tmp_path_ = File::getTempDirectory().toQString() + QDir::separator();
 
           // create dummy widget (to be able to have a layout), Tab bar and workspace
           QWidget* dummy = new QWidget(this);
@@ -2629,7 +2629,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         return;
       }
       // create TOPPASWidget, load data into temporary scene and include into existing one
-      TOPPASScene* tmp_scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+      TOPPASScene* tmp_scene = new TOPPASScene(0, File::getTempDirectory().toQString()+QDir::separator(), false);
       tmp_scene->load(file_name);
       scene = tw->getScene();
       scene->include(tmp_scene);

@@ -158,7 +158,7 @@ namespace OpenMS
 		arg_param_.insert(tool_name_ + ":1:", *param_);
 		try
 		{
-			QString tmp_ini_file = QDir::tempPath() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
+			QString tmp_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
 			if (tool_type_ != "")
 			{
 				tmp_ini_file += tool_type_.toQString() + "_";
@@ -167,7 +167,7 @@ namespace OpenMS
 			//store current parameters
 			arg_param_.store(tmp_ini_file.toStdString());
 			//restore other parameters that might be missing
-			String call = tool_name_ + " -write_ini " + String(filename_) + " -ini " + String(tmp_ini_file);
+			String call = File::getExecutablePath()+ tool_name_ + " -write_ini " + String(filename_) + " -ini " + String(tmp_ini_file);
 			if (tool_type_ != "")
 			{
 				call += " -type " + tool_type_;

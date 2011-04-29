@@ -209,7 +209,7 @@ namespace OpenMS
 		current_path_ = param_.getValue("preferences:default_path");
 		
 		//set temporary path
-		tmp_path_ = QDir::tempPath() + QDir::separator();
+		tmp_path_ =  File::getTempDirectory().toQString() + QDir::separator();
 		
   	//update the menu
   	updateMenu();
@@ -360,7 +360,7 @@ namespace OpenMS
 				{
 					return;
 				}
-				TOPPASScene* tmp_scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+				TOPPASScene* tmp_scene = new TOPPASScene(0, this->tmp_path_, false);
 				tmp_scene->load(file_name);
 				scene = activeWindow_()->getScene();
 				scene->include(tmp_scene);
@@ -1215,7 +1215,7 @@ namespace OpenMS
     {
       QProcess* p = new QProcess();
       p->setProcessChannelMode(QProcess::ForwardedChannels);
-      QString toppview_executable = "TOPPView";        
+      QString toppview_executable = (File::getExecutablePath() + "TOPPView").toQString();
       QStringList arg = files;
 
       if (files.size() > 1)

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -49,6 +49,12 @@ namespace OpenMS
 		public:
 	
       friend class TOPPBase;
+
+      /// Retrieve path of current executable (useful to find other TOPP tools)
+      /// The returned path is either just an EMPTY string if the call to system subroutines failed
+      /// or the complete path including a trailing "/", to enable usage of this function as 
+      ///  File::getExecutablePath() + "mytool"
+      static String getExecutablePath();
 
 			/// Method used to test if a @p file exists.
 			static bool exists(const String& file);

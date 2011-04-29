@@ -276,7 +276,7 @@ namespace OpenMS
 
 	void TOPPASScene::copySelected()
 	{
-		TOPPASScene* tmp_scene = new TOPPASScene(0, QDir::tempPath()+QDir::separator(), false);
+		TOPPASScene* tmp_scene = new TOPPASScene(0, File::getTempDirectory().toQString()+QDir::separator(), false);
 		Map<TOPPASVertex*,TOPPASVertex*> vertex_map;
 
 		foreach (TOPPASVertex* v, vertices_)
