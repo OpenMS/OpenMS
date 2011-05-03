@@ -160,7 +160,7 @@ namespace OpenMS
 		}
 		if (system(call.c_str())!=0)
 		{
-			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
+			QMessageBox::critical(this, "Error", (String("Could not execute '") + call + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
 		}
 		else if (!File::exists(ini_file_))
 		{
