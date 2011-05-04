@@ -191,7 +191,7 @@ class TOPPMascotAdapterOnline
 
 			// write Mascot response to file
 			String unique_name = File::getUniqueName(); // body for the tmp files
-			String mascot_tmp_file_name(String(QDir::tempPath()) + "/" + unique_name + "_Mascot_response");
+			String mascot_tmp_file_name(File::getTempDirectory() + "/" + unique_name + "_Mascot_response");
 			QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
 			mascot_tmp_file.open(QIODevice::WriteOnly);
 			mascot_tmp_file.write(mascot_query->getMascotXMLResponse());

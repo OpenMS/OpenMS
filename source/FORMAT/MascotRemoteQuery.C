@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch, Daniel Jameson$
+// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -308,7 +308,7 @@ state
 
 void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_header) 
 {
-#ifdef MASCOTREMOTEQUERY_DEBUG	
+#ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << "\n";
 
 	cerr << ">>>>> Header to read: " << "\n";
@@ -358,7 +358,7 @@ void MascotRemoteQuery::httpDone(bool error)
 {
 	if (error)
 	{
-		cerr << "'" << http_->errorString().toStdString() << "'" << "\n";
+		cerr << "Mascot Server replied: '" << http_->errorString().toStdString() << "'" << "\n";
 	}
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -381,8 +381,14 @@ void MascotRemoteQuery::httpDone(bool error)
 	cerr << doc.toPlainText().toStdString() << "\n";
 #endif
 	
-	//Sucessful login? fire off the search
-	if (new_bytes.contains("Logged in successfuly")) 
+  if (QString(new_bytes).trimmed().size() == 0 )
+  {
+    error_message_ = "Error: Reply from mascot server is empty! Possible server overload - see the Mascot Admin!";
+    emit done();
+  }
+
+	//Successful login? fire off the search
+	if (new_bytes.contains("Logged in successfuly")) // this is NOT a typo. Mascot writes 'successfuly' that way!
 	{
 		emit loginDone();
 	} 
@@ -391,9 +397,9 @@ void MascotRemoteQuery::httpDone(bool error)
 		error_message_ = "Error: You have entered an invalid password";
 		emit done();
 	}
-	else if (new_bytes.contains("Error: LarseNilse is not a valid user"))
+	else if (new_bytes.contains("is not a valid user"))
 	{
-		error_message_ = "Error: LarseNilse is not a valid user";
+		error_message_ = "Error: Username is not valid";
 		emit done();
 	}
 	else if (new_bytes.contains("Click here to see Search Report")) 
