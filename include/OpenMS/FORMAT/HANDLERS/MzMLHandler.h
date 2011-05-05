@@ -177,7 +177,7 @@ namespace OpenMS
 			///Options that can be set for loading/storing
 			PeakFileOptions options_;
 		
-			/**@name temporary datastructures to hold parsed data */
+			/**@name temporary data structures to hold parsed data */
 			//@{
 			/// The current spectrum
 			SpectrumType spec_;
@@ -186,12 +186,12 @@ namespace OpenMS
 			/// The spectrum data (or chromatogram data)
 			std::vector<BinaryData> data_;
 			/// The default number of peaks in the current spectrum
-			UInt default_array_length_;
-			/// Flag that indicates that we're inside a spectum (in contrast to a chromatogram)
+			Size default_array_length_;
+			/// Flag that indicates that we're inside a spectrum (in contrast to a chromatogram)
 			bool in_spectrum_list_;
-			/// Id of the current list. Used for referencable param group, source file, sample, software, ...
+			/// Id of the current list. Used for referencing param group, source file, sample, software, ...
 			String current_id_;
-			/// The referencable param groups: id => array (accession, value)
+			/// The referencing param groups: id => array (accession, value)
 			Map<String, std::vector< SemanticValidator::CVTerm > > ref_param_;
 			/// The source files: id => SourceFile
 			Map<String, SourceFile> source_files_;
@@ -416,7 +416,7 @@ namespace OpenMS
 				data_.push_back(BinaryData());
 				
 				//array length
-				Int array_length = default_array_length_;
+				Int array_length = (Int) default_array_length_;
 				optionalAttributeAsInt_(array_length, attributes, s_array_length);
 				data_.back().size = array_length;
 				
@@ -844,19 +844,43 @@ namespace OpenMS
 				}
 				return;
 			}
+      
 
-			//Warn if the decoded data has a different size than the the defaultArrayLength
-			Size mz_size = mz_precision_64 ? data_[mz_index].floats_64.size() : data_[mz_index].floats_32.size();
-			if (default_array_length_!=mz_size)
-			{
-				warning(LOAD, String("The base64-decoded m/z array of spectrum '") + spec_.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
-			}
-			Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
-			if (default_array_length_!=int_size)
-			{
-				warning(LOAD, String("The base64-decoded intensity array of spectrum '") + spec_.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
-			}
-			
+      //Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
+      if ((data_[mz_index].ints_32.size() > 0) || (data_[mz_index].ints_64.size() > 0))
+      {
+        fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
+      }
+      if ((data_[int_index].ints_32.size() > 0) || (data_[int_index].ints_64.size() > 0))
+      {
+        fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
+      }
+
+      //Warn if the decoded data has a different size than the the defaultArrayLength
+      Size mz_size = mz_precision_64 ? data_[mz_index].floats_64.size() : data_[mz_index].floats_32.size();
+      Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
+      // Check if int-size and mz-size are equal
+      if (mz_size != int_size)
+      {
+        fatalError(LOAD, String("The length of m/z and integer values of spectrum '") + spec_.getNativeID() + "' differ (mz-size: " + mz_size + ", int-size: " + int_size + "! Not reading spectrum!");
+      }
+      bool repair_array_length = false;
+      if (default_array_length_!=mz_size)
+      {
+        warning(LOAD, String("The m/z array of spectrum '") + spec_.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      if (default_array_length_!=int_size)
+      {
+        warning(LOAD, String("The intensity array of spectrum '") + spec_.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      if (repair_array_length)
+      {
+        default_array_length_=int_size;
+        warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_array_length_ + ".");
+      }
+
 			//create meta data arrays and reserve enough space for the content
 			if (data_.size()>2)
 			{

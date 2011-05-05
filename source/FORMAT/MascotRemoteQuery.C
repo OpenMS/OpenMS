@@ -249,7 +249,7 @@ void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
 {
 	if (error)
 	{
-		cerr << "MascotRemoteQuery: An error occured (requestId=" << requestId << "): " << http_->errorString().toStdString() << "\n";
+		cerr << "MascotRemoteQuery: An error occurred (requestId=" << requestId << "): " << http_->errorString().toStdString() << " (QT Error Code: " << int(http_->error()) << ")\n";
 	}
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "Request Finished Id: " << requestId << "\n";
