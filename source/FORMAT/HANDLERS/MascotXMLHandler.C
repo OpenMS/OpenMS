@@ -50,7 +50,8 @@ namespace OpenMS
 		tag_(),
 		date_(),
 		actual_title_(""),
-		modified_peptides_(modified_peptides)        
+		modified_peptides_(modified_peptides),
+    warning_msg_("")
   {
   	
   }
@@ -64,8 +65,12 @@ namespace OpenMS
 	{
 
 		tag_ = String(sm_.convert(qname));
-		
-		if (tag_ == "protein")
+    
+    if (tag_ == "warning")
+    {
+      warning_msg_ = "";
+    }
+		else if (tag_ == "protein")
 		{
 			String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
  	 		actual_protein_hit_.setAccession(attribute_value);
@@ -96,8 +101,13 @@ namespace OpenMS
   void MascotXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
  		tag_ = String(sm_.convert(qname)).trim();
- 		 
- 		if (tag_ == "protein")
+ 		
+    
+    if (tag_ == "warning")
+    {
+      warning(LOAD, String("Warnings were present: '") + warning_msg_ + String("'"));
+    }
+ 		else if (tag_ == "protein")
  		{	
 			protein_identification_.setScoreType("Mascot");
  			protein_identification_.insertHit(actual_protein_hit_);
@@ -516,7 +526,8 @@ namespace OpenMS
 		{
 			// e.g. if a fixed modification is forced to a variable modification
 			// <warning number="0">&apos;Oxidation (M)&apos; can only be used as a variable modification; setting it to variable</warning>
-			warning(LOAD, String("Warnings were present: '") + sm_.convert(chars) + String("'"));
+      // we do not print the warning directly as characters() gets called multiple times within the <warning>-Tag - this would lead to multiple ugly lines 
+      warning_msg_ += sm_.convert(chars);
 		}
 		else if (tag_ == "name")
 		{
