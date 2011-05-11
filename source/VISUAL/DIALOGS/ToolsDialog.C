@@ -152,7 +152,7 @@ namespace OpenMS
 			return;
 		}
 		
-		String call = File::getExecutablePath() + getTool() + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
+		String call = String("\"") + File::getExecutablePath() + getTool() + "\"" + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
 
 		if (i!=-1)
 		{

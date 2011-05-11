@@ -442,7 +442,7 @@ namespace OpenMS
 		defaults_.setValue("isotope_correction", "true", "enable isotope correction (highly recommended)", StringList::create("advanced")); 
 		defaults_.setValidStrings("isotope_correction", StringList::create("true,false"));
 
-		defaults_.setValue("do_normalization", "false", "normalize channels?", StringList::create("advanced")); 
+		defaults_.setValue("do_normalization", "false", "Normalize channels? Done by using the Median of Ratios (every channel / Reference). Also the ratio of medians (from any channel and reference) is provided as control measure!", StringList::create("advanced")); 
 		defaults_.setValidStrings("do_normalization", StringList::create("true,false"));
 
 		StringList isotopes = ItraqConstants::getIsotopeMatrixAsStringList(itraq_type_, isotope_corrections_);
