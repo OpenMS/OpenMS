@@ -35,6 +35,70 @@
 using namespace OpenMS;
 using namespace std;
 
+void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps)
+{
+  feature_maps.clear();
+
+  // first feature map TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL
+  FeatureMapSim fm1,fm2;
+  ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5;
+
+  // create first map
+  prothit1.setSequence("AAAAAAAKHHHHHHHHHHH");
+  prothit1.setMetaValue("description", "test sequence 1");
+  prothit1.setAccession("ACC1");
+  prothit1.setMetaValue("intensity", 200.0);
+
+  prothit2.setSequence("CNHAAAAAAAAA");
+  prothit2.setMetaValue("description", "test sequence 2");
+  prothit2.setAccession("ACC2");
+  prothit2.setMetaValue("intensity", 100.0);
+
+  ProteinIdentification protIdent1;
+  protIdent1.insertHit(prothit1);
+  protIdent1.insertHit(prothit2);
+  vector<ProteinIdentification> protIdents_vec1;
+  protIdents_vec1.push_back(protIdent1);
+  fm1.setProteinIdentifications(protIdents_vec1);
+
+  // create second map
+  prothit3.setSequence("AAAAAAAKHHHHHHHHHHH"); // same as protein 1 from first map
+  prothit3.setMetaValue("description", "test sequence 3");
+  prothit3.setAccession("ACC3");
+  prothit3.setMetaValue("intensity", 50.0);
+
+  prothit5.setSequence("CNHAAAAAAAAA");
+  prothit5.setMetaValue("description", "test sequence 5");
+  prothit5.setAccession("ACC5");
+  prothit5.setMetaValue("intensity", 100.0);
+
+  ProteinIdentification protIdent2;
+  protIdent2.insertHit(prothit3);
+  protIdent2.insertHit(prothit5);
+  vector<ProteinIdentification> protIdents_vec2;
+  protIdents_vec2.push_back(protIdent2);
+  fm2.setProteinIdentifications(protIdents_vec2);
+
+  feature_maps.push_back(fm1);
+  feature_maps.push_back(fm2);
+}
+
+void digestFeaturesMapSimVector_(FeatureMapSimVector& feature_maps)
+{
+  // digest here
+  DigestSimulation digest_sim;
+  Param p;
+  p.setValue("model", "naive");
+  p.setValue("model_naive:missed_cleavages", 0);
+  digest_sim.setParameters(p);
+  std::cout << digest_sim.getParameters() << std::endl;
+  for(FeatureMapSimVector::iterator iter = feature_maps.begin() ; iter != feature_maps.end() ; ++iter)
+  {
+    digest_sim.digest((*iter));
+  }
+}
+
+
 START_TEST(O18Labeler, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -91,60 +155,8 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 {
   FeatureMapSimVector feature_maps;
 
-  // first feature map TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL
-  FeatureMapSim fm1,fm2;
-  ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5;
-
-  // create first map
-  prothit1.setSequence("AAAAAAAKHHHHHHHHHHH");
-  prothit1.setMetaValue("description", "test sequence 1");
-  prothit1.setAccession("ACC1");
-  prothit1.setMetaValue("intensity", 200.0);
-
-  prothit2.setSequence("CNHAAAAAAAAA");
-  prothit2.setMetaValue("description", "test sequence 2");
-  prothit2.setAccession("ACC2");
-  prothit2.setMetaValue("intensity", 100.0);
-
-  ProteinIdentification protIdent1;
-  protIdent1.insertHit(prothit1);
-  protIdent1.insertHit(prothit2);
-  vector<ProteinIdentification> protIdents_vec1;
-  protIdents_vec1.push_back(protIdent1);
-  fm1.setProteinIdentifications(protIdents_vec1);
-
-  // create second map
-  prothit3.setSequence("AAAAAAAKHHHHHHHHHHH"); // same as protein 1 from first map
-  prothit3.setMetaValue("description", "test sequence 3");
-  prothit3.setAccession("ACC3");
-  prothit3.setMetaValue("intensity", 50.0);
-
-  prothit5.setSequence("CNHAAAAAAAAA");
-  prothit5.setMetaValue("description", "test sequence 5");
-  prothit5.setAccession("ACC5");
-  prothit5.setMetaValue("intensity", 100.0);
-
-  ProteinIdentification protIdent2;
-  protIdent2.insertHit(prothit3);
-  protIdent2.insertHit(prothit5);
-  vector<ProteinIdentification> protIdents_vec2;
-  protIdents_vec2.push_back(protIdent2);
-  fm2.setProteinIdentifications(protIdents_vec2);
-
-  feature_maps.push_back(fm1);
-  feature_maps.push_back(fm2);
-
-  // digest here
-  DigestSimulation digest_sim;
-  Param p;
-  p.setValue("model", "naive");
-  p.setValue("model_naive|missed_cleavages", 0);
-  digest_sim.setParameters(p);
-  std::cout << digest_sim.getParameters() << std::endl;
-  for(FeatureMapSimVector::iterator iter = feature_maps.begin() ; iter != feature_maps.end() ; ++iter)
-  {
-    digest_sim.digest((*iter));
-  }
+  createTestFeatureMapSimVector_(feature_maps);
+  digestFeaturesMapSimVector_(feature_maps);
 
   // maps are digested by now
   O18Labeler labeler;
@@ -153,19 +165,48 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps.size(), 1)
   ABORT_IF(feature_maps.size() != 1)
 
+  TEST_EQUAL(feature_maps[0].size(), 4)
+  ABORT_IF(feature_maps[0].size() != 4)
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+
+  // TODO Test ConsensusMap association
+
+  // now test the incomplete variant
+  createTestFeatureMapSimVector_(feature_maps);
+  digestFeaturesMapSimVector_(feature_maps);
+
+  O18Labeler incomplete_labeler;
+  Param p;
+  p.setValue("labeling_efficiency", 0.7);
+  incomplete_labeler.setParameters(p);
+
+  incomplete_labeler.postDigestHook(feature_maps);
+
+  TEST_EQUAL(feature_maps.size(), 1)
+  ABORT_IF(feature_maps.size() != 1)
+
   TEST_EQUAL(feature_maps[0].size(), 5)
   ABORT_IF(feature_maps[0].size() != 5)
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 38)
+
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 24.5)
   TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 150)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 188)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAKHHHHHHHHHHH")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 21)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(1))")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 204.5)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
   TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
   TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 188)
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
   TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
 
+  // TODO Test ConsensusMap association
 }
 END_SECTION
 
@@ -190,6 +231,7 @@ END_SECTION
 START_SECTION((void postRawMSHook(FeatureMapSimVector &)))
 {
   NOT_TESTABLE
+  // TODO Test ConsensusMap association
 }
 END_SECTION
 
