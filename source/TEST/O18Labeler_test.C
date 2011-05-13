@@ -41,7 +41,7 @@ void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps)
 
   // first feature map TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL
   FeatureMapSim fm1,fm2;
-  ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5;
+  ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5,prothit6;
 
   // create first map
   prothit1.setSequence("AAAAAAAKHHHHHHHHHHH");
@@ -54,27 +54,39 @@ void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps)
   prothit2.setAccession("ACC2");
   prothit2.setMetaValue("intensity", 100.0);
 
+  prothit3.setSequence("LDCELR");
+  prothit3.setMetaValue("description", "test sequence 3");
+  prothit3.setAccession("ACC3");
+  prothit3.setMetaValue("intensity", 100.0);
+
   ProteinIdentification protIdent1;
   protIdent1.insertHit(prothit1);
   protIdent1.insertHit(prothit2);
+  protIdent1.insertHit(prothit3);
   vector<ProteinIdentification> protIdents_vec1;
   protIdents_vec1.push_back(protIdent1);
   fm1.setProteinIdentifications(protIdents_vec1);
 
-  // create second map
-  prothit3.setSequence("AAAAAAAKHHHHHHHHHHH"); // same as protein 1 from first map
-  prothit3.setMetaValue("description", "test sequence 3");
-  prothit3.setAccession("ACC3");
-  prothit3.setMetaValue("intensity", 50.0);
+  // create labeled map
+  prothit4.setSequence("AAAAAAAKHHHHHHHHHHH"); // same as protein 1 from first map
+  prothit4.setMetaValue("description", "test sequence 4");
+  prothit4.setAccession("ACC4");
+  prothit4.setMetaValue("intensity", 50.0);
 
   prothit5.setSequence("CNHAAAAAAAAA");
   prothit5.setMetaValue("description", "test sequence 5");
   prothit5.setAccession("ACC5");
   prothit5.setMetaValue("intensity", 100.0);
 
+  prothit6.setSequence("CNHAADDAAAAA");
+  prothit6.setMetaValue("description", "test sequence 6");
+  prothit6.setAccession("ACC6");
+  prothit6.setMetaValue("intensity", 120.0);
+
   ProteinIdentification protIdent2;
-  protIdent2.insertHit(prothit3);
+  protIdent2.insertHit(prothit4);
   protIdent2.insertHit(prothit5);
+  protIdent2.insertHit(prothit6);
   vector<ProteinIdentification> protIdents_vec2;
   protIdents_vec2.push_back(protIdent2);
   fm2.setProteinIdentifications(protIdents_vec2);
@@ -165,18 +177,36 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps.size(), 1)
   ABORT_IF(feature_maps.size() != 1)
 
-  TEST_EQUAL(feature_maps[0].size(), 4)
-  ABORT_IF(feature_maps[0].size() != 4)
+  TEST_EQUAL(feature_maps[0].size(), 6)
+  ABORT_IF(feature_maps[0].size() != 6)
   TEST_EQUAL(feature_maps[0][0].getIntensity(), 50)
   TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
+
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 200)
   TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 200)
   TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
 
-  // TODO Test ConsensusMap association
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")
+
+  // Test ConsensusMap association
+  ConsensusMap cm = labeler.getConsensus();
+  TEST_EQUAL(cm.size(), 1)
+  ABORT_IF(cm.size() != 1)
+  TEST_EQUAL(cm[0].getFeatures().size(),2)
+
+  ConsensusFeature::HandleSetType::const_iterator fhIt = cm[0].getFeatures().begin();
+  TEST_EQUAL(feature_maps[0][0].getUniqueId(), fhIt->getUniqueId())
+  ++fhIt;
+  TEST_EQUAL(feature_maps[0][1].getUniqueId(), fhIt->getUniqueId())
 
   // now test the incomplete variant
   createTestFeatureMapSimVector_(feature_maps);
@@ -192,21 +222,42 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps.size(), 1)
   ABORT_IF(feature_maps.size() != 1)
 
-  TEST_EQUAL(feature_maps[0].size(), 5)
-  ABORT_IF(feature_maps[0].size() != 5)
+  TEST_EQUAL(feature_maps[0].size(), 7)
+  ABORT_IF(feature_maps[0].size() != 7)
 
   TEST_EQUAL(feature_maps[0][0].getIntensity(), 24.5)
   TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
+
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 21)
   TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(1))")
+
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 204.5)
   TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+
   TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
   TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
 
-  // TODO Test ConsensusMap association
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")
+
+  // Test ConsensusMap association
+  ConsensusMap incomplete_cm = incomplete_labeler.getConsensus();
+  TEST_EQUAL(incomplete_cm.size(), 1)
+  ABORT_IF(incomplete_cm.size() != 1)
+  TEST_EQUAL(incomplete_cm[0].getFeatures().size(),3)
+
+  ConsensusFeature::HandleSetType::const_iterator incomplete_fhIt = incomplete_cm[0].getFeatures().begin();
+  TEST_EQUAL(feature_maps[0][2].getUniqueId(), incomplete_fhIt->getUniqueId())
+  ++incomplete_fhIt;
+  TEST_EQUAL(feature_maps[0][1].getUniqueId(), incomplete_fhIt->getUniqueId())
+  ++incomplete_fhIt;
+  TEST_EQUAL(feature_maps[0][0].getUniqueId(), incomplete_fhIt->getUniqueId())
 }
 END_SECTION
 
