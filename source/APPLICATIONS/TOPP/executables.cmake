@@ -21,6 +21,7 @@ FileFilter
 FileInfo
 FileMerger
 GenericWrapper
+HighResPrecursorMassCorrector
 IDDecoyProbability
 IDPosteriorErrorProbability
 IDFileConverter
