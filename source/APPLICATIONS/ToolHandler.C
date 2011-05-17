@@ -64,6 +64,7 @@ namespace OpenMS
 		tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", "File Handling");
 		tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");
 		tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", "File Handling");
+    tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", "Signal processing and preprocessing");
 		tools_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", "Protein/peptide Processing");
 		tools_map["IDPosteriorErrorProbability"] = Internal::ToolDescription("IDPosteriorErrorProbability", "Protein/peptide Processing");
 		tools_map["IDFileConverter"] = Internal::ToolDescription("IDFileConverter", "Protein/peptide Processing");
