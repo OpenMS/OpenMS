@@ -55,23 +55,26 @@ using namespace std;
 		
 	@brief A highly configurable simulator for mass spectrometry experiments.
 	
-  This implementation is a rewritten and extended version of the concepts and ideas presented in:<br>
+  This implementation is described in 
   <p>
-  Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gropl, Oliver Kohlbacher, and Knut Reinert.<br>
-  LC-MSsim - A simulation software for liquid chromatography mass spectrometry data.<br>
-  <em>BMC Bioinformatics</em> <b>9</b>:423, 2008.
+  Chris Bielow, Stephan Aiche, Sandro Andreotti, Knut Reinert<br>
+  MSSimulator: Simulation of Mass Spectrometry Data<br>
+  Journal of Proteome Research, DOI: 10.1021/pr200155f<br>
   </p>
 
-  The electronic version of this article is the complete one and can be found online at: <br>
-  <a href="http://www.biomedcentral.com/1471-2105/9/423">http://www.biomedcentral.com/1471-2105/9/423</a>
-
-  Added features are:
+  The most important features are:
   <ul>
+    <li>Simulation of Capillary electrophoresis and HPLC as separation step</li>
+    <li>Simulation of MS spectra</li>
     <li>Simulation of MS/MS spectra with configurable precursor-selection strategy</li>
-    <li>Simulation of Capillary electrophoresis as separation step</li>
     <li>Simulation of iTRAQ labels</li>
-    <li>Simulation of 1D spectra</li>
+    <li>Simulation of different noise models and instrument types (resolution, peak shape)</li>
   </ul>
+
+  Look at the INI file (via "MSSimulator -write_ini myini.ini -type ...") to see the available parameters and more functionality.
+
+  If multiplexed data is simulated (like SILAC or iTRAQ) you need to supply multiple FASTA input files.
+  For the label-free setting, all FASTA input files will be merged into one, before simulation.
 
   <p>
    Actually only a test model for MS/MS simulation is shipped with OpenMS. <br>

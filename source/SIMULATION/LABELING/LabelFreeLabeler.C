@@ -57,6 +57,7 @@ namespace OpenMS
     if(features.size() == 1) return;
     else
     {
+      LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
       FeatureMapSim final_map = mergeProteinIdentificationsMaps_(features);
       features.clear();
       features.push_back(final_map);
