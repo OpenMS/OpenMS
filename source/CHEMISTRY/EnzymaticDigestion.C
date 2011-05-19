@@ -199,11 +199,11 @@ namespace OpenMS
 			{
 				mc_iterators.push_back(end);
 			}
-		
-			output.push_back(AASequence(begin, end));
+
+      output.push_back(protein.getSubsequence(begin - protein.begin() , end - begin));
 			begin = end;
 		}
-		output.push_back(AASequence(begin, end));
+    output.push_back(protein.getSubsequence(begin - protein.begin() , end - begin));
 		if (missed_cleavages_ != 0) 
 		{
 			mc_iterators.push_back(end);
@@ -230,7 +230,7 @@ namespace OpenMS
 				vector<AASequence::ConstIterator>::const_iterator e = b+(i+1);
 				while (e != mc_iterators.end())
 				{
-					output[pos] = AASequence(*b, *e);
+          output[pos] = AASequence(protein.getSubsequence(*b - protein.begin() , *e  - *b));
 					++b;
 					++e;
 					++pos;

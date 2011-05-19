@@ -359,9 +359,6 @@ namespace OpenMS
 			/// copy consturctor from char* string
 			AASequence(const char* rhs);
 
-			/// constructor with given a residue range
-			AASequence(ConstIterator begin, ConstIterator end);
-			
 			/// destructor
 			virtual ~AASequence();
 			//@}

@@ -62,16 +62,49 @@ START_SECTION(AASequence(const AASequence& rhs))
 END_SECTION
 
 START_SECTION(AASequence(const String& rhs))
-	AASequence seq;
-	seq = String("AAA");
-	AASequence seq2("AAA");
+  AASequence seq("CNARCKNCNCNARCDRE");
+  TEST_EQUAL(seq.isModified(), false)
+  TEST_EQUAL(seq.isValid(), true)
+  TEST_EQUAL(seq.hasNTerminalModification(),false);
+  TEST_EQUAL(seq.hasCTerminalModification(),false);
+  TEST_EQUAL(seq.getResidue((SignedSize)4).getModification(),"")
+
+  AASequence seq2;
+  seq2 = String("CNARCKNCNCNARCDRE");
 	TEST_EQUAL(seq, seq2);
 
   // test complex term-mods
   AASequence seq3("VPQVSTPTLVEVSRSLGK(Label:18O(2))");
+  TEST_EQUAL(seq3.isModified(), true)
+  TEST_EQUAL(seq3.isValid(), true)
+  TEST_EQUAL(seq3.hasNTerminalModification(),false);
+  TEST_EQUAL(seq3.hasCTerminalModification(),true);
+  TEST_EQUAL(seq3.getResidue((SignedSize)4).getModification(),"")
+  TEST_EQUAL(seq3.getCTerminalModification(), "Label:18O(2)")
   AASequence seq4;
   seq4 = "VPQVSTPTLVEVSRSLGK(Label:18O(2))";
   TEST_EQUAL(seq3,seq4)
+
+  AASequence seq5("(ICPL:2H(4))CNARCNCNCN");
+  TEST_EQUAL(seq5.isValid(), true)
+  TEST_EQUAL(seq5.hasNTerminalModification(),true);
+  TEST_EQUAL(seq5.isModified(),true);
+  TEST_EQUAL(seq5.getNTerminalModification(),"ICPL:2H(4)")
+
+  AASequence seq6("CNARCK(Label:13C(6)15N(2))NCNCN");
+  TEST_EQUAL(seq6.isValid(), true)
+  TEST_EQUAL(seq6.hasNTerminalModification(),false);
+  TEST_EQUAL(seq6.hasCTerminalModification(),false);
+  TEST_EQUAL(seq6.isModified(),true);
+  TEST_EQUAL(seq6.getResidue((SignedSize)5).getModification(),"Label:13C(6)15N(2)")
+  TEST_EQUAL(seq6.getResidue((SignedSize)4).getModification(),"")
+
+  AASequence seq7("CNARCKNCNCNARCDRE(Amidated)");
+  TEST_EQUAL(seq7.isValid(), true)
+  TEST_EQUAL(seq7.hasNTerminalModification(),false);
+  TEST_EQUAL(seq7.hasCTerminalModification(),true);
+  TEST_EQUAL(seq7.isModified(),true);
+  TEST_EQUAL(seq7.getCTerminalModification(),"Amidated")
 END_SECTION
 
 START_SECTION(AASequence& operator = (const AASequence& rhs))
@@ -79,13 +112,6 @@ START_SECTION(AASequence& operator = (const AASequence& rhs))
 	AASequence seq2;
 	seq2 = String("AAA");
 	TEST_EQUAL(seq, seq2)
-END_SECTION
-
-START_SECTION(AASequence(ConstIterator begin, ConstIterator end))
-	const AASequence seq("ACDEFGHIKLMN");
-	AASequence seq2(seq.begin(), seq.end() - 4);
-	AASequence seq3("ACDEFGHI");
-	TEST_EQUAL(seq2, seq3);
 END_SECTION
 
 START_SECTION(([EXTRA]Test modifications with brackets))
@@ -98,7 +124,7 @@ START_SECTION(([EXTRA]Test modifications with brackets))
 	TEST_EQUAL(seq2.isValid(), true)
 	TEST_EQUAL(seq2.hasNTerminalModification(), false)
 	TEST_EQUAL(seq2.hasCTerminalModification(), true)
-	TEST_EQUAL(seq2.isModified(), true)
+	TEST_EQUAL(seq2.isModified(), true)  
 END_SECTION
 
 START_SECTION(bool operator == (const char* rhs) const)
@@ -158,7 +184,7 @@ END_SECTION
 START_SECTION((const Residue& getResidue(SignedSize index) const))
 	AASequence seq(String("ACDEF"));
 	SignedSize sint(2);
-	TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
+  TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
 	TEST_EXCEPTION(Exception::IndexUnderflow, seq.getResidue((SignedSize)-3))
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue((SignedSize)1000))
 END_SECTION

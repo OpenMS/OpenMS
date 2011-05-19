@@ -1042,17 +1042,6 @@ namespace OpenMS
 		}
 	}
 
-	AASequence::AASequence(ConstIterator begin, ConstIterator end)
-		: valid_(true),
-			n_term_mod_(0),
-			c_term_mod_(0)
-	{
-		for (ConstIterator it = begin; it != end; ++it)
-		{
-			peptide_.push_back(&*it);
-		}
-	}
-
 	void AASequence::setModification(Size index, const String& modification)
 	{
 		if (index >= peptide_.size())
