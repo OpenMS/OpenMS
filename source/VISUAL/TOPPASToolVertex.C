@@ -404,7 +404,7 @@ namespace OpenMS
 		
     if (finished_)
     {
-      std::cerr << "This should not happen. Calling an already finished node!\n";
+      std::cerr << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!\n";
       throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
