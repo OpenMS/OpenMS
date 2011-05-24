@@ -232,6 +232,7 @@ class TOPPConsensusID
 									break;
 								}
 							}
+							cout<<pep_id_it->getIdentifier()<<endl;
      				}
 						t.setHits(hits);
 						tmp.ids.push_back(t);
