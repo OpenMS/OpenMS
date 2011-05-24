@@ -115,6 +115,14 @@ namespace OpenMS
 			 */
 			IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& distribution);
 
+      /*_ calculates the average weight based on isotope abundance and mass
+       */
+      double calculateAvgWeight_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass);
+
+      /*_ calculates the mono weight based on the smallest isotope mass
+       */
+      double calculateMonoWeight_(const Map<UInt, double>& Z_to_mass);
+
 			/*_ read elements from a XML file, formated as a Param file.
 
 			 		@throw throws ParseError if the file cannot be parsed
