@@ -63,10 +63,6 @@
           <ITEM name="RelativeAbundance" value="1.07" type="float" />
           <ITEM name="AtomicMass" value="13.003355" type="float" />
         </NODE>
-        <NODE name="14">
-          <ITEM name="RelativeAbundance" value="0.00" type="float" />
-          <ITEM name="AtomicMass" value="14.003242" type="float" />
-        </NODE>
       </NODE>
 		</NODE>
 		<NODE name="Nitrogen">
