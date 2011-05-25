@@ -213,7 +213,7 @@ END_SECTION
 START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
   AASequence seq("DFPIANGER");
 	TOLERANCE_ABSOLUTE(0.01)
-	TEST_REAL_SIMILAR(seq.getMonoWeight(), double(1017.49))
+	TEST_REAL_SIMILAR(seq.getMonoWeight(), double(1017.48796))
 	TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
 
 	// test N-term modification
@@ -226,7 +226,7 @@ START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Ful
 
 	// test heavy modification
 	AASequence seq3("(dNIC)DFPIANGER");
-	TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1126.51));
+	TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1126.536019));
 
 	// test old OpenMS dNIC definition
 	AASequence seq3a("(MOD:09999)DFPIANGER");
