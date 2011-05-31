@@ -638,6 +638,25 @@ class TOPPOMSSAAdapter
 						out << "\t<MSModSpec_residues>" << endl;
 						out << "\t\t<MSModSpec_residues_E>" << origin << "</MSModSpec_residues_E>" << endl;
 						out << "\t</MSModSpec_residues>" << endl;
+
+            /* TODO: Check why these are always 0
+            DoubleReal neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
+            DoubleReal neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
+            */
+            DoubleReal neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getMonoWeight();
+            DoubleReal neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getAverageWeight();
+
+            if (fabs(neutral_loss_mono) > 0.00001)
+            {
+              out << "\t<MSModSpec_neutralloss>" << endl;
+              out << "\t\t<MSMassSet>" << endl;
+              out << "\t\t\t<MSMassSet_monomass>" << neutral_loss_mono << "</MSMassSet_monomass>" << endl;
+              out << "\t\t\t<MSMassSet_averagemass>" << neutral_loss_avg << "</MSMassSet_averagemass>" << endl;
+              out << "\t\t\t<MSMassSet_n15mass>0</MSMassSet_n15mass>" << endl;
+              out << "\t\t</MSMassSet>" << endl;
+              out << "\t</MSModSpec_neutralloss>" << endl;
+            }
+
 						out << "</MSModSpec>" << endl;
 					}
 				}
@@ -689,9 +708,11 @@ class TOPPOMSSAAdapter
 			if (status != 0)
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
-
-				QFile(unique_input_name.toQString()).remove();
-				QFile(unique_output_name.toQString()).remove();
+			  if (getIntOption_("debug") <= 1)
+			  {
+					QFile(unique_input_name.toQString()).remove();
+					QFile(unique_output_name.toQString()).remove();
+				}
         if (user_mods.size() != 0 || additional_user_mods_filename!="")
 				{
 					QFile(unique_usermod_name.toQString()).remove();
@@ -702,7 +723,7 @@ class TOPPOMSSAAdapter
 			// read OMSSA output
 			writeDebug_("Reading output of OMSSA", 10);
 			OMSSAXMLFile omssa_out_file;
-			omssa_out_file.setModificationDefinitionsSet(mod_set);
+			omssa_out_file.setModificationDefinitionsSet(mod_set);  // TODO: add modifications from additional user mods subtree 
 			omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
 
 			// OMSSA does not write fixed modifications so we need to add them to the sequences
@@ -755,12 +776,15 @@ class TOPPOMSSAAdapter
 			}
 
 			// delete temporary files
-			writeDebug_("Removing temporary files", 10);
-			QFile(unique_input_name.toQString()).remove();
-			QFile(unique_output_name.toQString()).remove();
-			if (user_mods.size() != 0)
+			if (getIntOption_("debug") <= 1)
 			{
-				QFile(unique_usermod_name.toQString()).remove();
+			  writeDebug_("Removing temporary files", 10);
+  			QFile(unique_input_name.toQString()).remove();
+	  		QFile(unique_output_name.toQString()).remove();
+		  	if (user_mods.size() != 0)
+		  	{
+		  		QFile(unique_usermod_name.toQString()).remove();
+	  		}
 			}
 
 			// handle the search parameters
