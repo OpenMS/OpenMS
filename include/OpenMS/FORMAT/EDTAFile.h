@@ -43,21 +43,30 @@ namespace OpenMS
  	/**
  		@brief File adapter for Enhanced DTA files.
  		
-  	Input text file containing the following columns: RT m/z intensity.");
-		Additionally meta data columns may follow.
-		If meta data is used, meta data column names have to be specified in a header line, e.g.
-@code
-    RT m/z Intensity charge mymeta
-    321 405.233 24543534 2 lala
-    321 406.207 4343344  2 blubb
-@endcode
+    Input text file containing tab, space or comma separated columns.
+    The separator between columns is checked in the first line in this order.
 
-    The separator between columns is checked in the first line in this order:
-    Tab, Space, Comma
+    It supports three variants of this format.
 
-		If a meta column named 'charge' with numeric data exists, the charge of the features will be set accordingly.
-    Every subsequent line is a feature.
-  	
+    - Columns are: RT, MZ, Intensity. Header is optional.
+
+    - Columns are: RT, MZ, Intensity, Charge, Meta. Header is optional.
+
+      @code
+      RT m/z Intensity charge mymeta
+      321 405.233 24543534 2 lala
+      321 406.207 4343344  2 blubb
+      @endcode
+
+    - Columns are: (RT, MZ, Intensity, Charge){1,}, Meta. Header is mandantory.
+      First quadruplet is the consensus. All following quadruplets describes the features.
+
+      @code
+      RT MZ INT CHARGE RT1 MZ1 INT1 CHARGE1 RT2 MZ2 INT2 CHARGE2
+      321 405 100 2 321 405 100 2 321 406 50 2
+      323 406 200 2 323 406 200 2 323 407 100 2 323 407 50 2
+      @endcode
+
   	@ingroup FileIO
   */
   class OPENMS_DLLAPI EDTAFile
@@ -68,8 +77,34 @@ namespace OpenMS
 			/// Destructor
       virtual ~EDTAFile();
       
+    private:
       /**
- 				@brief Loads a EDTA file into a featureXML.
+       * Check if column exists and convert String into DoubleReal.
+       */
+      DoubleReal checkedToDouble_(const std::vector<String> &parts, Size index, DoubleReal def = -1)
+      {
+        if (index < parts.size())
+        {
+          return parts[index].toDouble();
+        }
+        return def;
+      }
+
+      /**
+       * Check if column exists and convert String into Int.
+       */
+      Int checkedToInt_(const std::vector<String> &parts, Size index, Int def = -1)
+      {
+        if (index < parts.size())
+        {
+          return parts[index].toInt();
+        }
+        return def;
+      }
+
+    public:
+      /**
+        @brief Loads a EDTA file into a consensusXML.
  				
  				The content of the file is stored in @p features.
 
@@ -101,18 +136,28 @@ namespace OpenMS
 				}
 				String header_trimmed = input[0];
 				header_trimmed.trim();
-				DoubleReal rt = 0.0;
-				DoubleReal mz = 0.0;
-				DoubleReal it = 0.0;
-				Int ch = 0;
 
-        bool charge = true;
+        enum
+        {
+          TYPE_UNDEFINED,
+          TYPE_OLD_NOCHARGE,
+          TYPE_OLD_CHARGE,
+          TYPE_CONSENSUS
+        }
+        input_type = TYPE_UNDEFINED;
+        Size input_features = 1;
+
+        DoubleReal rt = 0.0;
+        DoubleReal mz = 0.0;
+        DoubleReal it = 0.0;
+        Int ch = 0;
 
 				// see if we have a header
 				try
 				{
           if (headers.size()>3) throw Exception::BaseException(); // there is meta-data, so these must be their names
-          else if (headers.size() == 3) charge = false;
+          else if (headers.size() == 4) input_type = TYPE_OLD_CHARGE;
+          else if (headers.size() == 3) input_type = TYPE_OLD_NOCHARGE;
           else if (headers.size()<3) throw Exception::BaseException(); // not enough data columns in first line...
           // try to convert... if not: thats a header
           rt = headers[0].toDouble();
@@ -123,6 +168,14 @@ namespace OpenMS
 				{
 					offset=1;
 					LOG_INFO << "Detected a header line.\n";
+
+          if (input_type == TYPE_UNDEFINED)
+          {
+            input_type = TYPE_CONSENSUS;
+            // Every consensus style line includes features with four columns.
+            // The remainder is meta data
+            input_features = headers.size() / 4;
+          }
 				}
 
         ConsensusMap::FileDescription desc;
@@ -154,29 +207,53 @@ namespace OpenMS
             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i+1) + ": At least three columns are needed! (got  " + String(parts.size()) + ")\nOffending line: '" + line_trimmed + "'  (line " + (i+1) + ")\n");
 					}
 					
-					//convert coordinate columns to doubles
-					try
-					{
-						rt = parts[0].toDouble();
-						mz = parts[1].toDouble();
-						it = parts[2].toDouble();
-            if (charge == true) ch = parts[3].toInt();
-					}
-					catch (Exception::BaseException&)
-					{
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
-              String("Failed parsing in line") + String(i+1) + ": Could not convert the first three columns to float! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i+1) + ")\n");
-					}
+          ConsensusFeature cf;
+          cf.setUniqueId();
 
-          ConsensusFeature f;
-          f.setUniqueId();
-          f.setMZ(mz);
-          f.setRT(rt);
-          f.setIntensity(it);
-          if (charge == true) f.setCharge(ch);
+          try
+          {
+            // Convert values. Will return -1 if not available.
+            rt = checkedToDouble_(parts, 0);
+            mz = checkedToDouble_(parts, 1);
+            it = checkedToDouble_(parts, 2);
+            ch = checkedToInt_(parts, 3);
+
+            cf.setRT(rt);
+            cf.setMZ(mz);
+            cf.setIntensity(it);
+            if (input_type != TYPE_OLD_NOCHARGE) cf.setCharge(ch);
+
+            // Check all features in one line
+            for (Size j = 1; j < input_features; ++j)
+            {
+              Feature f;
+              f.setUniqueId();
+
+              // Convert values. Will return -1 if not available.
+              rt = checkedToDouble_(parts, j * 4 + 0);
+              mz = checkedToDouble_(parts, j * 4 + 1);
+              it = checkedToDouble_(parts, j * 4 + 2);
+              ch = checkedToInt_(parts, j * 4 + 3);
+
+              // Only accept features with at least RT and MZ set
+              if (rt != -1 && mz != -1)
+              {
+                f.setRT(rt);
+                f.setMZ(mz);
+                f.setIntensity(it);
+                f.setCharge(ch);
+
+                cf.insert(j-1, f);
+              }
+            }
+          }
+          catch (Exception::BaseException&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line") + String(i + 1) + ": Could not convert the first three columns to float! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+          }
 
  					//parse meta data
-					for (Size j=4; j<parts.size(); ++j)
+          for (Size j = input_features * 4; j < parts.size(); ++j)
 					{
 						String part_trimmed = parts[j];
 						part_trimmed.trim();
@@ -190,12 +267,12 @@ namespace OpenMS
                   + String("Offending header line: '") + header_trimmed + "'  (line 1)");
 							}
 							//add meta value
-							f.setMetaValue(headers[j],part_trimmed);
+							cf.setMetaValue(headers[j],part_trimmed);
 						}
           }
 
           //insert feature to map
-          consensus_map.push_back(f);
+          consensus_map.push_back(cf);
 				}
       }
 
