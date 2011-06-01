@@ -27,6 +27,7 @@
 
 #include <OpenMS/config.h>
 
+#include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -203,11 +204,22 @@ class TOPPFileConverter
         exp.set2DData(cm);
       }
 		}
+    else if (in_type == FileTypes::EDTA)
+		{
+			EDTAFile().load(in,cm);
+			cm.sortByPosition();
+      if ((out_type != FileTypes::FEATUREXML) && 
+					(out_type != FileTypes::CONSENSUSXML))
+      {
+        // You you will lose information and waste memory. Enough reasons to issue a warning!
+        writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
+        exp.set2DData(cm);
+      }
+		}
 		else if (in_type == FileTypes::FEATUREXML ||
              in_type == FileTypes::TSV ||
              in_type == FileTypes::PEPLIST ||
-             in_type == FileTypes::KROENIK ||
-             in_type == FileTypes::EDTA)
+             in_type == FileTypes::KROENIK)
 		{
 			fh.loadFeatures(in,fm,in_type);
       fm.sortByPosition();
@@ -289,12 +301,11 @@ class TOPPFileConverter
 		else if (out_type == FileTypes::FEATUREXML)
 		{
 		  if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
-					(in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK) ||
-					(in_type == FileTypes::EDTA))
+					(in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
 		  {
 		    fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 		  }
-		  else if (in_type == FileTypes::CONSENSUSXML)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
 		  {
         ConsensusMap::convert(cm, true, fm);
 		  }
@@ -337,13 +348,15 @@ class TOPPFileConverter
 		else if (out_type == FileTypes::CONSENSUSXML)
 		{
 		  if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
-					(in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK) ||
-					(in_type == FileTypes::EDTA))
+					(in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
 		  {
 		    fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 				ConsensusMap::convert(0, fm, cm);
 		  }
-			// nothing to do for consensusXML input
+			// nothing to do for consensus input
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
+      {
+      }
 		  else // experimental data
 		  {
 				ConsensusMap::convert(0, exp, cm, exp.size());

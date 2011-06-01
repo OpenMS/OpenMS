@@ -44,7 +44,6 @@
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
 #include <OpenMS/FORMAT/KroenikFile.h>
-#include <OpenMS/FORMAT/EDTAFile.h>
 
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -347,10 +346,6 @@ namespace OpenMS
 			else if (type==FileTypes::KROENIK)
       {
         KroenikFile().load(filename,map);
-      }
-			else if (type==FileTypes::EDTA)
-      {
-        EDTAFile().load(filename,map);
       }
       else
       {

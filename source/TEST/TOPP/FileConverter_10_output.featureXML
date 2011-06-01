@@ -13,7 +13,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
-			<charge>0</charge>
+			<charge>1</charge>
 		</feature>
 		<feature id="f_5024549519481199379">
 			<position dim="0">10</position>
@@ -22,7 +22,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
-			<charge>0</charge>
+			<charge>2</charge>
 		</feature>
 		<feature id="f_6211693768620736135">
 			<position dim="0">10</position>
@@ -31,7 +31,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
-			<charge>0</charge>
+			<charge>2</charge>
 		</feature>
 		<feature id="f_2727934422266510952">
 			<position dim="0">14</position>
@@ -40,8 +40,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
-			<charge>0</charge>
-			<userParam type="string" name="Meta1" value="key"/>
+			<charge>1</charge>
 			<userParam type="string" name="Meta2" value="value"/>
 		</feature>
 		<feature id="f_3318143123566627610">
@@ -51,7 +50,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
-			<charge>0</charge>
+			<charge>2</charge>
 		</feature>
 		<feature id="f_16086848624660428181">
 			<position dim="0">15</position>
@@ -60,8 +59,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
-			<charge>0</charge>
-			<userParam type="string" name="Meta1" value="a"/>
+			<charge>3</charge>
 			<userParam type="string" name="Meta2" value="b"/>
 		</feature>
 	</featureList>

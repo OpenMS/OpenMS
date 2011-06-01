@@ -267,6 +267,9 @@ add_test("TOPP_FileConverter_13_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA
 # featureXML to consensusXML
 add_test("TOPP_FileConverter_14" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_output.featureXML -no_progress -out FileConverter.tmp -out_type consensusXML)
 add_test("TOPP_FileConverter_14_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_14_output.consensusXML)
+# EDTA to consensusXML
+add_test("TOPP_FileConverter_15" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_10_input.edta -no_progress -out FileConverter.tmp -out_type consensusXML)
+add_test("TOPP_FileConverter_15_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_15_output.consensusXML)
 
 
 ### FileFilter tests

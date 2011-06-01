@@ -31,6 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
@@ -75,16 +76,16 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
       */
-      template <typename FeatureMapType>
-      void load(const String& filename, FeatureMapType& feature_map)
+      void load(const String& filename, ConsensusMap& consensus_map)
       {
         // load input
 				TextFile input(filename);
 		
-				// reset map
-        FeatureMapType fmap;
-				feature_map = fmap;
-			
+        // reset map
+        ConsensusMap cmap;
+        consensus_map = cmap;
+        consensus_map.setUniqueId();
+
         char separator = ' ';
         if (input[0].hasSubstring("\t")) separator = '\t';
         else if (input[0].hasSubstring(" ")) separator = ' ';
@@ -103,10 +104,15 @@ namespace OpenMS
 				DoubleReal rt = 0.0;
 				DoubleReal mz = 0.0;
 				DoubleReal it = 0.0;
+				Int ch = 0;
+
+        bool charge = true;
+
 				// see if we have a header
 				try
 				{
           if (headers.size()>3) throw Exception::BaseException(); // there is meta-data, so these must be their names
+          else if (headers.size() == 3) charge = false;
           else if (headers.size()<3) throw Exception::BaseException(); // not enough data columns in first line...
           // try to convert... if not: thats a header
           rt = headers[0].toDouble();
@@ -119,8 +125,14 @@ namespace OpenMS
 					LOG_INFO << "Detected a header line.\n";
 				}
 
-				// parsing features
-				feature_map.reserve(input.size());
+        ConsensusMap::FileDescription desc;
+        desc.filename = filename;
+        desc.size = input.size() - offset;
+        consensus_map.getFileDescriptions()[0] = desc;
+
+        // parsing features
+        consensus_map.reserve(input.size());
+
 				for (Size i=offset; i<input.size(); ++i)
 				{
 					//do nothing for empty lines
@@ -135,7 +147,7 @@ namespace OpenMS
 					//split line to tokens
 					std::vector<String> parts;
 					input[i].split(separator, parts);
-					
+
 					//abort if line does not contain enough fields
 					if (parts.size()<3)
 					{
@@ -148,19 +160,23 @@ namespace OpenMS
 						rt = parts[0].toDouble();
 						mz = parts[1].toDouble();
 						it = parts[2].toDouble();
+            if (charge == true) ch = parts[3].toInt();
 					}
 					catch (Exception::BaseException&)
 					{
             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
               String("Failed parsing in line") + String(i+1) + ": Could not convert the first three columns to float! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i+1) + ")\n");
 					}
-					Feature f;
-					f.setMZ(mz);
-					f.setRT(rt);
-					f.setIntensity(it);
 
-					//parse meta data
-					for (Size j=3; j<parts.size(); ++j)
+          ConsensusFeature f;
+          f.setUniqueId();
+          f.setMZ(mz);
+          f.setRT(rt);
+          f.setIntensity(it);
+          if (charge == true) f.setCharge(ch);
+
+ 					//parse meta data
+					for (Size j=4; j<parts.size(); ++j)
 					{
 						String part_trimmed = parts[j];
 						part_trimmed.trim();
@@ -175,23 +191,11 @@ namespace OpenMS
 							}
 							//add meta value
 							f.setMetaValue(headers[j],part_trimmed);
-							if (headers[j] == "charge")
-							{
-								try
-								{
-									f.setCharge(part_trimmed.toInt());
-								}
-								catch (...)
-								{
-									LOG_WARN << "Failed to convert metavalue 'charge' into integer (line '" << (i+1) << ")";
-								}
-							}
 						}
+          }
 
-					}
-					
-					//insert feature to map
-					feature_map.push_back(f);
+          //insert feature to map
+          consensus_map.push_back(f);
 				}
       }
 
