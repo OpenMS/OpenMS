@@ -2,22 +2,31 @@
   
   @page external_code External Code using OpenMS
   
+	If %OpenMS' TOPP and UTILS tools are not enough in a certain scenario, you can either
+	request a change to %OpenMS, if you feel this functionality is useful for others as well,
+	or modify/extend %OpenMS privately.
+	For the latter, there are multiple ways to do this: You can modify the developer version of %OpenMS by changing
+	existing tools or adding new ones. Or you use an <b>External Project</b> to write a new tool, while not touching
+	%OpenMS itself (see below on how to do that).
+	Once you've finished your new tool, and it only needs to run on the development machine, you're done.
+	If you want to ship it to a new client machine, see the next section below (@see development_external_ship).
+	
 	@section development_external Compiling external code
 	
 	It is very easy to set up an environment to write your own programs using %OpenMS. Make sure you downloaded and installed the source package of %OpenMS/TOPP properly.
-	Note that you cannot use an install and 'make install' to build a devel version of %OpenMS, it must be built in place.
+	Note that you cannot use the 'install' target when working with the development version of %OpenMS - it must be built and used within the build tree.
 	<br>
 	<br>
-	The example configuration file below can be found in @em OpenMS/share/OpenMS/examples/external_code.
+	
 	All important compiler settings and preprocessor definitions along with the %OpenMS library will
 	be available to you.
 	The most important variables are:
 	<UL>
-	<LI>OPENMS_INCLUDE_DIRS - all include directories containing OpenMS headers
+	<LI>OPENMS_INCLUDE_DIRS - all include directories containing %OpenMS headers
 	<LI>OPENMS_ADDCXX_FLAGS - preprocessor macros we require written as (-DMACRO1 -DMACRO2) etc
 	<LI>OPENMS_DEFINITIONS - compiler flags (e.g. to disable certain compiler warnings)
 	</UL>
-	and the OpenMS target itself (which you can link against).
+	and the %OpenMS target itself (which you can link against).
 	<br>	
 	The example that follows will be explained in details:
 
@@ -27,10 +36,43 @@
 	To compile your program just append it to the @em my_executables list. If you use also object files (classes which do not contain a main program) this can be down by appending 
 	to the @em my_sources list. In the next step CMake creates a statically linked library of the object files, listed in my_sources.
 	This simple CMakeLists.txt example can be extended to also build shared libraries, include other external libraries and so on.
+
+	An example external project can be found in @em OpenMS/share/OpenMS/examples/external_code.
+	Copy these files to a separate directory and use CMake to configure it (here as an in-source build).
+@code
+cd <path_to_external_project>
+cmake -G "<generator>" .
+@endcode
+	
 	For more information visit the website of cmake at cmake.org and consult the documentation.
 	<br>
 	<b>Have fun coding with %OpenMS!</b>
 
+@section development_external_ship Shipping your external code to a new machine
+
+  If you've modified %OpenMS itself and not used an external project you can just use our installer scripts,
+	to build your own %OpenMS installer for your platform (see our internal FAQ which is build using "make doc_internal") and ship that to a client machine.
+	
+	If you've used an external project and have a new executable (+ an optional new library), you can use the 
+	installer approach as well, and manually copy the new executable to the TOPP/UTILS binary directory (e.g. on
+	Windows this could be <it>c:\program files\OpenMS\bin</it>, on Linux it could be <it>/bin</it>.
+	
+	If you to NOT use the installer, you can copy all required files manually, plus a few extra steps - see below.
+	What needs to be done is a little platform dependent, thus very cumbersome to explain. You should
+	look at the cmake installer scripts, to see whats required (for Mac and Linux see <it>%OpenMS/cmake/package*.cmake</it>, for
+	Windows see <it>https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer/OpenMS_installer.nsi</it>).
+	In short:
+	<ul>
+	<li>copy the %OpenMS/share/%OpenMS directory to the client machine (e.g. <client/my_dir/share>) and set the environment variable <it>OPENMS_DATA_PATH</it> to this directory
+	<li>copy the %OpenMS library (%OpenMS.dll for Windows or %OpenMS.so/.dylib for Linux/Mac) to <client/my_dir/bin>
+	<li>copy all Qt4 libraries to the client <client/my_dir/bin> or on Linux/Mac make sure you have installed the Qt4 package
+	<li>[Windows only] copy Xerces dll (see contrib/lib) to <client/my_dir/bin>
+	<li>[Windows only] install the VS redistributable which corresponds to the VS version you used to develop
+	    on the client machine (use the correct architecture 32|64bit, correct VS version, correct VS Service Pack
+			version!).
+	</ul>
+	
+	
 
 
 */
