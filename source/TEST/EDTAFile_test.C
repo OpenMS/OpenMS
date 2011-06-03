@@ -31,7 +31,7 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 ///////////////////////////
 
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 using namespace OpenMS;
@@ -58,10 +58,10 @@ START_SECTION(virtual ~EDTAFile())
 END_SECTION
 
 
-START_SECTION((template < typename FeatureMapType > void load(const String &filename, FeatureMapType &feature_map)))
+START_SECTION(void load(const String &filename, ConsensusMape &consensus_map))
 {
   EDTAFile f;
-  FeatureMap<> fm;
+  ConsensusMap fm;
   f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_1.edta"), fm);
   TEST_EQUAL(fm.size(),2)
   ABORT_IF(fm.size()!=2)
