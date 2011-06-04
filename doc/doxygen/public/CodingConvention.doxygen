@@ -40,11 +40,10 @@ perfectly ok not to use tabs at all.  In emacs, you can replace all tabs with
 the right number of spaces by typing the following keys: <TT>C-x h</TT> (to
 mark the whole buffer), then <TT>M-x untabify RET</TT>.
 
-All lines are terminated UNIX-type by a LF character.  If you have
-accidentally inserted CRLF or CR line endings when edting on a Windows or Mac
-system, you can fix that later on with the <code>dos2unix</code> command.  Using a
-consistent style for line endings is important to make commands like
-<code>svn praise</code> helpful.
+All lines in ASCII files (.C, .h, .cmake, ...) should have
+the svn property @em svn:eol-style set to @em native, allowing native line endings on each platform.
+This is desirable as Visual Studio for example will always insert CRLF even if the file is LF only, leading
+to a mixed line ending style for this file. Native eol style avoids this problem.
 
 Matching pairs of opening and closing curly braces should be set to the same
 column:
