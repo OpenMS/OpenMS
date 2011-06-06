@@ -9,8 +9,7 @@
 	existing tools or adding new ones. Or you use an <b>External Project</b> to write a new tool, while not touching
 	%OpenMS itself (see below on how to do that).
 	Once you've finished your new tool, and it only needs to run on the development machine, you're done.
-	If you want to ship it to a new client machine, see the next section below.
-	@see development_external_ship
+	If you want to ship it to a new client machine, see @ref development_external_ship .
 	
 	@section development_external Compiling external code
 	
@@ -61,15 +60,16 @@ cmake -G "<generator>" .
 	What needs to be done is a little platform dependent, thus very cumbersome to explain. You should
 	look at the cmake installer scripts, to see whats required (for Mac and Linux see @em %OpenMS/cmake/package*.cmake, for
 	Windows see @em https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer/OpenMS_installer.nsi ).
+	<br>
 	In short:
 	<ul>
 	<li>copy the %OpenMS/share/%OpenMS directory to the client machine (e.g. <client/my_dir>/share) and set the environment variable @em OPENMS_DATA_PATH to this directory
 	<li>copy the %OpenMS library (%OpenMS.dll for Windows or %OpenMS.so/.dylib for Linux/Mac) to <client/my_dir>/bin
 	<li>copy all Qt4 libraries to the client <client/my_dir>/bin or on Linux/Mac make sure you have installed the Qt4 package
 	<li>[Windows only] copy Xerces dll (see contrib/lib) to <client/my_dir>/bin
-	<li>[Windows only] install the VS redistributable which corresponds to the VS version you used to develop
-	    on the client machine (use the correct architecture 32|64bit, correct VS version, correct VS Service Pack
-			version!).
+	<li>[Windows only] install the VS redistributable package (see Microsoft Homepage) on the client machine which corresponds to the VS version 
+		  that was used to compile your code (use the correct redist package! , i.e. architecture 32|64bit, VS version, VS Service Pack	version).
+			If you choose the wrong redistributable package, you will get "Application failed to initialize properly..." error messages.
 	</ul>
 	
 	

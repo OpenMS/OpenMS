@@ -117,6 +117,7 @@ which is itself braced by the if branch.
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Heinz Erhardt $
+// $Authors: Heinz Erhardt $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_DPEAK_H
@@ -144,6 +145,7 @@ namespace OpenMS
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Heinz Erhardt $
+// $Authors: Heinz Erhardt $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/DPeak.h>
