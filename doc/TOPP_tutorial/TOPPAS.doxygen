@@ -91,7 +91,8 @@
 			Input nodes have a special mode named "recycling mode", i.e., if the input node has fewer files than the following node has rounds (as it might have two incoming edges)
 			then the files are recycled until all rounds are satisfied. This might be useful if one input node specifies a single database file (for a Search-Adapter like Mascot) and another 
 			input node has the actual MS2 experiments (which is usually more than one). Then the database input node would be set to "recycle" the database file, i.e. use it for every
-			run of the MascotAdapter node.
+			run of the MascotAdapter node. The input list can be recycled an arbitrary number of times, but the recycling has to be @em complete, i.e. the number of rounds of the
+			downstream node have to be a multiple of the number of input files. Recycling mode can be actived by right-clicking the input node and selecting the according entry from the context menu.
 			Finally, if you have
 			input and output nodes at every end of your pipeline and all edges are green, chances are good that the pipeline will run properly.
 			In order to find that out, select @a Pipeline @a > @a Run in the menu bar or press @a F5. You will be asked for an output file directory where
