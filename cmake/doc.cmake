@@ -45,8 +45,8 @@ if (DOXYGEN_FOUND)
 	if (MSVC_IDE)
 		##copy required executables:
 		add_custom_target(doc_prepare
-											COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(OutDir)/DefaultParamHandlerDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/DefaultParamHandlerDocumenter.exe
-											COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(OutDir)/TOPPDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/TOPPDocumenter.exe
+											COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(ConfigurationName)/DefaultParamHandlerDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/DefaultParamHandlerDocumenter.exe
+											COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(ConfigurationName)/TOPPDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/TOPPDocumenter.exe
 											VERBATIM)
 		add_dependencies(doc_prepare doc_progs)
 		add_dependencies(doc_param_internal doc_prepare)
@@ -62,7 +62,7 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation";
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html
-										COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile
+										COMMAND ${CMAKE_COMMAND} -E chdir doc "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
 										COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
