@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm, Lars Nilse $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Lars Nilse, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -136,12 +136,11 @@ class TOPPFileFilter
 
 		addText_("peak data options:");
 		registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
-		registerIntList_("level","\"i,j,...\"",IntList::create("1,2,3"),"MS levels to extract", false);
-		registerIntList_("map","\"i,j,...\"",IntList::create(""),"maps to be extracted from a consensus", false);
+    registerIntList_("rm_pc_charge","i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
+		registerIntList_("level","i j ...", IntList::create("1,2,3"),"MS levels to extract", false);
 		registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 		registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
 		registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
-		registerFlag_("map_and", "AND connective of map selection instead of OR.");
 
 		addEmptyLine_();
 		addText_("Remove spectra: ");
@@ -181,6 +180,8 @@ class TOPPFileFilter
 		addText_("consensus feature data options:");
 		registerStringOption_("size","[min]:[max]",":","size range to extract", false);
 		registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
+    registerIntList_("map","i j ...",IntList::create(""),"maps to be extracted from a consensus", false);
+    registerFlag_("map_and", "AND connective of map selection instead of OR.");
 
 		addEmptyLine_();
 		addText_("Other options of the FileFilter only apply if S/N estimation is done.\n"
@@ -246,7 +247,6 @@ class TOPPFileFilter
 
 		//ranges
 		String mz, rt, it, charge, size, q;
-		IntList levels, maps;
 		double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, size_l, size_u, q_l, q_u;
 		//initialize ranges
 		mz_l = rt_l = it_l = charge_l = size_l = q_l = -1 * numeric_limits<double>::max();
@@ -255,8 +255,8 @@ class TOPPFileFilter
 		rt = getStringOption_("rt");
 		mz = getStringOption_("mz");
 		it = getStringOption_("int");
-		levels = getIntList_("level");
-		maps = getIntList_("map");
+		IntList levels = getIntList_("level");
+		IntList maps = getIntList_("map");
 		sn = getDoubleOption_("sn");
 		charge = getStringOption_("charge");
 		size = getStringOption_("size");
@@ -328,6 +328,10 @@ class TOPPFileFilter
 
 			//remove ms level first (might be a lot of spectra)
 			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(levels, true)), exp.end());
+
+      //remove forbidden precursor charges
+      IntList rm_pc_charge = getIntList_("rm_pc_charge");
+      if (rm_pc_charge.size()>0) exp.erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
 
 			//remove by scan mode (might be a lot of spectra)
 			String remove_mode = getStringOption_("remove_mode");
@@ -550,7 +554,7 @@ class TOPPFileFilter
 			
 			if (out_type == FileTypes::FEATUREXML)
 			{				
-				if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one interger.
+				if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one integer.
 				{
 					FeatureMap<> feature_map_filtered;
 					FeatureXMLFile ff;

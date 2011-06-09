@@ -137,7 +137,7 @@ namespace OpenMS
 				
 				@param min lower boundary
 				@param max upper boundary
-				@param reverse if @p reverse is true, operator() return true if the spectrum lies outside the range
+				@param reverse if @p reverse is true, operator() returns true if the spectrum lies outside the range
 			*/
 			InRTRange(DoubleReal min, DoubleReal max, bool reverse = false)
 				: 
@@ -179,7 +179,7 @@ namespace OpenMS
 				@brief Constructor
 				
 				@param levels an array of MS levels
-				@param reverse if @p reverse is true, operator() return true if the spectrum lies outside the set
+				@param reverse if @p reverse is true, operator() returns true if the spectrum lies outside the set
 			*/
 			InMSLevelRange(const IntList& levels, bool reverse = false)
 				: 
@@ -220,7 +220,7 @@ namespace OpenMS
 				@brief Constructor
 				
 				@param mode scan mode
-				@param reverse if @p reverse is true, operator() return true if the spectrum has a different scan mode
+				@param reverse if @p reverse is true, operator() returns true if the spectrum has a different scan mode
 			*/
 			HasScanMode(Int mode, bool reverse = false)
 				: 
@@ -259,7 +259,7 @@ namespace OpenMS
 			/**
 				@brief Constructor
 				
-				@param reverse if @p reverse is true, operator() return true if the spectrum is not empty
+				@param reverse if @p reverse is true, operator() returns true if the spectrum is not empty
 			*/
 			IsEmptySpectrum(bool reverse = false)
 				: reverse_(reverse)
@@ -294,7 +294,7 @@ namespace OpenMS
 			/**
 				@brief Constructor
 				
-				@param reverse if @p reverse is true, operator() return true if the spectrum is not a zoom spectrum
+				@param reverse if @p reverse is true, operator() returns true if the spectrum is not a zoom spectrum
 			*/
 			IsZoomSpectrum(bool reverse = false)
 				: reverse_(reverse)
@@ -331,7 +331,7 @@ namespace OpenMS
 				@brief Constructor
 				
 				@param methods List of methods that is compared against precursor activation methods
-				@param reverse if @p reverse is true, operator() return true if the spectrum is not using one of the specified activation methods
+				@param reverse if @p reverse is true, operator() returns true if the spectrum is not using one of the specified activation methods
 			*/
 			HasActivationMethod(const StringList& methods, bool reverse = false)
 				: methods_(methods),
@@ -365,6 +365,51 @@ namespace OpenMS
 			bool reverse_;
 	};
 
+
+	/**
+		@brief Predicate that determines if a spectrum has a certain precursor charge as given in the C'tor list
+		
+		SpectrumType must have a getPrecursors() method
+		
+		@ingroup RangeUtils
+	*/	
+	template <class SpectrumType>
+	class HasPrecursorCharge
+		: std::unary_function<SpectrumType, bool>
+	{
+		public:
+			/**
+				@brief Constructor
+				
+				@param methods List of charges that is compared against precursor charge
+				@param reverse if @p reverse is true, operator() returns true if the spectrum has not one of the specified precursor charges
+			*/
+			HasPrecursorCharge(const IntList& charges, bool reverse = false)
+				: charges_(charges),
+					reverse_(reverse)
+			{
+			}
+		
+			inline bool operator()(const SpectrumType& s) const
+			{
+        bool match = false;
+				for (std::vector< Precursor >::const_iterator it = s.getPrecursors().begin(); it!=s.getPrecursors().end(); ++it)
+				{
+
+          Int tmp = it->getCharge();
+          match = match || (std::find(charges_.begin(), charges_.end(), tmp) != charges_.end());
+				}
+
+				if (reverse_)	return (!match);
+				else return match; 
+			}
+		
+		protected:
+			IntList charges_;
+			bool reverse_;
+	};
+
+
 	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific m/z range
 		
@@ -384,7 +429,7 @@ namespace OpenMS
 				
 				@param min lower boundary
 				@param max upper boundary
-				@param reverse if @p reverse is true, operator() return true if the peak lies outside the range
+				@param reverse if @p reverse is true, operator() returns true if the peak lies outside the range
 			*/
 			InMzRange(DoubleReal min, DoubleReal max, bool reverse = false)
 				: 
@@ -427,7 +472,7 @@ namespace OpenMS
 				
 				@param min lower boundary
 				@param max upper boundary
-				@param reverse if @p reverse is true, operator() return true if the peak lies outside the set
+				@param reverse if @p reverse is true, operator() returns true if the peak lies outside the set
 			*/
 			InIntensityRange(DoubleReal min, DoubleReal max, bool reverse = false)
 				: 
