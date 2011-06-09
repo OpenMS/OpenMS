@@ -56,7 +56,7 @@ namespace OpenMS
 			Specific isotopes of elements can be accessed by writing the atomic number of the isotope
 			in brackets followed by the element name, e.g. "(2)H" for deuterium.
 
-			@improvement include exact mass values for the isotopes and update IsotopeDistribution (Andreas)
+      @improvement include exact mass values for the isotopes (done) and update IsotopeDistribution (Andreas)
 			@improvement add exact isotope distribution based on exact isotope values (Andreas)
 */
 	
@@ -95,6 +95,13 @@ namespace OpenMS
 
 			/// returns a pointer to the element of atomic number; if no element is found 0 is returned
 			const Element* getElement(UInt atomic_number) const;
+
+      /// mutable access to the elements by name
+      Element* getElement(const String& name);
+
+      /// mutable access to the elements by atomic number
+      Element* getElement(UInt atomic_number);
+
 			//@}
 			
 			/** @name Predicates
