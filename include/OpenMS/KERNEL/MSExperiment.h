@@ -263,6 +263,8 @@ namespace OpenMS
 			/**
 				@brief Fast search for spectrum range begin
 
+        Returns the first scan which has equal or higher (>=) RT than @p rt.
+
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/
 			ConstIterator RTBegin(CoordinateType rt) const
@@ -274,6 +276,8 @@ namespace OpenMS
 
 			/**
 				@brief Fast search for spectrum range end (returns the past-the-end iterator)
+        
+        Returns the first scan which has higher (>) RT than @p rt.
 
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/

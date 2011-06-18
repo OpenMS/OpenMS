@@ -373,10 +373,10 @@ namespace OpenMS
 	  //set range
     const DRange<2>& area = canvas()->getVisibleArea();
 	  goto_dialog.setRange(area.minY(),area.maxY(),area.minX(),area.maxX()); 
-	  //disable feature numbers if in peak layer
-	  goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type!=LayerData::DT_PEAK);
+	  // feature numbers only for consensus&feature maps
+	  goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerData::DT_FEATURE || canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS);
 	  //execute
-	  if(goto_dialog.exec())
+	  if (goto_dialog.exec())
 	  {
 	  	if (goto_dialog.showRange())
 	  	{
@@ -389,7 +389,9 @@ namespace OpenMS
         UniqueIdInterface uid;
         uid.setUniqueId(feature_id);
 
-        Size feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
+        Size feature_index;
+        if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE) feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
+        else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)  feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
         if (feature_index == Size(-1)) // UID does not exist
         {
           try
@@ -403,18 +405,31 @@ namespace OpenMS
         }
 
 				//check if the feature index exists
-        if (feature_index>=canvas()->getCurrentLayer().getFeatureMap()->size())
+        if ( (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE && feature_index>=canvas()->getCurrentLayer().getFeatureMap()->size())
+           ||(canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS && feature_index>=canvas()->getCurrentLayer().getConsensusMap()->size()))
 				{
 					QMessageBox::warning(this, "Invalid feature number", "Feature number too large/UniqueID not found.\nPlease select a valid feature!");
 					return;
 				}
 				//display feature with a margin
-        const FeatureMapType& map = *canvas()->getCurrentLayer().getFeatureMap();
-        DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-				DoubleReal rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0])*0.5;
-				DoubleReal mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1])*2;
-				SpectrumCanvas::AreaType area(bb.minPosition()[1]-mz_margin, bb.minPosition()[0]-rt_margin, bb.maxPosition()[1]+mz_margin, bb.maxPosition()[0]+rt_margin);
-				canvas()->setVisibleArea(area);
+        if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        {
+          const FeatureMapType& map = *canvas()->getCurrentLayer().getFeatureMap();
+          DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
+          DoubleReal rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0])*0.5;
+          DoubleReal mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1])*2;
+          SpectrumCanvas::AreaType narea(bb.minPosition()[1]-mz_margin, bb.minPosition()[0]-rt_margin, bb.maxPosition()[1]+mz_margin, bb.maxPosition()[0]+rt_margin);
+          canvas()->setVisibleArea(narea);
+        }
+        else // Consensus Feature
+        {
+          const ConsensusFeature& cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
+          DoubleReal rt_margin = 30;
+          DoubleReal mz_margin = 5;
+          SpectrumCanvas::AreaType narea(cf.getMZ()-mz_margin, cf.getRT()-rt_margin, cf.getMZ()+mz_margin, cf.getRT()+rt_margin);
+          canvas()->setVisibleArea(narea);
+        }
+				
 			}
 		}
 	}
