@@ -31,6 +31,8 @@
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -43,7 +45,7 @@ MassExplainer* ptr = 0;
 MassExplainer* nullPointer = 0;
 START_SECTION(MassExplainer())
 {
-        ptr = new MassExplainer();
+  ptr = new MassExplainer();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
