@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/brauer/nfsbrauer/brauer/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.4" id="cm_8375110547982944032" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileFilter" version="version_string" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-02-02T13:04:21" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="sp|P02663|CASA2_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P02662|CASA1_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P02663|CASA2_BOVIN_rev" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2011-01-10T10:32:51" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_3" accession="YDL217C" score="2922" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="YEL020W-A" score="1586" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="YBR091C" score="1214" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="YJL054W" score="877" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="YOR297C" score="369" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="YJL180C" score="36" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="YNL243W" score="32" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="YPR068C" score="30" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="YNL294C" score="20" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="YNR051C" score="16" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_2" date="2011-02-02T13:06:01" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_13" accession="sp|P02663|CASA2_BOVIN" score="514" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="sp|P02662|CASA1_BOVIN" score="484" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="sp|P02663|CASA2_BOVIN_rev" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_3" date="2011-01-10T10:34:20" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_16" accession="YDL217C" score="3116" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="YEL020W-A" score="1705" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="YJL054W" score="919" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="YBR091C" score="874" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="YOR297C" score="374" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="YJL180C" score="31" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="YNL243W" score="22" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="YPR068C" score="20" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="YNL294C" score="20" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="YHR099W" score="19" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="749.885864257812" RT="2562.941" >
+		<PeptideHit score="88.49" sequence="FQEQNAALGQGLGR(Label:13C(6)15N(4))" charge="2" aa_before="R" aa_after="-" protein_refs="PH_17">
+			<userParam type="float" name="homology_threshold" value="0"/>
+			<userParam type="float" name="identity_threshold" value="17"/>
+			<userParam type="float" name="EValue" value="4.1e-09"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="749.886047363281" RT="2756.8896" >
+		<PeptideHit score="53.45" sequence="FQEQNAALGQGLGR(Label:13C(6)15N(4))" charge="2" aa_before="R" aa_after="-" protein_refs="PH_17">
+			<userParam type="float" name="homology_threshold" value="0"/>
+			<userParam type="float" name="identity_threshold" value="17"/>
+			<userParam type="float" name="EValue" value="1.3e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="749.886474609375" RT="2863.4726" >
+		<PeptideHit score="64.49" sequence="FQEQNAALGQGLGR(Label:13C(6)15N(4))" charge="2" aa_before="R" aa_after="-" protein_refs="PH_17">
+			<userParam type="float" name="homology_threshold" value="0"/>
+			<userParam type="float" name="identity_threshold" value="17"/>
+			<userParam type="float" name="EValue" value="1e-06"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<mapList count="2">
+		<map id="0" name="FileFilter1.featureXML" unique_id="7478034797829266976" label="" size="897">
+		</map>
+		<map id="1" name="FileFilter2.featureXML" unique_id="58869613287719190" label="" size="888">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_6759059482228532606" quality="0" charge="2">
+			<centroid rt="3576.77666244879" mz="571.297629712552" it="2.33408e+07"/>
+			<groupedElementList>
+				<element map="0" id="808395027087822543" rt="3578.63617307547" mz="571.297602623572" it="2.31817e+07" charge="2"/>
+				<element map="1" id="15404813951450671012" rt="3574.91715182211" mz="571.297656801533" it="2.34998e+07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="571.3017578125" RT="3563.6174" >
+				<PeptideHit score="3.12" sequence="R(Label:13C(6)15N(4))DEYLGVGGR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.4"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_4116634855754981873" quality="0" charge="2">
+			<centroid rt="3576.05810636428" mz="562.292021446959" it="303542"/>
+			<groupedElementList>
+				<element map="0" id="894838298419602709" rt="3577.53004368646" mz="562.29189519045" it="239860" charge="2"/>
+				<element map="1" id="17280221915947268397" rt="3574.58616904211" mz="562.292147703468" it="367223" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="562.290893554688" RT="3576.8255" >
+				<PeptideHit score="3.65" sequence="NGIGSSYLFR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.99"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_202699586294454922" quality="0" charge="2">
+			<centroid rt="3291.42417231466" mz="498.765368871232" it="738386"/>
+			<groupedElementList>
+				<element map="0" id="1436797280184591070" rt="3292.20032762068" mz="498.765346829422" it="691318" charge="2"/>
+				<element map="1" id="13253534680866278166" rt="3290.64801700863" mz="498.765390913041" it="785454" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="14" MZ="498.765045166016" RT="3288.4442" >
+				<PeptideHit score="25.16" sequence="GNQQSDIVK(Label:13C(6)15N(2))" charge="2" aa_before="R" aa_after="N" protein_refs="PH_8">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="14"/>
+					<userParam type="float" name="EValue" value="0.0044"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="498.765258789062" RT="3286.985" >
+				<PeptideHit score="16.59" sequence="GNQQSDIVK(Label:13C(6)15N(2))" charge="2" aa_before="R" aa_after="N" protein_refs="PH_21">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.044"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_16243969049520732010" quality="0" charge="3">
+			<centroid rt="3248.73805248564" mz="554.269409629956" it="1.0187e+07"/>
+			<groupedElementList>
+				<element map="0" id="1616621616186851940" rt="3250.59926226108" mz="554.269351840675" it="7.79287e+06" charge="3"/>
+				<element map="1" id="17003927692711921334" rt="3246.87684271019" mz="554.269467419237" it="1.25812e+07" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="554.269592285156" RT="3242.3717" >
+				<PeptideHit score="1.36" sequence="NISFSDNNSR(Label:13C(6)15N(4))IMSR(Label:13C(6)15N(4))" charge="3">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="15"/>
+					<userParam type="float" name="EValue" value="1.2"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="554.269409179688" RT="3262.7519" >
+				<PeptideHit score="0.29" sequence="NISFSDNNSR(Label:13C(6)15N(4))IMSR(Label:13C(6)15N(4))" charge="3">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="15"/>
+					<userParam type="float" name="EValue" value="1.5"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_6599203579220680509" quality="0" charge="2">
+			<centroid rt="3689.83671533928" mz="486.252755312926" it="1.6702e+07"/>
+			<groupedElementList>
+				<element map="0" id="1656348803690650280" rt="3690.86452063159" mz="486.252732492296" it="1.60501e+07" charge="2"/>
+				<element map="1" id="9194824504576870929" rt="3688.80891004696" mz="486.252778133555" it="1.7354e+07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="18" MZ="486.251251220703" RT="3674.7656" >
+				<PeptideHit score="0.61" sequence="EIMVESQK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="18"/>
+					<userParam type="float" name="EValue" value="2.8"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_10733182676525929438" quality="0" charge="3">
+			<centroid rt="3275.01924359386" mz="404.891689689322" it="245572"/>
+			<groupedElementList>
+				<element map="0" id="14732250986915365093" rt="3274.96944260325" mz="404.891642382529" it="180275" charge="3"/>
+				<element map="1" id="11780709587453302028" rt="3275.06904458447" mz="404.891736996115" it="310869" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="404.891784667969" RT="3270.4604" >
+				<PeptideHit score="1.23" sequence="LTQILSSNNSK(Label:13C(6)15N(2))" charge="3">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="2.3"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="404.891510009766" RT="3270.3993" >
+				<PeptideHit score="3.8" sequence="R(Label:13C(6)15N(4))GYLDGIVSSK(Label:13C(6)15N(2))" charge="3">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.3"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_10386072093456427619" quality="0" charge="2">
+			<centroid rt="3689.94352930393" mz="490.775848600981" it="380636"/>
+			<groupedElementList>
+				<element map="0" id="14826842594666694894" rt="3691.01263647942" mz="490.775861823855" it="334701" charge="2"/>
+				<element map="1" id="9432438566796260945" rt="3688.87442212843" mz="490.775835378107" it="426570" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="490.77392578125" RT="3686.3953" >
+				<PeptideHit score="2.07" sequence="LSNK(Label:13C(6)15N(2))DM(Oxidation)IK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.9"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="490.775756835938" RT="3684.1443" >
+				<PeptideHit score="2.76" sequence="LSNK(Label:13C(6)15N(2))DM(Oxidation)IK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.6"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_949955308237393031" quality="0" charge="2">
+			<centroid rt="3335.18703358884" mz="505.79138041471" it="3.76182e+06"/>
+			<groupedElementList>
+				<element map="0" id="14908715519245189017" rt="3336.44625692353" mz="505.791383665927" it="3.62021e+06" charge="2"/>
+				<element map="1" id="1915025858859134240" rt="3333.92781025414" mz="505.791377163494" it="3.90343e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="505.791015625" RT="3327.3795" >
+				<PeptideHit score="3.3" sequence="ALPM(Oxidation)NLSIK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="1.1"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="505.791137695312" RT="3324.6339" >
+				<PeptideHit score="1.43" sequence="AIVEHYIR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="1.7"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_7851375903446973481" quality="0" charge="2">
+			<centroid rt="3050.42433494443" mz="598.835255933144" it="2.7326e+06"/>
+			<groupedElementList>
+				<element map="0" id="15549288651843956713" rt="3051.54161510008" mz="598.835222534056" it="2.81147e+06" charge="2"/>
+				<element map="1" id="17488878648727044171" rt="3049.30705478878" mz="598.835289332233" it="2.65372e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="598.834594726562" RT="3042.5665" >
+				<PeptideHit score="3.84" sequence="IATTPEAQISR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.1"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="598.834777832031" RT="3067.4266" >
+				<PeptideHit score="2.4" sequence="IATTPEAQISR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.6"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="598.834899902344" RT="3041.9697" >
+				<PeptideHit score="3.27" sequence="EFGK(Label:13C(6)15N(2))TLNIMK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.3"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_16976314260050311219" quality="0" charge="2">
+			<centroid rt="3224.20243251617" mz="450.257238246292" it="2.30366e+06"/>
+			<groupedElementList>
+				<element map="0" id="16634861949738626457" rt="3224.61053862662" mz="450.257245149728" it="2.20758e+06" charge="2"/>
+				<element map="1" id="16049065231401263336" rt="3223.79432640572" mz="450.257231342856" it="2.39975e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="14" MZ="450.257049560547" RT="3217.5829" >
+				<PeptideHit score="8.57" sequence="ATTNPIFK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="14"/>
+					<userParam type="float" name="EValue" value="0.21"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="14" MZ="450.257049560547" RT="3215.3104" >
+				<PeptideHit score="11.28" sequence="ATTNPIFK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="14"/>
+					<userParam type="float" name="EValue" value="0.11"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_3805508221899123162" quality="0" charge="2">
+			<centroid rt="3345.64075763099" mz="543.794299712281" it="2.31978e+06"/>
+			<groupedElementList>
+				<element map="0" id="16821768180185365483" rt="3347.24319083495" mz="543.794255007506" it="2.28843e+06" charge="2"/>
+				<element map="1" id="10145094422577502611" rt="3344.03832442703" mz="543.794344417057" it="2.35112e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="543.793029785156" RT="3335.2722" >
+				<PeptideHit score="1.78" sequence="HVK(Label:13C(6)15N(2))DAPM(Oxidation)VR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.8"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_17599730220597279004" quality="0" charge="3">
+			<centroid rt="3228.36656112552" mz="527.61377596495" it="176384"/>
+			<groupedElementList>
+				<element map="0" id="17055903529879934791" rt="3229.04068704184" mz="527.613773208809" it="132705" charge="3"/>
+				<element map="1" id="2407807380767936691" rt="3227.69243520919" mz="527.613778721092" it="220064" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="527.612731933594" RT="3226.5384" >
+				<PeptideHit score="8.15" sequence="VPQLEIVPNSAEER" charge="3" aa_before="K" aa_after="L" protein_refs="PH_1">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="0.15"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="527.614074707031" RT="3225.5522" >
+				<PeptideHit score="12.46" sequence="VPQLEIVPNSAEER" charge="3" aa_before="K" aa_after="L" protein_refs="PH_14">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="0.057"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_8621868537786745030" quality="0" charge="2">
+			<centroid rt="3536.70668172022" mz="513.807036765885" it="6.39886e+06"/>
+			<groupedElementList>
+				<element map="0" id="17196704041337343579" rt="3537.14334360987" mz="513.807000551234" it="6.22161e+06" charge="2"/>
+				<element map="1" id="8583830652879881128" rt="3536.27001983057" mz="513.807072980536" it="6.57612e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="513.806884765625" RT="3548.0316" >
+				<PeptideHit score="31.09" sequence="ISSLLPFNK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="I" protein_refs="PH_6">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="15"/>
+					<userParam type="float" name="EValue" value="0.0015"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="513.808776855469" RT="3522.5655" >
+				<PeptideHit score="34.71" sequence="ISSLLPFNK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="I" protein_refs="PH_6">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.00068"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="513.806884765625" RT="3550.7527" >
+				<PeptideHit score="33.81" sequence="ISSLLPFNK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="I" protein_refs="PH_18">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="15"/>
+					<userParam type="float" name="EValue" value="0.00079"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="513.807250976562" RT="3524.2865" >
+				<PeptideHit score="38.63" sequence="ISSLLPFNK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="I" protein_refs="PH_18">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.00029"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_9408597601077929507" quality="0" charge="2">
+			<centroid rt="3203.38661222665" mz="465.280697504658" it="2.502e+06"/>
+			<groupedElementList>
+				<element map="0" id="17242201765851729629" rt="3203.15098382729" mz="465.280678071335" it="2.37551e+06" charge="2"/>
+				<element map="1" id="5670604418707930360" rt="3203.62224062601" mz="465.280716937981" it="2.62848e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="465.280700683594" RT="3194.7234" >
+				<PeptideHit score="14.23" sequence="SLLISFNK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="0.096"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="465.279632568359" RT="3194.2438" >
+				<PeptideHit score="10.67" sequence="SLLISFNK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.17"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="465.281219482422" RT="3220.94" >
+				<PeptideHit score="3.74" sequence="SLLISFNK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.1"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_12116953261462555117" quality="0" charge="2">
+			<centroid rt="3524.73516675332" mz="563.323003410937" it="365612"/>
+			<groupedElementList>
+				<element map="0" id="17702914502927605698" rt="3525.66567278608" mz="563.322955543393" it="378969" charge="2"/>
+				<element map="1" id="14401588553445427073" rt="3523.80466072057" mz="563.32305127848" it="352255" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="563.32177734375" RT="3520.7771" >
+				<PeptideHit score="0.76" sequence="LSLSSLSWPK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="2.1"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_3625963450254962114" quality="0" charge="2">
+			<centroid rt="3213.0332047687" mz="435.757045081077" it="471948"/>
+			<groupedElementList>
+				<element map="0" id="18323328408079913946" rt="3213.08051419375" mz="435.7570240854" it="451504" charge="2"/>
+				<element map="1" id="9435196553468852401" rt="3212.98589534364" mz="435.757066076754" it="492392" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="14" MZ="435.757263183594" RT="3205.674" >
+				<PeptideHit score="2.26" sequence="TVVESSLK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="14"/>
+					<userParam type="float" name="EValue" value="0.89"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="14" MZ="435.756591796875" RT="3205.5053" >
+				<PeptideHit score="7.7" sequence="TVVESSLK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="14"/>
+					<userParam type="float" name="EValue" value="0.26"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_4248917235031418135" quality="0" charge="3">
+			<centroid rt="3539.35303292651" mz="587.319536233831" it="9.5064e+06"/>
+			<groupedElementList>
+				<element map="0" id="6583334140019943240" rt="3539.35303292651" mz="587.319536233831" it="9.5064e+06" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="587.3193359375" RT="3542.9719" >
+				<PeptideHit score="53.54" sequence="HQGLPQEVLNENLLR" charge="3" aa_before="K" aa_after="F" protein_refs="PH_1">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="4.4e-06"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="587.3193359375" RT="3569.4164" >
+				<PeptideHit score="60.44" sequence="HQGLPQEVLNENLLR" charge="3" aa_before="K" aa_after="F" protein_refs="PH_1">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="9e-07"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="587.319580078125" RT="3516.7475" >
+				<PeptideHit score="46.56" sequence="HQGLPQEVLNENLLR" charge="3" aa_before="K" aa_after="F" protein_refs="PH_1">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="2.2e-05"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_4268339812421072026" quality="0" charge="2">
+			<centroid rt="3140.9180677138" mz="490.252868250934" it="1.94484e+06"/>
+			<groupedElementList>
+				<element map="0" id="10774629940328129980" rt="3140.9180677138" mz="490.252868250934" it="1.94484e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="490.250885009766" RT="3132.1286" >
+				<PeptideHit score="5.25" sequence="M(Oxidation)SNITYVK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.67"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_9940025907751256083" quality="0" charge="2">
+			<centroid rt="3040.54784966677" mz="506.270895883557" it="155912"/>
+			<groupedElementList>
+				<element map="1" id="1279582127713502000" rt="3040.54784966677" mz="506.270895883557" it="155912" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="506.270843505859" RT="3038.7082" >
+				<PeptideHit score="1.02" sequence="IGDFQK(Label:13C(6)15N(2))C(Carbamidomethyl)K(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="2.5"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_9007993831387375540" quality="0" charge="2">
+			<centroid rt="3492.49245819236" mz="585.840071207299" it="134065"/>
+			<groupedElementList>
+				<element map="1" id="3664992591998177772" rt="3492.49245819236" mz="585.840071207299" it="134065" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="585.841674804688" RT="3488.9962" >
+				<PeptideHit score="8.6" sequence="VLM(Oxidation)TLLEGIR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.3"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_13750792045926565830" quality="0" charge="2">
+			<centroid rt="3999.11401829628" mz="507.278581387048" it="131729"/>
+			<groupedElementList>
+				<element map="1" id="4115558135419344840" rt="3999.11401829628" mz="507.278581387048" it="131729" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="507.280120849609" RT="4003.4388" >
+				<PeptideHit score="10.2" sequence="NNGFVDLVK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="K" protein_refs="PH_20">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="0.25"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_4660905114225963808" quality="0" charge="2">
+			<centroid rt="3942.27750834598" mz="507.28477350163" it="142792"/>
+			<groupedElementList>
+				<element map="1" id="8217045001272899404" rt="3942.27750834598" mz="507.28477350163" it="142792" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="507.282592773438" RT="3940.9997" >
+				<PeptideHit score="3.95" sequence="NNGFVDLVK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="K" protein_refs="PH_20">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="17"/>
+					<userParam type="float" name="EValue" value="1.2"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_2820028298177604052" quality="0" charge="2">
+			<centroid rt="3528.89164435786" mz="471.223589805803" it="155580"/>
+			<groupedElementList>
+				<element map="1" id="8285088106217471034" rt="3528.89164435786" mz="471.223589805803" it="155580" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="471.223937988281" RT="3525.1485" >
+				<PeptideHit score="0.44" sequence="NNM(Oxidation)LHMR(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="0.99"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_3492776885490180790" quality="0" charge="2">
+			<centroid rt="3004.56128547092" mz="429.24119983168" it="322411"/>
+			<groupedElementList>
+				<element map="1" id="11028470593364212014" rt="3004.56128547092" mz="429.24119983168" it="322411" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="429.241577148438" RT="3003.7813" >
+				<PeptideHit score="2.8" sequence="ITLPTM(Oxidation)R(Label:13C(6)15N(4))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="15"/>
+					<userParam type="float" name="EValue" value="1"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_3639879494023731909" quality="0" charge="2">
+			<centroid rt="3140.93861333214" mz="450.257364023291" it="1.51961e+06"/>
+			<groupedElementList>
+				<element map="1" id="18337504869642580503" rt="3140.93861333214" mz="450.257364023291" it="1.51961e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="14" MZ="450.256805419922" RT="3159.6844" >
+				<PeptideHit score="6.47" sequence="K(Label:13C(6)15N(2))FWQFK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="14"/>
+					<userParam type="float" name="EValue" value="0.34"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Mascot" higher_score_better="true" significance_threshold="14" MZ="450.257629394531" RT="3131.1103" >
+				<PeptideHit score="11.92" sequence="ATTNPIFK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="14"/>
+					<userParam type="float" name="EValue" value="0.093"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

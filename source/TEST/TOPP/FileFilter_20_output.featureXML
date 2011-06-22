@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" id="fm_7478034797829266976" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileFilter" version="version_string" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-02-02T13:04:21" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="sp|P02663|CASA2_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P02662|CASA1_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P02663|CASA2_BOVIN_rev" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2011-01-10T10:32:51" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_3" accession="YDL217C" score="2922" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="YEL020W-A" score="1586" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="YBR091C" score="1214" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="YJL054W" score="877" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="YOR297C" score="369" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="YJL180C" score="36" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="YNL243W" score="32" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="YPR068C" score="30" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="YNL294C" score="20" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="YNR051C" score="16" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="1">
+		<feature id="f_7925035893266321059">
+			<position dim="0">5203.51879933725</position>
+			<position dim="1">657.358119855797</position>
+			<intensity>150554</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.789886</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="5200.2468" y="657.358357566681" />
+				<pt x="5201.1856" y="657.357502826629" />
+				<pt x="5202.1735" y="657.358582480811" />
+				<pt x="5203.1625" y="657.358059301949" />
+				<pt x="5204.1305" y="657.358374146852" />
+				<pt x="5205.437" y="657.357995551495" />
+				<pt x="5206.695" y="657.357665707679" />
+				<pt x="5205.437" y="657.357995551495" />
+				<pt x="5204.1305" y="657.358374146852" />
+				<pt x="5203.1625" y="657.358059301949" />
+				<pt x="5202.1735" y="657.358582480811" />
+				<pt x="5201.1856" y="657.357502826629" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="5195.6268" y="657.859533381393" />
+				<pt x="5196.5591" y="657.859433596416" />
+				<pt x="5197.867" y="657.858975397057" />
+				<pt x="5198.9885" y="657.859931054168" />
+				<pt x="5200.2468" y="657.860389042667" />
+				<pt x="5201.1856" y="657.859668914541" />
+				<pt x="5202.1735" y="657.859931156584" />
+				<pt x="5203.1625" y="657.860378507793" />
+				<pt x="5204.1305" y="657.85974602998" />
+				<pt x="5205.437" y="657.858903148565" />
+				<pt x="5206.695" y="657.858901917252" />
+				<pt x="5205.437" y="657.858903148565" />
+				<pt x="5204.1305" y="657.85974602998" />
+				<pt x="5203.1625" y="657.860378507793" />
+				<pt x="5202.1735" y="657.859931156584" />
+				<pt x="5201.1856" y="657.859668914541" />
+				<pt x="5200.2468" y="657.860389042667" />
+				<pt x="5198.9885" y="657.859931054168" />
+				<pt x="5197.867" y="657.858975397057" />
+				<pt x="5196.5591" y="657.859433596416" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="657.359497070312" RT="5209.7721" >
+				<PeptideHit score="38.62" sequence="TVQQISDLPFR(Label:13C(6)15N(4))" charge="2" aa_before="R" aa_after="Q" protein_refs="PH_3">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.00034"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="1401"/>
+			<userParam type="int" name="spectrum_index" value="4098"/>
+			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6550"/>
+		</feature>
+	</featureList>
+</featureMap>

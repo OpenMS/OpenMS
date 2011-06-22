@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" id="fm_7478034797829266976" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileFilter" version="version_string" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-02-02T13:04:21" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="sp|P02663|CASA2_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P02662|CASA1_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P02663|CASA2_BOVIN_rev" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2011-01-10T10:32:51" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_3" accession="YDL217C" score="2922" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="YEL020W-A" score="1586" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="YBR091C" score="1214" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="YJL054W" score="877" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="YOR297C" score="369" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="YJL180C" score="36" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="YNL243W" score="32" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="YPR068C" score="30" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="YNL294C" score="20" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="YNR051C" score="16" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="3">
+		<feature id="f_3271104848282021923">
+			<position dim="0">3610.68482100247</position>
+			<position dim="1">490.284532272782</position>
+			<intensity>3.02255e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.73221</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="3596.7993" y="490.283846071814" />
+				<pt x="3598.5696" y="490.284042158787" />
+				<pt x="3599.5098" y="490.284013126077" />
+				<pt x="3600.3709" y="490.284057766792" />
+				<pt x="3601.5276" y="490.284064506716" />
+				<pt x="3602.825" y="490.284060745724" />
+				<pt x="3603.744" y="490.284114168428" />
+				<pt x="3605.0658" y="490.284111366516" />
+				<pt x="3605.9854" y="490.284241794034" />
+				<pt x="3606.9355" y="490.284391856729" />
+				<pt x="3607.9041" y="490.284475307862" />
+				<pt x="3609.6835" y="490.2844972044" />
+				<pt x="3610.9928" y="490.284610368582" />
+				<pt x="3612.2591" y="490.284805028932" />
+				<pt x="3614.338" y="490.284922129747" />
+				<pt x="3615.2008" y="490.284719015066" />
+				<pt x="3616.5011" y="490.284790393114" />
+				<pt x="3617.2493" y="490.284660819326" />
+				<pt x="3618.2444" y="490.284499275076" />
+				<pt x="3619.1729" y="490.284764146663" />
+				<pt x="3620.0857" y="490.284847725246" />
+				<pt x="3621.1019" y="490.284795041403" />
+				<pt x="3622.5519" y="490.284639711692" />
+				<pt x="3623.8261" y="490.284774146774" />
+				<pt x="3624.8503" y="490.284529669658" />
+				<pt x="3625.6339" y="490.284619584227" />
+				<pt x="3624.8503" y="490.284529669658" />
+				<pt x="3623.8261" y="490.284774146774" />
+				<pt x="3622.5519" y="490.284639711692" />
+				<pt x="3621.1019" y="490.284795041403" />
+				<pt x="3620.0857" y="490.284847725246" />
+				<pt x="3619.1729" y="490.284764146663" />
+				<pt x="3618.2444" y="490.284499275076" />
+				<pt x="3617.2493" y="490.284660819326" />
+				<pt x="3616.5011" y="490.284790393114" />
+				<pt x="3615.2008" y="490.284719015066" />
+				<pt x="3614.338" y="490.284922129747" />
+				<pt x="3612.2591" y="490.284805028932" />
+				<pt x="3610.9928" y="490.284610368582" />
+				<pt x="3609.6835" y="490.2844972044" />
+				<pt x="3607.9041" y="490.284475307862" />
+				<pt x="3606.9355" y="490.284391856729" />
+				<pt x="3605.9854" y="490.284241794034" />
+				<pt x="3605.0658" y="490.284111366516" />
+				<pt x="3603.744" y="490.284114168428" />
+				<pt x="3602.825" y="490.284060745724" />
+				<pt x="3601.5276" y="490.284064506716" />
+				<pt x="3600.3709" y="490.284057766792" />
+				<pt x="3599.5098" y="490.284013126077" />
+				<pt x="3598.5696" y="490.284042158787" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="3596.7993" y="490.785446793318" />
+				<pt x="3598.5696" y="490.785497166554" />
+				<pt x="3599.5098" y="490.785813156395" />
+				<pt x="3600.3709" y="490.785690979792" />
+				<pt x="3601.5276" y="490.78560650238" />
+				<pt x="3602.825" y="490.785456659119" />
+				<pt x="3603.744" y="490.785538835286" />
+				<pt x="3605.0658" y="490.78553403223" />
+				<pt x="3605.9854" y="490.785608607527" />
+				<pt x="3606.9355" y="490.785811975379" />
+				<pt x="3607.9041" y="490.78585241762" />
+				<pt x="3609.6835" y="490.785918938511" />
+				<pt x="3610.9928" y="490.786012737534" />
+				<pt x="3612.2591" y="490.786229250672" />
+				<pt x="3614.338" y="490.786316789047" />
+				<pt x="3615.2008" y="490.786263944908" />
+				<pt x="3616.5011" y="490.786279371639" />
+				<pt x="3617.2493" y="490.786216271709" />
+				<pt x="3618.2444" y="490.786137223646" />
+				<pt x="3619.1729" y="490.786476159201" />
+				<pt x="3620.0857" y="490.78627853496" />
+				<pt x="3621.1019" y="490.786314464614" />
+				<pt x="3622.5519" y="490.786475814969" />
+				<pt x="3623.8261" y="490.786192902985" />
+				<pt x="3624.8503" y="490.786273459222" />
+				<pt x="3625.6339" y="490.786145279364" />
+				<pt x="3624.8503" y="490.786273459222" />
+				<pt x="3623.8261" y="490.786192902985" />
+				<pt x="3622.5519" y="490.786475814969" />
+				<pt x="3621.1019" y="490.786314464614" />
+				<pt x="3620.0857" y="490.78627853496" />
+				<pt x="3619.1729" y="490.786476159201" />
+				<pt x="3618.2444" y="490.786137223646" />
+				<pt x="3617.2493" y="490.786216271709" />
+				<pt x="3616.5011" y="490.786279371639" />
+				<pt x="3615.2008" y="490.786263944908" />
+				<pt x="3614.338" y="490.786316789047" />
+				<pt x="3612.2591" y="490.786229250672" />
+				<pt x="3610.9928" y="490.786012737534" />
+				<pt x="3609.6835" y="490.785918938511" />
+				<pt x="3607.9041" y="490.78585241762" />
+				<pt x="3606.9355" y="490.785811975379" />
+				<pt x="3605.9854" y="490.785608607527" />
+				<pt x="3605.0658" y="490.78553403223" />
+				<pt x="3603.744" y="490.785538835286" />
+				<pt x="3602.825" y="490.785456659119" />
+				<pt x="3601.5276" y="490.78560650238" />
+				<pt x="3600.3709" y="490.785690979792" />
+				<pt x="3599.5098" y="490.785813156395" />
+				<pt x="3598.5696" y="490.785497166554" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="3598.5696" y="491.287507470662" />
+				<pt x="3599.5098" y="491.288220758917" />
+				<pt x="3600.3709" y="491.28720916175" />
+				<pt x="3601.5276" y="491.287330459497" />
+				<pt x="3602.825" y="491.287178706897" />
+				<pt x="3603.744" y="491.28706626682" />
+				<pt x="3605.0658" y="491.287067490794" />
+				<pt x="3605.9854" y="491.287095080735" />
+				<pt x="3606.9355" y="491.287117413076" />
+				<pt x="3607.9041" y="491.287330136365" />
+				<pt x="3609.6835" y="491.287326426109" />
+				<pt x="3610.9928" y="491.287484157266" />
+				<pt x="3612.2591" y="491.28777029415" />
+				<pt x="3614.338" y="491.287889943223" />
+				<pt x="3615.2008" y="491.287862293715" />
+				<pt x="3616.5011" y="491.287929559792" />
+				<pt x="3617.2493" y="491.287883927021" />
+				<pt x="3618.2444" y="491.287392509351" />
+				<pt x="3619.1729" y="491.287734430161" />
+				<pt x="3620.0857" y="491.288324820755" />
+				<pt x="3621.1019" y="491.287859609666" />
+				<pt x="3622.5519" y="491.287309204453" />
+				<pt x="3624.8503" y="491.287772498099" />
+				<pt x="3625.6339" y="491.287879498635" />
+				<pt x="3624.8503" y="491.287772498099" />
+				<pt x="3622.5519" y="491.287309204453" />
+				<pt x="3621.1019" y="491.287859609666" />
+				<pt x="3620.0857" y="491.288324820755" />
+				<pt x="3619.1729" y="491.287734430161" />
+				<pt x="3618.2444" y="491.287392509351" />
+				<pt x="3617.2493" y="491.287883927021" />
+				<pt x="3616.5011" y="491.287929559792" />
+				<pt x="3615.2008" y="491.287862293715" />
+				<pt x="3614.338" y="491.287889943223" />
+				<pt x="3612.2591" y="491.28777029415" />
+				<pt x="3610.9928" y="491.287484157266" />
+				<pt x="3609.6835" y="491.287326426109" />
+				<pt x="3607.9041" y="491.287330136365" />
+				<pt x="3606.9355" y="491.287117413076" />
+				<pt x="3605.9854" y="491.287095080735" />
+				<pt x="3605.0658" y="491.287067490794" />
+				<pt x="3603.744" y="491.28706626682" />
+				<pt x="3602.825" y="491.287178706897" />
+				<pt x="3601.5276" y="491.287330459497" />
+				<pt x="3600.3709" y="491.28720916175" />
+				<pt x="3599.5098" y="491.288220758917" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.284729003906" RT="3598.1666" >
+				<PeptideHit score="27.57" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="0.0017"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.284759521484" RT="3623.1091" >
+				<PeptideHit score="41.94" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="13"/>
+					<userParam type="float" name="EValue" value="6.4e-05"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="18" MZ="490.284729003906" RT="3598.1666" >
+				<PeptideHit score="3.42" sequence="M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="18"/>
+					<userParam type="float" name="EValue" value="1.5"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="18" MZ="490.284759521484" RT="3623.1091" >
+				<PeptideHit score="4.7" sequence="M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="18"/>
+					<userParam type="float" name="EValue" value="1.1"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="22"/>
+			<userParam type="int" name="spectrum_index" value="2789"/>
+			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4331"/>
+		</feature>
+		<feature id="f_14908715519245189017">
+			<position dim="0">3336.44625692353</position>
+			<position dim="1">505.791383665927</position>
+			<intensity>3.62021e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.775988</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="3322.8882" y="505.791545129464" />
+				<pt x="3324.195" y="505.791600683904" />
+				<pt x="3325.5553" y="505.791434515659" />
+				<pt x="3326.8567" y="505.791304586284" />
+				<pt x="3328.7131" y="505.791296583791" />
+				<pt x="3330.1137" y="505.79145739331" />
+				<pt x="3331.4176" y="505.791404932689" />
+				<pt x="3332.8106" y="505.791412713387" />
+				<pt x="3333.7668" y="505.791320738319" />
+				<pt x="3335.1059" y="505.79130107101" />
+				<pt x="3336.9148" y="505.791478195939" />
+				<pt x="3337.8617" y="505.791413863114" />
+				<pt x="3339.2911" y="505.79158473013" />
+				<pt x="3341.0966" y="505.791350600569" />
+				<pt x="3342.0793" y="505.791252107707" />
+				<pt x="3343.9281" y="505.791249111515" />
+				<pt x="3345.2371" y="505.791341347777" />
+				<pt x="3346.5782" y="505.791377808951" />
+				<pt x="3347.9765" y="505.79140810568" />
+				<pt x="3348.938" y="505.79119403806" />
+				<pt x="3350.2468" y="505.791397970762" />
+				<pt x="3352.6525" y="505.791602045085" />
+				<pt x="3350.2468" y="505.791397970762" />
+				<pt x="3348.938" y="505.79119403806" />
+				<pt x="3347.9765" y="505.79140810568" />
+				<pt x="3346.5782" y="505.791377808951" />
+				<pt x="3345.2371" y="505.791341347777" />
+				<pt x="3343.9281" y="505.791249111515" />
+				<pt x="3342.0793" y="505.791252107707" />
+				<pt x="3341.0966" y="505.791350600569" />
+				<pt x="3339.2911" y="505.79158473013" />
+				<pt x="3337.8617" y="505.791413863114" />
+				<pt x="3336.9148" y="505.791478195939" />
+				<pt x="3335.1059" y="505.79130107101" />
+				<pt x="3333.7668" y="505.791320738319" />
+				<pt x="3332.8106" y="505.791412713387" />
+				<pt x="3331.4176" y="505.791404932689" />
+				<pt x="3330.1137" y="505.79145739331" />
+				<pt x="3328.7131" y="505.791296583791" />
+				<pt x="3326.8567" y="505.791304586284" />
+				<pt x="3325.5553" y="505.791434515659" />
+				<pt x="3324.195" y="505.791600683904" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="3322.8882" y="506.293245814162" />
+				<pt x="3324.195" y="506.293327155977" />
+				<pt x="3325.5553" y="506.293310508001" />
+				<pt x="3326.8567" y="506.293249099039" />
+				<pt x="3328.7131" y="506.293041548798" />
+				<pt x="3330.1137" y="506.293070855981" />
+				<pt x="3331.4176" y="506.29308544043" />
+				<pt x="3332.8106" y="506.293145887059" />
+				<pt x="3333.7668" y="506.293064214788" />
+				<pt x="3335.1059" y="506.292931115229" />
+				<pt x="3336.9148" y="506.293066484833" />
+				<pt x="3337.8617" y="506.292963130352" />
+				<pt x="3339.2911" y="506.293096383315" />
+				<pt x="3341.0966" y="506.293012626862" />
+				<pt x="3342.0793" y="506.29277112783" />
+				<pt x="3343.9281" y="506.292873165225" />
+				<pt x="3345.2371" y="506.293089973478" />
+				<pt x="3346.5782" y="506.293150649441" />
+				<pt x="3347.9765" y="506.293012889732" />
+				<pt x="3348.938" y="506.292800673554" />
+				<pt x="3350.2468" y="506.293002127937" />
+				<pt x="3348.938" y="506.292800673554" />
+				<pt x="3347.9765" y="506.293012889732" />
+				<pt x="3346.5782" y="506.293150649441" />
+				<pt x="3345.2371" y="506.293089973478" />
+				<pt x="3343.9281" y="506.292873165225" />
+				<pt x="3342.0793" y="506.29277112783" />
+				<pt x="3341.0966" y="506.293012626862" />
+				<pt x="3339.2911" y="506.293096383315" />
+				<pt x="3337.8617" y="506.292963130352" />
+				<pt x="3336.9148" y="506.293066484833" />
+				<pt x="3335.1059" y="506.292931115229" />
+				<pt x="3333.7668" y="506.293064214788" />
+				<pt x="3332.8106" y="506.293145887059" />
+				<pt x="3331.4176" y="506.29308544043" />
+				<pt x="3330.1137" y="506.293070855981" />
+				<pt x="3328.7131" y="506.293041548798" />
+				<pt x="3326.8567" y="506.293249099039" />
+				<pt x="3325.5553" y="506.293310508001" />
+				<pt x="3324.195" y="506.293327155977" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="3325.5553" y="506.793874654551" />
+				<pt x="3326.8567" y="506.795017845592" />
+				<pt x="3328.7131" y="506.794652243227" />
+				<pt x="3330.1137" y="506.794460741286" />
+				<pt x="3331.4176" y="506.794953992091" />
+				<pt x="3332.8106" y="506.793975051921" />
+				<pt x="3333.7668" y="506.794781268207" />
+				<pt x="3335.1059" y="506.794275552345" />
+				<pt x="3336.9148" y="506.793992871606" />
+				<pt x="3337.8617" y="506.794559578335" />
+				<pt x="3339.2911" y="506.794609858993" />
+				<pt x="3341.0966" y="506.794243409736" />
+				<pt x="3342.0793" y="506.79520900777" />
+				<pt x="3343.9281" y="506.794279463628" />
+				<pt x="3345.2371" y="506.794134035447" />
+				<pt x="3346.5782" y="506.794271083103" />
+				<pt x="3347.9765" y="506.794219404723" />
+				<pt x="3348.938" y="506.795356944472" />
+				<pt x="3347.9765" y="506.794219404723" />
+				<pt x="3346.5782" y="506.794271083103" />
+				<pt x="3345.2371" y="506.794134035447" />
+				<pt x="3343.9281" y="506.794279463628" />
+				<pt x="3342.0793" y="506.79520900777" />
+				<pt x="3341.0966" y="506.794243409736" />
+				<pt x="3339.2911" y="506.794609858993" />
+				<pt x="3337.8617" y="506.794559578335" />
+				<pt x="3336.9148" y="506.793992871606" />
+				<pt x="3335.1059" y="506.794275552345" />
+				<pt x="3333.7668" y="506.794781268207" />
+				<pt x="3332.8106" y="506.793975051921" />
+				<pt x="3331.4176" y="506.794953992091" />
+				<pt x="3330.1137" y="506.794460741286" />
+				<pt x="3328.7131" y="506.794652243227" />
+				<pt x="3326.8567" y="506.795017845592" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="505.791015625" RT="3327.3795" >
+				<PeptideHit score="3.3" sequence="ALPM(Oxidation)NLSIK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="1.1"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="135"/>
+			<userParam type="int" name="spectrum_index" value="2580"/>
+			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3852"/>
+		</feature>
+		<feature id="f_10774629940328129980">
+			<position dim="0">3140.9180677138</position>
+			<position dim="1">490.252868250934</position>
+			<intensity>1.94484e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.753834</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="3127.8612" y="490.253468057275" />
+				<pt x="3128.8319" y="490.252435902173" />
+				<pt x="3130.1153" y="490.252976236306" />
+				<pt x="3131.2287" y="490.252391541037" />
+				<pt x="3133.3621" y="490.253446404289" />
+				<pt x="3134.6359" y="490.252711531415" />
+				<pt x="3136.6234" y="490.253206566951" />
+				<pt x="3137.8886" y="490.252954423887" />
+				<pt x="3139.5703" y="490.252866824725" />
+				<pt x="3140.7653" y="490.252915798044" />
+				<pt x="3141.5975" y="490.25254471943" />
+				<pt x="3142.5384" y="490.253165005217" />
+				<pt x="3143.8799" y="490.252796941775" />
+				<pt x="3144.8715" y="490.253144315656" />
+				<pt x="3146.2209" y="490.252456079382" />
+				<pt x="3147.201" y="490.253488455778" />
+				<pt x="3148.6368" y="490.252643336192" />
+				<pt x="3149.643" y="490.252640757303" />
+				<pt x="3150.6377" y="490.253893389886" />
+				<pt x="3151.6679" y="490.251976423507" />
+				<pt x="3153.0598" y="490.252100569669" />
+				<pt x="3154.0479" y="490.252578229639" />
+				<pt x="3155.4595" y="490.251986142557" />
+				<pt x="3156.6814" y="490.252583920721" />
+				<pt x="3155.4595" y="490.251986142557" />
+				<pt x="3154.0479" y="490.252578229639" />
+				<pt x="3153.0598" y="490.252100569669" />
+				<pt x="3151.6679" y="490.251976423507" />
+				<pt x="3150.6377" y="490.253893389886" />
+				<pt x="3149.643" y="490.252640757303" />
+				<pt x="3148.6368" y="490.252643336192" />
+				<pt x="3147.201" y="490.253488455778" />
+				<pt x="3146.2209" y="490.252456079382" />
+				<pt x="3144.8715" y="490.253144315656" />
+				<pt x="3143.8799" y="490.252796941775" />
+				<pt x="3142.5384" y="490.253165005217" />
+				<pt x="3141.5975" y="490.25254471943" />
+				<pt x="3140.7653" y="490.252915798044" />
+				<pt x="3139.5703" y="490.252866824725" />
+				<pt x="3137.8886" y="490.252954423887" />
+				<pt x="3136.6234" y="490.253206566951" />
+				<pt x="3134.6359" y="490.252711531415" />
+				<pt x="3133.3621" y="490.253446404289" />
+				<pt x="3131.2287" y="490.252391541037" />
+				<pt x="3130.1153" y="490.252976236306" />
+				<pt x="3128.8319" y="490.252435902173" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="3127.8612" y="490.753630783967" />
+				<pt x="3128.8319" y="490.754370273715" />
+				<pt x="3131.2287" y="490.753993453963" />
+				<pt x="3133.3621" y="490.754800733283" />
+				<pt x="3134.6359" y="490.754287422893" />
+				<pt x="3136.6234" y="490.754835901689" />
+				<pt x="3137.8886" y="490.75507708051" />
+				<pt x="3140.7653" y="490.754158340325" />
+				<pt x="3142.5384" y="490.755531143367" />
+				<pt x="3144.8715" y="490.753989236781" />
+				<pt x="3146.2209" y="490.754580997701" />
+				<pt x="3144.8715" y="490.753989236781" />
+				<pt x="3142.5384" y="490.755531143367" />
+				<pt x="3140.7653" y="490.754158340325" />
+				<pt x="3137.8886" y="490.75507708051" />
+				<pt x="3136.6234" y="490.754835901689" />
+				<pt x="3134.6359" y="490.754287422893" />
+				<pt x="3133.3621" y="490.754800733283" />
+				<pt x="3131.2287" y="490.753993453963" />
+				<pt x="3128.8319" y="490.754370273715" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="490.250885009766" RT="3132.1286" >
+				<PeptideHit score="5.25" sequence="M(Oxidation)SNITYVK(Label:13C(6)15N(2))" charge="2">
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="16"/>
+					<userParam type="float" name="EValue" value="0.67"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="206"/>
+			<userParam type="int" name="spectrum_index" value="2424"/>
+			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3536"/>
+		</feature>
+	</featureList>
+</featureMap>

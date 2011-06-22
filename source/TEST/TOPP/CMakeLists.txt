@@ -304,6 +304,21 @@ add_test("TOPP_FileFilter_13" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_13_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_13_output.featureXML)
 add_test("TOPP_FileFilter_14" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_14_input.consensusXML -out FileFilter.tmp -in_type consensusXML -out_type consensusXML -map 0 2)
 add_test("TOPP_FileFilter_14_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_14_output.consensusXML)
+add_test("TOPP_FileFilter_15" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_15_input.featureXML -out FileFilter.tmp -id:sequences_whitelist Oxidation -id:remove_unassigned_ids)
+add_test("TOPP_FileFilter_15_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_15_output.featureXML)
+add_test("TOPP_FileFilter_16" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_15_input.featureXML -out FileFilter.tmp -id:sequences_whitelist Oxidation -id:remove_unassigned_ids -mz 400:600 -rt 3000:4000)
+add_test("TOPP_FileFilter_16_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_16_output.featureXML)
+add_test("TOPP_FileFilter_17" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_15_input.featureXML -out FileFilter.tmp -id:remove_annotated_features -mz 400:600 -rt 3000:4000)
+add_test("TOPP_FileFilter_17_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_17_output.featureXML)
+add_test("TOPP_FileFilter_18" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_18_input.consensusXML -out FileFilter.tmp -id:sequences_whitelist Oxidation -id:remove_unassigned_ids)
+add_test("TOPP_FileFilter_18_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_18_output.consensusXML)
+add_test("TOPP_FileFilter_19" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_18_input.consensusXML -out FileFilter.tmp -id:remove_unannotated_features -mz 400:600 -rt 3000:4000)
+add_test("TOPP_FileFilter_19_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_19_output.consensusXML)
+add_test("TOPP_FileFilter_20" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_15_input.featureXML -out FileFilter.tmp -id:accessions_whitelist YDL217C -id:remove_unassigned_ids)
+add_test("TOPP_FileFilter_20_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_20_output.featureXML)
+add_test("TOPP_FileFilter_21" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_15_input.featureXML -out FileFilter.tmp -id:remove_unassigned_ids -id:remove_unannotated_features -id:keep_best_score_id)
+add_test("TOPP_FileFilter_21_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_21_output.featureXML)
+
 
 ### FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.txt -in_type DTA -no_progress -out FileInfo.tmp)

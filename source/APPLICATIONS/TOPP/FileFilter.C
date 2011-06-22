@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Lars Nilse, Chris Bielow $
+// $Authors: Marc Sturm, Lars Nilse, Chris Bielow, Hendrik Brauer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -81,7 +81,16 @@ using namespace std;
 		- filter by size (number of elements in consensus features)
 		- filter by consensus feature charge
 		- filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
+	- featureXML / consensusXML:
+		- filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
+		- filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
+		- remove features with annotations
+		- remove features without annotations
+		- remove unassigned peptide identifications
+		- filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
+		- remove features with id clashes (different sequences mapped to one feature)
 
+	The Priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileFilter.cli
@@ -106,6 +115,109 @@ class TOPPFileFilter
 	TOPPFileFilter()
 		: TOPPBase("FileFilter","Extracts or manipulates portions of data from peak, feature or consensus-feature files.")
 	{
+	}
+
+	private:
+	static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
+	{
+		//flag: remove_annotated_features and non-empty peptideIdentifications
+		if (remove_annotated_features && !feature.getPeptideIdentifications().empty())
+		{
+			return false;
+		}
+		//flag: remove_unannotated_features and no peptideIdentifications
+		if (remove_unannotated_features && feature.getPeptideIdentifications().empty())
+		{
+			return false;
+		}
+		//flag: remove_clashes
+		if (remove_clashes && !feature.getPeptideIdentifications().empty())
+		{
+			String temp = feature.getPeptideIdentifications().begin()->getHits().begin()->getSequence().toString();
+			//loop over all peptideIdentifications
+			for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+			{
+				//loop over all peptideHits
+				for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+				{
+					if (pep_hit_it->getSequence().toString()!=temp)
+					{
+						return false;
+					}
+				}
+			}
+		}
+		//flag: keep_best_score_id
+		if (keep_best_score_id && !feature.getPeptideIdentifications().empty())
+		{
+			PeptideIdentification temp = feature.getPeptideIdentifications().front();
+			//loop over all peptideIdentifications
+			for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+			{
+				//loop over all peptideHits
+				for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+				{
+					if ((pep_id_it->isHigherScoreBetter() && pep_hit_it->getScore() > temp.getHits().front().getScore()) ||
+						(!pep_id_it->isHigherScoreBetter() && pep_hit_it->getScore() < temp.getHits().front().getScore()))
+					{
+						temp = *pep_id_it;
+					}
+				}
+			}
+			feature.setPeptideIdentifications(vector<PeptideIdentification> (1,temp));
+			// not filtering sequences or accessions
+			if (!sequences.size() > 0 && !accessions.size() > 0)
+			{
+				return true;
+			}
+		}
+		//flag: sequences or accessions
+		if (sequences.size() > 0 || accessions.size() > 0)
+		{
+			bool sequen = false;
+			bool access = false;
+			//loop over all peptideIdentifications
+			for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+			{
+				//loop over all peptideHits
+				for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+				{
+					//loop over all sequence entries of the StringList
+					for (StringList::ConstIterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
+					{
+						if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
+							|| pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it) )
+						{
+							sequen = true;
+						}
+					}
+					//loop over all accessions of the peptideHits
+					for (vector<String>::const_iterator p_acc_it = pep_hit_it->getProteinAccessions().begin(); p_acc_it != pep_hit_it->getProteinAccessions().end(); ++p_acc_it)
+					{
+						//loop over all accessions entries of the StringList
+						for (StringList::ConstIterator acc_it = accessions.begin(); acc_it != accessions.end(); ++acc_it)
+						{
+							if (p_acc_it->hasSubstring(*acc_it))
+							{
+								access = true;
+							}
+						}
+					}
+				}
+			}
+			if (sequences.size() > 0 && accessions.size() > 0)
+			{
+				return (sequen && access);
+			}
+			if (sequences.size() > 0)
+			{
+				return sequen;
+			}else
+			{
+				return access;
+			}
+		}
+		return true;
 	}
 
 	protected:
@@ -134,6 +246,7 @@ class TOPPFileFilter
 
 		registerFlag_("sort","sorts the output according to RT and m/z.");
 
+		addEmptyLine_();
 		addText_("peak data options:");
 		registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
     registerIntList_("rm_pc_charge","i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
@@ -184,6 +297,17 @@ class TOPPFileFilter
     registerFlag_("map_and", "AND connective of map selection instead of OR.");
 
 		addEmptyLine_();
+		registerTOPPSubsection_("id","id section");
+		addText_("The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist");
+		registerFlag_("id:remove_clashes", "remove features with id clashes (different sequences mapped to one feature)", true);
+		registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
+		registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with whitelisted sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
+		registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with whitelisted accessions, e.g. sp|P02662|CASA1_BOVIN", false);
+		registerFlag_("id:remove_annotated_features", "remove features with annotations");
+		registerFlag_("id:remove_unannotated_features", "remove features without annotations");
+		registerFlag_("id:remove_unassigned_ids", "remove unassigned peptide identifications");
+
+		addEmptyLine_();
 		addText_("Other options of the FileFilter only apply if S/N estimation is done.\n"
 						 "They can be given only in the 'algorithm' section  of the INI file.");
 
@@ -210,39 +334,32 @@ class TOPPFileFilter
 		String in = getStringOption_("in");
 		FileHandler fh;
 
-		FileTypes::Type in_type = fh.nameToType(getStringOption_("in_type"));
-		
+		FileTypes::Type in_type = fh.getType(in);
+		//only use flag in_type, if the in_type cannot be determined by file
 		if (in_type==FileTypes::UNKNOWN)
 		{
-			in_type = fh.getType(in);
+			in_type = fh.nameToType(getStringOption_("in_type"));
 			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
 		}
-		
-		if (in_type==FileTypes::UNKNOWN)
-		{
-			writeLog_("Error: Could not determine input file type!");
-			return PARSE_ERROR;
-		}
-		
-		
+	
 		//output file name and type
 		String out = getStringOption_("out");
 
-		FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
-		
+		FileTypes::Type out_type = fh.getTypeByFileName(out);
+
+		//only use flag out_type, if the out_type cannot be determined by file
 		if (out_type==FileTypes::UNKNOWN)
 		{
-			out_type = fh.getTypeByFileName(out);
+			out_type = fh.nameToType(getStringOption_("out_type"));
 			writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
 		}
-		
+		//use in_type as out_type, if out_type cannot be determined by file or out_type flag
 		if (out_type==FileTypes::UNKNOWN)
 		{
-			writeLog_("Error: Could not determine output file type!");
-			return PARSE_ERROR;
+			out_type = in_type;
+			writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
 		}
-		
-		
+
 		bool no_chromatograms(getFlag_("no_chromatograms"));
 
 		//ranges
@@ -261,6 +378,15 @@ class TOPPFileFilter
 		charge = getStringOption_("charge");
 		size = getStringOption_("size");
 		q = getStringOption_("q");
+
+		//id-filtering parameters
+		bool remove_annotated_features = getFlag_("id:remove_annotated_features");
+		bool remove_unannotated_features = getFlag_("id:remove_unannotated_features");
+		bool remove_unassigned_ids = getFlag_("id:remove_unassigned_ids");
+		StringList sequences = getStringList_("id:sequences_whitelist");
+		StringList accessions = getStringList_("id:accessions_whitelist");
+		bool keep_best_score_id = getFlag_("id:keep_best_score_id");
+		bool remove_clashes = getFlag_("id:remove_clashes");
 
 		//convert bounds to numbers
 		try
@@ -407,11 +533,11 @@ class TOPPFileFilter
  			//remove empty scans
  			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
 
-      //sort
-      if (sort)
-      {
-        exp.sortSpectra(true);
-      }
+			//sort
+			if (sort)
+			{
+				exp.sortSpectra(true);
+			}
 			if (getFlag_("sort_peaks"))
 			{
 				for (Size i=0; i<exp.size(); ++i)
@@ -451,8 +577,7 @@ class TOPPFileFilter
 			// loading input
 			//-------------------------------------------------------------
 
-			typedef FeatureMap<> FeatureMapType;
-			FeatureMapType feature_map;
+			FeatureMap<> feature_map;
 			FeatureXMLFile f;
 			//f.setLogType(log_type_);
 			// this does not work yet implicitly - not supported by FeatureXMLFile
@@ -465,39 +590,43 @@ class TOPPFileFilter
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-			typedef FeatureMapType::FeatureType FeatureType;
 
 			//copy all properties
-			FeatureMapType map_sm = feature_map;
+			FeatureMap<> map_sm = feature_map;
 			//.. but delete feature information
 			map_sm.clear(false);
 
-			bool rt_ok, mz_ok, int_ok, charge_ok, size_ok, q_ok;
+			bool rt_ok, mz_ok, int_ok, charge_ok, size_ok, q_ok, annotation_ok;
 
 			// only keep charge ch_l:ch_u   (WARNING: featurefiles without charge information have charge=0, see Ctor of KERNEL/Feature.h)
-			for (uint i = 0; i<feature_map.size(); ++i)
+			for (FeatureMap<>::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
 			{
-				if (f.getOptions().getRTRange().encloses(DPosition<1>(feature_map[i].getRT()))) { rt_ok = true; } else {rt_ok = false;}
-				if (f.getOptions().getMZRange().encloses(DPosition<1>(feature_map[i].getMZ()))) { mz_ok = true; } else {mz_ok = false;}
-				if (f.getOptions().getIntensityRange().encloses(DPosition<1>(feature_map[i].getIntensity()))) { int_ok = true; } else {int_ok = false;}
-				if ((charge_l <= feature_map[i].getCharge()) && (feature_map[i].getCharge() <= charge_u)) { charge_ok = true; } else {charge_ok = false;}
-				if ((size_l <= feature_map[i].getSubordinates().size()) && (feature_map[i].getSubordinates().size() <= size_u)) { size_ok = true; } else { size_ok = false;}
-				if ((q_l <= feature_map[i].getOverallQuality()) && (feature_map[i].getOverallQuality() <= q_u)) { q_ok = true; } else {q_ok = false;}
+				rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
+				mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
+				int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm_it->getIntensity()));
+				charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
+				size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
+				q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
+				annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
 
-				//std::cout << feature_map[i].getRT() << " " << feature_map[i].getMZ() << " " << feature_map[i].getIntensity() << " " << feature_map[i].getCharge() << " "<< feature_map[i].getOverallQuality() << " ";
-				if (rt_ok == true && mz_ok == true && int_ok == true && charge_ok == true && size_ok == true && q_ok == true)
+				if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok && annotation_ok)
 				{
-					//std::cout << rt_ok << mz_ok << int_ok << charge_ok << size_ok << q_ok << "\n";
-					map_sm.push_back (feature_map[i]);
-				}//else {std::cout << "\n";}
+					map_sm.push_back (*fm_it);
+				}
 			}
+			//delete unassignedPeptideIdentifications
+			if (remove_unassigned_ids)
+			{
+				map_sm.getUnassignedPeptideIdentifications().clear();
+			}
+			//update minimum and maximum position/intensity
 			map_sm.updateRanges();
 
 			// sort if desired
-      if (sort)
-      {
-        map_sm.sortByPosition();
-      }
+			if (sort)
+			{
+				map_sm.sortByPosition();
+			}
 
 			//-------------------------------------------------------------
 			// writing output
@@ -517,33 +646,39 @@ class TOPPFileFilter
 			ConsensusMap consensus_map;
 			ConsensusXMLFile f;
 			//f.setLogType(log_type_);
-			// this does not work yet implicitly - not supported by FeatureXMLFile
 			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
 			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
 			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
 			f.load(in,consensus_map);
-			
+
+			//-------------------------------------------------------------
+			// calculations
+			//-------------------------------------------------------------
+
 			// copy all properties
 			ConsensusMap consensus_map_filtered = consensus_map;
 			//.. but delete feature information
 			consensus_map_filtered.resize(0);
 			
-			bool charge_ok, size_ok;
+			bool charge_ok, size_ok, annotation_ok;
 			
-			for ( ConsensusMap::const_iterator citer = consensus_map.begin(); citer != consensus_map.end(); ++citer)
+			for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
 			{
-				if ((charge_l <= citer->getCharge()) && (citer->getCharge() <= charge_u)) { charge_ok = true; } else {charge_ok = false;}
-				if ((citer->size() >= size_l) && (citer->size() <= size_u)) { size_ok = true; } else { size_ok = false;}
-				
-				if (charge_ok == true && size_ok == true)
+				charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
+				size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
+				annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+
+				if (charge_ok && size_ok && annotation_ok)
 				{
-					consensus_map_filtered.push_back(*citer);
+					consensus_map_filtered.push_back(*cm_it);
 				}
 			}
-			
-			//-------------------------------------------------------------
-			// calculations
-			//-------------------------------------------------------------
+			//delete unassignedPeptideIdentifications
+			if (remove_unassigned_ids)
+			{
+				consensus_map_filtered.getUnassignedPeptideIdentifications().clear();
+			}
+			//update minimum and maximum position/intensity
 			consensus_map_filtered.updateRanges();
 			
 			// sort if desired
@@ -562,17 +697,15 @@ class TOPPFileFilter
 					for (ConsensusMap::Iterator cm_it=consensus_map_filtered.begin(); cm_it!=consensus_map_filtered.end(); ++cm_it)
 					{
 						
-						for(ConsensusFeature::HandleSetType::const_iterator fh_iter = (*cm_it).getFeatures().begin();
-							fh_iter != (*cm_it).getFeatures().end();
-							++fh_iter)
+						for(ConsensusFeature::HandleSetType::const_iterator fh_iter = cm_it->getFeatures().begin(); fh_iter != cm_it->getFeatures().end(); ++fh_iter)
 						{
-							if ((int)(*fh_iter).getMapIndex() == maps[0])
+							if ((int)fh_iter->getMapIndex() == maps[0])
 							{
 								Feature feature;
-								feature.setRT((*fh_iter).getRT());
-								feature.setMZ((*fh_iter).getMZ());
-								feature.setIntensity((*fh_iter).getIntensity());
-								feature.setCharge((*fh_iter).getCharge());
+								feature.setRT(fh_iter->getRT());
+								feature.setMZ(fh_iter->getMZ());
+								feature.setIntensity(fh_iter->getIntensity());
+								feature.setCharge(fh_iter->getCharge());
 								feature_map_filtered.push_back(feature);
 							}
 						}
@@ -606,6 +739,8 @@ class TOPPFileFilter
 					cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
 					cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
 				}
+
+				cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
 
 				for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
 				{					
@@ -652,13 +787,18 @@ class TOPPFileFilter
 					
 					f.store(out, cm_new);
 				}
+			}else
+			{
+				writeLog_("Error: Unknown output file type given. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
 			}
 		}
 		else
 		{
-			writeLog_("Unknown input file type given. Aborting!");
+			writeLog_("Error: Unknown input file type given. Aborting!");
 			printUsage_();
-			return ILLEGAL_PARAMETERS;
+			return INCOMPATIBLE_INPUT_DATA;
 		}
 
 		return EXECUTION_OK;
