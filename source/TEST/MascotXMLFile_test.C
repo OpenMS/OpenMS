@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -127,6 +127,13 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATN(MOD:00565)FK(MOD:00445)")
 	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK(MOD:00445)")
 	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "HSK(MOD:00445)LSAK(MOD:00445)")
+  
+  /// for new MascotXML 2.1 as used by Mascot Server 2.3
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_2.mascotXML"),
+							protein_identification, 
+				   		peptide_identifications);
+  // TODO more tests...
+  
 END_SECTION
 
 START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data, std::map< String, std::vector< AASequence > > &peptides)))

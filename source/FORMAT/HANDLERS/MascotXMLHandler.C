@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: Nico Pfeifer $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
@@ -66,7 +66,14 @@ namespace OpenMS
 
 		tag_ = String(sm_.convert(qname));
     
-    if (tag_ == "warning")
+		tags_open_.push_back(tag_);
+
+		if (tag_ == "mascot_search_results")
+ 		{
+			major_version_ = this->attributeAsString_(attributes, "majorVersion");
+			minor_version_ = this->attributeAsString_(attributes, "minorVersion");
+		}
+    else if (tag_ == "warning")
     {
       warning_msg_ = "";
     }
@@ -102,6 +109,11 @@ namespace OpenMS
  	{
  		tag_ = String(sm_.convert(qname)).trim();
  		
+		if (tags_open_.size() == 0)
+		{
+			fatalError(LOAD, String("Closing tag ")+tag_+" not matched by opening tag", __LINE__);
+		}
+		tags_open_.pop_back();
     
     if (tag_ == "warning")
     {
@@ -323,7 +335,7 @@ namespace OpenMS
 				temp_string = parts[1];
 				for (Size i = 0; i < temp_string.size(); ++i)
 				{
-					if (temp_string.at(i) != '0')
+					if (temp_string[i] != '0')
 					{
 						UInt temp_modification_index = String(temp_string[i]).toInt() - 1;
 						String& temp_modification = search_parameters_.variable_modifications[temp_modification_index];
@@ -531,7 +543,14 @@ namespace OpenMS
 		}
 		else if (tag_ == "name")
 		{
-			search_parameters_.variable_modifications.push_back(((String)sm_.convert(chars)).trim());
+			if (
+					 (major_version_=="1")
+				 // new since Mascot XML version 2.1 (at least): <fixed_mods> also have a subtag called <name>, thus we need to ensure we are in <variable_mods>
+				 || (tags_open_.size() >= 3 && tags_open_[tags_open_.size()-2]=="variable_mods") 
+				 )
+			{
+				search_parameters_.variable_modifications.push_back(((String)sm_.convert(chars)).trim());
+			}
 		}
   }
 

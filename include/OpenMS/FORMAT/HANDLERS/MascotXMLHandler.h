@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: Nico Pfeifer $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
@@ -64,8 +64,8 @@ namespace OpenMS
 		  
     private:
     	
-    	ProteinIdentification& protein_identification_;				///< the protein identifications
-      std::vector<PeptideIdentification>& id_data_;				///< the identifications (storing the peptide hits)
+    	ProteinIdentification& protein_identification_;	///< the protein identifications
+      std::vector<PeptideIdentification>& id_data_;		///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;												
       PeptideHit actual_peptide_hit_;
 			UInt peptide_identification_index_;
@@ -78,6 +78,10 @@ namespace OpenMS
 			String actual_title_;
 			std::map<String, std::vector<AASequence> >& modified_peptides_;
       String warning_msg_;
+
+			StringList tags_open_; ///< tracking the current XML tree
+			String major_version_;
+			String minor_version_;
   };
 
 	} // namespace Internal
