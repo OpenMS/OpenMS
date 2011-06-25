@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch, Daniel Jameson$
+// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -75,7 +75,7 @@ using namespace std;
 
 	It support Mascot security features and has also proxy server
 	support. This minimal version of Mascot support by this wrapper
-	is version 2.2.x.
+	is version 2.2.x. Mascot 2.3 works as well, but has not been tested extensively.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MascotAdapterOnline.cli
@@ -206,8 +206,16 @@ class TOPPMascotAdapterOnline
 			// read the response
 			MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids);
 
-			// delete file
-			mascot_tmp_file.remove();
+			// for debugging errors relating to unexpected response files
+			if (this->debug_level_ >= 100)
+			{
+				writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+			}
+			else
+			{
+				// delete file
+				mascot_tmp_file.remove();
+			}
 
 			vector<ProteinIdentification> prot_ids;
 			prot_ids.push_back(prot_id);
