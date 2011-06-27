@@ -132,7 +132,10 @@ namespace OpenMS
 
     defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", StringList::create("advanced"));
     
-    
+    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", StringList::create("advanced"));
+    defaults_.setMinInt("verbose_level", 0);
+    defaults_.setMaxInt("verbose_level", 3);
+
     defaultsToParam_();
   }
 
@@ -201,6 +204,8 @@ namespace OpenMS
       Adduct a((Int)l_charge, 1, ef.getMonoWeight(), adduct[0].remove('+'), log(prob), rt_shift, label);
       //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.getString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << "), RTShift: " << rt_shift << "]\n";
       potential_adducts_.push_back(a);
+
+      verbose_level_ = param_.getValue("verbose_level");
     }
     
     // RT sanity check:
@@ -308,12 +313,12 @@ namespace OpenMS
 		
 		// holds query results for a mass difference
 		MassExplainer::CompomerIterator md_s, md_e;
-		Compomer null_compomer(0,0,-std::numeric_limits<DoubleReal>::max());
-		SignedSize hits = 0;
+		Compomer null_compomer(0, 0, -std::numeric_limits<DoubleReal>::max());
+		SignedSize hits(0);
 		
-		CoordinateType mz1,mz2, m1;
+		CoordinateType mz1, mz2, m1;
 		
-		Size possibleEdges = 0, overallHits = 0;
+		Size possibleEdges(0), overallHits(0);
 
 		// edges				
 		PairsType feature_relation;
@@ -321,7 +326,7 @@ namespace OpenMS
 		Map<Size, std::set<CmpInfo_> > feature_adducts;
 				
 		// # compomer results that either passed or failed the feature charge constraints
-		Size no_cmp_hit=0, cmp_hit=0;
+		Size no_cmp_hit(0), cmp_hit(0);
 		
 		DoubleList dl_massdiff;
 		IntList il_chargediff;
@@ -330,7 +335,7 @@ namespace OpenMS
 		Adduct proton(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
 								
     for (Size i_RT = 0; i_RT < fm_out.size(); ++i_RT)
-    { // ** RT-sweepline
+    { // ** RT-sweep line
 			
 			mz1 = fm_out[i_RT].getMZ();
 			
@@ -528,7 +533,7 @@ namespace OpenMS
     if (feature_relation.size() == 0)
     {
       LOG_INFO << "Found NO putative edges. The output generated will be trivial (only singleton clusters and no pairings). "
-        << "Your parameters might need revision or the input was ill-formed." << std::endl;
+               << "Your parameters might need revision or the input was ill-formed." << std::endl;
     }
     else
     {
@@ -618,11 +623,14 @@ namespace OpenMS
 				else
 				{
 					DoubleReal rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
-					LOG_WARN  << "conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity() 
-										<< " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) 
-										<< "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" 
-										<< feature_relation[i].getEdgeScore() << " f#:" << fm_out[f_idx_v[f_idx]].getUniqueId() << " " << feature_relation[i].getCompomer().getAdductsAsString((UInt)f_idx) 
-										<< "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
+					if (verbose_level_ > 2)
+          {
+            LOG_WARN  << "conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity() 
+										  << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) 
+										  << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" 
+										  << feature_relation[i].getEdgeScore() << " f#:" << fm_out[f_idx_v[f_idx]].getUniqueId() << " " << feature_relation[i].getCompomer().getAdductsAsString((UInt)f_idx) 
+										  << "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
+          }
 					dirty = true;
 				}
 			}
@@ -847,7 +855,7 @@ namespace OpenMS
 
 		//  DEBUG 			
 #ifdef DC_DEVEL
-		// todo?!: CM has no filedescriptions (channels) set
+		// todo?!: CM has no file descriptions (channels) set
 		ConsensusXMLFile cf_neg;
 		cons_map_p_neg.ensureUniqueId();
 		cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
@@ -954,7 +962,7 @@ namespace OpenMS
   }
 
 	/// test if "simple" edges have alternative
-	/// (more difficult explanation) supported by neighbouring edges
+	/// (more difficult explanation) supported by neighboring edges
 	/// e.g. (.)   -> (H+) might be augmented to
 	///      (Na+) -> (H+Na+)
 	void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)

@@ -136,6 +136,8 @@ namespace OpenMS
 			bool enable_intensity_filter_;
 			/// status of charge discovery
 			CHARGEMODE q_try_;
+      /// amount of debug information displayed
+      Int verbose_level_;
 
   };
 } // namespace OpenMS

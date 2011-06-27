@@ -93,7 +93,7 @@ namespace OpenMS {
       LOG_INFO << "ILPDC wrapper received empty feature list. Nothing to compute! Exiting..." << std::endl;
       return -1;
     }
-    // check number of components:
+    // check number of components for complete putative edge graph (usually not all will be set to 'active' during ILP):
     using namespace boost;
     {
       typedef adjacency_list <vecS, vecS, undirectedS> Graph;
@@ -128,7 +128,7 @@ namespace OpenMS {
 
     #if 0
     //@TODO this is OpenMP capable
-		// warning: this relies on RT-sorted Pairs!!!	
+		//@TODO feed components until threshold reached - reorder pairs[] if required to keep margins
 		UInt allowedPairs = 1000;	
 		// split problem into slices and have each one solved by the ILPS
 		DoubleReal scorel;
@@ -146,10 +146,10 @@ namespace OpenMS {
 	}
 		
 	DoubleReal ILPDCWrapper::computeSlice_(const MassExplainer& /*me*/,
-																			 const FeatureMap<> fm,
-																			 PairsType& pairs, 
-																			 const PairsIndex margin_left, 
-																			 const PairsIndex margin_right)
+																			   const FeatureMap<> fm,
+																			   PairsType& pairs, 
+																			   const PairsIndex margin_left, 
+																			   const PairsIndex margin_right)
 	{
 
 		std::cout << "compute .." << std::endl;
@@ -208,8 +208,6 @@ namespace OpenMS {
 		bool is_conflicting;
 		std::vector<int> conflict_idx(4);
 
-		Map< Size, std::vector<Size> > conflict_map;
-
 		for (PairsIndex i=margin_left; i<margin_right; ++i)
 		{
 			const Compomer& ci = pairs[i].getCompomer();
@@ -223,10 +221,10 @@ namespace OpenMS {
 				// if features are identical they must have identical charges (because any single
 				// feature can only have one unique charge)
 
-        if(i==2796 && j==2797) // every conflict involving the missing edge...
+        /*if(i==2796 && j==2797) // every conflict involving the missing edge...
         {
           std::cout << "debug point";
-        }
+        }*/
 
 				//outgoing edges (from one feature)
 				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(0))
@@ -261,7 +259,7 @@ namespace OpenMS {
 					}
 				}
 				
-				//incoming/outgoing edge (from one feature) -- this should only happen to addiditonally inferred egdes
+				//incoming/outgoing edge (from one feature) -- this should only happen to additionally inferred edges
 				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(1))
 				{
 					if ( (pairs[i].getCharge(0) != pairs[j].getCharge(1))  ||
@@ -275,45 +273,34 @@ namespace OpenMS {
 								
 				if (is_conflicting)
 				{
-				
-					conflict_map[i].push_back(j);
-					conflict_map[j].push_back(i);
-					
-          if(i==150 || j==2797) // every conflict involving the missing edge...
+          /*if(i==150 || j==2797) // every conflict involving the missing edge...
           {
             ChargePair ti =  pairs[i];
             ChargePair tj =  pairs[j];
             
             std::cout << "conflicting edge!";
-          }
+          }*/
 
-					namebuf.str("");
-					//namebuf <<"cp"<<i<<"("<<pairs[i].getElementIndex(0)<<"[q"<<pairs[i].getCharge(0)<<"]-"<<pairs[i].getElementIndex(1)<<"[q"<<pairs[i].getCharge(1)<<"]"<<") vs. "
-					//				<<"cp"<<j<<"("<<pairs[j].getElementIndex(0)<<"[q"<<pairs[j].getCharge(0)<<"]-"<<pairs[j].getElementIndex(1)<<"[q"<<pairs[j].getCharge(1)<<"]"<<")";
-					namebuf << "C" << i << "." << j;
-					String s = namebuf.str();
-					//std::cout << "<-- conflict between " << s << "\n\n";
+					String s = String("C") + i + "." + j;
 
-
-					double element[] = {1.0,1.0};
+          // Now build rows: two variables, with indices 'columns', factors '1', and 0-1 bounds.
+					double element[] = {1.0, 1.0};
 					int columns[] = {int(i-margin_left),int(j-margin_left)};
-					// Now build rows: two variables, with indices 'columns', factors '1', and 0-1 bounds.
-
 					build.addRow(2, columns, element, 0, 1, s.c_str());
-
-					//std::cout << "Added row#" << i << " " << j << std::endl;
 				}
 			}
 		}
 		// add rows into solver
 		solver.loadFromCoinModel(build);
 
-		// DEBUG:
-		{
 		std::cout << "node count: " << fm.size() << "\n";
 		std::cout << "edge count: " << pairs.size() << "\n";
 		std::cout << "constraint count: " << (conflict_idx[0]+conflict_idx[1]+conflict_idx[2]+conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
-		TextFile conflict_map_out;
+
+    // DEBUG:
+		/*
+    {
+    TextFile conflict_map_out;
 		for (Map<Size, std::vector <Size> >::const_iterator it = conflict_map.begin(); it!= conflict_map.end(); ++it)
 		{
 			String s;
@@ -324,16 +311,16 @@ namespace OpenMS {
 			}
 			conflict_map_out.push_back(s);
 		}
-		//conflict_map_out.store("c:/conflict_map.txt");
+		conflict_map_out.store("c:/conflict_map.txt");
 		//get rid of memory blockers:
 		Map< Size, std::vector<Size> > tmp_map;
 		conflict_map.swap(tmp_map);
-		}
+
+    // write the model (for debug)
+    //build.writeMps ("Y:/datasets/simulated/coinor.mps");
+    }
+    */
 		
-
-		// write the model (for debug)
-		//build.writeMps ("Y:/datasets/simulated/coinor.mps");
-
 		//---------------------------------------------------------------------------------------------------------
 		//----------------------------------------Solving and querying result--------------------------------------
 		//---------------------------------------------------------------------------------------------------------
@@ -347,7 +334,6 @@ namespace OpenMS {
 		// Output details
 		model.messageHandler()->setLogLevel(2);
 		model.solver()->messageHandler()->setLogLevel(1);
-		
 		
 		CglProbing generator1;
 		generator1.setUsingObjective(true);
@@ -390,11 +376,11 @@ namespace OpenMS {
 		double time1 = CoinCpuTime();
 		std::cout << "starting to solve..." << std::endl;
 		model.branchAndBound();
-		std::cout<<" Branch and cut took "<<CoinCpuTime()-time1<<" seconds, "
-						 <<model.getNodeCount()<<" nodes with objective "
-						 <<model.getObjValue()
-						 <<(!model.status() ? " Finished" : " Not finished")
-						 <<std::endl;
+		std::cout << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
+						  << model.getNodeCount()<<" nodes with objective "
+						  << model.getObjValue()
+						  << (!model.status() ? " Finished" : " Not finished")
+						  << std::endl;
 
 
 
@@ -411,8 +397,7 @@ namespace OpenMS {
 				pairs[margin_left+iColumn].setActive(true);
 				// for statistical purposes: collect compomer distribution
 				String cmp = pairs[margin_left+iColumn].getCompomer().getAdductsAsString();
-				count_cmp[cmp] = count_cmp[cmp] + 1;
-				//std::cerr << " edge " << iColumn << " with " << value << "(active)\n";
+				++count_cmp[cmp];
 			}
 			else
 			{
