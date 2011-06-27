@@ -186,7 +186,7 @@ namespace OpenMS {
 			
 			// log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
 			// ... so we just add normal probabilities...
-      score = exp(getLogScore_(i, pairs, fm));
+      score = exp(getLogScore_(pairs[i], fm));
 			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 			namebuf.str("");
 			namebuf<<"x#"<<i;
@@ -418,7 +418,7 @@ namespace OpenMS {
 		return opt_value;
 	} // !compute
 
-	DoubleReal ILPDCWrapper::getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm)
+	DoubleReal ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm)
 	{
 		// TODO think of something better here!
 		DoubleReal score;
@@ -427,7 +427,7 @@ namespace OpenMS {
 		if (e == "")
 		{
 			//std::cout << "1";
-			score = pairs[i].getCompomer().getLogP();
+			score = pair.getCompomer().getLogP();
 			/*DoubleReal charge_enhance = 0;
 			
 			if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
@@ -443,13 +443,13 @@ namespace OpenMS {
 		else 
 		{
 			//std::cout << "2";
-			DoubleReal rt_diff =  fabs(fm[pairs[i].getElementIndex(0)].getRT() - fm[pairs[i].getElementIndex(1)].getRT());
+			DoubleReal rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
 			// enhance correct charge
-			DoubleReal charge_enhance = ( (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
+			DoubleReal charge_enhance = ( (pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
 																	&&
-																		(pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge()) )
+																		(pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()) )
 																	? 100 : 1;
-			score = charge_enhance * (1 / (pairs[i].getMassDiff()+1) + 1 / (rt_diff+1));
+			score = charge_enhance * (1 / (pair.getMassDiff()+1) + 1 / (rt_diff+1));
 		}
 		
 		//std::cout << "logscore: " << score << "\n";

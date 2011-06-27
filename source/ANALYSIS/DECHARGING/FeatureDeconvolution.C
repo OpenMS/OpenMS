@@ -547,7 +547,7 @@ namespace OpenMS
   		
 		  // forward set of putative edges to ILP
 		  ILPDCWrapper lp_wrapper;
-		  // compute best solution
+		  // compute best solution (this will REORDER elements on feature_relation[] !) - do not rely on order afterwards!
 		  DoubleReal ilp_score = lp_wrapper.compute(me, fm_out, feature_relation);
 		  LOG_INFO << "ILP score is: " << ilp_score << std::endl;
     }

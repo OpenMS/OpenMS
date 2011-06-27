@@ -64,7 +64,7 @@ namespace OpenMS {
 														 const PairsIndex margin_right);
 
 		/// calculate a score for the i_th edge
-		DoubleReal getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm);
+		DoubleReal getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm);
 
 	}; // !class
     
