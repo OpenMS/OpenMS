@@ -63,11 +63,11 @@ namespace OpenMS
       String os_version;
       OpenMS_Architecture arch;
 
-      String getOSAsString()
+      String getOSAsString() const
       {
         return OpenMS_OSNames[os];
       }
-      String getArchAsString()
+      String getArchAsString() const
       {
         return OpenMS_ArchNames[arch];
       }

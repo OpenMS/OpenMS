@@ -206,9 +206,8 @@ class TOPPSILACAnalyzer
 
   public:
     TOPPSILACAnalyzer()
-    : TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true)
+      : TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true), allow_missing_peaks(true)
     {
-
     }
 
 
