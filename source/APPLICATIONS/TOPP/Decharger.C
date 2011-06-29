@@ -147,7 +147,11 @@ class TOPPDecharger
     // calculations
     //-------------------------------------------------------------
     ConsensusMap cm, cm2;
+    StopWatch a;
+    a.start();
     fdc.compute(map_in, map_out, cm, cm2);
+    a.stop();
+    //std::cerr << "took: " << a.getClockTime() << " seconds\n\n\n";
     
     //-------------------------------------------------------------
     // writing output

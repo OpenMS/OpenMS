@@ -53,7 +53,7 @@ namespace OpenMS {
     /// If the input feature map is empty, a warning is issued and -1 is returned.
 		/// @return value of objective function
 		///		and @p pairs will have all realized edges set to "active"
-		DoubleReal compute(const MassExplainer& me, const FeatureMap<> fm, PairsType& pairs);
+		DoubleReal compute(const MassExplainer& me, const FeatureMap<> fm, PairsType& pairs, Size verbose_level);
 		
 	private:
 		/// slicing the problem into subproblems
@@ -61,7 +61,8 @@ namespace OpenMS {
 														 const FeatureMap<> fm,
 														 PairsType& pairs, 
 														 const PairsIndex margin_left, 
-														 const PairsIndex margin_right);
+														 const PairsIndex margin_right,
+                             Size verbose_level);
 
 		/// calculate a score for the i_th edge
 		DoubleReal getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm);
