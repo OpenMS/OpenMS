@@ -177,8 +177,10 @@ protected:
 	{
 		ifstream input(filename.c_str());
 		String line;
+    Size line_count(0);
 		while (getline(input, line))
 		{
+      ++line_count;
 			String item = getItem_(line);
 			if ((item[0] == '"') && (item[item.size() - 1] == '"'))
 			{
@@ -192,6 +194,7 @@ protected:
 				continue;
 			}
 			set<Int> local_charges(charges);
+      Size conversion_failed_count(0);
 			while (!line.empty())
 			{
 				item = getItem_(line);
@@ -199,11 +202,19 @@ protected:
 				{
 					local_charges.insert(item.toInt());
 				}
-				catch (Exception::ConversionError) {};
+				catch (Exception::ConversionError& /*e*/)
+        {
+          ++conversion_failed_count;
+        };
 			}
+      if (conversion_failed_count)
+      {
+        LOG_WARN << "Warning: Invalid charge state specified - skipping (line:" << line_count << ")\n";
+        continue;
+      }
 			if (local_charges.empty())
 			{
-        LOG_WARN << "Warning: No charge state specified - skipping\n";
+        LOG_WARN << "Warning: No charge state specified - skipping (line:" << line_count << ")\n";
 				continue;
       }
 			writeLine_(seq, local_charges);
