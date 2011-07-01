@@ -486,7 +486,10 @@ namespace OpenMS
 							prot_ids[i].computeCoverage(pep_ids);
 						}
           }
-          catch (...) {}
+          catch (Exception::MissingInformation& e)
+          {
+            LOG_WARN << "Non-critical exception: " << e.what() << "\n";
+          }
           feature_map.setProteinIdentifications(prot_ids);
 
           // text output
@@ -605,7 +608,10 @@ namespace OpenMS
           { // might throw Exception::MissingInformation()
             for (Size i=0;i<prot_ids.size();++i) prot_ids[i].computeCoverage(pep_ids);
           }
-          catch (...){}
+          catch (Exception::MissingInformation& e)
+          {
+            LOG_WARN << "Non-critical exception: " << e.what() << "\n";
+          }
           consensus_map.setProteinIdentifications(prot_ids);
 
 
@@ -1012,7 +1018,10 @@ namespace OpenMS
 							prot_ids[i].computeCoverage(pep_ids);
 						}
           }
-          catch (...) {}
+          catch (Exception::MissingInformation& e)
+          {
+            LOG_WARN << "Non-critical exception: " << e.what() << "\n";
+          }
 
           ofstream txt_out(out.c_str());
 					SVOutStream output(txt_out, sep, replacement, quoting_method);
