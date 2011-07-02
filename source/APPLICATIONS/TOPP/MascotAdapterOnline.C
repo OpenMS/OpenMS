@@ -77,6 +77,10 @@ using namespace std;
 	support. This minimal version of Mascot support by this wrapper
 	is version 2.2.x. Mascot 2.3 works as well, but has not been tested extensively.
 
+  @note Be aware that Mascot returns incomplete/incorrect protein assignments for most identified peptides (why ever that is). 
+        Thus we do not forward any protein assignments, only peptide sequences. You should run PeptideIndexer after this tool to get correct assignments.
+        You can use the flag 'keep_protein_links' to override this behavior.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MascotAdapterOnline.cli
 
@@ -86,7 +90,7 @@ using namespace std;
 
 */
 
-// We do not want this class to show up in the docu:
+// We do not want this class to show up in the doc:
 /// @cond TOPPCLASSES
 
 
@@ -110,6 +114,8 @@ class TOPPMascotAdapterOnline
 
 			registerSubsection_("Mascot_server", "Mascot server details");
 			registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
+      registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there"
+                                          " are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
 		}
 
     Param getSubsectionDefaults_(const String& section) const
@@ -190,8 +196,7 @@ class TOPPMascotAdapterOnline
 			}
 
 			// write Mascot response to file
-			String unique_name = File::getUniqueName(); // body for the tmp files
-			String mascot_tmp_file_name(File::getTempDirectory() + "/" + unique_name + "_Mascot_response");
+			String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
 			QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
 			mascot_tmp_file.open(QIODevice::WriteOnly);
 			mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
@@ -205,6 +210,7 @@ class TOPPMascotAdapterOnline
 
 			// read the response
 			MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids);
+      writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
 
 			// for debugging errors relating to unexpected response files
 			if (this->debug_level_ >= 100)
@@ -217,11 +223,26 @@ class TOPPMascotAdapterOnline
 				mascot_tmp_file.remove();
 			}
 
+      // keep or delete protein identifications?!
 			vector<ProteinIdentification> prot_ids;
-			prot_ids.push_back(prot_id);
-
-			writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications", 5);
-
+      if (!getFlag_("keep_protein_links"))
+      {
+        // remove protein links from peptides
+        std::vector<String> empty;
+        for (Size i=0; i<pep_ids.size(); ++i)
+        {
+          std::vector< PeptideHit > hits = pep_ids[i].getHits();
+          for (Size h=0; h<hits.size(); ++h)
+          {
+            hits[h].setProteinAccessions(empty);
+          }
+          pep_ids[i].setHits(hits);
+        }
+        // remove proteins
+        std::vector< ProteinHit > p_hit;
+        prot_id.setHits(p_hit);
+      }
+      prot_ids.push_back(prot_id);
 
       //-------------------------------------------------------------
       // writing output

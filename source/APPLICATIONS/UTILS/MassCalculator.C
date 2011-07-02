@@ -209,8 +209,7 @@ protected:
 			}
       if (conversion_failed_count)
       {
-        LOG_WARN << "Warning: Invalid charge state specified - skipping (line:" << line_count << ")\n";
-        continue;
+        LOG_WARN << "Warning: Invalid charge state specified in line:" << line_count << ".\n";
       }
 			if (local_charges.empty())
 			{
