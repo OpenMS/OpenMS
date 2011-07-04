@@ -73,22 +73,24 @@ using namespace std;
   does not run on your system (to test this, run @em omssacl in your OMMSA/bin/ directory and see if it crashes). If you encounter
   an error message, try another OMSSA version
 
-	Sequence databases in fasta format must be converted into the NCBI format before OMSSA can read them. Therefore, use the program formatdb
+	Sequence databases in FASTA format must be converted into the NCBI format before OMSSA can read them. Therefore, use the program formatdb
 	of the NCBI-tools suite (see ftp://ftp.ncbi.nlm.nih.gov/blast/executables/release/2.2.13/ for a working version).
   The latest NCBI BLAST distribution does not contain the formatdb executable any longer!).
   Use @em formatdb @em -i @em SwissProt_TargetAndDecoy.fasta @em -o to create
   additional files, which	will be used by @em OMSSA. The database option of the @em OMSSAAdapter should contain the name of the psq file
   , e.g., 'SwissProt_TargetAndDecoy.fasta.psq'. The '.psq' suffix can also be omitted, e.g. 'SwissProt_TargetAndDecoy.fasta' and will be added
   automatically.
-  This makes it easy to specifiy a common TOPPAS input node (using only the FASTA suffix) for many adapters.
+  This makes it easy to specify a common TOPPAS input node (using only the FASTA suffix) for many adapters.
   
   This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
   the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
 	The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
-	proteases can be found be executing @em omssacl @em -el.
+	proteases can be found by executing @em omssacl @em -el.
 
 	This wrapper has been tested successfully with OMSSA, version 2.x.
+
+  @hint OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_OMSSAAdapter.cli
