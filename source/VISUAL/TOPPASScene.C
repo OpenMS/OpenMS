@@ -50,7 +50,7 @@ namespace OpenMS
 {
 
   
-  void FakeProcess::start ( const QString & program, const QStringList & /*arguments*/, OpenMode /*mode = ReadWrite*/ )
+  void FakeProcess::start ( const QString & /*program*/, const QStringList & /*arguments*/, OpenMode /*mode = ReadWrite*/ )
   {
     // don't do anything...
     //std::cout << "fake process " << program.toStdString() << " called.\n";
@@ -75,7 +75,7 @@ namespace OpenMS
       dry_run_(true),
       threads_active_(0)
 	{
-    std::cerr << "using TOPPAS tmp_dir: " << tmp_path_ << "\n";
+    std::cerr << "using TOPPAS tmp_dir: " << String(tmp_path_) << "\n";
 		/*	ATTENTION!
 			 
 				The following line is important! Without it, we get
@@ -1012,7 +1012,7 @@ namespace OpenMS
 		emit entirePipelineFinished();
 	}
 	
-	void TOPPASScene::pipelineErrorSlot(const QString msg)
+	void TOPPASScene::pipelineErrorSlot(const QString /*msg*/)
 	{
 		running_ = false;
     error_occured_ = true;
