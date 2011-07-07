@@ -57,7 +57,7 @@ namespace OpenMS
     emit finished ( 0, QProcess::NormalExit);
   }
 
-	TOPPASScene::TOPPASScene(QObject* parent, const String& tmp_path, bool gui)
+	TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui)
 		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
 			vertices_(),
@@ -75,6 +75,7 @@ namespace OpenMS
       dry_run_(true),
       threads_active_(0)
 	{
+    std::cerr << "using TOPPAS tmp_dir: " << tmp_path_ << "\n";
 		/*	ATTENTION!
 			 
 				The following line is important! Without it, we get
@@ -276,7 +277,7 @@ namespace OpenMS
 
 	void TOPPASScene::copySelected()
 	{
-		TOPPASScene* tmp_scene = new TOPPASScene(0, File::getTempDirectory().toQString()+QDir::separator(), false);
+		TOPPASScene* tmp_scene = new TOPPASScene(0, this->getTempDir(), false);
 		Map<TOPPASVertex*,TOPPASVertex*> vertex_map;
 
 		foreach (TOPPASVertex* v, vertices_)
@@ -544,6 +545,7 @@ namespace OpenMS
 		//check if pipeline OK
 		if (!sanityCheck())
 		{
+      if (!gui_) emit pipelineExecutionFailed(); // the user cannot interact. End processing.
 			return;
 		}
 		
@@ -727,7 +729,7 @@ namespace OpenMS
 					String tool_name = vertices_param.getValue(current_id + ":tool_name");
 					String tool_type = vertices_param.getValue(current_id + ":tool_type");
 					Param param_param = vertices_param.copy(current_id + ":parameters:", true);
-					TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
+					TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type);
 					tv->setParam(param_param);
 					
 					connectToolVertexSignals(tv);
@@ -1206,13 +1208,18 @@ namespace OpenMS
 		
 		update(sceneRect());
 	}
-	
+
 	const QString& TOPPASScene::getOutDir()
 	{
 		return out_dir_;
 	}
 	
-	void TOPPASScene::setOutDir(const QString& dir)
+  const QString& TOPPASScene::getTempDir()
+  {
+    return tmp_path_;
+  }
+
+  void TOPPASScene::setOutDir(const QString& dir)
 	{
 		out_dir_ = dir;
 		user_specified_out_dir_ = true;

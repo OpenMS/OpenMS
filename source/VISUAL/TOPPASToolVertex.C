@@ -67,11 +67,10 @@ namespace OpenMS
 		connect (this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
 	}
 	
-	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type, const String& tmp_path)
+	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type)
 		: TOPPASVertex(),
 			name_(name),
 			type_(type),
-			tmp_path_(tmp_path),
 			param_(),
 			progress_color_(Qt::gray)
 	{
@@ -88,7 +87,6 @@ namespace OpenMS
 		:	TOPPASVertex(rhs),
 			name_(rhs.name_),
 			type_(rhs.type_),
-			tmp_path_(rhs.tmp_path_),
 			param_(rhs.param_),
 			progress_color_(rhs.progress_color_)
 	{
@@ -112,7 +110,6 @@ namespace OpenMS
 		param_ = rhs.param_;
 		name_ = rhs.name_;
 		type_ = rhs.type_;
-		tmp_path_ = rhs.tmp_path_;
 		finished_ = rhs.finished_;
 		progress_color_ = rhs.progress_color_;
 		
@@ -122,6 +119,7 @@ namespace OpenMS
 	bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
 	{
 		Param tmp_param;
+    // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
 		QString ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
 		if (type_ != "")
 		{
@@ -172,7 +170,6 @@ namespace OpenMS
 			QFile q_ini(ini_file);
 			QFile q_old_ini(old_ini_file);
 			changed = q_ini.size() != q_old_ini.size();
-			QFile::remove(old_ini_file);
 		}
 		QFile::remove(ini_file);
 		
@@ -409,7 +406,7 @@ namespace OpenMS
     }
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 
-    QString ini_file = File::getTempDirectory().toQString()
+    QString ini_file = ts->getTempDir()
 						           + QDir::separator()
 						           + getOutputDir().toQString()
 						           + QDir::separator()
@@ -749,6 +746,7 @@ namespace OpenMS
 		output_files_.clear();
     output_files_.resize(pkg.size()); // #rounds
 		
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		for (int i = 0; i < out_params.size(); ++i)
 		{
 			// search for an out edge for this parameter (not required to exist)
@@ -775,7 +773,7 @@ namespace OpenMS
         output_files_[r][param_index] = vrp; // index by index of source-out param
       }
 
-			QString f = File::getTempDirectory().toQString()
+			QString f = ts->getTempDir()
 							    + QDir::separator()
 							    + getOutputDir().toQString()
 							    + QDir::separator()
@@ -885,7 +883,8 @@ namespace OpenMS
 	  
 	String TOPPASToolVertex::getFullOutputDirectory() const
   {
-    return QDir::toNativeSeparators( (File::getTempDirectory() + String(QDir::separator()) + getOutputDir()).toQString() );
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    return QDir::toNativeSeparators( ts->getTempDir() + QDir::separator() + getOutputDir().toQString() );
   }
 	
 	String TOPPASToolVertex::getOutputDir() const
@@ -972,16 +971,18 @@ namespace OpenMS
 
 	bool TOPPASToolVertex::refreshParameters()
 	{
-		QString old_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		QString old_ini_file = ts->getTempDir() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
 		if (type_ != "")
 		{
 			old_ini_file += type_.toQString() + "_";
 		}
 		old_ini_file += File::getUniqueName().toQString() + "_tmp_OLD.ini";
-		writeParam_(param_,old_ini_file);
+		writeParam_(param_, old_ini_file);
 		
 		bool changed = initParam_(old_ini_file);
-		
+		QFile::remove(old_ini_file);
+
 		return changed;
 	}
 	

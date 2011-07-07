@@ -2763,7 +2763,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         tool_type = "";
       }
 
-      tv = new TOPPASToolVertex(tool_name, tool_type, toppas_tmp_path_);
+      tv = new TOPPASToolVertex(tool_name, tool_type);
       TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
       connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
       connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
@@ -4072,7 +4072,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     updateFilterBar();
     updateMenu();
 
-    // temporarly remove and readd filename from watcher_ as a workaround for bug #233
+    // temporarily remove and read filename from watcher_ as a workaround for bug #233
     watcher_->removeFile(filename);
     watcher_->addFile(filename);
   }

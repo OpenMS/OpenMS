@@ -65,6 +65,9 @@ namespace OpenMS
 		be indicated via the constructor. In this case, the signals for log message output are connected
 		to standard out. This is utilized for the ExecutePipeline tool.
 	
+    Temporary files of the pipeline are stored in the member tmp_path_. Update it when loading a pipeline which has
+    tmp data from an old run. TOPPASToolVertex will ask its parent scene() whenever it wants to know the tmp directory.
+
 		@ingroup TOPPAS_elements
 	*/
 	class OPENMS_GUI_DLLAPI TOPPASScene
@@ -114,7 +117,7 @@ namespace OpenMS
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
 			/// Constructor
-			TOPPASScene(QObject* parent, const String& tmp_path = "", bool gui = true);
+			TOPPASScene(QObject* parent, const QString& tmp_path, bool gui = true);
 			
 			/// Destructor
 			virtual ~TOPPASScene();
@@ -163,6 +166,8 @@ namespace OpenMS
 			void topoSort();
 			/// Returns the name of the directory for output files
 			const QString& getOutDir();
+      /// Returns the name of the directory for temporary files
+      const QString& getTempDir();
 			/// Sets the name of the directory for output files
 			void setOutDir(const QString& dir);
 			/// Saves the pipeline if it has been changed since the last save.
@@ -284,7 +289,7 @@ namespace OpenMS
 			/// The file name of this pipeline
 			String file_name_;
 			/// The path for temporary files
-			String tmp_path_;
+			QString tmp_path_;
 			/// Are we in a GUI or is the scene used by ExecutePipeline (at the command line)?
 			bool gui_;
 			/// The directory where the output files will be written

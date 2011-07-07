@@ -106,7 +106,10 @@ class TOPPExecutePipeline
 		QString resource_file = getStringOption_("resource_file").toQString();
 
 		QApplication a(argc, const_cast<char**>(argv), false);
-		TOPPASScene ts(0, QDir::tempPath()+QDir::separator(), false);
+    //set & create temporary path
+    QString tmp_path =  File::getTempDirectory().toQString() + QDir::separator() + File::getUniqueName().toQString();
+    QDir qd;qd.mkpath(tmp_path);
+		TOPPASScene ts(0, tmp_path, false);
 		if (!a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
 		if (!a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR; // for some reason this slot does not get called, plus it would return "success", which we do not want
     if (!a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &ts, SLOT(quitWithError()))) return UNKNOWN_ERROR;  // ... thus we use this

@@ -112,7 +112,7 @@ namespace OpenMS
 			/// Default constructor
 			TOPPASToolVertex();
 			/// Constructor
-			TOPPASToolVertex(const String& name, const String& type = "", const String& tmp_path = "");
+			TOPPASToolVertex(const String& name, const String& type = "");
 			/// Copy constructor
 			TOPPASToolVertex(const TOPPASToolVertex& rhs);
 			/// Destructor

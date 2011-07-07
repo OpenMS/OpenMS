@@ -108,7 +108,7 @@ namespace OpenMS
     tab_bar_->addTab("dummy",1336);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
     tab_bar_->removeId(1336);
-    //connect slots and sigals for selecting spectra
+    //connect slots and signals for selecting spectra
     connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
     connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
 
@@ -208,8 +208,9 @@ namespace OpenMS
 		//set current path
 		current_path_ = param_.getValue("preferences:default_path");
 		
-		//set temporary path
-		tmp_path_ =  File::getTempDirectory().toQString() + QDir::separator() + File::getUniqueName().toQString() + QDir::separator();
+		//set & create temporary path
+		tmp_path_ =  File::getTempDirectory() + String(QDir::separator()) + File::getUniqueName();
+    QDir qd;qd.mkpath(tmp_path_.toQString());
 		
   	//update the menu
   	updateMenu();
@@ -360,7 +361,7 @@ namespace OpenMS
 				{
 					return;
 				}
-				TOPPASScene* tmp_scene = new TOPPASScene(0, this->tmp_path_, false);
+				TOPPASScene* tmp_scene = new TOPPASScene(0, this->tmp_path_.toQString(), false);
 				tmp_scene->load(file_name);
 				scene = activeWindow_()->getScene();
 				scene->include(tmp_scene);
@@ -999,7 +1000,7 @@ namespace OpenMS
 				tool_type = "";
 			}
 			
-			tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
+			tv = new TOPPASToolVertex(tool_name, tool_type);
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
 			connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
 			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
