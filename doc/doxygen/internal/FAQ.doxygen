@@ -526,6 +526,7 @@ svn propset svn:eol-style native MyClass.C
 					<LI> Copy the HTML documentation and PDF tutorials of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/.
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
 					<LI> Update the website (news, changelog, XML schema files)
+					<LI> Update the redirection rule for @a http://www.openms.de/current_doxygen to point to the current documentation
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 

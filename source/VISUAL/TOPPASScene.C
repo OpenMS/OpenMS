@@ -53,7 +53,7 @@ namespace OpenMS
   void FakeProcess::start ( const QString & program, const QStringList & /*arguments*/, OpenMode /*mode = ReadWrite*/ )
   {
     // don't do anything...
-    std::cout << "fake process " << program.toStdString() << " called.\n";
+    //std::cout << "fake process " << program.toStdString() << " called.\n";
     emit finished ( 0, QProcess::NormalExit);
   }
 
