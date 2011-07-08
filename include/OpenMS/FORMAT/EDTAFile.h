@@ -50,7 +50,7 @@ namespace OpenMS
 
     - Columns are: RT, MZ, Intensity. Header is optional.
 
-    - Columns are: RT, MZ, Intensity, Charge, Meta. Header is optional.
+    - Columns are: RT, MZ, Intensity, Charge, Meta. Header is mandatory.
 
       @code
       RT m/z Intensity charge mymeta
@@ -58,7 +58,7 @@ namespace OpenMS
       321 406.207 4343344  2 blubb
       @endcode
 
-    - Columns are: (RT, MZ, Intensity, Charge){1,}, Meta. Header is mandantory.
+    - Columns are: (RT, MZ, Intensity, Charge){1,}, Meta. Header is mandatory.
       First quadruplet is the consensus. All following quadruplets describes the features.
 
       @code
@@ -152,13 +152,16 @@ namespace OpenMS
         DoubleReal it = 0.0;
         Int ch = 0;
 
+        if (headers.size() <= 2)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+        }
+        else if (headers.size() == 3) input_type = TYPE_OLD_NOCHARGE;
+        else if (headers.size() == 4) input_type = TYPE_OLD_CHARGE;
+
 				// see if we have a header
 				try
 				{
-          if (headers.size()>3) throw Exception::BaseException(); // there is meta-data, so these must be their names
-          else if (headers.size() == 4) input_type = TYPE_OLD_CHARGE;
-          else if (headers.size() == 3) input_type = TYPE_OLD_NOCHARGE;
-          else if (headers.size()<3) throw Exception::BaseException(); // not enough data columns in first line...
           // try to convert... if not: thats a header
           rt = headers[0].toDouble();
 					mz = headers[1].toDouble();
@@ -168,15 +171,24 @@ namespace OpenMS
 				{
 					offset=1;
 					LOG_INFO << "Detected a header line.\n";
-
-          if (input_type == TYPE_UNDEFINED)
-          {
-            input_type = TYPE_CONSENSUS;
-            // Every consensus style line includes features with four columns.
-            // The remainder is meta data
-            input_features = headers.size() / 4;
-          }
 				}
+        
+        if (headers.size() >= 5)
+        {
+          if (headers[4].trim() == "RT1") input_type = TYPE_CONSENSUS;
+          if (headers[4].trim() != "RT1") input_type = TYPE_OLD_CHARGE;
+        }
+        if (input_type == TYPE_CONSENSUS)
+        {
+          // Every consensus style line includes features with four columns.
+          // The remainder is meta data
+          input_features = headers.size() / 4;
+        }
+
+        if (offset==0 && (input_type==TYPE_OLD_CHARGE || input_type==TYPE_CONSENSUS))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+        }
 
         ConsensusMap::FileDescription desc;
         desc.filename = filename;
