@@ -179,6 +179,9 @@ namespace OpenMS
       /// get state of refine setting
       bool isRefining() const;
 
+	  /// set state of semi cleavage
+      void setSemiCleavage(const bool semi_cleavage);
+
       /// set state of refine setting
       void setRefine(const bool refine);
 
@@ -247,8 +250,11 @@ namespace OpenMS
 
 			String cleavage_site_;
 
-			// refinement
+			// Sment
 			bool refine_;
+
+			//semi cleavae
+			bool semi_cleavage_;
 
 			double refine_max_valid_evalue_;
 

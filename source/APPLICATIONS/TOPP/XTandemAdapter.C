@@ -148,7 +148,8 @@ class TOPPXTandemAdapter
 			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
 			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
-			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins");
+			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins. For most applications it is recommended to set this flag.");
+			registerFlag_("no_semi_cleavage", "If set, all both termini must follow the cutting rule. For most applications it is recommended to set this flag.");
 		}
 
 		ExitCodes main_(int , const char**)
@@ -298,7 +299,8 @@ class TOPPXTandemAdapter
 			infile.setTaxon("OpenMS_dummy_taxonomy");
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
 			infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
-      infile.setRefine(!getFlag_("no_refinement"));
+			infile.setRefine(!getFlag_("no_refinement"));
+			infile.setSemiCleavage(!getFlag_("no_semi_cleavage"));
 
 			infile.write(input_filename);
 

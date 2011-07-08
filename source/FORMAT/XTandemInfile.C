@@ -57,6 +57,7 @@ namespace OpenMS
 			output_filename_(""),
       cleavage_site_("[RK]|{P}"),
 			refine_(true),
+			semi_cleavage_(true),
       refine_max_valid_evalue_(1000),
       number_of_missed_cleavages_(1),
 			default_parameters_file_(""),
@@ -331,34 +332,40 @@ namespace OpenMS
     //scoring, maximum missed cleavage site parameter (see below) to something like 50.
     //</note>
 		writeNote_(os, "input", "protein, cleavage site", cleavage_site_);
+		*/
+				//////////////// semi cleavage parameter
+  	//<note type="input" label="protein, cleavage semi">yes</note>
+		writeNote_(os, "input", "protein, cleavage semi", semi_cleavage_);
+    used_labels.insert("protein, cleavage semi");
 
 
   	//<note type="input" label="protein, modified residue mass file"></note>
-  	writeNote_(os, "input", "protein, modified residue mass file", modified_residue_mass_file_);
+  	//writeNote_(os, "input", "protein, modified residue mass file", modified_residue_mass_file_);
 
 		//<note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
-  	writeNote_(os, "input", "protein, cleavage C-terminal mass change", String(cleavage_c_term_mass_change_));
+  	//writeNote_(os, "input", "protein, cleavage C-terminal mass change", String(cleavage_c_term_mass_change_));
 
 		//<note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
-  	writeNote_(os, "input", "protein, cleavage N-terminal mass change", String(cleavage_n_term_mass_change_));
+  	//writeNote_(os, "input", "protein, cleavage N-terminal mass change", String(cleavage_n_term_mass_change_));
 
 		//<note type="input" label="protein, N-terminal residue modification mass">0.0</note>
-  	writeNote_(os, "input", "protein, N-terminal residue modification mass", String(protein_n_term_mod_mass_));
+  	//writeNote_(os, "input", "protein, N-terminal residue modification mass", String(protein_n_term_mod_mass_));
 
 		//<note type="input" label="protein, C-terminal residue modification mass">0.0</note>
-  	writeNote_(os, "input", "protein, C-terminal residue modification mass", String(protein_c_term_mod_mass_));
+  	//writeNote_(os, "input", "protein, C-terminal residue modification mass", String(protein_c_term_mod_mass_));
 
 		//<note type="input" label="protein, homolog management">no</note>
     //<note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
-		writeNote_(os, "input", "protein, homolog management", protein_homolog_management_);
+		//writeNote_(os, "input", "protein, homolog management", protein_homolog_management_);
 		////////////////////////////////////////////////////////////////////////////////
 
-*/
+
 
 		//////////////// model refinement parameters
   	//<note type="input" label="refine">yes</note>
 		writeNote_(os, "input", "refine", refine_);
     used_labels.insert("refine");
+
 
 /*
   	//<note type="input" label="refine, modification mass"></note>
@@ -694,5 +701,9 @@ namespace OpenMS
   void XTandemInfile::setRefine(const bool refine)
   {
     refine_ = refine;
+  }
+  void XTandemInfile::setSemiCleavage(const bool semi_cleavage)
+  {
+    semi_cleavage_ = semi_cleavage;
   }
 } // namespace OpenMS

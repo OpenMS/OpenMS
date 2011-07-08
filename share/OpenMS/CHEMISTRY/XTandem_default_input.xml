@@ -73,6 +73,7 @@
 		To denote cleavage at any residue, use [X]|[X] and reset the 
 		scoring, maximum missed cleavage site parameter (see below) to something like 50.
 		</note>
+  <note type="input" label="protein, cleavage semi">yes</note>
 	<note type="input" label="protein, modified residue mass file"></note>
 	<note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
 	<note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
