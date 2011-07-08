@@ -1,0 +1,223 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
+#include <OpenMS/config.h>
+
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/FORMAT/EDTAFile.h>
+
+#include <functional>
+#include <numeric>
+
+using namespace OpenMS;
+using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+	@page TOPP_EICExtractor EICExtractor
+
+	@brief Extracts EICs from an MS experiment, in order to quantify analytes at a given position
+
+<CENTER>
+	<table>
+		<tr>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ EICExtractor \f$ \longrightarrow \f$</td>
+			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter</td>
+		</tr>
+		<tr>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> -none- </td>
+		</tr>
+	</table>
+</CENTER>
+
+  Use this instead of FF if you have bad features (much noise etc) which are not recognized or
+  if you want to quantify non-peptides.	
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_EICExtractor.cli
+
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+
+class TOPPEICExtractor
+      : public TOPPBase
+{
+  public:
+    TOPPEICExtractor()
+        : TOPPBase("EICExtractor","Extracts intensities from dedicates positions in a LC/MS map")
+    {
+    }
+
+    void registerOptionsAndFlags_()
+    {
+	  	registerInputFile_("in","<file>","","input raw data file");
+			setValidFormats_("in",StringList::create("mzML"));
+      registerInputFile_("pos","<file>","","input config file stating where to find signal");
+      setValidFormats_("pos",StringList::create("edta"));
+      registerDoubleOption_("rt_tol", "", 10, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
+      registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
+      registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
+			registerOutputFile_("out","<file>","","output quantitation file (summed intensities by master compounds)");
+      registerOutputFile_("out_detail","<file>","","output quantitation file");
+    }
+
+    ExitCodes main_(int , const char**)
+    {
+      //-------------------------------------------------------------
+      // parameter handling
+      //-------------------------------------------------------------
+      String in = getStringOption_("in");
+      String edta = getStringOption_("pos");
+      String out = getStringOption_("out");
+      String out_detail = getStringOption_("out_detail");
+      
+      DoubleReal rttol = getDoubleOption_("rt_tol");
+      DoubleReal mztol = getDoubleOption_("mz_tol");
+      Size rt_collect = getIntOption_("rt_collect");
+
+      //-------------------------------------------------------------
+      // loading input
+      //-------------------------------------------------------------
+      MzMLFile mz_data_file;
+      mz_data_file.setLogType(log_type_);
+      MSExperiment<Peak1D> exp;
+      mz_data_file.load(in,exp);
+
+			if (exp.size()==0)
+			{
+				LOG_WARN << "The given file does not contain any conventional peak data, but might"
+					          " contain chromatograms. This tool currently cannot handle them, sorry.";
+				return INCOMPATIBLE_INPUT_DATA;
+			}
+
+      EDTAFile ed;
+      ConsensusMap cm;
+      ed.load(edta, cm);
+
+      Map<Size, DoubleReal> quant;
+      
+      TextFile tf_single;
+      tf_single.push_back("dRT\tppm\tint\trank");
+      // search for each EIC and add up
+      Int not_found(0);
+      for (Size i=0; i<cm.size();++i)
+      {
+        DoubleReal q=0; // result of quantitation to store
+
+        //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
+
+        DoubleReal mz_da = mztol*cm[i].getMZ()/10e6; // mz tolerance in Dalton
+        MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT()-rttol/2,
+                                                                   cm[i].getRT()+rttol/2,
+                                                                   cm[i].getMZ()-mz_da, 
+                                                                   cm[i].getMZ()+mz_da);
+        Peak2D max_peak;
+        max_peak.setIntensity(0);
+        max_peak.setRT(cm[i].getRT());
+        max_peak.setMZ(cm[i].getMZ());
+        for (; it != exp.areaEndConst(); ++it)
+        {
+          if (max_peak.getIntensity() < it->getIntensity())
+          {
+            max_peak.setIntensity(it->getIntensity());
+            max_peak.setRT(it.getRT());
+            max_peak.setMZ(it->getMZ());
+          }
+        }
+        DoubleReal ppm = 0;
+        if (max_peak.getIntensity() == 0)
+        {
+          ++not_found;
+        }
+        else
+        {
+          // take median for m/z found 
+          std::vector<DoubleReal> mz;
+          MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
+          SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
+          SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()), rt_collect);
+          MSExperiment<>::AreaIterator itt = exp.areaBegin( (itm - low)->getRT()-0.01, (itm + high)->getRT()+0.01, cm[i].getMZ()-mz_da, cm[i].getMZ()+mz_da);
+          for (; itt != exp.areaEnd(); ++itt)
+          {
+            mz.push_back(itt->getMZ());
+          }
+          
+          if ((SignedSize)mz.size() > (low+high+1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low+high+1 << "]\n";
+          
+          if (mz.size() > 0)
+          {
+            DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
+            ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 10e6;
+          }
+        }
+        //std::cout << "RT diff: " << (max_peak.getRT() - cm[i].getRT()) << " mz diff: " << (max_peak.getMZ() - cm[i].getMZ()) << "\n";
+        q = max_peak.getIntensity();
+
+        Size id = String(cm[i].getMetaValue("rank")).toInt();
+        quant[id] += q;
+        
+        tf_single.push_back(String(max_peak.getRT() - cm[i].getRT()) + "\t" + ppm  + "\t" + q + "\t" + id);
+      }
+
+      LOG_INFO << "No peaks for " << not_found << " compounds\n";
+
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+      TextFile tf;
+      tf.push_back("summed_master_compound_intensity");
+			for (Map<Size, DoubleReal>::const_iterator it=quant.begin(); it!=quant.end(); ++it)
+			{
+        tf.push_back(/*String(it->first) + "\t" +*/ String(it->second));
+			}
+      tf.store(out);
+      tf_single.store(out_detail);
+
+      return EXECUTION_OK;
+    }
+};
+
+
+int main( int argc, const char** argv )
+{
+  TOPPEICExtractor tool;
+  return tool.main(argc,argv);
+}
+
+/// @endcond

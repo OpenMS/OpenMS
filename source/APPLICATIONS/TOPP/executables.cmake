@@ -12,6 +12,7 @@ DBExporter
 DBImporter
 DTAExtractor
 Decharger
+EICExtractor
 ExecutePipeline
 FalseDiscoveryRate
 FeatureFinder

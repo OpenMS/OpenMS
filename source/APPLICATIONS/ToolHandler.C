@@ -57,6 +57,7 @@ namespace OpenMS
 		tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
 		tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
 		tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", "Misc");
+    tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
 		tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "Protein/peptide Processing");
 		tools_map["FeatureFinder"] = Internal::ToolDescription("FeatureFinder", "Quantitation", Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts());
 		tools_map["FeatureLinker"] = Internal::ToolDescription("FeatureLinker", "Map Alignment", Factory<FeatureGroupingAlgorithm>::registeredProducts());
