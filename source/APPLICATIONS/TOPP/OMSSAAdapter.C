@@ -311,7 +311,7 @@ class TOPPOMSSAAdapter
 			//Results
 			//-hl <Integer> maximum number of hits retained for one spectrum
 			//-he <Double> the maximum e-value allowed in the hit list
-			registerIntOption_("hl", "<Integer>", 30, "maximum number of hits retained for one spectrum", false);
+			registerIntOption_("hl", "<Integer>", 30, "maximum number of hits retained for one spectrum. Note: even when set to 1 OMSSA may report multiple hits with different charge states", false);
 			registerDoubleOption_("he", "<Real>", 1, "the maximum e-value allowed in the hit list", false);
 
 			//Post translational modifications
