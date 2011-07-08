@@ -205,10 +205,11 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-      mz_data_file.store(out,exp);
+      
+      //annotate output with data processing info
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
-			//annotate output with data processing info
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
+      mz_data_file.store(out,exp);
 
       return EXECUTION_OK;
     }
