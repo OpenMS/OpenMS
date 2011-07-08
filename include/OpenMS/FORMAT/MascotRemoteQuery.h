@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
-// $Authors: Andreas Bertsch, Daniel Jameson$
+// $Maintainer: Chris Bielow$
+// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTREMOTEQUERY_H
@@ -33,6 +33,7 @@
 #include <QtCore/QString>
 #include <QtCore/QFile>
 #include <QtNetwork/QHttpRequestHeader>
+#include <QTimer>
 
 
 namespace OpenMS
@@ -84,8 +85,12 @@ namespace OpenMS
 		public slots:
 
 			OPENMS_DLLAPI void run();
-		
+
 		private slots:
+
+      OPENMS_DLLAPI void timedOut();
+      
+      OPENMS_DLLAPI void readyReadSlot ( const QHttpResponseHeader & resp );
 
 			/** slot connected to signal requestFinished of QHttp: "This signal is emitted 
 				  when processing the request identified by id has finished. error is true 
@@ -120,7 +125,7 @@ namespace OpenMS
 
 			OPENMS_DLLAPI void getResults();
 		
-		
+
 		signals:
 		
 			OPENMS_DLLAPI void done();
@@ -135,13 +140,16 @@ namespace OpenMS
 			/// copy constructor
       OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs);
 
+      OPENMS_DLLAPI void endRun();
+
 			String query_spectra_;
 			QByteArray mascot_xml_;
 			QHttp* http_;
 			QString results_path_;
 			QString cookie_;
 			String error_message_;
-
+      QTimer timeout_;
+      Int to_;
 };
 
 }
