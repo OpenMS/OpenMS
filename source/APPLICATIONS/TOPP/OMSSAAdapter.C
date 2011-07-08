@@ -710,6 +710,7 @@ class TOPPOMSSAAdapter
 			if (status != 0)
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
+        writeLog_("Note: This message can also be triggered if you run out of space in your tmp directory");
 			  if (getIntOption_("debug") <= 1)
 			  {
 					QFile(unique_input_name.toQString()).remove();
