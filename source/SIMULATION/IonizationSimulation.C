@@ -238,6 +238,7 @@ namespace OpenMS {
       #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
 			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
+        std::cerr << "threads:" << omp_get_num_threads() << "\n";
         // no barrier here .. only an atomic update of progress value
         #pragma omp atomic
         ++progress;
@@ -269,7 +270,9 @@ namespace OpenMS {
           for(Int j = 0; j < abundance ; ++j)
 				  {
             prec_rndbin[j] = gsl_ran_binomial(rnd_gen_->technical_rng,esi_probability_,basic_residues_c);
+            std::cerr << " " << prec_rndbin[j];
           }
+          std::cerr << "\n\n";
         }
 
         std::vector<Size> prec_rnduni(50); // uniform numbers container
@@ -304,8 +307,10 @@ namespace OpenMS {
                 for (Size i_rnd=0;i_rnd<prec_rnduni.size();++i_rnd)
                 {
                   prec_rnduni[i_rnd] = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
+                  std::cerr << " " << prec_rnduni[i_rnd];
                 }
                 prec_rnduni_remaining = prec_rnduni.size();
+                std::cerr << "\n\n";
               }
             }
             adduct_index = prec_rnduni[--prec_rnduni_remaining];
