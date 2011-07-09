@@ -20,7 +20,7 @@
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
 		</sample>
 	</sampleList>
-	<softwareList count="4">
+	<softwareList count="5">
 		<software id="so_in_0" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
@@ -32,6 +32,9 @@
 		</software>
 		<software id="so_dp_sp_0_pm_1" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
+		</software>
+		<software id="so_dp_sp_0_pm_2" version="version_string" >
+			<cvParam cvRef="MS" accession="MS:1000762" name="NoiseFilter" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -64,6 +67,11 @@
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
+				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
