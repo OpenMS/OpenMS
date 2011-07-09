@@ -283,6 +283,8 @@ namespace OpenMS {
         Size adduct_index;
         UInt charge;
 
+        std::cerr << "Abundance: " << abundance << "\n";
+
 				// sample different charge states (dice for each peptide molecule separately)
 				for(Int j = 0; j < abundance ; ++j)
 				{
@@ -334,10 +336,13 @@ namespace OpenMS {
 				std::set< std::pair<UInt, Compomer > > charge_states_sorted;
 				for (Map<Compomer, UInt>::const_iterator it_m=charge_states.begin(); it_m!=charge_states.end();++it_m)
 				{ // create set of pair(value, key)
-					charge_states_sorted.insert( std::make_pair(it_m->second,it_m->first) );
+					charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(it_m->second,it_m->first) );
+          std::cerr << "insert: " << it_m->second << ", " << it_m->first << "\n";
 					// update maximal observed charge
 					max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
 				}
+
+        std::cerr << "max: " << max_observed_charge << "\n";
 
 				Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");
 				std::vector<Int> allowed_entities_of_charge(max_observed_charge+1, max_compomer_types);
@@ -526,7 +531,7 @@ namespace OpenMS {
 
     #pragma omp critical (OPENMS_setfeatureprop)
     {
-      // ensure uniquenes
+      // ensure uniqueness
       f.setUniqueId();
 		  // add meta information on compomer (mass)
 		  f.setMetaValue("charge_adduct_mass", adduct_mass );
