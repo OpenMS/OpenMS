@@ -133,7 +133,7 @@ namespace OpenMS
         
     if (headers.size() >= 5)
     {
-      if (headers[4].trim().toUpper() == "RT1") input_type = TYPE_CONSENSUS;
+      if (String(headers[4].trim()).toUpper() == "RT1") input_type = TYPE_CONSENSUS;
       else input_type = TYPE_OLD_CHARGE;
     }
     if (input_type == TYPE_CONSENSUS)
