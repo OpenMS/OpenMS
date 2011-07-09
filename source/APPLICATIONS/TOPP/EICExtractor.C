@@ -86,7 +86,7 @@ class TOPPEICExtractor
 
     void registerOptionsAndFlags_()
     {
-	  	registerInputFile_("in","<file>","","input raw data file");
+	  	registerInputFileList_("in","<file>",StringList::create(""),"input raw data file");
 			setValidFormats_("in",StringList::create("mzML"));
       registerInputFile_("pos","<file>","","input config file stating where to find signal");
       setValidFormats_("pos",StringList::create("edta"));
@@ -102,7 +102,7 @@ class TOPPEICExtractor
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
-      String in = getStringOption_("in");
+      StringList in = getStringList_("in");
       String edta = getStringOption_("pos");
       String out = getStringOption_("out");
       String out_detail = getStringOption_("out_detail");
@@ -114,99 +114,138 @@ class TOPPEICExtractor
       //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
-      MzMLFile mz_data_file;
-      mz_data_file.setLogType(log_type_);
+      MzMLFile mzml_file;
+      mzml_file.setLogType(log_type_);
       MSExperiment<Peak1D> exp;
-      mz_data_file.load(in,exp);
-
-			if (exp.size()==0)
-			{
-				LOG_WARN << "The given file does not contain any conventional peak data, but might"
-					          " contain chromatograms. This tool currently cannot handle them, sorry.";
-				return INCOMPATIBLE_INPUT_DATA;
-			}
-
+      
       EDTAFile ed;
       ConsensusMap cm;
       ed.load(edta, cm);
 
-      Map<Size, DoubleReal> quant;
+      TextFile tf_master; // one line per master-compound, one intensity column per experiment
+      TextFile tf_single; // one line for each compound, three columns for each experiment
       
-      TextFile tf_single;
-      tf_single.push_back("dRT\tppm\tint\trank");
-      // search for each EIC and add up
-      Int not_found(0);
-      for (Size i=0; i<cm.size();++i)
+      tf_master.resize(1); // for header line
+      tf_single.resize(cm.size()+2); // two header lines: #1 for filenames; #2 for dRT,ppm, intensity
+      tf_single[0] = "#filenames";
+      tf_single[1] = "rank";
+      for (Size i=0; i<cm.size(); ++i)
       {
-        DoubleReal q=0; // result of quantitation to store
-
-        //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
-
-        DoubleReal mz_da = mztol*cm[i].getMZ()/10e6; // mz tolerance in Dalton
-        MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT()-rttol/2,
-                                                                   cm[i].getRT()+rttol/2,
-                                                                   cm[i].getMZ()-mz_da, 
-                                                                   cm[i].getMZ()+mz_da);
-        Peak2D max_peak;
-        max_peak.setIntensity(0);
-        max_peak.setRT(cm[i].getRT());
-        max_peak.setMZ(cm[i].getMZ());
-        for (; it != exp.areaEndConst(); ++it)
+        if (!cm[i].metaValueExists("rank"))
         {
-          if (max_peak.getIntensity() < it->getIntensity())
-          {
-            max_peak.setIntensity(it->getIntensity());
-            max_peak.setRT(it.getRT());
-            max_peak.setMZ(it->getMZ());
-          }
+          LOG_FATAL_ERROR << "Required column 'rank' not found in EDTA file. Aborting ...\n";
+          return ILLEGAL_PARAMETERS;
         }
-        DoubleReal ppm = 0;
-        if (max_peak.getIntensity() == 0)
+        Size rank;
+        try
         {
-          ++not_found;
+          rank = String(cm[i].getMetaValue("rank")).toInt();
         }
-        else
+        catch (Exception::ConversionError& /*e*/)
         {
-          // take median for m/z found 
-          std::vector<DoubleReal> mz;
-          MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
-          SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
-          SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()), rt_collect);
-          MSExperiment<>::AreaIterator itt = exp.areaBegin( (itm - low)->getRT()-0.01, (itm + high)->getRT()+0.01, cm[i].getMZ()-mz_da, cm[i].getMZ()+mz_da);
-          for (; itt != exp.areaEnd(); ++itt)
-          {
-            mz.push_back(itt->getMZ());
-          }
-          
-          if ((SignedSize)mz.size() > (low+high+1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low+high+1 << "]\n";
-          
-          if (mz.size() > 0)
-          {
-            DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
-            ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 10e6;
-          }
+          LOG_FATAL_ERROR << "Entry in column 'rank' (line " << i << ") is not a valid integer! Aborting ...\n";
+          return ILLEGAL_PARAMETERS;
         }
-        //std::cout << "RT diff: " << (max_peak.getRT() - cm[i].getRT()) << " mz diff: " << (max_peak.getMZ() - cm[i].getMZ()) << "\n";
-        q = max_peak.getIntensity();
-
-        Size id = String(cm[i].getMetaValue("rank")).toInt();
-        quant[id] += q;
-        
-        tf_single.push_back(String(max_peak.getRT() - cm[i].getRT()) + "\t" + ppm  + "\t" + q + "\t" + id);
+        tf_single[i+2] += rank; // rank column before first experiment
       }
 
-      LOG_INFO << "No peaks for " << not_found << " compounds\n";
+      for (Size fi=0; fi<in.size();++fi)
+      {
+        mzml_file.load(in[fi], exp);
 
-      //-------------------------------------------------------------
-      // writing output
-      //-------------------------------------------------------------
-      TextFile tf;
-      tf.push_back("summed_master_compound_intensity");
-			for (Map<Size, DoubleReal>::const_iterator it=quant.begin(); it!=quant.end(); ++it)
-			{
-        tf.push_back(/*String(it->first) + "\t" +*/ String(it->second));
-			}
-      tf.store(out);
+			  if (exp.size()==0)
+			  {
+				  LOG_WARN << "The given file does not contain any conventional peak data, but might"
+					            " contain chromatograms. This tool currently cannot handle them, sorry.";
+				  return INCOMPATIBLE_INPUT_DATA;
+			  }
+
+
+        Map<Size, DoubleReal> quant;
+      
+        tf_single[0] += "\t" + File::basename(in[fi]) + "\t\t";
+        tf_single[1] += "\tdRT\tppm\tint";
+
+        // search for each EIC and add up
+        Int not_found(0);
+        for (Size i=0; i<cm.size(); ++i)
+        {
+          Size rank = String(cm[i].getMetaValue("rank")).toInt();
+
+          DoubleReal q=0; // result of quantitation to store
+
+          //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
+
+          DoubleReal mz_da = mztol*cm[i].getMZ()/10e6; // mz tolerance in Dalton
+          MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT()-rttol/2,
+                                                                     cm[i].getRT()+rttol/2,
+                                                                     cm[i].getMZ()-mz_da, 
+                                                                     cm[i].getMZ()+mz_da);
+          Peak2D max_peak;
+          max_peak.setIntensity(0);
+          max_peak.setRT(cm[i].getRT());
+          max_peak.setMZ(cm[i].getMZ());
+          for (; it != exp.areaEndConst(); ++it)
+          {
+            if (max_peak.getIntensity() < it->getIntensity())
+            {
+              max_peak.setIntensity(it->getIntensity());
+              max_peak.setRT(it.getRT());
+              max_peak.setMZ(it->getMZ());
+            }
+          }
+          DoubleReal ppm = 0;
+          if (max_peak.getIntensity() == 0)
+          {
+            ++not_found;
+          }
+          else
+          {
+            // take median for m/z found 
+            std::vector<DoubleReal> mz;
+            MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
+            SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
+            SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()), rt_collect);
+            MSExperiment<>::AreaIterator itt = exp.areaBegin( (itm - low)->getRT()-0.01, (itm + high)->getRT()+0.01, cm[i].getMZ()-mz_da, cm[i].getMZ()+mz_da);
+            for (; itt != exp.areaEnd(); ++itt)
+            {
+              mz.push_back(itt->getMZ());
+            }
+          
+            if ((SignedSize)mz.size() > (low+high+1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low+high+1 << "]\n";
+          
+            if (mz.size() > 0)
+            {
+              DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
+              ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 10e6;
+            }
+          }
+          //std::cout << "RT diff: " << (max_peak.getRT() - cm[i].getRT()) << " mz diff: " << (max_peak.getMZ() - cm[i].getMZ()) << "\n";
+          q = max_peak.getIntensity();
+
+          quant[rank] += q;
+        
+          tf_single[i+2] += "\t" + String(max_peak.getRT() - cm[i].getRT()) + "\t" + String(ppm)  + "\t" + String(q);
+        }
+
+        LOG_INFO << "No peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+
+        //-------------------------------------------------------------
+        // writing output
+        //-------------------------------------------------------------
+        if (fi!=0) tf_master[0] += "\t";
+        tf_master[0] += "sum_" + File::basename(in[fi]);
+        int line(0);
+			  for (Map<Size, DoubleReal>::const_iterator it=quant.begin(); it!=quant.end(); ++it)
+			  {
+          String data = /*String(it->first) + "\t" +*/ String(it->second);
+          if (fi==0) tf_master.push_back(data);
+          else tf_master[++line] += "\t" + data;
+			  }
+
+      }
+
+      tf_master.store(out);
       tf_single.store(out_detail);
 
       return EXECUTION_OK;
