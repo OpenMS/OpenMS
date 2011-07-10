@@ -87,11 +87,11 @@ START_SECTION(void load(const String &filename, ConsensusMape &consensus_map))
 }
 END_SECTION
 
-START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
+START_SECTION((void store(const String& filename, const ConsensusMap& map) const))
 {
   EDTAFile f;
-  MSSpectrum<> spec;
-  TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
+  ConsensusMap fm;
+  TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", fm))
 }
 END_SECTION
 
