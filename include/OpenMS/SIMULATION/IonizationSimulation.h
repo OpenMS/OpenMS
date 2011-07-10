@@ -97,6 +97,8 @@ namespace OpenMS {
   private:  
     /// Default constructor
     IonizationSimulation();
+
+    class CompareCmpByEF_;
     
 		/// ionize using ESI
     void ionizeEsi_(FeatureMapSim &, ConsensusMap & charge_consensus);

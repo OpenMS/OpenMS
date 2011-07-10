@@ -110,7 +110,7 @@ namespace OpenMS
 		mass_ += a.getAmount()*a.getSingleMass()*mult[side];
 		pos_charges_ +=  std::max(a.getAmount()*a.getCharge()*mult[side],0);
 		neg_charges_ -=  std::min(a.getAmount()*a.getCharge()*mult[side],0);
-		log_p_ += std::abs((Real)a.getAmount())*a.getLogProb();
+		log_p_ += std::fabs((Real)a.getAmount())*a.getLogProb();
 		rt_shift_ += a.getAmount()*a.getRTShift()*mult[side];
 	}
 
@@ -215,7 +215,7 @@ namespace OpenMS
 		{
 			Int f = it->second.getAmount();
 			
-			if (it->first.has('+')) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "An Adduct contains ímplicit charge. This is not allowed!", it->first);
+			if (it->first.has('+')) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "An Adduct contains implicit charge. This is not allowed!", it->first);
 			
 			EmpiricalFormula ef(it->first);
 			ef = ef * f;

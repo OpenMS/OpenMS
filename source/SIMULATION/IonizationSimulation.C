@@ -186,7 +186,7 @@ namespace OpenMS {
 			Size l_charge = components[0].size();
 			l_charge -= components[0].remove('+').size();
 			EmpiricalFormula ef(components[0].remove('+'));
-			// effectively substract electrones
+			// effectively subtract electrons
 			ef.setCharge(l_charge); ef -= String("H")+String(l_charge);
 			// create adduct
 			Adduct a((Int)l_charge, 1, ef.getMonoWeight(), components[0].remove('+'), log(components[1].toDouble()),0);
@@ -212,8 +212,14 @@ namespace OpenMS {
 
   }
   
+  class IonizationSimulation::CompareCmpByEF_ {
+  public:
+    bool operator()(const Compomer& x,const Compomer& y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
+  };
+
   void IonizationSimulation::ionizeEsi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
   {
+
 		// we need to do this locally to avoid memory leaks (copying this stuff in C'tors is not wise)
 		gsl_ran_discrete_t * gsl_ran_lookup_esi_charge_impurity = gsl_ran_discrete_preproc (esi_impurity_probabilities_.size(), &esi_impurity_probabilities_[0]);
 
@@ -238,7 +244,6 @@ namespace OpenMS {
       #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
 			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
-        std::cerr << "threads:" << omp_get_num_threads() << "\n";
         // no barrier here .. only an atomic update of progress value
         #pragma omp atomic
         ++progress;
@@ -259,7 +264,6 @@ namespace OpenMS {
         if (basic_residues_c==0)
         {
 					++uncharged_feature_count; // OMP
-					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
 					continue;
         }
 
@@ -270,20 +274,18 @@ namespace OpenMS {
           for(Int j = 0; j < abundance ; ++j)
 				  {
             prec_rndbin[j] = gsl_ran_binomial(rnd_gen_->technical_rng,esi_probability_,basic_residues_c);
-            std::cerr << " " << prec_rndbin[j];
           }
-          std::cerr << "\n\n";
         }
 
         std::vector<Size> prec_rnduni(50); // uniform numbers container
         Size prec_rnduni_remaining(0);
 
 				// assumption: each basic residue can hold one charged adduct
-				Map<Compomer, UInt> charge_states;
+				// , we need a custom comparator, as building Compomers step by step can lead to 
+				// numeric diffs (and thus distinct compomers) - we only use EF to discern, thats sufficient here
+				std::map<Compomer, UInt, CompareCmpByEF_> charge_states;
         Size adduct_index;
         UInt charge;
-
-        std::cerr << "Abundance: " << abundance << "\n";
 
 				// sample different charge states (dice for each peptide molecule separately)
 				for(Int j = 0; j < abundance ; ++j)
@@ -309,40 +311,34 @@ namespace OpenMS {
                 for (Size i_rnd=0;i_rnd<prec_rnduni.size();++i_rnd)
                 {
                   prec_rnduni[i_rnd] = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
-                  std::cerr << " " << prec_rnduni[i_rnd];
                 }
                 prec_rnduni_remaining = prec_rnduni.size();
-                std::cerr << "\n\n";
               }
             }
             adduct_index = prec_rnduni[--prec_rnduni_remaining];
-            cmp.add(esi_adducts_[adduct_index],Compomer::RIGHT);
+            cmp.add(esi_adducts_[adduct_index], Compomer::RIGHT);
 					}
 
 					// add 1 to abundance of sampled charge state
-					++charge_states[ cmp ];
+					++charge_states[cmp];
 				}
 
         // no charges > 0 selected (this should be really rare)
 				if (charge_states.size()==0) 
 				{
 					++uncharged_feature_count; // OMP!
-					//std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
 					continue;
 				}
 
 				// transform into a set (for sorting by abundance)
 				Int max_observed_charge(0);
 				std::set< std::pair<UInt, Compomer > > charge_states_sorted;
-				for (Map<Compomer, UInt>::const_iterator it_m=charge_states.begin(); it_m!=charge_states.end();++it_m)
+				for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m=charge_states.begin(); it_m!=charge_states.end(); ++it_m)
 				{ // create set of pair(value, key)
 					charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(it_m->second,it_m->first) );
-          std::cerr << "insert: " << it_m->second << ", " << it_m->first << "\n";
 					// update maximal observed charge
 					max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
 				}
-
-        std::cerr << "max: " << max_observed_charge << "\n";
 
 				Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");
 				std::vector<Int> allowed_entities_of_charge(max_observed_charge+1, max_compomer_types);
@@ -397,8 +393,8 @@ namespace OpenMS {
 			// swap feature maps
 			features.swap(copy_map);
 
-	    LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << "\n";
-	    LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << "\n";
+	    LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << std::endl;
+	    LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
 		}
 		catch (std::exception& e)
 		{
@@ -498,7 +494,7 @@ namespace OpenMS {
 			// swap feature maps
 			features.swap(copy_map);
 			
-	    std::cout << "#Peptides outside mz range: " << undetected_features_count << "\n";
+	    LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
 		}
 		catch (std::exception& e)
 		{
