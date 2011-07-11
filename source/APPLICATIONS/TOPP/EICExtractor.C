@@ -217,7 +217,7 @@ class TOPPEICExtractor
             if (mz.size() > 0)
             {
               DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
-              ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 10e6;
+              ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 1e6;
             }
           }
           //std::cout << "RT diff: " << (max_peak.getRT() - cm[i].getRT()) << " mz diff: " << (max_peak.getMZ() - cm[i].getMZ()) << "\n";
