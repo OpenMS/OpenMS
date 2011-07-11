@@ -112,7 +112,7 @@ namespace OpenMS
 
 			if (is_relative_tolerance)
 			{
-				mz_tolerance = mz_tolerance * s1[it->first].getPosition()[0] / 10e6;
+				mz_tolerance = mz_tolerance * s1[it->first].getPosition()[0] / 1e6;
 			}
 	
 			DoubleReal mz_difference(fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0]));
