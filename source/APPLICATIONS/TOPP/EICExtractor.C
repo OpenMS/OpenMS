@@ -176,7 +176,7 @@ class TOPPEICExtractor
 
           //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
-          DoubleReal mz_da = mztol*cm[i].getMZ()/10e6; // mz tolerance in Dalton
+          DoubleReal mz_da = mztol*cm[i].getMZ()/1e6; // mz tolerance in Dalton
           MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT()-rttol/2,
                                                                      cm[i].getRT()+rttol/2,
                                                                      cm[i].getMZ()-mz_da, 
