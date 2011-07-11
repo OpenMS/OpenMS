@@ -79,7 +79,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     // input files
-    registerInputFile_("in","<file>","","input file");
+    registerInputFile_("in","<file>","","input file (profile data)");
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out","<file>","","output file");
     setValidFormats_("out", StringList::create("mzML"));
