@@ -90,7 +90,7 @@ class TOPPEICExtractor
 			setValidFormats_("in",StringList::create("mzML"));
       registerInputFile_("pos","<file>","","input config file stating where to find signal");
       setValidFormats_("pos",StringList::create("edta"));
-      registerDoubleOption_("rt_tol", "", 10, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
+      registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
       registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
       registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
 			registerOutputFile_("out","<file>","","output quantitation file (summed intensities by master compounds)");
@@ -172,8 +172,6 @@ class TOPPEICExtractor
         {
           Size rank = String(cm[i].getMetaValue("rank")).toInt();
 
-          DoubleReal q=0; // result of quantitation to store
-
           //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
           DoubleReal mz_da = mztol*cm[i].getMZ()/1e6; // mz tolerance in Dalton
@@ -194,7 +192,9 @@ class TOPPEICExtractor
               max_peak.setMZ(it->getMZ());
             }
           }
-          DoubleReal ppm = 0;
+          DoubleReal ppm = 0; // observed m/z offset
+          DoubleReal q=0; // result of quantitation to store
+
           if (max_peak.getIntensity() == 0)
           {
             ++not_found;
@@ -205,7 +205,7 @@ class TOPPEICExtractor
             std::vector<DoubleReal> mz;
             MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
             SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
-            SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()), rt_collect);
+            SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end())-1, rt_collect);
             MSExperiment<>::AreaIterator itt = exp.areaBegin( (itm - low)->getRT()-0.01, (itm + high)->getRT()+0.01, cm[i].getMZ()-mz_da, cm[i].getMZ()+mz_da);
             for (; itt != exp.areaEnd(); ++itt)
             {
@@ -219,9 +219,45 @@ class TOPPEICExtractor
               DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
               ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 1e6;
             }
+
+            // intensity:
+            q = max_peak.getIntensity(); // max peak
+/*
+            // .. + left & right shoulders
+            Int rt_shape_check = 50;
+            std::vector< std::pair < DoubleReal, DoubleReal > > rt_shape_left, rt_shape_right;
+            low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_shape_check);
+            high = std::min<SignedSize>(std::distance(itm, exp.end())-1, rt_shape_check);
+            itt = exp.areaBegin( (itm - low)->getRT()-0.01, (itm + high)->getRT()+0.01, cm[i].getMZ()-mz_da, cm[i].getMZ()+mz_da);
+            for (; itt != exp.areaEnd(); ++itt)
+            {
+              if (itt.getRT() < max_peak.getRT()) rt_shape_left.push_back(make_pair(itt.getRT(), itt->getIntensity()));
+              if (itt.getRT() > max_peak.getRT()) rt_shape_right.push_back(make_pair(itt.getRT(), itt->getIntensity()));
+            }
+
+            
+            if ((SignedSize)(rt_shape_left.size() + rt_shape_right.size()) > (low+high)) LOG_WARN << "Compound " << i << " has overlapping RT peaks [" << (rt_shape_left.size() + rt_shape_right.size())<< "/" << low+high << "]\n";
+            if ((rt_shape_left.size() + rt_shape_right.size()) > 0)
+            {
+              // go from RT max to left and right until 50% threshold reached
+              DoubleReal thresh = max_peak.getIntensity() * 0.1;
+              // go down shoulders:
+              for (std::vector< std::pair < DoubleReal, DoubleReal > >::const_reverse_iterator itp = rt_shape_left.rbegin(); itp != rt_shape_left.rend(); ++itp)
+              {
+                if (itp->second < thresh) break;
+                q += itp->second;
+                ++pcount;
+              }
+              for (std::vector< std::pair < DoubleReal, DoubleReal > >::const_iterator itp = rt_shape_right.begin(); itp != rt_shape_right.end(); ++itp)
+              {
+                if (itp->second < thresh) break;
+                q += itp->second;
+                ++pcount;
+              }
+            }
+*/
+
           }
-          //std::cout << "RT diff: " << (max_peak.getRT() - cm[i].getRT()) << " mz diff: " << (max_peak.getMZ() - cm[i].getMZ()) << "\n";
-          q = max_peak.getIntensity();
 
           quant[rank] += q;
         

@@ -292,7 +292,7 @@ namespace OpenMS
 		outs.precision(8);
 		if(!outs)
 		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file.");
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Cannot open output file '" + out_path + "'.");
 		}
 
     for (Size i=0; i<windows.size(); ++i)
