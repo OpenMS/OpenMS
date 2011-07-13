@@ -74,7 +74,9 @@ START_SECTION(([EXTRA] OpenMP - test))
   // just see if this crashes with OpenMP
   ostringstream stream_by_logger;
   Log_debug.insert(stream_by_logger);
+  Log_debug.remove(cout);
   Log_info.insert(stream_by_logger);
+  Log_info.remove(cout);
 
 #ifdef _OPENMP
 omp_set_num_threads(8);
