@@ -65,8 +65,10 @@ using namespace std;
 	 Inclusion and exclusion charges can be specified for FASTA and IdXML input. If no charges are specified in the case of peptide id input, only
    the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
 
-   The rt window size can be specified via the rel_rt_window_size parameter,
-	 then the window is [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt]. The default is rt in minutes, set the rt_in_seconds flag to use seconds.
+   The RT window size can be specified in the RT section of the INI file, either as relative window
+   with [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt] or absolute window.
+
+   The default is RT in minutes, but seconds can also be used (see INI file).
 
    <B>The command line parameters of this tool are:</B>
    @verbinclude TOPP_InclusionExclusionListCreator.cli
@@ -89,36 +91,31 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("include", "<file>", "", "inclusion list input file in fasta or featureXML format.",false);
-    setValidFormats_("include",StringList::create("featureXML,fasta"));
-    registerInputFile_("exclude","<file>", "", "exclusion list input file in featureXML, IdXML or fasta format.",false);
-    setValidFormats_("exclude",StringList::create("featureXML,IdXML,fasta"));
+    registerInputFile_("include", "<file>", "", "inclusion list input file in FASTA or featureXML format.",false);
+    setValidFormats_("include",StringList::create("featureXML,FASTA"));
+    registerInputFile_("exclude","<file>", "", "exclusion list input file in featureXML, IdXML or FASTA format.",false);
+    setValidFormats_("exclude",StringList::create("featureXML,IdXML,FASTA"));
     registerOutputFile_("out", "<file>", "", "output file (tab delimited).");
-    //in fasta or featureXML
+    registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in FASTA files.",false);
+    //in FASTA or featureXML
     registerIntList_("inclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the inclusion list compounds, space separated.",false);
     setMinInt_("inclusion_charges", 1);
     registerIntList_("exclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the exclusion list compounds (for idXML and FASTA input), space separated.",false);
     setMinInt_("exclusion_charges", 1);
-    registerIntOption_("missed_cleavages","<int>",0,"Number of missed cleavages used for protein digestion.\n",false);
-    registerDoubleOption_("rel_rt_window_size","<double>",.05,"The relative factor for the rt_window_size, e.g. the window is calculated as [rt-rt*rel_rt_window_size,rt+rt*rel_rt_window_size].",false);
-		setMinFloat_("rel_rt_window_size", 0.0);
-    setMaxFloat_("rel_rt_window_size", 10.0);
-    registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in fasta files.",false);
-		registerFlag_("rt_in_seconds","Create lists with units as seconds instead of minutes (default is 'minutes')");
-
-    
-    registerDoubleOption_("merge:mz_tol","<delta m/z>", 10.0, "Two inclusion/exclusion windows are merged when they (almost) overlap in RT (see 'rt_tol') and are close in m/z by this tolerance. Unit of this is defined in 'mz_tol_unit'.",false);
-		setMinFloat_("merge:mz_tol", 0.0);
-		registerStringOption_("merge:mz_tol_unit", "<unit>", "ppm", "Unit of 'mz_tol'", false);
-    setValidStrings_("merge:mz_tol_unit", StringList::create("ppm,Da"));
-    registerDoubleOption_("merge:rt_tol","<RT[s]>", 1.1, "Maximal RT delta (in seconds) which would allow two windows in RT to overlap (which causes merging the windows). Two inclusion/exclusion windows are merged when they (almost) overlap in RT and are close in m/z by this tolerance (see 'mz_tol'). Unit of this param is [seconds].",false);
-		setMinFloat_("merge:rt_tol", 0.0);
-    registerTOPPSubsection_("merge","Options for merging two or more windows into a single window (some vendor instruments do not allow overlap)");
 
     //    setValidFormats_("out", StringList::create("TraML"));
+
+    registerSubsection_("algorithm","Inclusion/Exclusion algorithm section");
   }
 
-
+  Param getSubsectionDefaults_(const String& /*section*/) const
+  {
+    // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the InclusionExclusionList param
+    InclusionExclusionList fdc;
+    Param tmp;
+    tmp.insert("InclusionExclusionList:",fdc.getParameters());
+    return tmp;
+  }
 
   ExitCodes main_(int , const char**)
   {
@@ -128,15 +125,16 @@ protected:
 
     //input/output files
     String include(getStringOption_("include"));
-    String exclude(getStringOption_("exclude")), out(getStringOption_("out"));
+    String exclude(getStringOption_("exclude"));
+    String out(getStringOption_("out"));
 
-    if(include == "" && exclude == "")
+    if (include == "" && exclude == "")
     {
       writeLog_("Error: No input file given.");
       return MISSING_PARAMETERS;
     }
     // currently we can handle only inclusion OR exclusion, will be possible with the traML output
-    if(include != "" && exclude != "")
+    if (include != "" && exclude != "")
     {
       writeLog_("Error: Currently only inclusion OR exclusion, both will be possible with the traML output coming soon");
       return ILLEGAL_PARAMETERS;
@@ -144,14 +142,7 @@ protected:
 
 		IntList incl_charges(getIntList_("inclusion_charges"));
     IntList excl_charges(getIntList_("exclusion_charges"));
-    Int missed_cleavages(getIntOption_("missed_cleavages"));
-    DoubleReal rel_rt_window_size(getDoubleOption_("rel_rt_window_size"));
     String rt_model_file(getStringOption_("rt_model"));
-    bool rt_in_seconds(getFlag_("rt_in_seconds"));
-
-    bool mz_tol_as_ppm (getStringOption_("merge:mz_tol_unit") == "ppm");
-    DoubleReal mz_tol (getDoubleOption_("merge:mz_tol"));
-    DoubleReal rt_tol (getDoubleOption_("merge:rt_tol"));
 
     //-------------------------------------------------------------
     // loading input: inclusion list part
@@ -159,8 +150,17 @@ protected:
 
 		FileHandler fh;
     TargetedExperiment exp;
-    InclusionExclusionList list(rt_tol, mz_tol, mz_tol_as_ppm);
-    if(include != "")
+    Param const& iel_param = getParam_().copy("algorithm:InclusionExclusionList:",true);
+    writeDebug_("Parameters passed to InclusionExclusionList", iel_param, 3);
+
+    InclusionExclusionList list;
+    list.setParameters(iel_param);
+
+
+    std::cout << "\n\n\n\n" << iel_param.getValue("RT:unit") << "\n\n";
+
+
+    if (include != "")
     {
       FileTypes::Type in_type = fh.getType(include);
       std::vector<IncludeExcludeTarget> incl_targets;
@@ -182,7 +182,7 @@ protected:
 				// for tab-delimited output
 				try
 				{
-					list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+					list.writeTargets(map,out);
 				}
 				catch(Exception::UnableToCreateFile)
         {
@@ -211,7 +211,7 @@ protected:
 				// if tab-delimited output
 				try
 				{
-					list.writeTargets(entries,out,incl_charges,rt_model_file,rel_rt_window_size,rt_in_seconds,missed_cleavages);
+					list.writeTargets(entries,out,incl_charges,rt_model_file);
 				}
 				catch(Exception::UnableToCreateFile)
         {
@@ -246,7 +246,7 @@ protected:
 				// else write tab-delimited file directly
 				try
 				{
-					list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+					list.writeTargets(map,out);
 				}
 				catch(Exception::UnableToCreateFile)
         {
@@ -261,7 +261,7 @@ protected:
         IdXMLFile().load(exclude,prot_ids,pep_ids);
 				try
 				{
-					list.writeTargets(pep_ids,out,rel_rt_window_size,excl_charges,rt_in_seconds);
+					list.writeTargets(pep_ids,out,excl_charges);
 				}
 				catch(Exception::UnableToCreateFile)
         {
@@ -299,7 +299,7 @@ protected:
 				// else for tab-delimited output
 				try
 				{
-					list.writeTargets(entries,out,excl_charges,rt_model_file,rel_rt_window_size,rt_in_seconds,missed_cleavages);
+					list.writeTargets(entries,out,excl_charges,rt_model_file);
 				}
 				catch(Exception::UnableToCreateFile)
         {

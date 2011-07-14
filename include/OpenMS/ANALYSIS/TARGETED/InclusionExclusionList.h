@@ -42,7 +42,8 @@ namespace OpenMS
 
      
   */
-  class OPENMS_DLLAPI InclusionExclusionList 
+  class OPENMS_DLLAPI InclusionExclusionList
+    : public DefaultParamHandler
   {
   protected:
     struct IEWindow
@@ -126,12 +127,8 @@ namespace OpenMS
        - RT windows are extended
        - m/z value is averaged over all windows
     */
-    void mergeOverlappingWindows_(WindowList& list, const bool rt_in_seconds) const;
+    void mergeOverlappingWindows_(WindowList& list) const;
 
-    /// merging parameters:
-    DoubleReal rt_tolerance_;
-    DoubleReal mz_tolerance_;
-    bool mz_as_ppm_;
     
     /**
       @brief Writes the windows to the given file
@@ -149,7 +146,7 @@ namespace OpenMS
      */
     //@{
     /// default constructor
-    InclusionExclusionList(const DoubleReal rt_tolerance = 0.0, const DoubleReal mz_tolerance = 10, const bool mz_as_ppm=true);
+    InclusionExclusionList();
 
    
     //@}
@@ -168,9 +165,7 @@ namespace OpenMS
     void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                             const String& out_path,
                                             const IntList& charges,
-                                            const String rt_model_path,
-																						const DoubleReal rel_rt_window_size,
-                                            const bool rt_in_seconds,Size missed_cleavages);
+                                            const String rt_model_path);
 
 		/**
 			 @brief Writes inclusion or exclusion list of given feature map.
@@ -178,9 +173,7 @@ namespace OpenMS
 			 @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
 		 */
     void writeTargets(const FeatureMap<>& map,
-                      const String& out_path,
-                      const DoubleReal rel_rt_window_size,
-                      const bool rt_in_seconds);
+                      const String& out_path);
 		
 		/**
 			 @brief Writes inclusion or exclusion list of given peptide ids (tab-delimited).
@@ -191,9 +184,7 @@ namespace OpenMS
 		 */
 		void writeTargets(const std::vector<PeptideIdentification>& pep_ids,
                       const String& out_path,
-											const DoubleReal rel_rt_window_size,
-                      const IntList& charges,
-                      const bool rt_in_seconds);
+                      const IntList& charges);
 
   };
 

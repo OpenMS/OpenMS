@@ -57,7 +57,7 @@ START_SECTION(~InclusionExclusionList())
 }
 END_SECTION
 
-START_SECTION((void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const String& out_path, const IntList& charges, const String rt_model_path, const DoubleReal rel_rt_window_size, const bool rt_in_seconds,Size missed_cleavages)))
+START_SECTION((void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const String& out_path, const IntList& charges, const String rt_model_path)))
 {
 	// load data and write out file
 	InclusionExclusionList list;
@@ -66,39 +66,44 @@ START_SECTION((void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta
 	IntList charges;
 	charges<<2;
 	String rt_model_path(OPENMS_GET_TEST_DATA_PATH("RTSimulation_absolut_rt.model"));
-	DoubleReal rel_rt_window_size = 0.05;
-	bool rt_in_seconds = true;
-	Size missed_cleavages = 0;
+  Param p = list.getParameters();
+  p.setValue("missed_cleavages", 0);
+  p.setValue("RT:unit", "seconds");
+  list.setParameters(p);
 	String out;
 	NEW_TMP_FILE(out);
 	// rt in seconds
-	list.writeTargets(entries,out,charges,rt_model_path,rel_rt_window_size,rt_in_seconds,missed_cleavages);
+	list.writeTargets(entries,out,charges,rt_model_path);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_1_out.txt"),out)
 
 	// rt in minutes
-	rt_in_seconds = false;
 	String out2;
 	NEW_TMP_FILE(out2);
-	list.writeTargets(entries,out2,charges,rt_model_path,rel_rt_window_size,rt_in_seconds,missed_cleavages);
+  p.setValue("RT:unit", "minutes");
+  list.setParameters(p);
+	list.writeTargets(entries,out2,charges,rt_model_path);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_1_minutes_out.txt"),out2)
 }
 END_SECTION
 
-START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path, const DoubleReal rel_rt_window_size, const bool rt_in_seconds)))
+START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path)))
 {
   InclusionExclusionList list;
 	FeatureMap<> map;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_2.featureXML"),map);
-	DoubleReal rel_rt_window_size = 0.05;
-	bool rt_in_seconds = true;
+  Param p = list.getParameters();
+  p.setValue("missed_cleavages", 0);
+  p.setValue("RT:unit", "seconds");
+  list.setParameters(p);
 	String out;
 	NEW_TMP_FILE(out);
-	list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+	list.writeTargets(map, out);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_2_out.txt"),out)
 	String out2;
 	NEW_TMP_FILE(out2);
-	rt_in_seconds = false;
-	list.writeTargets(map,out2,rel_rt_window_size,rt_in_seconds);
+  p.setValue("RT:unit", "minutes");
+  list.setParameters(p);
+	list.writeTargets(map, out2);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_2_minutes_out.txt"),out2)
 	
   /// test clustering
@@ -129,17 +134,31 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
   f.setMZ(1001);
   map.push_back(f);
 
-
-  list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+  p.setValue("merge:rt_tol", 0.0);
+  p.setValue("merge:mz_tol", 10.0);
+  p.setValue("merge:mz_tol_unit", "ppm");
+  list.setParameters(p);
+  list.writeTargets(map,out);
   TextFile tf;
   tf.load(out);
 
   TEST_EQUAL(tf.size(), 4);
+  for (Size ii=0; ii<tf.size(); ++ii)
+  {
+
+    std::cout << tf[ii] << "\n";
+  }
 
   // test exact m/z matching (no deviation allowed)
   {
-  InclusionExclusionList list(0, 0, true);
-  list.writeTargets(map,out,rel_rt_window_size,rt_in_seconds);
+  InclusionExclusionList list;
+  Param p = list.getParameters();
+  p.setValue("merge:rt_tol", 0.0);
+  p.setValue("merge:mz_tol", 0.0);
+  p.setValue("merge:mz_tol_unit", "ppm");
+  list.setParameters(p);
+
+  list.writeTargets(map,out);
   TextFile tf;
   tf.load(out);
 
@@ -148,8 +167,13 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
 
   // now test window overlap
   {
-  InclusionExclusionList list(11, 0, true);
-  list.writeTargets(map,out,0,rt_in_seconds);
+  InclusionExclusionList list;
+  Param p = list.getParameters();
+  p.setValue("merge:rt_tol", 11.0);
+  p.setValue("merge:mz_tol", 0.0);
+  p.setValue("merge:mz_tol_unit", "ppm");
+  list.setParameters(p);
+  list.writeTargets(map, out);
   TextFile tf;
   tf.load(out);
 
@@ -160,7 +184,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
 }
 END_SECTION
 
-START_SECTION((void writeTargets(const std::vector<PeptideIdentification>& pep_ids, const String& out_path, const DoubleReal rel_rt_window_size, const IntList& charges, const bool rt_in_seconds)))
+START_SECTION((void writeTargets(const std::vector<PeptideIdentification>& pep_ids, const String& out_path, const IntList& charges)))
 {
   InclusionExclusionList list;
 	FeatureMap<> map;
@@ -168,17 +192,20 @@ START_SECTION((void writeTargets(const std::vector<PeptideIdentification>& pep_i
 	vector<ProteinIdentification> prot_ids;
 	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_3.IdXML"),prot_ids,pep_ids);
 	DoubleReal rel_rt_window_size = 0.05;
-	bool rt_in_seconds = true;
+  Param p = list.getParameters();
+  p.setValue("RT:unit", "seconds");
+  list.setParameters(p);
 	IntList charges;
 	charges<<2;
 	String out;
 	NEW_TMP_FILE(out);
-	list.writeTargets(pep_ids,out,rel_rt_window_size,charges,rt_in_seconds);
+	list.writeTargets(pep_ids,out,charges);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_3_out.txt"),out)
 	String out2;
 	NEW_TMP_FILE(out2);
-	rt_in_seconds = false;
-	list.writeTargets(pep_ids,out2,rel_rt_window_size,charges,rt_in_seconds);
+  p.setValue("RT:unit", "minutes");
+  list.setParameters(p);
+	list.writeTargets(pep_ids,out2,charges);
 	TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_3_minutes_out.txt"),out2)
   
 }

@@ -37,24 +37,44 @@
 
 namespace OpenMS
 {
-  InclusionExclusionList::InclusionExclusionList(const DoubleReal rt_tolerance,
-                                                 const DoubleReal mz_tolerance,
-                                                 const bool mz_as_ppm)
-    : rt_tolerance_(rt_tolerance),
-      mz_tolerance_(mz_tolerance),
-      mz_as_ppm_(mz_as_ppm)
-  {}
-
-
-  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list, const bool rt_in_seconds) const
+  InclusionExclusionList::InclusionExclusionList()
+    : DefaultParamHandler("InclusionExclusionList")
   {
+   
+    defaults_.setValue("missed_cleavages", 0, "Number of missed cleavages used for protein digestion.\n");
+    defaults_.setValue("RT:unit", "minutes", "Create lists with units as seconds instead of minutes");
+    defaults_.setValidStrings("RT:unit", StringList::create("minutes,seconds"));
+    defaults_.setValue("RT:use_relative", "true", "Use relative RT window, which depends on RT of precursor.");
+    defaults_.setValidStrings("RT:use_relative", StringList::create("true,false"));
+    defaults_.setValue("RT:window_relative", 0.05, "[for RT:use_relative == true] The relative factor X for the RT exclusion window, e.g. the window is calculated as [rt - rt*X, rt + rt*X].");
+    defaults_.setMinFloat("RT:window_relative", 0.0);
+    defaults_.setMaxFloat("RT:window_relative", 10.0);
+    defaults_.setValue("RT:window_absolute", 90.0, "[for RT:use_relative == false] The absolute value X for the RT exclusion window in [sec], e.g. the window is calculated as [rt - X, rt + X].");
+    defaults_.setMinFloat("RT:window_absolute", 0.0);
+    defaults_.setValue("merge:mz_tol", 10.0, "Two inclusion/exclusion windows are merged when they (almost) overlap in RT (see 'rt_tol') and are close in m/z by this tolerance. Unit of this is defined in 'mz_tol_unit'.");
+    defaults_.setMinFloat("merge:mz_tol", 0.0);
+    defaults_.setValue("merge:mz_tol_unit", "ppm", "Unit of 'mz_tol'");
+    defaults_.setValidStrings("merge:mz_tol_unit", StringList::create("ppm,Da"));
+    defaults_.setValue("merge:rt_tol", 1.1, "Maximal RT delta (in seconds) which would allow two windows in RT to overlap (which causes merging the windows). Two inclusion/exclusion windows are merged when they (almost) overlap in RT and are close in m/z by this tolerance (see 'mz_tol'). Unit of this param is [seconds].");
+    defaults_.setMinFloat("merge:rt_tol", 0.0);
+    
+   
+    defaultsToParam_();
+  }
+
+
+  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list) const
+  {
+    bool rt_in_seconds = (param_.getValue("RT:unit") == "seconds");
 
 		std::vector<BinaryTreeNode> tree;
 		// local scope to save memory - we do not need the clustering stuff later
 		{
       DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
+      
+      bool mz_as_ppm = (param_.getValue("merge:mz_tol_unit") == "ppm");
 
-			WindowDistance_ llc(rt_tolerance_ * min_to_s_factor, mz_tolerance_, mz_as_ppm_);
+			WindowDistance_ llc(DoubleReal(param_.getValue("merge:rt_tol")) * min_to_s_factor, DoubleReal(param_.getValue("merge:mz_tol")), mz_as_ppm);
 			SingleLinkage sl;
 			DistanceMatrix<Real> dist; // will be filled
 			ClusterHierarchical ch;
@@ -125,15 +145,13 @@ namespace OpenMS
 	void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                             const String& out_path,
                                             const IntList& charges,
-                                            const String rt_model_path,
-																						const DoubleReal rel_rt_window_size,
-                                            const bool rt_in_seconds,
-                                            Size missed_cleavages)
+                                            const String rt_model_path)
 	{
     WindowList result;
 
 		EnzymaticDigestion digest;
-		digest.setMissedCleavages(missed_cleavages);
+    
+		digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 
     SimRandomNumberGenerator rnd_gen;
     RTSimulation rt_sim(rnd_gen);
@@ -181,57 +199,73 @@ namespace OpenMS
 					
 		}
 		std::vector<DoubleReal> rts;
-		rt_sim.wrapSVM(pep_seqs,rts);
-    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
-		for(Size i = 0; i < pep_seqs.size();++i)
+		rt_sim.wrapSVM(pep_seqs, rts);
+    DoubleReal min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0/60.0);
+
+    bool relative_rt = (param_.getValue("RT:use_relative") == "true");
+
+    DoubleReal rel_rt_window_size = param_.getValue("RT:window_relative");
+    DoubleReal abs_rt_window_size = param_.getValue("RT:window_absolute");
+
+		for(Size i = 0; i < pep_seqs.size(); ++i)
 		{
-			for(Size c = 0; c < charges.size();++c)
+			for(Size c = 0; c < charges.size(); ++c)
 			{
 				// calculate exclusion window
 				DoubleReal mz = pep_seqs[i].getMonoWeight(Residue::Full,charges[c])/(DoubleReal)charges[c];
-        DoubleReal rt_start = std::max(0.0, (rts[i] - rel_rt_window_size * rts[i])) * min_to_s_factor; 
-				DoubleReal rt_stop = (rts[i] + rel_rt_window_size * rts[i]) * min_to_s_factor;
+        DoubleReal rt_start = std::max(0.0, relative_rt ? (rts[i] - rel_rt_window_size * rts[i]) : rts[i] - abs_rt_window_size); 
+				DoubleReal rt_stop =                relative_rt ? (rts[i] + rel_rt_window_size * rts[i]) : rts[i] + abs_rt_window_size;
+
+        rt_start *= min_to_s_factor;
+        rt_stop *= min_to_s_factor;
 
         result.push_back(IEWindow(rt_start, rt_stop, mz));
 			}
 		}
 
-    mergeOverlappingWindows_(result, rt_in_seconds);
+    mergeOverlappingWindows_(result);
   	writeToFile_(out_path, result);
 	}
     
 
 	void InclusionExclusionList::writeTargets(const FeatureMap<>& map,
-                                            const String& out_path,
-                                            const DoubleReal rel_rt_window_size,
-                                            const bool rt_in_seconds)
+                                            const String& out_path)
 	{
     WindowList result;
 
-    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
+    bool relative_rt = (param_.getValue("RT:use_relative") == "true");
+
+    DoubleReal rel_rt_window_size = param_.getValue("RT:window_relative");
+    DoubleReal abs_rt_window_size = param_.getValue("RT:window_absolute");
+
+    DoubleReal min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0/60.0);
 		for(Size f = 0; f < map.size(); ++f)
 		{
-      DoubleReal rt_start =  std::max(0.0, map[f].getRT() - map[f].getRT() * rel_rt_window_size) * min_to_s_factor;
-			DoubleReal rt_end =  (map[f].getRT() + map[f].getRT() * rel_rt_window_size) * min_to_s_factor;
+      DoubleReal rt_start = std::max(0.0, relative_rt ? (map[f].getRT() - map[f].getRT() * rel_rt_window_size) : map[f].getRT() - abs_rt_window_size); 
+      DoubleReal rt_stop =                relative_rt ? (map[f].getRT() + map[f].getRT() * rel_rt_window_size) : map[f].getRT() + abs_rt_window_size;
+
+      rt_start *= min_to_s_factor;
+      rt_stop *= min_to_s_factor;
 			
-      result.push_back(IEWindow(rt_start, rt_end, map[f].getMZ()));
+      result.push_back(IEWindow(rt_start, rt_stop, map[f].getMZ()));
 		}
 
-    mergeOverlappingWindows_(result, rt_in_seconds);
+    mergeOverlappingWindows_(result);
 		writeToFile_(out_path, result);
 	}
 	
 	void InclusionExclusionList::writeTargets(const std::vector<PeptideIdentification>& pep_ids,
                                             const String& out_path,
-																						const DoubleReal rel_rt_window_size,
-                                            const IntList& charges,
-                                            const bool rt_in_seconds)
+                                            const IntList& charges)
 	{
     WindowList result;
 
     Size charge_invalid_count(0);
 
-    DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0/60.0);
+    DoubleReal min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0/60.0);
+    bool relative_rt = (param_.getValue("RT:use_relative") == "true");
+    DoubleReal rel_rt_window_size = param_.getValue("RT:window_relative");
+    DoubleReal abs_rt_window_size = param_.getValue("RT:window_absolute");
 
 		std::vector<PeptideIdentification>::const_iterator pep_id_iter = pep_ids.begin();
 		for(;pep_id_iter != pep_ids.end();++pep_id_iter)
@@ -245,8 +279,12 @@ namespace OpenMS
 				Exception::MissingInformation(__FILE__, __LINE__,__PRETTY_FUNCTION__,"Peptide identification contains no RT information.");
 			}
 			DoubleReal rt = pep_id_iter->getMetaValue("RT");
-      DoubleReal rt_start = std::max(0.0, rt - rel_rt_window_size * rt) * min_to_s_factor;
-		  DoubleReal rt_stop = (rt + rel_rt_window_size * rt) * min_to_s_factor;
+
+      DoubleReal rt_start = std::max(0.0, relative_rt ? (rt - rt * rel_rt_window_size) : rt - abs_rt_window_size); 
+      DoubleReal rt_stop =                relative_rt ? (rt + rt * rel_rt_window_size) : rt + abs_rt_window_size;
+
+      rt_start *= min_to_s_factor;
+      rt_stop *= min_to_s_factor;
 
       std::vector<PeptideHit>::const_iterator pep_hit_iter = pep_id_iter->getHits().begin();
 			for(;pep_hit_iter != pep_id_iter->getHits().end();++pep_hit_iter)
@@ -279,7 +317,7 @@ namespace OpenMS
     
     if (charge_invalid_count>0) LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
 
-    mergeOverlappingWindows_(result, rt_in_seconds);
+    mergeOverlappingWindows_(result);
 		writeToFile_(out_path, result);
 	}
 
