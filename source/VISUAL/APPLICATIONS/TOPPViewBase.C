@@ -1516,27 +1516,33 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         views_tabwidget_->setCurrentIndex(2);
         views_tabwidget_->setTabEnabled(0, false);  // switch scan view off
         views_tabwidget_->setTabEnabled(1, false);  // switch identification view off
-      } else if (sw)  // SpectrumWidget
+      }
+      else if (sw)  // SpectrumWidget
       {
-        const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
         views_tabwidget_->setTabEnabled(0, true);
 
-        if(hasPeptideIdentifications(map))
+        // check if there is a layer before requesting data from it
+        if(sw->canvas()->getLayerCount() > 0)
         {
-          views_tabwidget_->setTabEnabled(1, true);
-          if (dynamic_cast<Spectrum2DWidget*>(w))
+          const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
+          if(hasPeptideIdentifications(map))
           {
-            views_tabwidget_->setCurrentIndex(0);  // switch to scan tab for 2D widget
-          } else if (dynamic_cast<Spectrum1DWidget*>(w))
-          {
-            views_tabwidget_->setCurrentIndex(1);  // switch to identification tab for 1D widget
+            views_tabwidget_->setTabEnabled(1, true);
+            if (dynamic_cast<Spectrum2DWidget*>(w))
+            {
+              views_tabwidget_->setCurrentIndex(0);  // switch to scan tab for 2D widget
+            } else if (dynamic_cast<Spectrum1DWidget*>(w))
+            {
+              views_tabwidget_->setCurrentIndex(1);  // switch to identification tab for 1D widget
+            }
           }
-        } else
-        {
-          views_tabwidget_->setTabEnabled(1, false);
-          views_tabwidget_->setCurrentIndex(0); // stay on scan view tab
+          else
+          {
+            views_tabwidget_->setTabEnabled(1, false);
+            views_tabwidget_->setCurrentIndex(0); // stay on scan view tab
+          }
+          setTOPPASTabEnabled(false);
         }
-        setTOPPASTabEnabled(false);
       }
   	}
   }
@@ -1805,44 +1811,48 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (w2)
     {
       tool_bar_1d_->hide();
-      //peak draw modes
-      if (w2->canvas()->getCurrentLayer().type == LayerData::DT_PEAK)
+      // check if there is a layer before requesting data from it
+      if(w2->canvas()->getLayerCount() > 0)
       {
-				dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
-	      tool_bar_2d_peak_->show();
- 	    	tool_bar_2d_feat_->hide();
-	      tool_bar_2d_cons_->hide();
-				tool_bar_2d_ident_->hide();
-			}
-			//feature draw modes
-			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
-			{
-      	dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
-      	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULL));
-      	dm_unassigned_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_UNASSIGNED));
-      	dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer().label!=LayerData::L_NONE);
-	      tool_bar_2d_peak_->hide();
-	      tool_bar_2d_feat_->show();
-	      tool_bar_2d_cons_->hide();
-				tool_bar_2d_ident_->hide();
-			}
-			//consensus feature draw modes
-			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
-			{
-      	dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
-	      tool_bar_2d_peak_->hide();
-	      tool_bar_2d_feat_->hide();
-	      tool_bar_2d_cons_->show();
-				tool_bar_2d_ident_->hide();
-			}
-			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_IDENT)
-			{
-				dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::I_PEPTIDEMZ));
-	      tool_bar_2d_peak_->hide();
-	      tool_bar_2d_feat_->hide();
-	      tool_bar_2d_cons_->hide();
-				tool_bar_2d_ident_->show();
-			}
+        //peak draw modes
+        if (w2->canvas()->getCurrentLayer().type == LayerData::DT_PEAK)
+        {
+          dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
+          tool_bar_2d_peak_->show();
+          tool_bar_2d_feat_->hide();
+          tool_bar_2d_cons_->hide();
+          tool_bar_2d_ident_->hide();
+        }
+        //feature draw modes
+        else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        {
+          dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
+          dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULL));
+          dm_unassigned_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_UNASSIGNED));
+          dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer().label!=LayerData::L_NONE);
+          tool_bar_2d_peak_->hide();
+          tool_bar_2d_feat_->show();
+          tool_bar_2d_cons_->hide();
+          tool_bar_2d_ident_->hide();
+        }
+        //consensus feature draw modes
+        else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+        {
+          dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
+          tool_bar_2d_peak_->hide();
+          tool_bar_2d_feat_->hide();
+          tool_bar_2d_cons_->show();
+          tool_bar_2d_ident_->hide();
+        }
+        else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_IDENT)
+        {
+          dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::I_PEPTIDEMZ));
+          tool_bar_2d_peak_->hide();
+          tool_bar_2d_feat_->hide();
+          tool_bar_2d_cons_->hide();
+          tool_bar_2d_ident_->show();
+        }
+      }
     }
 
     // 3D
@@ -1917,6 +1927,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     if (layer_row == -1 || cc == 0)
     {
+      // TODO: we need to clean up the SpectraViewWidget & friends
       return;
     }
 
@@ -2096,6 +2107,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	{
 		//do nothing if no window is open
     if (getActiveCanvas()==0) return;
+
+    //do nothing if no layer is loaded into the canvas
+    if (getActiveCanvas()->getLayerCount() == 0) return;
 
 		QMenu* context_menu = new QMenu(filters_);
 
