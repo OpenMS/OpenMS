@@ -59,7 +59,7 @@ using namespace std;
  </table>
  </CENTER>
 
-  This tool performs precusor mz correction on high resolution data.
+  This tool performs precursor mz correction on picked (=centroided) high resolution data.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_HighResPrecursorMassCorrector.cli
@@ -127,16 +127,6 @@ protected:
     vector<double> precursors_rt;  // RT of precursor MS2 spectrum
     getPrecursors_(exp, precursors, precursors_rt);
 
-    // perform peak picking
-    cout << "performing peak picking" << endl;
-    PeakPickerHiRes picker;
-    Param param = picker.getParameters();
-    param.setValue("ms1_only", DataValue("true"));
-    param.setValue("signal_to_noise", 0.1);
-    picker.setParameters(param);
-    PeakMap picked_exp;
-    picker.pickExperiment(exp, picked_exp);
-
     for (Size i = 0; i != precursors_rt.size(); ++i)
     {
       // get precursor rt
@@ -148,13 +138,13 @@ protected:
       //cout << rt << " " << mz << endl;
 
       // get precursor spectrum
-      MSExperiment<Peak1D>::ConstIterator rt_it = picked_exp.RTBegin(rt);
+      MSExperiment<Peak1D>::ConstIterator rt_it = exp.RTBegin(rt);
 
       // store index of MS2 spectrum
-      UInt precursor_spectrum_idx = rt_it - picked_exp.begin();
+      UInt precursor_spectrum_idx = rt_it - exp.begin();
 
       // get parent (MS1) of precursor spectrum
-      rt_it = picked_exp.getPrecursorSpectrum(rt_it);
+      rt_it = exp.getPrecursorSpectrum(rt_it);
 
       if (rt_it->getMSLevel() != 1)
       {
@@ -175,7 +165,7 @@ protected:
       // check if error is small enough
       if (nearestPeakError < 0.1)
       {
-        // sanity check: do we really have the same precursor in the orignal and the picked spectrum
+        // sanity check: do we really have the same precursor in the original and the picked spectrum
         if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
         {
           cout << "Error: index is referencing different precursors in original and picked spectrum." << endl;
