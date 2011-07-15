@@ -53,7 +53,7 @@ using namespace std;
      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
    </tr>
    <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
    </tr>
  </table>
