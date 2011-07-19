@@ -866,6 +866,50 @@ START_SECTION(([MSSpectrum::RTLess] bool operator()(const MSSpectrum &a, const M
   TEST_EQUAL(MSSpectrum<>::RTLess()(s2,s2), false);
 END_SECTION
 
+START_SECTION(([EXTRA] std::ostream& operator << (std::ostream& os, const MSSpectrum<PeakT>& spec)))
+{
+  MSSpectrum<> spec;
+  Peak1D p;
+  p.setIntensity(29.0f); p.setMZ(412.321); spec.push_back(p); //0
+  p.setIntensity(60.0f); p.setMZ(412.824); spec.push_back(p); //1
+  p.setIntensity(34.0f); p.setMZ(413.8);   spec.push_back(p); //2
+  p.setIntensity(29.0f); p.setMZ(414.301); spec.push_back(p); //3
+  p.setIntensity(37.0f); p.setMZ(415.287); spec.push_back(p); //4
+  p.setIntensity(31.0f); p.setMZ(416.293); spec.push_back(p); //5
+  p.setIntensity(31.0f); p.setMZ(418.232); spec.push_back(p); //6
+  p.setIntensity(31.0f); p.setMZ(419.113); spec.push_back(p); //7
+  p.setIntensity(201.0f); p.setMZ(420.13); spec.push_back(p); //8
+  p.setIntensity(56.0f); p.setMZ(423.269); spec.push_back(p); //9
+  p.setIntensity(34.0f); p.setMZ(426.292); spec.push_back(p); //10
+
+  spec.getInstrumentSettings().getScanWindows().resize(1);
+  spec.setMetaValue("label",5.0);
+  spec.setMSLevel(17);
+  spec.setRT(7.0);
+  spec.setName("bla");
+
+  ostringstream test_stream;
+  test_stream << spec;
+
+  TEST_EQUAL(test_stream.str(), "-- MSSPECTRUM BEGIN --\n"
+                                "-- SPECTRUMSETTINGS BEGIN --\n"
+                                "-- SPECTRUMSETTINGS END --\n"
+                                "POS: 412.321 INT: 29\n"
+                                "POS: 412.824 INT: 60\n"
+                                "POS: 413.8 INT: 34\n"
+                                "POS: 414.301 INT: 29\n"
+                                "POS: 415.287 INT: 37\n"
+                                "POS: 416.293 INT: 31\n"
+                                "POS: 418.232 INT: 31\n"
+                                "POS: 419.113 INT: 31\n"
+                                "POS: 420.13 INT: 201\n"
+                                "POS: 423.269 INT: 56\n"
+                                "POS: 426.292 INT: 34\n"
+                                "-- MSSPECTRUM END --\n")
+
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

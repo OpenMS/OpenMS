@@ -628,7 +628,9 @@ namespace OpenMS
 		os << static_cast<const SpectrumSettings&>(spec);
 
 		//peaklist
-		os << static_cast<const typename MSSpectrum<PeakT>::ContainerType&>(spec);
+		for(typename MSSpectrum<PeakT>::ConstIterator it = spec.begin() ; it != spec.end() ; ++it) {
+			os << *it << std::endl;
+		}
 
 		os << "-- MSSPECTRUM END --"<<std::endl;
 
