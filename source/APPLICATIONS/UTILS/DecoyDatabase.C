@@ -66,6 +66,7 @@ class TOPPDecoyDatabase
 			registerOutputFile_("out","<file>","","Output fasta file where the decoy database will be written to.");
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
 			registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
+			registerFlag_("shuffle","If 'true' then the decoy hit are shuffled from the target sequences, eitherwise they are reversed");
 		}
 
 		ExitCodes main_(int , const char**)
@@ -76,6 +77,7 @@ class TOPPDecoyDatabase
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
 			bool append = getFlag_("append");
+			bool shuffle = getFlag_("shuffle");
 			
 			//-------------------------------------------------------------
 			// reading input
@@ -87,30 +89,72 @@ class TOPPDecoyDatabase
 
 			//-------------------------------------------------------------
 			// calculations
-			//-------------------------------------------------------------					
+			//-------------------------------------------------------------
 
 			String decoy_string(getStringOption_("decoy_string"));
 			Size num_proteins = proteins.size();
 			set<String> identifiers;
-			for (Size i = 0; i < num_proteins; ++i)
+			if(shuffle)
 			{
-				if (identifiers.find(proteins[i].identifier) != identifiers.end())
+				for (Size i = 0; i < num_proteins; ++i)
 				{
-					cerr << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
-				}
-				identifiers.insert(proteins[i].identifier);
+					if (identifiers.find(proteins[i].identifier) != identifiers.end())
+					{
+						cerr << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
+					}
+					identifiers.insert(proteins[i].identifier);
 
-				if (append)
-				{
 					FASTAFile::FASTAEntry entry = proteins[i];
-					entry.sequence.reverse();
-					entry.identifier += decoy_string;
-					proteins.push_back(entry);
+
+					UInt x, y;
+					String pro_seq, temp;
+					pro_seq = entry.sequence;
+					x = pro_seq.size();
+					srand(time(0));
+					while(x != 0)
+					{
+						y = rand()%x;
+						temp+=pro_seq[y];
+						pro_seq[y] = pro_seq[x-1];
+						pro_seq = pro_seq.substr(0,(x-1));
+						x--;
+					}
+					entry.sequence = temp;
+
+					if (append)
+					{
+						entry.identifier += decoy_string;
+						proteins.push_back(entry);
+					}
+					else
+					{
+						proteins[i].sequence = entry.sequence;
+						proteins[i].identifier += decoy_string;
+					}
 				}
-				else
+			}
+			if(!shuffle)
+			{
+				for (Size i = 0; i < num_proteins; ++i)
 				{
-					proteins[i].sequence.reverse();
-					proteins[i].identifier += decoy_string;
+					if (identifiers.find(proteins[i].identifier) != identifiers.end())
+					{
+						cerr << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
+					}
+					identifiers.insert(proteins[i].identifier);
+
+					if (append)
+					{
+						FASTAFile::FASTAEntry entry = proteins[i];
+						entry.sequence.reverse();
+						entry.identifier += decoy_string;
+						proteins.push_back(entry);
+					}
+					else
+					{
+						proteins[i].sequence.reverse();
+						proteins[i].identifier += decoy_string;
+					}
 				}
 			}
 			
