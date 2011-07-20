@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_APPLICATIONS_TOPPASBASE_H
@@ -47,6 +47,9 @@ class QLabel;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
+class QWebView;
+class QNetworkAccessManager;
+class QNetworkReply;
 
 namespace OpenMS
 {
@@ -54,7 +57,7 @@ namespace OpenMS
 	class TOPPASScene;
 	class TOPPASTabBar;
 	class TOPPASResources;
-	
+
   /**
   	@brief Main window of the TOPPAS tool
   
@@ -81,7 +84,7 @@ namespace OpenMS
       void loadPreferences(String filename="");
       /// stores the preferences (used when this window is closed)
       void savePreferences();
-			/// loads the files and updates the splashscreen
+			/// loads the files and updates the splash screen
 			void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 
     public slots:    	
@@ -103,6 +106,8 @@ namespace OpenMS
       void loadPipelineResourceFile();
       /// shows a file dialog for selecting the resource file to write to
       void savePipelineResourceFile();
+      /// opens the OpenMS Homepage to download example workflows
+      void openOnlinePipelineRepository();
       /// shows the preferences dialog
       void preferencesDialog();
     	/// changes the current path according to the currently active window/layer
@@ -156,7 +161,7 @@ namespace OpenMS
       void openFilesInTOPPView(QStringList all_files);
     protected slots:
 		
-			/** @name Tabbar slots
+			/** @name Tab bar slots
       */
       //@{
     	/// Closes the window corresponding to the data of the tab with identifier @p id
@@ -174,6 +179,11 @@ namespace OpenMS
 			/// Inserts the @p item in the middle of the current window
 			void insertNewVertexInCenter_(QTreeWidgetItem* item);
 			
+      /// triggered when user clicks a link - if it ends in .TOPPAS we're done
+      void downloadTOPPASfromHomepage_( const QUrl & url );
+      /// triggered when download of .toppas file is finished, so we can store & open it
+      void toppasFileDownloaded_(QNetworkReply* r);
+
     protected:
 
 			/// Log output window
@@ -187,6 +197,11 @@ namespace OpenMS
 
       /// Main workspace
       QWorkspace* ws_;
+
+      /// OpenMS homepage workflow browser
+      QWebView* webview_;
+			/// download .toppas files from homepage
+      QNetworkAccessManager* network_manager_;
 
       ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
       TOPPASTabBar* tab_bar_;

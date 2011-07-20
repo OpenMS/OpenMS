@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
@@ -70,6 +70,11 @@
 #include <QtCore/QDir>
 #include <QtCore/QSet>
 #include <QtCore/QMap>
+
+#include <QWebView>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QTextStream>
 
 using namespace std;
 
@@ -127,6 +132,7 @@ namespace OpenMS
 		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
 		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Include",this,SLOT(includePipeline()), Qt::CTRL+Qt::Key_I);
+    file->addAction("&Online examples",this,SLOT(openOnlinePipelineRepository()), Qt::CTRL+Qt::Key_E);
     file->addAction("&Save",this,SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
     file->addAction("Save &As",this,SLOT(saveCurrentPipelineAs()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
 		file->addAction("Refresh &parameters",this,SLOT(refreshParameters()), Qt::CTRL+Qt::SHIFT+Qt::Key_P);
@@ -212,6 +218,16 @@ namespace OpenMS
 		tmp_path_ =  File::getTempDirectory() + String(QDir::separator()) + File::getUniqueName();
     QDir qd;qd.mkpath(tmp_path_.toQString());
 		
+    // online browser
+    webview_ = new QWebView(parent);
+    webview_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+
+    connect((webview_->page()), SIGNAL(linkClicked(const QUrl&) ), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &) ) );
+
+    network_manager_ = new QNetworkAccessManager(this);
+    connect(network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(toppasFileDownloaded_(QNetworkReply*)));
+
+
   	//update the menu
   	updateMenu();
 	}
@@ -219,6 +235,42 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
   	savePreferences();
+  }
+
+  void TOPPASBase::toppasFileDownloaded_(QNetworkReply* r)
+  {
+    QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString());
+    QByteArray data = r->readAll();
+    
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+
+    QTextStream out(&file);
+    out << data;
+    file.close();
+    r->deleteLater();
+
+    this->addTOPPASFile(filename);
+
+  }
+
+  void TOPPASBase::downloadTOPPASfromHomepage_( const QUrl & url )
+  {
+    log_->append("clicked link:");
+    log_->append(url.toString());
+    if (url.toString().endsWith(QString(".toppas"), Qt::CaseInsensitive))
+    {
+      network_manager_->get(QNetworkRequest(url));
+      log_->append("Downloading file ...");
+      webview_->close();
+    }
+  }
+
+
+  void TOPPASBase::openOnlinePipelineRepository()
+  {
+    webview_->load(QUrl("http://www.OpenMS.de/TOPPAS/"));
+    webview_->show();
   }
 
   //static
