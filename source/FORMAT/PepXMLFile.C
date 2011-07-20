@@ -353,7 +353,7 @@ namespace OpenMS
 				{
 					FileHandler().loadExperiment(experiment_name, experiment);
 				}
-				catch (Exception::FileNotFound ex)
+				catch (Exception::FileNotFound& ex)
 				{
 					warning(LOAD, String(ex.getMessage()) +	"; parsing pepXML without reference to the experiment");
 				}

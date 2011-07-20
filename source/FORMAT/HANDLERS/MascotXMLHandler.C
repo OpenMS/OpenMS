@@ -139,7 +139,7 @@ namespace OpenMS
 				{
 					already_stored = true;
 				}
-				it++;
+				++it;
 			}
 			if (!already_stored)
 			{
@@ -149,7 +149,7 @@ namespace OpenMS
 			}
 			else
 			{
-				it--;
+				--it;
 				it->addProteinAccession(actual_protein_hit_.getAccession());
 				id_data_[peptide_identification_index_].setHits(temp_peptide_hits);
 			}

@@ -358,7 +358,7 @@ namespace OpenMS
 		ContainerType::reverse_iterator riter = distribution_.rbegin();
 
 		// loop from right to left until an entry is larger than the cutoff
-		for ( ; riter != distribution_.rend(); riter++ )
+		for ( ; riter != distribution_.rend(); ++riter )
 		{
 			if ( riter->second >= cutoff ) break;
 		}
@@ -368,7 +368,7 @@ namespace OpenMS
 
 	void IsotopeDistribution::trimLeft(DoubleReal cutoff)
 	{
-		for (ContainerType::iterator iter = distribution_.begin() ; iter != distribution_.end(); iter++ )
+		for (ContainerType::iterator iter = distribution_.begin() ; iter != distribution_.end(); ++iter )
 		{
 			if ( iter->second >= cutoff )
 			{

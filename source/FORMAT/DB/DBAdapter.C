@@ -487,7 +487,7 @@ namespace OpenMS
 		}
 		
 		// recursively save subsamples
-		for (std::vector<Sample>::const_iterator sample_it = sample.getSubsamples().begin(); sample_it != sample.getSubsamples().end(); sample_it++)
+		for (std::vector<Sample>::const_iterator sample_it = sample.getSubsamples().begin(); sample_it != sample.getSubsamples().end(); ++sample_it)
 		{
 			storeSample_ (*sample_it, exp_id, parent_id);
 		}

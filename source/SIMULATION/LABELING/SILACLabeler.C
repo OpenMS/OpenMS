@@ -78,7 +78,7 @@ namespace OpenMS
     {
       ModificationsDB::getInstance()->searchModifications(modifications,mod_name,ResidueModification::ANYWHERE);
     }
-    catch (Exception::ElementNotFound ex)
+		catch (Exception::ElementNotFound& ex)
     {
       // nothing to clean up here
       ex.setMessage("The modification \"" + mod_name + "\" could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)");

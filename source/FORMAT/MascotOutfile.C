@@ -147,7 +147,7 @@ namespace OpenMS
 		// (1.1) parse for precursor values
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
-				indices_iterator++)
+				++indices_iterator)
 		{
 			it = f.search("qexp" + String(indices_iterator->first) + "=");
 			if (it == f.end())
@@ -176,7 +176,7 @@ namespace OpenMS
 		// (1.2) parse for peptide significance threshold
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
-				indices_iterator++)
+				++indices_iterator)
 		{
 			it = f.search("qplughole" + String(indices_iterator->first) + "=");
 			if (it == f.end())
@@ -190,7 +190,7 @@ namespace OpenMS
 		}
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
-				indices_iterator++)
+				++indices_iterator)
 		{
 			it = f.search("qmatch" + String(indices_iterator->first) + "=");
 			if (it == f.end())
@@ -245,7 +245,7 @@ namespace OpenMS
 							temp_scores.push_back(0);
 						}
 						protein_map.insert(make_pair(temp_identifier, temp_scores));
-						it++;
+						++it;
 		  		}	  			
 					else
 					{
@@ -264,7 +264,7 @@ namespace OpenMS
   	// (2.2) parse for PeptideHit information
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
-				indices_iterator++)
+				++indices_iterator)
 		{
 			i = indices_iterator->first;
 			j = 1;
@@ -390,7 +390,7 @@ namespace OpenMS
 		UInt count = 0;
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
-				indices_iterator++)
+				++indices_iterator)
 		{
   		it = f.searchSuffix(String("\"query") + indices_iterator->first + "\"", true);	
 			if (it!=f.end())
@@ -412,7 +412,7 @@ namespace OpenMS
 		protein_identification.setScoreType("Mascot");
 		for(map<String, vector<Real> >::iterator protein_map_iterator = protein_map.begin();
 				protein_map_iterator != protein_map.end();
-				protein_map_iterator++)
+				++protein_map_iterator)
 		{
 
 			if (protein_map_iterator->second[2] > 0.9)

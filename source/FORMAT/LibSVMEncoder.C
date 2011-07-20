@@ -115,7 +115,7 @@ namespace OpenMS
 		
 		for(vector_iterator = feature_vector.begin(); 
 				vector_iterator != feature_vector.end(); 
-				vector_iterator++)
+				++vector_iterator)
 		{
 			nodes[i].index = vector_iterator->first;
 			nodes[i].value = vector_iterator->second;

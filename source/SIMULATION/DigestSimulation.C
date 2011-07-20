@@ -115,7 +115,7 @@ namespace OpenMS {
 				// copy intensity meta-values from Protein to Feature
 				StringList keys;
 				protein_hit->getKeys(keys);
-				for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+				for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
 				{
 					f.setMetaValue(*it_key, protein_hit->getMetaValue(*it_key)); 
 				}
@@ -171,7 +171,7 @@ namespace OpenMS {
 			Map<String, SimIntensityType> intensities;
 			StringList keys;
 			protein_hit->getKeys(keys);
-			for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+			for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
 			{
 				if (!it_key->hasPrefix("intensity")) continue;
 				intensities[*it_key] = std::max(SimIntensityType(1), SimIntensityType(protein_hit->getMetaValue(*it_key)) 
