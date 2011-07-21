@@ -128,20 +128,20 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
-    file->addAction("&New",this,SLOT(newPipeline()), Qt::CTRL+Qt::Key_N);
-		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
-		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
-    file->addAction("&Include",this,SLOT(includePipeline()), Qt::CTRL+Qt::Key_I);
-    file->addAction("&Online examples",this,SLOT(openOnlinePipelineRepository()), Qt::CTRL+Qt::Key_E);
-    file->addAction("&Save",this,SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
-    file->addAction("Save &As",this,SLOT(saveCurrentPipelineAs()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
-		file->addAction("Refresh &parameters",this,SLOT(refreshParameters()), Qt::CTRL+Qt::SHIFT+Qt::Key_P);
-    file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
+    file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL+Qt::Key_N);
+		file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL+Qt::Key_E);
+		file->addAction("&Open", this, SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL+Qt::Key_I);
+    file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL+Qt::Key_R);
+    file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
+    file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+		file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL+Qt::SHIFT+Qt::Key_P);
+    file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
-    file->addAction("&Load TOPPAS resource file",this,SLOT(loadPipelineResourceFile()));
-    file->addAction("Save TOPPAS &resource file",this,SLOT(savePipelineResourceFile()));
+    file->addAction("&Load TOPPAS resource file", this, SLOT(loadPipelineResourceFile()));
+    file->addAction("Sa&ve TOPPAS resource file", this, SLOT(savePipelineResourceFile()));
     file->addSeparator();
-    file->addAction("&Quit",qApp,SLOT(quit()));
+    file->addAction("&Quit", qApp, SLOT(quit()));
 
     //Advanced menu
     //QMenu* advanced = new QMenu("&Advanced",this);
@@ -220,7 +220,7 @@ namespace OpenMS
 		
     // online browser
     webview_ = new QWebView(parent);
-    webview_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+    webview_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks); // now linkClicked() is emitted
 
     connect((webview_->page()), SIGNAL(linkClicked(const QUrl&) ), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &) ) );
 
@@ -240,29 +240,36 @@ namespace OpenMS
   void TOPPASBase::toppasFileDownloaded_(QNetworkReply* r)
   {
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString());
-    QByteArray data = r->readAll();
-    
     QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+      showLogMessage_(LS_NOTICE, "Download aborted by user!", "");
+      return;
+    }
 
+    QByteArray data = r->readAll();
     QTextStream out(&file);
     out << data;
     file.close();
     r->deleteLater();
 
     this->addTOPPASFile(filename);
-
+    showLogMessage_(LS_NOTICE, "File successfully downloaded to '" + filename + "'.", "");
   }
 
   void TOPPASBase::downloadTOPPASfromHomepage_( const QUrl & url )
   {
-    log_->append("clicked link:");
-    log_->append(url.toString());
     if (url.toString().endsWith(QString(".toppas"), Qt::CaseInsensitive))
     {
       network_manager_->get(QNetworkRequest(url));
-      log_->append("Downloading file ...");
+      showLogMessage_(LS_NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
       webview_->close();
+    }
+    else
+    {
+      QMessageBox::warning(this, tr("Error"), tr("You can only click '.toppas' files on this page. No navigation is allowed!\n"));
+      webview_->setFocus();
+      webview_->activateWindow();
     }
   }
 

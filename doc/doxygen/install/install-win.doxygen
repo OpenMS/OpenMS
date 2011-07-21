@@ -69,7 +69,7 @@
           <LI>extract zip file
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <LI>$ cd <path-to-qt>
-          <LI>$ configure.exe -no-phonon-backend -no-webkit -no-script
+          <LI>$ configure.exe -no-phonon-backend -no-script
           <LI>$ nmake
           <LI>now you should have Link-Libraries and DLL's (debug and release) in your &lt;Qt&gt;/lib directory
         </OL>

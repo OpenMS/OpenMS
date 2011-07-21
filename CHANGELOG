@@ -1,7 +1,8 @@
 ------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.9                                      ---- 
 ------------------------------------------------------------------------------------------ 
-	 
+
+
 TOPP tools: 
  
 UTIL tools: 
@@ -11,9 +12,12 @@ OpenMS library improvements:
 TOPPView improvements: 
 	 
 TOPPAS improvements: 
+	- TOPPAS now used the QT-Webkit framework to allow for interactive download of preconfigured TOPPAS pipelines.
 	 
 Changes to the Build System: 
- 
+	- TOPPAS now requires Qt's Webkit library
+	
+	
 Fixed Issues: 
 	 
 Detailed list of changes to specific OpenMS classes:
