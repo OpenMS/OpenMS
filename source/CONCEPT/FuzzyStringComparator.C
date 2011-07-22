@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl, Stephan Aiche $
+// $Authors: Clemens Groepl, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
@@ -33,40 +33,34 @@
 namespace OpenMS
 {
 
-  FuzzyStringComparator::FuzzyStringComparator()
-    :
-    log_dest_(&std::cout),
-    input_1_name_("input_1"),
-    input_2_name_("input_2"),
-    line_1_(),
-    line_2_(),
-    ratio_max_allowed_(1.0),
-    ratio_max_(1.0),
-    absdiff_max_allowed_(0.0),
-    absdiff_max_(0.0),
-    number_1_(0),
-    letter_1_(0),
-    is_number_1_(false),
-    is_space_1_(false),
-    number_2_(0),
-    letter_2_(0),
-    is_number_2_(false),
-    is_space_2_(false),
-    is_absdiff_small_(false),
-    line_num_1_(0),
-    line_num_2_(0),
-    line_num_1_max_(-1),
-    line_num_2_max_(-1),
-    verbose_level_(2),
-		tab_width_(8),
-		first_column_(1),
-    is_status_success_(true),
-    line_str_1_max_(),
-    line_str_2_max_(),
-		use_prefix_(false),
-		whitelist_(),
-		whitelist_cases_()
-  {
+	FuzzyStringComparator::FuzzyStringComparator()
+		:
+			log_dest_(&std::cout),
+			input_1_name_("input_1"),
+			input_2_name_("input_2"),
+			input_line_1_(),
+			input_line_2_(),
+			line_num_1_(0),
+			line_num_2_(0),
+			line_num_1_max_(-1),
+			line_num_2_max_(-1),
+			line_str_1_max_(),
+			line_str_2_max_(),
+			ratio_max_allowed_(1.0),
+			ratio_max_(1.0),
+			absdiff_max_allowed_(0.0),
+			absdiff_max_(0.0),
+			element_1_(),
+			element_2_(),
+			is_absdiff_small_(false),
+			verbose_level_(2),
+			tab_width_(8),
+			first_column_(1),
+			is_status_success_(true),
+			use_prefix_(false),
+			whitelist_(),
+			whitelist_cases_()
+	{
 	}
 
   FuzzyStringComparator::~FuzzyStringComparator(){}
@@ -80,41 +74,8 @@ namespace OpenMS
 
     if ( verbose_level_ >= 1 )
     {
- 			int line_1_col = 0;
-			OpenMS::String pre1(line_1_.str());
-			pre1 = pre1.prefix(size_t(line_1_pos_));
-			OpenMS::String pre1_white(pre1);
-			for ( String::iterator iter = pre1_white.begin(); iter != pre1_white.end(); ++iter )
-			{
-				if ( *iter != '\t' )
-				{
-					*iter = ' ';
-					++line_1_col;
-				}
-				else
-				{
-					line_1_col = (line_1_col/tab_width_+1)*tab_width_;
-				}
-			}
-			line_1_col += first_column_;
-
-			int line_2_col = 0;
-			OpenMS::String pre2(line_2_.str());
-			pre2 = pre2.prefix(size_t(line_2_pos_));
-			OpenMS::String pre2_white(pre2);
-			for ( String::iterator iter = pre2_white.begin(); iter != pre2_white.end(); ++iter )
-			{
-				if ( *iter != '\t' )
-				{
-					*iter = ' ';
-					++line_2_col;
-				}
-				else
-				{
-					line_2_col = (line_2_col/tab_width_+1)*tab_width_;
-				}
-			}
-			line_2_col += first_column_;
+			PrefixInfo_ prefix1(input_line_1_, tab_width_, first_column_);
+			PrefixInfo_ prefix2(input_line_2_, tab_width_, first_column_);
 
 			std::string prefix;
 			if ( use_prefix_ )
@@ -127,14 +88,14 @@ namespace OpenMS
 				prefix << "\n" <<
 				prefix << "  input:\tin1\tin2\n" <<
 				prefix << "  line:\t" << line_num_1_ << '\t' << line_num_2_ << "\n" <<
-				prefix << "  pos/col:\t" << line_1_pos_ << '/' << line_1_col << '\t' << line_2_pos_ << '/' << line_2_col << "\n" <<
+				prefix << "  pos/col:\t" << input_line_1_.line_position_ << '/' << prefix1.line_column << '\t' << input_line_2_.line_position_ << '/' << prefix2.line_column << "\n" <<
 				prefix << " --------------------------------\n" <<
-				prefix << "  is_number:\t" << is_number_1_ << '\t' << is_number_2_ << "\n" <<
-				prefix << "  numbers:\t" << number_1_ << '\t' << number_2_ << "\n" <<
-				prefix << "  is_space:\t" << is_space_1_ << '\t' << is_space_2_ << "\n" <<
-				prefix << "  is_letter:\t" << (!is_number_1_&&!is_space_1_) << '\t' << (!is_number_2_&&!is_space_2_) << "\n" <<
-				prefix << "  letters:\t\"" << letter_1_ << "\"\t\"" << letter_2_ << "\"\n" <<
-				prefix << "  char_codes:\t" << static_cast<UInt>(letter_1_) << "\t" << static_cast<UInt>(letter_2_) << "\n" <<
+				prefix << "  is_number:\t" << element_1_.is_number << '\t' << element_2_.is_number << "\n" <<
+				prefix << "  numbers:\t" << element_1_.number << '\t' << element_2_.number << "\n" <<
+				prefix << "  is_space:\t" << element_1_.is_space << '\t' << element_2_.is_space << "\n" <<
+				prefix << "  is_letter:\t" << (!element_1_.is_number&&!element_1_.is_space) << '\t' << (!element_2_.is_number&&!element_2_.is_space) << "\n" <<
+				prefix << "  letters:\t\"" << element_1_.letter << "\"\t\"" << element_2_.letter << "\"\n" <<
+				prefix << "  char_codes:\t" << static_cast<UInt>(element_1_.letter) << "\t" << static_cast<UInt>(element_2_.letter) << "\n" <<
 				prefix << " --------------------------------\n" <<
 				prefix << "  relative_max:        " << ratio_max_ << "\n" <<
 				prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
@@ -148,17 +109,17 @@ namespace OpenMS
 				<< prefix << "\n"
 				<< prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
 				<< prefix << "\n"
-				<< prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << line_1_pos_ << '/' << line_1_col << ")\n"
-				<< prefix << pre1 << "!\n"
-				<< prefix << pre1_white << OpenMS::String(line_1_.str()).suffix(line_1_.str().size()-pre1.size()) << "\n"
+				<< prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+				<< prefix << prefix1.prefix << "!\n"
+				<< prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size()-prefix1.prefix.size()) << "\n"
 				<< prefix <<  "\n"
-				<< prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << line_2_pos_ << '/' << line_2_col << ")\n"
-				<< prefix << pre2 << "!\n"
-				<< prefix << pre2_white << OpenMS::String(line_2_.str()).suffix(line_2_.str().size()-pre2.size()) << "\n"
+				<< prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+				<< prefix << prefix2.prefix << "!\n"
+				<< prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size()-prefix2.prefix.size()) << "\n"
 				<< prefix << "\n\n"
         << "Easy Access:" << "\n"
-				<< QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << line_1_col << ":\n"
-				<< QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << line_2_col << ":\n"
+				<< QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+				<< QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
 				<< "\n"
 #ifdef WIN32
         << "TortoiseMerge"
@@ -244,81 +205,23 @@ namespace OpenMS
 			}
 		}
 
-    line_1_.str(line_str_1);
-    line_1_.seekp(0);
-    line_1_.clear();
-		line_1_.unsetf(std::ios::skipws);
-
-    line_2_.str(line_str_2);
-    line_2_.seekp(0);
-    line_2_.clear();
-		line_2_.unsetf(std::ios::skipws);
+		input_line_1_.setToString(line_str_1);
+		input_line_2_.setToString(line_str_2);
 
     try
     {
-      while ( line_1_ && line_2_ )
+			while ( input_line_1_ && input_line_2_ )
       {
-				is_number_1_ = false;
-				is_number_2_ = false;
-				is_space_1_ = false;
-				is_space_2_ = false;
-				letter_1_ = '\0';
-				letter_2_ = '\0';
-				number_1_ = std::numeric_limits<double>::quiet_NaN();
-				number_2_ = std::numeric_limits<double>::quiet_NaN();
+				element_1_.fillFromInputLine(input_line_1_);
+				element_2_.fillFromInputLine(input_line_2_);
 
-				line_1_pos_ = line_1_.tellg(); // save current reading position
-				line_1_ >> letter_1_; // read letter
-				// std::cout << ":::" << letter_1_ << line_1_pos_ << std::endl;
-				if ( ( is_space_1_ = (isspace(letter_1_)!=0) ) ) // is whitespace?
+				if ( element_1_.is_number )
 				{
-					line_1_ >> std::ws; // skip over further whitespace
-				}
-				else
-				{
-					line_1_.seekg(line_1_pos_); // rewind to saved position
-					if ( ( is_number_1_ = ( ( line_1_ >> number_1_ )!=0) ) ) // is a number?
-					{
-						// letter_1_ = '\0';
-						// std::cout << line_1_pos_ << std::endl;
-					}
-					else
-					{
-						line_1_.clear(); // reset status
-						line_1_.seekg(line_1_pos_); // rewind to saved position
-						line_1_ >> letter_1_; // read letter
-					}
-				}
-
-				line_2_pos_ = line_2_.tellg(); // save current reading position
-				line_2_ >> letter_2_; // read letter
-				if ( ( is_space_2_ = ( isspace(letter_2_)!=0 ) ) ) // is whitespace?
-				{
-					line_2_ >> std::ws; // skip over further whitespace
-				}
-				else
-				{
-					line_2_.seekg(line_2_pos_); // rewind to saved position
-					if ( ( is_number_2_ = ( ( line_2_ >> number_2_ )!=0) ) ) // is a number?
-					{
-						// letter_2_ = '\0';
-					}
-					else
-					{
-						line_2_.clear(); // reset status
-						line_2_.seekg(line_2_pos_); // rewind to saved position
-						line_2_ >> letter_2_; // read letter
-					}
-				}
-
-
-				if ( is_number_1_ )
-				{
-					if ( is_number_2_ )
+					if ( element_2_.is_number )
 					{ // we are comparing numbers
 
 						// check if absolute difference is small
-						double absdiff = number_1_ - number_2_;
+						double absdiff = element_1_.number - element_2_.number;
 						if ( absdiff < 0 )
 						{
 							absdiff = -absdiff;
@@ -334,9 +237,9 @@ namespace OpenMS
 						// error even in case of a successful comparison.
 						is_absdiff_small_ = ( absdiff <= absdiff_max_allowed_ );
 
-						if ( !number_1_ )
-						{ // number_1_ is zero
-							if (!number_2_ )
+						if ( !element_1_.number )
+						{ // element_1_.number_ is zero
+							if (!element_2_.number )
 							{ // both numbers are zero
 								continue;
 							}
@@ -344,24 +247,24 @@ namespace OpenMS
 							{
 								if ( !is_absdiff_small_ )
 								{
-									reportFailure_("number_1_ is zero, but number_2_ is not");
+									reportFailure_("element_1_.number_ is zero, but element_2_.number_ is not");
 									continue;
 								}
 							}
 						}
 						else
-						{ // number_1_ is not zero
-							if ( !number_2_ )
+						{ // element_1_.number_ is not zero
+							if ( !element_2_.number )
 							{
 								if ( !is_absdiff_small_ )
 								{
-									reportFailure_("number_1_ is not zero, but number_2_ is");
+									reportFailure_("element_1_.number_ is not zero, but element_2_.number_ is");
 									continue;
 								}
 							}
 							else
 							{ // both numbers are not zero
-								double ratio = number_1_ / number_2_;
+								double ratio = element_1_.number / element_2_.number;
 								if ( ratio < 0 )
 								{
 									if ( !is_absdiff_small_ )
@@ -407,26 +310,26 @@ namespace OpenMS
 				}
 				else
 				{ // input_1 is not a number
-					if ( is_number_2_ )
+					if ( element_2_.is_number )
 					{
 						reportFailure_("input_1 is not a number, but input_2 is");
 						continue;
 					}
 					else
 					{ // ok, both inputs are not numbers, let us compare them as characters or whitespace
-						if ( is_space_1_ )
+						if ( element_1_.is_space )
 						{
-							if ( is_space_2_ )
+							if ( element_2_.is_space )
 							{ // ok, both inputs are whitespace
 								continue;
 							}
 							else
 							{
-                if ( letter_1_ == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
+								if ( element_1_.letter == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
                 {
 									// we skip over '\r'
-									line_2_.clear(); // reset status
-									line_2_.seekg(line_2_pos_); // rewind to saved position
+									input_line_2_.line_.clear(); // reset status
+									input_line_2_.line_.seekg(input_line_2_.line_position_); // rewind to saved position
                   continue;
 									//reportFailure_("input_1 is carriage return, but input_2_ is not whitespace");
                 }
@@ -439,13 +342,13 @@ namespace OpenMS
 						}
 						else
 						{ // input_1 is not whitespace
-							if ( is_space_2_ )
+							if ( element_2_.is_space )
 							{
-							  if ( letter_2_ == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
+								if ( element_2_.letter == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
 							  {
 									// we skip over '\r'
-									line_1_.clear(); // reset status
-									line_1_.seekg(line_1_pos_); // rewind to saved position
+									input_line_1_.line_.clear(); // reset status
+									input_line_1_.line_.seekg(input_line_1_.line_position_); // rewind to saved position
 									continue;
 							    //reportFailure_("input_1 is not whitespace, but input_2 is carriage return");
 							  }
@@ -457,7 +360,7 @@ namespace OpenMS
 							}
 							else
 							{ // both inputs are neither numbers nor whitespace, let us compare them as characters
-								if ( letter_1_ == letter_2_ )
+								if ( element_1_.letter == element_2_.letter )
 								{ // ok, same characters
 									continue;
 								}
@@ -483,12 +386,12 @@ namespace OpenMS
 					 "please report this bug along with the data that produced it."
 					);
 
-      } // while ( line_1_ || line_2_ )
-			if ( line_1_ && !line_2_ )
+			} // while ( input_line_1_ || input_line_2_ )
+			if ( input_line_1_ && !input_line_2_ )
 			{
 				reportFailure_("line from input_2 is shorter than line from input_1");
 			}
-			if ( !line_1_ && line_2_ )
+			if ( !input_line_1_ && input_line_2_ )
 			{
 				reportFailure_("line from input_1 is shorter than line from input_2");
 			}
@@ -506,39 +409,7 @@ namespace OpenMS
 		std::istringstream input_1(lhs);
 		std::istringstream input_2(rhs);
 
-    std::string line_str_1;
-    std::string line_str_2;
-
-    while ( input_1 || input_2 )
-    {
-
-			// read the next line in both input streams, skipping over empty lines
-			// and lines consisting of whitespace only
-
-			for ( line_str_1.clear(); ++line_num_1_, std::getline(input_1,line_str_1); )
-			{
-				if ( line_str_1.empty() ) continue; // shortcut
-				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
-				for ( ; iter != line_str_1.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
-				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
-			}
-
-			for ( line_str_2.clear(); ++line_num_2_, std::getline(input_2,line_str_2); )
-			{
-				if ( line_str_2.empty() ) continue; // shortcut
-				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
-				for ( ; iter != line_str_2.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
-				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
-			}
-
-			// compare the two lines of input
-			if ( !compareLines_(line_str_1, line_str_2) && verbose_level_ < 3 ) break;
-
-    } // while ( input_1 || input_2 )
-
-		reportSuccess_();
-
-		return is_status_success_;
+		return compareStreams(input_1,input_2);
 
   } // compareStrings()
 
@@ -550,26 +421,10 @@ namespace OpenMS
     while ( input_1 || input_2 )
     {
 
-			// read the next line in both input streams, skipping over
-			// - empty lines
-			// - lines consisting of whitespace only
-
-			for ( line_str_1.clear(); ++line_num_1_, std::getline(input_1,line_str_1); )
-			{
-				if ( line_str_1.empty() ) continue; // shortcut
-				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
-				for ( ; iter != line_str_1.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
-				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
-			}
+			readNextLine_(input_1,line_str_1,line_num_1_);
 			//std::cout << "eof: " << input_1.eof() << " failbit: " << input_1.fail() << " badbit: " << input_1.bad() << " reading " << input_1.tellg () << "chars\n";
 
-			for ( line_str_2.clear(); ++line_num_2_, std::getline(input_2,line_str_2); )
-			{
-				if ( line_str_2.empty() ) continue; // shortcut
-				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
-				for ( ; iter != line_str_2.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
-				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
-			}
+			readNextLine_(input_2,line_str_2,line_num_2_);
 			//std::cout << "eof: " << input_2.eof() << " failbit: " << input_2.fail() << " badbit: " << input_2.bad() << " reading " << input_2.tellg () << "chars\n";
 
 			// compare the two lines of input
@@ -583,9 +438,20 @@ namespace OpenMS
 
   } // compareStreams()
 
+
+	void FuzzyStringComparator::readNextLine_(std::istream &input_stream, std::string &line_string, int &line_number) const
+	{
+		for ( line_string.clear(); ++line_number, std::getline(input_stream,line_string); )
+		{
+			if ( line_string.empty() ) continue; // shortcut
+			std::string::const_iterator iter = line_string.begin(); // loop initialization
+			for ( ; iter != line_string.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
+			if ( iter != line_string.end() ) break; // line is not empty or whitespace only
+		}
+	}
+
 	bool FuzzyStringComparator::compareFiles(const std::string & filename_1, const std::string & filename_2)
   {
-
 		input_1_name_ = filename_1;
 		input_2_name_ = filename_2;
 
@@ -595,23 +461,11 @@ namespace OpenMS
 			return false;
 		}
 
-		std::ifstream  input_1_f;
-		input_1_f.open(input_1_name_.c_str(), std::ios::in | std::ios::binary);
-		if ( !input_1_f )
-		{
-			*log_dest_ << "Error opening first input file '" << input_1_name_ <<"'.\n";
-			return false;
-		}
-		input_1_f.unsetf(std::ios::skipws);
+		std::ifstream input_1_f;
+		if(!openInputFileStream_(input_1_name_,input_1_f)) return false;
 
-		std::ifstream  input_2_f;
-		input_2_f.open(input_2_name_.c_str(), std::ios::in | std::ios::binary);
-		if ( !input_2_f )
-		{
-			*log_dest_ << "Error opening second input file '" << input_2_name_ <<"'.\n";
-			return false;
-		}
-		input_2_f.unsetf(std::ios::skipws);
+		std::ifstream input_2_f;
+		if(!openInputFileStream_(input_2_name_,input_2_f)) return false;
 
 		//------------------------------------------------------------
 		// main loop
@@ -622,6 +476,17 @@ namespace OpenMS
 
 	} // compareFiles()
 
+	bool FuzzyStringComparator::openInputFileStream_(const std::string & filename, std::ifstream& input_stream) const
+	{
+		input_stream.open(filename.c_str(), std::ios::in | std::ios::binary);
+		if ( !input_stream )
+		{
+			*log_dest_ << "Error opening first input file '" << filename <<"'.\n";
+			return false;
+		}
+		input_stream.unsetf(std::ios::skipws);
+		return true;
+	}
 
 	void FuzzyStringComparator::writeWhitelistCases_(const std::string& prefix) const
 	{

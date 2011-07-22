@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl, Stephan Aiche $
+// $Authors: Clemens Groepl, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_FUZZYSTRINGCOMPARATOR_H
@@ -303,19 +303,79 @@ namespace OpenMS
 			/// Write info about hits in the whitelist
 			void writeWhitelistCases_(const std::string& prefix) const;
 
+			/// read the next line in input stream, skipping over empty lines
+			/// and lines consisting of whitespace only
+			void readNextLine_(std::istream& input_stream, std::string& line_string, int& line_number) const;
+
+			/// opens and checks an input file stream std::ifstream
+			bool openInputFileStream_(const std::string & filename, std::ifstream& input_stream) const;
+
       /// Log and results output goes here
       std::ostream * log_dest_;
 
-      /// input_1 name
+			/// Name of first input e.g., filename
       std::string input_1_name_;
-      /// input_2 name
+			/// Name of second input e.g., filename
       std::string input_2_name_;
 
-      std::stringstream line_1_;
-      std::stringstream line_2_;
+			/// Stores information about the current input line (i.e., stream for the line and the current position in the stream)
+			struct InputLine {
+				std::stringstream line_;
+				std::ios::pos_type line_position_;
 
-      std::ios::pos_type line_1_pos_;
-      std::ios::pos_type line_2_pos_;
+				InputLine()
+					: line_()
+				{
+				}
+
+				/// Initialize the input line to the passed string
+				void setToString(const std::string & s)
+				{
+					line_.str(s);
+					line_.seekp(0);
+					line_.clear();
+					line_.unsetf(std::ios::skipws);
+
+					line_position_ = line_.tellg();
+				}
+
+				/// Save current position of the stream
+				void updatePosition()
+				{
+					line_position_ = (Int(line_.tellg()) != -1 ? line_.tellg() : std::ios::pos_type(line_.str().length())); // save current reading position
+				}
+
+				/// Resets the stream to the last saved position
+				void seekGToSavedPosition()
+				{
+					line_.clear(); // reset status
+					line_.seekg(line_position_); // rewind to saved position
+				}
+
+				/**
+					Convert to pointer
+
+					The pointer returned is not intended to be referenced, it just indicates success when none of the error flags are set.
+
+					@return	null pointer if either failbit or badbit of the nested std::stringstream is set. A non-null pointer otherwise.
+					*/
+				operator void * ( ) const
+				{
+					return line_.operator void *();
+				}
+			};
+
+			InputLine input_line_1_;
+			InputLine input_line_2_;
+
+			int line_num_1_;
+			int line_num_2_;
+
+			int line_num_1_max_;
+			int line_num_2_max_;
+
+			std::string line_str_1_max_;
+			std::string line_str_2_max_;
 
       /// Maximum ratio of numbers allowed, see @em ratio_max_.
       double ratio_max_allowed_;
@@ -329,23 +389,90 @@ namespace OpenMS
       /// Maximum difference of numbers observed so far, see @em absdiff_max_allowed_.
       double absdiff_max_;
 
-      double number_1_;
-      unsigned char letter_1_;
-      bool is_number_1_;
-      bool is_space_1_;
+			struct StreamElement_ {
+				double number;
+				unsigned char letter;
+				bool is_number;
+				bool is_space;
 
-      double number_2_;
-      unsigned char letter_2_;
-      bool is_number_2_;
-      bool is_space_2_;
+				StreamElement_()
+					:	number(0),
+						letter(0),
+						is_number(false),
+						is_space(false)
+				{}
+
+				/// reset all elements of the element to default value
+				void reset()
+				{
+					is_number = false;
+					is_space = false;
+					letter = '\0';
+					number = std::numeric_limits<double>::quiet_NaN();
+				}
+
+
+				/// Read the next element from an InputLine and update the InputLine accordingly
+				void fillFromInputLine(InputLine& input_line )
+				{
+					// first reset all internal variables so we do not mess with
+					// old values
+					reset();
+
+					input_line.updatePosition();
+					input_line.line_ >> letter; // read letter
+					if ( ( is_space = (isspace(letter)!=0) ) ) // is whitespace?
+					{
+						input_line.line_ >> std::ws; // skip over further whitespace
+					}
+					else
+					{
+						input_line.seekGToSavedPosition();
+						if ( ( is_number = ( ( input_line.line_ >> number )!=0) ) ) // is a number?
+						{
+						}
+						else
+						{
+							input_line.seekGToSavedPosition();
+							input_line.line_ >> letter; // read letter
+						}
+					}
+				}
+			};
+
+			/// Stores information about characters, numbers, and whitesspaces loaded from the first input stream
+			StreamElement_ element_1_;
+			/// Stores information about characters, numbers, and whitesspaces loaded from the second input stream
+			StreamElement_ element_2_;
+
+			/// Wrapper for the prefix information computed for the failure report
+			struct PrefixInfo_ {
+				OpenMS::String prefix;
+				OpenMS::String prefix_whitespaces;
+				int line_column;
+
+				PrefixInfo_(const InputLine& input_line, const int tab_width_, const int first_column_)
+					: prefix(input_line.line_.str()), line_column(0)
+				{
+					prefix = prefix.prefix( size_t(input_line.line_position_) );
+					prefix_whitespaces = prefix;
+					for ( String::iterator iter = prefix_whitespaces.begin(); iter != prefix_whitespaces.end(); ++iter )
+					{
+						if ( *iter != '\t' )
+						{
+							*iter = ' ';
+							++line_column;
+						}
+						else
+						{
+							line_column = (line_column/tab_width_+1)*tab_width_;
+						}
+					}
+					line_column += first_column_;
+				}
+			};
 
       bool is_absdiff_small_;
-
-      int line_num_1_;
-      int line_num_2_;
-
-      int line_num_1_max_;
-      int line_num_2_max_;
 
       int verbose_level_;
       int tab_width_;
@@ -355,9 +482,6 @@ namespace OpenMS
        changed in reportFailure_();
        */
       bool is_status_success_;
-
-      std::string line_str_1_max_;
-      std::string line_str_2_max_;
 
       /// use a prefix when reporting
       bool use_prefix_;
