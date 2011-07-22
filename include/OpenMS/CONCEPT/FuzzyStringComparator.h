@@ -389,6 +389,7 @@ namespace OpenMS
       /// Maximum difference of numbers observed so far, see @em absdiff_max_allowed_.
       double absdiff_max_;
 
+			/// Stores information about characters, numbers, and whitesspaces loaded from the InputStream
 			struct StreamElement_ {
 				double number;
 				unsigned char letter;
