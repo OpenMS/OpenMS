@@ -255,7 +255,7 @@ namespace OpenMS
     {
       return;
     }
-    std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
+    //std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
     activeWindow_()->getScene()->setChanged(true);
     activeWindow_()->getScene()->setDescription(desc_->toHtml());
   }

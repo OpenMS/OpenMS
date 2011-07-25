@@ -674,10 +674,36 @@ namespace OpenMS
 			}
 			
 			save_param.setValue("edges:"+String(counter)+":source/target:", DataValue(String(te->getSourceVertex()->getTopoNr()-1) + "/" + String(te->getTargetVertex()->getTopoNr()-1)));
-			save_param.setValue("edges:"+String(counter)+":source_out_param:", DataValue(te->getSourceOutParam()));
-			save_param.setValue("edges:"+String(counter)+":target_in_param:", DataValue(te->getTargetInParam()));
-			
-			counter++;
+			//save_param.setValue("edges:"+String(counter)+":source_out_param:", DataValue(te->getSourceOutParam()));
+			//save_param.setValue("edges:"+String(counter)+":target_in_param:", DataValue(te->getTargetInParam()));
+      QVector<TOPPASToolVertex::IOInfo> files;
+      String v = "__no_name__";
+      if (te->getSourceOutParam()>=0)
+      {
+        TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(te->getSourceVertex());
+        if (tv_src)
+        {
+          tv_src->getOutputParameters(files);
+          std::cout << "#p: " << files.size() << " . " << te->getSourceOutParam() << "\n";
+          v = files[te->getSourceOutParam()].param_name;
+        }
+      }
+      save_param.setValue("edges:"+String(counter)+":source_out_param:", DataValue(v));
+        
+      v = "__no_name__";
+      if (te->getTargetInParam()>=0)
+      {
+        TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(te->getTargetVertex());
+        if (tv_src)
+        {
+          tv_src->getInputParameters(files);
+          std::cout << "#p: " << files.size() << " . " << te->getTargetInParam() << "\n";
+          v = files[te->getTargetInParam()].param_name;
+        }
+      }
+      save_param.setValue("edges:"+String(counter)+":target_in_param:", DataValue(v));
+
+			++counter;
 		}
 		
 		//save file
@@ -704,6 +730,9 @@ namespace OpenMS
     Param vertices_param = load_param.copy("vertices:",true);
     Param edges_param = load_param.copy("edges:",true);
     
+    bool pre_1_9_toppas = true;
+    if (load_param.exists("info:version")) pre_1_9_toppas = false; // using param names instead of indices for connecting edges
+
     // Window could be unknown
     if (desc_)
     {
@@ -793,7 +822,7 @@ namespace OpenMS
 					current_vertex->setPos(QPointF(x,y));
 					
           // vertex parameters:
-          if (vertices_param.exists(current_id + ":recycle_output")) // only sine TOPPAS 1.9, so does not need to exist
+          if (vertices_param.exists(current_id + ":recycle_output")) // only since TOPPAS 1.9, so does not need to exist
           {
             String recycle = vertices_param.getValue(current_id + ":recycle_output");
 				    current_vertex->setRecycling(recycle == "true" ? true : false);
@@ -862,10 +891,53 @@ namespace OpenMS
       	
       	addEdge(edge);
 				
-      	int source_out_param = (++it)->value;
-      	int target_in_param = (++it)->value;
-      	edge->setSourceOutParam(source_out_param);
-      	edge->setTargetInParam(target_in_param);
+        String source_out_param = (++it)->value;
+        String target_in_param = (++it)->value;
+        if (pre_1_9_toppas)
+        { // just indices stored - no way we can check
+          edge->setSourceOutParam(source_out_param.toInt());
+          edge->setTargetInParam(target_in_param.toInt());
+        }
+        else
+        {
+          QVector<TOPPASToolVertex::IOInfo> files;
+          Int src_index = -1;
+          Int tgt_index = -1;
+          TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(tv_1);
+          if (source_out_param != "__no_name__" && tv_src)
+          {
+            tv_src->getOutputParameters(files);
+            // search for the name
+            for (int i=0;i<files.size();++i)
+            {
+              if (files[i].param_name == source_out_param)
+              {
+                src_index = i;
+                break;
+              }
+            }
+            if (src_index==-1) std::cerr << "Could not find output parameter called '" << source_out_param << "'. Check edge!\n";
+          }
+
+          tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
+          if (target_in_param != "__no_name__" && tv_src)
+          {
+            tv_src->getInputParameters(files);
+            // search for the name
+            for (int i=0;i<files.size();++i)
+            {
+              if (files[i].param_name == target_in_param)
+              {
+                tgt_index = i;
+                break;
+              }
+            }
+            if (tgt_index==-1) std::cerr << "Could not find input parameter called '" << target_in_param << "'. Check edge!\n";
+          }
+
+          edge->setSourceOutParam(src_index);
+          edge->setTargetInParam(tgt_index);
+        }
       }
     }
     

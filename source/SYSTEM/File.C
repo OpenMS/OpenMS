@@ -97,8 +97,6 @@ namespace OpenMS
       std::cerr << "Cannot get Executable Path! Not using a path prefix!\n";
     }
 
-    std::cerr << "Executable Path is: " << spath << "\n";
-    
     path_checked = true; // enable short route for next run
     return spath;
   }

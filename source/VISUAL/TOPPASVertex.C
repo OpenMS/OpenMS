@@ -161,7 +161,7 @@ namespace OpenMS
       }
     }
 
-    // -- we demand at least one node with no recyling to allow to determine number of rounds
+    // -- we demand at least one node with no recycling to allow to determine number of rounds
     if (no_recycle_count == 0) 
     {
       error_msg = String("Number of rounds of #") + this->getTopoNr() + " cannot be determined as all input nodes have recycling enabled. Disable for at least one input!\n";

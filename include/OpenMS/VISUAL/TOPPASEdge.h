@@ -37,6 +37,7 @@ namespace OpenMS
 	class TOPPASVertex;
 	class TOPPASToolVertex;
 	class TOPPASInputFileListVertex;
+  
 
 	/**
 		@brief An edge representing a data flow in TOPPAS
