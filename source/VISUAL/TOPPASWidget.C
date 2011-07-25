@@ -44,9 +44,9 @@ using namespace std;
 
 namespace OpenMS
 {
-	TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* parent, const String& tmp_path)
+	TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QTextEdit * desc, QWidget* parent, const String& tmp_path)
 		:	QGraphicsView(parent),
-			scene_(new TOPPASScene(this, tmp_path.toQString()))
+			scene_(new TOPPASScene(this, tmp_path.toQString(), desc))
 	{
 		setAttribute(Qt::WA_DeleteOnClose);
 		setAttribute(Qt::WA_AlwaysShowToolTips);

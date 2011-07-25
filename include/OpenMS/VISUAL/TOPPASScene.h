@@ -35,6 +35,8 @@
 #include <QtGui/QGraphicsScene>
 #include <QtCore/QProcess>
 
+class QTextEdit;
+
 namespace OpenMS
 {
 	class TOPPASVertex;
@@ -117,7 +119,7 @@ namespace OpenMS
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
 			/// Constructor
-			TOPPASScene(QObject* parent, const QString& tmp_path, bool gui = true);
+			TOPPASScene(QObject* parent, const QString& tmp_path, QTextEdit * desc, bool gui = true);
 			
 			/// Destructor
 			virtual ~TOPPASScene();
@@ -206,7 +208,12 @@ namespace OpenMS
 			bool refreshParameters();
       /// determine dry run status (are tools actually called?)
       bool isDryRun() const;
-			
+			/// 
+      QString getDescription() const;
+      ///
+      void setDescription(const QString& desc);
+
+
 		public slots:
 
 			/// Terminates the currently running pipeline
@@ -310,6 +317,10 @@ namespace OpenMS
       bool dry_run_;
 			/// currently running processes...
       int threads_active_;
+      /// pointer to the description
+      QTextEdit* desc_;
+      /// description text
+      QString description_text_;
 
 
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.

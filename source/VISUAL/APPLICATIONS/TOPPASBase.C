@@ -211,7 +211,19 @@ namespace OpenMS
     //windows->addAction("&Show log window",log_bar,SLOT(show()));
 		windows->addAction(log_bar->toggleViewAction());
 		
-		//set current path
+    //workflow description window
+    QDockWidget* description_bar = new QDockWidget("Workflow Description", this);
+    addDockWidget(Qt::RightDockWidgetArea, description_bar);
+    desc_ = new QTextEdit(description_bar);
+    desc_->setTextColor ( Qt::black );
+    desc_->setText("... put your workflow description here ...");
+    desc_->setTextColor ( Qt::black );
+    description_bar->setWidget(desc_);
+    //windows->addAction("&Show log window",log_bar,SLOT(show()));
+    windows->addAction(description_bar->toggleViewAction());
+    connect( desc_, SIGNAL( textChanged ()), this, SLOT( descriptionUpdated_() ));
+
+    //set current path
 		current_path_ = param_.getValue("preferences:default_path");
 		
 		//set & create temporary path
@@ -235,6 +247,17 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
   	savePreferences();
+  }
+
+  void TOPPASBase::descriptionUpdated_()
+  {
+    if (!activeWindow_() || !activeWindow_()->getScene())
+    {
+      return;
+    }
+    std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
+    activeWindow_()->getScene()->setChanged(true);
+    activeWindow_()->getScene()->setDescription(desc_->toHtml());
   }
 
   void TOPPASBase::toppasFileDownloaded_(QNetworkReply* r)
@@ -404,15 +427,15 @@ namespace OpenMS
 			TOPPASScene* scene = 0;
 			if (in_new_window)
 			{
-				TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
-				showAsWindow_(tw, File::basename(file_name));
+				TOPPASWidget* tw = new TOPPASWidget(Param(), desc_, ws_, tmp_path_);
 				scene = tw->getScene();
-				scene->load(file_name);
         connect(scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
         connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
         connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
         connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
         connect(scene, SIGNAL(openInTOPPView(QStringList)), this, SLOT(openFilesInTOPPView(QStringList)));
+        showAsWindow_(tw, File::basename(file_name));
+        scene->load(file_name);
       }
 			else
 			{
@@ -460,7 +483,7 @@ namespace OpenMS
 
   void TOPPASBase::newPipeline()
   {
-  	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+  	TOPPASWidget* tw = new TOPPASWidget(Param(), desc_, ws_, tmp_path_);
 		TOPPASScene* ts = tw->getScene();
 		connect (ts, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
 		connect (ts, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
@@ -622,11 +645,11 @@ namespace OpenMS
 		//add tab with id
   	static int window_counter = 1337;
     tw->setWindowId(window_counter);
-    window_counter++;
+    ++window_counter;
 
     tab_bar_->addTab(caption.toQString(), tw->getWindowId());
 
-    //connect slots and sigals for removing the widget from the bar, when it is closed
+    //connect slots and signals for removing the widget from the bar, when it is closed
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
@@ -648,6 +671,10 @@ namespace OpenMS
 		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
 		connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
 		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
+
+    desc_->blockSignals(true);
+    desc_->setHtml(ts->getDescription());
+    desc_->blockSignals(false);
   }
 
   void TOPPASBase::closeEvent(QCloseEvent* event)
@@ -728,6 +755,10 @@ namespace OpenMS
   	TOPPASWidget* window = window_(id);
   	if (window)
   	{
+      std::cerr << "tab changed...\n";
+      desc_->blockSignals(true);
+      desc_->setHtml(window->getScene()->getDescription());
+      desc_->blockSignals(false);
   		window->setFocus();
   	}
   }

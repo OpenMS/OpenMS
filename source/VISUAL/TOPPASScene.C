@@ -32,12 +32,13 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASVertexNameDialog.h>
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/VISUAL/TOPPASResources.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
@@ -45,6 +46,8 @@
 #include <QtCore/QSet>
 #include <QtCore/QTextStream>
 #include <QtGui/QMessageBox>
+#include <QtGui/QTextEdit>
+
 
 namespace OpenMS
 {
@@ -57,7 +60,7 @@ namespace OpenMS
     emit finished ( 0, QProcess::NormalExit);
   }
 
-	TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui)
+	TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, QTextEdit * desc, bool gui)
 		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
 			vertices_(),
@@ -66,6 +69,7 @@ namespace OpenMS
 			potential_target_(0),
 			file_name_(),
 			tmp_path_(tmp_path),
+      desc_(desc),
 			gui_(gui),
 			out_dir_(File::getUserDirectory().toQString()),
 			changed_(false),
@@ -75,7 +79,6 @@ namespace OpenMS
       dry_run_(true),
       threads_active_(0)
 	{
-    std::cerr << "using TOPPAS tmp_dir: " << String(tmp_path_) << "\n";
 		/*	ATTENTION!
 			 
 				The following line is important! Without it, we get
@@ -459,7 +462,7 @@ namespace OpenMS
 		addEdge(test_edge);
 		
 		bool graph_has_cycles = false;
-		//find backedges via DFS
+		//find back edges via DFS
 		foreach (TOPPASVertex* vertex, vertices_)
 		{
 			vertex->setDFSColor(TOPPASVertex::DFS_WHITE);
@@ -597,8 +600,10 @@ namespace OpenMS
 	{
 		Param save_param;
 		
+    save_param.setValue("info:version", DataValue(VersionInfo::getVersion()));
 		save_param.setValue("info:num_vertices", DataValue(vertices_.size()));
 		save_param.setValue("info:num_edges", DataValue(edges_.size()));
+    save_param.setValue("info:description", DataValue(String("<![CDATA[") + String(this->desc_->toHtml()) + String("]]>")));
 		
 		// store all vertices (together with all parameters)
 		foreach (TOPPASVertex* tv, vertices_)
@@ -680,6 +685,17 @@ namespace OpenMS
 		setChanged(false);
 		file_name_ = file;
 	}
+
+  QString TOPPASScene::getDescription() const
+  {
+    return description_text_;
+  }
+  ///
+  void TOPPASScene::setDescription(const QString& desc)
+  {
+    description_text_ = desc;
+  }
+
 	
 	void TOPPASScene::load(const String& file)
   {
@@ -688,6 +704,21 @@ namespace OpenMS
     Param vertices_param = load_param.copy("vertices:",true);
     Param edges_param = load_param.copy("edges:",true);
     
+    // Window could be unknown
+    if (desc_)
+    {
+      if (load_param.exists("info:description"))
+      {
+        String text = String(load_param.getValue("info:description")).toQString();
+        text.substitute("<![CDATA[", "");
+        text.substitute("]]>", "");
+        description_text_ = text.trim().toQString();
+        desc_->blockSignals(true); // prevent scene from being flagged as changed
+        desc_->setHtml(description_text_);
+        desc_->blockSignals(false);
+      }
+    }
+
     String current_type, current_id;
     TOPPASVertex* current_vertex = 0;
     QVector<TOPPASVertex*> vertex_vector;

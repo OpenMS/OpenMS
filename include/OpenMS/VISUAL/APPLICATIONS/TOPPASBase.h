@@ -184,10 +184,15 @@ namespace OpenMS
       /// triggered when download of .toppas file is finished, so we can store & open it
       void toppasFileDownloaded_(QNetworkReply* r);
 
+      /// user edited the workflow description
+      void descriptionUpdated_();
+
     protected:
 
 			/// Log output window
       QTextEdit* log_;
+      /// Workflow Description window
+      QTextEdit* desc_;
 
       /** @name Toolbar
       */
