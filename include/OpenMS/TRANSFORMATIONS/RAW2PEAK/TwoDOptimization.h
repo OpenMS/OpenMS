@@ -1022,22 +1022,30 @@ namespace OpenMS
 				// now the right mz
 				IsotopeCluster::IndexPair pair;
 				pair.first =  iso_map_iter->second.peaks.begin()->first + i;
+        // get iterator in peaks-set that points to the first peak in the current scan
 				IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks.begin(),
-																												iso_map_iter->second.peaks.end(),
-																												pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                        iso_map_iter->second.peaks.end(),
+                                                                        pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
 				
 				// consider a bit more of the signal to the left
 				first_peak_mz = (exp_it->begin() + set_iter->second)->getMZ() - 1;
 				
 				// find the last entry with this rt-value
-				if(pair.first < iso_map_iter->second.peaks.size()-1) ++pair.first;
+        ++pair.first;
 				IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks.begin(),
                                                                          iso_map_iter->second.peaks.end(),
                                                                          pair,PairComparatorFirstElement<IsotopeCluster::IndexPair>());
-				if(set_iter2 != iso_map_iter->second.peaks.begin()) --set_iter2;
+
+        if(i == iso_map_iter->second.scans.size()-1 )
+          {
+            set_iter2 = iso_map_iter->second.peaks.end();
+            --set_iter2;
+          }
+        else if(set_iter2 != iso_map_iter->second.peaks.begin()) --set_iter2;
+
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 				
-				//std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
+        //	std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
 				peak.setPosition(first_peak_mz);
 				typename MSExperiment<InputPeakType>::SpectrumType::const_iterator raw_data_iter
 					= lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
