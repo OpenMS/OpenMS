@@ -99,7 +99,7 @@ namespace OpenMS
 	{
 		if (layer_index >= getLayerCount() || layer_index==current_layer_)
 		{
-			return ;
+      return;
 		}
 		
 		current_layer_ = layer_index;
@@ -122,7 +122,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::dataToWidget(const PeakType& peak, QPoint& point, bool flipped, bool percentage)
 	{
-      dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
+    dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
 	}
 	
 	void Spectrum1DCanvas::dataToWidget(float x, float y, QPoint& point, bool flipped, bool percentage)
@@ -580,8 +580,8 @@ namespace OpenMS
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
-	// SLOTS
-	
+  // SLOTS
+
 	void Spectrum1DCanvas::removeLayer(Size layer_index)
 	{
 		if (layer_index >= getLayerCount())
@@ -1376,7 +1376,7 @@ namespace OpenMS
 				}
         else if (result->text()=="Add peak annotation mz")
         {
-          addPeakAnnotation_(near_peak, String::number(near_peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), 4).toQString());
+          addPeakAnnotation(near_peak, String::number(near_peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), 4).toQString());
         }
 				else if (result->text()=="Reset alignment")
 				{
@@ -1420,11 +1420,11 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation_(near_peak, text);
+      addPeakAnnotation(near_peak, text);
     }
   }
 
-  void Spectrum1DCanvas::addPeakAnnotation_(PeakIndex peak_index, QString text)
+  void Spectrum1DCanvas::addPeakAnnotation(PeakIndex peak_index, QString text)
   {
     PeakType peak = peak_index.getPeak(*getCurrentLayer().getPeakData());
     PointType position(peak.getMZ(), peak.getIntensity());
@@ -1522,15 +1522,11 @@ namespace OpenMS
     modificationStatus_(i, false);
 	}
 
-  ///Go forward in zoom history
+  /// Go forward in zoom history
 	void Spectrum1DCanvas::zoomForward_()
   {
-    //cout << "Zoom in" << endl;
-		//cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-		//cout << " - size before:" << zoom_stack_.size() <<endl;
-
     // if at end of zoom level then simply add a new zoom
-    if (zoom_pos_==zoom_stack_.end() || (zoom_pos_+1)==zoom_stack_.end() )
+    if (zoom_pos_ == zoom_stack_.end() || (zoom_pos_+1) == zoom_stack_.end() )
     {
       AreaType new_area;
       // distance of areas center to border times a zoom factor of 0.8
@@ -1543,12 +1539,11 @@ namespace OpenMS
       zoom_pos_= --zoom_stack_.end(); // set to last position
     }
     else
-    { // goto next zoom level
+    {
+      // goto next zoom level
 			++zoom_pos_;
 		}
 		changeVisibleArea_(*zoom_pos_);
-    
-    //cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
   }
 
 	void Spectrum1DCanvas::translateLeft_()
@@ -1802,7 +1797,7 @@ namespace OpenMS
   {
     if (intensity_mode_ == IM_PERCENTAGE)
     {
-      percentage_factor_ = overall_data_range_.maxPosition()[1]/getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
+      percentage_factor_ = overall_data_range_.maxPosition()[1] / getLayer_(layer_index).getCurrentSpectrum().getMaxInt();
     }
     else 
     {
@@ -1838,14 +1833,22 @@ namespace OpenMS
 	  
   void Spectrum1DCanvas::setCurrentLayerPeakPenStyle(Qt::PenStyle ps)
   {    
-    //no layers
-    if (layers_.size()==0) return;
+    // no layers
+    if (layers_.size() == 0)
+    {
+      return;
+    }
 
     if (peak_penstyle_[current_layer_] != ps)
     {
       peak_penstyle_[current_layer_] = ps;
       update_(__PRETTY_FUNCTION__);
     }
+  }
+
+  std::vector<std::pair<Size, Size> > Spectrum1DCanvas::getAlignedPeaksIndices()
+  {
+    return aligned_peaks_indices_;
   }
 
 }//Namespace

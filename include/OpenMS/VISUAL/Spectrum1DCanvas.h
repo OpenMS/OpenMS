@@ -115,10 +115,17 @@ namespace OpenMS
 			
 			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
 			PointType widgetToData(float x, float y, bool percentage = false);
-			
+
+      /// ----- Annotations
+
+      /// Add an annotation item for the given peak
+      void addPeakAnnotation(PeakIndex peak_index, QString text);
+
       /// Draws all annotation items of @p layer_index on @p painter
-      void drawAnnotations(Size layer_index, QPainter& painter);
-			
+      void drawAnnotations(Size layer_index, QPainter& painter);			   
+
+      /// ----- Alignment
+
 			/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
 			void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
 			
@@ -133,6 +140,9 @@ namespace OpenMS
 			
 			/// Returns the score of the alignment
 			DoubleReal getAlignmentScore();
+
+      /// Returns aligned_peaks_indices_
+      std::vector<std::pair<Size, Size> > getAlignedPeaksIndices();
 			
 			/// Sets current spectrum index of current layer to @p index
 			void activateSpectrum(Size index, bool repaint=true);
@@ -255,8 +265,6 @@ namespace OpenMS
       void addLabelAnnotation_(const QPoint& screen_position, QString label_text);
       /// Shows dialog and calls addPeakAnnotation_
       void addUserPeakAnnotation_(PeakIndex near_peak);
-      /// Add an annotation item for the given peak
-      void addPeakAnnotation_(PeakIndex peak_index, QString text);
 
 			/// Ensure that all annotations are within data range
 			void ensureAnnotationsWithinDataRange_();

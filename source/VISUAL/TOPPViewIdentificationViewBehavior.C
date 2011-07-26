@@ -370,6 +370,42 @@ namespace OpenMS
         param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
         tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
+        std::vector<std::pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();
+
+        // annotate original spectrum with ions and sequence
+        for (Size i = 0; i != aligned_peak_indices.size(); ++i)
+        {
+          PeakIndex pi(current_spectrum_index, aligned_peak_indices[i].first);
+          QString s(((string)rich_spec[aligned_peak_indices[i].second].getMetaValue("IonName")).c_str());
+          QString ion_nr_string = s;
+          if (s.at(0) == 'y')
+          {
+            ion_nr_string.replace("y", "");
+            ion_nr_string.replace("+", "");
+            //cerr << s.toStdString() << " " << ion_nr_string.toStdString() << endl;
+            Size ion_number = ion_nr_string.toUInt();
+            String unmodified_string = aa_sequence.toUnmodifiedString().reverse();
+            //cerr << "u:" << unmodified_string << endl;
+            String seq(unmodified_string.begin(), unmodified_string.begin() + ion_number);
+            //cerr << seq << endl;
+            s.append("\n");
+            s.append(seq.toQString());
+          } else if (s.at(0) == 'b')
+          {
+            ion_nr_string.replace("b", "");
+            ion_nr_string.replace("+", "");
+            //cerr << s.toStdString() << " " << ion_nr_string.toStdString() << endl;
+            String unmodified_string = aa_sequence.toUnmodifiedString();
+            Size ion_number = ion_nr_string.toUInt();
+            String seq(unmodified_string.begin(), unmodified_string.begin() + ion_number);
+            //cerr << seq << endl;
+            s.append("\n");
+            s.append(seq.toQString());
+          }
+
+          tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s);
+        }
+
         tv_->updateLayerBar();
         tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
       }
