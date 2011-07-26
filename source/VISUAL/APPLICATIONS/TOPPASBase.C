@@ -129,8 +129,8 @@ namespace OpenMS
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
     file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL+Qt::Key_N);
-		file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL+Qt::Key_E);
 		file->addAction("&Open", this, SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL+Qt::Key_E);
     file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL+Qt::Key_I);
     file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL+Qt::Key_R);
     file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
@@ -429,11 +429,6 @@ namespace OpenMS
 			{
 				TOPPASWidget* tw = new TOPPASWidget(Param(), desc_, ws_, tmp_path_);
 				scene = tw->getScene();
-        connect(scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
-        connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
-        connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
-        connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
-        connect(scene, SIGNAL(openInTOPPView(QStringList)), this, SLOT(openFilesInTOPPView(QStringList)));
         showAsWindow_(tw, File::basename(file_name));
         scene->load(file_name);
       }
@@ -484,11 +479,6 @@ namespace OpenMS
   void TOPPASBase::newPipeline()
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), desc_, ws_, tmp_path_);
-		TOPPASScene* ts = tw->getScene();
-		connect (ts, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
-		connect (ts, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
-    connect (ts, SIGNAL(saveMe()), this, SLOT(savePipeline()));
-		connect (ts, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
   	showAsWindow_(tw, "(Untitled)");
   }
 	
@@ -666,14 +656,20 @@ namespace OpenMS
 		{
 			tw->show();
 		}
-		TOPPASScene* ts = tw->getScene();
-    connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showPipelineFinishedLogMessage()));
-		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
-		connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
-		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
+    TOPPASScene* scene = tw->getScene();
+    connect(scene, SIGNAL(saveMe()), this, SLOT(savePipeline()));
+    connect(scene, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
+    connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
+    connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
+    connect(scene, SIGNAL(openInTOPPView(QStringList)), this, SLOT(openFilesInTOPPView(QStringList)));
+    connect(scene, SIGNAL(messageReady(const QString&)) , this, SLOT(updateTOPPOutputLog(const QString&)));
+    connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(showPipelineFinishedLogMessage()));
+		connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
+		connect(scene, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
+		scene->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
 
     desc_->blockSignals(true);
-    desc_->setHtml(ts->getDescription());
+    desc_->setHtml(scene->getDescription());
     desc_->blockSignals(false);
   }
 

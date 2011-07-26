@@ -208,9 +208,9 @@ namespace OpenMS
 			bool refreshParameters();
       /// determine dry run status (are tools actually called?)
       bool isDryRun() const;
-			/// 
+			/// workflow description (to be displayed in TOPPAS window)
       QString getDescription() const;
-      ///
+      /// when description is updated by user, use this to update the description for later storage in file
       void setDescription(const QString& desc);
 
 
@@ -280,6 +280,9 @@ namespace OpenMS
       void openInTOPPView(QStringList all_files);
       /// Emitted when in dry run mode and asked to run a TOPP tool (to fake success)
       void dryRunFinished(int, QProcess::ExitStatus);
+      /// Emitted when there is an important message that needs to be printed in TOPPAS
+      void messageReady(const QString& msg);
+
 
 		protected:
 			

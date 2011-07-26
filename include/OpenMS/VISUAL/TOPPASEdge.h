@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_TOPPASEDGE_H

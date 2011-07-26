@@ -161,7 +161,7 @@ namespace OpenMS
 			return;
 		}
 		
-		// unselect all items except for the one under the cursor, but only if no multiple selection
+		// deselect all items except for the one under the cursor, but only if no multiple selection
 		if (selectedItems().size() <= 1)
 		{
 			unselectAll();
@@ -916,7 +916,7 @@ namespace OpenMS
                 break;
               }
             }
-            if (src_index==-1) std::cerr << "Could not find output parameter called '" << source_out_param << "'. Check edge!\n";
+            if (src_index==-1) logTOPPOutput(String("Could not find output parameter called '" + source_out_param + "'. Check edge!").toQString());
           }
 
           tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
@@ -932,7 +932,7 @@ namespace OpenMS
                 break;
               }
             }
-            if (tgt_index==-1) std::cerr << "Could not find input parameter called '" << target_in_param << "'. Check edge!\n";
+            if (tgt_index==-1) logTOPPOutput(String("Could not find input parameter called '" + target_in_param + "'. Check edge!").toQString());
           }
 
           edge->setSourceOutParam(src_index);
@@ -940,6 +940,13 @@ namespace OpenMS
         }
       }
     }
+    if (pre_1_9_toppas)
+    { // just indices stored - no way we can check
+      logTOPPOutput(String("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. "
+                           "Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS "
+                           "(e.g using the \"Save as ...\" functionality to make the workflow more robust to changes in future versions of TOPP tools!").toQString());
+    }
+
     
     if (!views().empty())
 		{
@@ -1150,6 +1157,7 @@ namespace OpenMS
 		{
 			std::cout	<< std::endl << text << std::endl;
 		}
+    emit messageReady(out); // let TOPPAS know about it
 		
 		writeToLogFile_(text.toQString());
 	}
