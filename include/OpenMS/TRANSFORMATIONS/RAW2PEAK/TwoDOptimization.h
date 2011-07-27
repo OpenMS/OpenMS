@@ -53,7 +53,7 @@
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
 #endif
 
-
+#include <boost/math/special_functions/acosh.hpp>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
@@ -742,18 +742,33 @@ namespace OpenMS
 													<<"\nrw: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][itv->second[j].peak] << "\n";
 
 #endif
+                  DoubleReal mz = gsl_vector_get(fit->x,d.total_nr_peaks+3*i);
+                  ms_exp[itv->second[j].spectrum][itv->second[j].peak].setMZ(mz);
+                  DoubleReal height = (gsl_vector_get(fit->x,peak_idx));
+                  ms_exp[itv->second[j].spectrum].getFloatDataArrays()[1][itv->second[j].peak] = height;
+                  DoubleReal left_width = gsl_vector_get(fit->x,d.total_nr_peaks+3*i+1);
+                  ms_exp[itv->second[j].spectrum].getFloatDataArrays()[3][itv->second[j].peak] = left_width;
+                  DoubleReal right_width = gsl_vector_get(fit->x,d.total_nr_peaks+3*i+2);
+                  ms_exp[itv->second[j].spectrum].getFloatDataArrays()[4][itv->second[j].peak] = right_width;
+                  // calculate area
+                  if ((PeakShape::Type)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
+                    {
+                      DoubleReal x_left_endpoint=mz - 1/left_width*sqrt(height/1-1);
+                      DoubleReal x_rigth_endpoint=mz+1/right_width*sqrt(height/1-1);
+                      DoubleReal area_left=-height/left_width*atan(left_width*(x_left_endpoint-mz));
+                      DoubleReal area_right=-height/right_width*atan(right_width*(mz-x_rigth_endpoint));
+                      ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left+area_right);
+                    }
+                  else // it's a sech peak
+                    {
+                      DoubleReal x_left_endpoint=mz - 1/left_width* boost::math::acosh(sqrt(height/0.001));
+                      DoubleReal x_rigth_endpoint=mz+1/right_width* boost::math::acosh(sqrt(height/0.001));
+                      DoubleReal area_left=-height/left_width*(sinh(left_width*(mz-x_left_endpoint))/cosh(left_width*(mz-x_left_endpoint)));
+                      DoubleReal area_right=-height/right_width*(sinh(right_width*(mz-x_rigth_endpoint))/cosh(right_width*(mz-x_rigth_endpoint)));
+                      ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left+area_right);
+                    }
 
-								ms_exp[itv->second[j].spectrum][itv->second[j].peak].setMZ(gsl_vector_get(fit->x,d.total_nr_peaks+3*i));
-								ms_exp[itv->second[j].spectrum].getFloatDataArrays()[1][itv->second[j].peak] =(gsl_vector_get(fit->x,peak_idx));
-								//TODO calculate area
-								//				ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity();
-
-								ms_exp[itv->second[j].spectrum].getFloatDataArrays()[3][itv->second[j].peak] =
-									gsl_vector_get(fit->x,d.total_nr_peaks+3*i+1);
-								ms_exp[itv->second[j].spectrum].getFloatDataArrays()[4][((itv->second)[j]).peak] =
-									gsl_vector_get(fit->x,d.total_nr_peaks+3*i+2);
-
-
+                  
 #ifdef DEBUG_2D
 								std::cout << "pos: "<<itv->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][itv->second[j].peak]//itv->second[j].getPeak(ms_exp).getIntensity()
 													<<"\nlw: "<<itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][itv->second[j].peak]
@@ -961,10 +976,28 @@ namespace OpenMS
 							{
 								MSSpectrum<>& spec = ms_exp[set_iter->first];
 								spec[set_iter->second].setMZ(peak_shapes[p].mz_position);
-								spec[set_iter->second].setIntensity(peak_shapes[p].height);
 								spec.getFloatDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
 								spec.getFloatDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
-
+                spec.getFloatDataArrays()[1][set_iter->second] = peak_shapes[p].height; // maximum intensity
+                // calculate area
+                if (peak_shapes[p].type == PeakShape::LORENTZ_PEAK)
+                  {
+                    PeakShape& ps = peak_shapes[p];
+                    double x_left_endpoint=ps.mz_position-1/ps.left_width*sqrt(ps.height/1-1);
+                    double x_rigth_endpoint=ps.mz_position+1/ps.right_width*sqrt(ps.height/1-1);
+                    double area_left=-ps.height/ps.left_width*atan(ps.left_width*(x_left_endpoint-ps.mz_position));
+                    double area_right=-ps.height/ps.right_width*atan(ps.right_width*(ps.mz_position-x_rigth_endpoint));
+                    spec[set_iter->second].setIntensity(area_left+area_right); // area is stored as peak intensity
+                  }
+                else  //It's a Sech - Peak
+                  {
+                    PeakShape& ps = peak_shapes[p];
+                    double x_left_endpoint=ps.mz_position-1/ps.left_width* boost::math::acosh(sqrt(ps.height/0.001));
+                    double x_rigth_endpoint=ps.mz_position+1/ps.right_width* boost::math::acosh(sqrt(ps.height/0.001));
+                    double area_left=-ps.height/ps.left_width*(sinh(ps.left_width*(ps.mz_position-x_left_endpoint))/cosh(ps.left_width*(ps.mz_position-x_left_endpoint)));
+                    double area_right=-ps.height/ps.right_width*(sinh(ps.right_width*(ps.mz_position-x_rigth_endpoint))/cosh(ps.right_width*(ps.mz_position-x_rigth_endpoint)));
+                    spec[set_iter->second].setIntensity(area_left+area_right); // area is stored as peak intensity
+                  }
 								++set_iter;
 								++p;
 							}

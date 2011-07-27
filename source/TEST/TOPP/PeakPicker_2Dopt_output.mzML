@@ -184,7 +184,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>SmgORhA4WUUivTVFkAhIRA==</binary>
+						<binary>w//sRP16RkS9LSFEviE8Qw==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -251,7 +251,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>t7/JRe2xLkUONY9Ex7RfRKa29UM=</binary>
+						<binary>9ZPERCDuL0TeT4BDFoNZQxA76ME=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
