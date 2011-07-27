@@ -403,34 +403,41 @@ namespace OpenMS
           {
             ion_nr_string.replace("y", "");
             ion_nr_string.replace("+", "");
-            //cerr << s.toStdString() << " " << ion_nr_string.toStdString() << endl;
             Size ion_number = ion_nr_string.toUInt();
-            String unmodified_string = aa_sequence.toUnmodifiedString().reverse();
-            //cerr << "u:" << unmodified_string << endl;
-            String seq(unmodified_string.begin(), unmodified_string.begin() + ion_number);
-            //cerr << seq << endl;
             s.append("\n");
-            s.append(seq.toQString());
+            // extract peptide ion sequence
+            QString aa_ss;
+            for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
+            {
+              const Residue& r = aa_sequence.getResidue(j);
+              aa_ss.append(r.getOneLetterCode().toQString());
+              if (r.getModification() != "")
+              {
+                aa_ss.append("*");
+              }
+            }
+            s.append(aa_ss);
             Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkRed);
             temporary_annotations_.push_back(item);
           } else if (s.at(0) == 'b')
           {
             ion_nr_string.replace("b", "");
             ion_nr_string.replace("+", "");
-            //cerr << s.toStdString() << " " << ion_nr_string.toStdString() << endl;
-            String unmodified_string = aa_sequence.toUnmodifiedString();
             Size ion_number = ion_nr_string.toUInt();
-            String seq(unmodified_string.begin(), unmodified_string.begin() + ion_number);
-            //cerr << seq << endl;
             s.append("\n");
-            s.append(seq.toQString());
+            // extract peptide ion sequence
+            AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
+            QString aa_ss = aa_subsequence.toString().toQString();
+            // shorten modifications "(MODNAME)" to "*"
+            aa_ss.replace(QRegExp("[(].*[)]"), "*");
+            // append to label
+            s.append(aa_ss);
             Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
+            // save label for later removal
             temporary_annotations_.push_back(item);
           }
         }
 
-        // don't delete layer as we want to check position of ions
-        // tv_->getActive1DWidget()->canvas()->removeLayer(theoretical_spectrum_layer_index);
         tv_->updateLayerBar();
         tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
       }
