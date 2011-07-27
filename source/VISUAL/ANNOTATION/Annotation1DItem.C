@@ -33,17 +33,17 @@ namespace OpenMS
 {
 
 	Annotation1DItem::Annotation1DItem(const QString& text)
-		: bounding_box_(),
+    : bounding_box_(),
 		  selected_(true),
 		  text_(text)
 	{
 	}
 	
 	Annotation1DItem::Annotation1DItem(const Annotation1DItem& rhs)
-	{
-		bounding_box_ = rhs.boundingBox();
-		selected_ = rhs.isSelected();
-		text_ = rhs.getText();
+  {
+    bounding_box_ = rhs.boundingBox();
+    selected_ = rhs.isSelected();
+    text_ = rhs.getText();
 	}
 	
 	Annotation1DItem::~Annotation1DItem()

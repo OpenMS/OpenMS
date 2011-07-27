@@ -369,6 +369,16 @@ namespace OpenMS
         tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
         tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
 
+        // zoom to maximum visible area in real data (as theoretical might be much larger and therefor squeezes the interesting part)
+        DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
+        DoubleReal min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
+        DoubleReal max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
+        DoubleReal delta_mz = max_mz - min_mz;
+        visible_area.setMin(min_mz - 0.1 * delta_mz);
+        visible_area.setMax(max_mz + 0.1 * delta_mz);
+
+        tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
+
         // spectra alignment
         Param param;
 

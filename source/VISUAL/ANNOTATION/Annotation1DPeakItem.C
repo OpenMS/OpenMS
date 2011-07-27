@@ -34,18 +34,20 @@
 namespace OpenMS
 {	
 
-  Annotation1DPeakItem::Annotation1DPeakItem(const PointType& peak_position, const QString& text)
+  Annotation1DPeakItem::Annotation1DPeakItem(const PointType& peak_position, const QString& text, const QColor& color)
 		: Annotation1DItem(text),
       peak_position_(peak_position),
-      position_(peak_position)
+      position_(peak_position),
+      color_(color)
 	{
 	}
 	
 	Annotation1DPeakItem::Annotation1DPeakItem(const Annotation1DPeakItem& rhs)
 		: Annotation1DItem(rhs)
 	{
-    peak_position_ = rhs.getPeakPosition();
-		position_ = rhs.getPosition();
+    peak_position_ = rhs.peak_position_;
+    position_ = rhs.position_;
+    color_ = rhs.color_;
 	}
 	
 	Annotation1DPeakItem::~Annotation1DPeakItem()
@@ -54,6 +56,9 @@ namespace OpenMS
 	
 	void Annotation1DPeakItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
 	{
+    painter.save();
+
+    painter.setPen(color_);
 		//translate mz/intensity to pixel coordinates
     QPoint position_widget, peak_position_widget;
 
@@ -170,6 +175,8 @@ namespace OpenMS
 		{
 			drawBoundingBox_(painter);
 		}
+
+    painter.restore();
 	}
 	
   void Annotation1DPeakItem::move(const PointType& delta)
@@ -218,6 +225,16 @@ namespace OpenMS
     }
 	}
 	
+  void Annotation1DPeakItem::setColor(const QColor& color)
+  {
+    color_ = color;
+  }
+
+  const QColor& Annotation1DPeakItem::getColor() const
+  {
+    return color_;
+  }
+
 }//Namespace
 
 

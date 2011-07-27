@@ -2949,7 +2949,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		//Store data
 		topp_.layer_name = layer.name;
     topp_.window_id = getActiveSpectrumWidget()->getWindowId();
-		topp_.spectrum_id = layer.current_spectrum;
+    topp_.spectrum_id = layer.getCurrentSpectrumIndex();
 		if (layer.type==LayerData::DT_PEAK)
 		{
 			MzMLFile f;
