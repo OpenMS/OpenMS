@@ -526,8 +526,8 @@ namespace OpenMS
 		if (mirror_mode_ && (getCurrentLayer().flipped ^ (p.y() > height()/2))) return PeakIndex();
 		
 		//reference to the current data
-                const SpectrumType& spectrum = getCurrentLayer_().getCurrentSpectrum();
-		Size spectrum_index = getCurrentLayer_().current_spectrum;
+    const SpectrumType& spectrum = getCurrentLayer_().getCurrentSpectrum();
+    Size spectrum_index = getCurrentLayer_().getCurrentSpectrumIndex();
 		
 		// get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
 		PointType lt = widgetToData(p - QPoint(2, 2), true);
@@ -1376,7 +1376,8 @@ namespace OpenMS
 				}
         else if (result->text()=="Add peak annotation mz")
         {
-          addPeakAnnotation(near_peak, String::number(near_peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), 4).toQString());
+          QString label = String::number(near_peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), 4).toQString();
+          addPeakAnnotation(near_peak, label, Qt::black);
         }
 				else if (result->text()=="Reset alignment")
 				{
@@ -1420,18 +1421,19 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation(near_peak, text);
+      addPeakAnnotation(near_peak, text, Qt::blue);
     }
   }
 
-  void Spectrum1DCanvas::addPeakAnnotation(PeakIndex peak_index, QString text)
+  Annotation1DItem* Spectrum1DCanvas::addPeakAnnotation(PeakIndex peak_index, QString text, QColor color)
   {
     PeakType peak = peak_index.getPeak(*getCurrentLayer().getPeakData());
     PointType position(peak.getMZ(), peak.getIntensity());
-    Annotation1DItem* item = new Annotation1DPeakItem(position, text);
+    Annotation1DItem* item = new Annotation1DPeakItem(position, text, color);
     item->setSelected(false);
     getCurrentLayer_().getCurrentAnnotations().push_front(item);
     update_(__PRETTY_FUNCTION__);
+    return item;
   }
 
 	void Spectrum1DCanvas::saveCurrentLayer(bool visible)
@@ -1817,7 +1819,7 @@ namespace OpenMS
 	{
     if (index < currentPeakData_()->size())
 		{
-			getCurrentLayer_().current_spectrum = index;
+      getCurrentLayer_().setCurrentSpectrumIndex(index);
 			recalculateSnapFactor_();
 			if (repaint)
 			{

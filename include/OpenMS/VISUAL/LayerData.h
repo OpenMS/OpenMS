@@ -53,7 +53,7 @@ namespace OpenMS
     public:
       /**	@name Type definitions */
       //@{
-      ///Dataset types
+      /// Dataset types
       enum DataType
       {
         DT_PEAK,		      ///< Spectrum profile or centroided data
@@ -64,7 +64,7 @@ namespace OpenMS
         DT_UNKNOWN			  ///< Undefined data type indicating an error
       };
 
-      ///Flags that determine which information is shown.
+      /// Flags that determine which information is shown.
       enum Flags
       {
         F_HULL,        ///< Features: Overall convex hull
@@ -76,10 +76,11 @@ namespace OpenMS
         I_PEPTIDEMZ,   ///< Identifications: m/z source
         SIZE_OF_FLAGS
       };
+
       /// Actual state of each flag
       std::bitset<SIZE_OF_FLAGS> flags;
 
-      ///Label used in visualization
+      /// Label used in visualization
       enum LabelType
       {
         L_NONE,							///< No label is displayed
@@ -89,10 +90,11 @@ namespace OpenMS
         L_ID_ALL,						///< All peptide hits of the first identification run are used
         SIZE_OF_LABEL_TYPE
       };
-      //Label names
+
+      /// Label names
       static const std::string NamesOfLabelType[SIZE_OF_LABEL_TYPE];
 
-      /// features
+      /// Features
       typedef FeatureMap<> FeatureMapType;
 
       /// SharedPtr on feature map
@@ -106,6 +108,7 @@ namespace OpenMS
 
       /// Main data type (experiment)
       typedef MSExperiment<> ExperimentType;
+
       /// SharedPtr on MSExperiment
       typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
 
@@ -119,8 +122,7 @@ namespace OpenMS
           type(DT_UNKNOWN),
           name(),
           filename(),
-          peptides(),
-          current_spectrum(0),
+          peptides(),          
           param(),
           gradient(),
           filters(),
@@ -130,128 +132,147 @@ namespace OpenMS
           label(L_NONE),
           features(new FeatureMapType()),
           consensus(new ConsensusMapType()),
-          peaks(new ExperimentType())
+          peaks(new ExperimentType()),
+          current_spectrum_(0)
       {
         annotations_1d.resize(1);
       }
 
       /// Returns a const reference to the current spectrum (1d view)
-      inline const ExperimentType::SpectrumType& getCurrentSpectrum() const
-      {
-        return (*peaks)[current_spectrum];
-      }
+      const ExperimentType::SpectrumType& getCurrentSpectrum() const;
 
       /// Returns a const reference to the current feature data
-      inline const FeatureMapSharedPtrType& getFeatureMap() const
+      const FeatureMapSharedPtrType& getFeatureMap() const
       {
         return features;
       }
 
       /// Returns a const reference to the current feature data
-      inline FeatureMapSharedPtrType& getFeatureMap()
+      FeatureMapSharedPtrType& getFeatureMap()
       {
         return features;
       }
 
       /// Returns a const reference to the consensus feature data
-      inline const ConsensusMapSharedPtrType& getConsensusMap() const
+      const ConsensusMapSharedPtrType& getConsensusMap() const
       {
         return consensus;
       }
 
       /// Returns current consensus map (mutable)
-      inline ConsensusMapSharedPtrType& getConsensusMap()
+      ConsensusMapSharedPtrType& getConsensusMap()
       {
         return consensus;
       }
 
       /// Returns a const reference to the current peak data
-      inline const ExperimentSharedPtrType& getPeakData() const
+      const ExperimentSharedPtrType& getPeakData() const
       {
         return peaks;
       }
 
       /// Returns a mutable reference to the current peak data
-      inline ExperimentSharedPtrType& getPeakData()
+      ExperimentSharedPtrType& getPeakData()
       {
         return peaks;
       }
 
       /// Returns a const reference to the annotations of the current spectrum (1d view)
-      inline const Annotations1DContainer& getCurrentAnnotations() const
+      const Annotations1DContainer& getCurrentAnnotations() const
       {
-        return annotations_1d[current_spectrum];
+        return annotations_1d[current_spectrum_];
       }
 
       /// Returns a mutable reference to the annotations of the current spectrum (1d view)
-      inline Annotations1DContainer& getCurrentAnnotations()
+      Annotations1DContainer& getCurrentAnnotations()
       {
-        return annotations_1d[current_spectrum];
+        return annotations_1d[current_spectrum_];
       }
 
       /// Returns a const reference to the annotations of the current spectrum (1d view)
-      inline const Annotations1DContainer& getAnnotations(Size spectrum_index) const
+      const Annotations1DContainer& getAnnotations(Size spectrum_index) const
       {
         return annotations_1d[spectrum_index];
       }
 
       /// Returns a mutable reference to the annotations of the current spectrum (1d view)
-      inline Annotations1DContainer& getAnnotations(Size spectrum_index)
+      Annotations1DContainer& getAnnotations(Size spectrum_index)
       {
         return annotations_1d[spectrum_index];
       }
 
       /// Returns a mutable reference to the current spectrum (1d view)
-      inline ExperimentType::SpectrumType& getCurrentSpectrum()
+      ExperimentType::SpectrumType& getCurrentSpectrum()
+      {        
+        return (*peaks)[current_spectrum_];
+      }
+
+      /// Get the index of the current spectrum
+      Size getCurrentSpectrumIndex() const
       {
-        return (*peaks)[current_spectrum];
+        return current_spectrum_;
+      }
+
+      /// Set the index of the current spectrum
+      void setCurrentSpectrumIndex(Size index)
+      {
+        current_spectrum_ = index;
       }
 
       /// if this layer is visible
       bool visible;
+
       /// if this layer is flipped (1d mirror view)
       bool flipped;
-      /// data type (peak of feature data)
+
+      /// data type (peak or feature data)
       DataType type;
+
       /// layer name
       String name;
+
       /// file name of the file the data comes from (if available)
       String filename;
+
       /// peptide identifications
       std::vector<PeptideIdentification> peptides;
-      /// Index of the current spectrum (1d view)
-      Size current_spectrum;
 
-      ///Layer parameters
+      /// Layer parameters
       Param param;
 
-      ///Gradient for 2D and 3D views
+      /// Gradient for 2D and 3D views
       MultiGradient gradient;
 
-      ///Filters to apply before painting
+      /// Filters to apply before painting
       DataFilters filters;
 
-      ///Annotations of all spectra of the experiment (1D view)
+      /// Annotations of all spectra of the experiment (1D view)
       std::vector<Annotations1DContainer> annotations_1d;
 
-      ///Flag that indicates if the layer data can be modified (so far used for features only)
+      /// Flag that indicates if the layer data can be modified (so far used for features only)
       bool modifiable;
-      ///Flag that indicates that the layer data was modified since loading it
+
+      /// Flag that indicates that the layer data was modified since loading it
       bool modified;
 
-      ///Label type
+      /// Label type
       LabelType label;
 
     private:
       /// feature data
       FeatureMapSharedPtrType features;
+
       /// consensus feature data
       ConsensusMapSharedPtrType consensus;
+
       /// peak data
       ExperimentSharedPtrType peaks;
+
+      /// Index of the current spectrum
+      Size current_spectrum_;
 	};
 
-	///Print the contents to a stream.
+  /// Print the contents to a stream.
 	OPENMS_GUI_DLLAPI std::ostream& operator << (std::ostream& os, const LayerData& rhs);
 
 } //namespace

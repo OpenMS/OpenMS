@@ -46,9 +46,10 @@ namespace OpenMS
   {    
     // basic behavior 1
     const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
+
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
-   //open new 1D widget
+   // open new 1D widget
    Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
 
    //add data
@@ -74,7 +75,7 @@ namespace OpenMS
    String caption = layer.name;
    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 
-   tv_->showSpectrumWidgetInWindow(w,caption);
+   tv_->showSpectrumWidgetInWindow(w, caption);
    tv_->updateLayerBar();
    tv_->updateViewBar();
    tv_->updateFilterBar();

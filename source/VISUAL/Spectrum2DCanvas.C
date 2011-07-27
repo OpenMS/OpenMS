@@ -388,7 +388,7 @@ namespace OpenMS
 			}
 
       // Determine whether several peaks are expected to be drawn on the same pixel
-      if (n_peaks_in_middle_scan > mz_pixel_count ||  n_ms1_scans > rt_pixel_count)
+      if (n_peaks_in_middle_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count)
 			{
         // overlapping data points expected: draw maximum intensity
         paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
@@ -532,7 +532,6 @@ namespace OpenMS
     DoubleReal pixel_height = abs(p1.y()-p2.y());
 
     // when data is zoomed in to single peaks these are visualized as circles
-    //
     Int circle_size = 0;
 
     if(isMzToXAxis())
@@ -543,7 +542,7 @@ namespace OpenMS
       circle_size = min((Int)(pixel_width * average_spacing_rt),(Int)(pixel_height * minimum_spacing_mz))/2.0;
     }
 
-    for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min,rt_max,mz_min,mz_max);
+    for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min, rt_max, mz_min, mz_max);
          i != map.areaEndConst();
          ++i)
     {
@@ -556,14 +555,15 @@ namespace OpenMS
         {
           QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
 
-          if (circle_size < 2)
+          if (circle_size <= 1)
           {
             painter.setPen(QColor(color));
-            painter.drawPoint(pos.x() , pos.y());
+            painter.drawPoint(pos.x(), pos.y());
           } else
           {
             painter.setPen(Qt::NoPen);
             painter.setBrush(QBrush(color));
+
             painter.drawChord(
                 QRect(pos.x()-(int)circle_size/2, pos.y()-(int)circle_size/2,
                       circle_size, circle_size),

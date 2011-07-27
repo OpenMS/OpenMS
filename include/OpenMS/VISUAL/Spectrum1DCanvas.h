@@ -119,7 +119,7 @@ namespace OpenMS
       /// ----- Annotations
 
       /// Add an annotation item for the given peak
-      void addPeakAnnotation(PeakIndex peak_index, QString text);
+      Annotation1DItem* addPeakAnnotation(PeakIndex peak_index, QString text, QColor color);
 
       /// Draws all annotation items of @p layer_index on @p painter
       void drawAnnotations(Size layer_index, QPainter& painter);			   

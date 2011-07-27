@@ -209,19 +209,19 @@ namespace OpenMS
       item->setTicks(ticks);
       item->setSelected(false);
 
-      current_spectrum_precursor_annotations_.push_back(item); // for removal (no ownership)
+      temporary_annotations_.push_back(item); // for removal (no ownership)
       current_layer.getCurrentAnnotations().push_front(item);  // for visualisation (ownership)
     }
   }
 
-  void TOPPViewIdentificationViewBehavior::removePrecursorLabels1D_(Size spectrum_index)
+  void TOPPViewIdentificationViewBehavior::removeTemporaryAnnotations_(Size spectrum_index)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
     #endif
     // Delete annotations added by IdentificationView (but not user added annotations)
     LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
-    const vector<Annotation1DItem* >& cas = current_spectrum_precursor_annotations_;    
+    const vector<Annotation1DItem* >& cas = temporary_annotations_;
     Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
     for(vector<Annotation1DItem* >::const_iterator it = cas.begin(); it != cas.end(); ++it)
     {
@@ -232,7 +232,7 @@ namespace OpenMS
         las.erase(i);
       }
     }
-    current_spectrum_precursor_annotations_.clear();
+    temporary_annotations_.clear();
   }
 
   void TOPPViewIdentificationViewBehavior::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
@@ -245,7 +245,7 @@ namespace OpenMS
 
     // get measured spectrum indices and spectrum
     Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
-    Size current_spectrum_index = current_layer.current_spectrum;
+    Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
 
     const Param& tv_params = tv_->getParameters();
     Int charge = 1;
@@ -348,16 +348,26 @@ namespace OpenMS
           if (it->getMetaValue("IonName") != DataValue::EMPTY)
           {
             DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
-            QString s(((string)it->getMetaValue("IonName")).c_str());
-            Annotation1DItem* item = new Annotation1DPeakItem(position, s);
-            item->setSelected(false);
-            tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+            QString s(((string)it->getMetaValue("IonName")).c_str());            
+
+            if (s.at(0) == 'y')
+            {
+              Annotation1DItem* item = new Annotation1DPeakItem(position, s, Qt::darkRed);
+              item->setSelected(false);
+              tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+            } else if (s.at(0) == 'b')
+            {
+              Annotation1DItem* item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
+              item->setSelected(false);
+              tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+            }
           }
         }
 
-        // activate real data layer and spectrum
+        // remove theoretical and activate real data layer and spectrum
+        tv_->getActive1DWidget()->canvas()->changeVisibility(theoretical_spectrum_layer_index, false);
         tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
-        tv_->getActive1DWidget()->canvas()->getCurrentLayer().current_spectrum = current_spectrum_index;
+        tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
 
         // spectra alignment
         Param param;
@@ -378,6 +388,7 @@ namespace OpenMS
           PeakIndex pi(current_spectrum_index, aligned_peak_indices[i].first);
           QString s(((string)rich_spec[aligned_peak_indices[i].second].getMetaValue("IonName")).c_str());
           QString ion_nr_string = s;
+
           if (s.at(0) == 'y')
           {
             ion_nr_string.replace("y", "");
@@ -390,6 +401,8 @@ namespace OpenMS
             //cerr << seq << endl;
             s.append("\n");
             s.append(seq.toQString());
+            Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkRed);
+            temporary_annotations_.push_back(item);
           } else if (s.at(0) == 'b')
           {
             ion_nr_string.replace("b", "");
@@ -401,11 +414,13 @@ namespace OpenMS
             //cerr << seq << endl;
             s.append("\n");
             s.append(seq.toQString());
+            Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
+            temporary_annotations_.push_back(item);
           }
-
-          tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s);
         }
 
+        // don't delete layer as we want to check position of ions
+        // tv_->getActive1DWidget()->canvas()->removeLayer(theoretical_spectrum_layer_index);
         tv_->updateLayerBar();
         tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
       }
@@ -421,10 +436,8 @@ namespace OpenMS
     LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     int ms_level = (*current_layer.getPeakData())[spectrum_index].getMSLevel();
 
-    if (ms_level == 1)
-    {
-      removePrecursorLabels1D_(spectrum_index);
-    } else
+    removeTemporaryAnnotations_(spectrum_index);
+
     if (ms_level == 2)
     {
       removeTheoreticalSpectrumLayer_();
@@ -476,7 +489,7 @@ namespace OpenMS
         {
           continue;
         }
-        current_layer.current_spectrum = i;
+        current_layer.setCurrentSpectrumIndex(i);
         break;
       }
     }
@@ -487,7 +500,7 @@ namespace OpenMS
     // remove precusor labels, theoretical spectra and trigger repaint
     if(tv_->getActive1DWidget() != 0)
     {
-      removePrecursorLabels1D_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().current_spectrum);
+      removeTemporaryAnnotations_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrumIndex());
       removeTheoreticalSpectrumLayer_();
       tv_->getActive1DWidget()->canvas()->repaint();
     }

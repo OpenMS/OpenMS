@@ -724,7 +724,7 @@ namespace OpenMS
 			bool is_1d = (getName()=="Spectrum1DCanvas");
 			if (is_1d)
 			{
-        begin = layer.getPeakData()->begin() + layer.current_spectrum;
+        begin = layer.getPeakData()->begin() + layer.getCurrentSpectrumIndex();
 				end = begin+1;
 			}
 
@@ -869,7 +869,7 @@ namespace OpenMS
 				//Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
 				if (getName()=="Spectrum1DCanvas")
 				{
-          dlg.add((*layer.getPeakData())[layer.current_spectrum]);
+          dlg.add((*layer.getPeakData())[layer.getCurrentSpectrumIndex()]);
 				}
 			}
 			else if (layer.type==LayerData::DT_FEATURE)

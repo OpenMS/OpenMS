@@ -30,6 +30,8 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
+#include <QtGui/QColor>
+
 namespace OpenMS
 {
   /** @brief A peak annotation item
@@ -40,7 +42,7 @@ namespace OpenMS
 	{	
 		public:			
 			/// Constructor
-      Annotation1DPeakItem(const PointType& peak_position, const QString& text);
+      Annotation1DPeakItem(const PointType& peak_position, const QString& text, const QColor& color);
 
 			/// Copy constructor
 			Annotation1DPeakItem(const Annotation1DPeakItem& rhs);
@@ -48,13 +50,13 @@ namespace OpenMS
 			/// Destructor
 			virtual ~Annotation1DPeakItem();
 
-			// Docu in base class
+      /// Docu in base class
       virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
 
-			// Docu in base class
+      /// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 
-			// Docu in base class
+      /// Docu in base class
 			virtual void move(const PointType& /*delta*/);
 
       /// Sets the position of the label (in MZ / intensity coordinates)
@@ -66,12 +68,20 @@ namespace OpenMS
 			/// Returns the position of the peak (in MZ / intensity coordinates)
       const PointType& getPosition() const;
 
+      /// Set the color of the label
+      void setColor(const QColor& color);
+
+      /// Returns the color of the label
+      const QColor& getColor() const;
 		protected:
       /// The position of the anker (peak) (in MZ / intensity coordinates)
       PointType peak_position_;      
 
       /// The position of the label (in MZ / intensity coordinates)
 			PointType position_;			
+
+      /// The color of the label
+      QColor color_;
 	};
 } // namespace OpenMS
 

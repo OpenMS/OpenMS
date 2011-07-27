@@ -32,7 +32,12 @@ using namespace std;
 namespace OpenMS
 {
 	const std::string LayerData::NamesOfLabelType[] = {"None","Index","Label meta data","Peptide identification","All peptide identifications"};
-	
+
+  const LayerData::ExperimentType::SpectrumType& LayerData::getCurrentSpectrum() const
+  {
+      return (*peaks)[current_spectrum_];
+  }
+
 	std::ostream& operator << (std::ostream& os, const LayerData& rhs)
 	{
 		os << "--LayerData BEGIN--"<<std::endl;

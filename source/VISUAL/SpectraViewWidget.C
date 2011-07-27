@@ -358,7 +358,7 @@ namespace OpenMS
           item->setText(6, "no");
         }
 
-        if (i == cl.current_spectrum)
+        if (i == cl.getCurrentSpectrumIndex())
         {
           // just remember it, select later
           selected_item = item;
@@ -423,7 +423,7 @@ namespace OpenMS
             item->setText(6, "no");
           }
           toplevel_items.push_back(item);
-          if (i == cl.current_spectrum)
+          if (i == cl.getCurrentSpectrumIndex())
           {
             // just remember it, select later
             selected_item = item;

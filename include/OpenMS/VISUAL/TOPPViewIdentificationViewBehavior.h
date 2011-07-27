@@ -88,7 +88,7 @@ namespace OpenMS
       void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);
 
       /// Removes the precursor labels for from the specified 1D spectrum
-      void removePrecursorLabels1D_(Size spectrum_index);
+      void removeTemporaryAnnotations_(Size spectrum_index);
 
       /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
       void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
@@ -100,7 +100,7 @@ namespace OpenMS
       TOPPViewBase* tv_;
       /// Used to check which annotation handles have been added automaticaly by the identification view. Ownership
       /// of the AnnotationItems has the Annotation1DContainer 
-      std::vector<Annotation1DItem* > current_spectrum_precursor_annotations_;  
+      std::vector<Annotation1DItem* > temporary_annotations_;
   };
 }
 

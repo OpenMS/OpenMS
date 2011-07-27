@@ -218,7 +218,7 @@ namespace OpenMS
       #ifdef DEBUG_IDENTIFICATION_VIEW
         cout << "selection Change MS1 deselect: "<< layer_->current_spectrum << endl;
       #endif
-      emit spectrumDeselected(int(layer_->current_spectrum));
+      emit spectrumDeselected(int(layer_->getCurrentSpectrumIndex()));
     } else
     {
       #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -629,7 +629,7 @@ namespace OpenMS
       item->setBackgroundColor(c);
       table_widget_->setItem(table_widget_->rowCount()-1 , 6, item);
 
-      if (i == layer_->current_spectrum)
+      if (i == layer_->getCurrentSpectrumIndex())
       {
         // just remember it, select later
         selected_item = item;
@@ -637,22 +637,22 @@ namespace OpenMS
       }
     }
 
-    table_widget_->blockSignals(false);
-    table_widget_->setUpdatesEnabled(true);
+
+    table_widget_->setSortingEnabled(true);
+    table_widget_->setHorizontalHeaderLabels(header_labels);
+    table_widget_->resizeColumnsToContents();
 
     if (selected_item)
     {
       // now, select and scroll down to item
       table_widget_->selectRow(int(selected_row));
-      //selected_item->setSelected(true);
+      selected_item->setSelected(true);
       table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);
     }
 
-
-    table_widget_->setSortingEnabled(true);
-    table_widget_->setHorizontalHeaderLabels(header_labels);
-    table_widget_->resizeColumnsToContents();
+    table_widget_->blockSignals(false);
+    table_widget_->setUpdatesEnabled(true);
   }
 
   void SpectraIdentificationViewWidget::headerContextMenu_(const QPoint& pos)
