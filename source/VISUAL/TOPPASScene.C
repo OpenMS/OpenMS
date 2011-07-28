@@ -937,20 +937,20 @@ namespace OpenMS
                            "(e.g using the \"Save as ...\" functionality to make the workflow more robust to changes in future versions of TOPP tools!").toQString());
     }
 
-    
+/*    
     if (!views().empty())
 		{
 			TOPPASWidget* tw = qobject_cast<TOPPASWidget*>(views().first());
 			if (tw)
 			{
 				QRectF scene_rect = itemsBoundingRect();
-								
+	      
 				tw->fitInView(scene_rect, Qt::KeepAspectRatio);
 				tw->scale(0.75, 0.75);
 				setSceneRect(tw->mapToScene(tw->rect()).boundingRect());
 			}
 		}
-		
+*/		
 		file_name_ = file;
 		
     topoSort();
@@ -959,7 +959,7 @@ namespace OpenMS
 		{
 			(*it)->blockSignals(false);
 		}
-		
+
 		updateEdgeColors();
   }
 

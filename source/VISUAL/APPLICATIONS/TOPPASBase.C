@@ -666,7 +666,11 @@ namespace OpenMS
     connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(showPipelineFinishedLogMessage()));
 		connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
 		connect(scene, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
-		scene->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
+		
+	  QRectF scene_rect = scene->itemsBoundingRect();
+		tw->fitInView(scene_rect, Qt::KeepAspectRatio);
+		tw->scale(0.75, 0.75);
+		scene->setSceneRect(tw->mapToScene(tw->rect()).boundingRect());
 
     desc_->blockSignals(true);
     desc_->setHtml(scene->getDescription());
