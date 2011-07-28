@@ -2629,7 +2629,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (in_new_window) // open in new window
     {
       // create TOPPASWidget, load data and open in new window
-      TOPPASWidget* tw = new TOPPASWidget(Param(), 0, ws_, toppas_tmp_path_);
+      TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, toppas_tmp_path_);
       showTOPPipelineInWindow_(tw, File::basename(file_name));
       scene = tw->getScene();
       scene->load(file_name);
@@ -4102,7 +4102,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   // ******************************************TOPPAS events**********************************
   void TOPPViewBase::newPipeline()
   {
-    TOPPASWidget* tw = new TOPPASWidget(Param(), 0, ws_, toppas_tmp_path_);
+    TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, toppas_tmp_path_);
     TOPPASScene* ts = tw->getScene();
     connect (ts, SIGNAL(selectionCopied(TOPPASScene*)), this, SLOT(saveToClipboard(TOPPASScene*)));
     connect (ts, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));

@@ -35,8 +35,6 @@
 #include <QtGui/QGraphicsScene>
 #include <QtCore/QProcess>
 
-class QTextEdit;
-
 namespace OpenMS
 {
 	class TOPPASVertex;
@@ -119,7 +117,7 @@ namespace OpenMS
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
 			/// Constructor
-			TOPPASScene(QObject* parent, const QString& tmp_path, QTextEdit * desc, bool gui = true);
+			TOPPASScene(QObject* parent, const QString& tmp_path, bool gui = true);
 			
 			/// Destructor
 			virtual ~TOPPASScene();
@@ -320,8 +318,6 @@ namespace OpenMS
       bool dry_run_;
 			/// currently running processes...
       int threads_active_;
-      /// pointer to the description
-      QTextEdit* desc_;
       /// description text
       QString description_text_;
 

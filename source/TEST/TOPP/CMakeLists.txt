@@ -761,8 +761,8 @@ add_test("TOPP_PeptideIndexer_4" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${
 add_test("TOPP_PeptideIndexer_4_out" ${DIFF} -in1 PeptideIndexer_4_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_4_out.idXML)
 
 ### ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
-add_test("TOPP_ExcecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPP}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf -out_dir .)
-set_tests_properties("TOPP_ExcecutePipeline_1" PROPERTIES WILL_FAIL 1)
+add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPP}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf -out_dir .)
+set_tests_properties("TOPP_ExecutePipeline_1" PROPERTIES WILL_FAIL 1)
 
 
 

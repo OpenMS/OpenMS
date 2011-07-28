@@ -35,8 +35,6 @@
 
 #include <QtGui/QGraphicsView>
 
-class QTextEdit;
-
 namespace OpenMS
 {
 	class TOPPASScene;
@@ -60,7 +58,7 @@ namespace OpenMS
     public:
     
       /// Default constructor
-      TOPPASWidget(const Param& preferences, QTextEdit * desc, QWidget* parent = 0, const String& tmp_path = "");
+      TOPPASWidget(const Param& preferences, QWidget* parent = 0, const String& tmp_path = "");
 
       /// Destructor
       virtual ~TOPPASWidget();

@@ -46,8 +46,6 @@
 #include <QtCore/QSet>
 #include <QtCore/QTextStream>
 #include <QtGui/QMessageBox>
-#include <QtGui/QTextEdit>
-
 
 namespace OpenMS
 {
@@ -60,7 +58,7 @@ namespace OpenMS
     emit finished ( 0, QProcess::NormalExit);
   }
 
-	TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, QTextEdit * desc, bool gui)
+	TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui)
 		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
 			vertices_(),
@@ -69,7 +67,6 @@ namespace OpenMS
 			potential_target_(0),
 			file_name_(),
 			tmp_path_(tmp_path),
-      desc_(desc),
 			gui_(gui),
 			out_dir_(File::getUserDirectory().toQString()),
 			changed_(false),
@@ -603,7 +600,7 @@ namespace OpenMS
     save_param.setValue("info:version", DataValue(VersionInfo::getVersion()));
 		save_param.setValue("info:num_vertices", DataValue(vertices_.size()));
 		save_param.setValue("info:num_edges", DataValue(edges_.size()));
-    save_param.setValue("info:description", DataValue(String("<![CDATA[") + String(this->desc_->toHtml()) + String("]]>")));
+    save_param.setValue("info:description", DataValue(String("<![CDATA[") + String(this->description_text_) + String("]]>")));
 		
 		// store all vertices (together with all parameters)
 		foreach (TOPPASVertex* tv, vertices_)
@@ -733,19 +730,12 @@ namespace OpenMS
     bool pre_1_9_toppas = true;
     if (load_param.exists("info:version")) pre_1_9_toppas = false; // using param names instead of indices for connecting edges
 
-    // Window could be unknown
-    if (desc_)
+    if (load_param.exists("info:description"))
     {
-      if (load_param.exists("info:description"))
-      {
-        String text = String(load_param.getValue("info:description")).toQString();
-        text.substitute("<![CDATA[", "");
-        text.substitute("]]>", "");
-        description_text_ = text.trim().toQString();
-        desc_->blockSignals(true); // prevent scene from being flagged as changed
-        desc_->setHtml(description_text_);
-        desc_->blockSignals(false);
-      }
+      String text = String(load_param.getValue("info:description")).toQString();
+      text.substitute("<![CDATA[", "");
+      text.substitute("]]>", "");
+      description_text_ = text.trim().toQString();
     }
 
     String current_type, current_id;

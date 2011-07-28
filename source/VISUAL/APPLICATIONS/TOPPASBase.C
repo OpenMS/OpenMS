@@ -427,10 +427,10 @@ namespace OpenMS
 			TOPPASScene* scene = 0;
 			if (in_new_window)
 			{
-				TOPPASWidget* tw = new TOPPASWidget(Param(), desc_, ws_, tmp_path_);
+				TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 				scene = tw->getScene();
-        showAsWindow_(tw, File::basename(file_name));
-        scene->load(file_name);
+        scene->load(file_name); // first load WF, including description etc
+        showAsWindow_(tw, File::basename(file_name)); // show it
       }
 			else
 			{
@@ -478,7 +478,7 @@ namespace OpenMS
 
   void TOPPASBase::newPipeline()
   {
-  	TOPPASWidget* tw = new TOPPASWidget(Param(), desc_, ws_, tmp_path_);
+  	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
   	showAsWindow_(tw, "(Untitled)");
   }
 	
@@ -643,7 +643,7 @@ namespace OpenMS
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
-    connect(tw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
+    connect(tw, SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
 
     tab_bar_->setCurrentId(tw->getWindowId());
 

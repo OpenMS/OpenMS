@@ -79,7 +79,6 @@ namespace OpenMS
     if (ch != -1)
 #endif
     { 
-      std::cerr << "O PATH is: " << path << "\n";
       spath = File::path(String(path));
       if (File::exists(spath)) // check if directory exists
       {
