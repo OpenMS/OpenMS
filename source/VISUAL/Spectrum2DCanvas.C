@@ -331,7 +331,12 @@ namespace OpenMS
         }
 			}
 
-      // create iterator on scan in the middle of the map (these usually have MS2 and therefor larger spacing)
+      if (n_ms1_scans == 0)
+      {
+        return;
+      }
+
+      // create iterator on scan in the middle of the visible map
       ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + n_ms1_scans / 2;
 
       Size n_peaks_in_middle_scan = 0;

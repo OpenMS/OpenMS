@@ -64,8 +64,8 @@ namespace OpenMS
 		setFocusProxy(canvas_);
 		grid_->addWidget(canvas_, row, col);
 		//axes
-		y_axis_ = new AxisWidget(AxisWidget::LEFT, "",this);
-		x_axis_ = new AxisWidget(AxisWidget::BOTTOM, "",this);
+    y_axis_ = new AxisWidget(AxisPainter::LEFT, "",this);
+    x_axis_ = new AxisWidget(AxisPainter::BOTTOM, "",this);
 		grid_->addWidget(y_axis_,row,col-1);
 		grid_->addWidget(x_axis_,row+1,col);
 		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));

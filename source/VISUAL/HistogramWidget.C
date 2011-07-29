@@ -59,7 +59,7 @@ namespace OpenMS
 		right_splitter_ = dist_.maxBound();
 		setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 		setMinimumSize(600,450);
-		bottom_axis_ = new AxisWidget(AxisWidget::BOTTOM,"",this);
+    bottom_axis_ = new AxisWidget(AxisPainter::BOTTOM,"",this);
 		bottom_axis_->setMargin(margin_);
 		bottom_axis_->setTickLevel(2);
 		bottom_axis_->setAxisBounds(dist_.minBound(),dist_.maxBound());

@@ -56,7 +56,7 @@ namespace OpenMS
 		y_axis_->setAllowShortNumbers(true);
 		y_axis_->setMinimumWidth(50);
 		
-		flipped_y_axis_ = new AxisWidget(AxisWidget::LEFT,"Intensity",this);
+    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT,"Intensity",this);
 		flipped_y_axis_->setInverseOrientation(true);
 		flipped_y_axis_->setAllowShortNumbers(true);
 		flipped_y_axis_->setMinimumWidth(50);

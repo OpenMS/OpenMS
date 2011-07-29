@@ -32,8 +32,12 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-
+#include <OpenMS/VISUAL/AxisTickCalculator.h>
+#include <OpenMS/VISUAL/AxisPainter.h>
 #include <QtGui/QImage>
+#include <QtGui/QPainter>
+#include <QtGui/QFontDatabase>
+#include <QtGui/QApplication>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -161,6 +165,9 @@ class TOPPImageCreator
 		registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z).\n"
 															 "Per default, dimensions run bottom-up in RT and left-right in m/z.");
 		registerFlag_("precursors", "Mark locations of MS2 precursors.\n");
+		registerFlag_("border", "Add 1 px border around resulting image.\n");
+    registerFlag_("draw_axes", "Add axes.\n");
+
 		registerStringOption_("precursor_color", "<color>", "#000000", "Color for precursor marks (color code or word, e.g. 'black') (requires 'precursors' flag to be active)", false);
 		registerIntOption_("precursor_size", "<number>", 2,
 											 "Size of the precursor marks (requires 'precursors' flag to be active)", false);
@@ -168,8 +175,11 @@ class TOPPImageCreator
 		setMaxInt_("precursor_size", 3);
 	}
 
-	ExitCodes main_(int , const char**)
-	{
+  ExitCodes main_(int argc, const char** argv)
+  {
+    // we need this to initialize qt, otherwise access to font rendering won't work
+    QApplication app(argc, const_cast<char**>(argv), true);
+
 		//----------------------------------------------------------------
 		// load data
 		//----------------------------------------------------------------
@@ -289,7 +299,8 @@ class TOPPImageCreator
 		{
 			for (int j = 0; j < peaks; ++j)
 			{
-				double value = bilip.getData().getValue(i, j);
+        double value = bilip.getData().getValue(i, j);
+
 				if (use_log) value = std::log(value);
 				image.setPixel(j, i, gradient.interpolatedColorAt(value/factor).
 											 rgb());
@@ -303,6 +314,62 @@ class TOPPImageCreator
 											  Size(getIntOption_("precursor_size")));
 		}
 		
+		// draw axes
+		if (getFlag_("draw_axes"))
+		{
+      const UInt axis_size = 40; // width of axis
+
+			DoubleReal mz_min = exp.getMinMZ();
+			DoubleReal mz_max = exp.getMaxMZ();
+			vector<vector<DoubleReal> > mz_grid;
+			AxisTickCalculator::calcGridLines(mz_min, mz_max, mz_grid);
+      QImage x_axis(image.width(), axis_size, QImage::Format_RGB32);
+      QPainter px(&x_axis);
+      px.fillRect(0,0,image.width(),image.height(), Qt::white);
+
+      AxisPainter::paint(&px, 0, mz_min, mz_max, mz_grid,
+                         x_axis.width(), x_axis.height(), AxisPainter::BOTTOM, 2,
+                         true, "MZ [Th]", false, false, false);
+      px.end();
+
+      // convert to minutes
+      DoubleReal rt_min = exp.getMinRT() / 60.0;
+      DoubleReal rt_max = exp.getMaxRT() / 60.0;
+			vector<vector<DoubleReal> > rt_grid;
+			AxisTickCalculator::calcGridLines(rt_min, rt_max, rt_grid);
+
+      QImage y_axis(axis_size, image.height(), QImage::Format_RGB32);
+      QPainter py(&y_axis);
+      py.fillRect(0,0,image.width(),image.height(), Qt::white);
+      AxisPainter::paint(&py, 0, rt_min, rt_max, rt_grid,
+                         y_axis.width(), y_axis.height(), AxisPainter::LEFT, 2,
+                         true, "RT [min]", false, false, false);
+      py.end();
+
+      // create new, bigger image with black background
+      QImage tmp(image.width()+axis_size, image.height()+axis_size, QImage::Format_RGB32);
+
+      // copy original image to black (bigger) image
+      QPainter p(&tmp);
+      p.fillRect(0, 0, tmp.width(), tmp.height(), Qt::white);
+      p.drawImage (0, 0, y_axis);
+      p.drawImage (axis_size, image.height(), x_axis);
+      p.drawImage (axis_size, 0, image);
+      image = tmp;
+		}
+
+		// add border
+		if (getFlag_("border"))
+		{
+			// create new, bigger image with black background
+      QImage border_image(image.width()+2, image.height()+2, QImage::Format_RGB32);
+
+      // copy original image to black (bigger) image
+      QPainter p(&border_image);
+      p.drawImage (1, 1, image);
+      image = border_image;
+		}
+
 		if (image.save(out.toQString(), format.c_str())) return EXECUTION_OK;
 		else return CANNOT_WRITE_OUTPUT_FILE;
 	}

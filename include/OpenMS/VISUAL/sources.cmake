@@ -58,6 +58,7 @@ source_group("Source Files\\OpenMS\\VISUAL" FILES ${mocced_sources})
 ### list all header files of the directory here
 set(sources_list_h
 AxisTickCalculator.h
+AxisPainter.h
 AxisWidget.h
 ColorSelector.h
 EnhancedTabBar.h
@@ -108,4 +109,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\VISUAL" FILES ${sources_h})
 
 set(OpenMSVisual_sources_h ${OpenMSVisual_sources_h} ${sources_h})
-
