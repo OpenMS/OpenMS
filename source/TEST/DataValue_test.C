@@ -32,6 +32,14 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <sstream>
 
+// we ignore the -Wunused-value warning here, since we do not want the compiler
+// to report problems like
+// DataValue_test.C:285:3: warning: expression result unused [-Wunused-value]
+//   TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
+
 ///////////////////////////
 
 START_TEST(DataValue, "$Id$")
@@ -537,3 +545,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
+#pragma clang diagnostic pop
