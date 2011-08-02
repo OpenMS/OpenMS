@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Maintainer: Lars Nilse $
+// $Authors: Marc Sturm, Clemens Groepl, Lars Nilse $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -94,7 +94,7 @@ namespace OpenMS
 		vector<PeptideIdentification> peptides;
 	};
 
-	/// A little helper class to gather (and dump) some statistics from a vector<double>.  Uses statistical functions implemented in GSL.
+	/// A little helper class to gather (and dump) some statistics from a vector<double>. Uses statistical functions implemented in GSL.
 	struct SomeStatistics
 	{
 		/**@brief Initialize SomeStatistics from data.
@@ -162,6 +162,7 @@ class TOPPFileInfo
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
 #endif
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
+		registerOutputFile_("out_tsv","<file>","","Second optional output file. Tab separated flat text file.", false, true);
 		registerFlag_("m", "Show meta information about the whole experiment");
 		registerFlag_("p", "Shows data processing information");
 		registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
@@ -172,17 +173,23 @@ class TOPPFileInfo
 
 	
 	template <class Map>
-	void writeRanges_(Map map, ostream& os)
+	void writeRanges_(Map map, ostream& os, ostream& os2)
 	{
 		os << "Ranges:" << endl
-			 << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << endl
-			 << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << endl
-			 << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << endl
-			 << endl;
+    << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << endl
+    << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << endl
+    << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << endl
+    << endl;
+		os2 << "retention time (min)" << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << endl
+        << "retention time (max)" << "\t" << String::number(map.getMax()[Peak2D::RT], 2) << endl
+        << "mass-to-charge (min)" << "\t" << String::number(map.getMin()[Peak2D::MZ], 2) << endl
+        << "mass-to-charge (max)" << "\t" << String::number(map.getMax()[Peak2D::MZ], 2) << endl
+        << "intensity (min)" << "\t" << String::number(map.getMinInt(), 2) << endl
+        << "intensity (max)" << "\t" << String::number(map.getMaxInt(), 2) << endl;
 	}
 
 
-	ExitCodes outputTo_(ostream& os)
+	ExitCodes outputTo_(ostream& os, ostream& os2)
 	{
 		//-------------------------------------------------------------
 		// Parameter handling
@@ -206,13 +213,16 @@ class TOPPFileInfo
 			writeLog_("Error: Could not determine input file type!");
 			return PARSE_ERROR;
 		}
-
+    
 		os << endl
 			 << "-- General information --" << endl
 			 << endl
 			 << "File name: " << in << endl
-			 << "File type: " <<  fh.typeToName(in_type) << endl;
+			 << "File type: " << fh.typeToName(in_type) << endl;
 
+    os2 << "file name" << "\t" << in << endl
+        << "file type" << "\t" << fh.typeToName(in_type) << endl;
+    
 		MSExperiment<Peak1D> exp;
 		FeatureMap<> feat;
 		ConsensusMap cons;
@@ -328,7 +338,7 @@ class TOPPFileInfo
 
 			os << "Number of features: " << feat.size() << endl
 				 << endl;
-			writeRanges_(feat, os);
+			writeRanges_(feat, os, os2);
 
 			// Charge distribution and TIC
 			Map<UInt, UInt> charges;
@@ -364,7 +374,7 @@ class TOPPFileInfo
 			}
 			os << "  total:    " << string(field_width, ' ') << cons.size() << endl << endl;
 
-			writeRanges_(cons, os);
+			writeRanges_(cons, os, os2);
 
 			// file descriptions
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
@@ -392,6 +402,11 @@ class TOPPFileInfo
 
 			// reading input
 			IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
+     
+      // export metadata to second output stream
+      os2 << "database" << "\t" << id_data.proteins.at(0).getSearchParameters().db << endl
+          << "database version" << "\t" << id_data.proteins.at(0).getSearchParameters().db_version << endl
+          << "taxonomy" << "\t" << id_data.proteins.at(0).getSearchParameters().taxonomy << endl;
 
 			// calculations
 			for (Size i = 0; i < id_data.peptides.size(); ++i)
@@ -432,6 +447,11 @@ class TOPPFileInfo
 			os << "  spectra:             " << spectrum_count << endl;
 			os << "  peptide hits:        " << peptide_hit_count << endl;
 			os << "  unique peptide hits: " << peptides.size() << endl;
+      
+			os2 << "peptide hits" << "\t" << peptide_hit_count << endl;
+			os2 << "unique peptide hits" << "\t" << peptides.size() << endl;
+			os2 << "protein hits" << "\t" << protein_hit_count << endl;
+			os2 << "unique protein hits" << "\t" << proteins.size() << endl;
 		}
 
 		else if (in_type == FileTypes::PEPXML)
@@ -484,6 +504,9 @@ class TOPPFileInfo
 				}
 				sort(spacing.begin(), spacing.end());
 				os << "Estimated raw data spacing: " << spacing[spacing.size() / 2] << " (min: " << spacing[0] << ", max: " << spacing.back() << ")" << endl;
+        os2 << "estimated raw data spacing" << "\t" << spacing[spacing.size() / 2] << endl
+            << "estimated raw data spacing (min)" << "\t" << spacing[0] << endl
+            << "estimated raw data spacing (max)" << "\t" << spacing.back() << endl;
 			}
 			os << endl;
 
@@ -494,7 +517,9 @@ class TOPPFileInfo
 			os << "Number of spectra: "	<< exp.size() << endl;
 			os << "Number of peaks: " << exp.getSize() << endl
 				 << endl;
-			writeRanges_(exp, os);
+      os2 << "number of spectra" << "\t" << exp.size() << endl
+          << "number of peaks" << "\t" << exp.getSize() << endl;
+			writeRanges_(exp, os, os2);
 
 			os << "MS levels: ";
 			if (levels.size() != 0)
@@ -515,11 +540,12 @@ class TOPPFileInfo
 			}
 			//output
 			if (!counts.empty())
-			{
+			{      
 				os << "Number of spectra per MS level:" << endl;
 				for (map<Size, UInt>::iterator it = counts.begin(); it != counts.end(); ++it)
 				{
 					os << "  level " << it->first << ": " << it->second << endl;
+          os2 << "number of MS" << it->first << " spectra" << "\t" << it->second << endl;
 				}
 				os << endl;
 			}
@@ -585,6 +611,7 @@ class TOPPFileInfo
 			if (exp.getChromatograms().size() != 0)
 			{
 				os << "Number of chromatograms: "	<< exp.getChromatograms().size() << endl;
+				os2 << "number of chromatograms" << "\t"	<< exp.getChromatograms().size() << endl;
 
 				Size num_chrom_peaks(0);
 				Map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
@@ -601,6 +628,7 @@ class TOPPFileInfo
 					}
 				}
 				os << "Number of chromatographic peaks: " << num_chrom_peaks << endl << endl;
+				os2 << "number of chromatographic peaks" << "\t" << num_chrom_peaks << endl;
 
 				os << "Number of chromatograms per type: " << endl;
 				for (Map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
@@ -795,8 +823,9 @@ class TOPPFileInfo
 		//-------------------------------------------------------------
 		// meta information
 		//-------------------------------------------------------------
-		if (getFlag_("m"))
+		if (getFlag_("m") || getStringOption_("out_tsv")!="")
 		{
+      
 			//basic info
 			os << endl
 					 << "-- Meta information --" << endl
@@ -823,6 +852,8 @@ class TOPPFileInfo
 
 				os << "Document ID:        " << exp.getIdentifier() << endl
 					 << "Date:               " << exp.getDateTime().get() << endl;
+        os2 << "document id" << "\t" << exp.getIdentifier() << endl
+            << "date" << "\t" << exp.getDateTime().get() << endl;
 
 				//basic info
 				os << endl
@@ -830,14 +861,20 @@ class TOPPFileInfo
 					 << "  name:             " << exp.getSample().getName() << endl
 					 << "  organism:         " << exp.getSample().getOrganism()  << endl
 					 << "  comment:          " << exp.getSample().getComment()  << endl;
-
-				//instrument info
+        os2 << "sample name" << "\t" << exp.getSample().getName() << endl
+            << "sample organism" << "\t" << exp.getSample().getOrganism() << endl
+            << "sample comment" << "\t" << exp.getSample().getComment() << endl;
+        
+        //instrument info
 				os << endl
 					 << "Instrument:" << endl
 					 << "  name:             " << exp.getInstrument().getName() << endl
 					 << "  model:            " << exp.getInstrument().getModel() << endl
 					 << "  vendor:           " << exp.getInstrument().getVendor() << endl
 					 << "  ion source(s):    ";
+        os2 << "instrument name" << "\t" << exp.getInstrument().getName() << endl
+            << "instrument model" << "\t" << exp.getInstrument().getModel() << endl
+            << "instrument vendor" << "\t" << exp.getInstrument().getVendor() << endl;
 				for (Size i = 0; i< exp.getInstrument().getIonSources().size(); ++i)
 				{
 					os << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
@@ -1154,18 +1191,21 @@ class TOPPFileInfo
 	ExitCodes main_(int, const char**)
 	{
 		String out = getStringOption_("out");
+		String out_tsv = getStringOption_("out_tsv");
+    ofstream os(out.c_str());
+    ofstream os2(out_tsv.c_str());
 
 		//output to command line
 		if (out == "")
 		{
-			return outputTo_(cout);
+			return outputTo_(cout, os2);
 		}
 		//output to file
 		else
 		{
-			ofstream os(out.c_str());
-			return outputTo_(os);
+			return outputTo_(os, os2);
 		}
+    
 	}
 };
 
