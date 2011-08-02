@@ -37,8 +37,10 @@
 // DataValue_test.C:285:3: warning: expression result unused [-Wunused-value]
 //   TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-value"
+#ifdef __clang__
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wunused-value"
+#endif
 
 ///////////////////////////
 
@@ -545,4 +547,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+	#pragma clang diagnostic pop
+#endif
