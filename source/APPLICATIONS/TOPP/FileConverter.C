@@ -129,6 +129,7 @@ class TOPPFileConverter
 		setValidFormats_("out",StringList::create(formats));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("out_type",StringList::create(formats));
+		registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
 	}
 
 	ExitCodes main_(int , const char**)
@@ -171,6 +172,8 @@ class TOPPFileConverter
 			writeLog_("Error: Could not determine output file type!");
 			return PARSE_ERROR;
 		}
+    
+    bool TIC_DTA2D = getFlag_("TIC_DTA2D");
 
 		writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
 
@@ -283,7 +286,18 @@ class TOPPFileConverter
 			DTA2DFile f;
 			f.setLogType(log_type_);
 			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
-			f.store(out,exp);
+      if (TIC_DTA2D)
+      {
+        // store the total ion chromatogram (TIC)
+        f.storeTIC(out,exp);
+      }
+      else
+      {
+        // store entire experiment
+        f.store(out,exp);
+      }
+
+			
 		}
 
 		else if (out_type == FileTypes::MGF)
