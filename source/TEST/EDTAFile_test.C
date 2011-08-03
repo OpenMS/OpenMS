@@ -58,7 +58,7 @@ START_SECTION(virtual ~EDTAFile())
 END_SECTION
 
 
-START_SECTION(void load(const String &filename, ConsensusMape &consensus_map))
+START_SECTION(void load(const String &filename, ConsensusMap &consensus_map))
 {
   EDTAFile f;
   ConsensusMap fm;

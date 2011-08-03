@@ -257,7 +257,7 @@ START_SECTION((ConsensusMap(Base::size_type n)))
 END_SECTION
 
 
-START_SECTION((template < typename FeatureT > static void convert(UInt64 const input_map_index, FeatureMap< FeatureT > const &input_map, ConsensusMap &output_map)))
+START_SECTION((template < typename FeatureT > static void convert(UInt64 const input_map_index, FeatureMap< FeatureT > const &input_map, ConsensusMap &output_map, Size n=-1)))
 
   FeatureMap<> fm;
   Feature f;
@@ -281,6 +281,8 @@ START_SECTION((template < typename FeatureT > static void convert(UInt64 const i
     TEST_REAL_SIMILAR(cm[i].begin()->getRT(),i*77.7);
     TEST_REAL_SIMILAR(cm[i].begin()->getMZ(),i+100.35);
   }
+
+	// TODO: test the n parameter
 
 END_SECTION
 
