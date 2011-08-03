@@ -639,38 +639,13 @@ namespace OpenMS
 				chromatograms_.push_back(chromatogram);
 			}
 
-      /// returns the chromatogram list
-      const std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms() const
-      {
-        return chromatograms_;
-      }
-    
-      /// returns the total ion chromatogram (TIC)
-      const MSChromatogram<ChromatogramPeakType> getTIC() const
-      {
-        // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
-        MSChromatogram<ChromatogramPeakType> TIC;
-				for (Size i=0; i < this->size(); ++i)
-				{
-          if (this->operator[](i).getMSLevel() == 1)
-          {
-            DoubleReal totalIntensity = 0;
-            // sum intensities of a spectrum
-            for (Size j=0; j < this->operator[](j).size(); ++j)
-            {
-              totalIntensity = totalIntensity + this->operator[](i).operator[](j).getIntensity();
-            }
-            // fill chromatogram
-            ChromatogramPeak peak;
-            peak.setRT(this->operator[](i).getRT());
-            peak.setIntensity(totalIntensity);
-            TIC.push_back(peak);
-          }
-				}
-        return TIC;
-      }
-    
-      /**
+			/// returns the chromatogram list
+			const std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms() const
+			{
+				return chromatograms_;
+			}
+			
+			/**
 				@brief Clears all data and meta data
 				
 				@param clear_meta_data If @em true, all meta data is cleared in addition to the data.
