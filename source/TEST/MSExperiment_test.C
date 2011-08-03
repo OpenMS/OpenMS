@@ -996,6 +996,26 @@ START_SECTION((const std::vector<MSChromatogram<ChromatogramPeakType> >& getChro
 	NOT_TESTABLE // tested above
 END_SECTION
 
+START_SECTION(MSChromatogram<ChromatogramPeakType> getTIC() const)
+  MSExperiment<> tmp;
+  tmp.resize(2);
+  Peak1D p;
+  p.setMZ(5.0);
+  p.setIntensity(3);
+  tmp[0].push_back(p);
+  p.setMZ(10.0);
+  p.setIntensity(5);
+  tmp[0].push_back(p);
+  p.setMZ(5.0);
+  p.setIntensity(2);
+  tmp[1].push_back(p);
+  tmp.updateRanges();
+  MSChromatogram<> chrom = tmp.getTIC();
+  TEST_EQUAL(chrom.size(), 2);
+  TEST_EQUAL(chrom[0].getIntensity(), 8);
+  TEST_EQUAL(chrom[1].getIntensity(), 2);
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -55,7 +55,7 @@ namespace OpenMS
     /// Dimension
     enum { DIMENSION = 1 };
 		/// Intensity type
-		typedef Real IntensityType;
+		typedef DoubleReal IntensityType;
 		/// Position type
 		typedef DPosition<1> PositionType;
 		/// Coordinate type

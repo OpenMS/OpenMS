@@ -249,25 +249,28 @@ namespace OpenMS
 			is.close();
 			endProgress();
 		}
-
+    
 		/**
-			@brief Stores a map in a DTA2D file.
-
-			@p map has to be a MSExperiment or have the same interface.
-
-			@exception Exception::UnableToCreateFile is thrown if the file could not be created
-		*/
+     @brief Stores a map in a DTA2D file.
+     
+     @p map has to be a MSExperiment or have the same interface.
+     
+     @exception Exception::UnableToCreateFile is thrown if the file could not be created
+     */
 		template <typename MapType>
 		void store(const String& filename, const MapType& map) const
 		{
 			startProgress(0,map.size(),"storing DTA2D file");
-
+      
 			std::ofstream os(filename.c_str());
 			if (!os)
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 			}
-
+      
+      // write header
+      os	<< "RT" << "\t" << "MZ" << "\t" << "INT" << "\n";
+      
 			// Iterate over all peaks of each spectrum and
 			// write one line for each peak of the spectrum.
 			UInt count = 0;
@@ -277,10 +280,42 @@ namespace OpenMS
 				for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
 				{
 					// Write rt, m/z and intensity.
-					os	<< precisionWrapper(spec->getRT()) << " " << precisionWrapper(it->getPos()) << " "<< precisionWrapper(it->getIntensity()) << "\n";
+					os	<< precisionWrapper(spec->getRT()) << "\t" << precisionWrapper(it->getPos()) << "\t" << precisionWrapper(it->getIntensity()) << "\n";
 				}
-
+        
 			}
+			os.close();
+			endProgress();
+		}
+    
+		/**
+     @brief Stores the TIC of a map in a DTA2D file.
+     
+     @p map has to be a MSExperiment or have the same interface.
+     
+     @exception Exception::UnableToCreateFile is thrown if the file could not be created
+     */
+		template <typename MapType>
+		void storeTIC(const String& filename, const MapType& map) const
+		{
+			startProgress(0,map.size(),"storing DTA2D file");
+      
+			std::ofstream os(filename.c_str());
+			if (!os)
+			{
+				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+			}
+      
+      // write header (Always MZ=0 for chromatograms in DTA2D.)
+      os	<< "RT" << "\t" << "MZ" << "\t" << "INT" << "\n";
+      
+      typename MapType::ChromatogramType TIC = map.getTIC();
+      for (typename MapType::ChromatogramType::ConstIterator it = TIC.begin(); it != TIC.end(); ++it)
+      {
+        // write rt and intensity.
+        os	<< precisionWrapper(it->getRT()) << "\t" << precisionWrapper(0) << "\t" << precisionWrapper(it->getIntensity()) << "\n";
+      }
+
 			os.close();
 			endProgress();
 		}

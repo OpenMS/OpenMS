@@ -423,6 +423,70 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
 
 END_SECTION
 
+START_SECTION((template<typename MapType> void storeTIC(const String& filename, const MapType& map) const ))
+	TOLERANCE_ABSOLUTE(0.1)
+	std::string tmp_filename;
+  MSExperiment<> e;
+  DTA2DFile f;
+
+  NEW_TMP_FILE(tmp_filename);
+  f.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
+	f.storeTIC(tmp_filename,e);
+
+	MSExperiment<> e2;
+	f.load(tmp_filename,e2);
+	std::vector<Peak2D> array;
+	e2.get2DData(array);
+	TEST_EQUAL(array.size(), 9);
+	ABORT_IF(array.size() != 9)
+
+	std::vector<Peak2D>::const_iterator it2 = array.begin();
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 141650)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.2)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 89935.22)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.3)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 318.52)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.4)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 61870.99)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.5)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 62074.22)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.6)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 53737.85)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.7)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 49410.25)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.8)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 17038.71)
+	++it2;
+
+	TEST_REAL_SIMILAR(it2->getMZ(), 0)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.9)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 73629.98)
+END_SECTION
+
 START_SECTION(([EXTRA] load with RT range))
 	TOLERANCE_ABSOLUTE(0.01)
 
