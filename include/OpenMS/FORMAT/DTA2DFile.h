@@ -269,7 +269,7 @@ namespace OpenMS
 			}
       
       // write header
-      os	<< "RT" << "\t" << "MZ" << "\t" << "INT" << "\n";
+      os	<< "#SEC\tMZ\tINT\n";
       
 			// Iterate over all peaks of each spectrum and
 			// write one line for each peak of the spectrum.
@@ -307,7 +307,7 @@ namespace OpenMS
 			}
       
       // write header (Always MZ=0 for chromatograms in DTA2D.)
-      os	<< "RT" << "\t" << "MZ" << "\t" << "INT" << "\n";
+      os	<< "#SEC\tMZ\tINT\n";
       
       typename MapType::ChromatogramType TIC = map.getTIC();
       for (typename MapType::ChromatogramType::ConstIterator it = TIC.begin(); it != TIC.end(); ++it)
