@@ -66,11 +66,11 @@ namespace OpenMS
 		
 		/// This enum maps the symbolic names of the dimensions to numbers
 		enum DimensionDescription
-			{
-				RT = 0, ///< Mass-to-charge dimension id (0 if used as a const int)
-				MZ = 1, ///< Retention time dimension id (1 if used as a const int)
-				DIMENSION = 2 ///< Number of dimensions
-			};
+		{
+			RT = 0, ///< Retention time dimension id (0 if used as a const int)
+			MZ = 1, ///< Mass-to-charge dimension id (1 if used as a const int)
+			DIMENSION = 2 ///< Number of dimensions
+		};
 		
     /// Short name of the dimension (abbreviated form)
     static char const * shortDimensionName(UInt const dim);
@@ -186,23 +186,23 @@ namespace OpenMS
     /// Returns the m/z coordinate (index 1)
 		CoordinateType getMZ() const 
     { 
-      return position_[1]; 
+			return position_[MZ];
     }
     /// Mutable access to the m/z coordinate (index 1)
 		void setMZ(CoordinateType coordinate) 
     { 
-      position_[1] = coordinate; 
+			position_[MZ] = coordinate;
     }
 
     /// Returns the RT coordinate (index 0)
 		CoordinateType getRT() const 
     { 
-      return position_[0]; 
+			return position_[RT];
     }
     /// Mutable access to the RT coordinate (index 0)
 		void setRT(CoordinateType coordinate) 
     { 
-      position_[0] = coordinate; 
+			position_[RT] = coordinate;
     }
     
 		//@}
