@@ -476,6 +476,47 @@ START_SECTION((static const DPosition maxPositive()))
   TEST_EQUAL(D1::maxPositive()[0],std::numeric_limits<D1::CoordinateType>::max());
 END_SECTION
 
+START_SECTION(([EXTRA] Test int DPosition))
+{
+  DPosition<2,Int> const p00(0,0), p01(0,1), p10(1,0), p11(1,1);
+  TEST_EQUAL(p00.spatiallyGreaterEqual(p00), true )
+  TEST_EQUAL(p00.spatiallyGreaterEqual(p01), false)
+  TEST_EQUAL(p00.spatiallyGreaterEqual(p10), false)
+  TEST_EQUAL(p00.spatiallyGreaterEqual(p11), false)
+
+  TEST_EQUAL(p01.spatiallyGreaterEqual(p00), true )
+  TEST_EQUAL(p01.spatiallyGreaterEqual(p01), true )
+  TEST_EQUAL(p01.spatiallyGreaterEqual(p10), false)
+  TEST_EQUAL(p01.spatiallyGreaterEqual(p11), false)
+
+  TEST_EQUAL(p10.spatiallyGreaterEqual(p00), true )
+  TEST_EQUAL(p10.spatiallyGreaterEqual(p01), false)
+  TEST_EQUAL(p10.spatiallyGreaterEqual(p10), true )
+  TEST_EQUAL(p10.spatiallyGreaterEqual(p11), false)
+
+  TEST_EQUAL(p11.spatiallyGreaterEqual(p00), true )
+  TEST_EQUAL(p11.spatiallyGreaterEqual(p01), true )
+  TEST_EQUAL(p11.spatiallyGreaterEqual(p10), true )
+  TEST_EQUAL(p11.spatiallyGreaterEqual(p11), true )
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Test char DPosition))
+{
+  DPosition<3,char> pa1;
+  DPosition<3,char> pb2;
+  pa1[0] = 'a';
+  pb2 = -pa1;
+  TEST_EQUAL(pa1!=pb2, true)
+  pb2 = -pb2;
+  TEST_EQUAL(pa1==pb2, true)
+
+  DPosition<1,char> pa('a');
+  DPosition<1,char> pb('b');
+
+  TEST_EQUAL(pa < pb, true)
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
