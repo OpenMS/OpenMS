@@ -751,7 +751,7 @@ namespace OpenMS
                   DoubleReal right_width = gsl_vector_get(fit->x,d.total_nr_peaks+3*i+2);
                   ms_exp[itv->second[j].spectrum].getFloatDataArrays()[4][itv->second[j].peak] = right_width;
                   // calculate area
-                  if ((PeakShape::Type)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
+                  if ((PeakShape::Type)(Int)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
                     {
                       DoubleReal x_left_endpoint=mz - 1/left_width*sqrt(height/1-1);
                       DoubleReal x_rigth_endpoint=mz+1/right_width*sqrt(height/1-1);
