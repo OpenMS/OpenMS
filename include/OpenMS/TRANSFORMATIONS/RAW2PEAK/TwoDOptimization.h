@@ -994,7 +994,7 @@ namespace OpenMS
                     PeakShape& ps = peak_shapes[p];
                     double x_left_endpoint=ps.mz_position-1/ps.left_width* boost::math::acosh(sqrt(ps.height/0.001));
                     double x_rigth_endpoint=ps.mz_position+1/ps.right_width* boost::math::acosh(sqrt(ps.height/0.001));
-                    double area_left=-ps.height/ps.left_width*(sinh(ps.left_width*(ps.mz_position-x_left_endpoint))/cosh(ps.left_width*(ps.mz_position-x_left_endpoint)));
+                    double area_left=ps.height/ps.left_width*(sinh(ps.left_width*(ps.mz_position-x_left_endpoint))/cosh(ps.left_width*(ps.mz_position-x_left_endpoint)));
                     double area_right=-ps.height/ps.right_width*(sinh(ps.right_width*(ps.mz_position-x_rigth_endpoint))/cosh(ps.right_width*(ps.mz_position-x_rigth_endpoint)));
                     spec[set_iter->second].setIntensity(area_left+area_right); // area is stored as peak intensity
                   }
