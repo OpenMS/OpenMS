@@ -438,8 +438,10 @@ void OptimizePick::optimize(std::vector<PeakShape>& peaks,Data& data)
         double area_left=-p.height/p.left_width*atan(p.left_width*(x_left_endpoint-p.mz_position));
         double area_right=-p.height/p.right_width*atan(p.right_width*(p.mz_position-x_rigth_endpoint));
         peaks[global_peak_number+current_peak].area=area_left+area_right;
+#ifdef DEBUG_PEAK_PICKING
         std::cout <<"Lorentz "<< area_left << " "<<area_right
                   << " "<< peaks[global_peak_number+current_peak].area <<std::endl;
+#endif
       }
       else  //It's a Sech - Peak
       {
@@ -449,9 +451,11 @@ void OptimizePick::optimize(std::vector<PeakShape>& peaks,Data& data)
         double area_left=p.height/p.left_width*(sinh(p.left_width*(p.mz_position-x_left_endpoint))/cosh(p.left_width*(p.mz_position-x_left_endpoint)));
         double area_right=-p.height/p.right_width*(sinh(p.right_width*(p.mz_position-x_rigth_endpoint))/cosh(p.right_width*(p.mz_position-x_rigth_endpoint)));
         peaks[global_peak_number+current_peak].area=area_left+area_right;
+#ifdef DEBUG_PEAK_PICKING
         std::cout <<"Sech "<< area_left << " "<<area_right
                   << " "<< peaks[global_peak_number+current_peak].area <<std::endl;
         std::cout << p.mz_position << " "<<x_left_endpoint << " " << x_rigth_endpoint << std::endl;
+#endif
       }
     }
     global_peak_number += data.peaks.size();
