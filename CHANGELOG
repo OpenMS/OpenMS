@@ -9,8 +9,13 @@ UTIL tools:
 	 
 OpenMS library improvements: 
 	 
-TOPPView improvements: 
-	 
+TOPPView improvements:
+-MODIFIED:
+  - Better grid line drawing/calculation, extracted AxisPainter class
+  - IdentificationView:
+    - added automatic labeling with peptide fragment sequence
+    - theoretical spectrum is now hidden by default (labeling contains relevant information for most use cases)
+    - automatic zoom to measured MS2 data range
 TOPPAS improvements: 
 	- TOPPAS now used the QT-Webkit framework to allow for interactive download of preconfigured TOPPAS pipelines.
 	 
