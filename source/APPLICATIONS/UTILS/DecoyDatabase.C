@@ -67,6 +67,8 @@ class TOPPDecoyDatabase
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
 			registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
 			registerFlag_("shuffle","If 'true' then the decoy hit are shuffled from the target sequences, eitherwise they are reversed");
+			registerFlag_("include_contaminats","If 'true' then a fasta file containing contaminat sequences should be included - this is recommended");
+			registerInputFile_("contaminants","<file>","","Input a fasta file containing contaminants",false);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -75,18 +77,33 @@ class TOPPDecoyDatabase
 			// parsing parameters
 			//-------------------------------------------------------------
 			String in(getStringOption_("in"));
+			String cont(getStringOption_("contaminants"));
 			String out(getStringOption_("out"));
 			bool append = getFlag_("append");
 			bool shuffle = getFlag_("shuffle");
+			bool include_contaminants = getFlag_("include_contaminats");
 			
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
 
-			vector<FASTAFile::FASTAEntry> proteins;
+			vector<FASTAFile::FASTAEntry> proteins, contaminants;
 			FASTAFile().load(in, proteins);
+			if(include_contaminants)
+			{
+				FASTAFile().load(cont, contaminants);
+				Size num_contaminants = contaminants.size();
+				for (Size k = 0; k < num_contaminants; ++k)
+				{
+					FASTAFile::FASTAEntry entry = contaminants[k];
+					proteins.push_back(entry);
+				}
+			}
+			else
+			{
+				cerr << "Warning, no contaminant sequences have been included!"<<endl;
+			}
 			
-
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
