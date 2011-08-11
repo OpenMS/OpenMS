@@ -50,7 +50,7 @@ namespace OpenMS
 		defaults_.setValue("treat_runs_separately", "false", "If set to 'true' different search runs are treated separately (for peptides of combined target/decoy searches only).");
 		defaults_.setValidStrings("treat_runs_separately", StringList::create("true,false"));
 		defaults_.setValue("decoy_string", "_rev", "String which is appended at the accession of the protein to indicate that it is a decoy protein (for proteins only).");
-		defaults_.setValue("add_decoy_peptides","false", "If set to true, decoy peptides will be written to output file, too.");
+		defaults_.setValue("add_decoy_peptides","false", "If set to true, decoy peptides will be written to output file, too. The q-value is set to the closest target score.");
 		defaults_.setValidStrings("add_decoy_peptides", StringList::create("true,false"));
 		defaultsToParam_();
 	}
@@ -643,6 +643,21 @@ namespace OpenMS
         score_to_fdr[target_scores[i]] = fdr;
       }
     }
+	
+
+   // assign	q-value of decoy_score to closest target_score
+   for (Size i = 0; i != decoy_scores.size(); ++i)
+   {	
+	   Size closest_idx = 0;	
+     for (Size j = 0; j != target_scores.size(); ++j)
+     {
+		 	 if (fabs(decoy_scores[i] - target_scores[j]) < fabs(decoy_scores[i] - target_scores[closest_idx]))
+			 {
+			   closest_idx = j;				 
+			 }       
+	   }
+		 score_to_fdr[decoy_scores[i]] = score_to_fdr[target_scores[closest_idx]];
+	 }
 
 	}
 
