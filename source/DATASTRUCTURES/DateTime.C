@@ -69,7 +69,7 @@ namespace OpenMS
 	{
 		clear();
 		
-		if (date.has('.'))
+		if (date.has('.') && !date.has('T'))
 		{
 			QDateTime::operator=(QDateTime::fromString(date.c_str(), "dd.MM.yyyy hh:mm:ss"));
 		}
@@ -81,7 +81,22 @@ namespace OpenMS
 		{
 			if (date.has('T'))
 			{
-				QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-ddThh:mm:ss"));
+				if (date.has('+'))
+				{
+					// remove timezone part, since Qt cannot handle this, check if we also have a millisecond part
+					if(date.has('.'))
+					{
+						QDateTime::operator=(QDateTime::fromString(date.prefix('+').c_str(), "yyyy-MM-ddThh:mm:ss.zzz"));
+					}
+					else
+					{
+						QDateTime::operator=(QDateTime::fromString(date.prefix('+').c_str(), "yyyy-MM-ddThh:mm:ss"));
+					}
+				}
+				else
+				{
+					QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-ddThh:mm:ss"));
+				}
 			}
 			else if (date.has('Z'))
 			{
