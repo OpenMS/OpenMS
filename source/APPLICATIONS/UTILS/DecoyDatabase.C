@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Sven Nahnsen, Andreas Bertsch $
+// $Maintainer: Sven Nahnsen $
+// $Authors: Sven Nahnsen, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -41,7 +41,13 @@ using namespace std;
 	@page UTILS_DecoyDatabase DecoyDatabase
 	
 	@brief Create decoy peptide databases from normal ones.
-		
+	
+  Decoy databases are useful to control false discovery rates and thus estimate score cutoffs for identified spectra.
+  
+  The decoy can either be generated from reversed or shuffled sequences.
+  
+  To get a 'contaminants' database have a look at http://www.thegpm.org/crap/index.html or find/create your own contaminant database.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_DecoyDatabase.cli
 */
@@ -62,13 +68,12 @@ class TOPPDecoyDatabase
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","Input fasta file containing the database.");
-			registerOutputFile_("out","<file>","","Output fasta file where the decoy database will be written to.");
+			registerInputFile_("in","<file>","","Input FASTA file containing the database.");
+			registerOutputFile_("out","<file>","","Output FASTA file where the decoy database will be written to.");
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
 			registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
-			registerFlag_("shuffle","If 'true' then the decoy hit are shuffled from the target sequences, eitherwise they are reversed");
-			registerFlag_("include_contaminats","If 'true' then a fasta file containing contaminat sequences should be included - this is recommended");
-			registerInputFile_("contaminants","<file>","","Input a fasta file containing contaminants",false);
+			registerFlag_("shuffle","If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
+			registerInputFile_("contaminants","<file>","","Input a FASTA file containing contaminants - if given they are included in the database (recommended)", false);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -81,22 +86,22 @@ class TOPPDecoyDatabase
 			String out(getStringOption_("out"));
 			bool append = getFlag_("append");
 			bool shuffle = getFlag_("shuffle");
-			bool include_contaminants = getFlag_("include_contaminats");
 			
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
 
-			vector<FASTAFile::FASTAEntry> proteins, contaminants;
+			vector<FASTAFile::FASTAEntry> proteins;
 			FASTAFile().load(in, proteins);
-			if(include_contaminants)
+
+      if (!cont.empty())
 			{
+        vector<FASTAFile::FASTAEntry> contaminants;
 				FASTAFile().load(cont, contaminants);
 				Size num_contaminants = contaminants.size();
 				for (Size k = 0; k < num_contaminants; ++k)
 				{
-					FASTAFile::FASTAEntry entry = contaminants[k];
-					proteins.push_back(entry);
+					proteins.push_back(contaminants[k]);
 				}
 			}
 			else
@@ -111,7 +116,7 @@ class TOPPDecoyDatabase
 			String decoy_string(getStringOption_("decoy_string"));
 			Size num_proteins = proteins.size();
 			set<String> identifiers;
-			if(shuffle)
+			if (shuffle)
 			{
 				for (Size i = 0; i < num_proteins; ++i)
 				{
@@ -123,18 +128,16 @@ class TOPPDecoyDatabase
 
 					FASTAFile::FASTAEntry entry = proteins[i];
 
-					UInt x, y;
 					String pro_seq, temp;
 					pro_seq = entry.sequence;
-					x = pro_seq.size();
+					Size x = pro_seq.size();
 					srand(time(0));
 					while(x != 0)
 					{
-						y = rand()%x;
-						temp+=pro_seq[y];
+						Size y = rand()%x;
+						temp +=pro_seq[y];
 						pro_seq[y] = pro_seq[x-1];
-						pro_seq = pro_seq.substr(0,(x-1));
-						x--;
+						--x;
 					}
 					entry.sequence = temp;
 
@@ -150,7 +153,7 @@ class TOPPDecoyDatabase
 					}
 				}
 			}
-			if(!shuffle)
+			else // !shuffle
 			{
 				for (Size i = 0; i < num_proteins; ++i)
 				{
