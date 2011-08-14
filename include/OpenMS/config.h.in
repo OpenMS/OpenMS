@@ -66,11 +66,15 @@
 
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
 #ifdef OPENMS_COMPILER_MSVC
+// we define this using NDEBUG on MSVC as there are multiple build types simultaneously in the Solution file,
+// thus setting one value will not fit them all
 #	ifndef NDEBUG // hopefully defined automatically by MS-compiler in Debug Mode
 #		define OPENMS_ASSERTIONS
 #	endif
-#else // linux & Co
-#cmakedefine OPENMS_ASSERTIONS
+#else // linux & Co (only one build type at a time)
+#  if (@CF_OPENMS_ASSERTIONS@)
+#    define OPENMS_ASSERTIONS
+#  endif
 #endif
 
 
