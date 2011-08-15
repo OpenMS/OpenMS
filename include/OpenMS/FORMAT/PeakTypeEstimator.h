@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Marcel Schilling $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_PEAKTYPEESTIMATOR_H
@@ -31,71 +31,99 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <cmath>
-#include <limits>
+#include <numeric>
 
 namespace OpenMS
 {
-	/**
-		@brief Estimates if the data of a spectrum is raw data or peak data
+/**
+  @brief Estimates if the data of a spectrum is raw data or peak data
   
-  	@ingroup Format
-	*/
-  class OPENMS_DLLAPI PeakTypeEstimator
+   @ingroup Format
+ */
+class OPENMS_DLLAPI PeakTypeEstimator
+{
+public:
+  /**
+      @brief Estimates the peak type of the peaks in the iterator range based on the variance of inter-peak distances
+
+      @note if there are fewer than 5 peaks in the iterator range SpectrumSettings::UNKOWN is returned
+     */
+  template <typename PeakConstIterator>
+  SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const
   {
-    public:
-    	/**
-    		@brief Estimates the peak type of the peaks in the iterator range
-    		
-    		@note if there are fewer than 5 peaks in the iterator range SpectrumSettings::UNKOWN is returned
-    	*/
-	    template <typename PeakConstIterator>
-	    SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const
-	    {
-	    	//abort if there are less than 5 peak in the iterator range
-	    	if (end - begin < 5)
-	    	{
-	    		return SpectrumSettings::UNKNOWN;
-	    	}
-	    	
-	    	DoubleReal min = std::numeric_limits<DoubleReal>::max();
-	    	DoubleReal max = std::numeric_limits<DoubleReal>::min();
-	    	DoubleReal left = std::numeric_limits<DoubleReal>::min();
-	    	DoubleReal right = std::numeric_limits<DoubleReal>::min();
-	    	
-	    	PeakConstIterator it = begin;
-	    	PeakConstIterator it2 = begin;
-	    	++it2;
-	    	for (; it2!=end; ++it,++it2)
-	    	{
-	    		min = std::min(min,it2->getMZ()-it->getMZ());
-	    		if (max < it2->getMZ()-it->getMZ())
-	    		{
-	    			left = it->getIntensity();
-	    			right = it2->getIntensity();
-	    			max = it2->getMZ()-it->getMZ();
-	    		}
-	    	}
-	
-	    	//std::cout << "Min  : " << min << "\n";
-	    	//std::cout << "Max  : " << max << "\n";
-	    	//std::cout << "Left : " << left << "\n";
-	    	//std::cout << "Right: " << right << "\n";
-	    	
-	    	//raw data with zeros
-	    	if ((max-min)<0.5)
-	    	{
-	    		return SpectrumSettings::RAWDATA;
-	    	}
-	    	//raw data without zeros
-	    	else if (left < 2.0 && right < 2.0)
-	    	{
-	    		return SpectrumSettings::RAWDATA;
-	    	}
-	    	
-	    	return SpectrumSettings::PEAKS;
-	    }
-			
-  };
+    const Size MAX_SAMPLED_DISTANCES = 1000;
+    const DoubleReal DISTANCE_VARIANCE_THRESHOLD = 0.5;
+
+    // abort if there are less than 5 peak in the iterator range
+    if (end - begin < 5)
+    {
+      return SpectrumSettings::UNKNOWN;
+    }
+
+    DoubleReal count(0);
+
+    std::vector<DoubleReal> distances;
+
+    PeakConstIterator peak(begin);
+
+    for(;peak->getIntensity() <= 0 && peak != end-2; ++peak)        // 1st positive intensity
+    {
+    }
+
+    DoubleReal scnd_last_mz(peak->getMZ());
+
+    for(++peak;peak->getIntensity() <= 0 && peak != end-1; ++peak)  // 2nd positive intensity
+    {
+    }
+
+    DoubleReal last_mz(peak->getMZ());
+
+    DoubleReal last_dist(last_mz - scnd_last_mz);
+
+    for(++peak; peak != end && count < MAX_SAMPLED_DISTANCES; ++peak)  // max  positive intensity
+    {
+      if(peak->getIntensity() > 0)
+      {
+        DoubleReal mz(peak->getMZ());
+        DoubleReal dist(mz - last_mz);
+        distances.push_back(std::min(last_dist, dist));  // min distances
+        ++count;
+        scnd_last_mz = last_mz;
+        last_mz = mz;
+        last_dist = dist;
+      }
+    }
+
+    if (count < 4) // at least 4 distances for non-zero(!) intensity peaks
+    {
+      return SpectrumSettings::UNKNOWN;
+    }
+
+    DoubleReal mean( std::accumulate(distances.begin(), distances.end(), 0) / count); // sum/size
+
+    // calculate variance
+    DoubleReal variance(0);
+    for (std::vector<DoubleReal>::iterator value = distances.begin(); value != distances.end(); ++value)
+    {
+      DoubleReal delta = (*value - mean);
+      variance += delta * delta;
+    }
+    variance /= count-1;
+
+    // calculate stdev
+    DoubleReal standard_deviation(std::sqrt(variance));
+
+    if (standard_deviation < DISTANCE_VARIANCE_THRESHOLD)
+    {
+      return SpectrumSettings::RAWDATA;
+    }
+    else
+    {
+      return SpectrumSettings::PEAKS;
+    }
+  }
+
+};
 
 } // namespace OpenMS
 
