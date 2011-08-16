@@ -44,6 +44,7 @@ LmaIsotopeModel.h
 MaxLikeliFitter1D.h
 ModelDescription.h
 ModelFitter.h
+PeakWidthEstimator.h
 ProductModel.h
 SeedListGenerator.h
 SimpleExtender.h

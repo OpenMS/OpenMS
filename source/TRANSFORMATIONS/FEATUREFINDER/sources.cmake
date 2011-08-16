@@ -37,6 +37,7 @@ LmaIsotopeModel.C
 MaxLikeliFitter1D.C
 ModelDescription.C
 ModelFitter.C
+PeakWidthEstimator.C
 ProductModel.C
 SeedListGenerator.C
 SimpleExtender.C
