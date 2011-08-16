@@ -229,14 +229,14 @@ endif()
 Message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
 
 
-## Set default build type
-if(NOT CMAKE_BUILD_TYPE)
+## Set default build type (if not set by user on command line)
+if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
-## force build type into the cache
+## force build type into the cache (needs to be set beforehand)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	set(CF_OPENMS_ASSERTIONS 1)
 else()
 	set(CF_OPENMS_ASSERTIONS 0)
