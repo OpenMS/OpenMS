@@ -12,7 +12,7 @@ PROJECT("OpenMS")
 ### - edit them within CMakeCache.txt using ccmake	 ###
 ########################################################
 # CONTRIB_CUSTOM_DIR
-# OPENMS_BUILD_TYPE
+# CMAKE_BUILD_TYPE
 # CONTRIB_CUSTOM_DIR
 # STL_DEBUG
 # DB_TEST
@@ -229,25 +229,25 @@ endif()
 Message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
 
 
-## default build type (for Makefile generators): Release
-set(OPENMS_BUILD_TYPE "Release" CACHE STRING "Build type: 'Debug' or 'Release'")
-if ("${OPENMS_BUILD_TYPE}" STREQUAL "Debug")
-	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
-	set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
-	set(CF_OPENMS_ASSERTIONS 1 CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
-elseif ("${OPENMS_BUILD_TYPE}" STREQUAL "Release")
-	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (optimization enabled)")
-	set(CMAKE_BUILD_TYPE "Release" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
-	set(CF_OPENMS_ASSERTIONS 0 CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
-else()
-	Message(FATAL_ERROR "OPENMS_BUILD_TYPE must be 'Debug' or 'Release'!")
+## Set default build type
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release)
 endif()
+## force build type into the cache
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	set(CF_OPENMS_ASSERTIONS 1)
+else()
+	set(CF_OPENMS_ASSERTIONS 0)
+endif()
+set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 
 ## STL-DEBUG (only for GCC and in debug mode)
 set(STL_DEBUG OFF CACHE BOOL "[GCC only] Enable STL-DEBUG mode (very slow).")
 if (STL_DEBUG)
   if (CMAKE_COMPILER_IS_GNUCXX)
-		if ("${OPENMS_BUILD_TYPE}" STREQUAL "Debug")
+		if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 			# add compiler flag
     	add_definitions(/D_GLIBCXX_DEBUG)
     	Message(STATUS "STL debug mode: ${STL_DEBUG}")

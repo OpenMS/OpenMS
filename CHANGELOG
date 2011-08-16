@@ -21,6 +21,7 @@ TOPPAS improvements:
 	 
 Changes to the Build System: 
 	- TOPPAS now requires Qt's Webkit library
+	- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE
 	
 	
 Fixed Issues: 

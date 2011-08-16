@@ -127,7 +127,7 @@
         To pass this variable to CMake use the -D switch
         e.g. <code>cmake -D CONTRIB_CUSTOM_DIR:PATH="D:\\svn\\contrib"</code>
         Everything else can be edited using ccmake afterwards. The following options are of interest:
-          - OPENMS_BUILD_TYPE
+          - CMAKE_BUILD_TYPE
           - CONTRIB_CUSTOM_DIR
           - STL_DEBUG
           - DB_TEST
@@ -136,7 +136,7 @@
         Their description will be displayed when you call ccmake.
 
       <LI><B>How do I switch to Debug/Release configuration?!</B><BR>
-        For Makefile generators (typically on Linux) you can set the OPENMS_BUILD_TYPE variable to either
+        For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
         Debug or Release by calling ccmake.
         <BR>
         For Visual Studio, this is not necessary as all configurations are generated and
@@ -601,7 +601,7 @@ svn propset svn:eol-style native MyClass.C
           <LI> Windows: this is directly supported by Visual Studio (Depending on the edition: Team and above). Follow their documentation.
           <LI> Linux:
           <OL>
-					  <LI> build %OpenMS in debug mode (set OPENMS_BUILD_TYPE to 'Debug')
+					  <LI> build %OpenMS in debug mode (set CMAKE_BUILD_TYPE to 'Debug')
 					  <LI> call the executable with valgrind: <TT>'valgrind --tool=callgrind &lt;executable&gt; &lt;parameters&gt;'</TT>
 						  <UL>
 							  <LI> Note: other processes running on the same machine can influence the profiling.
@@ -618,7 +618,7 @@ svn propset svn:eol-style native MyClass.C
 
 			<LI><B>(Linux) How do I check my code for memory leaks?</B>
 				<OL>
-					<LI>build %OpenMS in debug mode (set OPENMS_BUILD_TYPE to 'Debug')
+					<LI>build %OpenMS in debug mode (set CMAKE_BUILD_TYPE to 'Debug')
 					<LI> call the executable with valgrind: <TT>'valgrind --leak-check=full &lt;executable&gt; &lt;parameters&gt;'</TT>
 					<LI> Common errors are:
 						<UL>
