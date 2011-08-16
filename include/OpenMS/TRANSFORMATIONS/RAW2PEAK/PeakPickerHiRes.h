@@ -38,6 +38,7 @@
 
 #include <map>
 
+
 #define DEBUG_PEAK_PICKING
 #undef DEBUG_PEAK_PICKING
 //#undef DEBUG_DECONV
@@ -73,7 +74,7 @@ namespace OpenMS
 				@brief Applies the peak-picking algorithm to a single spectrum (MSSpectrum). The resulting picked peaks are written to the output spectrum.
     */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
+    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output) const
     {
 			// copy meta data of the input spectrum
 			output.clear(true);
@@ -257,13 +258,12 @@ namespace OpenMS
 			
 			return ;
     }
-		
-		
+
     /** 
 				@brief Applies the peak-picking algorithm to a map (MSExperiment). This method picks peaks for each scan in the map consecutively. The resulting picked peaks are written to the output map.
     */
     template <typename PeakType>
-    void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
+    void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output) const
     {
 			// make sure that output is clear
 			output.clear(true);
@@ -294,11 +294,10 @@ namespace OpenMS
 			
 			return ;
     }
-		
+
 	protected:
 		// signal-to-noise parameter
-		double signal_to_noise_;
-		
+		double signal_to_noise_;		
 		
 		//docu in base class
 		void updateMembers_();
