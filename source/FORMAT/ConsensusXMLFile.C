@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Clemens Groepl, Marc Sturm $
+// $Authors: Clemens Groepl, Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -878,17 +878,26 @@ namespace OpenMS
       {
         os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
       }
-      if ( id.getHits()[j].getProteinAccessions().size() != 0 )
+      if ( id.getHits()[j].getProteinAccessions().size() != 0 and accession_to_id_.size() > 0)
       {
-        String accs = "";
-        for ( Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m )
-        {
-          if ( m )
-            accs += " ";
-          accs += "PH_";
-          accs += String(accession_to_id_[id.getIdentifier() + "_" + id.getHits()[j].getProteinAccessions()[m]]);
-        }
-        os << " protein_refs=\"" << accs << "\"";
+						String accs = "";
+						for ( Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m )
+						{
+								String a_2_id = String(accession_to_id_[id.getIdentifier() + "_" + id.getHits()[j].getProteinAccessions()[m]]);
+								if (a_2_id.size()>0)
+								{
+										if ( m )
+										{
+												accs += " ";
+										}
+										accs += "PH_";
+										accs += a_2_id;
+								}
+						}
+						if (accs.size()>0)
+						{
+								os << " protein_refs=\"" << accs << "\"";
+						}
       }
       os << ">\n";
       writeUserParam_("userParam", os, id.getHits()[j], indentation_level + 2);
