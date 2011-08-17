@@ -430,9 +430,19 @@ namespace OpenMS
 						 i->getMZ() <= visible_area_.maxPosition()[0] &&
 						 layer.filters.passes(*i))
 				{
-					//determine color
-					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
-					//paint
+          // determine color
+          QRgb color;
+          if (i->metaValueExists(5))
+          {
+           color = QColor(i->getMetaValue(5).toQString()).rgb();
+          }
+          else
+          {
+            // use intensity as color
+           color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
+          }
+
+          // paint
 					QPoint pos;
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
