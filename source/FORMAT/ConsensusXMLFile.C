@@ -878,7 +878,7 @@ namespace OpenMS
       {
         os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
       }
-      if ( id.getHits()[j].getProteinAccessions().size() != 0 and accession_to_id_.size() > 0)
+      if ( (id.getHits()[j].getProteinAccessions().size() != 0) && (accession_to_id_.size() > 0) )
       {
 						String accs = "";
 						for ( Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m )
