@@ -96,7 +96,7 @@ class TOPPInternalCalibration
 
 	 void registerOptionsAndFlags_()
 	 {
-		 registerInputFile_("in","<file>","","input raw data or peak file ");
+		 registerInputFile_("in","<file>","","input peak file ");
 		 setValidFormats_("in",StringList::create("mzML,featureXML"));
 		 registerOutputFile_("out","<file>","","output file ");
 	   setValidFormats_("out",StringList::create("mzML,featureXML"));
