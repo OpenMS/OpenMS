@@ -115,7 +115,7 @@ public:
           max_peak_added = true;
         }
         raw_mz_values.push_back(begin_window->getMZ());
-        raw_int_values.push_back(end_window->getIntensity());
+        raw_int_values.push_back(begin_window->getIntensity());
       }
 
       raw_mz_values.push_back(mz + 0.25);
@@ -133,7 +133,7 @@ public:
       const Size num_raw_points = raw_mz_values.size();
       gsl_interp_accel *spline_acc = gsl_interp_accel_alloc();
       gsl_interp_accel *first_deriv_acc = gsl_interp_accel_alloc();
-      gsl_spline *peak_spline = gsl_spline_alloc(gsl_interp_cspline, num_raw_points);
+      gsl_spline *peak_spline = gsl_spline_alloc(gsl_interp_akima, num_raw_points);
       gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
 
       // search for half intensity to the left
@@ -215,12 +215,6 @@ public:
 
       DoubleReal fwhm = std::fabs(left_fwhm_mz - mz) + std::fabs(right_fwhm_mz - mz);
 
-      // IMPROVEMENT better outlier filtering using RANSAC on the resulting data
-      if ( fwhm > 0.1 )
-      {
-        continue;
-      }
-
       fwhms.insert( std::pair<DoubleReal, DoubleReal>(mz, fwhm) );
     }
   }
@@ -281,7 +275,7 @@ public:
     std::vector<DoubleReal> values;
     for (std::multimap<DoubleReal, DoubleReal>::iterator it = fwhms.begin(); it != fwhms.end(); ++it)
     {
-      // std::cout << it->first << " " << it->second << std::endl;
+      // std::cout << it->first << " " << it->second << std::endl;  // generates nice plots
       keys.push_back(it->first);
       values.push_back(it->second);
     }
@@ -298,7 +292,6 @@ public:
 
   protected:
     PeakPickerHiRes peak_picker_;
-
 };
 
 }
