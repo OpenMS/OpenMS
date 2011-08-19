@@ -61,14 +61,9 @@
 				websites of interest.
 
 			<LI><B>How do I update the website?</B><BR>
-				<OL>
-					<LI> Check out the @a website module:
-					<BR>
-					<TT>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/website</TT>
-					<LI> Edit the website
-					<LI> Commit the changes
-					<LI> Execute <TT>update.sh &lt;sf-login&gt; and follow instructions</TT>
-				</OL>
+				 
+				 Login to the wordpress admin area at www.openms.de/wp-admin
+				 with your username and password assigned by the current Homepage maintainers.
 
 	    <LI><b>Can I use QT designer to create GUI widgets?</b><BR>
 	      Yes! If you want to create a class called @a Widget:
@@ -420,8 +415,50 @@ svn propset svn:eol-style native MyClass.C
 	      	<LI> Resolve conflicts and run tests
 	      	<LI> Commit
 				</OL>
+		
+				<LI><b>How do I speed up the SVN Repo and/or upgrade to a new SVN version on the server?</b><BR>
+
+				This should only be done if you are sure what you are doing! You might destroy the whole OpenMS SVN!!!
+				Make a backup before (preferably not on SF servers, e.g. by using
+				
+				$ rsync -av open-ms.svn.sourceforge.net::svn/open-ms/* .
+
+				Now here's how you do the upgrade
+				
+				@code
+				## login to SF
+				ssh -t <yourusername>,open-ms@shell.sf.net create
+
+				adminrepo --checkout svn
+
+				svnadmin dump /svnroot/open-ms > oms_dump.txt
+				## make a backup
+				cp /svnroot/open-ms oms_backup
+				## reload repo (instead of using svnadmin upgrade, which might not be optimal for performance)
+				rm -rf /svnroot/open-ms/*
+				svnadmin create /svnroot/open-ms
+				svnadmin load /svnroot/open-ms < oms_dump.txt
+
+				## increase speed (can be done regularly, without dump/load block above)
+				svnadmin pack /svnroot/open-ms
+				
+				## check integrity
+				svnadmin verify /svnroot/open-ms
+				## get latest revision number
+				svnlook youngest /svnroot/open-ms
+				## check some revisions
+				svnlook info -r <XXX> /svnroot/open-ms
+				# e.g. 
+				# svnlook info -r 100 /svnroot/open-ms
+				# svnlook info -r 8635 /svnroot/open-ms
+
+				adminrepo --save svn
+				@endcode		
 				
 		</UL>
+		
+		
+		
 	<H2 style="border-top:2px solid grey;">Doxygen documentation</H2>
 		<UL>
 
