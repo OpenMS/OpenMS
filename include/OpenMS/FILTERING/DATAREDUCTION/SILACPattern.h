@@ -1,10 +1,10 @@
 // -*- Mode: C++; tab-width: 2; -*-
-// vi: set ts=2:
+// vi: set ts=2:expandtab
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2011 -- Bastian Blank
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,60 +22,24 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
+// $Authors: Bastian Blank $
 // --------------------------------------------------------------------------
-
-
-#ifndef OPENMS_DATASTRUCTURES_SILACTREENODE_H
-#define OPENMS_DATASTRUCTURES_SILACTREENODE_H
 
 #include <OpenMS/DATASTRUCTURES/DataPoint.h>
 
+#ifndef OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
+#define OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
 
 namespace OpenMS
 {
+  /**
+   */
+  class SILACPattern
+    : public DataPoint
+  {
+    public:
+      std::vector<DataPoint> points;
+  };
+}
 
-/**
-		@brief A node of an hierarchical clustering tree.
-		@ingroup Datastructures
-	*/
-
-class OPENMS_DLLAPI SILACTreeNode 
-{
-  public:
-    /** @brief the first data point of the node
-
-	  */
-	  DataPoint* data1;
-
-    /** @brief the second data point of the node
-
-	  */
-	  DataPoint* data2;
-
-    /** @brief distance between the two points
-
-	  */
-	  DoubleReal distance;
-
-    /** @brief default constructor
-
-    */
-	  SILACTreeNode();
-
-    /** @brief detailed constructor
-
-			  @param data1_ first data point
-			  @param data2_ second data point
-			  @param distance_ distance between the data points
-	  */
-	  SILACTreeNode(DataPoint* data1_,DataPoint* data2_,DoubleReal distance_);
-	  bool operator==(const SILACTreeNode &cp) const;
-	  bool operator!=(const SILACTreeNode &cp) const;
-	  bool operator<(const SILACTreeNode &cp) const;
-
-};
-
-} // namespace
-
-#endif /* SILACTreeNode_H_ */
+#endif /* OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H */

@@ -28,68 +28,127 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/CLUSTERING/HashClustering.h>
+#include <OpenMS/DATASTRUCTURES/HashGridOld.h>
+#include <OpenMS/DATASTRUCTURES/GridElement.h>
+#include <OpenMS/DATASTRUCTURES/DataPoint.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(HashClustering, "$Id$")
+START_TEST(HashGridOld, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-HashClustering* ptr = 0;
-HashClustering* nullPointer = 0;
-START_SECTION(HashClustering())
+HashGridOld* ptr = 0;
+START_SECTION(HashGridOld())
 {
-	NOT_TESTABLE
+	ptr = new HashGridOld();
+	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
-START_SECTION(~HashClustering())
+START_SECTION(~HashGridOld())
 {
 	delete ptr;
 }
 END_SECTION
 
-START_SECTION((HashClustering(std::vector< DataPoint > &data, DoubleReal rt_threshold, DoubleReal mz_threshold, ClusteringMethod &method)))
+START_SECTION((HashGridOld(DoubleReal rt_threshold_, DoubleReal mz_threshold_)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void performClustering()))
+START_SECTION((void removeElement(GridElement *const element, Int x, Int y)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void getSubtrees(std::vector< std::vector< SILACTreeNode > > &subtrees)))
+START_SECTION((void removeElement(GridElement *const element)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void createClusters(std::vector< std::vector< DataPoint * > > &clusters)))
+START_SECTION((void removeCell(GridCells::iterator loc)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((std::vector<std::vector<Real> > getSilhouetteValues()))
+START_SECTION((void insert(GridElement *const element)))
+{
+  HashGridOld tmp;
+	DataPoint tmp2;
+	tmp.insert(&tmp2);
+	TEST_EQUAL(tmp.size(), 1);
+}
+END_SECTION
+
+START_SECTION((void consoleOut() const ))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION(([HashClustering::InsufficientInput] InsufficientInput(const char *file, int line, const char *function, const char *message="not enough data points to cluster anything")))
+START_SECTION((Size size() const ))
+{
+	HashGridOld tmp;
+	DataPoint tmp2;
+	tmp.insert(&tmp2);
+  TEST_EQUAL(tmp.size(), 1);
+}
+END_SECTION
+
+START_SECTION((DoubleReal getRTThreshold() const ))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION(([HashClustering::InsufficientInput] virtual ~InsufficientInput()))
+START_SECTION((DoubleReal getMZThreshold() const ))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((Int getGridSizeX() const ))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((Int getGridSizeY() const ))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((Size getNumberOfElements() const ))
+{
+  HashGridOld tmp;
+	DataPoint tmp2;
+	tmp.insert(&tmp2);
+  TEST_EQUAL(tmp.size(), 1);
+}
+END_SECTION
+
+START_SECTION((GridCells::iterator begin()))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((GridCells::iterator end()))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((GridCells::iterator find(std::pair< Int, Int > loc)))
 {
   NOT_TESTABLE
 }
@@ -99,3 +158,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

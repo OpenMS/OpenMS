@@ -80,16 +80,6 @@ START_SECTION((std::vector<DataPoint> getElements()))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getPeakWidth(DoubleReal mz)))
-{
-	SILACFilter tmp;
-  DoubleReal mz = 500;
-	DoubleReal peak_width = 5 * (1.889e-7 * pow (mz, 1.5));
-	TEST_REAL_SIMILAR(tmp.getPeakWidth(mz), peak_width);
-	
-}
-END_SECTION
-
 START_SECTION((Int getCharge()))
 {
   NOT_TESTABLE

@@ -1,10 +1,10 @@
 // -*- mode: C++; tab-width: 2; -*-
-// vi: set ts=2:
+// vi: set ts=2:expandtab
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2011 -- Bastian Blank
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,83 +27,37 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-///////////////////////////
-#include <OpenMS/DATASTRUCTURES/DataSubset.h>
-///////////////////////////
+#include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 
 using namespace OpenMS;
-using namespace std;
 
-START_TEST(DataSubset, "$Id$")
+typedef OpenMS::HierarchicalClustering<UInt> Test;
+typedef Test::PointCoordinate Coordinate;
+const Coordinate cluster_dimension(1, 1);
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+START_TEST(HierarchicalClustering, "$Id$")
 
-DataSubset* ptr = 0;
-DataSubset* nullPointer = 0;
-START_SECTION(DataSubset())
+START_SECTION(HierarchicalClustering(const PointCoordinate &cluster_dimension))
 {
-	ptr = new DataSubset();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  Test t(cluster_dimension);
 }
 END_SECTION
 
-START_SECTION(~DataSubset())
+START_SECTION(typename Grid::cell_iterator insertPoint(const PointCoordinate &d, const PointRef &ref))
 {
-	delete ptr;
+  Test t(cluster_dimension);
+  const Coordinate coord1(0, 0);
+  t.insertPoint(coord1, 0);
+  const Coordinate coord2(1, 1);
+  t.insertPoint(coord2, 0);
 }
 END_SECTION
 
-START_SECTION((DataSubset(DataPoint &data_point)))
+START_SECTION(void cluster())
 {
-  NOT_TESTABLE
+  Test t(cluster_dimension);
+  t.cluster();
 }
 END_SECTION
 
-START_SECTION((DataSubset(const DataSubset &copy)))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((DataSubset(const DataSubset *copy_ptr)))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((Int operator<(const DataSubset &el) const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((Size size()))
-{
-  DataSubset tmp;
-	TEST_EQUAL(tmp.size(), 0);
-}
-END_SECTION
-
-START_SECTION((Int getID() const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((bool operator!=(const DataSubset &el) const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((bool operator==(const DataSubset &el) const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 END_TEST

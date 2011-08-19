@@ -15,7 +15,6 @@ CVMappingRule.h
 CVReference.h
 CVMappings.h
 DataPoint.h
-DataSubset.h
 DBoundingBox.h
 DIntervalBase.h
 DPosition.h
@@ -28,7 +27,7 @@ DistanceMatrix.h
 DoubleList.h
 GridElement.h
 GridFeature.h
-HashGrid.h
+HashGridOld.h
 IntList.h
 IsotopeCluster.h
 Map.h
@@ -38,7 +37,6 @@ Param.h
 QTCluster.h
 QTSILACCluster.h
 SeqanIncludeWrapper.h
-SILACTreeNode.h
 SparseVector.h
 String.h
 StringList.h

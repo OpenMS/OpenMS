@@ -26,28 +26,28 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/DATASTRUCTURES/HashGrid.h>
+#include <OpenMS/DATASTRUCTURES/HashGridOld.h>
 
 namespace OpenMS
 {
 
-  HashGrid::HashGrid(DoubleReal rt_threshold, DoubleReal mz_threshold)
+  HashGridOld::HashGridOld(DoubleReal rt_threshold, DoubleReal mz_threshold)
     : rt_threshold_(rt_threshold), mz_threshold_(mz_threshold), grid_size_x_(-1), grid_size_y_(-1), number_of_elements_(0), elements_()
   {
 
   }
 
-  HashGrid::HashGrid()
+  HashGridOld::HashGridOld()
   {
 
   }
 
-  HashGrid::~HashGrid()
+  HashGridOld::~HashGridOld()
   {
 
   }
 
-  void HashGrid::removeElement(GridElement * const element, const Int x, const Int y)
+  void HashGridOld::removeElement(GridElement * const element, const Int x, const Int y)
   {
 	  std::list<GridElement*>& subsets = elements_[std::make_pair(x,y)];
     Size previous_size = subsets.size();
@@ -56,20 +56,20 @@ namespace OpenMS
     if (subsets.empty()) elements_.erase(std::make_pair(x, y));
   }
 
-  void HashGrid::removeElement(GridElement * const element)
+  void HashGridOld::removeElement(GridElement * const element)
   {
 	  int x = element->mz / mz_threshold_;
 	  int y = element->rt / rt_threshold_;
     removeElement(element, x, y);
   }
 
-  void HashGrid::removeCell(const GridCells::iterator loc)
+  void HashGridOld::removeCell(const GridCells::iterator loc)
   {
     number_of_elements_-= loc->second.size();
 	  elements_.erase(loc);
   }
 
-  void HashGrid::insert(GridElement * const element)
+  void HashGridOld::insert(GridElement * const element)
   {
 	  int x = element->mz / mz_threshold_;
     if (x > grid_size_x_) grid_size_x_ = x;
@@ -80,7 +80,7 @@ namespace OpenMS
 	  ++number_of_elements_;
   }
 
-  void HashGrid::consoleOut() const
+  void HashGridOld::consoleOut() const
   {
     for (std::map<std::pair<Int, Int>, std::list<GridElement*> >::const_iterator it = elements_.begin(); it != elements_.end(); ++it)
 	  {
@@ -97,47 +97,47 @@ namespace OpenMS
 	  std::cout << std::endl;
   }
 
-  Size HashGrid::size() const
+  Size HashGridOld::size() const
   {
 	  return elements_.size();
   }
 
-  DoubleReal HashGrid::getRTThreshold() const
+  DoubleReal HashGridOld::getRTThreshold() const
   {
 	  return rt_threshold_;
   }
 
-  DoubleReal HashGrid::getMZThreshold() const
+  DoubleReal HashGridOld::getMZThreshold() const
   {
 	  return mz_threshold_;
   }
 
-  Int HashGrid::getGridSizeX() const
+  Int HashGridOld::getGridSizeX() const
   {
 	  return grid_size_x_;
   }
 
-  Int HashGrid::getGridSizeY() const
+  Int HashGridOld::getGridSizeY() const
   {
 	  return grid_size_y_;
   }
 
-  Size HashGrid::getNumberOfElements() const
+  Size HashGridOld::getNumberOfElements() const
   {
 	  return number_of_elements_;
   }
 
-  GridCells::iterator HashGrid::begin()
+  GridCells::iterator HashGridOld::begin()
   {
 	  return elements_.begin();
   }
 
-  GridCells::iterator HashGrid::end()
+  GridCells::iterator HashGridOld::end()
   {
 	  return elements_.end();
   }
 
-  GridCells::iterator HashGrid::find(const std::pair<Int, Int> loc)
+  GridCells::iterator HashGridOld::find(const std::pair<Int, Int> loc)
   {
 	  return elements_.find(loc);
   }

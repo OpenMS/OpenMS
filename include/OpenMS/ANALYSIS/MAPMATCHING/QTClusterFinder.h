@@ -31,7 +31,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/HashGrid.h>
+#include <OpenMS/DATASTRUCTURES/HashGridOld.h>
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
@@ -122,7 +122,7 @@ namespace OpenMS
 															 ConsensusFeature& feature);
 
 		/// Computes an initial QT clustering of the points in the hash grid
-		void computeClustering_(HashGrid& grid, std::list<QTCluster>& clustering);
+		void computeClustering_(HashGridOld& grid, std::list<QTCluster>& clustering);
 
 		/// Runs the algorithm on feature maps or consensus maps
 		template <typename MapType> void run_(const std::vector<MapType>& 

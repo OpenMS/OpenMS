@@ -59,12 +59,7 @@ namespace OpenMS
   /**
    * @brief holds all filters used in the filtering
    */
-   std::list<SILACFilter*> filters_;
-
-  /**
-   * @brief average m/z distance between scanned data points
-   */
-   DoubleReal mz_stepwidth_;
+   std::vector<SILACFilter*> filters_;
 
   /**
    * @brief minimal intensity of SILAC features
@@ -87,11 +82,6 @@ namespace OpenMS
    static gsl_spline* spline_spl_;
 
   /**
-   * @brief current feature id
-   */
-   static Int feature_id_;
-
-  /**
    * @brief lowest m/z value of the experiment
    */
    static DoubleReal mz_min_;
@@ -101,17 +91,51 @@ namespace OpenMS
    */
    MSExperiment<Peak1D>& exp_;
 
+   /**
+    * @brief picked data
+    */
+   MSExperiment<Peak1D> picked_exp_;
+
+   /**
+    * @brief picked data seeds
+    */
+   MSExperiment<Peak1D> picked_exp_seeds_;
+
+   /// Slope of peak-width equation
+   DoubleReal peak_width_slope;
+   /// Intercept of peak-width equation
+   DoubleReal peak_width_intercept;
+
+   /**
+    * Filename base for debugging output
+    */
+   const String debug_filebase;
+
+   /// Predict peak width
+   void checkPeakWidth();
+   /// Return predicted peak width
+   DoubleReal getPeakWidth(DoubleReal mz) const;
+
+   /**
+    * @brief pick data seeds
+    */
+    void pickSeeds();
+
+   /**
+    * @brief apply filtering to picked data seeds
+    */
+    void filterSeeds();
+
   public:
 
   /**
    * @brief detailed constructor
    * @param exp raw data
-   * @param mz_stepwidth average m/z distance between scanned data points
    * @param intensity_cutoff minimal intensity of SILAC features
    * @param intensity_correlation minimal intensity correlation between regions of different peaks
    * @param allow_missing_peaks flag for missing peaks
    */
-   SILACFiltering(MSExperiment<Peak1D>& exp, const DoubleReal mz_stepwidth, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks);
+   SILACFiltering(MSExperiment<Peak1D>& exp, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks, const String debug_filebase = "");
 
   /**
    * @brief default constructor

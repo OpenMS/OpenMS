@@ -28,7 +28,6 @@ set(datastructures_executables_list
 	DPosition_test
 	DRange_test
 	DataPoint_test
-	DataSubset_test
 	DataValue_test
 	DateTime_test
 	Date_test
@@ -38,6 +37,7 @@ set(datastructures_executables_list
 	GridElement_test
 	GridFeature_test
 	HashGrid_test
+	HashGridOld_test
 	IntList_test
 	Map_test
 	MassExplainer_test
@@ -45,7 +45,6 @@ set(datastructures_executables_list
 	QTCluster_test
 	QTSILACCluster_test
 	RangeManager_test
-	SILACTreeNode_test
 	SparseVector_test
 	StringList_test
 	String_test
@@ -271,15 +270,13 @@ set(comparison_executables_list
   BinnedSpectrumCompareFunctor_test
   BinnedSpectrum_test
   BinnedSumAgreeingIntensities_test
-  CentroidLinkage_test
-  ClusteringMethod_test
   ClusterAnalyzer_test
   ClusterFunctor_test
   ClusterHierarchical_test
   CompareFouriertransform_test
   CompleteLinkage_test
   EuclideanSimilarity_test
-  HashClustering_test
+  HierarchicalClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
   QTClustering_test

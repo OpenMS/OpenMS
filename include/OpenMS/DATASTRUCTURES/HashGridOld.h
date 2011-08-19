@@ -55,7 +55,7 @@ namespace OpenMS
 		@ingroup Datastructures
    */
 
-class OPENMS_DLLAPI HashGrid {
+class OPENMS_DLLAPI HashGridOld {
 
   private:
 
@@ -71,19 +71,19 @@ class OPENMS_DLLAPI HashGrid {
   /**
    * @brief default constructor
    */
-   HashGrid();
+   HashGridOld();
 
   /**
    * @brief detailed constructor
    * @param rt_threshold_ defines the height of each grid cell
    * @param mz_threshold_ defines the width of each grid cell
    */
-   HashGrid(DoubleReal rt_threshold_, DoubleReal mz_threshold_);
+   HashGridOld(DoubleReal rt_threshold_, DoubleReal mz_threshold_);
 
   /**
    * @brief destructor
    */
-   ~HashGrid();
+   ~HashGridOld();
 
   /**
    * @brief removes an element from the hash grid. The cell, in which the element may be contained, is specified:

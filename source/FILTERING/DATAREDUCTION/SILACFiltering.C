@@ -28,7 +28,8 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/DATASTRUCTURES/HashGrid.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <iostream>
 #include <fstream>
@@ -46,13 +47,12 @@ namespace OpenMS
   gsl_interp_accel* SILACFiltering::current_spl_ = 0;
   gsl_spline* SILACFiltering::spline_aki_ = 0;
   gsl_spline* SILACFiltering::spline_spl_ = 0;
-  Int SILACFiltering::feature_id_ = 0;
-  DoubleReal SILACFiltering::mz_min_ = 0;
+  DoubleReal SILACFiltering::mz_min_ = 0;  
 
-  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp, const DoubleReal mz_stepwidth, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks)
-    : exp_(exp)
+  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks, const String debug_filebase)
+    : exp_(exp),
+      debug_filebase(debug_filebase)
   {
-    mz_stepwidth_ = mz_stepwidth;
     intensity_cutoff_ = intensity_cutoff;
     intensity_correlation_ = intensity_correlation;
     allow_missing_peaks_ = allow_missing_peaks;
@@ -68,16 +68,102 @@ namespace OpenMS
 
   }
 
+  void SILACFiltering::checkPeakWidth()
+  {
+#if 0
+    startProgress(0, 1, "checking peak width");
+    PeakWidthEstimator e;
+    e.estimateFWHM(exp_, peak_width_intercept, peak_width_slope);
+    std::cout << "got: " << peak_width_slope << " * mz + " << peak_width_intercept << std::endl;
+    endProgress();
+#endif
+  }
+
+  DoubleReal SILACFiltering::getPeakWidth(DoubleReal mz) const
+  {
+#if 0
+    return 2 * (peak_width_slope * mz + peak_width_intercept);
+#endif
+    return 5*(1.889e-7*pow(mz,1.5));
+  }
+
+  void SILACFiltering::pickSeeds()
+  {
+    // perform peak picking
+    PeakPickerHiRes picker;
+    picker.setLogType(getLogType());
+    Param param = picker.getParameters();
+    param.setValue("ms1_only", DataValue("true"));
+    param.setValue("signal_to_noise", 0.1);
+    picker.setParameters(param);
+
+    picker.pickExperiment(exp_, picked_exp_);
+
+    if (debug_filebase != "")
+    {
+      MzMLFile mz_data_file;
+      mz_data_file.store(debug_filebase + ".filtering.picked.mzML", picked_exp_);
+    }
+
+    // Initialize seeds map
+    picked_exp_seeds_ = picked_exp_;
+    for (Size i = 0; i != picked_exp_seeds_.size(); ++i)
+    {
+      picked_exp_seeds_[i].clear(false);
+    }
+  }
+
+  void SILACFiltering::filterSeeds()
+  {
+    startProgress(0, filters_.size(), "filtering seed data");
+
+    // Iterate over all filters
+    for (vector<SILACFilter*>::iterator filter_it = filters_.begin(); filter_it != filters_.end(); ++filter_it)
+    {
+      setProgress(filter_it - filters_.begin());
+      // Iterate over all spectra of the experiment (iterate over rt)
+      for (MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_.begin(); picked_rt_it != picked_exp_.end(); ++picked_rt_it)
+      {
+         DoubleReal rt = picked_rt_it->getRT();
+         // Iterate over the picked spectrum
+         for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin(); picked_mz_it != picked_rt_it->end(); ++picked_mz_it) // iteration correct
+         {
+           DoubleReal picked_mz = picked_mz_it->getMZ();
+
+           bool isSILAC = (*filter_it)->isSILACPatternPicked_(rt, picked_mz, picked_mz, *this);
+
+           if (isSILAC)
+           {
+              Size spec_idx = picked_rt_it - picked_exp_.begin();
+              picked_exp_seeds_[spec_idx].push_back(*picked_mz_it);
+           }
+         }
+      }
+    }
+
+    // sort complete spectrum so we can use range queries
+    picked_exp_seeds_.sortSpectra(true);
+    endProgress();
+
+    if (debug_filebase != "")
+    {
+      MzMLFile mz_data_file;
+      mz_data_file.store(debug_filebase + ".filtering.filtered_seeds.mzML", picked_exp_seeds_);
+    }
+  }
+
   void SILACFiltering::filterDataPoints()
   {
-    startProgress(0, exp_.size(), "filtering raw data");
+    checkPeakWidth();
+    pickSeeds();
+    filterSeeds();
 
-    vector<DataPoint> data;
+    startProgress(0, exp_.size(), "filtering raw data");    
 
     mz_min_ = exp_.getMinMZ();      // get lowest m/z value
 
     // Iterate over all filters
-    for (list<SILACFilter*>::iterator filter_it = filters_.begin(); filter_it != filters_.end(); ++filter_it)
+    for (vector<SILACFilter*>::iterator filter_it = filters_.begin(); filter_it != filters_.end(); ++filter_it)
     {
       // Iterate over all spectra of the experiment (iterate over rt)
       for (MSExperiment<Peak1D>::Iterator rt_it = exp_.begin(); rt_it != exp_.end(); ++rt_it)
@@ -104,9 +190,10 @@ namespace OpenMS
           // Fill intensity and m/z vector for interpolation. Add zeros in the area with no data points to improve cubic spline fit
           for (MSSpectrum<>::Iterator mz_interpol_it = rt_it->begin(); mz_interpol_it != rt_it->end(); ++mz_interpol_it)
           {
-            if (mz_interpol_it->getMZ() > last_mz + 2 * mz_stepwidth_) // If the mz gap is rather larger, fill in zeros. These addtional Stützstellen improve interpolation where no signal (i.e. data points) is.
+            DoubleReal peakwidth = getPeakWidth(last_mz);
+            if (mz_interpol_it->getMZ() > last_mz + peakwidth) // If the mz gap is rather larger, fill in zeros. These addtional Stützstellen improve interpolation where no signal (i.e. data points) is.
             {
-              for (DoubleReal current_mz = last_mz + 2 * mz_stepwidth_; current_mz < mz_interpol_it->getMZ() - 2 * mz_stepwidth_; current_mz += mz_stepwidth_)
+              for (DoubleReal current_mz = last_mz + peakwidth; current_mz < mz_interpol_it->getMZ() - peakwidth; current_mz += peakwidth)
               {
                 mz_vec.push_back(current_mz);
                 intensity_vec.push_back(0.0);
@@ -127,35 +214,45 @@ namespace OpenMS
           spline_spl_ = gsl_spline_alloc(gsl_interp_cspline, mz_vec.size());
           gsl_spline_init(spline_spl_, &*mz_vec.begin(), &*intensity_vec.begin(), mz_vec.size());
 
-          MSSpectrum<>::Iterator mz_it = rt_it->begin();
 
-          last_mz = mz_it->getMZ();
-          ++mz_it;
+          // get iterator on picked data
+          MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_seeds_.RTBegin(rt);
 
-          // Iterate over the spectrum with a step width that is oriented on the raw data point positions (iterate over mz)
-          for ( ; mz_it != rt_it->end(); ++mz_it) // iteration correct
-          {            
-            // We do not move with mz_stepwidth over the spline fit, but with about a third of the local mz differences
-            for (DoubleReal mz = last_mz; mz < mz_it->getMZ(); mz += (abs(mz_it->getMZ() - last_mz)) / 3)
+          // XXX: Workaround to catch duplicated peaks
+          std::set<DoubleReal> seen_mz;
+
+          // Iterate over the picked spectrum
+          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin() ; picked_mz_it != picked_rt_it->end(); ++picked_mz_it) // iteration correct
+          {
+            DoubleReal picked_mz = picked_mz_it->getMZ();
+            DoubleReal intensity = picked_mz_it->getIntensity();
+
+            // XXX: Ignore duplicated peaks
+            if (!seen_mz.insert(picked_mz).second) continue;
+
+            //---------------------------------------------------------------
+            // BLUNT INTENSITY FILTER (Just check that intensity at current m/z position is above the intensity cutoff)
+            //---------------------------------------------------------------
+            if (intensity < intensity_cutoff_)
             {
-              //---------------------------------------------------------------
-              // BLUNT INTENSITY FILTER (Just check that intensity at current m/z position is above the intensity cutoff)
-              //---------------------------------------------------------------
+              continue;
+            }
 
-              if (gsl_spline_eval (spline_aki_, mz, current_aki_) < intensity_cutoff_)
-              {                
-                continue;
-              }
+            // XXX: Extract peaks again
+            SILACPattern pattern;
+            if (!(*filter_it)->extractMzShiftsAndIntensitiesPickedToPattern(rt, picked_mz, picked_mz, *this, pattern))
+              continue;
 
+            for (DoubleReal mz = picked_mz - getPeakWidth(picked_mz); mz < picked_mz + getPeakWidth(picked_mz); mz += 0.1 * getPeakWidth(picked_mz) ) // iteration correct
+            {
               //--------------------------------------------------
               // BLACKLIST FILTER
               //--------------------------------------------------
 
-              bool isBlacklisted = false;
-
               // iterate over the blacklist (Relevant blacklist entries are most likely among the last ones added.)
               multimap<DoubleReal, BlacklistEntry>::iterator blacklistStartCheck;
               multimap<DoubleReal, BlacklistEntry>::iterator blacklistEndCheck;
+
               if (blacklist.size() > 40)    // Blacklist should be of certain size before we ckeck only parts of it.
               {
                 blacklistStartCheck = blacklist.lower_bound(rt - 100);
@@ -166,44 +263,54 @@ namespace OpenMS
                 blacklistStartCheck = blacklist.begin();
                 blacklistEndCheck = blacklist.end();
               }
+
+              bool isBlacklisted = false;
+
               for (multimap<DoubleReal, BlacklistEntry>::iterator blacklist_check_it = blacklistStartCheck; blacklist_check_it != blacklistEndCheck; ++blacklist_check_it)
               {
                 Int charge = (*filter_it)->getCharge();
-                vector<DoubleReal> mass_separations = (*filter_it)->getMassSeparations();
-                
+                const vector<DoubleReal>& mass_separations = (*filter_it)->getMassSeparations();
+
                 // loop over the individual isotopic peaks of the SILAC pattern (and check if they are blacklisted)
                 const vector<DoubleReal>& expectedMZshifts = (*filter_it)->getExpectedMzShifts();
 
                 for (vector<DoubleReal>::const_iterator expectedMZshifts_it = expectedMZshifts.begin(); expectedMZshifts_it != expectedMZshifts.end(); ++expectedMZshifts_it)
                 {
                   bool inBlacklistEntry = blacklist_check_it->second.range.encloses(*expectedMZshifts_it + mz, rt);
-                  bool exception = (charge == blacklist_check_it->second.charge) && (mass_separations == blacklist_check_it->second.mass_separations) && (abs(*expectedMZshifts_it - blacklist_check_it->second.relative_peak_position) < 0.01);
-                  
+                  bool exception = (charge == blacklist_check_it->second.charge)
+                                   && (mass_separations == blacklist_check_it->second.mass_separations)
+                                   && (abs(*expectedMZshifts_it - blacklist_check_it->second.relative_peak_position) < 0.1);
+
                   if (inBlacklistEntry && !exception )
                   {
                     isBlacklisted = true;
                     break;
                   }
                 }
+
+                if (isBlacklisted)
+                {
+                  break;
+                }
               }
-              
+
               // Check the other filters only if current m/z and rt position is not blacklisted
               if (isBlacklisted == false)
               {
-                if ((*filter_it)->isSILACPattern_(rt, mz))      // Check if the mz at the given position is a SILAC pair
+                if ((*filter_it)->isSILACPattern_(rt, mz, picked_mz, *this, pattern))      // Check if the mz at the given position is a SILAC pair
                 {
                   //--------------------------------------------------
                   // FILLING THE BLACKLIST
                   //--------------------------------------------------
-                  
-                  DoubleReal peak_width = SILACFilter::getPeakWidth(mz);
-                  
+
+                  DoubleReal peak_width = getPeakWidth(mz);
+
                   // loop over the individual isotopic peaks of the SILAC pattern (and blacklist the area around them)
                   const vector<DoubleReal>& peak_positions = (*filter_it)->getPeakPositions();
 
                   // Remember the charge and mass separations (since the blacklisting should not apply to filters of the same charge and mass separations).
                   Int charge = (*filter_it)->getCharge();
-                  std::vector<DoubleReal> mass_separations = (*filter_it)->getMassSeparations();
+                  const std::vector<DoubleReal>& mass_separations = (*filter_it)->getMassSeparations();
 
                   for (vector<DoubleReal>::const_iterator peak_positions_it = peak_positions.begin(); peak_positions_it != peak_positions.end(); ++peak_positions_it)
                   {
@@ -212,15 +319,15 @@ namespace OpenMS
                     blackArea.setMaxX(*peak_positions_it + 0.8 * peak_width);     // set max m/z position of area to be blacklisted
                     blackArea.setMinY(rt - 10);     // set min rt position of area to be blacklisted
                     blackArea.setMaxY(rt + 10);     // set max rt position of area to be blacklisted
-                    
+
                     // Remember relative m/z shift (since the blacklisting should not apply to filters of the same points of the same relative m/z shift).
                     DoubleReal relative_peak_position = *peak_positions_it - mz;
-                    
+
                     // Does the new black area overlap with existing areas in the blacklist?
                     bool overlap = false;
                     // Does the current filter and relative peak position agree with the ones of the blacklist entry?
                     bool sameFilterAndPeakPosition = false;
-                    
+
                     multimap<DoubleReal, BlacklistEntry>::iterator blacklistStartFill;
                     multimap<DoubleReal, BlacklistEntry>::iterator blacklistEndFill;
                     if (blacklist.size() > 40)    // Blacklist should be of certain size before we ckeck only parts of it.
@@ -237,7 +344,7 @@ namespace OpenMS
                     {
                       overlap = blackArea.isIntersected(blacklist_fill_it->second.range);
                       sameFilterAndPeakPosition = (charge == blacklist_fill_it->second.charge) && (mass_separations == blacklist_fill_it->second.mass_separations) && (abs(relative_peak_position - blacklist_fill_it->second.relative_peak_position) < 0.01);
-                      
+
                       if (overlap && sameFilterAndPeakPosition)
                       {
                         // If new and old entry intersect, simply update (or replace) the old one.
@@ -266,11 +373,11 @@ namespace OpenMS
                           blacklist.insert(pair<DoubleReal, BlacklistEntry>(mergedEntry.range.minY(), mergedEntry));
                           blacklist.erase(blacklist_fill_it);
                         }
-                        
+
                         break;
                       }
                     }
-                    
+
                     if ( !overlap )
                     {
                       // If new and none of the old entries intersect, add a new entry.
@@ -283,7 +390,7 @@ namespace OpenMS
                     }
                   }
 
-/*                  // DEBUG: save global blacklist as .csv
+                  /*                  // DEBUG: save global blacklist as .csv
                   ofstream blacklistFile;
                   blacklistFile.open ("blacklist.csv");
 
@@ -293,12 +400,13 @@ namespace OpenMS
                   }
                   blacklistFile.close();
 */
-                  ++feature_id_;
                 }
               }
             }
-            
-            last_mz = mz_it->getMZ();
+
+            // XXX
+            const UInt threshold_points = 4;
+            if (pattern.points.size() > threshold_points) (*filter_it)->elements_.push_back(pattern);
           }
 
           // Clear the interpolations

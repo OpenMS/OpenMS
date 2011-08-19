@@ -29,8 +29,10 @@
 #define OPENMS_FILTERING_DATAREDUCTION_SILACFILTER_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/DataPoint.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
 #include <queue>
@@ -39,7 +41,143 @@
 namespace OpenMS
 {
    class SILACFiltering;
-   class DataPoint;
+
+   // Prealculate isotope distributions for interesting mass ranges
+   class IsotopeDistributionCache
+   {
+     public:
+       /** @name Accessors
+       */
+       //@{
+       /// returns a pointer to the singleton instance of the isotope distribution cache
+       inline static IsotopeDistributionCache* getInstance()
+       {
+         static IsotopeDistributionCache* cache_ = 0;
+         if (cache_ == 0)
+         {
+           cache_ = new IsotopeDistributionCache;
+         }
+         return cache_;
+       }
+
+       typedef FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
+
+       bool isPrecalculated() const
+       {
+         return (isotope_distributions_.size() != 0);
+       }
+
+       void precalculate(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage = 0, DoubleReal intensity_percentage_optional = 0)
+       {
+         isotope_distributions_.clear();
+         max_mass_ = max_mass;
+         mass_window_width_ = mass_window_width;
+         intensity_percentage_optional_ = intensity_percentage_optional;
+         intensity_percentage_ = intensity_percentage;
+
+         Size num_isotopes = std::ceil(max_mass/mass_window_width) + 1;
+
+         //reserve enough space
+         isotope_distributions_.resize(num_isotopes);
+
+         //calculate distribution if necessary
+         for (Size index = 0; index < num_isotopes; ++index)
+         {
+           //log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
+           IsotopeDistribution d;
+           d.setMaxIsotope(20);
+           d.estimateFromPeptideWeight(0.5*mass_window_width_ + index * mass_window_width_);
+
+           //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
+           Size size_before = d.size();
+           d.trimLeft(intensity_percentage_optional_);
+           isotope_distributions_[index].trimmed_left = size_before - d.size();
+           d.trimRight(intensity_percentage_optional_);
+
+           for (IsotopeDistribution::Iterator it=d.begin(); it!=d.end(); ++it)
+           {
+             isotope_distributions_[index].intensity.push_back(it->second);
+             //log_ << " - " << it->second << std::endl;
+           }
+
+           //determine the number of optional peaks at the beginning/end
+           Size begin = 0;
+           Size end = 0;
+           bool is_begin = true;
+           bool is_end = false;
+           for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
+           {
+             if (isotope_distributions_[index].intensity[i] < intensity_percentage_)
+             {
+               if (!is_end && !is_begin) is_end = true;
+               if (is_begin) ++begin;
+               else if (is_end) ++end;
+             }
+             else if (is_begin)
+             {
+               is_begin = false;
+             }
+           }
+           isotope_distributions_[index].optional_begin = begin;
+           isotope_distributions_[index].optional_end = end;
+
+           //scale the distibution to a maximum of 1
+           DoubleReal max = 0.0;
+           for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
+           {
+             if (isotope_distributions_[index].intensity[i] > max)
+             {
+               max = isotope_distributions_[index].intensity[i];
+             }
+           }
+
+           isotope_distributions_[index].max = max;
+
+           for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
+           {
+             isotope_distributions_[index].intensity[i] /= max;
+           }
+        }
+       }
+
+     /// Returns the isotope distribution for a certain mass window
+     const TheoreticalIsotopePattern& getIsotopeDistribution(DoubleReal mass) const
+     {
+       //calculate index in the vector
+       Size index = (Size)std::floor(mass / mass_window_width_);
+
+       if (index >= isotope_distributions_.size())
+       {
+         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
+       }
+
+       //Return distribution
+       return isotope_distributions_[index];
+     }
+
+     private:
+       IsotopeDistributionCache()
+       {
+
+       }
+
+       IsotopeDistributionCache(const IsotopeDistributionCache&);
+
+       IsotopeDistributionCache& operator = (const IsotopeDistributionCache&);
+
+       virtual ~IsotopeDistributionCache()
+       {
+
+       }
+
+       /// Vector of precalculated isotope distributions for several mass winows
+       std::vector< TheoreticalIsotopePattern > isotope_distributions_;
+
+       DoubleReal max_mass_;
+       DoubleReal mass_window_width_;
+       DoubleReal intensity_percentage_optional_;
+       DoubleReal intensity_percentage_;
+   };
 
    /**
    * @brief Filter to use for SILACFiltering
@@ -49,12 +187,13 @@ namespace OpenMS
    * a SILAC pair yet.
    *
    * @see SILACFiltering
-   */
+   */   
 
    class OPENMS_DLLAPI SILACFilter {
      friend class SILACFiltering;
 
   private:
+    typedef FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
 
   /**
    * @brief number of peptides [i.e. number of labelled peptides +1, e.g. for SILAC triplet =3]
@@ -99,7 +238,7 @@ namespace OpenMS
   /**
    * @brief holds the recognized features
    */
-   std::vector<DataPoint> elements_;
+   std::vector<SILACPattern> elements_;
 
   /**
    * @brief maximal value of which a predicted SILAC feature may deviate from the averagine model
@@ -140,7 +279,17 @@ namespace OpenMS
    * @param rt RT value of the position
    * @param mz m/z value of the position
    */
-   bool isSILACPattern_(DoubleReal rt, DoubleReal mz);
+   bool isSILACPattern_(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &, SILACPattern &pattern);
+
+
+   bool isSILACPatternPicked_(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &);
+   bool extractMzShiftsAndIntensities(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &);
+   bool extractMzShiftsAndIntensitiesPicked(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &);
+   bool extractMzShiftsAndIntensitiesPickedToPattern(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &, SILACPattern &pattern);
+   bool intensityFilter();
+   bool correlationFilter1(DoubleReal mz, const SILACFiltering &);
+   bool correlationFilter2(DoubleReal mz, const SILACFiltering &);
+   bool averageneFilter(DoubleReal rt, DoubleReal mz);
 
    public:  
 
@@ -164,12 +313,6 @@ namespace OpenMS
    virtual ~SILACFilter();
 
   /**
-   * @brief returns the predicted peak width at position mz
-   * @param mz mz position of the peak
-   */
-   static DoubleReal getPeakWidth(DoubleReal mz);
-
-  /**
    * @brief gets the m/z values of all peaks , which belong the last identified feature
    */
    std::vector<DoubleReal> getPeakPositions();
@@ -177,12 +320,12 @@ namespace OpenMS
   /**
    * @brief gets the m/z shifts relative to mono-isotopic peak of unlabelled peptide
    */
-   std::vector<DoubleReal> getExpectedMzShifts();
+   const std::vector<DoubleReal>& getExpectedMzShifts();
 
   /**
    * @brief returns all identified elements
    */
-   std::vector<DataPoint> getElements();
+   std::vector<SILACPattern>& getElements();
 
   /**
    * @brief returns the charge of the filter
@@ -192,7 +335,7 @@ namespace OpenMS
   /**
    * @brief returns the mass shifts of the filter in [Da]
    */
-   std::vector<DoubleReal> getMassSeparations();
+   std::vector<DoubleReal>& getMassSeparations();
 
   };
 }

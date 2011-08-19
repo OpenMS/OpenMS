@@ -82,7 +82,7 @@ namespace OpenMS
 		// create the hash grid and fill it with features:
 		// cout << "Hashing..." << endl;
 		list<GridFeature> grid_features;
-		HashGrid grid(max_diff_rt_, max_diff_mz_);
+		HashGridOld grid(max_diff_rt_, max_diff_mz_);
 		for (Size map_index = 0; map_index < num_maps_; ++map_index)
 		{
 			for (Size feature_index = 0; feature_index < input_maps[map_index].size();
@@ -176,7 +176,7 @@ namespace OpenMS
 	}
 
 
-	void QTClusterFinder::computeClustering_(HashGrid& grid, 
+	void QTClusterFinder::computeClustering_(HashGridOld& grid, 
 																					 list<QTCluster>& clustering)
 	{
 		clustering.clear();

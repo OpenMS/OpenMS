@@ -6,6 +6,7 @@ set(sources_list_h
 DataFilters.h
 SILACFilter.h
 SILACFiltering.h
+SILACPattern.h
 )
 
 ### add path to the filenames

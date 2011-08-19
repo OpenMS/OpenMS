@@ -1,10 +1,10 @@
 // -*- Mode: C++; tab-width: 2; -*-
-// vi: set ts=2:
+// vi: set ts=2:expandtab
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2011 -- Bastian Blank
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,49 +22,26 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
+// $Authors: Bastian Blank $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/SILACTreeNode.h>
-#include <cmath>
+#ifndef OPENMS_COMPARISON_CLUSTERING_HASHER_H
+#define OPENMS_COMPARISON_CLUSTERING_HASHER_H
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 namespace OpenMS
 {
-  SILACTreeNode::SILACTreeNode()
+  /** Hash Value for OpenMS::DPosition. */
+  template <UInt N, typename T>
+  std::size_t hash_value(const DPosition<N, T> &b)
   {
-
-  }
-
-  SILACTreeNode::SILACTreeNode(DataPoint* data1_, DataPoint* data2_, DoubleReal distance_)
-  {
-    data1 = data1_;
-    data2 = data2_;
-    distance = distance_;
-  }
-
-  bool SILACTreeNode::operator == (const SILACTreeNode &cp) const
-  {
-	  if( this->data1 != cp.data1) return false;
-	  if( this->data2 != cp.data2) return false;
-	  if( this->distance != cp.distance) return false;
-	  return true;
-  }
-
-  bool SILACTreeNode::operator != (const SILACTreeNode &cp) const
-  {
-    return !(*this == cp);
-  }
-
-  bool SILACTreeNode::operator < (const SILACTreeNode &cp) const
-  {
-	  if (std::abs(this->distance - cp.distance) <= 0.00000001)
-    {
-		  return *(this->data1) < *(cp.data1);
-    }
-	  else
-    {
-		  return this->distance < cp.distance;
-    }
+    boost::hash<T> hasher;
+    std::size_t hash = 0;
+    for (typename DPosition<N, T>::const_iterator it = b.begin(); it != b.end(); ++it) hash ^= hasher(*it);
+    return hash;
   }
 }
 
+#endif /* OPENMS_COMPARISON_CLUSTERING_HASHER_H */

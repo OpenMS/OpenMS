@@ -1,31 +1,30 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/hp-23/SILACAnalyzer/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////share/usr/blank/open-ms_SILACAnalyzer/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.4" id="cm_16627578304933075941" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="1999-12-31T23:59:59">
-		<software name="SILACAnalyzer" version="version_string" />
-		<processingAction name="Quantitation" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
-	</dataProcessing>
 	<mapList count="2">
-		<map id="0" name="SILACAnalyzer.mzML" label="" size="2">
+		<map id="0" name="" label="" size="2">
 		</map>
-		<map id="1" name="SILACAnalyzer.mzML" label="" size="2">
+		<map id="1" name="" label="" size="2">
 		</map>
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_13229490167902618598" quality="8" charge="2">
-			<centroid rt="6632.24218977311" mz="670.894327836023" it="542500"/>
+			<centroid rt="6634.75702532412" mz="670.894439141257" it="5.77779e+07"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6632.24218977311" mz="670.894327836023" it="1" charge="2"/>
-				<element map="1" id="0" rt="6632.24218977311" mz="674.901427242623" it="2.20234" charge="2"/>
+				<element map="0" id="0" rt="6634.75702532412" mz="670.894439141257" it="1.78472e+07" charge="2"/>
+				<element map="1" id="0" rt="6634.75702532412" mz="674.901555067518" it="3.99307e+07" charge="2"/>
 			</groupedElementList>
+			<userParam type="string" name="Cell ID" value="82:3354"/>
+			<userParam type="string" name="Mass shifts [Da]" value="0.0000;8.0142"/>
 		</consensusElement>
 		<consensusElement id="e_5024549519481199379" quality="8" charge="2">
-			<centroid rt="6657.49328162911" mz="668.826168885659" it="305909"/>
+			<centroid rt="6655.93614676618" mz="668.826213980992" it="2.3328e+07"/>
 			<groupedElementList>
-				<element map="0" id="1" rt="6657.49328162911" mz="668.826168885659" it="1" charge="2"/>
-				<element map="1" id="1" rt="6657.49328162911" mz="672.833268292259" it="2.30961" charge="2"/>
+				<element map="0" id="0" rt="6655.93614676618" mz="668.826213980992" it="7.07766e+06" charge="2"/>
+				<element map="1" id="0" rt="6655.93614676618" mz="672.833287369916" it="1.62504e+07" charge="2"/>
 			</groupedElementList>
+			<userParam type="string" name="Cell ID" value="83:3344"/>
+			<userParam type="string" name="Mass shifts [Da]" value="0.0000;8.0142"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

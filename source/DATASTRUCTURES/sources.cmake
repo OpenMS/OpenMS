@@ -15,7 +15,6 @@ CVMappingRule.C
 CVReference.C
 CVMappings.C
 DataPoint.C
-DataSubset.C
 DBoundingBox.C
 DIntervalBase.C
 DPosition.C
@@ -28,7 +27,7 @@ DistanceMatrix.C
 DoubleList.C
 GridElement.C
 GridFeature.C
-HashGrid.C
+HashGridOld.C
 IntList.C
 Map.C
 MassExplainer.C
@@ -36,9 +35,7 @@ Matrix.C
 Param.C
 QTCluster.C
 QTSILACCluster.C
-SILACTreeNode.C
 SparseVector.C
-SILACTreeNode.C
 String.C
 StringList.C
 SuffixArray.C

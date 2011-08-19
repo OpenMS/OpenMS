@@ -1,10 +1,10 @@
 // -*- mode: C++; tab-width: 2; -*-
-// vi: set ts=2:
+// vi: set ts=2:expandtab
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2011 -- Bastian Blank
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,136 +27,87 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-///////////////////////////
-#include <OpenMS/DATASTRUCTURES/HashGrid.h>
-#include <OpenMS/DATASTRUCTURES/GridElement.h>
-#include <OpenMS/DATASTRUCTURES/DataPoint.h>
-///////////////////////////
+#include <OpenMS/COMPARISON/CLUSTERING/HashGrid.h>
 
 using namespace OpenMS;
-using namespace std;
+
+class Value
+{
+};
+
+typedef OpenMS::HashGrid<Value> TestGrid;
+const TestGrid::ClusterCenter cell_dimension(1, 1);
 
 START_TEST(HashGrid, "$Id$")
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-HashGrid* ptr = 0;
-HashGrid* nullPointer = 0;
-START_SECTION(HashGrid())
+START_SECTION(HashGrid(const ClusterCenter &cell_dimension))
 {
-	ptr = new HashGrid();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  TestGrid t(cell_dimension);
+  TEST_EQUAL(t.grid_dimension[0], 0);
+  TEST_EQUAL(t.grid_dimension[1], 0);
 }
 END_SECTION
 
-START_SECTION(~HashGrid())
+START_SECTION(cell_iterator insert(const value_type &v))
 {
-	delete ptr;
+  TestGrid t(cell_dimension);
+  const TestGrid::ClusterCenter key1(1, 2);
+  TestGrid::cell_iterator it = t.insert(std::make_pair(key1, TestGrid::mapped_type()));
+  TEST_EQUAL(t.grid_dimension[0], key1[0]);
+  TEST_EQUAL(t.grid_dimension[1], key1[1]);
+  TEST_EQUAL(it->first[0], key1[0]);
+  TEST_EQUAL(it->first[1], key1[1]);
+  const TestGrid::ClusterCenter key2(2, 3);
+  it = t.insert(std::make_pair(key2, TestGrid::mapped_type()));
+  TEST_EQUAL(t.grid_dimension[0], key2[0]);
+  TEST_EQUAL(t.grid_dimension[1], key2[1]);
+  TEST_EQUAL(it->first[0], key2[0]);
+  TEST_EQUAL(it->first[1], key2[1]);
 }
 END_SECTION
 
-START_SECTION((HashGrid(DoubleReal rt_threshold_, DoubleReal mz_threshold_)))
+START_SECTION(size_type erase(const key_type& key))
 {
-  NOT_TESTABLE
+  TestGrid t(cell_dimension);
+  const TestGrid::ClusterCenter key(1, 2);
+  t.insert(std::make_pair(key, TestGrid::mapped_type()));
+  TEST_EQUAL(t.erase(key), 1);
 }
 END_SECTION
 
-START_SECTION((void removeElement(GridElement *const element, Int x, Int y)))
+START_SECTION(void clear())
 {
-  NOT_TESTABLE
+  TestGrid t(cell_dimension);
+  t.clear();
 }
 END_SECTION
 
-START_SECTION((void removeElement(GridElement *const element)))
+START_SECTION(const_grid_iterator grid_begin() const)
 {
-  NOT_TESTABLE
+  TestGrid t(cell_dimension);
+  const TestGrid ct(t);
+  const TestGrid::ClusterCenter key(1, 2);
+  t.insert(std::make_pair(key, TestGrid::mapped_type()));
 }
 END_SECTION
 
-START_SECTION((void removeCell(GridCells::iterator loc)))
+START_SECTION(const_grid_iterator grid_end() const)
 {
-  NOT_TESTABLE
+  TestGrid t(cell_dimension);
+  const TestGrid ct(t);
+  // Does not work, no output defined for iterators
+  //TEST_EQUAL(ct.grid_begin(), ct.grid_end());
 }
 END_SECTION
 
-START_SECTION((void insert(GridElement *const element)))
+START_SECTION(const typename Grid::mapped_type &grid_at(const CellIndex &x) const)
 {
-  HashGrid tmp;
-	DataPoint tmp2;
-	tmp.insert(&tmp2);
-	TEST_EQUAL(tmp.size(), 1);
+  TestGrid t(cell_dimension);
+  const TestGrid ct(t);
+  const TestGrid::CellIndex i(0, 0);
+  TEST_EXCEPTION(std::out_of_range, ct.grid_at(i));
 }
 END_SECTION
 
-START_SECTION((void consoleOut() const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((Size size() const ))
-{
-	HashGrid tmp;
-	DataPoint tmp2;
-	tmp.insert(&tmp2);
-  TEST_EQUAL(tmp.size(), 1);
-}
-END_SECTION
-
-START_SECTION((DoubleReal getRTThreshold() const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((DoubleReal getMZThreshold() const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((Int getGridSizeX() const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((Int getGridSizeY() const ))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((Size getNumberOfElements() const ))
-{
-  HashGrid tmp;
-	DataPoint tmp2;
-	tmp.insert(&tmp2);
-  TEST_EQUAL(tmp.size(), 1);
-}
-END_SECTION
-
-START_SECTION((GridCells::iterator begin()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((GridCells::iterator end()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((GridCells::iterator find(std::pair< Int, Int > loc)))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 END_TEST
 
