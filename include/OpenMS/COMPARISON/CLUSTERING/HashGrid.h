@@ -48,13 +48,13 @@ namespace OpenMS
    * @tparam Cluster Type to be stored in the hash grid. (e.g. @ref{HierarchicalClustering::Cluster})
    */
   template <typename Cluster>
-  class OPENMS_DLLAPI HashGrid
+  class HashGrid
   {
     public:
       /**
        * @brief Coordinate for stored pairs.
        */
-      // XXX: Check is there is another type handy in OpenMS allready
+      // XXX: Check is there is another type handy in OpenMS already
       typedef DPosition<2, DoubleReal> ClusterCenter;
 
       /**
