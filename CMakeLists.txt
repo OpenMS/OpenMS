@@ -627,10 +627,10 @@ if (MSVC)
 endif()	
 
 ## update the openms_svn_revision.h file before compiling OpenMS
-add_dependencies(OpenMS svn_revision_update)
 add_custom_target(svn_revision_update ALL
 	    COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE} -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
 	                             -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
+add_dependencies(OpenMS svn_revision_update)
 set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
