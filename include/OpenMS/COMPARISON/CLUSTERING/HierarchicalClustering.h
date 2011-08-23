@@ -27,6 +27,7 @@
 
 #include <queue>
 #include <cmath>
+#include <limits>
 #include <boost/unordered/unordered_set.hpp>
 
 #include <OpenMS/COMPARISON/CLUSTERING/HashGrid.h>
@@ -52,7 +53,7 @@ namespace OpenMS
    * to save minimum distances between two subsets (proto-cluster?). No full
    * distance matrix is required.
    *
-   * @tparam PointRef Reference associated with every point. Must have a default constructur.
+   * @tparam PointRef Reference associated with every point. Must have a default constructor.
    */
   template <typename PointRef>
   class HierarchicalClustering
@@ -267,7 +268,7 @@ namespace OpenMS
       void addTreeDistance(TreeNode *tree, ClusterTrees &trees, TreeDistanceQueue &dists)
       {
         // Infinity: no valid distance
-        DoubleReal dist_min = numeric_limits<DoubleReal>::infinity();
+        DoubleReal dist_min = std::numeric_limits<DoubleReal>::infinity();
         typename ClusterTrees::const_iterator dist_it = trees.end();
 
         // Generate minimal distance to existing trees
@@ -300,7 +301,7 @@ namespace OpenMS
         const BoundingBox bbox = left->bbox | right->bbox;
         if (coordinate_greater(bbox.size(), grid.cell_dimension))
         {
-          return numeric_limits<DoubleReal>::infinity();
+          return std::numeric_limits<DoubleReal>::infinity();
         }
         return coordinate_distance(coordinate_division(left->coord, grid.cell_dimension), coordinate_division(right->coord, grid.cell_dimension));
       }
