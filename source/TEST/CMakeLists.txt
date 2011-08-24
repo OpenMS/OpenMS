@@ -3,7 +3,19 @@ PROJECT("OpenMS_tests") ## do not change this name, as you will break Windows-Ni
 
 enable_testing()
 INCLUDE(Dart)
-	
+
+
+## - BEGIN OF WORKAROUND
+## this is a workaround for a CMake-Bug (http://www.cmake.org/Bug/view.php?id=12419)
+## , which prevents the orginal svn_revision_update target to be build prior to OpenMS.lib on Win-VS
+## Delete when bug is fixed.
+##
+add_custom_target(svn_revision_update_forTests ALL
+	    COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE} -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
+	                             -P ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/svnversion.cmake)
+add_dependencies(OpenMS svn_revision_update_forTests)
+## - END OF WORKAROUND
+
 ## Warning: in this directory the OpenMS.dll should already be present (e.g. by using the Dll's POST_BUILD command to copy it)  
 ##          - otherwise the tests might not run!
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
