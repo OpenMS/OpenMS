@@ -60,11 +60,12 @@ XMLFile.C
 XTandemInfile.C
 XTandemXMLFile.C
 MzIdentMLFile.C
+MzQuantMLFile.C
 TraMLFile.C
 )
 
-if (USE_ANDIMS) 	 
-	list(APPEND sources_list ANDIFile.C) 	 
+if (USE_ANDIMS)
+	list(APPEND sources_list ANDIFile.C)
 endif()
 
 ### add path to the filenames
