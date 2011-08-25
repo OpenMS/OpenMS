@@ -597,7 +597,7 @@ namespace OpenMS
     }
     else
     {
-      QImage img(width, height, QImage::Format_RGB16);
+      QImage img(width, height, QImage::Format_RGB32);
       img.fill(QColor(Qt::white).rgb());
       QPainter painter(&img);
       s->render(&painter, QRectF(), items_bounding_rect);
