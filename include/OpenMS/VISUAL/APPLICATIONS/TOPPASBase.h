@@ -102,6 +102,8 @@ namespace OpenMS
       void saveCurrentPipelineAs();
       /// saves the pipeline (determined by qt's sender mechanism)
       void savePipeline();
+      /// exports the current pipeline as image
+      void exportAsImage();
       /// shows a file dialog for selecting the resource file to load
       void loadPipelineResourceFile();
       /// shows a file dialog for selecting the resource file to write to

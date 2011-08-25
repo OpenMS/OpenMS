@@ -75,6 +75,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QTextStream>
+#include <QSvgGenerator>
 
 using namespace std;
 
@@ -135,6 +136,7 @@ namespace OpenMS
     file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL+Qt::Key_R);
     file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
     file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+    file->addAction("E&xport as image", this, SLOT(exportAsImage()));
 		file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL+Qt::SHIFT+Qt::Key_P);
     file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
@@ -538,6 +540,68 @@ namespace OpenMS
     {
       QString caption = File::basename(file_name).toQString();
       tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+    }
+  }
+
+  void TOPPASBase::exportAsImage()
+  {
+    TOPPASWidget* w = activeWindow_();
+    TOPPASScene* s = w->getScene();
+
+    QString cp = current_path_.toQString();
+    QString file_name = QFileDialog::getSaveFileName(w, tr("Save image"), cp, tr("Images (*.svg *.png *.jpg)"));
+    if (file_name == "")
+    {
+      return;
+    }
+    if (!file_name.endsWith(".svg", Qt::CaseInsensitive) &&
+        !file_name.endsWith(".png", Qt::CaseInsensitive) &&
+        !file_name.endsWith(".jpg", Qt::CaseInsensitive))
+    {
+      file_name += ".svg";
+    }
+    bool svg = file_name.endsWith(".svg");
+
+    QRectF items_bounding_rect = s->itemsBoundingRect();
+    qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
+    bool w_larger_than_h = wh_proportion > 1;
+    qreal x1 = 0;
+    qreal y1 = 0;
+    qreal x2, y2;
+
+    qreal small_edge_length = svg ? 500 : 4000;
+
+    if (w_larger_than_h)
+    {
+      x2 = wh_proportion * small_edge_length;
+      y2 = small_edge_length;
+    }
+    else
+    {
+      x2 = small_edge_length;
+      y2 = (1.0 / wh_proportion) * small_edge_length;
+    }
+    qreal width = x2 - x1;
+    qreal height = y2 - y1;
+
+    if (svg)
+    {
+      QSvgGenerator svg_gen;
+      svg_gen.setFileName(file_name);
+      svg_gen.setSize(QSize(width, height));
+      svg_gen.setViewBox(QRect(x1, y1, x2, y2));
+      svg_gen.setTitle(tr("Title (TBD)"));
+      svg_gen.setDescription(tr("Description (TBD)"));
+      QPainter painter(&svg_gen);
+      s->render(&painter, QRectF(), items_bounding_rect);
+    }
+    else
+    {
+      QImage img(width, height, QImage::Format_RGB16);
+      img.fill(QColor(Qt::white).rgb());
+      QPainter painter(&img);
+      s->render(&painter, QRectF(), items_bounding_rect);
+      img.save(file_name);
     }
   }
 
