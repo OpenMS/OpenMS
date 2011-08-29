@@ -28,6 +28,14 @@ foreach(TOPP_exe ${TOPP_executables})
     COMPONENT applications)
 endforeach()
 
+## install GUI Tools
+foreach(TOPP_exe ${GUI_executables})
+  INSTALL(TARGETS ${TOPP_exe} 
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION bin
+    COMPONENT applications)
+endforeach()
+
 ## install share
 INSTALL(DIRECTORY share/		# warning: that slash(/) is important here, otherwise the whole directory (not its content) will be copied!
   DESTINATION share

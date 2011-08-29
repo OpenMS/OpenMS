@@ -81,6 +81,7 @@ foreach(TOPP_exe ${TOPP_executables})
 		COMPONENT applications)
 endforeach()
 
+# the UTILS
 foreach(UTIL_exe ${UTILS_executables})
 	# call scripts to fix issues with wrongly referenced Qt libs 
   add_custom_command(TARGET ${UTIL_exe} POST_BUILD
@@ -92,6 +93,19 @@ foreach(UTIL_exe ${UTILS_executables})
     BUNDLE DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
     COMPONENT applications)	
 endforeach(UTIL_exe ${UTILS_executables})
+
+# the GUI tools
+foreach(GUI_exe ${GUI_executables})
+  # call scripts to fix issues with wrongly referenced Qt libs 
+  add_custom_command(TARGET ${GUI_exe} POST_BUILD
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_TOPP.bash ${CMAKE_INSTALL_NAME_TOOL} ${QT_LIBRARY_DIR} ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${GUI_exe}
+    )
+	
+  install(TARGETS ${GUI_exe}
+		RUNTIME DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/TOPP
+		BUNDLE DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+		COMPONENT applications)
+endforeach(GUI_exe ${GUI_executables})
 
 # share dir
 install(DIRECTORY share/
