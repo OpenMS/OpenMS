@@ -25,6 +25,9 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -76,6 +79,8 @@
 #include <QNetworkReply>
 #include <QTextStream>
 #include <QSvgGenerator>
+#include <QNetworkProxyFactory>
+#include <QNetworkProxy>
 
 using namespace std;
 
@@ -301,7 +306,36 @@ namespace OpenMS
 
   void TOPPASBase::openOnlinePipelineRepository()
   {
-    webview_->load(QUrl("http://www.OpenMS.de/TOPPAS/"));
+    QUrl url = QUrl("http://www.OpenMS.de/TOPPAS/");
+
+    static bool proxy_settings_checked = false;
+    if (!proxy_settings_checked) // do only once because may take several seconds on windows
+    {
+      QNetworkProxy proxy;
+      QUrl tmp_proxy_url(QString(getenv("http_proxy")));
+      QUrl tmp_PROXY_url(QString(getenv("HTTP_PROXY")));
+      QUrl proxy_url = tmp_proxy_url.isValid() ? tmp_proxy_url : tmp_PROXY_url;
+      if (proxy_url.isValid())
+      {
+        QString hostname = proxy_url.host();
+        int port = proxy_url.port();
+        QString username = proxy_url.userName();
+        QString password = proxy_url.password();
+        proxy = QNetworkProxy(QNetworkProxy::HttpProxy, hostname, port, username, password);
+      }
+      else
+      {
+        QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(url);
+        if (!proxies.empty())
+        {
+          proxy = proxies.first();
+        }
+      }
+      QNetworkProxy::setApplicationProxy(proxy); //no effect if proxy == QNetworkProxy()
+      proxy_settings_checked = true;
+    }
+
+    webview_->load(url);
     webview_->show();
   }
 
