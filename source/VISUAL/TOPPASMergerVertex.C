@@ -30,6 +30,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <QSvgRenderer>
 
 namespace OpenMS
 {
@@ -111,7 +112,8 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      painter->drawChord(-7,-32, 14, 14, 0*16, 180*16);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
     }
 
     __DEBUG_END_METHOD__

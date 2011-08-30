@@ -46,6 +46,7 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QCoreApplication>
+#include <QSvgRenderer>
 
 namespace OpenMS
 {
@@ -361,7 +362,8 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      painter->drawChord(-7,-52, 14, 14, 0*16, 180*16);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      svg_renderer->render(painter, QRectF(-7, -52, 14, 14));
     }
 		
 		// progress light
