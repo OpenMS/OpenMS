@@ -93,9 +93,9 @@ class TOPPDecharger
   {
     registerInputFile_("in","<file>","","input file ");
 		setValidFormats_("in",StringList::create("FeatureXML"));
-    registerOutputFile_("out_fm","<file>","","output feature map");
     registerOutputFile_("out_cm","<file>","","output consensus map");
-    registerOutputFile_("outpairs","<file>","","output file");
+    registerOutputFile_("out_fm","<file>","","output feature map", false);
+    registerOutputFile_("outpairs","<file>","","output file", false);
 	  setValidFormats_("out_fm",StringList::create("FeatureXML"));
 	  setValidFormats_("out_cm",StringList::create("ConsensusXML"));
 	  setValidFormats_("outpairs",StringList::create("ConsensusXML"));
@@ -167,11 +167,12 @@ class TOPPDecharger
 		addDataProcessing_(cm, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
 		addDataProcessing_(cm2, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
 
-		FeatureXMLFile().store(outfile_fm, map_out);
+		
     ConsensusXMLFile f;
     f.store(outfile_cm, cm);
-    f.store(outfile_p, cm2);
     
+    if (!outfile_p.empty()) f.store(outfile_p, cm2);
+    if (!outfile_fm.empty()) FeatureXMLFile().store(outfile_fm, map_out);
 
     return EXECUTION_OK;
   }
