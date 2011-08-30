@@ -6,7 +6,7 @@
 /*
 Plugin Name: OpenMS TOPPAS Description Extractor
 Plugin URI: none
-Description: Use this plugin on our Wordpress homepage to show the 'description' of a TOPPAS workflow close to its filename automatically. Usage: put "!!!!<URL_link_to_toppas_file>" in a wordpress page, e.g. !!!!http://openms.de/wp-content/uploads/2011/08/BSA_Quantitation.toppas§§§§
+Description: Use this plugin on our Wordpress homepage to show the 'description' of a TOPPAS workflow close to its filename automatically. Usage: put "!!!!<URL_link_to_toppas_file>####" in a wordpress page, e.g. !!!!http://openms.de/wp-content/uploads/2011/08/BSA_Quantitation.toppas####
 Author: Chris Bielow
 Version: 0.1
 Author URI: http://openms.de
@@ -86,7 +86,7 @@ function simplexml_innerXML($node)
 function displayTOPPASEntry($content)
 {
 
-  return preg_replace_callback ( "/!!!!(.*\.toppas)§§§§/i" , "displayLink" ,  $content );
+  return preg_replace_callback ( "/!!!!(.*\.toppas)####/i" , "displayLink" ,  $content );
 #  return "Grabbing page content: ".$content."!";
 }
 
