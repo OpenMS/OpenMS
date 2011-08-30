@@ -269,7 +269,10 @@ namespace OpenMS
 
   void TOPPASBase::toppasFileDownloaded_(QNetworkReply* r)
   {
-    QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString());
+    QString proposed_filename = QFileInfo(r->url().toString()).fileName();
+    QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
+    if (!filename.endsWith(".toppas", Qt::CaseInsensitive)) filename += ".toppas";
+
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
