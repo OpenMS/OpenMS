@@ -82,7 +82,7 @@ namespace OpenMS
 		QDrag* drag = new QDrag(this);
 		QMimeData* mime_data = new QMimeData;
 		
-		mime_data->setText("currently_unused_mime_data");
+    mime_data->setText(currentItem()->text(0));
 		drag->setMimeData(mime_data);
 		
 		// start drag
