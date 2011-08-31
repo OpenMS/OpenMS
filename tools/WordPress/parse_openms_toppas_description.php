@@ -72,11 +72,14 @@ function displayLink($matches)
   
 	$rnd_class = mt_rand();
 	
-  $text = '<div style="border:1px dashed;">
-					File: '.$file_ref.'<br>
-					Description: <button class="'.$rnd_class.'">Show/Hide</button>
-							<span class="'.$rnd_class.'_e" style="display: none; ></span>
-							<span class="'.$rnd_class.'_e" style="display:inline-block; vertical-align:top">'. $description .'</span>
+  ## show download link and description
+  ## - we hide the description in the beginning using jQuery: every Hide-Button has the same Class as its span, so they are connected (see getExtraCode() as well)
+  $text = '<div style="border:1px dashed; text-align:left ">
+            <span>File: '.$file_ref.'</span>
+            <span style="float:right;"> Description: <button class="'.$rnd_class.'">Show/Hide</button></span><br>
+            <span class="'.$rnd_class.'_e toggleClass" style="text-align: left; display: inline-block; vertical-align:top; margin-left: 20px">'. $description .'</span>
+            
+              
 					</div>';
   
   return $text;
@@ -85,29 +88,34 @@ function displayLink($matches)
 function displayTOPPASEntry($content)
 {
 
-  return preg_replace_callback ( "/!!!!(.*\.toppas)####/i" , "displayLink" ,  $content );
+  return getExtraCode() . preg_replace_callback ( "/!!!!(.*\.toppas)####/i" , "displayLink" ,  $content );
 #  return "Grabbing page content: ".$content."!";
 }
 
 function getExtraCode()
 {
 	$text = <<<'EOT'
-		<script src="jquery-1.6.1.min.js"></script>
     <script>
       $(document).ready(function() 
 			{
+        /* toggle (view on/off) all elements with the same class as the sending button */
 				$("button").click(function () {
-														var id = "."+ $(event.target).attr("class");
-														$(id + "_e").toggle();
+														var $id = "." + $(event.target).attr("class");
+                            //alert($(event.target));
+														$($id + "_e").toggle();
 													}
 												 );
+                         
+        /* hide in the beginning */
+        $(".toggleClass").toggle(); 
 			});// document ready
     </script>
-	EOT;
+EOT;
+
 	return $text;
 }
 
-
+wp_enqueue_script('jquery-1.6.1.min.js', '/wp-content/plugins/jquery-1.6.1.min.js');
 add_filter('the_content', 'displayTOPPASEntry')
 
 ?>
