@@ -70,17 +70,16 @@ function displayLink($matches)
     $file_ref = $url_toppas['basename'];
   }
   
-  $text = '<div style="border:1px dashed;">File: '.$file_ref.'<br>Description:<span style="display:inline-block; vertical-align:top">'. $description .'</span></div>';
+	$rnd_class = mt_rand();
+	
+  $text = '<div style="border:1px dashed;">
+					File: '.$file_ref.'<br>
+					Description: <button class="'.$rnd_class.'">Show/Hide</button>
+							<span class="'.$rnd_class.'_e" style="display: none; ></span>
+							<span class="'.$rnd_class.'_e" style="display:inline-block; vertical-align:top">'. $description .'</span>
+					</div>';
   
   return $text;
-}
-
-function simplexml_innerXML($node)
-{
-    $content="";
-    foreach($node->children() as $child)
-        $content .= $child->asXml();
-    return $content;
 }
 
 function displayTOPPASEntry($content)
@@ -89,6 +88,25 @@ function displayTOPPASEntry($content)
   return preg_replace_callback ( "/!!!!(.*\.toppas)####/i" , "displayLink" ,  $content );
 #  return "Grabbing page content: ".$content."!";
 }
+
+function getExtraCode()
+{
+	$text = <<<'EOT'
+		<script src="jquery-1.6.1.min.js"></script>
+    <script>
+      $(document).ready(function() 
+			{
+				$("button").click(function () {
+														var id = "."+ $(event.target).attr("class");
+														$(id + "_e").toggle();
+													}
+												 );
+			});// document ready
+    </script>
+	EOT;
+	return $text;
+}
+
 
 add_filter('the_content', 'displayTOPPASEntry')
 
