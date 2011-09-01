@@ -176,10 +176,12 @@ namespace OpenMS
 		
 	}
 
-	void TOPPASWidget::enterEvent(QEvent* /*e*/)
-	{
-		setFocus();
-	}
+  void TOPPASWidget::enterEvent(QEvent* /*e*/)
+  {
+#ifndef Q_WS_MAC
+    setFocus();
+#endif
+  }
 	
 	void TOPPASWidget::resizeEvent(QResizeEvent* event)
 	{

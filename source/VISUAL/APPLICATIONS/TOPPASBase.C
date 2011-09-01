@@ -856,7 +856,7 @@ namespace OpenMS
   	TOPPASWidget* window = window_(id);
   	if (window)
   	{
-      std::cerr << "tab changed...\n";
+      //std::cerr << "tab changed...\n";
       desc_->blockSignals(true);
       desc_->setHtml(window->getScene()->getDescription());
       desc_->blockSignals(false);
