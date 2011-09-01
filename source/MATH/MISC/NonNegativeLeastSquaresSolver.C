@@ -22,18 +22,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
-
-// the following is done on purpose!
-// we include the .cc file in order to keep the namespace clean
-namespace NNLS_EXTERNAL
-{
-	#include <OpenMS/MATH/MISC/NNLS/nnls.h>
-	#include <OpenMS/MATH/MISC/NNLS/nnls.cc>
-}
+#include <OpenMS/MATH/MISC/NNLS/NNLS.h>
 
 namespace OpenMS
 {
@@ -88,7 +81,7 @@ namespace OpenMS
 		std::cout << "solving ..." << std::endl;
 		#endif
 		
-		NNLS_EXTERNAL::nnls(a_vec, a_rows, a_rows, a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
+		NNLS::nnls_(a_vec, &a_rows, &a_rows, &a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
 
 		
 		// translate solution back to Matrix:
