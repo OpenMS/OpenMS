@@ -14,8 +14,8 @@ Author URI: http://openms.de
 
 function otd_get_plugin_file()
 {
-		//You'd be surprised on how useful this can be. 
-		return __FILE__; 
+    //You'd be surprised on how useful this can be. 
+    return __FILE__; 
 }
 
 function displayLink($matches)
@@ -37,7 +37,7 @@ function displayLink($matches)
     $file_content = file_get_contents($local_file);
 
     $xml = new SimpleXMLElement($file_content);
-    $desc = '';
+    $desc = ' -- no description available -- ';
     /* Access the @value of the workflow description */
     foreach ($xml->NODE as $nodes) 
     {
@@ -70,8 +70,8 @@ function displayLink($matches)
     $file_ref = $url_toppas['basename'];
   }
   
-	$rnd_class = mt_rand();
-	
+  $rnd_class = mt_rand();
+  
   ## show download link and description
   ## - we hide the description in the beginning using jQuery: every Hide-Button has the same Class as its span, so they are connected (see getExtraCode() as well)
   $text = '<div style="border:1px dashed; text-align:left ">
@@ -80,39 +80,15 @@ function displayLink($matches)
             <span class="'.$rnd_class.'_e toggleClass" style="text-align: left; display: inline-block; vertical-align:top; margin-left: 20px">'. $description .'</span>
             
               
-					</div>';
+          </div>';
   
   return $text;
 }
 
 function displayTOPPASEntry($content)
 {
-
-  return getExtraCode() . preg_replace_callback ( "/!!!!(.*\.toppas)####/i" , "displayLink" ,  $content );
+  return preg_replace_callback ( "/!!!!(.*\.toppas)####/i" , "displayLink" ,  $content );
 #  return "Grabbing page content: ".$content."!";
-}
-
-function getExtraCode()
-{
-	$text = <<<'EOT'
-    <script>
-      $(document).ready(function() 
-			{
-        /* toggle (view on/off) all elements with the same class as the sending button */
-				$("button").click(function () {
-														var $id = "." + $(event.target).attr("class");
-                            //alert($(event.target));
-														$($id + "_e").toggle();
-													}
-												 );
-                         
-        /* hide in the beginning */
-        $(".toggleClass").toggle(); 
-			});// document ready
-    </script>
-EOT;
-
-	return $text;
 }
 
 wp_enqueue_script('jquery-1.6.1.min.js', '/wp-content/plugins/jquery-1.6.1.min.js');
