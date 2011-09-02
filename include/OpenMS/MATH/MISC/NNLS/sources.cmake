@@ -3,7 +3,7 @@ set(directory include/OpenMS/MATH/MISC/NNLS)
 
 ### list all header files of the directory here
 set(sources_list_h
-nnls.h
+NNLS.h
 )
 
 ### add path to the filenames
