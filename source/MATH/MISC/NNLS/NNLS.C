@@ -28,7 +28,7 @@
 
 #include <cmath>
 #include <algorithm>
-#include <OpenMS/MATH/MISC/NNLS/nnls.h>
+#include <OpenMS/MATH/MISC/NNLS/NNLS.h>
 
 /*
  

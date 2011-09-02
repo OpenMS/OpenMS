@@ -104,4 +104,4 @@ namespace OpenMS
 
 }
 
-#endif OPENMS_MATH_MISC_NNLS_NNLS_H
+#endif //OPENMS_MATH_MISC_NNLS_NNLS_H
