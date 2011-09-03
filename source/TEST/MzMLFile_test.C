@@ -628,21 +628,25 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//load minimal file
 	MSExperiment<> exp3;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_2_minimal.mzML"),exp3);
-	TEST_EQUAL(exp3.size(),0)
+	TEST_EQUAL(exp3.size(), 0)
 
 	//load file with huge CDATA and whitespaces in CDATA
 	MSExperiment<> exp4;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"),exp4);
-	TEST_EQUAL(exp4.size(),1)
-	TEST_EQUAL(exp4[0].size(),997530)
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp4);
+	TEST_EQUAL(exp4.size(), 1)
+	TEST_EQUAL(exp4[0].size(), 997530)
 	
 	//test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
 	MSExperiment<> exp_ucomp;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_ucomp);
+	STATUS("Reading uncompressed...")
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"), exp_ucomp);
+	STATUS("Reading uncompressed done.")
 	MSExperiment<> exp_comp;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_compressed.mzML"),exp_comp);
-	TEST_EQUAL(exp_ucomp.size(),exp_comp.size())
-	for (Size s=0; s< exp_ucomp.size(); ++s)
+	STATUS("Reading compressed...")
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_compressed.mzML"), exp_comp);
+	STATUS("Reading compressed done.")
+	TEST_EQUAL(exp_ucomp.size(), exp_comp.size())
+	for (Size s = 0; s < exp_ucomp.size(); ++s)
 	{
 		//check if the same number of peak and meta data arrays is present
 		TEST_EQUAL(exp_ucomp[s].size(),exp_comp[s].size())
@@ -650,31 +654,31 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays().size(),exp_comp[s].getIntegerDataArrays().size())
 		TEST_EQUAL(exp_ucomp[s].getStringDataArrays().size(),exp_comp[s].getStringDataArrays().size())
 		//check content of peak array
-		for (Size p=0; p< exp_ucomp[s].size(); ++p)
+		for (Size p = 0; p < exp_ucomp[s].size(); ++p)
 		{
 			TEST_REAL_SIMILAR(exp_ucomp[s][p].getMZ(),exp_comp[s][p].getMZ())
 			TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_comp[s][p].getIntensity())
 		}
 		//check content of float arrays
-		for (Size a=0; a<exp_ucomp[s].getFloatDataArrays().size(); ++a)
+		for (Size a = 0; a < exp_ucomp[s].getFloatDataArrays().size(); ++a)
 		{
-			for (Size m=0; m< exp_ucomp[s].getFloatDataArrays()[a].size(); ++m)
+			for (Size m = 0; m < exp_ucomp[s].getFloatDataArrays()[a].size(); ++m)
 			{
 				TEST_REAL_SIMILAR(exp_ucomp[s].getFloatDataArrays()[a][m],exp_comp[s].getFloatDataArrays()[a][m])
 			}
 		}
 		//check content of integer arrays
-		for (Size a=0; a<exp_ucomp[s].getIntegerDataArrays().size(); ++a)
+		for (Size a = 0; a < exp_ucomp[s].getIntegerDataArrays().size(); ++a)
 		{
-			for (Size m=0; m< exp_ucomp[s].getIntegerDataArrays()[a].size(); ++m)
+			for (Size m = 0; m < exp_ucomp[s].getIntegerDataArrays()[a].size(); ++m)
 			{
 				TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays()[a][m],exp_comp[s].getIntegerDataArrays()[a][m])
 			}
 		}
 		//check content of string arrays
-		for (Size a=0; a<exp_ucomp[s].getStringDataArrays().size(); ++a)
+		for (Size a = 0; a < exp_ucomp[s].getStringDataArrays().size(); ++a)
 		{
-			for (Size m=0; m< exp_ucomp[s].getStringDataArrays()[a].size(); ++m)
+			for (Size m = 0; m < exp_ucomp[s].getStringDataArrays()[a].size(); ++m)
 			{
 				TEST_STRING_EQUAL(exp_ucomp[s].getStringDataArrays()[a][m],exp_comp[s].getStringDataArrays()[a][m])
 			}
