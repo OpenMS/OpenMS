@@ -20,10 +20,6 @@ set(sources_list
 	XTandemInfileXMLHandler.C
 )
 
-if (USE_ANDIMS)
-	list(APPEND sources_list ANDIHandler.C)
-endif()
-
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})

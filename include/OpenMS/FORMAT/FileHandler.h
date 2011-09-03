@@ -48,10 +48,6 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#ifdef USE_ANDIMS
-#include <OpenMS/FORMAT/ANDIFile.h>
-#endif
-
 namespace OpenMS
 {
 	/**
@@ -189,16 +185,6 @@ namespace OpenMS
 						return true;
 					}
 					break;
-#ifdef USE_ANDIMS
-				case FileTypes::ANDIMS:
-					{
-						ANDIFile f;
-						f.setLogType(log);
-						f.load(filename,exp);
-						return true;
-					}
-					break;
-#endif
 				case FileTypes::MGF:
 					{
 						MascotGenericFile f;

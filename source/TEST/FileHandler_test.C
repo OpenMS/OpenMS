@@ -51,7 +51,6 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZXML),"mzXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZML),"mzML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::FEATUREXML),"FeatureXML");
-	TEST_EQUAL(tmp.typeToName(FileTypes::ANDIMS),"cdf");
 	TEST_EQUAL(tmp.typeToName(FileTypes::IDXML),"IdXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"ConsensusXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
@@ -67,8 +66,6 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::MZDATA, tmp.nameToType("mzData"));
 	TEST_EQUAL(FileTypes::MZXML, tmp.nameToType("mzXML"));
 	TEST_EQUAL(FileTypes::FEATUREXML, tmp.nameToType("FeatureXML"));
-	TEST_EQUAL(FileTypes::ANDIMS, tmp.nameToType("cdf"));
-	TEST_EQUAL(FileTypes::ANDIMS, tmp.nameToType("CdF"));
 	TEST_EQUAL(FileTypes::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
   TEST_EQUAL(FileTypes::MGF, tmp.nameToType("mgf"));
@@ -102,7 +99,6 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileTypes::MZDATA)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileTypes::MZXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileTypes::FEATUREXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.cDf"), FileTypes::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileTypes::CONSENSUSXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.mGf"), FileTypes::MGF)
@@ -141,7 +137,6 @@ START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta")), FileTypes::DTA)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d")), FileTypes::DTA2D)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_2.dta2d")), FileTypes::DTA2D)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf")), FileTypes::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
@@ -193,13 +188,6 @@ START_SECTION((template < class PeakType > bool loadExperiment(const String &fil
   TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp), true)
 	TEST_EQUAL(exp.size(),4)
 
-
-#ifdef USE_ANDIMS
-  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),exp), true)
-#else
-	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),exp), false)
-#endif
-
   tmp.getOptions() = PeakFileOptions();
   TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 230.02)
@@ -226,11 +214,6 @@ START_SECTION((static bool isSupported(FileTypes::Type type)))
   TEST_EQUAL(true, tmp.isSupported(FileTypes::MZXML));
   TEST_EQUAL(true, tmp.isSupported(FileTypes::XMASS));
 	TEST_EQUAL(true, tmp.isSupported(FileTypes::FEATUREXML));
-#ifdef USE_ANDIMS
-  TEST_EQUAL(true, tmp.isSupported(FileTypes::ANDIMS));
-#else
-	TEST_EQUAL(false, tmp.isSupported(FileTypes::ANDIMS));
-#endif
 END_SECTION
 
 START_SECTION((const PeakFileOptions& getOptions() const))

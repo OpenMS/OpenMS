@@ -2576,20 +2576,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
-    String filter_all_andi;
-    String filter_single_andi;
-#ifdef USE_ANDIMS
-		filter_all_andi +=" *.cdf";
-		filter_single_andi += ";;ANDI/MS files (*.cdf)";
-#endif
-
-    String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid"+ filter_all_andi +" *.bz2 *.gz *.toppas);;";
-    String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d)"+filter_single_andi+";;bzipped files (*.bz2);;gzipped files (*.gz);;TOPPAS files (*.toppas);;all files (*)";
+    String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz *.toppas);;";
+    String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;TOPPAS files (*.toppas);;all files (*)";
 
 		QString open_path = current_path_.toQString();
 		if (path_overwrite!="")
 		{
-			open_path = path_overwrite.toQString();;
+      open_path = path_overwrite.toQString();
 		}
     // we use the QT file dialog instead of using QFileDialog::Names(...)
 		// On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,

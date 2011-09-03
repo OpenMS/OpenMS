@@ -267,13 +267,6 @@ endif()
 
 ## contrib
 
-## disable AndiMS for 64-bit platforms and Visual Studio (until fixed)
-if (CMAKE_SIZEOF_VOID_P MATCHES "8" OR MSVC)
-	set(USE_ANDIMS 0 CACHE INTERNAL "Support AndiMS?!")
-else()
-  set(USE_ANDIMS 1 CACHE INTERNAL "Support AndiMS?!")
-endif()
-
 set(CONTRIB_CUSTOM_DIR CACHE DOC "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
 set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
 
@@ -332,15 +325,6 @@ set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} 
 
 OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;z" "ZLIB")
 OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;bz2" "BZIP2")
-
-## ANDIMS
-if (USE_ANDIMS)
-	OPENMS_CHECKLIB(CONTRIB_ANDIMS "ms10lib.a" "ms10lib.a" "ms10lib")
-
-	OPENMS_CHECKLIB(CONTRIB_NETCDF_CPP "libnetcdf_c++.a" "libnetcdf_c++.a" "netCDF_c++")
-	OPENMS_CHECKLIB(CONTRIB_NETCDF_C "libnetcdf.a" "libnetcdf.a" "netCDF")
-	set(CONTRIB_NETCDF ${CONTRIB_NETCDF_CPP} ${CONTRIB_NETCDF_C})
-endif()
 
 ## libSVM
 if (MSVC)
@@ -535,11 +519,6 @@ include(CheckFunctionExists)
 CHECK_FUNCTION_EXISTS("kill" OPENMS_HAS_KILL)
 CHECK_FUNCTION_EXISTS("sysconf" OPENMS_HAS_SYSCONF)
 
-## ANDIMS flag USE_ANDIMS defined above!
-if (NOT DEFINED USE_ANDIMS)
-	message(FATAL_ERROR "Cmake script was re-ordered and is now invalid! Please make sure that USE_ANDIMS is defined when config.h.in is configured!")
-endif()
-
 ## user flag with default "QMYSQL"
 set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database plugin.")
 
@@ -621,7 +600,7 @@ add_dependencies(OpenMS svn_revision_update)
 set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
-set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF} ${CONTRIB_BOOST_IO} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB})
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_NETCDF} ${CONTRIB_BOOST_IO} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB})
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()

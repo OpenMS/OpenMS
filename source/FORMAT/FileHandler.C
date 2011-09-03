@@ -37,7 +37,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
+  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -106,16 +106,7 @@ namespace OpenMS
 
 	bool FileHandler::isSupported(FileTypes::Type type)
 	{
-
-		if (type==FileTypes::ANDIMS)
-    {
-#ifdef USE_ANDIMS
-			return true;
-#else
-      return false;
-#endif
-    }
-    else if (type==FileTypes::UNKNOWN || type==FileTypes::SIZE_OF_TYPE)
+    if (type==FileTypes::UNKNOWN || type==FileTypes::SIZE_OF_TYPE)
     {
       return false;
     }
@@ -209,9 +200,6 @@ namespace OpenMS
 
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap")) return FileTypes::FEATUREXML;
-
-    //ANDIMS (first line)
-    if (first_line.hasSubstring("CDF")) return FileTypes::ANDIMS;
 
     //IdXML (all lines)
     if (all_simple.hasSubstring("<IdXML")) return FileTypes::IDXML;

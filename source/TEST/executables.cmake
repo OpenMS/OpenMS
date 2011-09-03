@@ -203,10 +203,6 @@ if (DB_TEST)
   list(APPEND format_executables_list DBAdapter_test)
 endif()
 
-if (USE_ANDIMS)
-  list(APPEND format_executables_list ANDIFile_test)
-endif()
-
 set(math_executables_list
   AsymmetricStatistics_test
   AveragePosition_test
