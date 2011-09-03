@@ -333,19 +333,6 @@ set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} 
 OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;z" "ZLIB")
 OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;bz2" "BZIP2")
 
-## IMS
-if (MSVC)
-	OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "imsd" "imslib")
-else()
-	# if enabled stl-debug we need a imslib which is also built with stl-debug
-	# "normal" debug mode is only supported manually
-	if (STL_DEBUG)
-		OPENMS_CHECKLIB(CONTRIB_IMSLIB "imsd" "imsd" "imslib")
-	else()
-		OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "ims" "imslib")
-	endif()
-endif()
-
 ## ANDIMS
 if (USE_ANDIMS)
 	OPENMS_CHECKLIB(CONTRIB_ANDIMS "ms10lib.a" "ms10lib.a" "ms10lib")
@@ -634,7 +621,7 @@ add_dependencies(OpenMS svn_revision_update)
 set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
-set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF} ${CONTRIB_BOOST_IO} ${CONTRIB_IMSLIB} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB})
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF} ${CONTRIB_BOOST_IO} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB})
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()

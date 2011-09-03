@@ -37,9 +37,9 @@
 	#pragma warning( disable : 4290 4267)
 #endif
 
-#include <ims/decomp/realmassdecomposer.h>
-#include <ims/alphabet.h>
-#include <ims/weights.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Alphabet.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
 #ifdef OPENMS_COMPILER_MSVC
 	#pragma warning( pop )
 #endif
