@@ -53,7 +53,7 @@ START_SECTION(~PepXMLFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String &filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment))
+START_SECTION(void load(const String &filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const MSExperiment<>& experiment, bool use_precursor_data = false))
 {
 	vector<ProteinIdentification> proteins, proteins2;
 	vector<PeptideIdentification> peptides, peptides2;
@@ -62,14 +62,16 @@ START_SECTION(void load(const String &filename, std::vector<ProteinIdentificatio
 	String exp_name = "PepXMLFile_test";
 	MSExperiment<> experiment;
 	MzMLFile().load(mz_file, experiment);
-	file.load(pep_file, proteins, peptides, exp_name, experiment);
+	// load with precursor information:
+	file.load(pep_file, proteins, peptides, exp_name, experiment, true);
 	PeptideIdentification first = peptides[0];
 	TEST_EQUAL(first.getMetaValue("RT"), 0.5927);
 	TEST_EQUAL(first.getMetaValue("MZ"), 538.605);
-	// check that only RT and m/z changes compared to the other "load" method:
+	// load without precursor information (tested more thoroughly below):
 	file.load(pep_file, proteins2, peptides2);
 	TEST_EQUAL(peptides.size(), peptides2.size());
 	TEST_EQUAL(proteins.size(), proteins2.size());
+	// check that only m/z and RT differ between "load" methods:
 	for (Size i = 0; i < peptides.size(); ++i)
 	{
 		peptides[i].clearMetaInfo();

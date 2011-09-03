@@ -69,12 +69,13 @@ namespace OpenMS
 				@param proteins Protein identification output
 				@param peptides Peptide identification output
 				@param experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file. 
-				@param experiment MS run to extract the retention times from (PepXML contains only scan numbers). If the experiment is empty, it is read from @a experiment_name.
+				@param experiment MS run to extract the retention times from (PepXML may contain only scan numbers).
+				@param use_precursor_data Use m/z and RT of the precursor (instead of the RT of the MS2 spectrum) for the peptide?
 				
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment);
+			void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const MSExperiment<>& experiment, bool use_precursor_data = false);
 									
 			/**
 				@brief @a load function with empty defaults for some parameters (see above)
@@ -101,6 +102,12 @@ namespace OpenMS
 
 		private:
 			
+			/// Fill @p scan_map_
+			void makeScanMap_();
+
+			/// Read RT, m/z, charge information from attributes of "spectrum_query"
+			void readRTMZCharge_(const xercesc::Attributes& attributes);
+
 			/**
 				@brief find modification name given a modified AA mass
 			
@@ -170,10 +177,13 @@ namespace OpenMS
 			const MSExperiment<>* experiment_;
 
 			/// Name of the associated experiment (filename of the data file, extension will be removed)
-			String exp_name_;	
+			String exp_name_;
 
-			/// Pointer to the mapping between scan number in the pepXML file and index in the corresponding MSExperiment
-			std::map<Size, Size>* scan_map_;
+			/// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
+			bool use_precursor_data_;
+
+			/// Mapping between scan number in the pepXML file and index in the corresponding MSExperiment
+			std::map<Size, Size> scan_map_;
 
 			/// Retention time and mass-to-charge tolerance
 			DoubleReal rt_tol_, mz_tol_;

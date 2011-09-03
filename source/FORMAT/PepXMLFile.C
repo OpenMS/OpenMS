@@ -47,7 +47,7 @@ namespace OpenMS
 			proteins_(0), 
 			peptides_(0),
 			experiment_(0),
-			scan_map_(0),
+			scan_map_(),
 			rt_tol_(10.0),
   		mz_tol_(10.0)
 	{
@@ -58,7 +58,6 @@ namespace OpenMS
 
 	PepXMLFile::~PepXMLFile()
 	{
-		if (scan_map_) delete scan_map_;
 	}
 
 	
@@ -319,18 +318,120 @@ namespace OpenMS
 	}
 	
 
-	void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, const String& experiment_name)
+	void PepXMLFile::makeScanMap_()
+	{
+		scan_map_.clear();
+		Size scan = 0;
+		for (MSExperiment<>::ConstIterator e_it = experiment_->begin(); e_it != experiment_->end(); ++e_it, ++scan)
+		{
+			String id = e_it->getNativeID();
+			bool error = false;
+			try
+			{
+				// expected format: "spectrum=#" (mzData) or "scan=#" (mzXML)
+				Int num_id = id.suffix('=').toInt();
+				if (num_id >= 0)
+				{
+					scan_map_.insert(scan_map_.end(), pair<Size, Size>(num_id, scan));
+				}
+				else
+				{
+					error = true;
+				}
+			}
+			catch (Exception::ConversionError)
+			{
+				error = true;
+			}
+			if (error)
+			{
+				scan_map_.clear();
+				warning(LOAD, "Could not construct mapping of native scan numbers to indexes");
+			}			
+		}
+	}
+
+
+	void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
+	{
+		DoubleReal mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
+		charge_ = attributeAsInt_(attributes, "assumed_charge");
+		mz_ = (mass + hydrogen_mass_ * charge_) / charge_;
+		rt_ = 0;
+
+		bool rt_present = optionalAttributeAsDouble_(rt_, attributes, "retention_time_sec");
+
+		if (!rt_present || use_precursor_data_) // get RT from experiment
+		{
+			if (!experiment_)
+			{
+				warning(LOAD, "Cannot get precursor information - no experiment given");
+				return;
+			}
+
+			// assume only one scan, i.e. ignore "end_scan":
+			Size scan = attributeAsInt_(attributes, "start_scan");
+			if (!scan_map_.empty()) scan = scan_map_[scan];
+			MSSpectrum<> spec = (*experiment_)[scan];
+			bool success = false;
+			if (spec.getMSLevel() == 2)
+			{
+				if (!use_precursor_data_)
+				{
+					rt_ = spec.getRT();
+					success = true;
+				}
+				else if (!rt_present || Math::approximatelyEqual(spec.getRT(), rt_, 0.001))
+				{ 
+					DoubleReal prec_mz = 0, prec_rt = 0;
+					vector<Precursor> precursors = spec.getPrecursors();
+					if (precursors.size()) prec_mz = precursors[0].getMZ(); // assume only one precursor
+					MSExperiment<>::ConstIterator it = experiment_->getPrecursorSpectrum(experiment_->begin() + scan);
+					if (it != experiment_->end())
+					{
+						prec_rt = it->getRT();
+					}
+
+					// check if "rt"/"mz" are similar to "prec_rt"/"prec_mz"
+					// (otherwise, precursor mapping is wrong)
+					if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz_, mz_tol_)	&& (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt_, rt_tol_)))
+					{
+						// DoubleReal diff;
+						// diff = mz_ - prec_mz;
+						// cout << "m/z difference: " << diff << " ("
+						// 		 << diff / max(mz_, prec_mz) * 100 << "%)\n";
+						// diff = rt_ - prec_rt;
+						// cout << "RT difference: " << diff << " ("
+						// 		 << diff / max(rt_, prec_rt) * 100 << "%)\n" << "\n";
+						mz_ = prec_mz;
+						rt_ = prec_rt;
+						success = true;
+					}
+				}
+			}
+			if (!success)
+			{
+				warning(LOAD, "Cannot get precursor information - scan mapping is incorrect");
+			}
+		}
+	}
+
+
+	void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& 
+												proteins, vector<PeptideIdentification>& peptides, 
+												const String& experiment_name)
 	{
 		MSExperiment<> exp;
-		load(filename, proteins, peptides, experiment_name, exp);
+		load(filename, proteins, peptides, experiment_name, exp, false);
 	}
 
 	
-  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment)
+  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, const String& experiment_name, const MSExperiment<>& experiment, bool use_precursor_data)
   { 
   	// initialize, "load" could be called several times
-    experiment_ = 0;
     exp_name_ = "";
+    experiment_ = 0;
+		use_precursor_data_ = use_precursor_data;
     prot_id_ = "";
     charge_ = 0;
   	rt_tol_ = 10.0;
@@ -346,62 +447,16 @@ namespace OpenMS
 
 		if (experiment_name != "")
 		{
-			// try and load the experiment now
-			if (experiment.empty()) 
-			{
-				try
-				{
-					FileHandler().loadExperiment(experiment_name, experiment);
-				}
-				catch (Exception::FileNotFound& ex)
-				{
-					warning(LOAD, String(ex.getMessage()) +	"; parsing pepXML without reference to the experiment");
-				}
-			}
-			
 			exp_name_ = File::removeExtension(experiment_name);
 			
-			if (!experiment.empty())
+			if (!experiment.empty()) // use experiment only if we know the name
 			{
 				experiment_ = &experiment;
 				MSExperiment<>::AreaType area = experiment_->getDataRange();
 				// set tolerance to 1% of data range (if above a sensible minimum):
 				rt_tol_ = max((area.maxX() - area.minX()) * 0.01, rt_tol_);
 				mz_tol_ = max((area.maxY() - area.minY()) * 0.01, mz_tol_);
-			}
-		}
-
-		if (experiment_)
-		{
-			scan_map_ = new map<Size, Size>;
-			Size scan = 0;
-			for (MSExperiment<>::ConstIterator e_it = experiment_->begin(); e_it != experiment_->end(); ++e_it, ++scan)
-			{
-				String id = e_it->getNativeID();
-				bool error = false;
-				try
-				{
-					// expected format: "spectrum=#" (mzData) or "scan=#" (mzXML)
-					Int num_id = id.suffix('=').toInt();
-					if (num_id >= 0)
-					{
-						scan_map_->insert(scan_map_->end(), pair<Size, Size>(num_id, scan));
-					}
-					else
-					{
-						error = true;
-					}
-				}
-				catch (Exception::ConversionError)
-				{
-					error = true;
-				}
-				if (error)
-				{
-					delete scan_map_;
-					scan_map_ = 0;
-					break;
-				}
+				makeScanMap_();
 			}
 		}
 
@@ -440,11 +495,7 @@ namespace OpenMS
 		proteins_ = 0;
 		peptides_ = 0;
 		experiment_ = 0;
-		if (scan_map_)
-		{
-			delete scan_map_;
-			scan_map_ = 0;
-		}
+		scan_map_.clear();
   }
 
 
@@ -554,45 +605,8 @@ namespace OpenMS
 		}
 
 		else if (element == "spectrum_query") // parent: "msms_run_summary"
-		{ // contains charge/mz/rt for PeptideIdentification
-			DoubleReal mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
-			charge_ = attributeAsInt_(attributes, "assumed_charge");
-			mz_ = (mass + hydrogen_mass_ * charge_) / charge_;
-			rt_ = 0;
-			bool rt_present = optionalAttributeAsDouble_(rt_, attributes, "retention_time_sec");
-			// assume only one scan, i.e. ignore "end_scan":
-			Size scan = attributeAsInt_(attributes, "start_scan");
-			if (scan_map_) scan = (*scan_map_)[scan];
-			if (experiment_)
-			{ // get precursor information
-				MSSpectrum<> spec = (*experiment_)[scan];
-				if ((spec.getMSLevel() == 2) && (!rt_present || Math::approximatelyEqual(spec.getRT(), rt_, 0.001))) // otherwise: wrong scan
-				{
-					DoubleReal prec_mz = 0, prec_rt = 0;
-					vector<Precursor> precursors = spec.getPrecursors();
-					if (precursors.size()) prec_mz = precursors[0].getMZ(); // assume only one precursor
-					MSExperiment<>::ConstIterator it = experiment_->getPrecursorSpectrum(experiment_->begin() + scan);
-					if (it != experiment_->end())
-					{
-						prec_rt = it->getRT();
-					}
-
-					// check if "rt"/"mz" are similar to "prec_rt"/"prec_mz"
-					// (otherwise, precursor mapping is wrong)
-					if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz_, mz_tol_)	&& (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt_, rt_tol_)))
-					{
-// 						DoubleReal diff;
-// 						diff = mz_ - prec_mz;
-// 						cout << "m/z difference: " << diff << " ("
-// 								 << diff / max(mz_, prec_mz) * 100 << "%)\n";
-//  					diff = rt_ - prec_rt;
-//  					cout << "RT difference: " << diff << " ("
-//  							 << diff / max(rt_, prec_rt) * 100 << "%)\n" << "\n";
-						mz_ = prec_mz;
-						rt_ = prec_rt;
-					}
-				}
-			}
+		{
+			readRTMZCharge_(attributes); // sets "rt_", "mz_", "charge_"
 		}
 	
 		else if (element == "peptideprophet_result") // parent: "analysis_result" (in "search_hit")
