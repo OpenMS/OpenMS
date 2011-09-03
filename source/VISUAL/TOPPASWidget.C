@@ -69,7 +69,7 @@ namespace OpenMS
 	
 	void TOPPASWidget::zoom(bool zoom_in)
 	{
-		qreal factor = 1.2;
+    qreal factor = 1.1;
 		if (zoom_in)
 		{
 			factor = 1.0 / factor;
@@ -77,7 +77,18 @@ namespace OpenMS
 		scale(factor, factor);
 		
 		QRectF items_rect = scene_->itemsBoundingRect();
-		scene_->setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
+    QRectF new_scene_rect = items_rect.united(mapToScene(rect()).boundingRect());
+    qreal top_left_x = new_scene_rect.topLeft().x();
+    qreal top_left_y = new_scene_rect.topLeft().y();
+    qreal bottom_right_x = new_scene_rect.bottomRight().x();
+    qreal bottom_right_y = new_scene_rect.bottomRight().y();
+    qreal width = new_scene_rect.width();
+    qreal height = new_scene_rect.height();
+    new_scene_rect.setTopLeft(QPointF(top_left_x - width/2.0, top_left_y - height/2.0));
+    new_scene_rect.setBottomRight(QPointF(bottom_right_x + width/2.0, bottom_right_y + height/2.0));
+
+    scene_->setSceneRect(new_scene_rect);
+
 	}
 	
 	void TOPPASWidget::wheelEvent(QWheelEvent* event)
