@@ -338,7 +338,7 @@ protected:
 					// FASTA files should have at most 60 characters of sequence info per line
 					for (Size j = 0; j < seq.size(); j += 60)
 					{
-						Size k = max(j + 60, seq.size());
+						Size k = min(j + 60, seq.size());
 						fasta << std::string(seq[j], seq[k]) << endl;
 					}
 				}
