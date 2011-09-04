@@ -25,7 +25,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/DENOVO/MassDecomposition.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 
 using namespace std;
 

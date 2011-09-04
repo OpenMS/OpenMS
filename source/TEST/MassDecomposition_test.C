@@ -28,7 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/DENOVO/MassDecomposition.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 ///////////////////////////
 
 using namespace OpenMS;

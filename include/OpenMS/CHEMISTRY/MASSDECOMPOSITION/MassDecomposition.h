@@ -25,8 +25,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITION_H
-#define OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITION_H
+#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_H
+#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -104,4 +104,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif
+#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_H

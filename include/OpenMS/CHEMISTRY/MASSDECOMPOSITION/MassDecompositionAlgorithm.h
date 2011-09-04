@@ -25,11 +25,11 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITIONALGORITHM_H
-#define OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITIONALGORITHM_H
+#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITIONALGORITHM_H
+#define OPENMS_CHEMISTRY_MASSDECOMPOSITIONALGORITHM_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/ANALYSIS/DENOVO/MassDecomposition.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 
 // ims includes
 #ifdef OPENMS_COMPILER_MSVC
@@ -99,4 +99,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif
+#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITIONALGORITHM_H

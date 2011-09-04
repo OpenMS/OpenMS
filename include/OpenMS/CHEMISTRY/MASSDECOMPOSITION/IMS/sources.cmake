@@ -25,7 +25,7 @@ foreach(i ${sources_list_h})
 endforeach(i)
 
 ### source group definition
-source_group("Header Files\\OpenMS\\CHEMISTRY\\MASSDECOMPOSITION" FILES ${sources_h})
+source_group("Header Files\\OpenMS\\CHEMISTRY\\MASSDECOMPOSITION\\IMS" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 

@@ -27,7 +27,7 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
-#include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 //#define ION_SCORING_DEBUG

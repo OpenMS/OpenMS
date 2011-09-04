@@ -7,8 +7,6 @@ DeNovoIonScoring.h
 DeNovoAlgorithm.h
 DeNovoPostScoring.h
 DeNovoIdentification.h
-MassDecomposition.h
-MassDecompositionAlgorithm.h
 CompNovoIdentificationBase.h
 CompNovoIdentification.h
 CompNovoIonScoringCID.h
