@@ -82,6 +82,7 @@ using namespace std;
 
 	For the parameters of the algorithm section see the algorithms documentation: @n
 		@ref OpenMS::FeatureGroupingAlgorithmUnlabeled "algorithm unlabeled" @n
+		@ref OpenMS::FeatureGroupingAlgorithmUnlabeledQT "algorithm unlabeled_qt" @n
 		@ref OpenMS::FeatureGroupingAlgorithmLabeled "algorithm labeled" @n
 */
 
@@ -94,25 +95,25 @@ class TOPPFeatureLinker
 
 public:
 	TOPPFeatureLinker()
-		: TOPPBase("FeatureLinker","Groups corresponding features in one map or across maps.")
+		: TOPPBase("FeatureLinker", "Groups corresponding features in one map or across maps.")
 	{
 	}
 
 protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
-		setValidFormats_("in",StringList::create("featureXML,consensusXML"));
-		registerOutputFile_("out","<file>","","Output file",true);
-		setValidFormats_("out",StringList::create("consensusXML"));
-		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
+		registerInputFileList_("in", "<files>", StringList(), "input files separated by blanks", true);
+		setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+		registerOutputFile_("out", "<file>", "", "Output file", true);
+		setValidFormats_("out", StringList::create("consensusXML"));
+		registerStringOption_("type", "<name>", "", "Feature grouping algorithm type", true);
 		setValidStrings_("type", ToolHandler::getTypes(toolName_()));
 
 		addEmptyLine_();
 		// addText_("Additional parameters for consensusXML input:");
 		registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
 
-		registerSubsection_("algorithm","Algorithm parameters section");
+		registerSubsection_("algorithm", "Algorithm parameters section");
 	}
 
 	Param getSubsectionDefaults_(const String& /*section*/) const
@@ -130,19 +131,17 @@ protected:
 		// parameter handling
 		//-------------------------------------------------------------
 		StringList ins = getStringList_("in");
-
 		String out = getStringOption_("out");
-
 		String type = getStringOption_("type");
 
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
-		//check if all input files have the correct type
-		FileTypes::Type file_type= FileHandler::getType(ins[0]);
-		for (Size i=0;i<ins.size();++i)
+		// check if all input files have the correct type
+		FileTypes::Type file_type = FileHandler::getType(ins[0]);
+		for (Size i = 0; i < ins.size(); ++i)
 		{
-			if (FileHandler::getType(ins[i])!=file_type)
+			if (FileHandler::getType(ins[i]) != file_type)
 			{
 				writeLog_("Error: All input files must be of the same type!");
 				return ILLEGAL_PARAMETERS;
@@ -154,49 +153,48 @@ protected:
     //-------------------------------------------------------------
     FeatureGroupingAlgorithm* algorithm = Factory<FeatureGroupingAlgorithm>::create(type);
 		Param algorithm_param = getParam_().copy("algorithm:", true);
-		writeDebug_("Used algorithm parameters",algorithm_param, 3);
+		writeDebug_("Used algorithm parameters", algorithm_param, 3);
 		algorithm->setParameters(algorithm_param);
 
     //-------------------------------------------------------------
     // perform grouping
     //-------------------------------------------------------------
-		//load input
-
+		// load input
 		ConsensusMap out_map;
-		if (file_type==FileTypes::FEATUREXML)
+		if (file_type == FileTypes::FEATUREXML)
 		{
 			std::vector< FeatureMap<> > maps(ins.size());
 			FeatureXMLFile f;
-			for (Size i=0; i<ins.size(); ++i)
+			for (Size i = 0; i < ins.size(); ++i)
 			{
 				f.load(ins[i], maps[i]);
 			}
-			for (Size i=0; i<ins.size(); ++i)
+			for (Size i = 0; i < ins.size(); ++i)
 			{
 				out_map.getFileDescriptions()[i].filename = ins[i];
 				out_map.getFileDescriptions()[i].size = maps[i].size();
 				out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
 			}
-			//Exception for 'labeled' algorithms: copy file descriptions
-			if (type=="labeled")
+			// exception for "labeled" algorithms: copy file descriptions
+			if (type == "labeled")
 			{
 				out_map.getFileDescriptions()[1] = out_map.getFileDescriptions()[0];
 				out_map.getFileDescriptions()[0].label = "light";
 				out_map.getFileDescriptions()[1].label = "heavy";
 			}
 			// group
-			algorithm->group(maps,out_map);
+			algorithm->group(maps, out_map);
 		}
 		else
 		{
 			std::vector<ConsensusMap> maps(ins.size());
 			ConsensusXMLFile f;
-			for (Size i=0; i<ins.size(); ++i)
+			for (Size i = 0; i < ins.size(); ++i)
 			{
 				f.load(ins[i], maps[i]);
 			}
 			// group
-			algorithm->group(maps,out_map);
+			algorithm->group(maps, out_map);
 
 			// set file descriptions:
 			bool keep_subelements = getFlag_("keep_subelements");
@@ -217,8 +215,6 @@ protected:
 			}
 		}
 
-		//set file names
-
 		// assign unique ids
 		out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
@@ -226,32 +222,31 @@ protected:
 		addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
 
 		// write output
-		ConsensusXMLFile().store(out,out_map);
+		ConsensusXMLFile().store(out, out_map);
 
 		// some statistics
-		map<Size,UInt> num_consfeat_of_size;
-		for ( ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit )
+		map<Size, UInt> num_consfeat_of_size;
+		for (ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit)
 		{
 			++num_consfeat_of_size[cmit->size()];
 		}
 
 		LOG_INFO << "Number of consensus features:" << endl;
-		for ( map<Size,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
+		for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
 		{
 			LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
 		}
 		LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
-
 
 		return EXECUTION_OK;
 	}
 };
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char** argv)
 {
   TOPPFeatureLinker tool;
-  return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond
