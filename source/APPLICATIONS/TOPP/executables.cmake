@@ -45,7 +45,8 @@ PILISIdentification
 PILISModel
 PTModel
 PTPredict
-PeakPicker
+PeakPickerHiRes
+PeakPickerWavelet
 PepNovoAdapter
 PeptideIndexer
 PrecursorIonSelector
