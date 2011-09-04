@@ -549,6 +549,22 @@ namespace OpenMS
 				FileNotWritable(const char* file, int line, const char* function, const std::string& filename) throw();
 		};
 
+    /**
+      @brief General IOException.
+
+      General error for IO operations, that can not be associated to the more specific exceptions (e.g. FileNotWritable)
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI IOException
+      : public BaseException
+    {
+      public:
+        IOException(const char* file, int line, const char* function, const std::string& filename) throw();
+    };
+
+
+
 		/**	
 			@brief File is empty.
 

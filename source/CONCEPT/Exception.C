@@ -278,6 +278,13 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
+      IOException::IOException(const char *file, int line, const char *function, const std::string &filename) throw()
+        : BaseException(file, line, function, "IOException", "")
+      {
+        what_ = "IO error for file '" + filename + "'";
+        globalHandler.setMessage(what_);
+      }
+
 			FileEmpty::FileEmpty(const char* file, int line, const char* function, const std::string& filename) throw()
 				:	BaseException(file, line, function, "FileEmpty", "")
 			{

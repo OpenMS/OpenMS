@@ -11,9 +11,6 @@ RealMassDecomposer.h
 Weights.h
 Element.h
 IsotopeDistribution.h
-Exception.h
-IOException.h
-UnknownCharacterException.h
 AlphabetParser.h
 compose_f_gx_hy_t.h
 compose_f_gx_t.h

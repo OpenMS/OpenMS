@@ -33,24 +33,25 @@
 #include <istream>
 #include <map>
 #include <string>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IOException.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS {
 
 namespace ims {
 
 /**
- * An abstract templatized parser to load the data that is used to initialize @c Alphabet objects. 
+ * An abstract templatized parser to load the data that is used to initialize @c Alphabet objects.
  * @c AlphabetParser reads the input source, which is given as a template parameter @c InputSource , by
- * @c load (const std::string& fname) function where @c fname is the source name. 
+ * @c load (const std::string& fname) function where @c fname is the source name.
  * Loaded data can be retrieved by calling @c getElements().
- * 
+ *
  * @see Alphabet
  */
 template <typename AlphabetElementType = double, 
           typename Container = std::map<std::string, AlphabetElementType>,
           typename InputSource = std::istream>
-class AlphabetParser {
+class AlphabetParser
+{
 public:
   /**
    * Type of data to be loaded.
@@ -64,7 +65,7 @@ public:
    *
    * @param fname The name of the input source.
    */
-  void load(const std::string& fname) throw (IOException);
+  void load(const std::string& fname) throw (Exception::IOException);
 
   /**
    * Gets the data that was loaded.
@@ -85,12 +86,14 @@ public:
 };
 
 template <typename AlphabetElementType, typename Container, typename InputSource>
-void AlphabetParser<AlphabetElementType, Container, InputSource>::load(const std::string& fname) throw (IOException) {
-	std::ifstream ifs(fname.c_str());
-	if (!ifs) {
-		throw IOException("unable to open alphabet resource file: " + fname + "!");
-	}
-	this->parse(ifs);
+void AlphabetParser<AlphabetElementType, Container, InputSource>::load(const std::string& fname) throw (Exception::IOException)
+{
+  std::ifstream ifs(fname.c_str());
+  if (!ifs)
+  {
+    throw Exception::IOException(__FILE__, __LINE__, __PRETTY_FUNCTION__,fname);
+  }
+  this->parse(ifs);
 }
 
 } // namespace ims

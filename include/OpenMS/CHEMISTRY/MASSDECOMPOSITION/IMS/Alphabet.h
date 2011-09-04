@@ -33,10 +33,10 @@
 #include <string>
 #include <ostream>
 
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Element.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/AlphabetParser.h>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/UnknownCharacterException.h>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IOException.h>
 
 namespace OpenMS {
 
@@ -102,7 +102,8 @@ public:
    * @param elements Elements to be set
    */
   Alphabet(const container& elements) :
-    elements(elements) { }
+    elements(elements)
+  { }
 
 
   /**
@@ -111,7 +112,8 @@ public:
    * @param alphabet Alphabet to be assigned
    */
   Alphabet(const Alphabet &alphabet) :
-    elements(alphabet.elements) { }
+    elements(alphabet.elements)
+  { }
 
   /**
    * Returns the alphabet size.
@@ -128,23 +130,23 @@ public:
    * @return Element with the given index in alphabet
    */
   const element_type& getElement(size_type index) const
-  { return elements[index]; }
+  {
+    return elements[index];
+  }
 
   void setElement(const name_type& name, mass_type mass, bool forced = false);
 
   bool erase(const name_type& name);
   /**
    * Gets the element with the symbol @name. If there is
-     * no such element, throws @c
-
-CharacterException.
+   * no such element, throws @c Exception::InvalidValue.
    *
    * @param name Name of the element.
    * @return Element with the given name, or if there are no such element
-   * 			throws @c UnknownCharacterException.
+   * 			throws @c Exception::InvalidValue.
    */
   const element_type& getElement(const name_type& name) const
-  throw (UnknownCharacterException);
+  throw (Exception::InvalidValue);
 
   /**
    * Gets the symbol of the element with an index @c index in alphabet.
@@ -156,15 +158,15 @@ CharacterException.
 
   /**
    * Gets monoisotopic mass of the element with the symbol @c name.
-   * If there is no such element, throws an @c UnknownCharacterException.
+   * If there is no such element, throws an @c Exception::InvalidValue.
    *
    * @param name Symbol of the element.
    * @return Mass of the element, or if there are no element
-   * 			throws @c UnknownCharacterException.
+   * 			throws @c Exception::InvalidValue.
    * @see getMass(size_type index)
    */
   mass_type getMass(const name_type& name) const
-  throw (UnknownCharacterException);
+  throw (Exception::InvalidValue);
 
   /**
    * Gets mass of the element with an index @index in alphabet.
@@ -208,7 +210,8 @@ CharacterException.
    *
    * @see push_back(const element_type&)
    */
-  void push_back(const name_type& name, mass_type value) {
+  void push_back(const name_type& name, mass_type value)
+  {
     push_back(element_type(name, value));
   }
 
@@ -217,7 +220,8 @@ CharacterException.
    *
    * @param element The @c Element to be added.
    */
-  void push_back(const element_type& element) {
+  void push_back(const element_type& element)
+  {
     elements.push_back(element);
   }
 
@@ -225,7 +229,10 @@ CharacterException.
   /**
    * Clears the alphabet data.
    */
-  void clear() { elements.clear(); }
+  void clear()
+  {
+    elements.clear();
+  }
 
 
   /**
@@ -251,7 +258,7 @@ CharacterException.
    * @param fname The file name to be loaded.
    * @see load(const std::string& fname, AlphabetParser<>* parser)
    */
-  virtual void load(const std::string& fname) throw (IOException);
+  virtual void load(const std::string& fname) throw (Exception::IOException);
 
 
   /**
@@ -265,7 +272,7 @@ CharacterException.
    * @see AlphabetParser
    */
   virtual void load(const std::string& fname, AlphabetParser<>* parser)
-  throw (IOException);
+  throw (Exception::IOException);
 
 
   /**
@@ -285,7 +292,8 @@ private:
   class MassSortingCriteria {
   public:
     bool operator()(const element_type& el1,
-                    const element_type& el2) const {
+                    const element_type& el2) const
+    {
       return el1.getMass() < el2.getMass();
     }
   };

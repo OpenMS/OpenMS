@@ -28,6 +28,9 @@
 
 #include <functional>
 #include <algorithm>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Alphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/compose_f_gx_t.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/compose_f_gx_hy_t.h>
@@ -52,7 +55,7 @@ Alphabet::mass_type Alphabet::getMass(size_type index) const
 
 
 Alphabet::mass_type Alphabet::getMass(const name_type& name) const
-throw (UnknownCharacterException)
+throw (Exception::InvalidValue)
 {
   return getElement(name).getMass();
 }
@@ -67,7 +70,7 @@ bool Alphabet::hasName(const name_type& name) const
 
 
 const Alphabet::element_type& Alphabet::getElement(const name_type& name) const
-throw (UnknownCharacterException)
+throw (Exception::InvalidValue)
 {
   const_iterator cit = elements.begin();
   for (; cit != elements.end(); ++cit)
@@ -77,7 +80,7 @@ throw (UnknownCharacterException)
       return *cit;
     }
   }
-  throw UnknownCharacterException(name + " was not found in alphabet!");
+  throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, name + " was not found in alphabet!",String(name));
 }
 
 void Alphabet::setElement(const name_type& name, mass_type mass, bool forced)
@@ -155,14 +158,14 @@ void Alphabet::sortByValues()
 }
 
 
-void Alphabet::load(const std::string& fname) throw (IOException)
+void Alphabet::load(const std::string& fname) throw (Exception::IOException)
 {
   this->load(fname, new AlphabetTextParser);
 }
 
 
 void Alphabet::load(const std::string& fname, AlphabetParser<>* parser)
-throw (IOException)
+throw (Exception::IOException)
 {
   parser->load(fname);
   this->clear();
