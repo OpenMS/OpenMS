@@ -871,6 +871,9 @@ namespace OpenMS
       
 			/// get DocumentIDTagger to assign DocumentIDs to maps
 			const DocumentIDTagger& getDocumentIDTagger_() const;
+
+      /// Write common tool description (CTD) file
+      bool writeCTD_() const;
 			
 			/**
 				@brief Test mode 

@@ -769,30 +769,38 @@ namespace OpenMS
 		return Param(out);
 	}
 
-	void Param::store(const String& filename) const
+  void Param::store(const String& filename) const
+  {
+    //open file
+    ofstream os_;
+    ostream* os_ptr;
+    if ( filename != "-" )
+    {
+      os_.open (filename.c_str(), ofstream::out);
+      if(!os_)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      }
+      os_ptr = &os_;
+    }
+    else
+    {
+      os_ptr = &std::cout;
+    }
+
+    //write to file stream
+    writeXMLToStream(os_ptr);
+
+    os_.close();
+  }
+
+  void Param::writeXMLToStream(ostream* os_ptr) const
 	{
     // hint: the handling of 'getTrace()' is vulnerable to an unpruned tree (a path of nodes, but no entries in them), i.e.
     //       too many closing tags are written to the INI file, but no openening ones.
     //       This currently cannot happen, as removeAll() was fixed to prune the tree, just keep it in mind.
 
-		//open file
-		ofstream os_;
-		ostream* os_ptr;
-		if ( filename != "-" )
-		{
-			os_.open (filename.c_str(), ofstream::out);
-			if(!os_)
-			{
-				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-			}
-			os_ptr = &os_;
-		}
-		else
-		{
-			os_ptr = &std::cout;
-		}
-
-		ostream &os = *os_ptr;
+    ostream& os = *os_ptr;
 
 		os.precision(writtenDigits<DoubleReal>());
 		
@@ -993,8 +1001,7 @@ namespace OpenMS
 		  }
     }
 		
-		os << "</PARAMETERS>" << endl; // forces a flush
-    os_.close();
+    os << "</PARAMETERS>" << endl; // forces a flush
 	}
 	
 	void Param::load(const String& filename)

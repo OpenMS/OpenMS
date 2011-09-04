@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Johannes Junker $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -33,7 +33,12 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
+#include <iostream>
+
 #include <QDir>
+#include <QFile>
+#include <QTextStream>
+
 #include <boost/math/special_functions/fpclassify.hpp>
 
 // OpenMP support
@@ -168,6 +173,7 @@ namespace OpenMS
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
 		registerStringOption_("write_ini","<file>","","Writes the default configuration file",false);
+    registerStringOption_("write_ctd","<file>","","Writes the common tool description (ctd) file",false);
     registerStringOption_("write_type","<file>","","Writes a minimal ini file, containing only the types available for this tool",false,true);
 		registerStringOption_("write_wsdl","<file>","","Writes the default WSDL file",false,true);
 		registerFlag_("no_progress","Disables progress logging to command line",true);
@@ -301,6 +307,17 @@ namespace OpenMS
         }
 			  default_params.store(write_ini_file);
 			  return EXECUTION_OK;
+      }
+
+      // '-write_ctd' given
+      if (param_cmdline_.exists("write_ctd"))
+      {
+        if (!writeCTD_())
+        {
+          writeLog_("Error: Could not write CTD file!");
+          return INTERNAL_ERROR;
+        }
+        return EXECUTION_OK;
       }
 
 			// '-write_wsdl' given
@@ -2299,6 +2316,45 @@ namespace OpenMS
 				map.getFileDescriptions()[d].filename = File::basename(map.getFileDescriptions()[d].filename);
 			}
 		}
+  }
+
+  bool TOPPBase::writeCTD_() const
+  {
+    //store -write_ini output in ini_file_str
+    QString write_ctd_file = String(param_cmdline_.getValue("write_ctd")).toQString();
+    outputFileWritable_(write_ctd_file, "write_ctd");
+    Param default_params = getDefaultParameters_();
+    std::stringstream* ss = new std::stringstream();
+    default_params.writeXMLToStream(ss);
+    String ini_file_str(ss->str());
+
+    //morph to ctd file content
+    QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
+    lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    lines.removeAt(2); // <NODE name="DBExporter" description="Exports data from an OpenMS database to a file.">
+    lines.removeAt(2); // <ITEM name="version" value="1.9.0" type="string" description="Version of the tool that generated this parameters file." tags="advanced" />
+    lines.removeAt(lines.size() - 2); // </NODE>
+    lines.insert(1, "<tool status=\"internal\">");
+    lines.insert(2, QString("<name>")+tool_name_.toQString()+"</name>");
+    lines.insert(3, QString("<version>")+VersionInfo::getVersion().toQString()+"</version>");
+    lines.insert(4, QString("<description>")+tool_description_.toQString()+"</description>");
+    lines.insert(5, "<manual>###TODO###: More description here (within CDATA).</manual>");
+    lines.insert(6, "<docurl>###TODO###: http://www.openms.de/doc/V1.0/DBExporter.html</docurl>");
+    lines.insert(7, "<category>###TODO###OpenMS/DB/DBExporter</category>");
+    lines.insert(8, "<type>###TODO###dunno, probably empty</type>");
+    lines.insert(lines.size(), "</tool>");
+    String ctd_str = String(lines.join("\n")) + "\n";
+
+    //write to file
+    QFile file(write_ctd_file);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+      return false;
+    }
+    file.write(ctd_str.c_str());
+    file.close();
+
+    return true;
   }
 
 } // namespace OpenMS

@@ -235,7 +235,7 @@ namespace OpenMS
 			Param& operator = (const Param& rhs);
 			
 			/// Equality operator
-			bool operator == (const Param& rhs) const;
+      bool operator == (const Param& rhs) const;
 
 			/// Begin iterator for the internal tree
 			ParamIterator begin() const;
@@ -521,6 +521,10 @@ namespace OpenMS
 			  @exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
 			void store(const String& filename) const;
+      /**
+        @brief Write XML to output stream.
+      */
+      void writeXMLToStream(std::ostream* os_ptr) const;
 			/**
 			  @brief Read XML file.
 
