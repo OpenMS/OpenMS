@@ -28,6 +28,7 @@ SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
+TransformationEvaluation
 UniqueIdAssigner
 XMLValidator
 )
