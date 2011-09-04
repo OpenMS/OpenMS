@@ -51,6 +51,7 @@
 	- @subpage UTILS_CaapConvert - Convert a CAAP ground truth file into consensusXML format.
 	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
 	- @subpage UTILS_IdXMLEvaluation - Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
+	- @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by MapAligner).
 
   <b>Peptide identification</b>
 	- @subpage UTILS_Digestor - Digests a protein database in-silico.
