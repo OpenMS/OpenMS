@@ -81,7 +81,8 @@ namespace OpenMS
 		tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", "Signal processing and preprocessing");
 		tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Protein/peptide Identification");
 		tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Protein/peptide Identification");
-		tools_map["NoiseFilter"] = Internal::ToolDescription("NoiseFilter", "Signal processing and preprocessing", StringList::create("sgolay,gaussian"));
+		tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
+		tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
 		tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Protein/peptide Identification");
 		tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Protein/peptide Identification");
 		tools_map["PILISModel"] = Internal::ToolDescription("PILISModel", "Protein/peptide Processing");

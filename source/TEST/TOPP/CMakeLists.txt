@@ -83,7 +83,8 @@ InternalCalibration
 MapNormalizer
 MascotAdapter
 MascotAdapterOnline
-"NoiseFilter -type sgolay"
+NoiseFilterGaussian
+NoiseFilterSGolay
 OMSSAAdapter
 PILISIdentification
 "PILISModel -type training"
@@ -453,10 +454,10 @@ add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -in ${DATA_DIR_TO
 add_test("TOPP_MascotAdapter_2_out1" ${DIFF} -in1 MascotAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML)
 
 ### NoiseFilter tests
-add_test("TOPP_NoiseFilter_1" ${TOPP_BIN_PATH}/NoiseFilter -test -ini ${DATA_DIR_TOPP}/NoiseFilter_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilter_1_input.mzML -out NoiseFilter.tmp)
-add_test("TOPP_NoiseFilter_1_out1" ${DIFF} -in1 NoiseFilter.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilter_1_output.mzML)
-add_test("TOPP_NoiseFilter_2" ${TOPP_BIN_PATH}/NoiseFilter -test -ini ${DATA_DIR_TOPP}/NoiseFilter_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilter_2_input.mzML -out NoiseFilter.tmp)
-add_test("TOPP_NoiseFilter_2_out1" ${DIFF} -in1 NoiseFilter.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilter_2_output.mzML)
+add_test("TOPP_NoiseFilterGaussian_1" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilter.tmp)
+add_test("TOPP_NoiseFilterGaussian_1_out1" ${DIFF} -in1 NoiseFilter.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML)
+add_test("TOPP_NoiseFilterSGolay_1" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_input.mzML -out NoiseFilter.tmp)
+add_test("TOPP_NoiseFilterSGolay_1_out1" ${DIFF} -in1 NoiseFilter.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_output.mzML)
 
 ### PeakPicker tests
 add_test("TOPP_PeakPicker_1" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_input.mzML -out PeakPicker.tmp)

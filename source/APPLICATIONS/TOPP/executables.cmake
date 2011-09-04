@@ -38,7 +38,8 @@ MapNormalizer
 MapStatistics
 MascotAdapter
 MascotAdapterOnline
-NoiseFilter
+NoiseFilterGaussian
+NoiseFilterSGolay
 OMSSAAdapter
 PhosphoScoring
 PILISIdentification

@@ -4,6 +4,7 @@
 
 
 TOPP tools: 
+  - Split NoiseFilter into NoiseFilterGaussian and NoiseFilterSGolay
  
 UTIL tools: 
 	 
