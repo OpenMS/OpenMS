@@ -88,7 +88,7 @@ protected:
 
   void getPrecursors_(const PeakMap& exp, vector<Precursor>& precursors, vector<double>& precursors_rt)
   {
-    for(int i = 0; i != exp.size(); ++i)
+    for(Size i = 0; i != exp.size(); ++i)
     {
       vector<Precursor> pcs = exp[i].getPrecursors();
       if (pcs.size() == 0)
