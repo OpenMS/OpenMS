@@ -62,8 +62,8 @@ void Weights::setPrecision(Weights::alphabet_mass_type precision)
 	for (alphabet_masses_type::size_type i = 0;
        i < alphabet_masses.size(); ++i)
   {
-		weights.push_back(static_cast<weight_type>(round(alphabet_masses[i]
-                                                     / precision)));
+		weights.push_back(static_cast<weight_type>(floor((alphabet_masses[i]
+                                                     / precision) + 0.5)));
 	}
 }
 
