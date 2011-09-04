@@ -261,18 +261,11 @@ namespace OpenMS
 		activation_list.push_back(""); // allow disabling this
 		defaults_.setValidStrings("select_activation",activation_list);
 			
-		defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected postion (of e.g. 114.1, 115.1)"); 
+		defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position (of e.g. 114.1, 115.1)"); 
 		defaults_.setMinFloat ("reporter_mass_shift", 0.00000001);
 		defaults_.setMaxFloat ("reporter_mass_shift", 0.5);
 
-		if (itraq_type_ == ItraqConstants::FOURPLEX)
-		{
-      defaults_.setValue("channel_active", StringList::create("114:liver,117:lung"), "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
-		}
-		else
-		{
-      defaults_.setValue("channel_active", StringList::create("113:liver,117:lung"), "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\"."); 
-		}
+    defaults_.setValue("channel_active", StringList::create("114:liver,117:lung"), "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
 
     defaultsToParam_();
 

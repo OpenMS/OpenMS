@@ -58,7 +58,7 @@ namespace OpenMS
 			String description; // description given by experimentator (e.g. lung tissue)
 			Int name; // 114-117 or 113 to 121
 			Int id;		// 0-4 or 0-8
-			Peak2D::CoordinateType center; // expected centoid of peak in MZ
+			Peak2D::CoordinateType center; // expected centroid of peak in MZ
 			bool active; // channel actually added to the experiment?
 		};
 
@@ -122,7 +122,7 @@ namespace OpenMS
 			@param active_channels StringList with channel and description
 			@param map Storage to update
 		**/
-		static void updateChannelMap(StringList active_channels, ChannelMapType& map);
+		static void updateChannelMap(const StringList& active_channels, ChannelMapType& map);
 
 		/**
 			@brief translate isotope correction matrix in -2,-1,+1,+2 form into 114,115,116,117 format

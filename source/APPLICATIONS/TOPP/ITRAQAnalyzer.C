@@ -84,7 +84,7 @@ class TOPPITRAQAnalyzer
 {
  public:
 	TOPPITRAQAnalyzer()
-		: TOPPBase("ITRAQAnalyzer","\n\nWARNING: EXPERIMENTAL\n\n Calculates iTRAQ quantitative values for peptides", true, true)
+		: TOPPBase("ITRAQAnalyzer","Calculates iTRAQ quantitative values for peptides", true, true)
 	{
 	}
 
@@ -92,7 +92,7 @@ class TOPPITRAQAnalyzer
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("type","<name>","","iTRAQ experiment type\n",true);
-		setValidStrings_("type", ToolHandler::getTypes(toolName_()));
+		setValidStrings_("type", StringList::create("4plex,8plex"));
 
 		registerInputFile_("in","<file>","","input raw/picked data file ");
 		setValidFormats_("in",StringList::create("mzML"));
@@ -106,11 +106,9 @@ class TOPPITRAQAnalyzer
 
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
-		String type = getStringOption_("type");
-		Int t = (type=="4plex" ?  ItraqQuantifier::FOURPLEX : ItraqQuantifier::EIGHTPLEX );
 	  Param tmp;
-		tmp.insert("Extraction:",ItraqChannelExtractor(t).getParameters());
-	  tmp.insert("Quantification:",ItraqQuantifier(t).getParameters());
+		tmp.insert("Extraction:",ItraqChannelExtractor(ItraqQuantifier::FOURPLEX).getParameters()); // type is irrelevant - ini is the same
+	  tmp.insert("Quantification:",ItraqQuantifier(ItraqQuantifier::FOURPLEX).getParameters());   // type is irrelevant - ini is the same
 		tmp.setValue ("MetaInformation:Program", "OpenMS::ITRAQAnalyzer", "", StringList::create("advanced"));
 	  return tmp;
 	}

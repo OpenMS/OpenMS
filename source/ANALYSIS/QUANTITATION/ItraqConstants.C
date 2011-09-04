@@ -153,7 +153,7 @@ namespace OpenMS {
 		#endif		
 	}
 
-	void ItraqConstants::updateChannelMap(StringList active_channels, ChannelMapType& map)
+	void ItraqConstants::updateChannelMap(const StringList& active_channels, ChannelMapType& map)
 	{
 		// split the channels key:name pairs apart
 		for (StringList::const_iterator it=active_channels.begin();it!=active_channels.end();++it)

@@ -232,6 +232,10 @@ namespace OpenMS
 
 		// ** find reference channel ** //
 		Int reference_channel = Int(param_.getValue("channel_reference"));
+    if (itraq_type_ == ItraqConstants::FOURPLEX && (reference_channel < 114 || reference_channel > 117))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier:Invalid entry in Param 'channel_reference'; Valid channels for 4plex are 114-117! You selected an 8plex specific channel!");
+    }
 		#ifdef ITRAQ_DEBUG
 		std::cout << "reference_channel is: " << reference_channel  << std::endl;
 		#endif
@@ -445,21 +449,14 @@ namespace OpenMS
 		defaults_.setValue("do_normalization", "false", "Normalize channels? Done by using the Median of Ratios (every channel / Reference). Also the ratio of medians (from any channel and reference) is provided as control measure!", StringList::create("advanced")); 
 		defaults_.setValidStrings("do_normalization", StringList::create("true,false"));
 
-		StringList isotopes = ItraqConstants::getIsotopeMatrixAsStringList(itraq_type_, isotope_corrections_);
-		defaults_.setValue("isotope_correction_values", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
+    defaults_.setValue("isotope_correction:4plex", ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, isotope_corrections_), "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
+    defaults_.setValue("isotope_correction:8plex", ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, isotope_corrections_), "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
+    defaults_.setSectionDescription("isotope_correction", "Isotope correction matrices for 4plex and 8plex. Only one of them will be used (depending on iTRAQ mode)");
 
-		if (itraq_type_ == ItraqConstants::FOURPLEX)
-		{
-			defaults_.setValue("channel_reference", 114, "number of the reference channel"); 
-			defaults_.setMinInt("channel_reference",114);
-			defaults_.setMaxInt("channel_reference",117);
-		}
-		else
-		{
-			defaults_.setValue("channel_reference", 113, "number of the reference channel"); 
-			defaults_.setMinInt("channel_reference",113);
-			defaults_.setMaxInt("channel_reference",121);			
-		}			
+    // for 4 & 8 plex. Max value is again checked during runtime
+		defaults_.setValue("channel_reference", 114, "number of the reference channel (114-117 for 4plex)"); 
+		defaults_.setMinInt("channel_reference",113);
+		defaults_.setMaxInt("channel_reference",121);			
 
 		defaultsToParam_();
 	}
@@ -467,8 +464,17 @@ namespace OpenMS
 
 	void ItraqQuantifier::updateMembers_()
 	{
+    StringList channels;
 		// update isotope_corrections_ Matrix with custom values
-		StringList channels = param_.getValue("isotope_correction_values");
+    if (itraq_type_==ItraqConstants::FOURPLEX)
+    {
+      channels = param_.getValue("isotope_correction:4plex");
+    }
+    else
+    {
+      channels = param_.getValue("isotope_correction:8plex");    
+    }
+
 		if (channels.size()>0)
 		{
 			ItraqConstants::updateIsotopeMatrixFromStringList(itraq_type_, channels, isotope_corrections_);

@@ -43,7 +43,7 @@ configure_file(${DATA_DIR_TOPP}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPP_BIN}/Ex
 add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -write_wsdl WSDL_out.tmp)
 add_test("TOPP_WSDL_1_out1" ${DIFF} -in1 WSDL_out.tmp -in2 ${DATA_DIR_TOPP}/WSDL_out.wsdl)
 
-### test if -write_ini works (TODO: configure names of TOPP tools and types automatically)
+### test if -write_ini works (TODO: configure names of TOPP tools)
 set(ALL_WRITEINI_TOOLS
 AdditiveSeries
 BaselineFilter
@@ -60,13 +60,13 @@ FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIsotopeWavelet
 FeatureFinderMRM
-"FeatureLinker -type unlabeled"
-"FeatureLinker -type unlabeled_qt"
+FeatureLinker
+FeatureLinker
 FileConverter
 FileFilter
 FileInfo
 FileMerger
-#GenericWrapper ##disabled for now, as we need an automatic way to determine its types, changing frequently
+GenericWrapper
 IDDecoyProbability
 IDPosteriorErrorProbability
 IDFileConverter
@@ -75,8 +75,7 @@ IDMapper
 IDMerger
 IDRTCalibration
 #INIFileEditor
-"ITRAQAnalyzer -type 4plex"
-"ITRAQAnalyzer -type 8plex"
+ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
 "MapAligner -type apply_given_trafo"
@@ -90,10 +89,10 @@ NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
 PILISIdentification
-"PILISModel -type training"
+PILISModel
 PTModel
 PTPredict
-"PeakPicker -type wavelet"
+PeakPicker
 PepNovoAdapter
 PeptideIndexer
 PrecursorIonSelector
@@ -107,7 +106,7 @@ SILACAnalyzer
 SeedListGenerator
 #SequestAdapter #(reenable when fixed)
 SpecLibSearcher
-"SpectraFilter -type BernNorm"
+SpectraFilter
 TOFCalibration
 #TOPPAS
 #TOPPView
@@ -135,7 +134,7 @@ ImageCreator
 LabeledEval
 MassCalculator
 MRMPairFinder
-"MSSimulator -type o18"
+MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
 SemanticValidator

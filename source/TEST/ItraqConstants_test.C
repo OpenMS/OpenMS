@@ -116,7 +116,7 @@ START_SECTION((static void initChannelMap(const int itraq_type, ChannelMapType &
 }
 END_SECTION
 
-START_SECTION((static void updateChannelMap(StringList active_channels, ChannelMapType &map)))
+START_SECTION((static void updateChannelMap(const StringList& active_channels, ChannelMapType& map)))
 {
 	StringList active_channels = StringList::create("114:myReference");
 	ItraqConstants::ChannelMapType map;
