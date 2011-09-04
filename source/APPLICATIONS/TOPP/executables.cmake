@@ -6,6 +6,7 @@ set(TOPP_executables
 AdditiveSeries
 BaselineFilter
 CompNovo
+CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
 DBExporter
