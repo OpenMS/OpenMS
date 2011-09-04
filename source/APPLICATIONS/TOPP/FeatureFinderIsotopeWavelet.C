@@ -40,7 +40,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_FeatureFinder FeatureFinder
+  @page TOPP_FeatureFinderIsotopeWavelet FeatureFinderIsotopeWavelet
 
 	@brief The feature detection application for quantitation.
 
@@ -82,53 +82,22 @@ using namespace std;
 	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_FeatureFinder.cli
+  @verbinclude TOPP_FeatureFinderIsotopeWavelet.cli
 
 	For the parameters of the algorithm section see the algorithms documentation: @n
-		@ref OpenMS::FeatureFinderAlgorithmPicked "centroided" @n
-		@ref OpenMS::FeatureFinderAlgorithmIsotopeWavelet "isotope_wavelet" @n
-		@ref OpenMS::FeatureFinderAlgorithmMRM "mrm" @n
+    @ref OpenMS::FeatureFinderAlgorithmIsotopeWavelet "isotope_wavelet" @n
 
-	In the following table you can find example values of the most important parameters for
-	different instrument types. @n These parameters are not valid for all instruments of that type,
-	but can be used as a starting point for finding suitable parameters.
-
-	<b>'centroided' algorithm</b>:
-	<table>
-		<tr>
-			<td>&nbsp;</td>
-			<td><b>Q-TOF</b></td>
-			<td><b>LTQ Orbitrap</b></td>
-		</tr>
-		<tr>
-			<td><b>intensity:bins</b></td>
-			<td>10</td>
-			<td>10</td>
-		</tr>
-		<tr>
-			<td><b>mass_trace:mz_tolerance</b></td>
-			<td>0.02</td>
-			<td>0.004</td>
-		</tr>
-		<tr>
-			<td><b>isotopic_pattern:mz_tolerance</b></td>
-			<td>0.04</td>
-			<td>0.005</td>
-		</tr>
-	</table>
-
-	For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPicker.
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFeatureFinder
+class TOPPFeatureFinderIsotopeWavelet
 	: public TOPPBase
 {
  public:
-	TOPPFeatureFinder()
-		: TOPPBase("FeatureFinder","Detects two-dimensional features in LC-MS data.")
+  TOPPFeatureFinderIsotopeWavelet()
+    : TOPPBase("FeatureFinderIsotopeWavelet","Detects two-dimensional features in LC-MS data.")
 	{
 	}
 
@@ -141,19 +110,15 @@ class TOPPFeatureFinder
 		setValidFormats_("out",StringList::create("featureXML"));
 		registerInputFile_("seeds","<file>","","User-specified seed list. This feature is not supported by all algorithms!", false);
 		setValidFormats_("seeds",StringList::create("featureXML"));
-		registerStringOption_("type","<name>","","FeatureFinder algorithm type",true);
-		setValidStrings_("type", ToolHandler::getTypes(toolName_()) );
 		addEmptyLine_();
-		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
-						 "They are set in the 'algorithm' section of the INI file.\n");
+    addText_("All other options of the Featurefinderare set in the 'algorithm' section of the INI file.\n");
 
 		registerSubsection_("algorithm","Algorithm section");
 	}
 
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
-		String type = getStringOption_("type");
-		return FeatureFinder().getParameters(type);
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>::getProductName());
 	}
 
 	ExitCodes main_(int , const char**)
@@ -166,8 +131,6 @@ class TOPPFeatureFinder
 
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
-		String type = getStringOption_("type");
-
 		//setup of FeatureFinder
 		FeatureFinder ff;
 		ff.setLogType(log_type_);
@@ -176,7 +139,8 @@ class TOPPFeatureFinder
 		PeakMap exp;
 		MzMLFile f;
 		f.setLogType(log_type_);
-		PeakFileOptions options;
+    f.load(in, exp);
+    exp.updateRanges();
 
 		//load seeds
 		FeatureMap<> seeds;
@@ -185,31 +149,11 @@ class TOPPFeatureFinder
 			FeatureXMLFile().load(getStringOption_("seeds"),seeds);
 		}
 
-		if (type != "mrm")
-		{
-			//prevent loading of fragment spectra
-			options.setMSLevels(vector<Int>(1,1));
-			f.getOptions() = options;
-		}
-		f.load(in, exp);
-
-		//prevent loading of everthing except MRM MS/MS spectra
-		if (type == "mrm")
-		{
-			//exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
-			// erase the spectra, we just need the chromatograms for the feature finder
-			exp.erase(exp.begin(), exp.end());
-		}
-		else
-		{
-			exp.updateRanges();
-		}
-
 		// A map for the resulting features
 		FeatureMap<> features;
 
 		// Apply the feature finder
-		ff.run(type, exp, features, feafi_param, seeds);
+    ff.run(FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>::getProductName(), exp, features, feafi_param, seeds);
 		features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
 		// DEBUG
@@ -248,7 +192,7 @@ class TOPPFeatureFinder
 
 int main( int argc, const char** argv )
 {
-	TOPPFeatureFinder tool;
+  TOPPFeatureFinderIsotopeWavelet tool;
 	return tool.main(argc,argv);
 }
 

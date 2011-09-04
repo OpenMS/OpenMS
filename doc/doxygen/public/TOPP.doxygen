@@ -54,7 +54,8 @@
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
   - @subpage TOPP_InternalCalibration - Applies an internal calibration.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
-  - @subpage TOPP_NoiseFilter - Removes noise from profile spectra by using different smoothing techniques.
+  - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
+  - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_PeakPicker - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
   - @subpage TOPP_Resampler - Transforms an LC/MS map into an equally-spaced (in RT and m/z) map.
@@ -64,7 +65,9 @@
   <b>Quantitation</b>
   - @subpage TOPP_AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
-  - @subpage TOPP_FeatureFinder - Detects two-dimensional features in LC-MS data.
+  - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in LC-MS data.
+  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in LC-MS data.
+  - @subpage TOPP_FeatureFinderMRM - Detects two-dimensional features in LC-MS data.
   - @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps
   - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.

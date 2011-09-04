@@ -57,11 +57,11 @@ END_SECTION
 START_SECTION((static ToolListType getTOPPToolList(const bool includeGenericWrapper=false)))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
-  TEST_EQUAL(list.has("FeatureFinder"), true)
+  TEST_EQUAL(list.has("FeatureFinderMRM"), true)
   TEST_EQUAL(list.has("GenericWrapper"), false)
   TEST_EQUAL(list.size() > 30, true)  // assume we have over 30 tools in there
   list = ToolHandler::getTOPPToolList(true);
-  TEST_EQUAL(list.has("FeatureFinder"), true)
+  TEST_EQUAL(list.has("FeatureFinderMRM"), true)
   TEST_EQUAL(list.has("GenericWrapper"), true)
   TEST_EQUAL(list.size() > 30, true)  // assume we have over 30 tools in there
 }

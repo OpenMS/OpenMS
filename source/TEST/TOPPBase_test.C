@@ -252,7 +252,6 @@ START_SECTION((static Map<String,StringList> getToolList()))
 	TEST_EQUAL(ToolHandler::getTOPPToolList().has("FileInfo"),true)
 	TEST_EQUAL(ToolHandler::getTOPPToolList().has("ImaginaryTool"),false)
 	TEST_EQUAL(ToolHandler::getTOPPToolList()["FileInfo"].types.empty(),true)
-	TEST_EQUAL(ToolHandler::getTOPPToolList()["FeatureFinder"].types.empty(),false)
 END_SECTION
 
 START_SECTION((static Map<String,StringList> getUtilList()))

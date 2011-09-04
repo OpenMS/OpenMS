@@ -71,7 +71,7 @@ using namespace std;
 	@note The Gaussian filter works for uniform as well as for non-uniform data.
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_NoiseFilter.cli
+  @verbinclude TOPP_NoiseFilterGaussian.cli
 
 	<B>The algorithm parameters for the Gaussian filter are:</B>
 @htmlinclude OpenMS_GaussFilter.parameters

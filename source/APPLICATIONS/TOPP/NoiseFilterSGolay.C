@@ -73,7 +73,7 @@ using namespace std;
 	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_NoiseFilter.cli
+  @verbinclude TOPP_NoiseFilterSGolay.cli
 
 	<B>The algorithm parameters for the Savitzky Golay filter are:</B>
 @htmlinclude OpenMS_SavitzkyGolayFilter.parameters

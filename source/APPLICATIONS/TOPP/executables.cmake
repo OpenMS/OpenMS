@@ -15,7 +15,9 @@ Decharger
 EICExtractor
 ExecutePipeline
 FalseDiscoveryRate
-FeatureFinder
+FeatureFinderMRM
+FeatureFinderCentroided
+FeatureFinderIsotopeWavelet
 FeatureLinker
 FileConverter
 FileFilter

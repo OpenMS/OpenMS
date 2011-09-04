@@ -59,7 +59,9 @@ namespace OpenMS
 		tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", "Misc");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
 		tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "Protein/peptide Processing");
-		tools_map["FeatureFinder"] = Internal::ToolDescription("FeatureFinder", "Quantitation", Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts());
+		tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", "Quantitation");
+		tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", "Quantitation");
+		tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", "Quantitation");
 		tools_map["FeatureLinker"] = Internal::ToolDescription("FeatureLinker", "Map Alignment", Factory<FeatureGroupingAlgorithm>::registeredProducts());
 		tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", "File Handling");
 		tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", "File Handling");
