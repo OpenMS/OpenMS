@@ -2348,10 +2348,10 @@ namespace OpenMS
     lines.insert(2, QString("<name>")+tool_name_.toQString()+"</name>");
     lines.insert(3, QString("<version>")+VersionInfo::getVersion().toQString()+"</version>");
     lines.insert(4, QString("<description>")+tool_description_.toQString()+"</description>");
-    lines.insert(5, "<manual>###TODO###: More description here (within CDATA).</manual>");
-    lines.insert(6, "<docurl>###TODO###: http://www.openms.de/doc/V1.0/DBExporter.html</docurl>");
-    lines.insert(7, "<category>###TODO###OpenMS/DB/DBExporter</category>");
-    lines.insert(8, "<type>###TODO###dunno, probably empty</type>");
+    lines.insert(5, "<manual>(TODO) More description here (within CDATA).</manual>");
+    lines.insert(6, "<docurl>(TODO) http://www.openms.de/path/to/docs/of/right/version.html</docurl>");
+    lines.insert(7, "<category>"+ToolHandler::getCTDString(tool_name_).toQString()+"</category>");
+    lines.insert(8, "<type></type>");
     lines.insert(lines.size(), "</tool>");
     QString parameters_element = lines.at(9); //<PARAMETERS version="1.3" xsi:etc...>
     QStringList p_list = parameters_element.split(QRegExp("\\s+"));

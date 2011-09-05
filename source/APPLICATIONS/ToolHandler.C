@@ -49,9 +49,9 @@ namespace OpenMS
 
     tools_map["AdditiveSeries"] = Internal::ToolDescription("AdditiveSeries", "Quantitation");
 		tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", "Signal processing and preprocessing");
-    tools_map["CompNovo"] = Internal::ToolDescription("CompNovo", "Protein/peptide Identification");
-    tools_map["CompNovoCID"] = Internal::ToolDescription("CompNovoCID", "Protein/peptide Identification");
-		tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", "Protein/peptide Processing");
+    tools_map["CompNovo"] = Internal::ToolDescription("CompNovo", "Identification");
+    tools_map["CompNovoCID"] = Internal::ToolDescription("CompNovoCID", "Identification");
+    tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", "ID Processing");
 		tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
 		tools_map["DBExporter"] = Internal::ToolDescription("DBExporter", "File Handling");
 		tools_map["DBImporter"] = Internal::ToolDescription("DBImporter", "File Handling");
@@ -59,7 +59,7 @@ namespace OpenMS
 		tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
 		tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", "Misc");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
-		tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "Protein/peptide Processing");
+    tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "ID Processing");
 		tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", "Quantitation");
 		tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", "Quantitation");
 		tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", "Quantitation");
@@ -69,48 +69,48 @@ namespace OpenMS
 		tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");
 		tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", "File Handling");
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", "Signal processing and preprocessing");
-		tools_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", "Protein/peptide Processing");
-		tools_map["IDPosteriorErrorProbability"] = Internal::ToolDescription("IDPosteriorErrorProbability", "Protein/peptide Processing");
-		tools_map["IDFileConverter"] = Internal::ToolDescription("IDFileConverter", "Protein/peptide Processing");
-		tools_map["IDFilter"] = Internal::ToolDescription("IDFilter", "Protein/peptide Processing");
-		tools_map["IDMapper"] = Internal::ToolDescription("IDMapper", "Protein/peptide Processing");
+    tools_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", "ID Processing");
+    tools_map["IDPosteriorErrorProbability"] = Internal::ToolDescription("IDPosteriorErrorProbability", "ID Processing");
+    tools_map["IDFileConverter"] = Internal::ToolDescription("IDFileConverter", "ID Processing");
+    tools_map["IDFilter"] = Internal::ToolDescription("IDFilter", "ID Processing");
+    tools_map["IDMapper"] = Internal::ToolDescription("IDMapper", "ID Processing");
 		tools_map["IDMerger"] = Internal::ToolDescription("IDMerger", "File Handling");
-		tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", "Protein/peptide Processing");
+    tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", "ID Processing");
 		tools_map["ITRAQAnalyzer"] = Internal::ToolDescription("ITRAQAnalyzer", "Quantitation", StringList::create("4plex,8plex"));
 		tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
-		tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Protein/peptide Identification");
+    tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Identification");
 		tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
 		tools_map["MapAligner"] = Internal::ToolDescription("MapAligner", "Map Alignment", Factory<MapAlignmentAlgorithm>::registeredProducts());
 		tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
 		tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", "Signal processing and preprocessing");
-		tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Protein/peptide Identification");
-		tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Protein/peptide Identification");
+    tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Identification");
+    tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Identification");
 		tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
 		tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
-		tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Protein/peptide Identification");
-		tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Protein/peptide Identification");
-		tools_map["PILISModel"] = Internal::ToolDescription("PILISModel", "Protein/peptide Processing");
+    tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
+    tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Identification");
+    tools_map["PILISModel"] = Internal::ToolDescription("PILISModel", "ID Processing");
 		tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
 		tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
 		tools_map["PeakPicker"] = Internal::ToolDescription("PeakPicker", "Signal processing and preprocessing", StringList::create("wavelet,high_res"));
-		tools_map["PepNovoAdapter"] = Internal::ToolDescription("PepNovoAdapter", "Protein/peptide Identification");
-		tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", "Protein/peptide Processing");
+    tools_map["PepNovoAdapter"] = Internal::ToolDescription("PepNovoAdapter", "Identification");
+    tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", "ID Processing");
 		tools_map["PrecursorIonSelector"] = Internal::ToolDescription("PrecursorIonSelector", "Targeted Experiments");
     tools_map["PrecursorMassCorrector"] = Internal::ToolDescription("PrecursorMassCorrector", "Signal processing and preprocessing");
-		tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", "Protein/peptide Identification");
+    tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", "Identification");
 		tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", "Quantitation");
 		tools_map["RTModel"] = Internal::ToolDescription("RTModel", "Peptide property prediction");
 		tools_map["RTPredict"] = Internal::ToolDescription("RTPredict", "Peptide property prediction");
 		tools_map["Resampler"] = Internal::ToolDescription("Resampler", "Signal processing and preprocessing");
     tools_map["SILACAnalyzer"] = Internal::ToolDescription("SILACAnalyzer", "Quantitation");
 		tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", "Quantitation");
-		//tools_map["SequestAdapter"] = Internal::ToolDescription("SequestAdapter", "Protein/peptide Identification");
-		tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Protein/peptide Identification");
-		tools_map["SpectraFilter"] = Internal::ToolDescription("SpectraFilter", "Protein/peptide Identification", Factory<PreprocessingFunctor>::registeredProducts());
+    //tools_map["SequestAdapter"] = Internal::ToolDescription("SequestAdapter", "Identification");
+    tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Identification");
+    tools_map["SpectraFilter"] = Internal::ToolDescription("SpectraFilter", "Identification", Factory<PreprocessingFunctor>::registeredProducts());
 		tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "File Handling");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
 		tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
-		tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Protein/peptide Identification");
+    tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Identification");
 
     // INTERNAL tools
     // this operation is expensive, as we need to parse configuration files (*.ttd)
@@ -326,6 +326,26 @@ namespace OpenMS
       all_files << files;
     }
     return all_files;
+  }
+
+  String ToolHandler::getCTDString(const String& toolname)
+  {
+    ToolListType tools = getTOPPToolList();
+    ToolListType utils = getUtilList();
+    String s = "";
+    Internal::ToolDescription td;
+    if (tools.has(toolname))
+    {
+      td = tools[toolname];
+      s += "OpenMS/" + td.category + "/" + td.name;
+    }
+    else if (utils.has(toolname))
+    {
+      td = utils[toolname];
+      s += "OpenMS/" + td.category + "/" + td.name;
+    }
+
+    return s;
   }
 
   // static

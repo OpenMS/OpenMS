@@ -81,6 +81,9 @@ namespace OpenMS
       /// get all types of a tool (empty if none)
       static StringList getTypes(const String& toolname);
 
+      /// Returns the OpenMS/Category/Toolname string
+      static String getCTDString(const String& toolname);
+
       static String getExternalToolsPath();
 
       static String getInternalToolsPath();
