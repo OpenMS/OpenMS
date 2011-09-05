@@ -505,6 +505,11 @@ namespace OpenMS
           }
           param_inifile_ = this->getDefaultParameters_();
           Logger::LogStream null_stream;
+          if(!p_tmp.exists(getIniLocation_()))
+          {
+            // the ini file does not contain a section for our tool -> warn the user
+            writeLog_(String("Warning: The provided INI file '") + value_ini.toString() + "' does not contain any parameters specific for this tool. Please check your ini file. The default parameters for this tool will be applied.");
+          }
           param_inifile_.update(p_tmp, false, true, null_stream); // silently update (no not trust INI file), but leave unknown params
         }
         else
