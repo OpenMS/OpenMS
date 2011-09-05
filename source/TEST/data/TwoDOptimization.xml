@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS>
-	<ITEM name="iterations" value="20" type="int" />
+	<ITEM name="iterations" value="40" type="int" />
 	<ITEM name="delta_abs_error" value="0.00001" type="float" />
 	<ITEM name="delta_rel_error" value="0.00001" type="float" />
 	<NODE name="penalties">
