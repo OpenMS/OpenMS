@@ -143,10 +143,9 @@ public:
    *
    * @param name Name of the element.
    * @return Element with the given name, or if there are no such element
-   * 			throws @c Exception::InvalidValue.
+   * @throws Exception::InvalidValue.
    */
-  const element_type& getElement(const name_type& name) const
-  throw (Exception::InvalidValue);
+  const element_type& getElement(const name_type& name) const;
 
   /**
    * Gets the symbol of the element with an index @c index in alphabet.
@@ -157,16 +156,15 @@ public:
   const name_type& getName(size_type index) const;
 
   /**
-   * Gets monoisotopic mass of the element with the symbol @c name.
+   * Gets mono isotopic mass of the element with the symbol @c name.
    * If there is no such element, throws an @c Exception::InvalidValue.
    *
    * @param name Symbol of the element.
    * @return Mass of the element, or if there are no element
-   * 			throws @c Exception::InvalidValue.
+   * @throws Exception::InvalidValue.
    * @see getMass(size_type index)
    */
-  mass_type getMass(const name_type& name) const
-  throw (Exception::InvalidValue);
+  mass_type getMass(const name_type& name) const;
 
   /**
    * Gets mass of the element with an index @index in alphabet.
@@ -256,9 +254,10 @@ public:
    * parser. If there is no file @c fname, throws an @c IOException.
    *
    * @param fname The file name to be loaded.
+   * @throws Exception::IOException
    * @see load(const std::string& fname, AlphabetParser<>* parser)
    */
-  virtual void load(const std::string& fname) throw (Exception::IOException);
+  virtual void load(const std::string& fname);
 
 
   /**
@@ -267,12 +266,12 @@ public:
    *
    * @param fname File name to be loaded.
    * @param parser Parser to be used by loading.
+   * @throws Exception::IOException
    *
    * @see load(const std::string& fname)
    * @see AlphabetParser
    */
-  virtual void load(const std::string& fname, AlphabetParser<>* parser)
-  throw (Exception::IOException);
+  virtual void load(const std::string& fname, AlphabetParser<>* parser);
 
 
   /**

@@ -540,7 +540,7 @@ namespace OpenMS
 					// if it is a mass
 					if ( String(mass.toFloat()) == mass ) mass_or_composition_or_name = 0;
 				}
-				catch ( Exception::ConversionError& c_e ){ mass_or_composition_or_name = -1; }
+				catch ( Exception::ConversionError& /*c_e*/ ){ mass_or_composition_or_name = -1; }
 				
 				// check whether it is a name (look it up in the corresponding file)
 				if ( mass_or_composition_or_name == -1 )
@@ -592,7 +592,7 @@ namespace OpenMS
 						else mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
 						if ( mass_or_composition_or_name == -1 ) mass_or_composition_or_name = 1;
 					}
-					catch ( Exception::ParseError& pe )
+					catch ( Exception::ParseError& /*pe*/ )
 					{
 						PTMname_residues_mass_type_.clear();
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with this modification. Aborting!");

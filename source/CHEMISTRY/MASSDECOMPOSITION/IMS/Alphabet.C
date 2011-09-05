@@ -55,7 +55,6 @@ Alphabet::mass_type Alphabet::getMass(size_type index) const
 
 
 Alphabet::mass_type Alphabet::getMass(const name_type& name) const
-throw (Exception::InvalidValue)
 {
   return getElement(name).getMass();
 }
@@ -70,7 +69,6 @@ bool Alphabet::hasName(const name_type& name) const
 
 
 const Alphabet::element_type& Alphabet::getElement(const name_type& name) const
-throw (Exception::InvalidValue)
 {
   const_iterator cit = elements.begin();
   for (; cit != elements.end(); ++cit)
@@ -158,14 +156,13 @@ void Alphabet::sortByValues()
 }
 
 
-void Alphabet::load(const std::string& fname) throw (Exception::IOException)
+void Alphabet::load(const std::string& fname)
 {
   this->load(fname, new AlphabetTextParser);
 }
 
 
 void Alphabet::load(const std::string& fname, AlphabetParser<>* parser)
-throw (Exception::IOException)
 {
   parser->load(fname);
   this->clear();

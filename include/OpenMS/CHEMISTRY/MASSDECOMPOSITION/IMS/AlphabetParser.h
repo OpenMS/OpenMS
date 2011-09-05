@@ -60,12 +60,12 @@ public:
 
   /**
    * Loads the data from the InputSource with the name @c fname.
-   * If there is an error occured while reading data from InputSource,
+   * If there is an error occurred while reading data from InputSource,
    * @c IOException is thrown.
    *
    * @param fname The name of the input source.
    */
-  void load(const std::string& fname) throw (Exception::IOException);
+  void load(const std::string& fname);
 
   /**
    * Gets the data that was loaded.
@@ -86,7 +86,7 @@ public:
 };
 
 template <typename AlphabetElementType, typename Container, typename InputSource>
-void AlphabetParser<AlphabetElementType, Container, InputSource>::load(const std::string& fname) throw (Exception::IOException)
+void AlphabetParser<AlphabetElementType, Container, InputSource>::load(const std::string& fname)
 {
   std::ifstream ifs(fname.c_str());
   if (!ifs)
