@@ -211,7 +211,7 @@ namespace OpenMS
             ids.insert(ids.end(), ids_feature.begin(), ids_feature.end() ); 
           }
 
-          cf.computeConsensus();
+          cf.computeMonoisotopicConsensus();
           cf.setPeptideIdentifications(ids);
 
           new_cm.push_back(cf);
