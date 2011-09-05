@@ -173,7 +173,7 @@ namespace OpenMS
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
 		registerStringOption_("write_ini","<file>","","Writes the default configuration file",false);
-    registerStringOption_("write_ctd","<file>","","Writes the common tool description (ctd) file",false);
+    registerStringOption_("write_ctd","<out_dir>","","Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>",false);
     registerStringOption_("write_type","<file>","","Writes a minimal ini file, containing only the types available for this tool",false,true);
 		registerStringOption_("write_wsdl","<file>","","Writes the default WSDL file",false,true);
 		registerFlag_("no_progress","Disables progress logging to command line",true);
@@ -2321,14 +2321,19 @@ namespace OpenMS
   bool TOPPBase::writeCTD_() const
   {
     //store -write_ini output in ini_file_str
-    QString write_ctd_file = String(param_cmdline_.getValue("write_ctd")).toQString();
+    QString out_dir_str = String(param_cmdline_.getValue("write_ctd")).toQString();
+    if (out_dir_str == "")
+    {
+      out_dir_str = QDir::currentPath();
+    }
+    QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + ".ctd";
     outputFileWritable_(write_ctd_file, "write_ctd");
     Param default_params = getDefaultParameters_();
     std::stringstream* ss = new std::stringstream();
     default_params.writeXMLToStream(ss);
     String ini_file_str(ss->str());
 
-    //morph to ctd file content
+    //morph to ctd format
     QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
     lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     lines.removeAt(2); // <NODE name="DBExporter" description="Exports data from an OpenMS database to a file.">
@@ -2343,6 +2348,9 @@ namespace OpenMS
     lines.insert(7, "<category>###TODO###OpenMS/DB/DBExporter</category>");
     lines.insert(8, "<type>###TODO###dunno, probably empty</type>");
     lines.insert(lines.size(), "</tool>");
+    QString parameters_element = lines.at(9); //<PARAMETERS version="1.3" xsi:etc...>
+    QStringList p_list = parameters_element.split(QRegExp("\\s+"));
+    lines.replace(9, p_list.at(0)+" "+p_list.at(1)+">"); //keep only PARAMETERS and version="1.x" (throw away xsi stuff)
     String ctd_str = String(lines.join("\n")) + "\n";
 
     //write to file
