@@ -37,6 +37,7 @@ ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
 MapAligner
+MapAlignerIdentification
 MapNormalizer
 MapStatistics
 MascotAdapter

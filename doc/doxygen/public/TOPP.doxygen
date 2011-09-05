@@ -111,6 +111,7 @@
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
   - @subpage TOPP_MapAligner - Corrects retention time distortions between maps.
+	- @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
   - @subpage TOPP_FeatureLinker - Groups corresponding features in one map or across maps (after alignment).
 
   <b>Graphical Tools</b>
