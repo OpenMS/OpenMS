@@ -297,11 +297,17 @@ namespace OpenMS
 			  Param default_params = getDefaultParameters_();
 			  // check if augmentation with -ini param is needed
 			  DataValue in_ini;
-			  if (param_cmdline_.exists("ini")) in_ini = param_cmdline_.getValue("ini");
+        if (param_cmdline_.exists("ini"))
+        {
+          in_ini = param_cmdline_.getValue("ini");
+        }
 			  if (!in_ini.isEmpty())
 			  {
 				  Param ini_params;
 				  ini_params.load( (String)in_ini );
+
+          // check if ini parameters are applicable to this tool
+          checkIfIniParametersAreApplicable_(ini_params);
           // update default params with old params given in -ini and be verbose
           default_params.update(ini_params, true);
         }
@@ -498,11 +504,9 @@ namespace OpenMS
 					writeDebug_( "INI location: " + getIniLocation_(), 1);
           Param p_tmp;
           p_tmp.load( (String)value_ini );
-          if (!p_tmp.exists(getIniLocation_()))
-          {
-            // the ini file does not contain a section for our tool -> warn the user
-            writeLog_(String("Warning: The provided INI file '") + value_ini.toString() + "' does not contain any parameters specific for this tool (expected in '" + getIniLocation_() + "'). Please check your .ini file. The default parameters for this tool will be applied.");
-          }
+
+          checkIfIniParametersAreApplicable_(p_tmp);
+
           // little hack: getDefaultParameters() requires to have 'type' from commandline
           if (p_tmp.exists(getIniLocation_() + "type"))
           {
@@ -966,7 +970,7 @@ namespace OpenMS
 				cerr << "\n";
 			}
       cerr << "\n"
-					 << "You can write an example INI file using the '-write_ini' option." << "\n"
+           << "You can write an example INI file using the '-write_ini' option." << "\n"
 					 << "Documentation of subsection parameters can be found in the" << "\n"
 					 << "doxygen documentation or the INIFileEditor." << "\n"
 					 << "Have a look at OpenMS documentation for more information." << "\n";
@@ -1978,6 +1982,16 @@ namespace OpenMS
 			}
 		}
 	}
+
+  void TOPPBase::checkIfIniParametersAreApplicable_(const Param &ini_params)
+  {
+    Param tool_params = ini_params.copy(getIniLocation_());
+    if (tool_params.empty())
+    {
+      // the ini file does not contain a section for our tool -> warn the user
+      writeLog_(String("Warning: The provided INI file does not contain any parameters specific for this tool (expected in '") + getIniLocation_() + "'). Please check your .ini file. The default parameters for this tool will be applied.");
+    }
+  }
 
 	void TOPPBase::inputFileReadable_(const String& filename, const String& param_name) const
 	{

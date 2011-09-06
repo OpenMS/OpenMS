@@ -766,6 +766,16 @@ namespace OpenMS
       	@param location Exact location inside the source file
       */
       void checkParam_( const Param& param, const String& filename, const String& location ) const;
+
+
+      /**
+        @brief Checks if the parameters of the provided ini file are applicable to this tool
+
+        This method does not abort execution of the tool, but will warn the user through stderr!
+        It is called automatically whenever a ini file is loaded.
+
+       */
+      void checkIfIniParametersAreApplicable_(const Param& ini_params);
       //@}
 
       /// make a string console friendly
