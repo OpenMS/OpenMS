@@ -36,7 +36,8 @@ namespace OpenMS {
 namespace ims {
 
 /**
- * Implements abstract @c AlphabetParser to read data from the plain text format.
+ * @brief Implements abstract @c AlphabetParser to read data from the plain text format.
+ *
  * @c AlphabetTextParser parses the data source using overriden @c parse(std::istream&) 
  * and stores the parsed data permanently. That can be retrieved by @c getElements() function. 
  * 
@@ -53,7 +54,7 @@ public:
    *
    * @return The parsed data.
    */
-  virtual ContainerType& getElements() { return elements; };
+  virtual ContainerType& getElements() { return elements; }
 
   /**
    * Parses the input stream \c is \c.

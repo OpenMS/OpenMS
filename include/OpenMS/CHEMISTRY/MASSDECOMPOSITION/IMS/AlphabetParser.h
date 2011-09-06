@@ -40,7 +40,8 @@ namespace OpenMS {
 namespace ims {
 
 /**
- * An abstract templatized parser to load the data that is used to initialize @c Alphabet objects.
+ * @brief An abstract templatized parser to load the data that is used to initialize @c Alphabet objects.
+ *
  * @c AlphabetParser reads the input source, which is given as a template parameter @c InputSource , by
  * @c load (const std::string& fname) function where @c fname is the source name.
  * Loaded data can be retrieved by calling @c getElements().

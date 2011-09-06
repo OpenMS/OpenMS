@@ -10,7 +10,7 @@ MassDecomposer.h
 RealMassDecomposer.h
 Weights.h
 Element.h
-IsotopeDistribution.h
+IMSIsotopeDistribution.h
 AlphabetParser.h
 compose_f_gx_hy_t.h
 compose_f_gx_t.h

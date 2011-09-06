@@ -51,10 +51,6 @@ namespace ims {
  * @param ValueType Type of values to be decomposed.
  * @param DecompositionValueType Type of decomposition elements.
  * 
- * @see ClassicalDPMassDecomposer
- * 
- * @ingroup decomp
- * 
  * @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> 
  * @author Marcel Martin <Marcel.Martin@CeBiTec.Uni-Bielefeld.DE>
  * @author Henner Sudek <Henner.Sudek@CeBiTec.Uni-Bielefeld.DE>  
@@ -205,7 +201,8 @@ private:
 
 template <typename ValueType, typename DecompositionValueType>
 IntegerMassDecomposer<ValueType, DecompositionValueType>::IntegerMassDecomposer(
-  const Weights& alphabet) : alphabet(alphabet){
+  const Weights& alphabet) : alphabet(alphabet)
+{
 
 	lcms.reserve(alphabet.size());
 	lcms.resize(alphabet.size());
@@ -223,9 +220,11 @@ IntegerMassDecomposer<ValueType, DecompositionValueType>::IntegerMassDecomposer(
 template <typename ValueType, typename DecompositionValueType>
 void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResidueTable(
 	const Weights& _alphabet, residues_table_row_type& _lcms, residues_table_row_type& _mass_in_lcms,
-	const value_type _infty, witness_vector_type& _witnessVector, residues_table_type& _ertable) {
+  const value_type _infty, witness_vector_type& _witnessVector, residues_table_type& _ertable)
+{
 
-	if (_alphabet.size() < 2) {
+  if (_alphabet.size() < 2)
+  {
 		return;
 	}
 	// caches the most often used mass - smallest mass
@@ -235,7 +234,8 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 	_ertable.reserve(_alphabet.size());
 	_ertable.assign(_alphabet.size(), std::vector<value_type>(smallestMass, _infty));
 
-	for (size_type i = 0; i < _alphabet.size(); ++i) {
+  for (size_type i = 0; i < _alphabet.size(); ++i)
+  {
 		_ertable[i][0] = 0;
 	}
 
@@ -269,7 +269,8 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 	_mass_in_lcms[1] = smallestMass / d;
 
 	// fills remaining table. i is the column index.
-	for (size_type i = 2; i < _alphabet.size(); ++i) {
+  for (size_type i = 2; i < _alphabet.size(); ++i)
+  {
 		// caches often used i-th alphabet mass
 		value_type currentMass = _alphabet.getWeight(i);
 
@@ -281,7 +282,8 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 		_mass_in_lcms[i] = smallestMass / d;
 
 		// Nijenhuis' improvement: Is currentMass composable with smaller alphabet?
-		if (currentMass >= _ertable[i-1][currentMass % smallestMass]) {
+    if (currentMass >= _ertable[i-1][currentMass % smallestMass])
+    {
 			_ertable[i] = _ertable[i-1];
 			continue;
 		}
@@ -289,7 +291,8 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 		const residues_table_row_type& prev_column = _ertable[i-1];
 		residues_table_row_type& cur_column = _ertable[i];
 
-		if (d == 1) {
+    if (d == 1)
+    {
 			// This loop is for the case that the gcd is 1. The optimization used below
 			// is not applicable here.
 
@@ -303,17 +306,22 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 			// counter for creation of witness vector
 			decomposition_value_type counter = 0;
 
-			for (size_type m = smallestMass; m > 0; --m) {
+      for (size_type m = smallestMass; m > 0; --m)
+      {
 				n += currentMass;
 				p += p_inc;
 				++counter;
-				if (p >= smallestMass) {
+        if (p >= smallestMass)
+        {
 					p -= smallestMass;
 				}
-				if (n > prev_column[p]) {
+        if (n > prev_column[p])
+        {
 					n = prev_column[p];
 					counter = 0;
-				} else {
+        }
+        else
+        {
 					_witnessVector[p] = std::make_pair(i, counter);
 				}
 				cur_column[p] = n;
@@ -332,20 +340,26 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 			std::vector<decomposition_value_type> counters(smallestMass);
 
 			// copies first block from prev_column to cur_column
-			for (size_type j = 1; j < d; ++j) {
+      for (size_type j = 1; j < d; ++j)
+      {
 				cur_column[j] = prev_column[j];
 			}
 
 			// first loop: goes through all blocks, updating cur_column for the first time.
-			for (size_type m = smallestMass / d; m > 1; m--) {
+      for (size_type m = smallestMass / d; m > 1; m--)
+      {
 				// r: current residue class
-				for (size_type r = 0; r < d; r++) {
+        for (size_type r = 0; r < d; r++)
+        {
 
 					++counters[cur];
-					if (cur_column[prev] + currentMass > prev_column[cur]) {
+          if (cur_column[prev] + currentMass > prev_column[cur])
+          {
 						cur_column[cur] = prev_column[cur];
 						counters[cur] = 0;
-					} else {
+          }
+          else
+          {
 						cur_column[cur] = cur_column[prev] + currentMass;
 						_witnessVector[cur] = std::make_pair(i, counters[cur]);
 					}
@@ -358,24 +372,30 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 
 				// this does: cur = (cur + currentMass) % smallestMass - d;
 				cur += p_inc;
-				if (cur >= smallestMass) {
+        if (cur >= smallestMass)
+        {
 					cur -= smallestMass;
 				}
 			}
 
 			// second loop:
 			bool cont = true;
-			while (cont) {
+      while (cont)
+      {
 				cont = false;
 				prev++;
 				cur++;
 				++counters[cur];
-				for (size_type r = 1; r < d; ++r) {
-					if (cur_column[prev] + currentMass < cur_column[cur]) {
+        for (size_type r = 1; r < d; ++r)
+        {
+          if (cur_column[prev] + currentMass < cur_column[cur])
+          {
 						cur_column[cur] = cur_column[prev] + currentMass;
 						cont = true;
 						_witnessVector[cur] = std::make_pair(i, counters[cur]);
-					} else {
+          }
+          else
+          {
 						counters[cur] = 0;
 					}
 					prev++;
@@ -385,7 +405,8 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 				prev = cur - d;
 
 				cur += p_inc;
-				if (cur >= smallestMass) {
+        if (cur >= smallestMass)
+        {
 					cur -= smallestMass;
 				}
 			}
@@ -397,7 +418,8 @@ void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResid
 
 template <typename ValueType, typename DecompositionValueType>
 bool IntegerMassDecomposer<ValueType, DecompositionValueType>::
-exist(value_type mass) {
+exist(value_type mass)
+{
 
 	value_type residue = ertable.back().at(mass % alphabet.getWeight(0));
 	return (residue != infty && mass >= residue);
@@ -406,11 +428,12 @@ exist(value_type mass) {
 
 template <typename ValueType, typename DecompositionValueType>
 typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_type
-IntegerMassDecomposer<ValueType, DecompositionValueType>::
-getDecomposition(value_type mass) {
+IntegerMassDecomposer<ValueType, DecompositionValueType>::getDecomposition(value_type mass)
+{
 
 	decomposition_type decomposition;
-	if (!this->exist(mass)) {
+  if (!this->exist(mass))
+  {
 		return decomposition;
 	}
 
@@ -424,11 +447,13 @@ getDecomposition(value_type mass) {
 	decomposition.at(0) = static_cast<decomposition_value_type>
       ((mass - m) / alphabet.getWeight(0));
 
-	while (m != 0) {
+  while (m != 0)
+  {
 		size_type i = witness_vector.at(r).first;
 		decomposition_value_type j = witness_vector.at(r).second;
 		decomposition.at(i) += j;
-		if (m < j*alphabet.getWeight(i)) {
+    if (m < j*alphabet.getWeight(i))
+    {
 			break;
 		}
 		m -= j * alphabet.getWeight(i);
@@ -440,8 +465,8 @@ getDecomposition(value_type mass) {
 
 template <typename ValueType, typename DecompositionValueType>
 typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decompositions_type
-IntegerMassDecomposer<ValueType, DecompositionValueType>::
-getAllDecompositions(value_type mass) {
+IntegerMassDecomposer<ValueType, DecompositionValueType>::getAllDecompositions(value_type mass)
+{
 	decompositions_type decompositionsStore;
 	decomposition_type decomposition(alphabet.size());
 	collectDecompositionsRecursively(mass, alphabet.size()-1, decomposition, decompositionsStore);
@@ -452,12 +477,14 @@ getAllDecompositions(value_type mass) {
 template <typename ValueType, typename DecompositionValueType>
 void IntegerMassDecomposer<ValueType, DecompositionValueType>::
 collectDecompositionsRecursively(value_type mass, size_type alphabetMassIndex,
-                                 decomposition_type decomposition, decompositions_type& decompositionsStore) {
-	if (alphabetMassIndex == 0) {
+                                 decomposition_type decomposition, decompositions_type& decompositionsStore)
+{
+  if (alphabetMassIndex == 0)
+  {
 		value_type numberOfMasses0 = mass / alphabet.getWeight(0);
-		if (numberOfMasses0 * alphabet.getWeight(0) == mass) {
-			decomposition[0] = static_cast<decomposition_value_type>(
-            numberOfMasses0);
+    if (numberOfMasses0 * alphabet.getWeight(0) == mass)
+    {
+      decomposition[0] = static_cast<decomposition_value_type>(numberOfMasses0);
 			decompositionsStore.push_back(decomposition);
 		}
 		return;
@@ -471,13 +498,15 @@ collectDecompositionsRecursively(value_type mass, size_type alphabetMassIndex,
 	value_type mass_mod_alphabet0 = mass % alphabet.getWeight(0); // trying to avoid modulo
 	const value_type mass_mod_decrement = alphabet.getWeight(alphabetMassIndex) % alphabet.getWeight(0);
 
-	for (value_type i = 0; i < mass_in_lcm; ++i) {
+  for (value_type i = 0; i < mass_in_lcm; ++i)
+  {
 		// here is the conversion from value_type to decomposition_value_type
 		decomposition[alphabetMassIndex] = static_cast<decomposition_value_type>(i);
 
 		// this check is needed because mass could have unsigned type and after reduction on i*alphabetMass will be still be positive but huge
 		// and that will end up in unfinite loop
-		if (mass < i*alphabet.getWeight(alphabetMassIndex)) {
+    if (mass < i*alphabet.getWeight(alphabetMassIndex))
+    {
 			break;
 		}
 
@@ -485,8 +514,10 @@ collectDecompositionsRecursively(value_type mass, size_type alphabetMassIndex,
 		value_type r = ertable[alphabetMassIndex-1][mass_mod_alphabet0];
 
 		// TODO: if infty was std::numeric_limits<...>... the following 'if' would not be necessary
-		if (r != infty) {
-			for (value_type m = mass - i * alphabet.getWeight(alphabetMassIndex); m >= r; m -= lcm) {
+    if (r != infty)
+    {
+      for (value_type m = mass - i * alphabet.getWeight(alphabetMassIndex); m >= r; m -= lcm)
+      {
 				/* the condition of the 'for' loop (m >= r) and decrementing the mass
         * in steps of the lcm ensures that m is decomposable. Therefore
         * the recursion will result in at least one witness. */
@@ -494,15 +525,19 @@ collectDecompositionsRecursively(value_type mass, size_type alphabetMassIndex,
 				decomposition[alphabetMassIndex] += mass_in_lcm;
 				// this check is needed because mass could have unsigned type and after reduction on i*alphabetMass will be still be positive but huge
 				// and that will end up in unfinite loop
-				if (m < lcm) {
+        if (m < lcm)
+        {
 					break;
 				}
 			}
 		}
 		// subtle way of changing the modulo, instead of plain calculation it from (mass - i*currentAlphabetMass) % alphabetMass0 every time
-		if (mass_mod_alphabet0 < mass_mod_decrement) {
+    if (mass_mod_alphabet0 < mass_mod_decrement)
+    {
 			mass_mod_alphabet0 += alphabet.getWeight(0) - mass_mod_decrement;
-		} else {
+    }
+    else
+    {
 			mass_mod_alphabet0 -= mass_mod_decrement;
 		}
 	}
@@ -518,9 +553,9 @@ collectDecompositionsRecursively(value_type mass, size_type alphabetMassIndex,
  * @return number of decompositions for given mass.
  */
 template <typename ValueType, typename DecompositionValueType>
-typename IntegerMassDecomposer<ValueType, DecompositionValueType>::
-decomposition_value_type IntegerMassDecomposer<ValueType, 
-DecompositionValueType>::getNumberOfDecompositions(value_type mass) {
+typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type IntegerMassDecomposer<ValueType,
+DecompositionValueType>::getNumberOfDecompositions(value_type mass)
+{
 	return getAllDecompositions(mass).size();
 }
 

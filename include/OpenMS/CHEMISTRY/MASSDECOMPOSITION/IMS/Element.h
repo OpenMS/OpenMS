@@ -31,7 +31,7 @@
 
 #include <string>
 #include <ostream>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 #include <iostream>
 
 namespace OpenMS {
@@ -62,7 +62,7 @@ public:
   /**
    * Type of element's isotope distribution.
    */
-  typedef IsotopeDistribution isotopes_type;
+  typedef IMSIsotopeDistribution isotopes_type;
 
   /**
    * Type of isotope mass.
@@ -87,7 +87,9 @@ public:
   /**
    * Empty constructor.
    */
-  Element() {}
+  Element()
+  {
+  }
 
   /**
    * Copy constructor.
@@ -95,7 +97,9 @@ public:
   Element(const Element& element) :
     name(element.name),
     sequence(element.sequence),
-    isotopes(element.isotopes) {}
+    isotopes(element.isotopes)
+  {
+  }
 
   /**
    * Constructor with name and isotope distribution.
@@ -104,7 +108,9 @@ public:
           const isotopes_type& isotopes) :
     name(name),
     sequence(name),
-    isotopes(isotopes) {}
+    isotopes(isotopes)
+  {
+  }
 
   /**
    * Constructor with name and mass of single isotope.
@@ -113,16 +119,20 @@ public:
           mass_type mass):
     name(name),
     sequence(name),
-    isotopes(mass) {}
+    isotopes(mass)
+  {
+  }
 
   /**
    * Constructor with name and nominal mass.
    */
   Element(const name_type& name,
-          nominal_mass_type nominal_mass = 0):
-    name(name),
+          nominal_mass_type nominal_mass = 0)
+    : name(name),
     sequence(name),
-    isotopes(nominal_mass) {	}
+    isotopes(nominal_mass)
+  {
+  }
 
   /**
    * Gets element's name. @note Name represents
@@ -130,7 +140,8 @@ public:
    *
    * @return Name of element.
    */
-  const name_type& getName() const {
+  const name_type& getName() const
+  {
     return name;
   }
 
@@ -140,7 +151,8 @@ public:
    *
    * @param name A new name to be set for element.
    */
-  void setName(const name_type& name) {
+  void setName(const name_type& name)
+  {
     this->name = name;
   }
 
@@ -149,7 +161,8 @@ public:
    *
    * @return Sequence of element.
    */
-  const name_type& getSequence() const {
+  const name_type& getSequence() const
+  {
     return sequence;
   }
 
@@ -158,7 +171,8 @@ public:
    *
    * @param sequence A new sequence to be set for element.
    */
-  void setSequence(const name_type& sequence) {
+  void setSequence(const name_type& sequence)
+  {
     this->sequence = sequence;
   }
 
@@ -167,7 +181,8 @@ public:
    *
    * @return A nominal mass of element.
    */
-  nominal_mass_type getNominalMass() const {
+  nominal_mass_type getNominalMass() const
+  {
     return isotopes.getNominalMass();
   }
 
@@ -177,7 +192,8 @@ public:
    * @param index Index of element's isotope.
    * @return mass of element's isotope with a given index.
    */
-  mass_type getMass(size_type index = 0) const {
+  mass_type getMass(size_type index = 0) const
+  {
     return isotopes.getMass(index);
   }
 
@@ -186,7 +202,8 @@ public:
    *
    * @return An average mass of element.
    */
-  mass_type getAverageMass() const {
+  mass_type getAverageMass() const
+  {
     return isotopes.getAverageMass();
   }
 
@@ -196,7 +213,8 @@ public:
    *
    * @param electrons_number Number of electrons lacking in ion.
    */
-  mass_type getIonMass(int electrons_number = 1) const {
+  mass_type getIonMass(int electrons_number = 1) const
+  {
     return this->getMass() - electrons_number * ELECTRON_MASS_IN_U;
   }
 
@@ -205,7 +223,7 @@ public:
    *
    * @return Element's isotope distribution.
    */
-  const IsotopeDistribution& getIsotopeDistribution() const {
+  const IMSIsotopeDistribution& getIsotopeDistribution() const {
     return isotopes;
   }
 
@@ -214,7 +232,7 @@ public:
    *
    * @param isotopes A new isotope distribution to be set for element.
    */
-  void setIsotopeDistribution(const IsotopeDistribution& isotopes) {
+  void setIsotopeDistribution(const IMSIsotopeDistribution& isotopes) {
     this->isotopes = isotopes;
   }
 

@@ -52,10 +52,6 @@ namespace ims {
  * @param ValueType Type of values to be decomposed.
  * @param DecompositionValueType Type of decomposition elements.
  * 
- * @see RealMassDecomposer
- * 
- * @ingroup decomp
- * 
  * @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> 
  */
 template <typename ValueType,
@@ -67,7 +63,7 @@ public:
    */
   typedef ValueType value_type;
 
-  /**
+  /**{
    * Type of decomposition value.
    */
   typedef DecompositionValueType decomposition_value_type;

@@ -53,11 +53,7 @@ namespace ims {
  * appeared due to rounding), scales those to integers, decomposes
  * them using @c IntegerMassDecomposer, does some checks (i.e. on false 
  * positives appeared due to rounding) and collects decompositions together.
- * 
- * @see IntegerMassDecomposer
- * 
- * @ingroup decomp
- * 
+ *
  * @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> 
  */
 class RealMassDecomposer {
@@ -80,7 +76,7 @@ public:
   decompositions_type;
 
   /**
-   * Type of the number of decompositions.
+   * Ty{pe of the number of decompositions.
    */
   typedef unsigned long long number_of_decompositions_type;
 

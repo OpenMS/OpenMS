@@ -74,7 +74,7 @@ namespace ims {
  * 
  * @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>  
  */
-class IsotopeDistribution {
+class IMSIsotopeDistribution {
 public:
   /**
    * Type of isotope mass.
@@ -172,13 +172,15 @@ public:
   /**
    * Constructor with nominal mass.
    */
-  IsotopeDistribution(nominal_mass_type nominalMass = 0) :
-    nominalMass(nominalMass) {}
+  IMSIsotopeDistribution(nominal_mass_type nominalMass = 0) :
+    nominalMass(nominalMass)
+  {
+  }
 
   /**
    * Constructor with single isotope.
    */
-  IsotopeDistribution(mass_type mass)
+  IMSIsotopeDistribution(mass_type mass)
     : nominalMass(0)
   {
     peaks.push_back(peaks_container::value_type(mass, 1.0));
@@ -188,22 +190,28 @@ public:
   /**
    * Constructor with isotopes and nominal mass.
    */
-  IsotopeDistribution(const peaks_container& peaks,
+  IMSIsotopeDistribution(const peaks_container& peaks,
                       nominal_mass_type nominalMass = 0) :
     peaks(peaks),
-    nominalMass(nominalMass) {}
+    nominalMass(nominalMass)
+  {
+  }
 
   /**
    * Copy constructor.
    */
-  IsotopeDistribution(const IsotopeDistribution& distribution) :
+  IMSIsotopeDistribution(const IMSIsotopeDistribution& distribution) :
     peaks(distribution.peaks),
-    nominalMass(distribution.nominalMass) {}
+    nominalMass(distribution.nominalMass)
+  {
+  }
 
   /**
    * Destructor.
    */
-  ~IsotopeDistribution() {}
+  ~IMSIsotopeDistribution()
+  {
+  }
 
   /**
    * Gets size of isotope distribution. @note Size is not smaller than
@@ -219,8 +227,8 @@ public:
    * @param distribution Isotope distribution to be assigned to this one.
    * @return Reference to this object.
    */
-  IsotopeDistribution& operator =(
-    const IsotopeDistribution& distribution);
+  IMSIsotopeDistribution& operator =(
+    const IMSIsotopeDistribution& distribution);
 
   /**
    * Equality operator. Returns true, if a given @c distribution is equal
@@ -229,7 +237,7 @@ public:
    * @return true, if a given distribution is equal to this distribution,
    * 		   false - otherwise
    */
-  bool operator ==(const IsotopeDistribution& distribution) const;
+  bool operator ==(const IMSIsotopeDistribution& distribution) const;
 
   /**
    * Inequality operator. Returns true, if a given @c distribution is
@@ -238,7 +246,7 @@ public:
    * @return true, if a given distribution is unequal to this
    * 		   distribution, false - otherwise
    */
-  bool operator !=(const IsotopeDistribution& distribution) const;
+  bool operator !=(const IMSIsotopeDistribution& distribution) const;
 
   /**
    * Operator for folding this distributoin with a given @c distribution.
@@ -250,8 +258,8 @@ public:
    *
    * @see IsotopeDistribution& operator *=(unsigned int)
    */
-  IsotopeDistribution& operator *=(
-    const IsotopeDistribution& distribution);
+  IMSIsotopeDistribution& operator *=(
+    const IMSIsotopeDistribution& distribution);
 
   /**
    * Operator for folding this distribution with itself @c pow times.
@@ -263,7 +271,7 @@ public:
    *
    * @see IsotopeDistribution& operator *=(const IsotopeDistribution&)
    */
-  IsotopeDistribution& operator *=(unsigned int pow);
+  IMSIsotopeDistribution& operator *=(unsigned int pow);
 
   /**
    * Gets a mass of isotope @c i.
@@ -303,7 +311,9 @@ public:
    * @param A new nominal mass for distributoin.
    */
   void setNominalMass(nominal_mass_type nominalMass)
-  { this->nominalMass = nominalMass; }
+  {
+    this->nominalMass = nominalMass;
+  }
 
   /**
    * Gets masses of isotopes.
@@ -357,7 +367,7 @@ private:
  * @param distribution Distribution to be printed out.
  */
 std::ostream& operator <<(std::ostream& os, 
-                          const IsotopeDistribution& distribution);
+                          const IMSIsotopeDistribution& distribution);
 
 } // namespace ims
 } // namespace OpenMS

@@ -5,7 +5,7 @@ set(directory source/CHEMISTRY/MASSDECOMPOSITION/IMS)
 set(sources_list
 Alphabet.C
 Element.C
-IsotopeDistribution.C
+IMSIsotopeDistribution.C
 RealMassDecomposer.C
 Weights.C
 AlphabetTextParser.C

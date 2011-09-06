@@ -84,39 +84,56 @@ int main(int argc, char** argv) {
 element 3 has index 1
 @endcode
  *
-Copyright 1999 by Addison Wesley Longman, Inc. and Nicolai M. Josuttis.
-All rights reserved.
-
-Permission to use, copy, modify and distribute this software for personal and educational use is hereby granted without fee, provided that the above copyright notice appears in all copies and that both that copyright notice and this permission notice appear in supporting documentation, and that the names of Addison Wesley Longman or the author are not used in advertising or publicity pertaining to distribution of the software without specific, written prior permission. Addison Wesley Longman and the author make no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.
-
-ADDISON WESLEY LONGMAN AND THE AUTHOR DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ADDISON WESLEY LONGMAN OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+ *
+ * Copyright 1999 by Addison Wesley Longman, Inc. and Nicolai M. Josuttis.
+ * All rights reserved.
+ *
+ * Permission to use, copy, modify and distribute this software for personal and
+ * educational use is hereby granted without fee, provided that the above copyright
+ * notice appears in all copies and that both that copyright notice and this
+ * permission notice appear in supporting documentation, and that the names of Addison
+ * Wesley Longman or the author are not used in advertising or publicity pertaining
+ * to distribution of the software without specific, written prior permission. Addison
+ * Wesley Longman and the author make no representations about the suitability of this
+ * software for any purpose. It is provided "as is" without express or implied warranty.
+ *
+ * ADDISON WESLEY LONGMAN AND THE AUTHOR DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+ * SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT
+ * SHALL ADDISON WESLEY LONGMAN OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+ * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
  */
 template <class OP1, class OP2>
 class compose_f_gx_t
-    : public std::unary_function<typename OP2::argument_type,
-    typename OP1::result_type>
+    : public std::unary_function<typename OP2::argument_type, typename OP1::result_type>
 {
 private:
   OP1 op1;    // process: op1(op2(x))
   OP2 op2;
 public:
-  // constructor
+  /// Constructor
   compose_f_gx_t(const OP1& o1, const OP2& o2)
-    : op1(o1), op2(o2) {
+    : op1(o1), op2(o2)
+  {
   }
 
-  // function call
+  /// function call
   typename OP1::result_type
-  operator()(const typename OP2::argument_type& x) const {
+  operator()(const typename OP2::argument_type& x) const
+  {
     return op1(op2(x));
   }
 };
 
-/* convenience function for the compose_f_gx adapter
+/**
+ * @brief convenience function for the compose_f_gx adapter
  */
 template <class OP1, class OP2>
 inline compose_f_gx_t<OP1,OP2>
-compose_f_gx (const OP1& o1, const OP2& o2) {
+compose_f_gx (const OP1& o1, const OP2& o2)
+{
   return compose_f_gx_t<OP1,OP2>(o1,o2);
 }
 

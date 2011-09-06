@@ -69,9 +69,6 @@ namespace ims {
  * @c load(const std::string& fname, AlphabetParser<>* parser). If there is any 
  * error happened while loading data, @c IOException will be thrown. 
  * 
- * @see ComposedElement
- * 
- * @ingroup alphabet
  */
 class Alphabet {
 public:

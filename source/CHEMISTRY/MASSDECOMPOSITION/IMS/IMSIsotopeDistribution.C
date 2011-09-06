@@ -30,15 +30,15 @@
 #include <numeric>
 #include <iostream>
 #include <cmath>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 
 namespace OpenMS {
 
 namespace ims {
 
-IsotopeDistribution::size_type IsotopeDistribution::SIZE;
+IMSIsotopeDistribution::size_type IMSIsotopeDistribution::SIZE;
 
-IsotopeDistribution::abundance_type IsotopeDistribution::ABUNDANCES_SUM_ERROR;
+IMSIsotopeDistribution::abundance_type IMSIsotopeDistribution::ABUNDANCES_SUM_ERROR;
 
 /**
  * Constructor with single isotope. It sets isotopes consist of one entry 
@@ -50,7 +50,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
 }
 */
 
-IsotopeDistribution& IsotopeDistribution::operator =(const IsotopeDistribution& distribution)
+IMSIsotopeDistribution& IMSIsotopeDistribution::operator =(const IMSIsotopeDistribution& distribution)
 {
   if (this != &distribution)
   {
@@ -61,7 +61,7 @@ IsotopeDistribution& IsotopeDistribution::operator =(const IsotopeDistribution& 
 }
 
 
-bool IsotopeDistribution::operator ==(const IsotopeDistribution& distribution) const
+bool IMSIsotopeDistribution::operator ==(const IMSIsotopeDistribution& distribution) const
 {
 	return ( this == &distribution ||
           (peaks == distribution.peaks &&
@@ -69,13 +69,13 @@ bool IsotopeDistribution::operator ==(const IsotopeDistribution& distribution) c
 }
 
 
-bool IsotopeDistribution::operator !=(const IsotopeDistribution& distribution) const
+bool IMSIsotopeDistribution::operator !=(const IMSIsotopeDistribution& distribution) const
 {
 	return !this->operator==(distribution);
 }
 
 
-IsotopeDistribution& IsotopeDistribution::operator *=(const IsotopeDistribution& distribution)
+IMSIsotopeDistribution& IMSIsotopeDistribution::operator *=(const IMSIsotopeDistribution& distribution)
 {
 
   if (distribution.empty())
@@ -94,8 +94,8 @@ IsotopeDistribution& IsotopeDistribution::operator *=(const IsotopeDistribution&
 	setMinimumSize();
 	// creates a non-const equivalent of a const parameter - it's needed to 
 	// get non-const iterators out of it
-	IsotopeDistribution& non_const_distribution = 
-      const_cast<IsotopeDistribution&>(distribution);
+	IMSIsotopeDistribution& non_const_distribution = 
+      const_cast<IMSIsotopeDistribution&>(distribution);
 	non_const_distribution.setMinimumSize();
 
 	// sets up different iterators for an efficient folding:
@@ -150,7 +150,7 @@ IsotopeDistribution& IsotopeDistribution::operator *=(const IsotopeDistribution&
  * 
  * @return The distribution folded with itself @c power times.
  */
-IsotopeDistribution& IsotopeDistribution::operator *=(unsigned int power)
+IMSIsotopeDistribution& IMSIsotopeDistribution::operator *=(unsigned int power)
 {
   if (power <= 1)
   {
@@ -175,10 +175,10 @@ IsotopeDistribution& IsotopeDistribution::operator *=(unsigned int power)
 	}
 	
 	// initializes distribution which will folded iteratively upto each entry
-	IsotopeDistribution this_power_two_index(*this);
+	IMSIsotopeDistribution this_power_two_index(*this);
 	
 	// initializes result distribution where foldings will be collected
-	IsotopeDistribution result;
+	IMSIsotopeDistribution result;
 	
 	// starts folding based on binary representation
   if (binary[0])
@@ -203,7 +203,7 @@ IsotopeDistribution& IsotopeDistribution::operator *=(unsigned int power)
 
 }
 
-IsotopeDistribution::mass_type IsotopeDistribution::getAverageMass() const
+IMSIsotopeDistribution::mass_type IMSIsotopeDistribution::getAverageMass() const
 {
 	mass_type average_mass = 0.0;
   for (size_type i = 0; i < peaks.size(); ++i)
@@ -213,7 +213,7 @@ IsotopeDistribution::mass_type IsotopeDistribution::getAverageMass() const
 	return average_mass;
 }
 
-IsotopeDistribution::abundances_container IsotopeDistribution::getAbundances() const
+IMSIsotopeDistribution::abundances_container IMSIsotopeDistribution::getAbundances() const
 {
 	abundances_container _abundances;
   for (size_type i = 0; i < size(); ++i)
@@ -224,7 +224,7 @@ IsotopeDistribution::abundances_container IsotopeDistribution::getAbundances() c
 }
 
 
-IsotopeDistribution::masses_container IsotopeDistribution::getMasses() const
+IMSIsotopeDistribution::masses_container IMSIsotopeDistribution::getMasses() const
 {
 	masses_container _masses;
   for (size_type i = 0; i < size(); ++i)
@@ -235,7 +235,7 @@ IsotopeDistribution::masses_container IsotopeDistribution::getMasses() const
 }
 
 
-void IsotopeDistribution::normalize()
+void IMSIsotopeDistribution::normalize()
 {
 	abundance_type sum = 0.0;
   for (const_peaks_iterator cit = peaks.begin(); cit < peaks.end(); ++cit)
@@ -252,7 +252,7 @@ void IsotopeDistribution::normalize()
 	}
 }
 
-void IsotopeDistribution::setMinimumSize()
+void IMSIsotopeDistribution::setMinimumSize()
 {
   if (peaks.size() < SIZE)
   {
@@ -260,9 +260,9 @@ void IsotopeDistribution::setMinimumSize()
 	}
 }
 
-std::ostream& operator <<(std::ostream& os, const IsotopeDistribution& distribution)
+std::ostream& operator <<(std::ostream& os, const IMSIsotopeDistribution& distribution)
 {
-  for (IsotopeDistribution::size_type i = 0; i < distribution.size(); ++i)
+  for (IMSIsotopeDistribution::size_type i = 0; i < distribution.size(); ++i)
   {
 		os 	<< distribution.getMass(i) << ' ' 
         << distribution.getAbundance(i) 	<< '\n';

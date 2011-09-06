@@ -56,7 +56,6 @@ namespace ims {
  *
  * @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
  *
- * @ingroup alphabet
  */
 class Weights {
 public:
