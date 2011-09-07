@@ -116,9 +116,6 @@ elseif (MSVC)
 	## xerces bug workaround
 	add_definitions(/DOPENMS_XERCESDLL)
 
-	## removed: (GSL is static now) compile such that GSL is in DLL mode
-	#add_definitions(/DGSL_DLL)
-
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
@@ -298,8 +295,8 @@ message(STATUS "Contrib lib dir: ${CONTRIB_LIB_DIR}")
 ###							 find libs (for linking)								###
 ###########################################################
 ## on windows we need the *.lib versions (dlls alone won't do for linking)
-## Also we need to be very careful to link against the correct debug/release version in MSVC!
-## TODO: check if we also need to distinguish between compiler versions
+## On Windows: never mix Release/Debug versions of DLL's. Leads to strange segfaults, stack corruption etc... 
+##             compiler-wise: use the same compiler for contrib and OpenMS!
 
 #set which library extensions are preferred (we want static libraries)
 if(NOT MSVC)
@@ -312,6 +309,8 @@ endif()
 OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
 
 OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
+
+#OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpk" "GLPK")
 
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
 
@@ -601,6 +600,7 @@ set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADE
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
 set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_BOOST_IO} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB})
+#set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_BOOST_IO} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB} ${CONTRIB_GLPK})
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
