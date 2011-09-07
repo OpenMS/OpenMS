@@ -88,7 +88,7 @@ namespace OpenMS
 		//check if tool is in official tools list
     if (official && tool_name_!="GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
 		{
-			writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
+			writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
 		}
 	}
 
