@@ -67,12 +67,12 @@ public:
 	}
 
 protected:
-	void registerOptionsAndFlags_(const String& formats)
+	void registerOptionsAndFlags_(const String& file_formats)
 	{
 		registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks", true);
-		setValidFormats_("in", StringList::create(formats));
+		setValidFormats_("in", StringList::create(file_formats));
 		registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks", false);
-		setValidFormats_("out", StringList::create(formats));
+		setValidFormats_("out", StringList::create(file_formats));
 		registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks", false);
 		setValidFormats_("trafo_out", StringList::create("trafoXML"));
     addEmptyLine_();
