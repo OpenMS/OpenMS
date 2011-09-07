@@ -38,6 +38,7 @@ InspectAdapter
 InternalCalibration
 MapAligner
 MapAlignerIdentification
+MapAlignerPoseClustering
 MapNormalizer
 MapStatistics
 MascotAdapter

@@ -82,6 +82,7 @@ namespace OpenMS
 		tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
 		tools_map["MapAligner"] = Internal::ToolDescription("MapAligner", "Map Alignment", Factory<MapAlignmentAlgorithm>::registeredProducts());
 		tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
+		tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", "Map Alignment");
 		tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", "Signal processing and preprocessing");
     tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Identification");
     tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Identification");
