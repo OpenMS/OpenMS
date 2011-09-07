@@ -105,10 +105,10 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// returns the mono isotopic weight of the formula
+			/// returns the mono isotopic weight of the formula (includes proton charges)
 			DoubleReal getMonoWeight() const;
 
-			/// returns the average weight of the formula
+			/// returns the average weight of the formula (includes proton charges)
 			DoubleReal getAverageWeight() const;
 
 			/** @brief returns the isotope distribution of the formula
@@ -145,7 +145,7 @@ namespace OpenMS
 			/// sets the charge
 			void setCharge(SignedSize charge);
 
-			/// returns the formula as a string
+			/// returns the formula as a string (charges are not included)
 			String getString() const;
 			//@}
 

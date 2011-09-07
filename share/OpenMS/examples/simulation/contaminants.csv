@@ -3,13 +3,15 @@
 ##
 ## Valid column entries (separate by comma):
 ## Name:           compound name, quote commata!
-## SumFormula:     sum formula parsable by EmpiricalFormula class (see OpenMS docu - explicit isotopes are supported, e.g. "(2)H" )
-## RTStart, RTEnd: rt interval in seconds
+## SumFormula:     sum formula parsable by EmpiricalFormula class (see OpenMS docu - explicit isotopes are supported, e.g. "(2)H" ).
+##                 Explicit charges are NOT allowed, e.g. no '+' signs please
+## RTStart, RTEnd: RT interval in seconds
+## Charge:         any positive integer, usually between 1 and 4
 ## ProfileShape:   rec, gauss
-## IonSource:      ESI, MALDI, ALL
+## IonSource:      valid names: ESI, MALDI, ALL; during simulation contaminant is included depending on ionization type 
 ##
 ## COLUMNS:
-## Name, SumFormula,            RT_start, RT_end, Intensity, Charge, ProfileShape, IonSource
+## Name, SumFormula, RT_start, RT_end, Intensity, Charge, ProfileShape, IonSource
 ##
 ##
 ## Example:
