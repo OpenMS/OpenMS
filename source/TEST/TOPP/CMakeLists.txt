@@ -425,10 +425,10 @@ add_test("TOPP_MapAlignerIdentification_5" ${TOPP_BIN_PATH}/MapAlignerIdentifica
 add_test("TOPP_MapAlignerIdentification_5_out1" ${DIFF} -in1 MapAlignerIdentification_5_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output1.consensusXML)
 add_test("TOPP_MapAlignerIdentification_5_out2" ${DIFF} -in1 MapAlignerIdentification_5_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output2.consensusXML)
 # "spectrum_alignment" algorithm:
-add_test("TOPP_MapAligner_3" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_3_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_3_input1.mzML ${DATA_DIR_TOPP}/MapAligner_3_input2.mzML ${DATA_DIR_TOPP}/MapAligner_3_input3.mzML -out MapAligner_3_output1.tmp MapAligner_3_output2.tmp MapAligner_3_output3.tmp)
-add_test("TOPP_MapAligner_3_out1" ${DIFF} -in1 MapAligner_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output1.mzML)
-add_test("TOPP_MapAligner_3_out2" ${DIFF} -in1 MapAligner_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output2.mzML)
-add_test("TOPP_MapAligner_3_out3" ${DIFF} -in1 MapAligner_3_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output3.mzML)
+add_test("TOPP_MapAlignerSpectrum_1" ${TOPP_BIN_PATH}/MapAlignerSpectrum -test -ini ${DATA_DIR_TOPP}/MapAlignerSpectrum_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input1.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input2.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input3.mzML -out MapAlignerSpectrum_1_output1.tmp MapAlignerSpectrum_1_output2.tmp MapAlignerSpectrum_1_output3.tmp)
+add_test("TOPP_MapAlignerSpectrum_1_out1" ${DIFF} -in1 MapAlignerSpectrum_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output1.mzML)
+add_test("TOPP_MapAlignerSpectrum_1_out2" ${DIFF} -in1 MapAlignerSpectrum_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output2.mzML)
+add_test("TOPP_MapAlignerSpectrum_1_out3" ${DIFF} -in1 MapAlignerSpectrum_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output3.mzML)
 # "apply_given_trafo" algorithm:
 add_test("TOPP_MapAligner_4" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapAligner_4_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAligner_4_trafo2.trafoXML -out MapAligner_4_output1.tmp MapAligner_4_output2.tmp)
 add_test("TOPP_MapAligner_4_out1" ${DIFF} -in1 MapAligner_4_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output1.featureXML)

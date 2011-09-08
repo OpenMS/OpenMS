@@ -144,17 +144,25 @@ protected:
 			}
 		}
 		// check reference parameters:
-		Size reference_index = getIntOption_("reference:index");
-		String reference_file = getStringOption_("reference:file");
-		if (reference_index && !reference_file.empty())
+		Size reference_index = 0;
+		String reference_file = "";
+		if (getParam_().exists("reference:index"))
 		{
-			writeLog_("Error: 'reference:index' and 'reference:file' cannot be used together");
-			return ILLEGAL_PARAMETERS;
+			reference_index = getIntOption_("reference:index");
+			if (reference_index > ins.size())
+			{
+				writeLog_("Error: 'reference:index' must not be higher than the number of input files");
+				return ILLEGAL_PARAMETERS;
+			}
 		}
-		if (reference_index > ins.size())
+		if (getParam_().exists("reference:file"))
 		{
-			writeLog_("Error: 'reference:index' must not be higher than the number of input files");
-			return ILLEGAL_PARAMETERS;
+			reference_file = getStringOption_("reference:file");
+			if (reference_index && !reference_file.empty())
+			{
+				writeLog_("Error: 'reference:index' and 'reference:file' cannot be used together");
+				return ILLEGAL_PARAMETERS;
+			}
 		}
 
     //-------------------------------------------------------------

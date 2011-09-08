@@ -39,6 +39,7 @@ InternalCalibration
 MapAligner
 MapAlignerIdentification
 MapAlignerPoseClustering
+MapAlignerSpectrum
 MapNormalizer
 MapStatistics
 MascotAdapter
