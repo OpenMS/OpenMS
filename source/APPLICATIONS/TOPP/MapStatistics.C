@@ -516,7 +516,7 @@ class TOPPMapStatistics
 		String out = getStringOption_("out");
 
 		//output to command line
-		if (out == "")
+		if (out == "" || out == "-")
 		{
 			return outputTo(cout);
 		}
