@@ -39,6 +39,10 @@ using namespace std;
 	
 	@brief Extracts MS data from a %OpenMS database.
 	
+  @deprecated Deprecated in OpenMS 1.9
+
+  [Tool is no longer supported and will be removed in OpenMS 2.0]
+
 	Extracts arbitrary MS data (MS, LC-MS, MS/MS) from a %OpenMS database.
 	A single dataset can be exported by giving one id contained in the 'MSExperiment' table.
 	A query that returns several ids of the 'MSExperiment' table can be used to export several datasets at a time.

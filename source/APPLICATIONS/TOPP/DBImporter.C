@@ -38,6 +38,10 @@ using namespace std;
 	@page TOPP_DBImporter DBImporter
 	
 	@brief Imports an mzML file to an %OpenMS database.
+
+  @deprecated Deprecated in OpenMS 1.9
+
+  [Tool is no longer supported and will be removed in OpenMS 2.0]
 	
 	Besides the file to import, only the connection data has to be given.
 	The data can then be retrieved by the @ref TOPP_DBExporter.
