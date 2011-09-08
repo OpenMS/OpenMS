@@ -1,6 +1,8 @@
 ------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.9                                      ---- 
 ------------------------------------------------------------------------------------------ 
+Release date: October 2011
+
 
 OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefor all .ini files
 for 'typed' TOPP tools (i.e. with a type parameter) build with OpenMS 1.8 and below
