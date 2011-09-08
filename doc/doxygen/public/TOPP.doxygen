@@ -47,6 +47,7 @@
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
+	- @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
 
@@ -65,6 +66,7 @@
   <b>Quantitation</b>
   - @subpage TOPP_AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
+  - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC/MS maps.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in LC-MS data.
   - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in LC-MS data.
   - @subpage TOPP_FeatureFinderMRM - Detects two-dimensional features in LC-MS data.

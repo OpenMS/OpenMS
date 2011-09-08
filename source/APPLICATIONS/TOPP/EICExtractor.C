@@ -63,8 +63,28 @@ using namespace std;
 	</table>
 </CENTER>
 
-  Use this instead of FF if you have bad features (much noise etc) which are not recognized or
-  if you want to quantify non-peptides.	
+  Use this instead of FeatureFinder, if you have bad features  which are not recognized (much noise etc)
+	or if you want to quantify non-peptides.	
+
+	The EDTA file will specify where to search for signal. 
+	Retention time is in seconds [s].
+	'int' and 'charge' are ignored but need to be present. However, you MUST specify a 'rank' column. Rows with equal rank are
+	summed up in intensity (e.g. useful if you have charge variants you want to sum up to enhance quantitation robustness).
+	Each rank represents a so called Master Compound, which constists of one or more sub compounds.
+	
+Example:<br>
+	<pre>
+RT	m/z	int	charge	rank	
+19.2	431.8599024	0	0	1	
+21	678.7729237	0	0	2
+25	660.7629237	0	0	2
+59.2	431.8599024	0	0	3
+</pre>
+
+	Here, rows 2 and 3 will be summed up, as they have the same rank.
+
+	As output, two files in text format are given. The detail file gives RT and m/z deltas from expected to identified signal position etc, the sum file
+	represents the master compounds.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_EICExtractor.cli
