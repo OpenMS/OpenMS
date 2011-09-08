@@ -2,9 +2,20 @@
 ----                                  OpenMS 1.9                                      ---- 
 ------------------------------------------------------------------------------------------ 
 
+OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefor all .ini files
+for 'typed' TOPP tools (i.e. with a type parameter) build with OpenMS 1.8 and below
+are incompatible! To fix your old .ini files ....
+
 
 TOPP tools: 
+-ADDED:
+  - MapStatistics
+	- EICExtractor
+-MODIFIED:
   - Split NoiseFilter into NoiseFilterGaussian and NoiseFilterSGolay
+	- MascotAdapterOnline now supports Mascot 2.3 servers
+-REMOVED:
+  - AndiMS is no longer supported on any platform
  
 UTIL tools: 
 	 
@@ -18,13 +29,15 @@ TOPPView improvements:
     - added automatic labeling with peptide fragment sequence
     - theoretical spectrum is now hidden by default (labeling contains relevant information for most use cases)
     - automatic zoom to measured MS2 data range
+
 TOPPAS improvements: 
-	- TOPPAS now used the QT-Webkit framework to allow for interactive download of preconfigured TOPPAS pipelines.
+	- TOPPAS allows for interactive download of preconfigured TOPPAS pipelines from OpenMS homepage
+	- "Recycling" mode for nodes, useful for database input files (see docu for details)
 	 
 Changes to the Build System: 
 	- TOPPAS now requires Qt's Webkit library
 	- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE
-        - Removed ANDIMS and dependencies	
+  - Removed AndiMS, NetCDF and dependencies	
 	
 Fixed Issues: 
 	 
