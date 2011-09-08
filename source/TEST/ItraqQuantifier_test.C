@@ -61,7 +61,7 @@ START_SECTION((ItraqQuantifier(Int itraq_type)))
 {
   ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX);
 	TEST_EQUAL((String) iq.getParameters().getValue("isotope_correction")=="true", true);
-	TEST_EQUAL((Int) iq.getParameters().getValue("channel_reference"), 113);
+	TEST_EQUAL((Int) iq.getParameters().getValue("channel_reference"), 114);
   ItraqQuantifier iq2(ItraqQuantifier::FOURPLEX);
 	TEST_EQUAL((String) iq2.getParameters().getValue("isotope_correction")=="true", true);
 	TEST_EQUAL((Int) iq2.getParameters().getValue("channel_reference"), 114);

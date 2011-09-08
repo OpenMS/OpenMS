@@ -60,7 +60,7 @@ END_SECTION
 START_SECTION((ItraqChannelExtractor(Int itraq_type)))
 {
   ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX);
-	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("113:liver,117:lung"));
+	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("114:liver,117:lung"));
   ItraqChannelExtractor ice2(ItraqChannelExtractor::FOURPLEX);
 	TEST_EQUAL((StringList) ice2.getParameters().getValue("channel_active"), StringList::create("114:liver,117:lung"));
 }
@@ -76,7 +76,7 @@ START_SECTION((ItraqChannelExtractor(Int itraq_type, const Param &param)))
 	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("121:this is a test"));
 	
 	// this should go wrong
-	p.setValue("channel_active", StringList::create("120:channel non existant"));	
+	p.setValue("channel_active", StringList::create("120:channel non existent"));	
 	TEST_EXCEPTION(Exception::InvalidParameter, ItraqChannelExtractor ice2(ItraqChannelExtractor::EIGHTPLEX, p));	
 }
 END_SECTION
