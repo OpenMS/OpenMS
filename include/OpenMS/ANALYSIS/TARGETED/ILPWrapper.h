@@ -30,7 +30,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-class CoinModel;
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+
 namespace OpenMS
 {
 
@@ -150,7 +151,7 @@ namespace OpenMS
      */
     void solveILP_(std::vector<int>& solution_indices);
 
-		CoinModel* cmodel_;
+		LPWrapper* model_;
 		
   };
 

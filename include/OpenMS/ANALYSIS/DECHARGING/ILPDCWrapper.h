@@ -64,6 +64,13 @@ namespace OpenMS {
 														 const PairsIndex margin_right,
                              Size verbose_level);
 
+		DoubleReal computeSliceGLPK_(const MassExplainer& me,
+														 const FeatureMap<> fm,
+														 PairsType& pairs, 
+														 const PairsIndex margin_left, 
+														 const PairsIndex margin_right,
+                             Size verbose_level);
+
 		/// calculate a score for the i_th edge
 		DoubleReal getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm);
 

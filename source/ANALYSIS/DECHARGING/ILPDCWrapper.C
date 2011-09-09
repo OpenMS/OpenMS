@@ -40,6 +40,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 #ifdef _MSC_VER // disable some COIN-OR warnings that distract from ours
 #	pragma warning( push ) // save warning state
@@ -222,13 +224,23 @@ namespace OpenMS {
 #endif
     for	(SignedSize i=0; i<(SignedSize)bins.size(); ++i)
 		{
-			score += computeSlice_(me, fm, pairs, bins[i].first, bins[i].second, verbose_level);
+      PairsType pairs2 = pairs; 
+			// score += computeSlice_(me, fm, pairs, bins[i].first, bins[i].second, verbose_level);
+      StopWatch t1,t2;
+      t1.start();
+      computeSlice_(me, fm, pairs, bins[i].first, bins[i].second, verbose_level);
+      t1.stop();
+      std::cerr << "CoinOr "<< 	t1.getClockTime () << " "<<t1.getUserTime ()<< " " <<t1.getSystemTime ()<< " "<<t1.getCPUTime ()<<std::endl;
+      t2.start();
+      score += computeSliceGLPK_(me, fm, pairs2, bins[i].first, bins[i].second, verbose_level);
+      t2.stop();
+      std::cerr << "GLPK "<< 	t2.getClockTime () << " "<<t2.getUserTime ()<< " " <<t2.getSystemTime ()<< " "<<t2.getCPUTime ()<<std::endl;
 		}
     //score = computeSlice_(me, fm, pairs, 0, pairs.size()); // all at once - no bins
 
 		return score;
 	}
-		
+
 	DoubleReal ILPDCWrapper::computeSlice_(const MassExplainer& /*me*/,
 																			   const FeatureMap<> fm,
 																			   PairsType& pairs, 
@@ -402,7 +414,7 @@ namespace OpenMS {
     //build.writeMps ("Y:/datasets/simulated/coinor.mps");
     }
     */
-		
+			build.writeMps ("coinor.mps");
 		//---------------------------------------------------------------------------------------------------------
 		//----------------------------------------Solving and querying result--------------------------------------
 		//---------------------------------------------------------------------------------------------------------
@@ -495,6 +507,284 @@ namespace OpenMS {
 		}
 
 		DoubleReal opt_value = model.getObjValue();
+
+		//objective function value of optimal(?) solution
+		return opt_value;
+	} // !compute
+
+
+  
+	DoubleReal ILPDCWrapper::computeSliceGLPK_(const MassExplainer& /*me*/,
+																			   const FeatureMap<> fm,
+																			   PairsType& pairs, 
+																			   const PairsIndex margin_left, 
+																			   const PairsIndex margin_right,
+                                         Size verbose_level)
+	{
+
+// #ifdef COIN_HAS_CLP
+// 	  OsiClpSolverInterface solver;
+// #elif COIN_HAS_OSL
+// 	  OsiOslSolverInterface solver;
+// #endif
+		LPWrapper build;
+    build.setObjectiveSense(2); // maximize
+		//------------------------------------objective function-----------------------------------------------
+
+		// find maximal objective value
+		DoubleReal score = 0;
+		DoubleReal score_min=10e10f, score_max = -10e10f;
+
+		// fill in objective values 
+		std::ostringstream namebuf;
+
+		for (PairsIndex i=margin_left; i<margin_right; ++i)
+		{
+
+     //if(i==2797)
+     //{
+     //   ChargePair t =  pairs[i];
+     //   std::cout << "found";
+     // }
+			
+			// log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
+			// ... so we just add normal probabilities...
+      score = exp(getLogScore_(pairs[i], fm));
+			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
+			namebuf.str("");
+			namebuf<<"x#"<<i;
+			// create the new variable object
+      Int index = build.addColumn();
+      build.setColumnBounds(index,0,1,4);
+			build.setColumnType(index,2); // integer variable
+			build.setObjective(index, pairs[i].getEdgeScore());
+			if (score_min > score ) score_min = score;
+			if (score_max < score ) score_max = score;
+			
+			// DEBUG:
+			//std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
+		}
+		if (verbose_level > 2) LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
+
+		//------------------------------------adding constraints--------------------------------------------------
+
+		bool is_conflicting;
+		std::vector<int> conflict_idx(4);
+
+		for (PairsIndex i=margin_left; i<margin_right; ++i)
+		{
+			const Compomer& ci = pairs[i].getCompomer();
+	
+      // TODO: only go until next clique...
+			for (PairsIndex j=i+1; j<margin_right; ++j)
+			{
+				const Compomer& cj = pairs[j].getCompomer();
+				
+				is_conflicting = false;
+				// add pairwise constraints (one for each two conflicting ChargePairs)
+				// if features are identical they must have identical charges (because any single
+				// feature can only have one unique charge)
+
+        /*if(i==2796 && j==2797) // every conflict involving the missing edge...
+        {
+          std::cout << "debug point";
+        }*/
+
+				//outgoing edges (from one feature)
+				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(0))
+				{
+					if ( (pairs[i].getCharge(0) != pairs[j].getCharge(0))  ||
+							 ci.isConflicting(cj, Compomer::LEFT, Compomer::LEFT) )
+					{
+						is_conflicting = true;
+						++conflict_idx[0];
+					}
+				}
+
+				//incoming edges (into one feature)
+				if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(1))
+				{
+					if ( (pairs[i].getCharge(1) != pairs[j].getCharge(1))  ||
+							 ci.isConflicting(cj, Compomer::RIGHT, Compomer::RIGHT) )
+					{
+						is_conflicting = true;
+						++conflict_idx[1];
+					}
+				}
+
+				//incoming/outgoing edge (from one feature) 
+				if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(0))
+				{
+					if ( (pairs[i].getCharge(1) != pairs[j].getCharge(0))  ||
+							 ci.isConflicting(cj, Compomer::RIGHT, Compomer::LEFT) )
+					{
+						is_conflicting = true;
+						++conflict_idx[2];
+					}
+				}
+				
+				//incoming/outgoing edge (from one feature) -- this should only happen to additionally inferred edges
+				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(1))
+				{
+					if ( (pairs[i].getCharge(0) != pairs[j].getCharge(1))  ||
+							 ci.isConflicting(cj, Compomer::LEFT, Compomer::RIGHT) )
+					{
+						is_conflicting = true;
+						++conflict_idx[3];
+					}
+				}
+				
+								
+				if (is_conflicting)
+				{
+          /*if(i==150 || j==2797) // every conflict involving the missing edge...
+          {
+            ChargePair ti =  pairs[i];
+            ChargePair tj =  pairs[j];
+            
+            std::cout << "conflicting edge!";
+          }*/
+
+					String s = String("C") + i + "." + j;
+
+          // Now build rows: two variables, with indices 'columns', factors '1', and 0-1 bounds.
+          std::vector<double> element(2,1.0);
+					std::vector<int> columns;
+          columns.push_back(int(i-margin_left));
+          columns.push_back(int(j-margin_left));
+					build.addRow(columns, element,s, 0., 1.,4);
+				}
+			}
+		}
+		// // add rows into solver
+		// solver.loadFromCoinModel(build);
+    
+		if (verbose_level > 2) LOG_INFO << "node count: " << fm.size() << "\n";
+		if (verbose_level > 2) LOG_INFO << "edge count: " << pairs.size() << "\n";
+		if (verbose_level > 2) LOG_INFO << "constraint count: " << (conflict_idx[0]+conflict_idx[1]+conflict_idx[2]+conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
+
+    // DEBUG:
+		/*
+    {
+    TextFile conflict_map_out;
+		for (Map<Size, std::vector <Size> >::const_iterator it = conflict_map.begin(); it!= conflict_map.end(); ++it)
+		{
+			String s;
+			s = String(it->first) + ":";
+			for (Size i = 0; i<it->second.size(); ++i)
+			{
+				s+= " " + String(it->second[i]);
+			}
+			conflict_map_out.push_back(s);
+		}
+		conflict_map_out.store("c:/conflict_map.txt");
+		//get rid of memory blockers:
+		Map< Size, std::vector<Size> > tmp_map;
+		conflict_map.swap(tmp_map);
+
+    // write the model (for debug)
+    //build.writeMps ("Y:/datasets/simulated/coinor.mps");
+    }
+    */
+	
+		//---------------------------------------------------------------------------------------------------------
+		//----------------------------------------Solving and querying result--------------------------------------
+		//---------------------------------------------------------------------------------------------------------
+
+		// /* Now let MIP calculate a solution */
+		// // Pass to solver
+		// CbcModel model(solver);
+		// model.setObjSense(-1); // -1 = maximize, 1=minimize
+		// model.solver()->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+
+		// // Output details
+		// model.messageHandler()->setLogLevel( verbose_level > 1 ? 2 : 0);
+		// model.solver()->messageHandler()->setLogLevel( verbose_level > 1 ? 1 : 0);
+		
+		// //CglProbing generator1;
+		// //generator1.setUsingObjective(true);
+		// CglGomory generator2;
+		// generator2.setLimit(300);
+		// CglKnapsackCover generator3;
+		// CglOddHole generator4;
+		// generator4.setMinimumViolation(0.005);
+		// generator4.setMinimumViolationPer(0.00002);
+		// generator4.setMaximumEntries(200);
+		// CglClique generator5;
+		// generator5.setStarCliqueReport(false);
+		// generator5.setRowCliqueReport(false);
+		// //CglFlowCover flowGen;
+    // CglMixedIntegerRounding mixedGen;
+		
+		// // Add in generators (you should prefer the ones used often and disable the others as they increase solution time)
+		// //model.addCutGenerator(&generator1,-1,"Probing");
+		// model.addCutGenerator(&generator2,-1,"Gomory");
+		// model.addCutGenerator(&generator3,-1,"Knapsack");
+		// //model.addCutGenerator(&generator4,-1,"OddHole"); // seg faults...
+		// model.addCutGenerator(&generator5,-10,"Clique");
+		// //model.addCutGenerator(&flowGen,-1,"FlowCover");
+		// model.addCutGenerator(&mixedGen,-1,"MixedIntegerRounding");
+
+		// // Heuristics
+		// CbcRounding heuristic1(model);
+		// model.addHeuristic(&heuristic1);
+		// CbcHeuristicLocal heuristic2(model);
+		// model.addHeuristic(&heuristic2);
+
+		// // set maximum allowed CPU time before forced stop (dangerous!)
+		// //model.setDblParam(CbcModel::CbcMaximumSeconds,60.0*1);
+
+		// // Do initial solve to continuous
+		// model.initialSolve();
+		
+		
+		// solve
+		//double time1 = CoinCpuTime();
+		if (verbose_level > 0) LOG_INFO << "Starting to solve..." << std::endl;
+		//model.branchAndBound();
+    LPWrapper::SolverParam param;
+    param.enable_mir_cuts= false;
+    param.enable_cov_cuts= false;
+    param.enable_feas_pump_heuristic=false;
+    param.enable_binarization=false;
+    build.solve(param);
+		if (verbose_level > 0) LOG_INFO << " Branch and cut took " /*<< CoinCpuTime()-time1 << " seconds, "*/
+						                        // << model.getNodeCount()<<" nodes with objective "
+						                        // << model.getObjValue()
+						                        << (!build.getStatus() ? " Finished" : " Not finished")
+						                        << std::endl;
+
+
+
+		/* variable values */
+		UInt active_edges = 0;
+		Map < String, Size > count_cmp;
+
+      for (int iColumn=0; iColumn<build.getNumberOfColumns(); ++iColumn)
+        {
+          double value=build.getColumnValue(iColumn);
+          if (fabs(value)>0.5 && build.getColumnType(iColumn)==3) // 3 - binary variable
+            {
+              ++active_edges;
+              pairs[margin_left+iColumn].setActive(true);
+              // for statistical purposes: collect compomer distribution
+              String cmp = pairs[margin_left+iColumn].getCompomer().getAdductsAsString();
+              ++count_cmp[cmp];
+            }
+			else
+			{
+				// DEBUG
+				//std::cerr << " edge " << iColumn << " with " << value << "\n";
+			}
+		}
+		if (verbose_level > 2) LOG_INFO << "active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
+
+		for (Map < String, Size >::const_iterator it=count_cmp.begin(); it != count_cmp.end(); ++it)
+		{
+			//std::cout << "Cmp " << it->first << " x " << it->second << "\n";
+		}
+
+		DoubleReal opt_value = build.getObjectiveValue();
 
 		//objective function value of optimal(?) solution
 		return opt_value;

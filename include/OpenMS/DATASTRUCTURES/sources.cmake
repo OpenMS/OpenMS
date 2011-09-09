@@ -46,6 +46,7 @@ SuffixArraySeqan.h
 SuffixArrayTrypticCompressed.h
 SuffixArrayTrypticSeqan.h
 ToolDescription.h
+LPWrapper.h
 )
 
 ### add path to the filenames

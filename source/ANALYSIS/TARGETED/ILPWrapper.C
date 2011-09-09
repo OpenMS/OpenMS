@@ -25,7 +25,7 @@
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/TARGETED/ILPWrapper.h>
-
+//#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #ifdef _MSC_VER // disable some COIN-OR warnings that distract from ours
 #	pragma warning( push ) // save warning state
 #	pragma warning( disable : 4267 )
@@ -64,12 +64,12 @@ namespace OpenMS
 
 ILPWrapper::ILPWrapper()
 {
-		cmodel_ = new CoinModel();
+  //model_ = new LPWrapper();
 }
 
 ILPWrapper::~ILPWrapper()
 {
-		delete cmodel_;
+  //delete model_;
 }
 
 void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
@@ -79,17 +79,13 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 																		Size number_of_scans)
 {
 	Int counter = 0;
-	if(cmodel_->numberElements()!=0)
-	{
-			delete cmodel_;
-			cmodel_ = new CoinModel();
-	}
-
+  model_ = new LPWrapper();
+  //#define DEBUG_OPS	
 	std::cout << "Feature Based: Build model: first objective"<<std::endl;
 	///////////////////////////////////////////////////////////////////////
 	// add objective function
 	///////////////////////////////////////////////////////////////////////
-	cmodel_->setOptimizationDirection(-1); // maximize
+	model_->setObjectiveSense(2); // maximize
 	// max \sum_j x_jk * signal_jk
 	//                    column_index, feature_index,scan
 	
@@ -123,24 +119,26 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 					////////////////////////////////////////////////////////////////////////
 
 						
-					cmodel_->setColumnName(counter,(String("x_")+i+","+s).c_str());
+					
 #ifdef DEBUG_OPS
 					std::cout << "add column "<<counter << std::endl;
 #endif
 					IndexTriple triple;
 					triple.feature = i;
 					triple.scan = s;
-					triple.variable = counter;
+          Int index = model_->addColumn();
+          triple.variable = index;
 					variable_indices.push_back(triple);
-					cmodel_->setColumnUpper(counter,1.);
-					cmodel_->setColumnLower(counter,0.);
-					cmodel_->setColumnIsInteger(counter,true);
-					
+          
+          std::cout << index << " variable index"<<std::endl;
+          model_->setColumnBounds(index,0,1,4);
+          model_->setColumnType(index,3); // binary variable
+					model_->setColumnName(index,(String("x_")+i+","+s));
 #ifdef DEBUG_OPS	
 					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
 										<< intensity_weights[i][c] <<std::endl;
 #endif
-					cmodel_->setObjective(counter,intensity_weights[i][c]);
+					model_->setObjective(index,intensity_weights[i][c]);
 					++counter;
 					++c;
 				}
@@ -155,6 +153,7 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 	///////////////////////////////////////////////////////////////////////
 	// 1: ensure that each precursor is acquired maximally once
 	///////////////////////////////////////////////////////////////////////
+
 #ifdef DEBUG_OPS	
 	std::cout << "first the number of times a precursors is acquired"<<std::endl;
 #endif
@@ -173,8 +172,8 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 				}
 
 			Size stop = j;
-			double* entries = new double[stop-start];
-			int* indices = new int[stop-start];
+      std::vector<double> entries(stop-start);
+      std::vector<int> indices(stop-start);
 #ifdef DEBUG_OPS
 			std::cout << "feature "<<i <<" "<<features[i].getMZ() <<" "<<features[i].getRT()<<" ";
 			std::cout << stop-start<<"variables in equation\n";
@@ -184,7 +183,7 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 				{
 					entries[c] = 1.;
 					indices[c] = variable_indices[k].variable;
-					//					std::cout << j<<" "<<indices[j]<<std::endl;
+          std::cout << "indices["<<c<<"]= "<<indices[c]<<std::endl;
 					++c;
 				}
 #ifdef DEBUG_OPS
@@ -192,13 +191,13 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 #endif
 			String name = "PREC_ACQU_LIMIT_" + String(i);
 			
-			cmodel_->addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
+			model_->addRow(indices,entries,name,-1,1,3); // only upper bounded problem -> lower bound is ignored
+
 #ifdef DEBUG_OPS
 			std::cout << stop-start << " "<<name<<std::endl;
 			std::cout << "added row"<<std::endl;
 #endif
-      delete [] entries;
-      delete [] indices;
+      //#undef DEBUG_OPS
 			
 		}
 
@@ -227,8 +226,8 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 
 			Size stop = j;
 			Size c = 0;			
-			double* entries = new double[stop-start];
-			int* indices = new int[stop-start];
+      std::vector<double> entries(stop-start);
+      std::vector<int> indices(stop-start);
 			for(Size s = start; s < stop; ++s)
 				{
 					entries[c] = 1.;
@@ -238,19 +237,17 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
-			cmodel_->addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
+			model_->addRow(indices,entries,(String("RT_CAP")+i),0,ms2_spectra_per_rt_bin,3);// only upper bounded problem -> lower bound is ignored
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
-      delete [] entries;
-      delete [] indices;
 			
 		}
 
 
 
 #ifdef DEBUG_OPS	
-	cmodel_->writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
+	model_->writeProblem("/home/zerck/data/tmp/test_pis_problem.mps","MPS");
 #endif
 	
 	solveILP_(solution_indices);
@@ -264,32 +261,26 @@ void ILPWrapper::solveILP_(std::vector<int>& solution_indices)
   std::cout << "compute .." << std::endl;
 #endif
 	
-#ifdef COIN_HAS_CLP
-  OsiClpSolverInterface solver;
-#elif COIN_HAS_OSL
-  OsiOslSolverInterface solver;
-#endif
-
 	// test if model exists
-	if(cmodel_->numberElements()==0)
+	if(model_->getNumberOfColumns()==0)
 		{
 			std::cout << "Model is empty." <<std::endl;
 			return;
 		}
 	
-  // add rows into solver
-  solver.loadFromCoinModel(*cmodel_);
+  // // add rows into solver
+  // solver.loadFromCoinModel(*cmodel_);
 
-  /* Now let MIP calculate a solution */
-  // Pass to solver
-  CbcModel model(solver);
+  // /* Now let MIP calculate a solution */
+  // // Pass to solver
+  // CbcModel model(solver);
 
-  model.setObjSense(cmodel_->optimizationDirection()); // -1 = maximize, 1=minimize
-  model.solver()->setHintParam(OsiDoReducePrint,true,OsiHintTry);
+  // model.setObjSense(cmodel_->optimizationDirection()); // -1 = maximize, 1=minimize
+  // model.solver()->setHintParam(OsiDoReducePrint,true,OsiHintTry);
 
-  // Output details
-  model.messageHandler()->setLogLevel(2);
-  model.solver()->messageHandler()->setLogLevel(1);
+  // // Output details
+  // model.messageHandler()->setLogLevel(2);
+  // model.solver()->messageHandler()->setLogLevel(1);
 		
 		
 //   CglProbing generator1;
@@ -330,37 +321,38 @@ void ILPWrapper::solveILP_(std::vector<int>& solution_indices)
   //		CbcCompareUser compare;
   //		model.setNodeComparison(compare);
 
-  model.setDblParam(CbcModel::CbcMaximumSeconds,60.0*1);
+  // model.setDblParam(CbcModel::CbcMaximumSeconds,60.0*1);
 
-  // Do initial solve to continuous
-  model.initialSolve();
+  // // Do initial solve to continuous
+  // model.initialSolve();
 		
 		
-  // solve
-#ifdef DEBUG_OPS	
-  double time1 = CoinCpuTime();
-	std::cout << "starting to solve..." << std::endl;
-#endif
-  model.branchAndBound();
-#ifdef DEBUG_OPS	
-  std::cout<<" Branch and cut took "<<CoinCpuTime()-time1<<" seconds, "
-	   <<model.getNodeCount()<<" nodes with objective "
-	   <<model.getObjValue()
-	   <<(!model.status() ? " Finished" : " Not finished")
-	   <<std::endl;
+  // // solve
+// #ifdef DEBUG_OPS	
+//   double time1 = CoinCpuTime();
+// 	std::cout << "starting to solve..." << std::endl;
+// #endif
+//   model.branchAndBound();
+// #ifdef DEBUG_OPS	
+//   std::cout<<" Branch and cut took "<<CoinCpuTime()-time1<<" seconds, "
+// 	   <<model.getNodeCount()<<" nodes with objective "
+// 	   <<model.getObjValue()
+// 	   <<(!model.status() ? " Finished" : " Not finished")
+// 	   <<std::endl;
 
-	// best_solution
-	std::cout << model.solver()->getNumCols()<<" columns has solution"<<std::endl;
-#endif
-	const double * solution = model.solver()->getColSolution();
+// 	// best_solution
+// 	std::cout << model.solver()->getNumCols()<<" columns has solution"<<std::endl;
+// #endif
+  LPWrapper::SolverParam param;
+  model_->solve(param);
 
-	for (int column=0; column<model.solver()->getNumCols(); ++column)
+	for (Size column=0; column<model_->getNumberOfColumns(); ++column)
 		{
-			double value=solution[column];
-			if (fabs(value)>0.5 && model.solver()->isInteger(column))
+			double value=model_->getColumnValue(column);
+			if (fabs(value)>0.5 && model_->getColumnType(column)==3) // 3 - binary variable
 				{
 #ifdef DEBUG_OPS	
-					std::cout << cmodel_->getColumnName(column)<<" is in optimal solution"<<std::endl;
+					std::cout << model_->getColumnName(column)<<" is in optimal solution"<<std::endl;
 #endif
 					solution_indices.push_back(column);
 				}
