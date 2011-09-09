@@ -6,7 +6,7 @@ set(sources_list
 PrecursorIonSelectionPreprocessing.C
 PrecursorIonSelection.C
 OfflinePrecursorIonSelection.C
-ILPWrapper.C
+PSLPFormulation.C
 IncludeExcludeTarget.C
 TargetedExperiment.C
 InclusionExclusionList.C

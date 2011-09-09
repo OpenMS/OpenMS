@@ -6,7 +6,7 @@ set(sources_list_h
 PrecursorIonSelectionPreprocessing.h
 PrecursorIonSelection.h
 OfflinePrecursorIonSelection.h
-ILPWrapper.h
+PSLPFormulation.h
 IncludeExcludeTarget.h
 TargetedExperiment.h
 InclusionExclusionList.h

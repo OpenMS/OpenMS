@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/ANALYSIS/TARGETED/ILPWrapper.h>
+#include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 
 namespace OpenMS
 {
@@ -54,7 +54,7 @@ namespace OpenMS
   class OPENMS_DLLAPI OfflinePrecursorIonSelection: public DefaultParamHandler
   {
   public:
-		typedef ILPWrapper::IndexTriple IndexTriple;
+		typedef PSLPFormulation::IndexTriple IndexTriple;
 
     OfflinePrecursorIonSelection();
     virtual ~OfflinePrecursorIonSelection();
@@ -263,7 +263,7 @@ namespace OpenMS
 		if(feature_based)
 		{
 			// create ILP
-			ILPWrapper ilp_wrapper;
+			PSLPFormulation ilp_wrapper;
 
 			std::vector<IndexTriple> variable_indices;
 			std::vector<int> solution_indices;
@@ -272,7 +272,7 @@ namespace OpenMS
 																															 param_.getValue("ms2_spectra_per_rt_bin"),
 																															 solution_indices);
 
-			sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::IndexLess());
+			sort(variable_indices.begin(),variable_indices.end(),PSLPFormulation::IndexLess());
 #ifdef DEBUG_OPS
 			std::cout << "best_solution "<<std::endl;
 #endif

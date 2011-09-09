@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_ILPWRAPPER_H
-#define OPENMS_ANALYSIS_TARGETED_ILPWRAPPER_H
+#ifndef OPENMS_ANALYSIS_TARGETED_PSLPFORMULATION_H
+#define OPENMS_ANALYSIS_TARGETED_PSLPFORMULATION_H
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -39,15 +39,15 @@ namespace OpenMS
 		 @brief Implements ILP formulation of precursor selection problems
 		 
   */
-  class OPENMS_DLLAPI ILPWrapper
+  class OPENMS_DLLAPI PSLPFormulation
   { 
 
 	
 
   public:
 	
-		ILPWrapper();
-    virtual ~ILPWrapper();
+		PSLPFormulation();
+    virtual ~PSLPFormulation();
 
 		/**
 			 @brief Struct that holds the indices of the precursors in the feature map and the ilp formulation.
@@ -156,7 +156,7 @@ namespace OpenMS
   };
 
 	template <typename InputPeakType>
-	void ILPWrapper::getXIC_(const std::vector<std::pair<Size,Size> >& end_points,
+	void PSLPFormulation::getXIC_(const std::vector<std::pair<Size,Size> >& end_points,
 													 std::vector<DoubleReal>& weights,
                            const MSExperiment<InputPeakType>& experiment,
                            const bool normalize)
@@ -193,7 +193,7 @@ namespace OpenMS
 	}
 
 	template <typename InputPeakType>
-	void ILPWrapper::calculateXICs_(std::vector<std::vector<DoubleReal> >& xics,
+	void PSLPFormulation::calculateXICs_(std::vector<std::vector<DoubleReal> >& xics,
                                   const FeatureMap<>& features,
 																	const MSExperiment<InputPeakType>& experiment,
 																	const std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
@@ -208,7 +208,7 @@ namespace OpenMS
 	}
 
 	template <typename InputPeakType>
-	void ILPWrapper::createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<>& features,
+	void PSLPFormulation::createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<>& features,
                                                                 const MSExperiment<InputPeakType>& experiment,
 																																std::vector<IndexTriple>& variable_indices,
 																																std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
@@ -230,4 +230,4 @@ namespace OpenMS
 
 } // namespace
 
-#endif // OPENMS_ANALYSIS_ID_ILPWRAPPER_H
+#endif // OPENMS_ANALYSIS_ID_PSLPFORMULATION_H

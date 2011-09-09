@@ -343,7 +343,7 @@ set(analysis_executables_list
 	IDDecoyProbability_test
 	IDMapper_test
   ILPDCWrapper_test
-	ILPWrapper_test
+	PSLPFormulation_test
 	ItraqChannelExtractor_test
 	ItraqConstants_test
 	ItraqQuantifier_test

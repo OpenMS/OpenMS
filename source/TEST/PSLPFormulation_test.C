@@ -31,28 +31,28 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/TARGETED/ILPWrapper.h>
+#include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(ILPWrapper, "$Id$")
+START_TEST(PSLPFormulation, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ILPWrapper* ptr = 0;
-ILPWrapper* nullPointer = 0;
-START_SECTION(ILPWrapper())
+PSLPFormulation* ptr = 0;
+PSLPFormulation* nullPointer = 0;
+START_SECTION(PSLPFormulation())
 {
-	ptr = new ILPWrapper();
+	ptr = new PSLPFormulation();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~ILPWrapper())
+START_SECTION(~PSLPFormulation())
 {
 	delete ptr;
 }
@@ -66,15 +66,15 @@ START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnow
 	
 	FeatureMap<> features;
 	MSExperiment<> exp;
-	std::vector<ILPWrapper::IndexTriple > variable_indices;
+	std::vector<PSLPFormulation::IndexTriple > variable_indices;
 	std::vector<std::vector<std::pair<Size,Size> > > mass_ranges;
-	ILPWrapper wrapper;
+	PSLPFormulation wrapper;
 	FeatureMap<> map;
 
   std::vector<int> solution_indices;
 
   // test empty input
-	ILPWrapper wrapper2;
+	PSLPFormulation wrapper2;
   wrapper2.createAndSolveILPForKnownLCMSMapFeatureBased(features,exp,variable_indices,mass_ranges,charges_set,1,solution_indices);
 	TEST_EQUAL(variable_indices.size(),0)
 	TEST_EQUAL(solution_indices.size(),0)
@@ -95,39 +95,39 @@ START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnow
 }
 END_SECTION
 		
-START_SECTION(([ILPWrapper::IndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+START_SECTION(([PSLPFormulation::IndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
 {
-  ILPWrapper::IndexTriple a,b;
+  PSLPFormulation::IndexTriple a,b;
   a.variable = 1;
   b.variable = 2;
 
-  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(a,b), true )
-  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(b,a), false )
-  TEST_EQUAL(ILPWrapper::IndexLess().operator ()(a,a), false )
+  TEST_EQUAL(PSLPFormulation::IndexLess().operator ()(a,b), true )
+  TEST_EQUAL(PSLPFormulation::IndexLess().operator ()(b,a), false )
+  TEST_EQUAL(PSLPFormulation::IndexLess().operator ()(a,a), false )
 }
 END_SECTION
 
-START_SECTION(([ILPWrapper::ScanLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+START_SECTION(([PSLPFormulation::ScanLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
 {
-  ILPWrapper::IndexTriple a,b;
+  PSLPFormulation::IndexTriple a,b;
   a.scan = 1;
   b.scan = 2;
 
-  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(a,b), true )
-  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(b,a), false )
-  TEST_EQUAL(ILPWrapper::ScanLess().operator ()(a,a), false )
+  TEST_EQUAL(PSLPFormulation::ScanLess().operator ()(a,b), true )
+  TEST_EQUAL(PSLPFormulation::ScanLess().operator ()(b,a), false )
+  TEST_EQUAL(PSLPFormulation::ScanLess().operator ()(a,a), false )
 }
 END_SECTION
 
-START_SECTION(([ILPWrapper::VariableIndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
+START_SECTION(([PSLPFormulation::VariableIndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
 {
-  ILPWrapper::IndexTriple a,b;
+  PSLPFormulation::IndexTriple a,b;
   a.variable = 1;
   b.variable = 2;
 
-  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(a,b), true )
-  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(b,a), false )
-  TEST_EQUAL(ILPWrapper::VariableIndexLess().operator ()(a,a), false )
+  TEST_EQUAL(PSLPFormulation::VariableIndexLess().operator ()(a,b), true )
+  TEST_EQUAL(PSLPFormulation::VariableIndexLess().operator ()(b,a), false )
+  TEST_EQUAL(PSLPFormulation::VariableIndexLess().operator ()(a,a), false )
 }
 END_SECTION
 

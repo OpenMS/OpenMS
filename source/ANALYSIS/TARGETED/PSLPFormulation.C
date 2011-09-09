@@ -24,55 +24,23 @@
 // $Maintainer: Alexandra Zerck $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
-#include <OpenMS/ANALYSIS/TARGETED/ILPWrapper.h>
-//#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#ifdef _MSC_VER // disable some COIN-OR warnings that distract from ours
-#	pragma warning( push ) // save warning state
-#	pragma warning( disable : 4267 )
-#else
-# pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-// useful docu: https://projects.coin-or.org/Cbc
-// useful example: https://projects.coin-or.org/Cbc/browser/trunk/Cbc/examples/sample5.cpp
-// Cuts
-
-// #include "coin/CglGomory.hpp"
-// #include "coin/CglProbing.hpp"
-// #include "coin/CglKnapsackCover.hpp"
-// #include "coin/CglOddHole.hpp"
-// #include "coin/CglClique.hpp"
-// #include "coin/CglFlowCover.hpp"
-// #include "coin/CglMixedIntegerRounding.hpp"
-
-// Heuristics
-#include "coin/CbcHeuristic.hpp"
-#include "coin/CbcHeuristicLocal.hpp"
-#include "coin/CbcConfig.h"
-#include "coin/CbcModel.hpp"
-#include "coin/CoinModel.hpp"
-#include "coin/OsiClpSolverInterface.hpp"
-#include "coin/CoinTime.hpp"
-#ifdef _MSC_VER
-#	pragma warning( pop )  // restore old warning state
-#else
-# pragma GCC diagnostic warning "-Wunused-parameter"
-#endif
+#include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 
 namespace OpenMS
 {
 
 
-ILPWrapper::ILPWrapper()
+PSLPFormulation::PSLPFormulation()
 {
   //model_ = new LPWrapper();
 }
 
-ILPWrapper::~ILPWrapper()
+PSLPFormulation::~PSLPFormulation()
 {
   //delete model_;
 }
 
-void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
+void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
 																		std::set<Int>& charges_set,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																		std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
 																		UInt ms2_spectra_per_rt_bin,
@@ -255,7 +223,7 @@ void ILPWrapper::createAndSolveILP_(const FeatureMap<>& features,std::vector<std
 
 
 
-void ILPWrapper::solveILP_(std::vector<int>& solution_indices)
+void PSLPFormulation::solveILP_(std::vector<int>& solution_indices)
 {
 #ifdef DEBUG_OPS	
   std::cout << "compute .." << std::endl;
