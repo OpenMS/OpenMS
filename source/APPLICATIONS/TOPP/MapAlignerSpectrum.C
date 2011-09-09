@@ -89,13 +89,12 @@ protected:
 		String formats = "mzML";
 		TOPPMapAlignerBase::registerOptionsAndFlags_(formats);
 		// no support for a reference file yet
-
+		registerModelOptions_();
 		registerSubsection_("algorithm", "Algorithm parameters section");
 	}
 
 	Param getSubsectionDefaults_(const String& /* section */ ) const
 	{
-		String type = "spectrum_alignment";
 		MapAlignmentAlgorithmSpectrumAlignment algo;
 		Param tmp = algo.getParameters();
 		return tmp;

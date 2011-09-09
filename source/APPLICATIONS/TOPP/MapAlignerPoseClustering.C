@@ -37,9 +37,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_MapAlignerPoseClustering MapAlignerPoseClustering
+	 @page TOPP_MapAlignerPoseClustering MapAlignerPoseClustering
 
-		@brief Corrects retention time distortions between maps, using a pose clustering approach.
+	 @brief Corrects retention time distortions between maps, using a pose clustering approach.
 
 <CENTER>
 	<table>
@@ -55,7 +55,7 @@ using namespace std;
 	</table>
 </CENTER>
 
-	This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them.
+  This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them.
 
 	The alignment algorithm implemented here is the pose clustering algorithm as described in doi:10.1093/bioinformatics/btm209. It is used to find an affine transformation, which is further refined by a feature grouping step. This algorithm can be applied to features (featureXML) and peaks (mzML), but it has mostly been developed and tested on features.
 	For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
@@ -93,13 +93,12 @@ protected:
 		setValidFormats_("reference:file", StringList::create(formats));
 		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
 		setMinInt_("reference:index", 0);
-
+		registerModelOptions_();
 		registerSubsection_("algorithm", "Algorithm parameters section");
 	}
 
 	Param getSubsectionDefaults_(const String& /* section */ ) const
 	{
-		String type = "pose_clustering";
 		MapAlignmentAlgorithmPoseClustering algo;
 		Param tmp = algo.getParameters();
 		return tmp;
@@ -108,6 +107,7 @@ protected:
 	ExitCodes main_(int, const char**)
 	{
 		MapAlignmentAlgorithmPoseClustering algorithm;
+		handle_reference_(&algorithm);
 		return TOPPMapAlignerBase::common_main_(&algorithm);
 	}
 };

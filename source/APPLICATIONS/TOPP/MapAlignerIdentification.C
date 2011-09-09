@@ -99,13 +99,12 @@ protected:
 		setValidFormats_("reference:file", StringList::create(formats));
 		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will use an average of all inputs as reference.", false);
 		setMinInt_("reference:index", 0);
-
+		registerModelOptions_();
 		registerSubsection_("algorithm", "Algorithm parameters section");
 	}
 
 	Param getSubsectionDefaults_(const String& /* section */ ) const
 	{
-		String type = "identification";
 		MapAlignmentAlgorithmIdentification algo;
 		Param tmp = algo.getParameters();
 		return tmp;
@@ -114,6 +113,7 @@ protected:
 	ExitCodes main_(int, const char**)
 	{
 		MapAlignmentAlgorithmIdentification algorithm;
+		handle_reference_(&algorithm);
 		return TOPPMapAlignerBase::common_main_(&algorithm);
 	}
 };

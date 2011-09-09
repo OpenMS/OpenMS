@@ -40,7 +40,7 @@ using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -69,7 +69,7 @@ public:
 protected:
 	void registerOptionsAndFlags_(const String& file_formats)
 	{
-		registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks", true);
+		registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
 		setValidFormats_("in", StringList::create(file_formats));
 		registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks", false);
 		setValidFormats_("out", StringList::create(file_formats));
@@ -78,7 +78,11 @@ protected:
     addEmptyLine_();
 		addText_("This tool takes a number of input files, aligns them and writes the results to the output files.");
 		addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
+	}
 
+	
+	void registerModelOptions_()
+	{
 		registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
 		registerStringOption_("model:type", "<name>", "default", "Type of model ('default' depends on the selected algorithm and also sets the model parameters below!)", false);
 		StringList model_types;
@@ -96,6 +100,29 @@ protected:
 																		interpolation_types.end(), "polynomial"); 
 		interpolation_types.erase(pos); 
 		setValidStrings_("model:interpolation_type", interpolation_types);
+	}
+
+
+	void handle_reference_(MapAlignmentAlgorithm* alignment)
+	{
+		// note: this function is in the base class to avoid code duplication, but
+		// it only makes sense for some derived classes - don't call the function
+		// in a class that doesn't support a reference!
+
+		// check reference parameters:
+		Size reference_index = getIntOption_("reference:index");
+		String reference_file = getStringOption_("reference:file");
+		if (reference_index > getStringList_("in").size())
+		{
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' must not be higher than the number of input files");
+		}
+		if (reference_index && !reference_file.empty())
+		{
+			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' and 'reference:file' cannot be used together");
+		}
+
+		// pass the reference parameters on to the algorithm:
+		alignment->setReference(reference_index, reference_file);
 	}
 
 
@@ -143,46 +170,15 @@ protected:
 				return ILLEGAL_PARAMETERS;
 			}
 		}
-		// check reference parameters:
-		Size reference_index = 0;
-		String reference_file = "";
-		if (getParam_().exists("reference:index"))
-		{
-			reference_index = getIntOption_("reference:index");
-			if (reference_index > ins.size())
-			{
-				writeLog_("Error: 'reference:index' must not be higher than the number of input files");
-				return ILLEGAL_PARAMETERS;
-			}
-		}
-		if (getParam_().exists("reference:file"))
-		{
-			reference_file = getStringOption_("reference:file");
-			if (reference_index && !reference_file.empty())
-			{
-				writeLog_("Error: 'reference:index' and 'reference:file' cannot be used together");
-				return ILLEGAL_PARAMETERS;
-			}
-		}
 
     //-------------------------------------------------------------
     // set up alignment algorithm
     //-------------------------------------------------------------
 		Param alignment_param = getParam_().copy("algorithm:", true);
-		String type = alignment->getName();
-
-		if (type == "apply_given_trafo")
-		{ // fill params of algorithm that were bumped up to commandline level
-			alignment_param.setValue("transformations", getStringList_("trafo_in"));
-      alignment_param.setValue("invert", getFlag_("invert") ? "true" : "false");
-		}
 
 		writeDebug_("Used alignment parameters", alignment_param, 3);
 		alignment->setParameters(alignment_param);
 		alignment->setLogType(log_type_);
-
-		// pass the reference parameters on to the algorithm:
-		alignment->setReference(reference_index, reference_file);
 
 		// get parameters for the model:
 		if (model_type == "default")
@@ -213,7 +209,7 @@ protected:
 			}
 			catch (Exception::NotImplemented&)
 			{
-				writeLog_("Error: The algorithm '" + type + "' cannot be used for peak data!");
+				writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for peak data!");
 				return INTERNAL_ERROR;
 			}
 			if (model_type != "none")
@@ -259,7 +255,7 @@ protected:
 			}
 			catch (Exception::NotImplemented&)
 			{
-				writeLog_("Error: The algorithm '" + type + "' cannot be used for feature data!");
+				writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for feature data!");
 				return INTERNAL_ERROR;
 			}
 			if (model_type != "none")
@@ -305,7 +301,7 @@ protected:
 			}
 			catch (Exception::NotImplemented&)
 			{
-				writeLog_("Error: The algorithm '" + type + "' cannot be used for consensus feature data!");
+				writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for consensus feature data!");
 				return INTERNAL_ERROR;
 			}
 			if (model_type != "none")
@@ -343,8 +339,7 @@ protected:
 			for (Size i = 0; i < ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
-				String document_id;
-		    f.load( ins[i], protein_ids_vec[i], peptide_ids_vec[i], document_id);
+		    f.load(ins[i], protein_ids_vec[i], peptide_ids_vec[i]);
 			}
 			progresslogger.endProgress();
 
@@ -355,7 +350,7 @@ protected:
 			}
 			catch (Exception::NotImplemented&)
 			{
-				writeLog_("Error: The algorithm '" + type + "' cannot be used for peptide data!");
+				writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for peptide data!");
 				return INTERNAL_ERROR;
 			}
 			if (model_type != "none")
@@ -381,7 +376,7 @@ protected:
 			return ILLEGAL_PARAMETERS;
 		}
 
-		if (trafos.size() != 0)
+		if (!trafos.empty())
 		{
 			for (Size i = 0; i < transformations.size(); ++i)
 			{
