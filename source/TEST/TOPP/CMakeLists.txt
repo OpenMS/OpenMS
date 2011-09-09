@@ -78,10 +78,10 @@ IDRTCalibration
 ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
-"MapAligner -type apply_given_trafo"
-"MapAligner -type pose_clustering"
-"MapAligner -type spectrum_alignment"
+MapAlignerApplyTransformation
 MapAlignerIdentification
+MapAlignerPoseClustering
+MapAlignerSpectrum
 MapNormalizer
 MascotAdapter
 MascotAdapterOnline
@@ -429,15 +429,15 @@ add_test("TOPP_MapAlignerSpectrum_1" ${TOPP_BIN_PATH}/MapAlignerSpectrum -test -
 add_test("TOPP_MapAlignerSpectrum_1_out1" ${DIFF} -in1 MapAlignerSpectrum_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output1.mzML)
 add_test("TOPP_MapAlignerSpectrum_1_out2" ${DIFF} -in1 MapAlignerSpectrum_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output2.mzML)
 add_test("TOPP_MapAlignerSpectrum_1_out3" ${DIFF} -in1 MapAlignerSpectrum_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output3.mzML)
-# "apply_given_trafo" algorithm:
-add_test("TOPP_MapAligner_4" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapAligner_4_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAligner_4_trafo2.trafoXML -out MapAligner_4_output1.tmp MapAligner_4_output2.tmp)
-add_test("TOPP_MapAligner_4_out1" ${DIFF} -in1 MapAligner_4_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output1.featureXML)
-add_test("TOPP_MapAligner_4_out2" ${DIFF} -in1 MapAligner_4_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output2.featureXML)
-add_test("TOPP_MapAligner_5" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_5_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
-add_test("TOPP_MapAligner_5_out1" ${DIFF} -in1 MapAligner_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_5_output.mzML)
-# "apply_given_trafo" algorithm with "invert" option:
-add_test("TOPP_MapAligner_13" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -invert -in ${DATA_DIR_TOPP}/MapAligner_1_output2.featureXML -trafo_in ${DATA_DIR_TOPP}/MapAligner_1_trafo2.trafoXML -trafo_out MapAligner_13_output.tmp)
-add_test("TOPP_MapAligner_13_out1" ${DIFF} -in1 MapAligner_13_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_13_trafo.trafoXML)
+# "apply_transformation" algorithm:
+add_test("TOPP_MapAlignerApplyTransformation_1" ${TOPP_BIN_PATH}/MapAlignerApplyTransformation -test -in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_input.featureXML ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_trafo2.trafoXML -out MapAlignerApplyTransformation_1_output1.tmp MapAlignerApplyTransformation_1_output2.tmp)
+add_test("TOPP_MapAlignerApplyTransformation_1_out1" ${DIFF} -in1 MapAlignerApplyTransformation_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_output1.featureXML)
+add_test("TOPP_MapAlignerApplyTransformation_1_out2" ${DIFF} -in1 MapAlignerApplyTransformation_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_output2.featureXML)
+add_test("TOPP_MapAlignerApplyTransformation_2" ${TOPP_BIN_PATH}/MapAlignerApplyTransformation -test -in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_2_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_2_trafo.trafoXML -out MapAlignerApplyTransformation_2_output.tmp)
+add_test("TOPP_MapAlignerApplyTransformation_2_out1" ${DIFF} -in1 MapAlignerApplyTransformation_2_output.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_2_output.mzML)
+# "apply_transformation" algorithm with "invert" option:
+add_test("TOPP_MapAlignerApplyTransformation_3" ${TOPP_BIN_PATH}/MapAlignerApplyTransformation -test -invert -trafo_in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo2.trafoXML -trafo_out MapAlignerApplyTransformation_3_output.tmp)
+add_test("TOPP_MapAlignerApplyTransformation_3_out1" ${DIFF} -in1 MapAlignerApplyTransformation_3_output.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_3_trafo.trafoXML)
 
 ### MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)

@@ -11,13 +11,13 @@
 		<processingAction name="Baseline reduction" />
 	</dataProcessing>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
-		<software name="MapAligner" version="version_string" />
+		<software name="MapAlignerApplyTransformation" version="version_string" />
 		<processingAction name="Retention time alignment" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="3">
 		<feature id="f_0">
-			<position dim="0">2501</position>
+			<position dim="0">25</position>
 			<position dim="1">0</position>
 			<intensity>300</intensity>
 			<quality dim="0">0</quality>
@@ -30,7 +30,7 @@
 			</model>
 			<subordinate>
 				<feature id="f_0_0">
-					<position dim="0">2401</position>
+					<position dim="0">24</position>
 					<position dim="1">0</position>
 					<intensity>320</intensity>
 					<quality dim="0">0.1</quality>
@@ -39,7 +39,7 @@
 					<charge>1</charge>
 				</feature>
 				<feature id="f_0_1">
-					<position dim="0">2301</position>
+					<position dim="0">23</position>
 					<position dim="1">11</position>
 					<intensity>11320</intensity>
 					<quality dim="0">0.1</quality>
@@ -53,7 +53,7 @@
 			<userParam type="float" name="floatparametername" value="4.551"/>
 		</feature>
 		<feature id="f_1">
-			<position dim="0">2501</position>
+			<position dim="0">25</position>
 			<position dim="1">0</position>
 			<intensity>300</intensity>
 			<quality dim="0">0</quality>
@@ -66,7 +66,7 @@
 			</model>
 			<subordinate>
 				<feature id="f_1_0">
-					<position dim="0">2401</position>
+					<position dim="0">24</position>
 					<position dim="1">0</position>
 					<intensity>320</intensity>
 					<quality dim="0">0.1</quality>
@@ -75,7 +75,7 @@
 					<charge>1</charge>
 					<subordinate>
 						<feature id="f_1_0_0">
-							<position dim="0">2401</position>
+							<position dim="0">24</position>
 							<position dim="1">0</position>
 							<intensity>320</intensity>
 							<quality dim="0">0.1</quality>
@@ -84,7 +84,7 @@
 							<charge>1</charge>
 						</feature>
 						<feature id="f_1_0_1">
-							<position dim="0">2401</position>
+							<position dim="0">24</position>
 							<position dim="1">0</position>
 							<intensity>320</intensity>
 							<quality dim="0">0.1</quality>
@@ -93,7 +93,7 @@
 							<charge>1</charge>
 						</feature>
 						<feature id="f_1_0_2">
-							<position dim="0">2401</position>
+							<position dim="0">24</position>
 							<position dim="1">0</position>
 							<intensity>320</intensity>
 							<quality dim="0">0.1</quality>
@@ -102,7 +102,7 @@
 							<charge>1</charge>
 						</feature>
 						<feature id="f_1_0_3">
-							<position dim="0">2401</position>
+							<position dim="0">24</position>
 							<position dim="1">0</position>
 							<intensity>320</intensity>
 							<quality dim="0">0.1</quality>
@@ -111,7 +111,7 @@
 							<charge>1</charge>
 						</feature>
 						<feature id="f_1_0_4">
-							<position dim="0">2301</position>
+							<position dim="0">23</position>
 							<position dim="1">11</position>
 							<intensity>11320</intensity>
 							<quality dim="0">0.1</quality>
@@ -123,22 +123,22 @@
 								<param name="b" value="10"/>
 							</model>
 							<convexhull nr="0">
-								<pt x="151" y="1.8" />
-								<pt x="251" y="2.8" />
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 							<convexhull nr="1">
-								<pt x="151" y="1.8" />
-								<pt x="251" y="2.8" />
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 							<convexhull nr="2">
-								<pt x="151" y="1.8" />
-								<pt x="251" y="2.8" />
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 						</feature>
 					</subordinate>
 				</feature>
 				<feature id="f_1_1">
-					<position dim="0">2301</position>
+					<position dim="0">23</position>
 					<position dim="1">11</position>
 					<intensity>11320</intensity>
 					<quality dim="0">0.1</quality>
@@ -147,7 +147,7 @@
 					<charge>2</charge>
 					<subordinate>
 						<feature id="f_1_1_0">
-							<position dim="0">2401</position>
+							<position dim="0">24</position>
 							<position dim="1">0</position>
 							<intensity>320</intensity>
 							<quality dim="0">0.1</quality>
@@ -159,12 +159,12 @@
 								<param name="b" value="10"/>
 							</model>
 							<convexhull nr="0">
-								<pt x="151" y="1.8" />
-								<pt x="251" y="2.8" />
+								<pt x="1.5" y="1.8" />
+								<pt x="2.5" y="2.8" />
 							</convexhull>
 						</feature>
 						<feature id="f_1_1_1">
-							<position dim="0">2301</position>
+							<position dim="0">23</position>
 							<position dim="1">11</position>
 							<intensity>11320</intensity>
 							<quality dim="0">0.1</quality>
@@ -173,7 +173,7 @@
 							<charge>2</charge>
 							<subordinate>
 								<feature id="f_1_1_1_0">
-									<position dim="0">2401</position>
+									<position dim="0">24</position>
 									<position dim="1">0</position>
 									<intensity>320</intensity>
 									<quality dim="0">0.1</quality>
@@ -182,7 +182,7 @@
 									<charge>1</charge>
 								</feature>
 								<feature id="f_1_1_1_1">
-									<position dim="0">2301</position>
+									<position dim="0">23</position>
 									<position dim="1">11</position>
 									<intensity>11320</intensity>
 									<quality dim="0">0.1</quality>
@@ -191,7 +191,7 @@
 									<charge>2</charge>
 									<subordinate>
 										<feature id="f_1_1_1_1_0">
-											<position dim="0">2401</position>
+											<position dim="0">24</position>
 											<position dim="1">0</position>
 											<intensity>320</intensity>
 											<quality dim="0">0.1</quality>
@@ -203,12 +203,12 @@
 												<param name="b" value="10"/>
 											</model>
 											<convexhull nr="0">
-												<pt x="151" y="1.8" />
-												<pt x="251" y="2.8" />
+												<pt x="1.5" y="1.8" />
+												<pt x="2.5" y="2.8" />
 											</convexhull>
 										</feature>
 										<feature id="f_1_1_1_1_1">
-											<position dim="0">2301</position>
+											<position dim="0">23</position>
 											<position dim="1">11</position>
 											<intensity>11320</intensity>
 											<quality dim="0">0.1</quality>
@@ -228,7 +228,7 @@
 			<userParam type="float" name="floatparametername" value="4.551"/>
 		</feature>
 		<feature id="f_2">
-			<position dim="0">1</position>
+			<position dim="0">0</position>
 			<position dim="1">35</position>
 			<intensity>500</intensity>
 			<quality dim="0">0</quality>
@@ -240,8 +240,8 @@
 				<param name="b" value="10"/>
 			</model>
 			<convexhull nr="0">
-				<pt x="151" y="1.8" />
-				<pt x="251" y="2.8" />
+				<pt x="1.5" y="1.8" />
+				<pt x="2.5" y="2.8" />
 			</convexhull>
 		</feature>
 	</featureList>

@@ -36,7 +36,7 @@ IDRTCalibration
 ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
-MapAligner
+MapAlignerApplyTransformation
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
