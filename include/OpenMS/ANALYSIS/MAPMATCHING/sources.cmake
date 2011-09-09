@@ -17,7 +17,6 @@ MapAlignmentAlgorithm.h
 MapAlignmentAlgorithmIdentification.h
 MapAlignmentAlgorithmPoseClustering.h
 MapAlignmentAlgorithmSpectrumAlignment.h
-MapAlignmentAlgorithmApplyGivenTrafo.h
 MapAlignmentEvaluationAlgorithm.h
 MapAlignmentEvaluationAlgorithmPrecision.h
 MapAlignmentEvaluationAlgorithmRecall.h

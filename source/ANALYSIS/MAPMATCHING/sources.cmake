@@ -17,7 +17,6 @@ MapAlignmentAlgorithm.C
 MapAlignmentAlgorithmIdentification.C
 MapAlignmentAlgorithmPoseClustering.C
 MapAlignmentAlgorithmSpectrumAlignment.C
-MapAlignmentAlgorithmApplyGivenTrafo.C
 MapAlignmentEvaluationAlgorithm.C
 MapAlignmentEvaluationAlgorithmPrecision.C
 MapAlignmentEvaluationAlgorithmRecall.C
