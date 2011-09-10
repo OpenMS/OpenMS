@@ -274,22 +274,22 @@ if ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
   message(STATUS "If you want to set your own path to contrib use:")
 	message(STATUS "   cmake <..more options..> -D CONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\" \"${PROJECT_SOURCE_DIR}\"")
 else()
-  get_filename_component(CONTRIB_CUSTOM_DIR_PATH ${CONTRIB_CUSTOM_DIR} ABSOLUTE)
-	set(CONTRIB_DIR ${CONTRIB_CUSTOM_DIR_PATH})
-	message(STATUS "Using user defined contrib directory: ${CONTRIB_CUSTOM_DIR_PATH}")
+  # transform into absolute pathes
+  set(CONTRIB_DIR "")
+  foreach(CUSTOM_PATH ${CONTRIB_CUSTOM_DIR})
+    get_filename_component(CONTRIB_CUSTOM_DIR_PATH ${CUSTOM_PATH} ABSOLUTE)
+    list(APPEND CONTRIB_DIR ${CONTRIB_CUSTOM_DIR_PATH})
+  endforeach()
+
+  message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-# maybe we should change this method to a more robust one
-FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.7.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
-
-if ("${CONTRIB_CONFIRM_DIR}" STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
-	message(FATAL_ERROR "Error finding the contrib! Either\n  - The path to the Contrib binary(!) directory is not correct (we looked at '${CONTRIB_DIR}')\n  - You need to compile the contrib first!\n  - You need to update your contrib!\nNote: If you are using a relative path to your Contrib binary directory, it must be relative to the OpenMS source directory!")
-endif()
-
-set(CONTRIB_INCLUDE_DIR ${CONTRIB_DIR}/include/ CACHE INTERNAL "contrib include dir")
-set(CONTRIB_LIB_DIR ${CONTRIB_DIR}/lib/ CACHE INTERNAL "contrib lib dir")
-
-message(STATUS "Contrib lib dir: ${CONTRIB_LIB_DIR}")
+set(CONTRIB_INCLUDE_DIR "" CACHE INTERNAL "contrib include dir")
+set(CONTRIB_LIB_DIR "" CACHE INTERNAL "contrib lib dir")
+foreach(CONTRIB_PATH ${CONTRIB_DIR})
+  list(APPEND CONTRIB_INCLUDE_DIR ${CONTRIB_PATH}/include/)
+  list(APPEND CONTRIB_LIB_DIR ${CONTRIB_PATH}/lib/)
+endforeach()
 
 ###########################################################
 ###							 find libs (for linking)								###
@@ -313,6 +313,7 @@ OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
 OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpk" "GLPK")
 
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
+OPENMS_CHECKLIB(SVM_LIBRARY "svm;libsvm" "svmd;svm;libsvm" "LibSVM")
 
 OPENMS_CHECKLIB(CONTRIB_CBC1 "libCbc;Cbc" "libCbcd;Cbc" "COIN-OR Cbc")
 OPENMS_CHECKLIB(CONTRIB_CBC2 "libCgl;Cgl" "libCgld;Cgl" "COIN-OR Cgl")
@@ -325,16 +326,7 @@ set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} 
 OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;z" "ZLIB")
 OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;bz2" "BZIP2")
 
-## libSVM
-if (MSVC)
-	## we created a lib here, because we cannot just add an object ...
-	OPENMS_CHECKLIB(SVM_LIBRARY "svm" "svmd" "LibSVM")
-else()
-	## there is no FIND_OBJECT ... so just hard-code it (FIND_LIBRARY won't work)
-	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
-endif()
-
-if (MSVC)
+if(MSVC)
 	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
 	link_directories(${CONTRIB_LIB_DIR})
 endif()
