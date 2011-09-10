@@ -81,18 +81,21 @@ protected:
 	}
 
 	
-	void registerModelOptions_()
+	void registerModelOptions_(const String& default_model)
 	{
 		registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
-		registerStringOption_("model:type", "<name>", "default", "Type of model ('default' depends on the selected algorithm and also sets the model parameters below!)", false);
+		registerStringOption_("model:type", "<name>", default_model, "Type of model", false);
 		StringList model_types;
 		TransformationDescription::getModelTypes(model_types);
-		model_types.insert(model_types.begin(), "default");
+		if (!model_types.contains(default_model))
+		{
+			model_types.insert(model_types.begin(), default_model);
+		}
 		setValidStrings_("model:type", model_types);
 		registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
 		registerIntOption_("model:num_breakpoints", "<number>", 5, "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.", false);
 		setMinInt_("model:num_breakpoints", 2);
-		registerStringOption_("model:interpolation_type", "<name>", "linear", "Only for 'interpolated' model: Type of interpolation to apply.", false);
+		registerStringOption_("model:interpolation_type", "<name>", "cspline", "Only for 'interpolated' model: Type of interpolation to apply.", false);
 		StringList interpolation_types;
 		TransformationModelInterpolated::getInterpolationTypes(interpolation_types);
 		// "polynomial" interpolation is not suitable for RT data, so remove it:
@@ -179,12 +182,6 @@ protected:
 		writeDebug_("Used alignment parameters", alignment_param, 3);
 		alignment->setParameters(alignment_param);
 		alignment->setLogType(log_type_);
-
-		// get parameters for the model:
-		if (model_type == "default")
-		{
-			alignment->getDefaultModel(model_type, model_params);
-		}
 
 		std::vector<TransformationDescription> transformations;
 

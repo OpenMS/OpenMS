@@ -66,10 +66,12 @@ using namespace std;
 
 	The alignment algorithm implemented here is based on peptide identifications, and thus applicable to files containing peptide IDs (idXML, annotated featureXML/consensusXML). It finds peptide sequences that different input files have in common and uses them as points of correspondence between the inputs. For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmIdentification "algorithm documentation".
 
-	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm - see the @p model section of the parameters. To use the same model type (in this case: "b_spline") and model parameters previously fixed to an algorithm, set "model:type" to "default". The different available models are:
+	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm - see the @p model section of the parameters. This algorithm has been tested mostly with the "b_spline" model. The different available models are:
 	- @ref OpenMS::TransformationModelLinear "linear": Linear model.
 	- @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
 	- @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
+
+	@see @ref TOPP_MapAlignerApplyTransformation @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum
 
 	<B>The command line parameters of this tool are:</B> @n
 	@verbinclude TOPP_MapAlignerIdentification.cli
@@ -99,7 +101,7 @@ protected:
 		setValidFormats_("reference:file", StringList::create(formats));
 		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will use an average of all inputs as reference.", false);
 		setMinInt_("reference:index", 0);
-		registerModelOptions_();
+		registerModelOptions_("b_spline");
 		registerSubsection_("algorithm", "Algorithm parameters section");
 	}
 

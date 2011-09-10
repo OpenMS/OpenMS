@@ -97,10 +97,6 @@ namespace OpenMS
 			*/
 		virtual void setReference(Size reference_index=0, const String& reference_file="");
 
-		/// Gets the default model (incl. parameters) for the alignment algorithm
-		virtual void getDefaultModel(String& model_type, Param& params);
-
-
     /// Applies the <i>given</i> transformations to peak maps
     static void transformPeakMaps( std::vector< MSExperiment<> >& maps, const std::vector<TransformationDescription>& given_trafos );
 

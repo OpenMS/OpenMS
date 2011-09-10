@@ -238,14 +238,4 @@ namespace OpenMS
 		computeTransformations_(maps, transformations, reference_index);
 	}
 
-
-	void MapAlignmentAlgorithmPoseClustering::getDefaultModel(String& model_type, 
-																														Param& params)
-	{
-		model_type = "linear";
-		params.clear();
-		params.setValue("symmetric_regression", "true");
-	}
-
-
 } //namespace

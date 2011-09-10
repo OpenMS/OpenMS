@@ -60,10 +60,12 @@ using namespace std;
 	Here, an experimental algorithm based on spectrum alignment is implemented. It is only applicable to peak maps (mzML format).
 	For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmSpectrumAlignment "algorithm documentation".
 
-	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm - see the @p model section of the parameters. To use the same model type (in this case: "interpolated") and model parameters previously fixed to an algorithm, set "model:type" to "default". The different available models are:
+	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm - see the @p model section of the parameters. This algorithm has been tested mostly with the "interpolated" model. The different available models are:
 	- @ref OpenMS::TransformationModelLinear "linear": Linear model.
 	- @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
 	- @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
+
+	@see @ref TOPP_MapAlignerIdentification @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerApplyTransformation
 
 	<B>The command line parameters of this tool are:</B> @n
 	@verbinclude TOPP_MapAlignerSpectrum.cli
@@ -89,7 +91,7 @@ protected:
 		String formats = "mzML";
 		TOPPMapAlignerBase::registerOptionsAndFlags_(formats);
 		// no support for a reference file yet
-		registerModelOptions_();
+		registerModelOptions_("interpolated");
 		registerSubsection_("algorithm", "Algorithm parameters section");
 	}
 

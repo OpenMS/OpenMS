@@ -60,10 +60,12 @@ using namespace std;
 	The alignment algorithm implemented here is the pose clustering algorithm as described in doi:10.1093/bioinformatics/btm209. It is used to find an affine transformation, which is further refined by a feature grouping step. This algorithm can be applied to features (featureXML) and peaks (mzML), but it has mostly been developed and tested on features.
 	For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
 
-	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm - see the @p model section of the parameters. To use the same model type (in this case: "linear") and model parameters previously fixed to an algorithm, set "model:type" to "default". The different available models are:
+	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm - see the @p model section of the parameters. This algorithm has been tested mostly with the "linear" model. The different available models are:
 	- @ref OpenMS::TransformationModelLinear "linear": Linear model.
 	- @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
 	- @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
+
+	@see @ref TOPP_MapAlignerIdentification @ref TOPP_MapAlignerSpectrum @ref TOPP_MapAlignerSpectrum
 
 	<B>The command line parameters of this tool are:</B> @n
 	@verbinclude TOPP_MapAlignerIdentification.cli
@@ -93,7 +95,7 @@ protected:
 		setValidFormats_("reference:file", StringList::create(formats));
 		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
 		setMinInt_("reference:index", 0);
-		registerModelOptions_();
+		registerModelOptions_("linear");
 		registerSubsection_("algorithm", "Algorithm parameters section");
 	}
 

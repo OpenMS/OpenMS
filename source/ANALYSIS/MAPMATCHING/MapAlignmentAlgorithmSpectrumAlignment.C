@@ -89,13 +89,6 @@ namespace OpenMS
 		}
 	}
 	
-	void MapAlignmentAlgorithmSpectrumAlignment::getDefaultModel(String& model_type, Param& params)
-	{
-		model_type = "interpolated";
-		params.clear();
-		params.setValue("interpolation_type", "cspline");
-	}
-
 	void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<>* >& pattern, MSExperiment<>& aligned,std::vector<TransformationDescription>& transformation)
 	{
 		//tempalign ->container for holding only MSSpectrums with MS-Level 1

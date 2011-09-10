@@ -62,9 +62,6 @@ namespace OpenMS
 			//Docu in base class
 			virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
 
-			/// Docu in base class
-			virtual void getDefaultModel(String& model_type, Param& params);
-			
 			///Creates a new instance of this class (for Factory)
 			static MapAlignmentAlgorithm* create()
 			{

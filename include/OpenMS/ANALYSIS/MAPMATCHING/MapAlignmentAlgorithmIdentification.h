@@ -79,9 +79,6 @@ namespace OpenMS
 		virtual void setReference(Size reference_index=0, 
 															const String& reference_file="");
 
-		// Docu in base class
-		virtual void getDefaultModel(String& model_type, Param& params);
-	
 		/// Creates a new instance of this class (for Factory)
 		static MapAlignmentAlgorithm* create()
 		{

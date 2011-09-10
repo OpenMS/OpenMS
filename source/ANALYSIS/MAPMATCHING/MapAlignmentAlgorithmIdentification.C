@@ -521,14 +521,4 @@ namespace OpenMS
 		if (!reference_given) reference_.clear(); // delete temporary reference
 	}
 
-
-	void MapAlignmentAlgorithmIdentification::getDefaultModel(String& model_type,
-																														Param& params)
-	{
-		model_type = "b_spline";
-		params.clear();
-		params.setValue("num_breakpoints", 5);
-	}
-
-
 } //namespace

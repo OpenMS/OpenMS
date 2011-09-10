@@ -109,9 +109,9 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 	maps.push_back(map2);
 	std::vector<TransformationDescription> transformations;
   ma.alignPeakMaps(maps, transformations);
+	String model_type = "interpolated";
 	Param params;
-	String model_type;
-	ma.getDefaultModel(model_type, params);
+	params.setValue("interpolation_type", "cspline");
 	ma.fitModel(model_type, params, transformations);
 	ma.transformPeakMaps(maps, transformations);
 	maps[0].updateRanges(-1);

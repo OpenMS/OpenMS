@@ -348,10 +348,4 @@ namespace OpenMS
 		}
 	}
 
-	void MapAlignmentAlgorithm::getDefaultModel(String& model_type, Param& params)
-	{
-		model_type = "none";
-		params.clear();
-	}
-
 } 

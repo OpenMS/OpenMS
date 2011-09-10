@@ -90,17 +90,6 @@ START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std:
 }
 END_SECTION
 
-START_SECTION((virtual void getDefaultModel(String& model_type, Param& params)))
-{
-	String model_type;
-	Param params;
-	MapAlignmentAlgorithmPoseClustering aligner;
-	aligner.getDefaultModel(model_type, params);
-	TEST_EQUAL(model_type, "linear");
-	TEST_EQUAL(params.getValue("symmetric_regression"), "true");
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

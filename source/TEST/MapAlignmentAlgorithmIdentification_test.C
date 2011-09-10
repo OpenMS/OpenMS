@@ -154,18 +154,6 @@ START_SECTION((virtual void setReference(Size reference_index=0, const String& r
 END_SECTION
 
 
-START_SECTION((virtual void getDefaultModel(String& model_type, Param& params)))
-{
-	String model_type;
-	Param params;
-	MapAlignmentAlgorithmIdentification aligner;
-	aligner.getDefaultModel(model_type, params);
-	TEST_EQUAL(model_type, "b_spline");
-	TEST_EQUAL(params.getValue("num_breakpoints"), 5);
-}
-END_SECTION
-
-
 // can't test protected methods...
 
 // START_SECTION((DoubleReal median_(DoubleList&, bool)))
