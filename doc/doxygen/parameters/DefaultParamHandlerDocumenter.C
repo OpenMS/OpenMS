@@ -55,7 +55,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
@@ -358,7 +357,6 @@ int main (int argc , char** argv)
 	DOCME(MSSim);
 	DOCME(MapAlignmentAlgorithmPoseClustering);
 	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
-	DOCME(MapAlignmentAlgorithmApplyGivenTrafo);
 	DOCME(MapAlignmentAlgorithmIdentification);
 	DOCME(NLargest);
 	DOCME(NeutralLossDiffFilter);
