@@ -106,9 +106,10 @@
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF
 
-
-// Defines for conditional compiles when Libs are missing
-#cmakedefine USE_ANDIMS
+// library versions
+#cmakedefine OPENMS_LIBSVM_VERSION @OPENMS_LIBSVM_VERSION@
+#cmakedefine OPENMS_LIBSVM_VERSION_MAJOR @OPENMS_LIBSVM_VERSION_MAJOR@
+#cmakedefine OPENMS_LIBSVM_VERSION_MINOR @OPENMS_LIBSVM_VERSION_MINOR@
 
 #define DB_PLUGIN "@QT_DB_PLUGIN@"
 

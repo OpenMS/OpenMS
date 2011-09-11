@@ -140,10 +140,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 #########################################################
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	message(STATUS "Setting CMAKE_OSX_DEPLOYMENT_TARGET to 10.5")
-	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE INTERNAL "Set OS X Deployment Target to 10.5 to build packages compatible to leopard" FORCE )
+	# message(STATUS "Setting CMAKE_OSX_DEPLOYMENT_TARGET to 10.5")
+	# set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE INTERNAL "Set OS X Deployment Target to 10.5 to build packages compatible to leopard" FORCE )
   # force 10.5 SDK
-  set (CMAKE_OSX_SYSROOT "/Developer/SDKs/MacOSX10.5.sdk")
+  #set (CMAKE_OSX_SYSROOT "/Developer/SDKs/MacOSX10.5.sdk")
 	# due to some awkward updates of cmake in the 2.8.x series we need to add the following
   find_library(CARBON NAMES Carbon)
   find_package(OpenGL)
@@ -267,21 +267,19 @@ endif()
 set(CONTRIB_CUSTOM_DIR CACHE DOC "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
 set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
 
-#message("CUSTOM contrib is: " ${CONTRIB_CUSTOM_DIR})
+message("CUSTOM contrib is: " ${CONTRIB_CUSTOM_DIR})
 
 if ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
 	message(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
   message(STATUS "If you want to set your own path to contrib use:")
-	message(STATUS "   cmake <..more options..> -D CONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\" \"${PROJECT_SOURCE_DIR}\"")
+	message(STATUS "   cmake <..more options..> -DCONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\" \"${PROJECT_SOURCE_DIR}\"")
 else()
-  # transform into absolute pathes
+  # transform into absolute paths
   set(CONTRIB_DIR "")
-  foreach(CUSTOM_PATH ${CONTRIB_CUSTOM_DIR})
+  foreach(CUSTOM_PATH IN ITEMS ${CONTRIB_CUSTOM_DIR})
     get_filename_component(CONTRIB_CUSTOM_DIR_PATH ${CUSTOM_PATH} ABSOLUTE)
     list(APPEND CONTRIB_DIR ${CONTRIB_CUSTOM_DIR_PATH})
   endforeach()
-
-  message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
 set(CONTRIB_INCLUDE_DIR "" CACHE INTERNAL "contrib include dir")
@@ -290,6 +288,10 @@ foreach(CONTRIB_PATH ${CONTRIB_DIR})
   list(APPEND CONTRIB_INCLUDE_DIR ${CONTRIB_PATH}/include/)
   list(APPEND CONTRIB_LIB_DIR ${CONTRIB_PATH}/lib/)
 endforeach()
+message(STATUS "Contrib search directories:  ${CONTRIB_DIR}")
+message(STATUS "Contrib library directories: ${CONTRIB_LIB_DIR}")
+message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
+
 
 ###########################################################
 ###							 find libs (for linking)								###
@@ -313,7 +315,32 @@ OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
 OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpk" "GLPK")
 
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
-OPENMS_CHECKLIB(SVM_LIBRARY "svm;libsvm" "svmd;svm;libsvm" "LibSVM")
+
+## BOOST
+SET(Boost_USE_STATIC_LIBS	       ON)
+SET(Boost_USE_MULTITHREADED	     ON)
+SET(Boost_USE_STATIC_RUNTIME     OFF)
+FIND_PACKAGE(Boost 1.36.0 COMPONENTS math_c99)
+IF (Boost_FOUND)
+	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+ENDIF()
+
+## SEQAN
+FIND_PACKAGE(SEQAN 1.3)
+
+## libsvm
+OPTION(USE_LIBSVM "Compile with libsvm support if libsvm can be found" ON)
+IF (USE_LIBSVM)
+	FIND_PACKAGE(libSVM 3.1)
+	IF (LIBSVM_FOUND)
+	  INCLUDE_DIRECTORIES(${LIBSVM_INCLUDE_DIRS})
+		MESSAGE("-- Found libSVM version " ${LIBSVM_VERSION})
+		SET(OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
+		SET(OPENMS_LIBSVM_VERSION_MINOR ${LIBSVM_MINOR_VERSION})
+		SET(OPENMS_LIBSVM_VERSION ${LIBSVM_VERSION})
+	ENDIF()
+ENDIF()
+
 
 OPENMS_CHECKLIB(CONTRIB_CBC1 "libCbc;Cbc" "libCbcd;Cbc" "COIN-OR Cbc")
 OPENMS_CHECKLIB(CONTRIB_CBC2 "libCgl;Cgl" "libCgld;Cgl" "COIN-OR Cgl")
@@ -591,7 +618,7 @@ add_dependencies(OpenMS svn_revision_update)
 set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
-set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_BOOST_IO} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB} ${CONTRIB_GLPK})
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${LIBSVM_LIBRARY} ${LIBSVM_LIBRARIES} ${CONTRIB_XERCESC} ${Boost_LIBRARIES} ${CONTRIB_BOOST_MATH_C99} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB} ${CONTRIB_GLPK})
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
@@ -853,7 +880,6 @@ else()
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
                     COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMENT "message after library is built"
                     VERBATIM)
 endif()
 
@@ -872,7 +898,6 @@ if (MSVC)
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
                     COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMENT "message after TOPP is built"
                     VERBATIM)
 else()
   add_custom_command(TARGET TOPP
@@ -893,7 +918,6 @@ else()
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
                     COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMENT "message after TOPP is built"
                     VERBATIM)
 endif()
 

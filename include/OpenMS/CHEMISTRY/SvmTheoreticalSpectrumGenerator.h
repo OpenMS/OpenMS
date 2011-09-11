@@ -29,9 +29,11 @@
 #ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATOR_H
 #define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATOR_H
 
+#include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <boost/smart_ptr.hpp>
+
 
 #include<svm.h>
 
@@ -47,7 +49,7 @@ namespace OpenMS
    - The intensity is predicted using SVM-regression (only for the primary ion types b and y). For the secondary types a Baesian model is used.
 
    <p>
-   Actually only a test model is shipped with OpenMS.<br>
+   Currently, only a test model is shipped with OpenMS.<br>
    Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
    </p>
 
@@ -101,7 +103,7 @@ namespace OpenMS
       //Assignment operator
       IonType & operator = (const IonType & rhs)
       {
-        if(this != &rhs)
+        if (this != &rhs)
         {
           residue = rhs.residue;
           loss = rhs.loss;
@@ -112,9 +114,9 @@ namespace OpenMS
 
       bool operator < (const IonType &rhs) const
       {
-        if(residue != rhs.residue)
+        if (residue != rhs.residue)
           return residue<rhs.residue;
-        else if(loss.getString()!=rhs.loss.getString())
+        else if (loss.getString()!=rhs.loss.getString())
           return loss.getString()<rhs.loss.getString();
         else
           return charge <rhs.charge;
@@ -137,9 +139,13 @@ namespace OpenMS
 
       ~SvmModel()
       {
-        if(model != 0)
+        if (model != 0)
         {
-          svm_destroy_model(model);
+#if OPENMS_LIBSVM_VERSION_MAJOR == 2
+						svm_destroy_model(model);
+#else
+						svm_free_and_destroy_model(&model);
+#endif
           model = 0;
         }
       }
@@ -149,7 +155,6 @@ namespace OpenMS
     private:
       SvmModel(const SvmModel&){};
       SvmModel& operator=(const SvmModel&){ return *this;};
-
     };
 
 
@@ -270,24 +275,22 @@ namespace OpenMS
       /// initialized the maps
       static bool init_();
 
-
       void updateMembers_();
-
   };
 
   void inline SvmTheoreticalSpectrumGenerator::scaleSingleFeature_(double &value, double lower, double upper, double feature_min, double feature_max)
   {
     double prev=value;
-    if(feature_max == feature_min)
+    if (feature_max == feature_min)
     {
       return;
     }
 
-    if(value <= feature_min)
+    if (value <= feature_min)
     {
       value = lower;
     }
-    else if(value >= feature_max)
+    else if (value >= feature_max)
     {
       value = upper;
     }
@@ -298,9 +301,9 @@ namespace OpenMS
               (feature_max-feature_min);
     }
 
-    if(value<0)
+    if (value < 0)
     {
-      std::cerr<<"negative value!! "<<value<<"  l: "<<lower<<" u: "<<upper<<" fm: "<<feature_min<<" fma: "<<feature_max<<"  prev: "<<prev<<std::endl;
+      std::cerr << "negative value!! "<<value<<"  l: "<<lower<<" u: "<<upper<<" fm: "<<feature_min<<" fma: "<<feature_max<<"  prev: "<<prev<<std::endl;
     }
   }
 

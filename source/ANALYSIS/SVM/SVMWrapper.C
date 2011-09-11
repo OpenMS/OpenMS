@@ -74,7 +74,11 @@ namespace OpenMS
 	  }
 	  if (model_ != NULL)
 	  {
-			svm_destroy_model(model_);
+			#if OPENMS_LIBSVM_VERSION_MAJOR == 2	
+				svm_destroy_model(model_);
+			#else
+				svm_free_and_destroy_model(&model_);
+			#endif
 			model_ = NULL;
 	  } 
 	}
@@ -246,7 +250,11 @@ namespace OpenMS
 	  	
 			if (model_ != NULL)
 			{
-		    svm_destroy_model(model_);
+				#if OPENMS_LIBSVM_VERSION_MAJOR == 2	
+					svm_destroy_model(model_);
+				#else
+					svm_free_and_destroy_model(&model_);
+				#endif
 		    model_ = NULL;
 			}
 			
@@ -292,7 +300,11 @@ namespace OpenMS
 	  	
 			if (model_ != NULL)
 			{
-		    svm_destroy_model(model_);
+				#if OPENMS_LIBSVM_VERSION_MAJOR == 2	
+					svm_destroy_model(model_);
+				#else
+					svm_free_and_destroy_model(&model_);
+				#endif
 		    model_ = NULL;
 			}
 			
@@ -351,7 +363,11 @@ namespace OpenMS
 		
 	  if (model_ != NULL)
 	  {
-			svm_destroy_model(model_);
+			#if OPENMS_LIBSVM_VERSION_MAJOR == 2	
+				svm_destroy_model(model_);
+			#else
+				svm_free_and_destroy_model(&model_);
+			#endif
 			model_ = NULL;
 	  }
 	  model_ = svm_load_model(model_filename.c_str());

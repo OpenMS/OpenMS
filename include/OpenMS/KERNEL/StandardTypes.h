@@ -28,6 +28,7 @@
 #ifndef OPENMS_KERNEL_STANDARDTYPES_H
 #define OPENMS_KERNEL_STANDARDTYPES_H
 
+#include <OpenMS/config.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 

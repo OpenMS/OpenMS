@@ -25,6 +25,7 @@
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -572,8 +573,11 @@ for the selected primary ion types. They can be used as input for LibSVM command
         {
           throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_reg);
         }
-
-        svm_destroy_model(model_reg);
+				#if OPENMS_LIBSVM_VERSION_MAJOR == 2
+					svm_destroy_model(model_reg);
+				#else
+					svm_free_and_destroy_model(&model_reg);
+				#endif
         delete [] input_training_reg;
 
       }//end of else
@@ -665,7 +669,11 @@ for the selected primary ion types. They can be used as input for LibSVM command
           throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_class);
         }
 
-        svm_destroy_model(model_class);
+				#if OPENMS_LIBSVM_VERSION_MAJOR == 2
+					svm_destroy_model(model_class);
+				#else
+					svm_free_and_destroy_model(&model_class);
+				#endif
         delete [] input_training_class;
 
 
