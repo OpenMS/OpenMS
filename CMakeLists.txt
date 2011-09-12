@@ -316,9 +316,8 @@ OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpk" "GLPK")
 
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
 
-if (WIN32) ## on Windows, we search in contrib dir
-	set (CMAKE_PREFIX_PATH ${CONTRIB_DIR})
-endif()
+## add contrib directory as a search directory (otherwise cmake will fail on systems with missing contrib libs)
+set (CMAKE_PREFIX_PATH ${CONTRIB_DIR})
 
 ## BOOST
 SET(Boost_USE_STATIC_LIBS	       ON)
