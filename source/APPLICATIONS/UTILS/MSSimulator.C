@@ -150,7 +150,7 @@ class TOPPMSSimulator
     // Load proteins from FASTA file
     void loadFASTA_(const String& filename, SampleProteins & proteins )
     {
-      writeLog_(String("Loading sequence data from ") + filename +  String(" ..") );
+      writeLog_(String("Loading sequence data from ") + filename +  String(" ...") );
       
       FASTAFile fastafile;
       typedef std::vector< FASTAFile::FASTAEntry > FASTAdata;
@@ -158,16 +158,16 @@ class TOPPMSSimulator
       
       // load FASTA file contents
       fastafile.load(filename, fastadata);
-           
+
       // add data from file to protein storage
       String::size_type index;
             
       StringList valid_meta_values=StringList::create("intensity,RT,rt");
-      // re-parse fasta description to obtain quantitation info
+      // re-parse FASTA description to obtain quantitation info
       for (FASTAdata::iterator it = fastadata.begin(); it != fastadata.end(); ++it)
       {
         // remove all ambiguous characters from FASTA entry
-        // TODO: this is somehow problematic since we modfiy user input
+        // TODO: this is somehow problematic since we modify user input
         it->sequence.remove('X');
         it->sequence.remove('B');
         it->sequence.remove('Z');

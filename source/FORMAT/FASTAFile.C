@@ -66,8 +66,10 @@ namespace OpenMS
 	
 		ifstream in(filename.c_str());
 		String line;
+    Size size_read(0);
 		while (getline(in, line, '\n'))
 		{
+      size_read += line.size();
 			if (line.size() > 0)
 			{
 				if (line[0] == '>')
@@ -121,6 +123,8 @@ namespace OpenMS
       data.push_back(entry);
 		}
 		in.close();
+
+    if (size_read>0 && data.size()==0) LOG_WARN << "No entries from FASTA file read. Does the file have MacOS line endings? Convert to Unix or Windows line endings to fix!" << std::endl;
 		
 		return;
   }
