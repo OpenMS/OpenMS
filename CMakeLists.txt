@@ -309,7 +309,7 @@ OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces
 
 OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
 
-OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd" "GLPK")
+OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd;glpk" "GLPK")
 
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
 
@@ -368,26 +368,20 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, e.g
 INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
 
 ## QT
-SET(QT_USE_QTXML 1)
-SET(QT_USE_QTNETWORK 1)
-SET(QT_USE_QTSQL 1)
-SET(QT_USE_QTOPENGL 1)
-SET(QT_USE_QTSVG 1)
-SET(QT_USE_QTTEST 1)
-SET(QT_USE_QTWEBKIT 1)
-SET(QT_USE_PHONON 1)
 SET(QT_MIN_VERSION "4.5.0")
-FIND_PACKAGE(Qt4 REQUIRED)
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  FIND_PACKAGE(Qt4 REQUIRED QtXML QtNetwork QtSQL QtOpenGL QtSVG QtTest QtWebKit)
+ELSE()
+  FIND_PACKAGE(Qt4 REQUIRED QtXML QtNetwork QtSQL QtOpenGL QtSVG QtTest QtWebKit QtPhonon)
+ENDIF()
+
+IF (NOT QT4_FOUND)
+  message(STATUS "QT4 not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake ... -DCUSTOM_CONTRIB_DIR='<Path>' ...")
+ENDIF()
 INCLUDE(${QT_USE_FILE})
 INCLUDE(UseQt4)
-if (QT4_FOUND AND QT_QTXML_FOUND AND QT_QTNETWORK_FOUND AND QT_QTSQL_FOUND AND QT_QTOPENGL_FOUND AND QT_QTSVG_FOUND AND QT_QTTEST_FOUND AND QT_QTWEBKIT_FOUND AND QT_PHONON_FOUND)
-	message(STATUS "QT qmake at ${QT_QMAKE_EXECUTABLE}")
-	message(STATUS "QT moc at ${QT_MOC_EXECUTABLE}")
-	message(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
-else()
-	message(STATUS "Qt4 or one of its components not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake ... -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' ...")
-endif()
+INCLUDE_DIRECTORIES(${QT_INCLUDES})
 
 ## FIX
 ## - QT4 library list (VS2010 requires semicolon separated lists, previous versions use space, thus a lib named "opengl32.lib glu32.lib gdi32.lib user32.lib delayimp.lib" now poses a problem)
@@ -403,6 +397,13 @@ foreach (qtlib ${QT_LIBRARIES})
 endforeach()
 set(QT_LIBRARIES ${QT_LIBRARIES_TMP})
 ## ENDFIX
+
+MESSAGE(STATUS "QT qmake at ${QT_QMAKE_EXECUTABLE}")
+MESSAGE(STATUS "QT moc at ${QT_MOC_EXECUTABLE}")
+MESSAGE(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
+MESSAGE(STATUS "QT includes at ${QT_INCLUDES}")
+MESSAGE(STATUS "QT libraries at ${QT_LIBRARIES}")
+
 
 
 ########################################################
