@@ -32,10 +32,6 @@ The respective respective license files for the contrib libraries can be found
 in the "contrib" package root directory.
 
 
-NetCDF
-	- URL: http://www.unidata.ucar.edu/software/netcdf/
-	- License.NetCDF.txt
-	
 libSVM
 	- URL: http://www.csie.ntu.edu.tw/~cjlin/libsvm/
 	- License.libSVM.txt
@@ -48,11 +44,6 @@ Qt 4
 	- URL: http://trolltech.com/downloads/opensource
 	- License.gpl-2.0.txt
 
-CGAL
-	- URL: http://www.cgal.org/		
-	- LGPL (see License.lgpl-2.1.txt) and
-	  QPL (see http://www.trolltech.com/products/qt/licenses/licensing/qpl)
-	
 Xerces-C
 	- URL: http://xerces.apache.org/xerces-c/index.html
 	- License available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -61,10 +52,6 @@ Boost (headers)
 	- URL: http://www.boost.org/
 	- License available at http://www.boost.org/more/license_info.html
 	
-ANDI/MS
-  - URL: http://sourceforge.net/projects/andi/
-  - License.lgpl-2.1.txt
-  
 ZLib
   - URL: http://www.zlib.net
   - License available at http://www.zlib.net/zlib_license.html
