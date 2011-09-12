@@ -248,7 +248,7 @@ namespace OpenMS
 	    }
         }
         unorm = sqrt(unorm);
-        d__2 = unorm + (d__1 = a[npp1 + j * a_dim1], std::abs(d__1)) * .01; /* --changed */
+        d__2 = unorm + (d__1 = a[npp1 + j * a_dim1], fabs(d__1)) * .01; /* --changed */
         if (diff_(&d__2, &unorm) > 0.) {
 
     /*        COL J IS SUFFICIENTLY INDEPENDENT.  COPY B INTO ZZ, UPDATE ZZ */
@@ -530,7 +530,7 @@ namespace OpenMS
     /*        SIG MAY BE IN THE SAME LOCATION AS A OR B . */
     /*     ------------------------------------------------------------------ */
     /*     ------------------------------------------------------------------ */
-        if (abs(*a) > abs(*b)) {
+        if (fabs(*a) > fabs(*b)) {
 	    xr = *b / *a;
     /* Computing 2nd power */
 	    d__1 = xr;
@@ -538,7 +538,7 @@ namespace OpenMS
 	    d__1 = 1. / yr;
 	    *cterm = d_sign_(d__1, *a); /* --changed */
 	    *sterm = *cterm * xr;
-	    *sig = abs(*a) * yr;
+	    *sig = fabs(*a) * yr;
 	    return 0;
         }
         if (*b != 0.) {
@@ -549,7 +549,7 @@ namespace OpenMS
 	    d__1 = 1. / yr;
 	    *sterm = d_sign_(d__1, *b); /* --changed */
 	    *cterm = *sterm * xr;
-	    *sig = abs(*b) * yr;
+	    *sig = fabs(*b) * yr;
 	    return 0;
         }
         *sig = 0.;
@@ -625,7 +625,7 @@ namespace OpenMS
         if (0 >= *lpivot || *lpivot >= *l1 || *l1 > *m) {
 	    return 0;
         }
-        cl = (d__1 = u[*lpivot * u_dim1 + 1], abs(d__1));
+        cl = (d__1 = u[*lpivot * u_dim1 + 1], fabs(d__1));
         if (*mode == 2) {
 	    goto L60;
         }
@@ -634,7 +634,7 @@ namespace OpenMS
         for (j = *l1; j <= i__1; ++j) {
     /* L10: */
     /* Computing MAX */
-	    d__2 = (d__1 = u[j * u_dim1 + 1], abs(d__1));
+	    d__2 = (d__1 = u[j * u_dim1 + 1], fabs(d__1));
 	    cl = std::max(d__2,cl);  /* --changed */
         }
         if (cl <= 0.) {
