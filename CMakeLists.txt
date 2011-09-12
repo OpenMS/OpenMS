@@ -331,7 +331,7 @@ FIND_PACKAGE(SEQAN 1.3)
 ## libsvm
 OPTION(USE_LIBSVM "Compile with libsvm support if libsvm can be found" ON)
 IF (USE_LIBSVM)
-	FIND_PACKAGE(libSVM 3.1)
+	FIND_PACKAGE(libSVM 2.91)
 	IF (LIBSVM_FOUND)
 	  INCLUDE_DIRECTORIES(${LIBSVM_INCLUDE_DIRS})
 		MESSAGE("-- Found libSVM version " ${LIBSVM_VERSION})
