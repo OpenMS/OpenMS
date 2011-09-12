@@ -3,9 +3,6 @@
 
 PROJECT("OpenMS")
 
-# TODO LIST:
-# - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
-
 ########################################################
 ### entries meant to be configured using CMake cache ###
 ### - do NOT hardcode them here!                     ###
@@ -297,7 +294,7 @@ message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
 ###							 find libs (for linking)								###
 ###########################################################
 ## on windows we need the *.lib versions (dlls alone won't do for linking)
-## On Windows: never mix Release/Debug versions of DLL's. Leads to strange segfaults, stack corruption etc... 
+## On Windows: never mix Release/Debug versions of libraries. Leads to strange segfaults, stack corruption etc, due to different runtime libs ...
 ##             compiler-wise: use the same compiler for contrib and OpenMS!
 
 #set which library extensions are preferred (we want static libraries)
@@ -312,7 +309,7 @@ OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces
 
 OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
 
-OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpk" "GLPK")
+OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd" "GLPK")
 
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
 
@@ -335,10 +332,13 @@ endif()
 FIND_PACKAGE(SEQAN 1.3)
 
 ## libsvm
-FIND_PACKAGE(libSVM 2.91)
+if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
+	OPENMS_CHECKLIB(LIBSVM_LIBRARY "svm" "svmd" "libSVM")
+endif()
+FIND_PACKAGE(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
 	INCLUDE_DIRECTORIES(${LIBSVM_INCLUDE_DIRS})
-  message(STATUS "Found LibSVM version " ${LIBSVM_VERSION})
+	message(STATUS "Found LibSVM version " ${LIBSVM_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MINOR ${LIBSVM_MINOR_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION ${LIBSVM_VERSION})
@@ -346,7 +346,6 @@ if (LIBSVM_FOUND)
 else()
 	message(FATAL_ERROR "LibSVM not found!")
 endif()
-
 
 OPENMS_CHECKLIB(CONTRIB_CBC1 "libCbc;Cbc" "libCbcd;Cbc" "COIN-OR Cbc")
 OPENMS_CHECKLIB(CONTRIB_CBC2 "libCgl;Cgl" "libCgld;Cgl" "COIN-OR Cgl")
