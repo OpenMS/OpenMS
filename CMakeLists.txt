@@ -320,13 +320,16 @@ OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS"
 set (CMAKE_PREFIX_PATH ${CONTRIB_DIR})
 
 ## BOOST
-SET(Boost_USE_STATIC_LIBS	       ON)
-SET(Boost_USE_MULTITHREADED	     ON)
-SET(Boost_USE_STATIC_RUNTIME     OFF)
+set(Boost_USE_STATIC_LIBS	       OFF)
+set(Boost_USE_MULTITHREADED	     ON)
+set(Boost_USE_STATIC_RUNTIME     OFF)
 FIND_PACKAGE(Boost 1.36.0 COMPONENTS math_c99)
-IF (Boost_FOUND)
+if (Boost_FOUND)
 	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-ENDIF()
+	message("-- Found Boost version " ${Boost_VERSION})
+else()
+	message(FATAL_ERROR "LibSVM not found!")
+endif()
 
 ## SEQAN
 FIND_PACKAGE(SEQAN 1.3)
@@ -373,10 +376,20 @@ SET(QT_USE_QTOPENGL 1)
 SET(QT_USE_QTSVG 1)
 SET(QT_USE_QTTEST 1)
 SET(QT_USE_QTWEBKIT 1)
+SET(QT_USE_PHONON 1)
 SET(QT_MIN_VERSION "4.5.0")
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 INCLUDE(UseQt4)
+if (QT4_FOUND AND QT_QTXML_FOUND AND QT_QTNETWORK_FOUND AND QT_QTSQL_FOUND AND QT_QTOPENGL_FOUND AND QT_QTSVG_FOUND AND QT_QTTEST_FOUND AND QT_QTWEBKIT_FOUND AND QT_PHONON_FOUND)
+	message(STATUS "QT qmake at ${QT_QMAKE_EXECUTABLE}")
+	message(STATUS "QT moc at ${QT_MOC_EXECUTABLE}")
+	message(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
+else()
+	message(STATUS "Qt4 or one of its components not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake ... -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' ...")
+endif()
+
 ## FIX
 ## - QT4 library list (VS2010 requires semicolon separated lists, previous versions use space, thus a lib named "opengl32.lib glu32.lib gdi32.lib user32.lib delayimp.lib" now poses a problem)
 ## - this fix will be obsolete with CMake 2.8.1
@@ -392,9 +405,6 @@ endforeach()
 set(QT_LIBRARIES ${QT_LIBRARIES_TMP})
 ## ENDFIX
 
-Message(STATUS "QT qmake at ${QT_QMAKE_EXECUTABLE}")
-Message(STATUS "QT moc at ${QT_MOC_EXECUTABLE}")
-Message(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
 
 ########################################################
 ###    useful programms															 ###
