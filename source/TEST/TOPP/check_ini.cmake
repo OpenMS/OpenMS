@@ -1,0 +1,7 @@
+file(STRINGS ${FILE} DATA REGEX "^  <NODE name=\"([^\"]*)\"")
+string(REGEX MATCH "name=\"([^\"]*)\"" has_type ${DATA})
+if(${CMAKE_MATCH_1} STREQUAL ${NAME})
+  message(STATUS "Match: ${CMAKE_MATCH_1} == ${NAME}")
+else()
+  message(FATAL_ERROR "Missmatch: ${CMAKE_MATCH_1} != ${NAME}")
+endif()
