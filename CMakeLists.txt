@@ -10,7 +10,6 @@ PROJECT("OpenMS")
 ########################################################
 # CONTRIB_CUSTOM_DIR
 # CMAKE_BUILD_TYPE
-# CONTRIB_CUSTOM_DIR
 # STL_DEBUG
 # DB_TEST
 # QT_DB_PLUGIN
@@ -266,10 +265,15 @@ set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib pat
 
 message(STATUS "CUSTOM contrib is: " ${CONTRIB_CUSTOM_DIR})
 
-if ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
-	message(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
-  message(STATUS "If you want to set your own path to contrib use:")
-	message(STATUS "   cmake <..more options..> -DCONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\" \"${PROJECT_SOURCE_DIR}\"")
+IF ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
+   FOREACH(ADD_PATH IN ITEMS /opt/local /opt/ /usr/local /usr)
+     list(APPEND CONTRIB_DIR ${ADD_PATH})
+   ENDFOREACH()
+   MESSAGE(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
+   MESSAGE(STATUS "If you want to set your own path to contrib use:")
+   MESSAGE(STATUS "   cmake <..more options..> '-DCONTRIB_CUSTOM_DIR:PATH=/my/path/to/contrib;/another/path/with/contribs'")
+   MESSAGE(STATUS "Please omit the /lib and /include of the contrib directories.")
+   MESSAGE(STATUS "cmake expects includes and libraries to reside therein, but will append this automatically")
 else()
   # transform into absolute paths
   set(CONTRIB_DIR "")
@@ -278,6 +282,7 @@ else()
     list(APPEND CONTRIB_DIR ${CONTRIB_CUSTOM_DIR_PATH})
   endforeach()
 endif()
+
 
 set(CONTRIB_INCLUDE_DIR "" CACHE INTERNAL "contrib include dir")
 set(CONTRIB_LIB_DIR "" CACHE INTERNAL "contrib lib dir")
@@ -333,7 +338,7 @@ FIND_PACKAGE(SEQAN 1.3)
 
 ## libsvm
 if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
-	OPENMS_CHECKLIB(LIBSVM_LIBRARY "svm" "svmd" "libSVM")
+	OPENMS_CHECKLIB(LIBSVM_LIBRARY "svm" "svmd;svm" "libSVM")
 endif()
 FIND_PACKAGE(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
@@ -355,8 +360,8 @@ OPENMS_CHECKLIB(CONTRIB_CBC5 "libOsi;Osi" "libOsid;Osi" "COIN-OR Osi")
 OPENMS_CHECKLIB(CONTRIB_CBC6 "libOsiClp;OsiClp" "libOsiClpd;OsiClp" "COIN-OR OsiClp")
 set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
 
-OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;z" "ZLIB")
-OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;bz2" "BZIP2")
+OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;zlib;z" "ZLIB")
+OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;libbz2;bz2" "BZIP2")
 
 if(MSVC)
 	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
@@ -368,7 +373,7 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, e.g
 INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
 
 ## QT
-SET(QT_MIN_VERSION "4.5.0")
+SET(QT_MIN_VERSION "4.7.0")
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PACKAGE(Qt4 REQUIRED QtXML QtNetwork QtSQL QtOpenGL QtSVG QtTest QtWebKit)
 ELSE()
