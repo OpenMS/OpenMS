@@ -94,7 +94,7 @@ namespace OpenMS
       SvmTheoreticalSpectrumGeneratorTrainer& operator =(const SvmTheoreticalSpectrumGeneratorTrainer& tsg);
 
       /// trains an SVM for each ion_type and stores them in files <filename>_residue_loss_charge.svm
-      void trainModel(const PeakMap &spectra, const std::vector<AASequence> & annotations, String filename, Size precursor_charge);
+      void trainModel(const PeakMap &spectra, const std::vector<AASequence> & annotations, String filename, Int precursor_charge);
 
       /// Normalizes the intensity of the peaks in the input data
       void normalizeIntensity(PeakSpectrum &S) const;

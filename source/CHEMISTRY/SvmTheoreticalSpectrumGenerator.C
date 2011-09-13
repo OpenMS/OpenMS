@@ -245,7 +245,7 @@ namespace OpenMS
   }
 
 
-  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size precursor_charge, DescriptorSet &desc_set)
+  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size  /* precursor_charge */, DescriptorSet &desc_set)
   {
 
     std::vector<svm_node> descriptors_tmp;

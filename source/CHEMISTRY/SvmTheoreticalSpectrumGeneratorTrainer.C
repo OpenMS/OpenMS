@@ -166,7 +166,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
   }
 
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap &spectra, const std::vector<AASequence>&annotations, String filename, Size precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap &spectra, const std::vector<AASequence>&annotations, String filename, Int precursor_charge)
   {
     //----------- BEGIN OF PARAMETER READING-------------------------
 

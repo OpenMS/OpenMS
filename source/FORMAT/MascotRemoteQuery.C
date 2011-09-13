@@ -323,7 +323,7 @@ state
 #endif
 }
 
-void MascotRemoteQuery::readyReadSlot ( const QHttpResponseHeader & resp )
+void MascotRemoteQuery::readyReadSlot ( const QHttpResponseHeader & /* resp */)
 {
   //if (http_->bytesAvailable() < 1000) std::cerr << "new bytes: " << http_->bytesAvailable() << " from " << resp.toString() << " with code " <<  resp.statusCode() << " and httpstat: " << http_->state() << "\n";
   if (to_ > 0) timeout_.start(); // reset timeout

@@ -758,9 +758,9 @@ namespace OpenMS {
 
 		/* variable values */
 		UInt active_edges = 0;
-		Map < String, Size > count_cmp;
+		Map <String, Size> count_cmp;
 
-      for (int iColumn=0; iColumn<build.getNumberOfColumns(); ++iColumn)
+      for (UInt iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
         {
           double value=build.getColumnValue(iColumn);
           if (fabs(value)>0.5 && build.getColumnType(iColumn)==3) // 3 - binary variable
