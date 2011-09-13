@@ -286,6 +286,8 @@ set(SVN_REVISION_FILE "${PROJECT_BINARY_DIR}/include/OpenMS/openms_svn_revision.
 ## this need to be set before config.h is configured!
 set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
 set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
+## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
+set(BUILD_SHARED_LIBS true)
 
 include(cmake/OpenMSBuildSystem_configh.cmake)
 
@@ -308,9 +310,6 @@ include(cmake/OpenMSBuildSystem_doc.cmake)
 ########################################################
 ###    BUILD the lib                                 ###
 ########################################################
-
-## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
-set(BUILD_SHARED_LIBS true)
 
 #package type
 set(VALID_PACKAGE_TYPES "none" "rpm" "deb" "dmg")
