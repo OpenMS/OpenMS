@@ -1,0 +1,155 @@
+
+## contrib
+
+set(CONTRIB_CUSTOM_DIR CACHE DOC "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
+set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
+
+message(STATUS "CUSTOM contrib is: " ${CONTRIB_CUSTOM_DIR})
+
+IF ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
+   FOREACH(ADD_PATH IN ITEMS /opt/local /opt/ /usr/local /usr)
+     list(APPEND CONTRIB_DIR ${ADD_PATH})
+   ENDFOREACH()
+   MESSAGE(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
+   MESSAGE(STATUS "If you want to set your own path to contrib use:")
+   MESSAGE(STATUS "   cmake <..more options..> '-DCONTRIB_CUSTOM_DIR:PATH=/my/path/to/contrib;/another/path/with/contribs' <src-dir>")
+   MESSAGE(STATUS "Please omit the /lib and /include of the contrib directories.")
+   MESSAGE(STATUS "cmake expects includes and libraries to reside therein, but will append this automatically")
+else()
+  # transform into absolute paths
+  set(CONTRIB_DIR "")
+  foreach(CUSTOM_PATH IN ITEMS ${CONTRIB_CUSTOM_DIR})
+    get_filename_component(CONTRIB_CUSTOM_DIR_PATH ${CUSTOM_PATH} ABSOLUTE)
+    list(APPEND CONTRIB_DIR ${CONTRIB_CUSTOM_DIR_PATH})
+  endforeach()
+endif()
+
+
+set(CONTRIB_INCLUDE_DIR "" CACHE INTERNAL "contrib include dir")
+set(CONTRIB_LIB_DIR "" CACHE INTERNAL "contrib lib dir")
+foreach(CONTRIB_PATH ${CONTRIB_DIR})
+  list(APPEND CONTRIB_INCLUDE_DIR ${CONTRIB_PATH}/include/)
+  list(APPEND CONTRIB_LIB_DIR ${CONTRIB_PATH}/lib/)
+endforeach()
+message(STATUS "Contrib search directories:  ${CONTRIB_DIR}")
+message(STATUS "Contrib library directories: ${CONTRIB_LIB_DIR}")
+message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
+
+
+###########################################################
+###							 find libs (for linking)								###
+###########################################################
+## on windows we need the *.lib versions (dlls alone won't do for linking)
+## On Windows: never mix Release/Debug versions of libraries. Leads to strange segfaults, stack corruption etc, due to different runtime libs ...
+##             compiler-wise: use the same compiler for contrib and OpenMS!
+
+#set which library extensions are preferred (we want static libraries)
+if(NOT MSVC)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
+endif()
+if (APPLE)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.a")
+endif()
+
+OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
+
+OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
+
+OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd;glpk" "GLPK")
+
+OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
+
+## add contrib directory as a search directory (otherwise cmake will fail on systems with missing contrib libs)
+set (CMAKE_PREFIX_PATH ${CONTRIB_DIR})
+
+## BOOST
+if (WIN32)
+	set(Boost_USE_STATIC_LIBS	       ON)
+else()
+	set(Boost_USE_STATIC_LIBS	       OFF)
+endif()
+set(Boost_USE_MULTITHREADED	     ON)
+set(Boost_USE_STATIC_RUNTIME     OFF)
+FIND_PACKAGE(Boost 1.36.0 COMPONENTS math_c99)
+if(Boost_FOUND)
+	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+  message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
+else()
+  message(FATAL_ERROR "Boost or one of its components not found!")
+endif()
+
+## SEQAN
+FIND_PACKAGE(SEQAN 1.3)
+
+## libsvm
+if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
+	OPENMS_CHECKLIB(LIBSVM_LIBRARY "svm" "svmd;svm" "libSVM")
+endif()
+FIND_PACKAGE(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
+if (LIBSVM_FOUND)
+	INCLUDE_DIRECTORIES(${LIBSVM_INCLUDE_DIRS})
+	message(STATUS "Found LibSVM version " ${LIBSVM_VERSION})
+	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
+	set(CF_OPENMS_LIBSVM_VERSION_MINOR ${LIBSVM_MINOR_VERSION})
+	set(CF_OPENMS_LIBSVM_VERSION ${LIBSVM_VERSION})
+	set(DEP_LIBSVM_LIBRARY ${LIBSVM_LIBRARY} ${LIBSVM_LIBRARIES}) # combine for consistent use later
+else()
+	message(FATAL_ERROR "LibSVM not found!")
+endif()
+
+OPENMS_CHECKLIB(CONTRIB_CBC1 "libCbc;Cbc" "libCbcd;Cbc" "COIN-OR Cbc")
+OPENMS_CHECKLIB(CONTRIB_CBC2 "libCgl;Cgl" "libCgld;Cgl" "COIN-OR Cgl")
+OPENMS_CHECKLIB(CONTRIB_CBC3 "libClp;Clp" "libClpd;Clp" "COIN-OR Clp")
+OPENMS_CHECKLIB(CONTRIB_CBC4 "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils" "COIN-OR Utils")
+OPENMS_CHECKLIB(CONTRIB_CBC5 "libOsi;Osi" "libOsid;Osi" "COIN-OR Osi")
+OPENMS_CHECKLIB(CONTRIB_CBC6 "libOsiClp;OsiClp" "libOsiClpd;OsiClp" "COIN-OR OsiClp")
+set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
+
+OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;zlib;z" "ZLIB")
+OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;libbz2;bz2" "BZIP2")
+
+if(MSVC)
+	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
+	link_directories(${CONTRIB_LIB_DIR})
+endif()
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/)
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, e.g. config.h
+INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
+
+## QT
+SET(QT_MIN_VERSION "4.5.0")
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  FIND_PACKAGE(Qt4 REQUIRED QtXML QtNetwork QtSQL QtOpenGL QtSVG QtTest QtWebKit)
+ELSE()
+  FIND_PACKAGE(Qt4 REQUIRED QtXML QtNetwork QtSQL QtOpenGL QtSVG QtTest QtWebKit QtPhonon)
+ENDIF()
+
+IF (NOT QT4_FOUND)
+  message(STATUS "QT4 not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+ENDIF()
+INCLUDE(${QT_USE_FILE})
+INCLUDE(UseQt4)
+INCLUDE_DIRECTORIES(${QT_INCLUDES})
+
+## FIX
+## - QT4 library list (VS2010 requires semicolon separated lists, previous versions use space, thus a lib named "opengl32.lib glu32.lib gdi32.lib user32.lib delayimp.lib" now poses a problem)
+## - this fix will be obsolete with CMake 2.8.1
+set(QT_LIBRARIES_TMP "")
+foreach (qtlib ${QT_LIBRARIES})
+	if (${qtlib} STREQUAL "opengl32.lib glu32.lib gdi32.lib user32.lib delayimp.lib")
+		list(APPEND QT_LIBRARIES_TMP "opengl32.lib;glu32.lib;gdi32.lib;user32.lib;delayimp.lib")
+		message(STATUS "Fixing QT library list... done")
+	else()
+		list(APPEND QT_LIBRARIES_TMP ${qtlib})
+	endif()
+endforeach()
+set(QT_LIBRARIES ${QT_LIBRARIES_TMP})
+## ENDFIX
+
+MESSAGE(STATUS "QT qmake at ${QT_QMAKE_EXECUTABLE}")
+MESSAGE(STATUS "QT moc at ${QT_MOC_EXECUTABLE}")
+MESSAGE(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
+MESSAGE(STATUS "QT includes at ${QT_INCLUDES}")
+MESSAGE(STATUS "QT libraries at ${QT_LIBRARIES}")
