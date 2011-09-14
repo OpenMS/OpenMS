@@ -857,7 +857,7 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::createContaminants_(FeatureMapSim & c_map, MSSimExperiment & exp, MSSimExperiment & exp_ct)
   {
-    if(exp.size() == 1)
+    if (exp.size() == 1)
     {
       throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); // not implemented for 1D yet
     }
@@ -907,6 +907,7 @@ namespace OpenMS {
       c_map.push_back(feature);
     }
 
+    c_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range_RT << " / " << contaminants_.size() << std::endl;
     LOG_INFO << "Contaminants out-of-MZ-range: " << out_of_range_MZ << " / " << contaminants_.size() << std::endl;
 

@@ -223,6 +223,7 @@ namespace OpenMS
     new_cm.setProteinIdentifications(simulated_features.getProteinIdentifications());
 
     consensus_.swap(new_cm);
+    consensus_.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
   const ConsensusMap& BaseLabeler::getConsensus() const

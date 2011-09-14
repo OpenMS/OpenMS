@@ -142,6 +142,7 @@ namespace OpenMS
 
           // generate consensus feature
           ConsensusFeature cf;
+          cf.setUniqueId();
           // add mono and &dilabeled variant to ConsensusFeature
           cf.insert(0, b1);
           cf.insert(0, b2);
@@ -171,6 +172,7 @@ namespace OpenMS
           if(unlabeled_features_index.count(unmodified_sequence) != 0)
           {
             ConsensusFeature cf;
+            cf.setUniqueId();
             final_feature_map.push_back(unlabeled_features_index[unmodified_sequence]);
             cf.insert(0, *lf_iter);
             cf.insert(0, unlabeled_features_index[unmodified_sequence]);

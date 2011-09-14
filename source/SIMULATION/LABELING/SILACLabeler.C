@@ -168,6 +168,7 @@ namespace OpenMS
 
           // create consensus feature
           ConsensusFeature cf;
+          cf.setUniqueId();
           cf.insert(0, *lf_iter);
           cf.insert(0, f_modified);
 

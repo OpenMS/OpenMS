@@ -406,6 +406,8 @@ namespace OpenMS {
 		// all ok: free
 		gsl_ran_discrete_free (gsl_ran_lookup_esi_charge_impurity);
 
+    features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+    charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
   
   
@@ -502,8 +504,12 @@ namespace OpenMS {
 			gsl_ran_discrete_free (gsl_ran_lookup_maldi);
 			throw e;
 		}
+
 		// all ok: free
 		gsl_ran_discrete_free (gsl_ran_lookup_maldi);
+    
+    features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+    charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
   
 	void IonizationSimulation::setFeatureProperties_(Feature & f, 
