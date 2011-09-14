@@ -103,7 +103,7 @@
             </xs:element>
             <xs:element name="write_ctd" type="xs:string" default="">
               <xs:annotation>
-                <xs:documentation>Writes the common tool description (ctd) file</xs:documentation>
+                <xs:documentation>Writes the common tool description file(s) (Toolname(s).ctd) to &lt;out_dir&gt;</xs:documentation>
               </xs:annotation>
             </xs:element>
             <xs:element name="no_progress" default="false">
