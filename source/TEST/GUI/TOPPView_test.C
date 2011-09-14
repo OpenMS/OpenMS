@@ -27,7 +27,10 @@
 
 #include <QtGui>
 #include <QtTest/QtTest>
-#include <QtTest/QtTestGui>
+#include <QtTest/qtestevent.h>
+#include <QtTest/qtestmouse.h>
+#include <QtTest/qtestkeyboard.h>
+
 #include <QTimer>
 #include <QQueue>
 
