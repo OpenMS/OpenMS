@@ -59,12 +59,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFFEVal
+class TOPPFFEval
 	: public TOPPBase
 {
  public:
-	TOPPFFEVal()
-		: TOPPBase("FFEVal","Evaluation tool for feature detection algorithms.",false)
+	TOPPFFEval()
+		: TOPPBase("FFEval","Evaluation tool for feature detection algorithms.",false)
 	{
 	}
 	
@@ -404,7 +404,7 @@ class TOPPFFEVal
 
 int main( int argc, const char** argv )
 {
-	TOPPFFEVal tool;
+	TOPPFFEval tool;
 	return tool.main(argc,argv);
 }
 
