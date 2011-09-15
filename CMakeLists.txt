@@ -8,7 +8,7 @@ PROJECT("OpenMS")
 ### - do NOT hardcode them here!                     ###
 ### - edit them within CMakeCache.txt using ccmake	 ###
 ########################################################
-# CONTRIB_CUSTOM_DIR
+# CMAKE_FIND_ROOT_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
 # DB_TEST

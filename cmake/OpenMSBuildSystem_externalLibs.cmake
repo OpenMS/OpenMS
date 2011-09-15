@@ -1,40 +1,44 @@
 
 ## contrib
 
-set(CONTRIB_CUSTOM_DIR CACHE DOC "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
+set(CONTRIB_CUSTOM_DIR CACHE DOC "DEPRECATED: User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib! Please use CMAKE_FIND_ROOT_PATH instead!")
 set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
 
-message(STATUS "CUSTOM contrib is: " ${CONTRIB_CUSTOM_DIR})
+IF ("${CMAKE_FIND_ROOT_PATH}" STREQUAL "")
+	IF (NOT "${CONTRIB_CUSTOM_DIR}" STREQUAL "")
+		MESSAGE("Please do no longer use -DCONTRIB_CUSTOM_DIR. This option is deprecated. Please use -DCMAKE_FIND_ROOT_PATH instead.")
+		LIST(INSERT CONTRIB_DIR 0 ${CONTRIB_CUSTOM_DIR})
+	ELSE()
+		# Append a few unusual default search directories for convenience
+		# if no FIND ROOT PATH was specified.
+		LIST(APPEND CONTRIB_DIR /opt/local /usr/local)
+	ENDIF()
+ENDIF()
 
-IF ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
-   FOREACH(ADD_PATH IN ITEMS /opt/local /opt/ /usr/local /usr)
-     list(APPEND CONTRIB_DIR ${ADD_PATH})
-   ENDFOREACH()
-   MESSAGE(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
-   MESSAGE(STATUS "If you want to set your own path to contrib use:")
-   MESSAGE(STATUS "   cmake <..more options..> '-DCONTRIB_CUSTOM_DIR:PATH=/my/path/to/contrib;/another/path/with/contribs' <src-dir>")
-   MESSAGE(STATUS "Please omit the /lib and /include of the contrib directories.")
-   MESSAGE(STATUS "cmake expects includes and libraries to reside therein, but will append this automatically")
-else()
-  # transform into absolute paths
-  set(CONTRIB_DIR "")
-  foreach(CUSTOM_PATH IN ITEMS ${CONTRIB_CUSTOM_DIR})
-    get_filename_component(CONTRIB_CUSTOM_DIR_PATH ${CUSTOM_PATH} ABSOLUTE)
-    list(APPEND CONTRIB_DIR ${CONTRIB_CUSTOM_DIR_PATH})
-  endforeach()
-endif()
 
+# Append all contrib dirs to the (potentially empty) FIND_ROOT_PATH.
+# This will be the final search order used by regular CMAKE modules (by default)
+# and by the OpenMS macros (via CONTRIB_DIR).
+LIST(APPEND CMAKE_FIND_ROOT_PATH "${CONTRIB_DIR}")
+SET(TMP "")
+FOREACH(CUSTOM_PATH IN ITEMS ${CMAKE_FIND_ROOT_PATH})
+	GET_FILENAME_COMPONENT(ABS_PATH ${CUSTOM_PATH} ABSOLUTE)
+	LIST(APPEND TMP ${ABS_PATH})
+ENDFOREACH()
+SET(CMAKE_FIND_ROOT_PATH "${TMP}")
+SET(CONTRIB_DIR "${CMAKE_FIND_ROOT_PATH}")
+
+MESSAGE(STATUS "CMake find root path: " ${CMAKE_FIND_ROOT_PATH})
 
 set(CONTRIB_INCLUDE_DIR "" CACHE INTERNAL "contrib include dir")
 set(CONTRIB_LIB_DIR "" CACHE INTERNAL "contrib lib dir")
 foreach(CONTRIB_PATH ${CONTRIB_DIR})
-  list(APPEND CONTRIB_INCLUDE_DIR ${CONTRIB_PATH}/include/)
-  list(APPEND CONTRIB_LIB_DIR ${CONTRIB_PATH}/lib/)
+  list(APPEND CONTRIB_INCLUDE_DIR "${CONTRIB_PATH}/include/")
+  list(APPEND CONTRIB_LIB_DIR "${CONTRIB_PATH}/lib/")
 endforeach()
 message(STATUS "Contrib search directories:  ${CONTRIB_DIR}")
 message(STATUS "Contrib library directories: ${CONTRIB_LIB_DIR}")
 message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
-
 
 ###########################################################
 ###							 find libs (for linking)								###
@@ -59,9 +63,6 @@ OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd;glpk" "GLPK")
 
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
 
-## add contrib directory as a search directory (otherwise cmake will fail on systems with missing contrib libs)
-set (CMAKE_PREFIX_PATH ${CONTRIB_DIR})
-
 ## BOOST
 if (WIN32)
 	set(Boost_USE_STATIC_LIBS	       ON)
@@ -70,7 +71,9 @@ else()
 endif()
 set(Boost_USE_MULTITHREADED	     ON)
 set(Boost_USE_STATIC_RUNTIME     OFF)
-FIND_PACKAGE(Boost 1.36.0 COMPONENTS math_c99)
+
+FIND_PACKAGE(Boost 1.47.0 REQUIRED iostreams)
+## COMPONENTS math_c99 data_time iostream)
 if(Boost_FOUND)
 	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
