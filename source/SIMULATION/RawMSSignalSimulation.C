@@ -1086,30 +1086,19 @@ namespace OpenMS {
       throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Sampling grid seems very small. This cannot be computed!");
     }
     grid.clear();
-    SimCoordinateType mz=mz_min; // declare is here, to ensure a smooth transition from one cell to the next
-    DoubleReal sampling_rate = 0.0;
-    for (SimCoordinateType mz_cell = mz_min; mz_cell <= mz_max; mz_cell += step_Da)
+    SimCoordinateType mz = mz_min;
+    DoubleReal sampling_rate;
+    while (mz <= mz_max)
     {
-      SimCoordinateType fwhm;
-      if (param_.getValue("peak_shape") == "Gaussian")
-			{
-				fwhm = getPeakWidth_(mz_cell, true);
-			}
-      else 
-			{
-				fwhm = getPeakWidth_(mz, false);
-			}
+      SimCoordinateType fwhm = getPeakWidth_(mz, param_.getValue("peak_shape") == "Gaussian");
       sampling_rate = (fwhm / sampling_points_per_FWHM_);
-      for (; mz < (mz_cell + step_Da); mz += sampling_rate)
+      SimCoordinateType mz_cell_end = std::min(mz + step_Da, mz_max);
+      for (; mz <= mz_cell_end; mz += sampling_rate)
       {
         grid.push_back(mz);
-        if (mz > mz_max)
-				{
-					return; // stop recording, as last block is done (one more point than required though - for grid search later)
-				}
       }
     }
-    grid.push_back(mz+sampling_rate); // one more point if inner 'return;' was not reached
+    grid.push_back(mz+sampling_rate); // one more point after mz_max, for binary search later
     return;
   }
 
@@ -1135,7 +1124,7 @@ namespace OpenMS {
 
     if (grid.size() < 3)
     {
-      LOG_WARN << "Data spacing is weird - either you selected a very small intervall or a very low resolution - or both. Not compressing." << std::endl;
+      LOG_WARN << "Data spacing is weird - either you selected a very small interval or a very low resolution - or both. Not compressing." << std::endl;
       return;
     }
 
