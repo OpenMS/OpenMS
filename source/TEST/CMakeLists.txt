@@ -4,6 +4,9 @@ PROJECT("OpenMS_tests") ## do not change this name, as you will break Windows-Ni
 enable_testing()
 INCLUDE(Dart)
 
+# required to build GUI tests (e.g., TOPPView_test)
+ADD_DEFINITIONS(-DQT_GUI_LIB)
+
 
 ## - BEGIN OF WORKAROUND
 ## this is a workaround for a CMake-Bug (http://www.cmake.org/Bug/view.php?id=12419)

@@ -409,7 +409,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SILACFilter::averageneFilter(DoubleReal rt, DoubleReal mz)
+  bool SILACFilter::averageneFilter(DoubleReal /* rt */, DoubleReal mz)
   {
     bool missing_peak_seen_yet = false;
 
