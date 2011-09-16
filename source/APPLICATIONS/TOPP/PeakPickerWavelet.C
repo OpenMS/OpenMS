@@ -27,7 +27,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
@@ -39,7 +38,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_PeakPicker PeakPicker
+	@page TOPP_PeakPickerWavelet PeakPickerWavelet
 
 	@brief A tool for peak detection in profile data. Executes the peak picking with selected algorithms choosable: @ref OpenMS::PeakPickerCWT "wavelet" (described in Lange et al. (2006) Proc. PSB-06) and @ref OpenMS::PeakPickerHiRes "high_res".
 <CENTER>
@@ -106,12 +105,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPPeakPicker
+class TOPPPeakPickerWavelet
     : public TOPPBase
 {
 public:
-    TOPPPeakPicker()
-        : TOPPBase("PeakPicker","Finds mass spectrometric peaks in profile mass spectra.")
+    TOPPPeakPickerWavelet()
+        : TOPPBase("PeakPickerWavelet","Finds mass spectrometric peaks in profile mass spectra.")
     {
     }
 
@@ -134,20 +133,6 @@ protected:
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
         return PeakPickerCWT().getDefaults();
-
-        //            String type = getStringOption_("type");
-        //		Param tmp;
-
-        //		if (type == "wavelet")
-        //    {
-        //      tmp = PeakPickerCWT().getDefaults();
-        //    }
-        //    else if (type == "high_res")
-        //    {
-        //      tmp = PeakPickerHiRes().getDefaults();
-        //    }
-
-        //    return tmp;
     }
 
     ExitCodes main_(int , const char**)
@@ -197,10 +182,8 @@ protected:
         MSExperiment<> ms_exp_peaks;
 
         Param pepi_param = getParam_().copy("algorithm:",true);
-        writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
+        writeDebug_("Parameters passed to PeakPickerWavelet", pepi_param,3);
 
-        //        if (type == "wavelet")
-        //        {
         PeakPickerCWT pp;
         pp.setLogType(log_type_);
         pp.setParameters(pepi_param);
@@ -213,14 +196,6 @@ protected:
             LOG_ERROR << "Exception catched: " << e.what() << "\n";
             return INTERNAL_ERROR;
         }
-        //      }
-        //        else if (type == "high_res")
-        //        {
-        //            PeakPickerHiRes pp;
-        //            pp.setLogType(log_type_);
-        //            pp.setParameters(pepi_param);
-        //            pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
-        //        }
 
         //-------------------------------------------------------------
         // writing output
@@ -238,7 +213,7 @@ protected:
 
 int main( int argc, const char** argv )
 {
-    TOPPPeakPicker tool;
+    TOPPPeakPickerWavelet tool;
     return tool.main(argc,argv);
 }
 

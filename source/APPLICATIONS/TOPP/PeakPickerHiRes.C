@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
@@ -39,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_PeakPicker PeakPicker
+	@page TOPP_PeakPickerHiRes PeakPickerHiRes
 
-	@brief A tool for peak detection in profile data. Executes the peak picking with selected algorithms choosable: @ref OpenMS::PeakPickerCWT "wavelet" (described in Lange et al. (2006) Proc. PSB-06) and @ref OpenMS::PeakPickerHiRes "high_res".
+	@brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
 <CENTER>
 	<table>
 		<tr>
@@ -74,8 +73,7 @@ using namespace std;
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PeakPicker.cli
 
-	For the parameters of the algorithm section see the algorithms documentation: @n
-		@ref OpenMS::PeakPickerCWT "wavelet" @n
+	For the parameters of the algorithm section see the algorithm documentation: @n
 		@ref OpenMS::PeakPickerHiRes "high_res" @n
 
 	In the following table you, can find example values of the most important algorithm parameters for
@@ -106,12 +104,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPPeakPicker
+class TOPPPeakPickerHiRes
     : public TOPPBase
 {
 public:
-    TOPPPeakPicker()
-        : TOPPBase("PeakPicker","Finds mass spectrometric peaks in profile mass spectra.")
+    TOPPPeakPickerHiRes()
+        : TOPPBase("PeakPickerHiRes","Finds mass spectrometric peaks in profile mass spectra.")
     {
     }
 
@@ -132,18 +130,6 @@ protected:
 
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
-        //		String type = getStringOption_("type");
-        //		Param tmp;
-
-        //		if (type == "wavelet")
-        //    {
-        //      tmp = PeakPickerCWT().getDefaults();
-        //    }
-        //    else if (type == "high_res")
-        //    {
-        //      tmp = PeakPickerHiRes().getDefaults();
-        //    }
-
         return PeakPickerHiRes().getDefaults();
     }
 
@@ -194,30 +180,12 @@ protected:
         MSExperiment<> ms_exp_peaks;
 
         Param pepi_param = getParam_().copy("algorithm:",true);
-        writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
+        writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param,3);
 
-        //        if (type == "wavelet")
-        //        {
-        //            PeakPickerCWT pp;
-        //            pp.setLogType(log_type_);
-        //            pp.setParameters(pepi_param);
-        //            try
-        //            {
-        //                pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
-        //            }
-        //            catch (Exception::BaseException& e)
-        //            {
-        //                LOG_ERROR << "Exception catched: " << e.what() << "\n";
-        //                return INTERNAL_ERROR;
-        //            }
-        //        }
-        //        else if (type == "high_res")
-        //        {
         PeakPickerHiRes pp;
         pp.setLogType(log_type_);
         pp.setParameters(pepi_param);
         pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
-        // }
 
         //-------------------------------------------------------------
         // writing output
@@ -235,7 +203,7 @@ protected:
 
 int main( int argc, const char** argv )
 {
-    TOPPPeakPicker tool;
+    TOPPPeakPickerHiRes tool;
     return tool.main(argc,argv);
 }
 
