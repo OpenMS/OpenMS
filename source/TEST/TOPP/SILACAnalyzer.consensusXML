@@ -9,21 +9,19 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_13229490167902618598" quality="8" charge="2">
-			<centroid rt="6634.75702532412" mz="670.894439141257" it="5.77779e+07"/>
+			<centroid rt="6635.48577943288" mz="670.89446537198" it="5.7699e+07"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6634.75702532412" mz="670.894439141257" it="1.78472e+07" charge="2"/>
-				<element map="1" id="0" rt="6634.75702532412" mz="674.901555067518" it="3.99307e+07" charge="2"/>
+				<element map="0" id="0" rt="6635.48577943288" mz="670.89446537198" it="1.78409e+07" charge="2"/>
+				<element map="1" id="0" rt="6635.48577943288" mz="674.901584466854" it="3.98581e+07" charge="2"/>
 			</groupedElementList>
-			<userParam type="string" name="Cell ID" value="82:3354"/>
 			<userParam type="string" name="Mass shifts [Da]" value="0.0000;8.0142"/>
 		</consensusElement>
 		<consensusElement id="e_5024549519481199379" quality="8" charge="2">
-			<centroid rt="6655.93614676618" mz="668.826213980992" it="2.3328e+07"/>
+			<centroid rt="6654.99266152475" mz="668.826307831988" it="2.09709e+07"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6655.93614676618" mz="668.826213980992" it="7.07766e+06" charge="2"/>
-				<element map="1" id="0" rt="6655.93614676618" mz="672.833287369916" it="1.62504e+07" charge="2"/>
+				<element map="0" id="0" rt="6654.99266152475" mz="668.826307831988" it="6.25767e+06" charge="2"/>
+				<element map="1" id="0" rt="6654.99266152475" mz="672.833370960576" it="1.47132e+07" charge="2"/>
 			</groupedElementList>
-			<userParam type="string" name="Cell ID" value="83:3344"/>
 			<userParam type="string" name="Mass shifts [Da]" value="0.0000;8.0142"/>
 		</consensusElement>
 	</consensusElementList>

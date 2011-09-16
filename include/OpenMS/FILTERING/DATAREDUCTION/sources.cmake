@@ -7,6 +7,7 @@ DataFilters.h
 SILACFilter.h
 SILACFiltering.h
 SILACPattern.h
+SILACPoint.h
 )
 
 ### add path to the filenames

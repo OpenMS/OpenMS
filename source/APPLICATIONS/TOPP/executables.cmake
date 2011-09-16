@@ -19,6 +19,7 @@ FalseDiscoveryRate
 FeatureFinderMRM
 FeatureFinderCentroided
 FeatureFinderIsotopeWavelet
+FeatureFinderRaw
 FeatureLinker
 FileConverter
 FileFilter

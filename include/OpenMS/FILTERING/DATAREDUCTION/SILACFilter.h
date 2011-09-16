@@ -279,17 +279,17 @@ namespace OpenMS
    * @param rt RT value of the position
    * @param mz m/z value of the position
    */
-   bool isSILACPattern_(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &, SILACPattern &pattern);
+   bool isSILACPattern_(const MSSpectrum<Peak1D> &, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &, MSSpectrum<Peak1D> &debug, SILACPattern &pattern);
 
 
-   bool isSILACPatternPicked_(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &);
-   bool extractMzShiftsAndIntensities(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &);
-   bool extractMzShiftsAndIntensitiesPicked(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &);
-   bool extractMzShiftsAndIntensitiesPickedToPattern(DoubleReal rt, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &, SILACPattern &pattern);
+   bool isSILACPatternPicked_(const MSSpectrum<Peak1D> &, DoubleReal mz, const SILACFiltering &, MSSpectrum<Peak1D> &debug);
+   bool extractMzShiftsAndIntensities(const MSSpectrum<Peak1D> &, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &);
+   bool extractMzShiftsAndIntensitiesPicked(const MSSpectrum<Peak1D> &, DoubleReal mz, const SILACFiltering &);
+   bool extractMzShiftsAndIntensitiesPickedToPattern(const MSSpectrum<Peak1D> &, DoubleReal mz, const SILACFiltering &, SILACPattern &pattern);
    bool intensityFilter();
    bool correlationFilter1(DoubleReal mz, const SILACFiltering &);
    bool correlationFilter2(DoubleReal mz, const SILACFiltering &);
-   bool averageneFilter(DoubleReal rt, DoubleReal mz);
+   bool averageneFilter(DoubleReal mz);
 
    public:  
 

@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 
 #include <iostream>
 #include <fstream>
@@ -70,19 +71,18 @@ namespace OpenMS
 
   void SILACFiltering::checkPeakWidth()
   {
-#if 0
+#if 1
     startProgress(0, 1, "checking peak width");
-    PeakWidthEstimator e;
-    e.estimateFWHM(exp_, peak_width_intercept, peak_width_slope);
-    std::cout << "got: " << peak_width_slope << " * mz + " << peak_width_intercept << std::endl;
+    peak_width_ = PeakWidthEstimator::estimateFWHM(exp_);
+    std::cout << "got: e ^ (" << peak_width_.c0 << " + " << peak_width_.c1 << " * log mz)" << std::endl;
     endProgress();
 #endif
   }
 
   DoubleReal SILACFiltering::getPeakWidth(DoubleReal mz) const
   {
-#if 0
-    return 2 * (peak_width_slope * mz + peak_width_intercept);
+#if 1
+    return peak_width_(mz);
 #endif
     return 5*(1.889e-7*pow(mz,1.5));
   }
@@ -117,20 +117,31 @@ namespace OpenMS
   {
     startProgress(0, filters_.size(), "filtering seed data");
 
+    UInt filter_id = 0;
     // Iterate over all filters
-    for (vector<SILACFilter*>::iterator filter_it = filters_.begin(); filter_it != filters_.end(); ++filter_it)
+    for (vector<SILACFilter*>::iterator filter_it = filters_.begin(); filter_it != filters_.end(); ++filter_it, ++filter_id)
     {
       setProgress(filter_it - filters_.begin());
+
+      MSExperiment<Peak1D> exp_debug;
+
+      UInt picked_rt_id = 0;
       // Iterate over all spectra of the experiment (iterate over rt)
-      for (MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_.begin(); picked_rt_it != picked_exp_.end(); ++picked_rt_it)
+      for (MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_.begin(); picked_rt_it != picked_exp_.end(); ++picked_rt_it, ++picked_rt_id)
       {
          DoubleReal rt = picked_rt_it->getRT();
+
+         MSSpectrum<Peak1D> debug;
+         debug.setRT(rt);
+         debug.setMSLevel(1);
+         debug.setNativeID(String("debug-seed=") + picked_rt_id);
+
          // Iterate over the picked spectrum
          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin(); picked_mz_it != picked_rt_it->end(); ++picked_mz_it) // iteration correct
          {
            DoubleReal picked_mz = picked_mz_it->getMZ();
 
-           bool isSILAC = (*filter_it)->isSILACPatternPicked_(rt, picked_mz, picked_mz, *this);
+           bool isSILAC = (*filter_it)->isSILACPatternPicked_(*picked_rt_it, picked_mz, *this, debug);
 
            if (isSILAC)
            {
@@ -138,6 +149,22 @@ namespace OpenMS
               picked_exp_seeds_[spec_idx].push_back(*picked_mz_it);
            }
          }
+
+         exp_debug.push_back(debug);
+      }
+
+      if (debug_filebase != "")
+      {
+        SILACFilter *filter = *filter_it;
+        ChromatogramTools().convertSpectraToChromatograms(exp_debug, true);
+        Int mass_separation = 0;
+        if (filter->mass_separations_.size()) mass_separation = filter->mass_separations_[0];
+        MzMLFile().store(debug_filebase + ".filtering.seeds-filters:" + 
+            filter->charge_ + ";" +
+            mass_separation + ";" +
+            filter->isotopes_per_peptide_ + ";" +
+            filter->model_deviation_ +
+            ".mzML", exp_debug);
       }
     }
 
@@ -148,7 +175,7 @@ namespace OpenMS
     if (debug_filebase != "")
     {
       MzMLFile mz_data_file;
-      mz_data_file.store(debug_filebase + ".filtering.filtered_seeds.mzML", picked_exp_seeds_);
+      mz_data_file.store(debug_filebase + ".filtering.seeds.mzML", picked_exp_seeds_);
     }
   }
 
@@ -162,22 +189,34 @@ namespace OpenMS
 
     mz_min_ = exp_.getMinMZ();      // get lowest m/z value
 
+    UInt filter_id = 0;
     // Iterate over all filters
-    for (vector<SILACFilter*>::iterator filter_it = filters_.begin(); filter_it != filters_.end(); ++filter_it)
+    for (vector<SILACFilter*>::iterator filter_it = filters_.begin(); filter_it != filters_.end(); ++filter_it, ++filter_id)
     {
+      MSExperiment<Peak1D> exp_debug;
+
+      UInt rt_id = 0;
       // Iterate over all spectra of the experiment (iterate over rt)
-      for (MSExperiment<Peak1D>::Iterator rt_it = exp_.begin(); rt_it != exp_.end(); ++rt_it)
+      for (MSExperiment<Peak1D>::Iterator picked_seed_rt_it = picked_exp_seeds_.begin();
+           picked_seed_rt_it != picked_exp_seeds_.end();
+           ++picked_seed_rt_it, ++rt_id)
       {
+        DoubleReal rt = picked_seed_rt_it->getRT();    // retention time of this spectrum
+
+        MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_.RTBegin(rt);
+        MSExperiment<Peak1D>::Iterator rt_it = exp_.RTBegin(rt);
+
         // set progress
         // calculate with progress for the current rt run and progress for the filter run, each scaled by total numbers of filters
-        setProgress((rt_it - exp_.begin()) / filters_.size() + distance(filters_.begin(), filter_it) * exp_.size() / filters_.size());
+        setProgress((picked_seed_rt_it - picked_exp_seeds_.begin()) / filters_.size() + distance(filters_.begin(), filter_it) * picked_exp_seeds_.size() / filters_.size());
 
-        Size number_data_points = rt_it->size();    // number of (m/z, intensity) data points in this spectrum
+        MSSpectrum<Peak1D> debug;
+        debug.setRT(rt);
+        debug.setMSLevel(1);
+        debug.setNativeID(String("debug-spline=") + rt_id);
 
-        DoubleReal rt = rt_it->getRT();    // retention time of this spectrum
-
-        // spectra with less than 10 data points are being ignored
-        if (number_data_points >= 10)
+        // spectra with less than 10 data points and less then two picked peaks are being ignored
+        if (rt_it->size() >= 10 && picked_rt_it->size() > 1)
         {
           // filter MS1 spectra
           // read one spectrum into GSL structure
@@ -215,14 +254,11 @@ namespace OpenMS
           gsl_spline_init(spline_spl_, &*mz_vec.begin(), &*intensity_vec.begin(), mz_vec.size());
 
 
-          // get iterator on picked data
-          MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_seeds_.RTBegin(rt);
-
           // XXX: Workaround to catch duplicated peaks
           std::set<DoubleReal> seen_mz;
 
           // Iterate over the picked spectrum
-          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin() ; picked_mz_it != picked_rt_it->end(); ++picked_mz_it) // iteration correct
+          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_seed_rt_it->begin() ; picked_mz_it != picked_seed_rt_it->end(); ++picked_mz_it) // iteration correct
           {
             DoubleReal picked_mz = picked_mz_it->getMZ();
             DoubleReal intensity = picked_mz_it->getIntensity();
@@ -240,7 +276,7 @@ namespace OpenMS
 
             // XXX: Extract peaks again
             SILACPattern pattern;
-            if (!(*filter_it)->extractMzShiftsAndIntensitiesPickedToPattern(rt, picked_mz, picked_mz, *this, pattern))
+            if (!(*filter_it)->extractMzShiftsAndIntensitiesPickedToPattern(*picked_rt_it, picked_mz, *this, pattern))
               continue;
 
             for (DoubleReal mz = picked_mz - getPeakWidth(picked_mz); mz < picked_mz + getPeakWidth(picked_mz); mz += 0.1 * getPeakWidth(picked_mz) ) // iteration correct
@@ -297,7 +333,7 @@ namespace OpenMS
               // Check the other filters only if current m/z and rt position is not blacklisted
               if (isBlacklisted == false)
               {
-                if ((*filter_it)->isSILACPattern_(rt, mz, picked_mz, *this, pattern))      // Check if the mz at the given position is a SILAC pair
+                if ((*filter_it)->isSILACPattern_(*picked_rt_it, mz, picked_mz, *this, debug, pattern))      // Check if the mz at the given position is a SILAC pair
                 {
                   //--------------------------------------------------
                   // FILLING THE BLACKLIST
@@ -414,8 +450,23 @@ namespace OpenMS
           gsl_interp_accel_free(current_spl_);
           gsl_spline_free(spline_aki_);
           gsl_spline_free(spline_spl_);
-
         }
+
+        exp_debug.push_back(debug);
+      }
+
+      if (debug_filebase != "")
+      {
+        SILACFilter *filter = *filter_it;
+        ChromatogramTools().convertSpectraToChromatograms(exp_debug, true);
+        Int mass_separation = 0;
+        if (filter->mass_separations_.size()) mass_separation = filter->mass_separations_[0];
+        MzMLFile().store(debug_filebase + ".filtering.spline-filters:" + 
+            filter->charge_ + ";" +
+            mass_separation + ";" +
+            filter->isotopes_per_peptide_ + ";" +
+            filter->model_deviation_ +
+            ".mzML", exp_debug);
       }
     }
 

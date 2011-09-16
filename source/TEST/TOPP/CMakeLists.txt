@@ -62,6 +62,7 @@ FeatureFinderIsotopeWavelet
 FeatureFinderMRM
 FeatureLinker
 FeatureLinker
+FeatureFinderRaw
 FileConverter
 FileFilter
 FileInfo
@@ -595,16 +596,18 @@ add_test("TOPP_TextExporter_8_out1" ${DIFF} -in1 TextExporter_8_output.tmp -in2 
 
 ### SILACAnalyzer tests
 # mzML
-add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer.mzML -out SILACAnalyzer.tmp -out_features SILACAnalyzer-features.tmp)
-add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -in1 SILACAnalyzer.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.consensusXML)
-add_test("TOPP_SILACAnalyzer_1_out2" ${DIFF} -in1 SILACAnalyzer-features.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer-features.featureXML)
+add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer.mzML -out SILACAnalyzer.consensusXML.tmp -out_features SILACAnalyzer.featureXML.tmp)
+add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -in1 SILACAnalyzer.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.consensusXML)
+add_test("TOPP_SILACAnalyzer_1_out2" ${DIFF} -in1 SILACAnalyzer.featureXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.featureXML)
 # empty mzML
-add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_empty.mzML -out SILACAnalyzer_empty.tmp)
-add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer_empty.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_empty.consensusXML)
+add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_empty.mzML -out SILACAnalyzer_empty.consensusXML.tmp -out_features SILACAnalyzer_empty.featureXML.tmp)
+add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer_empty.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_empty.consensusXML)
+add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -in1 SILACAnalyzer_empty.featureXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_empty.featureXML)
 # mzML with negativ RT
-add_test("TOPP_SILACAnalyzer_3" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.mzML -out SILACAnalyzer_negativ.tmp)
-add_test("TOPP_SILACAnalyzer_3_out1" ${DIFF} -in1 SILACAnalyzer_negativ.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.consensusXML)
-
+add_test("TOPP_SILACAnalyzer_3" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.mzML -out SILACAnalyzer_negativ.consensusXML.tmp)
+add_test("TOPP_SILACAnalyzer_3_out1" ${DIFF} -in1 SILACAnalyzer_negativ.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.consensusXML)
+add_test("TOPP_FeatureFinderRaw_1" ${TOPP_BIN_PATH}/FeatureFinderRaw -test -ini ${DATA_DIR_TOPP}/FeatureFinderRaw.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer.mzML -out FeatureFinderRaw.featureXML.tmp)
+add_test("TOPP_FeatureFinderRaw_1_out" ${DIFF} -in1 FeatureFinderRaw.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderRaw.featureXML)
 
 
 ### FeatureLinker tests

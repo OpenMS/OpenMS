@@ -1,10 +1,10 @@
 // -*- Mode: C++; tab-width: 2; -*-
-// vi: set ts=2:expandtab
+// vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2011 -- Bastian Blank
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,24 +22,57 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Bastian Blank $
+// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass, Bastian Blank $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
-#define OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
+#ifndef OPENMS_FILTERING_DATAREDUCTION_SILACPOINT_H
+#define OPENMS_FILTERING_DATAREDUCTION_SILACPOINT_H
 
 namespace OpenMS
 {
   /**
+   * @brief A single SILAC point
+   * @see HashGrid
+   * @ingroup Datastructures
    */
-  class SILACPattern
-    : public SILACPoint
-  {
+  class OPENMS_DLLAPI SILACPoint {
     public:
-      std::vector<SILACPoint> points;
+      /**
+       * @brief m/z value of the element
+       */
+      DoubleReal mz;
+
+      /**
+       *@brief RT value of the element
+       */
+      DoubleReal rt;
+
+      /**
+       * @brief intensity at RT and m/z
+       */
+      std::vector<std::vector<DoubleReal> > intensities;
+
+      /**
+       * @brief mass shifts [Da] used in the filter
+       */	
+      std::vector<DoubleReal> mass_shifts;
+
+      /**
+       * @brief charge of the cluster (i.e. peptide) which the data point is part of
+       */
+      Int charge;
+
+      /**
+       * @brief number of isotopes per peptide of the cluster
+       */
+      Int isotopes_per_peptide;
+
+      /**
+       * @brief quality of the cluster
+       */
+      DoubleReal quality;
   };
 }
 
-#endif /* OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H */
+#endif
