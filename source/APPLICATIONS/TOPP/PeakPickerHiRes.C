@@ -117,15 +117,14 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-  	registerInputFile_("in","<file>","","input profile data file ");
-        setValidFormats_("in",StringList::create("mzML"));
-        registerOutputFile_("out","<file>","","output peak file ");
-        setValidFormats_("out",StringList::create("mzML"));
-        registerStringOption_("type","<name>","","peak detection algorithm type",true);
-        // setValidStrings_("type", ToolHandler::getTypes(toolName_()) );
-        addEmptyLine_();
-  	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
-  	registerSubsection_("algorithm","Algorithm parameters section");
+      registerInputFile_("in","<file>","","input profile data file ");
+      setValidFormats_("in",StringList::create("mzML"));
+      registerOutputFile_("out","<file>","","output peak file ");
+      setValidFormats_("out",StringList::create("mzML"));
+
+      addEmptyLine_();
+      addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
+      registerSubsection_("algorithm","Algorithm parameters section");
     }
 
     Param getSubsectionDefaults_(const String& /*section*/) const
@@ -142,7 +141,6 @@ protected:
 
         String in = getStringOption_("in");
         String out = getStringOption_("out");
-        // String type = getStringOption_("type");
 
         //-------------------------------------------------------------
         // loading input

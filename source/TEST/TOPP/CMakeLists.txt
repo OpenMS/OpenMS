@@ -448,17 +448,17 @@ add_test("TOPP_NoiseFilterSGolay_1" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -in
 add_test("TOPP_NoiseFilterSGolay_1_out1" ${DIFF} -in1 NoiseFilterSGolay_1.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_output.mzML)
 
 ### PeakPicker tests
-add_test("TOPP_PeakPicker_1" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_input.mzML -out PeakPicker.tmp)
-add_test("TOPP_PeakPicker_1_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_output.mzML)
-add_test("TOPP_PeakPicker_2" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_deconv_input.mzML -out PeakPicker.tmp)
-add_test("TOPP_PeakPicker_2_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_deconv_output.mzML)
-add_test("TOPP_PeakPicker_3" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_2Dopt_input.mzML -out PeakPicker.tmp)
-add_test("TOPP_PeakPicker_3_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_2Dopt_output.mzML)
-add_test("TOPP_PeakPicker_4" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_input.mzML -out PeakPicker.tmp -threads 2)
-add_test("TOPP_PeakPicker_4_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_output.mzML)
+add_test("TOPP_PeakPickerWavelet_1" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet.tmp)
+add_test("TOPP_PeakPickerWavelet_1_out1" ${DIFF} -in1 PeakPickerWavelet.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
+add_test("TOPP_PeakPickerWavelet_2" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_input.mzML -out PeakPickerWavelet.tmp)
+add_test("TOPP_PeakPickerWavelet_2_out1" ${DIFF} -in1 PeakPickerWavelet.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_output.mzML)
+add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_input.mzML -out PeakPickerWavelet.tmp)
+add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML)
+add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet.tmp -threads 2)
+add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -in1 PeakPickerWavelet.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
 # "high_res" algorithm with "ms1_only" option:
-add_test("TOPP_PeakPicker_5" ${TOPP_BIN_PATH}/PeakPicker -test -ini ${DATA_DIR_TOPP}/PeakPicker_highres_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_highres_input.mzML -out PeakPicker.tmp)
-add_test("TOPP_PeakPicker_5_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_highres_output.mzML)
+add_test("TOPP_PeakPickerHiRes_5" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_input.mzML -out PeakPickerHiRes.tmp)
+add_test("TOPP_PeakPickerHiRes_5_out1" ${DIFF} -in1 PeakPickerHiRes.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_output.mzML)
 
 ### Resampler tests
 add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.mzML -sampling_rate 0.3)
