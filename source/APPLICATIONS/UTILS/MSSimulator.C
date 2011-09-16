@@ -112,9 +112,6 @@ class TOPPMSSimulator
       registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)",false);
       registerOutputFile_("out_cntm","<file>","","output (simulated MS map) in featureXML format (contaminants)",false);
       
-      registerStringOption_("type","<name>","","Labeling type\n",true);
-      setValidStrings_("type", ToolHandler::getTypes(toolName_()) );
-
 			addEmptyLine_();
   		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");
 			addEmptyLine_();
@@ -134,10 +131,12 @@ class TOPPMSSimulator
     }
   
     Param getSubsectionDefaults_(const String& /*section*/) const
-    { 
+    {
       Param tmp;
-      String type = getStringOption_("type");
-      tmp.insert("MSSim:", MSSim().getParameters(type));
+      tmp.insert("MSSim:", MSSim().getParameters());
+
+      // set parameters for the different types of random number generators
+      // we support one for the technical and one for the biological variability
       tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
       tmp.setValidStrings("RandomNumberGenerators:biological",StringList::create("reproducible,random"));
       tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");

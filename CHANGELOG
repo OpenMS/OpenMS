@@ -8,21 +8,27 @@ OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefor all .in
 for 'typed' TOPP tools (i.e. with a type parameter) build with OpenMS 1.8 and below
 are incompatible! To fix your old .ini files ....
 
+OpenMS 1.9 removed support for Mac OS X 10.5.
 
 TOPP tools: 
 -ADDED:
   - MapStatistics
 	- EICExtractor
+	- FeatureFinderRaw
 -MODIFIED:
   - Split NoiseFilter into NoiseFilterGaussian and NoiseFilterSGolay
 	- MascotAdapterOnline now supports Mascot 2.3 servers
+	- Split PeakPicker into PeakPickerWavelet and PeakPickerHiRes
+	- Split FeatureFinder into FeatureFinderMRM, FeatureFinderCentroided, FeatureFinderIsotopeWavelet
 -REMOVED:
   - AndiMS is no longer supported on any platform
  
 UTIL tools: 
 	 
 OpenMS library improvements: 
-	 
+- MODIFIED
+	- The type parameter of MSSimulator was moved to MSSim:Labeling:type
+
 TOPPView improvements:
 -MODIFIED:
   - ConsensusFeatures can now be colored using MetaValues

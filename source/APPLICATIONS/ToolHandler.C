@@ -162,7 +162,7 @@ namespace OpenMS
 		util_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", "");
 		util_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", "");
 		util_map["IdXMLEvaluation"] = Internal::ToolDescription("IdXMLEvaluation", "");
-    util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", "", Factory<BaseLabeler>::registeredProducts());
+    util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", "");
 		util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", "");
 		util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", "");
 		util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", "");

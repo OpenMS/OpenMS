@@ -102,7 +102,8 @@ namespace OpenMS
     MSSimExperiment const & getPeakMap() const;
 
     /// Returns the default parameters for simulation including the labeling technique with name @p labeling_name
-    Param getParameters(const String& labeling_name) const;
+    Param getParameters() const;
+
   protected:
 		/// handle global params
 		void syncParams_(Param& p, bool to_outer);

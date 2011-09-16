@@ -118,17 +118,23 @@ namespace OpenMS {
     delete labeler_;
   }
 
-  Param MSSim::getParameters(const String &labeling_name) const
+  Param MSSim::getParameters() const
   {
     Param tmp;
     tmp.insert("", this->param_); // get non-labeling options
 
-    if(labeling_name != "")
+    std::vector<String> products = Factory<BaseLabeler>::registeredProducts();
+
+    tmp.setValue("Labeling:type", "labelfree", "Select the labeling type you want for your experiment");
+    tmp.setValidStrings("Labeling:type", products);
+
+    for(std::vector<String>::iterator product_name = products.begin() ; product_name != products.end() ; ++product_name)
     {
-      BaseLabeler* labeler = Factory<BaseLabeler>::create(labeling_name);
-      tmp.insert("Labeling:", labeler->getDefaultParameters());
+      BaseLabeler* labeler = Factory<BaseLabeler>::create(*product_name);
+      tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
       delete(labeler);
     }
+
     return tmp;
   }
 
