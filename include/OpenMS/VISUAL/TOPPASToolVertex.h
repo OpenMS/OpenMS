@@ -215,7 +215,9 @@ namespace OpenMS
 			void getParameters_(QVector<IOInfo>& io_infos, bool input_params);
 			/// Writes @p param to the @p ini_file
 			void writeParam_(const Param& param, const QString& ini_file);
-			
+      /// Helper method for finding good boundaries for wrapping the tool name. Returns a string with whitespaces at the preferred boundaries.
+      QString toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str);
+
 			/// The name of the tool
 			String name_;
 			/// The type of the tool, or "" if it does not have a type

@@ -332,21 +332,24 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		if (type_ == "")
-		{
-			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
-			painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), name_.toQString());
-		}
-		else
-		{
-			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
-			painter->drawText(-(int)(text_boundings.width()/2.0), -(int)(text_boundings.height()/3.0), name_.toQString());
-			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
-			painter->drawText(-(int)(text_boundings.width()/2.0), +(int)(text_boundings.height()/1.33), type_.toQString());
-		}
+
+    QString tmp_str = (type_ == "" ? name_ : name_ + " (" + type_ + ")").toQString();
+    for (int i = 0; i < 10; ++i)
+    {
+      QString prev_str = tmp_str;
+      tmp_str = toolnameWithWhitespacesForFancyWordWrapping_(painter, tmp_str);
+      if (tmp_str == prev_str)
+      {
+        break;
+      }
+    }
+    QString draw_str = tmp_str;
+
+    QRectF text_boundings = painter->boundingRect(QRectF(-65,-35,130,70), Qt::AlignCenter|Qt::TextWordWrap, draw_str);
+    painter->drawText(text_boundings, Qt::AlignCenter|Qt::TextWordWrap, draw_str);
 
 		//topo sort number
-		qreal x_pos = -64.0;
+    qreal x_pos = -64.0;
 		qreal y_pos = -41.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 		
@@ -372,6 +375,48 @@ namespace OpenMS
 		painter->drawEllipse(46,-52, 14, 14);
 	}
 	
+  QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
+  {
+    qreal max_width = 130;
+
+    QStringList parts = str.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+    QStringList new_parts;
+
+    foreach (QString part,  parts)
+    {
+      QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter|Qt::TextWordWrap, part);
+      if (text_boundings.width() <= max_width)
+      {
+        //word not too long
+        new_parts.append(part);
+      }
+      else
+      {
+        //word too long -> insert space at reasonable position -> Qt::TextWordWrap can break the line there
+        int last_capital_index = 1;
+        for (int i = 1; i <= part.size(); ++i)
+        {
+          QString tmp_str = part.left(i);
+          //remember position of last capital letter
+          if (QRegExp("[A-Z]").exactMatch(tmp_str.at(i-1)))
+          {
+            last_capital_index = i;
+          }
+          QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter|Qt::TextWordWrap, tmp_str);
+          if (text_boundings.width() > max_width)
+          {
+            //break line at next capital letter before this position
+            new_parts.append(part.left(last_capital_index-1) + "-");
+            new_parts.append(part.right(part.size() - last_capital_index+1));
+            break;
+          }
+        }
+      }
+    }
+
+    return new_parts.join(" ");
+  }
+
 	QRectF TOPPASToolVertex::boundingRect() const
 	{
 		return QRectF(-71,-61,142,122);
