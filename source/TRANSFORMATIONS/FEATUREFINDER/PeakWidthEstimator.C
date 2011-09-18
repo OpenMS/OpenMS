@@ -248,7 +248,7 @@ namespace OpenMS
     // extract mzs and fwhm for linear regression above the median sorted for the intensity
     std::vector<double> keys, values, weights;
     {
-      UInt count = fwhms.size() / 2;
+      Size count = fwhms.size() / 2;
       std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> >::reverse_iterator it = fwhms.rbegin();
       for (; count && it != fwhms.rend(); --count, ++it)
       {
@@ -260,7 +260,7 @@ namespace OpenMS
     }
 
     double c0, c1, cov00, cov01, cov11, chisq;
-    int error = gsl_fit_wlinear(keys.data(), 1, weights.data(), 1, values.data(), 1, keys.size(),
+    int error = gsl_fit_wlinear(&keys[0], 1, &weights[0], 1, &values[0], 1, keys.size(),
                                 &c0, &c1, &cov00, &cov01, &cov11, &chisq);
 
     if (error)
