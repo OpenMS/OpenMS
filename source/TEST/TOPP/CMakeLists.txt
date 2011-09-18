@@ -138,7 +138,6 @@ MassCalculator
 MRMPairFinder
 MSSimulator
 MapAlignmentEvaluation
-OpenMSInfo
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
