@@ -106,54 +106,6 @@ namespace OpenMS
   	}
 	}
 
-	void TOPPBase::checkTOPPIniFile(const String& /*tool_path*/)
-	{
-    // check if .TOPP.ini exists, create it otherwise
-    if (!File::exists(topp_ini_file_))
-    {
-      ofstream create_out(topp_ini_file_.c_str());
-      create_out.close();
-      Param all_params;
-      for (ToolListType::const_iterator it = ToolHandler::getTOPPToolList().begin(); it != ToolHandler::getTOPPToolList().end(); ++it)
-      {
-				String call = it->first; // @todo think about paths (chris, andreas)
-				String tmp_file = String(QDir::tempPath()) + String("/") + File::getUniqueName();
-				StringList types = ToolHandler::getTypes(it->first);
-				if (types.size() == 0)
-				{
-					types.push_back("");
-				}
-
-				for (StringList::const_iterator sit = types.begin(); sit != types.end(); ++sit)
-				{
-					String type_arg ="";
-					if (*sit != "")
-					{
-						 type_arg = "-type " + *sit;
-					}
-					QStringList args;
-					args << type_arg.toQString() << " -write_ini " << tmp_file.toQString();
-					if (QProcess::execute(call.toQString(), args) == 0)
-					{
-						Param p;
-						p.load(tmp_file);
-						String prefix = it->first;
-						if (*sit != "")
-						{
-							prefix += "_" + *sit;
-						}
-						all_params.insert(prefix, p);
-					}
-					else
-					{
-						LOG_WARN << "Cannot create .TOPP.ini file, for system wide parameter defaults (" << it->first << ")." << endl;
-					}
-				}
-      }
-		}
-
-
-	}
 
 	TOPPBase::ExitCodes TOPPBase::main(int argc , const char** argv)
 	{
@@ -174,7 +126,6 @@ namespace OpenMS
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
 		registerStringOption_("write_ini","<file>","","Writes the default configuration file",false);
     registerStringOption_("write_ctd","<out_dir>","","Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>",false);
-    registerStringOption_("write_type","<file>","","Writes a minimal ini file, containing only the types available for this tool",false,true);
 		registerStringOption_("write_wsdl","<file>","","Writes the default WSDL file",false,true);
 		registerFlag_("no_progress","Disables progress logging to command line",true);
 		if (id_tag_support_)
@@ -279,22 +230,13 @@ namespace OpenMS
 		try
 		{
 #endif
-      // '-write_type' given
-      if (param_cmdline_.exists("write_type"))
-      {
-        String write_ini_file = param_cmdline_.getValue("write_type");
-			  outputFileWritable_(write_ini_file,"write_type");
-			  Param default_params = getDefaultParameters_();
-			  default_params.store(write_ini_file);
-			  return EXECUTION_OK;
-      }
-
 			// '-write_ini' given
 			if (param_cmdline_.exists("write_ini"))
       {
         String write_ini_file = param_cmdline_.getValue("write_ini");
 			  outputFileWritable_(write_ini_file, "write_ini");
 			  Param default_params = getDefaultParameters_();
+
 			  // check if augmentation with -ini param is needed
 			  DataValue in_ini;
         if (param_cmdline_.exists("ini"))
@@ -329,167 +271,10 @@ namespace OpenMS
 			// '-write_wsdl' given
 			String wsdl_file("");
 			if (param_cmdline_.exists("write_wsdl")) wsdl_file = param_cmdline_.getValue("write_wsdl");
-			if (wsdl_file != "")
-			{
-				outputFileWritable_(wsdl_file,"write_wsdl");
-				ofstream os(wsdl_file.c_str());
-
-				//write header
-				os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-				os << "<wsdl:definitions targetNamespace=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:plnk=\"http://schemas.xmlsoap.org/ws/2003/05/partner-link/\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" xmlns:tns=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
-				os << "  <wsdl:types>" << endl;
-				os << "    <xs:schema attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"http://org.apache.axis2/xsd\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
-				os << "      <xs:element name=\"" << tool_name_ << "Request\">" << endl;
-				os << "        <xs:complexType>" << endl;
-				os << "          <xs:sequence>" << endl;
-
-				//write types (forward declaration for readablility only. Could be defined in the message as well.
-				Param param = getDefaultParameters_();
-				param = param.copy(tool_name_ + ":" + String(instance_number_) + ":",true);
-				for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
-				{
-					//find out if the value is restricted
-					bool restricted = false;
-					if (it->value.valueType()==DataValue::STRING_VALUE  && !it->valid_strings.empty())
-					{
-						restricted = true;
-					}
-					else if (it->value.valueType()==DataValue::STRING_LIST || it->value.valueType()==DataValue::INT_LIST || it->value.valueType()==DataValue::DOUBLE_LIST)
-					{
-						restricted = true;
-					}
-					else if (it->value.valueType()==DataValue::INT_VALUE && (it->min_int!=-std::numeric_limits<Int>::max() || it->max_int!=std::numeric_limits<Int>::max()))
-					{
-						restricted = true;
-					}
-					else if (it->value.valueType()==DataValue::DOUBLE_VALUE && (it->min_float!=-std::numeric_limits<DoubleReal>::max() || it->max_float!=std::numeric_limits<DoubleReal>::max()))
-					{
-						restricted = true;
-					}
-
-					//name, default (and type if not restricted)
-					os << "            <xs:element name=\"" << it.getName() << "\"";
-					if (!restricted)
-					{
-						if (it->value.valueType()==DataValue::STRING_VALUE) os << " type=\"xs:string\"";
-						if (it->value.valueType()==DataValue::DOUBLE_VALUE) os << " type=\"xs:double\"";
-						if (it->value.valueType()==DataValue::INT_VALUE) os << " type=\"xs:integer\"";
-					}
-					os << " default=\"" << it->value.toString() << "\">" << endl;
-					//docu
-					if (it->description!="")
-					{
-						String description = it->description;
-						description.substitute("<","&lt;");
-						description.substitute(">","&gt;");
-						os << "              <xs:annotation>" << endl;
-						os << "                <xs:documentation>" << description << "</xs:documentation>" << endl;
-						os << "              </xs:annotation>" << endl;
-					}
-					//restrictions
-					if (restricted)
-					{
-						os << "              <xs:simpleType>" << endl;
-						if (it->value.valueType()==DataValue::STRING_LIST)
-						{
-							os << "                <xs:restriction base=\"xs:stringlist\">" << endl;
-							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-						}
-						else if (it->value.valueType()==DataValue::INT_LIST)
-						{
-							os << "                <xs:restriction base=\"xs:intlist\">" << endl;
-							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-						}
-						else if (it->value.valueType()==DataValue::DOUBLE_LIST)
-						{
-							os << "                <xs:restriction base=\"xs:doublelist\">" << endl;
-							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-						}
-						else if (it->value.valueType()==DataValue::STRING_VALUE)
-						{
-							os << "                <xs:restriction base=\"xs:string\">" << endl;
-							for (Size i=0; i<it->valid_strings.size(); ++i)
-							{
-								os << "                  <xs:enumeration value=\"" << it->valid_strings[i] << "\"/>" << endl;
-							}
-						}
-						else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
-						{
-							os << "                <xs:restriction base=\"xs:double\">" << endl;
-							if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
-							{
-								os << "                  <xs:minInclusive value=\"" << it->min_float << "\"/>" << endl;
-							}
-							if (it->max_float!=std::numeric_limits<DoubleReal>::max())
-							{
-								os << "                  <xs:maxInclusive value=\"" << it->max_float << "\"/>" << endl;
-							}
-						}
-						else if (it->value.valueType()==DataValue::INT_VALUE)
-						{
-							os << "                <xs:restriction base=\"xs:integer\">" << endl;
-							if (it->min_int!=-std::numeric_limits<Int>::max())
-							{
-								os << "                  <xs:minInclusive value=\"" << it->min_int << "\"/>" << endl;
-							}
-							if (it->max_int!=std::numeric_limits<Int>::max())
-							{
-								os << "                  <xs:maxInclusive value=\"" << it->max_int << "\"/>" << endl;
-							}
-						}
-						os << "                </xs:restriction>" << endl;
-						os << "              </xs:simpleType>" << endl;
-					}
-					os << "            </xs:element>" << endl;
-				}
-				os << "          </xs:sequence>" << endl;
-				os << "        </xs:complexType>" << endl;
-				os << "      </xs:element>" << endl;
-				os << "    </xs:schema>" << endl;
-				os << "  </wsdl:types>" << endl;
-				//message
-				os << "  <wsdl:message name=\"" << tool_name_ << "RequestMessage\">" << endl;
-				os << "    <wsdl:part element=\"ns1:" << tool_name_ << "Request\" name=\"part1\"/>" << endl;
-				os << "  </wsdl:message>" << endl;
-				//port
-				os << "  <wsdl:portType name=\"SVMHCProcessPortType\">" << endl;
-				os << "    <wsdl:operation name=\"request\">" << endl;
-				os << "      <wsdl:input message=\"tns:" << tool_name_ << "RequestMessage\"/>" << endl;
-				os << "    </wsdl:operation>" << endl;
-				os << "  </wsdl:portType>" << endl;
-				//binding
-				os << "  <wsdl:binding name=\"" << tool_name_ << "ProviderServiceBinding\" type=\"tns:" << tool_name_ << "PortType\">" << endl;
-				os << "    <soap:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-				os << "    <wsdl:operation name=\"request\">" << endl;
-				os << "      <soap:operation soapAction=\"\" style=\"rpc\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-				os << "      <wsdl:input>" << endl;
-				os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-				os << "      </wsdl:input>" << endl;
-				os << "      <wsdl:output>" << endl;
-				os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-				os << "      </wsdl:output>" << endl;
-				os << "    </wsdl:operation>" << endl;
-				os << "  </wsdl:binding>" << endl;
-				//service
-				os << "  <wsdl:service name=\"" << tool_name_ << "ProviderService\">" << endl;
-				os << "    <wsdl:port binding=\"tns:" << tool_name_ << "ProviderServiceBinding\" name=\"" << tool_name_ << "ProviderServicePort\">" << endl;
-				os << "     <soap:address location=\"http://trypsin.informatik.uni-tuebingen.de:30090/active-bpel/services/" << tool_name_ << "ProviderService\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-				os << "    </wsdl:port>" << endl;
-				os << "  </wsdl:service>" << endl;
-				//end
-				os << "</wsdl:definitions>" << endl;
-				os.close();
-
-				//validate written file
-				XMLValidator validator;
-				if (!validator.isValid(wsdl_file,File::find("SCHEMAS/WSDL_20030211.xsd")))
-				{
-					writeLog_("Error: The written WSDL file does not validate against the XML schema. Please report this bug!");
-					return INTERNAL_ERROR;
-				}
-
-				return EXECUTION_OK;
-			}
+      if (wsdl_file != "")
+      {
+        return writeWSDL_(wsdl_file);
+      }
 
 			//-------------------------------------------------------------
 			// load INI file
@@ -506,15 +291,12 @@ namespace OpenMS
           p_tmp.load( (String)value_ini );
 
           checkIfIniParametersAreApplicable_(p_tmp);
-
-          // little hack: getDefaultParameters() requires to have 'type' from commandline
-          if (p_tmp.exists(getIniLocation_() + "type"))
-          {
-            param_cmdline_.setValue("type", p_tmp.getValue(getIniLocation_() + "type"));
-          }
+          // set type on commandline if given in .ini file
+          if (p_tmp.exists(this->ini_location_ + "type") && !param_cmdline_.exists("type")) param_cmdline_.setValue("type", p_tmp.getValue(this->ini_location_ + "type"));
+          // otherwise the following line cannot fetch subsectionDefaults() from tool
           param_inifile_ = this->getDefaultParameters_();
           Logger::LogStream null_stream;
-          param_inifile_.update(p_tmp, false, true, null_stream); // silently update (no not trust INI file), but leave unknown params
+          param_inifile_.update(p_tmp, false, true, null_stream); // silently update (do not trust INI file), but leave unknown params
         }
         else
         { // fill param with default values:
@@ -637,31 +419,31 @@ namespace OpenMS
 		catch(Exception::UnableToCreateFile& e)
 		{
 			writeLog_(String("Error: Unable to write file (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!",1);
 			return CANNOT_WRITE_OUTPUT_FILE;
 		}
 		catch(Exception::FileNotFound& e)
 		{
 			writeLog_(String("Error: File not found (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_NOT_FOUND;
 		}
 		catch(Exception::FileNotReadable& e)
 		{
 			writeLog_(String("Error: File not readable (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_NOT_READABLE;
 		}
 		catch(Exception::FileEmpty& e)
 		{
 			writeLog_(String("Error: File empty (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_EMPTY;
 		}
 		catch(Exception::ParseError& e)
 		{
 			writeLog_(String("Error: Unable to read file (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_CORRUPT;
 		}
 		catch(Exception::RequiredParameterNotGiven& e)
@@ -669,33 +451,33 @@ namespace OpenMS
       String what = e.what();
       if (!what.hasPrefix("'")) what = "'"+what+"'";
       writeLog_(String("Error: The required parameter ") + what + " was not given or is empty!");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return MISSING_PARAMETERS;
 		}
 		catch(Exception::InvalidParameter& e)
 		{
 			writeLog_(String("Invalid parameter: ") + e.what());
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return ILLEGAL_PARAMETERS;
 		}
 		// Internal errors because of wrong use of this class
 		catch(Exception::UnregisteredParameter& e)
 		{
 			writeLog_(String("Internal error: Request for unregistered parameter '") + e.what() + "'");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INTERNAL_ERROR;
 		}
 		catch(Exception::WrongParameterType& e)
 		{
 			writeLog_(String("Internal error: Request for parameter with wrong type '") + e.what() + "'");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INTERNAL_ERROR;
 		}
 		// All other errors
 		catch(Exception::BaseException& e)
 		{
 			writeLog_(String("Error: Unexpected internal error (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return UNKNOWN_ERROR;
 		}
 #endif
@@ -1294,7 +1076,7 @@ namespace OpenMS
 		// if required or set by user, do some validity checks
 		if (p.required || ( !getParam_(name).isEmpty() && tmp!=p.default_value))
 		{
-			//check if files are readable/writeable
+			//check if files are readable/writable
 			if (p.type==ParameterInformation::INPUT_FILE)
 			{
 				if (!p.tags.contains("skipexists")) inputFileReadable_(tmp, name);
@@ -2075,7 +1857,7 @@ namespace OpenMS
 		//parameters
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
-			if (it->name=="ini" || it->name=="-help" || it->name=="-helphelp" || it->name=="instance" || it->name=="write_ini" || it->name=="write_type" || it->name=="write_wsdl")
+			if (it->name=="ini" || it->name=="-help" || it->name=="-helphelp" || it->name=="instance" || it->name=="write_ini" || it->name=="write_wsdl" || it->name=="write_ctd")
 			{ // do not store those params in ini file
         continue;
       }
@@ -2204,34 +1986,26 @@ namespace OpenMS
 			tmp.setSectionDescription(loc + it->first, it->second);
 		}
 
-		//set tool version
+		// set tool version
 		tmp.setValue(tool_name_ + ":version", VersionInfo::getVersion(), "Version of the tool that generated this parameters file.", StringList::create("advanced"));
 
-		//descriptions
+		// Descriptions
 		tmp.setSectionDescription(tool_name_, tool_description_);
 		tmp.setSectionDescription(tool_name_ + ":" + String(instance_number_), String("Instance '") + String(instance_number_) + "' section for '" + tool_name_ + "'");
 
-    if (param_cmdline_.exists("write_type"))
-    {
-      // minimal INI file version (no algorithm subsection, as we would need a valid 'type' for that)
-      // , currently tool with no '-type' won't have one in the minimal ini file as well (add an emtpy type here if that's required - can't think of a reason however)
-    }
-    else
-    {
-		  // store "type" in INI-File (if given)
-		  if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
+    // add type (as default type is "", but .ini file should have it)
+    if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", param_cmdline_.getValue("type"));
 
-		  //subsections
-		  for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
-		  {
-			  Param tmp2 = getSubsectionDefaults_(it->first);
-			  if (!tmp2.empty())
-			  {
-				  tmp.insert(loc + it->first + ":",tmp2);
-				  tmp.setSectionDescription(loc + it->first, it->second);
-			  }
-		  }
-    }
+		// Subsections
+		for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+		{
+			Param tmp2 = getSubsectionDefaults_(it->first);
+			if (!tmp2.empty())
+			{
+				tmp.insert(loc + it->first + ":",tmp2);
+				tmp.setSectionDescription(loc + it->first, it->second);
+			}
+		}
 
 		// 2nd stage, use TOPP tool defaults from home (if existing)
 		Param tool_user_defaults(getToolUserDefaults_(tool_name_));
@@ -2241,7 +2015,7 @@ namespace OpenMS
 		Param system_defaults(File::getSystemParameters());
     // this currently writes to the wrong part of the ini-file (revise) or remove altogether:
     //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
-    //   furthermore, entering those params will not allow us to change settings in OpenMS.ini and expect them to be effective, as they will be overriden by the tools' ini file
+    //   furthermore, entering those params will not allow us to change settings in OpenMS.ini and expect them to be effective, as they will be overridden by the tools' ini file
 		//tmp.update(system_defaults);
 
 		return tmp;
@@ -2337,51 +2111,225 @@ namespace OpenMS
 		}
   }
 
-  bool TOPPBase::writeCTD_() const
+  bool TOPPBase::writeCTD_()
   {
-    //store -write_ini output in ini_file_str
+    //store ini-file content in ini_file_str
     QString out_dir_str = String(param_cmdline_.getValue("write_ctd")).toQString();
     if (out_dir_str == "")
     {
       out_dir_str = QDir::currentPath();
     }
-    QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + ".ctd";
-    outputFileWritable_(write_ctd_file, "write_ctd");
-    Param default_params = getDefaultParameters_();
-    std::stringstream* ss = new std::stringstream();
-    default_params.writeXMLToStream(ss);
-    String ini_file_str(ss->str());
+    StringList type_list = ToolHandler::getTypes(tool_name_);
+    if (type_list.size()==0) type_list.push_back(""); // no type for most tools (except GenericWrapper)
 
-    //morph to ctd format
-    QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
-    lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    lines.removeAt(2); // <NODE name="DBExporter" description="Exports data from an OpenMS database to a file.">
-    lines.removeAt(2); // <ITEM name="version" value="1.9.0" type="string" description="Version of the tool that generated this parameters file." tags="advanced" />
-    lines.removeAt(lines.size() - 2); // </NODE>
-    lines.insert(1, "<tool status=\"internal\">");
-    lines.insert(2, QString("<name>")+tool_name_.toQString()+"</name>");
-    lines.insert(3, QString("<version>")+VersionInfo::getVersion().toQString()+"</version>");
-    lines.insert(4, QString("<description>")+tool_description_.toQString()+"</description>");
-    lines.insert(5, "<manual>(TODO) More description here (within CDATA).</manual>");
-    lines.insert(6, "<docurl>(TODO) http://www.openms.de/path/to/docs/of/right/version.html</docurl>");
-    lines.insert(7, "<category>"+ToolHandler::getCTDString(tool_name_).toQString()+"</category>");
-    lines.insert(8, "<type></type>");
-    lines.insert(lines.size(), "</tool>");
-    QString parameters_element = lines.at(9); //<PARAMETERS version="1.3" xsi:etc...>
-    QStringList p_list = parameters_element.split(QRegExp("\\s+"));
-    lines.replace(9, p_list.at(0)+" "+p_list.at(1)+">"); //keep only PARAMETERS and version="1.x" (throw away xsi stuff)
-    String ctd_str = String(lines.join("\n")) + "\n";
-
-    //write to file
-    QFile file(write_ctd_file);
-    if (!file.open(QIODevice::WriteOnly))
+    for (Size i=0; i<type_list.size(); ++i)
     {
-      return false;
+      QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + ".ctd";
+      outputFileWritable_(write_ctd_file, "write_ctd");
+
+      // set type on commandline, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
+      param_cmdline_.setValue("type", type_list[i]);
+      Param default_params = getDefaultParameters_();
+      // add type to ini file
+      if (type_list[i]!="") default_params.setValue(this->ini_location_ + "type", type_list[i]);
+
+      std::stringstream* ss = new std::stringstream();
+      default_params.writeXMLToStream(ss);
+      String ini_file_str(ss->str());
+
+      //morph to ctd format
+      QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
+      lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      lines.removeAt(2); // <NODE name="DBExporter" description="Exports data from an OpenMS database to a file.">
+      lines.removeAt(2); // <ITEM name="version" value="1.9.0" type="string" description="Version of the tool that generated this parameters file." tags="advanced" />
+      lines.removeAt(lines.size() - 2); // </NODE>
+      lines.insert(1, "<tool status=\"internal\">");
+      lines.insert(2, QString("<name>")+tool_name_.toQString()+"</name>");
+      lines.insert(3, QString("<version>")+VersionInfo::getVersion().toQString()+"</version>");
+      lines.insert(4, QString("<description>")+tool_description_.toQString()+"</description>");
+      lines.insert(5, "<manual>(TODO) More description here (within CDATA).</manual>");
+      lines.insert(6, "<docurl>(TODO) http://www.openms.de/path/to/docs/of/right/version.html</docurl>");
+      lines.insert(7, "<category>"+ToolHandler::getCTDString(tool_name_).toQString()+"</category>");
+      lines.insert(8, "<type></type>");
+      lines.insert(lines.size(), "</tool>");
+      QString parameters_element = lines.at(9); //<PARAMETERS version="1.3" xsi:etc...>
+      QStringList p_list = parameters_element.split(QRegExp("\\s+"));
+      lines.replace(9, p_list.at(0)+" "+p_list.at(1)+">"); //keep only PARAMETERS and version="1.x" (throw away xsi stuff)
+      String ctd_str = String(lines.join("\n")) + "\n";
+
+      //write to file
+      QFile file(write_ctd_file);
+      if (!file.open(QIODevice::WriteOnly))
+      {
+        return false;
+      }
+      file.write(ctd_str.c_str());
+      file.close();
     }
-    file.write(ctd_str.c_str());
-    file.close();
 
     return true;
+  }
+
+  TOPPBase::ExitCodes TOPPBase::writeWSDL_(const String& filename)
+  {
+    outputFileWritable_(filename, "write_wsdl");
+    ofstream os(filename.c_str());
+
+    //write header
+    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+    os << "<wsdl:definitions targetNamespace=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:plnk=\"http://schemas.xmlsoap.org/ws/2003/05/partner-link/\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" xmlns:tns=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
+    os << "  <wsdl:types>" << endl;
+    os << "    <xs:schema attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"http://org.apache.axis2/xsd\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
+    os << "      <xs:element name=\"" << tool_name_ << "Request\">" << endl;
+    os << "        <xs:complexType>" << endl;
+    os << "          <xs:sequence>" << endl;
+
+    //write types (forward declaration for readability only. Could be defined in the message as well.
+    Param param = getDefaultParameters_();
+    param = param.copy(tool_name_ + ":" + String(instance_number_) + ":",true);
+    for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
+    {
+      //find out if the value is restricted
+      bool restricted = false;
+      if (it->value.valueType()==DataValue::STRING_VALUE  && !it->valid_strings.empty())
+      {
+        restricted = true;
+      }
+      else if (it->value.valueType()==DataValue::STRING_LIST || it->value.valueType()==DataValue::INT_LIST || it->value.valueType()==DataValue::DOUBLE_LIST)
+      {
+        restricted = true;
+      }
+      else if (it->value.valueType()==DataValue::INT_VALUE && (it->min_int!=-std::numeric_limits<Int>::max() || it->max_int!=std::numeric_limits<Int>::max()))
+      {
+        restricted = true;
+      }
+      else if (it->value.valueType()==DataValue::DOUBLE_VALUE && (it->min_float!=-std::numeric_limits<DoubleReal>::max() || it->max_float!=std::numeric_limits<DoubleReal>::max()))
+      {
+        restricted = true;
+      }
+
+      //name, default (and type if not restricted)
+      os << "            <xs:element name=\"" << it.getName() << "\"";
+      if (!restricted)
+      {
+        if (it->value.valueType()==DataValue::STRING_VALUE) os << " type=\"xs:string\"";
+        if (it->value.valueType()==DataValue::DOUBLE_VALUE) os << " type=\"xs:double\"";
+        if (it->value.valueType()==DataValue::INT_VALUE) os << " type=\"xs:integer\"";
+      }
+      os << " default=\"" << it->value.toString() << "\">" << endl;
+      //docu
+      if (it->description!="")
+      {
+        String description = it->description;
+        description.substitute("<","&lt;");
+        description.substitute(">","&gt;");
+        os << "              <xs:annotation>" << endl;
+        os << "                <xs:documentation>" << description << "</xs:documentation>" << endl;
+        os << "              </xs:annotation>" << endl;
+      }
+      //restrictions
+      if (restricted)
+      {
+        os << "              <xs:simpleType>" << endl;
+        if (it->value.valueType()==DataValue::STRING_LIST)
+        {
+          os << "                <xs:restriction base=\"xs:stringlist\">" << endl;
+          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
+        }
+        else if (it->value.valueType()==DataValue::INT_LIST)
+        {
+          os << "                <xs:restriction base=\"xs:intlist\">" << endl;
+          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
+        }
+        else if (it->value.valueType()==DataValue::DOUBLE_LIST)
+        {
+          os << "                <xs:restriction base=\"xs:doublelist\">" << endl;
+          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
+        }
+        else if (it->value.valueType()==DataValue::STRING_VALUE)
+        {
+          os << "                <xs:restriction base=\"xs:string\">" << endl;
+          for (Size i=0; i<it->valid_strings.size(); ++i)
+          {
+            os << "                  <xs:enumeration value=\"" << it->valid_strings[i] << "\"/>" << endl;
+          }
+        }
+        else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
+        {
+          os << "                <xs:restriction base=\"xs:double\">" << endl;
+          if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+          {
+            os << "                  <xs:minInclusive value=\"" << it->min_float << "\"/>" << endl;
+          }
+          if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+          {
+            os << "                  <xs:maxInclusive value=\"" << it->max_float << "\"/>" << endl;
+          }
+        }
+        else if (it->value.valueType()==DataValue::INT_VALUE)
+        {
+          os << "                <xs:restriction base=\"xs:integer\">" << endl;
+          if (it->min_int!=-std::numeric_limits<Int>::max())
+          {
+            os << "                  <xs:minInclusive value=\"" << it->min_int << "\"/>" << endl;
+          }
+          if (it->max_int!=std::numeric_limits<Int>::max())
+          {
+            os << "                  <xs:maxInclusive value=\"" << it->max_int << "\"/>" << endl;
+          }
+        }
+        os << "                </xs:restriction>" << endl;
+        os << "              </xs:simpleType>" << endl;
+      }
+      os << "            </xs:element>" << endl;
+    }
+    os << "          </xs:sequence>" << endl;
+    os << "        </xs:complexType>" << endl;
+    os << "      </xs:element>" << endl;
+    os << "    </xs:schema>" << endl;
+    os << "  </wsdl:types>" << endl;
+    //message
+    os << "  <wsdl:message name=\"" << tool_name_ << "RequestMessage\">" << endl;
+    os << "    <wsdl:part element=\"ns1:" << tool_name_ << "Request\" name=\"part1\"/>" << endl;
+    os << "  </wsdl:message>" << endl;
+    //port
+    os << "  <wsdl:portType name=\"SVMHCProcessPortType\">" << endl;
+    os << "    <wsdl:operation name=\"request\">" << endl;
+    os << "      <wsdl:input message=\"tns:" << tool_name_ << "RequestMessage\"/>" << endl;
+    os << "    </wsdl:operation>" << endl;
+    os << "  </wsdl:portType>" << endl;
+    //binding
+    os << "  <wsdl:binding name=\"" << tool_name_ << "ProviderServiceBinding\" type=\"tns:" << tool_name_ << "PortType\">" << endl;
+    os << "    <soap:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+    os << "    <wsdl:operation name=\"request\">" << endl;
+    os << "      <soap:operation soapAction=\"\" style=\"rpc\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+    os << "      <wsdl:input>" << endl;
+    os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+    os << "      </wsdl:input>" << endl;
+    os << "      <wsdl:output>" << endl;
+    os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+    os << "      </wsdl:output>" << endl;
+    os << "    </wsdl:operation>" << endl;
+    os << "  </wsdl:binding>" << endl;
+    //service
+    os << "  <wsdl:service name=\"" << tool_name_ << "ProviderService\">" << endl;
+    os << "    <wsdl:port binding=\"tns:" << tool_name_ << "ProviderServiceBinding\" name=\"" << tool_name_ << "ProviderServicePort\">" << endl;
+    os << "     <soap:address location=\"http://trypsin.informatik.uni-tuebingen.de:30090/active-bpel/services/" << tool_name_ << "ProviderService\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+    os << "    </wsdl:port>" << endl;
+    os << "  </wsdl:service>" << endl;
+    //end
+    os << "</wsdl:definitions>" << endl;
+    os.close();
+
+    //validate written file
+    XMLValidator validator;
+    if (!validator.isValid(filename, File::find("SCHEMAS/WSDL_20030211.xsd")))
+    {
+      writeLog_("Error: The written WSDL file does not validate against the XML schema. Please report this bug!");
+      return INTERNAL_ERROR;
+    }
+
+    return EXECUTION_OK;
   }
 
 } // namespace OpenMS

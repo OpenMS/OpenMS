@@ -200,7 +200,26 @@ namespace OpenMS
     return StringList();
   }
 
-  
+
+  std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()
+  {
+    if (!tools_internal_loaded_)
+    {
+      loadInternalToolConfig_();
+      tools_internal_loaded_ = true;
+    }
+    return tools_internal_;
+  }  
+
+  String ToolHandler::getExternalToolsPath()
+  {
+    return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
+  }
+
+  String ToolHandler::getInternalToolsPath()
+  {
+    return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
+  }
 
   Internal::ToolDescription ToolHandler::getExternalTools_()
   {
@@ -211,26 +230,6 @@ namespace OpenMS
     }
 
     return tools_external_;
-  }
-
-  std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()
-  {
-    if (!tools_internal_loaded_)
-    {
-      loadInternalToolConfig_();
-      tools_internal_loaded_ = true;
-    }
-    return tools_internal_;
-  }
-
-  String ToolHandler::getExternalToolsPath()
-  {
-    return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
-  }
-
-  String ToolHandler::getInternalToolsPath()
-  {
-    return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
   }
 
   void ToolHandler::loadExternalToolConfig_()
@@ -335,19 +334,16 @@ namespace OpenMS
 
   String ToolHandler::getCTDString(const String& toolname)
   {
-    ToolListType tools = getTOPPToolList();
+    ToolListType tools = getTOPPToolList(true);
     ToolListType utils = getUtilList();
-    String s = "";
-    Internal::ToolDescription td;
+    String s;
     if (tools.has(toolname))
     {
-      td = tools[toolname];
-      s += "OpenMS/" + td.category + "/" + td.name;
+      s = "OpenMS/" + tools[toolname].category + "/" + tools[toolname].name;
     }
     else if (utils.has(toolname))
     {
-      td = utils[toolname];
-      s += "OpenMS/" + td.category + "/" + td.name;
+      s = "OpenMS/" + utils[toolname].category + "/" + utils[toolname].name;
     }
 
     return s;

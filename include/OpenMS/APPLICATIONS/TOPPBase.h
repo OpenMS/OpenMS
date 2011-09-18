@@ -156,9 +156,6 @@ namespace OpenMS
       /// Destructor
       virtual ~TOPPBase();
 
-			/// @todo to be documented (Chris, Andreas)
-			void checkTOPPIniFile(const String& tool_path);
-
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 			
@@ -883,16 +880,19 @@ namespace OpenMS
 			const DocumentIDTagger& getDocumentIDTagger_() const;
 
       /// Write common tool description (CTD) file
-      bool writeCTD_() const;
+      bool writeCTD_();
 			
+      /// Write WSDL file and validate it. Returns EXECUTION_OK or INTERNAL_ERROR (if validation failed)
+      ExitCodes writeWSDL_(const String& filename);
+
 			/**
 				@brief Test mode 
 			
 				Test mode is enabled using the command line parameter @em -test .
 				
 				It disables writing of data, which would corrupt tests:
-				- abolute paths (e.g. in consensus maps)
-				- processing parameters (input/output files contain abolute paths as well)
+				- absolute paths (e.g. in consensus maps)
+				- processing parameters (input/output files contain absolute paths as well)
 				- current date
 				- current OpenMS version
 			*/
