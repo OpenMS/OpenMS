@@ -20,7 +20,6 @@ FeatureFinderMRM
 FeatureFinderCentroided
 FeatureFinderIsotopeWavelet
 FeatureFinderRaw
-FeatureLinker
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT

@@ -60,7 +60,6 @@ FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIsotopeWavelet
 FeatureFinderMRM
-FeatureLinker
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT
