@@ -60,7 +60,7 @@ using namespace std;
 
 	This tool provides an algorithm for grouping corresponding features in isotope-labeled experiments. For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::FeatureGroupingAlgorithmLabeled "algorithm documentation".
 
-	FeatureLinkerLabeled takes one feature maps (featureXML files) and stores the corresponding features in a consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using one of the FeatureFinder TOPP tools.
+	FeatureLinkerLabeled takes one feature map (featureXML file) and stores the corresponding features in a consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using one of the FeatureFinder TOPP tools.
 
 	@see @ref TOPP_FeatureLinkerUnlabeled @ref TOPP_FeatureLinkerUnlabeledQT
 
