@@ -64,6 +64,7 @@ namespace OpenMS
 		tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", "Quantitation");
 		tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", "Quantitation");
 		tools_map["FeatureLinker"] = Internal::ToolDescription("FeatureLinker", "Map Alignment", Factory<FeatureGroupingAlgorithm>::registeredProducts());
+		tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", "Map Alignment");
 		tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", "File Handling");
 		tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", "File Handling");
 		tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");

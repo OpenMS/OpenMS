@@ -21,6 +21,7 @@ FeatureFinderCentroided
 FeatureFinderIsotopeWavelet
 FeatureFinderRaw
 FeatureLinker
+FeatureLinkerLabeled
 FileConverter
 FileFilter
 FileInfo

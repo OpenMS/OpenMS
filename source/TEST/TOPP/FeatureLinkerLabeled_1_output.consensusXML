@@ -2,7 +2,7 @@
 <?xml-stylesheet type="text/xsl" href="file:////home/steffen/Studium/Master/Kuehlungsborn/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.4" id="cm_5024549519481199379" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
-		<software name="FeatureLinker" version="version_string" />
+		<software name="FeatureLinkerLabeled" version="version_string" />
 		<processingAction name="Feature grouping" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
@@ -21,9 +21,9 @@
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<mapList count="2">
-		<map id="0" name="FeatureLinker_1_input.featureXML" unique_id="13194286469662031022" label="light" size="16">
+		<map id="0" name="FeatureLinkerLabeled_1_input.featureXML" unique_id="13194286469662031022" label="light" size="16">
 		</map>
-		<map id="1" name="FeatureLinker_1_input.featureXML" unique_id="13194286469662031022" label="heavy" size="16">
+		<map id="1" name="FeatureLinkerLabeled_1_input.featureXML" unique_id="13194286469662031022" label="heavy" size="16">
 		</map>
 	</mapList>
 	<consensusElementList>

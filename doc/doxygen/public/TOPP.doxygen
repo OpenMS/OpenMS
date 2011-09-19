@@ -117,6 +117,7 @@
   - @subpage TOPP_MapAlignerPoseClustering - Corrects retention time distortions between maps using a pose clustering approach.
   - @subpage TOPP_MapAlignerSpectrum - Corrects retention time distortions between maps by spectrum alignment.
   - @subpage TOPP_FeatureLinker - Groups corresponding features in one map or across maps (after alignment).
+  - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
 
   <b>Graphical Tools</b>
   - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
