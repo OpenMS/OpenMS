@@ -23,6 +23,7 @@ FeatureFinderRaw
 FeatureLinker
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
+FeatureLinkerUnlabeledQT
 FileConverter
 FileFilter
 FileInfo
