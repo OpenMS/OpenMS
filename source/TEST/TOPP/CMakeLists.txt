@@ -67,7 +67,7 @@ FileConverter
 FileFilter
 FileInfo
 FileMerger
-GenericWrapper
+## GenericWrapper (has a -type; special treatment below)
 IDDecoyProbability
 IDPosteriorErrorProbability
 IDFileConverter
@@ -75,7 +75,7 @@ IDFilter
 IDMapper
 IDMerger
 IDRTCalibration
-#INIFileEditor
+#INIFileEditor (not derived from TOPPBase)
 ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
@@ -106,12 +106,12 @@ RTPredict
 Resampler
 SILACAnalyzer
 SeedListGenerator
-#SequestAdapter #(reenable when fixed)
+#SequestAdapter #(re-enable when fixed)
 SpecLibSearcher
 SpectraFilter
 TOFCalibration
-#TOPPAS
-#TOPPView
+## TOPPAS (not derived from TOPPBase)
+## TOPPView (not derived from TOPPBase)
 TextExporter
 XTandemAdapter
 InclusionExclusionListCreator
@@ -119,7 +119,7 @@ SpectraMerger
 
 ### UTILS ####
 CVInspector
-CaapConvert
+## CaapConvert (not derived from TOPPBase)
 DeMeanderize
 DecoyDatabase
 Digestor
@@ -127,7 +127,7 @@ DigestorMotif
 ERPairFinder
 FFEval
 FuzzyDiff
-#HistView (not derived from TOPPBase)
+## HistView (not derived from TOPPBase)
 IDExtractor
 IDMassAccuracy
 IDSplitter
@@ -138,10 +138,11 @@ MassCalculator
 MRMPairFinder
 MSSimulator
 MapAlignmentEvaluation
+## OpenMSInfo (not derived from TOPPBase)
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
-#UniqueIdAssigner (not derived from TOPPBase)
+## UniqueIdAssigner (not derived from TOPPBase)
 XMLValidator
 
 )
@@ -153,6 +154,7 @@ foreach (i ${ALL_WRITEINI_TOOLS})
   add_test("TOPPWRITEINI_${i}" ${TOPP_BIN_PATH}/${i} -write_ini "${DATA_DIR_TOPP_BIN}/${i}.ini.tmp")
 	add_test("TOPPWRITEINI_${i}_type" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${DATA_DIR_TOPP_BIN}/${i}.ini.tmp -P ${DATA_DIR_TOPP}/check_ini.cmake)
 endforeach(i)
+add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -type RAWFileConvert -write_ini "${DATA_DIR_TOPP_BIN}/GenericWrapper.ini.tmp")
 
 
 ##############################################################################################################################################################################
