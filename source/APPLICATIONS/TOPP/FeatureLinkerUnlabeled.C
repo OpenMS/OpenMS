@@ -32,7 +32,7 @@ using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -44,7 +44,7 @@ using namespace std;
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FeatureLinker \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FeatureLinkerUnlabeled \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
 		</tr>
 		<tr>
