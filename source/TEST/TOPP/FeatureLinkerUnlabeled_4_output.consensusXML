@@ -2,7 +2,7 @@
 <?xml-stylesheet type="text/xsl" href="file:////home/hendrik/Software/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.4" id="cm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
-		<software name="FeatureLinker" version="version_string" />
+		<software name="FeatureLinkerUnlabeled" version="version_string" />
 		<processingAction name="Feature grouping" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
@@ -49,11 +49,11 @@
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<mapList count="3">
-		<map id="0" name="FeatureLinker_2_input1.featureXML" unique_id="3189043221343374669" label="" size="21">
+		<map id="0" name="FeatureLinkerUnlabeled_1_input1.featureXML" unique_id="3189043221343374669" label="" size="21">
 		</map>
-		<map id="1" name="FeatureLinker_2_input2.featureXML" unique_id="17129849834928765316" label="" size="20">
+		<map id="1" name="FeatureLinkerUnlabeled_1_input2.featureXML" unique_id="17129849834928765316" label="" size="20">
 		</map>
-		<map id="2" name="FeatureLinker_2_input3.featureXML" unique_id="4826876609996876827" label="" size="24">
+		<map id="2" name="FeatureLinkerUnlabeled_1_input3.featureXML" unique_id="4826876609996876827" label="" size="24">
 		</map>
 	</mapList>
 	<consensusElementList>
