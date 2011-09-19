@@ -101,11 +101,6 @@
                 <xs:documentation>Sets the number of threads allowed to be used by the TOPP tool</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="write_ctd" type="xs:string" default="">
-              <xs:annotation>
-                <xs:documentation>Writes the common tool description file(s) (Toolname(s).ctd) to &lt;out_dir&gt;</xs:documentation>
-              </xs:annotation>
-            </xs:element>
             <xs:element name="no_progress" default="false">
               <xs:annotation>
                 <xs:documentation>Disables progress logging to command line</xs:documentation>
