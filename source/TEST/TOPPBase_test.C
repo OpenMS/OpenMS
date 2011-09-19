@@ -257,7 +257,7 @@ END_SECTION
 START_SECTION((static Map<String,StringList> getUtilList()))
 	TEST_EQUAL(ToolHandler::getUtilList().has("MapAlignmentEvaluation"),true)
 	TEST_EQUAL(ToolHandler::getUtilList().has("SomeCoolUtil"),false)
-	TEST_EQUAL(ToolHandler::getUtilList()["MSSimulator"].types.empty(),false)
+  TEST_EQUAL(ToolHandler::getUtilList()["MSSimulator"].types.empty(),true)
 	TEST_EQUAL(ToolHandler::getUtilList()["ImageCreator"].types.empty(),true)
 END_SECTION
 
@@ -401,7 +401,6 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool");
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
 	p2.setValue("TOPPBaseTest:1:test","false","Enables the test mode (needed for software testing only)");
-  p2.setValue("TOPPBaseTest:1:write_ctd", "", "(Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>)");
 	//with restriction
   p2.setValue("TOPPBaseTest:1:stringlist2",StringList::create("hopla,dude"),"stringlist with restrictions");
 	vector<String> rest;
