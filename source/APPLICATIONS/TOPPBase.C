@@ -831,8 +831,8 @@ namespace OpenMS
 				if (parameters_[i].type!=ParameterInformation::INPUT_FILE && parameters_[i].type!=ParameterInformation::OUTPUT_FILE && parameters_[i].type!=ParameterInformation::INPUT_FILE_LIST && parameters_[i].type!=ParameterInformation::OUTPUT_FILE_LIST)
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
-				}
-				parameters_[i].valid_strings = formats;
+        }
+        parameters_[i].valid_strings = formats;
 				return;
 			}
 		}
@@ -1870,34 +1870,26 @@ namespace OpenMS
 			switch (it->type)
 			{
 				case ParameterInformation::STRING:
-					tmp.setValue(name,(String)it->default_value, it->description, tags);
-					if (it->valid_strings.size() != 0)
-					{
-						tmp.setValidStrings(name,it->valid_strings);
-					}
-					break;
+          tmp.setValue(name,(String)it->default_value, it->description, tags);
+          if (it->valid_strings.size() != 0)
+          {
+            tmp.setValidStrings(name,it->valid_strings);
+          }
+          break;
 				case ParameterInformation::INPUT_FILE:
-				case ParameterInformation::OUTPUT_FILE:
-					{
-						String formats;
-						if (it->valid_strings.size()!=0)
-						{
-							formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
-							formats = String("(valid formats: '") + formats + "')";
-							if (!it->description.empty())
-							{
-								// if there's no whitespace at the end of the description,
-								// insert a space before "(valid formats: ...)":
-								char c = *(--it->description.end()); // last character
-								if ((c != ' ') && (c != '\t') && (c != '\n'))
-								{
-									formats = " " + formats;
-								}
-							}
-						}
-						tmp.setValue(name, (String)it->default_value, it->description + formats, tags);
-					}
-					break;
+        case ParameterInformation::OUTPUT_FILE:
+          tmp.setValue(name, (String)it->default_value, it->description, tags);
+          if (it->valid_strings.size() != 0)
+          {
+            StringList vss_tmp = it->valid_strings;
+            StringList vss;
+            foreach(String vs, vss_tmp)
+            {
+              vss.push_back("*." + vs);
+            }
+            tmp.setValidStrings(name, vss);
+          }
+          break;
 				case ParameterInformation::DOUBLE:
           tmp.setValue(name, it->default_value, it->description, tags);
 					if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
@@ -1926,25 +1918,17 @@ namespace OpenMS
 					break;
 				case ParameterInformation::INPUT_FILE_LIST:
 				case ParameterInformation::OUTPUT_FILE_LIST:
-					{
-						String formats;
-						if (it->valid_strings.size()!=0)
-						{
-							formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
-							formats = String("(valid formats: '") + formats + "')";
-							if (!it->description.empty())
-							{
-								// if there's no whitespace at the end of the description,
-								// insert a space before "(valid formats: ...)":
-								char c = *(--it->description.end()); // last character
-								if ((c != ' ') && (c != '\t') && (c != '\n'))
-								{
-									formats = " " + formats;
-								}
-							}
-						}
-						tmp.setValue(name,(StringList)it->default_value, it->description + formats, tags);
-					}
+          tmp.setValue(name,(StringList)it->default_value, it->description, tags);
+          if (it->valid_strings.size() != 0)
+          {
+            StringList vss_tmp = it->valid_strings;
+            StringList vss;
+            foreach(String vs, vss_tmp)
+            {
+              vss.push_back("*." + vs);
+            }
+            tmp.setValidStrings(name, vss);
+          }
 					break;
 				case ParameterInformation::STRINGLIST:
 					tmp.setValue(name,(StringList)it->default_value, it->description, tags);
