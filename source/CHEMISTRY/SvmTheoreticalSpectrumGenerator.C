@@ -45,8 +45,7 @@ namespace OpenMS
   std::map<String,DoubleReal> SvmTheoreticalSpectrumGenerator::helicity_;
   std::map<String,DoubleReal> SvmTheoreticalSpectrumGenerator::basicity_;
 
-  // this is just called to initialize the maps before class gets used
-  SvmTheoreticalSpectrumGenerator init;
+  bool SvmTheoreticalSpectrumGenerator::initialized_ = false;
 
   String SvmTheoreticalSpectrumGenerator::ResidueTypeToString_(Residue::ResidueType type)
   {
@@ -68,8 +67,10 @@ namespace OpenMS
     }
   }
 
-  bool SvmTheoreticalSpectrumGenerator::init_()
+  void SvmTheoreticalSpectrumGenerator::init_()
   {
+    initialized_ = true;
+
     Int index = 0;
     if (aa_to_index_.empty())
     {
@@ -153,16 +154,14 @@ namespace OpenMS
     basicity_["T"] = 211.7;
     basicity_["V"] = 208.7;
     basicity_["W"] = 216.1;
-    basicity_["Y"] = 213.1;
-
-    return true;
+    basicity_["Y"] = 213.1;    
   }
 
 
   SvmTheoreticalSpectrumGenerator::SvmTheoreticalSpectrumGenerator() :
       DefaultParamHandler("SvmTheoreticalSpectrumGenerator")
   {
-    static bool init = init_();
+    if(!initialized_) init_();
 
     defaults_.setValue("svm_mode",1,"whether to predict abundant/missing using SVC (0) or predict intensities using SVR (1)");
     defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");

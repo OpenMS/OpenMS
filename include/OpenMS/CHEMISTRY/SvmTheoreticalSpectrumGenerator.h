@@ -246,10 +246,10 @@ namespace OpenMS
       SvmModelParameterSet mp_;
 
       /// map AA to integers
-      static std::map<String,Size>aa_to_index_;
+      static std::map<String,Size> aa_to_index_;
 
       /// hydrophobicity values for each AA
-      static std::map<String,DoubleReal>hydrophobicity_;
+      static std::map<String,DoubleReal> hydrophobicity_;
 
       /// helicity values for each AA
       static std::map<String,DoubleReal> helicity_;
@@ -273,7 +273,10 @@ namespace OpenMS
       String ResidueTypeToString_(Residue::ResidueType type);
 
       /// initialized the maps
-      static bool init_();
+      static void init_();
+
+      /// flag to indicate if the hydrophobicity, helicity, and basicity maps were already initialized
+      static bool initialized_;
 
       void updateMembers_();
   };
