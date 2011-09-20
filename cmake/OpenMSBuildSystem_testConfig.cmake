@@ -17,3 +17,10 @@ endif()
 
 
 ## MS2 Search-Engines go here...
+
+## CppCheck testing
+find_package(cppcheck)
+if( CPPCHECK_FOUND )
+  include( cppcheck.cmake )
+endif()
+

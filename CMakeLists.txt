@@ -245,13 +245,6 @@ if (OPENMP_FOUND)
 	endif()
 endif()
 
-## Cpp check testing
-find_package(cppcheck)
-if( CPPCHECK_FOUND )
-	include( cmake/cppcheck.cmake )
-endif()
-
-
 ########################################################
 ###    external libs (contrib or system)						 ###
 ########################################################
@@ -496,7 +489,9 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 
 endif()
 
-##### Tests #####
+########################################################
+###                      Tests                       ###
+########################################################
 if ("${PACKAGE_TYPE}" STREQUAL "none")
 	INCLUDE(Dart) ## for Nighlty Build log
 	add_subdirectory(source/TEST EXCLUDE_FROM_ALL) ## configure the Test project (but do not add it to OpenMS itself)
