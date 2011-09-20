@@ -21,6 +21,6 @@ endif()
 ## CppCheck testing
 find_package(cppcheck)
 if( CPPCHECK_FOUND )
-  include( cppcheck.cmake )
+  include( cmake/cppcheck.cmake )
 endif()
 
