@@ -43,117 +43,17 @@ configure_file(${DATA_DIR_TOPP}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPP_BIN}/Ex
 add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -write_wsdl WSDL_out.tmp)
 add_test("TOPP_WSDL_1_out1" ${DIFF} -in1 WSDL_out.tmp -in2 ${DATA_DIR_TOPP}/WSDL_out.wsdl)
 
-### test if -write_ini works (TODO: configure names of TOPP tools)
-set(ALL_WRITEINI_TOOLS
-AdditiveSeries
-BaselineFilter
-CompNovo
-CompNovoCID
-ConsensusID
-ConsensusMapNormalizer
-DBExporter
-DBImporter
-DTAExtractor
-Decharger
-ExecutePipeline
-FalseDiscoveryRate
-FeatureFinderCentroided
-FeatureFinderIsotopeWavelet
-FeatureFinderMRM
-FeatureLinkerLabeled
-FeatureLinkerUnlabeled
-FeatureLinkerUnlabeledQT
-FeatureFinderRaw
-FileConverter
-FileFilter
-FileInfo
-FileMerger
-## GenericWrapper (has a -type; special treatment below)
-IDDecoyProbability
-IDPosteriorErrorProbability
-IDFileConverter
-IDFilter
-IDMapper
-IDMerger
-IDRTCalibration
-#INIFileEditor (not derived from TOPPBase)
-ITRAQAnalyzer
-InspectAdapter
-InternalCalibration
-MapAlignerApplyTransformation
-MapAlignerIdentification
-MapAlignerPoseClustering
-MapAlignerSpectrum
-MapNormalizer
-MascotAdapter
-MascotAdapterOnline
-NoiseFilterGaussian
-NoiseFilterSGolay
-OMSSAAdapter
-PILISIdentification
-PILISModel
-PTModel
-PTPredict
-PeakPickerHiRes
-PeakPickerWavelet
-PepNovoAdapter
-PeptideIndexer
-PrecursorIonSelector
-PrecursorMassCorrector
-ProteinInference
-ProteinQuantifier
-RTModel
-RTPredict
-Resampler
-SILACAnalyzer
-SeedListGenerator
-#SequestAdapter #(re-enable when fixed)
-SpecLibSearcher
-SpectraFilter
-TOFCalibration
-## TOPPAS (not derived from TOPPBase)
-## TOPPView (not derived from TOPPBase)
-TextExporter
-XTandemAdapter
-InclusionExclusionListCreator
-SpectraMerger
-
-### UTILS ####
-CVInspector
-## CaapConvert (not derived from TOPPBase)
-DeMeanderize
-DecoyDatabase
-Digestor
-DigestorMotif
-ERPairFinder
-FFEval
-FuzzyDiff
-## HistView (not derived from TOPPBase)
-IDExtractor
-IDMassAccuracy
-IDSplitter
-IdXMLEvaluation
-ImageCreator
-LabeledEval
-MassCalculator
-MRMPairFinder
-MSSimulator
-MapAlignmentEvaluation
-## OpenMSInfo (not derived from TOPPBase)
-SemanticValidator
-SequenceCoverageCalculator
-SpecLibCreator
-## UniqueIdAssigner (not derived from TOPPBase)
-XMLValidator
-
-)
 #####
 ## one test for each TOPP tool, checking -write_ini functionality:
 #####
 
-foreach (i ${ALL_WRITEINI_TOOLS})
+set(TOPP_executables_INI ${TOPP_executables})
+## GenericWrapper (has a -type; special treatment below)
+list(REMOVE_ITEM TOPP_executables_INI GenericWrapper)
+
+foreach (i ${TOPP_executables_INI})
   add_test("TOPPWRITEINI_${i}" ${TOPP_BIN_PATH}/${i} -write_ini "${DATA_DIR_TOPP_BIN}/${i}.ini.tmp")
-	add_test("TOPPWRITEINI_${i}_type" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${DATA_DIR_TOPP_BIN}/${i}.ini.tmp -P ${DATA_DIR_TOPP}/check_ini.cmake)
+	add_test("TOPPWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${DATA_DIR_TOPP_BIN}/${i}.ini.tmp -P ${DATA_DIR_TOPP}/check_ini.cmake)
 endforeach(i)
 add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -type RAWFileConvert -write_ini "${DATA_DIR_TOPP_BIN}/GenericWrapper.ini.tmp")
 
