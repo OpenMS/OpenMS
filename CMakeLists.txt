@@ -492,9 +492,15 @@ endif()
 ########################################################
 ###                      Tests                       ###
 ########################################################
-if ("${PACKAGE_TYPE}" STREQUAL "none")
+if("${PACKAGE_TYPE}" STREQUAL "none")
 	INCLUDE(Dart) ## for Nighlty Build log
 	add_subdirectory(source/TEST EXCLUDE_FROM_ALL) ## configure the Test project (but do not add it to OpenMS itself)
+
+  ## CppCheck testing
+  find_package(cppcheck)
+  if( CPPCHECK_FOUND )
+    include( cmake/cppcheck.cmake )
+  endif()
 endif()
 
 ########################################################
