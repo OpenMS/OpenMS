@@ -38,6 +38,8 @@
 #include <gsl/gsl_statistics_double.h>
 #include <sstream>
 
+using namespace std;
+
 namespace OpenMS
 {
   SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer() :
@@ -102,14 +104,14 @@ for the selected primary ion types. They can be used as input for LibSVM command
     defaults_.setValue("svm:svr:gamma", 0.0, "For POLY/RBF/SIGMOID");
     defaults_.setMinFloat("svm:svr:gamma",0.0);
 
-    defaults_.setValue("svm:svc:coef0", 0.0, "For POLY/SIGMOID");
-    defaults_.setMinFloat("svm:svc:coef0",0.0);
+    //defaults_.setValue("svm:svc:coef0", 0.0, "For POLY/SIGMOID");
+    //defaults_.setMinFloat("svm:svc:coef0",0.0);
 
-    defaults_.setValue("svm:svr:coef0", 0.0, "For POLY/SIGMOID");
-    defaults_.setMinFloat("svm:svr:coef0",0.0);
+    //defaults_.setValue("svm:svr:coef0", 0.0, "For POLY/SIGMOID");
+    //defaults_.setMinFloat("svm:svr:coef0",0.0);
 
-    defaults_.setValue("svm:svc:eps", 0.001, "Stopping criterion");
-    defaults_.setValue("svm:svr:eps", 0.001, "Stopping criterion");
+    //defaults_.setValue("svm:svc:eps", 0.001, "Stopping criterion");
+    //defaults_.setValue("svm:svr:eps", 0.001, "Stopping criterion");
 
     defaults_.setValue("svm:svc:C", 1.0, "Cost of constraint violation");
     defaults_.setValue("svm:svr:C", 1.0, "Cost of constraint violation");
@@ -119,14 +121,11 @@ for the selected primary ion types. They can be used as input for LibSVM command
     defaults_.setValue("svm:svc:nu", 0.5, "For NU_SVC, ONE_CLASS and NU_SVR");
     defaults_.setValue("svm:svr:nu", 0.5, "For NU_SVC, ONE_CLASS and NU_SVR");
 
-    defaults_.setValue("svm:cache_size", 100, "Size of kernel cache in MB");
-    defaults_.setMinInt("svm:cache_size",1);
+    //defaults_.setValue("svm:cache_size", 100, "Size of kernel cache in MB");
+    //defaults_.setMinInt("svm:cache_size",1);
 
-    defaults_.setValue("svm:shrinking", "true", "Perform shrinking");
-    defaults_.setValidStrings("svm:shrinking", StringList::create("true,false"));
-
-    defaults_.setValue("svm:n_fold", 5, "n_fold cross validation is performed");
-    defaults_.setMinInt("svm:n_fold",1);
+    //defaults_.setValue("svm:shrinking", "true", "Perform shrinking");
+    //defaults_.setValidStrings("svm:shrinking", StringList::create("true,false"));
 
     defaults_.setValue("svm:scaling", "true", "Apply scaling of feature values");
     defaults_.setValidStrings("svm:scaling", StringList::create("true,false"));
@@ -140,6 +139,66 @@ for the selected primary ion types. They can be used as input for LibSVM command
     defaults_.setSectionDescription("svm", "Parameters controlling SVM trainig behaviour. All parameter names are chosen as in the libSVM library. Please refer to libSVM documentation for explanation");
     defaults_.setSectionDescription("svm:svc", "Parameters for svm - classification of missing/abundant");
     defaults_.setSectionDescription("svm:svr", "Parameters for svm - regression of peak intensities");
+
+    defaults_.setValue("svm:n_fold", 5, "n_fold cross validation is performed");
+    defaults_.setMinInt("svm:n_fold",1);
+
+    defaults_.setValue("svm:grid", "false", "Perform grid search");
+    defaults_.setValidStrings("svm:grid", StringList::create("true,false"));
+
+    defaults_.setValue("svm:additive_cv", "false", "Additive step size (if false multiplicative)");
+    defaults_.setValidStrings("svm:additive_cv", StringList::create("true,false"));
+
+    defaults_.setValue("svm:svc:degree_start",1,"starting point of degree");
+    defaults_.setMinInt("svm:svc:degree_start", 1);
+    defaults_.setValue("svm:svc:degree_step_size",2,"step size point of degree");
+    defaults_.setValue("svm:svc:degree_stop",4,"stopping point of degree");
+
+    defaults_.setValue("svm:svc:gamma_start",0.00001,"starting point of gamma");
+    defaults_.setMinFloat("svm:svc:gamma_start", 0.0);
+    defaults_.setMaxFloat("svm:svc:gamma_start", 1.0);
+    defaults_.setValue("svm:svc:gamma_step_size",100,"step size point of gamma");
+    defaults_.setValue("svm:svc:gamma_stop",0.1,"stopping point of gamma");
+
+    defaults_.setValue("svm:svc:c_start",0.1,"starting point of c");
+    defaults_.setValue("svm:svc:c_step_size",100,"step size of c");
+    defaults_.setValue("svm:svc:c_stop",1000,"stopping point of c");
+
+    defaults_.setValue("svm:svc:nu_start",0.3,"starting point of nu");
+    defaults_.setMinFloat("svm:svc:nu_start", 0);
+    defaults_.setMaxFloat("svm:svc:nu_start", 1);
+    defaults_.setValue("svm:svc:nu_step_size",2,"step size of nu");
+    defaults_.setValue("svm:svc:nu_stop",0.6,"stopping point of nu");
+    defaults_.setMinFloat("svm:svc:nu_stop", 0);
+    defaults_.setMaxFloat("svm:svc:nu_stop", 1);
+
+    defaults_.setValue("svm:svr:degree_start",1,"starting point of degree");
+    defaults_.setMinInt("svm:svr:degree_start", 1);
+    defaults_.setValue("svm:svr:degree_step_size",2,"step size point of degree");
+    defaults_.setValue("svm:svr:degree_stop",4,"stopping point of degree");
+
+    defaults_.setValue("svm:svr:gamma_start",0.00001,"starting point of gamma");
+    defaults_.setMinFloat("svm:svr:gamma_start", 0.0);
+    defaults_.setMaxFloat("svm:svr:gamma_start", 1.0);
+    defaults_.setValue("svm:svr:gamma_step_size",100,"step size point of gamma");
+    defaults_.setValue("svm:svr:gamma_stop",0.1,"stopping point of gamma");
+
+    defaults_.setValue("svm:svr:p_start",0.00001,"starting point of p");
+    defaults_.setValue("svm:svr:p_step_size",100,"step size point of p");
+    defaults_.setValue("svm:svr:p_stop",0.1,"stopping point of p");
+
+    defaults_.setValue("svm:svr:c_start",0.1,"starting point of c");
+    defaults_.setValue("svm:svr:c_step_size",100,"step size of c");
+    defaults_.setValue("svm:svr:c_stop",1000,"stopping point of c");
+
+    defaults_.setValue("svm:svr:nu_start",0.3,"starting point of nu");
+    defaults_.setMinFloat("svm:svr:nu_start", 0);
+    defaults_.setMaxFloat("svm:svr:nu_start", 1);
+    defaults_.setValue("svm:svr:nu_step_size",2,"step size of nu");
+    defaults_.setValue("svm:svr:nu_stop",0.6,"stopping point of nu");
+    defaults_.setMinFloat("svm:svr:nu_stop", 0);
+    defaults_.setMaxFloat("svm:svr:nu_stop", 1);
+
 
 
     defaultsToParam_();
@@ -182,6 +241,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
     DoubleReal parent_tolerance = param_.getValue("parent_tolerance");
     DoubleReal peak_tolerance = param_.getValue("peak_tolerance");
     bool write_outfiles = param_.getValue("write_training_files").toBool();
+    bool balancing = param_.getValue("svm:svc:balancing").toBool();
 
     //build set of ion types
     std::vector<IonType> ion_types;
@@ -270,43 +330,183 @@ for the selected primary ion types. They can be used as input for LibSVM command
       lower=param_.getValue("svm:scaling_lower");
     }
 
+    SVMWrapper wrap_reg, wrap_class;
 
-    //-----------------------loading svr parameters
-    svm_parameter svm_param_reg;
-    svm_param_reg.cache_size = param_.getValue("svm:cache_size");
-    svm_param_reg.shrinking = param_.getValue("svm:shrinking").toBool();
-    svm_param_reg.nr_weight = 0;
+    //TODO What about eps as stopping criterion and cache_size and shrinking?
+    wrap_reg.setParameter(SVMWrapper::SVM_TYPE, 3 + (Int)param_.getValue("svm:svr_type"));
+    wrap_reg.setParameter(SVMWrapper::KERNEL_TYPE, (Int)param_.getValue("svm:svr:kernel_type"));
+    wrap_reg.setParameter(SVMWrapper::DEGREE, (Int)param_.getValue("svm:svr:degree"));
+    wrap_reg.setParameter(SVMWrapper::C, (DoubleReal)param_.getValue("svm:svr:C"));
+    wrap_reg.setParameter(SVMWrapper::NU, (DoubleReal)param_.getValue("svm:svr:nu"));
+    wrap_reg.setParameter(SVMWrapper::GAMMA, (DoubleReal)param_.getValue("svm:svr:gamma"));
+    wrap_reg.setParameter(SVMWrapper::P, (DoubleReal)param_.getValue("svm:svr:p"));
 
-    svm_param_reg.svm_type = 3 + (Int)param_.getValue("svm:svr_type");
-    svm_param_reg.kernel_type = param_.getValue("svm:svr:kernel_type");
-    svm_param_reg.degree = param_.getValue("svm:svr:degree");
-    svm_param_reg.coef0 = param_.getValue("svm:svr:coef0");
+    wrap_class.setParameter(SVMWrapper::SVM_TYPE, 3 + (Int)param_.getValue("svm:svc_type"));
+    wrap_class.setParameter(SVMWrapper::KERNEL_TYPE, (Int)param_.getValue("svm:svc:kernel_type"));
+    wrap_class.setParameter(SVMWrapper::DEGREE, (Int)param_.getValue("svm:svc:degree"));
+    wrap_class.setParameter(SVMWrapper::C, (DoubleReal)param_.getValue("svm:svc:C"));
+    wrap_class.setParameter(SVMWrapper::NU, (DoubleReal)param_.getValue("svm:svc:nu"));
+    wrap_class.setParameter(SVMWrapper::GAMMA, (DoubleReal)param_.getValue("svm:svc:gamma"));    
 
-    svm_param_reg.eps = param_.getValue("svm:svr:eps");
-    svm_param_reg.C = param_.getValue("svm:svr:C");
-    svm_param_reg.gamma = param_.getValue("svm:svr:gamma");
-    svm_param_reg.nu = param_.getValue("svm:svr:nu");
-    svm_param_reg.p=param_.getValue("svm:svr:p");
-    svm_param_reg.probability = 0;
+    //-----------------------LOADING THE Grid Search Parameters------------------
 
-    //-----------------------loading svc parameters
-    svm_parameter svm_param_class;
-    svm_param_class.cache_size = param_.getValue("svm:cache_size");
-    svm_param_class.shrinking = param_.getValue("svm:shrinking").toBool();
-    svm_param_class.nr_weight = 0;
+    bool grid = param_.getValue("svm:grid").toBool();
+    bool additive_cv = param_.getValue("svm:additive_cv").toBool();
 
-    svm_param_class.svm_type = (Int)param_.getValue("svm:svc_type");
-    svm_param_class.kernel_type = param_.getValue("svm:svc:kernel_type");
-    svm_param_class.degree = param_.getValue("svm:svc:degree");
-    svm_param_class.coef0 = param_.getValue("svm:svc:coef0");
+    //SVR Grid params
+    std::map< SVMWrapper::SVM_parameter_type, DoubleReal > start_values_reg, end_values_reg, step_sizes_reg;
+    if(grid)
+    {
+      DoubleReal gamma_start = (DoubleReal)param_.getValue("svm:svr:gamma_start");
+      DoubleReal gamma_step_size = (DoubleReal)param_.getValue("svm:svr:gamma_step_size");
+      if (!additive_cv && gamma_step_size <= 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
+      }
+      DoubleReal gamma_stop = (DoubleReal)param_.getValue("svm:svr:degree_stop");
+      start_values_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
+      step_sizes_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_step_size));
+      end_values_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_stop));
 
-    svm_param_class.eps = param_.getValue("svm:svc:eps");
-    svm_param_class.C = param_.getValue("svm:svc:C");
-    svm_param_class.gamma = param_.getValue("svm:svc:gamma");
-    svm_param_class.nu = param_.getValue("svm:svc:nu");
-    svm_param_class.probability = 0;
+      UInt degree_start = 0;
+      UInt degree_step_size = 0;
+      UInt degree_stop = 0;
+      if (wrap_reg.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
+      {
+        degree_start = (Int)param_.getValue("svm:svr:degree_start");
+        degree_step_size = (Int)param_.getValue("svm:svr:degree_step_size");
+        if (!additive_cv && degree_step_size <= 1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of degree <= 1 and additive_cv is false. Aborting!");
+        }
+        degree_stop = (Int)param_.getValue("svm:svr:degree_stop");
 
-    bool balancing = param_.getValue("svm:svc:balancing").toBool();
+        start_values_reg.insert(make_pair(SVMWrapper::DEGREE, degree_start));
+        step_sizes_reg.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
+        end_values_reg.insert(make_pair(SVMWrapper::DEGREE, degree_stop));
+      }
+      DoubleReal p_start = 0.;
+      DoubleReal p_step_size = 0.;
+      DoubleReal p_stop = 0.;
+      if (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
+      {
+        p_start = (DoubleReal)param_.getValue("svm:svr:p_start");
+        p_step_size = (DoubleReal)param_.getValue("svm:svr:p_step_size");
+        if (!additive_cv && p_step_size <= 1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of p <= 1 and additive_cv is false. Aborting!");
+        }
+        p_stop = (DoubleReal)param_.getValue("svm:svr:p_stop");
+
+        start_values_reg.insert(make_pair(SVMWrapper::P, p_start));
+        step_sizes_reg.insert(make_pair(SVMWrapper::P, p_step_size));
+        end_values_reg.insert(make_pair(SVMWrapper::P, p_stop));
+      }
+      DoubleReal c_start = 0.;
+      DoubleReal c_step_size = 0.;
+      DoubleReal c_stop = 0.;
+
+      c_start =(DoubleReal)param_.getValue("svm:svr:c_start");
+      c_step_size =(DoubleReal)param_.getValue("svm:svr:c_step_size");
+      if (!additive_cv && c_step_size <= 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
+      }
+      c_stop = (DoubleReal)param_.getValue("svm:svr:c_stop");
+
+      start_values_reg.insert(make_pair(SVMWrapper::C, c_start));
+      step_sizes_reg.insert(make_pair(SVMWrapper::C, c_step_size));
+      end_values_reg.insert(make_pair(SVMWrapper::C, c_stop));
+
+
+      DoubleReal nu_start = 0.;
+      DoubleReal nu_step_size = 0.;
+      DoubleReal nu_stop = 0.;
+      if ( (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      {
+        nu_start = (DoubleReal)param_.getValue("svm:svr:nu_start");
+        nu_step_size = (DoubleReal)param_.getValue("svm:svr:nu_step_size");
+        if (!additive_cv && nu_step_size <= 1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
+        }
+        nu_stop = (DoubleReal)param_.getValue("svm:svr:nu_stop");
+
+        start_values_reg.insert(make_pair(SVMWrapper::NU, nu_start));
+        step_sizes_reg.insert(make_pair(SVMWrapper::NU, nu_step_size));
+        end_values_reg.insert(make_pair(SVMWrapper::NU, nu_stop));
+      }
+    }
+
+    //SVC Grid params
+    std::map< SVMWrapper::SVM_parameter_type, DoubleReal > start_values_class, end_values_class, step_sizes_class;
+
+    if(grid)
+    {
+      DoubleReal gamma_start = (DoubleReal)param_.getValue("svm:svc:gamma_start");
+      DoubleReal gamma_step_size = (DoubleReal)param_.getValue("svm:svc:gamma_step_size");
+      if (!additive_cv && gamma_step_size <= 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
+      }
+      DoubleReal gamma_stop = (DoubleReal)param_.getValue("svm:svc:degree_stop");
+      start_values_class.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
+      step_sizes_class.insert(make_pair(SVMWrapper::GAMMA, gamma_step_size));
+      end_values_class.insert(make_pair(SVMWrapper::GAMMA, gamma_stop));
+
+      UInt degree_start = 0;
+      UInt degree_step_size = 0;
+      UInt degree_stop = 0;
+      if (wrap_class.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
+      {
+        degree_start = (Int)param_.getValue("svm:svc:degree_start");
+        degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
+        if (!additive_cv && degree_step_size <= 1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of degree <= 1 and additive_cv is false. Aborting!");
+        }
+        degree_stop = (Int)param_.getValue("svm:svc:degree_stop");
+
+        start_values_class.insert(make_pair(SVMWrapper::DEGREE, degree_start));
+        step_sizes_class.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
+        end_values_class.insert(make_pair(SVMWrapper::DEGREE, degree_stop));
+      }      
+
+      DoubleReal c_start = 0.;
+      DoubleReal c_step_size = 0.;
+      DoubleReal c_stop = 0.;
+
+      c_start =(DoubleReal)param_.getValue("svm:svc:c_start");
+      c_step_size =(DoubleReal)param_.getValue("svm:svc:c_step_size");
+      if (!additive_cv && c_step_size <= 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
+      }
+      c_stop = (DoubleReal)param_.getValue("svm:svc:c_stop");
+
+      start_values_class.insert(make_pair(SVMWrapper::C, c_start));
+      step_sizes_class.insert(make_pair(SVMWrapper::C, c_step_size));
+      end_values_class.insert(make_pair(SVMWrapper::C, c_stop));
+
+      DoubleReal nu_start = 0.;
+      DoubleReal  nu_step_size = 0.;
+      DoubleReal nu_stop = 0.;
+
+      if ( (wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      {
+        nu_start = (DoubleReal)param_.getValue("svm:svc:nu_start");
+        nu_step_size = (DoubleReal)param_.getValue("svm:svc:nu_step_size");
+        if (!additive_cv && nu_step_size <= 1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
+        }
+        nu_stop = (DoubleReal)param_.getValue("svm:svc:nu_stop");
+
+        start_values_class.insert(make_pair(SVMWrapper::NU, nu_start));
+        step_sizes_class.insert(make_pair(SVMWrapper::NU, nu_step_size));
+        end_values_class.insert(make_pair(SVMWrapper::NU, nu_stop));
+      }
+    }
 
 
     //----------- END OF PARAMETER READING-------------------------
@@ -355,13 +555,13 @@ for the selected primary ion types. They can be used as input for LibSVM command
     Size num_features = spec_gen.generateDescriptorSet_(annotations[0],0,ion_types[0], 1, tmp_desc);
 
     //use number of features to adapt gamma parameter if set to 0 (same is used in svm-train.c)
-    if(svm_param_class.gamma == 0)
+    if(wrap_reg.getDoubleParameter(SVMWrapper::GAMMA) == 0. )
     {
-      svm_param_class.gamma = 1.0/num_features;
+      wrap_reg.setParameter(SVMWrapper::GAMMA, 1.0/num_features);
     }
-    if(svm_param_reg.gamma == 0)
+    if(wrap_class.getDoubleParameter(SVMWrapper::GAMMA) == 0. )
     {
-      svm_param_reg.gamma = 1.0/num_features;
+      wrap_class.setParameter(SVMWrapper::GAMMA, 1.0/num_features);
     }
 
     //vectors to store the minimum and maximum value appearing in the training data for each feature (required for scaling)
@@ -516,6 +716,12 @@ for the selected primary ion types. They can be used as input for LibSVM command
         continue;
       }
 
+      String svm_model_file_class = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+                                            ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.svm";
+      String svm_model_file_reg = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+          ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.svm";
+
+
       //------------------------------------------------------------------------------------------
       //----------------------------------Training of SVR-Model-----------------------------
       //------------------------------------------------------------------------------------------
@@ -531,7 +737,6 @@ for the selected primary ion types. They can be used as input for LibSVM command
         training_output_reg.push_back(std::max(0.0,training_output[type_nr][i]));
       }
 
-      String svm_model_file_reg;
       if(write_outfiles)
       {        
         write_training_file_(training_input_reg, training_output_reg, String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
@@ -539,7 +744,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
       }
       else
       {
-        std::vector<double> predictions_reg(training_input_reg.size(), 0);
+        //std::vector<double> predictions_reg(training_input_reg.size(), 0);
         svm_node ** input_training_reg = new svm_node * [training_input_reg.size()];
         double * output_training_reg = &training_output_reg[0];
         for(Size i = 0; i < training_input_reg.size(); ++i)
@@ -553,31 +758,34 @@ for the selected primary ion types. They can be used as input for LibSVM command
         svm_p_reg.x = input_training_reg;        
 
         if(n_fold > 1)
-        {
+        {          
           //perform cross validation
-          std::cerr<<"start cross validation for SVR model"<<std::endl;
-          svm_cross_validation(&svm_p_reg, &svm_param_reg, n_fold, &predictions_reg[0]);
+          std::map< SVMWrapper::SVM_parameter_type, DoubleReal > best_parameters;
+          wrap_reg.performCrossValidation(&svm_p_reg,
+                                          SVMData(),
+                                          false,
+                                          start_values_reg,
+                                          step_sizes_reg,
+                                          end_values_reg,
+                                          n_fold,
+                                          1,
+                                          best_parameters,
+                                          additive_cv,
+                                          true
+                                          );
 
-          //compute cross correlation coefficient of predicted and true intensities
-          double coeff_reg =  gsl_stats_correlation(&training_output_reg[0], 1, &predictions_reg[0], 1, training_output_reg.size());
-          std::cerr<<"Correlation Coefficient: "<<coeff_reg<<std::endl;
+          //use best parameters to train final svm on full dataset
+          std::map< SVMWrapper::SVM_parameter_type, DoubleReal >::const_iterator best_param_iter;
+          for(best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
+          {
+            wrap_reg.setParameter(best_param_iter->first, best_param_iter->second);
+          }
         }
 
         //train and store
-        svm_model *model_reg =  svm_train(&svm_p_reg, &svm_param_reg);
+        wrap_reg.train(&svm_p_reg);
+        wrap_reg.saveModel(svm_model_file_reg.c_str());
 
-        svm_model_file_reg = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                             ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.svm";
-
-        if(svm_save_model(svm_model_file_reg.c_str(), model_reg)==-1)
-        {
-          throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_reg);
-        }
-				#if OPENMS_LIBSVM_VERSION_MAJOR == 2
-					svm_destroy_model(model_reg);
-				#else
-					svm_free_and_destroy_model(&model_reg);
-				#endif
         delete [] input_training_reg;
 
       }//end of else
@@ -643,37 +851,33 @@ for the selected primary ion types. They can be used as input for LibSVM command
         //perform cross validation
         if(n_fold > 1)
         {
-          std::cerr<<"start cross validation for SVC model"<<std::endl;
-          std::vector<double> predictions_class(training_input[type_nr].size(), 0.);
-          svm_cross_validation(&svm_p_class, &svm_param_class, n_fold, &predictions_class[0]);
+          //perform cross validation
+          std::map< SVMWrapper::SVM_parameter_type, DoubleReal > best_parameters;
+          wrap_class.performCrossValidation(&svm_p_class,
+                                            SVMData(),
+                                            false,
+                                            start_values_class,
+                                            step_sizes_class,
+                                            end_values_class,
+                                            n_fold,
+                                            1,
+                                            best_parameters,
+                                            additive_cv,
+                                            true
+                                            );
 
-          Size TP = 0, FP = 0, TN = 0, FN = 0;
-          for(Size i=0; i<predictions_class.size(); ++i)
+          //use best parameters to train final svm on full dataset
+          std::map< SVMWrapper::SVM_parameter_type, DoubleReal >::const_iterator best_param_iter;
+          for(best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
           {
-            if(predictions_class[i] == 0 && output_training_class[i] == 0) ++TN;
-            if(predictions_class[i] == 1 && output_training_class[i] == 1) ++TP;
-            if(predictions_class[i] == 1 && output_training_class[i] == 0) ++FP;
-            if(predictions_class[i] == 0 && output_training_class[i] == 1) ++FN;
+            wrap_class.setParameter(best_param_iter->first, best_param_iter->second);
           }
-          std::cerr<<"TP: "<<TP<<"  TN: "<<TN<<"  FP: "<<FP<<" FN: "<<FN<<std::endl;
         }
 
         //train and store
-        svm_model *model_class =  svm_train(&svm_p_class, &svm_param_class);
+        wrap_class.train(&svm_p_class);
+        wrap_class.saveModel(svm_model_file_class);
 
-        String svm_model_file_class = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                                      ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.svm";
-
-        if(svm_save_model(svm_model_file_class.c_str(), model_class) == -1)
-        {
-          throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__,svm_model_file_class);
-        }
-
-				#if OPENMS_LIBSVM_VERSION_MAJOR == 2
-					svm_destroy_model(model_class);
-				#else
-					svm_free_and_destroy_model(&model_class);
-				#endif
         delete [] input_training_class;
 
 

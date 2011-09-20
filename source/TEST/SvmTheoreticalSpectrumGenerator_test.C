@@ -106,7 +106,7 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
     for(Size i = 0; i<min_size; ++i)
     {
       TEST_REAL_SIMILAR(spec[i].getPosition()[0],(exp[0][i]).getPosition()[0]);
-      TEST_EQUAL(spec[i].getIntensity(),(exp[0][i]).getIntensity());
+      TEST_REAL_SIMILAR(spec[i].getIntensity(),(exp[0][i]).getIntensity());
       }
   }
 END_SECTION
@@ -158,18 +158,6 @@ START_SECTION([SvmTheoreticalSpectrumGenerator::IonType] bool operator<(const Io
   SvmTheoreticalSpectrumGenerator::IonType type(Residue::BIon, EmpiricalFormula(""), 2);
   SvmTheoreticalSpectrumGenerator::IonType type2(Residue::YIon, EmpiricalFormula(""), 2);
   TEST_EQUAL(type<type2, true)
-END_SECTION
-
-
-SvmTheoreticalSpectrumGenerator::SvmModel* ptr_m = 0;
-SvmTheoreticalSpectrumGenerator::SvmModel* nullPointer_m = 0;
-START_SECTION([SvmTheoreticalSpectrumGenerator::SvmModel] SvmModel())
-    ptr_m = new SvmTheoreticalSpectrumGenerator::SvmModel;
-    TEST_NOT_EQUAL(ptr_m, nullPointer_m)
-END_SECTION
-
-START_SECTION([SvmTheoreticalSpectrumGenerator::SvmModel] ~SvmModel())
-    delete ptr_m;
 END_SECTION
 
 
