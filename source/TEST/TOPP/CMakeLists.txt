@@ -514,7 +514,7 @@ add_test("TOPP_FeatureFinderRaw_1_out" ${DIFF} -in1 FeatureFinderRaw.featureXML.
 
 ### FeatureLinker tests
 # "labeled" algorithm:
-add_test("TOPP_FeatureLinkerLabeled_1" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_input.featureXML -out ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_output.tmp)
+add_test("TOPP_FeatureLinkerLabeled_1" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_input.featureXML -out FeatureLinkerLabeled_1_output.tmp)
 add_test("TOPP_FeatureLinkerLabeled_1_out1" ${DIFF} -in1 FeatureLinkerLabeled_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_output.consensusXML)
 add_test("TOPP_FeatureLinkerLabeled_2" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_input.featureXML -out FeatureLinkerLabeled_2_output.tmp)
 add_test("TOPP_FeatureLinkerLabeled_2_out1" ${DIFF} -in1 FeatureLinkerLabeled_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_output.consensusXML)
