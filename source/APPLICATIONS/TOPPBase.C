@@ -2130,10 +2130,11 @@ namespace OpenMS
       lines.insert(1, "<tool status=\"internal\">");
       lines.insert(2, QString("<name>")+tool_name_.toQString()+"</name>");
       lines.insert(3, QString("<version>")+VersionInfo::getVersion().toQString()+"</version>");
-      lines.insert(4, QString("<description>")+tool_description_.toQString()+"</description>");
-      lines.insert(5, "<manual>(TODO) More description here (within CDATA).</manual>");
-      lines.insert(6, "<docurl>(TODO) http://www.openms.de/path/to/docs/of/right/version.html</docurl>");
-      lines.insert(7, "<category>"+ToolHandler::getCTDString(tool_name_).toQString()+"</category>");
+      lines.insert(4, QString("<description><![CDATA[")+tool_description_.toQString()+"]]></description>");
+      QString html_doc = "(TODO) Parse docs if built, else parse online docs if available(?)";
+      lines.insert(5, QString("<manual><![CDATA[")+html_doc+"]]></manual>");
+      lines.insert(6, "<docurl>http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/TOPP__"+tool_name_.toQString()+".html</docurl>");
+      lines.insert(7, "<category>"+ToolHandler::getCategory(tool_name_).toQString()+"</category>");
       lines.insert(8, "<type></type>");
       lines.insert(lines.size(), "</tool>");
       QString parameters_element = lines.at(9); //<PARAMETERS version="1.3" xsi:etc...>

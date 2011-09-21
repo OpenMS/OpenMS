@@ -335,18 +335,18 @@ namespace OpenMS
     return all_files;
   }
 
-  String ToolHandler::getCTDString(const String& toolname)
+  String ToolHandler::getCategory(const String& toolname)
   {
     ToolListType tools = getTOPPToolList(true);
     ToolListType utils = getUtilList();
     String s;
     if (tools.has(toolname))
     {
-      s = "OpenMS/" + tools[toolname].category + "/" + tools[toolname].name;
+      s = tools[toolname].category;
     }
     else if (utils.has(toolname))
     {
-      s = "OpenMS/" + utils[toolname].category + "/" + utils[toolname].name;
+      s = utils[toolname].category;
     }
 
     return s;
