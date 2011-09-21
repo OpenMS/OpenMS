@@ -138,7 +138,7 @@ namespace OpenMS {
     return tmp;
   }
 
-  void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels& channels, const String &labeling_name)
+  void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels& channels)
   {
     /*todo: move to a global config file or into INI file */
     Log_fatal.setPrefix("%S: ");
@@ -180,8 +180,9 @@ namespace OpenMS {
     raw_sim.loadContaminants(); // check if the file is valid (if not, an error is raised here instead of half-way through simulation)
 
 
-    labeler_ = Factory<BaseLabeler>::create(labeling_name);
-    Param labeling_parameters = param_.copy("Labeling:",true);
+    String labeling = param_.getValue("Labeling:type");
+    labeler_ = Factory<BaseLabeler>::create(labeling);
+    Param labeling_parameters = param_.copy("Labeling:" + labeling + ":",true);
     labeler_->setParameters(labeling_parameters);
     labeler_->setRnd(rnd_gen);
 

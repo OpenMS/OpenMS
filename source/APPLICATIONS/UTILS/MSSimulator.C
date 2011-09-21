@@ -216,8 +216,6 @@ class TOPPMSSimulator
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-      String labeling_type = getStringOption_("type");
-
       StringList input_files = getStringList_("in");
 			String outputfile_name = getStringOption_("out");	
 
@@ -263,7 +261,7 @@ class TOPPMSSimulator
       StopWatch w;
 
       w.start();
-      ms_simulation.simulate(rnd_gen, channels, labeling_type);
+      ms_simulation.simulate(rnd_gen, channels);
       w.stop();
 			writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));   	  	
       
