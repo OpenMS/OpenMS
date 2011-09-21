@@ -268,25 +268,17 @@ namespace OpenMS
 		for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
 		{
 			if (it->tags.count(search_tag))
-			{
-				StringList valid_types;
-				
-				const String& desc = it->description;
-				String::SizeType index = desc.find("valid formats",0);
-				if (index != String::npos)
-				{
-					String::SizeType types_start_pos = desc.find("'",index) + 1;
-					String::SizeType types_length = desc.find("'",types_start_pos) - types_start_pos;
-					String types_string = desc.substr(types_start_pos, types_length);
-					if (types_string.find(",",0) == String::npos)
-					{
-						valid_types.push_back(types_string.trim());
-					}
-					else
-					{
-						types_string.split(',', valid_types);
-					}
-				}
+      {
+        StringList valid_types(it->valid_strings);
+        for (Size i = 0; i < valid_types.size(); ++i)
+        {
+          if (!valid_types[i].hasPrefix("*."))
+          {
+            std::cerr << "Invalid restriction \""+valid_types[i]+"\""+" for parameter \""+it->name+"\"!" << std::endl;
+            break;
+          }
+          valid_types[i] = valid_types[i].suffix(valid_types[i].size() - 2);
+        }
 				
 				IOInfo io_info;
 				io_info.param_name = it.getName();
