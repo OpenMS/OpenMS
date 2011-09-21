@@ -29,7 +29,7 @@
 #define OPENMS_MASSTRACEDETECTION_H
 
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OPENMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
