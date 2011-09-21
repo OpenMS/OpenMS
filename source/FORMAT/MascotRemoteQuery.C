@@ -50,9 +50,9 @@ namespace OpenMS
 		defaults_.setValue("host_port", 80, "Port where the Mascot server listens, 80 should be a good guess");
 		defaults_.setMinInt("host_port", 0);
 		defaults_.setValue("server_path", "mascot", "Path on the server where Mascot server listens, 'mascot' should be a good guess");
-    defaults_.setValue("timeout", 1500, "Timeout in seconds, after which the query is declared as failed. The timeout is only during the query process (when Mascot reports the progress)."
+    defaults_.setValue("timeout", 1500, "Timeout in seconds, after which the query is declared as failed."
                                         "This is NOT the whole time the search takes, but the time in between two progress steps. Some Mascot servers freeze during this (unstable network etc) and idle forever"
-                                        ", we thus kill the connection ourselves. Set this to 0 to disable timeout!");
+                                        ", the connection is killed. Set this to 0 to disable timeout!");
     defaults_.setMinInt("timeout", 0);
 		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", StringList::create("advanced"));
 
@@ -256,7 +256,6 @@ void MascotRemoteQuery::execQuery()
 	cerr << "ended: " << "\n";
 #endif
   
-  timeout_.setInterval(1000 * to_);
   if (to_ > 0) timeout_.start();
 	http_->request(header, querybytes);
 }
@@ -527,6 +526,7 @@ void MascotRemoteQuery::httpDone(bool error)
 		results_path_ = "";
 
     to_ = param_.getValue("timeout");
+    timeout_.setInterval(1000 * to_);
 
 		bool use_proxy(param_.getValue("use_proxy").toBool());
 		if (use_proxy)
