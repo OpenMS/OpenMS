@@ -70,8 +70,6 @@ namespace OpenMS
 			void showFilesDialog();
       /// Opens the folders of the input files
       void openContainingFolder();
-      /// Opens the files in TOPPView
-			void openInTOPPView();
 			/// Returns the key (for applying resources from a resource file)
 			const QString& getKey();
 			/// Sets the key (for applying resources from a resource file)

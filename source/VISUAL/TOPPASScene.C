@@ -1322,7 +1322,8 @@ namespace OpenMS
 
   void TOPPASScene::setOutDir(const QString& dir)
 	{
-		out_dir_ = dir;
+    QDir d(dir);
+		out_dir_ = d.absolutePath();
 		user_specified_out_dir_ = true;
 	}
 	
@@ -1464,8 +1465,7 @@ namespace OpenMS
 				TOPPASOutputFilesDialog tofd(out_dir_);
 				if (tofd.exec())
 				{
-					out_dir_ = tofd.getDirectory();
-					user_specified_out_dir_ = true;
+          setOutDir( tofd.getDirectory() );
 				}
 				else
 				{

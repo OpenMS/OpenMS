@@ -196,7 +196,7 @@ namespace OpenMS
 
     this->finished_ = true; // input node is ready to go (file check was already done)
 
-    std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
+    //std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
 
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{

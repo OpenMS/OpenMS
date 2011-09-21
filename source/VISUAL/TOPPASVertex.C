@@ -127,7 +127,7 @@ namespace OpenMS
 				return false;
 			}
 		}
-    std::cerr << "upstream of " << this->getTopoNr() << " is ready!\n";
+    //std::cerr << "upstream of " << this->getTopoNr() << " is ready!\n";
     return true;
   }
 

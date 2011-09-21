@@ -639,7 +639,7 @@ namespace OpenMS
     //** no error ... proceed
     {  
       ++round_counter_;
-      std::cout << (String("Increased iteration_nr_ to ") + round_counter_ + " / " + round_total_ ) << " for " << this->name_ << std::endl;
+      //std::cout << (String("Increased iteration_nr_ to ") + round_counter_ + " / " + round_total_ ) << " for " << this->name_ << std::endl;
 		
       if (round_counter_ == round_total_) // all iterations performed --> proceed in pipeline
 		  {
