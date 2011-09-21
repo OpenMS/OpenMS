@@ -4,6 +4,7 @@ set(directory source/FILTERING/SMOOTHING)
 ### list all filenames of the directory here
 set(sources_list
 GaussFilter.C
+LowessSmoothing.C
 SavitzkyGolayFilter.C
 )
 

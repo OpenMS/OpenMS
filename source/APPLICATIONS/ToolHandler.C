@@ -91,6 +91,7 @@ namespace OpenMS
     tools_map["MapStatistics"] = Internal::ToolDescription("MapStatistics", "File Handling");
     tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Identification");
     tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Identification");
+    tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", "Detects mass traces in LC-MS data");
 		tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
 		tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
     tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");

@@ -47,6 +47,7 @@ MapNormalizer
 MapStatistics
 MascotAdapter
 MascotAdapterOnline
+MassTraceExtractor
 NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter

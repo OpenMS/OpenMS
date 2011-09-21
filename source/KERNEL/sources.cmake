@@ -12,6 +12,7 @@ DRichPeak.C
 Feature.C
 FeatureHandle.C
 FeatureMap.C
+MassTrace.C
 MSExperiment.C
 MSSpectrum.C
 Peak1D.C

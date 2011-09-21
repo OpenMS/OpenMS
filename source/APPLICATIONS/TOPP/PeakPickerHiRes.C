@@ -148,7 +148,7 @@ protected:
         MzMLFile mz_data_file;
         mz_data_file.setLogType(log_type_);
         MSExperiment<Peak1D > ms_exp_raw;
-        mz_data_file.load(in,ms_exp_raw);
+        mz_data_file.load(in, ms_exp_raw);
 
         if (ms_exp_raw.size()==0)
         {
