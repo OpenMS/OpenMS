@@ -271,7 +271,7 @@ namespace OpenMS
 
             }
 
-            if (current_trace.size() >= std::floor(min_trace_quality)) {
+            if (current_trace.size() >= min_trace_quality) {
                 // mark all peaks as visited
                 for (Size i = 0; i < gathered_idx.size(); ++i)
                 {

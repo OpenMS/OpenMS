@@ -390,11 +390,11 @@ namespace OpenMS
 
         if ((temp_mz_size % 2) == 0)
         {
-            centroid_mz_ = (temp_mz[std::floor(temp_mz_size/2) - 1] +  temp_mz[std::floor(temp_mz_size/2)])/2;
+            centroid_mz_ = (temp_mz[std::floor(temp_mz_size/2.0) - 1] +  temp_mz[std::floor(temp_mz_size/2.0)])/2;
         }
         else
         {
-            centroid_mz_ = temp_mz[std::floor(temp_mz_size/2)];
+            centroid_mz_ = temp_mz[std::floor(temp_mz_size/2.0)];
         }
 
         return ;
