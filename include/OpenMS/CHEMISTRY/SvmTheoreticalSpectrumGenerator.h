@@ -248,10 +248,10 @@ namespace OpenMS
       String ResidueTypeToString_(Residue::ResidueType type);
 
       /// initialized the maps
-      static void init_();
+      static void initializeMaps_();
 
       /// flag to indicate if the hydrophobicity, helicity, and basicity maps were already initialized
-      static bool initialized_;
+      static bool initializedMaps_;
 
       void updateMembers_();
   };
