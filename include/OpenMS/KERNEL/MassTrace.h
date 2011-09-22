@@ -47,7 +47,6 @@ namespace OpenMS
                 @ingroup Kernel
         */
     class OPENMS_DLLAPI MassTrace
-        : public std::list<PeakType>
     {
     public:
 
@@ -60,7 +59,59 @@ namespace OpenMS
 
         MassTrace& operator= (const MassTrace& rhs);
 
+        // iterator stuff
+        typedef std::list<PeakType>::iterator iterator;
+        typedef std::list<PeakType>::const_iterator const_iterator;
+        typedef std::list<PeakType>::reverse_iterator reverse_iterator;
+        typedef std::list<PeakType>::const_reverse_iterator const_reverse_iterator;
+
+        iterator begin()
+        {
+            return trace_peaks_.begin();
+        }
+
+        iterator end()
+        {
+            return trace_peaks_.end();
+        }
+
+        const_iterator begin() const
+        {
+            return trace_peaks_.begin();
+        }
+
+        const_iterator end() const
+        {
+            return trace_peaks_.end();
+        }
+
+        reverse_iterator rbegin()
+        {
+            return trace_peaks_.rbegin();
+        }
+
+        reverse_iterator rend()
+        {
+            return trace_peaks_.rend();
+        }
+
+        const_reverse_iterator rbegin() const
+        {
+            return trace_peaks_.rbegin();
+        }
+
+        const_reverse_iterator rend() const
+        {
+            return trace_peaks_.rend();
+        }
+
+
         /// getter & setter
+
+        inline Size getSize() const
+        {
+            return trace_peaks_.size();
+        }
 
         inline String getLabel()
         {
@@ -101,16 +152,13 @@ namespace OpenMS
         {
             Size max_idx(this->findSmoothedMaxIdx());
 
-            MassTrace::const_iterator c_it = this->begin();
+            MassTrace::const_iterator c_it = trace_peaks_.begin();
             std::advance(c_it, max_idx);
 
             return c_it->getRT();
         }
 
-        //        inline Size getMinimumPeakWidth()
-        //        {
-        //            // ????
-        //        }
+
         /// prepend & append peaks, update centroid mz
         void prependPeak(PeakType);
         void appendPeak(PeakType);
@@ -128,6 +176,7 @@ namespace OpenMS
         void updateMeanMZ_();
         void updateIterativeWeightedMeanMZ_(const PeakType&);
 
+        std::list<PeakType> trace_peaks_;
         DoubleReal centroid_mz_;
         DoubleReal centroid_rt_;
 

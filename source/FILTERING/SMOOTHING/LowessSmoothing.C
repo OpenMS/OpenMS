@@ -53,7 +53,7 @@ namespace OpenMS
     void LowessSmoothing::smoothData(const DoubleVector& input_x, const DoubleVector& input_y, DoubleVector& smoothed_output)
     {
         if (input_x.size() != input_y.size()) {
-            std::cerr << "x and y vector not equal in size! Aborting!" << std::endl;
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
             return ;
         }
 
@@ -62,13 +62,6 @@ namespace OpenMS
 
         //            const Size q = floor( input_size * alpha );
         const Size q = (window_size_ < input_size) ? window_size_ : input_size-1;
-        // std::cout << "win size: " << window_size_ << std::endl;
-        // const Size q = std::floor(input_size * alpha);
-
-
-        // Working arrays for distances and sortedDistances.
-        //        DoubleReal distances[input_size];
-        //        DoubleReal sortedDistances[input_size];
 
         DoubleVector distances(input_size, 0.0);
         DoubleVector sortedDistances(input_size, 0.0);
@@ -157,18 +150,20 @@ namespace OpenMS
     DoubleReal LowessSmoothing::tricube_( DoubleReal u, DoubleReal t )
     {
         // In our case, u represents a distance and hence should be strictly positive.
-        if (u < 0) {
-            std::cout << "In input_size(u, t), u < 0" << std::endl;
-            std::abort();
+        if (u < 0)
+        {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of u must be strictly positive! Aborting...", String(u));
         }
 
-        // 0 <= u < t
-        if ( (fabs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t) ) {
+        // 0 <= u < t; u is regarded as 0.0 if fabs(u) falls below epsilon
+        if ( (fabs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t) )
+        {
             // (1 - (u/t)^3)^3
             return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );
         }
         // u >= t
-        else {
+        else
+        {
             return 0.0;
         }
     }

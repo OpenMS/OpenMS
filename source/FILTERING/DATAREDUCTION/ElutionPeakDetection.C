@@ -144,7 +144,7 @@ namespace OpenMS
 
             std::vector<DoubleReal> smoothed_tmp;
 
-            while (last_idx < mt.size())
+            while (last_idx < mt.getSize())
             {
                 tmp_mt.appendPeak(*cp_it);
                 smoothed_tmp.push_back(mt.getSmoothedIntensities()[last_idx]);

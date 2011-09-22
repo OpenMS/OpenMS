@@ -271,7 +271,7 @@ namespace OpenMS
 
             }
 
-            if (current_trace.size() >= min_trace_quality) {
+            if (current_trace.getSize() >= min_trace_quality) {
                 // mark all peaks as visited
                 for (Size i = 0; i < gathered_idx.size(); ++i)
                 {
@@ -284,7 +284,7 @@ namespace OpenMS
                 tr_num = read_in.str();
 
                 current_trace.setLabel("T" + tr_num);
-                peaks_detected += current_trace.size();
+                peaks_detected += current_trace.getSize();
                 this->setProgress(peaks_detected);
                 found_masstraces.push_back(current_trace);
                 ++trace_number;

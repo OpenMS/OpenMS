@@ -32,7 +32,7 @@
 namespace OpenMS
 {
     MassTrace::MassTrace()
-        : std::list<PeakType>(),
+        : trace_peaks_(),
         centroid_mz_(),
         centroid_rt_(),
         label_(),
@@ -47,7 +47,7 @@ namespace OpenMS
     }
 
     MassTrace::MassTrace(const MassTrace& mt)
-        : std::list<PeakType>(mt),
+        : trace_peaks_(mt.trace_peaks_),
         centroid_mz_(mt.centroid_mz_),
         centroid_rt_(mt.centroid_rt_),
         label_(mt.label_),
@@ -61,7 +61,7 @@ namespace OpenMS
                                     {
         if (this==&rhs) return *this;
 
-        std::list<PeakType>::operator= (rhs);
+        trace_peaks_ = rhs.trace_peaks_;
         centroid_mz_ = rhs.centroid_mz_;
         centroid_rt_ = rhs.centroid_rt_;
         label_ = rhs.label_;
@@ -74,7 +74,7 @@ namespace OpenMS
 
     void MassTrace::prependPeak(PeakType p)
     {
-        this->push_front(p);
+        trace_peaks_.push_front(p);
         updateMedianMZ_();
         // updateIterativeWeightedMeanMZ_(p);
         return ;
@@ -82,7 +82,7 @@ namespace OpenMS
 
     void MassTrace::appendPeak(PeakType p)
     {
-        this->push_back(p);
+        trace_peaks_.push_back(p);
         updateMedianMZ_();
         // updateIterativeWeightedMeanMZ_(p);
         return ;
@@ -93,7 +93,7 @@ namespace OpenMS
         DoubleReal weighted_sum(0.0);
         DoubleReal total_weight(0.0);
 
-        for (MassTrace::const_iterator l_it = this->begin(); l_it != this->end(); ++l_it)
+        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
         {
             DoubleReal w_i = (*l_it).getIntensity();
             total_weight += w_i;
@@ -109,10 +109,10 @@ namespace OpenMS
     DoubleReal MassTrace::computePeakArea() {
         DoubleReal peak_area(0.0);
 
-        if (this->size() == 0)
+        if (trace_peaks_.size() == 0)
             return peak_area;
 
-        for (MassTrace::const_iterator l_it = this->begin(); l_it != this->end(); ++l_it)
+        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
         {
             peak_area += (*l_it).getIntensity();
         }
@@ -123,6 +123,12 @@ namespace OpenMS
 
     Size MassTrace::findSmoothedMaxIdx()
     {
+        if (trace_peaks_.size() != smoothed_intensities_.size())
+        {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
+        }
+
+
         DoubleReal max_int(smoothed_intensities_[0]);
         DoubleReal max_idx(0);
 
@@ -140,11 +146,11 @@ namespace OpenMS
 
     DoubleReal MassTrace::findMaxPeakRT()
     {
-        DoubleReal max_rt((*(this->begin())).getRT());
+        DoubleReal max_rt((*(trace_peaks_.begin())).getRT());
 
         DoubleReal max_int(0.0);
 
-        for (MassTrace::const_iterator l_it = this->begin(); l_it != this->end(); ++l_it)
+        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
         {
             if ((*l_it).getIntensity() > max_int) {
                 max_int = (*l_it).getIntensity();
@@ -182,8 +188,8 @@ namespace OpenMS
                 break ;
             }
         }
-        MassTrace::const_iterator l_it = this->begin();
-        MassTrace::const_iterator r_it = this->begin();
+        MassTrace::const_iterator l_it = trace_peaks_.begin();
+        MassTrace::const_iterator r_it = trace_peaks_.begin();
         std::advance(l_it, left_border);
         std::advance(r_it, right_border);
 
@@ -199,26 +205,12 @@ namespace OpenMS
     {
         Size mt_length(smoothed_intensities_.size());
 
-        // Extract RTs from the chromatogram and store them into into vectors for index access
-
-
-        // std::vector<DoubleReal> RTs;
-
-        // Size arr_idx(0);
-
-        if (this->size() != mt_length)
+        if (mt_length != trace_peaks_.size())
         {
-            std::cerr << "something's fishy..." << std::endl;
-
-            std::abort();
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
         }
 
-        //        for (MassTrace::const_iterator c_it = this->begin(); c_it != this->end(); ++c_it)
-        //        {
-        //            // smoothed_ints[arr_idx] = smoothed_intensities_[arr_idx];
-        //            RTs.push_back(c_it->getRT());
-        //            // ++arr_idx;
-        //        }
+        // Extract RTs from the chromatogram and store them into into vectors for index access
 
         //  Store indices along with smoothed_ints to keep track of the peak order
         std::multimap<DoubleReal, Size> intensity_indices;
@@ -345,10 +337,10 @@ namespace OpenMS
 
     ConvexHull2D MassTrace::getConvexhull() const
     {
-        ConvexHull2D::PointArrayType hull_points(this->size());
+        ConvexHull2D::PointArrayType hull_points(trace_peaks_.size());
 
         Size i = 0;
-        for (MassTrace::const_iterator l_it = this->begin(); l_it != this->end(); ++l_it)
+        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
         {
             hull_points[i][0] = (*l_it).getRT();
             hull_points[i][1] = (*l_it).getMZ();
@@ -364,14 +356,14 @@ namespace OpenMS
 
     void MassTrace::updateMedianMZ_()
     {
-        if (this->size() == 0)
+        if (trace_peaks_.size() == 0)
         {
             return ;
         }
 
-        if (this->size() == 1)
+        if (trace_peaks_.size() == 1)
         {
-            centroid_mz_ = (*(this->begin())).getMZ();
+            centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
 
             return ;
         }
@@ -379,7 +371,7 @@ namespace OpenMS
         // copy mz values to temp vec
         std::vector<DoubleReal> temp_mz;
 
-        for (MassTrace::const_iterator l_it = this->begin(); l_it != this->end(); ++l_it)
+        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
         {
             temp_mz.push_back((*l_it).getMZ());
         }
@@ -402,14 +394,14 @@ namespace OpenMS
 
 
     void MassTrace::updateMeanMZ_() {
-        Size trace_size = this->size();
+        Size trace_size = trace_peaks_.size();
 
         if (trace_size == 0)
             return ;
 
         DoubleReal sum_mz(0.0);
 
-        for (MassTrace::const_iterator l_it = this->begin(); l_it != this->end(); ++l_it)
+        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
         {
             sum_mz += (*l_it).getMZ();
         }
@@ -420,12 +412,12 @@ namespace OpenMS
     }
 
     void MassTrace::updateIterativeWeightedMeanMZ_(const PeakType& added_peak) {
-        Size trace_size = this->size();
+        Size trace_size = trace_peaks_.size();
 
         if (trace_size == 1) {
-            centroid_mz_ = (*(this->begin())).getMZ();
-            prev_counter_ = (*(this->begin())).getIntensity() * (*(this->begin())).getMZ();
-            prev_denom_ = (*(this->begin())).getIntensity();
+            centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
+            prev_counter_ = (*(trace_peaks_.begin())).getIntensity() * (*(trace_peaks_.begin())).getMZ();
+            prev_denom_ = (*(trace_peaks_.begin())).getIntensity();
 
             return ;
         }
@@ -444,10 +436,4 @@ namespace OpenMS
 
 
 
-
-
-
-
-
-
-}
+} // end of MassTrace.C
