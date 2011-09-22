@@ -28,7 +28,25 @@
 #define OPENMS_DATASTRUCTURES_LPWRAPPER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#ifdef COINOR_SOLVER
+#ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
+#	pragma warning( push ) save warning state
+#	pragma warning( disable : 4267 )
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+// useful docu: https://projects.coin-or.org/Cbc
+// useful example: https://projects.coin-or.org/Cbc/browser/trunk/Cbc/examples/sample5.cpp
+// Cuts
+#include "coin/CoinModel.hpp"
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#else
+# pragma GCC diagnostic warning "-Wunused-parameter"
+#endif
+#else
 #include <glpk.h>
+#endif
 //#include <limits>
 namespace OpenMS
 {
@@ -38,8 +56,8 @@ namespace OpenMS
   public:
     struct SolverParam
     {
-      SolverParam(): message_level(GLP_MSG_ALL),branching_tech(GLP_BR_DTH),backtrack_tech(GLP_BT_BLB),
-                     preprocessing_tech(GLP_PP_ALL),enable_feas_pump_heuristic(true),enable_gmi_cuts(true),
+      SolverParam(): message_level(3),branching_tech(4),backtrack_tech(3),
+                     preprocessing_tech(2),enable_feas_pump_heuristic(true),enable_gmi_cuts(true),
                      enable_mir_cuts(true),enable_cov_cuts(true),enable_clq_cuts(true),mip_gap(0.0),
                      time_limit(std::numeric_limits<Int>::max()), output_freq(5000),output_delay(10000),enable_presolve(true),
                      enable_binarization(true)
@@ -134,7 +152,7 @@ namespace OpenMS
     Size getNumberOfColumns();
     /// get number of rows
     Size getNumberOfRows();
-    
+#ifndef COINOR_SOLVER
     // problem reading/writing
     /**
      *	@brief Read LP from file
@@ -149,17 +167,30 @@ namespace OpenMS
 		 *  @param format can be LP, MPS or GLPK
      */
     void writeProblem(String filename,String format);// format=(LP,MPS,GLPK)
-
+#endif
+    
     // problem solving
     /// solve problems, parameters like enabled heuristics can be given via solver_param
     Int solve(SolverParam& solver_param); 
+    /**
+     *	@brief Get solution status.
+     *	
+     *	@return status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+     */
     Int getStatus();
     // solution access
     DoubleReal getObjectiveValue();
     DoubleReal getColumnValue(Size index);
-    DoubleReal getRowValue(Size index);
+    // DoubleReal getRowValue(Size index);
 	protected:
+#ifdef COINOR_SOLVER
+    CoinModel model_;
+    Size num_rows_;
+    Size num_columns_;
+    std::vector<DoubleReal> solution_;
+#else
     glp_prob* lp_problem_;
+#endif
 
   }; // class
 

@@ -24,9 +24,33 @@
 // $Maintainer: Alexandra Zerck $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
-
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/CONCEPT/Exception.h>
+
+#ifdef COINOR_SOLVER
+#ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
+#	pragma warning( push ) save warning state
+#	pragma warning( disable : 4267 )
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+#include "coin/OsiClpSolverInterface.hpp"
+#include "coin/CbcModel.hpp"
+#include "coin/CbcHeuristic.hpp"
+#include "coin/CbcHeuristicLocal.hpp"
+#include "coin/CglGomory.hpp"
+#include "coin/CglProbing.hpp"
+#include "coin/CglKnapsackCover.hpp"
+#include "coin/CglOddHole.hpp"
+#include "coin/CglClique.hpp"
+#include "coin/CglFlowCover.hpp"
+#include "coin/CglMixedIntegerRounding.hpp"
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#else
+# pragma GCC diagnostic warning "-Wunused-parameter"
+#endif
+#endif
 
 namespace OpenMS
 {
@@ -34,7 +58,13 @@ namespace OpenMS
 
   LPWrapper::LPWrapper()
   {
+#ifdef COINOR_SOLVER
+    num_rows_ = 0;
+    num_columns_ = 0;
+    std::cerr << "Coinorsolver"<<std::endl;
+#else
     lp_problem_ = glp_create_prob();
+#endif
   }
 
   LPWrapper::~LPWrapper()
@@ -44,6 +74,12 @@ namespace OpenMS
   Size LPWrapper::addRow(std::vector<Int> row_indices,std::vector<DoubleReal> row_values,String name) // return index
   {
     if(row_indices.size() != row_values.size())  throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"indices and values vectors differ in size");
+#ifdef COINOR_SOLVER
+    model_.addRow((int)row_indices.size(),&(row_indices[0]),&(row_values[0]),
+                  -COIN_DBL_MAX, COIN_DBL_MAX,name.c_str());
+    ++num_rows_;
+    return num_rows_-1;
+#else
     Int index = glp_add_rows(lp_problem_, 1);
     // glpk accesses arrays beginning at index 1-> we have to insert an empty value at the front
     row_indices.insert(row_indices.begin(),-1);
@@ -52,16 +88,28 @@ namespace OpenMS
     glp_set_mat_row(lp_problem_, index, row_indices.size()-1,&(row_indices[0]), &(row_values[0]));
     glp_set_row_name(lp_problem_, index, name.c_str());    
     return index-1;
+#endif
   }
   
   Size LPWrapper::addColumn()
   {
+#ifdef COINOR_SOLVER
+    model_.addColumn(0,NULL,NULL,0,0); // new columns are initially fixed at zero, like in glpk
+    ++num_columns_;
+    return num_columns_-1;
+#else
     return glp_add_cols(lp_problem_, 1)-1;
+#endif
   }
     
   Size LPWrapper::addColumn(std::vector<Int> column_indices,std::vector<DoubleReal> column_values,String name)
   {
     if(column_indices.size() != column_values.size())  throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"indices and values vectors differ in size");
+#ifdef COINOR_SOLVER
+    model_.addColumn((Int)column_indices.size(),&column_indices[0],&column_values[0],-COIN_DBL_MAX, COIN_DBL_MAX,0.0,name.c_str());
+    ++num_columns_;
+    return num_columns_-1;
+#else    
     Int index = glp_add_cols(lp_problem_, 1);
     // glpk accesses arrays beginning at index 1-> we have to insert an empty value at the front
     column_indices.insert(column_indices.begin(),-1);
@@ -70,13 +118,30 @@ namespace OpenMS
     glp_set_mat_col(lp_problem_, index, column_indices.size()-1,&(column_indices[0]), &(column_values[0]));
     glp_set_col_name(lp_problem_, index, name.c_str());    
     return index-1;
+#endif
   }
 
   Size LPWrapper::addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,String name,DoubleReal lower_bound,
                          DoubleReal upper_bound,Int type)
   {
     Int index = addRow(row_indices,row_values,name);
+    std::cout << "added "<<index <<" row"<<std::endl;
+#ifdef COINOR_SOLVER
+    switch(type)
+      {
+      case 1: // unbounded
+        model_.setRowBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+      case 2: // only lower bound
+        model_.setRowBounds(index,lower_bound,COIN_DBL_MAX);
+      case 3: // only upper bound
+        model_.setRowBounds(index,-COIN_DBL_MAX,upper_bound);
+        std::cout << "setting row upper bound "<<" "<<upper_bound<<std::endl;
+      default: // double-bounded or fixed
+        model_.setRowBounds(index,lower_bound,upper_bound);
+      }
+#else
     glp_set_row_bnds(lp_problem_,index+1, type, lower_bound, upper_bound);
+#endif
     return index; // in addRow index is decreased already
   }
 
@@ -84,81 +149,182 @@ namespace OpenMS
                             DoubleReal lower_bound,DoubleReal upper_bound,Int type) //return index
   {
     Int index = addColumn(column_indices,column_values,name);
+#ifdef COINOR_SOLVER
+    switch(type)
+      {
+      case 1: // unbounded
+        model_.setColumnBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+      case 2: // only lower bound
+        model_.setColumnBounds(index,lower_bound,COIN_DBL_MAX);
+      case 3: // only upper bound
+        model_.setColumnBounds(index,-COIN_DBL_MAX,upper_bound);
+      default: // double-bounded or fixed
+        model_.setColumnBounds(index,lower_bound,upper_bound);
+      }
+#else
     glp_set_col_bnds(lp_problem_, index+1, type, lower_bound, upper_bound);
+#endif
     return index;// in addColumn index is decreased already
   }
 
 
   void LPWrapper::setColumnName(Size index,String name)
   {
+#ifdef COINOR_SOLVER
+    model_.setColumnName((Int) index,name.c_str());
+#else
     glp_set_col_name(lp_problem_, (int) index+1, name.c_str());
+#endif
   }
 
   void LPWrapper::setRowName(Size index,String name)
   {
+#ifdef COINOR_SOLVER
+    model_.setRowName((Int) index,name.c_str());
+#else
     glp_set_row_name(lp_problem_, (int) index+1, name.c_str());
+#endif
   }
 
   void LPWrapper::setColumnBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Int type)
   {
+#ifdef COINOR_SOLVER
+    //if(num_columns_ <= index) num_columns_ = index+1;
+    switch(type)
+      {
+      case 1: // unbounded
+        model_.setColumnBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+      case 2: // only lower bound
+        model_.setColumnBounds(index,lower_bound,COIN_DBL_MAX);
+      case 3: // only upper bound
+        model_.setColumnBounds(index,-COIN_DBL_MAX,upper_bound);
+      default: // double-bounded or fixed
+        model_.setColumnBounds(index,lower_bound,upper_bound);
+        std::cout << "setting "<<index << " column bounds: "<<lower_bound <<" "<<upper_bound<<std::endl;
+      }
+#else
     glp_set_col_bnds(lp_problem_, (int) index+1, type, lower_bound, upper_bound);
+#endif
   }
 
   void LPWrapper::setRowBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Int type)
   {
+#ifdef COINOR_SOLVER
+    switch(type)
+      {
+      case 1: // unbounded
+        model_.setRowBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+      case 2: // only lower bound
+        model_.setRowBounds(index,lower_bound,COIN_DBL_MAX);
+      case 3: // only upper bound
+        model_.setRowBounds(index,-COIN_DBL_MAX,upper_bound);
+      default: // double-bounded or fixed
+        model_.setRowBounds(index,lower_bound,upper_bound);
+      }
+#else
     glp_set_row_bnds(lp_problem_, (int) index+1, type, lower_bound, upper_bound);
+#endif
   }
 
-  void LPWrapper::setColumnType(Size index,Size type) // 0- continuous, 1- integer, 2- binary
+  void LPWrapper::setColumnType(Size index,Size type) // 1- continuous, 2- integer, 3- binary
   {
+#ifdef COINOR_SOLVER
+    if(type == 1) model_.setContinuous((Int) index);
+    else model_.setColumnIsInteger((Int) index,true);
+#else
     glp_set_col_kind(lp_problem_, (int) index+1, (int) type);
+#endif
   }
 
   Int LPWrapper::getColumnType(Size index)
   {
+#ifdef COINOR_SOLVER
+    if(model_.isInteger((Int)index))
+      {
+        // if variable is integer and column upper and lower bound are 1 and 0 -> binary variable
+        if(fabs(model_.getColUpper((Int)index)-1.) < 0.0001 && fabs(model_.getColLower((Int)index)) < 0.001)  return 3;
+        return 2;
+      }
+    else return 1;
+#else
     return glp_get_col_kind(lp_problem_, (int) index+1);
+#endif
   }
 
   void LPWrapper::setObjective(Size index,DoubleReal obj_value)
   {
+#ifdef COINOR_SOLVER
+    model_.setObjective((Int)index,obj_value);
+#else
     glp_set_obj_coef(lp_problem_, (int) index+1, obj_value);
+#endif
   }
 
   void LPWrapper::setObjectiveSense(Size sense) // 1 min, 2 max
   {
+#ifdef COINOR_SOLVER
+    if(sense == 1)  model_.setOptimizationDirection(1);
+    else model_.setOptimizationDirection(-1); // -1 maximize
+#else
     glp_set_obj_dir(lp_problem_, (int) sense);
+#endif
   }
 
   Size LPWrapper::getNumberOfColumns()
   {
+#ifdef COINOR_SOLVER
+    return num_columns_;
+#else
     return glp_get_num_cols(lp_problem_);
+#endif
   }
 
   Size LPWrapper::getNumberOfRows()
   {
+#ifdef COINOR_SOLVER
+    return num_rows_;
+#else
     return glp_get_num_rows(lp_problem_);
+#endif
   }
 
   String LPWrapper::getColumnName(Size index)
   {
+#ifdef COINOR_SOLVER
+    return model_.getColumnName((Int)index);
+#else
     return String(glp_get_col_name(lp_problem_, (int) index));
+#endif
   }
   
   String LPWrapper::getRowName(Size index)
   {
+#ifdef COINOR_SOLVER
+    return model_.getRowName((Int)index);
+#else
     return String(glp_get_row_name(lp_problem_, (int) index));
+#endif
   }
 
   Size LPWrapper::getRowIndex(String name)
   {
+#ifdef COINOR_SOLVER    
+    return (Size) model_.row(name.c_str());
+#else
     return glp_find_row(lp_problem_, name.c_str());
+#endif
   }
 
   Size LPWrapper::getColumnIndex(String name)
   {
+#ifdef COINOR_SOLVER
+    return (Size) model_.column(name.c_str());
+#else
     return glp_find_col(lp_problem_, name.c_str());
+#endif
   }
-
+  
+#ifndef COINOR_SOLVER
   void LPWrapper::readProblem(String filename,String format) // format=(LP,MPS,GLPK)
   {
     if(format == "LP")
@@ -193,10 +359,77 @@ namespace OpenMS
     else  throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"invalid LP format, allowed are LP, MPS, GLPK");
 
   }
-
+#endif
 
   Int LPWrapper::solve(SolverParam& solver_param) // ruft glp_intopt auf als MIP-Solver, benutzt branch-and-cut
   {
+#ifdef COINOR_SOLVER
+#ifdef COIN_HAS_CLP
+    OsiClpSolverInterface solver;
+#elif COIN_HAS_OSL
+    OsiOslSolverInterface solver;
+#endif
+    solver.loadFromCoinModel(model_);
+    		/* Now let MIP calculate a solution */
+		// Pass to solver
+		CbcModel model(solver);
+		model.setObjSense(model_.optimizationDirection()); // -1 = maximize, 1=minimize
+		model.solver()->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+
+		// Output details
+		// model.messageHandler()->setLogLevel( verbose_level > 1 ? 2 : 0);
+		// model.solver()->messageHandler()->setLogLevel( verbose_level > 1 ? 1 : 0);
+		
+		//CglProbing generator1;
+		//generator1.setUsingObjective(true);
+		CglGomory generator2;
+		generator2.setLimit(300);
+		CglKnapsackCover generator3;
+		CglOddHole generator4;
+		generator4.setMinimumViolation(0.005);
+		generator4.setMinimumViolationPer(0.00002);
+		generator4.setMaximumEntries(200);
+		CglClique generator5;
+		generator5.setStarCliqueReport(false);
+		generator5.setRowCliqueReport(false);
+		//CglFlowCover flowGen;
+    CglMixedIntegerRounding mixedGen;
+		
+		// Add in generators (you should prefer the ones used often and disable the others as they increase solution time)
+		//model.addCutGenerator(&generator1,-1,"Probing");
+		model.addCutGenerator(&generator2,-1,"Gomory");
+		model.addCutGenerator(&generator3,-1,"Knapsack");
+		//model.addCutGenerator(&generator4,-1,"OddHole"); // seg faults...
+		model.addCutGenerator(&generator5,-10,"Clique");
+		//model.addCutGenerator(&flowGen,-1,"FlowCover");
+		model.addCutGenerator(&mixedGen,-1,"MixedIntegerRounding");
+
+		// Heuristics
+		CbcRounding heuristic1(model);
+		model.addHeuristic(&heuristic1);
+		CbcHeuristicLocal heuristic2(model);
+		model.addHeuristic(&heuristic2);
+
+		// set maximum allowed CPU time before forced stop (dangerous!)
+		//model.setDblParam(CbcModel::CbcMaximumSeconds,60.0*1);
+
+		// Do initial solve to continuous
+		model.initialSolve();
+		
+		
+		// solve
+		model.branchAndBound();
+		// if (verbose_level > 0) LOG_INFO << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
+		// 				                        << model.getNodeCount()<<" nodes with objective "
+		// 				                        << model.getObjValue()
+		// 				                        << (!model.status() ? " Finished" : " Not finished")
+		// 				                        << std::endl;
+    for(Size i =0; i < num_columns_;++i)
+      {
+        solution_.push_back(model.solver()->getColSolution()[i]);
+      }
+    return model.status();
+#else
     glp_iocp solver_param_glp;
     glp_init_iocp(&solver_param_glp);		
 
@@ -217,30 +450,49 @@ namespace OpenMS
     if(solver_param.enable_binarization) solver_param_glp.binarize=GLP_ON; // only with presolve
 
     return glp_intopt(lp_problem_, &solver_param_glp);
+#endif
   }
 
   Int LPWrapper::getStatus()
   {
+#ifdef COINOR_SOLVER
+    return -1; // solver lokale Variable, braucht man diese Abfrage 
+#else
+    //return status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
     return glp_mip_status(lp_problem_);
+#endif
   }
   
   DoubleReal LPWrapper::getObjectiveValue()
-
   {
+#ifdef COINOR_SOLVER
+    DoubleReal* obj = model_.objectiveArray();
+    DoubleReal obj_val = 0.;
+    for(Size i = 0; i < num_columns_;++i)
+      {
+        obj_val += obj[i];
+      }
+    return obj_val;
+#else
     return glp_mip_obj_val(lp_problem_);
+#endif
   }
 
   DoubleReal LPWrapper::getColumnValue(Size index)
   {
+#ifdef COINOR_SOLVER
+    return solution_[index];
+#else
     // glpk uses arrays beginning at pos 1, so we need to shift
     return glp_mip_col_val(lp_problem_, (int) index +1);
+#endif
   }
 
-  DoubleReal LPWrapper::getRowValue(Size index)
-  {
-    // glpk uses arrays beginning at pos 1, so we need to shift
-    return glp_mip_row_val(lp_problem_, (int) index +1);
-  }
+  // DoubleReal LPWrapper::getRowValue(Size index)
+  // {
+  //   // glpk uses arrays beginning at pos 1, so we need to shift
+  //   return glp_mip_row_val(lp_problem_, (int) index +1);
+  // }
 
 
 }// namespace
