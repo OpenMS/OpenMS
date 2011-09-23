@@ -96,15 +96,8 @@ namespace OpenMS
           }
           else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
           {
-            //allow simple wildcards (*.extension) for file names
-            for (Size i = 0; i < valid_strings.size(); ++i)
-            {
-              String s = valid_strings[i];
-              if (s.hasPrefix("*.") && s.suffix(s.size() - 2) == ((String)value).suffix('.'))
-              {
-                ok = true;
-              }
-            }
+            //do not check restrictions on file names for now
+            ok = true;
           }
 
           if (!ok)
@@ -133,15 +126,8 @@ namespace OpenMS
             }
             else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
             {
-              //allow simple wildcards (*.extension) for file names
-              for (Size j = 0; j < valid_strings.size(); ++j)
-              {
-                String s = valid_strings[j];
-                if (s.hasPrefix("*.") && s.suffix(s.size() - 2) == (str_value).suffix('.'))
-                {
-                  ok = true;
-                }
-              }
+              //do not check restrictions on file names for now
+              ok = true;
             }
 
             if (!ok)
