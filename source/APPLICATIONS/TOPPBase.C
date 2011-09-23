@@ -2112,7 +2112,7 @@ namespace OpenMS
       outputFileWritable_(write_ctd_file, "write_ctd");
 
       // set type on commandline, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
-      param_cmdline_.setValue("type", type_list[i]);
+      if (type_list[i]!="") param_cmdline_.setValue("type", type_list[i]);
       Param default_params = getDefaultParameters_();
       // add type to ini file
       if (type_list[i]!="") default_params.setValue(this->ini_location_ + "type", type_list[i]);
@@ -2124,9 +2124,6 @@ namespace OpenMS
       //morph to ctd format
       QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
       lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      //lines.removeAt(2); // <NODE name="DBExporter" description="Exports data from an OpenMS database to a file.">
-      //lines.removeAt(2); // <ITEM name="version" value="1.9.0" type="string" description="Version of the tool that generated this parameters file." tags="advanced" />
-      //lines.removeAt(lines.size() - 2); // </NODE>
       lines.insert(1, "<tool status=\"internal\">");
       lines.insert(2, QString("<name>")+tool_name_.toQString()+"</name>");
       lines.insert(3, QString("<version>")+VersionInfo::getVersion().toQString()+"</version>");
@@ -2137,9 +2134,6 @@ namespace OpenMS
       lines.insert(7, "<category>"+ToolHandler::getCategory(tool_name_).toQString()+"</category>");
       lines.insert(8, "<type></type>");
       lines.insert(lines.size(), "</tool>");
-      //QString parameters_element = lines.at(9); //<PARAMETERS version="1.3" xsi:etc...>
-      //QStringList p_list = parameters_element.split(QRegExp("\\s+"));
-      //lines.replace(9, p_list.at(0)+" "+p_list.at(1)+">"); //keep only PARAMETERS and version="1.x" (throw away xsi stuff)
       String ctd_str = String(lines.join("\n")) + "\n";
 
       //write to file
