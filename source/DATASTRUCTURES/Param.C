@@ -124,12 +124,33 @@ namespace OpenMS
 				{
 					str_value = ls_value[i];
 					
-					if (valid_strings.size()!=0 && std::find(valid_strings.begin(),valid_strings.end(), str_value) == valid_strings.end())
+          if (valid_strings.size()!=0)
 					{
-						String valid;
-						valid.concatenate(valid_strings.begin(),valid_strings.end(),",");
-						message = String("Invalid string parameter value '")+str_value+"' for parameter '"+name+"' given! Valid values are: '"+valid+"'.";
-						return false;
+            bool ok = false;
+            if (std::find(valid_strings.begin(),valid_strings.end(), str_value) != valid_strings.end())
+            {
+              ok = true;
+            }
+            else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+            {
+              //allow simple wildcards (*.extension) for file names
+              for (Size j = 0; j < valid_strings.size(); ++j)
+              {
+                String s = valid_strings[j];
+                if (s.hasPrefix("*.") && s.suffix(s.size() - 2) == (str_value).suffix('.'))
+                {
+                  ok = true;
+                }
+              }
+            }
+
+            if (!ok)
+            {
+              String valid;
+              valid.concatenate(valid_strings.begin(),valid_strings.end(),",");
+              message = "Invalid string parameter value '"+str_value+"' for parameter '"+name+"' given! Valid values are: '"+valid+"'.";
+              return false;
+            }
 					}
 				}	
 			}
