@@ -46,7 +46,10 @@ namespace OpenMS
     // 1. find peaks
     picker.pick(input, picked);
     // 2. determine fwhm
-    for (Size i = 0; i < picked.size(); ++i)
+
+    if (picked.size() < 3) return;
+
+    for (Size i = 1; i < picked.size()-1; ++i)
     {
       DoubleReal mz = picked[i].getMZ();
       DoubleReal intensity = picked[i].getIntensity();
@@ -214,18 +217,20 @@ namespace OpenMS
     if (ms1_indices_size <= 100)
     {
       exp = input;
-    } else
+    }
+    else
     {
       while (ms1_indices_size > 100)
       {
         if (ms1_indices_size % 2 == 1)
         {
           ms1_indices.pop_front();
-        } else
+        }
+        else
         {
           ms1_indices.pop_back();
         }
-        ms1_indices_size--;
+        --ms1_indices_size;
       }
     }
 
@@ -243,6 +248,11 @@ namespace OpenMS
     for (Size scan_idx = 0; scan_idx != exp.size(); ++scan_idx)
     {
       estimateSpectrumFWHM(exp[scan_idx], fwhms);
+    }
+
+    if (fwhms.size() == 0)
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, fwhms.size());
     }
 
     // extract mzs and fwhm for linear regression above the median sorted for the intensity
