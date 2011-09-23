@@ -59,9 +59,9 @@ namespace OpenMS
   void SILACLabeler::setUpHook(FeatureMapSimVector & features)
   {
     // check for 2 channels
-    if(features.size() != 2)
+    if (features.size() != 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "We currently support only 2-channel SILAC");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Only ") + features.size() + " channels given. We currently support only 2-channel SILAC. Please provide two FASTA files!");
     }
 
     // parse modifications
