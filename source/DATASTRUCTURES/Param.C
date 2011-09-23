@@ -87,12 +87,33 @@ namespace OpenMS
 	{
 			if (value.valueType()==DataValue::STRING_VALUE)
 			{
-				if (valid_strings.size()!=0 && std::find(valid_strings.begin(),valid_strings.end(), value) == valid_strings.end())
+        if (valid_strings.size()!=0)
 				{
-					String valid;
-					valid.concatenate(valid_strings.begin(),valid_strings.end(),",");
-					message = "Invalid string parameter value '"+(String)value+"' for parameter '"+name+"' given! Valid values are: '"+valid+"'.";
-					return false;
+          bool ok = false;
+          if (std::find(valid_strings.begin(),valid_strings.end(), value) != valid_strings.end())
+          {
+            ok = true;
+          }
+          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+          {
+            //allow simple wildcards (*.extension) for file names
+            for (Size i = 0; i < valid_strings.size(); ++i)
+            {
+              String s = valid_strings[i];
+              if (s.hasPrefix("*.") && s.suffix(s.size() - 2) == ((String)value).suffix('.'))
+              {
+                ok = true;
+              }
+            }
+          }
+
+          if (!ok)
+          {
+            String valid;
+            valid.concatenate(valid_strings.begin(),valid_strings.end(),",");
+            message = "Invalid string parameter value '"+(String)value+"' for parameter '"+name+"' given! Valid values are: '"+valid+"'.";
+            return false;
+          }
 				}
 			}
 			else if(value.valueType()==DataValue::STRING_LIST)
