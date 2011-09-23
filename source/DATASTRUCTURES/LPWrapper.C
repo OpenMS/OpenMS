@@ -85,7 +85,7 @@ namespace OpenMS
     row_indices.insert(row_indices.begin(),-1);
     row_values.insert(row_values.begin(),-1);
     for(Size i = 0; i< row_indices.size();++i)   row_indices[i] +=1;//std::cout << row_indices[i]
-    glp_set_mat_row(lp_problem_, index, row_indices.size()-1,&(row_indices[0]), &(row_values[0]));
+    glp_set_mat_row(lp_problem_, index, (int)row_indices.size()-1, &(row_indices[0]), &(row_values[0]));
     glp_set_row_name(lp_problem_, index, name.c_str());    
     return index-1;
 #endif
@@ -115,32 +115,36 @@ namespace OpenMS
     column_indices.insert(column_indices.begin(),-1);
     column_values.insert(column_values.begin(),-1);
     for(Size i = 0; i< column_indices.size();++i)   column_indices[i] +=1;
-    glp_set_mat_col(lp_problem_, index, column_indices.size()-1,&(column_indices[0]), &(column_values[0]));
+    glp_set_mat_col(lp_problem_, index, (int)column_indices.size()-1, &(column_indices[0]), &(column_values[0]));
     glp_set_col_name(lp_problem_, index, name.c_str());    
     return index-1;
 #endif
   }
 
-  Size LPWrapper::addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,String name,DoubleReal lower_bound,
-                         DoubleReal upper_bound,Int type)
+  Size LPWrapper::addRow(std::vector<Int>& row_indices, std::vector<DoubleReal>& row_values, String name,DoubleReal lower_bound,
+                         DoubleReal upper_bound, Int type)
   {
-    Int index = addRow(row_indices,row_values,name);
-    std::cout << "added "<<index <<" row"<<std::endl;
+    Size index = addRow(row_indices, row_values,name);
+    std::cout << "added " << index << " row" << std::endl;
 #ifdef COINOR_SOLVER
     switch(type)
       {
       case 1: // unbounded
         model_.setRowBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+        break;
       case 2: // only lower bound
         model_.setRowBounds(index,lower_bound,COIN_DBL_MAX);
+        break;
       case 3: // only upper bound
         model_.setRowBounds(index,-COIN_DBL_MAX,upper_bound);
         std::cout << "setting row upper bound "<<" "<<upper_bound<<std::endl;
+        break;
       default: // double-bounded or fixed
         model_.setRowBounds(index,lower_bound,upper_bound);
+        break;
       }
 #else
-    glp_set_row_bnds(lp_problem_,index+1, type, lower_bound, upper_bound);
+    glp_set_row_bnds(lp_problem_, (Int)index+1, type, lower_bound, upper_bound);
 #endif
     return index; // in addRow index is decreased already
   }
@@ -148,21 +152,25 @@ namespace OpenMS
   Size LPWrapper::addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,String name,
                             DoubleReal lower_bound,DoubleReal upper_bound,Int type) //return index
   {
-    Int index = addColumn(column_indices,column_values,name);
+    Size index = addColumn(column_indices,column_values,name);
 #ifdef COINOR_SOLVER
     switch(type)
       {
       case 1: // unbounded
         model_.setColumnBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+        break;
       case 2: // only lower bound
         model_.setColumnBounds(index,lower_bound,COIN_DBL_MAX);
+        break;
       case 3: // only upper bound
         model_.setColumnBounds(index,-COIN_DBL_MAX,upper_bound);
+        break;
       default: // double-bounded or fixed
         model_.setColumnBounds(index,lower_bound,upper_bound);
+        break;
       }
 #else
-    glp_set_col_bnds(lp_problem_, index+1, type, lower_bound, upper_bound);
+    glp_set_col_bnds(lp_problem_, (int)index+1, type, lower_bound, upper_bound);
 #endif
     return index;// in addColumn index is decreased already
   }
@@ -194,13 +202,17 @@ namespace OpenMS
       {
       case 1: // unbounded
         model_.setColumnBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+        break;
       case 2: // only lower bound
         model_.setColumnBounds(index,lower_bound,COIN_DBL_MAX);
+        break;
       case 3: // only upper bound
         model_.setColumnBounds(index,-COIN_DBL_MAX,upper_bound);
+        break;
       default: // double-bounded or fixed
         model_.setColumnBounds(index,lower_bound,upper_bound);
         std::cout << "setting "<<index << " column bounds: "<<lower_bound <<" "<<upper_bound<<std::endl;
+        break;
       }
 #else
     glp_set_col_bnds(lp_problem_, (int) index+1, type, lower_bound, upper_bound);
@@ -214,12 +226,16 @@ namespace OpenMS
       {
       case 1: // unbounded
         model_.setRowBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
+        break;
       case 2: // only lower bound
         model_.setRowBounds(index,lower_bound,COIN_DBL_MAX);
+        break;
       case 3: // only upper bound
         model_.setRowBounds(index,-COIN_DBL_MAX,upper_bound);
+        break;
       default: // double-bounded or fixed
         model_.setRowBounds(index,lower_bound,upper_bound);
+        break;
       }
 #else
     glp_set_row_bnds(lp_problem_, (int) index+1, type, lower_bound, upper_bound);
