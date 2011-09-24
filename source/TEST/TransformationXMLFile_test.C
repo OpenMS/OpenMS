@@ -139,7 +139,9 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 	pairs.push_back(make_pair(2.2f,6.25f));
 	pairs.push_back(make_pair(3.2f,7.3f));
 	trafo.setDataPoints(pairs);
-	trafo.fitModel("interpolated", Param());
+	params.clear();
+	params.setValue("interpolation_type", "linear");
+	trafo.fitModel("interpolated", params);
 	trafo_xml.store(tmp_file_pairs, trafo);
 	trafo_xml.load(tmp_file_pairs, trafo2);
 	TEST_STRING_EQUAL(trafo2.getModelType(), "interpolated");
@@ -178,6 +180,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   trafo.setDataPoints(pairs);
 	params.clear();
 	params.setValue("num_breakpoints", 4);
+	params.setValue("break_positions", "uniform");
 	trafo.fitModel("b_spline", params);
   trafo_xml.store(tmp_file_pairs,trafo);
   trafo_xml.load(tmp_file_pairs,trafo2);
@@ -185,7 +188,8 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 	params.clear();
 	trafo2.getModelParameters(params);
   TEST_EQUAL(params.getValue("num_breakpoints"), 4);
-  TEST_EQUAL(params.size(), 1);
+  TEST_EQUAL(params.getValue("break_positions"), "uniform");
+  TEST_EQUAL(params.size(), 2);
   TEST_EQUAL(trafo2.getDataPoints().size(), 11);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].first, 1.2);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].second, 5.2);

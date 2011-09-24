@@ -77,33 +77,39 @@ protected:
 		addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
 	}
 
-	
-	void registerModelOptions_(const String& default_model)
+	void getModelDefaults_(Param& params, const String& default_model) const
 	{
-		registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
-		registerStringOption_("model:type", "<name>", default_model, "Type of model", false);
-		StringList model_types;
-		TransformationDescription::getModelTypes(model_types);
+		params.setValue("type", default_model, "Type of model");
+		// TODO: avoid referring to each TransformationModel subclass explicitly
+		StringList model_types = StringList::create("linear,b_spline,interpolated");
 		if (!model_types.contains(default_model))
 		{
 			model_types.insert(model_types.begin(), default_model);
 		}
-		setValidStrings_("model:type", model_types);
-		registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
-		registerIntOption_("model:num_breakpoints", "<number>", 5, "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.", false);
-		setMinInt_("model:num_breakpoints", 2);
-		registerStringOption_("model:interpolation_type", "<name>", "cspline", "Only for 'interpolated' model: Type of interpolation to apply.", false);
-		StringList interpolation_types;
-		TransformationModelInterpolated::getInterpolationTypes(interpolation_types);
+		params.setValidStrings("type", model_types);
+
+		Param model_params;
+		TransformationModelLinear::getDefaultParameters(model_params);
+		params.insert("linear:", model_params);
+		params.setSectionDescription("linear", "Parameters for 'linear' model");
+		TransformationModelBSpline::getDefaultParameters(model_params);
+		params.insert("b_spline:", model_params);
+		params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
+		TransformationModelInterpolated::getDefaultParameters(model_params);
 		// "polynomial" interpolation is not suitable for RT data, so remove it:
+		const Param::ParamEntry& entry = 
+			model_params.getEntry("interpolation_type");
+		StringList interpolation_types = entry.valid_strings;
 		StringList::Iterator pos = find(interpolation_types.begin(), 
 																		interpolation_types.end(), "polynomial"); 
 		interpolation_types.erase(pos); 
-		setValidStrings_("model:interpolation_type", interpolation_types);
+		model_params.setValidStrings("interpolation_type", interpolation_types);
+		params.insert("interpolated:", model_params);
+		params.setSectionDescription("interpolated", 
+																 "Parameters for 'interpolated' model");
 	}
 
-
-	void handle_reference_(MapAlignmentAlgorithm* alignment)
+	void handleReference_(MapAlignmentAlgorithm* alignment)
 	{
 		// note: this function is in the base class to avoid code duplication, but
 		// it only makes sense for some derived classes - don't call the function
@@ -126,7 +132,7 @@ protected:
 	}
 
 
-	ExitCodes common_main_(MapAlignmentAlgorithm* alignment)
+	ExitCodes commonMain_(MapAlignmentAlgorithm* alignment)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
@@ -134,8 +140,9 @@ protected:
 		StringList ins = getStringList_("in");
 		StringList outs = getStringList_("out");
 		StringList trafos = getStringList_("trafo_out");
-		String model_type = getStringOption_("model:type");
 		Param model_params = getParam_().copy("model:", true);
+		String model_type = model_params.getValue("type");
+		model_params = model_params.copy(model_type + ":", true);
 
 		ProgressLogger progresslogger;
 		progresslogger.setLogType(log_type_);

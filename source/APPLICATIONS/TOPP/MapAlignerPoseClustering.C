@@ -95,22 +95,30 @@ protected:
 		setValidFormats_("reference:file", StringList::create(formats));
 		registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
 		setMinInt_("reference:index", 0);
-		registerModelOptions_("linear");
 		registerSubsection_("algorithm", "Algorithm parameters section");
+		registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
 	}
 
-	Param getSubsectionDefaults_(const String& /* section */ ) const
+	Param getSubsectionDefaults_(const String& section) const
 	{
-		MapAlignmentAlgorithmPoseClustering algo;
-		Param tmp = algo.getParameters();
-		return tmp;
+		if (section == "algorithm")
+		{
+			MapAlignmentAlgorithmPoseClustering algo;
+			return algo.getParameters();
+		}
+		Param params;
+		if (section == "model")
+		{
+			getModelDefaults_(params, "linear");
+		}
+		return params;
 	}
 
 	ExitCodes main_(int, const char**)
 	{
 		MapAlignmentAlgorithmPoseClustering algorithm;
-		handle_reference_(&algorithm);
-		return TOPPMapAlignerBase::common_main_(&algorithm);
+		handleReference_(&algorithm);
+		return TOPPMapAlignerBase::commonMain_(&algorithm);
 	}
 };
 

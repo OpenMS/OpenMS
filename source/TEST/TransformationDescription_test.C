@@ -221,7 +221,9 @@ START_SECTION((void invert()))
 	TEST_EQUAL(td.getDataPoints() == data, true);
 
 	// test interpolated-linear transformation:
-	td.fitModel("interpolated", Param());
+	params.clear();
+	params.setValue("interpolation_type", "linear");
+	td.fitModel("interpolated", params);
 	td.invert();
 	TEST_EQUAL(td.getModelType(), "interpolated");
 	// pairs have changed...

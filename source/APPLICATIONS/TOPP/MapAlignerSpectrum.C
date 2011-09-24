@@ -33,7 +33,7 @@ using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -91,21 +91,29 @@ protected:
 		String formats = "mzML";
 		TOPPMapAlignerBase::registerOptionsAndFlags_(formats);
 		// no support for a reference file yet
-		registerModelOptions_("interpolated");
 		registerSubsection_("algorithm", "Algorithm parameters section");
+		registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
 	}
 
-	Param getSubsectionDefaults_(const String& /* section */ ) const
+	Param getSubsectionDefaults_(const String& section) const
 	{
-		MapAlignmentAlgorithmSpectrumAlignment algo;
-		Param tmp = algo.getParameters();
-		return tmp;
+		if (section == "algorithm")
+		{
+			MapAlignmentAlgorithmSpectrumAlignment algo;
+			return algo.getParameters();
+		}
+		Param params;
+		if (section == "model")
+		{
+			getModelDefaults_(params, "interpolated");
+		}
+		return params;
 	}
 
 	ExitCodes main_(int, const char**)
 	{
 		MapAlignmentAlgorithmSpectrumAlignment algorithm;
-		return TOPPMapAlignerBase::common_main_(&algorithm);
+		return TOPPMapAlignerBase::commonMain_(&algorithm);
 	}
 };
 

@@ -98,7 +98,14 @@ protected:
 		addEmptyLine_();
 		addText_("This tool applies given RT transformations to a number of input files and writes the results to the output files.");
 		addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
-		registerModelOptions_("none");
+		registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
+	}
+
+	Param getSubsectionDefaults_(const String& /* section */) const
+	{
+		Param params;
+		getModelDefaults_(params, "none");
+		return params;
 	}
 
 	ExitCodes main_(int, const char**)
@@ -110,8 +117,9 @@ protected:
 		StringList outs = getStringList_("out");
 		StringList trafo_ins = getStringList_("trafo_in");
 		StringList trafo_outs = getStringList_("trafo_out");
-		String model_type = getStringOption_("model:type");
 		Param model_params = getParam_().copy("model:", true);
+		String model_type = model_params.getValue("type");
+		model_params = model_params.copy(model_type + ":", true);
 
 		ProgressLogger progresslogger;
 		progresslogger.setLogType(log_type_);

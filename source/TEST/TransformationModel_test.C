@@ -92,7 +92,9 @@ START_SECTION((virtual DoubleReal evaluate(const DoubleReal value) const))
 								 im(empty, Param())); // need data
 	
   data.push_back(make_pair(2.0, 2.0));
-	TransformationModelInterpolated im(data, Param());
+	Param params;
+	params.setValue("interpolation_type", "linear");
+	TransformationModelInterpolated im(data, params);
 	// interpolation:
 	TEST_REAL_SIMILAR(im.evaluate(0.0), 1.0);
 	TEST_REAL_SIMILAR(im.evaluate(0.5), 2.0);
@@ -104,9 +106,7 @@ START_SECTION((virtual DoubleReal evaluate(const DoubleReal value) const))
 	TEST_REAL_SIMILAR(im.evaluate(2.5), 2.25);
 
 	// B-spline model:
-	TEST_EXCEPTION(Exception::IllegalArgument, 
-								 TransformationModelBSpline bm(data, Param())); // need param.
-	Param params;
+	params.clear();
 	params.setValue("num_breakpoints", 4);
 	TEST_EXCEPTION(Exception::IllegalArgument, TransformationModelBSpline 
 								 bm(empty, params)); // need data
@@ -162,14 +162,13 @@ START_SECTION((virtual DoubleReal evaluate(const DoubleReal value) const))
 }
 END_SECTION
 
-START_SECTION((virtual void getParameters(Param& params) const))
+START_SECTION((void getParameters(Param& params) const))
 {
 	TransformationModel tm;
 	Param p_in, p_out;
 	tm.getParameters(p_out);
 	TEST_EQUAL(p_out.empty(), true);
 
-	p_in.clear();
 	p_in.setValue("symmetric_regression", "true");
 	TransformationModelLinear lm(data, p_in);
 	lm.getParameters(p_out);
@@ -180,26 +179,6 @@ START_SECTION((virtual void getParameters(Param& params) const))
 	TransformationModelLinear lm2(empty, p_in);
 	lm2.getParameters(p_out);
 	TEST_EQUAL(p_out, p_in);
-
-	p_in.clear();
-	p_in.setValue("interpolation_type", "polynomial");
-	TransformationModelInterpolated im(data, p_in);
-	im.getParameters(p_out);
-	TEST_EQUAL(p_out, p_in);
-
-	p_in.clear();
-	p_in.setValue("num_breakpoints", 4);
-	TransformationModelBSpline bm(data, p_in);
-	bm.getParameters(p_out);
-	TEST_EQUAL(p_out, p_in);
-}
-END_SECTION
-
-START_SECTION(([EXTRA] void getInterpolationTypes(StringList&) const))
-{
-	StringList result;
-	TransformationModelInterpolated::getInterpolationTypes(result);
-	TEST_EQUAL(result.concatenate(","), "linear,polynomial,cspline,akima");
 }
 END_SECTION
 

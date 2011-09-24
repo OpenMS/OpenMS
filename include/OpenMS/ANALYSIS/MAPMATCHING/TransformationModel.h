@@ -55,7 +55,7 @@ namespace OpenMS
 
 		/// Alternative constructor (derived classes should implement this one!)
 		TransformationModel(const TransformationModel::DataPoints&, 
-												const Param&) {};
+												const Param&): params_() {};
 		
 		/// Destructor
 		virtual ~TransformationModel() {};
@@ -66,11 +66,21 @@ namespace OpenMS
 			return value;
 		};
 
-		/// Gets the parameters
-		virtual void getParameters(Param& params) const
+		/// Gets the (actual) parameters
+		void getParameters(Param& params) const
+		{
+			params = params_;
+		};
+
+		/// Gets the default parameters
+		static void getDefaultParameters(Param& params)
 		{
 			params.clear();
 		};
+
+	protected:
+		/// Parameters
+		Param params_;
 	};
 
 
@@ -99,11 +109,13 @@ namespace OpenMS
 		/// Evaluates the model at the given value
 		DoubleReal evaluate(const DoubleReal value) const;
 
-		/// Gets the parameters (only if set explicitly, not if estimated)
-		void getParameters(Param& params) const;
+		using TransformationModel::getParameters;
 
 		/// Gets the "real" parameters
 		void getParameters(DoubleReal& slope, DoubleReal& intercept) const;
+
+		/// Gets the default parameters
+		static void getDefaultParameters(Param& params);
 
 		/**
 			 @brief Computes the inverse
@@ -149,11 +161,8 @@ namespace OpenMS
 		/// Evaluates the model at the given value
 		DoubleReal evaluate(const DoubleReal value) const;
 
-		/// Gets the parameters
-		void getParameters(Param& params) const;
-
-		/// Gets allowed values for the parameter "interpolation_type"
-		static void getInterpolationTypes(StringList& result);
+		/// Gets the default parameters
+		static void getDefaultParameters(Param& params);
 
 	protected:
 		/// Data coordinates
@@ -192,10 +201,20 @@ namespace OpenMS
 		/// Evaluates the model at the given value
 		DoubleReal evaluate(const DoubleReal value) const;
 
-		/// Gets the parameters
-		void getParameters(Param& params) const;
-		
+		/// Gets the default parameters
+		static void getDefaultParameters(Param& params);
+
 	protected:
+		/**
+			@brief Finds quantile values
+			
+			@param x Data vector to find quantiles in
+			@param quantiles Quantiles to find (values between 0 and 1)
+			@param results Resulting quantiles (vector must be already allocated to the correct size!)
+		*/
+		void getQuantiles_(const gsl_vector *x, const std::vector<double>& 
+											 quantiles, gsl_vector *results);
+
 		/// Computes the B-spline fit
 		void computeFit_();
 
