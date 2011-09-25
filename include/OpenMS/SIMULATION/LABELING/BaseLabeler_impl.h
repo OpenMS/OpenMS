@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: $
+// $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SIMULATION_LABELING_BASELABELER_IMPL_H
@@ -35,6 +35,7 @@
 #include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
+#include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
 
 namespace OpenMS
 {
@@ -45,6 +46,7 @@ namespace OpenMS
         Factory< BaseLabeler >::registerProduct(O18Labeler::getProductName(), &O18Labeler::create);
         Factory< BaseLabeler >::registerProduct(ITRAQLabeler::getProductName(), &ITRAQLabeler::create);
         Factory< BaseLabeler >::registerProduct(SILACLabeler::getProductName(), &SILACLabeler::create);
+        Factory< BaseLabeler >::registerProduct(ICPLLabeler::getProductName(), &ICPLLabeler::create);
         return;
     }
 

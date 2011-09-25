@@ -66,7 +66,7 @@ namespace OpenMS
     // no action here .. just check for 2 channels
     if(features.size() != 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Only ") + features.size() + " channels given. 18O Labeling only works with 2 channels. Please provide two FASTA files!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(features.size()) + " channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!");
     }
   }
 

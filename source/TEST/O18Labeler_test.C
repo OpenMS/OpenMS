@@ -155,11 +155,11 @@ START_SECTION((void setUpHook(FeatureMapSimVector &)))
   FeatureMapSimVector fm_vec;
 
   fm_vec.push_back(fm1);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec),"18 O Labeling only works with 2 channels.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec), "1 channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!")
   fm_vec.push_back(fm2);
   labeler.setUpHook(fm_vec);
   fm_vec.push_back(fm3);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec),"18 O Labeling only works with 2 channels.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec), "3 channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!")
 }
 END_SECTION
 

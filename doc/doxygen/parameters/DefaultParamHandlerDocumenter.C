@@ -152,6 +152,8 @@
 #include <OpenMS/SIMULATION/EGHModel.h>
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
+#include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
+#include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 

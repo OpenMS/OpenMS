@@ -9,6 +9,7 @@ ITRAQLabeler.h
 LabelFreeLabeler.h
 O18Labeler.h
 SILACLabeler.h
+ICPLLabeler.h
 )
 
 ### add path to the filenames

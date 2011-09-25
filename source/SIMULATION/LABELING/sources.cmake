@@ -8,6 +8,7 @@ ITRAQLabeler.C
 LabelFreeLabeler.C
 O18Labeler.C
 SILACLabeler.C
+ICPLLabeler.C
 )
 
 ### add path to the filenames

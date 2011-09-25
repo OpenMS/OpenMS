@@ -34,58 +34,74 @@ namespace OpenMS
 {
 
 
-  /**
+/**
     @brief Simulate SILAC experiments
 
     Add modified features to MS1 scans.
 
     @htmlinclude OpenMS_SILACLabeler.parameters
   */
-  class OPENMS_DLLAPI SILACLabeler
+class OPENMS_DLLAPI SILACLabeler
     : public BaseLabeler
+{
+public:
+
+  /// default constructor
+  SILACLabeler();
+
+  /// destructor
+  virtual ~SILACLabeler();
+
+  /// create new object (needed by Factory)
+  static BaseLabeler* create()
   {
-  public:
+    return new SILACLabeler();
+  }
 
-    /// default constructor
-    SILACLabeler();
+  /// name of the model (needed by Factory)
+  static const String getProductName()
+  {
+    return "SILAC";
+  }
 
-    /// destructor
-    virtual ~SILACLabeler();
+  // redeclaration of virtual methods
+  void preCheck(Param & /* param */) const;
 
-    /// create new object (needed by Factory)
-    static BaseLabeler* create()
-    {
-        return new SILACLabeler();
-    }
+  void setUpHook(FeatureMapSimVector & /* channels */);
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-        return "SILAC";
-    }
+  void postDigestHook(FeatureMapSimVector & /* features_to_simulate */);
 
-    // redeclaration of virtual methods
-    void preCheck(Param &param) const;
+  void postRTHook(FeatureMapSimVector & /* features_to_simulate */);
 
-    void setUpHook(FeatureMapSimVector & /* channels */);
+  void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */);
 
-    void postDigestHook(FeatureMapSimVector & /* features_to_simulate */);
+  void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */);
 
-    void postRTHook(FeatureMapSimVector & /* features_to_simulate */);
+  void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */);
 
-    void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */);
+  void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */);
 
-    void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */);
+protected:
+  void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
 
-    void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */);
+  Feature mergeFeatures_(Feature& labeled_channel_feature, const String& unmodified_sequence, Map<String, Feature>& unlabeled_features_index, Int index_channel_id, Int labeled_channel_id) const;
 
-    void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */);
+  Feature mergeAllChannelFeatures_(Feature& heavy_channel_feature, const String& unmodified_feature_sequence, Map<String, Feature>& light_channel_feature_index, Map<String, Feature>& medium_channel_feature_index) const;
 
-  protected:
-    void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
+  String medium_channel_lysine_label_;
+  String medium_channel_arginine_label_;
 
-    Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const;
-  };
+  String heavy_channel_lysine_label_;
+  String heavy_channel_arginine_label_;
+
+  bool canModificationBeApplied_(const String& modification_id, const String& aa) const;
+
+  void applyLabelToProteinHit_(FeatureMapSim& protein_hit, const String& arginine_label, const String& lysine_label) const;
+
+  void updateMembers_();
+
+  String getUnmodifiedSequence_(const Feature& feature, const String& arginine_label, const String& lysine_label) const;
+};
 
 } // namespace OpenMS
 
