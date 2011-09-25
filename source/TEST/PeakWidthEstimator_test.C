@@ -44,7 +44,7 @@ START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<bo
   Fwhm fwhm;
   PeakWidthEstimator::estimateSpectrumFWHM(input[0], fwhm);
   TEST_EQUAL(fwhm.size(), 151);
-  typename Fwhm::const_reverse_iterator it = fwhm.rbegin();
+  Fwhm::const_reverse_iterator it = fwhm.rbegin();
   TEST_REAL_SIMILAR(it->get<0>(), 202394.);
   TEST_REAL_SIMILAR(it->get<1>(), 591.358);
   TEST_REAL_SIMILAR(it->get<2>(), .010647);
