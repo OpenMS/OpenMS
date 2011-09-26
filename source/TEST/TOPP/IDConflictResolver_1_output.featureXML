@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" id="fm_15407585427843071297" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2011-08-08T19:31:37">
+		<software name="FeatureFinder" version="1.9.0" />
+		<processingAction name="Quantitation" />
+		<userParam type="string" name="parameter: out" value="AnnotationConflictResolver_1_input.featureXML"/>
+		<userParam type="string" name="parameter: in" value="AnnotationConflictResolver_1_input.mzML"/>
+	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="IDConflictResolver" version="version_string" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-08-08T17:36:22" search_engine="X! Tandem (k-score)" search_engine_version="">
+		<SearchParameters db="test.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+			<FixedModification name="C+57.0215" />
+			<VariableModification name="C-17.0265" />
+			<VariableModification name="E-18.0106" />
+			<VariableModification name="Q-17.0265" />
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ddb000514958" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="ddb000325962" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2011-08-08T17:36:22" search_engine="OMSSA" search_engine_version="">
+		<SearchParameters db="test.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+			<FixedModification name="Carbamidomethyl" />
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_2" accession="ddb000326506" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="ddb000325188" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="4">
+		<feature id="f_1373363315366016197">
+			<position dim="0">1277.99789929456</position>
+			<position dim="1">546.276976391298</position>
+			<intensity>3.04721e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.515422</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="1265.57" y="546.279160492122" />
+				<pt x="1267.01" y="546.276562549174" />
+				<pt x="1268.27" y="546.277432672679" />
+				<pt x="1269.48" y="546.277967207134" />
+				<pt x="1270.94" y="546.276589803398" />
+				<pt x="1271.98" y="546.276794649661" />
+				<pt x="1272.65" y="546.276680357754" />
+				<pt x="1274.33" y="546.277247421443" />
+				<pt x="1275.01" y="546.276516832411" />
+				<pt x="1276.42" y="546.275886468589" />
+				<pt x="1277.07" y="546.27645265311" />
+				<pt x="1278.01" y="546.276863224804" />
+				<pt x="1279.49" y="546.278567679226" />
+				<pt x="1280.73" y="546.27714895457" />
+				<pt x="1281.39" y="546.277089171112" />
+				<pt x="1282.32" y="546.277349151671" />
+				<pt x="1283.26" y="546.276191540062" />
+				<pt x="1284.53" y="546.276850916445" />
+				<pt x="1285.54" y="546.276940591633" />
+				<pt x="1286.21" y="546.276355065405" />
+				<pt x="1287.62" y="546.280799262226" />
+				<pt x="1289.13" y="546.277083896101" />
+				<pt x="1290.43" y="546.277818627656" />
+				<pt x="1291.38" y="546.278912313282" />
+				<pt x="1292.07" y="546.276792012155" />
+				<pt x="1293" y="546.277723677456" />
+				<pt x="1294.42" y="546.277121700346" />
+				<pt x="1295.87" y="546.277276434004" />
+				<pt x="1296.56" y="546.275785364211" />
+				<pt x="1297.85" y="546.276421882212" />
+				<pt x="1299.05" y="546.277551360428" />
+				<pt x="1300.51" y="546.278131611645" />
+				<pt x="1299.05" y="546.277551360428" />
+				<pt x="1297.85" y="546.276421882212" />
+				<pt x="1296.56" y="546.275785364211" />
+				<pt x="1295.87" y="546.277276434004" />
+				<pt x="1294.42" y="546.277121700346" />
+				<pt x="1293" y="546.277723677456" />
+				<pt x="1292.07" y="546.276792012155" />
+				<pt x="1291.38" y="546.278912313282" />
+				<pt x="1290.43" y="546.277818627656" />
+				<pt x="1289.13" y="546.277083896101" />
+				<pt x="1287.62" y="546.280799262226" />
+				<pt x="1286.21" y="546.276355065405" />
+				<pt x="1285.54" y="546.276940591633" />
+				<pt x="1284.53" y="546.276850916445" />
+				<pt x="1283.26" y="546.276191540062" />
+				<pt x="1282.32" y="546.277349151671" />
+				<pt x="1281.39" y="546.277089171112" />
+				<pt x="1280.73" y="546.27714895457" />
+				<pt x="1279.49" y="546.278567679226" />
+				<pt x="1278.01" y="546.276863224804" />
+				<pt x="1277.07" y="546.27645265311" />
+				<pt x="1276.42" y="546.275886468589" />
+				<pt x="1275.01" y="546.276516832411" />
+				<pt x="1274.33" y="546.277247421443" />
+				<pt x="1272.65" y="546.276680357754" />
+				<pt x="1271.98" y="546.276794649661" />
+				<pt x="1270.94" y="546.276589803398" />
+				<pt x="1269.48" y="546.277967207134" />
+				<pt x="1268.27" y="546.277432672679" />
+				<pt x="1267.01" y="546.276562549174" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="545.2717285" RT="1275.01" >
+				<PeptideHit score="0.999999" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="170"/>
+			<userParam type="float" name="score_fit" value="0.582182578033577"/>
+			<userParam type="float" name="score_correlation" value="0.923668901794242"/>
+			<userParam type="float" name="FWHM" value="19.4875831604004"/>
+			<userParam type="int" name="spectrum_index" value="1018"/>
+			<userParam type="string" name="spectrum_native_id" value="scan=1805"/>
+		</feature>
+		<feature id="f_10678641590729762751">
+			<position dim="0">2692.51931402675</position>
+			<position dim="1">519.287426050426</position>
+			<intensity>3.94804e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.712606</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="2689.47" y="519.288684353232" />
+				<pt x="2690.89" y="519.282802149653" />
+				<pt x="2692.15" y="519.288447782397" />
+				<pt x="2692.79" y="519.285850308836" />
+				<pt x="2693.71" y="519.286699302495" />
+				<pt x="2694.64" y="519.288621589541" />
+				<pt x="2695.58" y="519.288460657001" />
+				<pt x="2697.16" y="519.28892172873" />
+				<pt x="2697.8" y="519.286252297461" />
+				<pt x="2698.72" y="519.288007631898" />
+				<pt x="2699.66" y="519.287702664733" />
+				<pt x="2700.58" y="519.287613347173" />
+				<pt x="2701.94" y="519.28455696255" />
+				<pt x="2702.6" y="519.288479164243" />
+				<pt x="2703.52" y="519.286907657981" />
+				<pt x="2704.84" y="519.283539220691" />
+				<pt x="2707.44" y="519.287243202329" />
+				<pt x="2708.57" y="519.287758991122" />
+				<pt x="2707.44" y="519.287243202329" />
+				<pt x="2704.84" y="519.283539220691" />
+				<pt x="2703.52" y="519.286907657981" />
+				<pt x="2702.6" y="519.288479164243" />
+				<pt x="2701.94" y="519.28455696255" />
+				<pt x="2700.58" y="519.287613347173" />
+				<pt x="2699.66" y="519.287702664733" />
+				<pt x="2698.72" y="519.288007631898" />
+				<pt x="2697.8" y="519.286252297461" />
+				<pt x="2697.16" y="519.28892172873" />
+				<pt x="2695.58" y="519.288460657001" />
+				<pt x="2694.64" y="519.288621589541" />
+				<pt x="2693.71" y="519.286699302495" />
+				<pt x="2692.79" y="519.285850308836" />
+				<pt x="2692.15" y="519.288447782397" />
+				<pt x="2690.89" y="519.282802149653" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.2877808" RT="2653.28" >
+				<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="23570"/>
+			<userParam type="float" name="score_fit" value="0.592367816263975"/>
+			<userParam type="float" name="score_correlation" value="0.922234794989678"/>
+			<userParam type="float" name="FWHM" value="34.0471076965332"/>
+			<userParam type="int" name="spectrum_index" value="2288"/>
+			<userParam type="string" name="spectrum_native_id" value="scan=4010"/>
+		</feature>
+		<feature id="f_12405256131250299722">
+			<position dim="0">529.286707890525</position>
+			<position dim="1">508.276244293884</position>
+			<intensity>2.27014e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.821619</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="522.474" y="508.277013409883" />
+				<pt x="524.168" y="508.276730235666" />
+				<pt x="525.75" y="508.276867602021" />
+				<pt x="526.95" y="508.276511523873" />
+				<pt x="528.022" y="508.276107098907" />
+				<pt x="529.626" y="508.276159282774" />
+				<pt x="530.814" y="508.275830831379" />
+				<pt x="531.874" y="508.275957453996" />
+				<pt x="533.45" y="508.27644552663" />
+				<pt x="535.208" y="508.27648159489" />
+				<pt x="533.45" y="508.27644552663" />
+				<pt x="531.874" y="508.275957453996" />
+				<pt x="530.814" y="508.275830831379" />
+				<pt x="529.626" y="508.276159282774" />
+				<pt x="528.022" y="508.276107098907" />
+				<pt x="526.95" y="508.276511523873" />
+				<pt x="525.75" y="508.276867602021" />
+				<pt x="524.168" y="508.276730235666" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="508.2728271" RT="520.801" >
+				<PeptideHit score="0.999999" sequence="LAQGDVVEGK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2">
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="1195"/>
+			<userParam type="float" name="score_fit" value="0.682223066553369"/>
+			<userParam type="float" name="score_correlation" value="0.989496231786794"/>
+			<userParam type="float" name="FWHM" value="5.8864631652832"/>
+			<userParam type="int" name="spectrum_index" value="377"/>
+			<userParam type="string" name="spectrum_native_id" value="scan=513"/>
+		</feature>
+		<feature id="f_8424675462742455963">
+			<position dim="0">804.723909144231</position>
+			<position dim="1">483.258426215605</position>
+			<intensity>2.1957e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.809333</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="786.303" y="483.258204381913" />
+				<pt x="787.983" y="483.259511426091" />
+				<pt x="789.361" y="483.258952781558" />
+				<pt x="790.663" y="483.259910359979" />
+				<pt x="791.769" y="483.259664967656" />
+				<pt x="792.442" y="483.258236948401" />
+				<pt x="793.999" y="483.258838996291" />
+				<pt x="794.671" y="483.258261892945" />
+				<pt x="796.244" y="483.257580075413" />
+				<pt x="797.605" y="483.258937016129" />
+				<pt x="799.228" y="483.258612111211" />
+				<pt x="800.482" y="483.257299449295" />
+				<pt x="801.963" y="483.258904799819" />
+				<pt x="803.572" y="483.258304852992" />
+				<pt x="804.949" y="483.258107375354" />
+				<pt x="806.391" y="483.258134398609" />
+				<pt x="807.083" y="483.2590213269" />
+				<pt x="808.979" y="483.258004132658" />
+				<pt x="810.464" y="483.257919598371" />
+				<pt x="811.709" y="483.258876010776" />
+				<pt x="812.678" y="483.258411560208" />
+				<pt x="814.387" y="483.258961006999" />
+				<pt x="815.903" y="483.259884312749" />
+				<pt x="817.557" y="483.258358899504" />
+				<pt x="819.117" y="483.25930647552" />
+				<pt x="820.185" y="483.259340748191" />
+				<pt x="820.863" y="483.256237242371" />
+				<pt x="823.61" y="483.261352244765" />
+				<pt x="820.863" y="483.256237242371" />
+				<pt x="820.185" y="483.259340748191" />
+				<pt x="819.117" y="483.25930647552" />
+				<pt x="817.557" y="483.258358899504" />
+				<pt x="815.903" y="483.259884312749" />
+				<pt x="814.387" y="483.258961006999" />
+				<pt x="812.678" y="483.258411560208" />
+				<pt x="811.709" y="483.258876010776" />
+				<pt x="810.464" y="483.257919598371" />
+				<pt x="808.979" y="483.258004132658" />
+				<pt x="807.083" y="483.2590213269" />
+				<pt x="806.391" y="483.258134398609" />
+				<pt x="804.949" y="483.258107375354" />
+				<pt x="803.572" y="483.258304852992" />
+				<pt x="801.963" y="483.258904799819" />
+				<pt x="800.482" y="483.257299449295" />
+				<pt x="799.228" y="483.258612111211" />
+				<pt x="797.605" y="483.258937016129" />
+				<pt x="796.244" y="483.257580075413" />
+				<pt x="794.671" y="483.258261892945" />
+				<pt x="793.999" y="483.258838996291" />
+				<pt x="792.442" y="483.258236948401" />
+				<pt x="791.769" y="483.259664967656" />
+				<pt x="790.663" y="483.259910359979" />
+				<pt x="789.361" y="483.258952781558" />
+				<pt x="787.983" y="483.259511426091" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="483.2566528" RT="787.983" >
+				<PeptideHit score="0.999999" sequence="AKFDDLTR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="int" name="label" value="2801"/>
+			<userParam type="float" name="score_fit" value="0.682499081560347"/>
+			<userParam type="float" name="score_correlation" value="0.959738455491561"/>
+			<userParam type="float" name="FWHM" value="15.4546928405762"/>
+			<userParam type="int" name="spectrum_index" value="610"/>
+			<userParam type="string" name="spectrum_native_id" value="scan=1005"/>
+		</feature>
+	</featureList>
+</featureMap>

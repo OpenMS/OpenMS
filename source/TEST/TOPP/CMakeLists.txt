@@ -259,6 +259,11 @@ add_test("TOPP_ITRAQAnalyzer_1_out1" ${DIFF} -whitelist "<map" "?xml-stylesheet"
 add_test("TOPP_ITRAQAnalyzer_2" ${TOPP_BIN_PATH}/ITRAQAnalyzer -test -in ${DATA_DIR_TOPP}/ITRAQAnalyzer_input_2.mzML -ini ${DATA_DIR_TOPP}/ITRAQAnalyzer.ini -out ITRAQAnalyzer_output_2.tmp)
 add_test("TOPP_ITRAQAnalyzer_2_out1" ${DIFF} -whitelist "<map" "?xml-stylesheet" -in1 ITRAQAnalyzer_output_2.tmp -in2 ${DATA_DIR_TOPP}/ITRAQAnalyzer_output_2.consensusXML)
 
+### IDConflictResolver tests
+add_test("TOPP_IDConflictResolver_1" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_1_input.featureXML -out IDConflictResolver_1_output.tmp)
+add_test("TOPP_IDConflictResolver_1_out1" ${DIFF} -in1 IDConflictResolver_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_1_output.featureXML)
+add_test("TOPP_IDConflictResolver_2" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_2_input.consensusXML -out IDConflictResolver_2_output.tmp)
+add_test("TOPP_IDConflictResolver_2_out1" ${DIFF} -in1 IDConflictResolver_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_2_output.consensusXML)
 
 ### IDFileConverter tests
 add_test("TOPP_IDFileConverter_1" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/IDFileConverter_1_input_sequestoutdir -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input_mzfile.mzML -out IDFileConverter_1_output.tmp -out_type idXML -ignore_proteins_per_peptide )
