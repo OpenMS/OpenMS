@@ -372,7 +372,7 @@ namespace OpenMS
 #endif
                     // if peaks are broad and assymetric, the max in the cwt can be a few datapoints away from the real max
                     // --> check also for distance in m/z in comparison with the scale
-                    if((it_help-2)->getMZ() - (area.max-1)->getMZ() > scale_/2)
+                    if( (area.max-1)->getMZ() -(it_help-2)->getMZ() > scale_/2)
                       {
                         break;                        
                       }
@@ -460,8 +460,13 @@ namespace OpenMS
 									{
 #ifdef DEBUG_PEAK_PICKING        	
 										std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
-#endif        		
-										break;
+#endif
+                    // if peaks are broad and assymetric, the max in the cwt can be a few datapoints away from the real max
+                    // --> check also for distance in m/z in comparison with the scale
+                    if((it_help+2)->getMZ() - (area.max-1)->getMZ() > scale_/2)
+                      {
+                        break;                        
+                      }
 									}
 								
 								// to the left, the values are falling again => let the cwt decide if we
