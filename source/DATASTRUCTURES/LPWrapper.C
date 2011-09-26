@@ -263,7 +263,7 @@ namespace OpenMS
       }
     else return CONTINUOUS;
 #else
-    return glp_get_col_kind(lp_problem_, (int) index+1);
+    return (VariableType) glp_get_col_kind(lp_problem_, (int) index+1);
 #endif
   }
 
