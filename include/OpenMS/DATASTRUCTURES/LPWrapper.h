@@ -82,6 +82,20 @@ namespace OpenMS
       bool enable_binarization; // only with presolve
     };
 
+    enum Type
+    {
+      UNBOUNDED = 1,
+      LOWER_BOUND_ONLY,
+      UPPER_BOUND_ONLY,
+      DOUBLE_BOUNDED_OR_FIXED
+    };
+
+    enum VariableType
+    {
+      CONTINUOUS=1,
+      INTEGER,
+      BINARY
+    };
 
     
 		LPWrapper();
@@ -98,12 +112,12 @@ namespace OpenMS
       @brief Adds a row with boundaries to the LP matrix, returns index
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Size addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Int type);
+    Size addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
     /*
       @brief Adds a column with boundaries to the LP matrix, returns index
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Size addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Int type);
+    Size addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
     /// sets name of the index-th column
     void setColumnName(Size index,String name);
     /// gets name of the index-th column
@@ -121,25 +135,25 @@ namespace OpenMS
      *	
      *	@param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
      */
-    void setColumnBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Int type);
+    void setColumnBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
     /**
      *	@brief Set row bounds.
      *	
      *	@param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed constraint
      */
-    void setRowBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Int type);
+    void setRowBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
     /**
      *	@brief Set column/variable type.
      *	
      *	@param type 1- continuous, 2- integer, 3- binary variable
      */
-    void setColumnType(Size index,Size type);
+    void setColumnType(Size index,VariableType type);
     /**
      *	@brief Get column/variable type.
      *	
      *	@return 1- continuous, 2- integer, 3- binary variable
      */
-    Int getColumnType(Size index);
+    VariableType getColumnType(Size index);
     /// set objective value for column with index
     void setObjective(Size index,DoubleReal obj_value);
     /**

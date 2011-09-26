@@ -99,13 +99,13 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 					variable_indices.push_back(triple);
           
           std::cout << index << " variable index"<<std::endl;
-          model_->setColumnBounds(index,0,1,4);
-          model_->setColumnType(index,3); // binary variable
+          model_->setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
+          model_->setColumnType(index,LPWrapper::BINARY); // binary variable
 					model_->setColumnName(index,(String("x_")+i+","+s));
-#ifdef DEBUG_OPS	
+          //#ifdef DEBUG_OPS	
 					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
 										<< intensity_weights[i][c] <<std::endl;
-#endif
+          //#endif
 					model_->setObjective(index,intensity_weights[i][c]);
 					++counter;
 					++c;
@@ -157,9 +157,9 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
-			String name = "PREC_ACQU_LIMIT_" + String(i);
+      //			String name = "PREC_ACQU_LIMIT_" + String(i);
 			
-			model_->addRow(indices,entries,name,-1,1,3); // only upper bounded problem -> lower bound is ignored
+			model_->addRow(indices,entries,(String("PREC_ACQU_LIMIT_")+i),0,1,LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
 			std::cout << stop-start << " "<<name<<std::endl;
@@ -200,12 +200,13 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 				{
 					entries[c] = 1.;
 					indices[c] = variable_indices[s].variable;
+          std::cout << "indices["<<c<<"]= "<<indices[c]<<std::endl;
 					++c;
 				}
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
-			model_->addRow(indices,entries,(String("RT_CAP")+i),0,ms2_spectra_per_rt_bin,3);// only upper bounded problem -> lower bound is ignored
+			model_->addRow(indices,entries,(String("RT_CAP")+i),0,ms2_spectra_per_rt_bin,LPWrapper::UPPER_BOUND_ONLY);// only upper bounded problem -> lower bound is ignored
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
@@ -317,7 +318,9 @@ void PSLPFormulation::solveILP_(std::vector<int>& solution_indices)
 	for (Size column=0; column<model_->getNumberOfColumns(); ++column)
 		{
 			double value=model_->getColumnValue(column);
-			if (fabs(value)>0.5 && model_->getColumnType(column)==3) // 3 - binary variable
+      std::cout << value << " "<<model_->getColumnType(column) << std::endl;
+			if ((fabs(value)>0.5 && model_->getColumnType(column)==3) ||
+          (fabs(value)>0.5 && model_->getColumnType(column)==2)) // 3 - binary variable , 2- integer variable
 				{
 #ifdef DEBUG_OPS	
 					std::cout << model_->getColumnName(column)<<" is in optimal solution"<<std::endl;

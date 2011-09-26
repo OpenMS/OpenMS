@@ -122,26 +122,26 @@ namespace OpenMS
   }
 
   Size LPWrapper::addRow(std::vector<Int>& row_indices, std::vector<DoubleReal>& row_values, String name,DoubleReal lower_bound,
-                         DoubleReal upper_bound, Int type)
+                         DoubleReal upper_bound, Type type)
   {
     Size index = addRow(row_indices, row_values,name);
     std::cout << "added " << index << " row" << std::endl;
 #ifdef COINOR_SOLVER
     switch(type)
       {
-      case 1: // unbounded
+      case UNBOUNDED: // unbounded
         model_.setRowBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
         break;
-      case 2: // only lower bound
+      case LOWER_BOUND_ONLY: // only lower bound
         model_.setRowBounds(index,lower_bound,COIN_DBL_MAX);
         break;
-      case 3: // only upper bound
+      case UPPER_BOUND_ONLY: // only upper bound
         model_.setRowBounds(index,-COIN_DBL_MAX,upper_bound);
         std::cout << "setting row upper bound "<<" "<<upper_bound<<std::endl;
         break;
       default: // double-bounded or fixed
         model_.setRowBounds(index,lower_bound,upper_bound);
-        break;
+        break;      
       }
 #else
     glp_set_row_bnds(lp_problem_, (Int)index+1, type, lower_bound, upper_bound);
@@ -150,19 +150,19 @@ namespace OpenMS
   }
 
   Size LPWrapper::addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,String name,
-                            DoubleReal lower_bound,DoubleReal upper_bound,Int type) //return index
+                            DoubleReal lower_bound,DoubleReal upper_bound,Type type) //return index
   {
     Size index = addColumn(column_indices,column_values,name);
 #ifdef COINOR_SOLVER
     switch(type)
       {
-      case 1: // unbounded
+      case UNBOUNDED: // unbounded
         model_.setColumnBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
         break;
-      case 2: // only lower bound
+      case LOWER_BOUND_ONLY: // only lower bound
         model_.setColumnBounds(index,lower_bound,COIN_DBL_MAX);
         break;
-      case 3: // only upper bound
+      case UPPER_BOUND_ONLY: // only upper bound
         model_.setColumnBounds(index,-COIN_DBL_MAX,upper_bound);
         break;
       default: // double-bounded or fixed
@@ -194,19 +194,19 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setColumnBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Int type)
+  void LPWrapper::setColumnBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Type type)
   {
 #ifdef COINOR_SOLVER
     //if(num_columns_ <= index) num_columns_ = index+1;
     switch(type)
       {
-      case 1: // unbounded
+      case UNBOUNDED: // unbounded
         model_.setColumnBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
         break;
-      case 2: // only lower bound
+      case LOWER_BOUND_ONLY: // only lower bound
         model_.setColumnBounds(index,lower_bound,COIN_DBL_MAX);
         break;
-      case 3: // only upper bound
+      case UPPER_BOUND_ONLY: // only upper bound
         model_.setColumnBounds(index,-COIN_DBL_MAX,upper_bound);
         break;
       default: // double-bounded or fixed
@@ -219,18 +219,18 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setRowBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Int type)
+  void LPWrapper::setRowBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Type type)
   {
 #ifdef COINOR_SOLVER
     switch(type)
       {
-      case 1: // unbounded
+      case UNBOUNDED: // unbounded
         model_.setRowBounds(index,-COIN_DBL_MAX,COIN_DBL_MAX);
         break;
-      case 2: // only lower bound
+      case LOWER_BOUND_ONLY: // only lower bound
         model_.setRowBounds(index,lower_bound,COIN_DBL_MAX);
         break;
-      case 3: // only upper bound
+      case UPPER_BOUND_ONLY: // only upper bound
         model_.setRowBounds(index,-COIN_DBL_MAX,upper_bound);
         break;
       default: // double-bounded or fixed
@@ -242,7 +242,7 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setColumnType(Size index,Size type) // 1- continuous, 2- integer, 3- binary
+  void LPWrapper::setColumnType(Size index,VariableType type) // 1- continuous, 2- integer, 3- binary
   {
 #ifdef COINOR_SOLVER
     if(type == 1) model_.setContinuous((Int) index);
@@ -252,16 +252,16 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::getColumnType(Size index)
+  LPWrapper::VariableType LPWrapper::getColumnType(Size index)
   {
 #ifdef COINOR_SOLVER
     if(model_.isInteger((Int)index))
       {
         // if variable is integer and column upper and lower bound are 1 and 0 -> binary variable
-        if(fabs(model_.getColUpper((Int)index)-1.) < 0.0001 && fabs(model_.getColLower((Int)index)) < 0.001)  return 3;
-        return 2;
+        if(fabs(model_.getColUpper((Int)index)-1.) < 0.0001 && fabs(model_.getColLower((Int)index)) < 0.001)  return BINARY;
+        return INTEGER;
       }
-    else return 1;
+    else return CONTINUOUS;
 #else
     return glp_get_col_kind(lp_problem_, (int) index+1);
 #endif

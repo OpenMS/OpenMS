@@ -555,8 +555,8 @@ namespace OpenMS {
 			namebuf<<"x#"<<i;
 			// create the new variable object
       Int index = build.addColumn();
-      build.setColumnBounds(index,0,1,4);
-			build.setColumnType(index,2); // integer variable
+      build.setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
+			build.setColumnType(index,LPWrapper::INTEGER); // integer variable
 			build.setObjective(index, pairs[i].getEdgeScore());
 			if (score_min > score ) score_min = score;
 			if (score_max < score ) score_max = score;
@@ -652,7 +652,7 @@ namespace OpenMS {
 					std::vector<int> columns;
           columns.push_back(int(i-margin_left));
           columns.push_back(int(j-margin_left));
-					build.addRow(columns, element,s, 0., 1.,4);
+					build.addRow(columns, element,s, 0., 1.,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
 				}
 			}
 		}
