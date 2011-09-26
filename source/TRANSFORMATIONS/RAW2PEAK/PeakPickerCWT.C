@@ -32,7 +32,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
-
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #ifdef _OPENMP 
@@ -370,8 +369,14 @@ namespace OpenMS
 									{
 #ifdef DEBUG_PEAK_PICKING        	
 										std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
-#endif        		
-										break;
+#endif
+                    // if peaks are broad and assymetric, the max in the cwt can be a few datapoints away from the real max
+                    // --> check also for distance in m/z in comparison with the scale
+                    if((it_help-2)->getMZ() - (area.max-1)->getMZ() > scale_/2)
+                      {
+                        break;                        
+                      }
+                    
 									}
 								
 								
@@ -1339,7 +1344,6 @@ namespace OpenMS
 		// start the peak picking until no more maxima can be found in the wavelet transform
 		UInt number_of_peaks = 0;
 		
-   
 		do
 			{
 				number_of_peaks = 0;
@@ -1375,7 +1379,6 @@ namespace OpenMS
 								continue;
 							}
 						else if(area.max >= it_pick_end) break;
-
 						//search for the endpoints of the peak
 						regular_endpoints = getPeakEndPoints_(it_pick_begin,
 																									it_pick_end,
