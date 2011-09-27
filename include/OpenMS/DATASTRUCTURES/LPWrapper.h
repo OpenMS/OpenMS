@@ -27,10 +27,12 @@
 #ifndef OPENMS_DATASTRUCTURES_LPWRAPPER_H
 #define OPENMS_DATASTRUCTURES_LPWRAPPER_H
 
+#include <limits>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
-#ifdef COINOR_SOLVER
+#if COINOR_SOLVER == 1
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
-#	pragma warning( push ) save warning state
+#	pragma warning( push ) // save warning state
 #	pragma warning( disable : 4267 )
 #else
 # pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -44,10 +46,10 @@
 #else
 # pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
-#else
-#include <glpk.h>
 #endif
-//#include <limits>
+
+#include <glpk.h>
+
 namespace OpenMS
 {
 
@@ -59,12 +61,12 @@ namespace OpenMS
       SolverParam(): message_level(3),branching_tech(4),backtrack_tech(3),
                      preprocessing_tech(2),enable_feas_pump_heuristic(true),enable_gmi_cuts(true),
                      enable_mir_cuts(true),enable_cov_cuts(true),enable_clq_cuts(true),mip_gap(0.0),
-                     time_limit(std::numeric_limits<Int>::max()), output_freq(5000),output_delay(10000),enable_presolve(true),
+                     time_limit((std::numeric_limits<Int>::max)()), output_freq(5000),output_delay(10000),enable_presolve(true),
                      enable_binarization(true)
 
       {
-
       }
+
       Int message_level;
       Int branching_tech;
       Int backtrack_tech;
@@ -97,7 +99,14 @@ namespace OpenMS
       BINARY
     };
 
-    
+    enum SOLVER
+    {
+      SOLVER_GLPK = 0
+#if COINOR_SOLVER==1
+      , SOLVER_COINOR
+#endif      
+    };
+
 		LPWrapper();
     virtual ~LPWrapper();
 
@@ -147,7 +156,7 @@ namespace OpenMS
      *	
      *	@param type 1- continuous, 2- integer, 3- binary variable
      */
-    void setColumnType(Size index,VariableType type);
+    void setColumnType(Size index, VariableType type);
     /**
      *	@brief Get column/variable type.
      *	
@@ -166,7 +175,7 @@ namespace OpenMS
     Size getNumberOfColumns();
     /// get number of rows
     Size getNumberOfRows();
-#ifndef COINOR_SOLVER
+
     // problem reading/writing
     /**
      *	@brief Read LP from file
@@ -181,7 +190,6 @@ namespace OpenMS
 		 *  @param format can be LP, MPS or GLPK
      */
     void writeProblem(String filename,String format);// format=(LP,MPS,GLPK)
-#endif
     
     // problem solving
     /// solve problems, parameters like enabled heuristics can be given via solver_param
@@ -196,15 +204,22 @@ namespace OpenMS
     DoubleReal getObjectiveValue();
     DoubleReal getColumnValue(Size index);
     // DoubleReal getRowValue(Size index);
+
+    // choose solver; by default, only GLPK is available
+    void setSolver(SOLVER s);
+
 	protected:
-#ifdef COINOR_SOLVER
+#if COINOR_SOLVER==1
     CoinModel model_;
     Size num_rows_;
     Size num_columns_;
     std::vector<DoubleReal> solution_;
-#else
-    glp_prob* lp_problem_;
 #endif
+
+    glp_prob* lp_problem_;
+
+    SOLVER solver_;
+
 
   }; // class
 

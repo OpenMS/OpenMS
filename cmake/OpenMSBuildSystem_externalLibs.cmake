@@ -59,18 +59,16 @@ OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces
 
 OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
 
-OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd;glpk" "GLPK")
-
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
 
 ## BOOST
 if (WIN32)
-	set(Boost_USE_STATIC_LIBS	       ON)
+	set(Boost_USE_STATIC_LIBS  ON)
 else()
-	set(Boost_USE_STATIC_LIBS	       OFF)
+	set(Boost_USE_STATIC_LIBS  OFF)
 endif()
-set(Boost_USE_MULTITHREADED	     ON)
-set(Boost_USE_STATIC_RUNTIME     OFF)
+set(Boost_USE_MULTITHREADED  ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
 
 FIND_PACKAGE(Boost 1.42.0 REQUIRED iostreams date_time math_c99)
 if(Boost_FOUND)
@@ -99,14 +97,22 @@ else()
 	message(FATAL_ERROR "LibSVM not found!")
 endif()
 
-OPENMS_CHECKLIB(CONTRIB_CBC1 "libCbc;Cbc" "libCbcd;Cbc" "COIN-OR Cbc")
-OPENMS_CHECKLIB(CONTRIB_CBC2 "libCgl;Cgl" "libCgld;Cgl" "COIN-OR Cgl")
-OPENMS_CHECKLIB(CONTRIB_CBC3 "libClp;Clp" "libClpd;Clp" "COIN-OR Clp")
-OPENMS_CHECKLIB(CONTRIB_CBC4 "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils" "COIN-OR Utils")
-OPENMS_CHECKLIB(CONTRIB_CBC5 "libOsi;Osi" "libOsid;Osi" "COIN-OR Osi")
-OPENMS_CHECKLIB(CONTRIB_CBC6 "libOsiClp;OsiClp" "libOsiClpd;OsiClp" "COIN-OR OsiClp")
-set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
+if (${USE_COINOR}) 
+	set(CF_USECOINOR 1) 
+	OPENMS_CHECKLIB(CONTRIB_CBC1 "libCbc;Cbc" "libCbcd;Cbc" "COIN-OR Cbc")
+	OPENMS_CHECKLIB(CONTRIB_CBC2 "libCgl;Cgl" "libCgld;Cgl" "COIN-OR Cgl")
+	OPENMS_CHECKLIB(CONTRIB_CBC3 "libClp;Clp" "libClpd;Clp" "COIN-OR Clp")
+	OPENMS_CHECKLIB(CONTRIB_CBC4 "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils" "COIN-OR Utils")
+	OPENMS_CHECKLIB(CONTRIB_CBC5 "libOsi;Osi" "libOsid;Osi" "COIN-OR Osi")
+	OPENMS_CHECKLIB(CONTRIB_CBC6 "libOsiClp;OsiClp" "libOsiClpd;OsiClp" "COIN-OR OsiClp")
+	set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
+else()
+	set(CF_USECOINOR 0)
+	set(CONTRIB_CBC)	
+endif()
 
+OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd;glpk" "GLPK")
+	
 OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;zlib;z" "ZLIB")
 OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;libbz2;bz2" "BZIP2")
 

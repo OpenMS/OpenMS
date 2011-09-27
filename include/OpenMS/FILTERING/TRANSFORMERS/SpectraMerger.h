@@ -145,7 +145,7 @@ namespace OpenMS
 
       if (rt_max_length == 0)  // no rt restriction set?
       {
-        rt_max_length = std::numeric_limits<DoubleReal>::max(); // set max rt span to very large value
+        rt_max_length = (std::numeric_limits<DoubleReal>::max)(); // set max rt span to very large value
       }
 
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel<ms_levels.end(); ++it_mslevel)
