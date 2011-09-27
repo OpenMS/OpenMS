@@ -5,6 +5,7 @@ set(directory include/OpenMS/FILTERING/DATAREDUCTION)
 set(sources_list_h
 DataFilters.h
 ElutionPeakDetection.h
+FeatureFindingMetabo.h
 MassTraceDetection.h
 SILACFilter.h
 SILACFiltering.h

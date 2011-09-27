@@ -19,6 +19,7 @@ FalseDiscoveryRate
 FeatureFinderMRM
 FeatureFinderCentroided
 FeatureFinderIsotopeWavelet
+FeatureFinderMetabo
 FeatureFinderRaw
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled

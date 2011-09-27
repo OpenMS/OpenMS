@@ -5,6 +5,7 @@ set(directory source/FILTERING/DATAREDUCTION)
 set(sources_list
 DataFilters.C
 ElutionPeakDetection.C
+FeatureFindingMetabo.C
 MassTraceDetection.C
 SILACFilter.C
 SILACFiltering.C
