@@ -101,6 +101,9 @@ namespace OpenMS
 			edge->setSelected(true);
 		}
 		removeSelected();
+
+    // delete temporary files (TODO: make this a user dialog and ask - for later resume)
+    File::removeDirRecursively(tmp_path_);
 	}
 	
 	void TOPPASScene::setActionMode(ActionMode mode)
