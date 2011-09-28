@@ -1193,6 +1193,14 @@ namespace OpenMS
 			
 			tv = new TOPPASToolVertex(tool_name, tool_type);
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+
+      // check if tool init was successful (i.e. tool was found); TODO: only populate Tool list with available tools so we do not need to check?!
+      if (!ttv->isToolReady())
+      {
+        delete ttv;
+        return;
+      }
+
 			connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
 			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
 			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));

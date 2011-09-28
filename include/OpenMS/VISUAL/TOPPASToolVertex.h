@@ -169,6 +169,10 @@ namespace OpenMS
 			/// Refreshes the parameters of this tool, returns if their has been a change
 			bool refreshParameters();
 
+      /// underlying TOPP tool found and parameters fetched?! (done in C'Tor)
+      bool isToolReady() const;
+
+
 		public slots:
 		
 			/// Called when the execution of this tool has finished
@@ -228,6 +232,10 @@ namespace OpenMS
 			Param param_;
 			/// Color representing the progress (red = failed, yellow = processing, green = finished, else: gray)
 			QColor progress_color_;
+
+      /// tool initialization status: if C'tor was successful in finding the TOPP tool, this is set to 'true'
+      bool tool_ready_;
+
 			/// UID for output files
 			static UInt uid_;
 	};

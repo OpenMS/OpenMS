@@ -57,11 +57,12 @@ namespace OpenMS
 			name_(),
 			type_(),
 			param_(),
-			progress_color_(Qt::gray)
+			progress_color_(Qt::gray),
+      tool_ready_(true)
 		{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
-		if (initParam_()) {}
+		initParam_();
 		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
 		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
 		connect (this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
@@ -73,11 +74,12 @@ namespace OpenMS
 			name_(name),
 			type_(type),
 			param_(),
-			progress_color_(Qt::gray)
+			progress_color_(Qt::gray),
+      tool_ready_(true)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
-		if (initParam_()) {}
+		initParam_();
 		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
 		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
 		connect (this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
@@ -89,7 +91,8 @@ namespace OpenMS
 			name_(rhs.name_),
 			type_(rhs.type_),
 			param_(rhs.param_),
-			progress_color_(rhs.progress_color_)
+			progress_color_(rhs.progress_color_),
+      tool_ready_(rhs.tool_ready_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -101,7 +104,6 @@ namespace OpenMS
 
 	TOPPASToolVertex::~TOPPASToolVertex()
 	{
-	
 	}
 	
 	TOPPASToolVertex& TOPPASToolVertex::operator= (const TOPPASToolVertex& rhs)
@@ -139,6 +141,7 @@ namespace OpenMS
 			if (!File::exists(old_ini_file))
 			{
 				QMessageBox::critical(0,"Error",(String("Could not open '")+old_ini_file+"'!").c_str());
+        tool_ready_ = false;
 				return false;
 			}
 			call += " -ini " + String(old_ini_file);
@@ -147,27 +150,24 @@ namespace OpenMS
 		if (system(call.c_str()) != 0)
 		{
 			QMessageBox::critical(0, "Error", (String("Could not execute '") + call + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+      tool_ready_ = false;
 			return false;
 		}
 		if (!File::exists(ini_file))
 		{
 			QMessageBox::critical(0, "Error", (String("Could not open '")+ini_file+"'!").c_str());
+      tool_ready_ = false;
 			return false;
 		}
 		
 		tmp_param.load(String(ini_file).c_str());
-		param_=tmp_param.copy(name_+":1:",true);
-		//param_.remove("log");
-		//param_.remove("no_progress");
-		//param_.remove("debug");
-		//// handled by TOPPAS anyway:
-		//param_.remove("type");
+		param_ = tmp_param.copy(name_+":1:",true);
 		
-		writeParam_(param_,ini_file);
+		writeParam_(param_, ini_file);
 		bool changed = false;
 		if (old_ini_file != "")
 		{
-			//check if ini file has changed (quick & dirty by file size)
+			//check if INI file has changed (quick & dirty by file size)
 			QFile q_ini(ini_file);
 			QFile q_old_ini(old_ini_file);
 			changed = q_ini.size() != q_old_ini.size();
@@ -1025,6 +1025,11 @@ namespace OpenMS
 		return changed;
 	}
 	
+  bool TOPPASToolVertex::isToolReady() const
+  {
+    return tool_ready_;
+  }
+
 	void TOPPASToolVertex::writeParam_(const Param& param, const QString& ini_file)
 	{
 		Param save_param;
