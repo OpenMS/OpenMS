@@ -206,7 +206,11 @@ namespace OpenMS
     // DoubleReal getRowValue(Size index);
 
     // choose solver; by default, only GLPK is available
-    void setSolver(SOLVER s);
+    // set this only at the very beginning of building your model, as otherwise your model is incomplete
+    void setSolver(const SOLVER s);
+
+    // get currently active solver
+    SOLVER getSolver() const;
 
 	protected:
 #if COINOR_SOLVER==1

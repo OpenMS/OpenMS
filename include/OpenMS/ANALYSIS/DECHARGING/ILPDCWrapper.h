@@ -56,16 +56,9 @@ namespace OpenMS {
 		DoubleReal compute(const MassExplainer& me, const FeatureMap<> fm, PairsType& pairs, Size verbose_level);
 		
 	private:
-		/// slicing the problem into subproblems
-		DoubleReal computeSlice_(const MassExplainer& me,
-														 const FeatureMap<> fm,
-														 PairsType& pairs, 
-														 const PairsIndex margin_left, 
-														 const PairsIndex margin_right,
-                             Size verbose_level);
-
-		DoubleReal computeSliceGLPK_(const MassExplainer& me,
-														 const FeatureMap<> fm,
+   
+    /// slicing the problem into subproblems
+		DoubleReal computeSlice_(const FeatureMap<> fm,
 														 PairsType& pairs, 
 														 const PairsIndex margin_left, 
 														 const PairsIndex margin_right,

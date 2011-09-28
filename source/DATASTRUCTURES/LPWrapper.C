@@ -379,10 +379,16 @@ namespace OpenMS
     else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
   
-  void LPWrapper::setSolver(SOLVER s)
+  void LPWrapper::setSolver(const SOLVER s)
   {
     solver_ = s;
   }
+
+  LPWrapper::SOLVER LPWrapper::getSolver() const
+  {
+    return solver_;
+  }
+
 
   void LPWrapper::readProblem(String filename,String format) // format=(LP,MPS,GLPK)
   {
@@ -431,7 +437,7 @@ namespace OpenMS
 
   }
 
-  Int LPWrapper::solve(SolverParam& solver_param) // ruft glp_intopt auf als MIP-Solver, benutzt branch-and-cut
+  Int LPWrapper::solve(SolverParam& solver_param)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
