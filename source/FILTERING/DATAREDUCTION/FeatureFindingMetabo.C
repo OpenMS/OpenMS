@@ -133,7 +133,7 @@ namespace OpenMS
     {
         // defaults_.setValue( "name" , 1 , "descript" );
         defaults_.setValue( "local_rt_range" , 3.0 , "RT range where to look for coeluting mass traces");
-        defaults_.setValue( "local_mz_range" , 4.0 , "MZ range where to look for isotopic mass traces");
+        defaults_.setValue( "local_mz_range" , 5.0 , "MZ range where to look for isotopic mass traces");
         defaults_.setValue( "mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");
 
         defaultsToParam_();
@@ -215,6 +215,7 @@ namespace OpenMS
                     f.setRT(feat_hypos[hypo_idx].getCentroidRT());
                     f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
                     f.setIntensity(feat_hypos[hypo_idx].computeFeatureIntensity());
+                    f.setMetaValue(3,feat_hypos[hypo_idx].getLabel());
                     f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
                     f.setOverallQuality(feat_hypos[hypo_idx].getScore());
 
@@ -317,13 +318,16 @@ namespace OpenMS
     void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
     {
         // check for singleton traces
-        if (candidates.size() == 1)
-        {
+//        if (candidates.size() == 1)
+//        {
             FeatureHypothesis tmp_hypo;
             tmp_hypo.addMassTrace(*candidates[0]);
+            tmp_hypo.setScore(0.0);
 
-            return ;
-        }
+            output_hypos.push_back(tmp_hypo);
+
+//            return ;
+//        }
 
 
         bool singleton_trace = true;
@@ -338,15 +342,15 @@ namespace OpenMS
             DoubleReal mono_iso_mz(candidates[0]->getCentroidMZ());
             DoubleReal mono_iso_int(candidates[0]->computePeakArea());
 
-            // std::cout << candidates[0]->getLabel() << " with ";
+            std::cout << candidates[0]->getLabel() << " with ";
 
             Size last_iso_idx(0);
 
             for (Size iso_pos = 1; iso_pos < 5; ++iso_pos) {
                 DoubleReal best_so_far(0.0);
-                Size best_idx(last_iso_idx + 1);
+                Size best_idx(0);
 
-                for (Size mt_idx = best_idx; mt_idx < candidates.size(); ++mt_idx)
+                for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
                 {
                     DoubleReal tmp_iso_rt(candidates[mt_idx]->getSmoothedMaxRT());
                     DoubleReal tmp_iso_mz(candidates[mt_idx]->getCentroidMZ());
@@ -376,6 +380,8 @@ namespace OpenMS
                     fh_tmp.addMassTrace(*candidates[best_idx]);
                     fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
 
+                    output_hypos.push_back(fh_tmp);
+
                     last_iso_idx = best_idx;
                     singleton_trace = false;
                 }
@@ -387,23 +393,23 @@ namespace OpenMS
 
             } // end for iso_pos
 
-            if (fh_tmp.getSize() > 1)
-            {
-                output_hypos.push_back(fh_tmp);
-            }
+//            if (fh_tmp.getSize() > 1)
+//            {
+//                output_hypos.push_back(fh_tmp);
+//            }
             // std::cout << fh_tmp.getLabel() << " " << fh_tmp.getScore() << std::endl;
         } // end for charge
 
 
-        if (singleton_trace)
-        {
-            FeatureHypothesis fh_tmp;
-            fh_tmp.setScore(0.0);
+//        if (singleton_trace)
+//        {
+//            FeatureHypothesis fh_tmp;
+//            fh_tmp.setScore(0.0);
 
-            fh_tmp.addMassTrace(*candidates[0]);
+//            fh_tmp.addMassTrace(*candidates[0]);
 
-            output_hypos.push_back(fh_tmp);
-        }
+//            output_hypos.push_back(fh_tmp);
+//        }
 
 
         return ;
