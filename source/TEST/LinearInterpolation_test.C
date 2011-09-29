@@ -561,14 +561,16 @@ START_SECTION((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 			lifd_small.getData().resize(5);
 			lifd_small.setMapping( 0, 0, 5, 5 );
 			lifd_small.addValue( pos, 10 );
-			for ( LIFD::ContainerType::iterator iter = lifd_small.getData().begin(); iter != lifd_small.getData().end(); ++ iter ) *iter = Math::round(*iter);
+
+      for ( LIFD::ContainerType::iterator iter = lifd_small.getData().begin(); iter != lifd_small.getData().end(); ++ iter ) *iter = Math::round(*iter);
 			STATUS("          " << lifd_small.getData());
 
 			LIFD lifd_big;
 			lifd_big.getData().resize(15);
 			lifd_big.setMapping( 5, 0, 10, 5 );
-						lifd_big.addValue( pos, 10 );
-						for ( LIFD::ContainerType::iterator iter = lifd_big.getData().begin(); iter != lifd_big.getData().end(); ++ iter ) *iter = Math::round(*iter);
+      lifd_big.addValue( pos, 10 );
+
+      for ( LIFD::ContainerType::iterator iter = lifd_big.getData().begin(); iter != lifd_big.getData().end(); ++ iter ) *iter = Math::round(*iter);
 			STATUS(lifd_big.getData());
 
 			std::vector < LIFD::ContainerType::value_type > big_infix ( lifd_big.getData().begin()+5, lifd_big.getData().begin()+10 );
@@ -578,7 +580,7 @@ START_SECTION((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 			// test in loop to avoid clang++ compiler error
 			LIFD::ContainerType::const_iterator lifd_it = lifd_small.getData().begin();
 			std::vector < LIFD::ContainerType::value_type >::const_iterator big_infix_it = big_infix.begin();
-			for(;lifd_it != lifd_small.getData().end(), big_infix_it != big_infix.end() ; ++lifd_it , ++big_infix_it)
+      for( ; lifd_it != lifd_small.getData().end() && big_infix_it != big_infix.end() ; ++lifd_it , ++big_infix_it)
 			{
 				TEST_EQUAL(*lifd_it,*big_infix_it);
 			}
