@@ -94,7 +94,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 					IndexTriple triple;
 					triple.feature = i;
 					triple.scan = s;
-          Int index = model_->addColumn();
+          Size index = model_->addColumn();
           triple.variable = index;
 					variable_indices.push_back(triple);
           
@@ -315,15 +315,15 @@ void PSLPFormulation::solveILP_(std::vector<int>& solution_indices)
   LPWrapper::SolverParam param;
   model_->solve(param);
 
-	for (Size column=0; column<model_->getNumberOfColumns(); ++column)
+  for (Size column = 0; column < model_->getNumberOfColumns(); ++column)
 		{
-			double value=model_->getColumnValue(column);
-      std::cout << value << " "<<model_->getColumnType(column) << std::endl;
-			if ((fabs(value)>0.5 && model_->getColumnType(column)==3) ||
-          (fabs(value)>0.5 && model_->getColumnType(column)==2)) // 3 - binary variable , 2- integer variable
+      double value = model_->getColumnValue(column);
+      std::cout << value << " "<< model_->getColumnType(column) << std::endl;
+      if ((fabs(value) > 0.5 && model_->getColumnType(column) == LPWrapper::BINARY) ||
+          (fabs(value) > 0.5 && model_->getColumnType(column) == LPWrapper::INTEGER))
 				{
 #ifdef DEBUG_OPS	
-					std::cout << model_->getColumnName(column)<<" is in optimal solution"<<std::endl;
+          std::cout << model_->getColumnName(column) << " is in optimal solution" << std::endl;
 #endif
 					solution_indices.push_back(column);
 				}

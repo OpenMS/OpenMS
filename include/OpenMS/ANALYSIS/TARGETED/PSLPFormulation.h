@@ -47,6 +47,7 @@ namespace OpenMS
   public:
 	
 		PSLPFormulation();
+
     virtual ~PSLPFormulation();
 
 		/**
@@ -57,7 +58,7 @@ namespace OpenMS
 		{
 			Size feature;
 			Size scan;
-			Int variable;
+      Size variable;
 			DoubleReal rt_probability;
 			DoubleReal signal_weight;
 		};
