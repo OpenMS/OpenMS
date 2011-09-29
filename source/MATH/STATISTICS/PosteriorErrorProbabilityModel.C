@@ -31,7 +31,6 @@
 #include <algorithm>
 #include <gsl/gsl_statistics.h>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace std;
 
@@ -42,11 +41,11 @@ namespace OpenMS
 		PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel()
 		: DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5),max_incorrectly_(0),max_correctly_(0), smallest_score_(0)
   	{
-			defaults_.setValue("number_of_bins", 100, "Number of bins used for visualisation. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
+			defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
 			defaults_.setValue("output_plots","false","If true every step of the EM-algorithm will be written to a file as a gnuplot formula",StringList::create("advanced"));
 			defaults_.setValidStrings("output_plots",StringList::create("true,false"));
 			defaults_.setValue("output_name","", "if output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name> which contains each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123 then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.",StringList::create("advanced,output file"));
-			defaults_.setValue("incorrectly_assigned","Gumbel", "if Gumbel, gumbel distribution is used to plot incorrectly assigned sequences. If Gauss, gauss distribution is used.",StringList::create("advanced"));
+			defaults_.setValue("incorrectly_assigned","Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.",StringList::create("advanced"));
 			defaults_.setValidStrings("incorrectly_assigned",StringList::create("Gumbel,Gauss"));
 			defaultsToParam_();
 			calc_incorrect_ = &PosteriorErrorProbabilityModel::getGumbel;
@@ -88,7 +87,7 @@ namespace OpenMS
 				calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
 				getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
 			}
-			else if(param_.getValue("incorrectly_assigned") == "Gauss")
+			else
 			{
 				incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5* x_scores.size())) + x_scores[0];
 				incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);//pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
@@ -96,16 +95,12 @@ namespace OpenMS
 				calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
 				getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
 			}
-			else
-			{
-				throw Exception::RequiredParameterNotGiven(__FILE__,	__LINE__,__PRETTY_FUNCTION__,"incorrectly_assigned");
-			}
 			getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
 			calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
-			int x_score_start = ceil(x_scores.size()*0.7);
-			correctly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() -x_score_start) + x_scores[x_score_start];//(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2; 
+			Size x_score_start = std::min(x_scores.size()-1, (Size) ceil(x_scores.size()*0.7)); // if only one score is present, ceil(...) will yield 1, which is an invalid index
+			correctly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() - x_score_start) + x_scores[x_score_start];//(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2; 
 			correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
-			correctly_assigned_fit_param_.A = 1	/sqrt(2*3.14159*pow(correctly_assigned_fit_param_.sigma,2));		
+			correctly_assigned_fit_param_.A = 1.0	/ sqrt(2*3.14159*pow(correctly_assigned_fit_param_.sigma,2));		
 
 			DoubleReal maxlike(0);
 			vector<DoubleReal> incorrect_density;
