@@ -111,7 +111,7 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 				{
 					TEST_REAL_SIMILAR(fdr, 0)
 				}
-				if ((orig_score == 0.0))
+        if (orig_score == 0.0)
 				{
 					TEST_REAL_SIMILAR(fdr, 0.897384)
 				}
