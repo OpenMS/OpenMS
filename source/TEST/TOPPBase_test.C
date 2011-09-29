@@ -269,22 +269,26 @@ START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation()))
     TEST_NOT_EQUAL(pi_ptr, pi_nullPointer)
 END_SECTION
 
-TOPPBase::ParameterInformation pi("Temperatur", TOPPBase::ParameterInformation::DOUBLE, "sehr hoch", "ganz hoch", "eine Art Beschreibung", true, false);
+StringList tags = StringList::create("advanced,useless", ',');
+TOPPBase::ParameterInformation pi("Temperatur", TOPPBase::ParameterInformation::DOUBLE, "sehr hoch", "ganz hoch", "eine Art Beschreibung", true, false, tags);
 
 START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation(const String &n, ParameterTypes t, const String &arg, const DataValue &def, const String &desc, bool req, bool adv, const StringList &tag_values=StringList())))
   TEST_EQUAL(pi.name, "Temperatur");
   TEST_EQUAL(pi.type, TOPPBase::ParameterInformation::DOUBLE);
   TEST_EQUAL(pi.default_value, "ganz hoch");
   TEST_EQUAL(pi.required, true);
+  TEST_EQUAL(pi.tags, tags)
 END_SECTION
 
 START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation& operator=(const ParameterInformation &rhs)))
-  TOPPBase::ParameterInformation assign_to = pi;
+  TOPPBase::ParameterInformation assign_to;
+  assign_to = pi;
   
   TEST_EQUAL(assign_to.name, "Temperatur");
   TEST_EQUAL(assign_to.type, TOPPBase::ParameterInformation::DOUBLE);
   TEST_EQUAL(assign_to.default_value, "ganz hoch");
   TEST_EQUAL(assign_to.required, true);
+  TEST_EQUAL(assign_to.tags, tags);
 END_SECTION
 
 

@@ -253,7 +253,7 @@ namespace OpenMS
           argument = rhs.argument;
           required = rhs.required;
           advanced = rhs.advanced;
-          tags == rhs.tags;
+          tags = rhs.tags;
           valid_strings = rhs.valid_strings;
           min_int = rhs.min_int;
           max_int = rhs.max_int;
