@@ -43,8 +43,12 @@ SILACLabeler::SILACLabeler()
 {
   defaults_.setValue("medium_channel:modification_lysine", "UniMod:481","Modification of Lysine in the medium SILAC channel");
   defaults_.setValue("medium_channel:modification_arginine", "UniMod:188","Modification of Arginine in the medium SILAC channel");
-  defaults_.setValue("heavy_channel:modification_lysine", "UniMod:259","Modification of Lysine in the medium SILAC channel. If left empty, two channelSILAC is assumed.");
-  defaults_.setValue("heavy_channel:modification_arginine", "UniMod:267","Modification of Arginine in the medium SILAC channel. If left empty, twochannel SILAC is assumed.");
+  defaults_.setSectionDescription("medium_channel", "Modifications for the medium SILAC channel.");
+
+  defaults_.setValue("heavy_channel:modification_lysine", "UniMod:259","Modification of Lysine in the heavy SILAC channel. If left empty, two channelSILAC is assumed.");
+  defaults_.setValue("heavy_channel:modification_arginine", "UniMod:267","Modification of Arginine in the heavy SILAC channel. If left empty, twochannel SILAC is assumed.");
+  defaults_.setSectionDescription("heavy_channel", "Modifications for the heavy SILAC channel. If you want to use only 2 channels, just leave the Labels as they are and provide only 2 input files.");
+
   defaults_.setValue("fixed_rtshift", 0.0001, "Fixed retention time shift between labeled peptides. If set to 0.0 only the retention times computed by the RT model step are used.");
   defaults_.setMinFloat("fixed_rtshift", 0.0);
 
