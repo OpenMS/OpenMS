@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H

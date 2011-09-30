@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -63,12 +63,12 @@ START_SECTION((static StringList getIsotopeMatrixAsStringList(const int itraq_ty
 
 	{
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, ic);
-		StringList t_ics = StringList::create("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0");
+		StringList t_ics = StringList::create("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1");
 		TEST_EQUAL(ics, t_ics);
 	}
 	{	
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, ic);
-		StringList t_ics = StringList::create("113:0/2.5/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.88/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
+		StringList t_ics = StringList::create("113:0/0/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.88/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
 		TEST_EQUAL(ics, t_ics);
 	}	 
 }
@@ -81,7 +81,7 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
 	ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
 	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
 
-//StringList t_ics = StringList::create("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0"); // the default
+//StringList t_ics = StringList::create("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1"); // the default
 	StringList t_ics = StringList::create("114:0/1/5.9/4.2,115:3/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/2");
 	
 	ic[0].setValue(0,3,4.2);

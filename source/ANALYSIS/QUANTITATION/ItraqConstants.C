@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -38,15 +38,16 @@ namespace OpenMS {
 	const Int ItraqConstants::CHANNELS_EIGHTPLEX[8][1] = {{113}, {114}, {115}, {116}, {117}, {118}, {119}, {121}};
 
 	// currently from http://www.matrixscience.com/help/quant_config_help.html
+  // (@ 117; +2 the value is 0.1 not 0.0 as confirmed by ABSciex)
 	const double ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX[4][4] = {
 		{0.0, 1.0, 5.9, 0.2},		//114
 		{0.0, 2.0, 5.6, 0.1},
 		{0.0, 3.0, 4.5, 0.1},
-		{0.1, 4.0, 3.5, 0.0}		//117
+		{0.1, 4.0, 3.5, 0.1}		//117
 	};
 	
 	//taken from Applied Biosystems Website
-	// http://faqs.appliedbiosystems.com/cgi-bin/appliedbio.cfg/php/enduser/std_adp.php?p_faqid=3671
+	// http://www.absciex.com/Documents/Support/AB_SCIEX_Question_and_Answer.xls
 	const double ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX[8][4] = {
 		{0.00, 0.00, 6.89, 0.22},		//113
 		{0.00, 0.94, 5.90, 0.16},
