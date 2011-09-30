@@ -150,7 +150,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 			for(Size k = start; k < stop; ++k)
 				{
 					entries[c] = 1.;
-					indices[c] = variable_indices[k].variable;
+					indices[c] = (int) variable_indices[k].variable;
           std::cout << "indices["<<c<<"]= "<<indices[c]<<std::endl;
 					++c;
 				}
@@ -189,7 +189,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 				{
 					++j;
 				}
-			// no feature occuring in this scan
+			// no feature occurring in this scan
 			if(start == j) continue;
 
 			Size stop = j;
@@ -199,7 +199,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 			for(Size s = start; s < stop; ++s)
 				{
 					entries[c] = 1.;
-					indices[c] = variable_indices[s].variable;
+					indices[c] = (int)  variable_indices[s].variable;
           std::cout << "indices["<<c<<"]= "<<indices[c]<<std::endl;
 					++c;
 				}
@@ -325,7 +325,7 @@ void PSLPFormulation::solveILP_(std::vector<int>& solution_indices)
 #ifdef DEBUG_OPS	
           std::cout << model_->getColumnName(column) << " is in optimal solution" << std::endl;
 #endif
-					solution_indices.push_back(column);
+					solution_indices.push_back((int) column);
 				}
 		}
 		
