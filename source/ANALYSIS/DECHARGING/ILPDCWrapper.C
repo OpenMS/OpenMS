@@ -209,7 +209,7 @@ namespace OpenMS {
                                          Size verbose_level)
 	{
 		LPWrapper build;
-    build.setObjectiveSense(2); // maximize
+    build.setObjectiveSense(LPWrapper::MAX); // maximize
 
 		//------------------------------------objective function-----------------------------------------------
 		// find maximal objective value

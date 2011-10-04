@@ -313,13 +313,13 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setObjectiveSense(Size sense) // 1 min, 2 max
+  void LPWrapper::setObjectiveSense(LPWrapper::Sense sense) 
   {
     if (solver_ == LPWrapper::SOLVER_GLPK) glp_set_obj_dir(lp_problem_, (int) sense);
 #if COINOR_SOLVER==1
     if (solver_==SOLVER_COINOR) 
     {
-      if(sense == 1)  model_.setOptimizationDirection(1);
+      if(sense == LPWrapper::MIN)  model_.setOptimizationDirection(1);
       else model_.setOptimizationDirection(-1); // -1 maximize
     }
 #endif
@@ -345,7 +345,7 @@ namespace OpenMS
 
   String LPWrapper::getColumnName(Size index)
   {
-    if (solver_ == LPWrapper::SOLVER_GLPK) return String(glp_get_col_name(lp_problem_, (int) index));
+    if (solver_ == LPWrapper::SOLVER_GLPK) return String(glp_get_col_name(lp_problem_, (int) index+1));
 #if COINOR_SOLVER==1
     else if (solver_==SOLVER_COINOR) return model_.getColumnName((Int)index);
 #endif
@@ -354,7 +354,7 @@ namespace OpenMS
   
   String LPWrapper::getRowName(Size index)
   {
-    if (solver_ == LPWrapper::SOLVER_GLPK) return String(glp_get_row_name(lp_problem_, (int) index));
+    if (solver_ == LPWrapper::SOLVER_GLPK) return String(glp_get_row_name(lp_problem_, (int) index+1));
 #if COINOR_SOLVER==1
     else if (solver_==SOLVER_COINOR) return model_.getRowName((Int)index);
 #endif
@@ -363,7 +363,7 @@ namespace OpenMS
 
   Size LPWrapper::getRowIndex(String name)
   {
-    if (solver_ == LPWrapper::SOLVER_GLPK) return glp_find_row(lp_problem_, name.c_str());
+    if (solver_ == LPWrapper::SOLVER_GLPK) return glp_find_row(lp_problem_, name.c_str())-1;
 #if COINOR_SOLVER==1    
     else if (solver_==SOLVER_COINOR) return (Size) model_.row(name.c_str());
 #endif
@@ -372,7 +372,7 @@ namespace OpenMS
 
   Size LPWrapper::getColumnIndex(String name)
   {
-    if (solver_ == LPWrapper::SOLVER_GLPK) return glp_find_col(lp_problem_, name.c_str());
+    if (solver_ == LPWrapper::SOLVER_GLPK) return glp_find_col(lp_problem_, name.c_str())-1;
 #if COINOR_SOLVER==1
     else if (solver_==SOLVER_COINOR) return (Size) model_.column(name.c_str());
 #endif
@@ -574,4 +574,66 @@ namespace OpenMS
   }
 
 
+  DoubleReal LPWrapper::getColumnUpperBound(Size index)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)    return glp_get_col_ub(lp_problem_,(Int) index+1);
+#if COINOR_SOLVER==1
+    else if(solver_ == LPWrapper::SOLVER_COINOR) return model_.getColumnUpper((Int) index);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));    
+  }
+
+  DoubleReal LPWrapper::getColumnLowerBound(Size index)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)    return glp_get_col_lb(lp_problem_,(Int) index+1);
+#if COINOR_SOLVER==1
+    else if(solver_ == LPWrapper::SOLVER_COINOR) return model_.getColumnLower((Int) index);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));        
+  }
+
+  DoubleReal LPWrapper::getRowUpperBound(Size index)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)    return glp_get_row_ub(lp_problem_,(Int) index+1);
+#if COINOR_SOLVER==1
+    else if(solver_ == LPWrapper::SOLVER_COINOR) return model_.getRowUpper((Int) index);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));    
+  }
+
+  DoubleReal LPWrapper::getRowLowerBound(Size index)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)    return glp_get_row_lb(lp_problem_,(Int) index+1);
+#if COINOR_SOLVER==1
+    else if(solver_ == LPWrapper::SOLVER_COINOR) return model_.getColumnUpper((Int) index);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));        
+  }
+
+  DoubleReal LPWrapper::getObjective(Size index)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)    return glp_get_obj_coef(lp_problem_,(Int) index+1);
+#if COINOR_SOLVER==1
+    else if(solver_ == LPWrapper::SOLVER_COINOR) return model_.objective((Int) index);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));            
+  }
+
+  LPWrapper::Sense LPWrapper::getObjectiveSense()
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)
+      {
+        if(glp_get_obj_dir(lp_problem_) == 1) return LPWrapper::MIN;
+        else return LPWrapper::MAX;
+      }
+#if COINOR_SOLVER==1
+    else if(solver_ == LPWrapper::SOLVER_COINOR)
+      {
+        if(model_.optimizationDirection()==1)  return LPWrapper::MIN;
+        else return LPWrapper::MAX;
+      }
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));            
+  }
+  
 }// namespace

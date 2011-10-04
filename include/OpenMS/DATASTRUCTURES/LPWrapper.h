@@ -99,6 +99,12 @@ namespace OpenMS
       BINARY
     };
 
+    enum Sense
+    {
+      MIN=1,
+      MAX
+    };
+    
     enum SOLVER
     {
       SOLVER_GLPK = 0
@@ -137,6 +143,14 @@ namespace OpenMS
     Size getRowIndex(String name);
     /// gets index of the column with name
     Size getColumnIndex(String name);
+    /// gets column's upper bound
+    DoubleReal getColumnUpperBound(Size index);
+    /// gets column's lower bound
+    DoubleReal getColumnLowerBound(Size index);
+    /// gets row's upper bound
+    DoubleReal getRowUpperBound(Size index);
+    /// gets row's lower bound
+    DoubleReal getRowLowerBound(Size index);
     /// sets name of the index-th row
     void setRowName(Size index,String name);
     /**
@@ -165,12 +179,15 @@ namespace OpenMS
     VariableType getColumnType(Size index);
     /// set objective value for column with index
     void setObjective(Size index,DoubleReal obj_value);
+    /// get objective value for column with index
+    DoubleReal getObjective(Size index);
     /**
      *	@brief Set objective direction.
      *	
      *	@param sense 1- minimize, 2- maximize
      */
-    void setObjectiveSense(Size sense);
+    void setObjectiveSense(Sense sense);
+    Sense getObjectiveSense();
     /// get number of columns
     Size getNumberOfColumns();
     /// get number of rows

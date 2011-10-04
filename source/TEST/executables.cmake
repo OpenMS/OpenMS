@@ -39,6 +39,7 @@ set(datastructures_executables_list
 	HashGrid_test
 	HashGridOld_test
 	IntList_test
+  LPWrapper_test
 	Map_test
 	MassExplainer_test
 	Matrix_test

@@ -53,7 +53,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 	///////////////////////////////////////////////////////////////////////
 	// add objective function
 	///////////////////////////////////////////////////////////////////////
-	model_->setObjectiveSense(2); // maximize
+	model_->setObjectiveSense(LPWrapper::MAX); // maximize
 	// max \sum_j x_jk * signal_jk
 	//                    column_index, feature_index,scan
 	
