@@ -103,7 +103,8 @@ namespace OpenMS
 		removeSelected();
 
     // delete temporary files (TODO: make this a user dialog and ask - for later resume)
-    File::removeDirRecursively(tmp_path_);
+    // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
+    if (String(tmp_path_).hasPrefix(File::getTempDirectory() + "/")) File::removeDirRecursively(tmp_path_);
 	}
 	
 	void TOPPASScene::setActionMode(ActionMode mode)
@@ -684,7 +685,7 @@ namespace OpenMS
         if (tv_src)
         {
           tv_src->getOutputParameters(files);
-          std::cout << "#p: " << files.size() << " . " << te->getSourceOutParam() << "\n";
+          //std::cout << "#p: " << files.size() << " . " << te->getSourceOutParam() << "\n";
           v = files[te->getSourceOutParam()].param_name;
         }
       }
@@ -697,7 +698,7 @@ namespace OpenMS
         if (tv_src)
         {
           tv_src->getInputParameters(files);
-          std::cout << "#p: " << files.size() << " . " << te->getTargetInParam() << "\n";
+          //std::cout << "#p: " << files.size() << " . " << te->getTargetInParam() << "\n";
           v = files[te->getTargetInParam()].param_name;
         }
       }
