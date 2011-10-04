@@ -150,6 +150,7 @@ namespace OpenMS
 		ToolListType util_map;
 
 		util_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", "");
+    util_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", "");
 		util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", "");
 		util_map["MapAlignmentEvaluation"] = Internal::ToolDescription("MapAlignmentEvaluation", "");
 		util_map["CaapConvert"] = Internal::ToolDescription("CaapConvert", "");

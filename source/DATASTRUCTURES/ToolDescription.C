@@ -53,6 +53,14 @@ namespace OpenMS
     {
     }
 
+    ToolDescriptionInternal::ToolDescriptionInternal(const String& p_name, const StringList& p_types)
+      : is_internal(false),
+      name(p_name),
+      category(),
+      types(p_types)
+    {
+    }
+
     ToolDescriptionInternal& ToolDescriptionInternal::operator=(const ToolDescriptionInternal& rhs)
     {
       if (this==&rhs) return *this;
@@ -64,6 +72,12 @@ namespace OpenMS
       return *this;
     }
 
+    bool ToolDescriptionInternal::operator<(const ToolDescriptionInternal& rhs) const
+    {
+      if (this==&rhs) return false;
+
+      return (name + "." + types.concatenate(",") < rhs.name + "." + rhs.types.concatenate(","));
+    }
 
 
 

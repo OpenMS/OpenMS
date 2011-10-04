@@ -18,6 +18,7 @@ IDMassAccuracy
 IDSplitter
 IdXMLEvaluation
 ImageCreator
+INIUpdater
 LabeledEval
 MassCalculator
 MRMPairFinder
@@ -37,6 +38,7 @@ XMLValidator
 set(UTILS_executables_with_GUIlib
 HistView
 ImageCreator
+INIUpdater
 )
 
 ### add filenames to Visual Studio solution tree

@@ -94,7 +94,12 @@ namespace OpenMS
       // C'Tor with arguments
       ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types);
 
+      // short C'Tor
+      ToolDescriptionInternal(const String& p_name, const StringList& p_types);
+
       ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs);
+      
+      bool operator<(const ToolDescriptionInternal& rhs) const;
 	  };
 
     struct OPENMS_DLLAPI ToolExternalDetails
