@@ -37,7 +37,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
+  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "IdXML", "ConsensusXML", "mgf", "ini", "toppas", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -207,10 +207,13 @@ namespace OpenMS
     //ConsensusXML (all lines)
     if (all_simple.hasSubstring("<consensusXML")) return FileTypes::CONSENSUSXML;
 
-    //mzData (all lines)
+    //TOPPAS (all lines)
+    if (all_simple.hasSubstring("<PARAMETERS") && all_simple.hasSubstring("<NODE name=\"info\"") && all_simple.hasSubstring("<ITEM name=\"num_vertices\"")) return FileTypes::TOPPAS;
+
+    //INI (all lines) (must be AFTER TOPPAS) - as this is less restrictive
     if (all_simple.hasSubstring("<PARAMETERS")) return FileTypes::INI;
 
-    //mzData (all lines)
+    //TrafoXML (all lines)
     if (all_simple.hasSubstring("<TrafoXML")) return FileTypes::TRANSFORMATIONXML;
 
 		//GelML (all lines)

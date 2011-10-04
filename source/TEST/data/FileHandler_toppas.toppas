@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="info" description="">
+    <ITEM name="version" value="1.9.0" type="string" description="" />
+    <ITEM name="num_vertices" value="3" type="int" description="" />
+    <ITEM name="num_edges" value="2" type="int" description="" />
+    <ITEM name="description" value="&lt;![CDATA[]]&gt;" type="string" description="" />
+  </NODE>
+  <NODE name="vertices" description="">
+    <NODE name="2" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" />
+      <ITEM name="x_pos" value="-160" type="float" description="" />
+      <ITEM name="y_pos" value="-260" type="float" description="" />
+    </NODE>
+    <NODE name="0" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" />
+      <ITEMLIST name="file_names" type="string" description="">
+        <LISTITEM value="DC/c_041023D000010_peaks.featureXML"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-480" type="float" description="" />
+      <ITEM name="y_pos" value="-320" type="float" description="" />
+    </NODE>
+    <NODE name="1" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" />
+      <ITEM name="tool_name" value="FileConverter" type="string" description="" />
+      <ITEM name="tool_type" value="" type="string" description="" />
+      <ITEM name="x_pos" value="-320" type="float" description="" />
+      <ITEM name="y_pos" value="-220" type="float" description="" />
+      <NODE name="parameters" description="">
+        <ITEM name="in" value="" type="string" description="input file (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta&apos;)" tags="input file,required" />
+        <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta" />
+        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML&apos;)" tags="output file,required" />
+        <ITEM name="out_type" value="consensusXML" type="string" description="output file type -- default: determined from file extension or content#br#" restrictions="mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML" />
+        <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
+      </NODE>
+    </NODE>
+  </NODE>
+  <NODE name="edges" description="">
+    <NODE name="0" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="1/2" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="1" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="0/1" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>

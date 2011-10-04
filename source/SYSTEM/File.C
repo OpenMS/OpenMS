@@ -130,7 +130,7 @@ namespace OpenMS
 		{
 			if (!dir.remove(file_name))
 			{
-				std::cerr << "Could not remove file " << String(file_name) << "!" << std::endl;
+				LOG_WARN << "Could not remove file " << String(file_name) << "!" << std::endl;
 				fail = true;
 			}
 		}

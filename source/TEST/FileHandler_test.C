@@ -55,6 +55,7 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"ConsensusXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::INI),"ini");
+	TEST_EQUAL(tmp.typeToName(FileTypes::TOPPAS),"toppas");
 	TEST_EQUAL(tmp.typeToName(FileTypes::PNG),"PNG");
 END_SECTION
 
@@ -70,6 +71,7 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
   TEST_EQUAL(FileTypes::MGF, tmp.nameToType("mgf"));
   TEST_EQUAL(FileTypes::INI, tmp.nameToType("ini"));
+  TEST_EQUAL(FileTypes::TOPPAS, tmp.nameToType("toppas"));
 	TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
 	TEST_EQUAL(FileTypes::MZML, tmp.nameToType("mzML"));
   TEST_EQUAL(FileTypes::MS2, tmp.nameToType("ms2"));
@@ -103,6 +105,7 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileTypes::CONSENSUSXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.mGf"), FileTypes::MGF)
 	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
+	TEST_EQUAL(tmp.getTypeByFileName("test.toPPas"), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileTypes::MZML)
 	TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
@@ -141,6 +144,7 @@ START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")), FileTypes::FASTA)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
 
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
@@ -151,6 +155,7 @@ START_SECTION((static FileTypes::Type getType(const String &filename)))
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile.consensusXML")), FileTypes::CONSENSUSXML)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
 
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 END_SECTION

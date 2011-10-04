@@ -56,6 +56,7 @@ namespace OpenMS
 			CONSENSUSXML,  			///< %OpenMS consensus map format (.consensusXML)
 			MGF,								///< Mascot Generic Format (.mgf)
 			INI,          			///< %OpenMS parameters file (.ini)
+      TOPPAS,          		///< %OpenMS parameters file with workflow information (.toppas)
 			TRANSFORMATIONXML,  ///< Tranformation description file (.trafoXML)
 			MZML,								///< MzML file (.mzML)
 			MS2,								///< MS2 file (.ms2)
