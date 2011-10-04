@@ -21,14 +21,17 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H
 #define OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <map>
 
 namespace OpenMS
@@ -45,13 +48,13 @@ namespace OpenMS
 		@ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI BernNorm
-    : public PreprocessingFunctor
+		: public DefaultParamHandler 
   {
   public:
 
 		// @name Constructors and Destructors
 		//@{
-    /// standard constructor
+    /// default constructor
     BernNorm();
 
     /// copy constructor
@@ -65,12 +68,10 @@ namespace OpenMS
 		// @{
     /// assignment operator
     BernNorm& operator=(const BernNorm& source);
-		// @}
+		//@}
 
 		// @name Accessors
 		// @{
-		///
-    static PreprocessingFunctor* create() { return new BernNorm(); }
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
@@ -78,9 +79,9 @@ namespace OpenMS
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
 		
-			double c1 = (double)param_.getValue("C1");
-    	double c2 = (double)param_.getValue("C2");
-    	double threshold = (double)param_.getValue("threshold");
+			c1_ = (DoubleReal)param_.getValue("C1");
+    	c2_ = (DoubleReal)param_.getValue("C2");
+    	th_ = (DoubleReal)param_.getValue("threshold");
 
     	spectrum.sortByPosition();
 
@@ -105,7 +106,7 @@ namespace OpenMS
     	double maxmz = 0;
     	for (SignedSize i = spectrum.size() -1 ; i >= 0 ; --i)
     	{
-      	if (spectrum[i].getIntensity() > maxint * threshold)
+      	if (spectrum[i].getIntensity() > maxint * th_)
       	{
         	maxmz = spectrum[i].getMZ();
         	break;
@@ -115,7 +116,7 @@ namespace OpenMS
     	// rank
     	for (Iterator it = spectrum.begin() ; it != spectrum.end(); )
     	{
-      	double newint = c1 - (c2 / maxmz) * peakranks[it->getIntensity()];
+      	double newint = c1_ - (c2_ / maxmz) * peakranks[it->getIntensity()];
       	if (newint < 0)
       	{
         	it = spectrum.erase(it);
@@ -133,11 +134,19 @@ namespace OpenMS
 
 		void filterPeakMap(PeakMap& exp);
 		
-		///
-		static const String getProductName()
-		{
-			return "BernNorm";
-		}
+		DoubleReal	getFilterThreshold();
+		void setFilterThreshold(DoubleReal& th);
+
+		std::pair<DoubleReal,DoubleReal> getFilterNormalizerCs();
+		void setFilterNormalizerCs(DoubleReal& c1,DoubleReal& c2);
+		
+		//TODO reimplement DefaultParamHandler::updateMembers_()
+		
+	private:
+		DoubleReal c1_;
+		DoubleReal c2_;
+		DoubleReal th_;
+
 		// @}
   
 	};

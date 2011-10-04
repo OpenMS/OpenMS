@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -31,11 +31,9 @@ using namespace std;
 
 namespace OpenMS
 {
-
   ParentPeakMower::ParentPeakMower()
-    : PreprocessingFunctor()
+    : DefaultParamHandler("ParentPeakMower")
   {
-		setName(ParentPeakMower::getProductName());
     defaults_.setValue("window_size", 2.0, "The size of the m/z window where the peaks are removed, +/- window_size.");
 		defaults_.setValue("default_charge", 2, "If the precursor has no charge set, the default charge is assumed.");
 		defaults_.setValue("clean_all_charge_states", 1, "Set to 1 if precursor ions of all possible charge states should be removed.", StringList::create("advanced"));
@@ -47,13 +45,12 @@ namespace OpenMS
 		defaultsToParam_();
   }
 
-
-  ParentPeakMower::ParentPeakMower(const ParentPeakMower& source)
-    : PreprocessingFunctor(source)
+	ParentPeakMower::~ParentPeakMower()
   {
   }
 
-  ParentPeakMower::~ParentPeakMower()
+  ParentPeakMower::ParentPeakMower(const ParentPeakMower& source)
+    : DefaultParamHandler(source)
   {
   }
 
@@ -61,7 +58,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator = (source);
+    	DefaultParamHandler::operator = (source);
 		}
     return *this;
   }

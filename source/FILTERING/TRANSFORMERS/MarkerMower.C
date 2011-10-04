@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -34,28 +34,17 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  /**
-  IsotopeMarker, ComplementMarker, NeutralLossMarker are used per default<br>
-  */
-  MarkerMower::MarkerMower()
-    : PreprocessingFunctor()
+	MarkerMower::MarkerMower()
+		: DefaultParamHandler("MarkerMower")
+	{
+	}
+	
+	MarkerMower::~MarkerMower()
   {
-		check_defaults_ = false;
-		setName(MarkerMower::getProductName());
-    //todo remove
-    //insertmarker(new IsotopeMarker());
-    //insertmarker(new ComplementMarker());
-    //insertmarker(new NeutralLossMarker());
-		defaultsToParam_();
   }
 
   MarkerMower::MarkerMower(const MarkerMower& source)
-    : PreprocessingFunctor(source)
-  {
-  }
-
-  MarkerMower::~MarkerMower()
+    : DefaultParamHandler(source)
   {
   }
 
@@ -63,11 +52,11 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }
-
+	
   void MarkerMower::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
@@ -81,7 +70,6 @@ namespace OpenMS
     }
   }
 
-	
   ///@todo violates DefaultParamHandler interface (Andreas)
   void MarkerMower::insertmarker(PeakMarker* pm)
   {

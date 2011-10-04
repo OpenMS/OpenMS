@@ -21,26 +21,27 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
   /**
   	@brief ThresholdMower removes all peaks below a Threshold
    	
-   	@htmlinclude OpenMS_ThresholdMower.parameters
+   	@htmlinclude OpenMS_ThresholdMower.Intensitys
 
 		@ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI ThresholdMower
-    :	public PreprocessingFunctor
+		: public DefaultParamHandler 
   {
   public:
 
@@ -48,24 +49,18 @@ namespace OpenMS
 		// @{
     /// default constructor
     ThresholdMower();
-
-    /// copy constructor
-    ThresholdMower(const ThresholdMower& source);
-
-    /// destructor
+		/// destructor
     virtual ~ThresholdMower();
-		// @}
-
-		// @name Operators
-		// @{
-    /// assignment operator
-    ThresholdMower& operator=(const ThresholdMower& source);
+	
+		/// copy constructor
+		ThresholdMower(const ThresholdMower& source);
+		/// assignment operator
+		ThresholdMower& operator=(const ThresholdMower& source);	
 		// @}
 
 		// @name Accessors
 		// @{
 		///
-    static PreprocessingFunctor* create() { return new ThresholdMower(); }
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
@@ -75,7 +70,8 @@ namespace OpenMS
 			
 			// find right position to erase
 			typename SpectrumType::PeakType p;
-			p.setIntensity((double)param_.getValue("threshold"));
+			threshold_ = ((DoubleReal)param_.getValue("threshold"));
+			p.setIntensity(threshold_);
 			spectrum.erase(
 										spectrum.begin(),
 										lower_bound(spectrum.begin(), spectrum.end(), p, typename SpectrumType::PeakType::IntensityLess())
@@ -86,11 +82,14 @@ namespace OpenMS
 
 		void filterPeakMap(PeakMap& exp);
 		
-		/// 
-		static const String getProductName()
-		{
-			return "ThresholdMower";
-		}
+		DoubleReal getFilterIntensity();
+		void setFilterIntensity(DoubleReal p);
+		
+		//TODO reimplement DefaultParamHandler::updateMembers_()
+		
+	private:
+		DoubleReal threshold_;
+		
 		// @}
   };
 

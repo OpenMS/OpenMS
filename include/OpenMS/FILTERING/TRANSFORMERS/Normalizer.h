@@ -21,14 +21,17 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
 #define OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -41,49 +44,37 @@ namespace OpenMS
 		@ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI Normalizer
-    : public PreprocessingFunctor
+		: public DefaultParamHandler 
   {
   public:
 
 		// @name Constructors and Destructors
 		// @{
-    /// standard constructor
+    /// default constructor
     Normalizer();
-
-    /// copy constructror
-    Normalizer(const Normalizer& source);
-
     /// desctructor
     virtual ~Normalizer();
-		// @}
-
-		// @name Operators
-		// @{
-    /// assignment operator
+	
+		/// assignment operator
     Normalizer& operator = (const Normalizer& source);
+    /// copy constructror
+    Normalizer(const Normalizer& source);
+		
 		// @}
 
 		// @name Accessors
 		// @{
-		///
-    static PreprocessingFunctor* create() { return new Normalizer();}
-
-		///
-		static const String getProductName()
-		{
-			return "Normalizer";
-		}
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
-	
-			String method = param_.getValue("method");
-			
+				
+			method_ = param_.getValue("method");
+
 			// normalizes the max peak to 1 and the rest of the peaks to values relative to max
-			if (method == "to_one")
+			if (method_ == "to_one")
 			{
 				double max(0);
 				for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
@@ -99,7 +90,7 @@ namespace OpenMS
 				}
 			}
 			// normalizes the peak intensities to the TIC
-			else if (method == "to_TIC")
+			else if (method_ == "to_TIC")
 			{
 				double sum(0);
 				for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
@@ -115,7 +106,7 @@ namespace OpenMS
  			// method unknown
       else
       {
-  			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method);
+  			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method_);
       }
 			return;
 			
@@ -123,11 +114,16 @@ namespace OpenMS
 
 		///
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
-
 		///
     void filterPeakMap(PeakMap& exp);
-		// @}
 
+		//TODO reimplement DefaultParamHandler::updateMembers_()
+
+		// @}
+		
+	private:
+		String method_;
+	
   };
 
 

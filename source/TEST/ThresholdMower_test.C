@@ -90,17 +90,6 @@ START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType&
 	TEST_EQUAL(spec.size(), 14)
 END_SECTION
 
-START_SECTION((static PreprocessingFunctor* create()))
-	PreprocessingFunctor* ppf = ThresholdMower::create();
-	ThresholdMower mower;
-	TEST_EQUAL(ppf->getParameters(), mower.getParameters())
-	TEST_EQUAL(ppf->getName(), mower.getName())
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "ThresholdMower")
-END_SECTION
-
 START_SECTION((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;

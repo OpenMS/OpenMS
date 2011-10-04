@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -31,30 +31,27 @@ using namespace std;
 
 namespace OpenMS
 {
-  SqrtMower::SqrtMower()
-    : PreprocessingFunctor()
+	SqrtMower::SqrtMower()
+		: DefaultParamHandler("SqrtMower")
+	{
+	}
+	
+	SqrtMower::~SqrtMower()
   {
-		setName(SqrtMower::getProductName());
-		check_defaults_ = false;
-		defaultsToParam_();
   }
-
+	
   SqrtMower::SqrtMower(const SqrtMower& source)
-    : PreprocessingFunctor(source)
+    : DefaultParamHandler(source)
   {
   }
 
-  SqrtMower& SqrtMower::operator = (const SqrtMower& source)
+  SqrtMower& SqrtMower::operator=(const SqrtMower& source)
   {
-  	if (this != &source)
+		if (this != &source)
 		{
-    	PreprocessingFunctor::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
-  }
-  
-  SqrtMower::~SqrtMower()
-  {
   }
 	
 	void SqrtMower::filterPeakSpectrum(PeakSpectrum& spectrum)

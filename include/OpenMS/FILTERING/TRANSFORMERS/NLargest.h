@@ -21,14 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H
 #define OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -41,63 +43,50 @@ namespace OpenMS
 		@ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI NLargest
-    : public PreprocessingFunctor
+		: public DefaultParamHandler 
   {
   public:
 
 		// @name Constructors and Destructors
 		// @{
-    /// default constructor
-    NLargest();
 
+		/// default constructor
+		NLargest();	
 		/// detailed constructor
 		NLargest(UInt n);
-
-    /// copy constructor 
-    NLargest(const NLargest& source);
-
     /// destructor
     virtual ~NLargest();
+	
+		/// copy constructor 
+		NLargest(const NLargest& source);
+		/// assignment operator
+		NLargest& operator=(const NLargest& source);
+	
 		// @}
-
-		// @name Operators
-		// @{
-    /// assignment operator
-    NLargest& operator=(const NLargest& source);
-		// @}
-
-		// @name Accessors
-		// @{
-		// static create function for factory
-    static PreprocessingFunctor* create() 
-		{ 
-			return new NLargest();
-		}	
-		
-		/// static name method to register with factory
-		static const String getProductName()
-		{
-			return "NLargest";
-		}
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
-		{
-			// get parameter how many peaks are wanted
-			unsigned int n = (unsigned int)param_.getValue("n");
-			if (spectrum.size() <= n) return;
+		{		
+			UInt n = (UInt)param_.getValue("n");			
+			if (spectrum.size() <= peakcount_) return;
 			
 			// sort by reverse intensity
 			spectrum.sortByIntensity(true);
 
 			// keep the n largest peaks if more than n are present
-			spectrum.resize(n);
+			spectrum.resize(peakcount_);
 		}
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
+		
+		//TODO reimplement DefaultParamHandler::updateMembers_()
+		
 		// @}
+		
+		private:
+			UInt peakcount_;
 	
   };
 	

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -31,28 +31,30 @@ using namespace std;
 namespace OpenMS
 {
 
-  NLargest::NLargest()
-    : PreprocessingFunctor()
-  {
-		setName(NLargest::getProductName());
+	NLargest::NLargest()
+		: DefaultParamHandler("NLargest")
+	{
     defaults_.setValue("n", 200, "The number of peaks to keep.");
 		defaultsToParam_();
-  }
-
-	NLargest::NLargest(UInt n)
-		: PreprocessingFunctor()
-	{
-		setName(NLargest::getProductName());
-		defaults_.setValue("n", n, "The number of peaks to keep");
-		defaultsToParam_();
+		peakcount_ = 200;
 	}
-
-  NLargest::NLargest(const NLargest& source)
-    : PreprocessingFunctor(source)
+	
+	NLargest::NLargest(UInt n)
+		: DefaultParamHandler("NLargest")
+	{
+		defaults_.setValue("n", 200, "The number of peaks to keep");
+		defaultsToParam_();
+		//TODO set parameter (NOT defaults_) to n
+		param_.setValue("n",n);
+		peakcount_ = n;
+	}
+	
+  NLargest::~NLargest()
   {
   }
-
-  NLargest::~NLargest()
+	
+  NLargest::NLargest(const NLargest& source)
+    : DefaultParamHandler(source)
   {
   }
 
@@ -60,7 +62,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }
@@ -69,7 +71,7 @@ namespace OpenMS
   {
     filterSpectrum(spectrum);
   }
-
+	
   void NLargest::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
@@ -77,6 +79,5 @@ namespace OpenMS
       filterSpectrum(*it);
     }
   }
-
 
 }

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -31,9 +31,8 @@ using namespace std;
 namespace OpenMS
 {
   BernNorm::BernNorm()
-    : PreprocessingFunctor()
+		:DefaultParamHandler("BernNorm")
   {
-		setName(BernNorm::getProductName());
     // values from the paper
     // they should be good for GoodDiff and Complements
     // IsotopeDiffs needs lower peaks
@@ -41,14 +40,17 @@ namespace OpenMS
     defaults_.setValue("C2", 400.0, "C2 value of the normalization.", StringList::create("advanced"));
     defaults_.setValue("threshold", 0.1, "Threshold of the Bern et al. normalization."); // i.e. what is a significant peak
 		defaultsToParam_();
+		c1_ = 28.0;
+		c2_ = 400.0;
+		th_ = 0.1;
   }
-
-  BernNorm::BernNorm(const BernNorm& source)
-    : PreprocessingFunctor(source)
+	
+	BernNorm::~BernNorm()
   {
   }
 
-  BernNorm::~BernNorm()
+  BernNorm::BernNorm(const BernNorm& source)
+    : DefaultParamHandler(source)
   {
   }
 
@@ -56,7 +58,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator = (source);
+    	DefaultParamHandler::operator = (source);
 		}
     return *this;
   }
@@ -65,7 +67,7 @@ namespace OpenMS
 	{
 		filterSpectrum(spectrum);
 	}
-
+	
 	void BernNorm::filterPeakMap(PeakMap& exp)
 	{
 		for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)

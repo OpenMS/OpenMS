@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -30,29 +30,28 @@
 using namespace std;
 namespace OpenMS
 {
-
-  ThresholdMower::ThresholdMower()
-    : PreprocessingFunctor()
-  {
-		setName(ThresholdMower::getProductName());
-    defaults_.setValue("threshold", 0.05, "Intensity threshold, peaks which are below this threshold are thrown away");
+	
+	ThresholdMower::ThresholdMower()
+		: DefaultParamHandler("ThresholdMower")
+	{
+    defaults_.setValue("threshold", 0.05, "Intensity threshold, peaks below this threshold are discarded");
 		defaultsToParam_();
+	}
+	
+	ThresholdMower::~ThresholdMower()
+  {
   }
-
+	
   ThresholdMower::ThresholdMower(const ThresholdMower& source)
-    : PreprocessingFunctor(source)
-  {
-  }
-  
-  ThresholdMower::~ThresholdMower()
+    : DefaultParamHandler(source)
   {
   }
 
-  ThresholdMower& ThresholdMower::operator = (const ThresholdMower& source)
+  ThresholdMower& ThresholdMower::operator=(const ThresholdMower& source)
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }

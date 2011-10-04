@@ -21,14 +21,15 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_MARKERMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_MARKERMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
 
 #include <vector>
@@ -41,7 +42,8 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class OPENMS_DLLAPI MarkerMower : public PreprocessingFunctor
+  class OPENMS_DLLAPI MarkerMower
+		: public DefaultParamHandler 
   {
   public:
 
@@ -49,25 +51,17 @@ namespace OpenMS
 		// @{
     /// default constructor
     MarkerMower();
-
-    /// copy constructor
-    MarkerMower(const MarkerMower& source);
-
     /// destructor
     virtual ~MarkerMower();
-		// @}
-
-		// @name Operators
-		// @{
+	
+		/// copy constructor
+    MarkerMower(const MarkerMower& source);
     /// assignment operator
     MarkerMower& operator = (const MarkerMower& source);
 		// @}
 
 		// @name Accessors
 		// @{
-		///
-    static PreprocessingFunctor* create() { return new MarkerMower(); }
-
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
@@ -109,14 +103,17 @@ namespace OpenMS
 			return "MarkerMower";
 		}
 
-    /// insert new Marker (violates the PreprocessingFunctor interface)
+    /// insert new Marker (violates the DefaultParamHandler interface)
     void insertmarker(PeakMarker* peak_marker);
+		
+		//TODO reimplement DefaultParamHandler::updateMembers_()
+
 		// @}
 	
 	private: 
-	
     /// used peak markers
     std::vector<PeakMarker*> markers_;
+
   };
 }
 #endif // OPENMS_COMPARISON_CLUSTERING_MARKERMOWER_H

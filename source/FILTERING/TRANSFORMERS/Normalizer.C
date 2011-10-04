@@ -21,44 +21,44 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 #include <cmath>
+#include <set>
 
 using namespace std;
 namespace OpenMS
 {
-  Normalizer::Normalizer()
-    : PreprocessingFunctor()
-  {
-		setName(Normalizer::getProductName());
+	Normalizer::Normalizer()
+		:DefaultParamHandler("Normalizer")
+  {	
     defaults_.setValue("method", "to_one", "Normalize by deviding though the TIC ('to_TIC') or normalize to max intensity of one ('to_one').");
     defaults_.setValidStrings("method", StringList::create("to_one,to_TIC"));
 		defaultsToParam_();
   }
+	
+	Normalizer::~Normalizer()
+  {
+  }
 
   Normalizer::Normalizer(const Normalizer& source)
-    : PreprocessingFunctor(source)
+    : DefaultParamHandler(source)
   {
   }
 
-  Normalizer::~Normalizer()
-  {
-  }
-
-  Normalizer& Normalizer::operator = (const Normalizer& source)
+  Normalizer& Normalizer::operator=(const Normalizer& source)
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }
-
+	
   void Normalizer::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
@@ -71,5 +71,5 @@ namespace OpenMS
       filterSpectrum(*it);
     }
   }
-
+	
 }

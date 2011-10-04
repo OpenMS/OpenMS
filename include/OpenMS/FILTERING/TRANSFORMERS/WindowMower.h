@@ -21,14 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <set>
 
 namespace OpenMS
@@ -42,38 +44,32 @@ namespace OpenMS
 		@ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI WindowMower
-  	 : public PreprocessingFunctor
+		: public DefaultParamHandler 
   {
   public:
 
 		// @name Constructors, destructors and assignment operators
 		// @{
-    /// default constructor
-    WindowMower();
-
-    /// copy constructor
-    WindowMower(const WindowMower& source);
-
+		/// default constructor
+		WindowMower();
     /// destructor
     virtual ~WindowMower();
 
-    /// assignment operator
-    WindowMower& operator = (const WindowMower& source);
+		/// copy constructor
+		WindowMower(const WindowMower& source);
+		/// assignment operator
+		WindowMower& operator = (const WindowMower& source);
 		// @}
-
-    static PreprocessingFunctor* create()
-    { 
-    	return new WindowMower();
-    }
 		
+		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
 			
-			DoubleReal windowsize = (DoubleReal)param_.getValue("windowsize");
-    	UInt peakcount = (UInt)param_.getValue("peakcount");
-			
+			windowsize_ = (DoubleReal)param_.getValue("windowsize");
+    	peakcount_ = (UInt)param_.getValue("peakcount");
+
 			//copy spectrum
 			SpectrumType old_spectrum = spectrum;
 			old_spectrum.sortByPosition();
@@ -85,7 +81,7 @@ namespace OpenMS
 			{
 				// copy the window from the spectrum
 				SpectrumType window;
-				for (ConstIterator it2 = it; (it2->getPosition() - it->getPosition() < windowsize); )
+				for (ConstIterator it2 = it; (it2->getPosition() - it->getPosition() < windowsize_); )
 				{
 					window.push_back(*it2);
 					if (++it2 == old_spectrum.end())
@@ -97,7 +93,7 @@ namespace OpenMS
 				
 				//extract peakcount most intense peaks				
 				window.sortByIntensity(true);
-				for (Size i = 0; i < peakcount; ++i)
+				for (Size i = 0; i < peakcount_; ++i)
 				{
 					if (i < window.size())
 					{
@@ -122,12 +118,12 @@ namespace OpenMS
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
-	
-		static const String getProductName()
-		{
-			return "WindowMower";
-		}
+
+		//TODO reimplement DefaultParamHandler::updateMembers_()
 		
+		private:
+			DoubleReal windowsize_;
+			UInt peakcount_;
   };
 
 }

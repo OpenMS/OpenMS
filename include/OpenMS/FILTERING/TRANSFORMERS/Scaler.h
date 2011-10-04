@@ -21,14 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_SCALER_H
 #define OPENMS_FILTERING_TRANSFORMERS_SCALER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <map>
 
 namespace OpenMS
@@ -39,7 +41,7 @@ namespace OpenMS
 		@ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI Scaler
-    : public PreprocessingFunctor
+		: public DefaultParamHandler 
   {
   public:
 
@@ -47,30 +49,18 @@ namespace OpenMS
 		// @{
     /// default constructor
     Scaler();
-
-    /// copy constructor
-    Scaler(const Scaler& source);
-
     /// destructor
     virtual ~Scaler();
-		// @}
-
-		// @name Operators
-		// @{
+	
+		/// copy constructor
+    Scaler(const Scaler& source);
     /// assignment operator
     Scaler& operator = (const Scaler& source);
+
 		// @}
 
 		// @name Accessors
 		// @{
-		///
-    static PreprocessingFunctor* create() { return new Scaler(); }
-
-		///
-		static const String getProductName()
-		{
-			return "Scaler";
-		}
 
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{	
@@ -97,8 +87,11 @@ namespace OpenMS
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
     void filterPeakMap(PeakMap& exp);
-		// @}
+		
+		//TODO reimplement DefaultParamHandler::updateMembers_() when introducing member variables
 
+		// @}
+		
   };
 
 }

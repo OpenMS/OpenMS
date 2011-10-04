@@ -114,17 +114,6 @@ START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType&
 	
 END_SECTION
 
-START_SECTION((static PreprocessingFunctor* create()))
-	PreprocessingFunctor* ppf = ParentPeakMower::create();
-	ParentPeakMower ppm;
-	TEST_EQUAL(ppf->getParameters(), ppm.getParameters())
-	TEST_EQUAL(ppf->getName(), ppm.getName())
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "ParentPeakMower")
-END_SECTION
-
 START_SECTION((void filterPeakMap(PeakMap& exp)))
   DTAFile dta_file;
   PeakSpectrum spec;

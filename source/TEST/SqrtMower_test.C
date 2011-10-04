@@ -79,14 +79,6 @@ START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType&
 	TEST_REAL_SIMILAR((spec.begin() + 40)->getIntensity(), sqrt(37.5))
 END_SECTION
 
-START_SECTION((static PreprocessingFunctor* create()))
-	NOT_TESTABLE
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "SqrtMower")
-END_SECTION
-
 START_SECTION((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;

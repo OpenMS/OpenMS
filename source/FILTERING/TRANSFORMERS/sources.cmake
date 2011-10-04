@@ -19,7 +19,7 @@ NeutralLossMarker.C
 Normalizer.C
 ParentPeakMower.C
 PeakMarker.C
-PreprocessingFunctor.C
+#~ PreprocessingFunctor.C
 Scaler.C
 SqrtMower.C
 TICFilter.C

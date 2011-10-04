@@ -21,14 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_PARENTPEAKMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_PARENTPEAKMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -41,7 +43,8 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class OPENMS_DLLAPI ParentPeakMower : public PreprocessingFunctor
+  class OPENMS_DLLAPI ParentPeakMower
+		: public DefaultParamHandler 
   {
   public:
 
@@ -66,7 +69,6 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static PreprocessingFunctor* create() { return new ParentPeakMower(); }
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
@@ -74,6 +76,14 @@ namespace OpenMS
 			typedef typename SpectrumType::ConstIterator ConstIterator;
 			typedef typename SpectrumType::Iterator Iterator;
 			
+			clean_all_charge_states_ = (Int)param_.getValue("clean_all_charge_states");
+			consider_NH3_loss_ = (Int)param_.getValue("consider_NH3_loss");
+			consider_H2O_loss_ = (Int)param_.getValue("consider_H2O_loss");
+			window_size_ = (DoubleReal)param_.getValue("window_size");
+			reduce_by_factor_ = (Int)param_.getValue("reduce_by_factor");
+			factor_ = (DoubleReal)param_.getValue("factor");
+			set_to_zero_ = (Int)param_.getValue("set_to_zero");
+
 			if (spectrum.getMSLevel() == 1)
 			{
 				std::cerr << "Error: ParenPeakMower cannot be applied to MS-level 1" << std::endl;
@@ -93,27 +103,18 @@ namespace OpenMS
 			UInt pre_charge = spectrum.getPrecursors()[0].getCharge();
 			if (pre_charge == 0)
 			{
-				UInt default_charge = (unsigned int)param_.getValue("default_charge");
-				std::cerr << "ParentPeakMower: Warning, Precursor charge not set, assuming default charge (" << default_charge << ")" << std::endl;
-				pre_charge = default_charge;
+				default_charge_ = (Size)param_.getValue("default_charge");
+				std::cerr << "ParentPeakMower: Warning, Precursor charge not set, assuming default charge (" << default_charge_ << ")" << std::endl;
+				pre_charge = default_charge_;
 			}
 
 			pre_pos *= pre_charge;
-			
-			// get all other parameters 
-			bool clean_all_charge_states = (Int)param_.getValue("clean_all_charge_states");
-			bool consider_NH3_loss = (Int)param_.getValue("consider_NH3_loss");
-			bool consider_H2O_loss = (Int)param_.getValue("consider_H2O_loss");
-			double window_size = (double)param_.getValue("window_size");
-			bool reduce_by_factor = (Int)param_.getValue("reduce_by_factor");
-			double factor = (double)param_.getValue("factor");
-			bool set_to_zero = (Int)param_.getValue("set_to_zero");
-		
+					
 			// identify the ranges which are to be considered
 			std::vector<DRange<1> > ranges;
 			for (Size z = 1; z <= pre_charge; ++z)
 			{
-				if (clean_all_charge_states || z == pre_charge)
+				if (clean_all_charge_states_ || z == pre_charge)
 				{
 					// no adjusting needed for this charge
 					DPosition<1> pre_z_pos, pos;
@@ -121,19 +122,19 @@ namespace OpenMS
 					
 					// adjust the m/z by weight of precursor and charge
 					pre_z_pos = DPosition<1>(pre_pos / double(z));
-					range = DRange<1>(pre_z_pos - window_size, pre_z_pos + window_size);
+					range = DRange<1>(pre_z_pos - window_size_, pre_z_pos + window_size_);
 					ranges.push_back(range);
 										
-					if (consider_NH3_loss)
+					if (consider_NH3_loss_)
 					{
 						pos = DPosition<1>(pre_z_pos - 17.0 / double(z));
-						range = DRange<1>(pos - window_size, pos + window_size);
+						range = DRange<1>(pos - window_size_, pos + window_size_);
 						ranges.push_back(range);
 					}
-					if (consider_H2O_loss)
+					if (consider_H2O_loss_)
 					{
 						pos = DPosition<1>(pre_z_pos - 18.0 / double(z));
-						range = DRange<1>(pos - window_size, pos + window_size);
+						range = DRange<1>(pos - window_size_, pos + window_size_);
 						ranges.push_back(range);
 					}
 				}
@@ -151,13 +152,13 @@ namespace OpenMS
 				{
 					if (rit->encloses(it->getPosition()))
 					{
-						if (reduce_by_factor)
+						if (reduce_by_factor_)
 						{
-							it->setIntensity(it->getIntensity() / factor);
+							it->setIntensity(it->getIntensity() / factor_);
 							break;
 						}
 
-						if (set_to_zero)
+						if (set_to_zero_)
 						{
 							it->setIntensity(0.0);
 							break;
@@ -172,13 +173,21 @@ namespace OpenMS
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
+		
+		//TODO reimplement DefaultParamHandler::updateMembers_()
 
-		///
-		static const String getProductName()
-		{
-			return "ParentPeakMower";
-		}
 		//@}
+		
+	private:
+		Size default_charge_;
+		bool clean_all_charge_states_;
+		bool consider_NH3_loss_;
+		bool consider_H2O_loss_;
+		DoubleReal window_size_;
+		bool reduce_by_factor_;
+		DoubleReal factor_;
+		bool set_to_zero_;
+
   };
 
 }

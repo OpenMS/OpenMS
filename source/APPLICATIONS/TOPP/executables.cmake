@@ -73,7 +73,15 @@ SILACAnalyzer
 SeedListGenerator
 #SequestAdapter
 SpecLibSearcher
-SpectraFilter
+SpectraFilterWindowMower
+SpectraFilterThresholdMower
+SpectraFilterSqrtMower
+SpectraFilterParentPeakMower
+SpectraFilterMarkerMower
+SpectraFilterScaler
+SpectraFilterBernNorm
+SpectraFilterNLargest
+SpectraFilterNormalizer
 TOFCalibration
 TextExporter
 XTandemAdapter

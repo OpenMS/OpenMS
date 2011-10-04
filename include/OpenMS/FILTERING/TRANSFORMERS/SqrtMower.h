@@ -21,14 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <cmath>
 
 namespace OpenMS
@@ -38,32 +40,23 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class OPENMS_DLLAPI SqrtMower : public PreprocessingFunctor
-  {
+  class OPENMS_DLLAPI SqrtMower
+ 		: public DefaultParamHandler 
+ {
   public:
 
 		// @name Constructors and Destructors
 		// @{
     /// default constructor
     SqrtMower();
-
-    /// copy constructor
-    SqrtMower(const SqrtMower& source);
-
     /// destructor
     virtual ~SqrtMower();
+	
+		/// copy constructor
+		SqrtMower(const SqrtMower& source);
+		/// assignment operator
+		SqrtMower& operator=(const SqrtMower& source);
 		// @}
-
-		// @name Operators
-		// @{
-    /// assignment operator
-    SqrtMower& operator=(const SqrtMower& source);
-		// @}
-
-		// @name Accessors
-		// @{
-		///
-    static PreprocessingFunctor* create() { return new SqrtMower(); }
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
@@ -89,12 +82,9 @@ namespace OpenMS
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
-
-		///
-		static const String getProductName()
-		{
-			return "SqrtMower";
-		}
+		
+		//TODO reimplement DefaultParamHandler::updateMembers_()
+		
 		// @}
 		
   };

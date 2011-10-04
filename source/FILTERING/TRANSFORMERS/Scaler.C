@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -30,32 +30,29 @@
 using namespace std;
 namespace OpenMS
 {
-  Scaler::Scaler()
-    : PreprocessingFunctor()
+	Scaler::Scaler()
+		: DefaultParamHandler("Scaler")
+	{
+	}
+	
+	 Scaler::~Scaler()
   {
-		check_defaults_ = false;
-		setName(Scaler::getProductName());
-		defaultsToParam_();
   }
-
+	
   Scaler::Scaler(const Scaler& source)
-    : PreprocessingFunctor(source)
+    : DefaultParamHandler(source)
   {
   }
 
-  Scaler::~Scaler()
-  {
-  }
-
-  Scaler& Scaler::operator = (const Scaler& source)
+  Scaler& Scaler::operator=(const Scaler& source)
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }
-
+	
   void Scaler::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);

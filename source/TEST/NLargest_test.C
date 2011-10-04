@@ -88,17 +88,6 @@ START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType&
 	TEST_EQUAL(spec.size(), 10)
 END_SECTION
 
-START_SECTION((static PreprocessingFunctor* create()))
-	PreprocessingFunctor* ppf = NLargest::create();
-	NLargest nlargest;
-	TEST_EQUAL(ppf->getParameters(), nlargest.getParameters())
-	TEST_EQUAL(ppf->getName(), nlargest.getName())
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "NLargest")
-END_SECTION
-
 START_SECTION((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new NLargest();

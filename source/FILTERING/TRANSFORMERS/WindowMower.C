@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -31,16 +31,19 @@ using namespace std;
 namespace OpenMS
 {
   WindowMower::WindowMower()
-    : PreprocessingFunctor()
+    : DefaultParamHandler("WindowMower")
   {
-		setName(WindowMower::getProductName());
     defaults_.setValue("windowsize", 50.0, "The size of the sliding window along the m/z axis.");
     defaults_.setValue("peakcount", 2, "The number of peaks that should be kept.");
 		defaultsToParam_();
   }
+	  
+	WindowMower::~WindowMower()
+  {
+  }
 
   WindowMower::WindowMower(const WindowMower& source)
-    : PreprocessingFunctor(source)
+    : DefaultParamHandler(source)
   {
   }
 
@@ -48,13 +51,9 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	PreprocessingFunctor::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
-  }
-
-  WindowMower::~WindowMower()
-  {
   }
 
   void WindowMower::filterPeakSpectrum(PeakSpectrum& spectrum)
@@ -69,5 +68,4 @@ namespace OpenMS
       filterSpectrum(*it);
     }
   }
-
 }
