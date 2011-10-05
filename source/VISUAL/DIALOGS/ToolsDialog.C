@@ -41,7 +41,6 @@
 #include <QtGui/QFileDialog>
 #include <QtGui/QCheckBox>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 using namespace std;
@@ -63,7 +62,7 @@ namespace OpenMS
 				
 		if (type==LayerData::DT_PEAK)
 		{
-			list<<"FileFilter"<<"FileInfo"<<"NoiseFilterGaussian"<<"NoiseFilterSGolay"<<"BaselineFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"TOFCalibration"<<"FeatureFinder"<<"SILACAnalyzer"<<"ITRAQAnalyzer";
+      list<<"FileFilter"<<"FileInfo"<<"NoiseFilterGaussian"<<"NoiseFilterSGolay"<<"BaselineFilter"<<"PeakPickerHiRes"<<"PeakPickerWavelet"<<"Resampler"<<"MapNormalizer"<<"InternalCalibration"<<"TOFCalibration"<<"FeatureFinderRaw"<<"FeatureFinderCentroided"<<"FeatureFinderIsotopeWavelet"<<"FeatureFinderMRM"<<"SILACAnalyzer"<<"ITRAQAnalyzer"<<"SpectraFilterWindowMower"<<"SpectraFilterThresholdMower"<<"SpectraFilterSqrtMower"<<"SpectraFilterParentPeakMower"<<"SpectraFilterMarkerMower"<<"SpectraFilterScaler"<<"SpectraFilterBernNorm"<<"SpectraFilterNLargest"<<"SpectraFilterNormalizer";
 		}
 		else if (type==LayerData::DT_FEATURE)
 		{

@@ -30,7 +30,6 @@
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -63,6 +62,7 @@ namespace OpenMS
 		tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", "Quantitation");
 		tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", "Quantitation");
 		tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", "Quantitation");
+    tools_map["FeatureFinderRaw"] = Internal::ToolDescription("FeatureFinderRaw", "Quantitation");
 		tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", "Map Alignment");
 		tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", "Map Alignment");
 		tools_map["FeatureLinkerUnlabeledQT"] = Internal::ToolDescription("FeatureLinkerUnlabeledQT", "Map Alignment");
@@ -115,7 +115,6 @@ namespace OpenMS
 		tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", "Quantitation");
     //tools_map["SequestAdapter"] = Internal::ToolDescription("SequestAdapter", "Identification");
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Identification");
-    tools_map["SpectraFilter"] = Internal::ToolDescription("SpectraFilter", "Identification", Factory<PreprocessingFunctor>::registeredProducts());
 		tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "File Handling");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
 		tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
