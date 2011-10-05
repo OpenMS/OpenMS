@@ -113,7 +113,7 @@ class TOPPINIUpdater
     setValidFormats_("out", StringList::create("ini,toppas"));
 	}
 
-  void updateTOPPAS(String& infile, String& outfile)
+  void updateTOPPAS(const String& infile,const String& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
@@ -244,7 +244,7 @@ class TOPPINIUpdater
     }
   }
 
-	void updateINI(String& infile, String& outfile)
+  void updateINI(const String& infile,const String& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
