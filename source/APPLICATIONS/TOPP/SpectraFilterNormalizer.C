@@ -69,12 +69,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPSpectraFilter
+class TOPPSpectraFilterNormalizer
 	: public TOPPBase
 {
 	public:
-		TOPPSpectraFilter()
-			: TOPPBase("SpectraFilter", "Applies thresholdfilter to peak spectra.")
+    TOPPSpectraFilterNormalizer()
+      : TOPPBase("SpectraFilterNormalizer", "Applies thresholdfilter to peak spectra.")
 		{
 		}
 
@@ -152,7 +152,7 @@ class TOPPSpectraFilter
 
 int main( int argc, const char** argv )
 {
-	TOPPSpectraFilter tool;
+  TOPPSpectraFilterNormalizer tool;
 	return tool.main(argc,argv);
 }
 

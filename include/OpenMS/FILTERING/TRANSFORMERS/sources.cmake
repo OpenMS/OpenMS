@@ -19,7 +19,6 @@ NeutralLossMarker.h
 Normalizer.h
 ParentPeakMower.h
 PeakMarker.h
-PreprocessingFunctor.h
 Scaler.h
 SqrtMower.h
 TICFilter.h
