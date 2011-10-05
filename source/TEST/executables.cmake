@@ -244,7 +244,6 @@ set(filtering_executables_list
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  PreprocessingFunctor_test
   SILACFilter_test
   SILACFiltering_test
   SavitzkyGolayFilter_test
