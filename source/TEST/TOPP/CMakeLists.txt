@@ -456,12 +456,12 @@ add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -in1 SeedListGenerator_3_output
 #add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
 
 ### SpectraFilter tests
-add_test("TOPP_SpectraFilter_1" ${TOPP_BIN_PATH}/SpectraFilter -test -in ${DATA_DIR_TOPP}/SpectraFilter_1_input.mzML -out SpectraFilter.tmp -type SqrtMower)
-add_test("TOPP_SpectraFilter_1_out1" ${DIFF} -in1 SpectraFilter.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_1_output.mzML)
-add_test("TOPP_SpectraFilter_2" ${TOPP_BIN_PATH}/SpectraFilter -test -in ${DATA_DIR_TOPP}/SpectraFilter_2_input.mzML -out SpectraFilter.tmp -type WindowMower)
-add_test("TOPP_SpectraFilter_2_out1" ${DIFF} -in1 SpectraFilter.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_2_output.mzML)
-add_test("TOPP_SpectraFilter_3" ${TOPP_BIN_PATH}/SpectraFilter -test -in ${DATA_DIR_TOPP}/SpectraFilter_3_input.mzML -out SpectraFilter.tmp -ini ${DATA_DIR_TOPP}/SpectraFilter_3_parameters.ini -type WindowMower)
-add_test("TOPP_SpectraFilter_3_out1" ${DIFF} -in1 SpectraFilter.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_3_output.mzML)
+add_test("TOPP_SpectraFilterSqrtMower_1" ${TOPP_BIN_PATH}/SpectraFilterSqrtMower -test -in ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_input.mzML -out SpectraFilterSqrtMower.tmp)
+add_test("TOPP_SpectraFilterSqrtMower_1_out1" ${DIFF} -in1 SpectraFilterSqrtMower.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_output.mzML)
+add_test("TOPP_SpectraFilterWindowMower_1" ${TOPP_BIN_PATH}/SpectraFilterWindowMower -test -in ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_input.mzML -out SpectraFilterWindowMower_1.tmp)
+add_test("TOPP_SpectraFilterWindowMower_1_out1" ${DIFF} -in1 SpectraFilterWindowMower_1.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_output.mzML)
+add_test("TOPP_SpectraFilterWindowMower_2" ${TOPP_BIN_PATH}/SpectraFilterWindowMower -test -in ${DATA_DIR_TOPP}/SpectraFilterWindowMower_2_input.mzML -out SpectraFilterWindowMower_2.tmp -ini ${DATA_DIR_TOPP}/SpectraFilterWindowMower_2_parameters.ini)
+add_test("TOPP_SpectraFilterWindowMower_2_out1" ${DIFF} -in1 SpectraFilterWindowMower_2.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilterWindowMower_2_output.mzML)
 
 ### InternalCalibration tests
 add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzML -out InternalCalibration.tmp -ref_peaks ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -type spectrumwise)

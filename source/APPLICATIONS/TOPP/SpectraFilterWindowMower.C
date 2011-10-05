@@ -104,7 +104,6 @@ class TOPPSpectraFilterWindowMower
 			//input/output files
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
-			String type = getStringOption_("type");
 
       //-------------------------------------------------------------
       // loading input

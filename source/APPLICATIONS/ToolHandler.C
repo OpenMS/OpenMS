@@ -115,6 +115,15 @@ namespace OpenMS
 		tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", "Quantitation");
     //tools_map["SequestAdapter"] = Internal::ToolDescription("SequestAdapter", "Identification");
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Identification");
+    tools_map["SpectraFilterWindowMower"] = Internal::ToolDescription("SpectraFilterWindowMower", "Identification");
+    tools_map["SpectraFilterThresholdMower"] = Internal::ToolDescription("SpectraFilterThresholdMower", "Identification");
+    tools_map["SpectraFilterSqrtMower"] = Internal::ToolDescription("SpectraFilterSqrtMower", "Identification");
+    tools_map["SpectraFilterParentPeakMower"] = Internal::ToolDescription("SpectraFilterParentPeakMower", "Identification");
+    tools_map["SpectraFilterMarkerMower"] = Internal::ToolDescription("SpectraFilterMarkerMower", "Identification");
+    tools_map["SpectraFilterScaler"] = Internal::ToolDescription("SpectraFilterScaler", "Identification");
+    tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", "Identification");
+    tools_map["SpectraFilterNLargest"] = Internal::ToolDescription("SpectraFilterNLargest", "Identification");
+    tools_map["SpectraFilterNormalizer"] = Internal::ToolDescription("SpectraFilterNormalizer", "Identification");
 		tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "File Handling");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
 		tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");

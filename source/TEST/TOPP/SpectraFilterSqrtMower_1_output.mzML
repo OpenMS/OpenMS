@@ -53,7 +53,7 @@
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1000765" name="SpectraFilter" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectraFilterSqrtMower" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">

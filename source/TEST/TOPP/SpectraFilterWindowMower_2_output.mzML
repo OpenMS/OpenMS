@@ -53,7 +53,7 @@
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1000765" name="SpectraFilter" />
+      <cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectraFilterWindowMower" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -150,7 +150,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="spectrum=2" index="1" defaultArrayLength="2">
+			<spectrum id="spectrum=2" index="1" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -197,21 +197,21 @@
 				</precursor>
 			</precursorList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="24">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAACAW0AAAAAAAABeQA==</binary>
+						<binary>AAAAAACAW0AAAAAAAABeQAAAAAAAQGBA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="12">
+					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEM=</binary>
+						<binary>AADIQgAASEMAAMhC</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="spectrum=3" index="2" defaultArrayLength="2">
+			<spectrum id="spectrum=3" index="2" defaultArrayLength="5">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000582" name="SIM spectrum" />
@@ -229,17 +229,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="24">
+					<binaryDataArray encodedLength="56">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAACAW0AAAAAAAABeQA==</binary>
+						<binary>AAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="12">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AABIQwAAlkM=</binary>
+						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
