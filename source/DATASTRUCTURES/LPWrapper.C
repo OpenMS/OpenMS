@@ -202,7 +202,18 @@ namespace OpenMS
     return index;// in addColumn index is decreased already
   }
 
-
+  void LPWrapper::deleteRow(Size index)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)
+      {
+        int num[] = {0,(Int) index}; // glpk starts reading at pos 1
+        glp_del_rows(lp_problem_,1,num);
+      }
+#if COINOR_SOLVER==1
+    if (solver_==SOLVER_COINOR)   model_.deleteRow(index);
+#endif
+  }
+  
   void LPWrapper::setColumnName(Size index,String name)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK) glp_set_col_name(lp_problem_, (int) index+1, name.c_str());

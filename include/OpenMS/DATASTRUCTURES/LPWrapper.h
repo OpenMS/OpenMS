@@ -133,6 +133,7 @@ namespace OpenMS
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
     Size addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
+    void deleteRow(Size index);
     /// sets name of the index-th column
     void setColumnName(Size index,String name);
     /// gets name of the index-th column
