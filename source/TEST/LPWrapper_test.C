@@ -167,7 +167,8 @@ END_SECTION
 START_SECTION((VariableType getColumnType(Size index)))
 {
   lp.setColumnType(0,LPWrapper::BINARY);
-  TEST_EQUAL(lp.getColumnType(0),LPWrapper::BINARY); 
+  if (lp.getSolver()==LPWrapper::SOLVER_GLPK) TEST_EQUAL(lp.getColumnType(0),LPWrapper::BINARY)
+  else TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
 }
 END_SECTION
 

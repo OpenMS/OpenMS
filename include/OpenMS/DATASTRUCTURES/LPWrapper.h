@@ -236,8 +236,6 @@ namespace OpenMS
 	protected:
 #if COINOR_SOLVER==1
     CoinModel model_;
-    Size num_rows_;
-    Size num_columns_;
     std::vector<DoubleReal> solution_;
 #endif
 
