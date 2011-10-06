@@ -95,6 +95,36 @@
 		pipelines on your data, you probably have to adapt the parameters. Have a
 		look at the documentation of the corresponding TOPP tool in that case.
 
+		@subsection TOPP_parameter_documentation Parameter documentation
+
+			General documentation of  a TOPP tool and documentation for the command line parameters,
+			can be displayed using the command line argument @a --help.
+
+			Some TOPP tools also have subsections of parameters that are internally handed to
+			an algorithm. The documentation of these subsections is not displayed with @a --help.
+			It is however displayed in @b INIFileEditor (see next section).
+
+		@subsection TOPP_parameter_creation Creating an INI file for a TOPP tool
+
+			The easiest way of creating an INI file is to advise the corresponding TOPP
+			tool to write its default	configuration file using the argument '-write_ini' on the command line.
+			Now the INI file can be adapted to your needs
+			using @b INIFileEditor.
+			@image html INIFileEditor.png
+			@image latex INIFileEditor.png "" width=10cm
+
+			In the @subpage TOPP_INIFileEditor, the documentation of the parameters is displayed
+			in the window at the bottom, once you click on the respective parameter.
+
+		@subsection TOPP_parameter_update Updating an INI file for a TOPP tool or a whole TOPPAS pipeline
+
+			If you have an old INI file which does not work for a newer OpenMS version 
+			(due to renamed/removed or new) parameters, you can rescue parameter's
+			whose name did not change into the new version by using our @subpage UTILS_INIUpdater tool by
+			calling it with (a list of) outdated INI and/or TOPPAS files. See the INIUpdater tool description for details.
+			This will remove invalid parameters and	add new parameters (if available) while retaining values for unchanged parameters.
+
+			
 		@subsection TOPP_parameter_structure General structure of an INI file
 
 		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierachy
@@ -149,34 +179,6 @@
 </PARAMETERS>
 @endcode
 
-		@subsection TOPP_parameter_documentation Parameter documentation
-
-			General documentation of  a TOPP tool and documentation for the command line parameters,
-			can be displayed using the command line argument @a --help.
-
-			Some TOPP tools also have subsections of parameters that are internally handed to
-			an algorithm. The documentation of these subsections is not displayed with @a --help.
-			It is however displayed in @b INIFileEditor (see next section).
-
-		@subsection TOPP_parameter_creation Creating an INI file for a TOPP tool
-
-			The easiest way of creating an INI file is to advise the corresponding TOPP
-			tool to write its default	configuration file using the argument '-write_ini'.
-			Now the INI file can be adapted to your needs
-			using @b INIFileEditor.
-			@image html INIFileEditor.png
-			@image latex INIFileEditor.png "" width=10cm
-
-			In the @b INIFileEditor, the documentation of most parameters is displayed
-			as tooltip when you hover above the parameter name with the mouse pointer.
-
-		@subsection TOPP_parameter_creation Updating an INI file for a TOPP tool
-
-			If you have an old INI file which does not work for a newer OpenMS version 
-			(due to renamed/removed or new) parameters, you can rescue parameter's
-			whose name did not change into the new version by calling the corresponding TOPP tool
-			with '-ini <myini.ini> -write_ini <myini.ini>'. This will remove invalid parameters and
-			add new parameters (if available) while retaining values for unchanged parameters.
 */
 
 //##############################################################################

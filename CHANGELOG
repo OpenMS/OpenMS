@@ -6,24 +6,27 @@ Release date: October 2011
 
 OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefor all .ini files
 for 'typed' TOPP tools (i.e. with a type parameter) build with OpenMS 1.8 and below
-are incompatible! To fix your old .ini files ....
+are incompatible! To fix your old .ini and .toppas files use the new
+INIUpdater tool (see its documentation and the TOPP documentation).
 
 OpenMS 1.9 removed support for Mac OS X 10.5.
 
 TOPP tools: 
 -ADDED:
-  - MapStatistics
-	- EICExtractor
-	- FeatureFinderRaw
+  - MapStatistics (statistics for low level quality control)
+	- EICExtractor (quantify known RT,m/z locations in 1-many LC/MS maps and align them)
+	- FeatureFinderRaw (feature finding on raw data)
 -MODIFIED:
   - Split NoiseFilter into NoiseFilterGaussian and NoiseFilterSGolay
 	- MascotAdapterOnline now supports Mascot 2.3 servers
 	- Split PeakPicker into PeakPickerWavelet and PeakPickerHiRes
 	- Split FeatureFinder into FeatureFinderMRM, FeatureFinderCentroided, FeatureFinderIsotopeWavelet
 -REMOVED:
-  - AndiMS is no longer supported on any platform
+  - AndiMS/NetCDF is no longer supported on any platform
  
 UTIL tools: 
+-ADDED:
+  - INIUpdater (update INI and TOPPAS files)
 	 
 OpenMS library improvements: 
 - MODIFIED

@@ -32,12 +32,13 @@
   They are not included in TOPP as they are not part of typical analysis pipelines,
   but they still might be very helpful to you.
 
-	The %OpenMS UTILS are created by calling 'make UTILS' in in the %OpenMS source directory.
-	Just as the TOPP tools, they are copied to the %OpenMS bin folder.
+	Just as the TOPP tools, they can be found to the %OpenMS/bin folder.
 
  	The UTILS tools are divided into several subgroups:
 
-
+	<b>Maintenance</b>
+	- @subpage UTILS_INIUpdater - update INI and TOPPAS files from previous versions of OpenMS as parameters and storage method might have changed
+	
   <b>File handling</b>
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
   - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
