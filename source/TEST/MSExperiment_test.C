@@ -996,7 +996,7 @@ START_SECTION((const std::vector<MSChromatogram<ChromatogramPeakType> >& getChro
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(MSChromatogram<ChromatogramPeakType> getTIC() const)
+START_SECTION((const MSChromatogram<ChromatogramPeakType> getTIC() const))
   MSExperiment<> tmp;
   tmp.resize(2);
   Peak1D p;
