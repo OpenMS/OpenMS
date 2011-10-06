@@ -53,7 +53,7 @@ END_SECTION
 
 START_SECTION(NLargest(UInt n))
 	NLargest filter(10);
-	TEST_EQUAL((unsigned int)filter.getParameters().getValue("n"), 10)
+  TEST_EQUAL((UInt)filter.getParameters().getValue("n"), 10)
 END_SECTION
 
 START_SECTION((~NLargest()))

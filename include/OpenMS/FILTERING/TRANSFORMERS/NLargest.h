@@ -35,60 +35,63 @@
 namespace OpenMS
 {
 
-	/**	
-  	@brief NLargest removes all but the n largest peaks
-		 
-		@htmlinclude OpenMS_NLargest.parameters
+  /**
+    @brief NLargest removes all but the n largest peaks
 
-		@ingroup SpectraPreprocessers
+    @htmlinclude OpenMS_NLargest.parameters
+
+    @ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI NLargest
-		: public DefaultParamHandler 
+      : public DefaultParamHandler
   {
   public:
 
-		// @name Constructors and Destructors
-		// @{
+    // @name Constructors and Destructors
+    // @{
 
-		/// default constructor
-		NLargest();	
-		/// detailed constructor
-		NLargest(UInt n);
+    /// default constructor
+    NLargest();
+    /// detailed constructor
+    NLargest(UInt n);
     /// destructor
     virtual ~NLargest();
-	
-		/// copy constructor 
-		NLargest(const NLargest& source);
-		/// assignment operator
-		NLargest& operator=(const NLargest& source);
-	
-		// @}
 
-		///
-		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
-		{		
-			UInt n = (UInt)param_.getValue("n");			
-			if (spectrum.size() <= peakcount_) return;
-			
-			// sort by reverse intensity
-			spectrum.sortByIntensity(true);
+    /// copy constructor
+    NLargest(const NLargest& source);
+    /// assignment operator
+    NLargest& operator=(const NLargest& source);
 
-			// keep the n largest peaks if more than n are present
-			spectrum.resize(peakcount_);
-		}
+    // @}
 
-		void filterPeakSpectrum(PeakSpectrum& spectrum);
+    ///
+    template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
+    {
+      if (spectrum.size() <= peakcount_) return;
 
-		void filterPeakMap(PeakMap& exp);
-		
-		//TODO reimplement DefaultParamHandler::updateMembers_()
-		
-		// @}
-		
-		private:
-			UInt peakcount_;
-	
+      // sort by reverse intensity
+      spectrum.sortByIntensity(true);
+
+      // keep the n largest peaks if more than n are present
+      spectrum.resize(peakcount_);
+    }
+
+    void filterPeakSpectrum(PeakSpectrum& spectrum);
+
+    void filterPeakMap(PeakMap& exp);
+
+    //TODO reimplement DefaultParamHandler::updateMembers_()
+
+    // @}
+
+  protected:
+    void updateMembers_();
+    UInt peakcount_;
+
+    /// handles the initialization of the default parameters for the 2 constructors
+    void init_();
+
   };
-	
+
 }
 #endif //OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H

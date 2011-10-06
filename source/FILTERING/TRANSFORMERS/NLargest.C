@@ -28,42 +28,48 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 
 using namespace std;
+
 namespace OpenMS
 {
 
-	NLargest::NLargest()
-		: DefaultParamHandler("NLargest")
-	{
-    defaults_.setValue("n", 200, "The number of peaks to keep.");
-		defaultsToParam_();
-		peakcount_ = 200;
-	}
-	
-	NLargest::NLargest(UInt n)
-		: DefaultParamHandler("NLargest")
-	{
-		defaults_.setValue("n", 200, "The number of peaks to keep");
-		defaultsToParam_();
-		//TODO set parameter (NOT defaults_) to n
-		param_.setValue("n",n);
-		peakcount_ = n;
-	}
-	
+  NLargest::NLargest()
+    : DefaultParamHandler("NLargest")
+  {
+    init_();
+  }
+
+  NLargest::NLargest(UInt n)
+    : DefaultParamHandler("NLargest")
+  {
+    init_();
+    // after initialising with the default value, use the provided n
+    param_.setValue("n",n);
+    updateMembers_();
+  }
+
+  void NLargest::init_()
+  {
+    defaults_.setValue("n", 200, "The number of peaks to keep");
+    defaultsToParam_();
+  }
+
   NLargest::~NLargest()
   {
   }
-	
+
   NLargest::NLargest(const NLargest& source)
     : DefaultParamHandler(source)
   {
+    updateMembers_();
   }
 
   NLargest& NLargest::operator=(const NLargest& source)
   {
-		if (this != &source)
-		{
-    	DefaultParamHandler::operator=(source);
-		}
+    if (this != &source)
+    {
+      DefaultParamHandler::operator=(source);
+      updateMembers_();
+    }
     return *this;
   }
 
@@ -71,7 +77,7 @@ namespace OpenMS
   {
     filterSpectrum(spectrum);
   }
-	
+
   void NLargest::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
@@ -80,4 +86,8 @@ namespace OpenMS
     }
   }
 
+  void NLargest::updateMembers_()
+  {
+    peakcount_ = (UInt)param_.getValue("n");
+  }
 }
