@@ -236,6 +236,7 @@ set(filtering_executables_list
   IsotopeDiffFilter_test
   IsotopeMarker_test
   LinearResampler_test
+  LowessSmoothing_test
   MarkerMower_test
   MorphologicalFilter_test
   NLargest_test

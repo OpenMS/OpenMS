@@ -25,48 +25,51 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#ifndef OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H
-#define OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H
+///////////////////////////
+#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
+///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+using namespace OpenMS;
+using namespace std;
 
-namespace OpenMS
+START_TEST(LowessSmoothing, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+LowessSmoothing* ptr = 0;
+LowessSmoothing* null_ptr = 0;
+START_SECTION(LowessSmoothing())
 {
-  /**
-    @brief LOWESS (locally weighted scatterplot smoothing) filtering.
+	ptr = new LowessSmoothing();
+	TEST_NOT_EQUAL(ptr, null_ptr)
+}
+END_SECTION
 
-    Fitting simple models to localized subsets of the data to build up a
-    function that describes the deterministic part of the variation in the
-    data, point by point.
+START_SECTION(~LowessSmoothing())
+{
+	delete ptr;
+}
+END_SECTION
 
-    @htmlinclude OpenMS_LowessSmoothing.parameters
+START_SECTION((virtual ~LowessSmoothing()))
+{
+  // TODO
+}
+END_SECTION
 
-    @ingroup SignalProcessing
-  */
-  class OPENMS_DLLAPI LowessSmoothing
-    : public DefaultParamHandler
-  {
-  public:
-    /// Constructor
-    LowessSmoothing();
-
-    /// Destructor
-    virtual ~LowessSmoothing();
-
-    typedef std::vector<DoubleReal> DoubleVector;
-
-    void smoothData(const DoubleVector&, const DoubleVector&, DoubleVector&);
-
-  protected:
-    virtual void updateMembers_();
-
-  private:
-    DoubleReal window_size_;
-
-    DoubleReal tricube_(DoubleReal, DoubleReal);
-  };
+START_SECTION((void smoothData(const DoubleVector &, const DoubleVector &, DoubleVector &)))
+{
+  // TODO
+}
+END_SECTION
 
 
-} // namespace OpenMS
-#endif // OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+
