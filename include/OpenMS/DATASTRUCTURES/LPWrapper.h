@@ -194,6 +194,9 @@ namespace OpenMS
     /// get number of rows
     Size getNumberOfRows();
 
+    void setElement(Size row_index,Size column_index,DoubleReal value);
+    DoubleReal getElement(Size row_index,Size column_index);
+    
     // problem reading/writing
     /**
      *	@brief Read LP from file

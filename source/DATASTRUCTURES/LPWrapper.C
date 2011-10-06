@@ -206,12 +206,71 @@ namespace OpenMS
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       {
-        int num[] = {0,(Int) index}; // glpk starts reading at pos 1
+        int num[] = {0,(Int) index+1}; // glpk starts reading at pos 1
         glp_del_rows(lp_problem_,1,num);
       }
 #if COINOR_SOLVER==1
     if (solver_==SOLVER_COINOR)   model_.deleteRow(index);
 #endif
+  }
+
+  void LPWrapper::setElement(Size row_index,Size column_index,DoubleReal value)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)
+      {
+        DoubleReal* values;
+        Int* indices;
+        Int length = glp_get_mat_row(lp_problem_, row_index+1, indices,values);
+        bool found = false;
+        for(Int i = 1;i <= length;++i)
+          {
+            if(indices[i] == (Int)column_index+1)
+              {
+                values[i]=value;
+                found = true;
+                break;
+              }
+          }
+        if(!found) // if this entry wasn't existing before we have to enter it
+          {
+            Int*  n_indices = new Int[length+2];
+            DoubleReal* n_values = new DoubleReal[length+2];
+            for(Int i = 0; i <= length;++i)
+              {
+                n_indices[i] = indices[i];
+                n_values[i] = values[i];
+              }
+            // now add new value
+            n_indices[length+1] = column_index+1; // glpk starts reading at pos 1
+            n_values[length+1] = value;
+            glp_set_mat_row(lp_problem_, row_index+1, length,n_indices, n_values);
+            delete n_indices;
+            delete n_values;
+          }
+        else glp_set_mat_row(lp_problem_, row_index+1, length,indices, values);
+      }
+#if COINOR_SOLVER==1
+    if (solver_==SOLVER_COINOR) model_.setElement(row_index,column_index,value);
+#endif
+  }
+  
+  DoubleReal LPWrapper::getElement(Size row_index,Size column_index)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)
+      {
+        DoubleReal* values;
+        Int* indices;
+        Int length = glp_get_mat_row(lp_problem_, row_index+1, indices,values);
+        for(Int i = 1;i <= length;++i)
+          {
+            if(indices[i] == (Int)column_index+1) return values[i];
+          }
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Column index", String(column_index));
+      }
+#if COINOR_SOLVER==1
+    if (solver_==SOLVER_COINOR) return model_.getElement(row_index,column_index);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));    
   }
   
   void LPWrapper::setColumnName(Size index,String name)
