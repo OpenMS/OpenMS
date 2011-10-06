@@ -180,17 +180,11 @@ START_SECTION(~SILACLabeler())
 }
 END_SECTION
 
-START_SECTION((void preCheck(Param &param) const ))
+START_SECTION((void preCheck(Param &) const))
 {
-/*
-  SILACLabeler labeler;
-  Param p;
-  p.setValue("medium_channel:modification_lysine","UniMod:695");
-	  TEST_EXCEPTION_WITH_MESSAGE(Exception::ElementNotFound, labeler.preCheck(p),"The label"<< std::endl << "UniMod:695" << std::endl << "has not the modification for "<< std::endl << "K"<< std::endl << ". P please check your label. The current version of the labeler needs R or K as modification sites");
-  */
  SILACLabeler labeler;
  Param p;
- labeler.preCheck(p); // Aufruf mit den Defaults
+ labeler.preCheck(p);
 }
 END_SECTION
 
@@ -341,25 +335,9 @@ START_SECTION((void postRawMSHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-// just to call the methods once
-SILACLabeler dummyLabeler;
-FeatureMapSimVector empty;
-
-START_SECTION((void preCheck(Param &param) const ))
-{
-  //Param p;
-  //dummyLabeler.preCheck(p);
-
-  // preCheck has no content
-  NOT_TESTABLE
-}
-END_SECTION
-
-
 START_SECTION((void postRTHook(FeatureMapSimVector &)))
 {
   // we do not modify the map in this step
-  //dummyLabeler.postRTHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
@@ -367,7 +345,6 @@ END_SECTION
 START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
 {
   // we do not modify the map in this step
-  //dummyLabeler.postDetectabilityHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
@@ -375,16 +352,13 @@ END_SECTION
 START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
 {
   // we do not modify the map in this step
-  //dummyLabeler.postIonizationHook(empty);
   NOT_TESTABLE
 }
 END_SECTION
 
-MSSimExperiment exp;
 START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
 {
   // we do not modify the map in this step
-  //dummyLabeler.postRawTandemMSHook(empty,exp);
   NOT_TESTABLE
 }
 END_SECTION

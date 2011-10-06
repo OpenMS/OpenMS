@@ -93,7 +93,7 @@ namespace OpenMS
 
     void updateMembers_();
 
-    String getUnmodifiedAASequence(const Feature& feature, const String& label) const;
+    String getUnmodifiedAASequence_(const Feature& feature, const String& label) const;
   };
 } // namespace OpenMS
 

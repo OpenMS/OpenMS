@@ -153,7 +153,7 @@ namespace OpenMS
 			{
 				(*light_labeled_features_iter).ensureUniqueId();
 				light_labeled_features_index.insert(std::make_pair(
-                                              getUnmodifiedAASequence((*light_labeled_features_iter), light_channel_label_),
+                                              getUnmodifiedAASequence_((*light_labeled_features_iter), light_channel_label_),
                                               *light_labeled_features_iter
                                               ));
 			}
@@ -167,10 +167,10 @@ namespace OpenMS
 				(*medium_labeled_feature_iter).ensureUniqueId();
 
 				// check if we have a pair
-        if(light_labeled_features_index.has(getUnmodifiedAASequence((*medium_labeled_feature_iter), medium_channel_label_)))
+        if(light_labeled_features_index.has(getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)))
 				{
 					// own scope as we don't know what happens to 'f_modified' once we call erase() below
-          Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence((*medium_labeled_feature_iter), medium_channel_label_)];
+          Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)];
 					// guarantee uniquenes
 					light_labeled_feature.ensureUniqueId();
 
@@ -188,7 +188,7 @@ namespace OpenMS
 						consensus_.push_back(cf);
 						
 						// remove light-labeled feature
-            light_labeled_features_index.erase(getUnmodifiedAASequence((*medium_labeled_feature_iter), medium_channel_label_));
+            light_labeled_features_index.erase(getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_));
 					}
 					else
 					{
@@ -221,7 +221,7 @@ namespace OpenMS
 			{
 				(*light_labeled_features_iter).ensureUniqueId();
         light_labeled_features_index.insert(std::make_pair(
-                                              getUnmodifiedAASequence(*light_labeled_features_iter,light_channel_label_),
+                                              getUnmodifiedAASequence_(*light_labeled_features_iter,light_channel_label_),
                                               *light_labeled_features_iter
                                               ));
 			}
@@ -234,7 +234,7 @@ namespace OpenMS
 			{
 				(*medium_labeled_features_iter).ensureUniqueId();
         medium_labeled_features_index.insert(std::make_pair(
-                                               getUnmodifiedAASequence((*medium_labeled_features_iter), medium_channel_label_),
+                                               getUnmodifiedAASequence_((*medium_labeled_features_iter), medium_channel_label_),
                                                *medium_labeled_features_iter
                                                ));
 			}
@@ -242,7 +242,7 @@ namespace OpenMS
       for(FeatureMapSim::iterator heavy_labeled_feature_iter = features_to_simulate[2].begin() ; heavy_labeled_feature_iter != features_to_simulate[2].end() ; ++heavy_labeled_feature_iter)
 			{
 				Feature& heavy_feature = *heavy_labeled_feature_iter;
-        String heavy_feature_unmodified_sequence = getUnmodifiedAASequence(heavy_feature, heavy_channel_label_);
+        String heavy_feature_unmodified_sequence = getUnmodifiedAASequence_(heavy_feature, heavy_channel_label_);
 				heavy_feature.ensureUniqueId();
 
 				if(light_labeled_features_index.has(heavy_feature_unmodified_sequence) && medium_labeled_features_index.has(heavy_feature_unmodified_sequence))
@@ -505,7 +505,7 @@ namespace OpenMS
     heavy_channel_label_ = param_.getValue("ICPL_heavy_channel_label");
   }
 
-  String ICPLLabeler::getUnmodifiedAASequence(const Feature &feature, const String &label) const
+  String ICPLLabeler::getUnmodifiedAASequence_(const Feature &feature, const String &label) const
   {
     AASequence unmodified = feature.getPeptideIdentifications()[0].getHits()[0].getSequence();
     if(unmodified.getNTerminalModification() == label)
