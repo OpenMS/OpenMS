@@ -46,13 +46,13 @@ using namespace std;
 
 /**
 	@page UTILS_INIUpdater INIUpdater
-	@brief Extract extended statistics on the features of a map for quality control.
+	@brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
 
 <CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileInfo \f$ \longrightarrow \f$</td>
+			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ INIUpdater \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
@@ -63,8 +63,8 @@ using namespace std;
 </CENTER>
 
 	This tool can update old INI files and make them
-   - compatible to new versions of OpenMS
-   - show new parameters introduced with a new OpenMS version
+   - compatible to new versions of %OpenMS
+   - show new parameters introduced with a new %OpenMS version
    - delete old parameters which no longer have any effect
 
   The new INI files can be created in-place (with -i option), which will overwrite the

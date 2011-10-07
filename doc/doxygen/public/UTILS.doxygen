@@ -37,7 +37,7 @@
  	The UTILS tools are divided into several subgroups:
 
 	<b>Maintenance</b>
-	- @subpage UTILS_INIUpdater - update INI and TOPPAS files from previous versions of OpenMS as parameters and storage method might have changed
+	- @subpage UTILS_INIUpdater - update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
 	
   <b>File handling</b>
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
