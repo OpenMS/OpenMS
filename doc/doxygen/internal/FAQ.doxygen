@@ -211,7 +211,14 @@ svn propset svn:eol-style native MyClass.C
           <LI> Add it to @em %OpenMS/source/TEST/executables.cmake in the GUI section.
 		  <LI> Have a look at existing GUI tests, as they use the QT TestLib framework and not the %OpenMS macros.
         </OL>		
-		
+
+			<LI><B>(Linux) When executing 'make test', all tests fail.</B><BR>
+			Please check the LD_LIBRARY_PATH environment variable:
+			- You can print the LD_LIBRARY_PATH with '<i>echo $LD_LIBRARY_PATH</i>'.
+			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> is present.
+			- With the ldd command, you can show the libraries used by an exutable, e.g. '<i>ldd &lt;%OpenMS&gt;/bin/ClassTest_test</i>'.
+
+				
 		</UL>
 	<H2 style="border-top:2px solid grey;">How can I speed up the compile process of %OpenMS?</H2>
 		<UL>
