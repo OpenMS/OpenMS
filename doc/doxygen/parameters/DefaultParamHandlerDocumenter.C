@@ -181,12 +181,12 @@ void writeParameters(const String& class_name, const Param& param)
 
 			//restrictions
 			bool first = true;
-			if (it->min_int!=-numeric_limits<Int>::max())
+			if (it->min_int!=-(numeric_limits<Int>::max)())
 			{
 				restrictions += String("min: ") + it->min_int;
 				first = false;
 			}
-			if (it->max_int!=numeric_limits<Int>::max())
+			if (it->max_int!=(numeric_limits<Int>::max)())
 			{
 				if (!first) restrictions += ' ';
 				restrictions += String("max: ") + it->max_int;
@@ -199,12 +199,12 @@ void writeParameters(const String& class_name, const Param& param)
 
 			//restrictions
 			bool first = true;
-			if (it->min_float!=-numeric_limits<DoubleReal>::max())
+			if (it->min_float!=-(numeric_limits<DoubleReal>::max)())
 			{
 				restrictions += String("min: ") + it->min_float;
 				first = false;
 			}
-			if (it->max_float!=numeric_limits<DoubleReal>::max())
+			if (it->max_float!=(numeric_limits<DoubleReal>::max)())
 			{
 				if (!first) restrictions += ' ';
 				restrictions += String("max: ") + it->max_float;

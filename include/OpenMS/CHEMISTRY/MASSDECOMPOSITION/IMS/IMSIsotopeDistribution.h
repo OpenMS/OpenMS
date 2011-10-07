@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <ostream>
+#include <algorithm>
 
 namespace OpenMS {
 

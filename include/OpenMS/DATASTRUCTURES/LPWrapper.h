@@ -30,25 +30,13 @@
 #include <limits>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#if COINOR_SOLVER == 1
-#ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
-#	pragma warning( push ) // save warning state
-#	pragma warning( disable : 4267 )
-#else
-# pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-// useful docu: https://projects.coin-or.org/Cbc
-// useful example: https://projects.coin-or.org/Cbc/browser/trunk/Cbc/examples/sample5.cpp
-// Cuts
-#include "coin/CoinModel.hpp"
-#ifdef _MSC_VER
-#	pragma warning( pop )  // restore old warning state
-#else
-# pragma GCC diagnostic warning "-Wunused-parameter"
-#endif
-#endif
 
-#include <glpk.h>
+// do NOT include glpk and CoinOr headers here, as they define bad stuff, which ripples through OpenMS then...
+// include them in LPWrapper.C where they do not harm
+// only declare them here
+class CoinModel;
+#define GLP_PROB_DEFINED
+typedef struct { double _opaque_prob[100]; } glp_prob;
 
 namespace OpenMS
 {
@@ -235,7 +223,7 @@ namespace OpenMS
 
 	protected:
 #if COINOR_SOLVER==1
-    CoinModel model_;
+    CoinModel* model_;
     std::vector<DoubleReal> solution_;
 #endif
 
