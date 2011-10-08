@@ -96,8 +96,6 @@ namespace OpenMS
 
 
 
-    DoubleVector::iterator smooth_peak_it = smoothed_output.begin();
-
     //for(DoubleVector::const_iterator outer_peak_it = input_y.begin(); outer_peak_it != input_y.end(); ++outer_peak_it )
     for(Size outer_idx = 0; outer_idx < input_y.size(); ++outer_idx)
     {
