@@ -40,7 +40,7 @@
 
 ///////////////////////////
 
-START_TEST(SvmTheoreticalSpectrumGeneratorSet, "$Id: SvmTheoreticalSpectrumGeneratorSet_test.C 7353 2010-09-03 21:18:31Z aiche $")
+START_TEST(SvmTheoreticalSpectrumGeneratorSet, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

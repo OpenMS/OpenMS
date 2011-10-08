@@ -154,7 +154,7 @@ void digestFeaturesMapSimVector_(FeatureMapSimVector& feature_maps)
 	}
 }
 
-START_TEST(ICPLLabeler, "$Id: ICPLLabeler_test.C 7837 2011-05-14 11:41:44Z flehnert $")
+START_TEST(ICPLLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
