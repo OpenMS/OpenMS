@@ -161,7 +161,6 @@ namespace OpenMS
           break;
         case UPPER_BOUND_ONLY: // only upper bound
           model_->setRowBounds(index,-COIN_DBL_MAX,upper_bound);
-          std::cout << "setting row upper bound "<<" "<<upper_bound<<std::endl;
           break;
         default: // double-bounded or fixed
           model_->setRowBounds(index,lower_bound,upper_bound);
@@ -317,7 +316,6 @@ namespace OpenMS
           break;
         default: // double-bounded or fixed
           model_->setColumnBounds(index,lower_bound,upper_bound);
-          std::cout << "setting "<<index << " column bounds: "<<lower_bound <<" "<<upper_bound<<std::endl;
           break;
       }
     }
