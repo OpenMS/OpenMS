@@ -75,7 +75,7 @@ namespace OpenMS
     for (ims::RealMassDecomposer::decompositions_type::const_iterator pos = decompositions.begin(); pos != decompositions.end(); ++pos)
     {
       String d;
-      for (ims::Alphabet::size_type i = 0; i < alphabet_->size(); ++i)
+      for (ims::IMSAlphabet::size_type i = 0; i < alphabet_->size(); ++i)
       {
         if ((*pos)[i] > 0)
         {
@@ -187,7 +187,7 @@ namespace OpenMS
 		}
 
     // init mass decomposer
-    alphabet_ = new ims::Alphabet();
+    alphabet_ = new ims::IMSAlphabet();
 		for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
 		{
 			alphabet_->push_back(String(it->first), it->second);

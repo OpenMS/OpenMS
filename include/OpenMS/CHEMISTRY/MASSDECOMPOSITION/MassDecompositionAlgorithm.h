@@ -38,7 +38,7 @@
 #endif
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Alphabet.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
 #ifdef OPENMS_COMPILER_MSVC
 	#pragma warning( pop )
@@ -83,7 +83,7 @@ namespace OpenMS
 
 			void updateMembers_();
 
-			ims::Alphabet* alphabet_;
+      ims::IMSAlphabet* alphabet_;
 
 			ims::RealMassDecomposer* decomposer_;
 
