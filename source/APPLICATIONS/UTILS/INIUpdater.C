@@ -233,7 +233,7 @@ class TOPPINIUpdater
     if (outfile.size()==0)
     { // create a backup
       QFileInfo fi(infile.toQString());
-      String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".ini";
+      String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
       QFile::rename(infile.toQString(), new_name.toQString());
       // write new file
       p.store(infile);
