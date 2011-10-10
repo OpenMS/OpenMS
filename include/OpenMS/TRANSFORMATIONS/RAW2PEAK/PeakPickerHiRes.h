@@ -148,7 +148,7 @@ namespace OpenMS
 
                     while ((i-k+1) > 0
                            && (missing_left < 2)
-                        && input[i-k].getIntensity() < peak_raw_data.begin()->second
+                        && input[i-k].getIntensity() <= peak_raw_data.begin()->second
                                 && snt.getSignalToNoise(input[i-k]) >= signal_to_noise_)
                         {
                         if (std::fabs(input[i-k].getMZ() - peak_raw_data.begin()->first) < 1.5*min_spacing)
@@ -168,7 +168,7 @@ namespace OpenMS
                     k = 2;
                     while ((i+k) < input.size()
                         && (missing_right < 2)
-                        && input[i+k].getIntensity() < peak_raw_data.rbegin()->second
+                        && input[i+k].getIntensity() <= peak_raw_data.rbegin()->second
                                 && snt.getSignalToNoise(input[i+k]) >= signal_to_noise_)
                         {
                         if (std::fabs(input[i+k].getMZ() - peak_raw_data.rbegin()->first) < 1.5*min_spacing)
