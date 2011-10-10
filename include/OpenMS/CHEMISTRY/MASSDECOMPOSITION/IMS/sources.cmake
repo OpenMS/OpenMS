@@ -4,17 +4,17 @@ set(directory include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS)
 
 ### list all header files of the directory here
 set(sources_list_h
-Alphabet.h
+IMSAlphabet.h
 IntegerMassDecomposer.h
 MassDecomposer.h
 RealMassDecomposer.h
 Weights.h
-Element.h
+IMSElement.h
 IMSIsotopeDistribution.h
-AlphabetParser.h
+IMSAlphabetParser.h
 compose_f_gx_hy_t.h
 compose_f_gx_t.h
-AlphabetTextParser.h
+IMSAlphabetTextParser.h
 )
 
 

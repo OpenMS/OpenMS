@@ -26,8 +26,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ALPHABET_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ALPHABET_H
+#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABET_H
+#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABET_H
 
 #include <vector>
 #include <string>
@@ -35,8 +35,8 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Element.h>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/AlphabetParser.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h>
 
 namespace OpenMS {
 
@@ -70,9 +70,9 @@ namespace ims {
  * error happened while loading data, @c IOException will be thrown. 
  * 
  */
-class Alphabet {
+class IMSAlphabet {
 public:
-  typedef Element element_type;
+  typedef IMSElement element_type;
   typedef element_type::mass_type mass_type;
   typedef element_type::name_type name_type;
   typedef std::vector<element_type> container;
@@ -90,7 +90,7 @@ public:
   /**
    * Empty constructor.
    */
-  Alphabet() { }
+  IMSAlphabet() { }
 
 
   /**
@@ -98,7 +98,7 @@ public:
    *
    * @param elements Elements to be set
    */
-  Alphabet(const container& elements) :
+  IMSAlphabet(const container& elements) :
     elements(elements)
   { }
 
@@ -108,7 +108,7 @@ public:
    *
    * @param alphabet Alphabet to be assigned
    */
-  Alphabet(const Alphabet &alphabet) :
+  IMSAlphabet(const IMSAlphabet &alphabet) :
     elements(alphabet.elements)
   { }
 
@@ -268,13 +268,13 @@ public:
    * @see load(const std::string& fname)
    * @see AlphabetParser
    */
-  virtual void load(const std::string& fname, AlphabetParser<>* parser);
+  virtual void load(const std::string& fname, IMSAlphabetParser<>* parser);
 
 
   /**
    * Default destructor.
    */
-  virtual ~Alphabet() { }
+  virtual ~IMSAlphabet() { }
 
 private:
   /**
@@ -302,7 +302,7 @@ private:
  * @param os Output stream to which alphabet is written
  * @param alphabet Alphabet to be written.
  */
-std::ostream& operator<<(std::ostream& os, const Alphabet& alphabet);
+std::ostream& operator<<(std::ostream& os, const IMSAlphabet& alphabet);
 
 } // namespace ims
 

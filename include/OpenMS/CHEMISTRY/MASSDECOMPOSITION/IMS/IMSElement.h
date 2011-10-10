@@ -26,8 +26,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ELEMENT_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ELEMENT_H
+#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSELEMENT_H
+#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSELEMENT_H
 
 #include <string>
 #include <ostream>
@@ -52,7 +52,7 @@ namespace ims {
  * 
  * @ingroup alphabet 
  */
-class Element {
+class IMSElement {
 public:
   /**
    * Type of element's name.
@@ -87,14 +87,14 @@ public:
   /**
    * Empty constructor.
    */
-  Element()
+  IMSElement()
   {
   }
 
   /**
    * Copy constructor.
    */
-  Element(const Element& element) :
+  IMSElement(const IMSElement& element) :
     name(element.name),
     sequence(element.sequence),
     isotopes(element.isotopes)
@@ -104,7 +104,7 @@ public:
   /**
    * Constructor with name and isotope distribution.
    */
-  Element(const name_type& name,
+  IMSElement(const name_type& name,
           const isotopes_type& isotopes) :
     name(name),
     sequence(name),
@@ -115,7 +115,7 @@ public:
   /**
    * Constructor with name and mass of single isotope.
    */
-  Element(	const name_type& name,
+  IMSElement(	const name_type& name,
           mass_type mass):
     name(name),
     sequence(name),
@@ -126,7 +126,7 @@ public:
   /**
    * Constructor with name and nominal mass.
    */
-  Element(const name_type& name,
+  IMSElement(const name_type& name,
           nominal_mass_type nominal_mass = 0)
     : name(name),
     sequence(name),
@@ -242,7 +242,7 @@ public:
    * @param element Element to be assigned to this one.
    * @return Reference to this object.
    */
-  Element& operator =(const Element& element);
+  IMSElement& operator =(const IMSElement& element);
 
   /**
    * Equality operator. Returns true, if a given @c element is equal
@@ -251,7 +251,7 @@ public:
    * @return true, if a given element is equal to this one,
    * 		   false - otherwise
    */
-  bool operator ==(const Element& element) const;
+  bool operator ==(const IMSElement& element) const;
 
   /**
    * Inequality operator. Returns true, if a given @c element is
@@ -260,12 +260,12 @@ public:
    * @return true, if a given element is unequal to this one,
    * 		   false - otherwise.
    */
-  bool operator !=(const Element& element) const;
+  bool operator !=(const IMSElement& element) const;
 
   /**
    * Default destructor.
    */
-  virtual ~Element() {}
+  virtual ~IMSElement() {}
 
 private:
   /**
@@ -290,7 +290,7 @@ private:
  * @param os Output stream to which element is printed out.
  * @param element Element to be printed out.
  */
-std::ostream& operator<<(std::ostream& os, const Element& element);
+std::ostream& operator<<(std::ostream& os, const IMSElement& element);
 
 } // namespace ims
 } // namespace OpenMS

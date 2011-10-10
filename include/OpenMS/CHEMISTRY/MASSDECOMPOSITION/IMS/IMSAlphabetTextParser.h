@@ -22,41 +22,49 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> ?? $
+// $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
 // --------------------------------------------------------------------------
 //
 
-#include <sstream>
+#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABETTEXTPARSER_H
+#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABETTEXTPARSER_H
 
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/AlphabetTextParser.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h>
+
+namespace OpenMS {
+
+namespace ims {
 
 /**
- * Parses the data from the stream @c is . 
- * While loading the following is ignored:
- * - white space
- * - lines containing only white space
- * - lines starting with '#' (even after leading whitespace, but not after anything else) 
+ * @brief Implements abstract @c AlphabetParser to read data from the plain text format.
+ *
+ * @c AlphabetTextParser parses the data source using overriden @c parse(std::istream&) 
+ * and stores the parsed data permanently. That can be retrieved by @c getElements() function. 
  * 
- * @param is The input stream to be parsed.
  */
-void OpenMS::ims::AlphabetTextParser::parse(std::istream& is)
-{
-	// first make sure the store is empty
-	elements.clear();
-	std::string line;
-	std::string name;
-	const std::string delimits(" \t"), comments("#");
-	double mass;
-  while (std::getline(is, line))
-  {
-		std::string::size_type i = line.find_first_not_of(delimits);
-    if (i == std::string::npos || comments.find(line[i]) != std::string::npos)
-    {
-			continue; // skip comment lines
-		}
-		std::istringstream input(line);
-		input >> name >> mass;
-		elements.insert(std::make_pair(name, mass));
-	}
-}
+class IMSAlphabetTextParser : public IMSAlphabetParser<> {
+private:
+  /**
+    * The parsed data.
+    */
+  ContainerType elements;
+public:
+  /**
+   * Gets the parsed data.
+   *
+   * @return The parsed data.
+   */
+  virtual ContainerType& getElements() { return elements; }
 
+  /**
+   * Parses the input stream \c is \c.
+   *
+   * @param is The input stream to be parsed
+   */
+  virtual void parse(std::istream& is);
+};
+
+} // namespace ims
+} // namespace OpenMS
+
+#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ALPHABETTEXTPARSER_H

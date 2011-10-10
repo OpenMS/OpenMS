@@ -22,57 +22,41 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
+// $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> ?? $
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Element.h>
+#include <sstream>
 
-namespace OpenMS {
-
-namespace ims {
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h>
 
 /**
- * @note Value for electron mass is taken from 
- * @link www.mcelwee.net/html/table_of_physical_constants.html
+ * Parses the data from the stream @c is . 
+ * While loading the following is ignored:
+ * - white space
+ * - lines containing only white space
+ * - lines starting with '#' (even after leading whitespace, but not after anything else) 
+ * 
+ * @param is The input stream to be parsed.
  */
-const Element::mass_type Element::ELECTRON_MASS_IN_U = 0.00054858;
-
-Element& Element::operator =(const Element& element)
+void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream& is)
 {
-	// if one doesn't assign object to itself,
-	// assign all object elements to the elements of the given object
-  if (this != &element)
+	// first make sure the store is empty
+	elements.clear();
+	std::string line;
+	std::string name;
+	const std::string delimits(" \t"), comments("#");
+	double mass;
+  while (std::getline(is, line))
   {
-		name = element.name;		
-		sequence = element.sequence;
-		isotopes = element.isotopes;
+		std::string::size_type i = line.find_first_not_of(delimits);
+    if (i == std::string::npos || comments.find(line[i]) != std::string::npos)
+    {
+			continue; // skip comment lines
+		}
+		std::istringstream input(line);
+		input >> name >> mass;
+		elements.insert(std::make_pair(name, mass));
 	}
-	return *this;
 }
 
-
-bool Element::operator ==(const Element& element) const
-{
-	return ( this == &element ||
-          (name == element.name &&
-           sequence == element.sequence &&
-           isotopes == element.isotopes));
-}
-
-
-bool Element::operator !=(const Element& element) const
-{
-	return !this->operator==(element);
-}
-
-
-std::ostream& operator <<(std::ostream& os, const Element& element)
-{
-	os << "name:\t" << element.getName() << "\nsequence:\t" << element.getSequence()
-	   << "\nisotope distribution:\n" << element.getIsotopeDistribution() << '\n';
-	return os;
-}
-
-} // namespace ims
-} // namespace OpenMS
