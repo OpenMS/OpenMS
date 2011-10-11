@@ -53,7 +53,13 @@ namespace OpenMS
   {
     if (input_x.size() != input_y.size()) {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
-      return ;
+    }
+
+    // unable to smooth over 2 or less data points (we need at least 3)
+    if (input_x.size()<=2)
+    {
+      smoothed_output = input_y;
+      return;
     }
 
     Size input_size = input_y.size();

@@ -179,7 +179,7 @@ namespace OpenMS
             }
         }
 
-        while (right_border < smoothed_intensities_.size())
+        while (right_border+1 < smoothed_intensities_.size())
         {
             ++right_border;
 
