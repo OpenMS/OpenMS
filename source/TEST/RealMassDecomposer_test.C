@@ -22,57 +22,65 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-namespace OpenMS {
+///////////////////////////
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
+///////////////////////////
 
-namespace ims {
+using namespace OpenMS;
+using namespace ims;
+using namespace std;
 
-/**
- * @note Value for electron mass is taken from 
- * @link www.mcelwee.net/html/table_of_physical_constants.html
- */
-const IMSElement::mass_type IMSElement::ELECTRON_MASS_IN_U = 0.00054858;
+START_TEST(RealMassDecomposer, "$Id$")
 
-IMSElement& IMSElement::operator =(const IMSElement& element)
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+RealMassDecomposer* ptr = 0;
+RealMassDecomposer* null_ptr = 0;
+
+START_SECTION((RealMassDecomposer(const Weights &weights)))
 {
-	// if one doesn't assign object to itself,
-	// assign all object elements to the elements of the given object
-  if (this != &element)
-  {
-		name_ = element.name_;		
-		sequence_ = element.sequence_;
-		isotopes_ = element.isotopes_;
-	}
-	return *this;
+  Weights w;
+  ptr = new RealMassDecomposer(w);
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
+END_SECTION
 
 
-bool IMSElement::operator ==(const IMSElement& element) const
+START_SECTION(~RealMassDecomposer())
 {
-	return ( this == &element ||
-          (name_ == element.name_ &&
-           sequence_ == element.sequence_ &&
-           isotopes_ == element.isotopes_));
+	delete ptr;
 }
+END_SECTION
 
 
-bool IMSElement::operator !=(const IMSElement& element) const
+START_SECTION((decompositions_type getDecompositions(double mass, double error)))
 {
-	return !this->operator==(element);
+  // TODO
 }
+END_SECTION
 
-
-std::ostream& operator <<(std::ostream& os, const IMSElement& element)
+START_SECTION((decompositions_type getDecompositions(double mass, double error, const constraints_type &constraints)))
 {
-	os << "name:\t" << element.getName() << "\nsequence:\t" << element.getSequence()
-	   << "\nisotope distribution:\n" << element.getIsotopeDistribution() << '\n';
-	return os;
+  // TODO
 }
+END_SECTION
 
-} // namespace ims
-} // namespace OpenMS
+START_SECTION((number_of_decompositions_type getNumberOfDecompositions(double mass, double error)))
+{
+  // TODO
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

@@ -49,11 +49,24 @@ TOPPAS improvements:
 Changes to the Build System: 
 	- TOPPAS now requires Qt's Webkit library
 	- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE
-  - Removed AndiMS, NetCDF and dependencies	
+	- Removed AndiMS, NetCDF and dependencies
+	- Removed dependency to imslib, relevant classes were moved directly to OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS
 	
 Fixed Issues: 
 	 
 Detailed list of changes to specific OpenMS classes:
+- NEW:
+	- compose_f_gx_hy_t (from imslib)
+	- compose_f_gx_t (from imslib)
+	- IMSAlphabet (from imslib)
+	- IMSAlphabetParser (from imslib)
+	- IMSAlphabetTextParser (from imslib)
+	- IMSElement (from imslib)
+	- IMSIsotopeDistribution (from imslib)
+	- IntegerMassDecomposer (from imslib)
+	- MassDecomposer (from imslib)
+	- RealMassDecomposer (from imslib)
+	- Weights (from imslib)
 - MODIFIED:
   - AASequence: removed AASequence(ConstIterator, ConstIterator) constructor, since it ignored Terminal Modifications; since there was no way to enable correct construction from two Iterators, we removed it
   

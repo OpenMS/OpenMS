@@ -54,8 +54,8 @@ IMSIsotopeDistribution& IMSIsotopeDistribution::operator =(const IMSIsotopeDistr
 {
   if (this != &distribution)
   {
-		peaks = distribution.peaks;
-		nominalMass = distribution.nominalMass;
+		peaks_ = distribution.peaks_;
+		nominal_mass_ = distribution.nominal_mass_;
 	}
 	return *this;
 }
@@ -64,8 +64,8 @@ IMSIsotopeDistribution& IMSIsotopeDistribution::operator =(const IMSIsotopeDistr
 bool IMSIsotopeDistribution::operator ==(const IMSIsotopeDistribution& distribution) const
 {
 	return ( this == &distribution ||
-          (peaks == distribution.peaks &&
-           nominalMass == distribution.nominalMass));
+          (peaks_ == distribution.peaks_ &&
+           nominal_mass_ == distribution.nominal_mass_));
 }
 
 
@@ -91,12 +91,12 @@ IMSIsotopeDistribution& IMSIsotopeDistribution::operator *=(const IMSIsotopeDist
 	peaks_container dest(SIZE);
 	// checks if the size of abundances and masses containers coincides with 
 	// the static variable SIZE (meant to be set by client for distribution)
-	setMinimumSize();
+	setMinimumSize_();
 	// creates a non-const equivalent of a const parameter - it's needed to 
 	// get non-const iterators out of it
 	IMSIsotopeDistribution& non_const_distribution = 
       const_cast<IMSIsotopeDistribution&>(distribution);
-	non_const_distribution.setMinimumSize();
+	non_const_distribution.setMinimumSize_();
 
 	// sets up different iterators for an efficient folding:
 	// it2_dest - iterator on a destination container,
@@ -104,7 +104,7 @@ IMSIsotopeDistribution& IMSIsotopeDistribution::operator *=(const IMSIsotopeDist
 	//							source container (function parameter)
 	// it1 - iterator on the first source container
 	// it2 - iterator on the second source container
-	peaks_iterator it2_begin = non_const_distribution.peaks.begin();
+	peaks_iterator it2_begin = non_const_distribution.peaks_.begin();
 	peaks_iterator it1, it2,
 			it_dest = dest.begin(),
 			it2_end = it2_begin;
@@ -114,7 +114,7 @@ IMSIsotopeDistribution& IMSIsotopeDistribution::operator *=(const IMSIsotopeDist
   {
 		abundances_sum = 0;
 		masses_mult_abundances_sum = 0;
-		it1 = peaks.begin();
+		it1 = peaks_.begin();
 		it2 = it2_end;
 
     for (; it2 != it2_begin; ++it1, --it2)
@@ -133,9 +133,9 @@ IMSIsotopeDistribution& IMSIsotopeDistribution::operator *=(const IMSIsotopeDist
           masses_mult_abundances_sum / abundances_sum : 0;
 	}
 
-	nominalMass += distribution.nominalMass;
+	nominal_mass_ += distribution.nominal_mass_;
 	
-	peaks.swap(dest);
+	peaks_.swap(dest);
 	
 	this->normalize();
 
@@ -206,7 +206,7 @@ IMSIsotopeDistribution& IMSIsotopeDistribution::operator *=(unsigned int power)
 IMSIsotopeDistribution::mass_type IMSIsotopeDistribution::getAverageMass() const
 {
 	mass_type average_mass = 0.0;
-  for (size_type i = 0; i < peaks.size(); ++i)
+  for (size_type i = 0; i < peaks_.size(); ++i)
   {
 		average_mass += this->getMass(i) * this->getAbundance(i);
 	}
@@ -238,25 +238,25 @@ IMSIsotopeDistribution::masses_container IMSIsotopeDistribution::getMasses() con
 void IMSIsotopeDistribution::normalize()
 {
 	abundance_type sum = 0.0;
-  for (const_peaks_iterator cit = peaks.begin(); cit < peaks.end(); ++cit)
+  for (const_peaks_iterator cit = peaks_.begin(); cit < peaks_.end(); ++cit)
   {
 		sum += cit->abundance;
 	}
   if (sum > 0 && std::fabs(sum - 1) > ABUNDANCES_SUM_ERROR)
   {
 		abundance_type scale = 1/sum;
-    for (peaks_iterator it = peaks.begin(); it < peaks.end(); ++it)
+    for (peaks_iterator it = peaks_.begin(); it < peaks_.end(); ++it)
     {
 			it->abundance *= scale;
 		}
 	}
 }
 
-void IMSIsotopeDistribution::setMinimumSize()
+void IMSIsotopeDistribution::setMinimumSize_()
 {
-  if (peaks.size() < SIZE)
+  if (peaks_.size() < SIZE)
   {
-		peaks.resize(SIZE);
+		peaks_.resize(SIZE);
 	}
 }
 

@@ -42,7 +42,7 @@
 void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream& is)
 {
 	// first make sure the store is empty
-	elements.clear();
+	elements_.clear();
 	std::string line;
 	std::string name;
 	const std::string delimits(" \t"), comments("#");
@@ -56,7 +56,7 @@ void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream& is)
 		}
 		std::istringstream input(line);
 		input >> name >> mass;
-		elements.insert(std::make_pair(name, mass));
+		elements_.insert(std::make_pair(name, mass));
 	}
 }
 

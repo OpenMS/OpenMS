@@ -313,6 +313,15 @@ set(chemistry_executables_list
   TheoreticalSpectrumGenerator_test
   TrypticIterator_test
   WeightWrapper_test
+  IMSAlphabetTextParser_test
+  IMSElement_test
+  IntegerMassDecomposer_test
+  IMSIsotopeDistribution_test
+  Weights_test
+  IMSAlphabetParser_test
+  MassDecomposer_test
+  IMSAlphabet_test
+  RealMassDecomposer_test
 )
 
 

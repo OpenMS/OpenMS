@@ -35,12 +35,12 @@ namespace ims {
 
 
 RealMassDecomposer::RealMassDecomposer(const Weights& weights) :
-  weights(weights)
+  weights_(weights)
 {
 
-	rounding_errors = std::make_pair(weights.getMinRoundingError(), weights.getMaxRoundingError());
-	precision = weights.getPrecision();
-	decomposer = std::auto_ptr<integer_decomposer_type>(
+	rounding_errors_ = std::make_pair(weights.getMinRoundingError(), weights.getMaxRoundingError());
+	precision_ = weights.getPrecision();
+	decomposer_ = std::auto_ptr<integer_decomposer_type>(
         new integer_decomposer_type(weights));
 }
 
@@ -49,9 +49,9 @@ RealMassDecomposer::decompositions_type RealMassDecomposer::getDecompositions(do
 {
 	// defines the range of integers to be decomposed
 	integer_value_type start_integer_mass = static_cast<integer_value_type>(
-        ceil((1 + rounding_errors.first) * (mass - error) / precision));
+        ceil((1 + rounding_errors_.first) * (mass - error) / precision_));
 	integer_value_type end_integer_mass = static_cast<integer_value_type>(
-        floor((1 + rounding_errors.second) * (mass + error) / precision));
+        floor((1 + rounding_errors_.second) * (mass + error) / precision_));
 
 	decompositions_type all_decompositions_from_range;
 
@@ -62,11 +62,11 @@ RealMassDecomposer::decompositions_type RealMassDecomposer::getDecompositions(do
        integer_mass < end_integer_mass; ++integer_mass)
   {
 		decompositions_type decompositions =
-        decomposer->getAllDecompositions(integer_mass);
+        decomposer_->getAllDecompositions(integer_mass);
 		for (decompositions_type::iterator pos = decompositions.begin();
          pos != decompositions.end();)
     {
-			double parent_mass = weights.getParentMass(*pos);
+			double parent_mass = weights_.getParentMass(*pos);
       if (fabs(parent_mass - mass) > error)
       {
 				pos = decompositions.erase(pos);
@@ -86,9 +86,9 @@ RealMassDecomposer::decompositions_type RealMassDecomposer::getDecompositions(do
 
 	// defines the range of integers to be decomposed
 	integer_value_type start_integer_mass = static_cast<integer_value_type>(
-        ceil((1 + rounding_errors.first) * (mass - error) / precision));
+        ceil((1 + rounding_errors_.first) * (mass - error) / precision_));
 	integer_value_type end_integer_mass = static_cast<integer_value_type>(
-        floor((1 + rounding_errors.second) * (mass + error) / precision));
+        floor((1 + rounding_errors_.second) * (mass + error) / precision_));
 
 	decompositions_type all_decompositions_from_range;
 
@@ -99,10 +99,10 @@ RealMassDecomposer::decompositions_type RealMassDecomposer::getDecompositions(do
        integer_mass < end_integer_mass; ++integer_mass)
   {
 		decompositions_type decompositions =
-        decomposer->getAllDecompositions(integer_mass);
+        decomposer_->getAllDecompositions(integer_mass);
 		for (decompositions_type::iterator pos = decompositions.begin();
          pos != decompositions.end();) {
-			double parent_mass = weights.getParentMass(*pos);
+			double parent_mass = weights_.getParentMass(*pos);
       if (fabs(parent_mass - mass) > error)
       {
 				pos = decompositions.erase(pos);
@@ -146,10 +146,10 @@ RealMassDecomposer::number_of_decompositions_type RealMassDecomposer::getNumberO
   if (mass - error > 0)
   {
 		start_integer_mass = static_cast<integer_value_type>(
-          ceil((1 + rounding_errors.first) * (mass - error) / precision));
+          ceil((1 + rounding_errors_.first) * (mass - error) / precision_));
 	}
 	integer_value_type end_integer_mass = static_cast<integer_value_type>(
-        floor((1 + rounding_errors.second) * (mass + error) / precision));
+        floor((1 + rounding_errors_.second) * (mass + error) / precision_));
 
 	number_of_decompositions_type number_of_decompositions = static_cast<number_of_decompositions_type>(0);
 
@@ -160,11 +160,11 @@ RealMassDecomposer::number_of_decompositions_type RealMassDecomposer::getNumberO
        integer_mass < end_integer_mass; ++integer_mass)
   {
 		decompositions_type decompositions =
-        decomposer->getAllDecompositions(integer_mass);
+        decomposer_->getAllDecompositions(integer_mass);
 		for (decompositions_type::iterator pos = decompositions.begin();
          pos != decompositions.end(); ++pos)
     {
-			double parent_mass = weights.getParentMass(*pos);
+			double parent_mass = weights_.getParentMass(*pos);
       if (fabs(parent_mass - mass) <= error)
       {
 				++number_of_decompositions;

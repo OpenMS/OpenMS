@@ -62,16 +62,16 @@ IMSAlphabet::mass_type IMSAlphabet::getMass(const name_type& name) const
 
 bool IMSAlphabet::hasName(const name_type& name) const
 {
-  return std::find_if(elements.begin(), elements.end(),
+  return std::find_if(elements_.begin(), elements_.end(),
                       compose_f_gx(std::bind2nd(std::equal_to<name_type>(), name),
-                                   std::mem_fun_ref(&element_type::getName))) < elements.end();
+                                   std::mem_fun_ref(&element_type::getName))) < elements_.end();
 }
 
 
 const IMSAlphabet::element_type& IMSAlphabet::getElement(const name_type& name) const
 {
-  const_iterator cit = elements.begin();
-  for (; cit != elements.end(); ++cit)
+  const_iterator cit = elements_.begin();
+  for (; cit != elements_.end(); ++cit)
   {
     if (cit->getName() == name)
     {
@@ -84,12 +84,12 @@ const IMSAlphabet::element_type& IMSAlphabet::getElement(const name_type& name) 
 void IMSAlphabet::setElement(const name_type& name, mass_type mass, bool forced)
 {
   bool found = false;
-  for (size_type i = 0; i < elements.size(); ++i)
+  for (size_type i = 0; i < elements_.size(); ++i)
   {
-    if (name == elements[i].getName())
+    if (name == elements_[i].getName())
     {
       element_type element(name, mass);
-      elements[i] = element;
+      elements_[i] = element;
       found = true;
       break;
     }
@@ -103,12 +103,12 @@ void IMSAlphabet::setElement(const name_type& name, mass_type mass, bool forced)
 bool IMSAlphabet::erase(const name_type& name)
 {
   bool found = false;
-  iterator it = elements.begin();
-  for (; it != elements.end(); ++it)
+  iterator it = elements_.begin();
+  for (; it != elements_.end(); ++it)
   {
     if (it->getName() == name)
     {
-      elements.erase(it);
+      elements_.erase(it);
       found = true;
       break;
     }
@@ -119,8 +119,8 @@ bool IMSAlphabet::erase(const name_type& name)
 IMSAlphabet::masses_type IMSAlphabet::getMasses(size_type index) const
 {
   masses_type masses;
-  const_iterator cit = elements.begin();
-  for (; cit != elements.end(); ++cit)
+  const_iterator cit = elements_.begin();
+  for (; cit != elements_.end(); ++cit)
   {
     masses.push_back(cit->getMass(index));
   }
@@ -131,8 +131,8 @@ IMSAlphabet::masses_type IMSAlphabet::getMasses(size_type index) const
 IMSAlphabet::masses_type IMSAlphabet::getAverageMasses() const
 {
   masses_type masses;
-  const_iterator cit = elements.begin();
-  for (; cit != elements.end(); ++cit)
+  const_iterator cit = elements_.begin();
+  for (; cit != elements_.end(); ++cit)
   {
     masses.push_back(cit->getAverageMass());
   }
@@ -142,7 +142,7 @@ IMSAlphabet::masses_type IMSAlphabet::getAverageMasses() const
 
 void IMSAlphabet::sortByNames()
 {
-  std::sort(elements.begin(), elements.end(),
+  std::sort(elements_.begin(), elements_.end(),
             compose_f_gx_hy(
               std::less<name_type>(),
               std::mem_fun_ref(&element_type::getName),
@@ -152,7 +152,7 @@ void IMSAlphabet::sortByNames()
 
 void IMSAlphabet::sortByValues()
 {
-  std::sort(elements.begin(), elements.end(), MassSortingCriteria());
+  std::sort(elements_.begin(), elements_.end(), MassSortingCriteria_());
 }
 
 
