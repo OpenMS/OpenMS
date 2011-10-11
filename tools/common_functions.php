@@ -339,7 +339,8 @@ function getClassInfo($bin_path,$header, $debug)
 		"",
 		"Internal_1_1",
 		"Math_1_1",
-		"Logger_1_1"
+		"Logger_1_1",
+		"ims_1_1"
 		);
 	
 	$found = false;
