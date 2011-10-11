@@ -792,12 +792,12 @@ namespace OpenMS
 				}
 				else if (current_type == "merger")
 				{
-					TOPPASMergerVertex* mv = new TOPPASMergerVertex();
+          String rb = "true";
 					if (vertices_param.exists(current_id + ":round_based"))
 					{
-						String rb = vertices_param.getValue(current_id + ":round_based");
-						mv->setRoundBasedMode(rb == "true" ? true : false);
+            rb = vertices_param.getValue(current_id + ":round_based");
 					}
+          TOPPASMergerVertex* mv = new TOPPASMergerVertex(rb == "true");
 
           connectMergerVertexSignals(mv);
 
@@ -1591,11 +1591,6 @@ namespace OpenMS
 				action.insert("Edit I/O mapping");
 			}
 
-			if (found_merger)
-			{
-				action.insert("Change mode");
-			}
-
       if (found_input || found_tool || found_merger)
       {
 				action.insert("Change recycling mode");
@@ -1753,19 +1748,6 @@ namespace OpenMS
 
 					continue;
 				}
-				
-				TOPPASMergerVertex* mv = dynamic_cast<TOPPASMergerVertex*>(gi);
-				if (mv)
-				{
-					if (text == "Change mode")
-					{
-						mv->setRoundBasedMode(!mv->roundBasedMode());
-						mv->update(mv->boundingRect());
-					}
-					
-					continue;
-				}
-
 			}
 		}
 		

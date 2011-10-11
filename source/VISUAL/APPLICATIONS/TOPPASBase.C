@@ -370,6 +370,9 @@ namespace OpenMS
     item = new QTreeWidgetItem((QTreeWidget*)0);
     item->setText(0, "<Merger>");
     tools_tree_view->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Collector>");
+    tools_tree_view->addTopLevelItem(item);
 
     //Param category_param = param_.copy("tool_categories:", true);
 
@@ -1176,9 +1179,14 @@ namespace OpenMS
 		}
 		else if (tool_name == "<Merger>")
 		{
-			tv = new TOPPASMergerVertex();
+      tv = new TOPPASMergerVertex(true);
       connect (tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
 		}
+    else if (tool_name == "<Collector>")
+    {
+      tv = new TOPPASMergerVertex(false);
+      connect (tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
+    }
 		else // node is a TOPP tool
 		{	
 			if (current_tool->childCount() > 0)

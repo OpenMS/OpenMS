@@ -41,6 +41,14 @@ namespace OpenMS
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
 	}
+
+  TOPPASMergerVertex::TOPPASMergerVertex(bool round_based)
+    :	TOPPASVertex(),
+      round_based_mode_(round_based)
+  {
+    pen_color_ = Qt::black;
+    brush_color_ = Qt::lightGray;
+  }
 	
 	TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs)
 		:	TOPPASVertex(rhs),
@@ -64,7 +72,6 @@ namespace OpenMS
 	
 	void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-	  setRoundBasedMode(!round_based_mode_);
 	}
 
 	void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
@@ -91,7 +98,7 @@ namespace OpenMS
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
 		
-		QString text = round_based_mode_ ? "Merge" : "Merge all";
+    QString text = round_based_mode_ ? "Merge" : "Collect";
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 		
@@ -135,14 +142,6 @@ namespace OpenMS
 	{
 		return round_based_mode_;
 	}
-	
-	void TOPPASMergerVertex::setRoundBasedMode(bool b)
-	{
-		reset();
-		round_based_mode_ = b;
-		emit somethingHasChanged();
-	}
-	
 	
 	void TOPPASMergerVertex::markUnreachable()
 	{

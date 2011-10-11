@@ -2747,7 +2747,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
     else if (tool_name == "<Merger>")
     {
-      tv = new TOPPASMergerVertex();
+      tv = new TOPPASMergerVertex(true);
+    }
+    else if (tool_name == "<Collector>")
+    {
+      tv = new TOPPASMergerVertex(false);
     }
     else // node is a TOPP tool
     {

@@ -55,6 +55,8 @@ namespace OpenMS
 			
 			/// Default constructor
 			TOPPASMergerVertex();
+      /// Constructor
+      TOPPASMergerVertex(bool round_based);
 			/// Copy constructor
 			TOPPASMergerVertex(const TOPPASMergerVertex& rhs);
 			/// Destructor
@@ -67,8 +69,6 @@ namespace OpenMS
 			bool allInputsReady();
 			/// Determines whether this merger is merging round based or merging all inputs into one list
 			bool roundBasedMode();
-			/// Sets whether this merger is merging round based or merging all inputs into one list
-			void setRoundBasedMode(bool b);
 			// documented in base class
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			// documented in base class
