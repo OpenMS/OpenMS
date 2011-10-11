@@ -397,6 +397,12 @@ START_SECTION((virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelp
 }
 END_SECTION
 
+START_SECTION((DoubleReal getFWHM() const))
+{
+  TEST_REAL_SIMILAR(egh_trace_fitter.getFWHM(), 3.53223007592464)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

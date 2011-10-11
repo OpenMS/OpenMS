@@ -414,6 +414,8 @@ int main (int argc , char** argv)
 	DOCME(EGHFitter1D);
 	DOCME(O18Labeler);
 	DOCME(ITRAQLabeler);
+  DOCME(SILACLabeler);
+  DOCME(ICPLLabeler);
 	DOCME(Math::PosteriorErrorProbabilityModel);
 
 	//////////////////////////////////
