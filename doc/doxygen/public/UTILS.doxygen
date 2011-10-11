@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 
 /**
-  @page UTILS UTILS documentation
+  @page UTILS_documentation UTILS documentation
 
   Besides TOPP, %OpenMS offers a range of other tools.
   They are not included in TOPP as they are not part of typical analysis pipelines,
