@@ -43,7 +43,29 @@ using namespace std;
 /**
         @page TOPP_MassTraceExtractor MassTraceExtractor
 
-        @brief detects mass traces. Haha.
+        @brief detects mass traces.
+
+        <CENTER>
+        <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MassTraceExtractor \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Decharger</td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+        </tr>
+        </table>
+        </CENTER>
+
+
+        Annotates mass traces in centroided LC/MS maps.
+        Useful for metabolomics and top-down proteomics. 
+        Use FeatureFinder<xxx> tools for peptide data.
 */
 
 // We do not want this class to show up in the docu:

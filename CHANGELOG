@@ -15,6 +15,7 @@ TOPP tools:
 -ADDED:
   - MapStatistics (statistics for low level quality control)
 	- EICExtractor (quantify known RT,m/z locations in 1-many LC/MS maps and align them)
+  - MassTraceExtractor (annotate mass traces in centroided LC/MS maps. Useful for metabolomics and top-down proteomics. Use FeatureFinder<xxx> tools for peptides)
 	- FeatureFinderRaw (feature finding on raw data)
 -MODIFIED:
   - Split NoiseFilter into NoiseFilterGaussian and NoiseFilterSGolay

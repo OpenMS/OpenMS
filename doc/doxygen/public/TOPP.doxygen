@@ -35,6 +35,11 @@
 
  	The TOPP tools are divided into several subgroups:
 
+  <b>Graphical Tools</b>
+  - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
+  - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
+  - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
+
   <b>File Handling</b>
 <!--  %% removed from Docu (still available in TOPP) because of lack of usage/support
   - @subpage TOPP_DBExporter - Exports data from an %OpenMS database to a file.
@@ -55,6 +60,7 @@
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
   - @subpage TOPP_InternalCalibration - Applies an internal calibration.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
+  - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC/MS maps.
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_PeakPicker - Finds mass spectrometric peaks in profile mass spectra.
@@ -75,6 +81,17 @@
   - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 
+  <b>Map Alignment</b>
+  - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
+	- @subpage TOPP_MapAlignerApplyTransformation - Applies retention time transformations to maps.
+	- @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
+  - @subpage TOPP_MapAlignerPoseClustering - Corrects retention time distortions between maps using a pose clustering approach.
+  - @subpage TOPP_MapAlignerSpectrum - Corrects retention time distortions between maps by spectrum alignment.
+  - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
+  - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
+  - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
+
+	
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
   - @subpage TOPP_InspectAdapter - Identifies MS/MS spectra using Inspect (external).
@@ -110,21 +127,6 @@
   - @subpage TOPP_PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel.
   - @subpage TOPP_RTModel - Trains a model for the retention time prediction of peptides from a training set.
   - @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
-
-  <b>Map Alignment</b>
-  - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
-	- @subpage TOPP_MapAlignerApplyTransformation - Applies retention time transformations to maps.
-	- @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
-  - @subpage TOPP_MapAlignerPoseClustering - Corrects retention time distortions between maps using a pose clustering approach.
-  - @subpage TOPP_MapAlignerSpectrum - Corrects retention time distortions between maps by spectrum alignment.
-  - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
-  - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
-  - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
-
-  <b>Graphical Tools</b>
-  - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
-  - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
-  - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
 
   <b>Misc</b>
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
