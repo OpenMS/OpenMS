@@ -31,17 +31,27 @@
 	include "common_functions.php";
 
 	########################usage###############################
-	if ($argc!=3)
+	if (!($argc==3 || $argc==4))
 	{
-		print "Usage: create_test.php <Absolute path to OpenMS build dir> <Absolute path to header>\n";
+		print "Usage: create_test.php <Absolute path to OpenMS build dir> <Absolute path to header> [Author]\n";
   				"  <header_file> -- the header of the class to create the test from.\n";
+          "  [Author]      -- the author argument is optional, the name will be added to the Maintainer/Author section.\n";
  		exit;
  	}
 	
 	$path = $argv[1];
 	$file = $argv[2];
 	$class = substr(basename($file),0,-2);
+  $pathToHeader = substr($file, strpos($file, "include/OpenMS") + 8);
 
+  $user = "";
+
+  if ($argc==4)
+  {
+    // we got a user name
+    $user = trim($argv[3], "\"");
+  }
+  
 	#load file info
 	$class_info = getClassInfo($path,$file,0);	
 	
@@ -69,14 +79,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: <?php print $user; ?>$
+// $Authors: <?php print $user; ?>$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/<?php print $class; ?>.h>
+#include <<?php print $pathToHeader; ?>>
 ///////////////////////////
 
 using namespace OpenMS;
