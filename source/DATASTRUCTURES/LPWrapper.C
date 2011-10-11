@@ -213,45 +213,45 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setElement(Size row_index,Size column_index,DoubleReal value)
+  void LPWrapper::setElement(Size row_index, Size column_index, DoubleReal value)
   {
     if(row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid index given", String("invalid column_index or row_index"));    
-      }
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid index given", String("invalid column_index or row_index"));    
+    }
     if (solver_ == LPWrapper::SOLVER_GLPK)
+    {
+      DoubleReal* values(0);
+      Int* indices(0);
+      Int length = glp_get_mat_row(lp_problem_, row_index+1, indices, values);
+      bool found = false;
+      for(Int i = 1;i <= length;++i)
       {
-        DoubleReal* values;
-        Int* indices;
-        Int length = glp_get_mat_row(lp_problem_, row_index+1, indices,values);
-        bool found = false;
-        for(Int i = 1;i <= length;++i)
-          {
-            if(indices[i] == (Int)column_index+1)
-              {
-                values[i]=value;
-                found = true;
-                break;
-              }
-          }
-        if(!found) // if this entry wasn't existing before we have to enter it
-          {
-            Int*  n_indices = new Int[length+2];
-            DoubleReal* n_values = new DoubleReal[length+2];
-            for(Int i = 0; i <= length;++i)
-              {
-                n_indices[i] = indices[i];
-                n_values[i] = values[i];
-              }
-            // now add new value
-            n_indices[length+1] = column_index+1; // glpk starts reading at pos 1
-            n_values[length+1] = value;
-            glp_set_mat_row(lp_problem_, row_index+1, length,n_indices, n_values);
-            delete n_indices;
-            delete n_values;
-          }
-        else glp_set_mat_row(lp_problem_, row_index+1, length,indices, values);
+        if(indices[i] == (Int)column_index+1)
+        {
+          values[i]=value;
+          found = true;
+          break;
+        }
       }
+      if (!found) // if this entry wasn't existing before we have to enter it
+      {
+        Int*  n_indices = new Int[length+2];
+        DoubleReal* n_values = new DoubleReal[length+2];
+        for(Int i = 0; i <= length;++i)
+        {
+          n_indices[i] = indices[i];
+          n_values[i] = values[i];
+        }
+        // now add new value
+        n_indices[length+1] = column_index+1; // glpk starts reading at pos 1
+        n_values[length+1] = value;
+        glp_set_mat_row(lp_problem_, row_index+1, length,n_indices, n_values);
+        delete n_indices;
+        delete n_values;
+      }
+      else glp_set_mat_row(lp_problem_, row_index+1, length,indices, values);
+    }
 #if COINOR_SOLVER==1
     if (solver_==SOLVER_COINOR) model_->setElement(row_index,column_index,value);
 #endif
