@@ -112,8 +112,7 @@ namespace OpenMS
     
 
     // default to ToolHandler
-    ToolHandler th;
-    if (th.getTOPPToolList(true).has(old_name) || th.getUtilList().has(old_name))
+		if (ToolHandler::getTOPPToolList(true).has(old_name) || ToolHandler::getUtilList().has(old_name))
     {
       new_name = old_name;
       return true;
