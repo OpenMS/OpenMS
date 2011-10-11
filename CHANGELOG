@@ -51,7 +51,8 @@ Changes to the Build System:
 	- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE
 	- Removed AndiMS, NetCDF and dependencies
 	- Removed dependency to imslib, relevant classes were moved directly to OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS
-	
+	- OpenMS now supports ctests functionality for optimized and parallel testing #363
+
 Fixed Issues: 
 	 
 Detailed list of changes to specific OpenMS classes:
