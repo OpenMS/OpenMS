@@ -271,23 +271,32 @@ namespace OpenMS
   {
     QString proposed_filename = QFileInfo(r->url().toString()).fileName();
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
-    if (!filename.endsWith(".toppas", Qt::CaseInsensitive)) filename += ".toppas";
 
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    // check if the user clicked cancel, to avoid saving .toppas somewhere
+    if (!(filename.trimmed() == ""))
+    {
+      if (!filename.endsWith(".toppas", Qt::CaseInsensitive)) filename += ".toppas";
+
+      QFile file(filename);
+      if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+      {
+        showLogMessage_(LS_NOTICE, "Download aborted by user!", "");
+        return;
+      }
+
+      QByteArray data = r->readAll();
+      QTextStream out(&file);
+      out << data;
+      file.close();
+      r->deleteLater();
+
+      this->addTOPPASFile(filename);
+      showLogMessage_(LS_NOTICE, "File successfully downloaded to '" + filename + "'.", "");
+    }
+    else
     {
       showLogMessage_(LS_NOTICE, "Download aborted by user!", "");
-      return;
     }
-
-    QByteArray data = r->readAll();
-    QTextStream out(&file);
-    out << data;
-    file.close();
-    r->deleteLater();
-
-    this->addTOPPASFile(filename);
-    showLogMessage_(LS_NOTICE, "File successfully downloaded to '" + filename + "'.", "");
   }
 
   void TOPPASBase::downloadTOPPASfromHomepage_( const QUrl & url )
