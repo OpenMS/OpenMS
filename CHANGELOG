@@ -48,11 +48,12 @@ TOPPAS improvements:
 	 
 Changes to the Build System: 
 	- TOPPAS now requires Qt's Webkit library
-	- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE
-	- Removed AndiMS, NetCDF and dependencies
+	- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE (removed)
+	- Use CMAKE_FIND_ROOT_PATH instead of CONTRIB_CUSTOM_DIR (deprecated)
+  - Removed AndiMS, NetCDF and dependencies
 	- Removed dependency to imslib, relevant classes were moved directly to OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS
 	- OpenMS now supports ctests functionality for optimized and parallel testing #363
-
+	
 Fixed Issues: 
 	 
 Detailed list of changes to specific OpenMS classes:
@@ -70,6 +71,7 @@ Detailed list of changes to specific OpenMS classes:
 	- Weights (from imslib)
 - MODIFIED:
   - AASequence: removed AASequence(ConstIterator, ConstIterator) constructor, since it ignored Terminal Modifications; since there was no way to enable correct construction from two Iterators, we removed it
+	- lots more.. too much to list
   
 
 
