@@ -86,7 +86,7 @@ namespace OpenMS
 
 			if (spectrum.getMSLevel() == 1)
 			{
-				std::cerr << "Error: ParenPeakMower cannot be applied to MS-level 1" << std::endl;
+				std::cerr << "Error: ParentPeakMower cannot be applied to MS level 1" << std::endl;
 				return;
 			}
 
@@ -96,11 +96,11 @@ namespace OpenMS
 		
 			if (pre_pos == 0)
 			{
-				std::cerr << "ParenPeakMower: Warning, Precursor Position not set" << std::endl;
+				std::cerr << "ParentPeakMower: Warning, Precursor Position not set" << std::endl;
 				return;
 			}
 
-			UInt pre_charge = spectrum.getPrecursors()[0].getCharge();
+			Size pre_charge = spectrum.getPrecursors()[0].getCharge();
 			if (pre_charge == 0)
 			{
 				default_charge_ = (Size)param_.getValue("default_charge");
