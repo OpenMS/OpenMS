@@ -273,30 +273,29 @@ namespace OpenMS
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
 
     // check if the user clicked cancel, to avoid saving .toppas somewhere
-    if (!(filename.trimmed() == ""))
+    if (String(filename).trim().empty())
     {
-      if (!filename.endsWith(".toppas", Qt::CaseInsensitive)) filename += ".toppas";
-
-      QFile file(filename);
-      if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-      {
-        showLogMessage_(LS_NOTICE, "Download aborted by user!", "");
-        return;
-      }
-
-      QByteArray data = r->readAll();
-      QTextStream out(&file);
-      out << data;
-      file.close();
-      r->deleteLater();
-
-      this->addTOPPASFile(filename);
-      showLogMessage_(LS_NOTICE, "File successfully downloaded to '" + filename + "'.", "");
+      showLogMessage_(LS_NOTICE, "Download succeeded, but saving aborted by user!", "");
+      return;
     }
-    else
+
+    if (!filename.endsWith(".toppas", Qt::CaseInsensitive)) filename += ".toppas";
+
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-      showLogMessage_(LS_NOTICE, "Download aborted by user!", "");
+      showLogMessage_(LS_NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
+      return;
     }
+
+    QByteArray data = r->readAll();
+    QTextStream out(&file);
+    out << data;
+    file.close();
+    r->deleteLater();
+
+    this->addTOPPASFile(filename);
+    showLogMessage_(LS_NOTICE, "File successfully saved to '" + filename + "'.", "");
   }
 
   void TOPPASBase::downloadTOPPASfromHomepage_( const QUrl & url )
