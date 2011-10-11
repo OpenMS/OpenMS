@@ -29,6 +29,7 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation";
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server (Linux) is required for this step!";
+										COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: OpenMS and Open_GUI.dll's need to be in your PATH!";
 										COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails, use the target 'doc_minimal'.";
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "Building OpenMS parameter docu:"
