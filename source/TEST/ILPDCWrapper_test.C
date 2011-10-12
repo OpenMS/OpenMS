@@ -57,7 +57,7 @@ START_SECTION(virtual ~ILPDCWrapper())
 END_SECTION
 
 
-START_SECTION((DoubleReal compute(const MassExplainer &me, const FeatureMap<> fm, PairsType &pairs, Size verbose_level)))
+START_SECTION((DoubleReal compute(const FeatureMap<> fm, PairsType &pairs, Size verbose_level)))
 {
   EmpiricalFormula ef("H1");
   Adduct a(+1, 1, ef.getMonoWeight(), "H1", 0.1, 0, "");
@@ -68,7 +68,7 @@ START_SECTION((DoubleReal compute(const MassExplainer &me, const FeatureMap<> fm
   ILPDCWrapper::PairsType pairs;
 
   ILPDCWrapper iw;
-  iw.compute(me, fm, pairs, 1);
+  iw.compute(fm, pairs, 1);
 
   // check that it runs without pairs (i.e. all clusters are singletons)
   TEST_EQUAL(pairs.size(), 0);

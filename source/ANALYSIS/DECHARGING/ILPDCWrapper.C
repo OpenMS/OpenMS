@@ -51,7 +51,7 @@ namespace OpenMS {
 
 	ILPDCWrapper::~ILPDCWrapper(){}
 
-	DoubleReal ILPDCWrapper::compute(const MassExplainer& me, const FeatureMap<> fm, PairsType& pairs, Size verbose_level)
+	DoubleReal ILPDCWrapper::compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level)
 	{
     DoubleReal score = 0;
 
