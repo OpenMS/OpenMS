@@ -52,7 +52,7 @@ namespace ims {
 template <typename AlphabetElementType = double, 
           typename Container = std::map<std::string, AlphabetElementType>,
           typename InputSource = std::istream>
-class OPENMS_DLLAPI IMSAlphabetParser
+class IMSAlphabetParser
 {
 public:
   /**

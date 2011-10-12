@@ -59,7 +59,7 @@ namespace OpenMS {
     */
     template <typename ValueType = long unsigned int,
               typename DecompositionValueType = unsigned int>
-    class OPENMS_DLLAPI IntegerMassDecomposer :
+    class IntegerMassDecomposer :
         public MassDecomposer<ValueType,DecompositionValueType> {
     public:
       /**

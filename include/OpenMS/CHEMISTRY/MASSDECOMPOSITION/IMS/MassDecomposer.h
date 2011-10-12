@@ -31,8 +31,6 @@
 
 #include <vector>
 
-#include <OpenMS/config.h>
-
 namespace OpenMS {
 
   namespace ims {
@@ -58,7 +56,7 @@ namespace OpenMS {
     */
     template <typename ValueType,
               typename DecompositionValueType>
-    class OPENMS_DLLAPI MassDecomposer {
+    class MassDecomposer {
     public:
       /**
         Type of value to be decomposed.
