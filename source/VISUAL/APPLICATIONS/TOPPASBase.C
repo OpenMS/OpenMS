@@ -269,6 +269,40 @@ namespace OpenMS
 
   void TOPPASBase::toppasFileDownloaded_(QNetworkReply* r)
   {
+    QByteArray data = r->readAll();
+    r->deleteLater();
+    {
+      String tmp_file = String(File::getTempDirectory() + "/" + File::getUniqueName() + ".toppas");
+      QFile file_tmp(tmp_file.toQString());
+      if (!file_tmp.open(QIODevice::WriteOnly | QIODevice::Text))
+      {
+        showLogMessage_(LS_NOTICE, "Download succeeded. Cannot save the file to a temporary directory. Aborting.", "");
+        return;
+      }
+      QTextStream out(&file_tmp);
+      out << data;
+      file_tmp.close();
+      Param p;
+      p.load(tmp_file);
+
+      // get version of TOPPAS file
+      String version = "1.8.0"; // default (were we did not have the tag)
+      if (p.exists("info:version")) version = p.getValue("info:version");
+      VersionInfo::VersionDetails v_file = VersionInfo::VersionDetails::create(version);
+      VersionInfo::VersionDetails v_this = VersionInfo::VersionDetails::create(VersionInfo::getVersion());
+      if (v_file < v_this)
+      {
+        if (QMessageBox::warning(this, tr("Old TOPPAS file warning"), tr("The TOPPAS file you downloaded was created with an old version of TOPPAS. Shall we will try to open it.\n"
+                                                                     "If this fails, use INIUpdater tool to convert it.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) return;
+      }
+      else if (v_file > v_this)
+      {
+        if (QMessageBox::warning(this, tr("New TOPPAS file warning"), tr("The TOPPAS file you downloaded was created with an more recent version of TOPPAS. Shall we will try to open it.\n"
+          "If this fails, update to the new TOPPAS version.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) return;
+      }
+    }
+
+
     QString proposed_filename = QFileInfo(r->url().toString()).fileName();
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
 
@@ -288,11 +322,9 @@ namespace OpenMS
       return;
     }
 
-    QByteArray data = r->readAll();
     QTextStream out(&file);
     out << data;
     file.close();
-    r->deleteLater();
 
     this->addTOPPASFile(filename);
     showLogMessage_(LS_NOTICE, "File successfully saved to '" + filename + "'.", "");

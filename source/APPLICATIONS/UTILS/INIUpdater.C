@@ -125,7 +125,7 @@ class TOPPINIUpdater
     Param p;
     p.load(infile);
 
-    // get version of first section
+    // get version of TOPPAS file
     String version = "Unknown";
     if (!p.exists("info:version"))
     {

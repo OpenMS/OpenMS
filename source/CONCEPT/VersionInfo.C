@@ -21,11 +21,12 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Chris Bielow $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors:  Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <cstdlib>
 #include <fstream>
@@ -40,7 +41,69 @@ using namespace std;
 
 namespace OpenMS
 {
-	
+	const VersionInfo::VersionDetails VersionInfo::VersionDetails::EMPTY;
+  
+  bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails& rhs) const
+  {
+    return (    (this->major  < rhs.major)
+             || (this->major == rhs.major && this->minor  < rhs.minor)
+             || (this->major == rhs.major && this->minor == rhs.minor && this->patch < rhs.patch));
+  }
+  
+  bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails& rhs) const
+  {
+    return (this->major == rhs.major && this->minor == rhs.minor && this->patch == rhs.patch);
+  }
+
+  bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails& rhs) const
+  {
+    return !(*this < rhs || *this == rhs);
+  }
+
+
+  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String& version)
+  {
+    VersionInfo::VersionDetails result;
+
+    size_t first_dot = version.find('.');
+    // we demand at least one "."
+    if (first_dot == string::npos) return VersionInfo::VersionDetails::EMPTY;
+    try
+    {
+      result.major = String(version.substr(0, first_dot)).toInt();
+    }
+    catch (Exception::ConversionError& /*e*/)
+    {
+      return VersionInfo::VersionDetails::EMPTY;    	
+    }
+
+    // returns npos if no second "." is found - which does not hurt
+    size_t second_dot = version.find('.', first_dot + 1);
+    try
+    {
+      result.minor = String(version.substr(first_dot+1, second_dot)).toInt();
+    }
+    catch (Exception::ConversionError& /*e*/)
+    {
+      return VersionInfo::VersionDetails::EMPTY;    	
+    }
+
+    // if there is no second dot: return
+    if (second_dot == string::npos) return result;
+    
+    // returns npos if no third "." is found - which does not hurt
+    size_t third_dot = version.find('.', second_dot + 1);
+    try
+    {
+      result.patch = String(version.substr(second_dot+1, third_dot)).toInt();
+    }
+    catch (Exception::ConversionError& /*e*/)
+    {
+      return VersionInfo::VersionDetails::EMPTY;    	
+    }
+
+    return result;
+  }
 
 	String VersionInfo::getTime()
 	{
@@ -67,42 +130,23 @@ namespace OpenMS
 		return result;
 	}
 
-	Int VersionInfo::getMajorVersion()
-	{
-		static Int major = -1;
-		if (major < 0)
-		{
-			const String version = getVersion();
-			size_t first_dot = version.find('.');
-			major = atoi(version.substr(0,first_dot).c_str());
-		}
-		return major;
-	}
-	
-	Int VersionInfo::getMinorVersion()
-	{
-		static Int minor = -1;
-		if (minor < 0)
-		{
-			const String version = getVersion();
-			size_t first_dot = version.find('.');
-			size_t second_dot = version.find('.', first_dot + 1);
-			if ( second_dot > 1000 ) second_dot = 1000; // avoid arithmetic overflow if there is no second dot
-			minor = atoi(version.substr(first_dot+1,second_dot-first_dot+1).c_str());
-		}
-		return minor;
-	}
+
+  VersionInfo::VersionDetails VersionInfo::getVersionStruct()
+  {
+    static bool is_initialized = false;
+    static VersionDetails result;
+    if ( !is_initialized )
+    {
+      result = VersionDetails::create(getVersion());
+      is_initialized = true;
+    }
+    return result;
+  }
+
 
 	String VersionInfo::getRevision()
 	{
-		static bool is_initialized = false;
-		static String result;
-		if ( !is_initialized )
-		{
-			result = String(OPENMS_SVN_REVISION); // defined in svn_revision.h
-			is_initialized = true;
-		}
-		return result;
+		return String(OPENMS_SVN_REVISION); // defined in svn_revision.h
 	}
 
 }

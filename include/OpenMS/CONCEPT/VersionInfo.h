@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Chris Bielow $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors:  Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_VERSIONINFO_H
@@ -52,17 +52,39 @@ namespace OpenMS
 	{
 		public:
 
+    struct OPENMS_DLLAPI VersionDetails
+    {
+      Int major;
+      Int minor;
+      Int patch;
+
+      VersionDetails()
+        : major(0), minor(0), patch(0) 
+      {
+      }
+
+      /** @brief parse String and return as proper struct 
+      
+          @returns VersionInfo::empty on failure
+
+      */
+      static VersionDetails create(const String& version);
+
+      bool operator<(const VersionDetails& rhs) const;
+      bool operator==(const VersionDetails& rhs) const;
+      bool operator>(const VersionDetails& rhs) const;
+
+      static const VersionDetails EMPTY; // 0.0.0 version for comparison
+    };
+
 		/// Return the build time of OpenMS
 		static String getTime();
 
 		/// Return the version number of OpenMS
 		static String getVersion();
 
-		/// Return the major version number. The part of the release number before the dot.
-		static Int getMajorVersion();
-
-		/// Return the minor version number. The part of the release number after the dot.
-		static Int getMinorVersion();
+    /// Return the version number of OpenMS
+    static VersionDetails getVersionStruct();
 
     /**
       @brief Return the revision number from revision control system, e.g. Subversion.
@@ -72,9 +94,8 @@ namespace OpenMS
       revision info is unavailable.  You should check for both cases in your
       code.
 
-      @internal Finding out what the revision number is requires some tricks at
-      compile time: From CONCEPT/Makefile, we invoke the @c svnversion command
-      (with working directory OpenMS/) and store its output in a file that is
+      @internal The current svn version is queried by the build system regularly and
+      the result is written as a header file which is
       included by VersionInfo.C.
 		*/
 		static String getRevision();
