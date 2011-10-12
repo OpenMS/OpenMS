@@ -110,11 +110,17 @@ namespace OpenMS
 				void fromString(const String& filter);
 				
 				///Equality operator
-				bool operator==(const DataFilter& rhs) const
-				{
-					return field==rhs.field && op==rhs.op && value==rhs.value;
-				}
-				///Inequality operator
+        bool operator==(const DataFilter& rhs) const
+        {
+          return field==rhs.field
+              && op==rhs.op
+              && value==rhs.value
+              && value_string==rhs.value_string
+              && meta_name == rhs.meta_name
+              && value_is_numerical == rhs.value_is_numerical;
+        }
+
+        ///Inequality operator
 				bool operator!=(const DataFilter& rhs) const
 				{
 					return !operator==(rhs);

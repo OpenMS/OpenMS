@@ -520,14 +520,26 @@ START_SECTION(([DataFilters::DataFilter] bool operator==(const DataFilter &rhs) 
   TEST_EQUAL(df1==df2,true)
   TEST_EQUAL(df1==df3,false)
 
-  // TODO
-  // the other fields are not tested .. check this
-  // String value for comparison (for meta data)
-  // String value_string;
-  // Name of the considered meta information
-  // String meta_name;
-  // Bool value that indicates if the specified value is numerical
-  // bool value_is_numerical;
+  df1.meta_name = "df1";
+  df2.meta_name = "df1";
+
+  TEST_EQUAL(df1==df2,true)
+  df2.meta_name = "df2";
+  TEST_EQUAL(df1==df2,false)
+  df2.meta_name = "df1";
+
+  df1.value_string = "df1";
+  df2.value_string = "df1";
+  TEST_EQUAL(df1==df2,true)
+  df2.value_string = "df2";
+  TEST_EQUAL(df1==df2,false)
+  df2.value_string = "df1";
+
+  df1.value_is_numerical = true;
+  df2.value_is_numerical = true;
+  TEST_EQUAL(df1==df2,true)
+  df2.value_is_numerical = false;
+  TEST_EQUAL(df1==df2,false)
 }
 END_SECTION
 
@@ -563,14 +575,26 @@ START_SECTION(([DataFilters::DataFilter] bool operator!=(const DataFilter &rhs) 
   TEST_EQUAL(df1!=df2,false)
   TEST_EQUAL(df1!=df3,true)
 
-  // TODO
-  // the other fields are not tested .. check this
-  // String value for comparison (for meta data)
-  // String value_string;
-  // Name of the considered meta information
-  // String meta_name;
-  // Bool value that indicates if the specified value is numerical
-  // bool value_is_numerical;
+  df1.meta_name = "df1";
+  df2.meta_name = "df1";
+
+  TEST_EQUAL(df1!=df2,false)
+  df2.meta_name = "df2";
+  TEST_EQUAL(df1!=df2,true)
+  df2.meta_name = "df1";
+
+  df1.value_string = "df1";
+  df2.value_string = "df1";
+  TEST_EQUAL(df1!=df2,false)
+  df2.value_string = "df2";
+  TEST_EQUAL(df1!=df2,true)
+  df2.value_string = "df1";
+
+  df1.value_is_numerical = true;
+  df2.value_is_numerical = true;
+  TEST_EQUAL(df1!=df2,false)
+  df2.value_is_numerical = false;
+  TEST_EQUAL(df1!=df2,true)
 }
 END_SECTION
 
