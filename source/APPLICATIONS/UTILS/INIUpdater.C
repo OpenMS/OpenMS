@@ -96,7 +96,8 @@ class TOPPINIUpdater
 	public:
 	TOPPINIUpdater()
 		: TOPPBase("INIUpdater", "Update INI and TOPPAS files to new OpenMS version.", false),
-      tmp_files_()
+      tmp_files_(),
+      failed_()
 	{
 	}
   	
@@ -382,7 +383,7 @@ class TOPPINIUpdater
     for (Size i=0; i<tmp_files_.size(); ++i)
     {
       // clean up
-      //File::remove(tmp_files_[i]);
+      File::remove(tmp_files_[i]);
     }
 
 
