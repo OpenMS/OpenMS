@@ -32,6 +32,7 @@
 #include <utility>
 #include <map>
 #include <memory>
+
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h>
 
 namespace OpenMS {
@@ -56,7 +57,7 @@ namespace OpenMS {
 
       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
     */
-    class RealMassDecomposer {
+    class OPENMS_DLLAPI RealMassDecomposer {
     public:
 
       /**

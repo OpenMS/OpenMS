@@ -33,6 +33,8 @@
 #include <ostream>
 #include <algorithm>
 
+#include <OpenMS/config.h>
+
 namespace OpenMS {
 
   namespace ims {
@@ -74,7 +76,7 @@ namespace OpenMS {
 
       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
     */
-    class IMSIsotopeDistribution {
+    class OPENMS_DLLAPI IMSIsotopeDistribution {
 
     public:
       /**

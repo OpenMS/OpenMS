@@ -70,7 +70,7 @@ namespace OpenMS {
       error happened while loading data, @c IOException will be thrown.
     *
     */
-    class IMSAlphabet {
+    class OPENMS_DLLAPI IMSAlphabet {
 
     public:
       typedef IMSElement element_type;

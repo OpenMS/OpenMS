@@ -31,8 +31,9 @@
 
 #include <string>
 #include <ostream>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 #include <iostream>
+
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 
 namespace OpenMS {
   namespace ims {
@@ -52,7 +53,7 @@ namespace OpenMS {
 
  @ingroup alphabet
  */
-    class IMSElement {
+    class OPENMS_DLLAPI IMSElement {
     public:
       /**
         Type of element's name.

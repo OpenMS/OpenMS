@@ -32,6 +32,8 @@
 #include <vector>
 #include <ostream>
 
+#include <OpenMS/config.h>
+
 namespace OpenMS {
 
   namespace ims {
@@ -56,7 +58,8 @@ namespace OpenMS {
 
       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
     */
-    class Weights {
+    class OPENMS_DLLAPI Weights
+    {
     public:
       /**
         Type of integer values to be used.

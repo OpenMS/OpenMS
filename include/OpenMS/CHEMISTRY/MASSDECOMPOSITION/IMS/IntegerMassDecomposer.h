@@ -31,9 +31,11 @@
 
 #include <vector>
 #include <utility>
+
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h>
+
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS {
 
@@ -57,7 +59,7 @@ namespace OpenMS {
     */
     template <typename ValueType = long unsigned int,
               typename DecompositionValueType = unsigned int>
-    class IntegerMassDecomposer :
+    class OPENMS_DLLAPI IntegerMassDecomposer :
         public MassDecomposer<ValueType,DecompositionValueType> {
     public:
       /**

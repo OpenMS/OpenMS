@@ -31,6 +31,8 @@
 
 #include <functional>
 
+#include <OpenMS/config.h>
+
 namespace OpenMS {
 
   namespace ims {
@@ -99,7 +101,7 @@ int main(int argc, char** argv) {
 
     */
     template <class OP1, class OP2, class OP3>
-    class compose_f_gx_hy_t
+    class OPENMS_DLLAPI compose_f_gx_hy_t
         : public std::binary_function<typename OP2::argument_type,
         typename OP3::argument_type,
         typename OP1::result_type>

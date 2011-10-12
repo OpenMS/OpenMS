@@ -33,6 +33,7 @@
 #include <istream>
 #include <map>
 #include <string>
+
 #include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS {
@@ -51,7 +52,7 @@ namespace ims {
 template <typename AlphabetElementType = double, 
           typename Container = std::map<std::string, AlphabetElementType>,
           typename InputSource = std::istream>
-class IMSAlphabetParser
+class OPENMS_DLLAPI IMSAlphabetParser
 {
 public:
   /**

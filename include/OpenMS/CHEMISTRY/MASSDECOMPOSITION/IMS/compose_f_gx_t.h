@@ -31,6 +31,8 @@
 
 #include <functional>
 
+#include <OpenMS/config.h>
+
 namespace OpenMS {
 
   namespace ims {
@@ -112,7 +114,7 @@ int main(int argc, char** argv) {
        OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     */
     template <class OP1, class OP2>
-    class compose_f_gx_t
+    class OPENMS_DLLAPI compose_f_gx_t
         : public std::unary_function<typename OP2::argument_type, typename OP1::result_type>
     {
     private:
