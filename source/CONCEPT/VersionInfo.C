@@ -45,14 +45,14 @@ namespace OpenMS
   
   bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails& rhs) const
   {
-    return (    (this->major  < rhs.major)
-             || (this->major == rhs.major && this->minor  < rhs.minor)
-             || (this->major == rhs.major && this->minor == rhs.minor && this->patch < rhs.patch));
+    return (    (this->version_major  < rhs.version_major)
+             || (this->version_major == rhs.version_major && this->version_minor  < rhs.version_minor)
+             || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch < rhs.version_patch));
   }
   
   bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails& rhs) const
   {
-    return (this->major == rhs.major && this->minor == rhs.minor && this->patch == rhs.patch);
+    return (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch == rhs.version_patch);
   }
 
   bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails& rhs) const
@@ -70,7 +70,7 @@ namespace OpenMS
     if (first_dot == string::npos) return VersionInfo::VersionDetails::EMPTY;
     try
     {
-      result.major = String(version.substr(0, first_dot)).toInt();
+      result.version_major = String(version.substr(0, first_dot)).toInt();
     }
     catch (Exception::ConversionError& /*e*/)
     {
@@ -81,7 +81,7 @@ namespace OpenMS
     size_t second_dot = version.find('.', first_dot + 1);
     try
     {
-      result.minor = String(version.substr(first_dot+1, second_dot)).toInt();
+      result.version_minor = String(version.substr(first_dot+1, second_dot)).toInt();
     }
     catch (Exception::ConversionError& /*e*/)
     {
@@ -95,7 +95,7 @@ namespace OpenMS
     size_t third_dot = version.find('.', second_dot + 1);
     try
     {
-      result.patch = String(version.substr(second_dot+1, third_dot)).toInt();
+      result.version_patch = String(version.substr(second_dot+1, third_dot)).toInt();
     }
     catch (Exception::ConversionError& /*e*/)
     {

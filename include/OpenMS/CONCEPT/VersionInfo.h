@@ -54,12 +54,12 @@ namespace OpenMS
 
     struct OPENMS_DLLAPI VersionDetails
     {
-      Int major;
-      Int minor;
-      Int patch;
+      Int version_major;
+      Int version_minor;
+      Int version_patch;
 
       VersionDetails()
-        : major(0), minor(0), patch(0) 
+        : version_major(0), version_minor(0), version_patch(0) 
       {
       }
 
