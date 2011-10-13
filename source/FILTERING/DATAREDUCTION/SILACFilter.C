@@ -406,8 +406,8 @@ namespace OpenMS
   {
     bool missing_peak_seen_yet = false;
 
-    // bool debug = abs(rt - 6653.3) < 0.1 && abs(mz - 668.83) < 0.01;
     bool debug = false;
+    //debug = abs(mz - 1788) < 1;
 
     if (!IsotopeDistributionCache::getInstance()->isPrecalculated())
     {
@@ -423,25 +423,23 @@ namespace OpenMS
 
         const TheoreticalIsotopePattern& pattern = IsotopeDistributionCache::getInstance()->getIsotopeDistribution((mz + exact_shifts_[peptide][0]) * charge_);
 
-        DoubleReal averagineIntensity_mono = pattern.intensity[0];    // intensity of monoisotopic peak of the averagine model
+        DoubleReal averagine_mono = pattern.intensity[0];    // intensity of monoisotopic peak of the averagine model
         DoubleReal intensity_mono = exact_intensities_[peptide][0];    // intensity around the (potential) monoisotopic peak in the real data
+        DoubleReal ratio_mono = intensity_mono / averagine_mono;
 
         for (Size isotope = 1; isotope < isotopes_per_peptide_; ++isotope)
         {
-          DoubleReal averagineIntensity = pattern.intensity[isotope];
-          DoubleReal intensity = exact_intensities_[peptide][isotope];
+          DoubleReal averagine_current = pattern.intensity[isotope];
+          DoubleReal intensity_current = exact_intensities_[peptide][isotope];
+          DoubleReal ratio_current = intensity_current / averagine_current;
 
-          DoubleReal averageneRatio = averagineIntensity / averagineIntensity_mono;
-
-          DoubleReal ratio = (intensity / intensity_mono) / averageneRatio;
-
-          DoubleReal max_deviation = model_deviation_ / averageneRatio;
+          DoubleReal ratio = ratio_current / ratio_mono;
 
           if (debug)
           {
             cout << "Ratio: " << ratio << endl;
           }
-          if (ratio > max_deviation || ratio < 1 / max_deviation) // Test for missing peak?
+          if (ratio > model_deviation_ || ratio < 1 / model_deviation_) // Test for missing peak?
           {
             // MISSING PEAK EXCEPTION
             // A missing intensity is allowed if (1) the user allowed it, (2) one of the two peaks is the last isotopic peak of a SILAC peptide and (3) it hasn't occured before.
@@ -496,14 +494,6 @@ namespace OpenMS
     if (!correlationFilter2(mz, f))
     {
       debug_peak.setIntensity(4);
-      debug.push_back(debug_peak);
-      return false;
-    }
-
-    // AVERAGINE FILTER (Check if realtive ratios confirm with an averagine model of all peptides.)
-    if (!averageneFilter(mz))
-    {
-      debug_peak.setIntensity(5);
       debug.push_back(debug_peak);
       return false;
     }
