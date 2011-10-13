@@ -574,7 +574,8 @@ $GLOBALS["all_tests"] = array(
 				"IsotopeWaveletConstants.h",
 				"IsotopeWaveletParallelFor.h",
 				"include/OpenMS/openms_svn_revision.h",
-				"include/OpenMS/openms_package_version.h"
+				"include/OpenMS/openms_package_version.h",
+				"include/OpenMS/SIMULATION/SimTypes.h"
 				);
 
 				if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
