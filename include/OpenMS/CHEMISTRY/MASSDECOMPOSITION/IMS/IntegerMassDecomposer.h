@@ -206,10 +206,7 @@ namespace OpenMS {
         const Weights& alphabet) : alphabet_(alphabet)
     {
 
-      lcms_.reserve(alphabet.size());
       lcms_.resize(alphabet.size());
-
-      mass_in_lcms_.reserve(alphabet.size());
       mass_in_lcms_.resize(alphabet.size());
 
       infty_ = alphabet.getWeight(0) * alphabet.getWeight(alphabet.size()-1);
@@ -242,7 +239,6 @@ namespace OpenMS {
       }
 
       // initializes witness vector
-      _witnessVector.reserve(smallestMass);
       _witnessVector.resize(smallestMass);
 
       // fills second column (the first one is already correct)
@@ -506,7 +502,7 @@ namespace OpenMS {
         decomposition[alphabetMassIndex] = static_cast<decomposition_value_type>(i);
 
         // this check is needed because mass could have unsigned type and after reduction on i*alphabetMass will be still be positive but huge
-        // and that will end up in unfinite loop
+        // and that will end up in infinite loop
         if (mass < i*alphabet_.getWeight(alphabetMassIndex))
         {
           break;
@@ -526,7 +522,7 @@ namespace OpenMS {
             collectDecompositionsRecursively_(m, alphabetMassIndex-1, decomposition, decompositionsStore);
             decomposition[alphabetMassIndex] += mass_in_lcm;
             // this check is needed because mass could have unsigned type and after reduction on i*alphabetMass will be still be positive but huge
-            // and that will end up in unfinite loop
+            // and that will end up in infinite loop
             if (m < lcm)
             {
               break;
@@ -558,7 +554,7 @@ namespace OpenMS {
     typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type IntegerMassDecomposer<ValueType,
     DecompositionValueType>::getNumberOfDecompositions(value_type mass)
     {
-      return getAllDecompositions(mass).size();
+      return (IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type)getAllDecompositions(mass).size();
     }
 
 

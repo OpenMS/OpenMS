@@ -229,7 +229,7 @@ namespace OpenMS {
 			namebuf.str("");
 			namebuf<<"x#"<<i;
 			// create the new variable object
-      Int index = build.addColumn();
+      Size index = build.addColumn();
       build.setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
 			build.setColumnType(index,LPWrapper::INTEGER); // integer variable
 			build.setObjective(index, pairs[i].getEdgeScore());
