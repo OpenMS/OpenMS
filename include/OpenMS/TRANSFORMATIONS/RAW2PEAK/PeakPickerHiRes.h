@@ -90,7 +90,11 @@ namespace OpenMS
 
             // signal-to-noise estimation
             SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
-            snt.init(input);
+
+            if (signal_to_noise_ > 0.0)
+            {
+                snt.init(input);
+            }
 
             // find local maxima in raw data
             for (Size i = 1; i < input.size()-1; ++i)
@@ -104,27 +108,45 @@ namespace OpenMS
                 double central_to_right = std::fabs(right_neighbor_mz-central_peak_mz);
                 double min_spacing = (left_to_central < central_to_right)? left_to_central : central_to_right;
 
+                double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
+
+                if (signal_to_noise_ > 0.0)
+                {
+                    act_snt = snt.getSignalToNoise(input[i]);
+                    act_snt_l1 = snt.getSignalToNoise(input[i-1]);
+                    act_snt_r1 = snt.getSignalToNoise(input[i+1]);
+                }
+
                 // look for peak cores meeting MZ and intensity/SNT criteria
-                if (snt.getSignalToNoise(input[i]) >= signal_to_noise_
+                if (act_snt >= signal_to_noise_
                     && left_to_central < 1.5*min_spacing
                     && central_peak_int > left_neighbor_int
-                    && snt.getSignalToNoise(input[i-1]) >= signal_to_noise_
+                    && act_snt_l1 >= signal_to_noise_
                     && central_to_right < 1.5*min_spacing
                     && central_peak_int > right_neighbor_int
-                    && snt.getSignalToNoise(input[i+1]) >= signal_to_noise_)
+                    && act_snt_r1 >= signal_to_noise_)
                 {
                     // special case: if a peak core is surrounded by more intense
                     // satellite peaks (indicates oscillation rather than
                     // real peaks) -> remove
+
+                    double act_snt_l2 = 0.0, act_snt_r2 = 0.0;
+
+                    if (signal_to_noise_ > 0.0)
+                    {
+                        act_snt_l2 = snt.getSignalToNoise(input[i-2]);
+                        act_snt_r2 = snt.getSignalToNoise(input[i+2]);
+                    }
+
                     if ((i > 1
                          && std::fabs(left_neighbor_mz - input[i-2].getMZ()) < 1.5*min_spacing
                          && left_neighbor_int < input[i-2].getIntensity()
-                         && snt.getSignalToNoise(input[i-2]) >= signal_to_noise_)
+                         && act_snt_l2 >= signal_to_noise_)
                         &&
                                 ((i+2) < input.size()
                                  && std::fabs(input[i+2].getMZ() - right_neighbor_mz) < 1.5*min_spacing
                                  && right_neighbor_int < input[i+2].getIntensity()
-                                 && snt.getSignalToNoise(input[i+2]) >= signal_to_noise_)
+                                 && act_snt_r2 >= signal_to_noise_)
                         )
                         {
                         ++i;
@@ -148,10 +170,18 @@ namespace OpenMS
 
                     while ((i-k+1) > 0
                            && (missing_left < 2)
-                        && input[i-k].getIntensity() <= peak_raw_data.begin()->second
-                                && snt.getSignalToNoise(input[i-k]) >= signal_to_noise_)
+                        && input[i-k].getIntensity() <= peak_raw_data.begin()->second)
                         {
-                        if (std::fabs(input[i-k].getMZ() - peak_raw_data.begin()->first) < 1.5*min_spacing)
+
+                        double act_snt_lk = 0.0;
+
+                        if (signal_to_noise_ > 0.0)
+                        {
+                            act_snt_lk = snt.getSignalToNoise(input[i-k]);
+                        }
+
+
+                        if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i-k].getMZ() - peak_raw_data.begin()->first) < 1.5*min_spacing)
                         {
                             peak_raw_data[input[i-k].getMZ()] = input[i-k].getIntensity();
                         }
@@ -162,16 +192,24 @@ namespace OpenMS
                         }
 
                         ++k;
+
                     }
 
                     // to the right
                     k = 2;
                     while ((i+k) < input.size()
                         && (missing_right < 2)
-                        && input[i+k].getIntensity() <= peak_raw_data.rbegin()->second
-                                && snt.getSignalToNoise(input[i+k]) >= signal_to_noise_)
+                        && input[i+k].getIntensity() <= peak_raw_data.rbegin()->second)
                         {
-                        if (std::fabs(input[i+k].getMZ() - peak_raw_data.rbegin()->first) < 1.5*min_spacing)
+
+                        double act_snt_rk = 0.0;
+
+                        if (signal_to_noise_ > 0.0)
+                        {
+                            act_snt_rk = snt.getSignalToNoise(input[i+k]);
+                        }
+
+                        if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i+k].getMZ() - peak_raw_data.rbegin()->first) < 1.5*min_spacing)
                         {
                             peak_raw_data[input[i+k].getMZ()] = input[i+k].getIntensity();
                         }
