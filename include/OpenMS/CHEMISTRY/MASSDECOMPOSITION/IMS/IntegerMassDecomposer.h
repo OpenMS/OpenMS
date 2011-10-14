@@ -554,7 +554,7 @@ namespace OpenMS {
     typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type IntegerMassDecomposer<ValueType,
     DecompositionValueType>::getNumberOfDecompositions(value_type mass)
     {
-      return (IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type)getAllDecompositions(mass).size();
+      return static_cast<typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type>(getAllDecompositions(mass).size());
     }
 
 
