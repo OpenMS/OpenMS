@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/TICResampling.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -84,19 +85,24 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-      registerInputFile_("in","<file>", "", "input centroided mzML file");
-      setValidFormats_("in",StringList::create("mzML"));
-      registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
-      setValidFormats_("out",StringList::create("featureXML"));
+        registerInputFile_("in","<file>", "", "input centroided mzML file");
+        setValidFormats_("in",StringList::create("mzML"));
+        registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
+        setValidFormats_("out",StringList::create("featureXML"));
 
-      addEmptyLine_();
-      addText_("Parameters for the mass trace detection algorithm can be given in the 'algorithm' part of INI file.");
-      registerSubsection_("algorithm","Algorithm parameters section");
+        addEmptyLine_();
+        addText_("Parameters for the mass trace detection algorithm can be given in the 'algorithm' part of INI file.");
+        registerSubsection_("algorithm","Algorithm parameters section");
+
     }
 
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
-        return MassTraceDetection().getDefaults();
+        Param combined;
+        combined.insert("mtd:", MassTraceDetection().getDefaults());
+        combined.insert("epd:", ElutionPeakDetection().getDefaults());
+
+        return combined;
     }
 
     ExitCodes main_(int , const char**)
@@ -125,14 +131,29 @@ protected:
         }
 
 
+        //        MSExperiment<Peak1D> testmap;
+
+        //        TICResampling tic_res;
+
+        //        tic_res.run(ms_peakmap, testmap);
+
+        //        MzMLFile().store("resampled.mzML", testmap);
+
+        //        return EXECUTION_OK;
+
+
         //-------------------------------------------------------------
         // set parameters and start extraction
         //-------------------------------------------------------------
         FeatureMap<> ms_feat_map;
         vector<MassTrace> m_traces;
 
-        Param mt_ext_param = getParam_().copy("algorithm:",true);
-        writeDebug_("Parameters passed to MassTraceExtractor", mt_ext_param,3);
+        Param mt_ext_param = getParam_().copy("algorithm:mtd:",true);
+        writeDebug_("Parameters passed to MassTraceDetection", mt_ext_param,3);
+
+        Param epd_param = getParam_().copy("algorithm:epd:",true);
+        writeDebug_("Parameters passed to ElutionPeakDetection", epd_param,3);
+
 
         MassTraceDetection mt_ext;
         // mt_ext.setLogType(log_type_);
@@ -146,13 +167,24 @@ protected:
 
         ElutionPeakDetection ep_det;
 
-        Param ep_det_param;
-        ep_det_param.setValue("window_size", min_datapoints);
-        ep_det.setParameters(ep_det_param);
+        epd_param.setValue("window_size", min_datapoints);
+
+        ep_det.setParameters(epd_param);
 
         std::vector<MassTrace> splitted_mtraces;
 
+        std::vector<MassTrace> filtered_mtraces;
+
         ep_det.detectPeaks(m_traces, splitted_mtraces);
+
+        if (ep_det.getParameters().getValue("width_filtering") == "true")
+        {
+            ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces, fwhm);
+
+            std::cout << "after filtering: " << filtered_mtraces.size() << " of " << splitted_mtraces.size() << std::endl;
+
+            splitted_mtraces = filtered_mtraces;
+        }
 
         for (Size i = 0; i < splitted_mtraces.size(); ++i)
         {

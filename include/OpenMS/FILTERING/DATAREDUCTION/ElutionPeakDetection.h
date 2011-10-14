@@ -51,14 +51,18 @@ namespace OpenMS
         void detectPeaks(MassTrace&, std::vector<MassTrace>&);
         void detectPeaks(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
+        void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&, DoubleReal);
+
 
     protected:
         virtual void updateMembers_();
 
     private:
-        DoubleReal chrom_fwhm_;
+        // DoubleReal chrom_fwhm_;
         Size window_size_;
         DoubleReal sample_rate_;
+
+        String pw_filtering_;
 
         void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
 

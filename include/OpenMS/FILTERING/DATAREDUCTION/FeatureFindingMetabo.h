@@ -105,6 +105,17 @@ namespace OpenMS
             feat_score_ = score;
         }
 
+        SignedSize getCharge()
+        {
+            return charge_;
+        }
+
+        void setCharge(const SignedSize& ch)
+        {
+            charge_ = ch;
+        }
+
+
         DoubleReal getCentroidMZ()
         {
             if (iso_pattern_.size() == 0)
@@ -140,6 +151,8 @@ namespace OpenMS
         // pointers of MassTraces contained in isotopic pattern
         std::vector<MassTrace*> iso_pattern_;
         DoubleReal feat_score_;
+
+        SignedSize charge_;
 
     };
 

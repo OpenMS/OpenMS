@@ -130,12 +130,16 @@ protected:
         ep_det.setParameters(ep_det_param);
 
         std::vector<MassTrace> splitted_mtraces;
+        std::vector<MassTrace> filtered_mtraces;
+
 
         ep_det.detectPeaks(m_traces, splitted_mtraces);
+        // ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
 
         FeatureFindingMetabo ff_met;
 
         ff_met.run(splitted_mtraces, ms_feat_map);
+        // ff_met.run(filtered_mtraces, ms_feat_map);
 
 
 

@@ -22,6 +22,7 @@ PeakMarker.h
 Scaler.h
 SqrtMower.h
 TICFilter.h
+TICResampling.h
 ThresholdMower.h
 WindowMower.h
 SpectraMerger.h

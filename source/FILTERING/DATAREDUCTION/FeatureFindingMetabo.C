@@ -39,7 +39,8 @@ namespace OpenMS
 {
     FeatureHypothesis::FeatureHypothesis()
         : iso_pattern_(),
-        feat_score_()
+        feat_score_(),
+        charge_()
     {
 
     }
@@ -52,7 +53,8 @@ namespace OpenMS
 
     FeatureHypothesis::FeatureHypothesis(const FeatureHypothesis& fh)
         : iso_pattern_(fh.iso_pattern_),
-        feat_score_(fh.feat_score_)
+        feat_score_(fh.feat_score_),
+        charge_(fh.charge_)
     {
 
     }
@@ -62,6 +64,7 @@ namespace OpenMS
         if (this==&rhs) return *this;
         iso_pattern_ = rhs.iso_pattern_;
         feat_score_ = rhs.feat_score_;
+        charge_ = rhs.charge_;
 
         return *this;
     }
@@ -215,6 +218,7 @@ namespace OpenMS
                     f.setRT(feat_hypos[hypo_idx].getCentroidRT());
                     f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
                     f.setIntensity(feat_hypos[hypo_idx].computeFeatureIntensity());
+                    f.setCharge(feat_hypos[hypo_idx].getCharge());
                     f.setMetaValue(3,feat_hypos[hypo_idx].getLabel());
                     f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
                     f.setOverallQuality(feat_hypos[hypo_idx].getScore());
@@ -379,6 +383,7 @@ namespace OpenMS
                 {
                     fh_tmp.addMassTrace(*candidates[best_idx]);
                     fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
+                    fh_tmp.setCharge(charge);
 
                     output_hypos.push_back(fh_tmp);
 

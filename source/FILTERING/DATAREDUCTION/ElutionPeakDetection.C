@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Erhan Kenar$
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
@@ -39,6 +39,8 @@ namespace OpenMS
         : DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
     {
         defaults_.setValue("window_size", 5, "Number of neighbouring values in each direction that have to be exceeded to be considered a local maximum");
+        defaults_.setValue("width_filtering", "false", "Enable filtering of unlikely peak widths");
+        defaults_.setValidStrings("width_filtering", StringList::create(("false,true")));
 
         defaultsToParam_();
 
@@ -69,6 +71,77 @@ namespace OpenMS
 
         return ;
     }
+
+    void ElutionPeakDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces, DoubleReal min_pw)
+    {
+        std::multimap<DoubleReal, Size> histo_map;
+
+        for (Size i = 0; i < mt_vec.size(); ++i)
+        {
+            DoubleReal fwhm(mt_vec[i].estimateFWHM());
+
+//            if (fwhm < 1.0)
+//            {
+//                continue ;
+//            }
+
+            DoubleReal peak_width(fwhm);
+
+            histo_map.insert(std::make_pair(peak_width, i));
+        }
+
+        // compute median peak width
+        std::vector<DoubleReal> pw_vec;
+        std::vector<Size> pw_idx_vec;
+
+        for (std::multimap<DoubleReal, Size>::const_iterator c_it = histo_map.begin(); c_it != histo_map.end(); ++c_it)
+        {
+            pw_vec.push_back(c_it->first);
+            pw_idx_vec.push_back(c_it->second);
+        }
+
+//        Size pw_vec_size = pw_vec.size();
+//        DoubleReal pw_median(0.0);
+
+//        if ((pw_vec_size % 2) == 0)
+//        {
+//            pw_median = (pw_vec[std::floor(pw_vec_size/2.0) - 1] +  pw_vec[std::floor(pw_vec_size/2.0)])/2;
+//        }
+//        else
+//        {
+//            pw_median = pw_vec[std::floor(pw_vec_size/2.0)];
+//        }
+
+        // compute 97,725% quantile
+
+        Size upper_idx(pw_vec.size());
+
+
+        if (pw_vec.size() >= 100)
+        {
+            DoubleReal bin_width(1.0/(DoubleReal)pw_vec.size());
+
+            upper_idx = std::floor(0.97725/bin_width);
+
+        }
+
+        Size vec_idx(0);
+
+        while (vec_idx < upper_idx)
+        {
+            if (pw_vec[vec_idx] >= min_pw)
+            {
+                filt_mtraces.push_back(mt_vec[pw_idx_vec[vec_idx]]);
+            }
+
+            ++vec_idx;
+        }
+
+        return ;
+
+    }
+
+
 
     void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
     {
@@ -172,6 +245,7 @@ namespace OpenMS
     void ElutionPeakDetection::updateMembers_()
     {
         window_size_ = (Size)param_.getValue("window_size");
+        pw_filtering_ = param_.getValue("width_filtering");
     }
 
 

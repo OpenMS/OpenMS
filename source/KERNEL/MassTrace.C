@@ -191,7 +191,16 @@ namespace OpenMS
         MassTrace::const_iterator l_it = trace_peaks_.begin();
         MassTrace::const_iterator r_it = trace_peaks_.begin();
         std::advance(l_it, left_border);
-        std::advance(r_it, right_border);
+
+        if (right_border < smoothed_intensities_.size())
+        {
+            std::advance(r_it, right_border);
+        }
+        else
+        {
+            std::advance(r_it, right_border - 1);
+        }
+
 
 
         return std::fabs(r_it->getRT() - l_it->getRT());

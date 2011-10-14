@@ -23,6 +23,7 @@ PeakMarker.C
 Scaler.C
 SqrtMower.C
 TICFilter.C
+TICResampling.C
 ThresholdMower.C
 WindowMower.C
 SpectraMerger.C
