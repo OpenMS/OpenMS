@@ -41,12 +41,9 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
-//filtering
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
-
-//clustering
-#include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
@@ -570,9 +567,6 @@ class TOPPSILACAnalyzer
 
   void filterData(MSExperiment<Peak1D>& exp)
   {
-    // extract level 1 spectra
-    IntList levels=IntList::create("1");
-    exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(levels, true)), exp.end());
     list<SILACFilter> filters;
 
     // create filters for all numbers of isotopes per peptide, charge states and mass shifts
@@ -766,6 +760,25 @@ class TOPPSILACAnalyzer
     // set size of input map
     exp.updateRanges();
 
+    // extract level 1 spectra
+    exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(IntList::create("1"), true)), exp.end());
+
+
+    //--------------------------------------------------
+    // estimate peak width
+    //--------------------------------------------------
+
+    PeakWidthEstimator::Result peak_width;
+    try
+    {
+      peak_width = estimatePeakWidth(exp);
+    }
+    catch (Exception::InvalidSize &)
+    {
+      writeLog_("Error: Unable to estimate peak width of input data.");
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
 
     if (in_filters == "")
     {
@@ -864,6 +877,8 @@ class TOPPSILACAnalyzer
   void clusterData();
 
 private:
+  PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> &exp);
+
   void generateClusterConsensusByCluster(ConsensusMap &, const Clustering &) const;
   void generateClusterConsensusByPattern(ConsensusMap &, const Clustering &) const;
   void generateFilterConsensusByPattern(ConsensusMap &, const std::vector<SILACPattern> &) const;
@@ -960,6 +975,19 @@ void TOPPSILACAnalyzer::clusterData()
   }
 
   progresslogger.endProgress();
+}
+
+PeakWidthEstimator::Result TOPPSILACAnalyzer::estimatePeakWidth(const MSExperiment<Peak1D> &exp)
+{
+  ProgressLogger progresslogger;
+  progresslogger.setLogType(log_type_);
+  progresslogger.startProgress(0, 1, "estimate peak width");
+
+  PeakWidthEstimator::Result ret = PeakWidthEstimator::estimateFWHM(exp);
+
+  progresslogger.endProgress();
+  std::cout << "Estimated peak width: e ^ (" << ret.c0 << " + " << ret.c1 << " * log mz)" << std::endl;
+  return ret;
 }
 
 void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, const Clustering &clustering) const

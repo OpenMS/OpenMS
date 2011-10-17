@@ -41,12 +41,9 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
-//filtering
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
-
-//clustering
-#include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
@@ -313,9 +310,6 @@ class TOPPFeatureFinderRaw
 
   void filterData(MSExperiment<Peak1D>& exp)
   {
-    // extract level 1 spectra
-    IntList levels=IntList::create("1");
-    exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(levels, true)), exp.end());
     list<SILACFilter> filters;
 
     // create filters for all numbers of isotopes per peptide, charge states and mass shifts
@@ -496,27 +490,44 @@ class TOPPFeatureFinderRaw
     handleParameters();
 
 
-    {
-      //--------------------------------------------------
-      // loading input from .mzML
-      //--------------------------------------------------
+    //--------------------------------------------------
+    // loading input from .mzML
+    //--------------------------------------------------
 
-      MzMLFile file;
-      MSExperiment<Peak1D> exp;
+    MzMLFile file;
+    MSExperiment<Peak1D> exp;
 
-      file.setLogType(log_type_);
-      file.load(in, exp);
+    file.setLogType(log_type_);
+    file.load(in, exp);
 
-      // set size of input map
-      exp.updateRanges();
+    // set size of input map
+    exp.updateRanges();
+
+    // extract level 1 spectra
+    exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(IntList::create("1"), true)), exp.end());
 
 
-      //--------------------------------------------------
-      // filter input data
-      //--------------------------------------------------
-
-      filterData(exp);
+    //--------------------------------------------------
+    // estimate peak width
+    //--------------------------------------------------
+    
+    PeakWidthEstimator::Result peak_width;
+    try
+    { 
+      peak_width = estimatePeakWidth(exp);
     }
+    catch (Exception::InvalidSize &)
+    { 
+      writeLog_("Error: Unable to estimate peak width of input data.");
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
+
+    //--------------------------------------------------
+    // filter input data
+    //--------------------------------------------------
+
+    filterData(exp);
 
 
     //--------------------------------------------------
@@ -547,6 +558,8 @@ class TOPPFeatureFinderRaw
   void clusterData();
 
 private:
+  PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> &);
+
   void generateClusterFeatureByCluster(FeatureMap<> &, const Clustering &) const;
 
   void writeFeatures(const String &filename, FeatureMap<> &out) const
@@ -620,6 +633,19 @@ void TOPPFeatureFinderRaw::clusterData()
   }
 
   progresslogger.endProgress();
+}
+
+PeakWidthEstimator::Result TOPPFeatureFinderRaw::estimatePeakWidth(const MSExperiment<Peak1D> &exp)
+{
+  ProgressLogger progresslogger;
+  progresslogger.setLogType(log_type_);
+  progresslogger.startProgress(0, 1, "estimate peak width");
+
+  PeakWidthEstimator::Result ret = PeakWidthEstimator::estimateFWHM(exp);
+
+  progresslogger.endProgress();
+  std::cout << "Estimated peak width: e ^ (" << ret.c0 << " + " << ret.c1 << " * log mz)" << std::endl;
+  return ret;
 }
 
 void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, const Clustering &clustering) const
