@@ -62,7 +62,7 @@ function displayLink($matches)
     $description = preg_replace ( '/.*body([^>]*)>(.*)<\/body.*/i' , "$2" ,  $desc );
     
     $parsed_url = pathinfo($local_file);
-    $file_ref = '<a href="'. $linkURL .'" target="_blank">'. $parsed_url['basename'] .'</a>';
+    $file_ref = '<a class="forced-download" href="'. $linkURL .'" target="_blank">'. $parsed_url['basename'] .'</a>';
   }  
   else
   {
