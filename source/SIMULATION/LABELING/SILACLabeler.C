@@ -71,7 +71,7 @@ bool SILACLabeler::canModificationBeApplied_(const String& modification_id, cons
   {
     ModificationsDB::getInstance()->searchModifications(modifications, aa, modification_id, ResidueModification::ANYWHERE);
   }
-  catch (Exception::ElementNotFound ex)
+  catch (Exception::ElementNotFound& ex)
   {
     ex.setMessage("The modification \"" + modification_id + "\" could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)");
     throw ex;
@@ -496,7 +496,7 @@ void SILACLabeler::postRTHook(FeatureMapSimVector &  features_to_simulate )
       id_map.insert(std::make_pair<UInt64,Feature*>(it->getUniqueId(), &(*it)));
     }
 
-    // recompute RT each consensus element
+    // recompute RT and set shape parameters for each consensus element
     for(ConsensusMap::Iterator consensus_it = consensus_.begin() ; consensus_it != consensus_.end() ; ++consensus_it)
     {
       vector<Feature*> original_features;
@@ -515,10 +515,19 @@ void SILACLabeler::postRTHook(FeatureMapSimVector &  features_to_simulate )
       {
         std::sort(original_features.begin(), original_features.end(), weight_compare_less);
 
+        // we use the shape parameters from the lightest fragment for all channels
+        DoubleReal variance = original_features[0]->getMetaValue("RT_egh_variance");
+        DoubleReal tau = original_features[0]->getMetaValue("RT_egh_tau");
+
         DoubleReal startRT = original_features[0]->getRT();
+
         for(Size i = 0; i < original_features.size(); ++i)
         {
           original_features[i]->setRT(startRT + i * rt_shift);
+
+          // copy shape parameters to features
+          original_features[i]->setMetaValue("RT_egh_variance", variance);
+          original_features[i]->setMetaValue("RT_egh_tau", tau);
         }
       }
     }
