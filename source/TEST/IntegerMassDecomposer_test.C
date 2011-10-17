@@ -31,9 +31,42 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
+
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+
 using namespace OpenMS;
 using namespace ims;
 using namespace std;
+
+Weights createWeights()
+{
+  Map<char, DoubleReal> aa_to_weight;
+
+  set<const Residue*> residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
+
+  for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+  {
+    aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+  }
+
+  // init mass decomposer
+  IMSAlphabet alphabet;
+  for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+  {
+    alphabet.push_back(String(it->first), it->second);
+  }
+
+  // initializes weights
+  Weights weights(alphabet.getMasses(), 0.01);
+
+  // optimize alphabet by dividing by gcd
+  weights.divideByGCD();
+
+  return weights;
+}
 
 START_TEST(IntegerMassDecomposer, "$Id$")
 
@@ -42,23 +75,17 @@ START_TEST(IntegerMassDecomposer, "$Id$")
 
 IntegerMassDecomposer<>* ptr = 0;
 IntegerMassDecomposer<>* null_ptr = 0;
-START_SECTION(IntegerMassDecomposer())
+
+START_SECTION((IntegerMassDecomposer(const Weights &alphabet_)))
 {
-  Weights w;
-  ptr = new IntegerMassDecomposer<>(w);
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new IntegerMassDecomposer<>(createWeights());
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~IntegerMassDecomposer())
 {
 	delete ptr;
-}
-END_SECTION
-
-START_SECTION((IntegerMassDecomposer(const Weights &alphabet_)))
-{
-  // TODO
 }
 END_SECTION
 

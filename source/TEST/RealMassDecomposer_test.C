@@ -31,9 +31,42 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
+
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+
 using namespace OpenMS;
 using namespace ims;
 using namespace std;
+
+Weights createWeights()
+{
+  Map<char, DoubleReal> aa_to_weight;
+
+  set<const Residue*> residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
+
+  for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+  {
+    aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+  }
+
+  // init mass decomposer
+  IMSAlphabet alphabet;
+  for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+  {
+    alphabet.push_back(String(it->first), it->second);
+  }
+
+  // initializes weights
+  Weights weights(alphabet.getMasses(), 0.01);
+
+  // optimize alphabet by dividing by gcd
+  weights.divideByGCD();
+
+  return weights;
+}
 
 START_TEST(RealMassDecomposer, "$Id$")
 
@@ -45,8 +78,7 @@ RealMassDecomposer* null_ptr = 0;
 
 START_SECTION((RealMassDecomposer(const Weights &weights)))
 {
-  Weights w;
-  ptr = new RealMassDecomposer(w);
+  ptr = new RealMassDecomposer(createWeights());
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
