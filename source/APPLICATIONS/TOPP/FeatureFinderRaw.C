@@ -308,7 +308,7 @@ class TOPPFeatureFinderRaw
   // filtering
   //--------------------------------------------------
 
-  void filterData(MSExperiment<Peak1D>& exp)
+  void filterData(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result &peak_width)
   {
     list<SILACFilter> filters;
 
@@ -332,7 +332,7 @@ class TOPPFeatureFinderRaw
     }
 
     // create filtering
-    SILACFiltering filtering(exp, intensity_cutoff, intensity_correlation, allow_missing_peaks, "");
+    SILACFiltering filtering(exp, peak_width, intensity_cutoff, intensity_correlation, allow_missing_peaks, "");
     filtering.setLogType(log_type_);
 
     // register filters to the filtering
@@ -527,7 +527,7 @@ class TOPPFeatureFinderRaw
     // filter input data
     //--------------------------------------------------
 
-    filterData(exp);
+    filterData(exp, peak_width);
 
 
     //--------------------------------------------------

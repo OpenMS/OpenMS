@@ -50,9 +50,10 @@ namespace OpenMS
   gsl_spline* SILACFiltering::spline_spl_ = 0;
   DoubleReal SILACFiltering::mz_min_ = 0;  
 
-  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks, const String debug_filebase)
+  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result &peak_width, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks, const String debug_filebase)
     : exp_(exp),
-      debug_filebase(debug_filebase)
+      debug_filebase(debug_filebase),
+      peak_width(peak_width)
   {
     intensity_cutoff_ = intensity_cutoff;
     intensity_correlation_ = intensity_correlation;
@@ -69,20 +70,10 @@ namespace OpenMS
 
   }
 
-  void SILACFiltering::checkPeakWidth()
-  {
-#if 1
-    startProgress(0, 1, "checking peak width");
-    peak_width_ = PeakWidthEstimator::estimateFWHM(exp_);
-    std::cout << "got: e ^ (" << peak_width_.c0 << " + " << peak_width_.c1 << " * log mz)" << std::endl;
-    endProgress();
-#endif
-  }
-
   DoubleReal SILACFiltering::getPeakWidth(DoubleReal mz) const
   {
 #if 1
-    return peak_width_(mz);
+    return peak_width(mz);
 #endif
     return 5*(1.889e-7*pow(mz,1.5));
   }
@@ -181,7 +172,6 @@ namespace OpenMS
 
   void SILACFiltering::filterDataPoints()
   {
-    checkPeakWidth();
     pickSeeds();
     filterSeeds();
 

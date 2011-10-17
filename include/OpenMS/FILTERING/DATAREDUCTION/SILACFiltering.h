@@ -102,16 +102,10 @@ namespace OpenMS
     */
    MSExperiment<Peak1D> picked_exp_seeds_;
 
-   /// peak-width equation
-   PeakWidthEstimator::Result peak_width_;
-
    /**
     * Filename base for debugging output
     */
    const String debug_filebase;
-
-   /// Predict peak width
-   void checkPeakWidth();
 
    /**
     * @brief pick data seeds
@@ -125,6 +119,9 @@ namespace OpenMS
 
   public:
 
+   /// peak-width equation
+   const PeakWidthEstimator::Result peak_width;
+
   /**
    * @brief detailed constructor
    * @param exp raw data
@@ -132,7 +129,7 @@ namespace OpenMS
    * @param intensity_correlation minimal intensity correlation between regions of different peaks
    * @param allow_missing_peaks flag for missing peaks
    */
-   SILACFiltering(MSExperiment<Peak1D>& exp, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks, const String debug_filebase = "");
+   SILACFiltering(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result &, const DoubleReal intensity_cutoff, const DoubleReal intensity_correlation, const bool allow_missing_peaks, const String debug_filebase = "");
 
   /**
    * @brief default constructor
