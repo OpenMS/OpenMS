@@ -270,40 +270,33 @@ namespace OpenMS {
       // resample variance if it is below 0
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
-      Size retry_variance_sampling=0;
-      while(variance <= 0 && retry_variance_sampling < 9)
+      Size retry_variance_sampling = 0;
+      while((variance <= 0 || (fabs(variance - egh_variance_location_) > 10*egh_variance_scale_)) && retry_variance_sampling < 9)
       {
         variance = egh_variance_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_);
         ++retry_variance_sampling;
       }
 
-      if (variance<=0)
+      if (variance <= 0 || (fabs(variance - egh_variance_location_) > 10*egh_variance_scale_))
       {
-        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Skipping feature!" << std::endl;
-        deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
-                                   String::number(predicted_retention_times[i],2)
-                                   + "]");
-        continue;
+        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Setting it to the user defined width value of " << egh_variance_location_ << "!" << std::endl;
+        variance = egh_variance_location_;
       }
 
       // resample tau if the value is to big
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
-      Size retry_tau_sampling=0;
+      Size retry_tau_sampling = 0;
       while( fabs(tau - egh_tau_location_) > 10*egh_tau_scale_  && retry_tau_sampling < 9)
       {
         tau = egh_tau_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_);
         ++retry_tau_sampling;
       }
 
-
       if(fabs(tau - egh_tau_location_) > 10*egh_tau_scale_)
       {
-        LOG_ERROR << "Tau is to big for a reasonable feature. Tried to resample 10 times and then stopped. Skipping feature!" << std::endl;
-        deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
-                                   String::number(predicted_retention_times[i],2)
-                                   + "]");
-        continue;
+        LOG_ERROR << "Tau is to big for a reasonable feature. Tried to resample 10 times and then stopped. Setting it to the user defined skewness value of " << egh_tau_location_ << "!" << std::endl;
+        tau = egh_tau_location_;
       }
 
       features[i].setMetaValue("RT_egh_variance", variance);
