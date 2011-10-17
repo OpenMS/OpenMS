@@ -155,7 +155,6 @@ class TOPPFeatureFinderRaw
     Int isotopes_per_peptide_max;
 
     // section "algorithm"
-    DoubleReal mz_threshold;
     DoubleReal rt_threshold;
     DoubleReal rt_min;
     DoubleReal intensity_cutoff;
@@ -350,9 +349,6 @@ class TOPPFeatureFinderRaw
       data.push_back(filter_it->getElements());
     }
 
-    // save mz peak width @1000 Th for mz threshold in clustering
-    mz_threshold = filtering.getPeakWidth(1000);
-
 
     //--------------------------------------------------
     // combine DataPoints to improve the clustering
@@ -534,7 +530,7 @@ class TOPPFeatureFinderRaw
     // clustering
     //--------------------------------------------------
 
-    clusterData();
+    clusterData(peak_width);
 
 
     //--------------------------------------------------------------
@@ -555,7 +551,7 @@ class TOPPFeatureFinderRaw
     return EXECUTION_OK;
   }
 
-  void clusterData();
+  void clusterData(const PeakWidthEstimator::Result &);
 
 private:
   PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> &);
@@ -572,13 +568,16 @@ private:
   }
 };
 
-void TOPPFeatureFinderRaw::clusterData()
+void TOPPFeatureFinderRaw::clusterData(const PeakWidthEstimator::Result &peak_width)
 {
   typedef Clustering::PointCoordinate PointCoordinate;
 
   ProgressLogger progresslogger;
   progresslogger.setLogType(log_type_);
   progresslogger.startProgress(0, data.size(), "clustering data");
+
+  // Use peak half width @1000 Th for mz threshold
+  DoubleReal mz_threshold = peak_width(1000);
 
   UInt data_id = 0;
 
