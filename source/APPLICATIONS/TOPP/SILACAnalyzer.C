@@ -753,22 +753,22 @@ class TOPPSILACAnalyzer
     handleParameters();
 
 
+    //--------------------------------------------------
+    // loading input from .mzML
+    //--------------------------------------------------
+
+    MzMLFile file;
+    MSExperiment<Peak1D> exp;
+
+    file.setLogType(log_type_);
+    file.load(in, exp);
+
+    // set size of input map
+    exp.updateRanges();
+
+
     if (in_filters == "")
     {
-      //--------------------------------------------------
-      // loading input from .mzML
-      //--------------------------------------------------
-
-      MzMLFile file;
-      MSExperiment<Peak1D> exp;
-
-      file.setLogType(log_type_);
-      file.load(in, exp);
-
-      // set size of input map
-      exp.updateRanges();
-
-
       //--------------------------------------------------
       // filter input data
       //--------------------------------------------------
