@@ -49,6 +49,7 @@ namespace OpenMS
 		match_peak_tolerance_(0),
 		ion_cutoff_percentage_(0),
 		peptide_mass_unit_(0),
+		output_lines_(0),
 		enzyme_number_(0),
 		max_AA_per_mod_per_peptide_(0),
 		max_mods_per_peptide_(0),
@@ -106,75 +107,73 @@ namespace OpenMS
 	
 	SequestInfile& SequestInfile::operator=(const SequestInfile& sequest_infile)
 	{
-		if ( this != &sequest_infile )
-		{
-			enzyme_info_ = sequest_infile.getEnzymeInfo_();
-			database_ = sequest_infile.getDatabase();
-			neutral_losses_for_ions_ = sequest_infile.getNeutralLossesForIons();
-			ion_series_weights_ = sequest_infile.getIonSeriesWeights();
-			partial_sequence_ = sequest_infile.getPartialSequence();
-			sequence_header_filter_ = sequest_infile.getSequenceHeaderFilter();
-			precursor_mass_tolerance_ = sequest_infile.getPrecursorMassTolerance();
-			peak_mass_tolerance_ = sequest_infile.getPeakMassTolerance();
-			ion_cutoff_percentage_ = sequest_infile.getIonCutoffPercentage();
-			protein_mass_filter_ = sequest_infile.getProteinMassFilter();
-			match_peak_tolerance_ = sequest_infile.getMatchPeakTolerance();
-			peptide_mass_unit_ = sequest_infile.getPeptideMassUnit();
-			output_lines_ = sequest_infile.getOutputLines();
-			enzyme_number_ = sequest_infile.getEnzymeNumber();
-			max_AA_per_mod_per_peptide_ = sequest_infile.getMaxAAPerModPerPeptide();
-			max_mods_per_peptide_ = sequest_infile.getMaxModsPerPeptide();
-			nucleotide_reading_frame_ = sequest_infile.getNucleotideReadingFrame();
-			max_internal_cleavage_sites_ = sequest_infile.getMaxInternalCleavageSites();
-			match_peak_count_ = sequest_infile.getMatchPeakCount();
-			match_peak_allowed_error_ = sequest_infile.getMatchPeakAllowedError();
-			show_fragment_ions_ = sequest_infile.getShowFragmentIons();
-			print_duplicate_references_ = sequest_infile.getPrintDuplicateReferences();
-			remove_precursor_near_peaks_ = sequest_infile.getRemovePrecursorNearPeaks();
-			mass_type_parent_ = sequest_infile.getMassTypeParent();
-			mass_type_fragment_ = sequest_infile.getMassTypeFragment();
-			normalize_xcorr_ = sequest_infile.getNormalizeXcorr();
-			residues_in_upper_case_ = sequest_infile.getResiduesInUpperCase();
-			PTMname_residues_mass_type_ = sequest_infile.getModifications();
-		}
-		return *this;
+    if ( this == &sequest_infile ) return *this;
+
+    enzyme_info_ = sequest_infile.getEnzymeInfo_();
+    database_ = sequest_infile.getDatabase();
+    neutral_losses_for_ions_ = sequest_infile.getNeutralLossesForIons();
+    ion_series_weights_ = sequest_infile.getIonSeriesWeights();
+    partial_sequence_ = sequest_infile.getPartialSequence();
+    sequence_header_filter_ = sequest_infile.getSequenceHeaderFilter();
+    precursor_mass_tolerance_ = sequest_infile.getPrecursorMassTolerance();
+    peak_mass_tolerance_ = sequest_infile.getPeakMassTolerance();
+    ion_cutoff_percentage_ = sequest_infile.getIonCutoffPercentage();
+    protein_mass_filter_ = sequest_infile.getProteinMassFilter();
+    match_peak_tolerance_ = sequest_infile.getMatchPeakTolerance();
+    peptide_mass_unit_ = sequest_infile.getPeptideMassUnit();
+    output_lines_ = sequest_infile.getOutputLines();
+    enzyme_number_ = sequest_infile.getEnzymeNumber();
+    max_AA_per_mod_per_peptide_ = sequest_infile.getMaxAAPerModPerPeptide();
+    max_mods_per_peptide_ = sequest_infile.getMaxModsPerPeptide();
+    nucleotide_reading_frame_ = sequest_infile.getNucleotideReadingFrame();
+    max_internal_cleavage_sites_ = sequest_infile.getMaxInternalCleavageSites();
+    match_peak_count_ = sequest_infile.getMatchPeakCount();
+    match_peak_allowed_error_ = sequest_infile.getMatchPeakAllowedError();
+    show_fragment_ions_ = sequest_infile.getShowFragmentIons();
+    print_duplicate_references_ = sequest_infile.getPrintDuplicateReferences();
+    remove_precursor_near_peaks_ = sequest_infile.getRemovePrecursorNearPeaks();
+    mass_type_parent_ = sequest_infile.getMassTypeParent();
+    mass_type_fragment_ = sequest_infile.getMassTypeFragment();
+    normalize_xcorr_ = sequest_infile.getNormalizeXcorr();
+    residues_in_upper_case_ = sequest_infile.getResiduesInUpperCase();
+    PTMname_residues_mass_type_ = sequest_infile.getModifications();
+    return *this;
 	}
 	
 	bool SequestInfile::operator==(const SequestInfile& sequest_infile) const
 	{
-		if ( this != &sequest_infile )
-		{
-			bool equal = true;
-			equal &= ( enzyme_info_ == sequest_infile.getEnzymeInfo_() );
-			equal &= ( database_ == sequest_infile.getDatabase() );
-			equal &= ( neutral_losses_for_ions_ == sequest_infile.getNeutralLossesForIons() );
-			equal &= ( ion_series_weights_ == sequest_infile.getIonSeriesWeights() );
-			equal &= ( partial_sequence_ == sequest_infile.getPartialSequence() );
-			equal &= ( sequence_header_filter_ == sequest_infile.getSequenceHeaderFilter() );
-			equal &= ( precursor_mass_tolerance_ == sequest_infile.getPrecursorMassTolerance() );
-			equal &= ( peak_mass_tolerance_ == sequest_infile.getPeakMassTolerance() );
-			equal &= ( ion_cutoff_percentage_ == sequest_infile.getIonCutoffPercentage() );
-			equal &= ( protein_mass_filter_ == sequest_infile.getProteinMassFilter() );
-			equal &= ( match_peak_tolerance_ == sequest_infile.getMatchPeakTolerance() );
-			equal &= ( peptide_mass_unit_ == sequest_infile.getPeptideMassUnit() );
-			equal &= ( output_lines_ == sequest_infile.getOutputLines() );
-			equal &= ( enzyme_number_ == sequest_infile.getEnzymeNumber() );
-			equal &= ( max_AA_per_mod_per_peptide_ == sequest_infile.getMaxAAPerModPerPeptide() );
-			equal &= ( max_mods_per_peptide_ == sequest_infile.getMaxModsPerPeptide() );
-			equal &= ( nucleotide_reading_frame_ == sequest_infile.getNucleotideReadingFrame() );
-			equal &= ( max_internal_cleavage_sites_ == sequest_infile.getMaxInternalCleavageSites() );
-			equal &= ( match_peak_count_ == sequest_infile.getMatchPeakCount() );
-			equal &= ( match_peak_allowed_error_ == sequest_infile.getMatchPeakAllowedError() );
-			equal &= ( show_fragment_ions_ == sequest_infile.getShowFragmentIons() );
-			equal &= ( print_duplicate_references_ == sequest_infile.getPrintDuplicateReferences() );
-			equal &= ( remove_precursor_near_peaks_ == sequest_infile.getRemovePrecursorNearPeaks() );
-			equal &= ( mass_type_parent_ == sequest_infile.getMassTypeParent() );
-			equal &= ( mass_type_fragment_ == sequest_infile.getMassTypeFragment() );
-			equal &= ( normalize_xcorr_ == sequest_infile.getNormalizeXcorr() );
-			equal &= ( residues_in_upper_case_ == sequest_infile.getResiduesInUpperCase() );
-			equal &= ( PTMname_residues_mass_type_ == sequest_infile.getModifications() );
-		}
-		return true;
+    bool equal = true;
+
+    equal &= ( enzyme_info_ == sequest_infile.getEnzymeInfo_() );
+    equal &= ( database_ == sequest_infile.getDatabase() );
+    equal &= ( neutral_losses_for_ions_ == sequest_infile.getNeutralLossesForIons() );
+    equal &= ( ion_series_weights_ == sequest_infile.getIonSeriesWeights() );
+    equal &= ( partial_sequence_ == sequest_infile.getPartialSequence() );
+    equal &= ( sequence_header_filter_ == sequest_infile.getSequenceHeaderFilter() );
+    equal &= ( precursor_mass_tolerance_ == sequest_infile.getPrecursorMassTolerance() );
+    equal &= ( peak_mass_tolerance_ == sequest_infile.getPeakMassTolerance() );
+    equal &= ( ion_cutoff_percentage_ == sequest_infile.getIonCutoffPercentage() );
+    equal &= ( protein_mass_filter_ == sequest_infile.getProteinMassFilter() );
+    equal &= ( match_peak_tolerance_ == sequest_infile.getMatchPeakTolerance() );
+    equal &= ( peptide_mass_unit_ == sequest_infile.getPeptideMassUnit() );
+    equal &= ( output_lines_ == sequest_infile.getOutputLines() );
+    equal &= ( enzyme_number_ == sequest_infile.getEnzymeNumber() );
+    equal &= ( max_AA_per_mod_per_peptide_ == sequest_infile.getMaxAAPerModPerPeptide() );
+    equal &= ( max_mods_per_peptide_ == sequest_infile.getMaxModsPerPeptide() );
+    equal &= ( nucleotide_reading_frame_ == sequest_infile.getNucleotideReadingFrame() );
+    equal &= ( max_internal_cleavage_sites_ == sequest_infile.getMaxInternalCleavageSites() );
+    equal &= ( match_peak_count_ == sequest_infile.getMatchPeakCount() );
+    equal &= ( match_peak_allowed_error_ == sequest_infile.getMatchPeakAllowedError() );
+    equal &= ( show_fragment_ions_ == sequest_infile.getShowFragmentIons() );
+    equal &= ( print_duplicate_references_ == sequest_infile.getPrintDuplicateReferences() );
+    equal &= ( remove_precursor_near_peaks_ == sequest_infile.getRemovePrecursorNearPeaks() );
+    equal &= ( mass_type_parent_ == sequest_infile.getMassTypeParent() );
+    equal &= ( mass_type_fragment_ == sequest_infile.getMassTypeFragment() );
+    equal &= ( normalize_xcorr_ == sequest_infile.getNormalizeXcorr() );
+    equal &= ( residues_in_upper_case_ == sequest_infile.getResiduesInUpperCase() );
+    equal &= ( PTMname_residues_mass_type_ == sequest_infile.getModifications() );
+
+    return equal;
 	}
 	
 	void

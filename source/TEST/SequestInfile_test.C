@@ -61,32 +61,32 @@ START_SECTION((SequestInfile& operator=(const SequestInfile &sequest_infile)))
 	SequestInfile sequest_infile1;
 	sequest_infile1.setDatabase("dummy");
 	SequestInfile sequest_infile2 = sequest_infile1;
-	SequestInfile sequest_infile3;
-	sequest_infile3.setDatabase("dummy");
-	sequest_infile1 = SequestInfile();
-	TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), true)
-	SequestInfile sequest_infile4;
-	TEST_EQUAL(( sequest_infile1 == sequest_infile4 ), true)
+  TEST_EQUAL(( sequest_infile1 == sequest_infile2 ), true)
+
+  SequestInfile sequest_infile3;
+  TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), false)
 END_SECTION
 
 START_SECTION((SequestInfile(const SequestInfile &sequest_infile)))
 	SequestInfile sequest_infile1;
 	sequest_infile1.setDatabase("dummy");
 	SequestInfile sequest_infile2(sequest_infile1);
+  TEST_EQUAL(( sequest_infile1 == sequest_infile2 ), true)
+
 	SequestInfile sequest_infile3;
-	sequest_infile3.setDatabase("dummy");
-	sequest_infile1 = SequestInfile();
-	TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), true)
-	SequestInfile sequest_infile4;
-	TEST_EQUAL(( sequest_infile1 == sequest_infile4 ), true)
+  TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), false)
 END_SECTION
 
 START_SECTION((bool operator==(const SequestInfile &sequest_infile) const))
 	SequestInfile sequest_infile1;
 	sequest_infile1.setDatabase("dummy");
 	SequestInfile sequest_infile2;
-	sequest_infile2.setDatabase("dummy");
+  sequest_infile2.setDatabase("dummy");
 	TEST_EQUAL(( sequest_infile1 == sequest_infile2 ), true)
+
+  SequestInfile sequest_infile3;
+  sequest_infile3.setDatabase("another dummy");
+  TEST_EQUAL(( sequest_infile1 == sequest_infile3 ), false)
 END_SECTION
 
 SequestInfile file;
