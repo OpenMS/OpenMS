@@ -423,7 +423,7 @@ namespace OpenMS
           {
             ion_nr_string.replace("b", "");
             ion_nr_string.replace("+", "");
-            Size ion_number = ion_nr_string.toUInt();
+            UInt ion_number = ion_nr_string.toUInt();
             s.append("\n");
             // extract peptide ion sequence
             AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);

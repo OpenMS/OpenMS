@@ -728,6 +728,47 @@ namespace OpenMS
   {
     Param load_param;
     load_param.load(file);
+
+
+    // check for TOPPAS file version. Deny loading if too old or too new
+    // get version of TOPPAS file
+    String file_version = "1.8.0"; // default (were we did not have the tag)
+    if (load_param.exists("info:version")) file_version = load_param.getValue("info:version");
+    VersionInfo::VersionDetails v_file = VersionInfo::VersionDetails::create(file_version);
+    VersionInfo::VersionDetails v_this_low = VersionInfo::VersionDetails::create("1.9.0"); // last compatible TOPPAS file version
+    VersionInfo::VersionDetails v_this_high = VersionInfo::VersionDetails::create(VersionInfo::getVersion()); // last compatible TOPPAS file version
+    if (v_file < v_this_low)
+    {
+      if (!this->gui_)
+      {
+        std::cerr << "The TOPPAS file is too old! Please update the file using TOPPAS or INIUpdater!" << std::endl;
+      }
+      else if (this->gui_ && QMessageBox::warning(0, tr("Old TOPPAS file -- convert and override?"), tr("The TOPPAS file you downloaded was created with an old incompatible version of TOPPAS.\n"
+                                        "Shall we try to convert the file?! The original file will be overridden, but a backup file will be saved in the same directory.\n")
+                                        , QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+      {
+        // only update in GUI mode, as in non-GUI mode, we'd create infinite recursive calls when instantiating TOPPASScene in INIUpdater
+
+        // note: double quoting required for Windows, as outer quotes are being removed (arghh)...
+        String cmd = String("\" \"" + File::getExecutablePath() + "INIUpdater\" -in \"" + file + "\" -i \"");
+        std::cerr << cmd << "\n\n";
+        if (std::system(cmd.c_str()))
+        {
+          QMessageBox::warning(0, tr("INIUpdater failed"), tr("Updating using the INIUpdater tool failed. Please submit a bug report\n")
+            , QMessageBox::Ok);
+          return;
+        }
+        // reload updated file
+        load_param.load(file);
+      }
+    }
+    else if (v_file > v_this_high)
+    {
+      if (this->gui_ && QMessageBox::warning(0, tr("TOPPAS file too new"), tr("The TOPPAS file you downloaded was created with an more recent version of TOPPAS. Shall we will try to open it?\n"
+        "If this fails, update to the new TOPPAS version.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) return;
+    }
+
+
     Param vertices_param = load_param.copy("vertices:",true);
     Param edges_param = load_param.copy("edges:",true);
     
