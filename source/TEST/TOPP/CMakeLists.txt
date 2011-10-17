@@ -679,11 +679,8 @@ set_tests_properties("TOPP_SILACAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_SILACA
 add_test("TOPP_SILACAnalyzer_1_out2" ${DIFF} -in1 SILACAnalyzer.featureXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.featureXML )
 set_tests_properties("TOPP_SILACAnalyzer_1_out2" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_1")
 # empty mzML
-add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_empty.mzML -out SILACAnalyzer_empty.consensusXML.tmp -out_features SILACAnalyzer_empty.featureXML.tmp)
-add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer_empty.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_empty.consensusXML )
-set_tests_properties("TOPP_SILACAnalyzer_2_out1" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_2")
-add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -in1 SILACAnalyzer_empty.featureXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_empty.featureXML )
-set_tests_properties("TOPP_SILACAnalyzer_2_out2" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_2")
+add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_empty.mzML)
+set_tests_properties("TOPP_SILACAnalyzer_2" PROPERTIES WILL_FAIL 1)
 # mzML with negativ RT
 add_test("TOPP_SILACAnalyzer_3" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.mzML -out SILACAnalyzer_negativ.consensusXML.tmp)
 add_test("TOPP_SILACAnalyzer_3_out1" ${DIFF} -in1 SILACAnalyzer_negativ.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.consensusXML )
