@@ -101,9 +101,17 @@ namespace OpenMS
 #endif      
     };
 
+    enum SolverStatus
+    {
+      UNDEFINED = 1,
+      OPTIMAL = 5,
+      FEASIBLE = 2,
+      NO_FEASIBLE_SOL = 4
+    };
+
 		LPWrapper();
     virtual ~LPWrapper();
-
+    
     // problem creation/manipulation
     /// adds a row to the LP matrix, returns index
     Size addRow(std::vector<Int> row_indices,std::vector<DoubleReal> row_values,String name); 
@@ -208,7 +216,7 @@ namespace OpenMS
      *	
      *	@return status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
      */
-    Int getStatus();
+    SolverStatus getStatus();
     // solution access
     DoubleReal getObjectiveValue();
     DoubleReal getColumnValue(Size index);

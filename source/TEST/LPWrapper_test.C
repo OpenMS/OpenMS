@@ -29,6 +29,9 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+#if COINOR_SOLVER==1
+  #include "coin/CoinModel.hpp"
+#endif
 ///////////////////////////
 
 using namespace OpenMS;
@@ -55,6 +58,7 @@ START_SECTION(~LPWrapper())
 END_SECTION
 
 LPWrapper lp;
+//lp.setSolver(LPWrapper::SOLVER_GLPK);
 std::vector<DoubleReal> values(2,0.5);
 std::vector<Int> indices;
 indices.push_back(0);
@@ -124,13 +128,13 @@ END_SECTION
 
 START_SECTION((Size getRowIndex(String name)))
 {
-  //  TEST_EQUAL(lp.getRowIndex("row1"),0); 
+  TEST_EQUAL(lp.getRowIndex("row1"),0); 
 }
 END_SECTION
 
 START_SECTION((Size getColumnIndex(String name)))
 {
-  //TEST_EQUAL(lp.getColumnIndex("col1"),0); 
+  TEST_EQUAL(lp.getColumnIndex("col1"),0); 
 }
 END_SECTION
 
@@ -166,9 +170,9 @@ END_SECTION
 
 START_SECTION((VariableType getColumnType(Size index)))
 {
-  lp.setColumnType(0,LPWrapper::BINARY);
-  if (lp.getSolver()==LPWrapper::SOLVER_GLPK) TEST_EQUAL(lp.getColumnType(0),LPWrapper::BINARY)
-  else TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+  lp.setColumnType(1,LPWrapper::BINARY);
+  if (lp.getSolver()==LPWrapper::SOLVER_GLPK) TEST_EQUAL(lp.getColumnType(1),LPWrapper::BINARY)
+  else TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
 }
 END_SECTION
 
@@ -212,39 +216,168 @@ START_SECTION((Size getNumberOfRows()))
 }
 END_SECTION
 
+START_SECTION((DoubleReal getColumnUpperBound(Size index)))
+{
+  TEST_REAL_SIMILAR(lp.getColumnUpperBound(0),1.0)
+}
+END_SECTION
+
+START_SECTION((void deleteRow(Size index)))
+{
+  lp.deleteRow(2);
+  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
+    {
+      TEST_EQUAL(lp.getNumberOfRows(),2)
+    }
+#if COINOR_SOLVER==1
+  else
+    {
+      // CoinOr doesn't delete the column, but sets all entries to zero and deletes the bounds, names, objective coeff etc.
+      TEST_REAL_SIMILAR(lp.getObjective(2),0.)
+      TEST_REAL_SIMILAR(lp.getColumnLowerBound(2),-COIN_DBL_MAX)
+      TEST_REAL_SIMILAR(lp.getColumnUpperBound(2),COIN_DBL_MAX)  
+    }
+#endif
+}
+END_SECTION
+
+START_SECTION((DoubleReal getColumnLowerBound(Size index)))
+{
+  TEST_REAL_SIMILAR(lp.getColumnLowerBound(0),0.3)
+}
+END_SECTION
+
+START_SECTION((DoubleReal getRowUpperBound(Size index)))
+{
+  TEST_REAL_SIMILAR(lp.getRowUpperBound(0),1.0)
+}
+END_SECTION
+
+START_SECTION((DoubleReal getRowLowerBound(Size index)))
+{
+  TEST_REAL_SIMILAR(lp.getRowLowerBound(0),-0.3)  
+}
+END_SECTION
+
+
+START_SECTION((void setElement(Size row_index, Size column_index, DoubleReal value)))
+{
+  lp.setElement(1,2,0.5);
+  TEST_REAL_SIMILAR(lp.getElement(1,2),0.5)  
+}
+END_SECTION
+
+
+START_SECTION((DoubleReal getElement(Size row_index, Size column_index)))
+{
+  lp.setElement(0,2,0.1);
+  TEST_REAL_SIMILAR(lp.getElement(0,2),0.1)
+}
+END_SECTION
+
+
 START_SECTION((void readProblem(String filename, String format)))
 {
-  // TODO
+  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
+    {
+      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.lp"),"LP");
+      TEST_EQUAL(lp.getNumberOfColumns(),2)
+      TEST_EQUAL(lp.getNumberOfRows(),3)
+      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getObjective(0),1)
+      TEST_EQUAL(lp.getObjective(1),0)
+      TEST_EQUAL(lp.getRowUpperBound(0),0)
+      TEST_EQUAL(lp.getRowUpperBound(1),12)
+      TEST_EQUAL(lp.getRowUpperBound(2),12)
+      TEST_EQUAL(lp.getElement(0,0),1)
+      TEST_EQUAL(lp.getElement(0,1),-1)
+      TEST_EQUAL(lp.getElement(1,0),2)
+      TEST_EQUAL(lp.getElement(1,1),3)
+      TEST_EQUAL(lp.getElement(2,0),3)
+      TEST_EQUAL(lp.getElement(2,1),2) 
+    }
+#if COINOR_SOLVER==1
+  else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
+    {
+      TEST_EXCEPTION(Exception::NotImplemented, lp.readProblem("/bla/bluff/blblb/sdfhsdjf/test.txt","LP"))
+    }
+#endif
 }
 END_SECTION
 
 START_SECTION((void writeProblem(String filename, String format)))
 {
-  // TODO
+  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
+    {
+      String tmp_filename;
+      NEW_TMP_FILE(tmp_filename);
+      lp.writeProblem(tmp_filename,"LP");
+      LPWrapper lp2;
+      lp2.setSolver(LPWrapper::SOLVER_GLPK);
+      lp2.readProblem(tmp_filename,"LP");
+      TEST_EQUAL(lp.getNumberOfColumns(),2)
+      TEST_EQUAL(lp.getNumberOfRows(),3)
+      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getObjective(0),1)
+      TEST_EQUAL(lp.getObjective(1),0)
+      TEST_EQUAL(lp.getRowUpperBound(0),0)
+      TEST_EQUAL(lp.getRowUpperBound(1),12)
+      TEST_EQUAL(lp.getRowUpperBound(2),12)
+      TEST_EQUAL(lp.getElement(0,0),1)
+      TEST_EQUAL(lp.getElement(0,1),-1)
+      TEST_EQUAL(lp.getElement(1,0),2)
+      TEST_EQUAL(lp.getElement(1,1),3)
+      TEST_EQUAL(lp.getElement(2,0),3)
+      TEST_EQUAL(lp.getElement(2,1),2)
+    }
+#if COINOR_SOLVER==1
+  else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
+  {
+    TEST_EXCEPTION(Exception::NotImplemented, lp.writeProblem("/bla/bluff/blblb/sdfhsdjf/test.txt","LP"))
+  }
+#endif
 }
 END_SECTION
 
 START_SECTION((Int solve(SolverParam &solver_param)))
 {
-  // TODO
+#if COINOR_SOLVER==1
+  if(lp.getSolver() ==LPWrapper::SOLVER_COINOR)   lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
+  lp.setObjectiveSense(LPWrapper::MAX);
+#endif
+  LPWrapper::SolverParam param;
+  lp.solve(param);
 }
 END_SECTION
 
-START_SECTION((Int getStatus()))
+START_SECTION((SolverStatus getStatus()))
 {
-  // TODO
+  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
+    {
+      TEST_EQUAL(lp.getStatus(),LPWrapper::OPTIMAL)
+    }
+#if COINOR_SOLVER==1
+  else
+  {
+    TEST_EQUAL(lp.getStatus(),LPWrapper::UNDEFINED)
+  }
+#endif
+
 }
 END_SECTION
 
 START_SECTION((DoubleReal getObjectiveValue()))
 {
-  // TODO
+  TEST_REAL_SIMILAR(lp.getObjectiveValue(),2)
 }
 END_SECTION
 
 START_SECTION((DoubleReal getColumnValue(Size index)))
 {
-  // TODO
+  TEST_REAL_SIMILAR(lp.getColumnValue(0),2)
+  TEST_REAL_SIMILAR(lp.getColumnValue(1),2)
 }
 END_SECTION
 
@@ -263,7 +396,23 @@ END_SECTION
 
 START_SECTION(([LPWrapper::SolverParam] SolverParam()))
 {
-  // TODO
+  LPWrapper::SolverParam* sptr = new LPWrapper::SolverParam();
+  LPWrapper::SolverParam* snull_ptr = 0;
+	TEST_NOT_EQUAL(sptr, snull_ptr)
+  TEST_EQUAL(sptr->message_level,3)
+  TEST_EQUAL(sptr->branching_tech,4)
+  TEST_EQUAL(sptr->backtrack_tech,3)
+  TEST_EQUAL(sptr->preprocessing_tech,2)
+  TEST_EQUAL(sptr->enable_feas_pump_heuristic,true)
+  TEST_EQUAL(sptr->enable_gmi_cuts,true)
+  TEST_EQUAL(sptr->enable_mir_cuts,true)
+  TEST_EQUAL(sptr->enable_cov_cuts,true)
+  TEST_EQUAL(sptr->enable_clq_cuts,true)
+  TEST_EQUAL(sptr->mip_gap,0.0)                        
+  TEST_EQUAL(sptr->output_freq,5000)
+  TEST_EQUAL(sptr->output_delay,10000)
+  TEST_EQUAL(sptr->enable_presolve,true)
+  TEST_EQUAL(sptr->enable_binarization,true) 
 }
 END_SECTION
 
