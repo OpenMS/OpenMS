@@ -79,12 +79,6 @@ START_SECTION((IMSIsotopeDistribution(const IMSIsotopeDistribution &distribution
 }
 END_SECTION
 
-START_SECTION((~IMSIsotopeDistribution()))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((size_type size() const ))
 {
   // TODO

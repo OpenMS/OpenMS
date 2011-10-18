@@ -54,7 +54,7 @@ START_SECTION(~MSSim())
 }
 END_SECTION
 
-START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SampleChannels &peptides, const String &labeling_tpye)))
+START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SampleChannels &peptides)))
 {
   // TODO
 #if 0 // core from old LCMSSim_test
@@ -134,7 +134,13 @@ START_SECTION((FeatureMapSim const& getContaminants() const ))
 }
 END_SECTION
 
-START_SECTION((Param getParameters(const String &labeling_name) const ))
+START_SECTION((Param getParameters() const ))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((MSSimExperiment const& getPeakMap() const ))
 {
   // TODO
 }

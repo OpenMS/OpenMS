@@ -27,6 +27,8 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
 ///////////////////////////
@@ -63,7 +65,17 @@ END_SECTION
 
 START_SECTION((IMSElement(const name_type &name, const isotopes_type &isotopes)))
 {
-  // TODO
+  IMSIsotopeDistribution::peaks_container peaks;
+  peaks.push_back(IMSIsotopeDistribution::peak_type(1.0078250319,.999885));
+  peaks.push_back(IMSIsotopeDistribution::peak_type(2.01410178,.000115));
+  peaks.push_back(IMSIsotopeDistribution::peak_type(3.01604927,.0));
+
+  IMSIsotopeDistribution iso(peaks, 1);
+
+  IMSElement * hydrogen = new IMSElement("H",iso);
+  TEST_NOT_EQUAL(hydrogen, null_ptr)
+  TEST_STRING_EQUAL(hydrogen->getName(), "H")
+  TEST_EQUAL(hydrogen->getIsotopeDistribution(), iso)
 }
 END_SECTION
 
@@ -156,13 +168,6 @@ START_SECTION((bool operator!=(const IMSElement &element) const ))
   // TODO
 }
 END_SECTION
-
-START_SECTION((virtual ~IMSElement()))
-{
-  // TODO
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     @endcode
 
      Copyright 1999 by Addison Wesley Longman, Inc. and Nicolai M. Josuttis.
-     All rights reserved.
+     All rights resuntitlederved.
 
      Permission to use, copy, modify and distribute this software for personal and
      educational use is hereby granted without fee, provided that the above copyright
@@ -116,12 +116,12 @@ int main(int argc, char** argv) {
       : public std::unary_function<typename OP2::argument_type, typename OP1::result_type>
   {
   private:
-    OP1 op1;    // process: op1(op2(x))
-    OP2 op2;
+    OP1 op1_;    // process: op1(op2(x))
+    OP2 op2_;
   public:
     /// Constructor
     UnaryComposeFunctionAdapter(const OP1& o1, const OP2& o2)
-      : op1(o1), op2(o2)
+      : op1_(o1), op2_(o2)
     {
     }
 
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
     typename OP1::result_type
     operator()(const typename OP2::argument_type& x) const
     {
-      return op1(op2(x));
+      return op1_(op2_(x));
     }
   };
 

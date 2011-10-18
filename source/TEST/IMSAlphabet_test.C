@@ -55,6 +55,18 @@ START_SECTION(~IMSAlphabet())
 }
 END_SECTION
 
+START_SECTION((IMSAlphabet(const container &elements)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((IMSAlphabet(const IMSAlphabet &alphabet)))
+{
+  // TODO
+}
+END_SECTION
+
 START_SECTION((const element_type& getElement(const name_type &name) const ))
 {
   // TODO
@@ -134,24 +146,6 @@ START_SECTION((virtual void load(const std::string &fname)))
 END_SECTION
 
 START_SECTION((virtual void load(const std::string &fname, IMSAlphabetParser<> *parser)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((virtual ~IMSAlphabet()))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((IMSAlphabet(const container &elements)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((IMSAlphabet(const IMSAlphabet &alphabet)))
 {
   // TODO
 }

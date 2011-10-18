@@ -39,20 +39,16 @@ namespace OpenMS {
   namespace ims {
 
     /**
- @brief Represents a chemical atom with name and isotope distribution.
+       @brief Represents a chemical atom with name and isotope distribution.
 
- Simulates a chemical atom with name and isotope distribution and can be
- used as a base class for more complex structures that simulate non-trivial
- bio-chemical molecules. @c Element 's name represents the atom's symbol
- in a periodical table. Sequence is by default equal to name and
- introduced for more complex molecules.
+       Simulates a chemical atom with name and isotope distribution and can be
+       used as a base class for more complex structures that simulate non-trivial
+       bio-chemical molecules. @c Element 's name represents the atom's symbol
+       in a periodical table. Sequence is by default equal to name and
+       introduced for more complex molecules.
 
- @see ComposedElement
-
- @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
-
- @ingroup alphabet
- */
+       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
+     */
     class OPENMS_DLLAPI IMSElement {
     public:
       /**

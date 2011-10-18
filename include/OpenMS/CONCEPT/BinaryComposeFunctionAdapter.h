@@ -102,13 +102,13 @@ int main(int argc, char** argv) {
       typename OP1::result_type>
   {
   private:
-    OP1 op1;    // process: op1(op2(x),op3(y))
-    OP2 op2;
-    OP3 op3;
+    OP1 op1_;    // process: op1(op2(x),op3(y))
+    OP2 op2_;
+    OP3 op3_;
   public:
     /// constructor
     BinaryComposeFunctionAdapter (const OP1& o1, const OP2& o2, const OP3& o3)
-      : op1(o1), op2(o2), op3(o3)
+      : op1_(o1), op2_(o2), op3_(o3)
     {
     }
 
@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
     operator()(const typename OP2::argument_type& x,
                const typename OP3::argument_type& y) const
     {
-      return op1(op2(x),op3(y));
+      return op1_(op2_(x),op3_(y));
     }
   };
 

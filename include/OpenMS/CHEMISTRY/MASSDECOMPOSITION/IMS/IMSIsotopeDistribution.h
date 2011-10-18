@@ -76,7 +76,8 @@ namespace OpenMS {
 
       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
     */
-    class OPENMS_DLLAPI IMSIsotopeDistribution {
+    class OPENMS_DLLAPI IMSIsotopeDistribution
+    {
 
     public:
       /**
@@ -97,12 +98,17 @@ namespace OpenMS {
       /**
         @brief Structure that represents an isotope peak - pair of mass and abundance.
       */
-      struct Peak {
+      struct Peak
+      {
         Peak(mass_type mass = 0.0, abundance_type abundance = 0.0) :
-          mass(mass), abundance(abundance) { }
-        bool operator ==(const Peak& peak) const {
+          mass(mass), abundance(abundance)
+        { }
+
+        bool operator ==(const Peak& peak) const
+        {
           return (peak.mass == mass && peak.abundance == abundance);
         }
+
         mass_type mass;
         abundance_type abundance;
       };
