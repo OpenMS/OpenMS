@@ -27,5 +27,6 @@
         <file>TOPP_about.png</file>
         <file>log.png</file>
         <file>Recycling_symbol.svg</file>
+        <file>stop_sign.svg</file>
     </qresource>
 </RCC>

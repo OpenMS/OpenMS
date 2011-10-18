@@ -168,9 +168,10 @@ namespace OpenMS
 			void openInTOPPView();
 			/// Refreshes the parameters of this tool, returns if their has been a change
 			bool refreshParameters();
-
       /// underlying TOPP tool found and parameters fetched?! (done in C'Tor)
       bool isToolReady() const;
+      /// Toggle breakpoint
+      void toggleBreakpoint();
 
 
 		public slots:
@@ -238,6 +239,9 @@ namespace OpenMS
 
 			/// UID for output files
 			static UInt uid_;
+
+      /// Breakpoint set?
+      bool breakpoint_set_;
 	};
 }
 

@@ -1610,7 +1610,8 @@ namespace OpenMS
 				action.insert("Edit parameters");
 				action.insert("Resume");
 				action.insert("Open files in TOPPView");
-				action.insert("Open containing folder");
+        action.insert("Open containing folder");
+        action.insert("Toggle breakpoint");
 			}
 
 			if (found_input)
@@ -1634,7 +1635,7 @@ namespace OpenMS
 
       if (found_input || found_tool || found_merger)
       {
-				action.insert("Change recycling mode");
+        action.insert("Toggle recycling mode");
       }
 
  			QList< QSet<QString> > all_actions;
@@ -1696,7 +1697,7 @@ namespace OpenMS
 			foreach (QGraphicsItem* gi, selectedItems())
 			{
 
-        if (text == "Change recycling mode")
+        if (text == "Toggle recycling mode")
         {
           TOPPASVertex* tv = dynamic_cast<TOPPASVertex*>(gi);
           if (tv)
@@ -1732,7 +1733,12 @@ namespace OpenMS
               resetDownstream(ttv);
 							ttv->run();
 						}
-					}
+          }
+          else if (text == "Toggle breakpoint")
+          {
+            ttv->toggleBreakpoint();
+            ttv->update(ttv->boundingRect());
+          }
 					else if (text == "Open files in TOPPView")
 					{
             QStringList all_out_files = ttv->getFileNames();

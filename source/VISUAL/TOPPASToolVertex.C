@@ -58,7 +58,8 @@ namespace OpenMS
 			type_(),
 			param_(),
 			progress_color_(Qt::gray),
-      tool_ready_(true)
+      tool_ready_(true),
+      breakpoint_set_(false)
 		{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -75,7 +76,8 @@ namespace OpenMS
 			type_(type),
 			param_(),
 			progress_color_(Qt::gray),
-      tool_ready_(true)
+      tool_ready_(true),
+      breakpoint_set_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -92,7 +94,8 @@ namespace OpenMS
 			type_(rhs.type_),
 			param_(rhs.param_),
 			progress_color_(rhs.progress_color_),
-      tool_ready_(rhs.tool_ready_)
+      tool_ready_(rhs.tool_ready_),
+      breakpoint_set_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -115,6 +118,7 @@ namespace OpenMS
 		type_ = rhs.type_;
 		finished_ = rhs.finished_;
 		progress_color_ = rhs.progress_color_;
+    breakpoint_set_ = false;
 		
 		return *this;
 	}
@@ -353,6 +357,11 @@ namespace OpenMS
 			painter->drawText((int)(62.0-text_boundings.width()), 48, text);
 		}
 
+    // progress light
+    painter->setPen(Qt::black);
+    painter->setBrush(progress_color_);
+    painter->drawEllipse(46,-52, 14, 14);
+
 		// recycling status
     if (this->allow_output_recycling_)
     {
@@ -360,11 +369,14 @@ namespace OpenMS
       QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
       svg_renderer->render(painter, QRectF(-7, -52, 14, 14));
     }
-		
-		// progress light
-		painter->setPen(Qt::black);
-		painter->setBrush(progress_color_);
-		painter->drawEllipse(46,-52, 14, 14);
+
+    //breakpoint set?
+    if (this->breakpoint_set_)
+    {
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), 0);
+      painter->setOpacity(0.35);
+      svg_renderer->render(painter, QRectF(-60, -60, 120, 120));
+    }
 	}
 	
   QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
@@ -645,15 +657,17 @@ namespace OpenMS
 			  finished_ = true;
 			  emit toolFinished();
 			
-			  // call all childs, proceed in pipeline
-			  for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-			  {
-				  TOPPASVertex* tv = (*it)->getTargetVertex();
-				  debugOut_(String("Starting child ") + tv->getTopoNr());
-					tv->run();
-			  }
-			
-			  debugOut_("All children started!");
+        if (!breakpoint_set_)
+        {
+          // call all childs, proceed in pipeline
+          for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+          {
+            TOPPASVertex* tv = (*it)->getTargetVertex();
+            debugOut_(String("Starting child ") + tv->getTopoNr());
+            tv->run();
+          }
+          debugOut_("All children started!");
+        }
 		  }
     }
 		
@@ -1039,5 +1053,10 @@ namespace OpenMS
 		save_param.setSectionDescription(name_+":1", "Instance '1' section for '"+name_+"'");
 		save_param.store(ini_file);
 	}
-}
 
+  void TOPPASToolVertex::toggleBreakpoint()
+  {
+    breakpoint_set_ = !breakpoint_set_;
+  }
+
+}
