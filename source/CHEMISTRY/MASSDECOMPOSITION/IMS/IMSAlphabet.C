@@ -29,18 +29,17 @@
 #include <functional>
 #include <algorithm>
 
+#include <OpenMS/CONCEPT/BinaryComposeFunctionAdapter.h>
+#include <OpenMS/CONCEPT/UnaryComposeFunctionAdapter.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/compose_f_gx_t.h>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/compose_f_gx_hy_t.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h>
-
 
 namespace OpenMS {
 
 namespace ims {
-
 
 const IMSAlphabet::name_type& IMSAlphabet::getName(size_type index) const
 {
@@ -63,10 +62,9 @@ IMSAlphabet::mass_type IMSAlphabet::getMass(const name_type& name) const
 bool IMSAlphabet::hasName(const name_type& name) const
 {
   return std::find_if(elements_.begin(), elements_.end(),
-                      compose_f_gx(std::bind2nd(std::equal_to<name_type>(), name),
+                      unaryCompose(std::bind2nd(std::equal_to<name_type>(), name),
                                    std::mem_fun_ref(&element_type::getName))) < elements_.end();
 }
-
 
 const IMSAlphabet::element_type& IMSAlphabet::getElement(const name_type& name) const
 {
@@ -143,24 +141,21 @@ IMSAlphabet::masses_type IMSAlphabet::getAverageMasses() const
 void IMSAlphabet::sortByNames()
 {
   std::sort(elements_.begin(), elements_.end(),
-            compose_f_gx_hy(
+            binaryCompose(
               std::less<name_type>(),
               std::mem_fun_ref(&element_type::getName),
               std::mem_fun_ref(&element_type::getName)));
 }
-
 
 void IMSAlphabet::sortByValues()
 {
   std::sort(elements_.begin(), elements_.end(), MassSortingCriteria_());
 }
 
-
 void IMSAlphabet::load(const std::string& fname)
 {
   this->load(fname, new IMSAlphabetTextParser);
 }
-
 
 void IMSAlphabet::load(const std::string& fname, IMSAlphabetParser<>* parser)
 {
@@ -174,7 +169,6 @@ void IMSAlphabet::load(const std::string& fname, IMSAlphabetParser<>* parser)
   }
   this->sortByValues();
 }
-
 
 std::ostream& operator <<(std::ostream& os, const IMSAlphabet& alphabet)
 {

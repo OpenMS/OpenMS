@@ -20,6 +20,8 @@ UniqueIdGenerator.h
 UniqueIdInterface.h
 UniqueIdIndexer.h
 VersionInfo.h
+BinaryComposeFunctionAdapter.h
+UnaryComposeFunctionAdapter.h
 )
 
 ### add path to the filenames

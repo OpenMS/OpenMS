@@ -12,8 +12,6 @@ Weights.h
 IMSElement.h
 IMSIsotopeDistribution.h
 IMSAlphabetParser.h
-compose_f_gx_hy_t.h
-compose_f_gx_t.h
 IMSAlphabetTextParser.h
 )
 
