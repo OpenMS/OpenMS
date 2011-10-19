@@ -507,7 +507,8 @@ namespace OpenMS
 					connect (tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
 					connect (tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
           connect (tv, SIGNAL(toolFailed(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
-					connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+					// already done in ToppasScene:
+					//connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 					continue;
 				}
 
@@ -515,6 +516,7 @@ namespace OpenMS
 				if (tmv)
 				{
           connect (tmv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
+          continue;
         }
 
 				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
@@ -1222,7 +1224,8 @@ namespace OpenMS
 			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
 			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
 			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
-			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+			// already done in ToppasScene:
+			//connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 			
 			scene->connectToolVertexSignals(ttv);
 		}
