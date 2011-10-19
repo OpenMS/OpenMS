@@ -4,16 +4,7 @@
     <ITEM name="version" value="1.9.0" type="string" description="" />
     <ITEM name="num_vertices" value="5" type="int" description="" />
     <ITEM name="num_edges" value="4" type="int" description="" />
-    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Basic peak picking pipeline using type &amp;quot;wavelet&amp;quot; for all types of data - use the &amp;quot;high-res&amp;quot; type if you have high-res data as its much faster.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Using NoiseFilter (assuming low res data)&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;and BaselineFilter (for MALDI data).&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Remove either if your data differs.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
+    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Basic peak picking pipeline using type &amp;quot;wavelet&amp;quot; for all types of data - use the &amp;quot;high-res&amp;quot; type if you have high-res data as its much faster.&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Using NoiseFilter (assuming low res data)&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;and BaselineFilter (for MALDI data).&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Remove either if your data differs.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
@@ -28,14 +19,13 @@ p, li { white-space: pre-wrap; }
     <NODE name="1" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="tool" type="string" description="" />
-      <ITEM name="tool_name" value="NoiseFilter" type="string" description="" />
-      <ITEM name="tool_type" value="sgolay" type="string" description="" />
+      <ITEM name="tool_name" value="NoiseFilterSGolay" type="string" description="" />
+      <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="-140" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />
-      <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file,required" />
-        <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file,required" />
-        <ITEM name="type" value="sgolay" type="string" description="smoothing filter type" restrictions="sgolay,gaussian" />
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;NoiseFilterSGolay&apos;">
+        <ITEM name="in" value="" type="string" description="input raw data file " tags="input file,required" restrictions="*.mzML" />
+        <ITEM name="out" value="" type="string" description="output raw data file " tags="output file,required" restrictions="*.mzML" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
@@ -54,9 +44,9 @@ p, li { white-space: pre-wrap; }
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="40" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />
-      <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="string" description="input raw data file (valid formats: &apos;mzML&apos;)" tags="input file,required" />
-        <ITEM name="out" value="" type="string" description="output raw data file (valid formats: &apos;mzML&apos;)" tags="output file,required" />
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;BaselineFilter&apos;">
+        <ITEM name="in" value="" type="string" description="input raw data file " tags="input file,required" restrictions="*.mzML" />
+        <ITEM name="out" value="" type="string" description="output raw data file " tags="output file,required" restrictions="*.mzML" />
         <ITEM name="struc_elem_length" value="3" type="float" description="Length of the structuring element (should be wider than maximal peak width - see documentation)." />
         <ITEM name="struc_elem_unit" value="Thomson" type="string" description="Unit of &apos;struc_elem_length&apos; parameter." restrictions="Thomson,DataPoints" />
         <ITEM name="method" value="tophat" type="string" description="The name of the morphological filter to be applied. If you are unsure, use the default." restrictions="identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple" />
@@ -70,14 +60,13 @@ p, li { white-space: pre-wrap; }
     <NODE name="3" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="tool" type="string" description="" />
-      <ITEM name="tool_name" value="PeakPicker" type="string" description="" />
-      <ITEM name="tool_type" value="wavelet" type="string" description="" />
+      <ITEM name="tool_name" value="PeakPickerWavelet" type="string" description="" />
+      <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="220" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />
-      <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="string" description="input profile data file (valid formats: &apos;mzML&apos;)" tags="input file,required" />
-        <ITEM name="out" value="" type="string" description="output peak file (valid formats: &apos;mzML&apos;)" tags="output file,required" />
-        <ITEM name="type" value="wavelet" type="string" description="peak detection algorithm type" restrictions="wavelet,high_res" />
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;PeakPickerWavelet&apos;">
+        <ITEM name="in" value="" type="string" description="input profile data file " tags="input file,required" restrictions="*.mzML" />
+        <ITEM name="out" value="" type="string" description="output peak file " tags="output file,required" restrictions="*.mzML" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
@@ -103,8 +92,8 @@ p, li { white-space: pre-wrap; }
           </NODE>
           <NODE name="optimization" description="">
             <ITEM name="iterations" value="15" type="int" description="maximal number of iterations for the fitting step" tags="advanced" restrictions="1:" />
-            <ITEM name="delta_abs_error" value="9.99999974737875e-005" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
-            <ITEM name="delta_rel_error" value="9.99999974737875e-005" type="float" description="if the relative error gets smaller than this value the fitting is stopped" tags="advanced" restrictions="0:" />
+            <ITEM name="delta_abs_error" value="9.99999974737875e-05" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
+            <ITEM name="delta_rel_error" value="9.99999974737875e-05" type="float" description="if the relative error gets smaller than this value the fitting is stopped" tags="advanced" restrictions="0:" />
             <NODE name="penalties" description="">
               <ITEM name="position" value="0" type="float" description="penalty term for the fitting of the position:If it differs too much from the initial one it can be penalized " tags="advanced" restrictions="0:" />
               <ITEM name="left_width" value="1" type="float" description="penalty term for the fitting of the left width:If the left width differs too much from the initial one during the fitting it can be penalized." tags="advanced" restrictions="0:" />
@@ -124,8 +113,8 @@ p, li { white-space: pre-wrap; }
             <ITEM name="scaling" value="0.12" type="float" description="Initial scaling of the cwt used in the seperation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge." tags="advanced" restrictions="0:" />
             <NODE name="fitting" description="">
               <ITEM name="fwhm_threshold" value="0.7" type="float" description="If the fwhm of a peak is higher than fwhm_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started." tags="advanced" restrictions="0:" />
-              <ITEM name="eps_abs" value="9.99999974737875e-006" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
-              <ITEM name="eps_rel" value="9.99999974737875e-006" type="float" description="if the relative error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
+              <ITEM name="eps_abs" value="9.99999974737875e-06" type="float" description="if the absolute error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
+              <ITEM name="eps_rel" value="9.99999974737875e-06" type="float" description="if the relative error gets smaller than this value the fitting is stopped." tags="advanced" restrictions="0:" />
               <ITEM name="max_iteration" value="10" type="int" description="maximal number of iterations for the fitting step" tags="advanced" restrictions="1:" />
               <NODE name="penalties" description="">
                 <ITEM name="position" value="0" type="float" description="penalty term for the fitting of the peak position:If the position changes more than 0.5Da during the fitting it can be penalized as well as discrepancies of the peptide mass rule." tags="advanced" restrictions="0:" />
@@ -144,7 +133,7 @@ p, li { white-space: pre-wrap; }
             <ITEM name="bin_count" value="30" type="int" description="number of bins for intensity values" tags="advanced" restrictions="3:" />
             <ITEM name="stdev_mp" value="3" type="float" description="multiplier for stdev" tags="advanced" restrictions="0.01:999" />
             <ITEM name="min_required_elements" value="10" type="int" description="minimum number of elements required in a window (otherwise it is considered sparse)" tags="advanced" restrictions="1:" />
-            <ITEM name="noise_for_empty_window" value="1e+020" type="float" description="noise value used for sparse windows" tags="advanced" />
+            <ITEM name="noise_for_empty_window" value="1e+20" type="float" description="noise value used for sparse windows" tags="advanced" />
           </NODE>
         </NODE>
       </NODE>

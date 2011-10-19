@@ -4,11 +4,7 @@
     <ITEM name="version" value="1.9.0" type="string" description="" />
     <ITEM name="num_vertices" value="16" type="int" description="" />
     <ITEM name="num_edges" value="15" type="int" description="" />
-    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
+    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
@@ -29,11 +25,12 @@ p, li { white-space: pre-wrap; }
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="-180" type="float" description="" />
       <ITEM name="y_pos" value="120" type="float" description="" />
-      <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
+        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
+        <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
@@ -90,11 +87,12 @@ p, li { white-space: pre-wrap; }
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="240" type="float" description="" />
       <ITEM name="y_pos" value="-60" type="float" description="" />
-      <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
+        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
+        <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
@@ -139,11 +137,12 @@ p, li { white-space: pre-wrap; }
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="-180" type="float" description="" />
       <ITEM name="y_pos" value="-180" type="float" description="" />
-      <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
+        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
+        <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
@@ -170,11 +169,12 @@ p, li { white-space: pre-wrap; }
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="640" type="float" description="" />
       <ITEM name="y_pos" value="-60" type="float" description="" />
-      <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid&apos;)" tags="input file,required">
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
-        <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzML,featureXML&apos;)" tags="output file,required" />
+        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
+        <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
         <ITEMLIST name="rt_custom" type="float" description="List of custom retention times that are assigned to the files.#br#The number of given retention times must be equal to the number of given input file.">
         </ITEMLIST>
