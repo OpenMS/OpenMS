@@ -375,7 +375,7 @@ namespace OpenMS {
       @param os Output stream to which distribution is printed out.
       @param distribution Distribution to be printed out.
     */
-    std::ostream& operator <<(std::ostream& os,
+    OPENMS_DLLAPI std::ostream& operator <<(std::ostream& os,
                               const IMSIsotopeDistribution& distribution);
 
   } // namespace ims

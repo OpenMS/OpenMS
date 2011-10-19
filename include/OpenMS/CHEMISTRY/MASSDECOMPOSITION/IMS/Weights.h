@@ -224,9 +224,9 @@ namespace OpenMS {
       Prints weights to the stream @c os.
 
       @param os Output stream to which weights are written.
-      @param weigths Weights to be written.
+      @param weights Weights to be written.
     */
-    std::ostream& operator<<(std::ostream& os, const Weights& weights);
+    OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Weights& weights);
 
   } // namespace ims
 } // namespace OpenMS

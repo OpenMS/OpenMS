@@ -288,7 +288,7 @@ namespace OpenMS {
       /**
         @brief Private class-functor to sort out elements in mass ascending order.
       */
-      class MassSortingCriteria_ {
+      class OPENMS_DLLAPI MassSortingCriteria_ {
       public:
         bool operator()(const element_type& el1,
                         const element_type& el2) const
@@ -305,7 +305,7 @@ namespace OpenMS {
       @param os Output stream to which alphabet is written
       @param alphabet Alphabet to be written.
     */
-    std::ostream& operator<<(std::ostream& os, const IMSAlphabet& alphabet);
+    OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const IMSAlphabet& alphabet);
 
   } // namespace ims
 

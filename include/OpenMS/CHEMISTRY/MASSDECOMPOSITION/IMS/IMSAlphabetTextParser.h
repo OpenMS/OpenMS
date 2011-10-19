@@ -41,7 +41,9 @@ namespace OpenMS {
       @c AlphabetTextParser parses the data source using overriden @c parse(std::istream&)
       and stores the parsed data permanently. That can be retrieved by @c getElements() function.
     */
-    class OPENMS_DLLAPI IMSAlphabetTextParser : public IMSAlphabetParser<> {
+    class OPENMS_DLLAPI IMSAlphabetTextParser 
+      : public IMSAlphabetParser<> 
+    {
     private:
       /**
         The parsed data.

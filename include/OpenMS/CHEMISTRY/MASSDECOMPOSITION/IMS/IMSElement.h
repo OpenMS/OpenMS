@@ -287,7 +287,7 @@ namespace OpenMS {
       @param os Output stream to which element is printed out.
       @param element Element to be printed out.
     */
-    std::ostream& operator<<(std::ostream& os, const IMSElement& element);
+    OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const IMSElement& element);
 
   } // namespace ims
 } // namespace OpenMS
