@@ -33,7 +33,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -974,8 +974,11 @@ p, li { white-space: pre-wrap; }
              <property name="text">
               <string>use relative tolerance (ppm)</string>
              </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
              <property name="checked">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
             </widget>
            </item>
