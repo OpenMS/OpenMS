@@ -193,8 +193,7 @@ namespace OpenMS {
 #endif
     for	(SignedSize i=0; i < (SignedSize)bins.size(); ++i)
 		{
-      PairsType pairs2 = pairs; 
-			score += computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
+  		score += computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
 		}
     //score = computeSlice_(fm, pairs, 0, pairs.size()); // all at once - no bins
 
