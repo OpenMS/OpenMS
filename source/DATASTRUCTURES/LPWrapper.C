@@ -222,10 +222,10 @@ namespace OpenMS
     }
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      Int length = glp_get_mat_row(lp_problem_, row_index+1, NULL, NULL); // get row length
+      Int length = glp_get_mat_row(lp_problem_, (Int)row_index+1, NULL, NULL); // get row length
       DoubleReal* values = new DoubleReal[length];
       Int* indices = new Int[length];
-      glp_get_mat_row(lp_problem_, row_index+1, indices, values);
+      glp_get_mat_row(lp_problem_, (Int)row_index+1, indices, values);
       bool found = false;
       for(Int i = 1;i <= length;++i)
       {
@@ -246,13 +246,13 @@ namespace OpenMS
           n_values[i] = values[i];
         }
         // now add new value
-        n_indices[length+1] = column_index+1; // glpk starts reading at pos 1
+        n_indices[length+1] = (Int)column_index+1; // glpk starts reading at pos 1
         n_values[length+1] = value;
-        glp_set_mat_row(lp_problem_, row_index+1, length,n_indices, n_values);
+        glp_set_mat_row(lp_problem_, (Int)row_index+1, length,n_indices, n_values);
         delete n_indices;
         delete n_values;
       }
-      else glp_set_mat_row(lp_problem_, row_index+1, length,indices, values);
+      else glp_set_mat_row(lp_problem_,(Int) row_index+1, length,indices, values);
       delete indices;
       delete values;
     }
@@ -269,10 +269,10 @@ namespace OpenMS
       }
     if (solver_ == LPWrapper::SOLVER_GLPK)
       {
-        Int length = glp_get_mat_row(lp_problem_, row_index+1, NULL,NULL);
+        Int length = glp_get_mat_row(lp_problem_, (Int)row_index+1, NULL,NULL);
         DoubleReal* values = new DoubleReal[length];
         Int* indices = new Int[length];
-        glp_get_mat_row(lp_problem_, row_index+1, indices,values);
+        glp_get_mat_row(lp_problem_, (Int)row_index+1, indices,values);
         for(Int i = 1;i <= length;++i)
           {
             if(indices[i] == (Int)column_index+1) return values[i];
