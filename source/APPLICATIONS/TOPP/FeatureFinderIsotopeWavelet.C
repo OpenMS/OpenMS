@@ -121,72 +121,80 @@ class TOPPFeatureFinderIsotopeWavelet
     return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>::getProductName());
 	}
 
-	ExitCodes main_(int , const char**)
-	{
-		//input file names and types
-		String in = getStringOption_("in");
-		String out = getStringOption_("out");
+  ExitCodes main_(int , const char**)
+  {
+    //input file names
+    String in = getStringOption_("in");
 
-		Param feafi_param = getParam_().copy("algorithm:",true);
+    //prevent loading of fragment spectra
+    PeakFileOptions options;
+    options.setMSLevels(vector<Int>(1,1));
 
-		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
+    //reading input data
+    MzMLFile f;
+    f.getOptions() = options;
+    f.setLogType(log_type_);
 
-		//setup of FeatureFinder
-		FeatureFinder ff;
-		ff.setLogType(log_type_);
-
-		//reading input data
-		PeakMap exp;
-		MzMLFile f;
-		f.setLogType(log_type_);
+    PeakMap exp;
     f.load(in, exp);
     exp.updateRanges();
 
-		//load seeds
-		FeatureMap<> seeds;
-		if (getStringOption_("seeds")!="")
-		{
-			FeatureXMLFile().load(getStringOption_("seeds"),seeds);
-		}
-
-		// A map for the resulting features
-		FeatureMap<> features;
-
-		// Apply the feature finder
-    ff.run(FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>::getProductName(), exp, features, feafi_param, seeds);
-		features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-		// DEBUG
-    if (debug_level_ > 10)
+    //load seeds
+    FeatureMap<> seeds;
+    if (getStringOption_("seeds")!="")
     {
-		  FeatureMap<>::Iterator it;
-		  for (it = features.begin(); it != features.end(); ++it)
-		  {
-			  if (!it->isMetaEmpty())
-			  {
-				  vector<String> keys;
-				  it->getKeys(keys);
-				  LOG_INFO << "Feature " << it->getUniqueId() << endl;
-				  for (Size i = 0; i < keys.size(); i++)
-				  {
-					  LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
-				  }
-			  }
-		  }
+      FeatureXMLFile().load(getStringOption_("seeds"),seeds);
     }
 
-		//-------------------------------------------------------------
-		// writing files
-		//-------------------------------------------------------------
+    //setup of FeatureFinder
+    FeatureFinder ff;
+    ff.setLogType(log_type_);
 
-		//annotate output with data processing info
-		addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
+    // A map for the resulting features
+    FeatureMap<> features;
 
-		FeatureXMLFile map_file;
-		map_file.store(out,features);
+    // get parameters specific for the feature finder
+    Param feafi_param = getParam_().copy("algorithm:",true);
+    writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
-		return EXECUTION_OK;
-	}
+    // Apply the feature finder
+    ff.run(FeatureFinderAlgorithmPicked<Peak1D, Feature>::getProductName(), exp, features, feafi_param, seeds);
+    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // DEBUG
+    if (debug_level_ > 10)
+    {
+      FeatureMap<>::Iterator it;
+      for (it = features.begin(); it != features.end(); ++it)
+      {
+        if (!it->isMetaEmpty())
+        {
+          vector<String> keys;
+          it->getKeys(keys);
+          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          for (Size i = 0; i < keys.size(); i++)
+          {
+            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+          }
+        }
+      }
+    }
+
+    //-------------------------------------------------------------
+    // writing files
+    //-------------------------------------------------------------
+
+    //annotate output with data processing info
+    addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
+
+    // write features to user specified output file
+    FeatureXMLFile map_file;
+    String out = getStringOption_("out");
+
+    map_file.store(out,features);
+
+    return EXECUTION_OK;
+  }
 };
 
 

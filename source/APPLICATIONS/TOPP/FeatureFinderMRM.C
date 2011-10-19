@@ -136,12 +136,8 @@ protected:
 		PeakMap exp;
 		MzMLFile f;
 		f.setLogType(log_type_);
-		PeakFileOptions options;
 
-    //prevent loading of fragment spectra
-    options.setMSLevels(vector<Int>(1,1));
-    f.getOptions() = options;
-		f.load(in, exp);
+    f.load(in, exp);
 
     //load seeds
     FeatureMap<> seeds;
