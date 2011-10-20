@@ -70,7 +70,7 @@ namespace OpenMS
 				@param default_dir The default directory for loading and storing INI files
 				@param type The type of data (determines that applicable tools)
 			*/
-			ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType type);
+      ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType layertype);
 			///Desctructor
 			~ToolsDialog();
 			
@@ -86,8 +86,6 @@ namespace OpenMS
 			ParamEditor *editor_;
 			/// ComboBox for choosing a TOPP-tool
 			QComboBox* tools_combo_;
-			/// ComboBox for choosing the type of certain tools
-			QComboBox* type_combo_;
 			/// for choosing an input parameter
 			QComboBox* input_combo_;
 			/// for choosing an output parameter
@@ -118,15 +116,12 @@ namespace OpenMS
 			void ok_();
 			/// Slot that handles changing of the tool
 			void setTool_(int i);
-			/// Slot that handles changing of the type and retrieves the defaults
-			void setType_(int i);
+      /// Slot that retrieves and displays the defaults
+      void createINI_();
 			/// loads an ini-file into the editor_
 			void loadINI_();
 			/// stores an ini-file from the editor_
 			void storeINI_();
-			/// Updates the available types, when the tool changes
-			void updateTypes_();
-			
 	};
 
 }
