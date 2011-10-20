@@ -743,19 +743,26 @@ namespace OpenMS
       {
         std::cerr << "The TOPPAS file is too old! Please update the file using TOPPAS or INIUpdater!" << std::endl;
       }
-      else if (this->gui_ && QMessageBox::warning(0, tr("Old TOPPAS file -- convert and override?"), tr("The TOPPAS file you downloaded was created with an old incompatible version of TOPPAS.\n"
-                                        "Shall we try to convert the file?! The original file will be overridden, but a backup file will be saved in the same directory.\n")
-                                        , QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+      else if (this->gui_)
       {
+        if (QMessageBox::warning(0, tr("Old TOPPAS file -- convert and override?"), tr("The TOPPAS file you downloaded was created with an old incompatible version of TOPPAS.\n"
+                                      "Shall we try to convert the file?! The original file will be overridden, but a backup file will be saved in the same directory.\n")
+                                      , QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+        {
+          return;
+        }
         // only update in GUI mode, as in non-GUI mode, we'd create infinite recursive calls when instantiating TOPPASScene in INIUpdater
+#ifdef OPENMS_WINDOWSPLATFORM
+        String extra_quotes = "\""; // note: double quoting required for Windows, as outer quotes are required by cmd.exe (arghh)...
+#else
+        String extra_quotes = "";
+#endif
 
-        // note: double quoting required for Windows, as outer quotes are being removed (arghh)...
-        String cmd = String("\" \"" + File::getExecutablePath() + "INIUpdater\" -in \"" + file + "\" -i \"");
+        String cmd = extra_quotes + "\"" + File::getExecutablePath() + "INIUpdater\" -in \"" + file + "\" -i " + extra_quotes;
         std::cerr << cmd << "\n\n";
         if (std::system(cmd.c_str()))
         {
-          QMessageBox::warning(0, tr("INIUpdater failed"), tr("Updating using the INIUpdater tool failed. Please submit a bug report\n")
-            , QMessageBox::Ok);
+          QMessageBox::warning(0, tr("INIUpdater failed"), tr("Updating using the INIUpdater tool failed. Please submit a bug report!\n"), QMessageBox::Ok);
           return;
         }
         // reload updated file
@@ -764,7 +771,7 @@ namespace OpenMS
     }
     else if (v_file > v_this_high)
     {
-      if (this->gui_ && QMessageBox::warning(0, tr("TOPPAS file too new"), tr("The TOPPAS file you downloaded was created with an more recent version of TOPPAS. Shall we will try to open it?\n"
+      if (this->gui_ && QMessageBox::warning(0, tr("TOPPAS file too new"), tr("The TOPPAS file you downloaded was created with a more recent version of TOPPAS. Shall we will try to open it?\n"
         "If this fails, update to the new TOPPAS version.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) return;
     }
 
