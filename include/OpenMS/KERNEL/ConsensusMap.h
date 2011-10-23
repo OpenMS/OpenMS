@@ -171,7 +171,55 @@ namespace OpenMS
 
 				return *this;
 			}
+			
+			/**
+				@brief Add one consensus map to another.
 
+				Consensus elements are merged into one container, simply by appending.
+				ConsensusElementLists are appended.
+				Information on map lists ......
+
+			  @param rhs The consensus map.
+		  */
+      ConsensusMap& operator+= (const ConsensusMap& rhs)
+		  {
+			  ConsensusMap empty_map;
+			  // reset these:
+			  RangeManagerType::operator=(empty_map);
+
+				if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
+				{
+					LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
+				}
+				DocumentIdentifier::operator=(empty_map);
+
+				UniqueIdInterface::operator =(empty_map);
+
+				// merge these:
+				protein_identifications_.insert(protein_identifications_.end(),rhs.protein_identifications_.begin(),rhs.protein_identifications_.end());
+				unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(),rhs.unassigned_peptide_identifications_.end());
+				data_processing_.insert(data_processing_.end(),rhs.data_processing_.begin(), rhs.data_processing_.end());
+
+				// append features:
+				this->insert(this->end(), rhs.begin(), rhs.end());
+	
+				// todo: check for double entries
+				// features, unassignedpeptides, proteins...
+	
+				// consistency
+				try
+				{
+					UniqueIdIndexer<ConsensusMap>::updateUniqueIdToIndex();
+				}
+				catch (Exception::Postcondition /*&e*/)
+				{ // assign new UID's for conflicting entries
+					Size replaced_uids =  UniqueIdIndexer<ConsensusMap>::resolveUniqueIdConflicts();
+					LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
+				}
+	
+				return *this;
+			}
+			
 			/**
 				@brief Clears all data and meta data
 				
