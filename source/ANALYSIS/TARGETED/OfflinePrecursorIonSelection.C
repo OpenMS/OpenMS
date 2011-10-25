@@ -37,8 +37,6 @@ namespace OpenMS
 
 OfflinePrecursorIonSelection::OfflinePrecursorIonSelection() : DefaultParamHandler("OfflinePrecursorIonSelection")
 {
-	defaults_.setValue("peptides_per_protein",2,"Minimal number of peptides selected for each protein.");
-	defaults_.setMinInt("peptides_per_protein",1);
 	defaults_.setValue("ms2_spectra_per_rt_bin",5,"Number of allowed MS/MS spectra in a retention time bin.");
 	defaults_.setMinInt("ms2_spectra_per_rt_bin",1);
 	defaults_.setValue("min_peak_distance",3.,"The minimal distance (in Da) of two peaks in one spectrum so that they can be selected.");
