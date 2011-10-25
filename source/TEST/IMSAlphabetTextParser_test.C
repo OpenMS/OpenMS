@@ -55,18 +55,43 @@ START_SECTION(~IMSAlphabetTextParser())
 }
 END_SECTION
 
-START_SECTION((virtual ContainerType& getElements()))
-{
-  // TODO
-}
-END_SECTION
+IMSAlphabetParser<> * parser = new IMSAlphabetTextParser();
 
 START_SECTION((virtual void parse(std::istream &is)))
 {
-  // TODO
+  String filename;
+  NEW_TMP_FILE(filename)
+
+  // just create the file
+  ofstream of;
+  of.open(filename.c_str());
+  of << "# a comment which should be ignored" << std::endl;
+  of << "A\t71.03711" << std::endl;
+  of << "R\t156.10111" << std::endl;
+  of.close();
+
+  ifstream ifs;
+  ifs.open(filename.c_str());
+
+  ABORT_IF(!ifs)
+
+  parser->parse(ifs);
+
+  ifs.close();
+
+  TEST_EQUAL(parser->getElements().empty(), false)
 }
 END_SECTION
 
+START_SECTION((virtual ContainerType& getElements()))
+{
+  TEST_EQUAL(parser->getElements().size(), 2)
+  TEST_REAL_SIMILAR(parser->getElements()["A"], 71.03711)
+  TEST_REAL_SIMILAR(parser->getElements()["R"], 156.10111)
+}
+END_SECTION
+
+delete parser;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
