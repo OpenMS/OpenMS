@@ -311,7 +311,7 @@ namespace OpenMS
 
         // DoubleReal mu_rt = (1.003355/charge)*iso_pos;
 
-        DoubleReal sigma(2.0);
+        DoubleReal sigma(5.0);
 
         DoubleReal rt_score(std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma)));
 
