@@ -99,7 +99,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 					variable_indices.push_back(triple);
           
           std::cout << index << " variable index"<<std::endl;
-          model_->setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
+          model_->setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED);
           model_->setColumnType(index,LPWrapper::BINARY); // binary variable
 					model_->setColumnName(index,(String("x_")+i+","+s));
           //#ifdef DEBUG_OPS	
