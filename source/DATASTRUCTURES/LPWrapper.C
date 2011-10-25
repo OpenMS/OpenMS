@@ -270,8 +270,8 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
       {
         Int length = glp_get_mat_row(lp_problem_, (Int)row_index+1, NULL,NULL);
-        DoubleReal* values = new DoubleReal[length];
-        Int* indices = new Int[length];
+        DoubleReal* values = new DoubleReal[length+1];
+        Int* indices = new Int[length+1];
         glp_get_mat_row(lp_problem_, (Int)row_index+1, indices,values);
         for(Int i = 1;i <= length;++i)
           {

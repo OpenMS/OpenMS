@@ -77,7 +77,8 @@ namespace OpenMS
       UNBOUNDED = 1,
       LOWER_BOUND_ONLY,
       UPPER_BOUND_ONLY,
-      DOUBLE_BOUNDED_OR_FIXED
+      DOUBLE_BOUNDED,
+      FIXED
     };
 
     enum VariableType

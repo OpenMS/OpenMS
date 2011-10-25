@@ -93,7 +93,7 @@ END_SECTION
 
 START_SECTION((Size addRow(std::vector< Int > &row_indices, std::vector< DoubleReal > &row_values, String name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
-  lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
+  lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
   TEST_EQUAL(lp.getRowName(2),"row3");
 }
@@ -101,7 +101,7 @@ END_SECTION
 
 START_SECTION((Size addColumn(std::vector< Int > &column_indices, std::vector< DoubleReal > &column_values, String name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
-  lp.addColumn(indices,values,String("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
+  lp.addColumn(indices,values,String("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfColumns(),4);
   TEST_EQUAL(lp.getColumnName(3),"col4");
 }
@@ -147,7 +147,7 @@ END_SECTION
 
 START_SECTION((void setColumnBounds(Size index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
-  lp.setColumnBounds(0,0.3,1.0,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
+  lp.setColumnBounds(0,0.3,1.0,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getColumnUpperBound(0),1.0);
   TEST_EQUAL(lp.getColumnLowerBound(0),0.3);
 }
@@ -155,7 +155,7 @@ END_SECTION
 
 START_SECTION((void setRowBounds(Size index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
-  lp.setRowBounds(0,-0.3,1.0,LPWrapper::DOUBLE_BOUNDED_OR_FIXED);
+  lp.setRowBounds(0,-0.3,1.0,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getRowUpperBound(0),1.0);
   TEST_EQUAL(lp.getRowLowerBound(0),-0.3);
 }
