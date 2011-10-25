@@ -195,7 +195,7 @@ namespace OpenMS
 				indices.push_back(vec);
 			}
 		// eliminate nearby peaks
-		if(param_.getValue("exclude_overlapping_peaks")=="true") checkMassRanges_(indices,experiment);
+                if(param_.getValue("exclude_overlapping_peaks")=="true") checkMassRanges_(indices,experiment);
 	}
 
 
@@ -351,10 +351,10 @@ namespace OpenMS
 				}
 			}
 
-			bool dynamic_exclusion = param_.getValue("use_dynamic_exclusion") == "true" ? true : false;
+                       bool dynamic_exclusion = param_.getValue("Exclusion:use_dynamic_exclusion") == "true" ? true : false;
 			typedef std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > > ExclusionListType;
       ExclusionListType exclusion_list;
-			Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("exclusion_time") /(DoubleReal) rt_dist));
+                        Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("Exclusion:exclusion_time") /(DoubleReal) rt_dist));
 			if(!dynamic_exclusion)
 			{
 				//if the dynamic exclusion if not active we use the eclusion list to guarantee no two peaks within min_peak_distance are selected for single scan
