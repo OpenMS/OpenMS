@@ -342,7 +342,7 @@ void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_h
 	if (response_header.statusCode() >= 400)
 	{
 		error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + response_header.statusCode() + "': " + response_header.reasonPhrase() + "\nTry accessing the server\n  " + (String)param_.getValue("hostname") + "/" + (String)param_.getValue("server_path") + "\n from your browser and check if it works fine.";
-    endRun();
+    endRun_();
 	}
 
 
@@ -377,7 +377,7 @@ cout<<"Cookie created:"<<cookie_.toStdString()<<"\n";
 	}
 }	
 
-void MascotRemoteQuery::endRun()
+void MascotRemoteQuery::endRun_()
 {
   if (http_->state() != QHttp::Unconnected) http_->close();
   emit done();
@@ -389,7 +389,7 @@ void MascotRemoteQuery::httpDone(bool error)
 	if (error)
 	{
     error_message_ = String("Mascot Server replied: '") + String(http_->errorString().toStdString()) + "'";
-    endRun();
+    endRun_();
 	}
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -418,7 +418,7 @@ void MascotRemoteQuery::httpDone(bool error)
   if (QString(new_bytes).trimmed().size() == 0 )
   {
     error_message_ = "Error: Reply from mascot server is empty! Possible server overload - see the Mascot Admin!";
-    endRun();
+    endRun_();
   }
 
 	//Successful login? fire off the search
@@ -429,12 +429,12 @@ void MascotRemoteQuery::httpDone(bool error)
 	else if (new_bytes.contains("Error: You have entered an invalid password"))
 	{
 		error_message_ = "Error: You have entered an invalid password";
-    endRun();
+    endRun_();
 	}
 	else if (new_bytes.contains("is not a valid user"))
 	{
 		error_message_ = "Error: Username is not valid";
-    endRun();
+    endRun_();
 	}
 	else if (new_bytes.contains("Click here to see Search Report")) 
 	{
@@ -477,7 +477,7 @@ void MascotRemoteQuery::httpDone(bool error)
 			QTextDocument doc;
 			doc.setHtml(response_text);
 			error_message_ = doc.toPlainText().toStdString();
-      endRun();
+      endRun_();
 		}
 		else
 		{
@@ -486,7 +486,7 @@ void MascotRemoteQuery::httpDone(bool error)
 			cerr << "Get the XML File" << "\n";
 			#endif
 			mascot_xml_ = new_bytes;
-      endRun();
+      endRun_();
 		}
 	}
 }

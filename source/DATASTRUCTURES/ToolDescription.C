@@ -72,6 +72,16 @@ namespace OpenMS
       return *this;
     }
 
+    bool ToolDescriptionInternal::operator==(const ToolDescriptionInternal& rhs) const
+    {
+      if (this==&rhs) return true;
+
+      return (is_internal == rhs.is_internal
+            && name == rhs.name
+            && category == rhs.category
+            && types == rhs.types);
+    }
+
     bool ToolDescriptionInternal::operator<(const ToolDescriptionInternal& rhs) const
     {
       if (this==&rhs) return false;

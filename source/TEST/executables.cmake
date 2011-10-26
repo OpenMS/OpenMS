@@ -396,6 +396,7 @@ set(analysis_executables_list
 )
 
 set(applications_executables_list
+	INIUpdater_test	
   TOPPBase_test
   ToolHandler_test
 )
@@ -460,7 +461,9 @@ set(simulation_executables_list
   MSSim_test
   RTSimulation_test
   RawMSSignalSimulation_test
+	RawTandemMSSignalSimulation_test
   BaseLabeler_test
+	ITRAQLabeler_test
 	LabelFreeLabeler_test
 	O18Labeler_test
 	SILACLabeler_test

@@ -98,6 +98,8 @@ namespace OpenMS
       ToolDescriptionInternal(const String& p_name, const StringList& p_types);
 
       ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs);
+
+      bool operator==(const ToolDescriptionInternal& rhs) const;
       
       bool operator<(const ToolDescriptionInternal& rhs) const;
 	  };

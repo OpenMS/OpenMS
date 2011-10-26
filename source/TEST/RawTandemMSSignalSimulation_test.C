@@ -21,67 +21,69 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow$
+// $Maintainer: Sandro Andreotti $
+// $Authors: Stephan Aiche, Chris Bielow, Sandro Andreotti $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/MascotRemoteQuery.h>
+#include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MascotRemoteQuery, "$Id$")
+START_TEST(RawTandemMSSignalSimulation, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MascotRemoteQuery* ptr = 0;
-MascotRemoteQuery* nullPointer = 0;
-START_SECTION(MascotRemoteQuery(QObject *parent=0))
+RawTandemMSSignalSimulation* ptr = 0;
+RawTandemMSSignalSimulation* null_ptr = 0;
+START_SECTION(RawTandemMSSignalSimulation())
 {
-	ptr = new MascotRemoteQuery();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+	ptr = new RawTandemMSSignalSimulation();
+	TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(virtual ~MascotRemoteQuery())
+START_SECTION(~RawTandemMSSignalSimulation())
 {
 	delete ptr;
 }
 END_SECTION
 
-START_SECTION((void setQuerySpectra(const String &exp)))
+START_SECTION((RawTandemMSSignalSimulation(const SimRandomNumberGenerator &rng)))
 {
-  MascotRemoteQuery query;
-	query.setQuerySpectra("BEGIN IONS\n1 1\n1 1\nEND IONS");
-	NOT_TESTABLE
+  // TODO
 }
 END_SECTION
 
-START_SECTION((const QByteArray& getMascotXMLResponse() const ))
+START_SECTION((RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation &source)))
 {
-  MascotRemoteQuery query;
-	TEST_EQUAL(query.getMascotXMLResponse().size(), 0)
+  // TODO
 }
 END_SECTION
 
-START_SECTION((bool hasError() const ))
+START_SECTION((virtual ~RawTandemMSSignalSimulation()))
 {
-  MascotRemoteQuery query;
-	TEST_EQUAL(query.hasError(), false)
+  // TODO
 }
 END_SECTION
 
-START_SECTION((const String& getErrorMessage() const ))
+START_SECTION((RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSimulation &source)))
 {
-  MascotRemoteQuery query;
-	TEST_STRING_EQUAL(query.getErrorMessage(), "")
+  // TODO
 }
 END_SECTION
+
+START_SECTION((void generateRawTandemSignals(FeatureMapSim &, MSSimExperiment &)))
+{
+  // TODO
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

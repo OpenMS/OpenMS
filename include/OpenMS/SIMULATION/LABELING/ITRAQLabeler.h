@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow$
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SIMULATION_LABELING_ITRAQLABELER_H

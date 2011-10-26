@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow$
-// $Authors: Stephan Aiche, Chris Bielow$
+// $Maintainer: Sandro Andreotti $
+// $Authors: Stephan Aiche, Chris Bielow, Sandro Andreotti $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SIMULATION_RAWTANDEMMSSIGNALSIMULATION_H

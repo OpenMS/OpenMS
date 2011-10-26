@@ -83,7 +83,7 @@ namespace OpenMS
       map_[TDE("PeakPicker",StringList::create("wavelet"))] = TDE("PeakPickerWavelet",StringList::create(""));
       map_[TDE("PeakPicker",StringList::create("high_res"))] = TDE("PeakPickerHiRes",StringList::create(""));
 
-      // ITraqAnalyzer && MSSimulator: no need to list here, as the type simply was made optional (no additional tools)
+      // ITRAQAnalyzer && MSSimulator: no need to list here, as the type simply was made optional (no additional tools)
 
     }
 
@@ -102,14 +102,13 @@ namespace OpenMS
       return true;
     }
 
-    // first try without type
+    // try without type
     TDE old_notype(old_name, StringList());
     if (map_.has(old_notype))
     {
       new_name = map_[old_notype].name;
       return true;
     }
-    
 
     // default to ToolHandler
 		if (ToolHandler::getTOPPToolList(true).has(old_name) || ToolHandler::getUtilList().has(old_name))

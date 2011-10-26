@@ -140,7 +140,7 @@ namespace OpenMS
 			/// copy constructor
       OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs);
 
-      OPENMS_DLLAPI void endRun();
+      OPENMS_DLLAPI void endRun_();
 
 			String query_spectra_;
 			QByteArray mascot_xml_;

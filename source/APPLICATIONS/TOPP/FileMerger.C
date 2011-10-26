@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch, Chris Bielow $
+// $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ using namespace std;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing merge able files </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter) </td>
 		</tr>
 	</table>
