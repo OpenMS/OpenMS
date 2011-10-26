@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="info" description="">
+    <ITEM name="num_vertices" value="7" type="int" description="" />
+    <ITEM name="num_edges" value="6" type="int" description="" />
+    <ITEM name="version" value="1.9.0" type="string" description="" />
+    <ITEM name="description" value="&lt;![CDATA[]]&gt;" type="string" description="" />
+  </NODE>
+  <NODE name="vertices" description="">
+    <NODE name="0" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" />
+      <ITEMLIST name="file_names" type="string" description="">
+        <LISTITEM value="../BSA/BSA1.mzML"/>
+        <LISTITEM value="../BSA/BSA2.mzML"/>
+        <LISTITEM value="../BSA/BSA3.mzML"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-140" type="float" description="" />
+      <ITEM name="y_pos" value="-160" type="float" description="" />
+    </NODE>
+    <NODE name="1" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" />
+      <ITEM name="tool_name" value="FeatureFinderCentroided" type="string" description="" />
+      <ITEM name="tool_type" value="" type="string" description="" />
+      <ITEM name="x_pos" value="-140" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureFinderCentroided&apos;">
+        <ITEM name="in" value="" type="string" description="input file" tags="input file,required" restrictions="*.mzML" />
+        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.featureXML" />
+        <ITEM name="seeds" value="" type="string" description="User-specified seed list. This feature is not supported by all algorithms!" tags="input file" restrictions="*.featureXML" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
+        <NODE name="algorithm" description="Algorithm section">
+          <ITEM name="debug" value="false" type="string" description="When debug mode is activated, several files with intermediate results are written to the folder &apos;debug&apos; (do not use in parallel mode)." restrictions="true,false" />
+          <NODE name="intensity" description="Settings for the calculation of a score indicating if a peak&apos;s intensity is significant in the local environment (between 0 and 1)">
+            <ITEM name="bins" value="10" type="int" description="Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.#br#This parameter should be decreased, if the algorithm is used on small regions of a map." restrictions="1:" />
+          </NODE>
+          <NODE name="mass_trace" description="Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).">
+            <ITEM name="mz_tolerance" value="0.005" type="float" description="Tolerated m/z deviation of peaks belonging to the same mass trace.#br#It should be larger than the m/z resolution of the instument.#br#This value must be smaller than that 1/charge_high!" restrictions="0:" />
+            <ITEM name="min_spectra" value="7" type="int" description="Number of spectra that have to show a similar peak mass in a mass trace." restrictions="1:" />
+            <ITEM name="max_missing" value="1" type="int" description="Number of spectra where a high mass deviation or missing peak is acceptable.#br#This parameter should be well below &apos;min_spectra&apos;!" restrictions="0:" />
+            <ITEM name="slope_bound" value="0.5" type="float" description="The maximum slope of mass trace intensities when extending from the highest peak.#br#This parameter is important to seperate overlapping elution peaks.#br#It should be increased if feature elution profiles fluctuate a lot." restrictions="0:" />
+          </NODE>
+          <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).">
+            <ITEM name="charge_low" value="2" type="int" description="Lowest charge to search for." restrictions="1:" />
+            <ITEM name="charge_high" value="3" type="int" description="Highest charge to search for." restrictions="1:" />
+            <ITEM name="mz_tolerance" value="0.005" type="float" description="Tolerated m/z deviation from the theoretical isotopic pattern.#br#It should be larger than the m/z resolution of the instument.#br#This value must be smaller than that 1/charge_high!" restrictions="0:" />
+            <ITEM name="intensity_percentage" value="10" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present." tags="advanced" restrictions="0:100" />
+            <ITEM name="intensity_percentage_optional" value="0.1" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." tags="advanced" restrictions="0:100" />
+            <ITEM name="optional_fit_improvement" value="2" type="float" description="Minimal percental improvement of isotope fit to allow leaving out an optional peak." tags="advanced" restrictions="0:100" />
+            <ITEM name="mass_window_width" value="25" type="float" description="Window width in Dalton for precalculation of estimated isotope distribtions." tags="advanced" restrictions="1:200" />
+          </NODE>
+          <NODE name="seed" description="Settings that determine which peaks are considered a seed">
+            <ITEM name="min_score" value="0.8" type="float" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." restrictions="0:1" />
+          </NODE>
+          <NODE name="fit" description="Settings for the model fitting">
+            <ITEM name="epsilon_abs" value="0.0001" type="float" description="Absolute epsilon used for convergence of the fit." tags="advanced" restrictions="0:" />
+            <ITEM name="epsilon_rel" value="0.0001" type="float" description="Relative epsilon used for convergence of the fit." tags="advanced" restrictions="0:" />
+            <ITEM name="max_iterations" value="500" type="int" description="Maximum number of iterations of the fit." tags="advanced" restrictions="1:" />
+          </NODE>
+          <NODE name="feature" description="Settings for the features (intensity, quality assessment, ...)">
+            <ITEM name="min_score" value="0.7" type="float" description="Feature score threshold for a feature to be reported.#br#The feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks." restrictions="0:1" />
+            <ITEM name="min_isotope_fit" value="0.8" type="float" description="Minimum isotope fit of the feature before model fitting." tags="advanced" restrictions="0:1" />
+            <ITEM name="min_trace_score" value="0.5" type="float" description="Trace score threshold.#br#Traces below this threshold are removed after the model fitting.#br#This parameter is important for features that overlap in m/z dimension." tags="advanced" restrictions="0:1" />
+            <ITEM name="min_rt_span" value="0.333" type="float" description="Minimum RT span in relation to extended area that has to remain after model fitting." tags="advanced" restrictions="0:1" />
+            <ITEM name="max_rt_span" value="2.5" type="float" description="Maximum RT span in relation to extended area that the model is allowed to have." tags="advanced" restrictions="0.5:" />
+            <ITEM name="rt_shape" value="symmetric" type="string" description="Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used." tags="advanced" restrictions="symmetric,asymmetric" />
+            <ITEM name="max_intersection" value="0.35" type="float" description="Maximum allowed intersection of features." tags="advanced" restrictions="0:1" />
+            <ITEM name="reported_mz" value="monoisotopic" type="string" description="The mass type that is reported for features.#br#&apos;maximum&apos; returns the m/z value of the highest mass trace.#br#&apos;average&apos; returns the intensity-weighted average m/z value of all contained peaks.#br#&apos;monoisotopic&apos; returns the monoisotopic m/z value derived from the fitted isotope model." restrictions="maximum,average,monoisotopic" />
+          </NODE>
+          <NODE name="user-seed" description="Settings for user-specified seeds.">
+            <ITEM name="rt_tolerance" value="5" type="float" description="Allowed RT deviation of seeds from the user-specified seed position." restrictions="0:" />
+            <ITEM name="mz_tolerance" value="1.1" type="float" description="Allowed m/z deviation of seeds from the user-specified seed position." restrictions="0:" />
+            <ITEM name="min_score" value="0.5" type="float" description="Overwrites &apos;seed:min_score&apos; for user-specified seeds. The cutoff is typically a bit lower in this case." restrictions="0:1" />
+          </NODE>
+          <NODE name="debug" description="">
+            <ITEM name="pseudo_rt_shift" value="500" type="float" description="Pseudo RT shift used when ." tags="advanced" restrictions="1:" />
+          </NODE>
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="2" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" />
+      <ITEMLIST name="file_names" type="string" description="">
+        <LISTITEM value="../BSA/BSA1_OMSSA.idXML"/>
+        <LISTITEM value="../BSA/BSA2_OMSSA.idXML"/>
+        <LISTITEM value="../BSA/BSA3_OMSSA.idXML"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="-160" type="float" description="" />
+    </NODE>
+    <NODE name="3" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" />
+      <ITEM name="tool_name" value="IDMapper" type="string" description="" />
+      <ITEM name="tool_type" value="" type="string" description="" />
+      <ITEM name="x_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;IDMapper&apos;">
+        <ITEM name="id" value="" type="string" description="Protein/peptide identifications file" tags="input file,required" restrictions="*.idXML" />
+        <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" restrictions="*.featureXML,*.consensusXML" />
+        <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" restrictions="*.featureXML,*.consensusXML" />
+        <ITEM name="rt_tolerance" value="5" type="float" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
+        <ITEM name="mz_tolerance" value="20" type="float" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
+        <ITEM name="mz_measure" value="ppm" type="string" description="Unit of &apos;mz_tolerance&apos;." restrictions="ppm,Da" />
+        <ITEM name="mz_reference" value="precursor" type="string" description="Source of m/z values for peptide identifications. If &apos;precursor&apos;, the precursor-m/z from the idXML is used. If &apos;peptide&apos;,#br#masses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.#br#(&apos;peptide&apos; should be used together with &apos;use_centroid_mz&apos; to avoid false-positive matches.)" restrictions="precursor,peptide" />
+        <ITEM name="ignore_charge" value="false" type="string" description="For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature." restrictions="true,false" />
+        <ITEM name="use_centroid_rt" value="false" type="string" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." restrictions="true,false" />
+        <ITEM name="use_centroid_mz" value="false" type="string" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" restrictions="true,false" />
+        <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." restrictions="true,false" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
+      </NODE>
+    </NODE>
+    <NODE name="5" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" />
+      <ITEM name="tool_name" value="FeatureLinkerUnlabeled" type="string" description="" />
+      <ITEM name="tool_type" value="" type="string" description="" />
+      <ITEM name="x_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="260" type="float" description="" />
+      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureLinkerUnlabeled&apos;">
+        <ITEMLIST name="in" type="string" description="input files separated by blanks" tags="input file,required" restrictions="*.featureXML,*.consensusXML">
+        </ITEMLIST>
+        <ITEM name="out" value="" type="string" description="Output file" tags="output file,required" restrictions="*.consensusXML" />
+        <ITEM name="keep_subelements" value="false" type="string" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." restrictions="true,false" />
+        <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
+        <NODE name="algorithm" description="Algorithm parameters section">
+          <ITEM name="second_nearest_gap" value="2" type="float" description="The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself" restrictions="1:" />
+          <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account)" restrictions="true,false" />
+          <ITEM name="ignore_charge" value="false" type="string" description="Compare features normally even if their charge states are different" restrictions="true,false" />
+          <NODE name="distance_RT" description="Distance component based on RT differences">
+            <ITEM name="max_difference" value="100" type="float" description="Maximum allowed difference in RT" restrictions="0:" />
+            <ITEM name="exponent" value="1" type="float" description="Normalized RT differences are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="weight" value="1" type="float" description="RT distances are weighted by this factor" tags="advanced" restrictions="0:" />
+          </NODE>
+          <NODE name="distance_MZ" description="Distance component based on m/z differences">
+            <ITEM name="max_difference" value="0.3" type="float" description="Maximum allowed difference in m/z (unit defined by &apos;mz_unit&apos;)" restrictions="0:" />
+            <ITEM name="unit" value="Da" type="string" description="Unit of the &apos;max_difference&apos; parameter" restrictions="Da,ppm" />
+            <ITEM name="exponent" value="2" type="float" description="Normalized m/z differences are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="weight" value="1" type="float" description="m/z distances are weighted by this factor" tags="advanced" restrictions="0:" />
+          </NODE>
+          <NODE name="distance_intensity" description="Distance component based on differences in relative intensity">
+            <ITEM name="exponent" value="1" type="float" description="Differences in relative intensity are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="weight" value="0" type="float" description="Distances based on relative intensity are weighted by this factor" tags="advanced" restrictions="0:" />
+          </NODE>
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="6" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" />
+      <ITEM name="x_pos" value="-120" type="float" description="" />
+      <ITEM name="y_pos" value="260" type="float" description="" />
+    </NODE>
+    <NODE name="4" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" />
+      <ITEM name="toppas_type" value="merger" type="string" description="" />
+      <ITEM name="x_pos" value="60" type="float" description="" />
+      <ITEM name="y_pos" value="100" type="float" description="" />
+      <ITEM name="round_based" value="false" type="string" description="" />
+    </NODE>
+  </NODE>
+  <NODE name="edges" description="">
+    <NODE name="0" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="1/3" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="1" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="2/3" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="id" type="string" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="2" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="0/1" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="3" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="5/6" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="4" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="3/4" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" />
+      </NODE>
+    </NODE>
+    <NODE name="5" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="4/5" type="string" description="" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>

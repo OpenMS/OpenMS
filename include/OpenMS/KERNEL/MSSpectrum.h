@@ -71,17 +71,17 @@ namespace OpenMS
 		  {
 		  };
 
+      ///Integer data array class
+      class OPENMS_DLLAPI IntegerDataArray
+        : public MetaInfoDescription,
+        public std::vector<Int>
+      {
+      };
+
 		  ///String data array class
 			class OPENMS_DLLAPI StringDataArray
 		    : public MetaInfoDescription,
 		    	public std::vector<String>
-		  {
-		  };
-
-		  ///Float data array class
-			class OPENMS_DLLAPI IntegerDataArray
-		    : public MetaInfoDescription,
-		    	public std::vector<Int>
 		  {
 		  };
 
@@ -130,7 +130,7 @@ namespace OpenMS
 				RangeManager<1>(),
 				SpectrumSettings(),
 				PersistentObject(),
-				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
+				retention_time_(-1),
 				ms_level_(1),
 				name_(),
 				float_data_arrays_(),
