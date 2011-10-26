@@ -186,6 +186,46 @@ START_SECTION((void updateRanges()))
 
 END_SECTION
 
+START_SECTION((ConsensusMap& operator+=(const ConsensusMap &rhs)))
+{
+  ConsensusMap m1, m2, m3;
+  // adding empty maps has no effect:
+  m1+=m2;
+  TEST_EQUAL(m1, m3);
+
+  // with content:
+  ConsensusFeature f1;
+  f1.setMZ(100.12);
+  m1.push_back(f1);
+  m3 = m1;
+  m1+=m2;
+  TEST_EQUAL(m1, m3);
+
+  // test basic classes
+  m1.setIdentifier ("123");
+  m1.getDataProcessing().resize(1);
+  m1.getProteinIdentifications().resize(1);
+  m1.getUnassignedPeptideIdentifications().resize(1);
+  m1.ensureUniqueId();
+
+  m2.setIdentifier ("321");
+  m2.getDataProcessing().resize(2);
+  m2.getProteinIdentifications().resize(2);
+  m2.getUnassignedPeptideIdentifications().resize(2);
+  m2.push_back(Feature());
+  m2.push_back(Feature());
+
+
+  m1+=m2;
+  TEST_EQUAL(m1.getIdentifier(), "");
+  TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false);
+  TEST_EQUAL(m1.getDataProcessing().size(), 3);
+  TEST_EQUAL(m1.getProteinIdentifications().size(),3);
+  TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3);
+  TEST_EQUAL(m1.size(),3);
+}
+END_SECTION
+
 START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
   ConsensusMap map1;
   map1.setMetaValue("meta",String("value"));
