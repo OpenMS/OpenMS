@@ -124,6 +124,12 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"G")
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"H")
 	
+  // test meta values:
+  TEST_EQUAL(e[0].getMetaValue("myIntList") == IntList::create("1,10,12"), true);
+  TEST_EQUAL(e[0].getMetaValue("myDoubleList") == DoubleList::create("1.111,10.999,12.45"), true);
+  TEST_EQUAL(e[0].getMetaValue("myStringList") == StringList::create("myABC1,Stuff,12"), true);
+  TEST_EQUAL(e[1].getMetaValue("myDoubleList") == DoubleList::create("6.442"), true);
+
 	//test if loading a second file works (initialization)
 	FeatureMap<> e2;
 	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e2);

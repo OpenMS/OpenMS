@@ -35,8 +35,8 @@ using namespace std;
 namespace OpenMS
 {
 	FeatureXMLFile::FeatureXMLFile()
-		: Internal::XMLHandler("","1.4"),
-			Internal::XMLFile("/SCHEMAS/FeatureXML_1_5.xsd","1.5"),
+		: Internal::XMLHandler("","1.6"),
+			Internal::XMLFile("/SCHEMAS/FeatureXML_1_6.xsd","1.6"),
 		 	map_(0),
 		 	in_description_(false),
 			subordinate_feature_level_(0),
@@ -376,6 +376,18 @@ namespace OpenMS
 			{
 				last_meta_->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
 			}
+		        else if ( type == "intList" )
+		        {
+		          last_meta_->setMetaValue(name, attributeAsIntList_(attributes, "value"));
+		        }
+		        else if ( type == "floatList" )
+		        {
+		          last_meta_->setMetaValue(name, attributeAsDoubleList_(attributes, "value"));
+		        }
+		        else if ( type == "stringList" )
+		        {
+		          last_meta_->setMetaValue(name, attributeAsStringList_(attributes, "value"));
+		        }
 			else
 			{
 				fatalError(LOAD, String("Invalid userParam type '") + type + "'" );

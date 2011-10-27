@@ -167,6 +167,12 @@ START_SECTION((void load(const String &filename, ConsensusMap &map)))
   ++it;
   TEST_REAL_SIMILAR(it->getIntensity(),1.78215e+07)
 
+  // test meta values:
+  TEST_EQUAL(map[0].getMetaValue("myIntList") == IntList::create("1,10,12"), true);
+  TEST_EQUAL(map[0].getMetaValue("myDoubleList") == DoubleList::create("1.111,10.999,12.45"), true);
+  std::cout << "list: " << map[0].getMetaValue("myStringList") << "\n";
+  TEST_EQUAL(map[0].getMetaValue("myStringList") == StringList::create("myABC1,Stuff,12"), true);
+  TEST_EQUAL(map[4].getMetaValue("myDoubleList") == DoubleList::create("6.442"), true);
 
 	//PeakFileOptions tests
 

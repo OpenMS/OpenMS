@@ -127,25 +127,48 @@ namespace OpenMS
 			std::vector<String> keys;
 			meta.getKeys(keys);
 			
-			for (Size i = 0; i!=keys.size();++i)
+			for (Size i = 0; i!=keys.size(); ++i)
 			{
 				os << String(indent,'\t') << "<" << writeXMLEscape(tag_name) << " type=\"";
 				
 				DataValue d = meta.getMetaValue(keys[i]);
-				//determine type
-				if (d.valueType()==DataValue::INT_VALUE)
+        String val;
+				// determine type
+        if (d.valueType()==DataValue::STRING_VALUE || d.valueType()==DataValue::EMPTY_VALUE)
+        {
+          os << "string";
+          val = d;
+        }
+				else if (d.valueType()==DataValue::INT_VALUE)
 				{
 					os << "int";
+          val = d;
 				}
 				else if (d.valueType()==DataValue::DOUBLE_VALUE)
 				{
 					os << "float";
+          val = d;
 				}
-				else //string or lists are converted to string
+				else if (d.valueType()==DataValue::INT_LIST)
 				{
-					os << "string"; 
+					os << "intList";
+          val = d.toString();
 				}
-				os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape((String)(d)) << "\"/>" << "\n";
+				else if (d.valueType()==DataValue::DOUBLE_LIST)
+				{
+					os << "floatList";
+          val = d.toString();
+				}
+				else if (d.valueType()==DataValue::STRING_LIST)
+				{
+					os << "stringList";
+          val = "[" + StringList(d).concatenate(",") + "]"; // manual concatenate, as operator<< inserts spaces, which are bad for reconstructing the list
+				}
+        else
+        {
+          throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        }
+				os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
 			}
 		}
 		

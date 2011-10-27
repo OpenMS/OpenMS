@@ -102,7 +102,7 @@ public:
     String in_spectra = getStringOption_("in_spectra");
     String in_identifications = getStringOption_("in_identifications");
     String outfile = getStringOption_("model_output_file");
-    Size precursor_charge = getIntOption_("precursor_charge");
+    Int precursor_charge = getIntOption_("precursor_charge");
 
     //-------------------------------------------------------------
     // init SvmTheoreticalSpectrumGeneratorTrainer

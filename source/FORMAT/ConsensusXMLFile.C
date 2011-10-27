@@ -36,7 +36,7 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.4"), XMLFile("/SCHEMAS/ConsensusXML_1_4.xsd", "1.4"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
+    XMLHandler("", "1.5"), XMLFile("/SCHEMAS/ConsensusXML_1_5.xsd", "1.5"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
   {
   }
 
@@ -288,6 +288,18 @@ namespace OpenMS
       else if ( type == "float" )
       {
         last_meta_->setMetaValue(name, attributeAsDouble_(attributes, "value"));
+      }
+      else if ( type == "intList" )
+      {
+        last_meta_->setMetaValue(name, attributeAsIntList_(attributes, "value"));
+      }
+      else if ( type == "floatList" )
+      {
+        last_meta_->setMetaValue(name, attributeAsDoubleList_(attributes, "value"));
+      }
+      else if ( type == "stringList" )
+      {
+        last_meta_->setMetaValue(name, attributeAsStringList_(attributes, "value"));
       }
       else if ( type == "string" )
       {

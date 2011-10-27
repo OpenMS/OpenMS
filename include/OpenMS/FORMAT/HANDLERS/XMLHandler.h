@@ -345,10 +345,31 @@ namespace OpenMS
 				return String(sm_.convert(val)).toDouble();
 			}
 			
+			/// Converts an attribute to a DoubleList
+			inline DoubleList attributeAsDoubleList_(const xercesc::Attributes& a, const char* name) const
+			{
+				String tmp(expectList(attributeAsString_(a, name)));
+				return DoubleList::create(tmp.substr(1, tmp.size()-2));
+			}
+			
+			/// Converts an attribute to an IntList
+			inline IntList attributeAsIntList_(const xercesc::Attributes& a, const char* name) const
+			{
+				String tmp(expectList(attributeAsString_(a, name)));
+				return IntList::create(tmp.substr(1, tmp.size()-2));
+			}
+			
+			/// Converts an attribute to an StringList
+			inline StringList attributeAsStringList_(const xercesc::Attributes& a, const char* name) const
+			{
+				String tmp(expectList(attributeAsString_(a, name)));
+				return StringList::create(tmp.substr(1, tmp.size()-2));
+			}
+			
 			/**
 				@brief Assigns the attribute content to the String @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const char* name) const
 			{
@@ -364,7 +385,7 @@ namespace OpenMS
 			/**
 				@brief Assigns the attribute content to the Int @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsInt_(Int& value, const xercesc::Attributes& a, const char* name) const
 			{
@@ -380,7 +401,7 @@ namespace OpenMS
 			/**
 				@brief Assigns the attribute content to the UInt @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsUInt_(UInt& value, const xercesc::Attributes& a, const char* name) const
 			{
@@ -396,7 +417,7 @@ namespace OpenMS
 			/**
 				@brief Assigns the attribute content to the DoubleReal @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsDouble_(DoubleReal& value, const xercesc::Attributes& a, const char* name) const
 			{
@@ -404,6 +425,54 @@ namespace OpenMS
 				if (val!=0)
 				{
 					value = String(sm_.convert(val)).toDouble();
+					return true;
+				}
+				return false;
+			}
+			
+			/**
+				@brief Assigns the attribute content to the DoubleList @a value if the attribute is present
+				
+				@return if the attribute was present
+			*/
+			inline bool optionalAttributeAsDoubleList_(DoubleList& value, const xercesc::Attributes& a, const char* name) const
+			{
+				const XMLCh* val = a.getValue(sm_.convert(name));
+				if (val!=0)
+				{
+					value = attributeAsDoubleList_(a, name);
+					return true;
+				}
+				return false;
+			}
+			
+			/**
+				@brief Assigns the attribute content to the StringList @a value if the attribute is present
+				
+				@return if the attribute was present
+			*/
+			inline bool optionalAttributeAsStringList_(StringList& value, const xercesc::Attributes& a, const char* name) const
+			{
+				const XMLCh* val = a.getValue(sm_.convert(name));
+				if (val!=0)
+				{
+					value = attributeAsStringList_(a, name);
+					return true;
+				}
+				return false;
+			}
+			
+			/**
+				@brief Assigns the attribute content to the IntList @a value if the attribute is present
+				
+				@return if the attribute was present
+			*/
+			inline bool optionalAttributeAsIntList_(IntList& value, const xercesc::Attributes& a, const char* name) const
+			{
+				const XMLCh* val = a.getValue(sm_.convert(name));
+				if (val!=0)
+				{
+					value = attributeAsIntList_(a, name);
 					return true;
 				}
 				return false;
@@ -432,6 +501,28 @@ namespace OpenMS
 				if (val==0) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
 				return String(sm_.convert(val)).toDouble();
 			}
+
+			/// Converts an attribute to a DoubleList
+			inline DoubleList attributeAsDoubleList_(const xercesc::Attributes& a, const XMLCh* name) const
+			{
+				String tmp(expectList(attributeAsString_(a, name)));
+				return DoubleList::create(tmp.substr(1, tmp.size()-2));
+			}
+			
+			/// Converts an attribute to a IntList
+			inline IntList attributeAsIntList_(const xercesc::Attributes& a, const XMLCh* name) const
+			{
+				String tmp(expectList(attributeAsString_(a, name)));
+				return IntList::create(tmp.substr(1, tmp.size()-2));
+			}
+			
+			/// Converts an attribute to a StringList
+			inline StringList attributeAsStringList_(const xercesc::Attributes& a, const XMLCh* name) const
+			{
+				String tmp(expectList(attributeAsString_(a, name)));
+				return StringList::create(tmp.substr(1, tmp.size()-2));
+			}
+			
 			
 			/// Assigns the attribute content to the String @a value if the attribute is present
 			inline bool optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const XMLCh* name) const
@@ -484,11 +575,70 @@ namespace OpenMS
 				}
 				return false;
 			}
+
+			/**
+				@brief Assigns the attribute content to the DoubleList @a value if the attribute is present
+				
+				@return if the attribute was present
+			*/
+			inline bool optionalAttributeAsDoubleList_(DoubleList& value, const xercesc::Attributes& a, const XMLCh* name) const
+			{
+				const XMLCh* val = a.getValue(name);
+				if (val!=0)
+				{
+					value = attributeAsDoubleList_(a, name);
+					return true;
+				}
+				return false;
+			}
+			
+			/**
+				@brief Assigns the attribute content to the IntList @a value if the attribute is present
+				
+				@return if the attribute was present
+			*/
+			inline bool optionalAttributeAsIntList_(IntList& value, const xercesc::Attributes& a, const XMLCh* name) const
+			{
+				const XMLCh* val = a.getValue(name);
+				if (val!=0)
+				{
+					value = attributeAsIntList_(a, name);
+					return true;
+				}
+				return false;
+			}
+			
+			/**
+				@brief Assigns the attribute content to the StringList @a value if the attribute is present
+				
+				@return if the attribute was present
+			*/
+			inline bool optionalAttributeAsStringList_(StringList& value, const xercesc::Attributes& a, const XMLCh* name) const
+			{
+				const XMLCh* val = a.getValue(name);
+				if (val!=0)
+				{
+					value = attributeAsStringList_(a, name);
+					return true;
+				}
+				return false;
+			}
+			
 			//@}
 		
 		private:
 			/// Not implemented
 			XMLHandler();
+
+			String expectList(const char* str) const
+			{
+				String tmp(str);
+				if (!(tmp.hasPrefix('[') && tmp.hasSuffix(']'))) {
+					fatalError(LOAD, String("List argument is not a string representation of a list!"));
+				}
+				return tmp;
+			}
+			
 	};
 	
 	} // namespace Internal
