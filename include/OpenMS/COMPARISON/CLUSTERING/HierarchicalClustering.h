@@ -478,8 +478,8 @@ namespace OpenMS
       TreeNode *tree_left(cur_dist.left), *tree_right(cur_dist.right);
       dists.pop();
  
-      // Chck if both trees are not yet used with a smaller distance
-      UInt count_left = trees.count(tree_left), count_right = trees.count(tree_right);
+      // Check if both trees are not yet used with a smaller distance
+      Size count_left = trees.count(tree_left), count_right = trees.count(tree_right);
       if (count_left && count_right)
       {
         trees.erase(tree_left);
