@@ -64,7 +64,7 @@ namespace OpenMS
 
 		// !!! Hack: set feature FWHM from meta info entries as 
     // long as featureXML doesn't support a width entry.
-    // See also hack in BaseFeature::setFWHM().
+    // See also hack in BaseFeature::setWidth().
 		for (FeatureMap<>::Iterator it = map_->begin(); it != map_->end(); ++it)
 		{
 			if (it->metaValueExists("FWHM"))
