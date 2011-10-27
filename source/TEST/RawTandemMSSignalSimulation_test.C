@@ -41,9 +41,11 @@ START_TEST(RawTandemMSSignalSimulation, "$Id$")
 
 RawTandemMSSignalSimulation* ptr = 0;
 RawTandemMSSignalSimulation* null_ptr = 0;
-START_SECTION(RawTandemMSSignalSimulation())
+SimRandomNumberGenerator rng;
+
+START_SECTION((RawTandemMSSignalSimulation(const SimRandomNumberGenerator &rng)))
 {
-	ptr = new RawTandemMSSignalSimulation();
+	ptr = new RawTandemMSSignalSimulation(rng);
 	TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
@@ -51,12 +53,6 @@ END_SECTION
 START_SECTION(~RawTandemMSSignalSimulation())
 {
 	delete ptr;
-}
-END_SECTION
-
-START_SECTION((RawTandemMSSignalSimulation(const SimRandomNumberGenerator &rng)))
-{
-  // TODO
 }
 END_SECTION
 
