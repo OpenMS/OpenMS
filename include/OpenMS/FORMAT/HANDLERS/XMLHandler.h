@@ -348,21 +348,21 @@ namespace OpenMS
 			/// Converts an attribute to a DoubleList
 			inline DoubleList attributeAsDoubleList_(const xercesc::Attributes& a, const char* name) const
 			{
-				String tmp(expectList(attributeAsString_(a, name)));
+				String tmp(expectList_(attributeAsString_(a, name)));
 				return DoubleList::create(tmp.substr(1, tmp.size()-2));
 			}
 			
 			/// Converts an attribute to an IntList
 			inline IntList attributeAsIntList_(const xercesc::Attributes& a, const char* name) const
 			{
-				String tmp(expectList(attributeAsString_(a, name)));
+				String tmp(expectList_(attributeAsString_(a, name)));
 				return IntList::create(tmp.substr(1, tmp.size()-2));
 			}
 			
 			/// Converts an attribute to an StringList
 			inline StringList attributeAsStringList_(const xercesc::Attributes& a, const char* name) const
 			{
-				String tmp(expectList(attributeAsString_(a, name)));
+				String tmp(expectList_(attributeAsString_(a, name)));
 				return StringList::create(tmp.substr(1, tmp.size()-2));
 			}
 			
@@ -505,21 +505,21 @@ namespace OpenMS
 			/// Converts an attribute to a DoubleList
 			inline DoubleList attributeAsDoubleList_(const xercesc::Attributes& a, const XMLCh* name) const
 			{
-				String tmp(expectList(attributeAsString_(a, name)));
+				String tmp(expectList_(attributeAsString_(a, name)));
 				return DoubleList::create(tmp.substr(1, tmp.size()-2));
 			}
 			
 			/// Converts an attribute to a IntList
 			inline IntList attributeAsIntList_(const xercesc::Attributes& a, const XMLCh* name) const
 			{
-				String tmp(expectList(attributeAsString_(a, name)));
+				String tmp(expectList_(attributeAsString_(a, name)));
 				return IntList::create(tmp.substr(1, tmp.size()-2));
 			}
 			
 			/// Converts an attribute to a StringList
 			inline StringList attributeAsStringList_(const xercesc::Attributes& a, const XMLCh* name) const
 			{
-				String tmp(expectList(attributeAsString_(a, name)));
+				String tmp(expectList_(attributeAsString_(a, name)));
 				return StringList::create(tmp.substr(1, tmp.size()-2));
 			}
 			
@@ -630,7 +630,7 @@ namespace OpenMS
 			/// Not implemented
 			XMLHandler();
 
-			String expectList(const char* str) const
+      inline String expectList_(const char* str) const
 			{
 				String tmp(str);
 				if (!(tmp.hasPrefix('[') && tmp.hasSuffix(']'))) {
