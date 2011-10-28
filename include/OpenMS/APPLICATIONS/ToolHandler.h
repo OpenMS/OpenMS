@@ -54,7 +54,7 @@ namespace OpenMS
     internal details & discussion:
 
     We could create the list of TOPP tools and UTILS from a set of files in /share
-    instead of hardcoding them here.
+    instead of hard coding them here.
     Advantage: - no recompile if new tool is added (but the new tool will necessitate that anyway)
                - quickly changing a tool's category (e.g. from PreProcessing to Quantitation) and thus its place in TOPPAS
                    even users could rearrange tools themselves...
@@ -81,11 +81,14 @@ namespace OpenMS
       /// get all types of a tool (empty if none)
       static StringList getTypes(const String& toolname);
 
-      /// Returns the category string
+      /// Returns the category string from TOPP or UTIL tools
+      /// @return empty string if tool was not found
       static String getCategory(const String& toolname);
 
+      /// get getOpenMSDataPath() + "/TOOLS/EXTERNAL"
       static String getExternalToolsPath();
 
+      /// get File::getOpenMSDataPath() + "/TOOLS/INTERNAL"
       static String getInternalToolsPath();
 
   private:
