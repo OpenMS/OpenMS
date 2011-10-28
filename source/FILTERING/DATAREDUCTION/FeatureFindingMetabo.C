@@ -135,8 +135,8 @@ namespace OpenMS
         : DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
     {
         // defaults_.setValue( "name" , 1 , "descript" );
-        defaults_.setValue( "local_rt_range" , 3.0 , "RT range where to look for coeluting mass traces");
-        defaults_.setValue( "local_mz_range" , 5.0 , "MZ range where to look for isotopic mass traces");
+        defaults_.setValue( "local_rt_range" , 3.0 , "RT range where to look for coeluting mass traces"); // 3.0
+        defaults_.setValue( "local_mz_range" , 6.5 , "MZ range where to look for isotopic mass traces");    // 5.0
         defaults_.setValue( "mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");
 
         defaultsToParam_();
@@ -291,6 +291,9 @@ namespace OpenMS
 #endif
 
         DoubleReal mu(std::pow(1.0029316*iso_pos, -0.0002107)/charge);
+
+
+        // DoubleReal mu((1.003355*iso_pos)/charge);
         DoubleReal err_ppm((mz2/1000000)*mass_error_ppm_);
         DoubleReal sigma((2*err_ppm)/2.3548);
 
@@ -350,7 +353,7 @@ namespace OpenMS
 
             Size last_iso_idx(0);
 
-            for (Size iso_pos = 1; iso_pos < 5; ++iso_pos) {
+            for (Size iso_pos = 1; iso_pos < 7; ++iso_pos) {
                 DoubleReal best_so_far(0.0);
                 Size best_idx(0);
 
