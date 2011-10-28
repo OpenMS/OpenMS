@@ -177,7 +177,7 @@ class TOPPFileMerger
 				f.store(out_file,out);
 
 			}
-			if (force_type == FileTypes::CONSENSUSXML)
+			else if (force_type == FileTypes::CONSENSUSXML)
 			{
 				ConsensusMap out;
 				for (Size i = 0; i < file_list.size(); ++i)
