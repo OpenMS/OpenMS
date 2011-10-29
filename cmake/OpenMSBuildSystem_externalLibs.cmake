@@ -79,7 +79,13 @@ else()
 endif()
 
 ## SEQAN
-FIND_PACKAGE(SEQAN 1.3)
+FIND_PACKAGE(SEQAN 1.3.1)
+if(SEQAN_FOUND)
+	INCLUDE_DIRECTORIES(${SEQAN_INCLUDE_DIRS})
+  message(STATUS "Found SEQAN version ${SEQAN_VERSION_MAJOR}.${SEQAN_VERSION_MINOR}.${SEQAN_VERSION_PATCH}" )
+else()
+  message(FATAL_ERROR "SEQAN could not be found. Please install it from www.seqan.de or download and installl the OpenMS contrib package.")
+endif()
 
 ## libsvm
 if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
