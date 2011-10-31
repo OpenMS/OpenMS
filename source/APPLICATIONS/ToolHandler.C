@@ -79,7 +79,7 @@ namespace OpenMS
 		tools_map["IDMerger"] = Internal::ToolDescription("IDMerger", "File Handling");
     tools_map["IDPosteriorErrorProbability"] = Internal::ToolDescription("IDPosteriorErrorProbability", "ID Processing");
     tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", "ID Processing");
-		tools_map["ITRAQAnalyzer"] = Internal::ToolDescription("ITRAQAnalyzer", "Quantitation", StringList::create("4plex,8plex"));
+		tools_map["ITRAQAnalyzer"] = Internal::ToolDescription("ITRAQAnalyzer", "Quantitation");
 		tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
     tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Identification");
 		tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
