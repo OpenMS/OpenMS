@@ -6,21 +6,23 @@ Installation:
 2) Insert the code below into the HTML section of the WP-page you want to insert .toppas file links into
    Make sure that there are no empty lines, as WP will add HTML code which destroys the JavaScript (check in final page source code)
 
+
 <!-- DO NOT REMOVE THIS. Otherwise the Show/Hide() button will not work -->
-<script>
+<script type="text/javascript">// <![CDATA[
   $(document).ready(function() 
   {
     /* toggle (view on/off) all elements with the same class as the sending button */
     $("button").click(function () {
-                        var $id = "." + $(event.target).attr("class");
-                        //alert($(event.target));
+                        var $target = $(this);
+                        var $id = "." + $target.attr("class");
+                        //alert($(event.target).attr("class"));
                         $($id + "_e").toggle();
                       }
                      );
     /* hide in the beginning */
     $(".toggleClass").toggle(); 
   });// document ready
-</script>
+// ]]></script>
 
 
 3) Insert .toppas file links preceded by four "!" and suffixed by four "#", e.g.
