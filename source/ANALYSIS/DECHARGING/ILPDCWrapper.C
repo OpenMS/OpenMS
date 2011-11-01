@@ -193,7 +193,14 @@ namespace OpenMS {
 #endif
     for	(SignedSize i=0; i < (SignedSize)bins.size(); ++i)
 		{
-  		score += computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
+      /*PairsType p2 = pairs;
+      writeProblem_(fm, p2, bins[i].first, bins[i].second, verbose_level, String("Z:\\myDocuments\\analysis\\DC_Lagrange\\output\\p") + String(i) + ".txt");
+      StopWatch t1,t2;
+      t1.start();*/
+  		DoubleReal s = computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
+      score += s;
+      //t1.stop();
+      //std::cerr << "CoinOr Slice: " << i << "  time: "<< 	t1.getClockTime () << "  score: " << s <<std::endl;
 		}
     //score = computeSlice_(fm, pairs, 0, pairs.size()); // all at once - no bins
 
@@ -201,6 +208,79 @@ namespace OpenMS {
 	}
 
   
+
+  void ILPDCWrapper::writeProblem_(const FeatureMap<> fm,
+                                    PairsType& pairs, 
+                                    const PairsIndex margin_left, 
+                                    const PairsIndex margin_right,
+                                    Size verbose_level,
+                                    String filename)
+  {
+    // feature idx --> rotamers set 
+    typedef std::map<Size, std::set<String>> r_type;
+    r_type residues;
+
+    for (PairsIndex i=margin_left; i<margin_right; ++i)
+    {
+      DoubleReal score = exp(getLogScore_(pairs[i], fm));
+      pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
+
+      String rota_l =  String(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0);
+      residues[pairs[i].getElementIndex(0)].insert(rota_l);
+      String rota_r =  String(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1);
+      residues[pairs[i].getElementIndex(1)].insert(rota_r);
+    }
+
+    // map featurenumber to Residue index:
+    std::map<Size, Size> f_2_r;
+    Size count(0);
+    for (r_type::iterator it=residues.begin(); it!= residues.end(); ++it)
+    {
+      f_2_r[it->first] = count++;
+    }
+
+    TextFile f;
+    f.push_back("[NUMBER_OF_RESIDUES]");
+    f.push_back(String(residues.size()) + "\n");
+    f.push_back("\n[NUMBER_OF_ROTAMERS]");
+    for (r_type::iterator it=residues.begin(); it!= residues.end(); ++it)
+    {
+      f.push_back(String(f_2_r[it->first]) + " " + String(it->second.size()));
+    }
+    f.push_back("\n[SELF_ENERGIES]");
+    for (r_type::iterator it=residues.begin(); it!= residues.end(); ++it)
+    {
+      for (Size i=0;i<it->second.size();++i)
+      {
+        f.push_back(String(f_2_r[it->first]) + " " + i + " 0");
+      }
+    }
+    f.push_back("\n[PAIRWISE_ENERGIES]");
+
+    // assign index to "Rotamer"(=adduct composition) to find it later for pairwise energies
+    typedef std::map<String, Size> Cmp2Idx;
+    Cmp2Idx cmpidx;
+    for (r_type::iterator it=residues.begin(); it!= residues.end(); ++it)
+    {
+      Size count(0);
+      for (std::set<String>::iterator it2=it->second.begin(); it2!=it->second.end(); ++it2)
+      {
+        cmpidx[*it2] = count++;
+      }
+    }
+    // fill data
+    for (PairsIndex i=margin_left; i<margin_right; ++i)
+    {
+      String rota_l =  String(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0);
+      String rota_r =  String(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1);
+      f.push_back(String(f_2_r[pairs[i].getElementIndex(0)]) + " " + cmpidx[rota_l] + " " + String(f_2_r[pairs[i].getElementIndex(1)]) + " " + cmpidx[rota_r] + " " + -pairs[i].getEdgeScore());
+    }
+
+    f.store(filename);
+
+  }
+
+
 	DoubleReal ILPDCWrapper::computeSlice_(const FeatureMap<> fm,
 																			   PairsType& pairs, 
 																			   const PairsIndex margin_left, 
@@ -208,6 +288,7 @@ namespace OpenMS {
                                          Size verbose_level)
 	{
 		LPWrapper build;
+    //build.setSolver(LPWrapper::SOLVER_GLPK);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
 		//------------------------------------objective function-----------------------------------------------
@@ -356,7 +437,7 @@ namespace OpenMS {
       for (UInt iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
         {
           double value=build.getColumnValue(iColumn);
-          if (fabs(value)>0.5 && build.getColumnType(iColumn)==3) // 3 - binary variable
+          if (fabs(value)>0.5 && build.getColumnType(iColumn)==LPWrapper::INTEGER)
             {
               ++active_edges;
               pairs[margin_left+iColumn].setActive(true);

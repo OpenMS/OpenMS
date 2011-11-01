@@ -56,7 +56,14 @@ namespace OpenMS {
 		DoubleReal compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level);
 		
 	private:
-   
+    void 
+      writeProblem_(const FeatureMap<> fm,
+      PairsType& pairs, 
+      const PairsIndex margin_left, 
+      const PairsIndex margin_right,
+      Size verbose_level,
+      String filename);
+
     /// slicing the problem into subproblems
 		DoubleReal computeSlice_(const FeatureMap<> fm,
 														 PairsType& pairs, 
