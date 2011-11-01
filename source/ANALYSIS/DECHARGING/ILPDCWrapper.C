@@ -217,10 +217,10 @@ namespace OpenMS {
                                     String filename)
   {
     // feature idx --> rotamers set 
-    typedef std::map<Size, std::set<String>> r_type;
+    typedef std::map<Size, std::set<String> > r_type;
     r_type residues;
 
-    for (PairsIndex i=margin_left; i<margin_right; ++i)
+    for (PairsIndex i = margin_left; i < margin_right; ++i)
     {
       DoubleReal score = exp(getLogScore_(pairs[i], fm));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
