@@ -437,7 +437,7 @@ namespace OpenMS {
       for (UInt iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
         {
           double value=build.getColumnValue(iColumn);
-          if (fabs(value)>0.5 && build.getColumnType(iColumn)==LPWrapper::INTEGER)
+          if (fabs(value)>0.5)
             {
               ++active_edges;
               pairs[margin_left+iColumn].setActive(true);
