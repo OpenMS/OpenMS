@@ -100,7 +100,10 @@ protected:
     {
         Param combined;
         combined.insert("mtd:", MassTraceDetection().getDefaults());
-        combined.insert("epd:", ElutionPeakDetection().getDefaults());
+        Param p_epd = ElutionPeakDetection().getDefaults();
+        p_epd.setValue("enabled", "true", "Do post-filtering of detected mass traces?!");
+        p_epd.setValidStrings("enabled", StringList::create("true,false"));
+        combined.insert("epd:", p_epd);
 
         return combined;
     }
@@ -160,35 +163,47 @@ protected:
         mt_ext.setParameters(mt_ext_param);
 
         mt_ext.run(ms_peakmap, m_traces);
+        
+        vector<MassTrace> m_traces_final = m_traces;
 
-        DoubleReal fwhm(mt_ext.getParameters().getValue("chrom_fwhm"));
-        DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
-        Size min_datapoints = std::floor(fwhm/scan_rt_diff);
-
-        ElutionPeakDetection ep_det;
-
-        epd_param.setValue("window_size", min_datapoints);
-
-        ep_det.setParameters(epd_param);
-
-        std::vector<MassTrace> splitted_mtraces;
-
-        std::vector<MassTrace> filtered_mtraces;
-
-        ep_det.detectPeaks(m_traces, splitted_mtraces);
-
-        if (ep_det.getParameters().getValue("width_filtering") == "true")
+        if (epd_param.getValue("enabled") == "true")
         {
-            ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces, fwhm);
+          DoubleReal fwhm(mt_ext.getParameters().getValue("chrom_fwhm"));
+          DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
+          Size min_datapoints = std::floor(fwhm/scan_rt_diff);
 
-            std::cout << "after filtering: " << filtered_mtraces.size() << " of " << splitted_mtraces.size() << std::endl;
+          ElutionPeakDetection ep_det;
 
-            splitted_mtraces = filtered_mtraces;
+          epd_param.remove("enabled"); // artificially added above
+          epd_param.setValue("window_size", min_datapoints);
+
+          ep_det.setParameters(epd_param);
+
+          std::vector<MassTrace> splitted_mtraces;
+
+          std::vector<MassTrace> filtered_mtraces;
+
+          ep_det.detectPeaks(m_traces, splitted_mtraces);
+
+          if (ep_det.getParameters().getValue("width_filtering") == "true")
+          {
+              ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces, fwhm);
+
+              LOG_INFO << "After filtering: " << filtered_mtraces.size() << " of " << splitted_mtraces.size() << std::endl;
+
+              splitted_mtraces = filtered_mtraces;
+          }
+
+          m_traces_final = splitted_mtraces;
         }
 
-        for (Size i = 0; i < splitted_mtraces.size(); ++i)
+        //-----------------------------------------------------------
+        // convert mass traces to features
+        //-----------------------------------------------------------
+        for (Size i = 0; i < m_traces_final.size(); ++i)
         {
-            MassTrace tmp_mt(splitted_mtraces[i]);
+            MassTrace tmp_mt(m_traces_final[i]);
+            if (tmp_mt.getSize() == 0) continue;
 
             Feature f;
             f.setMetaValue(3,tmp_mt.getLabel());
@@ -197,12 +212,11 @@ protected:
             f.setIntensity(tmp_mt.computePeakArea());
             f.setRT(tmp_mt.getSmoothedMaxRT());
             f.setWidth(tmp_mt.estimateFWHM());
-            f.setOverallQuality(0.0);
+            f.setOverallQuality(1 - (1.0/tmp_mt.getSize()));
             f.getConvexHulls().push_back(tmp_mt.getConvexhull());
 
             ms_feat_map.push_back(f);
         }
-
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------

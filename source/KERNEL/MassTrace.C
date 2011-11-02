@@ -315,7 +315,7 @@ namespace OpenMS
 
             // Size binary_steps(0);
 
-            while ((left_bound + 1) != right_bound)
+            while ((left_bound + 1) < right_bound)
             {
                 //                std::cout << left_bound << "___" << right_bound << std::endl;
                 DoubleReal mid_dist((right_bound - left_bound)/2.0);
