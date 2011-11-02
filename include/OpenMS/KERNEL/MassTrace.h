@@ -130,7 +130,8 @@ namespace OpenMS
 
         inline DoubleReal getCentroidRT()
         {
-            return centroid_rt_;
+          updateMedianRT_();
+          return centroid_rt_;
         }
 
         inline std::vector<DoubleReal> getSmoothedIntensities()
@@ -172,6 +173,7 @@ namespace OpenMS
         ConvexHull2D getConvexhull() const;
 
     private:
+        void updateMedianRT_();
         void updateMedianMZ_();
         void updateMeanMZ_();
         void updateIterativeWeightedMeanMZ_(const PeakType&);

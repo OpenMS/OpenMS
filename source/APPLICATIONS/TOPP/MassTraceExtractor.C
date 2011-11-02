@@ -166,7 +166,9 @@ protected:
         
         vector<MassTrace> m_traces_final = m_traces;
 
-        if (epd_param.getValue("enabled") == "true")
+        bool use_epd = epd_param.getValue("enabled") == "true";
+
+        if (use_epd)
         {
           DoubleReal fwhm(mt_ext.getParameters().getValue("chrom_fwhm"));
           DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
@@ -210,8 +212,15 @@ protected:
             f.setCharge(0);
             f.setMZ(tmp_mt.getCentroidMZ());
             f.setIntensity(tmp_mt.computePeakArea());
-            f.setRT(tmp_mt.getSmoothedMaxRT());
-            f.setWidth(tmp_mt.estimateFWHM());
+            if (use_epd)
+            {
+              f.setRT(tmp_mt.getSmoothedMaxRT());
+              f.setWidth(tmp_mt.estimateFWHM());
+            }
+            else
+            {
+              f.setRT(tmp_mt.getCentroidRT());
+            }
             f.setOverallQuality(1 - (1.0/tmp_mt.getSize()));
             f.getConvexHulls().push_back(tmp_mt.getConvexhull());
 

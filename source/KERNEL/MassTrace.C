@@ -363,6 +363,45 @@ namespace OpenMS
     }
 
 
+    void MassTrace::updateMedianRT_()
+    {
+      if (trace_peaks_.size() == 0)
+      {
+        return ;
+      }
+
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
+
+        return ;
+      }
+
+      // copy mz values to temp vec
+      std::vector<DoubleReal> temp_rt;
+
+      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      {
+        temp_rt.push_back((*l_it).getRT());
+      }
+
+      std::sort(temp_rt.begin(), temp_rt.end());
+
+      Size temp_mz_size = temp_rt.size();
+
+      if ((temp_mz_size % 2) == 0)
+      {
+        centroid_rt_ = (temp_rt[std::floor(temp_mz_size/2.0) - 1] +  temp_rt[std::floor(temp_mz_size/2.0)])/2;
+      }
+      else
+      {
+        centroid_rt_ = temp_rt[std::floor(temp_mz_size/2.0)];
+      }
+
+      return ;
+    }
+
+
     void MassTrace::updateMedianMZ_()
     {
         if (trace_peaks_.size() == 0)
