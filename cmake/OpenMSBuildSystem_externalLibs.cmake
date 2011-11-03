@@ -84,7 +84,7 @@ if(SEQAN_FOUND)
 	INCLUDE_DIRECTORIES(${SEQAN_INCLUDE_DIRS})
   message(STATUS "Found SEQAN version ${SEQAN_VERSION_MAJOR}.${SEQAN_VERSION_MINOR}.${SEQAN_VERSION_PATCH}" )
 else()
-  message(FATAL_ERROR "SEQAN could not be found. Please install it from www.seqan.de or download and installl the OpenMS contrib package.")
+  message(FATAL_ERROR "SeqAn could not be found. Please install it from www.seqan.de or download and install the OpenMS contrib package.")
 endif()
 
 ## libsvm
