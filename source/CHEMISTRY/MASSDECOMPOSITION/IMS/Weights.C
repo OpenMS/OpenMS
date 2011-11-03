@@ -26,22 +26,15 @@
 // --------------------------------------------------------------------------
 //
 
-#include <cassert>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS {
 
 namespace ims {
-
-/*
-Weights::Weights(const alphabet_masses_type& masses, alphabet_mass_type precision) :
-             alphabet_masses(masses),
-             precision(precision) {
- setPrecision(precision);
-}
-*/
 
 Weights& Weights::operator =(const Weights& other)
 {
@@ -59,11 +52,10 @@ void Weights::setPrecision(Weights::alphabet_mass_type precision)
 {
 	this->precision_ = precision;
 	weights_.clear();
-	for (alphabet_masses_type::size_type i = 0;
-       i < alphabet_masses_.size(); ++i)
+  // convert alphabet masses (double) to integer masses (weights) with the given precision
+  for (alphabet_masses_type::size_type i = 0; i < alphabet_masses_.size(); ++i)
   {
-		weights_.push_back(static_cast<weight_type>(floor((alphabet_masses_[i]
-                                                     / precision) + 0.5)));
+    weights_.push_back(static_cast<weight_type>(floor((alphabet_masses_[i]/ precision) + 0.5)));
 	}
 }
 
@@ -82,9 +74,14 @@ void Weights::swap(size_type index1, size_type index2)
 
 Weights::alphabet_mass_type Weights::getParentMass(const std::vector<unsigned int>& decomposition) const
 {
-	alphabet_mass_type parent_mass = 0;
-	
-	assert(alphabet_masses_.size() == decomposition.size());
+  // checker whether the passed decomposition is applicable
+  if(alphabet_masses_.size() != decomposition.size())
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,String("The passed decomposition has the wrong size. Expected ") + String(alphabet_masses_.size()) + String(" but got ") + String(decomposition.size()) + String("."));
+  }
+
+  alphabet_mass_type parent_mass = 0;
+
   for (std::vector<unsigned int>::size_type i = 0; i < decomposition.size(); ++i)
   {
 		parent_mass += alphabet_masses_[i] * decomposition[i];
@@ -92,17 +89,6 @@ Weights::alphabet_mass_type Weights::getParentMass(const std::vector<unsigned in
 	return parent_mass;	
 }
 
-/**
- * Divides the integer weights by their gcd. The precision is also adjusted.
- *
- * For example, given alphabet weights 3.0, 5.0, 8.0 with precision 0.1, the
- * integer weights would be 30, 50, 80. After calling this method, the new
- * weights are 3, 5, 8 with precision 1.0 (since the gcd of 30, 50, and 80
- * is 10).
- *
- * @return true if anything was changed, that is, if the gcd was &gt; 1.
- *         false if the gcd was already 1 or there are less than two weights.
-*/
 bool Weights::divideByGCD()
 {
   if (weights_.size() < 2)
@@ -113,7 +99,8 @@ bool Weights::divideByGCD()
   for (weights_type::size_type i = 2; i < weights_.size(); ++i)
   {
     d = Math::gcd(d, weights_[i]);
-		if (d == 1) {
+    if (d == 1)
+    {
 			return false;
 		}
 	}
@@ -123,7 +110,8 @@ bool Weights::divideByGCD()
 
 	// rescales the integer weights. Don't use setPrecision() here since
 	// the result could be different due to rounding errors.
-	for (weights_type::size_type i = 0; i < weights_.size(); ++i) {
+  for (weights_type::size_type i = 0; i < weights_.size(); ++i)
+  {
 		weights_[i] /= d;
 	}
 	return true;
@@ -132,10 +120,11 @@ bool Weights::divideByGCD()
 Weights::alphabet_mass_type Weights::getMinRoundingError() const
 {
 	alphabet_mass_type min_error = 0;
-	for (size_type i = 0; i < weights_.size(); ++i) {
-		alphabet_mass_type error = (precision_ * static_cast<alphabet_mass_type>(weights_[i])
-                                - alphabet_masses_[i]) / alphabet_masses_[i];
-		if (error < 0 && error < min_error) {
+  for (size_type i = 0; i < weights_.size(); ++i)
+  {
+		alphabet_mass_type error = (precision_ * static_cast<alphabet_mass_type>(weights_[i]) - alphabet_masses_[i]) / alphabet_masses_[i];
+    if (error < 0 && error < min_error)
+    {
 			min_error = error;
 		}
 	}
@@ -145,10 +134,11 @@ Weights::alphabet_mass_type Weights::getMinRoundingError() const
 Weights::alphabet_mass_type Weights::getMaxRoundingError() const
 {
 	alphabet_mass_type max_error = 0;
-	for (size_type i = 0; i < weights_.size(); ++i) {
-		alphabet_mass_type error = (precision_ * static_cast<alphabet_mass_type>(weights_[i])
-                                - alphabet_masses_[i]) / alphabet_masses_[i];
-		if (error > 0 && error > max_error) {
+  for (size_type i = 0; i < weights_.size(); ++i)
+  {
+    alphabet_mass_type error = (precision_ * static_cast<alphabet_mass_type>(weights_[i]) - alphabet_masses_[i]) / alphabet_masses_[i];
+    if (error > 0 && error > max_error)
+    {
 			max_error = error;
 		}
 	}
@@ -157,7 +147,8 @@ Weights::alphabet_mass_type Weights::getMaxRoundingError() const
 
 std::ostream& operator<<(std::ostream& os, const Weights& weights)
 {
-	for (Weights::size_type i = 0; i < weights.size(); ++i ) {
+  for (Weights::size_type i = 0; i < weights.size(); ++i )
+  {
 		os << weights.getWeight(i) << std::endl;
 	}
 	return os;
