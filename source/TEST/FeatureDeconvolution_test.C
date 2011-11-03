@@ -208,6 +208,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 	FeatureDeconvolution fd;
   Param p;
   p.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Ad");
+	p.setValue("max_mass_diff", 0.1);
 	fd.setParameters(p);
 
 	FeatureMap<> fm_in, fm_out;

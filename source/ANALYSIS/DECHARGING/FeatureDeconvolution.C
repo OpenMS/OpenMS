@@ -104,30 +104,29 @@ namespace OpenMS
     map_label_inverse_(),
     enable_intensity_filter_(false)
   {
-    defaults_.setValue("charge_min", 1, "minimal possible charge");
-    defaults_.setValue("charge_max", 10, "maximal possible charge");
-    defaults_.setValue("charge_span_max", 4, "maximal range of charges for a single analyte, i.e. observing q1=[5,6,7] implies span=3. Setting this to 1 will only find adduct variants of the same charge");
+    defaults_.setValue("charge_min", 1, "Minimal possible charge");
+    defaults_.setValue("charge_max", 10, "Maximal possible charge");
+    defaults_.setValue("charge_span_max", 4, "Maximal range of charges for a single analyte, i.e. observing q1=[5,6,7] implies span=3. Setting this to 1 will only find adduct variants of the same charge");
     defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
 		defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
 		defaults_.setValidStrings("q_try",StringList::create("feature,heuristic,all"));
 
-    defaults_.setValue("mass_max", 25000.0, "maximal mass (not m/z!) expected", StringList::create("advanced"));
-    defaults_.setValue("retention_max_diff", 1.0, "maximum allowed RT difference between any two features if their relation shall be determined");
-		defaults_.setValue("retention_max_diff_local", 1.0, "maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
+    defaults_.setValue("retention_max_diff", 1.0, "Maximum allowed RT difference between any two features if their relation shall be determined");
+		defaults_.setValue("retention_max_diff_local", 1.0, "Maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
 		/// TODO should be m/z ppm?!
-    defaults_.setValue("mass_max_diff", 0.5, "maximum allowed mass difference between between two co-features");
+    defaults_.setValue("mass_max_diff", 0.5, "Maximum allowed mass difference [in Th] for a single feature.");
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
     defaults_.setValue("potential_adducts", StringList::create("H+:0.9"), "Adducts used to explain mass differences in format: 'Element(+)*:Probability[:RTShift[:Label]]', i.e. the number of '+' indicate the charge, e.g. 'Ca++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fourth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 0, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
     
-    defaults_.setValue("max_minority_bound", 2, "maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant. E.g. setting this to 2 will not allow an adduct composition of '1(H+),3(Na+)' if Na+ is the least probable adduct");
+    defaults_.setValue("max_minority_bound", 2, "Maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant. E.g. setting this to 2 will not allow an adduct composition of '1(H+),3(Na+)' if Na+ is the least probable adduct");
     defaults_.setMinInt("max_minority_bound", 0);
     
     defaults_.setValue("min_rt_overlap", 0.66, "Minimum overlap of the convex hull' RT intersection measured against the union from two features (if CHs are given)");
     defaults_.setMinFloat("min_rt_overlap", 0);
     defaults_.setMaxFloat("min_rt_overlap", 1);
     
-		defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equaly charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
+		defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
 		defaults_.setValidStrings("intensity_filter",StringList::create("true,false"));
 
     defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", StringList::create("advanced"));
@@ -168,7 +167,7 @@ namespace OpenMS
       it->split(':', adduct);
       if (adduct.size()!=2 && adduct.size()!=3 && adduct.size()!=4)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have two,three or four entries ('Element:Probability' or 'Element:Probability:RTShift' or 'Element:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have two, three or four entries ('Element:Probability' or 'Element:Probability:RTShift' or 'Element:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, error);
       }
 			// determine charge of adduct (by # of '+')
@@ -328,8 +327,8 @@ namespace OpenMS
 		// # compomer results that either passed or failed the feature charge constraints
 		Size no_cmp_hit(0), cmp_hit(0);
 		
-		DoubleList dl_massdiff;
-		IntList il_chargediff;
+		/*DoubleList dl_massdiff;
+		IntList il_chargediff;*/
 
 		// Backbone adduct: implicit adducts don't cost anything
 		Adduct proton(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
@@ -392,12 +391,13 @@ namespace OpenMS
 						++possibleEdges; // internal count, not vital
 						
 						// find possible adduct combinations
-						CoordinateType naive_mass_diff = mz2*q2-m1;
-						hits = me.query(q2-q1, naive_mass_diff, mz_diff_max, thresh_logp, md_s, md_e);
+						CoordinateType naive_mass_diff = mz2*q2 - m1;
+            DoubleReal abs_mass_diff = mz_diff_max*q1 + mz_diff_max*q2; // tolerance must increase when looking at M instead of m/z, as error margins increase as well
+						hits = me.query(q2-q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
 						OPENMS_PRECONDITION(hits>=0,"FeatureDeconvolution querying #hits got negative result!");
 
 						// DEBUG: write out all mass values that need explanation:
-						if (fabs(naive_mass_diff) < 150.0) 
+						/*if (fabs(naive_mass_diff) < 150.0) 
 						{
 							if (q1 == f1.getCharge() &&
 									q2 == f2.getCharge())
@@ -412,12 +412,11 @@ namespace OpenMS
 						}
             */
 
-						overallHits+=hits;
+						overallHits += hits;
 						// choose most probable hit (TODO think of something clever here)
 						// for now, we take the one that has highest p in terms of the compomer structure
-						if (hits>0)
+						if (hits > 0)
 						{
-							
 							Compomer best_hit = null_compomer;
 							for (; md_s!=md_e; ++md_s)
 							{
@@ -513,7 +512,7 @@ namespace OpenMS
 					} // q2
 				} // q1
 			} // RT-window
-    } // RT sweepline
+    } // RT sweep line
     
     LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit+cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
     
@@ -625,7 +624,7 @@ namespace OpenMS
 					DoubleReal rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
 					if (verbose_level_ > 2)
           {
-            LOG_WARN  << "conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity() 
+            LOG_WARN  << "Conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity() 
 										  << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) 
 										  << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" 
 										  << feature_relation[i].getEdgeScore() << " f#:" << fm_out[f_idx_v[f_idx]].getUniqueId() << " " << feature_relation[i].getCompomer().getAdductsAsString((UInt)f_idx) 
@@ -879,7 +878,7 @@ namespace OpenMS
 		// remove empty ConsensusFeatures from map
 		ConsensusMap cons_map_tmp(cons_map);
 		cons_map_tmp.clear(false); // keep other meta information (like ProteinIDs & Map)
-		for (ConsensusMap::ConstIterator it = cons_map.begin(); it!=cons_map.end(); ++it)
+		for (ConsensusMap::Iterator it = cons_map.begin(); it!=cons_map.end(); ++it)
 		{
 			// skip if empty
 			if (it->getFeatures().size()==0) continue;
@@ -900,6 +899,20 @@ namespace OpenMS
 				continue;
 			}
 			
+      // store number of distinct charges
+      std::set<Int> charges;
+      for (ConsensusFeature::HandleSetType::const_iterator it_h=hst.begin(); it_h!=hst.end();++it_h)
+      {
+        charges.insert(it_h->getCharge());
+      }
+      IntList i_charges;
+      for (std::set<Int>::const_iterator it_q=charges.begin(); it_q!=charges.end(); ++it_q)
+      {
+        i_charges.push_back(*it_q);
+      }
+      it->setMetaValue("distinct_charges", i_charges);
+      it->setMetaValue("distinct_charges_size", i_charges.size());
+
 			cons_map_tmp.push_back(*it);					
 			// set a centroid
 			cons_map_tmp.back().computeDechargeConsensus(fm_out);
