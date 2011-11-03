@@ -1755,6 +1755,7 @@ namespace OpenMS
       {
         lines.push_back("Feature m/z:" + QString::number(it->getMZ(),'f',2) +
                                "  rt:" + QString::number(it->getRT(),'f',2) +
+                               "   q:" + QString::number(it->getCharge(),'f',2) +
                                "  intensity:" + QString::number(it->getIntensity(),'f',2));
       }
     }
