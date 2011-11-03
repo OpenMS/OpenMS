@@ -10,7 +10,7 @@ set(concept_executables_list
 	VersionInfo_test
 	LogConfigHandler_test
 	LogStream_test
-  UnaryComposeFunctionAdapter_test
+	UnaryComposeFunctionAdapter_test
 	UniqueIdGenerator_test
 	UniqueIdIndexer_test
 	UniqueIdInterface_test
@@ -352,7 +352,6 @@ set(analysis_executables_list
 	FeatureGroupingAlgorithm_test
 	FeatureHandle_test
 	HiddenMarkovModel_test
-	IDDecoyProbability_test
 	IDMapper_test
   ILPDCWrapper_test
 	PSLPFormulation_test

@@ -339,7 +339,6 @@ int main (int argc , char** argv)
 	DOCME(GaussFitter1D);
 	DOCME(GaussModel);
 	DOCME(GoodDiffFilter);
-	DOCME(IDDecoyProbability);
 	DOCME(IDMapper);
 	DOCME(InternalCalibration);
 	DOCME(InterpolationModel);

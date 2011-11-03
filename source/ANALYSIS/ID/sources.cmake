@@ -7,7 +7,6 @@ AScore.C
 ConsensusID.C
 FalseDiscoveryRate.C
 HiddenMarkovModel.C
-IDDecoyProbability.C
 IDMapper.C
 PILISIdentification.C
 PILISModel.C
