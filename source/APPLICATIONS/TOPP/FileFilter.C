@@ -82,6 +82,7 @@ using namespace std;
 		- filter by consensus feature charge
 		- filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
 	- featureXML / consensusXML:
+    - remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
 		- filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
 		- filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
 		- remove features with annotations
@@ -247,7 +248,7 @@ class TOPPFileFilter
 		registerFlag_("sort","sorts the output according to RT and m/z.");
 
 		addEmptyLine_();
-		addText_("peak data options:");
+		addText_("Peak data options:");
 		registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
     registerIntList_("rm_pc_charge","i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
 		registerIntList_("level","i j ...", IntList::create("1,2,3"),"MS levels to extract", false);
@@ -280,19 +281,20 @@ class TOPPFileFilter
 		registerFlag_("select_zoom", "Select zoom (enhanced resolution) scans");
 		registerStringOption_("select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
 		setValidStrings_("select_mode", mode_list);
-		registerStringOption_("select_activation", "<activation>", "", "Select MSn scans where any of its percursors features a certain activation method\n", false);
+		registerStringOption_("select_activation", "<activation>", "", "Select MSn scans where any of its precursors features a certain activation method\n", false);
 		setValidStrings_("select_activation", activation_list);
 		addEmptyLine_();
 
+    addText_("Feature&Consensus data options:");
+    registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
+    registerStringOption_("size","[min]:[max]",":","size range to extract", false);
+    registerStringList_("remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple, with name of meta value, the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value!", false);
 
-		addText_("feature data options:");
-		registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
-		registerStringOption_("size","[min]:[max]",":","size range to extract", false);
-		registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1]", false);
 
-		addText_("consensus feature data options:");
-		registerStringOption_("size","[min]:[max]",":","size range to extract", false);
-		registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
+		addText_("Feature data options:");
+		registerStringOption_("q","[min]:[max]",":","Overall quality range to extract [0:1]", false);
+
+		addText_("Consensus feature data options:");
     registerIntList_("map","i j ...",IntList::create(""),"maps to be extracted from a consensus", false);
     registerFlag_("map_and", "AND connective of map selection instead of OR.");
 
@@ -301,8 +303,8 @@ class TOPPFileFilter
 		addText_("The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist");
 		registerFlag_("id:remove_clashes", "remove features with id clashes (different sequences mapped to one feature)", true);
 		registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
-		registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with whitelisted sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
-		registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with whitelisted accessions, e.g. sp|P02662|CASA1_BOVIN", false);
+		registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
+		registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with white listed accessions, e.g. sp|P02662|CASA1_BOVIN", false);
 		registerFlag_("id:remove_annotated_features", "remove features with annotations");
 		registerFlag_("id:remove_unannotated_features", "remove features without annotations");
 		registerFlag_("id:remove_unassigned_ids", "remove unassigned peptide identifications");
@@ -322,6 +324,39 @@ class TOPPFileFilter
 		tmp.insert("SignalToNoise:",sn.getParameters());
 		return tmp;
 	}
+
+  bool checkMetaOk(const MetaInfoInterface& mi, const StringList& meta_info)
+  {
+    if (!mi.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
+
+    DataValue v_data = mi.getMetaValue(meta_info[0]);
+    DataValue v_user;
+    if      (v_data.valueType() == DataValue::STRING_VALUE) v_user = String (meta_info[2]);
+    else if (v_data.valueType() == DataValue::INT_VALUE) v_user = String (meta_info[2]).toInt();
+    else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String (meta_info[2]).toDouble();
+    else if (v_data.valueType() == DataValue::STRING_LIST) v_user = StringList::create(meta_info[2]);
+    else if (v_data.valueType() == DataValue::INT_LIST) v_user = IntList::create(meta_info[2]);
+    else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = DoubleList::create(meta_info[2]);
+    else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
+
+    if (meta_info[1]=="lt")
+    {
+      return v_data < v_user;
+    }
+    else if (meta_info[1]=="eq")
+    {
+      return v_data == v_user;
+    }
+    else if (meta_info[1]=="gt")
+    {
+      return v_data > v_user;
+    }
+    else
+    {
+      writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been catched before! Aborting!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Illegal meta value filtering operator!");
+    }
+  }
 
 	ExitCodes main_(int , const char**)
 	{
@@ -546,7 +581,7 @@ class TOPPFileFilter
 				}
 			}
 
-			// calculate S/N values and delete datapoints below S/N threshold
+			// calculate S/N values and delete data points below S/N threshold
 			if (sn > 0)
 			{
 				SignalToNoiseEstimatorMedian < MapType::SpectrumType > snm;
@@ -563,231 +598,255 @@ class TOPPFileFilter
 				}
 			}
 
-  			//-------------------------------------------------------------
-  			// writing output
-  			//-------------------------------------------------------------
+  		//-------------------------------------------------------------
+  		// writing output
+  		//-------------------------------------------------------------
 
 			//annotate output with data processing info
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
 			f.store(out,exp);
 		}
-		else if (in_type == FileTypes::FEATUREXML)
-		{
-			//-------------------------------------------------------------
-			// loading input
-			//-------------------------------------------------------------
 
-			FeatureMap<> feature_map;
-			FeatureXMLFile f;
-			//f.setLogType(log_type_);
-			// this does not work yet implicitly - not supported by FeatureXMLFile
-			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
-			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
-			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-			f.load(in,feature_map);
+		else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
+    {
+      bool meta_ok = true; // assume true by default (as meta might not be checked below)
+      StringList meta_info = getStringList_("remove_meta");
+      bool check_meta = (meta_info.size()>0);
+      if (check_meta && meta_info.size()!=3)
+      {
+        writeLog_("Param 'remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+      if (check_meta && !(meta_info[1]=="lt" || meta_info[1]=="eq" || meta_info[1]=="gt"))
+      {
+        writeLog_("Param 'remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+
+		  if (in_type == FileTypes::FEATUREXML)
+      {
+			  //-------------------------------------------------------------
+			  // loading input
+			  //-------------------------------------------------------------
+
+			  FeatureMap<> feature_map;
+			  FeatureXMLFile f;
+			  //f.setLogType(log_type_);
+			  // this does not work yet implicitly - not supported by FeatureXMLFile
+			  f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
+			  f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
+			  f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
+			  f.load(in,feature_map);
 
 
-			//-------------------------------------------------------------
-			// calculations
-			//-------------------------------------------------------------
+			  //-------------------------------------------------------------
+			  // calculations
+			  //-------------------------------------------------------------
 
-			//copy all properties
-			FeatureMap<> map_sm = feature_map;
-			//.. but delete feature information
-			map_sm.clear(false);
+			  //copy all properties
+			  FeatureMap<> map_sm = feature_map;
+			  //.. but delete feature information
+			  map_sm.clear(false);
 
-			bool rt_ok, mz_ok, int_ok, charge_ok, size_ok, q_ok, annotation_ok;
+			  bool rt_ok, mz_ok, int_ok, charge_ok, size_ok, q_ok, annotation_ok;
 
-			// only keep charge ch_l:ch_u   (WARNING: featurefiles without charge information have charge=0, see Ctor of KERNEL/Feature.h)
-			for (FeatureMap<>::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
-			{
-				rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
-				mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
-				int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm_it->getIntensity()));
-				charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
-				size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
-				q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
-				annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+			  // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
+			  for (FeatureMap<>::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
+			  {
+				  rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
+				  mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
+				  int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm_it->getIntensity()));
+				  charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
+				  size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
+				  q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
+				  annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+          if (check_meta) meta_ok = checkMetaOk(*fm_it, meta_info);
 
-				if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok && annotation_ok)
-				{
-					map_sm.push_back (*fm_it);
-				}
-			}
-			//delete unassignedPeptideIdentifications
-			if (remove_unassigned_ids)
-			{
-				map_sm.getUnassignedPeptideIdentifications().clear();
-			}
-			//update minimum and maximum position/intensity
-			map_sm.updateRanges();
+				  if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok && annotation_ok && meta_ok)
+				  {
+					  map_sm.push_back (*fm_it);
+				  }
+			  }
+			  //delete unassignedPeptideIdentifications
+			  if (remove_unassigned_ids)
+			  {
+				  map_sm.getUnassignedPeptideIdentifications().clear();
+			  }
+			  //update minimum and maximum position/intensity
+			  map_sm.updateRanges();
 
-			// sort if desired
-			if (sort)
-			{
-				map_sm.sortByPosition();
-			}
+			  // sort if desired
+			  if (sort)
+			  {
+				  map_sm.sortByPosition();
+			  }
 
-			//-------------------------------------------------------------
-			// writing output
-			//-------------------------------------------------------------
+			  //-------------------------------------------------------------
+			  // writing output
+			  //-------------------------------------------------------------
 
-			//annotate output with data processing info
-			addDataProcessing_(map_sm, getProcessingInfo_(DataProcessing::FILTERING));
+			  //annotate output with data processing info
+			  addDataProcessing_(map_sm, getProcessingInfo_(DataProcessing::FILTERING));
 
-			f.store(out,map_sm);
-		}
-		else if (in_type == FileTypes::CONSENSUSXML)
-		{
-			//-------------------------------------------------------------
-			// loading input
-			//-------------------------------------------------------------
+			  f.store(out,map_sm);
+		  }
+		  else if (in_type == FileTypes::CONSENSUSXML)
+		  {
+			  //-------------------------------------------------------------
+			  // loading input
+			  //-------------------------------------------------------------
 			
-			ConsensusMap consensus_map;
-			ConsensusXMLFile f;
-			//f.setLogType(log_type_);
-			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
-			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
-			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-			f.load(in,consensus_map);
+			  ConsensusMap consensus_map;
+			  ConsensusXMLFile f;
+			  //f.setLogType(log_type_);
+			  f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
+			  f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
+			  f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
+			  f.load(in,consensus_map);
 
-			//-------------------------------------------------------------
-			// calculations
-			//-------------------------------------------------------------
+			  //-------------------------------------------------------------
+			  // calculations
+			  //-------------------------------------------------------------
 
-			// copy all properties
-			ConsensusMap consensus_map_filtered = consensus_map;
-			//.. but delete feature information
-			consensus_map_filtered.resize(0);
+			  // copy all properties
+			  ConsensusMap consensus_map_filtered = consensus_map;
+			  //.. but delete feature information
+			  consensus_map_filtered.resize(0);
 			
-			bool charge_ok, size_ok, annotation_ok;
-			
-			for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
-			{
-				charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
-				size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
-				annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+			  bool charge_ok, size_ok, annotation_ok;
 
-				if (charge_ok && size_ok && annotation_ok)
-				{
-					consensus_map_filtered.push_back(*cm_it);
-				}
-			}
-			//delete unassignedPeptideIdentifications
-			if (remove_unassigned_ids)
-			{
-				consensus_map_filtered.getUnassignedPeptideIdentifications().clear();
-			}
-			//update minimum and maximum position/intensity
-			consensus_map_filtered.updateRanges();
+        for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
+			  {
+				  charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
+				  size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
+				  annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+          if (check_meta) meta_ok = checkMetaOk(*cm_it, meta_info);
+
+				  if (charge_ok && size_ok && annotation_ok && meta_ok)
+				  {
+					  consensus_map_filtered.push_back(*cm_it);
+				  }
+			  }
+			  //delete unassignedPeptideIdentifications
+			  if (remove_unassigned_ids)
+			  {
+				  consensus_map_filtered.getUnassignedPeptideIdentifications().clear();
+			  }
+			  //update minimum and maximum position/intensity
+			  consensus_map_filtered.updateRanges();
 			
-			// sort if desired
-			if (sort)
-			{
-				consensus_map_filtered.sortByPosition();
-			}
+			  // sort if desired
+			  if (sort)
+			  {
+				  consensus_map_filtered.sortByPosition();
+			  }
 			
-			if (out_type == FileTypes::FEATUREXML)
-			{				
-				if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one integer.
-				{
-					FeatureMap<> feature_map_filtered;
-					FeatureXMLFile ff;
+			  if (out_type == FileTypes::FEATUREXML)
+			  {				
+				  if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one integer.
+				  {
+					  FeatureMap<> feature_map_filtered;
+					  FeatureXMLFile ff;
 					
-					for (ConsensusMap::Iterator cm_it=consensus_map_filtered.begin(); cm_it!=consensus_map_filtered.end(); ++cm_it)
-					{
+					  for (ConsensusMap::Iterator cm_it=consensus_map_filtered.begin(); cm_it!=consensus_map_filtered.end(); ++cm_it)
+					  {
 						
-						for(ConsensusFeature::HandleSetType::const_iterator fh_iter = cm_it->getFeatures().begin(); fh_iter != cm_it->getFeatures().end(); ++fh_iter)
-						{
-							if ((int)fh_iter->getMapIndex() == maps[0])
-							{
-								Feature feature;
-								feature.setRT(fh_iter->getRT());
-								feature.setMZ(fh_iter->getMZ());
-								feature.setIntensity(fh_iter->getIntensity());
-								feature.setCharge(fh_iter->getCharge());
-								feature_map_filtered.push_back(feature);
-							}
-						}
-					}
+						  for(ConsensusFeature::HandleSetType::const_iterator fh_iter = cm_it->getFeatures().begin(); fh_iter != cm_it->getFeatures().end(); ++fh_iter)
+						  {
+							  if ((int)fh_iter->getMapIndex() == maps[0])
+							  {
+								  Feature feature;
+								  feature.setRT(fh_iter->getRT());
+								  feature.setMZ(fh_iter->getMZ());
+								  feature.setIntensity(fh_iter->getIntensity());
+								  feature.setCharge(fh_iter->getCharge());
+								  feature_map_filtered.push_back(feature);
+							  }
+						  }
+					  }
 					
-					//-------------------------------------------------------------
-					// writing output
-					//-------------------------------------------------------------
+					  //-------------------------------------------------------------
+					  // writing output
+					  //-------------------------------------------------------------
 					
-					//annotate output with data processing info
-					addDataProcessing_(feature_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
+					  //annotate output with data processing info
+					  addDataProcessing_(feature_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
 					
-					feature_map_filtered.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+					  feature_map_filtered.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 					
-					ff.store(out,feature_map_filtered);
-				}
-				else {
-					writeLog_("When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-			else if (out_type == FileTypes::CONSENSUSXML)
-			{
-				// generate new consensuses with features that appear in the 'maps' list        
-				ConsensusMap cm_new; // new consensus map
+					  ff.store(out,feature_map_filtered);
+				  }
+				  else
+          {
+					  writeLog_("When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
+					  printUsage_();
+					  return ILLEGAL_PARAMETERS;
+				  }
+			  }
+			  else if (out_type == FileTypes::CONSENSUSXML)
+			  {
+				  // generate new consensuses with features that appear in the 'maps' list        
+				  ConsensusMap cm_new; // new consensus map
 				
-				for (IntList::iterator map_it=maps.begin();map_it!=maps.end();++map_it)
-				{
-					cm_new.getFileDescriptions()[*map_it].filename = consensus_map_filtered.getFileDescriptions()[*map_it].filename;
-					cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
-					cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
-				}
+				  for (IntList::iterator map_it=maps.begin();map_it!=maps.end();++map_it)
+				  {
+					  cm_new.getFileDescriptions()[*map_it].filename = consensus_map_filtered.getFileDescriptions()[*map_it].filename;
+					  cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
+					  cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
+				  }
 
-				cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
+				  cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
 
-				for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
-				{					
-					ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
-					consensus_feature_new.clear();
+				  for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
+				  {					
+					  ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
+					  consensus_feature_new.clear();
 
-					ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
-					ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
-					for(; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
-					{
-						if (maps.contains(fh_it->getMapIndex()))
-						{
-							consensus_feature_new.insert(*fh_it);
-						}												
-					}
+					  ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
+					  ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
+					  for(; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
+					  {
+						  if (maps.contains(fh_it->getMapIndex()))
+						  {
+							  consensus_feature_new.insert(*fh_it);
+						  }												
+					  }
 					
-					consensus_feature_new.computeConsensus(); // evaluate position of the consensus
-					bool and_connective=getFlag_("map_and");
+					  consensus_feature_new.computeConsensus(); // evaluate position of the consensus
+					  bool and_connective=getFlag_("map_and");
 
-					if ((consensus_feature_new.size() != 0 && !and_connective) || (consensus_feature_new.size()==maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty 
-					{            
-						cm_new.push_back(consensus_feature_new);
-					}
-				}				
+					  if ((consensus_feature_new.size() != 0 && !and_connective) || (consensus_feature_new.size()==maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty 
+					  {            
+						  cm_new.push_back(consensus_feature_new);
+					  }
+				  }				
 								
-				// assign unique ids
-				cm_new.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+				  // assign unique ids
+				  cm_new.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 			
-				//-------------------------------------------------------------
-				// writing output
-				//-------------------------------------------------------------
+				  //-------------------------------------------------------------
+				  // writing output
+				  //-------------------------------------------------------------
 				
-				if (maps.empty())
-				{
-					//annotate output with data processing info
-					addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
+				  if (maps.empty())
+				  {
+					  //annotate output with data processing info
+					  addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
 					
-					f.store(out, consensus_map_filtered);
-				}
-				else
-				{
-					//annotate output with data processing info
-					addDataProcessing_(cm_new, getProcessingInfo_(DataProcessing::FILTERING));
+					  f.store(out, consensus_map_filtered);
+				  }
+				  else
+				  {
+					  //annotate output with data processing info
+					  addDataProcessing_(cm_new, getProcessingInfo_(DataProcessing::FILTERING));
 					
-					f.store(out, cm_new);
-				}
-			}else
+					  f.store(out, cm_new);
+				  }
+        }
+			}
+      else
 			{
 				writeLog_("Error: Unknown output file type given. Aborting!");
 				printUsage_();

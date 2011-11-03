@@ -41,7 +41,7 @@ namespace OpenMS
 	/**
 		@brief Class to hold strings, numeric values, lists of strings and lists of numeric values.
 		
-		- To choose one of these types, just use the apropriate constructor.
+		- To choose one of these types, just use the appropriate constructor.
 		- Automatic conversion is supported and throws Exceptions in case of invalid conversions.
 		- An empty object is created with the default constructor.
 
@@ -244,7 +244,7 @@ namespace OpenMS
 			//@{
 			///Conversion to String.
 			String toString() const;
-			///Conversuin to QString
+			///Conversion to QString
 			QString toQString() const;
 			/**
 				@brief Conversion to bool
@@ -276,6 +276,10 @@ namespace OpenMS
 
 			/// Equality comparator
 			friend OPENMS_DLLAPI bool operator==(const DataValue&, const DataValue&);
+      /// Smaller than comparator (for lists we use the size)
+      friend OPENMS_DLLAPI bool operator<(const DataValue&, const DataValue&);
+      /// Greater than comparator (for lists we use the size)
+      friend OPENMS_DLLAPI bool operator>(const DataValue&, const DataValue&);
 			/// Equality comparator
 			friend OPENMS_DLLAPI bool operator!=(const DataValue&, const DataValue&);
 

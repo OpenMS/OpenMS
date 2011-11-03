@@ -484,6 +484,42 @@ namespace OpenMS
 		return false;
 	}
 
+  bool operator<(const DataValue& a, const  DataValue& b)
+  {
+    if (a.value_type_ == b.value_type_)
+    {
+      switch(a.value_type_) 
+      {
+      case DataValue::EMPTY_VALUE: return false;
+      case DataValue::STRING_VALUE: return *(a.data_.str_) < *(b.data_.str_);
+      case DataValue::STRING_LIST: return a.data_.str_list_->size() < b.data_.str_list_->size();
+      case DataValue::INT_LIST: return a.data_.int_list_->size() < b.data_.int_list_->size();
+      case DataValue::DOUBLE_LIST: return a.data_.dou_list_->size() < b.data_.dou_list_->size();
+      case DataValue::INT_VALUE: return a.data_.ssize_ < b.data_.ssize_;
+      case DataValue::DOUBLE_VALUE: return a.data_.dou_ < b.data_.dou_;
+      };
+    }
+    return false;
+  }
+  
+  bool operator>(const DataValue& a, const  DataValue& b)
+  {
+    if (a.value_type_ == b.value_type_)
+    {
+      switch(a.value_type_) 
+      {
+      case DataValue::EMPTY_VALUE: return false;
+      case DataValue::STRING_VALUE: return *(a.data_.str_) > *(b.data_.str_);
+      case DataValue::STRING_LIST: return a.data_.str_list_->size() > b.data_.str_list_->size();
+      case DataValue::INT_LIST: return a.data_.int_list_->size() > b.data_.int_list_->size();
+      case DataValue::DOUBLE_LIST: return a.data_.dou_list_->size() > b.data_.dou_list_->size();
+      case DataValue::INT_VALUE: return a.data_.ssize_ > b.data_.ssize_;
+      case DataValue::DOUBLE_VALUE: return a.data_.dou_ > b.data_.dou_;
+      };
+    }
+    return false;
+  }
+
 	bool operator!=(const DataValue& a, const DataValue& b)
 	{
 		return !(a==b);
