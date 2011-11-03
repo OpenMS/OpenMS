@@ -24,6 +24,7 @@ TOPP tools:
 	- Split FeatureFinder into FeatureFinderMRM, FeatureFinderCentroided, FeatureFinderIsotopeWavelet
 -REMOVED:
   - AndiMS/NetCDF is no longer supported on any platform
+  - Removed IDDecoyProbability tool
  
 UTIL tools: 
 -ADDED:
