@@ -288,7 +288,7 @@ class TOPPFileFilter
     addText_("Feature&Consensus data options:");
     registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
     registerStringOption_("size","[min]:[max]",":","size range to extract", false);
-    registerStringList_("remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple, with name of meta value, the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value!", false);
+    registerStringList_("remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple, i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value!", false);
 
 
 		addText_("Feature data options:");
