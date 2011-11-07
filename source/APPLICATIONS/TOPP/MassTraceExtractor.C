@@ -189,7 +189,7 @@ protected:
 
           if (ep_det.getParameters().getValue("width_filtering") == "true")
           {
-              ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces, fwhm);
+              ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
 
               LOG_INFO << "After filtering: " << filtered_mtraces.size() << " of " << splitted_mtraces.size() << std::endl;
 
