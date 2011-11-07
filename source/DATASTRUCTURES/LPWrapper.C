@@ -532,7 +532,7 @@ namespace OpenMS
     else throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
   }
 
-  Int LPWrapper::solve(SolverParam& solver_param)
+  Int LPWrapper::solve(SolverParam& solver_param, const Size verbose_level)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
@@ -573,8 +573,8 @@ namespace OpenMS
 		  model.solver()->setHintParam(OsiDoReducePrint, true, OsiHintTry);
 
 		  // Output details
-		  // model.messageHandler()->setLogLevel( verbose_level > 1 ? 2 : 0);
-		  // model.solver()->messageHandler()->setLogLevel( verbose_level > 1 ? 1 : 0);
+		  model.messageHandler()->setLogLevel( verbose_level > 1 ? 2 : 0);
+		  model.solver()->messageHandler()->setLogLevel( verbose_level > 1 ? 1 : 0);
 		
 		  //CglProbing generator1;
 		  //generator1.setUsingObjective(true);
@@ -621,9 +621,10 @@ namespace OpenMS
 		  // 				                        << (!model.status() ? " Finished" : " Not finished")
 		  // 				                        << std::endl;
       for(Int i =0; i < model_->numberColumns();++i)
-        {
-          solution_.push_back(model.solver()->getColSolution()[i]);
-        }
+      {
+        solution_.push_back(model.solver()->getColSolution()[i]);
+      }
+      LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
       return model.status();
     }
 #endif

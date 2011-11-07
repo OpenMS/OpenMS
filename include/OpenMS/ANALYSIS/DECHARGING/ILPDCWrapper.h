@@ -53,26 +53,33 @@ namespace OpenMS {
     /// If the input feature map is empty, a warning is issued and -1 is returned.
 		/// @return value of objective function
 		///		and @p pairs will have all realized edges set to "active"
-		DoubleReal compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level);
+		DoubleReal compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level) const;
 		
 	private:
-    void 
-      writeProblem_(const FeatureMap<> fm,
-      PairsType& pairs, 
-      const PairsIndex margin_left, 
-      const PairsIndex margin_right,
-      Size verbose_level,
-      String filename);
 
     /// slicing the problem into subproblems
 		DoubleReal computeSlice_(const FeatureMap<> fm,
 														 PairsType& pairs, 
 														 const PairsIndex margin_left, 
 														 const PairsIndex margin_right,
-                             Size verbose_level);
+                             const Size verbose_level) const;
+
+    /// slicing the problem into subproblems
+    DoubleReal computeSliceOld_(const FeatureMap<> fm,
+      PairsType& pairs, 
+      const PairsIndex margin_left, 
+      const PairsIndex margin_right,
+      const Size verbose_level) const;
 
 		/// calculate a score for the i_th edge
-		DoubleReal getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm);
+		DoubleReal getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm) const;
+    
+    typedef Map<String, std::set<Size> > FeatureType_;
+
+    // add another charge annotation variant for a feature
+    void updateFeatureVariant_(FeatureType_& f_set, const String& rota_l, const Size& v) const;
+
+
 
 	}; // !class
     

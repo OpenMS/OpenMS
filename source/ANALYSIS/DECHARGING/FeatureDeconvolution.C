@@ -605,6 +605,7 @@ namespace OpenMS
 				out_dead.push_back(String("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): " 
 					+ f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
 					+ f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
+          + "score: " + feature_relation[i].getEdgeScore()
 					);
 				continue;
       }
@@ -654,7 +655,7 @@ namespace OpenMS
 		LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges*2) << std::endl;
 
 #ifdef DC_DEVEL							
-		out_dead.store("ILP_dead_edges.txt"); // TODO disable
+    out_dead.store("ILP_dead_edges.txt"); // TODO disable
 		//std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
 		//std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.getString() + "\n(dirty)\n" + ef_dirty_edge.getString() + "\n\n";
 #endif
@@ -700,7 +701,7 @@ namespace OpenMS
 			
       if (feature_relation[i].isActive())
       {
-        //std::cout << "feature #" << f0_idx << " #" << f1_idx << " ACTIVE with RT: " << fm_out[f1_idx].getRT() << "\n";
+        //std::cout << "feature #" << f0_idx << " #" << f1_idx << " ACTIVE q:" << new_q0 << ":" << new_q1 << " score: " << feature_relation[i].getEdgeScore() << " with RT: " << fm_out[f1_idx].getRT() << "\n";
 
         //
 				// annotate the affected features
@@ -971,8 +972,46 @@ namespace OpenMS
     cons_map_p.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     cons_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
 
+    /* post processing for eventual parameter optimization */
+    checkSolution_(cons_map);
+
     return;
   }
+
+  void FeatureDeconvolution::checkSolution_(const ConsensusMap &cons_map) const
+  {
+    Size ladders_total(0);
+    Size ladders_even(0);
+    // count number of charge ladders which have gapped shapes, hinting at wrong lower-bound bound (should be lower)
+    for (ConsensusMap::const_iterator it=cons_map.begin(); it!=cons_map.end(); ++it)
+    {
+      if (it->size()==1) continue;
+      
+      ++ladders_total;
+      IntList charges = it->getMetaValue("distinct_charges");
+
+      bool has_odd=false;
+      for (Size i=0; i<charges.size(); ++i)
+      {
+        if (charges[i]%2==1)
+        {
+          has_odd = true;
+          break;
+        }
+      }
+
+      if (!has_odd) ++ladders_even;
+    }
+
+    // if more than 5% of charge ladder have this, then report
+    if (ladders_total*0.05 < ladders_even)
+    {
+      LOG_WARN << ".\n..\nWarning: a significant portion of your decharged peptides/proteins have gapped, even-numbered charge ladders (" << ladders_even << " of " << ladders_total << ")"
+                  ", which might indicate a too low charge interval being tested.\n..\n.\n";
+    }
+
+  }
+
 
 	/// test if "simple" edges have alternative
 	/// (more difficult explanation) supported by neighboring edges

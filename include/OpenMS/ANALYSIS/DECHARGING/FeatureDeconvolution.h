@@ -99,8 +99,18 @@ namespace OpenMS
 			**/
 			struct CmpInfo_;
 
+      /*
+        @brief test for obviously wrong parameter settings and warn
+
+        Currently supports the following scenarios:
+         * If the lower charge bound is too high, consensus features with gapped, even charges will occur (e.g. 30,32,34), instead of the true (15,16,17)
+           When more than 5% of the cf's look like this, we report it.
+
+      */
+      void checkSolution_(const ConsensusMap &cons_map) const;
+
 			/// test if "simple" edges have alternative
-			/// (more difficult explanation) supported by neighbouring edges
+			/// (more difficult explanation) supported by neighboring edges
 			/// e.g. (.)   -> (H+) might be augmented to
 			///      (Na+) -> (H+Na+)
 			void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts);
@@ -111,7 +121,7 @@ namespace OpenMS
 			/**
 				@brief returns true if the intensity filter was passed or switched off
 				
-				Filter for adding an edge only when the two features connected by it, fulfil the
+				Filter for adding an edge only when the two features connected by it, fulfill the
 				intensity criterion.
 				
 			**/

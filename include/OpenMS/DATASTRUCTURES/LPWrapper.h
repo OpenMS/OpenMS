@@ -209,9 +209,14 @@ namespace OpenMS
      */
     void writeProblem(String filename,String format);// format=(LP,MPS,GLPK)
     
-    // problem solving
-    /// solve problems, parameters like enabled heuristics can be given via solver_param
-    Int solve(SolverParam& solver_param); 
+    /* @brief solve problems, parameters like enabled heuristics can be given via solver_param
+
+      The verbose level (0,1,2) determines if the solver prints status messages and internals.
+
+      @return solver dependent (todo: fix)
+    */
+    Int solve(SolverParam& solver_param, const Size verbose_level = 0); 
+    
     /**
      *	@brief Get solution status.
      *	
