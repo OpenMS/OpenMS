@@ -194,7 +194,7 @@ namespace OpenMS
 		return log_p_;
 	}	
 
-	/// return log probability
+	/// return RT shift induced by this compomer
 	const DoubleReal& Compomer::getRTShift() const
 	{
 		return rt_shift_;
