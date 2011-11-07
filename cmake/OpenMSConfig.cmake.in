@@ -12,6 +12,6 @@ set(OPENMS_DEFINITIONS "@CF_OPENMS_ADD_DEFINITIONS@")
 
 ## create target 'OpenMS', including its dependencies
 ## Linux: libOpenMS.so will be in ./lib, Windows: OpenMS.lib will be directly in the binary tree
-include(@CF_LibOpenMSExport@)
+include("@CF_LibOpenMSExport@")
 
 
