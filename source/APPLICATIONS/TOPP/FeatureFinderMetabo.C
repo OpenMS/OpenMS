@@ -134,12 +134,17 @@ protected:
 
 
         ep_det.detectPeaks(m_traces, splitted_mtraces);
-        // ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
+        ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
 
         FeatureFindingMetabo ff_met;
 
-        ff_met.run(splitted_mtraces, ms_feat_map);
-        // ff_met.run(filtered_mtraces, ms_feat_map);
+        Param ff_met_param;
+        ff_met_param.setValue("mass_error_ppm", mt_ext.getParameters().getValue("mass_error_ppm"));
+        ff_met_param.setValue("chrom_fwhm", mt_ext.getParameters().getValue("chrom_fwhm"));
+
+        ff_met.setParameters(ff_met_param);
+        // ff_met.run(splitted_mtraces, ms_feat_map);
+        ff_met.run(filtered_mtraces, ms_feat_map);
 
 
 

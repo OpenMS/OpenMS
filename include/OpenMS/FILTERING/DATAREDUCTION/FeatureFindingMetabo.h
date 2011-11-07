@@ -136,7 +136,15 @@ namespace OpenMS
             return iso_pattern_[0]->getSmoothedMaxRT();
         }
 
+        DoubleReal getFWHM()
+        {
+            if (iso_pattern_.size() == 0)
+            {
+                return 0.0;
+            }
 
+            return iso_pattern_[0]->estimateFWHM();
+        }
 
 
         /// addMassTrace
@@ -196,6 +204,7 @@ namespace OpenMS
         /// private member functions
         DoubleReal scoreMZ_(DoubleReal, DoubleReal, Size, Size);
         DoubleReal scoreRT_(DoubleReal, DoubleReal);
+        DoubleReal scoreIntRatio_(DoubleReal, DoubleReal, Size);
         void findLocalFeatures_(std::vector<MassTrace*>&, std::vector<FeatureHypothesis>&);
 
 
@@ -204,6 +213,7 @@ namespace OpenMS
         DoubleReal local_mz_range_;
 
         DoubleReal mass_error_ppm_;
+        DoubleReal chrom_fwhm_;
 
     };
 

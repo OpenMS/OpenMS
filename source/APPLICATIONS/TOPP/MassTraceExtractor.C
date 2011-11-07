@@ -134,15 +134,15 @@ protected:
         }
 
 
-        //        MSExperiment<Peak1D> testmap;
+//                MSExperiment<Peak1D> testmap;
 
-        //        TICResampling tic_res;
+//                TICResampling tic_res;
 
-        //        tic_res.run(ms_peakmap, testmap);
+//                tic_res.run(ms_peakmap, testmap);
 
-        //        MzMLFile().store("resampled.mzML", testmap);
+//                MzMLFile().store("resampled.mzML", testmap);
 
-        //        return EXECUTION_OK;
+//                return EXECUTION_OK;
 
 
         //-------------------------------------------------------------

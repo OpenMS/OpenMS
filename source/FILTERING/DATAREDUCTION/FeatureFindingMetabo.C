@@ -138,6 +138,7 @@ namespace OpenMS
         defaults_.setValue( "local_rt_range" , 3.0 , "RT range where to look for coeluting mass traces"); // 3.0
         defaults_.setValue( "local_mz_range" , 6.5 , "MZ range where to look for isotopic mass traces");    // 5.0
         defaults_.setValue( "mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");
+        defaults_.setValue( "chrom_fwhm" , 10.0 , "Minimum FWHM (in seconds) a chromatographic peak should have");
 
         defaultsToParam_();
 
@@ -218,6 +219,7 @@ namespace OpenMS
                     f.setRT(feat_hypos[hypo_idx].getCentroidRT());
                     f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
                     f.setIntensity(feat_hypos[hypo_idx].computeFeatureIntensity());
+                    f.setWidth(feat_hypos[hypo_idx].getFWHM());
                     f.setCharge(feat_hypos[hypo_idx].getCharge());
                     f.setMetaValue(3,feat_hypos[hypo_idx].getLabel());
                     f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
@@ -253,6 +255,7 @@ namespace OpenMS
         local_rt_range_ = (DoubleReal)param_.getValue("local_rt_range");
         local_mz_range_ = (DoubleReal)param_.getValue("local_mz_range");
         mass_error_ppm_ = (DoubleReal)param_.getValue("mass_error_ppm");
+        chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
 
     }
 
@@ -261,51 +264,28 @@ namespace OpenMS
 
         DoubleReal diff_mz(std::fabs(mz2 - mz1)/iso_pos);
 
-        // use a piecewise linear function for first isotope trace
-#if 0
-        if (iso_pos == 1)
-        {
-            if (diff_mz < 1.000716)
-            {
-                return 0.0;
-            }
-            else if (diff_mz < 1.001746)
-            {
-                return 87.53355*diff_mz - 87.59622;
-            }
-            else if (diff_mz < 1.003294)
-            {
-                return 587.741*diff_mz - 588.6771;
-            }
-            else if (diff_mz < 1.003608)
-            {
-                return -3092.83*diff_mz + 3104.016;
-            }
-            else
-            {
-                return 0.0;
-            }
-
-
-        }
-#endif
-
         DoubleReal mu(std::pow(1.0029316*iso_pos, -0.0002107)/charge);
+        // DoubleReal mu = (1.0033/charge);
+        std::cout << "---- " << diff_mz << " --- " << mu << std::endl;
 
 
         // DoubleReal mu((1.003355*iso_pos)/charge);
         DoubleReal err_ppm((mz2/1000000)*mass_error_ppm_);
-        DoubleReal sigma((2*err_ppm)/2.3548);
+        DoubleReal sigma((4*err_ppm)/2.3548);
 
 
 
-       // DoubleReal mu = (1.003355/charge)*iso_pos;
 
-      //  DoubleReal sigma(0.01);
 
+        //  DoubleReal sigma(0.01);
         DoubleReal mz_score(std::exp(-0.5*((diff_mz - mu)/sigma)*((diff_mz - mu)/sigma)));
 
-        return mz_score;
+        if (mz_score < std::numeric_limits<DoubleReal>::epsilon())
+        {
+            return -100.0;
+        }
+
+        return std::log(mz_score);
     }
 
     DoubleReal FeatureFindingMetabo::scoreRT_(DoubleReal rt1, DoubleReal rt2) {
@@ -314,32 +294,69 @@ namespace OpenMS
 
         // DoubleReal mu_rt = (1.003355/charge)*iso_pos;
 
-        DoubleReal sigma(2.0);
+        DoubleReal sigma(chrom_fwhm_/2.3548);
 
-        DoubleReal rt_score(std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma)));
+        return std::log(std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma)));
+    }
 
-        return rt_score;
+
+    DoubleReal FeatureFindingMetabo::scoreIntRatio_(DoubleReal int1, DoubleReal int2, Size iso_pos)
+    {
+        DoubleReal int_ratio(0.0);
+
+        if (int2 > 0.0)
+        {
+            int_ratio = int2/int1;
+        }
+
+        DoubleReal mu(0.0), sigma(1.0);
+
+        DoubleReal int_score(0.0);
+
+        switch (iso_pos)
+        {
+        case 1: mu = 0.4102466; sigma = 0.128907; break;
+        case 2: mu = 0.1034883; sigma = 0.04742052; break;
+        case 3: mu = 0.01910963; sigma = 0.01197569; break;
+        case 4: mu = 0.00286942; sigma  = 0.002266673; break;
+        default: mu = 0.0; sigma = 0.0003450974; break;
+        }
+
+
+        int_score = std::exp(-0.5*((int_ratio - mu)/sigma)*((int_ratio - mu)/sigma));
+
+        if (int_score < std::numeric_limits<DoubleReal>::epsilon())
+        {
+            return -100.0;
+        }
+
+        return int_ratio;
     }
 
 
     void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
     {
         // check for singleton traces
-//        if (candidates.size() == 1)
-//        {
-            FeatureHypothesis tmp_hypo;
-            tmp_hypo.addMassTrace(*candidates[0]);
-            tmp_hypo.setScore(0.0);
+        //        if (candidates.size() == 1)
+        //        {
+        FeatureHypothesis tmp_hypo;
+        tmp_hypo.addMassTrace(*candidates[0]);
+        tmp_hypo.setScore(0.0);
 
-            output_hypos.push_back(tmp_hypo);
+        output_hypos.push_back(tmp_hypo);
 
-//            return ;
-//        }
+        //            return ;
+        //        }
 
 
         bool singleton_trace = true;
 
         for (Size charge = 1; charge < 4; ++charge) {
+
+            std::cout << "looking at charge state " << charge << std::endl;
+            std::cout << "-----------------------" << std::endl;
+
+
             FeatureHypothesis fh_tmp;
             fh_tmp.setScore(0.0);
 
@@ -357,6 +374,8 @@ namespace OpenMS
                 DoubleReal best_so_far(0.0);
                 Size best_idx(0);
 
+                std::cout << "iso_pos" << iso_pos << std::endl;
+
                 for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
                 {
                     DoubleReal tmp_iso_rt(candidates[mt_idx]->getSmoothedMaxRT());
@@ -365,8 +384,9 @@ namespace OpenMS
 
                     DoubleReal rt_score(scoreRT_(mono_iso_rt, tmp_iso_rt));
                     DoubleReal mz_score(scoreMZ_(mono_iso_mz, tmp_iso_mz, iso_pos, charge));
+                    DoubleReal int_score(scoreIntRatio_(mono_iso_int, tmp_iso_int, iso_pos));
 
-                    DoubleReal total_pair_score(rt_score * mz_score);
+                    DoubleReal total_pair_score(1 + rt_score + mz_score + int_score);
 
                     if (total_pair_score > best_so_far)
                     {
@@ -376,13 +396,11 @@ namespace OpenMS
                         //                        fh_tmp.setScore(fh_tmp.getScore() + total_pair_score);
                     }
 
-
-
-                    std::cout << candidates[mt_idx]->getLabel() << " score: " << mz_score << " " << rt_score << std::endl;
+                    std::cout << candidates[mt_idx]->getLabel() << "\n\tscore: " << mz_score << " " << rt_score << std::endl;
 
                 } // end mt_idx
 
-                if (best_so_far > 0.01)
+                if (best_so_far > 0.0)
                 {
                     fh_tmp.addMassTrace(*candidates[best_idx]);
                     fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
@@ -401,23 +419,23 @@ namespace OpenMS
 
             } // end for iso_pos
 
-//            if (fh_tmp.getSize() > 1)
-//            {
-//                output_hypos.push_back(fh_tmp);
-//            }
+            //            if (fh_tmp.getSize() > 1)
+            //            {
+            //                output_hypos.push_back(fh_tmp);
+            //            }
             // std::cout << fh_tmp.getLabel() << " " << fh_tmp.getScore() << std::endl;
         } // end for charge
 
 
-//        if (singleton_trace)
-//        {
-//            FeatureHypothesis fh_tmp;
-//            fh_tmp.setScore(0.0);
+        //        if (singleton_trace)
+        //        {
+        //            FeatureHypothesis fh_tmp;
+        //            fh_tmp.setScore(0.0);
 
-//            fh_tmp.addMassTrace(*candidates[0]);
+        //            fh_tmp.addMassTrace(*candidates[0]);
 
-//            output_hypos.push_back(fh_tmp);
-//        }
+        //            output_hypos.push_back(fh_tmp);
+        //        }
 
 
         return ;

@@ -37,6 +37,7 @@ namespace OpenMS
         centroid_rt_(),
         label_(),
         smoothed_intensities_(),
+        rough_fwhm_points_(),
         prev_counter_(),
         prev_denom_()
     {
@@ -52,6 +53,7 @@ namespace OpenMS
         centroid_rt_(mt.centroid_rt_),
         label_(mt.label_),
         smoothed_intensities_(mt.smoothed_intensities_),
+        rough_fwhm_points_(mt.rough_fwhm_points_),
         prev_counter_(mt.prev_counter_),
         prev_denom_(mt.prev_denom_)
     {
@@ -66,6 +68,7 @@ namespace OpenMS
         centroid_rt_ = rhs.centroid_rt_;
         label_ = rhs.label_;
         smoothed_intensities_ = rhs.smoothed_intensities_;
+        rough_fwhm_points_ = rhs.rough_fwhm_points_;
         prev_counter_ = rhs.prev_counter_;
         prev_denom_ = rhs.prev_denom_;
 

@@ -51,7 +51,7 @@ namespace OpenMS
         void detectPeaks(MassTrace&, std::vector<MassTrace>&);
         void detectPeaks(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
-        void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&, DoubleReal);
+        void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
 
     protected:

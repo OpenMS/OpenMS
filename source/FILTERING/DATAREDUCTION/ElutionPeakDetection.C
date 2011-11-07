@@ -72,7 +72,7 @@ namespace OpenMS
         return ;
     }
 
-    void ElutionPeakDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces, DoubleReal min_pw)
+    void ElutionPeakDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces)
     {
         std::multimap<DoubleReal, Size> histo_map;
 
@@ -80,14 +80,9 @@ namespace OpenMS
         {
             DoubleReal fwhm(mt_vec[i].estimateFWHM());
 
-//            if (fwhm < 1.0)
-//            {
-//                continue ;
-//            }
-
-            DoubleReal peak_width(fwhm);
-
-            histo_map.insert(std::make_pair(peak_width, i));
+            if (fwhm > 1.0) {
+                histo_map.insert(std::make_pair(fwhm, i));
+            }
         }
 
         // compute median peak width
@@ -100,39 +95,35 @@ namespace OpenMS
             pw_idx_vec.push_back(c_it->second);
         }
 
-//        Size pw_vec_size = pw_vec.size();
-//        DoubleReal pw_median(0.0);
+        //        Size pw_vec_size = pw_vec.size();
+        //        DoubleReal pw_median(0.0);
 
-//        if ((pw_vec_size % 2) == 0)
-//        {
-//            pw_median = (pw_vec[std::floor(pw_vec_size/2.0) - 1] +  pw_vec[std::floor(pw_vec_size/2.0)])/2;
-//        }
-//        else
-//        {
-//            pw_median = pw_vec[std::floor(pw_vec_size/2.0)];
-//        }
+        //        if ((pw_vec_size % 2) == 0)
+        //        {
+        //            pw_median = (pw_vec[std::floor(pw_vec_size/2.0) - 1] +  pw_vec[std::floor(pw_vec_size/2.0)])/2;
+        //        }
+        //        else
+        //        {
+        //            pw_median = pw_vec[std::floor(pw_vec_size/2.0)];
+        //        }
 
         // compute 97,725% quantile
 
+        Size lower_idx(0);
         Size upper_idx(pw_vec.size());
 
 
-        if (pw_vec.size() >= 100)
-        {
-            DoubleReal bin_width(1.0/(DoubleReal)pw_vec.size());
+        DoubleReal bin_width(1.0/(DoubleReal)pw_vec.size());
 
-            upper_idx = std::floor(0.97725/bin_width);
+        lower_idx = std::floor(0.02275/bin_width);
+        upper_idx = std::floor(0.97725/bin_width);
 
-        }
-
-        Size vec_idx(0);
+        Size vec_idx(lower_idx);
 
         while (vec_idx < upper_idx)
         {
-            if (pw_vec[vec_idx] >= min_pw)
-            {
-                filt_mtraces.push_back(mt_vec[pw_idx_vec[vec_idx]]);
-            }
+
+            filt_mtraces.push_back(mt_vec[pw_idx_vec[vec_idx]]);
 
             ++vec_idx;
         }
@@ -158,7 +149,12 @@ namespace OpenMS
 
         LowessSmoothing lowess_smooth;
         Param lowess_params;
-        lowess_params.setValue("window_size", window_size_);
+
+        // use dynamically computed window sizes
+        Size win_size = mt.getRoughFWHM();
+
+        lowess_params.setValue("window_size", win_size);
+        // lowess_params.setValue("window_size", window_size_);
         lowess_smooth.setParameters(lowess_params);
 
         lowess_smooth.smoothData(rts, ints, smoothed_data);
@@ -169,7 +165,8 @@ namespace OpenMS
 
         // std::cout << "winsize: " << window_size_/2 << std::endl;
 
-        mt.findLocalExtrema(window_size_/2, maxes, mins);
+        mt.findLocalExtrema(win_size/2, maxes, mins);
+        //        mt.findLocalExtrema(window_size_/2, maxes, mins);
 
         // only one maximum: finished!
         if (maxes.size() == 1)
