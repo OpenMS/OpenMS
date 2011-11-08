@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<featureList count="368">
+	<featureList count="167">
 		<feature id="f_0">
 			<position dim="0">2472.5095</position>
 			<position dim="1">1580.19834278508</position>
@@ -2660,24 +2660,6 @@
 			<userParam type="string" name="label" value="T37"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2401.48995</position>
-			<position dim="1">2106.921804623</position>
-			<intensity>19746.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2398.0174" y="2106.34329015039" />
-				<pt x="2399.7595" y="2106.76931253976" />
-				<pt x="2403.2204" y="2107.33568410585" />
-				<pt x="2404.9536" y="2107.07429670624" />
-				<pt x="2403.2204" y="2107.33568410585" />
-				<pt x="2399.7595" y="2106.76931253976" />
-			</convexhull>
-			<userParam type="string" name="label" value="T38"/>
-		</feature>
-		<feature id="f_0">
 			<position dim="0">2389.288</position>
 			<position dim="1">1527.05761908341</position>
 			<intensity>110154</intensity>
@@ -2723,7 +2705,7 @@
 				<pt x="2376.966" y="1527.23528982303" />
 				<pt x="2371.6025" y="1527.5559910229" />
 			</convexhull>
-			<userParam type="string" name="label" value="T39"/>
+			<userParam type="string" name="label" value="T38"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2493.2047</position>
@@ -2747,7 +2729,7 @@
 				<pt x="2491.4704" y="1662.23701885632" />
 				<pt x="2489.7476" y="1662.17686963463" />
 			</convexhull>
-			<userParam type="string" name="label" value="T40"/>
+			<userParam type="string" name="label" value="T39"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2492.33755</position>
@@ -2773,7 +2755,7 @@
 				<pt x="2489.7476" y="1435.76206632191" />
 				<pt x="2488.0138" y="1435.66623316294" />
 			</convexhull>
-			<userParam type="string" name="label" value="T41"/>
+			<userParam type="string" name="label" value="T40"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2058.5418</position>
@@ -2859,7 +2841,7 @@
 				<pt x="2028.7329" y="1444.66428349591" />
 				<pt x="2019.1601" y="1444.88608570155" />
 			</convexhull>
-			<userParam type="string" name="label" value="T42"/>
+			<userParam type="string" name="label" value="T41"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2455.4355</position>
@@ -2899,7 +2881,7 @@
 				<pt x="2446.9015" y="1385.31572038806" />
 				<pt x="2445.1888" y="1385.34247574898" />
 			</convexhull>
-			<userParam type="string" name="label" value="T43"/>
+			<userParam type="string" name="label" value="T42"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2406.691</position>
@@ -2939,7 +2921,7 @@
 				<pt x="2398.0174" y="1552.61185096823" />
 				<pt x="2396.2808" y="1552.58186630735" />
 			</convexhull>
-			<userParam type="string" name="label" value="T44"/>
+			<userParam type="string" name="label" value="T43"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2249.4035</position>
@@ -3041,7 +3023,7 @@
 				<pt x="2209.8023" y="1360.391589427" />
 				<pt x="2207.9703" y="1360.11903377476" />
 			</convexhull>
-			<userParam type="string" name="label" value="T45"/>
+			<userParam type="string" name="label" value="T44"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2407.55775</position>
@@ -3087,7 +3069,7 @@
 				<pt x="2396.2808" y="1478.84174000442" />
 				<pt x="2394.5305" y="1478.9037112781" />
 			</convexhull>
-			<userParam type="string" name="label" value="T46"/>
+			<userParam type="string" name="label" value="T45"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2407.55775</position>
@@ -3133,7 +3115,7 @@
 				<pt x="2396.2808" y="1411.47173825506" />
 				<pt x="2394.5305" y="1411.53566055958" />
 			</convexhull>
-			<userParam type="string" name="label" value="T47"/>
+			<userParam type="string" name="label" value="T46"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2481.1011</position>
@@ -3169,7 +3151,7 @@
 				<pt x="2474.2214" y="1748.5065886252" />
 				<pt x="2472.5095" y="1748.55247100554" />
 			</convexhull>
-			<userParam type="string" name="label" value="T48"/>
+			<userParam type="string" name="label" value="T47"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2492.33755</position>
@@ -3195,7 +3177,7 @@
 				<pt x="2489.7476" y="1503.95218680272" />
 				<pt x="2488.0138" y="1504.07437296716" />
 			</convexhull>
-			<userParam type="string" name="label" value="T49"/>
+			<userParam type="string" name="label" value="T48"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2391.90985</position>
@@ -3245,7 +3227,7 @@
 				<pt x="2378.745" y="1687.69894788947" />
 				<pt x="2376.966" y="1687.41491622288" />
 			</convexhull>
-			<userParam type="string" name="label" value="T50"/>
+			<userParam type="string" name="label" value="T49"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2253.72185</position>
@@ -3335,7 +3317,7 @@
 				<pt x="2222.456" y="1307.5050444772" />
 				<pt x="2220.6669" y="1307.58309775623" />
 			</convexhull>
-			<userParam type="string" name="label" value="T51"/>
+			<userParam type="string" name="label" value="T50"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2405.8223</position>
@@ -3377,7 +3359,7 @@
 				<pt x="2396.2808" y="1350.26553985211" />
 				<pt x="2394.5305" y="1350.11903271827" />
 			</convexhull>
-			<userParam type="string" name="label" value="T52"/>
+			<userParam type="string" name="label" value="T51"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2480.2436</position>
@@ -3415,7 +3397,7 @@
 				<pt x="2472.5095" y="1430.96873265671" />
 				<pt x="2470.7948" y="1430.77460284699" />
 			</convexhull>
-			<userParam type="string" name="label" value="T53"/>
+			<userParam type="string" name="label" value="T52"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2408.4245</position>
@@ -3463,7 +3445,7 @@
 				<pt x="2396.2808" y="1242.22207081221" />
 				<pt x="2394.5305" y="1242.37643738026" />
 			</convexhull>
-			<userParam type="string" name="label" value="T54"/>
+			<userParam type="string" name="label" value="T53"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2409.29545</position>
@@ -3513,7 +3495,7 @@
 				<pt x="2396.2808" y="1194.62620500575" />
 				<pt x="2394.5305" y="1194.48434342042" />
 			</convexhull>
-			<userParam type="string" name="label" value="T55"/>
+			<userParam type="string" name="label" value="T54"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2060.3173</position>
@@ -3587,7 +3569,7 @@
 				<pt x="2036.2596" y="1386.74013222975" />
 				<pt x="2034.4055" y="1386.5984743651" />
 			</convexhull>
-			<userParam type="string" name="label" value="T56"/>
+			<userParam type="string" name="label" value="T55"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2409.29545</position>
@@ -3629,7 +3611,7 @@
 				<pt x="2399.7595" y="1634.19264853642" />
 				<pt x="2398.0174" y="1634.26170890373" />
 			</convexhull>
-			<userParam type="string" name="label" value="T57"/>
+			<userParam type="string" name="label" value="T56"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2303.1576</position>
@@ -3679,7 +3661,7 @@
 				<pt x="2290.2434" y="1340.26948605605" />
 				<pt x="2288.5056" y="1340.09197776426" />
 			</convexhull>
-			<userParam type="string" name="label" value="T58"/>
+			<userParam type="string" name="label" value="T57"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2467.3734</position>
@@ -3735,7 +3717,7 @@
 				<pt x="2452.0246" y="1215.72171030373" />
 				<pt x="2450.3192" y="1215.78963882814" />
 			</convexhull>
-			<userParam type="string" name="label" value="T59"/>
+			<userParam type="string" name="label" value="T58"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2160.7929</position>
@@ -3815,47 +3797,7 @@
 				<pt x="2133.8418" y="1747.18947104336" />
 				<pt x="2130.114" y="1747.53069278136" />
 			</convexhull>
-			<userParam type="string" name="label" value="T60"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2463.9564</position>
-			<position dim="1">2257.27414172682</position>
-			<intensity>21162.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2458.847" y="2257.3455217547" />
-				<pt x="2462.2518" y="2257.28391038095" />
-				<pt x="2463.9564" y="2256.80457610514" />
-				<pt x="2469.0914" y="2257.27414172682" />
-				<pt x="2472.5095" y="2257.08530693258" />
-				<pt x="2469.0914" y="2257.27414172682" />
-				<pt x="2463.9564" y="2256.80457610514" />
-				<pt x="2462.2518" y="2257.28391038095" />
-			</convexhull>
-			<userParam type="string" name="label" value="T61"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2411.915</position>
-			<position dim="1">1532.98642957399</position>
-			<intensity>25852.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2404.9536" y="1533.72487451165" />
-				<pt x="2408.4245" y="1533.29989478066" />
-				<pt x="2411.915" y="1532.9587887635" />
-				<pt x="2413.6647" y="1532.76827914792" />
-				<pt x="2417.1835" y="1532.98642957399" />
-				<pt x="2413.6647" y="1532.76827914792" />
-				<pt x="2411.915" y="1532.9587887635" />
-				<pt x="2408.4245" y="1533.29989478066" />
-			</convexhull>
-			<userParam type="string" name="label" value="T62"/>
+			<userParam type="string" name="label" value="T59"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2252.8573</position>
@@ -3957,25 +3899,7 @@
 				<pt x="2217.0722" y="1788.99871184685" />
 				<pt x="2211.6235" y="1789.26892473289" />
 			</convexhull>
-			<userParam type="string" name="label" value="T63"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2286.76305</position>
-			<position dim="1">1351.32447307987</position>
-			<intensity>17023</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2281.5072" y="1351.55170038532" />
-				<pt x="2285.0205" y="1351.52757185012" />
-				<pt x="2288.5056" y="1350.94771784033" />
-				<pt x="2291.9613" y="1351.12137430962" />
-				<pt x="2288.5056" y="1350.94771784033" />
-				<pt x="2285.0205" y="1351.52757185012" />
-			</convexhull>
-			<userParam type="string" name="label" value="T64"/>
+			<userParam type="string" name="label" value="T60"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2477.6586</position>
@@ -4007,7 +3931,7 @@
 				<pt x="2472.5095" y="1368.56299640513" />
 				<pt x="2469.0914" y="1368.86555850428" />
 			</convexhull>
-			<userParam type="string" name="label" value="T65"/>
+			<userParam type="string" name="label" value="T61"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2161.68495</position>
@@ -4085,7 +4009,7 @@
 				<pt x="2135.693" y="1367.64009396749" />
 				<pt x="2130.114" y="1367.94753141258" />
 			</convexhull>
-			<userParam type="string" name="label" value="T66"/>
+			<userParam type="string" name="label" value="T62"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2438.2814</position>
@@ -4117,27 +4041,7 @@
 				<pt x="2433.0371" y="1577.46679094781" />
 				<pt x="2431.2785" y="1577.55733751756" />
 			</convexhull>
-			<userParam type="string" name="label" value="T67"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2438.2814</position>
-			<position dim="1">1558.16077833492</position>
-			<intensity>25088.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2431.2785" y="1557.48932690694" />
-				<pt x="2436.5378" y="1558.27906138248" />
-				<pt x="2438.2814" y="1558.1412572712" />
-				<pt x="2441.7406" y="1558.16077833492" />
-				<pt x="2445.1888" y="1558.28108770451" />
-				<pt x="2441.7406" y="1558.16077833492" />
-				<pt x="2438.2814" y="1558.1412572712" />
-				<pt x="2436.5378" y="1558.27906138248" />
-			</convexhull>
-			<userParam type="string" name="label" value="T68"/>
+			<userParam type="string" name="label" value="T63"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2389.288</position>
@@ -4181,7 +4085,7 @@
 				<pt x="2378.745" y="1457.69291827627" />
 				<pt x="2373.3924" y="1458.41468607835" />
 			</convexhull>
-			<userParam type="string" name="label" value="T69"/>
+			<userParam type="string" name="label" value="T64"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2405.8223</position>
@@ -4219,7 +4123,7 @@
 				<pt x="2398.0174" y="1150.33433314855" />
 				<pt x="2396.2808" y="1150.3477810435" />
 			</convexhull>
-			<userParam type="string" name="label" value="T70"/>
+			<userParam type="string" name="label" value="T65"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2407.55775</position>
@@ -4257,7 +4161,7 @@
 				<pt x="2399.7595" y="1725.038845935" />
 				<pt x="2398.0174" y="1725.06784956392" />
 			</convexhull>
-			<userParam type="string" name="label" value="T71"/>
+			<userParam type="string" name="label" value="T66"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2405.8223</position>
@@ -4291,7 +4195,7 @@
 				<pt x="2399.7595" y="1496.44859305445" />
 				<pt x="2396.2808" y="1496.5007434548" />
 			</convexhull>
-			<userParam type="string" name="label" value="T72"/>
+			<userParam type="string" name="label" value="T67"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2406.691</position>
@@ -4327,25 +4231,7 @@
 				<pt x="2399.7595" y="1293.9926300838" />
 				<pt x="2398.0174" y="1294.13702134632" />
 			</convexhull>
-			<userParam type="string" name="label" value="T73"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2415.4241</position>
-			<position dim="1">1481.80434255718</position>
-			<intensity>19519</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2410.1664" y="1481.96854723083" />
-				<pt x="2413.6647" y="1482.16133073286" />
-				<pt x="2417.1835" y="1481.27167543043" />
-				<pt x="2420.7039" y="1481.64013788353" />
-				<pt x="2417.1835" y="1481.27167543043" />
-				<pt x="2413.6647" y="1482.16133073286" />
-			</convexhull>
-			<userParam type="string" name="label" value="T74"/>
+			<userParam type="string" name="label" value="T68"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2491.4704</position>
@@ -4373,7 +4259,7 @@
 				<pt x="2488.0138" y="1754.62858669756" />
 				<pt x="2482.8308" y="1754.70465011186" />
 			</convexhull>
-			<userParam type="string" name="label" value="T75"/>
+			<userParam type="string" name="label" value="T69"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2304.8842</position>
@@ -4423,27 +4309,7 @@
 				<pt x="2291.9613" y="1813.09889319427" />
 				<pt x="2290.2434" y="1813.13759656883" />
 			</convexhull>
-			<userParam type="string" name="label" value="T76"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2469.0914</position>
-			<position dim="1">1581.15568103328</position>
-			<intensity>28741.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2465.6642" y="1581.06199319326" />
-				<pt x="2467.3734" y="1580.89816241833" />
-				<pt x="2469.0914" y="1581.15568103328" />
-				<pt x="2470.7948" y="1581.36918317971" />
-				<pt x="2475.9407" y="1581.33406571188" />
-				<pt x="2470.7948" y="1581.36918317971" />
-				<pt x="2469.0914" y="1581.15568103328" />
-				<pt x="2467.3734" y="1580.89816241833" />
-			</convexhull>
-			<userParam type="string" name="label" value="T77"/>
+			<userParam type="string" name="label" value="T70"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2058.5418</position>
@@ -4525,7 +4391,7 @@
 				<pt x="2030.6544" y="1824.50325942275" />
 				<pt x="2026.8324" y="1824.51858715247" />
 			</convexhull>
-			<userParam type="string" name="label" value="T78"/>
+			<userParam type="string" name="label" value="T71"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2301.4339</position>
@@ -4563,7 +4429,7 @@
 				<pt x="2293.6847" y="1284.46078692117" />
 				<pt x="2291.9613" y="1284.54981072092" />
 			</convexhull>
-			<userParam type="string" name="label" value="T79"/>
+			<userParam type="string" name="label" value="T72"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2438.2814</position>
@@ -4587,7 +4453,7 @@
 				<pt x="2436.5378" y="1660.52970668101" />
 				<pt x="2434.7902" y="1660.40024804227" />
 			</convexhull>
-			<userParam type="string" name="label" value="T80"/>
+			<userParam type="string" name="label" value="T73"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2306.61305</position>
@@ -4633,7 +4499,7 @@
 				<pt x="2295.4041" y="1577.73083524117" />
 				<pt x="2293.6847" y="1577.72322516779" />
 			</convexhull>
-			<userParam type="string" name="label" value="T81"/>
+			<userParam type="string" name="label" value="T74"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2388.4127</position>
@@ -4675,7 +4541,7 @@
 				<pt x="2376.966" y="1781.33883409787" />
 				<pt x="2375.1887" y="1780.95787390247" />
 			</convexhull>
-			<userParam type="string" name="label" value="T82"/>
+			<userParam type="string" name="label" value="T75"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2492.33755</position>
@@ -4701,7 +4567,7 @@
 				<pt x="2489.7476" y="1373.34023042445" />
 				<pt x="2488.0138" y="1373.27964077069" />
 			</convexhull>
-			<userParam type="string" name="label" value="T83"/>
+			<userParam type="string" name="label" value="T76"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2314.4472</position>
@@ -4745,7 +4611,7 @@
 				<pt x="2295.4041" y="1502.59985127133" />
 				<pt x="2293.6847" y="1502.59144922116" />
 			</convexhull>
-			<userParam type="string" name="label" value="T84"/>
+			<userParam type="string" name="label" value="T77"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2257.1777</position>
@@ -4809,25 +4675,7 @@
 				<pt x="2218.8696" y="1624.1342532928" />
 				<pt x="2215.2478" y="1623.63870020088" />
 			</convexhull>
-			<userParam type="string" name="label" value="T85"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2484.55765</position>
-			<position dim="1">1756.63295251644</position>
-			<intensity>20439</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2481.1011" y="1756.56591394354" />
-				<pt x="2482.8308" y="1757.02003047934" />
-				<pt x="2486.2845" y="1756.02656780591" />
-				<pt x="2488.0138" y="1756.69999108935" />
-				<pt x="2486.2845" y="1756.02656780591" />
-				<pt x="2482.8308" y="1757.02003047934" />
-			</convexhull>
-			<userParam type="string" name="label" value="T86"/>
+			<userParam type="string" name="label" value="T78"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2460.5445</position>
@@ -4855,45 +4703,7 @@
 				<pt x="2455.4355" y="1664.15151664401" />
 				<pt x="2453.7277" y="1664.35525059288" />
 			</convexhull>
-			<userParam type="string" name="label" value="T87"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2440.8744</position>
-			<position dim="1">1731.29853969519</position>
-			<intensity>19330</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2434.7902" y="1731.76738276966" />
-				<pt x="2440.0082" y="1731.15938691764" />
-				<pt x="2441.7406" y="1731.2459856109" />
-				<pt x="2445.1888" y="1731.35109377948" />
-				<pt x="2441.7406" y="1731.2459856109" />
-				<pt x="2440.0082" y="1731.15938691764" />
-			</convexhull>
-			<userParam type="string" name="label" value="T88"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2236.4495</position>
-			<position dim="1">1531.1454941924</position>
-			<intensity>25813.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2227.7823" y="1531.62305997458" />
-				<pt x="2232.9951" y="1531.12833545371" />
-				<pt x="2236.4495" y="1531.31942792655" />
-				<pt x="2238.1823" y="1531.11632747939" />
-				<pt x="2243.3506" y="1531.1454941924" />
-				<pt x="2238.1823" y="1531.11632747939" />
-				<pt x="2236.4495" y="1531.31942792655" />
-				<pt x="2232.9951" y="1531.12833545371" />
-			</convexhull>
-			<userParam type="string" name="label" value="T89"/>
+			<userParam type="string" name="label" value="T79"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2256.3135</position>
@@ -4955,7 +4765,7 @@
 				<pt x="2227.7823" y="1550.15367870351" />
 				<pt x="2217.0722" y="1551.28470383614" />
 			</convexhull>
-			<userParam type="string" name="label" value="T90"/>
+			<userParam type="string" name="label" value="T80"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2455.4355</position>
@@ -4987,7 +4797,7 @@
 				<pt x="2450.3192" y="1327.73994352344" />
 				<pt x="2448.6193" y="1327.63973382211" />
 			</convexhull>
-			<userParam type="string" name="label" value="T91"/>
+			<userParam type="string" name="label" value="T81"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2059.4295</position>
@@ -5063,7 +4873,7 @@
 				<pt x="2034.4055" y="1238.02660916538" />
 				<pt x="2032.5456" y="1238.15759845307" />
 			</convexhull>
-			<userParam type="string" name="label" value="T92"/>
+			<userParam type="string" name="label" value="T82"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2254.58475</position>
@@ -5153,7 +4963,7 @@
 				<pt x="2224.2378" y="1259.13530463301" />
 				<pt x="2222.456" y="1259.15924016505" />
 			</convexhull>
-			<userParam type="string" name="label" value="T93"/>
+			<userParam type="string" name="label" value="T83"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2452.0246</position>
@@ -5185,7 +4995,7 @@
 				<pt x="2446.9015" y="1274.59063706264" />
 				<pt x="2436.5378" y="1274.88964941024" />
 			</convexhull>
-			<userParam type="string" name="label" value="T94"/>
+			<userParam type="string" name="label" value="T84"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2054.99935</position>
@@ -5251,7 +5061,7 @@
 				<pt x="2034.4055" y="1333.27750108152" />
 				<pt x="2032.5456" y="1333.42200803544" />
 			</convexhull>
-			<userParam type="string" name="label" value="T95"/>
+			<userParam type="string" name="label" value="T85"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2437.4096</position>
@@ -5277,7 +5087,7 @@
 				<pt x="2434.7902" y="1502.33393906819" />
 				<pt x="2433.0371" y="1502.37138027029" />
 			</convexhull>
-			<userParam type="string" name="label" value="T96"/>
+			<userParam type="string" name="label" value="T86"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2407.55775</position>
@@ -5311,27 +5121,7 @@
 				<pt x="2401.4906" y="1571.4610646935" />
 				<pt x="2399.7595" y="1571.1380260077" />
 			</convexhull>
-			<userParam type="string" name="label" value="T97"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2290.2434</position>
-			<position dim="1">1795.4146877203</position>
-			<intensity>19228.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2285.0205" y="1795.39437733047" />
-				<pt x="2286.7695" y="1795.32631656453" />
-				<pt x="2290.2434" y="1795.4146877203" />
-				<pt x="2291.9613" y="1796.4183511161" />
-				<pt x="2297.1265" y="1796.0783293413" />
-				<pt x="2291.9613" y="1796.4183511161" />
-				<pt x="2290.2434" y="1795.4146877203" />
-				<pt x="2286.7695" y="1795.32631656453" />
-			</convexhull>
-			<userParam type="string" name="label" value="T98"/>
+			<userParam type="string" name="label" value="T87"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2059.4295</position>
@@ -5407,7 +5197,7 @@
 				<pt x="2034.4055" y="1283.96346274639" />
 				<pt x="2032.5456" y="1284.03943234888" />
 			</convexhull>
-			<userParam type="string" name="label" value="T99"/>
+			<userParam type="string" name="label" value="T88"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2308.34535</position>
@@ -5465,7 +5255,7 @@
 				<pt x="2291.9613" y="1660.89421583452" />
 				<pt x="2290.2434" y="1660.59242398902" />
 			</convexhull>
-			<userParam type="string" name="label" value="T100"/>
+			<userParam type="string" name="label" value="T89"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2434.7902</position>
@@ -5497,7 +5287,7 @@
 				<pt x="2429.5107" y="1752.26847524934" />
 				<pt x="2427.7604" y="1753.26522702305" />
 			</convexhull>
-			<userParam type="string" name="label" value="T101"/>
+			<userParam type="string" name="label" value="T90"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2159.90545</position>
@@ -5563,25 +5353,7 @@
 				<pt x="2139.3675" y="1310.72300941177" />
 				<pt x="2137.5334" y="1310.69578808747" />
 			</convexhull>
-			<userParam type="string" name="label" value="T102"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2417.17815</position>
-			<position dim="1">1248.73058511493</position>
-			<intensity>14067.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2411.915" y="1248.77913997897" />
-				<pt x="2415.4186" y="1248.71963124749" />
-				<pt x="2418.9377" y="1248.74153898238" />
-				<pt x="2424.2265" y="1248.23323008139" />
-				<pt x="2418.9377" y="1248.74153898238" />
-				<pt x="2415.4186" y="1248.71963124749" />
-			</convexhull>
-			<userParam type="string" name="label" value="T103"/>
+			<userParam type="string" name="label" value="T91"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2477.6586</position>
@@ -5605,7 +5377,7 @@
 				<pt x="2475.9407" y="1311.64702529244" />
 				<pt x="2474.2214" y="1311.58165338773" />
 			</convexhull>
-			<userParam type="string" name="label" value="T104"/>
+			<userParam type="string" name="label" value="T92"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2251.1296</position>
@@ -5683,7 +5455,7 @@
 				<pt x="2226.0058" y="1214.28814157137" />
 				<pt x="2224.2378" y="1214.23485608901" />
 			</convexhull>
-			<userParam type="string" name="label" value="T105"/>
+			<userParam type="string" name="label" value="T93"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2259.77415</position>
@@ -5733,63 +5505,7 @@
 				<pt x="2236.4495" y="1705.42611190153" />
 				<pt x="2234.7232" y="1705.31108115124" />
 			</convexhull>
-			<userParam type="string" name="label" value="T106"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2439.1448</position>
-			<position dim="1">1490.10878964871</position>
-			<intensity>17064.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2436.5378" y="1490.09236369406" />
-				<pt x="2438.2814" y="1490.24575906414" />
-				<pt x="2440.0082" y="1490.02681433619" />
-				<pt x="2443.4653" y="1490.12521560336" />
-				<pt x="2440.0082" y="1490.02681433619" />
-				<pt x="2438.2814" y="1490.24575906414" />
-			</convexhull>
-			<userParam type="string" name="label" value="T107"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2407.55775</position>
-			<position dim="1">1726.16720374615</position>
-			<intensity>16035.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2403.2204" y="1726.14507872393" />
-				<pt x="2406.691" y="1725.75712172988" />
-				<pt x="2408.4245" y="1726.26259112208" />
-				<pt x="2410.1664" y="1726.18932876838" />
-				<pt x="2408.4245" y="1726.26259112208" />
-				<pt x="2406.691" y="1725.75712172988" />
-			</convexhull>
-			<userParam type="string" name="label" value="T108"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2460.5445</position>
-			<position dim="1">1859.92554839176</position>
-			<intensity>22321.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2455.4355" y="1859.88674026105" />
-				<pt x="2458.847" y="1859.91315263103" />
-				<pt x="2460.5445" y="1860.10886992821" />
-				<pt x="2463.9564" y="1859.92830076205" />
-				<pt x="2469.0914" y="1859.92554839176" />
-				<pt x="2463.9564" y="1859.92830076205" />
-				<pt x="2460.5445" y="1860.10886992821" />
-				<pt x="2458.847" y="1859.91315263103" />
-			</convexhull>
-			<userParam type="string" name="label" value="T109"/>
+			<userParam type="string" name="label" value="T94"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2299.7094</position>
@@ -5823,7 +5539,7 @@
 				<pt x="2293.6847" y="1233.02284189733" />
 				<pt x="2291.9613" y="1233.21890376759" />
 			</convexhull>
-			<userParam type="string" name="label" value="T110"/>
+			<userParam type="string" name="label" value="T95"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2467.3734</position>
@@ -5863,7 +5579,7 @@
 				<pt x="2455.4355" y="1974.95324738689" />
 				<pt x="2453.7277" y="1974.92000073265" />
 			</convexhull>
-			<userParam type="string" name="label" value="T111"/>
+			<userParam type="string" name="label" value="T96"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2257.1777</position>
@@ -5911,7 +5627,7 @@
 				<pt x="2243.3506" y="1483.41841335447" />
 				<pt x="2239.8997" y="1483.18703199655" />
 			</convexhull>
-			<userParam type="string" name="label" value="T112"/>
+			<userParam type="string" name="label" value="T97"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2251.9944</position>
@@ -5995,7 +5711,7 @@
 				<pt x="2224.2378" y="1887.9134297965" />
 				<pt x="2222.456" y="1888.15960426041" />
 			</convexhull>
-			<userParam type="string" name="label" value="T113"/>
+			<userParam type="string" name="label" value="T98"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2463.9564</position>
@@ -6035,7 +5751,7 @@
 				<pt x="2453.7277" y="1170.88415557857" />
 				<pt x="2452.0246" y="1170.73592587742" />
 			</convexhull>
-			<userParam type="string" name="label" value="T114"/>
+			<userParam type="string" name="label" value="T99"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2404.9536</position>
@@ -6071,29 +5787,7 @@
 				<pt x="2398.0174" y="1109.28478697286" />
 				<pt x="2396.2808" y="1109.35052886744" />
 			</convexhull>
-			<userParam type="string" name="label" value="T115"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2440.8744</position>
-			<position dim="1">1646.8846099293</position>
-			<intensity>28228.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2436.5378" y="1646.93020358806" />
-				<pt x="2438.2814" y="1646.9974434268" />
-				<pt x="2440.0082" y="1646.81628110859" />
-				<pt x="2441.7406" y="1646.83901627055" />
-				<pt x="2445.1888" y="1646.93705446436" />
-				<pt x="2446.9015" y="1646.82334702854" />
-				<pt x="2445.1888" y="1646.93705446436" />
-				<pt x="2441.7406" y="1646.83901627055" />
-				<pt x="2440.0082" y="1646.81628110859" />
-				<pt x="2438.2814" y="1646.9974434268" />
-			</convexhull>
-			<userParam type="string" name="label" value="T116"/>
+			<userParam type="string" name="label" value="T100"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2481.1011</position>
@@ -6117,65 +5811,7 @@
 				<pt x="2479.3861" y="1851.20595751651" />
 				<pt x="2477.6586" y="1851.47751653566" />
 			</convexhull>
-			<userParam type="string" name="label" value="T117"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2475.08105</position>
-			<position dim="1">1772.96400497908</position>
-			<intensity>21553.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2470.7948" y="1772.91114080182" />
-				<pt x="2474.2214" y="1773.57965094999" />
-				<pt x="2475.9407" y="1773.01686915634" />
-				<pt x="2482.8308" y="1772.67766159337" />
-				<pt x="2475.9407" y="1773.01686915634" />
-				<pt x="2474.2214" y="1773.57965094999" />
-			</convexhull>
-			<userParam type="string" name="label" value="T118"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2406.68905</position>
-			<position dim="1">1510.84369911745</position>
-			<intensity>17890.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2398.0174" y="1510.65782044118" />
-				<pt x="2404.9536" y="1511.02957779373" />
-				<pt x="2408.4245" y="1511.09525010239" />
-				<pt x="2410.1664" y="1510.37562945086" />
-				<pt x="2408.4245" y="1511.09525010239" />
-				<pt x="2404.9536" y="1511.02957779373" />
-			</convexhull>
-			<userParam type="string" name="label" value="T119"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2441.73675</position>
-			<position dim="1">1564.6218976619</position>
-			<intensity>27402.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2436.5378" y="1564.62050938567" />
-				<pt x="2438.2814" y="1564.5122846329" />
-				<pt x="2440.0082" y="1564.62328593813" />
-				<pt x="2443.4653" y="1564.70351580252" />
-				<pt x="2445.1888" y="1564.5842265279" />
-				<pt x="2446.9015" y="1564.65658299295" />
-				<pt x="2445.1888" y="1564.5842265279" />
-				<pt x="2443.4653" y="1564.70351580252" />
-				<pt x="2440.0082" y="1564.62328593813" />
-				<pt x="2438.2814" y="1564.5122846329" />
-			</convexhull>
-			<userParam type="string" name="label" value="T120"/>
+			<userParam type="string" name="label" value="T101"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2151.0304</position>
@@ -6265,63 +5901,7 @@
 				<pt x="2077.5722" y="1850.86386414432" />
 				<pt x="2075.7091" y="1849.92189872066" />
 			</convexhull>
-			<userParam type="string" name="label" value="T121"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2462.2518</position>
-			<position dim="1">1511.14407230835</position>
-			<intensity>22470.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2455.4355" y="1510.94799115635" />
-				<pt x="2460.5445" y="1511.1099498858" />
-				<pt x="2462.2518" y="1511.27561157939" />
-				<pt x="2463.9564" y="1511.34283298763" />
-				<pt x="2470.7948" y="1511.14407230835" />
-				<pt x="2463.9564" y="1511.34283298763" />
-				<pt x="2462.2518" y="1511.27561157939" />
-				<pt x="2460.5445" y="1511.1099498858" />
-			</convexhull>
-			<userParam type="string" name="label" value="T122"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2316.1914</position>
-			<position dim="1">1503.39683218128</position>
-			<intensity>14799.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2312.6974" y="1503.42669976354" />
-				<pt x="2314.4472" y="1503.36696459901" />
-				<pt x="2317.9356" y="1503.13598431228" />
-				<pt x="2324.9325" y="1503.46733760059" />
-				<pt x="2317.9356" y="1503.13598431228" />
-				<pt x="2314.4472" y="1503.36696459901" />
-			</convexhull>
-			<userParam type="string" name="label" value="T123"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2443.4647</position>
-			<position dim="1">1484.06341161638</position>
-			<intensity>17637.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2440.0082" y="1483.70004604343" />
-				<pt x="2441.7406" y="1484.0444622841" />
-				<pt x="2445.1888" y="1484.08236094865" />
-				<pt x="2446.9015" y="1484.24113345602" />
-				<pt x="2445.1888" y="1484.08236094865" />
-				<pt x="2441.7406" y="1484.0444622841" />
-			</convexhull>
-			<userParam type="string" name="label" value="T124"/>
+			<userParam type="string" name="label" value="T102"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2302.294</position>
@@ -6349,7 +5929,7 @@
 				<pt x="2298.845" y="1752.94470243914" />
 				<pt x="2295.4041" y="1752.98624911098" />
 			</convexhull>
-			<userParam type="string" name="label" value="T125"/>
+			<userParam type="string" name="label" value="T103"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2159.018</position>
@@ -6417,7 +5997,7 @@
 				<pt x="2135.693" y="1258.28240139147" />
 				<pt x="2126.3521" y="1258.57135732527" />
 			</convexhull>
-			<userParam type="string" name="label" value="T126"/>
+			<userParam type="string" name="label" value="T104"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2479.3861</position>
@@ -6445,7 +6025,7 @@
 				<pt x="2475.9407" y="1259.14086473082" />
 				<pt x="2474.2214" y="1259.19619058364" />
 			</convexhull>
-			<userParam type="string" name="label" value="T127"/>
+			<userParam type="string" name="label" value="T105"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2409.29545</position>
@@ -6479,7 +6059,7 @@
 				<pt x="2403.2204" y="1826.48092012232" />
 				<pt x="2399.7595" y="1826.48150693763" />
 			</convexhull>
-			<userParam type="string" name="label" value="T128"/>
+			<userParam type="string" name="label" value="T106"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2258.9136</position>
@@ -6507,7 +6087,7 @@
 				<pt x="2253.7202" y="1421.28916779343" />
 				<pt x="2251.9944" y="1421.34361497624" />
 			</convexhull>
-			<userParam type="string" name="label" value="T129"/>
+			<userParam type="string" name="label" value="T107"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2463.1041</position>
@@ -6533,7 +6113,7 @@
 				<pt x="2460.5445" y="1756.91729208663" />
 				<pt x="2457.1369" y="1755.94894730551" />
 			</convexhull>
-			<userParam type="string" name="label" value="T130"/>
+			<userParam type="string" name="label" value="T108"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2404.9536</position>
@@ -6569,15 +6149,15 @@
 				<pt x="2398.0174" y="1653.9216730607" />
 				<pt x="2396.2808" y="1653.72750886699" />
 			</convexhull>
-			<userParam type="string" name="label" value="T131"/>
+			<userParam type="string" name="label" value="T109"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2385.791</position>
-			<position dim="1">1533.10803628319</position>
-			<intensity>37431.4</intensity>
+			<position dim="0">2391.90985</position>
+			<position dim="1">1533.11100554116</position>
+			<intensity>72974.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.909091</overallquality>
+			<overallquality>0.944444</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="2375.1887" y="1532.56254324113" />
@@ -6591,6 +6171,20 @@
 				<pt x="2391.0357" y="1533.16846263408" />
 				<pt x="2392.784" y="1533.14147306738" />
 				<pt x="2394.5305" y="1532.94072067199" />
+				<pt x="2404.9536" y="1533.72487451165" />
+				<pt x="2408.4245" y="1533.29989478066" />
+				<pt x="2411.915" y="1532.9587887635" />
+				<pt x="2413.6647" y="1532.76827914792" />
+				<pt x="2417.1835" y="1532.98642957399" />
+				<pt x="2424.2265" y="1533.33448219148" />
+				<pt x="2429.5107" y="1533.11397479913" />
+				<pt x="2424.2265" y="1533.33448219148" />
+				<pt x="2417.1835" y="1532.98642957399" />
+				<pt x="2413.6647" y="1532.76827914792" />
+				<pt x="2411.915" y="1532.9587887635" />
+				<pt x="2408.4245" y="1533.29989478066" />
+				<pt x="2404.9536" y="1533.72487451165" />
+				<pt x="2394.5305" y="1532.94072067199" />
 				<pt x="2392.784" y="1533.14147306738" />
 				<pt x="2391.0357" y="1533.16846263408" />
 				<pt x="2389.288" y="1533.26037427228" />
@@ -6601,7 +6195,7 @@
 				<pt x="2380.5096" y="1533.39914167606" />
 				<pt x="2378.745" y="1533.09674281657" />
 			</convexhull>
-			<userParam type="string" name="label" value="T132"/>
+			<userParam type="string" name="label" value="T110"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2453.7277</position>
@@ -6633,25 +6227,7 @@
 				<pt x="2448.6193" y="1873.89949665931" />
 				<pt x="2446.9015" y="1873.90799011712" />
 			</convexhull>
-			<userParam type="string" name="label" value="T133"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2430.3946</position>
-			<position dim="1">1526.52204466902</position>
-			<intensity>15298.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2425.9917" y="1526.41508364736" />
-				<pt x="2429.5107" y="1526.95123585078" />
-				<pt x="2431.2785" y="1526.62900569069" />
-				<pt x="2434.7902" y="1526.0518797405" />
-				<pt x="2431.2785" y="1526.62900569069" />
-				<pt x="2429.5107" y="1526.95123585078" />
-			</convexhull>
-			<userParam type="string" name="label" value="T134"/>
+			<userParam type="string" name="label" value="T111"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2147.4823</position>
@@ -6677,27 +6253,7 @@
 				<pt x="2144.8095" y="1573.56652964606" />
 				<pt x="2135.693" y="1573.35322481475" />
 			</convexhull>
-			<userParam type="string" name="label" value="T135"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2226.0058</position>
-			<position dim="1">1700.38967632251</position>
-			<intensity>18498.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2222.456" y="1700.78180648442" />
-				<pt x="2224.2378" y="1700.38144714626" />
-				<pt x="2226.0058" y="1700.394585237" />
-				<pt x="2231.2626" y="1700.38967632251" />
-				<pt x="2232.9951" y="1700.26612289072" />
-				<pt x="2231.2626" y="1700.38967632251" />
-				<pt x="2226.0058" y="1700.394585237" />
-				<pt x="2224.2378" y="1700.38144714626" />
-			</convexhull>
-			<userParam type="string" name="label" value="T136"/>
+			<userParam type="string" name="label" value="T112"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2454.5816</position>
@@ -6723,7 +6279,7 @@
 				<pt x="2452.0246" y="1225.59374548991" />
 				<pt x="2450.3192" y="1225.58847190231" />
 			</convexhull>
-			<userParam type="string" name="label" value="T137"/>
+			<userParam type="string" name="label" value="T113"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2302.294</position>
@@ -6755,7 +6311,7 @@
 				<pt x="2297.1265" y="1434.40081387612" />
 				<pt x="2295.4041" y="1434.31776109596" />
 			</convexhull>
-			<userParam type="string" name="label" value="T138"/>
+			<userParam type="string" name="label" value="T114"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2243.3506</position>
@@ -6783,105 +6339,7 @@
 				<pt x="2239.8997" y="1607.70739096251" />
 				<pt x="2238.1823" y="1607.83739871457" />
 			</convexhull>
-			<userParam type="string" name="label" value="T139"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2494.9337</position>
-			<position dim="1">1316.14731481734</position>
-			<intensity>19934.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2489.7476" y="1316.07005299913" />
-				<pt x="2491.4704" y="1316.42312582424" />
-				<pt x="2494.9337" y="1316.14731481734" />
-				<pt x="2496.6645" y="1316.13370452834" />
-				<pt x="2498.3931" y="1316.15559439499" />
-				<pt x="2496.6645" y="1316.13370452834" />
-				<pt x="2494.9337" y="1316.14731481734" />
-				<pt x="2491.4704" y="1316.42312582424" />
-			</convexhull>
-			<userParam type="string" name="label" value="T140"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2217.95735</position>
-			<position dim="1">2265.26138693659</position>
-			<intensity>11515.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2211.6235" y="2265.02278893251" />
-				<pt x="2215.2478" y="2265.24881108263" />
-				<pt x="2220.6669" y="2265.57551448605" />
-				<pt x="2222.456" y="2265.27396279055" />
-				<pt x="2220.6669" y="2265.57551448605" />
-				<pt x="2215.2478" y="2265.24881108263" />
-			</convexhull>
-			<userParam type="string" name="label" value="T141"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2206.1445</position>
-			<position dim="1">1624.78858523925</position>
-			<intensity>13316.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2196.9878" y="1624.6585441959" />
-				<pt x="2204.307" y="1624.33602381176" />
-				<pt x="2206.1445" y="1624.78858523925" />
-				<pt x="2211.6235" y="1625.27484896388" />
-				<pt x="2213.4414" y="1625.26804064023" />
-				<pt x="2211.6235" y="1625.27484896388" />
-				<pt x="2206.1445" y="1624.78858523925" />
-				<pt x="2204.307" y="1624.33602381176" />
-			</convexhull>
-			<userParam type="string" name="label" value="T142"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2256.3135</position>
-			<position dim="1">1619.523672415</position>
-			<intensity>23345.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2246.8053" y="1619.620855404" />
-				<pt x="2253.7202" y="1619.72148785073" />
-				<pt x="2255.4493" y="1619.73480114517" />
-				<pt x="2257.1777" y="1619.40675705426" />
-				<pt x="2258.9136" y="1619.24970064806" />
-				<pt x="2264.0944" y="1619.426489426" />
-				<pt x="2258.9136" y="1619.24970064806" />
-				<pt x="2257.1777" y="1619.40675705426" />
-				<pt x="2255.4493" y="1619.73480114517" />
-				<pt x="2253.7202" y="1619.72148785073" />
-			</convexhull>
-			<userParam type="string" name="label" value="T143"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2174.1624</position>
-			<position dim="1">2715.40229639066</position>
-			<intensity>9780.02</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2171.4628" y="2715.46664793362" />
-				<pt x="2173.2572" y="2715.46710884103" />
-				<pt x="2175.0676" y="2715.33794484771" />
-				<pt x="2180.5441" y="2714.6293253188" />
-				<pt x="2175.0676" y="2715.33794484771" />
-				<pt x="2173.2572" y="2715.46710884103" />
-			</convexhull>
-			<userParam type="string" name="label" value="T144"/>
+			<userParam type="string" name="label" value="T115"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2492.33755</position>
@@ -6907,67 +6365,7 @@
 				<pt x="2489.7476" y="2696.35611654481" />
 				<pt x="2486.2845" y="2696.12419261909" />
 			</convexhull>
-			<userParam type="string" name="label" value="T145"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2452.0246</position>
-			<position dim="1">1677.80395918409</position>
-			<intensity>22927.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2448.6193" y="1677.87820751711" />
-				<pt x="2450.3192" y="1678.33463418135" />
-				<pt x="2452.0246" y="1677.80395918409" />
-				<pt x="2455.4355" y="1677.79597345443" />
-				<pt x="2462.2518" y="1677.74160336827" />
-				<pt x="2455.4355" y="1677.79597345443" />
-				<pt x="2452.0246" y="1677.80395918409" />
-				<pt x="2450.3192" y="1678.33463418135" />
-			</convexhull>
-			<userParam type="string" name="label" value="T146"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2231.2626</position>
-			<position dim="1">1626.85181777975</position>
-			<intensity>17350.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2226.0058" y="1627.44790033838" />
-				<pt x="2227.7823" y="1626.85181777975" />
-				<pt x="2231.2626" y="1626.8127481768" />
-				<pt x="2234.7232" y="1626.81669282851" />
-				<pt x="2236.4495" y="1626.9006043638" />
-				<pt x="2234.7232" y="1626.81669282851" />
-				<pt x="2231.2626" y="1626.8127481768" />
-				<pt x="2227.7823" y="1626.85181777975" />
-			</convexhull>
-			<userParam type="string" name="label" value="T147"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2389.288</position>
-			<position dim="1">1604.24188931533</position>
-			<intensity>17579.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2384.0293" y="1604.24188931533" />
-				<pt x="2385.791" y="1604.94227379024" />
-				<pt x="2389.288" y="1604.3185375232" />
-				<pt x="2391.0357" y="1604.15664885436" />
-				<pt x="2396.2808" y="1604.18933932612" />
-				<pt x="2391.0357" y="1604.15664885436" />
-				<pt x="2389.288" y="1604.3185375232" />
-				<pt x="2385.791" y="1604.94227379024" />
-			</convexhull>
-			<userParam type="string" name="label" value="T148"/>
+			<userParam type="string" name="label" value="T116"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2303.1576</position>
@@ -7017,7 +6415,7 @@
 				<pt x="2290.2434" y="1926.21778858341" />
 				<pt x="2288.5056" y="1926.28931590216" />
 			</convexhull>
-			<userParam type="string" name="label" value="T149"/>
+			<userParam type="string" name="label" value="T117"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2391.0357</position>
@@ -7053,7 +6451,7 @@
 				<pt x="2384.0293" y="1394.25350162478" />
 				<pt x="2382.2769" y="1394.38151331883" />
 			</convexhull>
-			<userParam type="string" name="label" value="T150"/>
+			<userParam type="string" name="label" value="T118"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2436.5378</position>
@@ -7077,27 +6475,7 @@
 				<pt x="2434.7902" y="1434.19243081018" />
 				<pt x="2433.0371" y="1434.55736842165" />
 			</convexhull>
-			<userParam type="string" name="label" value="T151"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2462.2518</position>
-			<position dim="1">1442.49919404594</position>
-			<intensity>20448.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2457.1369" y="1442.360701677" />
-				<pt x="2458.847" y="1442.49919404594" />
-				<pt x="2462.2518" y="1442.5219724041" />
-				<pt x="2463.9564" y="1442.39087487585" />
-				<pt x="2470.7948" y="1442.50976037373" />
-				<pt x="2463.9564" y="1442.39087487585" />
-				<pt x="2462.2518" y="1442.5219724041" />
-				<pt x="2458.847" y="1442.49919404594" />
-			</convexhull>
-			<userParam type="string" name="label" value="T152"/>
+			<userParam type="string" name="label" value="T119"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2256.3135</position>
@@ -7131,25 +6509,7 @@
 				<pt x="2245.0807" y="1794.70816145763" />
 				<pt x="2243.3506" y="1795.24211868958" />
 			</convexhull>
-			<userParam type="string" name="label" value="T153"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2139.3626</position>
-			<position dim="1">1485.25939899463</position>
-			<intensity>10922.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2133.8418" y="1485.39300030945" />
-				<pt x="2137.5334" y="1485.12579767982" />
-				<pt x="2141.1918" y="1485.73946154711" />
-				<pt x="2143.0003" y="1485.00286877375" />
-				<pt x="2141.1918" y="1485.73946154711" />
-				<pt x="2137.5334" y="1485.12579767982" />
-			</convexhull>
-			<userParam type="string" name="label" value="T154"/>
+			<userParam type="string" name="label" value="T120"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2452.87615</position>
@@ -7175,65 +6535,7 @@
 				<pt x="2450.3192" y="1770.78213677595" />
 				<pt x="2448.6193" y="1770.75976684538" />
 			</convexhull>
-			<userParam type="string" name="label" value="T155"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2363.47415</position>
-			<position dim="1">1352.24444084414</position>
-			<intensity>10019.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2358.921" y="1352.07597217822" />
-				<pt x="2362.5624" y="1352.08167530321" />
-				<pt x="2364.3859" y="1352.40720638508" />
-				<pt x="2369.8044" y="1352.73298468743" />
-				<pt x="2364.3859" y="1352.40720638508" />
-				<pt x="2362.5624" y="1352.08167530321" />
-			</convexhull>
-			<userParam type="string" name="label" value="T156"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2440.8744</position>
-			<position dim="1">1738.29087483615</position>
-			<intensity>14733.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2438.2814" y="1738.21825125317" />
-				<pt x="2440.0082" y="1738.34566288502" />
-				<pt x="2441.7406" y="1738.23608678728" />
-				<pt x="2445.1888" y="1738.46980315187" />
-				<pt x="2441.7406" y="1738.23608678728" />
-				<pt x="2440.0082" y="1738.34566288502" />
-			</convexhull>
-			<userParam type="string" name="label" value="T157"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2389.28655</position>
-			<position dim="1">1733.29414093844</position>
-			<intensity>19111.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2382.2769" y="1733.59498114821" />
-				<pt x="2384.0293" y="1733.86791422982" />
-				<pt x="2387.5374" y="1732.44975793527" />
-				<pt x="2391.0357" y="1733.25257027057" />
-				<pt x="2392.784" y="1733.3357116063" />
-				<pt x="2396.2808" y="1732.90355442504" />
-				<pt x="2392.784" y="1733.3357116063" />
-				<pt x="2391.0357" y="1733.25257027057" />
-				<pt x="2387.5374" y="1732.44975793527" />
-				<pt x="2384.0293" y="1733.86791422982" />
-			</convexhull>
-			<userParam type="string" name="label" value="T158"/>
+			<userParam type="string" name="label" value="T121"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2153.7001</position>
@@ -7285,147 +6587,7 @@
 				<pt x="2139.3675" y="1210.06997510711" />
 				<pt x="2137.5334" y="1210.06964604583" />
 			</convexhull>
-			<userParam type="string" name="label" value="T159"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2414.54925</position>
-			<position dim="1">1338.61825384242</position>
-			<intensity>12784.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2410.1664" y="1338.75383475894" />
-				<pt x="2411.915" y="1338.79444638866" />
-				<pt x="2417.1835" y="1338.21395621508" />
-				<pt x="2420.7039" y="1338.48267292589" />
-				<pt x="2417.1835" y="1338.21395621508" />
-				<pt x="2411.915" y="1338.79444638866" />
-			</convexhull>
-			<userParam type="string" name="label" value="T160"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2387.5374</position>
-			<position dim="1">1694.35719880406</position>
-			<intensity>18164.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2382.2769" y="1694.34127833397" />
-				<pt x="2384.0293" y="1694.35719880406" />
-				<pt x="2387.5374" y="1694.57779975191" />
-				<pt x="2389.288" y="1694.13154281224" />
-				<pt x="2392.784" y="1694.39186306756" />
-				<pt x="2389.288" y="1694.13154281224" />
-				<pt x="2387.5374" y="1694.57779975191" />
-				<pt x="2384.0293" y="1694.35719880406" />
-			</convexhull>
-			<userParam type="string" name="label" value="T161"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2395.4007</position>
-			<position dim="1">1568.61254470952</position>
-			<intensity>13620.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2391.0357" y="1569.30851131534" />
-				<pt x="2392.784" y="1568.65155268831" />
-				<pt x="2398.0174" y="1568.57353673072" />
-				<pt x="2399.7595" y="1567.92293016761" />
-				<pt x="2398.0174" y="1568.57353673072" />
-				<pt x="2392.784" y="1568.65155268831" />
-			</convexhull>
-			<userParam type="string" name="label" value="T162"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2051.4557</position>
-			<position dim="1">1656.14423674445</position>
-			<intensity>18139.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2045.2429" y="1656.22732125806" />
-				<pt x="2047.0178" y="1655.81019606851" />
-				<pt x="2050.5696" y="1656.06115223084" />
-				<pt x="2052.3418" y="1656.04057245456" />
-				<pt x="2057.6541" y="1656.99275966328" />
-				<pt x="2059.4295" y="1656.26084375484" />
-				<pt x="2057.6541" y="1656.99275966328" />
-				<pt x="2052.3418" y="1656.04057245456" />
-				<pt x="2050.5696" y="1656.06115223084" />
-				<pt x="2047.0178" y="1655.81019606851" />
-			</convexhull>
-			<userParam type="string" name="label" value="T163"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2253.7202</position>
-			<position dim="1">1894.84483054854</position>
-			<intensity>13770.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2246.8053" y="1894.90127210085" />
-				<pt x="2250.2648" y="1894.96494175587" />
-				<pt x="2253.7202" y="1894.8014570936" />
-				<pt x="2257.1777" y="1894.84483054854" />
-				<pt x="2260.6347" y="1894.29806952386" />
-				<pt x="2257.1777" y="1894.84483054854" />
-				<pt x="2253.7202" y="1894.8014570936" />
-				<pt x="2250.2648" y="1894.96494175587" />
-			</convexhull>
-			<userParam type="string" name="label" value="T164"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2386.6642</position>
-			<position dim="1">1688.82398004079</position>
-			<intensity>21997.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2376.966" y="1689.02317669419" />
-				<pt x="2384.0293" y="1688.87788772849" />
-				<pt x="2385.791" y="1689.00494071415" />
-				<pt x="2387.5374" y="1688.34437162036" />
-				<pt x="2391.0357" y="1688.7700723531" />
-				<pt x="2394.5305" y="1688.47418428643" />
-				<pt x="2391.0357" y="1688.7700723531" />
-				<pt x="2387.5374" y="1688.34437162036" />
-				<pt x="2385.791" y="1689.00494071415" />
-				<pt x="2384.0293" y="1688.87788772849" />
-			</convexhull>
-			<userParam type="string" name="label" value="T165"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2227.7823</position>
-			<position dim="1">1619.57375386344</position>
-			<intensity>17186.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2218.8696" y="1619.35080191117" />
-				<pt x="2226.0058" y="1619.26795761873" />
-				<pt x="2227.7823" y="1619.64761043915" />
-				<pt x="2229.5196" y="1619.60554520449" />
-				<pt x="2231.2626" y="1619.57375386344" />
-				<pt x="2229.5196" y="1619.60554520449" />
-				<pt x="2227.7823" y="1619.64761043915" />
-				<pt x="2226.0058" y="1619.26795761873" />
-			</convexhull>
-			<userParam type="string" name="label" value="T166"/>
+			<userParam type="string" name="label" value="T122"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2299.7094</position>
@@ -7455,25 +6617,7 @@
 				<pt x="2295.4041" y="1185.6822014848" />
 				<pt x="2293.6847" y="1185.71516540632" />
 			</convexhull>
-			<userParam type="string" name="label" value="T167"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2440.8744</position>
-			<position dim="1">1422.48171370443</position>
-			<intensity>14115.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2434.7902" y="1422.55394082494" />
-				<pt x="2440.0082" y="1422.42376453666" />
-				<pt x="2441.7406" y="1422.31557110483" />
-				<pt x="2443.4653" y="1422.53966287221" />
-				<pt x="2441.7406" y="1422.31557110483" />
-				<pt x="2440.0082" y="1422.42376453666" />
-			</convexhull>
-			<userParam type="string" name="label" value="T168"/>
+			<userParam type="string" name="label" value="T123"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2319.6713</position>
@@ -7501,99 +6645,7 @@
 				<pt x="2316.1886" y="1188.76164596148" />
 				<pt x="2314.4472" y="1188.82022593842" />
 			</convexhull>
-			<userParam type="string" name="label" value="T169"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2387.5374</position>
-			<position dim="1">1233.61632142391</position>
-			<intensity>14533.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2380.5096" y="1233.99301316842" />
-				<pt x="2385.791" y="1233.56494075687" />
-				<pt x="2387.5374" y="1233.61632142391" />
-				<pt x="2391.0357" y="1233.63630366071" />
-				<pt x="2394.5305" y="1233.56113923822" />
-				<pt x="2391.0357" y="1233.63630366071" />
-				<pt x="2387.5374" y="1233.61632142391" />
-				<pt x="2385.791" y="1233.56494075687" />
-			</convexhull>
-			<userParam type="string" name="label" value="T170"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2317.0621</position>
-			<position dim="1">1496.61873196303</position>
-			<intensity>12670</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2312.6974" y="1496.7510433943" />
-				<pt x="2316.1886" y="1496.33073520833" />
-				<pt x="2317.9356" y="1496.48642053176" />
-				<pt x="2321.4271" y="1496.86451779742" />
-				<pt x="2317.9356" y="1496.48642053176" />
-				<pt x="2316.1886" y="1496.33073520833" />
-			</convexhull>
-			<userParam type="string" name="label" value="T171"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2287.63755</position>
-			<position dim="1">1059.18512375133</position>
-			<intensity>11898.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2285.0205" y="1059.14179375363" />
-				<pt x="2286.7695" y="1059.33245280405" />
-				<pt x="2288.5056" y="1059.15263018879" />
-				<pt x="2291.9613" y="1059.21761731387" />
-				<pt x="2288.5056" y="1059.15263018879" />
-				<pt x="2286.7695" y="1059.33245280405" />
-			</convexhull>
-			<userParam type="string" name="label" value="T172"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2474.2251</position>
-			<position dim="1">1966.85796684809</position>
-			<intensity>12366.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2469.0914" y="1967.75066315087" />
-				<pt x="2472.5095" y="1966.92445085443" />
-				<pt x="2475.9407" y="1966.79148284175" />
-				<pt x="2479.3861" y="1966.73374097758" />
-				<pt x="2475.9407" y="1966.79148284175" />
-				<pt x="2472.5095" y="1966.92445085443" />
-			</convexhull>
-			<userParam type="string" name="label" value="T173"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2391.036</position>
-			<position dim="1">1162.10107224311</position>
-			<intensity>11706.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2385.791" y="1162.4127943427" />
-				<pt x="2389.288" y="1162.20599246145" />
-				<pt x="2392.784" y="1161.99615202477" />
-				<pt x="2394.5305" y="1161.69461707794" />
-				<pt x="2392.784" y="1161.99615202477" />
-				<pt x="2389.288" y="1162.20599246145" />
-			</convexhull>
-			<userParam type="string" name="label" value="T174"/>
+			<userParam type="string" name="label" value="T124"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2408.4245</position>
@@ -7625,45 +6677,33 @@
 				<pt x="2403.2204" y="1745.77105779691" />
 				<pt x="2401.4906" y="1745.86422231789" />
 			</convexhull>
-			<userParam type="string" name="label" value="T175"/>
+			<userParam type="string" name="label" value="T125"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2253.7202</position>
-			<position dim="1">1312.17140083423</position>
-			<intensity>15056.9</intensity>
+			<position dim="0">2222.4377</position>
+			<position dim="1">1619.58964953397</position>
+			<intensity>24754.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
+			<overallquality>0.875</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2248.5422" y="1312.14160851911" />
-				<pt x="2251.9944" y="1312.03579761305" />
-				<pt x="2253.7202" y="1312.17140083423" />
-				<pt x="2257.1777" y="1312.19306586819" />
-				<pt x="2260.6347" y="1312.26446546561" />
-				<pt x="2257.1777" y="1312.19306586819" />
-				<pt x="2253.7202" y="1312.17140083423" />
-				<pt x="2251.9944" y="1312.03579761305" />
+				<pt x="2207.9703" y="1619.56493049575" />
+				<pt x="2211.6235" y="1620.37731352905" />
+				<pt x="2215.2478" y="1619.63342868637" />
+				<pt x="2218.8696" y="1619.35080191117" />
+				<pt x="2226.0058" y="1619.26795761873" />
+				<pt x="2227.7823" y="1619.64761043915" />
+				<pt x="2229.5196" y="1619.60554520449" />
+				<pt x="2231.2626" y="1619.57375386344" />
+				<pt x="2229.5196" y="1619.60554520449" />
+				<pt x="2227.7823" y="1619.64761043915" />
+				<pt x="2226.0058" y="1619.26795761873" />
+				<pt x="2218.8696" y="1619.35080191117" />
+				<pt x="2215.2478" y="1619.63342868637" />
+				<pt x="2211.6235" y="1620.37731352905" />
 			</convexhull>
-			<userParam type="string" name="label" value="T176"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2367.09515</position>
-			<position dim="1">1763.27546034598</position>
-			<intensity>13007</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2357.1125" y="1763.48109942807" />
-				<pt x="2364.3859" y="1763.50147524905" />
-				<pt x="2369.8044" y="1763.06982126389" />
-				<pt x="2371.6025" y="1763.06558676214" />
-				<pt x="2369.8044" y="1763.06982126389" />
-				<pt x="2364.3859" y="1763.50147524905" />
-			</convexhull>
-			<userParam type="string" name="label" value="T177"/>
+			<userParam type="string" name="label" value="T126"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2388.4127</position>
@@ -7693,29 +6733,7 @@
 				<pt x="2384.0293" y="1336.27367877281" />
 				<pt x="2382.2769" y="1336.21845791258" />
 			</convexhull>
-			<userParam type="string" name="label" value="T178"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2478.52235</position>
-			<position dim="1">1210.8148387755</position>
-			<intensity>20075.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2474.2214" y="1210.94620315919" />
-				<pt x="2475.9407" y="1210.79068229261" />
-				<pt x="2477.6586" y="1210.79341720208" />
-				<pt x="2479.3861" y="1210.80569089561" />
-				<pt x="2481.1011" y="1210.82398665539" />
-				<pt x="2486.2845" y="1210.95015910062" />
-				<pt x="2481.1011" y="1210.82398665539" />
-				<pt x="2479.3861" y="1210.80569089561" />
-				<pt x="2477.6586" y="1210.79341720208" />
-				<pt x="2475.9407" y="1210.79068229261" />
-			</convexhull>
-			<userParam type="string" name="label" value="T179"/>
+			<userParam type="string" name="label" value="T127"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2245.0807</position>
@@ -7775,7 +6793,7 @@
 				<pt x="2226.0058" y="1999.34375809599" />
 				<pt x="2224.2378" y="1999.27528848008" />
 			</convexhull>
-			<userParam type="string" name="label" value="T180"/>
+			<userParam type="string" name="label" value="T128"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2114.24775</position>
@@ -7801,25 +6819,7 @@
 				<pt x="2111.4734" y="1494.94832812981" />
 				<pt x="2109.6008" y="1494.9084870358" />
 			</convexhull>
-			<userParam type="string" name="label" value="T181"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2371.5984</position>
-			<position dim="1">2073.61389676276</position>
-			<intensity>11022.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2368.0082" y="2073.16481263122" />
-				<pt x="2369.8044" y="2073.7557628666" />
-				<pt x="2373.3924" y="2073.47203065893" />
-				<pt x="2376.966" y="2073.84076021814" />
-				<pt x="2373.3924" y="2073.47203065893" />
-				<pt x="2369.8044" y="2073.7557628666" />
-			</convexhull>
-			<userParam type="string" name="label" value="T182"/>
+			<userParam type="string" name="label" value="T129"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2053.2271</position>
@@ -7877,7 +6877,7 @@
 				<pt x="2030.6544" y="1195.49385511753" />
 				<pt x="2028.7329" y="1196.10057967316" />
 			</convexhull>
-			<userParam type="string" name="label" value="T183"/>
+			<userParam type="string" name="label" value="T130"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2055.8863</position>
@@ -7941,47 +6941,7 @@
 				<pt x="2036.2596" y="1925.88967606247" />
 				<pt x="2034.4055" y="1925.26008623197" />
 			</convexhull>
-			<userParam type="string" name="label" value="T184"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2494.9337</position>
-			<position dim="1">1857.72668413121</position>
-			<intensity>16879.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2488.0138" y="1857.77441248524" />
-				<pt x="2493.2047" y="1857.72668413121" />
-				<pt x="2494.9337" y="1857.69476254252" />
-				<pt x="2496.6645" y="1857.76736164168" />
-				<pt x="2498.3931" y="1857.50716772824" />
-				<pt x="2496.6645" y="1857.76736164168" />
-				<pt x="2494.9337" y="1857.69476254252" />
-				<pt x="2493.2047" y="1857.72668413121" />
-			</convexhull>
-			<userParam type="string" name="label" value="T185"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2467.3734</position>
-			<position dim="1">2106.61043281185</position>
-			<intensity>17077.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2458.847" y="2106.74245922731" />
-				<pt x="2462.2518" y="2106.4623780853" />
-				<pt x="2467.3734" y="2106.71665946141" />
-				<pt x="2469.0914" y="2106.51327481989" />
-				<pt x="2472.5095" y="2106.61043281185" />
-				<pt x="2469.0914" y="2106.51327481989" />
-				<pt x="2467.3734" y="2106.71665946141" />
-				<pt x="2462.2518" y="2106.4623780853" />
-			</convexhull>
-			<userParam type="string" name="label" value="T186"/>
+			<userParam type="string" name="label" value="T131"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2043.4598</position>
@@ -8009,101 +6969,7 @@
 				<pt x="2036.2596" y="1576.47746144143" />
 				<pt x="2030.6544" y="1576.53943710262" />
 			</convexhull>
-			<userParam type="string" name="label" value="T187"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2315.3179</position>
-			<position dim="1">1036.57150551621</position>
-			<intensity>10869.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2312.6974" y="1036.56671905105" />
-				<pt x="2314.4472" y="1036.54262839339" />
-				<pt x="2316.1886" y="1036.58963997268" />
-				<pt x="2317.9356" y="1036.57629198137" />
-				<pt x="2316.1886" y="1036.58963997268" />
-				<pt x="2314.4472" y="1036.54262839339" />
-			</convexhull>
-			<userParam type="string" name="label" value="T188"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2175.07505</position>
-			<position dim="1">2380.54217339381</position>
-			<intensity>11090.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2169.6775" y="2380.05081024098" />
-				<pt x="2173.2572" y="2381.02108935014" />
-				<pt x="2176.8929" y="2380.83844028212" />
-				<pt x="2180.5441" y="2380.2459065055" />
-				<pt x="2176.8929" y="2380.83844028212" />
-				<pt x="2173.2572" y="2381.02108935014" />
-			</convexhull>
-			<userParam type="string" name="label" value="T189"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2390.16185</position>
-			<position dim="1">1282.90636258903</position>
-			<intensity>18320.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2382.2769" y="1282.91468994749" />
-				<pt x="2387.5374" y="1282.8706599933" />
-				<pt x="2389.288" y="1282.90038603096" />
-				<pt x="2391.0357" y="1282.94808240548" />
-				<pt x="2392.784" y="1282.9123391471" />
-				<pt x="2394.5305" y="1282.88011840558" />
-				<pt x="2392.784" y="1282.9123391471" />
-				<pt x="2391.0357" y="1282.94808240548" />
-				<pt x="2389.288" y="1282.90038603096" />
-				<pt x="2387.5374" y="1282.8706599933" />
-			</convexhull>
-			<userParam type="string" name="label" value="T190"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2330.2602</position>
-			<position dim="1">1664.41982662663</position>
-			<intensity>13464.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2326.6997" y="1664.55391973743" />
-				<pt x="2328.4852" y="1664.25390186231" />
-				<pt x="2332.0352" y="1664.46296309107" />
-				<pt x="2337.3619" y="1664.37669016219" />
-				<pt x="2332.0352" y="1664.46296309107" />
-				<pt x="2328.4852" y="1664.25390186231" />
-			</convexhull>
-			<userParam type="string" name="label" value="T191"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2433.91365</position>
-			<position dim="1">1520.70451369676</position>
-			<intensity>14038.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2431.2785" y="1521.01685210286" />
-				<pt x="2433.0371" y="1520.762754858" />
-				<pt x="2434.7902" y="1520.11717804108" />
-				<pt x="2436.5378" y="1520.64627253553" />
-				<pt x="2434.7902" y="1520.11717804108" />
-				<pt x="2433.0371" y="1520.762754858" />
-			</convexhull>
-			<userParam type="string" name="label" value="T192"/>
+			<userParam type="string" name="label" value="T132"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2388.4127</position>
@@ -8145,47 +7011,7 @@
 				<pt x="2375.1887" y="1886.69977806314" />
 				<pt x="2371.6025" y="1886.69860544901" />
 			</convexhull>
-			<userParam type="string" name="label" value="T193"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2494.9337</position>
-			<position dim="1">1263.55645335508</position>
-			<intensity>17689.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2491.4704" y="1263.55645335508" />
-				<pt x="2493.2047" y="1263.63100483285" />
-				<pt x="2494.9337" y="1263.60564640788" />
-				<pt x="2496.6645" y="1263.47118954146" />
-				<pt x="2498.3931" y="1263.54388987599" />
-				<pt x="2496.6645" y="1263.47118954146" />
-				<pt x="2494.9337" y="1263.60564640788" />
-				<pt x="2493.2047" y="1263.63100483285" />
-			</convexhull>
-			<userParam type="string" name="label" value="T194"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2452.0246</position>
-			<position dim="1">1874.95541017836</position>
-			<intensity>17618.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2448.6193" y="1875.07792007495" />
-				<pt x="2450.3192" y="1874.95541017836" />
-				<pt x="2452.0246" y="1874.64717305994" />
-				<pt x="2455.4355" y="1874.83256690574" />
-				<pt x="2462.2518" y="1875.22148765484" />
-				<pt x="2455.4355" y="1874.83256690574" />
-				<pt x="2452.0246" y="1874.64717305994" />
-				<pt x="2450.3192" y="1874.95541017836" />
-			</convexhull>
-			<userParam type="string" name="label" value="T195"/>
+			<userParam type="string" name="label" value="T133"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2406.691</position>
@@ -8213,43 +7039,7 @@
 				<pt x="2403.2204" y="1071.21717255596" />
 				<pt x="2401.4906" y="1071.50401589792" />
 			</convexhull>
-			<userParam type="string" name="label" value="T196"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2360.7417</position>
-			<position dim="1">1741.38346691686</position>
-			<intensity>10203.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2353.4981" y="1741.98279857294" />
-				<pt x="2358.921" y="1741.34926042396" />
-				<pt x="2362.5624" y="1741.27722218285" />
-				<pt x="2364.3859" y="1741.41767340976" />
-				<pt x="2362.5624" y="1741.27722218285" />
-				<pt x="2358.921" y="1741.34926042396" />
-			</convexhull>
-			<userParam type="string" name="label" value="T197"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2494.0692</position>
-			<position dim="1">2418.98401730178</position>
-			<intensity>12440.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2491.4704" y="2419.63875203139" />
-				<pt x="2493.2047" y="2418.94397930357" />
-				<pt x="2494.9337" y="2419.0240553" />
-				<pt x="2496.6645" y="2418.79123625671" />
-				<pt x="2494.9337" y="2419.0240553" />
-				<pt x="2493.2047" y="2418.94397930357" />
-			</convexhull>
-			<userParam type="string" name="label" value="T198"/>
+			<userParam type="string" name="label" value="T134"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2318.80345</position>
@@ -8275,45 +7065,7 @@
 				<pt x="2316.1886" y="1063.91947246324" />
 				<pt x="2314.4472" y="1063.89129075104" />
 			</convexhull>
-			<userParam type="string" name="label" value="T199"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2233.85605</position>
-			<position dim="1">1789.93814174017</position>
-			<intensity>14100.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2229.5196" y="1789.93507961512" />
-				<pt x="2231.2626" y="1789.94120386522" />
-				<pt x="2236.4495" y="1789.99075608267" />
-				<pt x="2238.1823" y="1789.80632223834" />
-				<pt x="2236.4495" y="1789.99075608267" />
-				<pt x="2231.2626" y="1789.94120386522" />
-			</convexhull>
-			<userParam type="string" name="label" value="T200"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2234.7232</position>
-			<position dim="1">1729.95039666921</position>
-			<intensity>19117.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2226.0058" y="1730.5632622969" />
-				<pt x="2232.9951" y="1730.08303771952" />
-				<pt x="2234.7232" y="1729.95039666921" />
-				<pt x="2236.4495" y="1729.31684940992" />
-				<pt x="2243.3506" y="1729.73378181091" />
-				<pt x="2236.4495" y="1729.31684940992" />
-				<pt x="2234.7232" y="1729.95039666921" />
-				<pt x="2232.9951" y="1730.08303771952" />
-			</convexhull>
-			<userParam type="string" name="label" value="T201"/>
+			<userParam type="string" name="label" value="T135"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2244.21565</position>
@@ -8375,7 +7127,7 @@
 				<pt x="2226.0058" y="1172.28067006611" />
 				<pt x="2222.456" y="1172.39559968753" />
 			</convexhull>
-			<userParam type="string" name="label" value="T202"/>
+			<userParam type="string" name="label" value="T136"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2288.5056</position>
@@ -8399,7 +7151,7 @@
 				<pt x="2286.7695" y="1087.00762903325" />
 				<pt x="2285.0205" y="1086.94458129749" />
 			</convexhull>
-			<userParam type="string" name="label" value="T203"/>
+			<userParam type="string" name="label" value="T137"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2470.7948</position>
@@ -8423,63 +7175,7 @@
 				<pt x="2465.6642" y="2632.70574953144" />
 				<pt x="2463.9564" y="2632.88709914178" />
 			</convexhull>
-			<userParam type="string" name="label" value="T204"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2368.9063</position>
-			<position dim="1">1188.87873564376</position>
-			<intensity>10404.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2366.1922" y="1188.98529056768" />
-				<pt x="2368.0082" y="1188.72442855944" />
-				<pt x="2369.8044" y="1188.77218071983" />
-				<pt x="2371.6025" y="1189.21225524516" />
-				<pt x="2369.8044" y="1188.77218071983" />
-				<pt x="2368.0082" y="1188.72442855944" />
-			</convexhull>
-			<userParam type="string" name="label" value="T205"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2317.0621</position>
-			<position dim="1">1224.93591989412</position>
-			<intensity>12285.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2314.4472" y="1224.98829117803" />
-				<pt x="2316.1886" y="1225.1382193723" />
-				<pt x="2317.9356" y="1224.88354861021" />
-				<pt x="2319.6713" y="1224.3833861829" />
-				<pt x="2317.9356" y="1224.88354861021" />
-				<pt x="2316.1886" y="1225.1382193723" />
-			</convexhull>
-			<userParam type="string" name="label" value="T206"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2297.1265</position>
-			<position dim="1">1713.24322878118</position>
-			<intensity>18210</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2288.5056" y="1713.67886517579" />
-				<pt x="2295.4041" y="1713.24322878118" />
-				<pt x="2297.1265" y="1713.41720580911" />
-				<pt x="2298.845" y="1713.17124905348" />
-				<pt x="2305.7472" y="1713.11310328663" />
-				<pt x="2298.845" y="1713.17124905348" />
-				<pt x="2297.1265" y="1713.41720580911" />
-				<pt x="2295.4041" y="1713.24322878118" />
-			</convexhull>
-			<userParam type="string" name="label" value="T207"/>
+			<userParam type="string" name="label" value="T138"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2406.691</position>
@@ -8503,83 +7199,31 @@
 				<pt x="2404.9536" y="1848.4640609402" />
 				<pt x="2399.7595" y="1848.25426747897" />
 			</convexhull>
-			<userParam type="string" name="label" value="T208"/>
+			<userParam type="string" name="label" value="T139"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2430.3946</position>
-			<position dim="1">2158.43189149058</position>
-			<intensity>9333.81</intensity>
+			<position dim="0">2257.1777</position>
+			<position dim="1">1619.426489426</position>
+			<intensity>27752.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
+			<overallquality>0.857143</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2425.9917" y="2158.45102014631" />
-				<pt x="2429.5107" y="2157.42414311207" />
-				<pt x="2431.2785" y="2158.41276283485" />
-				<pt x="2433.0371" y="2159.12767262503" />
-				<pt x="2431.2785" y="2158.41276283485" />
-				<pt x="2429.5107" y="2157.42414311207" />
+				<pt x="2246.8053" y="1619.620855404" />
+				<pt x="2253.7202" y="1619.72148785073" />
+				<pt x="2255.4493" y="1619.73480114517" />
+				<pt x="2257.1777" y="1619.40675705426" />
+				<pt x="2258.9136" y="1619.24970064806" />
+				<pt x="2264.0944" y="1619.426489426" />
+				<pt x="2267.5597" y="1618.97406925742" />
+				<pt x="2264.0944" y="1619.426489426" />
+				<pt x="2258.9136" y="1619.24970064806" />
+				<pt x="2257.1777" y="1619.40675705426" />
+				<pt x="2255.4493" y="1619.73480114517" />
+				<pt x="2253.7202" y="1619.72148785073" />
 			</convexhull>
-			<userParam type="string" name="label" value="T209"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2386.6642</position>
-			<position dim="1">1609.83996441737</position>
-			<intensity>19228.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2378.745" y="1609.87524838665" />
-				<pt x="2382.2769" y="1609.38306947483" />
-				<pt x="2385.791" y="1610.31038731944" />
-				<pt x="2387.5374" y="1609.82371867426" />
-				<pt x="2391.0357" y="1609.85621016049" />
-				<pt x="2392.784" y="1609.64204426585" />
-				<pt x="2391.0357" y="1609.85621016049" />
-				<pt x="2387.5374" y="1609.82371867426" />
-				<pt x="2385.791" y="1610.31038731944" />
-				<pt x="2382.2769" y="1609.38306947483" />
-			</convexhull>
-			<userParam type="string" name="label" value="T210"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2174.1624</position>
-			<position dim="1">1143.18831008775</position>
-			<intensity>7844.15</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2169.6775" y="1142.87592786248" />
-				<pt x="2173.2572" y="1143.2146176084" />
-				<pt x="2175.0676" y="1143.28357973917" />
-				<pt x="2180.5441" y="1143.1620025671" />
-				<pt x="2175.0676" y="1143.28357973917" />
-				<pt x="2173.2572" y="1143.2146176084" />
-			</convexhull>
-			<userParam type="string" name="label" value="T211"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2495.7991</position>
-			<position dim="1">1973.69582554766</position>
-			<intensity>12621.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2493.2047" y="1973.68773528898" />
-				<pt x="2494.9337" y="1973.70391580634" />
-				<pt x="2496.6645" y="1973.77264818896" />
-				<pt x="2498.3931" y="1973.4481955219" />
-				<pt x="2496.6645" y="1973.77264818896" />
-				<pt x="2494.9337" y="1973.70391580634" />
-			</convexhull>
-			<userParam type="string" name="label" value="T212"/>
+			<userParam type="string" name="label" value="T140"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2317.0621</position>
@@ -8605,7 +7249,7 @@
 				<pt x="2314.4472" y="1092.57718694492" />
 				<pt x="2312.6974" y="1092.64813463343" />
 			</convexhull>
-			<userParam type="string" name="label" value="T213"/>
+			<userParam type="string" name="label" value="T141"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2290.2434</position>
@@ -8629,27 +7273,7 @@
 				<pt x="2288.5056" y="1116.41300791512" />
 				<pt x="2286.7695" y="1116.28955841388" />
 			</convexhull>
-			<userParam type="string" name="label" value="T214"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2425.9917</position>
-			<position dim="1">1454.11976939076</position>
-			<intensity>13683.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2417.1835" y="1454.45634273675" />
-				<pt x="2424.2265" y="1454.11976939076" />
-				<pt x="2425.9917" y="1454.20586583319" />
-				<pt x="2427.7604" y="1454.10715213773" />
-				<pt x="2429.5107" y="1454.0797233617" />
-				<pt x="2427.7604" y="1454.10715213773" />
-				<pt x="2425.9917" y="1454.20586583319" />
-				<pt x="2424.2265" y="1454.11976939076" />
-			</convexhull>
-			<userParam type="string" name="label" value="T215"/>
+			<userParam type="string" name="label" value="T142"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2293.6847</position>
@@ -8673,27 +7297,7 @@
 				<pt x="2291.9613" y="1032.84516181198" />
 				<pt x="2288.5056" y="1032.70822068196" />
 			</convexhull>
-			<userParam type="string" name="label" value="T216"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2380.5096</position>
-			<position dim="1">1463.64529488466</position>
-			<intensity>17768.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2373.3924" y="1463.97886393456" />
-				<pt x="2376.966" y="1464.1724776802" />
-				<pt x="2380.5096" y="1463.56783004686" />
-				<pt x="2385.791" y="1463.64529488466" />
-				<pt x="2387.5374" y="1463.43730072539" />
-				<pt x="2385.791" y="1463.64529488466" />
-				<pt x="2380.5096" y="1463.56783004686" />
-				<pt x="2376.966" y="1464.1724776802" />
-			</convexhull>
-			<userParam type="string" name="label" value="T217"/>
+			<userParam type="string" name="label" value="T143"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2314.4472</position>
@@ -8721,49 +7325,55 @@
 				<pt x="2310.9573" y="1155.08653183232" />
 				<pt x="2298.845" y="1154.99720231661" />
 			</convexhull>
-			<userParam type="string" name="label" value="T218"/>
+			<userParam type="string" name="label" value="T144"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2342.7228</position>
-			<position dim="1">1437.17353484858</position>
-			<intensity>13217.6</intensity>
+			<position dim="0">2462.2518</position>
+			<position dim="1">1859.88674026105</position>
+			<intensity>33259.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
+			<overallquality>0.857143</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2333.8036" y="1437.17353484858" />
-				<pt x="2339.1438" y="1437.42266266288" />
-				<pt x="2342.7228" y="1436.73659585554" />
-				<pt x="2346.298" y="1437.39934584827" />
-				<pt x="2348.0818" y="1437.01664356571" />
-				<pt x="2346.298" y="1437.39934584827" />
-				<pt x="2342.7228" y="1436.73659585554" />
-				<pt x="2339.1438" y="1437.42266266288" />
+				<pt x="2455.4355" y="1859.88674026105" />
+				<pt x="2458.847" y="1859.91315263103" />
+				<pt x="2460.5445" y="1859.7028052018" />
+				<pt x="2462.2518" y="1858.93884407532" />
+				<pt x="2463.9564" y="1859.92830076205" />
+				<pt x="2469.0914" y="1859.92554839176" />
+				<pt x="2474.2214" y="1859.79176340031" />
+				<pt x="2469.0914" y="1859.92554839176" />
+				<pt x="2463.9564" y="1859.92830076205" />
+				<pt x="2462.2518" y="1858.93884407532" />
+				<pt x="2460.5445" y="1859.7028052018" />
+				<pt x="2458.847" y="1859.91315263103" />
 			</convexhull>
-			<userParam type="string" name="label" value="T219"/>
+			<userParam type="string" name="label" value="T145"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2320.5492</position>
-			<position dim="1">1122.91318320989</position>
-			<intensity>17015.9</intensity>
+			<position dim="0">2391.0357</position>
+			<position dim="1">1688.72018724478</position>
+			<intensity>31580.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
+			<overallquality>0.857143</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2316.1886" y="1122.86174591281" />
-				<pt x="2317.9356" y="1122.95620714419" />
-				<pt x="2319.6713" y="1122.9433356212" />
-				<pt x="2321.4271" y="1122.88303079857" />
-				<pt x="2323.1737" y="1122.84252487241" />
-				<pt x="2332.0352" y="1123.03285426241" />
-				<pt x="2323.1737" y="1122.84252487241" />
-				<pt x="2321.4271" y="1122.88303079857" />
-				<pt x="2319.6713" y="1122.9433356212" />
-				<pt x="2317.9356" y="1122.95620714419" />
+				<pt x="2384.0293" y="1688.87788772849" />
+				<pt x="2385.791" y="1689.00494071415" />
+				<pt x="2387.5374" y="1688.70837962174" />
+				<pt x="2391.0357" y="1688.7700723531" />
+				<pt x="2394.5305" y="1688.47418428643" />
+				<pt x="2401.4906" y="1688.65936774787" />
+				<pt x="2403.2204" y="1688.72018724478" />
+				<pt x="2401.4906" y="1688.65936774787" />
+				<pt x="2394.5305" y="1688.47418428643" />
+				<pt x="2391.0357" y="1688.7700723531" />
+				<pt x="2387.5374" y="1688.70837962174" />
+				<pt x="2385.791" y="1689.00494071415" />
 			</convexhull>
-			<userParam type="string" name="label" value="T220"/>
+			<userParam type="string" name="label" value="T146"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2159.018</position>
@@ -8791,99 +7401,7 @@
 				<pt x="2153.7001" y="1748.22461088085" />
 				<pt x="2151.9172" y="1748.54513236792" />
 			</convexhull>
-			<userParam type="string" name="label" value="T221"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2467.3778</position>
-			<position dim="1">2424.07818753103</position>
-			<intensity>12305.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2463.9564" y="2423.30621566325" />
-				<pt x="2465.6642" y="2424.20858802376" />
-				<pt x="2469.0914" y="2424.9975180328" />
-				<pt x="2470.7948" y="2423.9477870383" />
-				<pt x="2469.0914" y="2424.9975180328" />
-				<pt x="2465.6642" y="2424.20858802376" />
-			</convexhull>
-			<userParam type="string" name="label" value="T222"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2440.8744</position>
-			<position dim="1">1407.61671819248</position>
-			<intensity>21876.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2436.5378" y="1407.60879376822" />
-				<pt x="2440.0082" y="1407.95176299381" />
-				<pt x="2441.7406" y="1407.28235594532" />
-				<pt x="2448.6193" y="1407.62464261674" />
-				<pt x="2441.7406" y="1407.28235594532" />
-				<pt x="2440.0082" y="1407.95176299381" />
-			</convexhull>
-			<userParam type="string" name="label" value="T223"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2291.96405</position>
-			<position dim="1">1547.20259144297</position>
-			<intensity>15096.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2288.5056" y="1546.85123072228" />
-				<pt x="2290.2434" y="1547.73332714258" />
-				<pt x="2293.6847" y="1547.47481459424" />
-				<pt x="2295.4041" y="1546.9303682917" />
-				<pt x="2293.6847" y="1547.47481459424" />
-				<pt x="2290.2434" y="1547.73332714258" />
-			</convexhull>
-			<userParam type="string" name="label" value="T224"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2453.7277</position>
-			<position dim="1">1992.1864859855</position>
-			<intensity>14507.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2448.6193" y="1991.95730958534" />
-				<pt x="2452.0246" y="1991.98554623146" />
-				<pt x="2453.7277" y="1992.1864859855" />
-				<pt x="2458.847" y="1993.28229808116" />
-				<pt x="2462.2518" y="1992.46126808391" />
-				<pt x="2458.847" y="1993.28229808116" />
-				<pt x="2453.7277" y="1992.1864859855" />
-				<pt x="2452.0246" y="1991.98554623146" />
-			</convexhull>
-			<userParam type="string" name="label" value="T225"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2440.8744</position>
-			<position dim="1">2243.67150358964</position>
-			<intensity>11450.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2434.7902" y="2243.83576712804" />
-				<pt x="2440.0082" y="2243.87865196971" />
-				<pt x="2441.7406" y="2243.50724005124" />
-				<pt x="2448.6193" y="2243.43216293537" />
-				<pt x="2441.7406" y="2243.50724005124" />
-				<pt x="2440.0082" y="2243.87865196971" />
-			</convexhull>
-			<userParam type="string" name="label" value="T226"/>
+			<userParam type="string" name="label" value="T147"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2157.2435</position>
@@ -8923,105 +7441,7 @@
 				<pt x="2146.596" y="1965.67839479814" />
 				<pt x="2144.8095" y="1965.64859648268" />
 			</convexhull>
-			<userParam type="string" name="label" value="T227"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2363.4705</position>
-			<position dim="1">2220.84764673595</position>
-			<intensity>8026.03</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2357.1125" y="2221.97863613195" />
-				<pt x="2360.7488" y="2220.92247719712" />
-				<pt x="2366.1922" y="2220.77281627479" />
-				<pt x="2368.0082" y="2220.15398181765" />
-				<pt x="2366.1922" y="2220.77281627479" />
-				<pt x="2360.7488" y="2220.92247719712" />
-			</convexhull>
-			<userParam type="string" name="label" value="T228"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2375.1792</position>
-			<position dim="1">1676.72786787399</position>
-			<intensity>11382</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2371.6025" y="1677.15449686982" />
-				<pt x="2373.3924" y="1676.4592869164" />
-				<pt x="2376.966" y="1676.44816165409" />
-				<pt x="2380.5096" y="1676.99644883159" />
-				<pt x="2376.966" y="1676.44816165409" />
-				<pt x="2373.3924" y="1676.4592869164" />
-			</convexhull>
-			<userParam type="string" name="label" value="T229"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2432.1578</position>
-			<position dim="1">1984.97113337027</position>
-			<intensity>10523</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2427.7604" y="1984.79130218128" />
-				<pt x="2431.2785" y="1985.34202387038" />
-				<pt x="2433.0371" y="1985.15096455925" />
-				<pt x="2438.2814" y="1984.60288204643" />
-				<pt x="2433.0371" y="1985.15096455925" />
-				<pt x="2431.2785" y="1985.34202387038" />
-			</convexhull>
-			<userParam type="string" name="label" value="T230"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2288.5056</position>
-			<position dim="1">1180.24123278119</position>
-			<intensity>14106.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2281.5072" y="1180.57834924532" />
-				<pt x="2286.7695" y="1180.20707477525" />
-				<pt x="2288.5056" y="1180.11741063648" />
-				<pt x="2291.9613" y="1180.64380176694" />
-				<pt x="2293.6847" y="1180.24123278119" />
-				<pt x="2291.9613" y="1180.64380176694" />
-				<pt x="2288.5056" y="1180.11741063648" />
-				<pt x="2286.7695" y="1180.20707477525" />
-			</convexhull>
-			<userParam type="string" name="label" value="T231"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2057.6541</position>
-			<position dim="1">1734.10610049194</position>
-			<intensity>19388.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.857143</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2047.0178" y="1734.11321436672" />
-				<pt x="2054.1124" y="1734.07866036476" />
-				<pt x="2055.8863" y="1734.10610049194" />
-				<pt x="2057.6541" y="1734.13568863774" />
-				<pt x="2059.4295" y="1734.11581713966" />
-				<pt x="2061.2051" y="1734.06014279327" />
-				<pt x="2068.3845" y="1734.01454657918" />
-				<pt x="2061.2051" y="1734.06014279327" />
-				<pt x="2059.4295" y="1734.11581713966" />
-				<pt x="2057.6541" y="1734.13568863774" />
-				<pt x="2055.8863" y="1734.10610049194" />
-				<pt x="2054.1124" y="1734.07866036476" />
-			</convexhull>
-			<userParam type="string" name="label" value="T232"/>
+			<userParam type="string" name="label" value="T148"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2290.2434</position>
@@ -9045,25 +7465,7 @@
 				<pt x="2288.5056" y="1147.38931207212" />
 				<pt x="2285.0205" y="1147.41096296477" />
 			</convexhull>
-			<userParam type="string" name="label" value="T233"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2423.3478</position>
-			<position dim="1">1805.00407316149</position>
-			<intensity>10845.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2418.9377" y="1804.78264001819" />
-				<pt x="2420.7039" y="1805.15718083461" />
-				<pt x="2425.9917" y="1804.96538571172" />
-				<pt x="2429.5107" y="1805.04276061126" />
-				<pt x="2425.9917" y="1804.96538571172" />
-				<pt x="2420.7039" y="1805.15718083461" />
-			</convexhull>
-			<userParam type="string" name="label" value="T234"/>
+			<userParam type="string" name="label" value="T149"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2114.24775</position>
@@ -9089,15 +7491,15 @@
 				<pt x="2111.4734" y="1619.30027263627" />
 				<pt x="2107.7148" y="1619.35598998788" />
 			</convexhull>
-			<userParam type="string" name="label" value="T235"/>
+			<userParam type="string" name="label" value="T150"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2036.2596</position>
-			<position dim="1">1733.9980572528</position>
-			<intensity>15491.5</intensity>
+			<position dim="0">2037.17</position>
+			<position dim="1">1734.01203736634</position>
+			<intensity>18007.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.857143</overallquality>
+			<overallquality>0.875</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="2028.7329" y="1733.99483534365" />
@@ -9107,199 +7509,67 @@
 				<pt x="2038.0804" y="1733.99719058137" />
 				<pt x="2041.6855" y="1733.9980572528" />
 				<pt x="2045.2429" y="1733.84673792375" />
+				<pt x="2047.0178" y="1734.11321436672" />
+				<pt x="2045.2429" y="1733.84673792375" />
 				<pt x="2041.6855" y="1733.9980572528" />
 				<pt x="2038.0804" y="1733.99719058137" />
 				<pt x="2036.2596" y="1734.09568537711" />
 				<pt x="2032.5456" y="1734.15769955589" />
 				<pt x="2030.6544" y="1734.02601747989" />
 			</convexhull>
-			<userParam type="string" name="label" value="T236"/>
+			<userParam type="string" name="label" value="T151"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2445.1888</position>
-			<position dim="1">1145.72483582259</position>
-			<intensity>14750</intensity>
+			<position dim="0">2388.4127</position>
+			<position dim="1">1282.90636258903</position>
+			<intensity>22333.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
+			<overallquality>0.875</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2441.7406" y="1145.72580971082" />
-				<pt x="2443.4653" y="1145.72483582259" />
-				<pt x="2445.1888" y="1145.53087617737" />
-				<pt x="2446.9015" y="1145.75380080826" />
-				<pt x="2448.6193" y="1145.64393142432" />
-				<pt x="2446.9015" y="1145.75380080826" />
-				<pt x="2445.1888" y="1145.53087617737" />
-				<pt x="2443.4653" y="1145.72483582259" />
+				<pt x="2375.1887" y="1283.20345103938" />
+				<pt x="2378.745" y="1282.6403330614" />
+				<pt x="2382.2769" y="1282.91468994749" />
+				<pt x="2387.5374" y="1282.77807446893" />
+				<pt x="2389.288" y="1282.90038603096" />
+				<pt x="2391.0357" y="1282.94808240548" />
+				<pt x="2392.784" y="1282.9123391471" />
+				<pt x="2394.5305" y="1282.88011840558" />
+				<pt x="2392.784" y="1282.9123391471" />
+				<pt x="2391.0357" y="1282.94808240548" />
+				<pt x="2389.288" y="1282.90038603096" />
+				<pt x="2387.5374" y="1282.77807446893" />
+				<pt x="2382.2769" y="1282.91468994749" />
+				<pt x="2378.745" y="1282.6403330614" />
 			</convexhull>
-			<userParam type="string" name="label" value="T237"/>
+			<userParam type="string" name="label" value="T152"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2231.2626</position>
-			<position dim="1">2124.14774944556</position>
-			<intensity>12467.2</intensity>
+			<position dim="0">2224.2309</position>
+			<position dim="1">2265.41311142941</position>
+			<intensity>21463.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
+			<overallquality>0.875</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2226.0058" y="2124.1339767821" />
-				<pt x="2229.5196" y="2124.69800659689" />
-				<pt x="2231.2626" y="2124.25569482034" />
-				<pt x="2232.9951" y="2123.91381233398" />
-				<pt x="2234.7232" y="2124.14774944556" />
-				<pt x="2232.9951" y="2123.91381233398" />
-				<pt x="2231.2626" y="2124.25569482034" />
-				<pt x="2229.5196" y="2124.69800659689" />
-			</convexhull>
-			<userParam type="string" name="label" value="T238"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2456.28735</position>
-			<position dim="1">1225.71243994066</position>
-			<intensity>13808.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2452.0246" y="1226.31762012542" />
-				<pt x="2453.7277" y="1225.72417120618" />
-				<pt x="2458.847" y="1225.65238649479" />
-				<pt x="2462.2518" y="1225.70070867514" />
-				<pt x="2458.847" y="1225.65238649479" />
-				<pt x="2453.7277" y="1225.72417120618" />
-			</convexhull>
-			<userParam type="string" name="label" value="T239"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2132.9091</position>
-			<position dim="1">1531.71722349707</position>
-			<intensity>9685.78</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2130.114" y="1532.14686008104" />
-				<pt x="2131.9764" y="1531.80918784914" />
-				<pt x="2133.8418" y="1531.62525914501" />
-				<pt x="2139.3675" y="1531.19563122396" />
-				<pt x="2133.8418" y="1531.62525914501" />
-				<pt x="2131.9764" y="1531.80918784914" />
-			</convexhull>
-			<userParam type="string" name="label" value="T240"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2415.4186</position>
-			<position dim="1">1659.55277269548</position>
-			<intensity>15440.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2410.1664" y="1659.62887332869" />
-				<pt x="2413.6647" y="1658.68774939831" />
-				<pt x="2415.4186" y="1659.55283037868" />
-				<pt x="2417.1835" y="1659.14349885367" />
-				<pt x="2424.2265" y="1659.55277269548" />
-				<pt x="2417.1835" y="1659.14349885367" />
-				<pt x="2415.4186" y="1659.55283037868" />
-				<pt x="2413.6647" y="1658.68774939831" />
-			</convexhull>
-			<userParam type="string" name="label" value="T241"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2405.8223</position>
-			<position dim="1">1826.93463417417</position>
-			<intensity>11204.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2398.0174" y="1826.85441150021" />
-				<pt x="2404.9536" y="1826.57779146149" />
-				<pt x="2406.691" y="1827.09489654663" />
-				<pt x="2408.4245" y="1827.01485684814" />
-				<pt x="2406.691" y="1827.09489654663" />
-				<pt x="2404.9536" y="1826.57779146149" />
-			</convexhull>
-			<userParam type="string" name="label" value="T242"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2479.37985</position>
-			<position dim="1">2129.74455655723</position>
-			<intensity>13132.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2475.9407" y="2128.8435012714" />
-				<pt x="2477.6586" y="2129.77569822016" />
-				<pt x="2481.1011" y="2130.33638700528" />
-				<pt x="2486.2845" y="2129.7134148943" />
-				<pt x="2481.1011" y="2130.33638700528" />
-				<pt x="2477.6586" y="2129.77569822016" />
-			</convexhull>
-			<userParam type="string" name="label" value="T243"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2232.12885</position>
-			<position dim="1">2265.59949831473</position>
-			<intensity>9948.26</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
+				<pt x="2211.6235" y="2265.02278893251" />
+				<pt x="2215.2478" y="2265.24881108263" />
+				<pt x="2220.6669" y="2265.57551448605" />
+				<pt x="2222.456" y="2265.27396279055" />
 				<pt x="2226.0058" y="2266.65849350883" />
 				<pt x="2231.2626" y="2265.55226006827" />
 				<pt x="2232.9951" y="2265.64673656118" />
 				<pt x="2234.7232" y="2265.25927547576" />
 				<pt x="2232.9951" y="2265.64673656118" />
 				<pt x="2231.2626" y="2265.55226006827" />
+				<pt x="2226.0058" y="2266.65849350883" />
+				<pt x="2222.456" y="2265.27396279055" />
+				<pt x="2220.6669" y="2265.57551448605" />
+				<pt x="2215.2478" y="2265.24881108263" />
 			</convexhull>
-			<userParam type="string" name="label" value="T244"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2214.3446</position>
-			<position dim="1">1679.66809613281</position>
-			<intensity>9343.82</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2209.8023" y="1679.1298681727" />
-				<pt x="2213.4414" y="1679.93039835608" />
-				<pt x="2215.2478" y="1680.2926986853" />
-				<pt x="2218.8696" y="1679.40579390953" />
-				<pt x="2215.2478" y="1680.2926986853" />
-				<pt x="2213.4414" y="1679.93039835608" />
-			</convexhull>
-			<userParam type="string" name="label" value="T245"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2122.5978</position>
-			<position dim="1">1744.60661043509</position>
-			<intensity>8016.73</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2118.8877" y="1745.20825444305" />
-				<pt x="2120.7298" y="1744.57994371474" />
-				<pt x="2124.4658" y="1744.63327715544" />
-				<pt x="2128.2381" y="1744.44033541165" />
-				<pt x="2124.4658" y="1744.63327715544" />
-				<pt x="2120.7298" y="1744.57994371474" />
-			</convexhull>
-			<userParam type="string" name="label" value="T246"/>
+			<userParam type="string" name="label" value="T153"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2113.3173</position>
@@ -9327,97 +7597,7 @@
 				<pt x="2109.6008" y="1439.59649537255" />
 				<pt x="2107.7148" y="1439.4538272108" />
 			</convexhull>
-			<userParam type="string" name="label" value="T247"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2235.5887</position>
-			<position dim="1">1258.14718615719</position>
-			<intensity>14844.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2231.2626" y="1258.21418030689" />
-				<pt x="2232.9951" y="1258.23953562176" />
-				<pt x="2238.1823" y="1258.08019200749" />
-				<pt x="2243.3506" y="1257.57865057778" />
-				<pt x="2238.1823" y="1258.08019200749" />
-				<pt x="2232.9951" y="1258.23953562176" />
-			</convexhull>
-			<userParam type="string" name="label" value="T248"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2492.33755</position>
-			<position dim="1">1214.99791803242</position>
-			<intensity>10676.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2486.2845" y="1214.96801943051" />
-				<pt x="2491.4704" y="1214.48949420939" />
-				<pt x="2493.2047" y="1215.04833439518" />
-				<pt x="2494.9337" y="1215.02781663433" />
-				<pt x="2493.2047" y="1215.04833439518" />
-				<pt x="2491.4704" y="1214.48949420939" />
-			</convexhull>
-			<userParam type="string" name="label" value="T249"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2292.823</position>
-			<position dim="1">1116.5525041891</position>
-			<intensity>11264.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2290.2434" y="1116.56724599308" />
-				<pt x="2291.9613" y="1116.53776238511" />
-				<pt x="2293.6847" y="1116.42286239554" />
-				<pt x="2295.4041" y="1116.8931112123" />
-				<pt x="2293.6847" y="1116.42286239554" />
-				<pt x="2291.9613" y="1116.53776238511" />
-			</convexhull>
-			<userParam type="string" name="label" value="T250"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2402.3555</position>
-			<position dim="1">1850.45114798694</position>
-			<intensity>16089.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2399.7595" y="1850.53655125773" />
-				<pt x="2401.4906" y="1850.60249576929" />
-				<pt x="2403.2204" y="1849.96088529902" />
-				<pt x="2410.1664" y="1850.36574471614" />
-				<pt x="2403.2204" y="1849.96088529902" />
-				<pt x="2401.4906" y="1850.60249576929" />
-			</convexhull>
-			<userParam type="string" name="label" value="T251"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2439.1392</position>
-			<position dim="1">2374.45551388861</position>
-			<intensity>15389.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2434.7902" y="2374.72649706623" />
-				<pt x="2436.5378" y="2374.4961934197" />
-				<pt x="2441.7406" y="2374.41483435753" />
-				<pt x="2448.6193" y="2373.75207447942" />
-				<pt x="2441.7406" y="2374.41483435753" />
-				<pt x="2436.5378" y="2374.4961934197" />
-			</convexhull>
-			<userParam type="string" name="label" value="T252"/>
+			<userParam type="string" name="label" value="T154"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2115.1782</position>
@@ -9441,233 +7621,7 @@
 				<pt x="2113.3173" y="1554.54493941817" />
 				<pt x="2111.4734" y="1554.67609075595" />
 			</convexhull>
-			<userParam type="string" name="label" value="T253"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2198.8158</position>
-			<position dim="1">2341.33625687247</position>
-			<intensity>16565.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2189.6732" y="2341.13874770654" />
-				<pt x="2196.9878" y="2341.40528499144" />
-				<pt x="2200.6438" y="2341.35282139361" />
-				<pt x="2202.4805" y="2341.31969235133" />
-				<pt x="2200.6438" y="2341.35282139361" />
-				<pt x="2196.9878" y="2341.40528499144" />
-			</convexhull>
-			<userParam type="string" name="label" value="T254"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2261.4989</position>
-			<position dim="1">2123.77927691791</position>
-			<intensity>14259.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2250.2648" y="2124.12513916105" />
-				<pt x="2253.7202" y="2123.80292563002" />
-				<pt x="2260.6347" y="2123.63155480199" />
-				<pt x="2262.3631" y="2123.74274010222" />
-				<pt x="2264.0944" y="2123.7556282058" />
-				<pt x="2267.5597" y="2123.82227951946" />
-				<pt x="2264.0944" y="2123.7556282058" />
-				<pt x="2262.3631" y="2123.74274010222" />
-				<pt x="2260.6347" y="2123.63155480199" />
-				<pt x="2253.7202" y="2123.80292563002" />
-			</convexhull>
-			<userParam type="string" name="label" value="T255"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2488.01605</position>
-			<position dim="1">2623.04722962345</position>
-			<intensity>10812.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2481.1011" y="2623.11474889587" />
-				<pt x="2486.2845" y="2623.07305147306" />
-				<pt x="2489.7476" y="2623.02140777385" />
-				<pt x="2491.4704" y="2622.84587459336" />
-				<pt x="2489.7476" y="2623.02140777385" />
-				<pt x="2486.2845" y="2623.07305147306" />
-			</convexhull>
-			<userParam type="string" name="label" value="T256"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2414.54925</position>
-			<position dim="1">1860.98951040449</position>
-			<intensity>15774.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2410.1664" y="1860.88812925998" />
-				<pt x="2411.915" y="1861.090891549" />
-				<pt x="2417.1835" y="1861.12592698172" />
-				<pt x="2422.4671" y="1860.75594142096" />
-				<pt x="2417.1835" y="1861.12592698172" />
-				<pt x="2411.915" y="1861.090891549" />
-			</convexhull>
-			<userParam type="string" name="label" value="T257"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2058.5457</position>
-			<position dim="1">1683.57288219043</position>
-			<intensity>10904.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2054.1124" y="1683.24507892883" />
-				<pt x="2055.8863" y="1683.11586881821" />
-				<pt x="2061.2051" y="1683.92559433196" />
-				<pt x="2068.3845" y="1683.90068545203" />
-				<pt x="2061.2051" y="1683.92559433196" />
-				<pt x="2055.8863" y="1683.11586881821" />
-			</convexhull>
-			<userParam type="string" name="label" value="T258"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2200.64995</position>
-			<position dim="1">2472.29028499992</position>
-			<intensity>7778.33</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2195.1597" y="2471.79234604778" />
-				<pt x="2198.8194" y="2472.34953289084" />
-				<pt x="2202.4805" y="2472.23975344239" />
-				<pt x="2206.1445" y="2472.34081655745" />
-				<pt x="2202.4805" y="2472.23975344239" />
-				<pt x="2198.8194" y="2472.34953289084" />
-			</convexhull>
-			<userParam type="string" name="label" value="T259"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2146.596</position>
-			<position dim="1">1656.35268028616</position>
-			<intensity>11982.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2143.0003" y="1656.09966933871" />
-				<pt x="2144.8095" y="1656.30195594408" />
-				<pt x="2146.596" y="1656.41545724541" />
-				<pt x="2151.9172" y="1656.38408541973" />
-				<pt x="2159.018" y="1656.35268028616" />
-				<pt x="2151.9172" y="1656.38408541973" />
-				<pt x="2146.596" y="1656.41545724541" />
-				<pt x="2144.8095" y="1656.30195594408" />
-			</convexhull>
-			<userParam type="string" name="label" value="T260"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2317.9356</position>
-			<position dim="1">962.651228356091</position>
-			<intensity>9415.58</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2314.4472" y="962.561367426134" />
-				<pt x="2316.1886" y="962.716207303201" />
-				<pt x="2317.9356" y="962.716053006967" />
-				<pt x="2321.4271" y="962.651228356091" />
-				<pt x="2324.9325" y="962.595672433799" />
-				<pt x="2321.4271" y="962.651228356091" />
-				<pt x="2317.9356" y="962.716053006967" />
-				<pt x="2316.1886" y="962.716207303201" />
-			</convexhull>
-			<userParam type="string" name="label" value="T261"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2379.6273</position>
-			<position dim="1">1788.39622279483</position>
-			<intensity>10290.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2375.1887" y="1788.31943677416" />
-				<pt x="2378.745" y="1788.27933502721" />
-				<pt x="2380.5096" y="1788.47300881551" />
-				<pt x="2384.0293" y="1788.47901480582" />
-				<pt x="2380.5096" y="1788.47300881551" />
-				<pt x="2378.745" y="1788.27933502721" />
-			</convexhull>
-			<userParam type="string" name="label" value="T262"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2346.298</position>
-			<position dim="1">1505.73049251025</position>
-			<intensity>12070.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2339.1438" y="1505.8189197544" />
-				<pt x="2344.5056" y="1505.73049251025" />
-				<pt x="2346.298" y="1505.09793424939" />
-				<pt x="2349.8774" y="1506.02034102806" />
-				<pt x="2353.4981" y="1505.72042514734" />
-				<pt x="2349.8774" y="1506.02034102806" />
-				<pt x="2346.298" y="1505.09793424939" />
-				<pt x="2344.5056" y="1505.73049251025" />
-			</convexhull>
-			<userParam type="string" name="label" value="T263"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2359.8349</position>
-			<position dim="1">1625.37587919246</position>
-			<intensity>10053.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2355.2934" y="1625.57988717371" />
-				<pt x="2358.921" y="1625.1718712112" />
-				<pt x="2360.7488" y="1624.82811131821" />
-				<pt x="2362.5624" y="1625.80053733949" />
-				<pt x="2360.7488" y="1624.82811131821" />
-				<pt x="2358.921" y="1625.1718712112" />
-			</convexhull>
-			<userParam type="string" name="label" value="T264"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2072.9543</position>
-			<position dim="1">1609.39140597488</position>
-			<intensity>10049</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2066.5774" y="1609.92210323742" />
-				<pt x="2072.0327" y="1609.09288158552" />
-				<pt x="2073.8759" y="1609.38043348043" />
-				<pt x="2079.4235" y="1609.40237846932" />
-				<pt x="2073.8759" y="1609.38043348043" />
-				<pt x="2072.0327" y="1609.09288158552" />
-			</convexhull>
-			<userParam type="string" name="label" value="T265"/>
+			<userParam type="string" name="label" value="T155"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2052.3418</position>
@@ -9707,25 +7661,7 @@
 				<pt x="2043.4598" y="2038.79704943064" />
 				<pt x="2041.6855" y="2039.05711801939" />
 			</convexhull>
-			<userParam type="string" name="label" value="T266"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2321.4225</position>
-			<position dim="1">1263.18552861909</position>
-			<intensity>9456.83</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2314.4472" y="1263.31159146141" />
-				<pt x="2319.6713" y="1262.95066738716" />
-				<pt x="2323.1737" y="1263.10334773269" />
-				<pt x="2324.9325" y="1263.2677095055" />
-				<pt x="2323.1737" y="1263.10334773269" />
-				<pt x="2319.6713" y="1262.95066738716" />
-			</convexhull>
-			<userParam type="string" name="label" value="T267"/>
+			<userParam type="string" name="label" value="T156"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2391.0357</position>
@@ -9749,7 +7685,7 @@
 				<pt x="2387.5374" y="1782.30294241892" />
 				<pt x="2385.791" y="1782.41786745978" />
 			</convexhull>
-			<userParam type="string" name="label" value="T268"/>
+			<userParam type="string" name="label" value="T157"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2117.95775</position>
@@ -9775,79 +7711,7 @@
 				<pt x="2115.1782" y="1689.86755884482" />
 				<pt x="2113.3173" y="1689.77382996366" />
 			</convexhull>
-			<userParam type="string" name="label" value="T269"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2068.3908</position>
-			<position dim="1">1508.02952733756</position>
-			<intensity>8712.05</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2064.7811" y="1508.06921944441" />
-				<pt x="2066.5774" y="1507.9898352307" />
-				<pt x="2070.2042" y="1508.43331801364" />
-				<pt x="2073.8759" y="1507.74844697567" />
-				<pt x="2070.2042" y="1508.43331801364" />
-				<pt x="2066.5774" y="1507.9898352307" />
-			</convexhull>
-			<userParam type="string" name="label" value="T270"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2367.9983</position>
-			<position dim="1">1593.03685817736</position>
-			<intensity>8929.08</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2364.3859" y="1593.63976935892" />
-				<pt x="2366.1922" y="1592.6246081261" />
-				<pt x="2369.8044" y="1593.13245493941" />
-				<pt x="2371.6025" y="1592.94126141531" />
-				<pt x="2369.8044" y="1593.13245493941" />
-				<pt x="2366.1922" y="1592.6246081261" />
-			</convexhull>
-			<userParam type="string" name="label" value="T271"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2168.7858</position>
-			<position dim="1">1471.5017588793</position>
-			<intensity>8712.66</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2166.1232" y="1471.3937604874" />
-				<pt x="2167.8941" y="1471.60975727119" />
-				<pt x="2169.6775" y="1472.16220513529" />
-				<pt x="2175.0676" y="1471.24947065743" />
-				<pt x="2169.6775" y="1472.16220513529" />
-				<pt x="2167.8941" y="1471.60975727119" />
-			</convexhull>
-			<userParam type="string" name="label" value="T272"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2053.2271</position>
-			<position dim="1">1581.35331558368</position>
-			<intensity>10471.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2045.2429" y="1580.97776504239" />
-				<pt x="2052.3418" y="1581.16129775459" />
-				<pt x="2054.1124" y="1581.90467767455" />
-				<pt x="2055.8863" y="1581.54533341277" />
-				<pt x="2054.1124" y="1581.90467767455" />
-				<pt x="2052.3418" y="1581.16129775459" />
-			</convexhull>
-			<userParam type="string" name="label" value="T273"/>
+			<userParam type="string" name="label" value="T158"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2151.92185</position>
@@ -9881,213 +7745,7 @@
 				<pt x="2143.0003" y="1165.24351305456" />
 				<pt x="2141.1918" y="1165.20416606275" />
 			</convexhull>
-			<userParam type="string" name="label" value="T274"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2353.49055</position>
-			<position dim="1">1652.48899871961</position>
-			<intensity>9064.62</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2349.8774" y="1652.52022426689" />
-				<pt x="2351.6877" y="1651.69795519661" />
-				<pt x="2355.2934" y="1652.45777317234" />
-				<pt x="2358.921" y="1653.11293882565" />
-				<pt x="2355.2934" y="1652.45777317234" />
-				<pt x="2351.6877" y="1651.69795519661" />
-			</convexhull>
-			<userParam type="string" name="label" value="T275"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2210.7129</position>
-			<position dim="1">1597.59830684867</position>
-			<intensity>10600.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2204.307" y="1597.35591690152" />
-				<pt x="2209.8023" y="1597.95059949365" />
-				<pt x="2211.6235" y="1597.56863812246" />
-				<pt x="2217.0722" y="1597.62797557487" />
-				<pt x="2211.6235" y="1597.56863812246" />
-				<pt x="2209.8023" y="1597.95059949365" />
-			</convexhull>
-			<userParam type="string" name="label" value="T276"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2206.13865</position>
-			<position dim="1">1708.45298697511</position>
-			<intensity>8186.29</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2202.4805" y="1708.08637129419" />
-				<pt x="2204.307" y="1709.19354590737" />
-				<pt x="2207.9703" y="1707.98884048771" />
-				<pt x="2209.8023" y="1708.81960265602" />
-				<pt x="2207.9703" y="1707.98884048771" />
-				<pt x="2204.307" y="1709.19354590737" />
-			</convexhull>
-			<userParam type="string" name="label" value="T277"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2311.82735</position>
-			<position dim="1">1190.88960105607</position>
-			<intensity>9406.18</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2307.4789" y="1190.87527004151" />
-				<pt x="2310.9573" y="1191.05646739778" />
-				<pt x="2312.6974" y="1190.90393207063" />
-				<pt x="2314.4472" y="1190.81083922477" />
-				<pt x="2312.6974" y="1190.90393207063" />
-				<pt x="2310.9573" y="1191.05646739778" />
-			</convexhull>
-			<userParam type="string" name="label" value="T278"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2080.3596</position>
-			<position dim="1">1225.93609012587</position>
-			<intensity>8013.32</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2075.7091" y="1225.97168503497" />
-				<pt x="2077.5722" y="1225.66904274767" />
-				<pt x="2083.147" y="1225.90049521678" />
-				<pt x="2085.0373" y="1226.37596448422" />
-				<pt x="2083.147" y="1225.90049521678" />
-				<pt x="2077.5722" y="1225.66904274767" />
-			</convexhull>
-			<userParam type="string" name="label" value="T279"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2139.3675</position>
-			<position dim="1">1499.33845986546</position>
-			<intensity>11285.1</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2133.8418" y="1499.51834136476" />
-				<pt x="2137.5334" y="1499.65784512073" />
-				<pt x="2139.3675" y="1499.02507075751" />
-				<pt x="2143.0003" y="1499.33845986546" />
-				<pt x="2150.1436" y="1498.85075428235" />
-				<pt x="2143.0003" y="1499.33845986546" />
-				<pt x="2139.3675" y="1499.02507075751" />
-				<pt x="2137.5334" y="1499.65784512073" />
-			</convexhull>
-			<userParam type="string" name="label" value="T280"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2325.8161</position>
-			<position dim="1">1591.5979362375</position>
-			<intensity>9992.74</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2321.4271" y="1591.71727343223" />
-				<pt x="2324.9325" y="1591.81984481432" />
-				<pt x="2326.6997" y="1591.09361304357" />
-				<pt x="2328.4852" y="1591.47859904277" />
-				<pt x="2326.6997" y="1591.09361304357" />
-				<pt x="2324.9325" y="1591.81984481432" />
-			</convexhull>
-			<userParam type="string" name="label" value="T281"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2066.5828</position>
-			<position dim="1">1313.32608535866</position>
-			<intensity>7182.75</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2062.9985" y="1313.31721616145" />
-				<pt x="2064.7811" y="1312.71557044232" />
-				<pt x="2068.3845" y="1313.48296266014" />
-				<pt x="2070.2042" y="1313.33495455587" />
-				<pt x="2068.3845" y="1313.48296266014" />
-				<pt x="2064.7811" y="1312.71557044232" />
-			</convexhull>
-			<userParam type="string" name="label" value="T282"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2066.5828</position>
-			<position dim="1">1521.36885362644</position>
-			<intensity>12723.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2057.6541" y="1521.15869362567" />
-				<pt x="2062.9985" y="1521.21647616053" />
-				<pt x="2064.7811" y="1521.52123109235" />
-				<pt x="2068.3845" y="1521.7167287551" />
-				<pt x="2072.0327" y="1521.13209922287" />
-				<pt x="2073.8759" y="1521.82534861715" />
-				<pt x="2072.0327" y="1521.13209922287" />
-				<pt x="2068.3845" y="1521.7167287551" />
-				<pt x="2064.7811" y="1521.52123109235" />
-				<pt x="2062.9985" y="1521.21647616053" />
-			</convexhull>
-			<userParam type="string" name="label" value="T283"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2431.2785</position>
-			<position dim="1">1213.66348153572</position>
-			<intensity>12181.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2425.9917" y="1214.20098356863" />
-				<pt x="2427.7604" y="1213.38030807049" />
-				<pt x="2431.2785" y="1213.5716274182" />
-				<pt x="2434.7902" y="1213.68211218984" />
-				<pt x="2438.2814" y="1213.66348153572" />
-				<pt x="2434.7902" y="1213.68211218984" />
-				<pt x="2431.2785" y="1213.5716274182" />
-				<pt x="2427.7604" y="1213.38030807049" />
-			</convexhull>
-			<userParam type="string" name="label" value="T284"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2421.5855</position>
-			<position dim="1">1238.94552897814</position>
-			<intensity>10126.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2415.4186" y="1238.61836459459" />
-				<pt x="2420.7039" y="1239.11697486481" />
-				<pt x="2422.4671" y="1239.01712161974" />
-				<pt x="2427.7604" y="1238.87393633653" />
-				<pt x="2422.4671" y="1239.01712161974" />
-				<pt x="2420.7039" y="1239.11697486481" />
-			</convexhull>
-			<userParam type="string" name="label" value="T285"/>
+			<userParam type="string" name="label" value="T159"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2115.1782</position>
@@ -10115,317 +7773,7 @@
 				<pt x="2111.4734" y="1388.23061156268" />
 				<pt x="2109.6008" y="1388.15162446415" />
 			</convexhull>
-			<userParam type="string" name="label" value="T286"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2319.6713</position>
-			<position dim="1">986.098779314917</position>
-			<intensity>8596.42</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2314.4472" y="986.099761162498" />
-				<pt x="2317.9356" y="986.098779314917" />
-				<pt x="2319.6713" y="985.998108772883" />
-				<pt x="2321.4271" y="986.144080088762" />
-				<pt x="2324.9325" y="985.95238828229" />
-				<pt x="2321.4271" y="986.144080088762" />
-				<pt x="2319.6713" y="985.998108772883" />
-				<pt x="2317.9356" y="986.098779314917" />
-			</convexhull>
-			<userParam type="string" name="label" value="T287"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2167.00865</position>
-			<position dim="1">1162.38778913766</position>
-			<intensity>7719.48</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2162.577" y="1162.16315573383" />
-				<pt x="2166.1232" y="1162.37010153477" />
-				<pt x="2167.8941" y="1162.40547674055" />
-				<pt x="2169.6775" y="1162.55049914685" />
-				<pt x="2167.8941" y="1162.40547674055" />
-				<pt x="2166.1232" y="1162.37010153477" />
-			</convexhull>
-			<userParam type="string" name="label" value="T288"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2316.1886</position>
-			<position dim="1">1010.69308036888</position>
-			<intensity>9971.85</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2307.4789" y="1010.83603460834" />
-				<pt x="2314.4472" y="1010.65589454768" />
-				<pt x="2316.1886" y="1010.67474430428" />
-				<pt x="2317.9356" y="1010.79160441463" />
-				<pt x="2319.6713" y="1010.69308036888" />
-				<pt x="2317.9356" y="1010.79160441463" />
-				<pt x="2316.1886" y="1010.67474430428" />
-				<pt x="2314.4472" y="1010.65589454768" />
-			</convexhull>
-			<userParam type="string" name="label" value="T289"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2156.3588</position>
-			<position dim="1">1661.57947730814</position>
-			<intensity>9030.98</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2151.9172" y="1661.61421578548" />
-				<pt x="2155.4741" y="1661.81941326406" />
-				<pt x="2157.2435" y="1661.27766794253" />
-				<pt x="2160.7929" y="1661.54473883081" />
-				<pt x="2157.2435" y="1661.27766794253" />
-				<pt x="2155.4741" y="1661.81941326406" />
-			</convexhull>
-			<userParam type="string" name="label" value="T290"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2185.10825</position>
-			<position dim="1">1703.89005493255</position>
-			<intensity>9136.58</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2180.5441" y="1703.65376988643" />
-				<pt x="2182.3749" y="1704.0540365206" />
-				<pt x="2187.8416" y="1703.72607334449" />
-				<pt x="2189.6732" y="1704.52894077788" />
-				<pt x="2187.8416" y="1703.72607334449" />
-				<pt x="2182.3749" y="1704.0540365206" />
-			</convexhull>
-			<userParam type="string" name="label" value="T291"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2408.4287</position>
-			<position dim="1">1035.42656773435</position>
-			<intensity>11058.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2401.4906" y="1035.40107656899" />
-				<pt x="2403.2204" y="1035.45205889972" />
-				<pt x="2406.691" y="1035.39415203484" />
-				<pt x="2410.1664" y="1035.34838485474" />
-				<pt x="2411.915" y="1035.50135989458" />
-				<pt x="2418.9377" y="1035.53956265266" />
-				<pt x="2411.915" y="1035.50135989458" />
-				<pt x="2410.1664" y="1035.34838485474" />
-				<pt x="2406.691" y="1035.39415203484" />
-				<pt x="2403.2204" y="1035.45205889972" />
-			</convexhull>
-			<userParam type="string" name="label" value="T292"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2156.3588</position>
-			<position dim="1">1851.27521614794</position>
-			<intensity>12800</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2144.8095" y="1850.36686894146" />
-				<pt x="2150.1436" y="1851.26139454125" />
-				<pt x="2155.4741" y="1851.37420670804" />
-				<pt x="2157.2435" y="1851.135046688" />
-				<pt x="2159.018" y="1851.28903775462" />
-				<pt x="2160.7929" y="1851.61474330241" />
-				<pt x="2159.018" y="1851.28903775462" />
-				<pt x="2157.2435" y="1851.135046688" />
-				<pt x="2155.4741" y="1851.37420670804" />
-				<pt x="2150.1436" y="1851.26139454125" />
-			</convexhull>
-			<userParam type="string" name="label" value="T293"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2084.09215</position>
-			<position dim="1">1596.88725363015</position>
-			<intensity>8030.65</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2079.4235" y="1596.40198353047" />
-				<pt x="2083.147" y="1596.78543716167" />
-				<pt x="2085.0373" y="1596.98907009864" />
-				<pt x="2088.7975" y="1597.14725422635" />
-				<pt x="2085.0373" y="1596.98907009864" />
-				<pt x="2083.147" y="1596.78543716167" />
-			</convexhull>
-			<userParam type="string" name="label" value="T294"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2425.9917</position>
-			<position dim="1">1153.53491671962</position>
-			<intensity>10447.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2420.7039" y="1153.53491671962" />
-				<pt x="2422.4671" y="1153.32615478302" />
-				<pt x="2425.9917" y="1153.57990919622" />
-				<pt x="2427.7604" y="1153.60973547543" />
-				<pt x="2429.5107" y="1153.27218988838" />
-				<pt x="2427.7604" y="1153.60973547543" />
-				<pt x="2425.9917" y="1153.57990919622" />
-				<pt x="2422.4671" y="1153.32615478302" />
-			</convexhull>
-			<userParam type="string" name="label" value="T295"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2290.2434</position>
-			<position dim="1">1007.61582637681</position>
-			<intensity>9009.54</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2286.7695" y="1007.57419702511" />
-				<pt x="2288.5056" y="1007.49042469878" />
-				<pt x="2290.2434" y="1007.64471686243" />
-				<pt x="2291.9613" y="1007.6691429744" />
-				<pt x="2295.4041" y="1007.61582637681" />
-				<pt x="2291.9613" y="1007.6691429744" />
-				<pt x="2290.2434" y="1007.64471686243" />
-				<pt x="2288.5056" y="1007.49042469878" />
-			</convexhull>
-			<userParam type="string" name="label" value="T296"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2297.12455</position>
-			<position dim="1">2567.96635436726</position>
-			<intensity>8598.29</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2291.9613" y="2568.25840177529" />
-				<pt x="2295.4041" y="2567.73443977281" />
-				<pt x="2298.845" y="2568.15809036123" />
-				<pt x="2300.5738" y="2567.77461837329" />
-				<pt x="2298.845" y="2568.15809036123" />
-				<pt x="2295.4041" y="2567.73443977281" />
-			</convexhull>
-			<userParam type="string" name="label" value="T297"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2020.1255</position>
-			<position dim="1">1754.23190670999</position>
-			<intensity>6226.59</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2017.2281" y="1754.25783883279" />
-				<pt x="2019.1601" y="1754.62324530825" />
-				<pt x="2021.0909" y="1754.2059745872" />
-				<pt x="2028.7329" y="1754.15492499835" />
-				<pt x="2021.0909" y="1754.2059745872" />
-				<pt x="2019.1601" y="1754.62324530825" />
-			</convexhull>
-			<userParam type="string" name="label" value="T298"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2039.875</position>
-			<position dim="1">1094.53445763407</position>
-			<intensity>8754.52</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2036.2596" y="1094.53445763407" />
-				<pt x="2038.0804" y="1094.43649457083" />
-				<pt x="2039.875" y="1094.50346931082" />
-				<pt x="2041.6855" y="1094.98568965433" />
-				<pt x="2043.4598" y="1094.68884102599" />
-				<pt x="2041.6855" y="1094.98568965433" />
-				<pt x="2039.875" y="1094.50346931082" />
-				<pt x="2038.0804" y="1094.43649457083" />
-			</convexhull>
-			<userParam type="string" name="label" value="T299"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2303.1576</position>
-			<position dim="1">935.101070926192</position>
-			<intensity>7131.86</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2298.845" y="935.050863612078" />
-				<pt x="2302.294" y="935.151278240305" />
-				<pt x="2304.0212" y="935.263540319476" />
-				<pt x="2310.9573" y="934.830240623217" />
-				<pt x="2304.0212" y="935.263540319476" />
-				<pt x="2302.294" y="935.151278240305" />
-			</convexhull>
-			<userParam type="string" name="label" value="T300"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2234.7232</position>
-			<position dim="1">1133.35455950649</position>
-			<intensity>9489.99</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2226.0058" y="1133.41191037381" />
-				<pt x="2232.9951" y="1133.32185527057" />
-				<pt x="2234.7232" y="1133.35455950649" />
-				<pt x="2236.4495" y="1133.23225251406" />
-				<pt x="2238.1823" y="1133.38413187956" />
-				<pt x="2236.4495" y="1133.23225251406" />
-				<pt x="2234.7232" y="1133.35455950649" />
-				<pt x="2232.9951" y="1133.32185527057" />
-			</convexhull>
-			<userParam type="string" name="label" value="T301"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2055.8863</position>
-			<position dim="1">1825.23757204723</position>
-			<intensity>15047.7</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2047.0178" y="1825.25019640548" />
-				<pt x="2052.3418" y="1825.23757204723" />
-				<pt x="2055.8863" y="1824.81551399515" />
-				<pt x="2057.6541" y="1825.23699931856" />
-				<pt x="2064.7811" y="1825.59117654089" />
-				<pt x="2057.6541" y="1825.23699931856" />
-				<pt x="2055.8863" y="1824.81551399515" />
-				<pt x="2052.3418" y="1825.23757204723" />
-			</convexhull>
-			<userParam type="string" name="label" value="T302"/>
+			<userParam type="string" name="label" value="T160"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2115.1782</position>
@@ -10449,175 +7797,7 @@
 				<pt x="2113.3173" y="1340.434804414" />
 				<pt x="2111.4734" y="1340.38182857693" />
 			</convexhull>
-			<userParam type="string" name="label" value="T303"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2287.63755</position>
-			<position dim="1">983.696749172956</position>
-			<intensity>7772.64</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2285.0205" y="983.696442532536" />
-				<pt x="2286.7695" y="983.697055813377" />
-				<pt x="2288.5056" y="983.698393365924" />
-				<pt x="2290.2434" y="983.452434136485" />
-				<pt x="2288.5056" y="983.698393365924" />
-				<pt x="2286.7695" y="983.697055813377" />
-			</convexhull>
-			<userParam type="string" name="label" value="T304"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2165.23225</position>
-			<position dim="1">1068.02813013712</position>
-			<intensity>7085.07</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2162.577" y="1068.35762387165" />
-				<pt x="2164.3413" y="1067.94781836926" />
-				<pt x="2166.1232" y="1067.98157390289" />
-				<pt x="2169.6775" y="1068.07468637135" />
-				<pt x="2166.1232" y="1067.98157390289" />
-				<pt x="2164.3413" y="1067.94781836926" />
-			</convexhull>
-			<userParam type="string" name="label" value="T305"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2316.1886</position>
-			<position dim="1">898.434786386553</position>
-			<intensity>7268.32</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2310.9573" y="898.447579710252" />
-				<pt x="2312.6974" y="898.434786386553" />
-				<pt x="2316.1886" y="898.45885800888" />
-				<pt x="2317.9356" y="898.339711634396" />
-				<pt x="2323.1737" y="898.427566082785" />
-				<pt x="2317.9356" y="898.339711634396" />
-				<pt x="2316.1886" y="898.45885800888" />
-				<pt x="2312.6974" y="898.434786386553" />
-			</convexhull>
-			<userParam type="string" name="label" value="T306"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2352.5854</position>
-			<position dim="1">1710.35987453117</position>
-			<intensity>9493.35</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2348.0818" y="1709.78275405229" />
-				<pt x="2349.8774" y="1710.54444948764" />
-				<pt x="2355.2934" y="1710.66152508695" />
-				<pt x="2360.7488" y="1710.1752995747" />
-				<pt x="2355.2934" y="1710.66152508695" />
-				<pt x="2349.8774" y="1710.54444948764" />
-			</convexhull>
-			<userParam type="string" name="label" value="T307"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2350.78995</position>
-			<position dim="1">1659.60904662059</position>
-			<intensity>13034.9</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2346.298" y="1659.88663662258" />
-				<pt x="2348.0818" y="1659.68560376038" />
-				<pt x="2353.4981" y="1658.86723386042" />
-				<pt x="2360.7488" y="1659.53248948079" />
-				<pt x="2353.4981" y="1658.86723386042" />
-				<pt x="2348.0818" y="1659.68560376038" />
-			</convexhull>
-			<userParam type="string" name="label" value="T308"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2114.24775</position>
-			<position dim="1">1766.42126070474</position>
-			<intensity>10656.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2109.6008" y="1766.35958054043" />
-				<pt x="2111.4734" y="1766.44940829097" />
-				<pt x="2113.3173" y="1766.54194040575" />
-				<pt x="2115.1782" y="1766.41382509975" />
-				<pt x="2118.8877" y="1766.42869630973" />
-				<pt x="2120.7298" y="1766.38470638718" />
-				<pt x="2118.8877" y="1766.42869630973" />
-				<pt x="2115.1782" y="1766.41382509975" />
-				<pt x="2113.3173" y="1766.54194040575" />
-				<pt x="2111.4734" y="1766.44940829097" />
-			</convexhull>
-			<userParam type="string" name="label" value="T309"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2350.78995</position>
-			<position dim="1">1639.65148140278</position>
-			<intensity>8467.95</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2344.5056" y="1639.696870331" />
-				<pt x="2348.0818" y="1639.76037176968" />
-				<pt x="2353.4981" y="1639.60609247457" />
-				<pt x="2355.2934" y="1639.49651809776" />
-				<pt x="2353.4981" y="1639.60609247457" />
-				<pt x="2348.0818" y="1639.76037176968" />
-			</convexhull>
-			<userParam type="string" name="label" value="T310"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2425.99345</position>
-			<position dim="1">1891.47817846397</position>
-			<intensity>10347.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2418.9377" y="1891.54761539828" />
-				<pt x="2424.2265" y="1891.40874152965" />
-				<pt x="2427.7604" y="1892.35326234734" />
-				<pt x="2429.5107" y="1891.09336147177" />
-				<pt x="2427.7604" y="1892.35326234734" />
-				<pt x="2424.2265" y="1891.40874152965" />
-			</convexhull>
-			<userParam type="string" name="label" value="T311"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2372.49745</position>
-			<position dim="1">2183.83666198496</position>
-			<intensity>14209.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2366.1922" y="2184.06460207414" />
-				<pt x="2371.6025" y="2182.95117110115" />
-				<pt x="2373.3924" y="2183.94333432049" />
-				<pt x="2380.5096" y="2183.72998964943" />
-				<pt x="2373.3924" y="2183.94333432049" />
-				<pt x="2371.6025" y="2182.95117110115" />
-			</convexhull>
-			<userParam type="string" name="label" value="T312"/>
+			<userParam type="string" name="label" value="T161"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2057.6541</position>
@@ -10649,7 +7829,7 @@
 				<pt x="2050.5696" y="2166.09747143742" />
 				<pt x="2048.7927" y="2165.94029181326" />
 			</convexhull>
-			<userParam type="string" name="label" value="T313"/>
+			<userParam type="string" name="label" value="T162"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2062.1018</position>
@@ -10683,193 +7863,7 @@
 				<pt x="2052.3418" y="1156.16565969776" />
 				<pt x="2048.7927" y="1155.84072550101" />
 			</convexhull>
-			<userParam type="string" name="label" value="T314"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2326.70885</position>
-			<position dim="1">1180.72378606944</position>
-			<intensity>7944.43</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2317.9356" y="1180.46191691425" />
-				<pt x="2324.9325" y="1180.63685204936" />
-				<pt x="2328.4852" y="1180.94793285214" />
-				<pt x="2330.2597" y="1180.81072008952" />
-				<pt x="2328.4852" y="1180.94793285214" />
-				<pt x="2324.9325" y="1180.63685204936" />
-			</convexhull>
-			<userParam type="string" name="label" value="T315"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2036.24295</position>
-			<position dim="1">1565.34351173998</position>
-			<intensity>9233.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2028.7329" y="1564.67049127787" />
-				<pt x="2034.4055" y="1565.57629029257" />
-				<pt x="2038.0804" y="1565.11073318739" />
-				<pt x="2039.875" y="1565.61113057691" />
-				<pt x="2038.0804" y="1565.11073318739" />
-				<pt x="2034.4055" y="1565.57629029257" />
-			</convexhull>
-			<userParam type="string" name="label" value="T316"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2036.24295</position>
-			<position dim="1">1507.96117645308</position>
-			<intensity>7524.58</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2030.6544" y="1507.76608095902" />
-				<pt x="2034.4055" y="1507.97120143221" />
-				<pt x="2038.0804" y="1507.95115147395" />
-				<pt x="2043.4598" y="1508.04047867496" />
-				<pt x="2038.0804" y="1507.95115147395" />
-				<pt x="2034.4055" y="1507.97120143221" />
-			</convexhull>
-			<userParam type="string" name="label" value="T317"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2213.43565</position>
-			<position dim="1">1619.89361515802</position>
-			<intensity>9594.77</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2207.9703" y="1619.56493049575" />
-				<pt x="2211.6235" y="1620.37731352905" />
-				<pt x="2215.2478" y="1619.63342868637" />
-				<pt x="2218.8696" y="1620.15380162968" />
-				<pt x="2215.2478" y="1619.63342868637" />
-				<pt x="2211.6235" y="1620.37731352905" />
-			</convexhull>
-			<userParam type="string" name="label" value="T318"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2041.6855</position>
-			<position dim="1">1183.14566553475</position>
-			<intensity>8515.36</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2032.5456" y="1183.42123739922" />
-				<pt x="2039.875" y="1183.01741604776" />
-				<pt x="2041.6855" y="1183.14566553475" />
-				<pt x="2043.4598" y="1183.13798330342" />
-				<pt x="2048.7927" y="1183.22892672934" />
-				<pt x="2043.4598" y="1183.13798330342" />
-				<pt x="2041.6855" y="1183.14566553475" />
-				<pt x="2039.875" y="1183.01741604776" />
-			</convexhull>
-			<userParam type="string" name="label" value="T319"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2332.9194</position>
-			<position dim="1">1171.21239618611</position>
-			<intensity>6759.34</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2328.4852" y="1171.47849788441" />
-				<pt x="2332.0352" y="1171.09336502767" />
-				<pt x="2333.8036" y="1171.33142734455" />
-				<pt x="2339.1438" y="1170.83834836475" />
-				<pt x="2333.8036" y="1171.33142734455" />
-				<pt x="2332.0352" y="1171.09336502767" />
-			</convexhull>
-			<userParam type="string" name="label" value="T320"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2133.8347</position>
-			<position dim="1">1596.16158364958</position>
-			<intensity>7148.16</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2130.114" y="1596.35667809821" />
-				<pt x="2131.9764" y="1595.96648920094" />
-				<pt x="2135.693" y="1595.61854670291" />
-				<pt x="2137.5334" y="1596.48519302215" />
-				<pt x="2135.693" y="1595.61854670291" />
-				<pt x="2131.9764" y="1595.96648920094" />
-			</convexhull>
-			<userParam type="string" name="label" value="T321"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2047.0178</position>
-			<position dim="1">2310.34285622132</position>
-			<intensity>9998.17</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2039.875" y="2310.28070383852" />
-				<pt x="2041.6855" y="2310.34840803259" />
-				<pt x="2047.0178" y="2310.54279986974" />
-				<pt x="2050.5696" y="2310.34285622132" />
-				<pt x="2052.3418" y="2310.25206663948" />
-				<pt x="2050.5696" y="2310.34285622132" />
-				<pt x="2047.0178" y="2310.54279986974" />
-				<pt x="2041.6855" y="2310.34840803259" />
-			</convexhull>
-			<userParam type="string" name="label" value="T322"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2344.5104</position>
-			<position dim="1">1317.38816524241</position>
-			<intensity>7617.28</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2339.1438" y="1317.04182566624" />
-				<pt x="2342.7228" y="1317.85428115952" />
-				<pt x="2346.298" y="1317.24891840803" />
-				<pt x="2353.4981" y="1317.52741207679" />
-				<pt x="2346.298" y="1317.24891840803" />
-				<pt x="2342.7228" y="1317.85428115952" />
-			</convexhull>
-			<userParam type="string" name="label" value="T323"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2113.3173</position>
-			<position dim="1">963.697621344974</position>
-			<intensity>4753.13</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2107.7148" y="963.770306770562" />
-				<pt x="2111.4734" y="963.537818766551" />
-				<pt x="2113.3173" y="963.861844815247" />
-				<pt x="2118.8877" y="963.47072495702" />
-				<pt x="2122.5936" y="963.697621344974" />
-				<pt x="2118.8877" y="963.47072495702" />
-				<pt x="2113.3173" y="963.861844815247" />
-				<pt x="2111.4734" y="963.537818766551" />
-			</convexhull>
-			<userParam type="string" name="label" value="T324"/>
+			<userParam type="string" name="label" value="T163"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">2317.9356</position>
@@ -10893,795 +7887,81 @@
 				<pt x="2316.1886" y="940.412158486891" />
 				<pt x="2314.4472" y="940.144586286467" />
 			</convexhull>
-			<userParam type="string" name="label" value="T325"/>
+			<userParam type="string" name="label" value="T164"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2298.845</position>
-			<position dim="1">978.565537992531</position>
-			<intensity>7010.34</intensity>
+			<position dim="0">2027.78265</position>
+			<position dim="1">1573.44226899368</position>
+			<intensity>11753.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
+			<overallquality>0.875</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2295.4041" y="978.821021365903" />
-				<pt x="2297.1265" y="978.44074334109" />
-				<pt x="2298.845" y="977.958529501913" />
-				<pt x="2300.5738" y="978.565537992531" />
-				<pt x="2304.0212" y="978.700384469398" />
-				<pt x="2300.5738" y="978.565537992531" />
-				<pt x="2298.845" y="977.958529501913" />
-				<pt x="2297.1265" y="978.44074334109" />
-			</convexhull>
-			<userParam type="string" name="label" value="T326"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2074.7925</position>
-			<position dim="1">1154.06415880658</position>
-			<intensity>6205.69</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2070.2042" y="1153.97357436847" />
-				<pt x="2073.8759" y="1154.15474324469" />
-				<pt x="2075.7091" y="1154.62990625529" />
-				<pt x="2079.4235" y="1153.68915919657" />
-				<pt x="2075.7091" y="1154.62990625529" />
-				<pt x="2073.8759" y="1154.15474324469" />
-			</convexhull>
-			<userParam type="string" name="label" value="T327"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2084.09215</position>
-			<position dim="1">1656.44444296605</position>
-			<intensity>6370.88</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2081.286" y="1656.27784321011" />
-				<pt x="2083.147" y="1656.25357478849" />
-				<pt x="2085.0373" y="1656.611042722" />
-				<pt x="2090.6838" y="1657.23792820802" />
-				<pt x="2085.0373" y="1656.611042722" />
-				<pt x="2083.147" y="1656.25357478849" />
-			</convexhull>
-			<userParam type="string" name="label" value="T328"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2011.3685</position>
-			<position dim="1">1850.04057334417</position>
-			<intensity>5608.63</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2005.56" y="1849.64799905949" />
-				<pt x="2009.4288" y="1850.46882421476" />
-				<pt x="2013.3082" y="1850.43314762884" />
-				<pt x="2015.2699" y="1849.55667050009" />
-				<pt x="2013.3082" y="1850.43314762884" />
-				<pt x="2009.4288" y="1850.46882421476" />
-			</convexhull>
-			<userParam type="string" name="label" value="T329"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2331.14745</position>
-			<position dim="1">1753.11650161129</position>
-			<intensity>8385.71</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2323.1737" y="1753.11583723218" />
-				<pt x="2330.2597" y="1753.10110504515" />
-				<pt x="2332.0352" y="1753.37721100326" />
-				<pt x="2333.8036" y="1753.11716599041" />
-				<pt x="2332.0352" y="1753.37721100326" />
-				<pt x="2330.2597" y="1753.10110504515" />
-			</convexhull>
-			<userParam type="string" name="label" value="T330"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2368.89735</position>
-			<position dim="1">1739.28445925799</position>
-			<intensity>9740.66</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2364.3859" y="1739.93990643766" />
-				<pt x="2366.1922" y="1739.45287970128" />
-				<pt x="2371.6025" y="1738.37097724529" />
-				<pt x="2375.1887" y="1739.1160388147" />
-				<pt x="2371.6025" y="1738.37097724529" />
-				<pt x="2366.1922" y="1739.45287970128" />
-			</convexhull>
-			<userParam type="string" name="label" value="T331"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2112.39535</position>
-			<position dim="1">1295.72526775453</position>
-			<intensity>5568.4</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2105.833" y="1295.77012213507" />
-				<pt x="2111.4734" y="1295.56971576873" />
-				<pt x="2113.3173" y="1295.82517974146" />
-				<pt x="2115.1782" y="1295.680413374" />
-				<pt x="2113.3173" y="1295.82517974146" />
-				<pt x="2111.4734" y="1295.56971576873" />
-			</convexhull>
-			<userParam type="string" name="label" value="T332"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2127.2951</position>
-			<position dim="1">1770.0988062956</position>
-			<intensity>6081.17</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2124.4658" y="1770.286504704" />
-				<pt x="2126.3521" y="1769.91110788719" />
-				<pt x="2128.2381" y="1769.53940254184" />
-				<pt x="2135.693" y="1770.63064693606" />
-				<pt x="2128.2381" y="1769.53940254184" />
-				<pt x="2126.3521" y="1769.91110788719" />
-			</convexhull>
-			<userParam type="string" name="label" value="T333"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2094.4914</position>
-			<position dim="1">1626.29545410922</position>
-			<intensity>6263.39</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2090.6838" y="1626.1229496569" />
-				<pt x="2092.5847" y="1625.74262248678" />
-				<pt x="2096.3981" y="1626.476918574" />
-				<pt x="2098.2854" y="1626.46795856154" />
-				<pt x="2096.3981" y="1626.476918574" />
-				<pt x="2092.5847" y="1625.74262248678" />
-			</convexhull>
-			<userParam type="string" name="label" value="T334"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2037.17</position>
-			<position dim="1">931.70438866068</position>
-			<intensity>4782.92</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2034.4055" y="931.81917998824" />
-				<pt x="2036.2596" y="931.636847481559" />
-				<pt x="2038.0804" y="931.523954683755" />
-				<pt x="2039.875" y="931.771929839801" />
-				<pt x="2038.0804" y="931.523954683755" />
-				<pt x="2036.2596" y="931.636847481559" />
-			</convexhull>
-			<userParam type="string" name="label" value="T335"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2031.5692</position>
-			<position dim="1">1573.35571201866</position>
-			<intensity>6379.69</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
+				<pt x="2017.2281" y="1573.52116726919" />
+				<pt x="2019.1601" y="1573.31946412381" />
+				<pt x="2021.0909" y="1574.05472138768" />
 				<pt x="2026.8324" y="1574.13280386429" />
 				<pt x="2028.7329" y="1573.34805331917" />
+				<pt x="2032.5456" y="1574.44763950872" />
 				<pt x="2034.4055" y="1573.36337071816" />
 				<pt x="2041.6855" y="1572.74995454572" />
 				<pt x="2034.4055" y="1573.36337071816" />
+				<pt x="2032.5456" y="1574.44763950872" />
 				<pt x="2028.7329" y="1573.34805331917" />
+				<pt x="2026.8324" y="1574.13280386429" />
+				<pt x="2021.0909" y="1574.05472138768" />
+				<pt x="2019.1601" y="1573.31946412381" />
 			</convexhull>
-			<userParam type="string" name="label" value="T336"/>
+			<userParam type="string" name="label" value="T165"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2117.95775</position>
-			<position dim="1">1214.74918939947</position>
-			<intensity>6109.77</intensity>
+			<position dim="0">2115.1782</position>
+			<position dim="1">1766.42246463833</position>
+			<intensity>12215.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
+			<overallquality>0.857143</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2111.4734" y="1214.64237214742" />
-				<pt x="2117.0278" y="1214.85600665153" />
-				<pt x="2118.8877" y="1214.33243350878" />
-				<pt x="2122.5936" y="1215.2308235127" />
-				<pt x="2118.8877" y="1214.33243350878" />
-				<pt x="2117.0278" y="1214.85600665153" />
+				<pt x="2109.6008" y="1766.35958054043" />
+				<pt x="2111.4734" y="1766.44940829097" />
+				<pt x="2113.3173" y="1766.54194040575" />
+				<pt x="2115.1782" y="1766.41382509975" />
+				<pt x="2118.8877" y="1766.42869630973" />
+				<pt x="2120.7298" y="1766.38470638718" />
+				<pt x="2131.9764" y="1766.42246463833" />
+				<pt x="2120.7298" y="1766.38470638718" />
+				<pt x="2118.8877" y="1766.42869630973" />
+				<pt x="2115.1782" y="1766.41382509975" />
+				<pt x="2113.3173" y="1766.54194040575" />
+				<pt x="2111.4734" y="1766.44940829097" />
 			</convexhull>
-			<userParam type="string" name="label" value="T337"/>
+			<userParam type="string" name="label" value="T166"/>
 		</feature>
 		<feature id="f_0">
-			<position dim="0">2039.875</position>
-			<position dim="1">1018.18319476616</position>
-			<intensity>5845.05</intensity>
+			<position dim="0">2164.3413</position>
+			<position dim="1">859.335843715437</position>
+			<intensity>6549.48</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
+			<overallquality>0.857143</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2034.4055" y="1018.43151326466" />
-				<pt x="2038.0804" y="1018.13309367369" />
-				<pt x="2039.875" y="1018.18319476616" />
-				<pt x="2041.6855" y="1018.0894699664" />
-				<pt x="2047.0178" y="1018.31226996401" />
-				<pt x="2041.6855" y="1018.0894699664" />
-				<pt x="2039.875" y="1018.18319476616" />
-				<pt x="2038.0804" y="1018.13309367369" />
-			</convexhull>
-			<userParam type="string" name="label" value="T338"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2119.8107</position>
-			<position dim="1">1741.29212576084</position>
-			<intensity>6815.64</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2115.1782" y="1741.14804729545" />
-				<pt x="2117.0278" y="1740.94545526276" />
-				<pt x="2122.5936" y="1741.43620422622" />
-				<pt x="2128.2381" y="1742.07399670778" />
-				<pt x="2122.5936" y="1741.43620422622" />
-				<pt x="2117.0278" y="1740.94545526276" />
-			</convexhull>
-			<userParam type="string" name="label" value="T339"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2130.10725</position>
-			<position dim="1">2467.84965749215</position>
-			<intensity>5855.18</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2124.4658" y="2467.84683995755" />
-				<pt x="2128.2381" y="2467.85247502676" />
-				<pt x="2131.9764" y="2468.47082672229" />
-				<pt x="2133.8418" y="2466.79840374532" />
-				<pt x="2131.9764" y="2468.47082672229" />
-				<pt x="2128.2381" y="2467.85247502676" />
-			</convexhull>
-			<userParam type="string" name="label" value="T340"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2063.8898</position>
-			<position dim="1">1128.8399622072</position>
-			<intensity>5552.19</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2059.4295" y="1128.80609860475" />
-				<pt x="2062.9985" y="1128.97635528929" />
-				<pt x="2064.7811" y="1128.78939819728" />
-				<pt x="2070.2042" y="1128.87382580966" />
-				<pt x="2064.7811" y="1128.78939819728" />
-				<pt x="2062.9985" y="1128.97635528929" />
-			</convexhull>
-			<userParam type="string" name="label" value="T341"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2059.4296</position>
-			<position dim="1">1046.3382013743</position>
-			<intensity>5472.21</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2054.1124" y="1046.76469014965" />
-				<pt x="2057.6541" y="1046.23021737219" />
-				<pt x="2061.2051" y="1046.31703364232" />
-				<pt x="2066.5774" y="1046.35936910627" />
-				<pt x="2061.2051" y="1046.31703364232" />
-				<pt x="2057.6541" y="1046.23021737219" />
-			</convexhull>
-			<userParam type="string" name="label" value="T342"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2059.4424</position>
-			<position dim="1">1072.50244114815</position>
-			<intensity>8857.23</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.833333</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2052.3418" y="1072.43456171185" />
-				<pt x="2054.1124" y="1072.57032058446" />
-				<pt x="2055.8863" y="1072.57184100405" />
-				<pt x="2062.9985" y="1072.3735517533" />
-				<pt x="2064.7811" y="1072.34758668631" />
-				<pt x="2068.3845" y="1072.88365557938" />
-				<pt x="2064.7811" y="1072.34758668631" />
-				<pt x="2062.9985" y="1072.3735517533" />
-				<pt x="2055.8863" y="1072.57184100405" />
-				<pt x="2054.1124" y="1072.57032058446" />
-			</convexhull>
-			<userParam type="string" name="label" value="T343"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2134.7674</position>
-			<position dim="1">1407.06162379139</position>
-			<intensity>6563.04</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2128.2381" y="1407.05243430272" />
-				<pt x="2133.8418" y="1407.07081328006" />
-				<pt x="2135.693" y="1406.88544135266" />
-				<pt x="2143.0003" y="1407.21234424208" />
-				<pt x="2135.693" y="1406.88544135266" />
-				<pt x="2133.8418" y="1407.07081328006" />
-			</convexhull>
-			<userParam type="string" name="label" value="T344"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2074.7925</position>
-			<position dim="1">1498.63186746337</position>
-			<intensity>7021.01</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2066.5774" y="1499.0937257333" />
-				<pt x="2073.8759" y="1498.70503334791" />
-				<pt x="2075.7091" y="1498.50267068274" />
-				<pt x="2081.286" y="1498.55870157884" />
-				<pt x="2075.7091" y="1498.50267068274" />
-				<pt x="2073.8759" y="1498.70503334791" />
-			</convexhull>
-			<userParam type="string" name="label" value="T345"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2093.54095</position>
-			<position dim="1">1731.25497301049</position>
-			<intensity>5406.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2088.7975" y="1731.17404686285" />
-				<pt x="2090.6838" y="1731.06831787669" />
-				<pt x="2096.3981" y="1731.33589915813" />
-				<pt x="2100.1645" y="1732.10839443994" />
-				<pt x="2096.3981" y="1731.33589915813" />
-				<pt x="2090.6838" y="1731.06831787669" />
-			</convexhull>
-			<userParam type="string" name="label" value="T346"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2054.11405</position>
-			<position dim="1">2311.73625329893</position>
-			<intensity>7237.29</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2050.5696" y="2310.9241070031" />
-				<pt x="2052.3418" y="2312.00441687881" />
-				<pt x="2055.8863" y="2311.83194154488" />
-				<pt x="2062.9985" y="2311.64056505298" />
-				<pt x="2055.8863" y="2311.83194154488" />
-				<pt x="2052.3418" y="2312.00441687881" />
-			</convexhull>
-			<userParam type="string" name="label" value="T347"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2082.2165</position>
-			<position dim="1">1857.22039980874</position>
-			<intensity>6374.89</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2073.8759" y="1857.59157071014" />
-				<pt x="2081.286" y="1856.59672336284" />
-				<pt x="2083.147" y="1857.25750940738" />
-				<pt x="2085.0373" y="1857.1832902101" />
-				<pt x="2083.147" y="1857.25750940738" />
-				<pt x="2081.286" y="1856.59672336284" />
-			</convexhull>
-			<userParam type="string" name="label" value="T348"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2167.00865</position>
-			<position dim="1">1062.66660120434</position>
-			<intensity>5428.02</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2160.7929" y="1062.59354312596" />
-				<pt x="2166.1232" y="1062.55996603818" />
-				<pt x="2167.8941" y="1063.03584399744" />
-				<pt x="2169.6775" y="1062.73965928272" />
-				<pt x="2167.8941" y="1063.03584399744" />
-				<pt x="2166.1232" y="1062.55996603818" />
-			</convexhull>
-			<userParam type="string" name="label" value="T349"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2020.1255</position>
-			<position dim="1">1518.05929630519</position>
-			<intensity>4994.73</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2017.2281" y="1518.64060926038" />
-				<pt x="2019.1601" y="1518.13719261683" />
-				<pt x="2021.0909" y="1517.90436159224" />
-				<pt x="2028.7329" y="1517.98139999355" />
-				<pt x="2021.0909" y="1517.90436159224" />
-				<pt x="2019.1601" y="1518.13719261683" />
-			</convexhull>
-			<userParam type="string" name="label" value="T350"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2119.80875</position>
-			<position dim="1">1639.54985362912</position>
-			<intensity>6722.69</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2111.4734" y="1639.8857149876" />
-				<pt x="2118.8877" y="1638.70833120903" />
-				<pt x="2120.7298" y="1639.35443756923" />
-				<pt x="2124.4658" y="1639.74526968901" />
-				<pt x="2120.7298" y="1639.35443756923" />
-				<pt x="2118.8877" y="1638.70833120903" />
-			</convexhull>
-			<userParam type="string" name="label" value="T351"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2020.11855</position>
-			<position dim="1">2488.48532876506</position>
-			<intensity>4379.33</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2015.2699" y="2488.36057476919" />
-				<pt x="2017.2281" y="2488.61008276092" />
-				<pt x="2023.009" y="2488.9703619707" />
-				<pt x="2024.9281" y="2488.16190423544" />
-				<pt x="2023.009" y="2488.9703619707" />
-				<pt x="2017.2281" y="2488.61008276092" />
-			</convexhull>
-			<userParam type="string" name="label" value="T352"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2062.1018</position>
-			<position dim="1">975.010117278278</position>
-			<intensity>4196.28</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2057.6541" y="975.098046083108" />
-				<pt x="2061.2051" y="974.922188473448" />
-				<pt x="2062.9985" y="974.641843392838" />
-				<pt x="2070.2042" y="975.173864986707" />
-				<pt x="2062.9985" y="974.641843392838" />
-				<pt x="2061.2051" y="974.922188473448" />
-			</convexhull>
-			<userParam type="string" name="label" value="T353"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2089.74845</position>
-			<position dim="1">1520.43473876583</position>
-			<intensity>5668.2</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2081.286" y="1520.44450763863" />
-				<pt x="2086.9122" y="1520.54624714225" />
-				<pt x="2092.5847" y="1520.30217000522" />
-				<pt x="2094.4898" y="1520.42496989303" />
-				<pt x="2092.5847" y="1520.30217000522" />
-				<pt x="2086.9122" y="1520.54624714225" />
-			</convexhull>
-			<userParam type="string" name="label" value="T354"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2188.7574</position>
-			<position dim="1">967.553539971798</position>
-			<intensity>4666.89</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2184.2134" y="967.541194713286" />
-				<pt x="2187.8416" y="967.274328727166" />
-				<pt x="2189.6732" y="967.849841351708" />
-				<pt x="2195.1597" y="967.56588523031" />
-				<pt x="2189.6732" y="967.849841351708" />
-				<pt x="2187.8416" y="967.274328727166" />
-			</convexhull>
-			<userParam type="string" name="label" value="T355"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2123.5297</position>
-			<position dim="1">1204.51952762416</position>
-			<intensity>4628.71</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2115.1782" y="1204.83764435622" />
-				<pt x="2122.5936" y="1204.77872607585" />
-				<pt x="2124.4658" y="1204.26032917247" />
-				<pt x="2126.3521" y="1204.09654226432" />
-				<pt x="2124.4658" y="1204.26032917247" />
-				<pt x="2122.5936" y="1204.77872607585" />
-			</convexhull>
-			<userParam type="string" name="label" value="T356"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2167.8941</position>
-			<position dim="1">859.478354499394</position>
-			<intensity>5305.37</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
+				<pt x="2153.7001" y="859.335843715437" />
+				<pt x="2160.7929" y="859.210297790116" />
 				<pt x="2162.577" y="859.700218857403" />
-				<pt x="2164.3413" y="859.53654955133" />
+				<pt x="2164.3413" y="859.493353905227" />
 				<pt x="2167.8941" y="859.256709606226" />
 				<pt x="2171.4628" y="859.478354499394" />
 				<pt x="2176.8929" y="859.182566912989" />
 				<pt x="2171.4628" y="859.478354499394" />
 				<pt x="2167.8941" y="859.256709606226" />
-				<pt x="2164.3413" y="859.53654955133" />
+				<pt x="2164.3413" y="859.493353905227" />
+				<pt x="2162.577" y="859.700218857403" />
+				<pt x="2160.7929" y="859.210297790116" />
 			</convexhull>
-			<userParam type="string" name="label" value="T357"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2147.47655</position>
-			<position dim="1">938.620301785365</position>
-			<intensity>3764.88</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2141.1918" y="938.609947085405" />
-				<pt x="2144.8095" y="938.630656485324" />
-				<pt x="2150.1436" y="938.465518259655" />
-				<pt x="2151.9172" y="938.755485741403" />
-				<pt x="2150.1436" y="938.465518259655" />
-				<pt x="2144.8095" y="938.630656485324" />
-			</convexhull>
-			<userParam type="string" name="label" value="T358"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2017.2281</position>
-			<position dim="1">1789.02627227862</position>
-			<intensity>7727.82</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2009.4288" y="1789.84305288878" />
-				<pt x="2011.3569" y="1789.02627227862" />
-				<pt x="2017.2281" y="1789.41957663031" />
-				<pt x="2023.009" y="1788.68121998556" />
-				<pt x="2024.9281" y="1788.23932705816" />
-				<pt x="2023.009" y="1788.68121998556" />
-				<pt x="2017.2281" y="1789.41957663031" />
-				<pt x="2011.3569" y="1789.02627227862" />
-			</convexhull>
-			<userParam type="string" name="label" value="T359"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2098.2813</position>
-			<position dim="1">2469.1487620379</position>
-			<intensity>4432.17</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2088.7975" y="2469.76120257546" />
-				<pt x="2096.3981" y="2468.32313490653" />
-				<pt x="2100.1645" y="2469.20939343836" />
-				<pt x="2102.0551" y="2469.08813063743" />
-				<pt x="2100.1645" y="2469.20939343836" />
-				<pt x="2096.3981" y="2468.32313490653" />
-			</convexhull>
-			<userParam type="string" name="label" value="T360"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2394.5324</position>
-			<position dim="1">813.75628712125</position>
-			<intensity>2986.07</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2391.0357" y="813.546179521949" />
-				<pt x="2392.784" y="814.130512170481" />
-				<pt x="2396.2808" y="813.874197389165" />
-				<pt x="2398.0174" y="813.638376853334" />
-				<pt x="2396.2808" y="813.874197389165" />
-				<pt x="2392.784" y="814.130512170481" />
-			</convexhull>
-			<userParam type="string" name="label" value="T361"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2035.33255</position>
-			<position dim="1">893.707861714664</position>
-			<intensity>3099.24</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2030.6544" y="894.092690148617" />
-				<pt x="2034.4055" y="893.713393403943" />
-				<pt x="2036.2596" y="893.701206879416" />
-				<pt x="2038.0804" y="893.702330025385" />
-				<pt x="2036.2596" y="893.701206879416" />
-				<pt x="2034.4055" y="893.713393403943" />
-			</convexhull>
-			<userParam type="string" name="label" value="T362"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2020.1255</position>
-			<position dim="1">1174.90539175534</position>
-			<intensity>4241.85</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2011.3569" y="1174.39371043385" />
-				<pt x="2019.1601" y="1174.94715390429" />
-				<pt x="2021.0909" y="1174.86362960639" />
-				<pt x="2024.9281" y="1175.31256119487" />
-				<pt x="2021.0909" y="1174.86362960639" />
-				<pt x="2019.1601" y="1174.94715390429" />
-			</convexhull>
-			<userParam type="string" name="label" value="T363"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2025.88025</position>
-			<position dim="1">918.98848470841</position>
-			<intensity>3730.82</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2021.0909" y="919.054431414944" />
-				<pt x="2024.9281" y="918.922538001876" />
-				<pt x="2026.8324" y="919.422402095991" />
-				<pt x="2032.5456" y="918.644362645837" />
-				<pt x="2026.8324" y="919.422402095991" />
-				<pt x="2024.9281" y="918.922538001876" />
-			</convexhull>
-			<userParam type="string" name="label" value="T364"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2258.042</position>
-			<position dim="1">927.036208126382</position>
-			<intensity>6430.59</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2253.7202" y="926.795450609216" />
-				<pt x="2255.4493" y="927.017113052801" />
-				<pt x="2260.6347" y="927.30478116709" />
-				<pt x="2267.5597" y="927.055303199963" />
-				<pt x="2260.6347" y="927.30478116709" />
-				<pt x="2255.4493" y="927.017113052801" />
-			</convexhull>
-			<userParam type="string" name="label" value="T365"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2180.5441</position>
-			<position dim="1">919.315833903132</position>
-			<intensity>3804.5</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.8</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2167.8941" y="919.101325997776" />
-				<pt x="2175.0676" y="919.774586863174" />
-				<pt x="2180.5441" y="919.315833903132" />
-				<pt x="2182.3749" y="919.461139062322" />
-				<pt x="2184.2134" y="918.999067209267" />
-				<pt x="2182.3749" y="919.461139062322" />
-				<pt x="2180.5441" y="919.315833903132" />
-				<pt x="2175.0676" y="919.774586863174" />
-			</convexhull>
-			<userParam type="string" name="label" value="T366"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2023.96855</position>
-			<position dim="1">962.203304503648</position>
-			<intensity>2771.79</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2015.2699" y="962.41064216204" />
-				<pt x="2023.009" y="962.125227141022" />
-				<pt x="2024.9281" y="961.743576605827" />
-				<pt x="2026.8324" y="962.281381866274" />
-				<pt x="2024.9281" y="961.743576605827" />
-				<pt x="2023.009" y="962.125227141022" />
-			</convexhull>
-			<userParam type="string" name="label" value="T367"/>
-		</feature>
-		<feature id="f_0">
-			<position dim="0">2418.0606</position>
-			<position dim="1">809.121195950274</position>
-			<intensity>3384.35</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.75</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="2413.6647" y="809.066085183653" />
-				<pt x="2417.1835" y="809.139613390721" />
-				<pt x="2418.9377" y="809.218569826674" />
-				<pt x="2425.9917" y="809.102778509827" />
-				<pt x="2418.9377" y="809.218569826674" />
-				<pt x="2417.1835" y="809.139613390721" />
-			</convexhull>
-			<userParam type="string" name="label" value="T368"/>
+			<userParam type="string" name="label" value="T167"/>
 		</feature>
 	</featureList>
 </featureMap>
