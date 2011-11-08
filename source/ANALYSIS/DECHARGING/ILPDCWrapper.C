@@ -297,7 +297,7 @@ namespace OpenMS {
       }
       String s = String("c") + count;
       // only allow exactly one charge variant
-      build.addRow(columns, elements, s, 1, 1, LPWrapper::DOUBLE_BOUNDED);
+      build.addRow(columns, elements, s, 1, 1, LPWrapper::FIXED);
     }
 
     LPWrapper::SolverParam param;
