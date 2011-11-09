@@ -122,6 +122,9 @@ namespace OpenMS
     Size addColumn(std::vector<Int> column_indices,std::vector<DoubleReal> column_values,String name);
     /*
       @brief Adds a row with boundaries to the LP matrix, returns index
+
+      If you have a fixed variable, GLPK requires to use the "fixed" type, instead of "double-bounded" with equal bounds.
+
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
     Size addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);

@@ -72,15 +72,13 @@ START_SECTION((static ToolListType getUtilList()))
   ToolListType list = ToolHandler::getUtilList();
   TEST_EQUAL(list.has("ImageCreator"), true)
   TEST_EQUAL(list.has("FFEval"), true)
-  TEST_EQUAL(list.size() > 10, true)  // assume we have over 30 tools in there
+  TEST_EQUAL(list.size() > 10, true)  // assume we have over 10 tools in there
 }
 END_SECTION
 
 START_SECTION((static StringList getTypes(const String &toolname)))
 {
-  StringList  results = StringList::create("4plex,8plex");
-  TEST_EQUAL(ToolHandler::getTypes("ITRAQAnalyzer"), results);
-
+  TEST_EQUAL(ToolHandler::getTypes("ITRAQAnalyzer"), StringList());
   TEST_EQUAL(ToolHandler::getTypes("IDMapper"), StringList());
 }
 END_SECTION
