@@ -517,6 +517,35 @@ START_SECTION(([EXTRA] Test char DPosition))
   TEST_EQUAL(pa < pb, true)
 }
 END_SECTION
+
+START_SECTION(([EXTRA] Test scalar multiplication))
+{
+  DPosition<2> p1(3,4);
+  DPosition<2> p2 = p1 * 5;
+  DPosition<2> p3 = 5 * p1;
+
+  DPosition<2> const pResult(15,20);
+
+  TEST_REAL_SIMILAR(p2[0],pResult[0]);
+  TEST_REAL_SIMILAR(p2[1],pResult[1]);
+
+  TEST_REAL_SIMILAR(p3[0],pResult[0]);
+  TEST_REAL_SIMILAR(p3[1],pResult[1]);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Test scalar division))
+{
+  DPosition<2> p1(15,20);
+  DPosition<2> p2 = p1 / 5;
+  DPosition<2> const pResult(3,4);
+
+  TEST_REAL_SIMILAR(p2[0],pResult[0]);
+  TEST_REAL_SIMILAR(p2[1],pResult[1]);
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

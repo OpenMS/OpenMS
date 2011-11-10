@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_DATASTRUCTURES_DPOSITION_H
@@ -378,34 +378,44 @@ namespace OpenMS
 
 	}; // DPosition
 
-	/// Scalar multiplication (a bit inefficient)
+  /// Scalar multiplication (a bit inefficient)
   template < UInt D, typename TCoordinateType >
   DPosition<D,TCoordinateType> operator *( DPosition<D,TCoordinateType> position, typename DPosition<D,TCoordinateType>::CoordinateType scalar )
-	{
-		for ( Size i = 0; i < D; position[i] *= scalar, ++i )
-			;
-		return position;
-	}
+  {
+    for ( Size i = 0; i < D; position[i] *= scalar, ++i )
+      ;
+    return position;
+  }
 
-	/// Scalar multiplication (a bit inefficient)
+  /// Scalar multiplication (a bit inefficient)
   template < UInt D, typename TCoordinateType >
   DPosition<D,TCoordinateType> operator *( typename DPosition<D,TCoordinateType>::CoordinateType scalar, DPosition<D,TCoordinateType> position )
-	{
-		for ( Size i = 0; i < D; position[i] *= scalar, ++i )
-			;
-		return position;
-	}
-	///Print the contents to a stream.
+  {
+    for ( Size i = 0; i < D; position[i] *= scalar, ++i )
+      ;
+    return position;
+  }
+
+  /// Scalar multiplication (a bit inefficient)
+  template < UInt D, typename TCoordinateType >
+  DPosition<D,TCoordinateType> operator /( DPosition<D,TCoordinateType> position, typename DPosition<D,TCoordinateType>::CoordinateType scalar )
+  {
+    for ( Size i = 0; i < D; position[i] /= scalar, ++i )
+      ;
+    return position;
+  }
+
+  /// Print the contents to a stream.
   template < UInt D, typename TCoordinateType >
   std::ostream& operator <<( std::ostream& os, const DPosition<D,TCoordinateType>& pos )
-	{
-		os << precisionWrapper(pos[0]);
-		for ( UInt i = 1; i < D; ++i )
-		{
-			os << ' ' << precisionWrapper(pos[i]);
-		}
-		return os;
-	}
+  {
+    os << precisionWrapper(pos[0]);
+    for ( UInt i = 1; i < D; ++i )
+    {
+      os << ' ' << precisionWrapper(pos[i]);
+    }
+    return os;
+  }
 
 } // namespace OpenMS
 
