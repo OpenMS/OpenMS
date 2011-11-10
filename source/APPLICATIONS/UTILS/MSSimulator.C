@@ -71,13 +71,21 @@ using namespace std;
     <li>Simulation of different noise models and instrument types (resolution, peak shape)</li>
   </ul>
 
-  Look at the INI file (via "MSSimulator -write_ini myini.ini -type ...") to see the available parameters and more functionality.
+  Look at the INI file (via "MSSimulator -write_ini myini.ini") to see the available parameters and more functionality.
+
+  <h3>Input: FASTA files</h3>
+  Protein sequences can be provided as FASTA file.
+  We allow a special tag in the description of each entry to specify protein abundance.
+  If you want to create a complex FASTA file with a Gaussian protein abundance model in log space,
+  see our Python script shipping with your OpenMS installation (e.g., <OpenMS-dir>/share/OpenMS/examples/simulation/FASTAProteinAbundanceSampling.py).
+  It supports (random) sampling from a large FASTA file, protein weight filtering and adds an
+  intensity tag to each entry.
 
   If multiplexed data is simulated (like SILAC or iTRAQ) you need to supply multiple FASTA input files.
   For the label-free setting, all FASTA input files will be merged into one, before simulation.
 
   <p>
-   Actually only a test model for MS/MS simulation is shipped with OpenMS. <br>
+   For MS/MS simulation only a test model is shipped with OpenMS.<br>
    Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
   </p>
 
