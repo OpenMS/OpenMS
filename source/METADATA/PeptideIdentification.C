@@ -201,8 +201,6 @@ namespace OpenMS {
 
 	void PeptideIdentification::getReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const
 	{
-		peptide_hits.clear();
-
 		for (Size i = 0; i < hits_.size(); ++i)
 		{
 			vector<String>::const_iterator it = hits_[i].getProteinAccessions().begin();
@@ -244,8 +242,6 @@ namespace OpenMS {
 	void PeptideIdentification::getNonReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const
 	{
 		bool found = false;
-
-		peptide_hits.clear();
 
 		for (Size i = 0; i < hits_.size(); ++i)
 		{

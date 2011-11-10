@@ -120,11 +120,13 @@ namespace OpenMS
 			///@name Methods for linking peptide and protein hits
 			//@{
 			
-			/// get all peptide hits which reference to a given protein accession
+      /// finds and inserts all peptide hits which reference to a given protein accession
 			void getReferencingHits(const String& protein_accession, std::vector<PeptideHit>& peptide_hits) const;			
-			/// get all peptide hits which reference to a given list of protein accessions
+
+      /// finds and inserts all peptide hits which reference to a given list of protein accessions
 			void getReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const;
-			/// get all peptide hits which reference to a given list of proteins (via their accessions)
+
+      /// finds and inserts all peptide hits which reference to a given list of proteins (via their accessions)
 			void getReferencingHits(const std::vector<ProteinHit>& protein_hits, std::vector<PeptideHit>& peptide_hits) const;
 
 			/// the complement of the above

@@ -83,6 +83,7 @@ SpectraFilterNLargest
 SpectraFilterNormalizer
 TOFCalibration
 TextExporter
+MzTabExporter
 XTandemAdapter
 InclusionExclusionListCreator
 SpectraMerger

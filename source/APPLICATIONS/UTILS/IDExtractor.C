@@ -220,6 +220,7 @@ class TOPPIDExtractor
 						bool already_chosen = false;
 						for (Size k =0; k < temp_identifications.size(); ++k)
 						{
+              temp_peptide_hits.clear();
 							temp_identifications[k].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
 							if (temp_peptide_hits.size() > 0 && !already_chosen)
 							{
