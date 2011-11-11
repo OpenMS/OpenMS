@@ -46,6 +46,8 @@ namespace OpenMS
     score > significance-threshold * significance_fraction. 
     The filtering by sequences looks for the best ProteinIdentification that
     is contained in one of the protein sequences.
+
+    TODO: fix design of filter functions. There will be an error e.g. if input and output points to the same PeptideIdentification.
   */
   class OPENMS_DLLAPI IDFilter
   {
@@ -165,7 +167,7 @@ namespace OpenMS
 					filtered_identification.assignRanks();  																								
 				}
 			}
-			
+
       /// filters a PeptideIdentification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
 			void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 

@@ -36,6 +36,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -96,7 +97,7 @@ protected:
     setValidFormats_("in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
     registerFlag_("report_all_psm", "Report all peptide spectrum matches of a single spectrum", false);
-  }
+  } 
 
   /// Extracts, if possible a unique protein accession for a peptide hit in mzTab format. Otherwise NA is returned
   static String extractProteinAccession_(const PeptideHit& peptide_hit)
@@ -146,7 +147,6 @@ protected:
     return mods;
   }
 
-
   static String mapSearchEngineToCvParam_(const String& openms_search_engine_name)
   {
     if (openms_search_engine_name == "OMSSA")
@@ -189,10 +189,10 @@ protected:
       s = "[MS,MS:UNKNOWN,Consensus:score,";
     } else if (score_type == "q-value")
     {
-      s = "[MS,MS:UNKOWN,qvalue,";
+      s = "[MS,MS:1001364,pep:global FDR,";
     } else if (score_type == "FDR")
     {
-      s = "[MS,MS:UNKOWN,FDR,";
+      s = "[MS,MS:1001364,pep:global FDR,";
     } else if (score_type == "Posterior Error Probability")
     {
       s = "[MS,MS:UNKOWN,PEP,";
@@ -235,6 +235,127 @@ protected:
      */
   }
 
+  /// Extract protein and peptide identifications for each run. maps are assumed empty.
+  static void partitionIntoRuns(const vector<PeptideIdentification>& pep_ids,
+                           const vector<ProteinIdentification>& pro_ids,
+                           map<String, vector<PeptideIdentification> >& map_run_to_pepids,
+                           map<String, vector<ProteinIdentification> >& map_run_to_proids
+                           )
+  {
+    // IdXML can be merged so we have to deal with several runs
+    // Extract protein and peptide identifications for each run
+    for (Size i = 0; i != pro_ids.size(); ++i)
+    {
+      map_run_to_proids[pro_ids[i].getIdentifier()].push_back(pro_ids[i]);
+    }
+
+    for (Size i = 0; i != pep_ids.size(); ++i)
+    {
+      map_run_to_pepids[pep_ids[i].getIdentifier()].push_back(pep_ids[i]);
+    }
+
+    // perform some sanity check (run ids should be identical)
+    assert(map_run_to_proids.size() == map_run_to_pepids.size());
+    map<String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
+    map<String, vector<ProteinIdentification> >::const_iterator mprot_it = map_run_to_proids.begin();
+    for (; mpep_it != map_run_to_pepids.end(); ++mpep_it, ++mprot_it)
+    {
+      assert(mpep_it->first == mprot_it->first);
+    }
+  }
+
+  /// create links from protein to peptides
+  static void createProteinToPeptideLinks(const map<String, vector<PeptideIdentification> >& map_run_to_pepids)
+  {
+    // create links for each run
+    map< String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
+    map< pair< String, String>, vector<PeptideHit> > map_run_accession_to_pephits;
+    for (; mpep_it != map_run_to_pepids.end(); ++mpep_it)
+    {
+      const String& run = mpep_it->first;
+      const vector<PeptideIdentification>& pids = mpep_it->second;
+      for (Size i = 0; i != pids.size(); ++i)
+      {
+        const std::vector<PeptideHit>& phits = pids[i].getHits();
+        if (phits.size() == 1)
+        {
+          const std::vector<String>& accessions = phits[0].getProteinAccessions();
+          for (Size k = 0; k != accessions.size(); ++k)
+          {
+            const String& accession = accessions[k];
+            std::pair<String, String> key = make_pair(run, accession);
+            map_run_accession_to_pephits[key].push_back(phits[0]);
+          }
+        }
+      }
+    }
+  }
+
+  static String extractNumPeptides(String common_identifier, String protein_accession, const vector<PeptideIdentification>& pep_ids)
+  {
+      std::vector<PeptideHit> peptide_hits;
+
+      // fill vector with peptide hits corresponding to the protein accession
+      for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
+      {
+        // check whether peptide and protein come from the same run
+        if (pit->getIdentifier() == common_identifier)
+        {
+          pit->getReferencingHits(protein_accession, peptide_hits);
+        }
+      }
+      return String(peptide_hits.size());
+  }
+
+  static String extractNumPeptidesDistinct(String common_identifier, String protein_accession, const vector<PeptideIdentification>& pep_ids)
+  {
+      std::vector<PeptideHit> peptide_hits;
+
+      // fill vector with peptide hits corresponding to the protein accession
+      for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
+      {
+        if (pit->getIdentifier() == common_identifier)
+        {
+          pit->getReferencingHits(protein_accession, peptide_hits);
+        }
+      }
+
+      // mzTab distinct peptides are all peptides with different sequence or modification
+      std::set<String> sequences;
+      for (vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
+      {
+        sequences.insert(pet->getSequence().toString()); // AASequence including Modifications
+      }
+
+      return String(sequences.size());
+  }
+
+  static String extractNumPeptidesUnambiguous(String common_identifier, String protein_accession, const vector<PeptideIdentification>& pep_ids)
+  {
+    std::vector<PeptideHit> peptide_hits;
+
+    // fill vector with peptide hits corresponding to the protein accession
+    for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
+    {
+      if (pit->getIdentifier() == common_identifier)
+      {
+        pit->getReferencingHits(protein_accession, peptide_hits);
+      }
+    }
+
+    // mzTab distinct peptides are all peptides with different sequence or modification
+    std::set<String> sequences;
+    for (vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
+    {
+      // only add sequences of unique peptides
+      if (pet->getProteinAccessions().size() == 1)
+      {
+        sequences.insert(pet->getSequence().toUnmodifiedString()); // AASequence without Modifications
+      }
+    }
+
+    return String(sequences.size());
+  }
 
   ExitCodes main_( int, const char** )
   {
@@ -258,6 +379,22 @@ protected:
       vector<PeptideIdentification> pep_ids;
       String document_id;
       IdXMLFile().load( in, prot_ids, pep_ids, document_id );
+
+      // pre-filter for best PSM
+      bool report_all_psm = getFlag_("report_all_psm");
+      IDFilter id_filter;
+      for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin();
+           pep_id_it != pep_ids.end(); ++pep_id_it)
+      {
+        pep_id_it->assignRanks();
+        if (!report_all_psm)
+        {
+          PeptideIdentification new_pep_id;
+          id_filter.filterIdentificationsByBestHits(*pep_id_it, new_pep_id, false);
+          pep_id_it->setHits(new_pep_id.getHits());
+        }
+      }
+
       bool has_coverage = true;
       try
       { // might throw Exception::MissingInformation() if no protein sequence information is added
@@ -355,11 +492,11 @@ protected:
                                                                       prot_id_it->getScoreType());
 
           String reliability = "--";
-          String num_peptides = "TODO";
-          String num_peptides_distinct = "TODO";
-          String num_peptides_unambiguous = "TODO";
-          String ambiguity_members = "TODO";
-          String modifications = "TODO";
+          String num_peptides = extractNumPeptides(prot_id_it->getIdentifier(), accession, pep_ids);
+          String num_peptides_distinct = extractNumPeptidesDistinct(prot_id_it->getIdentifier(), accession, pep_ids);
+          String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id_it->getIdentifier(), accession, pep_ids);
+          String ambiguity_members = "NA";  //TODO
+          String modifications = "NA"; // TODO
           String uri = in;
           String go_terms = "--";
           String protein_coverage;
@@ -410,10 +547,6 @@ protected:
         String database_String = (sp.db != "" ? sp.db : "--");
         String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
 
-        // sort according to score
-        pep_id_it->assignRanks();
-
-        bool report_all_psm = getFlag_("report_all_psm");
         for (vector<PeptideHit>::const_iterator peptide_hit_it = pep_id_it->getHits().begin();
              peptide_hit_it != pep_id_it->getHits().end(); ++peptide_hit_it)
         {
@@ -464,17 +597,10 @@ protected:
                  << modifications << retention_time << charge
                  << mass_to_charge << uri << endl;
 
-          // usually only the best peptide spectrum match is reported
-          if (!report_all_psm)
-          {
-            break;
-          }
-
         }
       }
       txt_out.close();
     }
-
     return EXECUTION_OK;
   }
 };
