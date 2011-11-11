@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
