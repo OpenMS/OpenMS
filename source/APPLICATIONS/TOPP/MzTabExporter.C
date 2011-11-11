@@ -265,11 +265,11 @@ protected:
   }
 
   /// create links from protein to peptides
-  static void createProteinToPeptideLinks(const map<String, vector<PeptideIdentification> >& map_run_to_pepids)
+  static void createProteinToPeptideLinks(const map<String, vector<PeptideIdentification> >& map_run_to_pepids, map< pair< String, String>, vector<PeptideHit> >& map_run_accession_to_pephits)
   {
     // create links for each run
     map< String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
-    map< pair< String, String>, vector<PeptideHit> > map_run_accession_to_pephits;
+
     for (; mpep_it != map_run_to_pepids.end(); ++mpep_it)
     {
       const String& run = mpep_it->first;
@@ -291,34 +291,18 @@ protected:
     }
   }
 
-  static String extractNumPeptides(String common_identifier, String protein_accession, const vector<PeptideIdentification>& pep_ids)
-  {
-      std::vector<PeptideHit> peptide_hits;
 
-      // fill vector with peptide hits corresponding to the protein accession
-      for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
-      {
-        // check whether peptide and protein come from the same run
-        if (pit->getIdentifier() == common_identifier)
-        {
-          pit->getReferencingHits(protein_accession, peptide_hits);
-        }
-      }
+  static String extractNumPeptides(const String& common_identifier, const String& protein_accession,
+                                   const map< pair< String, String>, vector<PeptideHit> >& map_run_accesion_to_peptides)
+  {
+      const std::vector<PeptideHit>& peptide_hits = map_run_accesion_to_peptides.at(make_pair(common_identifier, protein_accession));
       return String(peptide_hits.size());
   }
 
-  static String extractNumPeptidesDistinct(String common_identifier, String protein_accession, const vector<PeptideIdentification>& pep_ids)
+  static String extractNumPeptidesDistinct(String common_identifier, String protein_accession,
+                                           const map< pair< String, String>, vector<PeptideHit> >& map_run_accesion_to_peptides)
   {
-      std::vector<PeptideHit> peptide_hits;
-
-      // fill vector with peptide hits corresponding to the protein accession
-      for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
-      {
-        if (pit->getIdentifier() == common_identifier)
-        {
-          pit->getReferencingHits(protein_accession, peptide_hits);
-        }
-      }
+      const std::vector<PeptideHit>& peptide_hits = map_run_accesion_to_peptides.at(make_pair(common_identifier, protein_accession));
 
       // mzTab distinct peptides are all peptides with different sequence or modification
       std::set<String> sequences;
@@ -330,18 +314,10 @@ protected:
       return String(sequences.size());
   }
 
-  static String extractNumPeptidesUnambiguous(String common_identifier, String protein_accession, const vector<PeptideIdentification>& pep_ids)
+  static String extractNumPeptidesUnambiguous(String common_identifier, String protein_accession,
+                                              const map< pair< String, String>, vector<PeptideHit> >& map_run_accesion_to_peptides)
   {
-    std::vector<PeptideHit> peptide_hits;
-
-    // fill vector with peptide hits corresponding to the protein accession
-    for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
-    {
-      if (pit->getIdentifier() == common_identifier)
-      {
-        pit->getReferencingHits(protein_accession, peptide_hits);
-      }
-    }
+    const std::vector<PeptideHit>& peptide_hits = map_run_accesion_to_peptides.at(make_pair(common_identifier, protein_accession));
 
     // mzTab distinct peptides are all peptides with different sequence or modification
     std::set<String> sequences;
@@ -375,38 +351,55 @@ protected:
 
     if (in_type == FileTypes::IDXML)
     {
-      vector<ProteinIdentification> prot_ids;
-      vector<PeptideIdentification> pep_ids;
+      map<String, vector<PeptideIdentification> > map_run_to_pepids;
+      map<String, vector<ProteinIdentification> > map_run_to_proids;
+
+      map< pair< String, String>, vector<PeptideHit> > map_run_accesion_to_peptides;
+
       String document_id;
-      IdXMLFile().load( in, prot_ids, pep_ids, document_id );
-
-      // pre-filter for best PSM
-      bool report_all_psm = getFlag_("report_all_psm");
-      IDFilter id_filter;
-      for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin();
-           pep_id_it != pep_ids.end(); ++pep_id_it)
-      {
-        pep_id_it->assignRanks();
-        if (!report_all_psm)
-        {
-          PeptideIdentification new_pep_id;
-          id_filter.filterIdentificationsByBestHits(*pep_id_it, new_pep_id, false);
-          pep_id_it->setHits(new_pep_id.getHits());
-        }
-      }
-
       bool has_coverage = true;
-      try
-      { // might throw Exception::MissingInformation() if no protein sequence information is added
-        for (Size i = 0; i < prot_ids.size(); ++i)
-        {
-          prot_ids[i].computeCoverage(pep_ids);
-        }
-      }
-      catch (Exception::MissingInformation& e)
+      Size num_runs = 0;
       {
-        LOG_WARN << e.what() << "\n";
-        has_coverage = false;
+        vector<ProteinIdentification> prot_ids;
+        vector<PeptideIdentification> pep_ids;
+
+        IdXMLFile().load( in, prot_ids, pep_ids, document_id );
+
+        // pre-filter for best PSM
+        bool report_all_psm = getFlag_("report_all_psm");
+        IDFilter id_filter;
+        for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin();
+             pep_id_it != pep_ids.end(); ++pep_id_it)
+        {
+          pep_id_it->assignRanks();
+          if (!report_all_psm)
+          {
+            PeptideIdentification new_pep_id;
+            id_filter.filterIdentificationsByBestHits(*pep_id_it, new_pep_id, false);
+            pep_id_it->setHits(new_pep_id.getHits());
+          }
+        }
+
+        // warn if no coverage information is available
+        try
+        { // might throw Exception::MissingInformation() if no protein sequence information is added
+          for (Size i = 0; i < prot_ids.size(); ++i)
+          {
+            prot_ids[i].computeCoverage(pep_ids);
+          }
+        }
+        catch (Exception::MissingInformation& e)
+        {
+          LOG_WARN << e.what() << "\n";
+          has_coverage = false;
+        }
+
+        // partition into runs (as this could be a merged IdXML)
+        partitionIntoRuns(pep_ids, prot_ids, map_run_to_pepids, map_run_to_proids);
+        num_runs = map_run_to_pepids.size();
+        cout << "IdXML contains: " << num_runs << " runs." << endl;
+
+        createProteinToPeptideLinks(map_run_to_pepids, map_run_accesion_to_peptides);
       }
 
       ofstream txt_out( out.c_str() );
@@ -414,17 +407,25 @@ protected:
 
       // every ProteinIdentification corresponds to a search engine run and contains protein hits
 
-      // write meta data of all runs
-      Size run_count = 0;
+      // write meta data for each run
       bool meta_info_printed = false;
-      for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+      Size run_count = 0;
+      map<String, vector<ProteinIdentification> >::const_iterator mprot_it = map_run_to_proids.begin();
+      map<String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
+
+      for (; mprot_it != map_run_to_proids.end(); ++mprot_it) // iterate over runs
       {
-        String UNIT_ID = File::basename(in) + "-" + String(run_count);
-        String title = document_id;
-        if ( title != "" )
+        // extract ProteinIdentifications of this run (should be only 1)
+        const vector<ProteinIdentification>& prot_ids = mprot_it->second;
+        for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
         {
-          output << "MOD" << UNIT_ID + "-title" << title;
-          meta_info_printed = true;
+          String UNIT_ID = File::basename(in) + "-" + String(run_count);
+          String title = document_id;
+          if ( title != "" )
+          {
+            output << "MOD" << UNIT_ID + "-title" << title;
+            meta_info_printed = true;
+          }
         }
         run_count++;
       }
@@ -446,74 +447,82 @@ protected:
              << "go_terms" << "protein_coverage" << endl;
 
       // write protein table data
-      run_count = 0;
-      for (vector<ProteinIdentification>::const_iterator prot_id_it = prot_ids.begin();
-           prot_id_it != prot_ids.end(); ++prot_id_it, ++run_count)
+      run_count = 0;     
+      mprot_it = map_run_to_proids.begin();
+      mpep_it = map_run_to_pepids.begin();
+      for (; mprot_it != map_run_to_proids.end(); ++mprot_it, ++mpep_it) // iterate over runs
       {
-        // TODO: maybe save these ProteinIdentification run properties in meta data
-        // it->getScoreType()
-        // it->isHigherScoreBetter())
-        // it->getDateTime().toString(Qt::ISODate).toStdString()
-        // it->getSearchEngineVersion();
+        // extract ProteinIdentifications of this run (should be only 1)
+        const vector<ProteinIdentification>& prot_ids = mprot_it->second;
 
-        // search parameters
-        const ProteinIdentification::SearchParameters& sp = prot_id_it->getSearchParameters();
-        // TODO: maybe save these SearchParameters properties in a user param
-        // String charges; ///< The allowed charges for the search
-        // PeakMassType mass_type; ///< Mass type of the peaks
-        // std::vector<String> fixed_modifications; ///< Used fixed modifications
-        // std::vector<String> variable_modifications; ///< Allowed variable modifications
-        // ProteinIdentification::NamesOfDigestionEnzyme[sp.enzyme]
-        // UInt missed_cleavages; ///< The number of allowed missed cleavages
-        // DoubleReal peak_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton)
-        // DoubleReal precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
-
-        // in OpenMS global to a ProteinIdentification
-        String UNIT_ID_String = File::basename(in) + "-" + String(run_count);
-        String database_String = (sp.db != "" ? sp.db : "--");
-        String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
-        String species_String =  (sp.taxonomy != "0" ? sp.taxonomy : "--");
-        String search_engine_cvParams = mapSearchEngineToCvParam_(prot_id_it->getSearchEngine());        
-        String openms_search_engine_name = prot_id_it->getSearchEngine();
-        //
-        for (vector<ProteinHit>::const_iterator protein_hit_it = prot_id_it->getHits().begin();
-             protein_hit_it != prot_id_it->getHits().end(); ++protein_hit_it)
+        for (vector<ProteinIdentification>::const_iterator prot_id_it = prot_ids.begin();
+             prot_id_it != prot_ids.end(); ++prot_id_it, ++run_count)
         {
-          String accession = protein_hit_it->getAccession();
-          String unit_id = UNIT_ID_String; // run specific in OpenMS
-          String description = "--";  // TODO: support description in protein hit
-          String taxid = "--"; // TODO: mapping to NCBI taxid needed
-          String species = species_String; // run specific in OpenMS
-          String database = database_String; // run specific in OpenMS
-          String database_version = database_version_String; // run specific in OpenMS
-          String search_engine = search_engine_cvParams;
-          String search_engine_score = mapSearchEngineScoreToCvParam_(openms_search_engine_name,
-                                                                      protein_hit_it->getScore(),
-                                                                      prot_id_it->getScoreType());
+          // TODO: maybe save these ProteinIdentification run properties in meta data
+          // it->getScoreType()
+          // it->isHigherScoreBetter())
+          // it->getDateTime().toString(Qt::ISODate).toStdString()
+          // it->getSearchEngineVersion();
 
-          String reliability = "--";
-          String num_peptides = extractNumPeptides(prot_id_it->getIdentifier(), accession, pep_ids);
-          String num_peptides_distinct = extractNumPeptidesDistinct(prot_id_it->getIdentifier(), accession, pep_ids);
-          String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id_it->getIdentifier(), accession, pep_ids);
-          String ambiguity_members = "NA";  //TODO
-          String modifications = "NA"; // TODO
-          String uri = in;
-          String go_terms = "--";
-          String protein_coverage;
+          // search parameters
+          const ProteinIdentification::SearchParameters& sp = prot_id_it->getSearchParameters();
+          // TODO: maybe save these SearchParameters properties in a user param
+          // String charges; ///< The allowed charges for the search
+          // PeakMassType mass_type; ///< Mass type of the peaks
+          // std::vector<String> fixed_modifications; ///< Used fixed modifications
+          // std::vector<String> variable_modifications; ///< Allowed variable modifications
+          // ProteinIdentification::NamesOfDigestionEnzyme[sp.enzyme]
+          // UInt missed_cleavages; ///< The number of allowed missed cleavages
+          // DoubleReal peak_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton)
+          // DoubleReal precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
 
-          if (has_coverage)
+          // in OpenMS global to a ProteinIdentification
+          String UNIT_ID_String = File::basename(in) + "-" + String(run_count);
+          String database_String = (sp.db != "" ? sp.db : "--");
+          String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
+          String species_String =  (sp.taxonomy != "0" ? sp.taxonomy : "--");
+          String search_engine_cvParams = mapSearchEngineToCvParam_(prot_id_it->getSearchEngine());
+          String openms_search_engine_name = prot_id_it->getSearchEngine();
+          //
+          for (vector<ProteinHit>::const_iterator protein_hit_it = prot_id_it->getHits().begin();
+               protein_hit_it != prot_id_it->getHits().end(); ++protein_hit_it)
           {
-            protein_coverage = String(protein_hit_it->getCoverage() / 100.0);
-          } else
-          {
-            protein_coverage = "NA";
+            String accession = protein_hit_it->getAccession();
+            String unit_id = UNIT_ID_String; // run specific in OpenMS
+            String description = "--";  // TODO: support description in protein hit
+            String taxid = "--"; // TODO: mapping to NCBI taxid needed
+            String species = species_String; // run specific in OpenMS
+            String database = database_String; // run specific in OpenMS
+            String database_version = database_version_String; // run specific in OpenMS
+            String search_engine = search_engine_cvParams;
+            String search_engine_score = mapSearchEngineScoreToCvParam_(openms_search_engine_name,
+                                                                        protein_hit_it->getScore(),
+                                                                        prot_id_it->getScoreType());
+
+            String reliability = "--";
+            String num_peptides = extractNumPeptides(prot_id_it->getIdentifier(), accession, map_run_accesion_to_peptides);
+            String num_peptides_distinct = extractNumPeptidesDistinct(prot_id_it->getIdentifier(), accession, map_run_accesion_to_peptides);
+            String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id_it->getIdentifier(), accession, map_run_accesion_to_peptides);
+            String ambiguity_members = "NA";  //TODO
+            String modifications = "NA"; // TODO
+            String uri = in;
+            String go_terms = "--";
+            String protein_coverage;
+
+            if (has_coverage)
+            {
+              protein_coverage = String(protein_hit_it->getCoverage() / 100.0);
+            } else
+            {
+              protein_coverage = "NA";
+            }
+
+            output << "PRT" << accession << unit_id << description << taxid
+                   << species << database << database_version << search_engine
+                   << search_engine_score << reliability << num_peptides << num_peptides_distinct
+                   << num_peptides_unambiguous << ambiguity_members << modifications << uri
+                   << go_terms << protein_coverage << endl;
           }
-
-          output << "PRT" << accession << unit_id << description << taxid
-                 << species << database << database_version << search_engine
-                 << search_engine_score << reliability << num_peptides << num_peptides_distinct
-                 << num_peptides_unambiguous << ambiguity_members << modifications << uri
-                 << go_terms << protein_coverage << endl;
         }
       }
 
@@ -524,81 +533,82 @@ protected:
              << "modifications" << "retention_time" << "charge"
              << "mass_to_charge" << "uri" << endl;
 
-      // iterate over runs of peptide identifications
-      for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin();
-           pep_id_it != pep_ids.end(); ++pep_id_it)
-      {        
-        // find the ProteinIdentification corresponding to the current PeptideIdentification
-        String common_identifier = pep_id_it->getIdentifier();
-        for (Size i = 0; i != prot_ids.size(); ++i)
+      run_count = 0;
+      mprot_it = map_run_to_proids.begin();
+      mpep_it = map_run_to_pepids.begin();
+      for (; mpep_it != map_run_to_pepids.end(); ++mprot_it, ++mpep_it, ++run_count) // iterate over runs
+      {
+        // extract ProteinIdentifications of this run (should be only 1)
+        const vector<ProteinIdentification>& prot_ids = mprot_it->second;
+        // extract PeptideIdentifications of this run
+        const vector<PeptideIdentification>& pep_ids = mpep_it->second;
+        // iterate over runs of peptide identifications
+        for (vector<PeptideIdentification>::const_iterator pep_id_it = pep_ids.begin();
+             pep_id_it != pep_ids.end(); ++pep_id_it)
         {
-          if (prot_ids[i].getIdentifier() == common_identifier)
+          // TODO: bad design of Protein/PeptideIdentification as search engine parameters are stored in prot.
+          String openms_search_engine_name = prot_ids[0].getSearchEngine();
+          String search_engine_cvParams = mapSearchEngineToCvParam_(openms_search_engine_name);
+
+          const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
+          String UNIT_ID_String = File::basename(in) + "-" + String(run_count);
+          String database_String = (sp.db != "" ? sp.db : "--");
+          String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
+
+          for (vector<PeptideHit>::const_iterator peptide_hit_it = pep_id_it->getHits().begin();
+               peptide_hit_it != pep_id_it->getHits().end(); ++peptide_hit_it)
           {
-            run_count = i;
+            String sequence = peptide_hit_it->getSequence().toString();
+            String accession = extractProteinAccession_(*peptide_hit_it);
+            String unit_id = UNIT_ID_String;
+            String unique;
+            String database = database_String;
+            String database_version = database_version_String;
+            String search_engine = search_engine_cvParams;
+            String search_engine_score = mapSearchEngineScoreToCvParam_(openms_search_engine_name,
+                                                                        peptide_hit_it->getScore(),
+                                                                        pep_id_it->getScoreType());
+            String modifications = extractPeptideModifications_(*peptide_hit_it); //TODO: check if terminal mods work
+
+            // if unique protein is present peptide can be assigned
+            if (peptide_hit_it->getProteinAccessions().size() == 1)
+            {
+              unique = "1";
+            } else
+            {
+              unique = "0";
+            }
+
+            String retention_time;
+            if (pep_id_it->metaValueExists("RT")) // Note: RT stored on pep_id_it not on hit
+            {
+              retention_time = String::number(String(pep_id_it->getMetaValue("RT")).toDouble(), 2);
+            } else
+            {
+              retention_time = "--";
+            }
+
+            String mass_to_charge;
+            if (pep_id_it->metaValueExists("MZ")) // Note: MZ stored on pep_id_it not on hit
+            {
+              mass_to_charge = String::number(String(pep_id_it->getMetaValue("MZ")).toDouble(), 10);
+            } else
+            {
+              mass_to_charge = "--";
+            }
+
+            String charge = peptide_hit_it->getCharge();
+            String uri = in;
+
+            output << "PEP" << sequence << accession << unit_id << unique << database
+                   << database_version << search_engine << search_engine_score
+                   << modifications << retention_time << charge
+                   << mass_to_charge << uri << endl;
+
           }
-        }
-
-        // TODO: bad design of Protein/PeptideIdentification as search engine parameters are stored in prot.
-        String openms_search_engine_name = prot_ids[run_count].getSearchEngine();
-        String search_engine_cvParams = mapSearchEngineToCvParam_(openms_search_engine_name);
-
-        const ProteinIdentification::SearchParameters& sp = prot_ids[run_count].getSearchParameters();
-        String UNIT_ID_String = File::basename(in) + "-" + String(run_count);
-        String database_String = (sp.db != "" ? sp.db : "--");
-        String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
-
-        for (vector<PeptideHit>::const_iterator peptide_hit_it = pep_id_it->getHits().begin();
-             peptide_hit_it != pep_id_it->getHits().end(); ++peptide_hit_it)
-        {
-          String sequence = peptide_hit_it->getSequence().toString();
-          String accession = extractProteinAccession_(*peptide_hit_it);
-          String unit_id = UNIT_ID_String;
-          String unique;
-          String database = database_String;
-          String database_version = database_version_String;
-          String search_engine = search_engine_cvParams;
-          String search_engine_score = mapSearchEngineScoreToCvParam_(openms_search_engine_name,
-                                                                      peptide_hit_it->getScore(),
-                                                                      pep_id_it->getScoreType());
-          String modifications = extractPeptideModifications_(*peptide_hit_it); //TODO: check if terminal mods work
-
-          // if unique protein is present peptide can be assigned
-          if (peptide_hit_it->getProteinAccessions().size() == 1)
-          {
-            unique = "1";
-          } else
-          {
-            unique = "0";
-          }
-
-          String retention_time;
-          if (pep_id_it->metaValueExists("RT")) // Note: RT stored on pep_id_it not on hit
-          {
-            retention_time = String::number(String(pep_id_it->getMetaValue("RT")).toDouble(), 2);
-          } else
-          {
-            retention_time = "--";
-          }
-
-          String mass_to_charge;
-          if (pep_id_it->metaValueExists("MZ")) // Note: MZ stored on pep_id_it not on hit
-          {
-            mass_to_charge = String::number(String(pep_id_it->getMetaValue("MZ")).toDouble(), 10);
-          } else
-          {
-            mass_to_charge = "--";
-          }
-
-          String charge = peptide_hit_it->getCharge();
-          String uri = in;
-
-          output << "PEP" << sequence << accession << unit_id << unique << database
-                 << database_version << search_engine << search_engine_score
-                 << modifications << retention_time << charge
-                 << mass_to_charge << uri << endl;
-
         }
       }
+
       txt_out.close();
     }
     return EXECUTION_OK;
