@@ -223,8 +223,8 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
       Int length = glp_get_mat_row(lp_problem_, (Int)row_index+1, NULL, NULL); // get row length
-      DoubleReal* values = new DoubleReal[length];
-      Int* indices = new Int[length];
+      DoubleReal* values = new DoubleReal[length+1];
+      Int* indices = new Int[length+1];
       glp_get_mat_row(lp_problem_, (Int)row_index+1, indices, values);
       bool found = false;
       for(Int i = 1;i <= length;++i)
@@ -249,12 +249,12 @@ namespace OpenMS
         n_indices[length+1] = (Int)column_index+1; // glpk starts reading at pos 1
         n_values[length+1] = value;
         glp_set_mat_row(lp_problem_, (Int)row_index+1, length,n_indices, n_values);
-        delete n_indices;
-        delete n_values;
+        delete[] n_indices;
+        delete[] n_values;
       }
       else glp_set_mat_row(lp_problem_,(Int) row_index+1, length,indices, values);
-      delete indices;
-      delete values;
+      delete[] indices;
+      delete[] values;
     }
 #if COINOR_SOLVER==1
     if (solver_==SOLVER_COINOR) model_->setElement(row_index,column_index,value);
@@ -277,8 +277,8 @@ namespace OpenMS
           {
             if(indices[i] == (Int)column_index+1) return values[i];
           }
-        delete indices;
-        delete values;
+        delete[] indices;
+        delete[] values;
         return 0.;
       }
 #if COINOR_SOLVER==1
