@@ -31,7 +31,6 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
@@ -88,19 +87,6 @@ namespace OpenMS
                        const MSExperiment<InputPeakType>& experiment,
 											 std::vector<std::vector<std::pair<Size,Size> > > & indices);
 		
-// 		/**
-// 			 @brief Determines the minimal set of features needed to obtain all
-// 			 protein identifications.
-
-			 
-
-// 		 */
-// 		void computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,
-// 																std::vector<PeptideIdentification>& pep_ids,
-// 																MSExperiment<>& experiment,
-// 																FeatureMap<>& features,
-// 																FeatureMap<>& optimal_set,
-// 																bool filter);
 	private:
 		/**
 			 @brief Calculate the sum of intensities of relevant features for each scan separately.
@@ -120,11 +106,6 @@ namespace OpenMS
 		template <typename InputPeakType>		
 		void checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
 													const MSExperiment<InputPeakType>&experiment);
-
-		std::vector<PeptideIdentification> filterPeptideIds_(std::vector<PeptideIdentification>& pep_ids);
-
-		
-		void updateExclusionList_(std::vector<std::pair<Size,Size> >& exclusion_list);
 
 		template <typename T>
 		void updateExclusionList_(std::vector<std::pair<T,Size> >& exclusion_list);
@@ -426,7 +407,7 @@ namespace OpenMS
 																															 param_.getValue("ms2_spectra_per_rt_bin"),
 																															 solution_indices);
 
-			sort(variable_indices.begin(),variable_indices.end(),PSLPFormulation::FeatureIndexLess());
+			sort(variable_indices.begin(),variable_indices.end(),PSLPFormulation::IndexLess());
 #ifdef DEBUG_OPS
 			std::cout << "best_solution "<<std::endl;
 #endif
