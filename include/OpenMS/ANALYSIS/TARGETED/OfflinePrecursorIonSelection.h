@@ -86,7 +86,7 @@ namespace OpenMS
 		void getMassRanges(const FeatureMap<>& features,
                        const MSExperiment<InputPeakType>& experiment,
 											 std::vector<std::vector<std::pair<Size,Size> > > & indices);
-		
+
 	private:
 		/**
 			 @brief Calculate the sum of intensities of relevant features for each scan separately.
@@ -111,26 +111,8 @@ namespace OpenMS
 		void updateExclusionList_(std::vector<std::pair<T,Size> >& exclusion_list);
 
     void updateExclusionList_(std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list);
-
-		std::map<String,std::vector<Size> > protein_precursor_map_;
   };
 
-	template <typename InputPeakType>
-	bool enclosesRT(const Feature&f, typename MSExperiment<InputPeakType>::CoordinateType rt)
-	{
-		bool enclose_hit=false;
-		const std::vector<ConvexHull2D>& hulls = f.getConvexHulls();
-		for (Size i=0;i<hulls.size();++i)
-		{
-			if (fabs(hulls[i].getBoundingBox().minX()-rt) < 0.01 )
-			{
-				enclose_hit=true;
-        return enclose_hit;
-			}
-		}
-		return enclose_hit;
-	}
-  
 	template <typename InputPeakType>
 	bool enclosesBoundingBox(const Feature&f, typename MSExperiment<InputPeakType>::CoordinateType rt, typename MSExperiment<InputPeakType>::CoordinateType mz)
 	{
@@ -139,38 +121,6 @@ namespace OpenMS
 		for (Size i=0;i<hulls.size();++i)
 		{
 			if (hulls[i].getBoundingBox().encloses(rt, mz))
-			{
-				enclose_hit=true;
-        return enclose_hit;
-			}
-		}
-		return enclose_hit;
-	}
-
-  	template <typename InputPeakType>
-	bool greaterMinPos(const Feature&f, typename MSExperiment<InputPeakType>::CoordinateType rt, typename MSExperiment<InputPeakType>::CoordinateType mz)
-	{
-		bool enclose_hit=false;
-		const std::vector<ConvexHull2D>& hulls = f.getConvexHulls();
-		for (Size i=0;i<hulls.size();++i)
-		{
-			if (fabs(hulls[i].getBoundingBox().minX() - rt) < 0.01 && hulls[i].getBoundingBox().minY() >= mz)
-			{
-				enclose_hit=true;
-        return enclose_hit;
-			}
-		}
-		return enclose_hit;
-	}
-
-	template <typename InputPeakType>
-	bool greaterMaxPos(const Feature&f, typename MSExperiment<InputPeakType>::CoordinateType rt, typename MSExperiment<InputPeakType>::CoordinateType mz)
-	{
-		bool enclose_hit=false;
-		const std::vector<ConvexHull2D>& hulls = f.getConvexHulls();
-		for (Size i=0;i<hulls.size();++i)
-		{
-			if (fabs(hulls[i].getBoundingBox().maxX() - rt) < 0.01 && hulls[i].getBoundingBox().maxY() >= mz)
 			{
 				enclose_hit=true;
         return enclose_hit;
@@ -190,10 +140,9 @@ namespace OpenMS
 
 				for(Size rt = 0; rt < experiment.size();++rt)
 					{
-            if(experiment[rt].getMSLevel() != 1) continue;
 						// is scan relevant?
-						if (!enclosesRT<InputPeakType>(features[f],experiment[rt].getRT())) continue;
-            
+						if (!enclosesBoundingBox<InputPeakType>(features[f],experiment[rt].getRT(),features[f].getMZ())) continue;
+
 						std::pair<Size,Size> start;
 						std::pair<Size,Size> end;
 						bool start_found = false;
@@ -201,22 +150,17 @@ namespace OpenMS
 						typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
 						typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
 						if(mz_iter == experiment[rt].end()) continue;
-            // check for starting point
-						while(greaterMinPos<InputPeakType>(features[f],experiment[rt].getRT(),mz_iter->getMZ()))
+						// check to the left
+						while(enclosesBoundingBox<InputPeakType>(features[f],experiment[rt].getRT(),mz_iter->getMZ()))
 							{
-								if(mz_iter == experiment[rt].end()) break;
-								++mz_iter;
+								start_found = true;
+								start.first = rt;
+								start.second = distance(experiment[rt].begin(),mz_iter);
+								if(mz_iter == experiment[rt].begin()) break;
+								--mz_iter;
 							}
-            
-            if(mz_iter!=experiment[rt].end())
-              {
-                start_found = true;
-                start.first = rt;
-                start.second = distance(experiment[rt].begin(),mz_iter);
-              }
-            mz_end = mz_iter;
 						// and now to the right
-						while(mz_end != experiment[rt].end() && greaterMaxPos<InputPeakType>(features[f], experiment[rt].getRT(),mz_end->getMZ()))
+						while(mz_end != experiment[rt].end() && enclosesBoundingBox<InputPeakType>(features[f], experiment[rt].getRT(),mz_end->getMZ()))
 							{
 								end_found = true;
 								end.first = rt;
@@ -228,44 +172,14 @@ namespace OpenMS
 								vec.push_back(start);
 								vec.push_back(end);
 							}
-            //#ifdef DEBUG_OPS
+#ifdef DEBUG_OPS
 						else
 							{
 								std::cout << "start "<<start_found<<" end "<<end_found<<std::endl;
-								std::cout << "feature: "<<f << " rt: "<<experiment[rt].getRT() << " mz: "<<features[f].getMZ()
-                          << std::endl;
-                const std::vector<ConvexHull2D>& hulls = features[f].getConvexHulls();
-                for (Size i=0;i<hulls.size();++i)
-                  {
-                    if(fabs(hulls[i].getBoundingBox().maxX()-experiment[rt].getRT()) < 0.01)
-                      {
-                        std::cout << hulls[i].getBoundingBox().minPosition() << " "
-                                  << hulls[i].getBoundingBox().maxPosition() << " "
-                                  << *(mz_end) << std::endl;
-                        std::cout << hulls[i].getBoundingBox().maxX() << " ==? "
-                                  << experiment[rt].getRT() << " && "<< hulls[i].getBoundingBox().maxY()
-                                  << " >= " << mz_end->getMZ()
-                                  << " || " << hulls[i].getBoundingBox().minY()
-                                  << " <= " << mz_iter->getMZ() << std::endl;
-                      }
-                  }
+								std::cout << "feature: "<<f << " rt: "<<rt<<std::endl;
 							}
-            //#endif
-
+#endif
 					}
-          if(vec.empty())
-          {
-            std::cout << "no mass trace for "<<features[f].getRT()<< " "
-                      << features[f].getMZ();//<< std::endl;
-            bool rt_found = false;
-            for(Size rt = 0; rt < experiment.size();++rt)
-              {
-                if (!enclosesRT<InputPeakType>(features[f],experiment[rt].getRT())) continue;
-                rt_found = true;
-                break;
-              }
-            std::cout << " rt_found "<<rt_found << std::endl;
-          }
 #ifdef DEBUG_OPS
 				if(vec.size()>0)
 					{
@@ -278,7 +192,7 @@ namespace OpenMS
 							}
 					}
 #endif
-				if(vec.empty())
+        if(vec.empty())
 					{
 						std::cout << "According to the convex hulls no mass traces found for this feature->estimate!"
 											<< features[f].getRT() << " "<<features[f].getMZ()<<" "<<features[f].getCharge()<<std::endl; 
@@ -327,10 +241,11 @@ namespace OpenMS
 						vec.push_back(start);
 						vec.push_back(end);
 					}
+
 				indices.push_back(vec);
 			}
 		// eliminate nearby peaks
-                if(param_.getValue("exclude_overlapping_peaks")=="true") checkMassRanges_(indices,experiment);
+    if(param_.getValue("exclude_overlapping_peaks")=="true") checkMassRanges_(indices,experiment);
 	}
 
 
@@ -435,7 +350,6 @@ namespace OpenMS
 				ms2.push_back(ms2_spec);
 				std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
 
-				sort(variable_indices.begin(),variable_indices.end(),PSLPFormulation::VariableIndexLess());
 			}
 #ifdef DEBUG_OPS
 			std::cout << solution_indices.size() << " out of " << features.size()
