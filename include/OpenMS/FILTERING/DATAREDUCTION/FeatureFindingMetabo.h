@@ -204,6 +204,7 @@ namespace OpenMS
         /// private member functions
         DoubleReal scoreMZ_(DoubleReal, DoubleReal, Size, Size);
         DoubleReal scoreRT_(DoubleReal, DoubleReal);
+        DoubleReal scoreTraceSim_(MassTrace, MassTrace);
         DoubleReal scoreIntRatio_(DoubleReal, DoubleReal, Size);
         void findLocalFeatures_(std::vector<MassTrace*>&, std::vector<FeatureHypothesis>&);
 

@@ -38,7 +38,7 @@ namespace OpenMS
     ElutionPeakDetection::ElutionPeakDetection()
         : DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
     {
-        defaults_.setValue("window_size", 5, "Number of neighbouring values in each direction that have to be exceeded to be considered a local maximum");
+        defaults_.setValue( "chrom_fwhm" , 3.0 , "Lower bound for FWHM (in seconds) of a chromatographic peak");
         defaults_.setValue("width_filtering", "false", "Enable filtering of unlikely peak widths");
         defaults_.setValidStrings("width_filtering", StringList::create(("false,true")));
 
@@ -80,7 +80,7 @@ namespace OpenMS
         {
             DoubleReal fwhm(mt_vec[i].estimateFWHM());
 
-            if (fwhm > 1.0) {
+            if (fwhm >= chrom_fwhm_) {
                 histo_map.insert(std::make_pair(fwhm, i));
             }
         }
@@ -241,7 +241,7 @@ namespace OpenMS
 
     void ElutionPeakDetection::updateMembers_()
     {
-        window_size_ = (Size)param_.getValue("window_size");
+        chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
         pw_filtering_ = param_.getValue("width_filtering");
     }
 

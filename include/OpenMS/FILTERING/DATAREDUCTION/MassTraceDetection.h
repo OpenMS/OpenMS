@@ -47,6 +47,8 @@ namespace OpenMS
         virtual ~MassTraceDetection();
 
 
+        void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
+
         /// main method of MassTraceDetection
         void run(const MSExperiment<Peak1D>&, std::vector<MassTrace>&);
 

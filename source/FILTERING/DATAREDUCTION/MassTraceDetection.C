@@ -32,6 +32,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <numeric>
 #include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
@@ -45,7 +46,7 @@ namespace OpenMS
         defaults_.setValue( "mass_error_ppm" , 20.0 , "Allowed mass deviation (in ppm)");
         defaults_.setValue( "noise_threshold_int" , 10.0 , "Intensity threshold below which peaks are removed as noise");
         defaults_.setValue( "chrom_apex_snt" , 3.0 , "Minimum signal-to-noise a mass trace should have");
-        defaults_.setValue( "chrom_fwhm" , 10.0 , "Minimum FWHM (in seconds) a chromatographic peak should have");
+        defaults_.setValue( "chrom_fwhm" , 3.0 , "Lower bound for FWHM (in seconds) of a chromatographic peak");
         defaults_.setValue( "min_sample_rate" , 0.5 , "Minimum sampling rate of a mass trace");
 
         defaultsToParam_();
@@ -57,6 +58,91 @@ namespace OpenMS
     {
 
     }
+
+    void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces)
+    {
+        std::multimap<Size, Size> histo_map;
+
+        for (Size i = 0; i < mt_vec.size(); ++i)
+        {
+            DoubleReal fwhm(mt_vec[i].getRoughFWHM());
+
+            if (fwhm > chrom_fwhm_) {
+                histo_map.insert(std::make_pair(fwhm, i));
+            }
+        }
+
+        // compute median peak width
+        std::vector<DoubleReal> pw_vec;
+        std::vector<Size> pw_idx_vec;
+
+        for (std::multimap<Size, Size>::const_iterator c_it = histo_map.begin(); c_it != histo_map.end(); ++c_it)
+        {
+            pw_vec.push_back(c_it->first);
+            pw_idx_vec.push_back(c_it->second);
+        }
+
+        //        Size pw_vec_size = pw_vec.size();
+        //        DoubleReal pw_median(0.0);
+
+        //        if ((pw_vec_size % 2) == 0)
+        //        {
+        //            pw_median = (pw_vec[std::floor(pw_vec_size/2.0) - 1] +  pw_vec[std::floor(pw_vec_size/2.0)])/2;
+        //        }
+        //        else
+        //        {
+        //            pw_median = pw_vec[std::floor(pw_vec_size/2.0)];
+        //        }
+
+        // compute 97,725% quantile
+
+        Size lower_idx(0);
+        Size upper_idx(pw_vec.size());
+
+
+        DoubleReal bin_width(1.0/(DoubleReal)pw_vec.size());
+
+        lower_idx = std::floor(0.02275/bin_width);
+        upper_idx = std::floor(0.97725/bin_width);
+
+        std::cout << "rough lower: " << pw_vec[lower_idx] << " upper: " << pw_vec[upper_idx] << std::endl;
+
+        for (Size i = 0; i < mt_vec.size(); ++i)
+        {
+
+            // set to lowest peak width according to distribution
+            if (mt_vec[i].getRoughFWHM() < pw_vec[lower_idx] && mt_vec[i].getSize() >= pw_vec[lower_idx])
+            {
+                std::cout << "change " << mt_vec[i].getRoughFWHM() << " to " << pw_vec[lower_idx] << std::endl;
+                mt_vec[i].setRoughFWHM(pw_vec[lower_idx]);
+                filt_mtraces.push_back(mt_vec[i]);
+            }
+            else if (mt_vec[i].getRoughFWHM() > pw_vec[upper_idx])
+            {
+                std::cout << "change " << mt_vec[i].getRoughFWHM() << " to " << pw_vec[upper_idx] << std::endl;
+                mt_vec[i].setRoughFWHM(pw_vec[upper_idx]);
+                filt_mtraces.push_back(mt_vec[i]);
+            }
+            else
+            {
+                std::cout << "width " << mt_vec[i].getRoughFWHM() << " fits!" << std::endl;
+                filt_mtraces.push_back(mt_vec[i]);
+            }
+        }
+        //        Size vec_idx(lower_idx);
+
+        ////        while (vec_idx < upper_idx)
+        ////        {
+
+        ////            filt_mtraces.push_back(mt_vec[pw_idx_vec[vec_idx]]);
+
+        ////            ++vec_idx;
+        ////        }
+
+        return ;
+
+    }
+
 
 
     void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<MassTrace>& found_masstraces)
@@ -228,10 +314,10 @@ namespace OpenMS
                     --trace_down_idx;
                     ++down_scan_counter;
 
-//                    if (fwhm_down)
-//                    {
-//                        ++fwhm_counter_down;
-//                    }
+                    //                    if (fwhm_down)
+                    //                    {
+                    //                        ++fwhm_counter_down;
+                    //                    }
 
                     if (down_scan_counter > min_data_points) {
                         DoubleReal sample_rate_down = (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter;
@@ -295,10 +381,10 @@ namespace OpenMS
                     ++trace_up_idx;
                     ++up_scan_counter;
 
-//                    if (fwhm_up)
-//                    {
-//                        ++fwhm_counter_up;
-//                    }
+                    //                    if (fwhm_up)
+                    //                    {
+                    //                        ++fwhm_counter_up;
+                    //                    }
 
                     if (up_scan_counter > min_data_points) {
                         DoubleReal sample_rate_up = (DoubleReal)up_hitting_peak/(DoubleReal)up_scan_counter;
@@ -322,8 +408,8 @@ namespace OpenMS
             if (current_trace.getSize() >= 2*min_data_points + 1)
             {
 
-                // std::cout << "*** size curr trace: " << current_trace.getSize() << " " << fwhm_counter_up+fwhm_counter_down << std::endl;
-            // mark all peaks as visited
+                std::cout << "CURR: " << current_trace.getSize() << " " << fwhm_counter_up+fwhm_counter_down+1 << std::endl;
+                // mark all peaks as visited
                 for (Size i = 0; i < gathered_idx.size(); ++i)
                 {
                     peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second] = true;
@@ -342,6 +428,10 @@ namespace OpenMS
                 ++trace_number;
             }
         }
+
+        std::vector<MassTrace> tmp_mt;
+
+        filterByPeakWidth(found_masstraces, tmp_mt);
 
         this->endProgress();
         // std::cout << found_masstraces.size() << " traces found" << std::endl;

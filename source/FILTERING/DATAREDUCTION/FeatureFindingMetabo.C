@@ -31,6 +31,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <numeric>
 #include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
@@ -273,19 +274,20 @@ namespace OpenMS
         DoubleReal err_ppm((mz2/1000000)*mass_error_ppm_);
         DoubleReal sigma((4*err_ppm)/2.3548);
 
-
-
-
+        if (diff_mz - mu > 2*sigma)
+        {
+            return 0.0;
+        }
 
         //  DoubleReal sigma(0.01);
         DoubleReal mz_score(std::exp(-0.5*((diff_mz - mu)/sigma)*((diff_mz - mu)/sigma)));
 
-        if (mz_score < std::numeric_limits<DoubleReal>::epsilon())
-        {
-            return -100.0;
-        }
+        //        if (mz_score < std::numeric_limits<DoubleReal>::epsilon())
+        //        {
+        //            return -100.0;
+        //        }
 
-        return std::log(mz_score);
+        return mz_score;
     }
 
     DoubleReal FeatureFindingMetabo::scoreRT_(DoubleReal rt1, DoubleReal rt2) {
@@ -296,8 +298,75 @@ namespace OpenMS
 
         DoubleReal sigma(chrom_fwhm_/2.3548);
 
-        return std::log(std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma)));
+        if (diff_rt > 2*sigma)
+        {
+            return 0.0;
+        }
+
+        return std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma));
     }
+
+    DoubleReal FeatureFindingMetabo::scoreTraceSim_(MassTrace a, MassTrace b)
+    {
+        std::map<DoubleReal, std::vector<DoubleReal> > intersect;
+
+        for (MassTrace::const_iterator c_it = a.begin(); c_it != a.end(); ++c_it)
+        {
+            intersect[c_it->getRT()].push_back(c_it->getIntensity());
+        }
+
+        for (MassTrace::const_iterator c_it = b.begin(); c_it != b.end(); ++c_it)
+        {
+            intersect[c_it->getRT()].push_back(c_it->getIntensity());
+        }
+
+        std::map<DoubleReal, std::vector<DoubleReal> >::const_iterator m_it = intersect.begin();
+
+        std::vector<DoubleReal> x, y;
+
+        for ( ; m_it != intersect.end(); ++m_it)
+        {
+            if (m_it->second.size() == 2)
+            {
+                x.push_back(m_it->second[0]);
+                y.push_back(m_it->second[1]);
+            }
+        }
+
+        if (x.size() == 0 || y.size() == 0)
+        {
+            return -100.0;
+        }
+
+        DoubleReal x_mean(0.0), y_mean(0.0);
+
+        x_mean = accumulate(x.begin(), x.end(), x_mean)/x.size();
+        y_mean = accumulate(y.begin(), y.end(), y_mean)/y.size();
+
+        DoubleReal counter(0.0), denom_x(0.0), denom_y(0.0);
+
+        for (Size i = 0; i < x.size(); ++i)
+        {
+            counter += (x[i] - x_mean)*(y[i] - y_mean);
+        }
+
+        for (Size i = 0; i < x.size(); ++i)
+        {
+            denom_x += (x[i] - x_mean)*(x[i] - x_mean);
+            denom_y += (y[i] - y_mean)*(y[i] - y_mean);
+        }
+
+        DoubleReal sim_score(counter/sqrt(denom_x*denom_y));
+
+        if (sim_score > 0.0)
+        {
+            return std::log(sim_score);
+        }
+
+        return -100;
+
+    }
+
 
 
     DoubleReal FeatureFindingMetabo::scoreIntRatio_(DoubleReal int1, DoubleReal int2, Size iso_pos)
@@ -311,8 +380,6 @@ namespace OpenMS
 
         DoubleReal mu(0.0), sigma(1.0);
 
-        DoubleReal int_score(0.0);
-
         switch (iso_pos)
         {
         case 1: mu = 0.4102466; sigma = 0.128907; break;
@@ -322,15 +389,20 @@ namespace OpenMS
         default: mu = 0.0; sigma = 0.0003450974; break;
         }
 
-
-        int_score = std::exp(-0.5*((int_ratio - mu)/sigma)*((int_ratio - mu)/sigma));
-
-        if (int_score < std::numeric_limits<DoubleReal>::epsilon())
+        if (std::fabs(int_ratio - mu) > 2*sigma)
         {
-            return -100.0;
+            return 0.0;
         }
 
-        return int_ratio;
+
+        DoubleReal int_score(std::exp(-0.5*((int_ratio - mu)/sigma)*((int_ratio - mu)/sigma)));
+
+        //        if (int_score < std::numeric_limits<DoubleReal>::epsilon())
+        //        {
+        //            return -100.0;
+        //        }
+
+        return int_score;
     }
 
 
@@ -386,7 +458,12 @@ namespace OpenMS
                     DoubleReal mz_score(scoreMZ_(mono_iso_mz, tmp_iso_mz, iso_pos, charge));
                     DoubleReal int_score(scoreIntRatio_(mono_iso_int, tmp_iso_int, iso_pos));
 
-                    DoubleReal total_pair_score(1 + rt_score + mz_score + int_score);
+                    DoubleReal total_pair_score(0.0);
+
+                    if (rt_score > 0.0 && mz_score > 0.0 && int_score > 0.0)
+                    {
+                        total_pair_score = std::exp(std::log(rt_score) + log(mz_score) + log(int_score));
+                    }
 
                     if (total_pair_score > best_so_far)
                     {

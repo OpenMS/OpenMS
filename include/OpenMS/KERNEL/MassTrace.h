@@ -130,7 +130,7 @@ namespace OpenMS
 
         inline DoubleReal getCentroidRT()
         {
-          updateMedianRT_();
+          updateWeightedMeanRT_();
           return centroid_rt_;
         }
 
@@ -183,6 +183,7 @@ namespace OpenMS
         ConvexHull2D getConvexhull() const;
 
     private:
+        void updateWeightedMeanRT_();
         void updateMedianRT_();
         void updateMedianMZ_();
         void updateMeanMZ_();
