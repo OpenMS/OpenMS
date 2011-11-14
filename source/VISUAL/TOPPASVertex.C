@@ -30,6 +30,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <QGraphicsEffect>
 
 namespace OpenMS
 {
@@ -57,6 +58,7 @@ namespace OpenMS
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
+		setGraphicsEffect(new QGraphicsDropShadowEffect());
 	}
 	
 	TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs)
@@ -86,7 +88,6 @@ namespace OpenMS
 	
 	TOPPASVertex::~TOPPASVertex()
 	{
-		
 	}
 	
 	TOPPASVertex& TOPPASVertex::operator= (const TOPPASVertex& rhs)
@@ -217,7 +218,7 @@ namespace OpenMS
 
   QStringList TOPPASVertex::getFileNames(int param_index, int round) const
   {
-    if (round >= output_files_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, round, output_files_.size());
+    if ((Size)round >= output_files_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, round, output_files_.size());
     RoundPackage rp = output_files_[round];
     if (rp.find(param_index) == rp.end()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__, param_index, rp.size()); // index could be larger (its a map, but nevertheless)
     return rp[param_index].filenames;

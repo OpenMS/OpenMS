@@ -58,6 +58,7 @@
 #include <cstdio>  // tmpnam()
 #include <cmath>   // fabs
 #include <cstdlib> // getenv()
+
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.C)
 
