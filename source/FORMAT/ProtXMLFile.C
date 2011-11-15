@@ -70,7 +70,7 @@ namespace OpenMS
   	prot_id_ = &protein_ids;
   	pep_id_ = &peptide_ids;
 		
-		parse_(filename,this);
+		parse_(filename, this);
   }
   					 
   void ProtXMLFile::store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/)
@@ -95,26 +95,28 @@ namespace OpenMS
 		
 		if (tag == "protein_summary_header")
     {
-      String db = attributeAsString_(attributes,"reference_database"); // e.g. "/share/usr/sequences/uniprot_sprot_human_55.4.fasta"
-      String enzyme = attributeAsString_(attributes,"sample_enzyme");
+      String db = attributeAsString_(attributes, "reference_database");
+      String enzyme = attributeAsString_(attributes, "sample_enzyme");
       ProteinIdentification::SearchParameters sp = prot_id_->getSearchParameters();
       sp.db = db;
       // find a matching enzyme name
-      sp.enzyme =  (ProteinIdentification::DigestionEnzyme) cvStringToEnum_(0, enzyme.toUpper(), "sample_enzyme",ProteinIdentification::UNKNOWN_ENZYME);
+      sp.enzyme =  (ProteinIdentification::DigestionEnzyme) cvStringToEnum_(0, enzyme.toUpper(), "sample_enzyme", ProteinIdentification::UNKNOWN_ENZYME);
       prot_id_->setSearchParameters(sp);
 			prot_id_->setScoreType("ProteinProphet probability");
 			prot_id_->setHigherScoreBetter(true);
+			pep_id_->setScoreType("ProteinProphet probability");
+			pep_id_->setHigherScoreBetter(true);
     }
 		// identifier for Protein & PeptideIdentification
-		//<program_details analysis="proteinprophet" time="2009-11-29T18:30:03"
+		// <program_details analysis="proteinprophet" time="2009-11-29T18:30:03" ...
 		if (tag == "program_details")
 		{
-			String analysis = attributeAsString_(attributes,"analysis");
-			String time = attributeAsString_(attributes,"time");
-      String version = attributeAsString_(attributes,"version");
+			String analysis = attributeAsString_(attributes, "analysis");
+			String time = attributeAsString_(attributes, "time");
+      String version = attributeAsString_(attributes, "version");
 			
-      QDateTime date = QDateTime::fromString ( time.toQString());
-      if (!date.isValid()) date = QDateTime::fromString ( time.toQString(), Qt::ISODate);
+      QDateTime date = QDateTime::fromString(time.toQString());
+      if (!date.isValid()) date = QDateTime::fromString(time.toQString(), Qt::ISODate);
       if (!date.isValid()) LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
       prot_id_->setDateTime(date);
       prot_id_->setSearchEngine(analysis);
@@ -167,9 +169,8 @@ namespace OpenMS
 		{
 			// If a peptide is degenerate it will show in multiple groups, but have different statistics (e.g. 'nsp_adjusted_probability')
 			// We thus treat each instance as a separate peptide
-			// todo/improvement: link them by a group in PeptideIdentification?!
-			
-			pep_hit_ = new PeptideHit;		
+			// todo/improvement: link them by a group in PeptideIdentification?!			
+			pep_hit_ = new PeptideHit;
 			pep_hit_->setSequence(attributeAsString_(attributes,"peptide_sequence"));
 			pep_hit_->setScore(attributeAsDouble_(attributes,"nsp_adjusted_probability"));
 

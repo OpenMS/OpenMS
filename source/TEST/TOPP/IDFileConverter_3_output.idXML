@@ -38,7 +38,7 @@
 			<UserParam type="string" name="indistinguishable_proteins_5" value="0,PH_7"/>
 			<UserParam type="string" name="indistinguishable_proteins_6" value="0,PH_8"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<PeptideIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
 			<PeptideHit score="0.8633" sequence="MYLGYEYVTAIR" charge="2" protein_refs="PH_0" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
