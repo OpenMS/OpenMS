@@ -132,8 +132,24 @@ namespace OpenMS {
         return elements_[index];
       }
 
+      /**
+        Overwrites an element in the alphabet with the @c name with a new element constructed
+        from the given name @c name and mass @c mass.
+        If the parameter @c forced is set to true, a new element will be appended to the alphabet
+        in the case the alphabet contains no element with the name @c name.
+
+        @param name The name of the element that should be replaced in (or appended to) the alphabet.
+        @param mass The new mass of the element in the alphabet.
+        @param forced Indicates whether a new element should be created (if set to @c true) if there is no element with the name @c name or not (if set to @c false).
+      */
       void setElement(const name_type& name, mass_type mass, bool forced = false);
 
+      /**
+        Removes the element with name @c name from the alphabet.
+
+        @param name The name of the element to be removed from the alphabet.
+        @return A boolean indicating whether an element was removed (@c true) or not (@c false).
+      */
       bool erase(const name_type& name);
 
       /**
