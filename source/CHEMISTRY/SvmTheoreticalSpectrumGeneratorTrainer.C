@@ -739,7 +739,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
       if(write_outfiles)
       {        
-        write_training_file_(training_input_reg, training_output_reg, String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+        writeTrainingFile_(training_input_reg, training_output_reg, String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
                              ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.dat");
       }
       else
@@ -830,7 +830,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
       if(write_outfiles)
       {
-        write_training_file_(training_input[type_nr], training_output[type_nr], String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
+        writeTrainingFile_(training_input[type_nr], training_output[type_nr], String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
                              ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.dat");
       }
 
@@ -1229,7 +1229,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
   }
 
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::write_training_file_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename)
+  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename)
   {
     std::cerr<<"Creating Training File.. "<< filename;
     TextFile file;

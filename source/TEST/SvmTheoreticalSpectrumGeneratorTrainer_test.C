@@ -69,7 +69,7 @@ START_SECTION((virtual ~SvmTheoreticalSpectrumGeneratorTrainer()))
 END_SECTION
 
 
-START_SECTION((void trainModel(const PeakMap &spectra, const std::vector< AASequence > &annotations, String filename, Size precursor_charge)))
+START_SECTION((void trainModel(const PeakMap &spectra, const std::vector< AASequence > &annotations, String filename, Int precursor_charge)))
 {
   NOT_TESTABLE
 }

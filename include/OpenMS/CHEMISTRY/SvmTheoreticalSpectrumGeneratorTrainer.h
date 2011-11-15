@@ -102,7 +102,7 @@ namespace OpenMS
     protected:
 
       /// Write a training file that can be passed to libsvm command line tools
-      void write_training_file_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename);
+      void writeTrainingFile_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename);
 
   };
 }
