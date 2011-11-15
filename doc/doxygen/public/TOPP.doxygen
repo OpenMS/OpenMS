@@ -94,6 +94,7 @@
 	
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
+  - @subpage TOPP_CompNovoCID - Performs a peptide/protein identification with the CompNovo engine in CID mode.
   - @subpage TOPP_InspectAdapter - Identifies MS/MS spectra using Inspect (external).
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
