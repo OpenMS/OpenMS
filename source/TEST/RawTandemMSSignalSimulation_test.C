@@ -62,12 +62,6 @@ START_SECTION((RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation &so
 }
 END_SECTION
 
-START_SECTION((virtual ~RawTandemMSSignalSimulation()))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSimulation &source)))
 {
   // TODO
