@@ -102,6 +102,18 @@ START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptid
 	}
 END_SECTION
 
+START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
+  RichPeakSpectrum spec;
+  ptr->addAbundantImmoniumIons(spec);
+  TEST_EQUAL(spec.size(), 5)
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 86.09698)
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 110.0718)
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 120.0813)
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 136.0762)
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 159.0922)
+END_SECTION
+
+
 START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	RichPeakSpectrum spec;
 	ptr->addPrecursorPeaks(spec, peptide, 1);
