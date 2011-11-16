@@ -105,10 +105,8 @@ protected:
 		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("featureXML"));
-		registerInputFile_("seeds","<file>","","User-specified seed list. This feature is not supported by all algorithms!", false);
-		setValidFormats_("seeds",StringList::create("featureXML"));
 		addEmptyLine_();
-    addText_("All other options of the Featurefinder are set in the 'algorithm' section of the INI file.\n");
+    addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
 		registerSubsection_("algorithm","Algorithm section");
 	}
@@ -139,14 +137,10 @@ protected:
 
     f.load(in, exp);
 
-    //load seeds
+    //no seeds supported
     FeatureMap<> seeds;
-    if (getStringOption_("seeds")!="")
-    {
-      FeatureXMLFile().load(getStringOption_("seeds"),seeds);
-    }
 
-		//prevent loading of everthing except MRM MS/MS spectra
+		//prevent loading of everything except MRM MS/MS spectra
     //exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
     // erase the spectra, we just need the chromatograms for the feature finder
     exp.erase(exp.begin(), exp.end());

@@ -108,10 +108,8 @@ class TOPPFeatureFinderIsotopeWavelet
 		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("featureXML"));
-		registerInputFile_("seeds","<file>","","User-specified seed list. This feature is not supported by all algorithms!", false);
-		setValidFormats_("seeds",StringList::create("featureXML"));
 		addEmptyLine_();
-    addText_("All other options of the Featurefinderare set in the 'algorithm' section of the INI file.\n");
+    addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
 		registerSubsection_("algorithm","Algorithm section");
 	}
@@ -139,12 +137,8 @@ class TOPPFeatureFinderIsotopeWavelet
     f.load(in, exp);
     exp.updateRanges();
 
-    //load seeds
+    //no seeds supported
     FeatureMap<> seeds;
-    if (getStringOption_("seeds")!="")
-    {
-      FeatureXMLFile().load(getStringOption_("seeds"),seeds);
-    }
 
     //setup of FeatureFinder
     FeatureFinder ff;
@@ -158,7 +152,7 @@ class TOPPFeatureFinderIsotopeWavelet
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmPicked<Peak1D, Feature>::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature>::getProductName(), exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

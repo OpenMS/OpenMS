@@ -135,10 +135,10 @@ protected:
 		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("featureXML"));
-		registerInputFile_("seeds","<file>","","User-specified seed list. This feature is not supported by all algorithms!", false);
+		registerInputFile_("seeds","<file>","","User specified seed list", false);
 		setValidFormats_("seeds",StringList::create("featureXML"));
 		addEmptyLine_();
-    addText_("All other options of the Featurefinder are set in the 'algorithm' section of the INI file.\n");
+    addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
 		registerSubsection_("algorithm","Algorithm section");
 	}

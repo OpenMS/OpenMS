@@ -72,7 +72,7 @@ namespace OpenMS
 				if (input_map[s].size()==0) continue;
 				if (input_map[s][0].getMZ()<0)
 				{
-					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder can only operate spectra that contain the peaks with positive m/z values. Filter the data accordingly beforehand! Aborting.");
+					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder can only operate on spectra that contain peaks with positive m/z values. Filter the data accordingly beforehand! Aborting.");
 				}
 			}
 		}
