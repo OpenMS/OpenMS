@@ -115,11 +115,11 @@ namespace OpenMS
     
     // problem creation/manipulation
     /// adds a row to the LP matrix, returns index
-    Size addRow(std::vector<Int> row_indices,std::vector<DoubleReal> row_values,String name); 
+    Int addRow(std::vector<Int> row_indices,std::vector<DoubleReal> row_values,const String& name); 
     /// adds an empty column to the LP matrix, returns index
-    Size addColumn();
+    Int addColumn();
     /// adds a column to the LP matrix, returns index
-    Size addColumn(std::vector<Int> column_indices,std::vector<DoubleReal> column_values,String name);
+    Int addColumn(std::vector<Int> column_indices,std::vector<DoubleReal> column_values,const String& name);
     /*
       @brief Adds a row with boundaries to the LP matrix, returns index
 
@@ -127,61 +127,63 @@ namespace OpenMS
 
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Size addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
+    Int addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,const String& name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
     /*
       @brief Adds a column with boundaries to the LP matrix, returns index
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Size addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,String name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
-    void deleteRow(Size index);
+    Int addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,const String& name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
+    
+    /// delete index-th row
+    void deleteRow(Int index);
     /// sets name of the index-th column
-    void setColumnName(Size index,String name);
+    void setColumnName(Int index,const String& name);
     /// gets name of the index-th column
-    String getColumnName(Size index);
+    String getColumnName(Int index);
     /// sets name of the index-th row
-    String getRowName(Size index);
+    String getRowName(Int index);
     /// gets index of the row with name
-    Size getRowIndex(String name);
+    Int getRowIndex(const String& name);
     /// gets index of the column with name
-    Size getColumnIndex(String name);
+    Int getColumnIndex(const String& name);
     /// gets column's upper bound
-    DoubleReal getColumnUpperBound(Size index);
+    DoubleReal getColumnUpperBound(Int index);
     /// gets column's lower bound
-    DoubleReal getColumnLowerBound(Size index);
+    DoubleReal getColumnLowerBound(Int index);
     /// gets row's upper bound
-    DoubleReal getRowUpperBound(Size index);
+    DoubleReal getRowUpperBound(Int index);
     /// gets row's lower bound
-    DoubleReal getRowLowerBound(Size index);
+    DoubleReal getRowLowerBound(Int index);
     /// sets name of the index-th row
-    void setRowName(Size index,String name);
+    void setRowName(Int index,const String& name);
     /**
      *	@brief Set column bounds.
      *	
      *	@param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
      */
-    void setColumnBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
+    void setColumnBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
     /**
      *	@brief Set row bounds.
      *	
      *	@param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed constraint
      */
-    void setRowBounds(Size index,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
+    void setRowBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
     /**
      *	@brief Set column/variable type.
      *	
      *	@param type 1- continuous, 2- integer, 3- binary variable
      */
-    void setColumnType(Size index, VariableType type);
+    void setColumnType(Int index, VariableType type);
     /**
      *	@brief Get column/variable type.
      *	
      *	@return 1- continuous, 2- integer, 3- binary variable
      */
-    VariableType getColumnType(Size index);
+    VariableType getColumnType(Int index);
     /// set objective value for column with index
-    void setObjective(Size index,DoubleReal obj_value);
+    void setObjective(Int index, DoubleReal obj_value);
     /// get objective value for column with index
-    DoubleReal getObjective(Size index);
+    DoubleReal getObjective(Int index);
     /**
      *	@brief Set objective direction.
      *	
@@ -190,12 +192,12 @@ namespace OpenMS
     void setObjectiveSense(Sense sense);
     Sense getObjectiveSense();
     /// get number of columns
-    Size getNumberOfColumns();
+    Int getNumberOfColumns();
     /// get number of rows
-    Size getNumberOfRows();
+    Int getNumberOfRows();
 
-    void setElement(Size row_index,Size column_index,DoubleReal value);
-    DoubleReal getElement(Size row_index,Size column_index);
+    void setElement(Int row_index,Int column_index, DoubleReal value);
+    DoubleReal getElement(Int row_index, Int column_index);
     
     // problem reading/writing
     /**
@@ -228,8 +230,7 @@ namespace OpenMS
     SolverStatus getStatus();
     // solution access
     DoubleReal getObjectiveValue();
-    DoubleReal getColumnValue(Size index);
-    // DoubleReal getRowValue(Size index);
+    DoubleReal getColumnValue(Int index);
 
     // choose solver; by default, only GLPK is available
     // set this only at the very beginning of building your model, as otherwise your model is incomplete

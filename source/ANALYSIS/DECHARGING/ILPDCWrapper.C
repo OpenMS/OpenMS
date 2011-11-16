@@ -253,15 +253,15 @@ namespace OpenMS {
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 
       // create the column representing the edge
-      Size index = build.addColumn();
-      build.setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED);
-      build.setColumnType(index,LPWrapper::INTEGER); // integer variable
+      Int index = build.addColumn();
+      build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
+      build.setColumnType(index, LPWrapper::INTEGER); // integer variable
       build.setObjective(index, pairs[i].getEdgeScore());
 
       // create feature variants set
-      String rota_l =  String(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0);
+      String rota_l = String(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0);
       updateFeatureVariant_(features[pairs[i].getElementIndex(0)], rota_l, index);
-      String rota_r =  String(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1);
+      String rota_r = String(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1);
       updateFeatureVariant_(features[pairs[i].getElementIndex(1)], rota_r, index);
     }
 
@@ -274,9 +274,9 @@ namespace OpenMS {
       std::vector<double> elements;
       for (FeatureType_::const_iterator iti=it->second.begin(); iti!=it->second.end(); ++iti)
       {
-        Size index = build.addColumn();
-        build.setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED);
-        build.setColumnType(index,LPWrapper::INTEGER); // integer variable
+        Int index = build.addColumn();
+        build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
+        build.setColumnType(index, LPWrapper::INTEGER); // integer variable
         build.setObjective(index, 0); // obj value of feature must be a constant, as it must be neutral
         columns.push_back(index);
         elements.push_back(1.0);
@@ -287,10 +287,10 @@ namespace OpenMS {
         std::vector<double> elements_e;
         for (std::set<Size>::const_iterator it_e = iti->second.begin(); it_e!=iti->second.end(); ++it_e)
         {
-          columns_e.push_back(*it_e);
+          columns_e.push_back((Int) *it_e);
           elements_e.push_back(-1.0);
         }
-        columns_e.push_back(index);
+        columns_e.push_back((Int) index);
         elements_e.push_back(iti->second.size()); // factor of variant is number of adjacent edges
         String se = String("cv") + index;
         build.addRow(columns_e, elements_e, se, 0, 10000, LPWrapper::LOWER_BOUND_ONLY);
@@ -361,9 +361,9 @@ namespace OpenMS {
 			namebuf.str("");
 			namebuf<<"x#"<<i;
 			// create the new variable object
-      Size index = build.addColumn();
-      build.setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED);
-			build.setColumnType(index,LPWrapper::INTEGER); // integer variable
+      Int index = build.addColumn();
+      build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
+			build.setColumnType(index, LPWrapper::INTEGER); // integer variable
 			build.setObjective(index, pairs[i].getEdgeScore());
 			if (score_min > score ) score_min = score;
 			if (score_max < score ) score_max = score;
@@ -482,7 +482,7 @@ namespace OpenMS {
 		UInt active_edges = 0;
 		Map <String, Size> count_cmp;
 
-      for (UInt iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
+      for (Int iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
         {
           double value=build.getColumnValue(iColumn);
           if (fabs(value)>0.5)
