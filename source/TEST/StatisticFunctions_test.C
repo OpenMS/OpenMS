@@ -32,19 +32,8 @@
 // This one is going to be tested.
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/DATASTRUCTURES/DoubleList.h>
 #include <boost/math/special_functions/fpclassify.hpp>
-
-///////////////////////////
-
-// More headers
-
-// #include <algorithm>
-// #include <functional>
-// #include <iostream>
-// #include <iterator>
-// #include <vector>
-// #include <string>
-
 
 ///////////////////////////
 
@@ -57,6 +46,45 @@ START_TEST( StatisticFunctions, "$Id$" );
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal sum(IteratorType begin, IteratorType end)))
+{
+	int x[] = {-1, 0, 1, 2, 3};
+	TEST_EQUAL(int(Math::sum(x, x + 5)), 5);
+	TEST_EQUAL(int(Math::sum(x, x)), 0);
+
+	DoubleList y;
+	y << -1.0 << -0.5 << 0.0 << 0.5 << 1.0 << 1.5 << 2.0;
+	TEST_REAL_SIMILAR(Math::sum(y.begin(), y.end()), 3.5);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal mean(IteratorType begin, IteratorType end)))
+{
+	int x[] = {-1, 0, 1, 2, 3};
+	TEST_EQUAL(Math::mean(x, x + 5), 1);
+	TEST_EXCEPTION(Exception::InvalidRange, Math::mean(x, x));
+
+	DoubleList y;
+	y << -1.0 << -0.5 << 0.0 << 0.5 << 1.0 << 1.5 << 2.0;
+	TEST_REAL_SIMILAR(Math::mean(y.begin(), y.end()), 0.5);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal mean(IteratorType begin, IteratorType end)))
+{
+	int x[] = {-1, 0, 1, 2, 3};
+	TEST_EQUAL(Math::median(x, x + 5, TRUE), 1);
+	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
+
+	DoubleList y;
+	y << 1.0 << -0.5 << 2.0 << 0.5 << -1.0 << 1.5 << 0.0;
+	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.5);
+	y << -1.5; // even length
+	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.25);
+}
+END_SECTION
+
 
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
@@ -303,6 +331,9 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 
   result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
   TEST_REAL_SIMILAR(result, 0.957142857142857);
+	result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), 
+																						numbers2.rbegin(), numbers2.rend());
+  TEST_REAL_SIMILAR(result, -0.957142857142857);	
 }
 END_SECTION
 
