@@ -87,8 +87,11 @@ public:
     TOPPBase("MzTabExporter", "Exports various XML formats to a mzTab file.")
   {
   }
+  
 
 protected:
+
+  typedef map< pair< String, String>, vector<PeptideHit> > MapAccPepType;
 
   void registerOptionsAndFlags_()
   {
@@ -293,16 +296,16 @@ protected:
 
 
   static String extractNumPeptides(const String& common_identifier, const String& protein_accession,
-                                   const map< pair< String, String>, vector<PeptideHit> >& map_run_accesion_to_peptides)
+                                   const MapAccPepType& map_run_accession_to_peptides)
   {
-      const std::vector<PeptideHit>& peptide_hits = map_run_accesion_to_peptides.at(make_pair(common_identifier, protein_accession));
+      const std::vector<PeptideHit>& peptide_hits = map_run_accession_to_peptides.find(make_pair(common_identifier, protein_accession))->second;
       return String(peptide_hits.size());
   }
 
   static String extractNumPeptidesDistinct(String common_identifier, String protein_accession,
-                                           const map< pair< String, String>, vector<PeptideHit> >& map_run_accesion_to_peptides)
+                                           const MapAccPepType& map_run_accession_to_peptides)
   {
-      const std::vector<PeptideHit>& peptide_hits = map_run_accesion_to_peptides.at(make_pair(common_identifier, protein_accession));
+      const std::vector<PeptideHit>& peptide_hits = map_run_accession_to_peptides.find(make_pair(common_identifier, protein_accession))->second;
 
       // mzTab distinct peptides are all peptides with different sequence or modification
       std::set<String> sequences;
@@ -315,9 +318,9 @@ protected:
   }
 
   static String extractNumPeptidesUnambiguous(String common_identifier, String protein_accession,
-                                              const map< pair< String, String>, vector<PeptideHit> >& map_run_accesion_to_peptides)
+                                              const MapAccPepType& map_run_accession_to_peptides)
   {
-    const std::vector<PeptideHit>& peptide_hits = map_run_accesion_to_peptides.at(make_pair(common_identifier, protein_accession));
+    const std::vector<PeptideHit>& peptide_hits = map_run_accession_to_peptides.find(make_pair(common_identifier, protein_accession))->second;
 
     // mzTab distinct peptides are all peptides with different sequence or modification
     std::set<String> sequences;
@@ -354,7 +357,7 @@ protected:
       map<String, vector<PeptideIdentification> > map_run_to_pepids;
       map<String, vector<ProteinIdentification> > map_run_to_proids;
 
-      map< pair< String, String>, vector<PeptideHit> > map_run_accesion_to_peptides;
+      MapAccPepType map_run_accession_to_peptides;
 
       String document_id;
       bool has_coverage = true;
@@ -399,7 +402,7 @@ protected:
         num_runs = map_run_to_pepids.size();
         cout << "IdXML contains: " << num_runs << " runs." << endl;
 
-        createProteinToPeptideLinks(map_run_to_pepids, map_run_accesion_to_peptides);
+        createProteinToPeptideLinks(map_run_to_pepids, map_run_accession_to_peptides);
       }
 
       ofstream txt_out( out.c_str() );
@@ -500,9 +503,9 @@ protected:
                                                                         prot_id_it->getScoreType());
 
             String reliability = "--";
-            String num_peptides = extractNumPeptides(prot_id_it->getIdentifier(), accession, map_run_accesion_to_peptides);
-            String num_peptides_distinct = extractNumPeptidesDistinct(prot_id_it->getIdentifier(), accession, map_run_accesion_to_peptides);
-            String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id_it->getIdentifier(), accession, map_run_accesion_to_peptides);
+            String num_peptides = extractNumPeptides(prot_id_it->getIdentifier(), accession, map_run_accession_to_peptides);
+            String num_peptides_distinct = extractNumPeptidesDistinct(prot_id_it->getIdentifier(), accession, map_run_accession_to_peptides);
+            String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id_it->getIdentifier(), accession, map_run_accession_to_peptides);
             String ambiguity_members = "NA";  //TODO
             String modifications = "NA"; // TODO
             String uri = in;
