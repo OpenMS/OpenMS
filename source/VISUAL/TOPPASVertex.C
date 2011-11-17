@@ -30,7 +30,6 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <QGraphicsEffect>
 
 namespace OpenMS
 {
@@ -58,7 +57,6 @@ namespace OpenMS
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
-		setGraphicsEffect(new QGraphicsDropShadowEffect());
 	}
 	
 	TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs)
