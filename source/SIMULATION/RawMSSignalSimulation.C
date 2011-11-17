@@ -153,8 +153,6 @@ namespace OpenMS {
     // contaminants:
     defaults_.setValue("contaminants:file","examples/simulation/contaminants.csv","Contaminants file with sum formula and absolute RT interval. See 'OpenMS/examples/simulation/contaminants.txt' for details.");
 
-    // noise params
-
     // VARIATION
 
     // m/z error
@@ -171,24 +169,25 @@ namespace OpenMS {
     defaults_.setSectionDescription("variation:intensity", "Variations in intensity to model randomness in feature intensity.");
     defaults_.setSectionDescription("variation", "Random components that simulate biological and technical variations of the simulated data.");
 
+    // NOISE
 
     // shot noise
-    defaults_.setValue("noise:shot:rate",0.0,"Poisson rate of shot noise per unit m/z. Set to 0 to disable simulation of shot noise.");
-    defaults_.setMinFloat("noise:shot:rate",0.0);
-    defaults_.setValue("noise:shot:intensity-mean",1.0,"Shot noise intensity mean (exponentially distributed with given mean).");
+    defaults_.setValue("noise:shot:rate", 0.0, "Poisson rate of shot noise per unit m/z. Set this to 0 to disable simulation of shot noise.");
+    defaults_.setMinFloat("noise:shot:rate", 0.0);
+    defaults_.setValue("noise:shot:intensity-mean", 1.0, "Shot noise intensity mean (exponentially distributed with given mean).");
+    defaults_.setSectionDescription("noise:shot", "Parameters of Poisson and Exponential for shot noise modeling (set :rate OR :mean = 0 to disable).");
 
     // white noise
     defaults_.setValue("noise:white:mean", 0.0, "Mean value of white noise being added to each measured signal.");
     defaults_.setValue("noise:white:stddev", 0.0, "Standard deviation of white noise being added to each measured signal.");
+    defaults_.setSectionDescription("noise:white", "Parameters of Gaussian distribution for white noise modeling (set :mean AND :stddev = 0 to disable).");
 
     // detector noise
-    defaults_.setValue("noise:detector:mean", 2.0, "Mean value of the detector noise being added to the complete measurement.");
-    defaults_.setValue("noise:detector:stddev", 1.0, "Standard deviation of the detector noise being added to the complete measurement.");
+    defaults_.setValue("noise:detector:mean", 0.0, "Mean value of the detector noise being added to the complete measurement.");
+    defaults_.setValue("noise:detector:stddev", 0.0, "Standard deviation of the detector noise being added to the complete measurement.");
+    defaults_.setSectionDescription("noise:detector", "Parameters of Gaussian distribution for detector noise modeling (set :mean AND :stddev = 0 to disable).");
 
     defaults_.setSectionDescription("noise", "Parameters modeling noise in mass spectrometry measurements.");
-    defaults_.setSectionDescription("noise:shot", "Parameters regarding shot noise modeling.");
-    defaults_.setSectionDescription("noise:white", "Parameters regarding white noise modeling.");
-    defaults_.setSectionDescription("noise:detector", "Parameters regarding detector noise modeling (set both parameters to 0 to disable it).");
 
     defaultsToParam_();
   }
