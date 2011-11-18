@@ -563,33 +563,38 @@ namespace OpenMS
 					if(jt->getSequence().isModified())
 					{
 						ModificationsDB* mod_db = ModificationsDB::getInstance();
-						
-						if(jt->getSequence().getNTerminalModification() != "")
-						{
+						if(!jt->getSequence().getNTerminalModification().empty())
+						{ 
 							p += "<Modification location=\"0\"> \n <cvParam accession=\"";
 							p += jt->getSequence().getNTerminalModification(); // "UNIMOD:" prefix??
 							p += "\" cvRef=\"UNIMOD\"/> \n </Modification> \n";
 						}
-						if(jt->getSequence().getCTerminalModification() != "")
+						if(!jt->getSequence().getCTerminalModification().empty())
 						{
 							p += "<Modification location=\"";
 							p += String(jt->getSequence().size());
 							p += "\"> \n <cvParam accession=\"";
-							p += jt->getSequence().getNTerminalModification(); // "UNIMOD:" prefix??
+							p += jt->getSequence().getCTerminalModification(); // "UNIMOD:" prefix??
 							p += "\" cvRef=\"UNIMOD\"/> \n </Modification> \n";
 						}
-						for (Size i = 0; i <= jt->getSequence().size(); ++i)
+						for (Size i = 0; i < jt->getSequence().size(); ++i)
 						{
-							p += "<Modification location=\"";
-							p += String(i);
-							p += "\"> \n <cvParam accession=\"";
-							p += jt->getSequence()[i].getModification(); // "UNIMOD:" prefix??
-							p += "\" name=\"";
-							ResidueModification mod = mod_db->getModification(jt->getSequence()[i].getOneLetterCode(), jt->getSequence()[i].getModification() , ResidueModification::ANYWHERE);  
-							p += mod.getName();
-							p += "\" residues=\""; 
-							p += jt->getSequence()[i].getOneLetterCode();
-							p += "\" cvRef=\"UNIMOD\"/> \n </Modification> \n";
+							String mod_str =  jt->getSequence()[i].getModification(); // "UNIMOD:" prefix??
+							if (!mod_str.empty())
+							{
+								std::set<const ResidueModification*> mods;
+								mod_db->searchModifications(mods, jt->getSequence()[i].getOneLetterCode(), mod_str,ResidueModification::ANYWHERE);
+								if(!mods.empty()) 
+								{								
+									//~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
+									p += "<Modification location=\"" + String(i+1);
+									p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
+									p += "\"> \n <cvParam accession=\"" + (*mods.begin())->getUniModAccession();
+									p += "\" name=\"" +  mod_str;
+									p += "\" cvRef=\"UNIMOD\"/>";
+									p += "\n </Modification> \n";
+								}            
+							}
 							/* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
 						}
 					}
