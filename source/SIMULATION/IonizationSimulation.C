@@ -29,6 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <cmath>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -128,19 +129,19 @@ namespace OpenMS {
     defaults_.setValue("esi:ionized_residues", StringList::create("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization.");
     StringList valid_ionized_residues = StringList::create("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");
     defaults_.setValidStrings("esi:ionized_residues", valid_ionized_residues);
-    defaults_.setValue("esi:charge_impurity", StringList::create("H+:1"), "List of charged ions that contribute to charge with weight of occurence (which need not add up to 1), e.g. ['H:1'] or ['H:0.7' 'Na:0.3']");
+    defaults_.setValue("esi:charge_impurity", StringList::create("H+:1"), "List of charged ions that contribute to charge with weight of occurrence (their sum is scaled to 1 internally), e.g. ['H:1'] or ['H:0.7' 'Na:0.3'], ['H:4' 'Na:1'] (which internally translates to ['H:0.8' 'Na:0.2'])");
 
-		defaults_.setValue("esi:max_impurity_set_size", 3, "Maximal #combinations of charge impurities allowed (each generating one feature) per charge state. E.g. assuming charge=3 and this parameter is 2, then we could choose to allow '3H+, 2H+Na+' features (given certain 'charge_impurity' constaints), but no '3H+, 2H+Na+, 3Na+'", StringList::create("advanced"));
+		defaults_.setValue("esi:max_impurity_set_size", 3, "Maximal #combinations of charge impurities allowed (each generating one feature) per charge state. E.g. assuming charge=3 and this parameter is 2, then we could choose to allow '3H+, 2H+Na+' features (given a certain 'charge_impurity' constraints), but no '3H+, 2H+Na+, 3Na+'", StringList::create("advanced"));
 
     // ionization probabilities
-    defaults_.setValue("esi:ionization_probability",0.8, "Probability for the binomial distribution of the ESI charge states");
+    defaults_.setValue("esi:ionization_probability", 0.8, "Probability for the binomial distribution of the ESI charge states");
     defaults_.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1") , "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
     
     // maximal size of map in mz dimension
-    defaults_.setValue("mz:lower_measurement_limit",200.0,"Lower m/z detector limit.");
-    defaults_.setMinFloat("mz:lower_measurement_limit",0.0);
-    defaults_.setValue("mz:upper_measurement_limit",2500.0,"Upper m/z detector limit.");
-    defaults_.setMinFloat("mz:upper_measurement_limit",0.0);
+    defaults_.setValue("mz:lower_measurement_limit", 200.0, "Lower m/z detector limit.");
+    defaults_.setMinFloat("mz:lower_measurement_limit", 0.0);
+    defaults_.setValue("mz:upper_measurement_limit", 2500.0, "Upper m/z detector limit.");
+    defaults_.setMinFloat("mz:upper_measurement_limit", 0.0);
     
     defaultsToParam_();
   }
@@ -148,11 +149,11 @@ namespace OpenMS {
   void IonizationSimulation::updateMembers_()
   {
     String type = param_.getValue("ionization_type");
-    if(type == "ESI")
+    if (type == "ESI")
     {
       ionization_type_ = ESI;    
     }
-    else if(type == "MALDI")
+    else if (type == "MALDI")
     {
       ionization_type_ = MALDI;
     }
@@ -165,23 +166,25 @@ namespace OpenMS {
     // get basic residues from params
     basic_residues_.clear();
     StringList basic_residues = (StringList) param_.getValue("esi:ionized_residues");
-    for(StringList::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
+    for (StringList::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
     {
       basic_residues_.insert(*it);
     }
 
 		// parse possible ESI adducts
     StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
-		StringList components;
+    if (esi_charge_impurity.size() == 0) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
+    StringList components;
 		max_adduct_charge_ = 0;
 		// reset internal state:
 		esi_impurity_probabilities_.clear();
 		esi_adducts_.clear();
     // cumulate probabilities in list
-    for(Size i = 0 ; i < esi_charge_impurity.size() ; ++i )
+    DoubleReal summed_probability(0);
+    for (Size i = 0 ; i < esi_charge_impurity.size() ; ++i)
     {
-			esi_charge_impurity[i].split(':',components);
-			if (components.size() != 2) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ")with " + components.size() + " components instead of 2.");
+			esi_charge_impurity[i].split(':', components);
+			if (components.size() != 2) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ") with " + components.size() + " components instead of 2.");
 			// determine charge of adduct (by # of '+')
 			Size l_charge = components[0].size();
 			l_charge -= components[0].remove('+').size();
@@ -192,8 +195,15 @@ namespace OpenMS {
 			Adduct a((Int)l_charge, 1, ef.getMonoWeight(), components[0].remove('+'), log(components[1].toDouble()),0);
 			esi_adducts_.push_back(a);
 			esi_impurity_probabilities_.push_back(components[1].toDouble());
+      summed_probability += esi_impurity_probabilities_.back();
 
 			max_adduct_charge_ = std::max(max_adduct_charge_, l_charge);
+    }
+
+    // scale probability to 1 (the later GSL step does this as well, but just to be sure)
+    for (Size i = 0 ; i < esi_charge_impurity.size() ; ++i)
+    {
+      esi_impurity_probabilities_[i] /= summed_probability;
     }
 
     // MALDI charge distribution
@@ -212,15 +222,17 @@ namespace OpenMS {
 
   }
   
-  class IonizationSimulation::CompareCmpByEF_ {
-  public:
-    bool operator()(const Compomer& x,const Compomer& y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
+  class IonizationSimulation::CompareCmpByEF_
+  {
+    public:
+      bool operator()(const Compomer& x,const Compomer& y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
   };
 
   void IonizationSimulation::ionizeEsi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
   {
 
 		// we need to do this locally to avoid memory leaks (copying this stuff in C'tors is not wise)
+    // (this GSL function does normalization to sum=1 internally)
 		gsl_ran_discrete_t * gsl_ran_lookup_esi_charge_impurity = gsl_ran_discrete_preproc (esi_impurity_probabilities_.size(), &esi_impurity_probabilities_[0]);
 
 		try
@@ -242,14 +254,14 @@ namespace OpenMS {
 
 			// iterate over all features
       #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
-			for(SignedSize index = 0; index < (SignedSize)features.size(); ++index)
+			for (SignedSize index = 0; index < (SignedSize)features.size(); ++index)
 			{
         // no barrier here .. only an atomic update of progress value
         #pragma omp atomic
         ++progress;
 
 #ifdef _OPENMP
-        // progresslogger, only master thread sets progress (no barrier here)
+        // progress logger, only master thread sets progress (no barrier here)
         if (omp_get_thread_num() == 0) this->setProgress(progress);
 #else
         this->setProgress(progress);
@@ -261,6 +273,16 @@ namespace OpenMS {
 				Int abundance = (Int) ceil( features[index].getIntensity() );
 				UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
 	      
+        /// shortcut: if abundance is >1000, we 1) downsize by power of 2 until 1000 < abundance_ < 2000
+        ///                                     2) dice distribution
+        ///                                     3) blow abundance up to original level  (to save A LOT of computation time)
+        Int power_factor_2(0);
+        while (abundance > 1000)
+        {
+          ++power_factor_2;
+          abundance /= 2;
+        }
+
         if (basic_residues_c==0)
         {
 					++uncharged_feature_count; // OMP
@@ -273,7 +295,7 @@ namespace OpenMS {
         {
           for(Int j = 0; j < abundance ; ++j)
 				  {
-            prec_rndbin[j] = gsl_ran_binomial(rnd_gen_->technical_rng,esi_probability_,basic_residues_c);
+            prec_rndbin[j] = gsl_ran_binomial(rnd_gen_->technical_rng, esi_probability_, basic_residues_c);
           }
         }
 
@@ -288,7 +310,7 @@ namespace OpenMS {
         UInt charge;
 
 				// sample different charge states (dice for each peptide molecule separately)
-				for(Int j = 0; j < abundance ; ++j)
+				for (Int j = 0; j < abundance ; ++j)
 				{
 					// currently we might also loose some molecules here (which is ok?)
 					// sample charge state from binomial
@@ -300,24 +322,35 @@ namespace OpenMS {
 						continue;
 					}
 
-					Compomer cmp;
-					// distribute charges across adduct types
-					for (UInt charge_site=0;charge_site<charge;++charge_site)
-					{
-            if (prec_rnduni_remaining == 0)
-            {
-              #pragma omp critical (OPENMS_gsl)
+					/////
+          // distribute charges across adduct types
+          /////
+          Compomer cmp;
+          // if there is only one adduct allowed (usually H+), this is easy
+          if (esi_adducts_.size()==1)
+          {
+            cmp.add(esi_adducts_[0] * charge, Compomer::RIGHT);
+          }
+          else
+          { // for more elaborate adducts
+					  for (UInt charge_site=0; charge_site<charge; ++charge_site)
+					  {
+              if (prec_rnduni_remaining == 0)
               {
-                for (Size i_rnd=0;i_rnd<prec_rnduni.size();++i_rnd)
+                // refill discrete rnd numbers if container is depleted
+                #pragma omp critical (OPENMS_gsl)
                 {
-                  prec_rnduni[i_rnd] = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
+                  for (Size i_rnd=0; i_rnd<prec_rnduni.size(); ++i_rnd)
+                  {
+                    prec_rnduni[i_rnd] = gsl_ran_discrete (rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
+                  }
+                  prec_rnduni_remaining = prec_rnduni.size();
                 }
-                prec_rnduni_remaining = prec_rnduni.size();
               }
-            }
-            adduct_index = prec_rnduni[--prec_rnduni_remaining];
-            cmp.add(esi_adducts_[adduct_index], Compomer::RIGHT);
-					}
+              adduct_index = prec_rnduni[--prec_rnduni_remaining];
+              cmp.add(esi_adducts_[adduct_index], Compomer::RIGHT);
+					  }
+          }
 
 					// add 1 to abundance of sampled charge state
 					++charge_states[cmp];
@@ -330,12 +363,20 @@ namespace OpenMS {
 					continue;
 				}
 
+        // re-scale abundance to original value if it was below 1000
+        //   -> this might lead to small numerical differences to original abundance
+        UInt factor = pow(2.0, power_factor_2);
+        for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m=charge_states.begin(); it_m!=charge_states.end(); ++it_m)
+        {
+          charge_states[it_m->first] *= factor;
+        }
+
 				// transform into a set (for sorting by abundance)
 				Int max_observed_charge(0);
 				std::set< std::pair<UInt, Compomer > > charge_states_sorted;
 				for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m=charge_states.begin(); it_m!=charge_states.end(); ++it_m)
-				{ // create set of pair(value, key)
-					charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(it_m->second,it_m->first) );
+				{ // create set of pair(abundance, Compomer)
+					charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(it_m->second, it_m->first) );
 					// update maximal observed charge
 					max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
 				}
