@@ -589,7 +589,8 @@ namespace OpenMS
 									//~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
 									p += "<Modification location=\"" + String(i+1);
 									p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
-									p += "\"> \n <cvParam accession=\"" + (*mods.begin())->getUniModAccession();
+									String acc = (*mods.begin())->getUniModAccession();
+									p += "\"> \n <cvParam accession=\"UNIMOD:"+ acc.suffix(':'); //TODO repair ResidueModification which gives UniMod ... anyways do not exclusively use unimod ... 
 									p += "\" name=\"" +  mod_str;
 									p += "\" cvRef=\"UNIMOD\"/>";
 									p += "\n </Modification> \n";
@@ -638,7 +639,7 @@ namespace OpenMS
 				String emz(String(it->getMetaValue("MZ"))); //precursor MassToCharge
 				String ert(String(it->getMetaValue("RT"))); //precursor MassToCharge
 				String r(jt->getRank());//rank
-				String sc(jt->getScore()); //score
+				String sc(jt->getScore()); //score TODO what if there is no score?
 				String st(it->getScoreType()); //scoretype
 				String c(jt->getCharge()); //charge
 				String pte(boost::lexical_cast<std::string>(it->isHigherScoreBetter()?jt->getScore()>it->getSignificanceThreshold():jt->getScore()<it->getSignificanceThreshold())); //passThreshold-eval
@@ -657,22 +658,22 @@ namespace OpenMS
 				//~ TODO nicer cvParam handling!
 				 if (st == "q-value" or st == "FDR")
 				{
-					sidres +=  cv_.getTermByName("pep:global FDR").toXMLString(cv_ns);
+					sidres +=  cv_.getTermByName("pep:global FDR").toXMLString(cv_ns,sc);
 				}else if (st == "Posterior Error Probability")
 				{
-					sidres +=  cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns);
+					sidres +=  cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns,sc);
 				}else if (pie_ids[pro_pep_matchstring] == "OMSSA")
 				{
-					sidres +=  cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns);
+					sidres +=  cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns,sc);
 				} else if (pie_ids[pro_pep_matchstring] == "Mascot")
 				{
-					sidres +=  cv_.getTermByName("MASCOT:score").toXMLString(cv_ns);
+					sidres +=  cv_.getTermByName("MASCOT:score").toXMLString(cv_ns,sc);
 				} else if (pie_ids[pro_pep_matchstring] == "XTandem")
 				{
-					sidres +=  cv_.getTermByName("X!Tandem:expect").toXMLString(cv_ns);
+					sidres +=  cv_.getTermByName("X!Tandem:expect").toXMLString(cv_ns,sc);
 				} else if (pie_ids[pro_pep_matchstring] == "SEQUEST")
 				{
-					sidres +=  cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns);
+					sidres +=  cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns,sc);
 				} else
 				{
 					sidres +=  cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns,sc);
