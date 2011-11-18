@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MZIDENTMLFILE_H
@@ -32,6 +32,11 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/METADATA/Identification.h>
+
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -60,6 +65,13 @@ namespace OpenMS
 			*/
 			void load(const String& filename, Identification& id);
 
+			/**
+				@brief Stores a map in a MzIdentML file.
+
+				@exception Exception::UnableToCreateFile is thrown if the file could not be created
+			*/
+			void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const;
+		
 			/**
 				@brief Stores a map in a MzIdentML file.
 
