@@ -32,6 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
 ///////////////////////////
 
 using namespace OpenMS;
@@ -1380,7 +1381,7 @@ command_line3[3] = a6;
 command_line3[4] = a7;
 command_line3[5] = a8;
 
-const char* command_line4[10]; // "executable -a -1.0 -b bv -c cv rv1 rv2"
+const char* command_line4[10]; // "executable -a -1.0 -b bv -c cv rv1 rv2 -1.0"
 command_line4[0] = a1;
 command_line4[1] = a2;
 command_line4[2] = a10;
@@ -1418,6 +1419,26 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const St
 
 END_SECTION
 
+const char* m1 ="mult";
+const char* m2 ="-d";
+const char* m3 ="1.333";
+const char* m4 ="2.23";
+const char* m5 ="3";
+const char* m6 ="-e";
+const char* m7 ="4";
+const char* m8 ="-f";
+const char* m9 ="-g";
+
+const char* command_line_mult[9];	// "mult -d 1.333 2.23 3 -e 4 -f -g"
+command_line_mult[0] = m1;
+command_line_mult[1] = m2;
+command_line_mult[2] = m3;
+command_line_mult[3] = m4;
+command_line_mult[4] = m5;
+command_line_mult[5] = m6;
+command_line_mult[6] = m7;
+command_line_mult[7] = m8;
+command_line_mult[8] = m9;
 
 START_SECTION((void parseCommandLine(const int argc, const char **argv, const Map< String, String > &options_with_one_argument, const Map< String, String > &options_without_argument, const Map< String, String > &options_with_multiple_argument, const String &misc="misc", const String &unknown="unknown")))
 
@@ -1477,27 +1498,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p5000.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p4000==p5000,true)
 		
-	//"mult -d 1.333 2.23 3 -e 4 -f -g"
-	const char* a1 ="mult";
-	const char* a2 ="-d";
-	const char* a3 ="1.333";
-	const char* a4 ="2.23";
-	const char* a5 ="3";
-	const char* a6 ="-e";
-	const char* a7 ="4";
-	const char* a8 ="-f";
-	const char* a9 ="-g";
-
-	const char* command_line_mult[9];
-	command_line_mult[0] = a1;
-	command_line_mult[1] = a2;
-	command_line_mult[2] = a3;
-	command_line_mult[3] = a4;
-	command_line_mult[4] = a5;
-	command_line_mult[5] = a6;
-	command_line_mult[6] = a7;
-	command_line_mult[7] = a8;
-	command_line_mult[8] = a9;
+	// list options:
 	Param p6,p7;
 	p6.parseCommandLine(9,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
 	p7.setValue("d",StringList::create("1.333,2.23,3"));
@@ -1505,18 +1506,94 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p7.setValue("f",StringList());
 	p7.setValue("g",StringList());
 	TEST_EQUAL(p6,p7);
-	TEST_EQUAL(StringList(),StringList());
-	const char* command_line_mult1[4];
-	command_line_mult1[0] = a1;
-	command_line_mult1[1] = a2;
-	command_line_mult1[2] = a3;
-	command_line_mult1[3] = a4;
+
 	Param p8,p9;
 	p9.parseCommandLine(4,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
-	p8.setValue("d",StringList::create("1.333,2.23"));
+	p8.setValue("d", StringList::create("1.333,2.23"));
 	TEST_EQUAL(p9,p8);
 	
 END_SECTION
+
+
+START_SECTION((void parseCommandLine(const int argc, const char **argv, const std::vector<ParameterInformation>& parameters, const String& misc="misc", const String& unknown="unknown")))
+{
+	vector<ParameterInformation> defined;
+	{
+		Param p1, p2;
+		defined.push_back(ParameterInformation("a", ParameterInformation::DOUBLE, "", 0.0, "", false, false));
+		defined.push_back(ParameterInformation("b", ParameterInformation::STRING, "", "", "", false, false));
+		defined.push_back(ParameterInformation("c", ParameterInformation::STRING, "", "", "", false, false));
+		defined.push_back(ParameterInformation("d", ParameterInformation::INT, "", 0, "", false, false));
+		p1.parseCommandLine(10, command_line4, defined, "misc_", "unknown_");
+		p2.setValue("a", -1.0);
+		p2.setValue("b", "bv");
+		p2.setValue("c", "cv");
+		p2.setValue("misc_", StringList::create("rv1,rv2,-1.0"));
+		TEST_EQUAL(p1 == p2, true);
+	}
+	{
+		Param p1, p2;
+		defined[0] = ParameterInformation("a", ParameterInformation::STRING, "", "", "", false, false);
+		p1.parseCommandLine(9, command_line, defined, "misc_", "unknown_");
+		p2.setValue("a", "av");
+		p2.setValue("b", "bv");
+		p2.setValue("c", "cv");
+		p2.setValue("misc_", StringList::create("rv1,rv2"));
+		TEST_EQUAL(p1 == p2, true);
+	}
+	{
+		Param p1, p2;
+		defined.resize(2);
+		defined[1] = ParameterInformation("b", ParameterInformation::FLAG, "", "", "", false, false);
+		p1.parseCommandLine(9, command_line, defined, "misc__", "unknown__");
+		p2.setValue("a", "av");
+		p2.setValue("b", "true");
+		p2.setValue("misc__", StringList::create("bv,cv,rv1,rv2"));
+		p2.setValue("unknown__", StringList::create("-c"));
+		TEST_EQUAL(p1 == p2, true);
+	}
+	{
+		Param p1, p2;
+		p1.parseCommandLine(6, command_line2, defined, "misc__", "unknown__");
+		p2.setValue("a", "av");
+		p2.setValue("b", "true");
+		p2.setValue("misc__", StringList::create("cv"));
+		p2.setValue("unknown__", StringList::create("-c"));
+		TEST_EQUAL(p1 == p2, true);
+	}
+	{
+		Param p1, p2;
+		p1.parseCommandLine(6, command_line3, defined, "misc__", "unknown__");
+		p2.setValue("a", "");
+		p2.setValue("b", "true");
+		p2.setValue("misc__", StringList::create("cv,rv1"));
+		p2.setValue("unknown__", StringList::create("-c"));
+		TEST_EQUAL(p1 == p2, true);
+	}
+	{
+		Param p1, p2;
+		defined.clear();
+		defined.push_back(ParameterInformation("d", ParameterInformation::DOUBLELIST, "", DoubleList(), "", false, false));
+		defined.push_back(ParameterInformation("e", ParameterInformation::INTLIST, "", IntList(), "", false, false));
+		defined.push_back(ParameterInformation("f", ParameterInformation::STRINGLIST, "", StringList(), "", false, false));
+		defined.push_back(ParameterInformation("g", ParameterInformation::STRINGLIST, "", StringList(), "", false, false));
+		p1.parseCommandLine(9, command_line_mult, defined);
+		p2.setValue("d", DoubleList::create("1.333,2.23,3"));
+		p2.setValue("e", IntList::create("4"));
+		p2.setValue("f", StringList());
+		p2.setValue("g", StringList());
+		TEST_EQUAL(p1 == p2, true);
+	}
+	{
+		Param p1, p2;
+		defined[0] = ParameterInformation("d", ParameterInformation::STRINGLIST, "", StringList(), "", false, false);
+		p1.parseCommandLine(4, command_line_mult, defined);
+		p2.setValue("d", StringList::create("1.333,2.23"));
+		TEST_EQUAL(p1 == p2, true);
+	}
+}
+END_SECTION
+
 
 START_SECTION((void setValidStrings(const String &key, const std::vector< String > &strings)))
   vector<String> strings;
@@ -1837,7 +1914,7 @@ START_SECTION([EXTRA] loading and storing of lists)
 END_SECTION
 
 
-START_SECTION(([EXTRA] Escapingi of characters))
+START_SECTION(([EXTRA] Escaping of characters))
 	Param p;
 	p.setValue("string",String("bla"),"string");
 	p.setValue("string_with_ampersand", String("bla2&blubb"), "string with ampersand");

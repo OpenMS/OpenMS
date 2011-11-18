@@ -28,7 +28,7 @@
 #ifndef OPENMS_DATASTRUCTURES_PARAM_H
 #define OPENMS_DATASTRUCTURES_PARAM_H
 
-
+// #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -43,7 +43,8 @@
 
 namespace OpenMS
 {	
-
+	struct ParameterInformation;
+	
 	/**
 		@brief Management and storage of parameters / INI files.
 		
@@ -232,10 +233,10 @@ namespace OpenMS
 			~Param();
 			
 			/// Assignment operator
-			Param& operator = (const Param& rhs);
+			Param& operator=(const Param& rhs);
 			
 			/// Equality operator
-      bool operator == (const Param& rhs) const;
+      bool operator==(const Param& rhs) const;
 
 			/// Begin iterator for the internal tree
 			ParamIterator begin() const;
@@ -507,10 +508,21 @@ namespace OpenMS
 				 @param options_with_multiple_argument a map of options that are followed by several arguments (with key where they are stored)
 				 @param misc key where a StringList of all non-option arguments are stored
 				 @param unknown key where a StringList of all unknown options are stored
-				 
 			*/
-
 			void parseCommandLine(const int argc , const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown");
+
+			/**
+				 @brief Parses command line arguments using parameter definitions from TOPPBase
+				
+         Parses command line arguments according to parameter definitions made in TOPPBase (or a derived class) and stores the result internally.
+
+				 @param argc @p argc variable from command line
+				 @param argv @p argv variable from command line
+				 @param parameters Information about registered parameters from TOPPBase
+				 @param misc Key to store a StringList of all non-option arguments
+				 @param unknown Key to store a StringList of all unknown options
+			*/
+			void parseCommandLine(const int argc , const char** argv, const std::vector<ParameterInformation>& parameters, const String& misc="misc", const String& unknown="unknown");
 			//@}
 						
 			///@name File I/O methods

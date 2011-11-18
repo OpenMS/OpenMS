@@ -38,7 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/IntList.h>
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/DocumentIDTagger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -54,6 +53,7 @@ class QStringList;
 
 namespace OpenMS
 {
+
 	class ConsensusMap;
 
   namespace Exception
@@ -92,6 +92,117 @@ namespace OpenMS
         }
     };
   }
+
+
+	/**
+		 @brief Struct that captures all information of a command line parameter
+
+		 @note had to move this out of the TOPPBase class scope to use it in Param, because foward declaration of nested classes is not possible and there would be a mutual inclusion problem otherwise
+	*/
+	struct ParameterInformation
+	{
+		/// Parameter types
+		enum ParameterTypes
+		{
+			NONE = 0,       ///< Undefined type
+			STRING,         ///< String parameter
+			INPUT_FILE,			///< String parameter that denotes an input file
+			OUTPUT_FILE,    ///< String parameter that denotes an output file
+			DOUBLE,         ///< Floating point number parameter
+			INT,            ///< Integer parameter
+			STRINGLIST,     ///< More than one String Parameter
+			INTLIST,        ///< More than one Integer Parameter
+			DOUBLELIST,     ///< More than one String Parameter
+			INPUT_FILE_LIST,///< More than one String Parameter that denotes input files
+			OUTPUT_FILE_LIST,///< More than one String Parameter that denotes output files
+			FLAG,           ///< Parameter without argument
+			TEXT,           ///< Left aligned text, see addText_
+			NEWLINE					///< An empty line, see addEmptyLine_
+		};
+
+		/// name of the parameter (internal and external)
+		String name;
+		/// type of the parameter
+		ParameterTypes type;
+		/// default value of the parameter stored as string
+		DataValue default_value;
+		/// description of the parameter
+		String description;
+		/// argument in the description
+		String argument;
+		/// flag that indicates if this parameter is required i.e. it must differ from the default value
+		bool required;
+		/// flag the indicates that the parameter is advanced (this is used for writing the INI file only)
+		bool advanced;
+		/// StringList for special tags
+		StringList tags;
+
+		///@name Restrictions for different parameter types
+		//@{
+		std::vector<String> valid_strings;
+		Int min_int;
+		Int max_int;
+		DoubleReal min_float;
+		DoubleReal max_float;
+		//@}
+				
+		/// Constructor that takes all members in declaration order
+		ParameterInformation( const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList() )
+		: name(n),
+			type(t),
+			default_value(def),
+			description(desc),
+			argument(arg),
+			required(req),
+			advanced(adv),
+			tags(tag_values),
+			valid_strings(),
+			min_int(-std::numeric_limits<Int>::max()),
+			max_int(std::numeric_limits<Int>::max()),
+			min_float(-std::numeric_limits<DoubleReal>::max()),
+			max_float(std::numeric_limits<DoubleReal>::max())
+		{
+		}
+
+		ParameterInformation()
+		: name(),
+			type( NONE ),
+			default_value(),
+			description(),
+			argument(),
+			required(true),
+			advanced(false),
+			tags(),
+			valid_strings(),
+			min_int(-std::numeric_limits<Int>::max()),
+			max_int(std::numeric_limits<Int>::max()),
+			min_float(-std::numeric_limits<DoubleReal>::max()),
+			max_float(std::numeric_limits<DoubleReal>::max())
+		{
+		}
+
+		ParameterInformation& operator=( const ParameterInformation& rhs )
+		{
+			if ( &rhs == this ) return *this;
+
+			name = rhs.name;
+			type = rhs.type;
+			default_value = rhs.default_value;
+			description = rhs.description;
+			argument = rhs.argument;
+			required = rhs.required;
+			advanced = rhs.advanced;
+			tags = rhs.tags;
+			valid_strings = rhs.valid_strings;
+			min_int = rhs.min_int;
+			max_int = rhs.max_int;
+			min_float = rhs.min_float;
+			max_float = rhs.max_float;
+          
+			return *this;
+		}
+	};
+
 
   /**
   	 @brief Base class for TOPP applications.
@@ -156,111 +267,6 @@ namespace OpenMS
 
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
-			
-      ///Stuct that captures all information of a command line parameter
-      struct ParameterInformation
-      {
-        /// Parameter types
-        enum ParameterTypes
-        {
-          NONE = 0,       ///< Undefined type
-          STRING,         ///< String parameter
-          INPUT_FILE,			///< String parameter that denotes an input file
-          OUTPUT_FILE,    ///< String parameter that denotes an output file
-          DOUBLE,         ///< Floating point number parameter
-          INT,            ///< Integer parameter
-          STRINGLIST,     ///< More than one String Parameter
-          INTLIST,        ///< More than one Integer Parameter
-          DOUBLELIST,     ///< More than one String Parameter
-          INPUT_FILE_LIST,///< More than one String Parameter that denotes input files
-          OUTPUT_FILE_LIST,///< More than one String Parameter that denotes output files
-          FLAG,           ///< Parameter without argument
-          TEXT,           ///< Left aligned text, see addText_
-          NEWLINE					///< An empty line, see addEmptyLine_
-        };
-
-        /// name of the parameter (internal and external)
-        String name;
-        /// type of the parameter
-        ParameterTypes type;
-        /// default value of the parameter stored as string
-        DataValue default_value;
-        /// description of the parameter
-        String description;
-        /// argument in the description
-        String argument;
-        /// flag that indicates if this parameter is required i.e. it must differ from the default value
-        bool required;
-        /// flag the indicates that the parameter is advanced (this is used for writing the INI file only)
-        bool advanced;
-        /// StringList for special tags
-        StringList tags;
-
-				///@name Restrictions for different parameter types
-				//@{
-				std::vector<String> valid_strings;
-				Int min_int;
-				Int max_int;
-				DoubleReal min_float;
-				DoubleReal max_float;
-				//@}
-				
-        /// Constructor that takes all members in declaration order
-        ParameterInformation( const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList() )
-        	: name(n),
-	          type(t),
-	          default_value(def),
-	          description(desc),
-	          argument(arg),
-	          required(req),
-	          advanced(adv),
-            tags(tag_values),
-	          valid_strings(),
-            min_int(-std::numeric_limits<Int>::max()),
-        	  max_int(std::numeric_limits<Int>::max()),
-        	  min_float(-std::numeric_limits<DoubleReal>::max()),
-        	  max_float(std::numeric_limits<DoubleReal>::max())
-        {
-        }
-
-        ParameterInformation()
-          : name(),
-            type( NONE ),
-            default_value(),
-            description(),
-            argument(),
-            required(true),
-        	  advanced(false),
-            tags(),
-            valid_strings(),
-            min_int(-std::numeric_limits<Int>::max()),
-        	  max_int(std::numeric_limits<Int>::max()),
-        	  min_float(-std::numeric_limits<DoubleReal>::max()),
-        	  max_float(std::numeric_limits<DoubleReal>::max())
-        {
-        }
-
-        ParameterInformation& operator=( const ParameterInformation& rhs )
-        {
-          if ( &rhs == this ) return *this;
-
-          name = rhs.name;
-          type = rhs.type;
-          default_value = rhs.default_value;
-          description = rhs.description;
-          argument = rhs.argument;
-          required = rhs.required;
-          advanced = rhs.advanced;
-          tags = rhs.tags;
-          valid_strings = rhs.valid_strings;
-          min_int = rhs.min_int;
-          max_int = rhs.max_int;
-          min_float = rhs.min_float;
-          max_float = rhs.max_float;
-          
-          return *this;
-        }
-      };
 
 
     private:
@@ -362,7 +368,7 @@ namespace OpenMS
 
       	 @note See getParam_(const String&) const for the order in which parameters are searched.
       */
-      double getParamAsDouble_( const String& key, double default_value = 0 ) const;
+      DoubleReal getParamAsDouble_( const String& key, DoubleReal default_value = 0 ) const;
       
       /**
          @brief Return the value of parameter @p key as a StringList or @p default_value if this value is not set
@@ -408,6 +414,13 @@ namespace OpenMS
       	 where "some_key" == key in the examples.
       */
       const DataValue& getParam_( const String& key ) const;
+
+			/**
+				 @brief Get the part of a parameter name that makes up the subsection
+
+				 The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
+			*/
+			String getSubsection_(const String& name) const;
       
       /// Returns the default parameters
       Param getDefaultParameters_() const;
@@ -456,6 +469,20 @@ namespace OpenMS
       	 The options '-ini' '-log' '-instance' '-debug' and the flag '--help' are automatically registered.
       */
       virtual void registerOptionsAndFlags_() = 0;
+
+			/**
+				 @brief Registers a command line parameter derived from a ParamEntry object.
+
+				 A ParamEntry of type String is turned into a flag if its default value is "false" and its valid strings are "true" and "false".
+
+				 @param entry The ParamEntry that defines name, default value, description, restrictions, and required-/advancedness (via tags) of the parameter.
+				 @param argument Argument description text for the help output.
+				 @param full_name Full name of the parameter, if different from the name in the ParamEntry (ParamEntry names cannot contain sections)
+			 */
+			void registerParamEntry_(const Param::ParamEntry& entry, const String& argument = "", const String& full_name = "");
+
+			/// Register command line parameters for all entries in a Param object
+			void registerFullParam_(const Param& param);
 
       /**
       	@brief Registers a string option.

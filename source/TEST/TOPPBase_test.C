@@ -78,9 +78,7 @@ class TOPPBaseTest
       registerDoubleList_("doublelist2","<double>",DoubleList::create("1.2,2.33"),"doublelist with restrictions",false);
       setMinFloat_("doublelist2",0.2);
       setMaxFloat_("doublelist2",5.4);
-
     }
-
 
     String getStringOption(const String& name) const
     {
@@ -226,6 +224,35 @@ class TOPPBaseTestNOP
     }
 };
 
+// Test class for parameters derived from a Param object
+class TOPPBaseTestParam: public TOPPBase
+{
+  public:
+    TOPPBaseTestParam(const Param& param): 
+			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false), test_param_(param)
+    {
+      main(0, 0);
+    }
+
+    virtual void registerOptionsAndFlags_()
+    {
+			registerFullParam_(test_param_);
+		}
+
+    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    {
+      return EXECUTION_OK;
+    }
+
+	  const Param& getParam() const
+		{
+			return getParam_();
+		}
+
+  private:
+	  Param test_param_;
+};
+
 /////////////////////////////////////////////////////////////
 
   START_TEST(TOPPBase, "$Id$");
@@ -261,31 +288,31 @@ START_SECTION((static Map<String,StringList> getUtilList()))
 	TEST_EQUAL(ToolHandler::getUtilList()["ImageCreator"].types.empty(),true)
 END_SECTION
 
-TOPPBase::ParameterInformation* pi_ptr = 0;
-TOPPBase::ParameterInformation* pi_nullPointer = 0;
+ParameterInformation* pi_ptr = 0;
+ParameterInformation* pi_nullPointer = 0;
 
-START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation()))
-    pi_ptr = new TOPPBase::ParameterInformation();
+START_SECTION(([ParameterInformation] ParameterInformation()))
+    pi_ptr = new ParameterInformation();
     TEST_NOT_EQUAL(pi_ptr, pi_nullPointer)
 END_SECTION
 
 StringList tags = StringList::create("advanced,useless", ',');
-TOPPBase::ParameterInformation pi("Temperatur", TOPPBase::ParameterInformation::DOUBLE, "sehr hoch", "ganz hoch", "eine Art Beschreibung", true, false, tags);
+ParameterInformation pi("Temperatur", ParameterInformation::DOUBLE, "sehr hoch", "ganz hoch", "eine Art Beschreibung", true, false, tags);
 
-START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation(const String &n, ParameterTypes t, const String &arg, const DataValue &def, const String &desc, bool req, bool adv, const StringList &tag_values=StringList())))
+START_SECTION(([ParameterInformation] ParameterInformation(const String &n, ParameterTypes t, const String &arg, const DataValue &def, const String &desc, bool req, bool adv, const StringList &tag_values=StringList())))
   TEST_EQUAL(pi.name, "Temperatur");
-  TEST_EQUAL(pi.type, TOPPBase::ParameterInformation::DOUBLE);
+  TEST_EQUAL(pi.type, ParameterInformation::DOUBLE);
   TEST_EQUAL(pi.default_value, "ganz hoch");
   TEST_EQUAL(pi.required, true);
   TEST_EQUAL(pi.tags, tags)
 END_SECTION
 
-START_SECTION(([TOPPBase::ParameterInformation] ParameterInformation& operator=(const ParameterInformation &rhs)))
-  TOPPBase::ParameterInformation assign_to;
+START_SECTION(([ParameterInformation] ParameterInformation& operator=(const ParameterInformation &rhs)))
+  ParameterInformation assign_to;
   assign_to = pi;
   
   TEST_EQUAL(assign_to.name, "Temperatur");
-  TEST_EQUAL(assign_to.type, TOPPBase::ParameterInformation::DOUBLE);
+  TEST_EQUAL(assign_to.type, ParameterInformation::DOUBLE);
   TEST_EQUAL(assign_to.default_value, "ganz hoch");
   TEST_EQUAL(assign_to.required, true);
   TEST_EQUAL(assign_to.tags, tags);
@@ -624,6 +651,26 @@ START_SECTION(([EXTRA] data processing methods))
 	}
 END_SECTION
 
+START_SECTION(([EXTRA] const Param& getParam_()))
+{
+	Param test_param;
+	test_param.setValue("param_int", 123, "param int description");
+	test_param.setValue("param_double", -4.56, "param double description");
+	test_param.setValue("param_string", "test", "param string description");
+	test_param.setValue("param_stringlist", StringList::create("this,is,a,test"), "param stringlist description");
+	test_param.setValue("param_intlist", IntList::create("7,-8,9"), "param intlist description");
+	test_param.setValue("param_doublelist", DoubleList::create("123,-4.56,0.789"), "param doublelist description");
+	test_param.setValue("param_flag", "true", "param flag description");
+	test_param.setValidStrings("param_flag", StringList::create("true,false"));
+
+	TOPPBaseTestParam temp(test_param);
+	Param result = temp.getParam(); // contains "test_param" + some default stuff
+	for (Param::ParamIterator it = test_param.begin(); it != test_param.end(); ++it)
+	{
+		TEST_EQUAL(*it == result.getEntry(it.getName()), true);
+	}
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
