@@ -21,12 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
-// $Authors: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
+// $Authors: Mathias Walzer, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
+
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -34,6 +36,11 @@
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -55,9 +62,13 @@ namespace OpenMS
       //@{
       /// Constructor for a write-only handler
       MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
+      /// Constructor for a write-only handler for internal identification structures
+      MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler
       MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
+      /// Constructor for a read-only handler for internal identification structures
+      MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzIdentMLHandler();
@@ -81,17 +92,31 @@ namespace OpenMS
 			/// Progress logger
 			const ProgressLogger& logger_;
 
-			///Controlled vocabulary (psi-pi from OpenMS/share/OpenMS/CV/psi-pi.obo)
+			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
 			ControlledVocabulary cv_;
+		 ///Controlled vocabulary for modifications (unimod from OpenMS/share/OpenMS/CV/unimod.obo)
+			ControlledVocabulary unimod_;
 
+			//~ MSExperiment<>* ms_exp_;
+		 
+			///XML tag parse element
 			String tag_;
 
+			///Identification Item
 			Identification* id_;
+			///internal Identification Item for proteins
+			std::vector<ProteinIdentification>* pro_id_;
+			///Identification Item for peptides
+			std::vector<PeptideIdentification>* pep_id_;			
 
 			const Identification* cid_;
-
+			const std::vector<ProteinIdentification>* cpro_id_;
+			const std::vector<PeptideIdentification>* cpep_id_;		 
+		 
+			///SpectrumIdentification Item
 			SpectrumIdentification current_spectrum_id_;
-
+			
+			///IdentificationHit Item
 			IdentificationHit current_id_hit_;
 
 			/// Handles CV terms
@@ -111,7 +136,6 @@ namespace OpenMS
 
 
 			private:
-
 				MzIdentMLHandler();
 				MzIdentMLHandler(const MzIdentMLHandler& rhs);
 				MzIdentMLHandler& operator = (const MzIdentMLHandler& rhs);

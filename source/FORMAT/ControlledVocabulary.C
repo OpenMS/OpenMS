@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch  $
-// $Authors: Marc Sturm, Andreas Bertsch $
+// $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -286,6 +286,18 @@ namespace OpenMS
 				//cerr << "Parent: " << *pit << "\n";
 				terms_[*pit].children.insert(it->first);
 			}
+			
+			Map<String, String>::iterator mit = namesToIds_.find(terms_[it->first].name);
+			if (mit == namesToIds_.end() )
+			{
+				namesToIds_.insert(pair<String, String>(terms_[it->first].name, it->first));
+			}
+			else
+			{
+				//~ TODO that case would be bad do something
+				String s = terms_[it->first].name + terms_[it->first].description;
+				namesToIds_.insert(pair<String,String>(s,it->first));
+			}
 		}
 	}
 		
@@ -315,6 +327,29 @@ namespace OpenMS
 			getAllChildTerms(terms, *it);
 		}
 	}
+
+	const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
+	{
+		//slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
+		Map<String, String>::const_iterator it = namesToIds_.find(name);
+		if (it == namesToIds_.end() )
+		{
+			if (!desc.empty())
+			{
+				it = namesToIds_.find(String(name+desc));
+				if (it == namesToIds_.end() )
+				{
+					throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid CV name!",name);
+				}
+			}
+			else
+			{
+				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid CV name!",name);
+			}
+		}
+		
+		return terms_[it->second];
+	}	
 
 	bool ControlledVocabulary::exists(const String& id) const
 	{

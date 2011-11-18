@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm, Andreas Bertsch $
+// $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
@@ -147,6 +147,20 @@ namespace OpenMS
 					}
 					return *this;
 				}
+				
+				/// get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
+				String toXMLString(const String& ref, const String& value = String("")) const
+				{
+					String s =  "<cvParam accession=\"" + id + "\" cvRef=\""+ ref + "\" name=\""+ name;
+					if (!value.empty())
+					{
+						s += "\" value=\"" + value;
+					}
+					s +=  "\"/>";
+					return s;
+					//~ TODO: handle unknown cvparams in ControlledVocabulary to get same formatting but more userdefined interface
+				}
+	
 			};
 			
 			/// Constructor
@@ -174,7 +188,14 @@ namespace OpenMS
 				
 				@exception Exception::InvalidValue is thrown if the term is not present
 			*/
-			const CVTerm& getTerm(const String& id) const;
+			const CVTerm& getTerm(const String& id) const;			
+
+			/**
+				@brief Returns a term specified by name
+				
+				@exception Exception::InvalidValue is thrown if the term is not present
+			*/
+			const CVTerm& getTermByName(const String& name, const String& desc = "") const;
 
 
 			/// returns all the terms stored in the CV
@@ -206,6 +227,8 @@ namespace OpenMS
 			
 			///Map from ID to CVTerm
 			Map<String, CVTerm> terms_;
+			///Map from name to id
+			Map<String, String> namesToIds_;
 			///Name set in the load method
 			String name_;			
 	};

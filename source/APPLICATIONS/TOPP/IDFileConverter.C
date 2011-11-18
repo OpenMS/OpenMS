@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Katharina Albers, Clemens Groepl, Chris Bielow $
+// $Authors: Katharina Albers, Clemens Groepl, Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -70,6 +71,13 @@ Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quit
 
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant information for the use of ProteinProphet.
 
+
+Some information about the supported input types:
+  @ref OpenMS::MzIdentMLFile "MzIdentML"
+  @ref OpenMS::PepXMLFile "PepXML"
+  @ref OpenMS::ProtMLFile "ProtXML"
+  @ref OpenMS::IdXMLFile "idXML"
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDFileConverter.cli
 
@@ -98,9 +106,10 @@ protected:
 	    "xml: Single mascot XML file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", StringList::create("idXML,pepXML,FASTA"));
+		String formats("idXML,mzid,pepXML,FASTA");
+    setValidFormats_("out", StringList::create(formats));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_type", StringList::create("idXML,pepXML,FASTA"));
+    setValidStrings_("out_type", StringList::create(formats));
 
     addEmptyLine_();
     addText_("Sequest options:");
@@ -322,6 +331,10 @@ protected:
 		else if (out_type == FileTypes::IDXML)
 		{
 			IdXMLFile().store(out, protein_identifications, peptide_identifications);
+		}
+		else if (out_type == FileTypes::MZIDENTML)
+		{
+			MzIdentMLFile().store(out, protein_identifications, peptide_identifications);
 		}
 		else if (out_type == FileTypes::FASTA)
 		{
