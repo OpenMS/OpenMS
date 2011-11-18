@@ -31,6 +31,9 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <QDir>
 
 using namespace OpenMS;
 using namespace std;
@@ -143,6 +146,38 @@ START_SECTION((static bool isDirectory(const String& path)))
 	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")),false)
 END_SECTION
 
+START_SECTION(static bool removeDirRecursively(const String &dir_name))
+  QDir d;
+  String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
+  TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
+  TextFile tf;
+  tf.store(dirname + "test.txt");
+  TEST_EQUAL(File::removeDirRecursively(dirname), true)
+END_SECTION
+
+START_SECTION(static String getTempDirectory())
+  TEST_NOT_EQUAL(File::getTempDirectory(), String())
+  TEST_EQUAL(File::exists(File::getTempDirectory()), true)
+END_SECTION
+
+START_SECTION(static String getUserDirectory())
+  TEST_NOT_EQUAL(File::getUserDirectory(), String())
+  TEST_EQUAL(File::exists(File::getUserDirectory()), true)
+END_SECTION
+
+START_SECTION(static Param getSystemParameters())
+  Param p = File::getSystemParameters();
+  TEST_EQUAL(p.size()>0, true)
+  TEST_EQUAL(p.getValue("version"), VersionInfo::getVersion())
+END_SECTION
+
+START_SECTION(static String findDatabase(const String &db_name))
+  
+  TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
+  String db = File::findDatabase("./CV/unimod.obo");
+  TEST_EQUAL(db.hasSubstring("OpenMS/share"), true)
+
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

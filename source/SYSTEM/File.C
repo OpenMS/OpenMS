@@ -350,7 +350,7 @@ namespace OpenMS
       full_db_name = find(db_name, sys_p.getValue("id_db_dir"));
       LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'\n";
     }
-    catch (Exception::BaseException& e)
+    catch (Exception::FileNotFound& e)
     {
       LOG_ERROR << "Input database '" + db_name + "' not found. Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!";
       throw e;
