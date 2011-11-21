@@ -497,7 +497,7 @@ namespace OpenMS
 			if (spit==sip_ids.end())
 			{
 				UInt64 spid = UniqueIdGenerator::getUniqueId();
-				String sip = String("<SpectrumIdentificationProtocol id=\"") + String(spid) + string("\" analysisSoftware_ref=\"")  + String(swid) + String("\"> \n <SearchType>\n");
+				String sip = String("<SpectrumIdentificationProtocol id=\"") + String(spid) + String("\" analysisSoftware_ref=\"")  + String(swid) + String("\"> \n <SearchType>\n");
 				sip += cv_.getTermByName("ms-ms search").toXMLString(cv_ns);
 				sip += String(" \n </SearchType>\n<Threshold>\n");
 				sip += cv_.getTermByName("no threshold").toXMLString(cv_ns);
@@ -620,12 +620,12 @@ namespace OpenMS
 					
 					//~ TODO no '*' allowed!!
 					String po = String(jt->getAAAfter());
-					if (! po.empty() and po != " " and po != "*")
+					if (! po.empty() && po != " " && po != "*")
 					{
 						e += "\" post=\"" + po;
 					}
 					String pr = String(jt->getAABefore());
-          if (! pr.empty() and pr != " " and pr != "*")
+          if (! pr.empty() && pr != " " && pr != "*")
 					{
 						e += "\" pre=\"" + pr;
 					}
@@ -656,12 +656,12 @@ namespace OpenMS
 				}
 
 				//~ TODO nicer cvParam handling!
-				 if (st == "q-value" or st == "FDR")
+				if (st == "q-value" || st == "FDR")
 				{
 					sidres +=  cv_.getTermByName("pep:global FDR").toXMLString(cv_ns,sc);
 				}else if (st == "Posterior Error Probability")
 				{
-					sidres +=  cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns,sc);
+					sidres +=  cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns,sc); // 'percolaror' is not a typo.
 				}else if (pie_ids[pro_pep_matchstring] == "OMSSA")
 				{
 					sidres +=  cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns,sc);
@@ -679,7 +679,7 @@ namespace OpenMS
 					sidres +=  cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns,sc);
 				}
 				//~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
-				sidres += "</SpectrumIdentificationItem> \n </SpectrumIdentificationResult>\n";
+				sidres += "</SpectrumIdentificationItem>\n </SpectrumIdentificationResult>\n";
 				sidlist.push_back(sidres);
 				
 			}
