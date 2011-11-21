@@ -416,7 +416,6 @@ namespace OpenMS
     }
     return os;
   }
-
 } // namespace OpenMS
 
 #endif // OPENMS_DATASTRUCTURES_DPOSITION_H

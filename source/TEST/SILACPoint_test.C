@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
-// vi: set ts=2:
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:expandtab
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2011 -- Bastian Blank
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,37 +22,20 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass $
+// $Authors: Lars Nilse, Holger Plattfaut $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/DATASTRUCTURES/GridElement.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
 
-namespace OpenMS
-{
-  GridElement::GridElement()
-  {
+using namespace OpenMS;
 
-  }
+START_TEST(SILACPoint, "$Id$")
 
-  GridElement::~GridElement()
-  {
+START_SECTION(SILACPoint())
+  SILACPoint s;
+  TEST_EQUAL(s.mz, 0);
+END_SECTION
 
-  }
-
-	GridElement::GridElement(const GridElement& copy)
-	{
-		mz = copy.mz;
-		rt = copy.rt;
-	}
-
-	GridElement::GridElement(DoubleReal rt_, DoubleReal mz_)
-	{
-		mz = mz_;
-		rt = rt_;
-	}
-}
-
-
-
-
+END_TEST

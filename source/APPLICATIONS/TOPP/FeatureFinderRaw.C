@@ -41,8 +41,9 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SILACClustering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 
 //Contrib includes
@@ -119,7 +120,6 @@ using namespace std;
   The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 
   Parameters in section <i>algorithm:</i>
-  - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
   - <i>rt_threshold</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
   - <i>rt_min</i> - Lower bound for the retentions time [s].
   - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
@@ -160,11 +160,10 @@ class TOPPFeatureFinderRaw
     DoubleReal intensity_cutoff;
     DoubleReal intensity_correlation;
     DoubleReal model_deviation;
-    bool allow_missing_peaks;
 
     vector<vector <DoubleReal> > massShifts;      // list of mass shifts
 
-    typedef HierarchicalClustering<SILACPattern *> Clustering;
+    typedef SILACClustering Clustering;
 
     vector<vector<SILACPattern> > data;
     vector<Clustering *> cluster_data;
@@ -172,7 +171,7 @@ class TOPPFeatureFinderRaw
 
   public:
     TOPPFeatureFinderRaw()
-      : TOPPBase("FeatureFinderRaw","Determination of peak ratios in LC-MS data", false), allow_missing_peaks(true)
+      : TOPPBase("FeatureFinderRaw","Determination of peak ratios in LC-MS data", true)
     {
     }
 
@@ -184,19 +183,18 @@ class TOPPFeatureFinderRaw
   void registerOptionsAndFlags_()
   {
     // create flag for input file (.mzML)
-    registerInputFile_("in", "<file>", "", "input file");
+    registerInputFile_("in", "<file>", "", "Raw LC-MS data to be analyzed. (Profile data required. Will not work with centroided data!)");
     setValidFormats_("in", StringList::create("mzML"));
     // create flag for output file (.featureXML)
-    registerOutputFile_("out", "<file>", "", "output file", false);
+    registerOutputFile_("out", "<file>", "", "Set of all identified peptides. The m/z-RT positions correspond to the lightest peptide in each group.", false);
     setValidFormats_("out", StringList::create("featureXML"));
 
+    // create section "labels" for adjusting masses of labels
+    registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
     // create section "sample" for adjusting sample parameters
-    registerSubsection_("sample", "Parameter describing the sample and its labels.");
+    registerSubsection_("sample", "Parameters describing the sample and its labels.");
     // create section "algorithm" for adjusting algorithm parameters
     registerSubsection_("algorithm", "Parameters for the algorithm.");
-
-    // create flag for missing peaks
-    registerFlag_("algorithm:allow_missing_peaks", "Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Should such peptides be included in the analysis?", true);
   }
 
 
@@ -213,9 +211,7 @@ class TOPPFeatureFinderRaw
     if (section == "sample")
     {
       defaults.setValue("charge", "2:3", "Range of charge states in the sample, i.e. min charge : max charge.");
-      defaults.setValue("missed_cleavages", 0 , "Maximum number of missed cleavages.");
-      defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("peaks_per_peptide", "3:4", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.", StringList::create("advanced"));
+      defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", StringList::create("advanced"));
     }
 
 
@@ -225,7 +221,7 @@ class TOPPFeatureFinderRaw
 
     if (section == "algorithm")
     {
-      defaults.setValue("rt_threshold", 50.0, "Upper bound for the retention time [s] over which a characteristic peptide elutes. ");
+      defaults.setValue("rt_threshold", 50.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
       defaults.setMinFloat("rt_threshold", 0.0);
       defaults.setValue("rt_min", 0.0, "Lower bound for the retention time [s].", StringList::create("advanced"));
       defaults.setMinFloat("rt_min", 0.0);
@@ -293,7 +289,6 @@ class TOPPFeatureFinderRaw
     intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
     intensity_correlation = getParam_().getValue("algorithm:intensity_correlation");
     model_deviation = getParam_().getValue("algorithm:model_deviation");
-    allow_missing_peaks = getFlag_("algorithm:allow_missing_peaks");
 
 
     {
@@ -325,13 +320,13 @@ class TOPPFeatureFinderRaw
           vector<DoubleReal> massShifts_set = massShifts[i];
 
           //copy(massShifts[i].begin(), massShifts[i].end(), inserter(massShifts_set, massShifts_set.end()));
-          filters.push_back(SILACFilter(massShifts_set, charge, model_deviation, isotopes_per_peptide));
+          filters.push_back(SILACFilter(massShifts_set, charge, model_deviation, isotopes_per_peptide, intensity_cutoff, intensity_correlation, 0));
         }
       }
     }
 
     // create filtering
-    SILACFiltering filtering(exp, peak_width, intensity_cutoff, intensity_correlation, allow_missing_peaks, "");
+    SILACFiltering filtering(exp, peak_width, intensity_cutoff, "");
     filtering.setLogType(log_type_);
 
     // register filters to the filtering
@@ -344,7 +339,7 @@ class TOPPFeatureFinderRaw
     filtering.filterDataPoints();
 
     // retrieve filtered data points
-    for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+    for (SILACFiltering::Filters::iterator filter_it = filtering.filters_.begin(); filter_it != filtering.filters_.end(); ++filter_it)
     {
       data.push_back(filter_it->getElements());
     }
@@ -586,7 +581,7 @@ void TOPPFeatureFinderRaw::clusterData(const PeakWidthEstimator::Result &peak_wi
        ++data_it, ++data_id)
   {
     const PointCoordinate max_delta(rt_threshold, mz_threshold);
-    Clustering *clustering = new Clustering(max_delta);
+    Clustering *clustering = new Clustering(max_delta, rt_min, 0);
 
     for (vector<SILACPattern>::iterator it = data_it->begin(); it != data_it->end(); ++it)
     {
@@ -598,35 +593,6 @@ void TOPPFeatureFinderRaw::clusterData(const PeakWidthEstimator::Result &peak_wi
     clustering->cluster();
 
     cluster_data.push_back(clustering);
-
-    // Remove too small clusters
-    if (rt_min)
-    {
-      for (Clustering::Grid::grid_iterator cell_it = clustering->grid.grid_begin();
-           cell_it != clustering->grid.grid_end(); ++cell_it)
-      {
-        Clustering::Grid::cell_iterator cluster_it = cell_it->second.begin();
-        while (cluster_it != cell_it->second.end())
-        {
-          Clustering::Grid::cell_iterator cluster_mod_it = cluster_it++;
-
-          DBoundingBox<2> cluster_bbox;
-
-          for (Clustering::Cluster::const_iterator pattern_it = cluster_mod_it->second.begin();
-               pattern_it != cluster_mod_it->second.end();
-               ++pattern_it)
-          {
-            SILACPattern *pattern = pattern_it->second;
-            cluster_bbox.enlarge(DBoundingBox<2>::PositionType(pattern->rt, pattern->mz));
-          }
-
-          if ((cluster_bbox.max_[0] - cluster_bbox.min_[0]) < rt_min)
-          {
-            cell_it->second.erase(cluster_mod_it);
-          }
-        }
-      }
-    }
 
     progresslogger.setProgress(data_id);
   }
@@ -649,14 +615,58 @@ PeakWidthEstimator::Result TOPPFeatureFinderRaw::estimatePeakWidth(const MSExper
 
 void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, const Clustering &clustering) const
 {
-  for (Clustering::Grid::const_grid_iterator cell_it = clustering.grid.grid_begin(); cell_it != clustering.grid.grid_end(); ++cell_it)
+  for (Clustering::Grid::const_iterator cluster_it = clustering.grid.begin(); cluster_it != clustering.grid.end(); ++cluster_it)
   {
-    for (Clustering::Grid::const_cell_iterator cluster_it = cell_it->second.begin(); cluster_it != cell_it->second.end(); ++cluster_it)
+    // RT value as weighted RT position of all peaks
+    DoubleReal global_rt = 0;
+    // Total intensity
+    DoubleReal global_intensity = 0;
+
+    for (Clustering::Cluster::const_iterator pattern_it = cluster_it->second.begin();
+         pattern_it != cluster_it->second.end();
+         ++pattern_it)
     {
-      // RT value as weighted RT position of all peaks
-      DoubleReal global_rt = 0;
+      SILACPattern &pattern = *pattern_it->second;
+
+      for (std::vector<std::vector<DoubleReal> >::const_iterator shift_inten_it = pattern.intensities.begin();
+           shift_inten_it != pattern.intensities.end();
+           ++shift_inten_it)
+      {
+        for (std::vector<DoubleReal>::const_iterator peak_inten_it = shift_inten_it->begin();
+             peak_inten_it != shift_inten_it->end();
+             ++peak_inten_it)
+        {
+          DoubleReal intensity = *peak_inten_it;
+
+          // Add to RT value and global intensity
+          global_rt += intensity * pattern.rt;
+          global_intensity += intensity;
+        }
+      }
+    }
+
+    // Calculate global RT value
+    global_rt /= global_intensity;
+
+    SILACPattern &pattern_first = *cluster_it->second.begin()->second;
+
+    for (UInt shift_id = 0; shift_id < pattern_first.mass_shifts.size(); ++shift_id)
+    {
+      // XXX: Feature detection produces a stray 0 mass shift
+      if (shift_id > 0 && pattern_first.mass_shifts[shift_id] == 0)
+        continue;
+
+      Feature feature;
+
+      // MZ value as weighted MZ position of monoisotopic peaks of given mass shift
+      DoubleReal shift_mz = 0;
       // Total intensity
-      DoubleReal global_intensity = 0;
+      DoubleReal shift_intensity = 0;
+      // Total intensity of monoisotopic peak
+      DoubleReal shift_intensity0 = 0;
+
+      // Bounding box per peak
+      std::map<UInt, DBoundingBox<2> > bboxs;
 
       for (Clustering::Cluster::const_iterator pattern_it = cluster_it->second.begin();
            pattern_it != cluster_it->second.end();
@@ -664,97 +674,50 @@ void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, co
       {
         SILACPattern &pattern = *pattern_it->second;
 
-        for (std::vector<std::vector<DoubleReal> >::const_iterator shift_inten_it = pattern.intensities.begin();
-             shift_inten_it != pattern.intensities.end();
-             ++shift_inten_it)
-        {
-          for (std::vector<DoubleReal>::const_iterator peak_inten_it = shift_inten_it->begin();
-               peak_inten_it != shift_inten_it->end();
-               ++peak_inten_it)
-          {
-            DoubleReal intensity = *peak_inten_it;
+        const std::vector<DoubleReal> &intensities = pattern.intensities[shift_id];
+        DoubleReal mz = pattern.mz + pattern.mass_shifts[shift_id];
+        DoubleReal intensity0 = intensities[0];
 
-            // Add to RT value and global intensity
-            global_rt += intensity * pattern.rt;
-            global_intensity += intensity;
-          }
+        // Add to MZ value and shift intensity of monoisotopic peak
+        shift_mz += intensity0 * mz;
+        shift_intensity0 += intensity0;
+
+        // Iterator over every peak
+        UInt peak_id = 0;
+        std::vector<DoubleReal>::const_iterator peak_inten_it = intensities.begin();
+        DoubleReal peak_mz = mz;
+        for (;
+             peak_inten_it != intensities.end();
+             ++peak_id, ++peak_inten_it, peak_mz += 1. / pattern.charge)
+        {
+          shift_intensity += *peak_inten_it;
+          bboxs[peak_id].enlarge(pattern.rt, peak_mz);
         }
       }
 
-      // Calculate global RT value
-      global_rt /= global_intensity;
-
-      SILACPattern &pattern_first = *cluster_it->second.begin()->second;
-
-      for (UInt shift_id = 0; shift_id < pattern_first.mass_shifts.size(); ++shift_id)
+      // Add each bbox as convex hulls to the cluster
+      for (std::map<UInt, DBoundingBox<2> >::const_iterator bboxs_it = bboxs.begin();
+           bboxs_it != bboxs.end();
+           ++bboxs_it)
       {
-        // XXX: Feature detection produces a stray 0 mass shift
-        if (shift_id > 0 && pattern_first.mass_shifts[shift_id] == 0)
-          continue;
-
-        Feature feature;
-
-        // MZ value as weighted MZ position of monoisotopic peaks of given mass shift
-        DoubleReal shift_mz = 0;
-        // Total intensity
-        DoubleReal shift_intensity = 0;
-        // Total intensity of monoisotopic peak
-        DoubleReal shift_intensity0 = 0;
-
-        // Bounding box per peak
-        std::map<UInt, DBoundingBox<2> > bboxs;
-
-        for (Clustering::Cluster::const_iterator pattern_it = cluster_it->second.begin();
-             pattern_it != cluster_it->second.end();
-             ++pattern_it)
-        {
-          SILACPattern &pattern = *pattern_it->second;
-
-          const std::vector<DoubleReal> &intensities = pattern.intensities[shift_id];
-          DoubleReal mz = pattern.mz + pattern.mass_shifts[shift_id];
-          DoubleReal intensity0 = intensities[0];
-
-          // Add to MZ value and shift intensity of monoisotopic peak
-          shift_mz += intensity0 * mz;
-          shift_intensity0 += intensity0;
-
-          // Iterator over every peak
-          UInt peak_id = 0;
-          std::vector<DoubleReal>::const_iterator peak_inten_it = intensities.begin();
-          DoubleReal peak_mz = mz;
-          for (;
-               peak_inten_it != intensities.end();
-               ++peak_id, ++peak_inten_it, peak_mz += 1. / pattern.charge)
-          {
-            shift_intensity += *peak_inten_it;
-            bboxs[peak_id].enlarge(pattern.rt, peak_mz);
-          }
-        }
-
-        // Add each bbox as convex hulls to the cluster
-        for (std::map<UInt, DBoundingBox<2> >::const_iterator bboxs_it = bboxs.begin();
-             bboxs_it != bboxs.end();
-             ++bboxs_it)
-        {
-          ConvexHull2D hull;
-          hull.addPoint(bboxs_it->second.min_);
-          hull.addPoint(bboxs_it->second.max_);
-          feature.getConvexHulls().push_back(hull);
-        }
-
-        // XXX: Real quality?
-        feature.setOverallQuality(1);
-        feature.setCharge(pattern_first.charge);
-
-        // Calculate MZ value
-        shift_mz /= shift_intensity0;
-
-        feature.setRT(global_rt);
-        feature.setMZ(shift_mz);
-        feature.setIntensity(shift_intensity);
-
-        out.push_back(feature);
+        ConvexHull2D hull;
+        hull.addPoint(bboxs_it->second.min_);
+        hull.addPoint(bboxs_it->second.max_);
+        feature.getConvexHulls().push_back(hull);
       }
+
+      // XXX: Real quality?
+      feature.setOverallQuality(1);
+      feature.setCharge(pattern_first.charge);
+
+      // Calculate MZ value
+      shift_mz /= shift_intensity0;
+
+      feature.setRT(global_rt);
+      feature.setMZ(shift_mz);
+      feature.setIntensity(shift_intensity);
+
+      out.push_back(feature);
     }
   }
 }

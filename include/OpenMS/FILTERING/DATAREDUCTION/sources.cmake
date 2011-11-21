@@ -6,6 +6,7 @@ set(sources_list_h
 DataFilters.h
 ElutionPeakDetection.h
 FeatureFindingMetabo.h
+IsotopeDistributionCache.h
 MassTraceDetection.h
 SILACFilter.h
 SILACFiltering.h

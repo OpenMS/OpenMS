@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:expandtab
 //
 // --------------------------------------------------------------------------
@@ -25,23 +25,29 @@
 // $Authors: Bastian Blank $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_HASHER_H
-#define OPENMS_COMPARISON_CLUSTERING_HASHER_H
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>
 
-namespace OpenMS
-{
-  /** Hash Value for OpenMS::DPosition. */
-  template <UInt N, typename T>
-  std::size_t hash_value(const DPosition<N, T> &b)
-  {
-    boost::hash<T> hasher;
-    std::size_t hash = 0;
-    for (typename DPosition<N, T>::const_iterator it = b.begin(); it != b.end(); ++it) hash ^= hasher(*it);
-    return hash;
-  }
-}
+using namespace OpenMS;
 
-#endif /* OPENMS_COMPARISON_CLUSTERING_HASHER_H */
+START_TEST(IsotopeDistributionCache, "$Id$")
+
+START_SECTION(IsotopeDistributionCache(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage=0, DoubleReal intensity_percentage_optional=0))
+  IsotopeDistributionCache c(100, 1);
+END_SECTION 
+
+START_SECTION(const TheoreticalIsotopePattern& getIsotopeDistribution(DoubleReal mass) const)
+  IsotopeDistributionCache c(1000, 10);
+  const IsotopeDistributionCache::TheoreticalIsotopePattern &p(c.getIsotopeDistribution(500));
+  TEST_REAL_SIMILAR(p.intensity[0], 1);
+  TEST_REAL_SIMILAR(p.intensity[1], 0.2668);
+  TEST_REAL_SIMILAR(p.intensity[2], 0.04864);
+  TEST_REAL_SIMILAR(p.intensity[3], 0.006652);
+  TEST_EQUAL(&p == &c.getIsotopeDistribution(509.9), true);
+  TEST_EQUAL(&p != &c.getIsotopeDistribution(510.0), true);
+  TEST_EQUAL(&p != &c.getIsotopeDistribution(499.9), true);
+END_SECTION
+
+END_TEST
+

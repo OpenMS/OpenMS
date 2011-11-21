@@ -25,27 +25,47 @@
 // $Authors: Bastian Blank $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
+#include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACPattern.h>
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
-#define OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
+#ifndef OPENMS_COMPARISON_CLUSTERING_SILACCLUSTERING_H
+#define OPENMS_COMPARISON_CLUSTERING_SILACCLUSTERING_H
 
 namespace OpenMS
 {
   /**
-   * @brief A single SILAC pattern containing multiple found points
-   * @see HashGrid
-   * @ingroup Datastructures
+   * @brief Clustering implementation for SILAC stuff.
+   *
+   * It cleans up the results of the hierarchical clustering for the search of
+   * labeled and unlabeled peptide data. It removes too small clusters and joins
+   * clusters with small gaps that the clustering split on purpose.
+   *
+   * @warning The cleanups will not work on random data
    */
-  class SILACPattern
-    : public SILACPoint
+  class SILACClustering : public HierarchicalClustering<SILACPattern *>
   {
     public:
+      const DoubleReal rt_min;
+      const DoubleReal rt_max_spacing;
+
+      SILACClustering(const PointCoordinate &cluster_dimension, DoubleReal rt_min, DoubleReal rt_max_spacing)
+        : HierarchicalClustering<SILACPattern *>(cluster_dimension), rt_min(rt_min), rt_max_spacing(rt_max_spacing)
+      { }
+
       /**
-       * Points checked and found in the raw data.
        */
-      std::vector<SILACPoint> points;
+      void cluster();
+
+    protected:
+      /**
+       * @bried Remove clusters smaller then rt_min
+       */
+      void removeSmall_();
+      /**
+       * @brief Join clusters with holes less then rt_max_spacing
+       */
+      void joinLarge_();
   };
 }
 
-#endif /* OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H */
+#endif /* OPENMS_COMPARISON_CLUSTERING_HIERARCHICALCLUSTERING_H */

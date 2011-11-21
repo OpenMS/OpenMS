@@ -1,10 +1,10 @@
 // -*- mode: C++; tab-width: 2; -*-
-// vi: set ts=2:
+// vi: set ts=2:expandtab
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2011 -- Bastian Blank
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,57 +27,15 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-///////////////////////////
-#include <OpenMS/COMPARISON/CLUSTERING/QTClustering.h>
-///////////////////////////
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACPattern.h>
 
 using namespace OpenMS;
-using namespace std;
 
-START_TEST(QTClustering, "$Id$")
+START_TEST(SILACPattern, "$Id$")
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-QTClustering* ptr = 0;
-QTClustering* nullPointer = 0;
-START_SECTION(QTClustering())
-{
-	NOT_TESTABLE
-}
+START_SECTION(SILACPattern())
+  SILACPattern p;
+  TEST_EQUAL(p.mz, 0);
 END_SECTION
 
-START_SECTION(~QTClustering())
-{
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION((QTClustering(std::vector< DataPoint > &data, DoubleReal rt_diameter, DoubleReal mz_diameter)))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((std::vector<std::vector<DataPoint*> > performClustering()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION(([QTClustering::InsufficientInput] InsufficientInput(const char *file, int line, const char *function, const char *message="not enough data points to cluster anything")))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION(([QTClustering::InsufficientInput] virtual ~InsufficientInput()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 END_TEST

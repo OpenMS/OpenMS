@@ -28,7 +28,8 @@
 #ifndef OPENMS_DATASTRUCTURES_GRIDFEATURE_H
 #define OPENMS_DATASTRUCTURES_GRIDFEATURE_H
 
-#include <OpenMS/DATASTRUCTURES/GridElement.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 
 namespace OpenMS
 {
@@ -40,7 +41,6 @@ namespace OpenMS
  */
 
 	class OPENMS_DLLAPI GridFeature 
-		: public GridElement
 	{
 		private:
 		/// Reference to the contained feature
@@ -82,6 +82,11 @@ namespace OpenMS
 		/// Return the set of peptide sequences annotated to the cluster center
 		const std::set<AASequence>& getAnnotations() const;
 
+    DoubleReal getRT()
+    { return feature_.getRT(); }
+
+    DoubleReal getMZ()
+    { return feature_.getMZ(); }
 	};
 }
 

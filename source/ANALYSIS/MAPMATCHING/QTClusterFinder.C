@@ -82,7 +82,7 @@ namespace OpenMS
 		// create the hash grid and fill it with features:
 		// cout << "Hashing..." << endl;
 		list<GridFeature> grid_features;
-		HashGridOld grid(max_diff_rt_, max_diff_mz_);
+		Grid grid(Grid::ClusterCenter(max_diff_rt_, max_diff_mz_));
 		for (Size map_index = 0; map_index < num_maps_; ++map_index)
 		{
 			for (Size feature_index = 0; feature_index < input_maps[map_index].size();
@@ -91,6 +91,7 @@ namespace OpenMS
 				grid_features.push_back(
 					GridFeature(input_maps[map_index][feature_index], map_index, 
 											feature_index));
+        GridFeature& gfeature = grid_features.back();
 				// sort peptide hits once now, instead of multiple times later:
 				BaseFeature& feature = const_cast<BaseFeature&>(
 					grid_features.back().getFeature());
@@ -100,7 +101,7 @@ namespace OpenMS
 				{
 					pep_it->sort();
 				}
-				grid.insert(&(grid_features.back()));
+				grid.insert(std::make_pair(Grid::ClusterCenter(gfeature.getRT(), gfeature.getMZ()), &gfeature));
 			}
 		}
 
@@ -176,7 +177,7 @@ namespace OpenMS
 	}
 
 
-	void QTClusterFinder::computeClustering_(HashGridOld& grid, 
+	void QTClusterFinder::computeClustering_(Grid& grid, 
 																					 list<QTCluster>& clustering)
 	{
 		clustering.clear();
@@ -185,44 +186,27 @@ namespace OpenMS
 		const DoubleReal max_distance = 1.0;
 
 		// iterate over all grid cells:
-		for (GridCells::iterator it = grid.begin(); it != grid.end(); ++it)
+		for (Grid::iterator it = grid.begin(); it != grid.end(); ++it)
 		{
-			pair<int, int> coords = it->first;
-			list<GridElement*>& elements = it->second;
-			int x = coords.first, y = coords.second;
-			// iterate over all elements in the grid cell:
-			for (list<GridElement*>::iterator center_element = elements.begin();
-					 center_element != elements.end(); ++center_element)
-			{
-				// create a cluster for every element (this element is cluster center):
-				GridFeature* center_feature = 
-					dynamic_cast<GridFeature*>(*center_element);
-				QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_);
+      const Grid::CellIndex act_coords = it.index();
+      const Int x = act_coords[0], y = act_coords[1];
 
-				// iterate over neighboring grid cells (1st dimension):
-				for (int i = x - 1; i <= x + 1; ++i)
-				{
-					// check for border cells:
-					if ((i < 0) || (i > grid.getGridSizeX())) continue;
+      GridFeature* center_feature = it->second;
+      QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_);
 
-					// iterate over neighboring grid cells (2nd dimension):
-					for (int j = y - 1; j <= y + 1; ++j)
-					{
-						// check for border cells:
-						if ((j < 0) || (j > grid.getGridSizeY())) continue;
+      // iterate over neighboring grid cells (1st dimension):
+      for (int i = x - 1; i <= x + 1; ++i)
+      {
+        // iterate over neighboring grid cells (2nd dimension):
+        for (int j = y - 1; j <= y + 1; ++j)
+        {
+          try
+          { 
+            const Grid::CellContent act_pos = grid.grid_at(Grid::CellIndex(i, j));
 
-						// find all neighbors of the cluster:
-						GridCells::iterator pos = grid.find(make_pair(i, j));
-						if (pos == grid.end()) continue;
-						list<GridElement*>& neighbor_elements = pos->second;
-
-						// iterate over the neighbors:
-						for (list<GridElement*>::iterator neighbor_element = 
-									 neighbor_elements.begin(); neighbor_element != 
-									 neighbor_elements.end(); ++neighbor_element)
+            for (Grid::const_cell_iterator it_cell = act_pos.begin(); it_cell != act_pos.end(); ++it_cell)
 						{
-							GridFeature* neighbor_feature = 
-								dynamic_cast<GridFeature*>(*neighbor_element);
+							GridFeature* neighbor_feature = it_cell->second;
 							// consider only "real" neighbors, not the element itself:
 							if (center_feature != neighbor_feature)
 							{
@@ -240,9 +224,11 @@ namespace OpenMS
 							}
 						}
 					}
+          catch (std::out_of_range &)
+          { }
 				}
-				clustering.push_back(cluster);
 			}
+      clustering.push_back(cluster);
 		}
 	}
 

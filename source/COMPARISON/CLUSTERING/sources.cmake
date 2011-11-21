@@ -9,8 +9,8 @@ ClusterFunctor.C
 ClusterHierarchical.C
 CompleteLinkage.C
 EuclideanSimilarity.C
-QTClustering.C
 SingleLinkage.C
+SILACClustering.C
 )
 
 ### add path to the filenames

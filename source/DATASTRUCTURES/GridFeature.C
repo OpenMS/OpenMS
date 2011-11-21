@@ -34,7 +34,7 @@ namespace OpenMS
 
 	GridFeature::GridFeature(const BaseFeature& feature, Size map_index,
 													 Size feature_index) : 
-		GridElement(feature.getRT(), feature.getMZ()), feature_(feature),
+		feature_(feature),
 		map_index_(map_index), feature_index_(feature_index), annotations_()
 	{
 		const vector<PeptideIdentification>& peptides = 

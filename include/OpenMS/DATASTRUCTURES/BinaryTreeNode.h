@@ -29,7 +29,7 @@
 #ifndef OPENMS_DATASTRUCTURES_BINARYTREENODE_H
 #define OPENMS_DATASTRUCTURES_BINARYTREENODE_H
 
-#include <OpenMS/DATASTRUCTURES/DataPoint.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 
 namespace OpenMS

@@ -6,6 +6,7 @@ set(sources_list
 DataFilters.C
 ElutionPeakDetection.C
 FeatureFindingMetabo.C
+IsotopeDistributionCache.C
 MassTraceDetection.C
 SILACFilter.C
 SILACFiltering.C

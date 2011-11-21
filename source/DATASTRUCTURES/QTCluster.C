@@ -54,12 +54,12 @@ namespace OpenMS
 
 	DoubleReal QTCluster::getCenterRT() const
 	{
-		return center_point_->rt;
+		return center_point_->getRT();
 	}
 
 	DoubleReal QTCluster::getCenterMZ() const
 	{
-		return center_point_->mz;
+		return center_point_->getMZ();
 	}
 
 	Size QTCluster::size() const

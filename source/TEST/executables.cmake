@@ -29,24 +29,20 @@ set(datastructures_executables_list
 	DIntervalBase_test
 	DPosition_test
 	DRange_test
-	DataPoint_test
 	DataValue_test
 	DateTime_test
 	Date_test
 	DefaultParamHandler_test
 	DistanceMatrix_test
 	DoubleList_test
-	GridElement_test
 	GridFeature_test
 	HashGrid_test
-	HashGridOld_test
 	IntList_test
   LPWrapper_test
 	Map_test
 	MassExplainer_test
 	Matrix_test
 	QTCluster_test
-	QTSILACCluster_test
 	RangeManager_test
 	SparseVector_test
 	StringList_test
@@ -236,6 +232,7 @@ set(filtering_executables_list
   IntensityBalanceFilter_test
   InternalCalibration_test
   IsotopeDiffFilter_test
+  IsotopeDistributionCache_test
   IsotopeMarker_test
   LinearResampler_test
   LowessSmoothing_test
@@ -249,6 +246,8 @@ set(filtering_executables_list
   PeakMarker_test
   SILACFilter_test
   SILACFiltering_test
+  SILACPattern_test
+  SILACPoint_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
@@ -278,8 +277,8 @@ set(comparison_executables_list
   HierarchicalClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
-  QTClustering_test
   SingleLinkage_test
+  SILACClustering_test
   SpectraSTSimilarityScore_test
   SpectrumAlignmentScore_test
   SpectrumAlignment_test

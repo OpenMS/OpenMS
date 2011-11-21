@@ -36,61 +36,53 @@ using namespace std;
 
 START_TEST(SILACFilter, "$Id$")
 
+std::vector<DoubleReal> mass_separations;
+mass_separations.push_back(4);
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SILACFilter* ptr = 0;
-SILACFilter* nullPointer = 0;
-START_SECTION(SILACFilter())
+START_SECTION((SILACFilter(std::vector< DoubleReal > mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide, DoubleReal intensity_cutoff, DoubleReal intensity_correlation, bool allow_missing_peaks)))
 {
-	ptr = new SILACFilter();
-	TEST_NOT_EQUAL(ptr, nullPointer)
-}
-END_SECTION
-
-START_SECTION(~SILACFilter())
-{
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION((SILACFilter(std::vector< DoubleReal > mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide)))
-{
-  NOT_TESTABLE
+  SILACFilter f(mass_separations, 1, 1, 3, 0, 0, false);
+  TEST_EQUAL(f.getCharge(), 1);
 }
 END_SECTION
 
 START_SECTION((std::vector<DoubleReal> getPeakPositions()))
 {
-  NOT_TESTABLE
+  SILACFilter f(mass_separations, 1, 1, 3, 0, 0, false);
+  // XXX: Segfaults
+  // TEST_EQUAL(f.getPeakPositions().size(), 0);
 }
 END_SECTION
 
-START_SECTION((std::vector<DoubleReal> getExpectedMzShifts()))
+START_SECTION((const std::vector<DoubleReal>& getExpectedMzShifts()))
 {
-  NOT_TESTABLE
+  const UInt peaks_per_peptide = 3;
+  SILACFilter f(mass_separations, 1, 1, peaks_per_peptide, 0, 0, false);
+  TEST_EQUAL(f.getExpectedMzShifts().size(), (mass_separations.size() + 1) * peaks_per_peptide);
 }
 END_SECTION
 
-START_SECTION((std::vector<DataPoint> getElements()))
+START_SECTION((std::vector<SILACPattern>& getElements()))
 {
-  SILACFilter tmp;
-	tmp.getElements().resize(0);
-  TEST_EQUAL(tmp.getElements().size(), 0);
+  SILACFilter f(mass_separations, 1, 1, 3, 0, 0, false);
+  TEST_EQUAL(f.getElements().size(), 0);
 }
 END_SECTION
 
 START_SECTION((Int getCharge()))
 {
-  NOT_TESTABLE
+  SILACFilter f(mass_separations, 1, 1, 3, 0, 0, false);
+  TEST_EQUAL(f.getCharge(), 1);
 }
 END_SECTION
 
-START_SECTION((std::vector<DoubleReal> getMassSeparations()))
+START_SECTION((std::vector<DoubleReal>& getMassSeparations()))
 {
-  SILACFilter tmp;
-  tmp.getMassSeparations().resize(0);
-  TEST_EQUAL(tmp.getMassSeparations().size(), 0);
+  SILACFilter f(mass_separations, 1, 1, 3, 0, 0, false);
+  TEST_EQUAL(f.getMassSeparations() == mass_separations, true);
 }
 END_SECTION
 

@@ -36,7 +36,8 @@ namespace OpenMS
    * @see HashGrid
    * @ingroup Datastructures
    */
-  class OPENMS_DLLAPI SILACPoint {
+  class OPENMS_DLLAPI SILACPoint
+  {
     public:
       /**
        * @brief m/z value of the element
@@ -72,6 +73,10 @@ namespace OpenMS
        * @brief quality of the cluster
        */
       DoubleReal quality;
+
+      SILACPoint()
+        : mz(0), rt(0), charge(0), isotopes_per_peptide(0), quality(0)
+      { }
   };
 }
 

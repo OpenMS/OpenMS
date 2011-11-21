@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -22,57 +22,36 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut $
+// $Authors: Steffen Sass, Holger Plattfaut, Bastian Blank $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
+#ifndef OPENMS_FILTERING_DATAREDUCTION_ISOTOPEDISTRIBUTIONCACHE_H
+#define OPENMS_FILTERING_DATAREDUCTION_ISOTOPEDISTRIBUTIONCACHE_H
 
-///////////////////////////
-#include <OpenMS/DATASTRUCTURES/GridElement.h>
-///////////////////////////
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
-using namespace OpenMS;
-using namespace std;
-
-START_TEST(GridElement, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-GridElement* ptr = 0;
-GridElement* nullPointer = 0;
-START_SECTION(GridElement())
+namespace OpenMS
 {
-	NOT_TESTABLE
+  /**
+   * @brief Prealculate isotope distributions for interesting mass ranges
+   */
+  class OPENMS_DLLAPI IsotopeDistributionCache
+  {
+    public:
+      typedef FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
+
+      IsotopeDistributionCache(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage = 0, DoubleReal intensity_percentage_optional = 0);
+
+      /// Returns the isotope distribution for a certain mass window
+      const TheoreticalIsotopePattern& getIsotopeDistribution(DoubleReal mass) const;
+
+    private:
+      /// Vector of precalculated isotope distributions for several mass winows
+      std::vector< TheoreticalIsotopePattern > isotope_distributions_;
+
+      DoubleReal mass_window_width_;
+  };
 }
-END_SECTION
 
-START_SECTION(~GridElement())
-{
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION((GridElement(const GridElement &copy)))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((GridElement(DoubleReal rt_, DoubleReal mz_)))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((virtual Int getID() const =0))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST
-
+#endif

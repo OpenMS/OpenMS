@@ -25,9 +25,10 @@
 // $Authors: Bastian Blank $
 // --------------------------------------------------------------------------
 
-#include <queue>
 #include <cmath>
 #include <limits>
+#include <map>
+#include <queue>
 #include <boost/unordered/unordered_set.hpp>
 
 #include <OpenMS/COMPARISON/CLUSTERING/HashGrid.h>
@@ -65,25 +66,6 @@ namespace OpenMS
        */
       typedef DPosition<2, DoubleReal> PointCoordinate;
 
-     /**
-       * @brief Set of points.
-       * Describes a cluster on the grid. A point consists of a @ref{PointCoordinate} and a @tref{PointRef}.
-       */
-      typedef typename boost::unordered_multimap<PointCoordinate, PointRef> Cluster;
-
-      /**
-       * @brief The hash grid data type.
-       */
-      typedef HashGrid<Cluster> Grid;
-
-      /**
-       * @brief The hash grid.
-       *
-       * It contains clusters.
-       */
-      Grid grid;
-
-    protected:
       /**
        *  @brief Bounding box of cluster.
        *  @attention To be replaced by OpenMS bounding box.
@@ -96,9 +78,13 @@ namespace OpenMS
             : std::pair<PointCoordinate, PointCoordinate>(std::make_pair(p, p))
           { }
 
+          BoundingBox(const BoundingBox &b)
+            : std::pair<PointCoordinate, PointCoordinate>(b)
+          { }
+
           PointCoordinate size() const
           {
-            return coordinate_minus(this->second, this->first);
+            return this->second - this->first;
           }
 
           /** @brief Intersection of bounding box. */
@@ -129,10 +115,38 @@ namespace OpenMS
           operator PointCoordinate() const
           {
             // (first + second) / 2
-            return coordinate_division(coordinate_plus(this->first, this->second), 2);
+            return coordScalarDiv_(this->first + this->second, 2);
           }
       };
 
+      /**
+       * @brief Set of points.
+       * Describes a cluster on the grid. A point consists of a @ref{PointCoordinate} and a @tref{PointRef}.
+       */
+      class Cluster
+        : public boost::unordered_multimap<PointCoordinate, PointRef>
+      {
+        public:
+          BoundingBox bbox;
+
+          Cluster(const BoundingBox &bbox)
+            : bbox(bbox)
+          { }
+      };
+
+      /**
+       * @brief The hash grid data type.
+       */
+      typedef HashGrid<Cluster> Grid;
+
+      /**
+       * @brief The hash grid.
+       *
+       * It contains clusters.
+       */
+      Grid grid;
+
+    protected:
       /** @brief Tree node used for clustering. */
       class TreeNode
       {
@@ -197,7 +211,7 @@ namespace OpenMS
        */
       typename Grid::cell_iterator insertPoint(const PointCoordinate &d, const PointRef &ref)
       {
-        typename Grid::cell_iterator it = insertCluster(d);
+        typename Grid::cell_iterator it = insertCluster_(d);
         it->second.insert(std::make_pair(d, ref));
         return it;
       }
@@ -213,7 +227,7 @@ namespace OpenMS
           cells.push_back(it->first);
         // Cluster each available cell
         for (typename std::vector<typename Grid::CellIndex>::const_iterator it = cells.begin(); it != cells.end(); ++it)
-          clusterIndex(*it);
+          clusterIndex_(*it);
       }
 
     protected:
@@ -222,16 +236,17 @@ namespace OpenMS
        * @param d Point to insert.
        * @return iterator to inserted cluster.
        */
-      typename Grid::cell_iterator insertCluster(const PointCoordinate &d)
+      template <class P>
+      typename Grid::cell_iterator insertCluster_(const P &p)
       {
-        return grid.insert(std::make_pair(d, Cluster()));
+        return grid.insert(std::make_pair(p, Cluster(p)));
       }
 
       /**
        * @brief Perform clustering at given cell index.
        * @param p Cell index.
        */
-      void clusterIndex(const typename Grid::CellIndex &p);
+      void clusterIndex_(const typename Grid::CellIndex &p);
 
       /**
        * @brief Collect all cells used to cluster at given cell index.
@@ -241,7 +256,7 @@ namespace OpenMS
        * @param cur Cell index.
        * @param cells List of cells to be used.
        */
-      void gridCells5x5(typename Grid::CellIndex cur, ClusterCells &cells);
+      void gridCells5x5_(typename Grid::CellIndex cur, ClusterCells &cells);
 
       /**
        * @brief Collect one cell.
@@ -250,7 +265,7 @@ namespace OpenMS
        * @param center Is the given cell in the center.
        * @oaram ignore_missing Defines if non-existant errors should be ignored.
        */
-      void gridCell(const typename Grid::CellIndex &cur, ClusterCells &cells, bool center = false, bool ignore_missing = true)
+      void gridCell_(const typename Grid::CellIndex &cur, ClusterCells &cells, bool center = false, bool ignore_missing = true)
       {
         try
         {
@@ -265,7 +280,7 @@ namespace OpenMS
       /**
        * @brief Add a new tree to the set of trees and distance queue
        */
-      void addTreeDistance(TreeNode *tree, ClusterTrees &trees, TreeDistanceQueue &dists)
+      void addTreeDistance_(TreeNode *tree, ClusterTrees &trees, TreeDistanceQueue &dists)
       {
         // Infinity: no valid distance
         DoubleReal dist_min = std::numeric_limits<DoubleReal>::infinity();
@@ -275,7 +290,7 @@ namespace OpenMS
         for (typename ClusterTrees::const_iterator it = trees.begin(); it != trees.end(); ++it)
         {
           if (tree == *it) continue;
-          DoubleReal dist = treeDistance(tree, *it);
+          DoubleReal dist = treeDistance_(tree, *it);
           if (dist < dist_min)
           {
             dist_min = dist;
@@ -296,14 +311,17 @@ namespace OpenMS
        * It checks the size of the bounding box and returns INFINITY if it gets
        * to large.
        */
-      DoubleReal treeDistance(TreeNode *left, TreeNode *right)
+      DoubleReal treeDistance_(TreeNode *left, TreeNode *right)
       {
         const BoundingBox bbox = left->bbox | right->bbox;
-        if (coordinate_greater(bbox.size(), grid.cell_dimension))
+        if (coordElemGreater_(bbox.size(), grid.cell_dimension))
         {
           return std::numeric_limits<DoubleReal>::infinity();
         }
-        return coordinate_distance(coordinate_division(left->coord, grid.cell_dimension), coordinate_division(right->coord, grid.cell_dimension));
+
+        const PointCoordinate left_scaled = coordElemDiv_(left->coord, grid.cell_dimension);
+        const PointCoordinate right_scaled = coordElemDiv_(right->coord, grid.cell_dimension);
+        return coordDist_(left_scaled, right_scaled);
       }
 
       /**
@@ -312,12 +330,12 @@ namespace OpenMS
        * @param tree The tree
        * @param cluster The cluster
        */
-      void tree2Cluster(const TreeNode *tree, Cluster &cluster)
+      void tree2Cluster_(const TreeNode *tree, Cluster &cluster)
       {
         if (tree->left && tree->right)
         {
-          tree2Cluster(tree->left, cluster);
-          tree2Cluster(tree->right, cluster);
+          tree2Cluster_(tree->left, cluster);
+          tree2Cluster_(tree->right, cluster);
         }
         else
         {
@@ -332,12 +350,12 @@ namespace OpenMS
        * All points are saved in the leafs of the tree.
        * @param tree The tree
        */
-      void tree2Points(const TreeNode *tree)
+      void tree2Points_(const TreeNode *tree)
       {
         if (tree->left && tree->right)
         {
-          tree2Points(tree->left);
-          tree2Points(tree->right);
+          tree2Points_(tree->left);
+          tree2Points_(tree->right);
         }
         else
         {
@@ -347,48 +365,7 @@ namespace OpenMS
         delete tree->right;
       }
 
-      // XXX: Convert to operator
-      static PointCoordinate coordinate_plus(const PointCoordinate &lhs, const PointCoordinate &rhs)
-      {
-        PointCoordinate ret;
-        typename PointCoordinate::iterator it = ret.begin();
-        typename PointCoordinate::const_iterator lit = lhs.begin(), rit = rhs.begin();
-        for (; it != ret.end(); ++it, ++lit, ++rit) *it = *lit + *rit;
-        return ret;
-      }
-
-      // XXX: Convert to operator
-      static PointCoordinate coordinate_minus(const PointCoordinate &lhs, const PointCoordinate &rhs)
-      {
-        PointCoordinate ret;
-        typename PointCoordinate::iterator it = ret.begin();
-        typename PointCoordinate::const_iterator lit = lhs.begin(), rit = rhs.begin();
-        for (; it != ret.end(); ++it, ++lit, ++rit) *it = *lit - *rit;
-        return ret;
-      }
-
-      // XXX: Convert to operator
-      static PointCoordinate coordinate_multiplication(const PointCoordinate &lhs, const DoubleReal &rhs)
-      {
-        PointCoordinate ret;
-        typename PointCoordinate::iterator it = ret.begin();
-        typename PointCoordinate::const_iterator lit = lhs.begin();
-        for (; it != ret.end(); ++it, ++lit) *it = *lit * rhs;
-        return ret;
-      }
-
-      // XXX: Convert to operator
-      static PointCoordinate coordinate_multiplication(const PointCoordinate &lhs, const PointCoordinate &rhs)
-      {
-        PointCoordinate ret;
-        typename PointCoordinate::iterator it = ret.begin();
-        typename PointCoordinate::const_iterator lit = lhs.begin(), rit = rhs.begin();
-        for (; it != ret.end(); ++it, ++lit, ++rit) *it = *lit * *rit;
-        return ret;
-      }
-
-      // XXX: Convert to operator
-      static PointCoordinate coordinate_division(const PointCoordinate &lhs, const DoubleReal &rhs)
+      static PointCoordinate coordScalarDiv_(const PointCoordinate &lhs, const DoubleReal &rhs)
       {
         PointCoordinate ret;
         typename PointCoordinate::iterator it = ret.begin();
@@ -397,8 +374,7 @@ namespace OpenMS
         return ret;
       }
 
-      // XXX: Convert to operator
-      static PointCoordinate coordinate_division(const PointCoordinate &lhs, const PointCoordinate &rhs)
+      static PointCoordinate coordElemDiv_(const PointCoordinate &lhs, const PointCoordinate &rhs)
       {
         PointCoordinate ret;
         typename PointCoordinate::iterator it = ret.begin();
@@ -407,8 +383,7 @@ namespace OpenMS
         return ret;
       }
 
-      // XXX: Rename
-      static bool coordinate_greater(const PointCoordinate &lhs, const PointCoordinate &rhs)
+      static bool coordElemGreater_(const PointCoordinate &lhs, const PointCoordinate &rhs)
       {
         UInt ret = 0;
         typename PointCoordinate::const_iterator lit = lhs.begin(), rit = rhs.begin();
@@ -416,10 +391,10 @@ namespace OpenMS
         return ret;
       }
 
-      static DoubleReal coordinate_distance(const PointCoordinate &lhs, const PointCoordinate &rhs)
+      static DoubleReal coordDist_(const PointCoordinate &lhs, const PointCoordinate &rhs)
       {
         DoubleReal ret = 0;
-        PointCoordinate p = coordinate_minus(lhs, rhs);
+        PointCoordinate p = lhs - rhs;
         typename PointCoordinate::const_iterator it = p.begin();
         for (; it != p.end(); ++it) ret += std::pow(*it, 2.);
         return std::sqrt(ret);
@@ -427,7 +402,7 @@ namespace OpenMS
   };
 
   template <typename I>
-  void HierarchicalClustering<I>::clusterIndex(const typename Grid::CellIndex &cur)
+  void HierarchicalClustering<I>::clusterIndex_(const typename Grid::CellIndex &cur)
   {
     ClusterCells cells;
     ClusterTrees trees;
@@ -436,7 +411,7 @@ namespace OpenMS
     // Collect all cells we need
     try
     {
-      gridCells5x5(cur, cells);
+      gridCells5x5_(cur, cells);
     }
     catch (std::out_of_range &)
     { return; }
@@ -462,7 +437,7 @@ namespace OpenMS
           {
             const PointCoordinate &coord = point_it->first;
             TreeNode *tree(new TreeNode(coord, point_it->second, cell_center));
-            addTreeDistance(tree, trees, dists);
+            addTreeDistance_(tree, trees, dists);
           }
 
           // Remove point from hash grid cell
@@ -486,17 +461,20 @@ namespace OpenMS
         trees.erase(tree_right);
 
         const BoundingBox bbox = tree_left->bbox | tree_right->bbox;
+
         // Arithmethic mean: (left * left.points + right * right.points) / (left.points + right.points)
-        const UInt points = tree_left->points + tree_right->points;
-        const PointCoordinate coord = coordinate_division(coordinate_plus(coordinate_multiplication(tree_left->coord, tree_left->points), coordinate_multiplication(tree_right->coord, tree_right->points)), points);
+        const PointCoordinate &left = tree_left->coord, &right = tree_right->coord;
+        const UInt &left_points = tree_left->points, &right_points = tree_right->points;
+        const PointCoordinate coord = coordScalarDiv_(left * left_points + right * right_points, left_points + right_points);
+
         TreeNode *tree(new TreeNode(coord, bbox, tree_left, tree_right));
 
-        addTreeDistance(tree, trees, dists);
+        addTreeDistance_(tree, trees, dists);
       }
       // Re-add a distance for the tree not yet used.
       // Otherwise this subset is lost even if it is not yet maximal.
-      else if (count_left) addTreeDistance(tree_left, trees, dists);
-      else if (count_right) addTreeDistance(tree_right, trees, dists);
+      else if (count_left) addTreeDistance_(tree_left, trees, dists);
+      else if (count_right) addTreeDistance_(tree_right, trees, dists);
     }
 
     // Add data back to grid
@@ -505,84 +483,84 @@ namespace OpenMS
       // We got a finished tree with all points in the center, add cluster at centroid
       if ((**tree_it).center)
       {
-        Cluster &cluster = insertCluster((**tree_it).bbox)->second;
-        tree2Cluster(*tree_it, cluster);
+        Cluster &cluster = insertCluster_((**tree_it).bbox)->second;
+        tree2Cluster_(*tree_it, cluster);
       }
       // We got a finished tree but not all points in the center, readd as single points
       else
       {
-        tree2Points(*tree_it);
+        tree2Points_(*tree_it);
       }
       delete *tree_it;
     }
   }
 
   template <typename I>
-  void HierarchicalClustering<I>::gridCells5x5(typename Grid::CellIndex base, ClusterCells &cells)
+  void HierarchicalClustering<I>::gridCells5x5_(typename Grid::CellIndex base, ClusterCells &cells)
   {
     // (0, 0)
-    gridCell(base, cells, true, false);
+    gridCell_(base, cells, true, false);
 
     typename Grid::CellIndex cur = base;
     cur[0] -= 2;
     // (-2, -2)
-    cur[1] -= 2; gridCell(cur, cells);
+    cur[1] -= 2; gridCell_(cur, cells);
     // (-2, -1)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
     // (-2, 0)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
     // (-2, 1)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
     // (-2, 2)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
 
     cur = base; cur[0] -= 1;
     // (-1, -2)
-    cur[1] -= 2; gridCell(cur, cells);
+    cur[1] -= 2; gridCell_(cur, cells);
     // (-1, -1)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (-1, 0)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (-1, 1)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (-1, 2)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
 
     cur = base;
     // (0, -2)
-    cur[1] -= 2; gridCell(cur, cells);
+    cur[1] -= 2; gridCell_(cur, cells);
     // (0, -1)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (0, 0)
     cur[1] += 1;
     // (0, 1)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (0, 2)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
 
     cur = base; cur[0] += 1;
     // (1, -2)
-    cur[1] -= 2; gridCell(cur, cells);
+    cur[1] -= 2; gridCell_(cur, cells);
     // (1, -1)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (1, 0)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (1, 1)
-    cur[1] += 1; gridCell(cur, cells, true);
+    cur[1] += 1; gridCell_(cur, cells, true);
     // (1, 2)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
 
     cur = base; cur[0] += 2;
     // (2, -2)
-    cur[1] -= 2; gridCell(cur, cells);
+    cur[1] -= 2; gridCell_(cur, cells);
     // (2, -1)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
     // (2, 0)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
     // (2, 1)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
     // (2, 2)
-    cur[1] += 1; gridCell(cur, cells);
+    cur[1] += 1; gridCell_(cur, cells);
   }
 }
 

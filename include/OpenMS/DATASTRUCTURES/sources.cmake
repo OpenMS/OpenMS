@@ -14,7 +14,6 @@ CVMappingTerm.h
 CVMappingRule.h
 CVReference.h
 CVMappings.h
-DataPoint.h
 DBoundingBox.h
 DIntervalBase.h
 DPosition.h
@@ -25,9 +24,7 @@ DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
 DoubleList.h
-GridElement.h
 GridFeature.h
-HashGridOld.h
 IntList.h
 IsotopeCluster.h
 Map.h
@@ -35,7 +32,6 @@ MassExplainer.h
 Matrix.h
 Param.h
 QTCluster.h
-QTSILACCluster.h
 SeqanIncludeWrapper.h
 SparseVector.h
 String.h

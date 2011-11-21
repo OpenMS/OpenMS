@@ -14,7 +14,6 @@ CVMappingTerm.C
 CVMappingRule.C
 CVReference.C
 CVMappings.C
-DataPoint.C
 DBoundingBox.C
 DIntervalBase.C
 DPosition.C
@@ -25,16 +24,13 @@ DateTime.C
 DefaultParamHandler.C
 DistanceMatrix.C
 DoubleList.C
-GridElement.C
 GridFeature.C
-HashGridOld.C
 IntList.C
 Map.C
 MassExplainer.C
 Matrix.C
 Param.C
 QTCluster.C
-QTSILACCluster.C
 SparseVector.C
 String.C
 StringList.C
