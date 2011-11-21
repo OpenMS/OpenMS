@@ -1,5 +1,5 @@
 # Peptide abundances computed from file 'source/TEST/TOPP/ProteinQuantifier_input.featureXML'
-# Parameters (relevant only): filter_charge
+# Parameters (relevant only): filter_charge=true
 "peptide"	"protein"	"n_proteins"	"charge"	"abundance"
 "AAAAA"	"Protein0"	1	1	3333
 "CCCCC"	"Protein0"	1	1	3333

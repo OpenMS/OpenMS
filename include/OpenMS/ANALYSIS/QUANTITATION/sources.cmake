@@ -6,6 +6,7 @@ set(sources_list_h
 ItraqChannelExtractor.h
 ItraqConstants.h
 ItraqQuantifier.h
+PeptideAndProteinQuant.h
 ProteinInference.h
 )
 

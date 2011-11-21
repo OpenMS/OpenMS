@@ -6,6 +6,7 @@ set(sources_list
 ItraqChannelExtractor.C
 ItraqConstants.C
 ItraqQuantifier.C
+PeptideAndProteinQuant.C
 ProteinInference.C
 )
 
