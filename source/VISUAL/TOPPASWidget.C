@@ -86,9 +86,7 @@ namespace OpenMS
     qreal height = new_scene_rect.height();
     new_scene_rect.setTopLeft(QPointF(top_left_x - width/2.0, top_left_y - height/2.0));
     new_scene_rect.setBottomRight(QPointF(bottom_right_x + width/2.0, bottom_right_y + height/2.0));
-
     scene_->setSceneRect(new_scene_rect);
-
 	}
 	
 	void TOPPASWidget::wheelEvent(QWheelEvent* event)

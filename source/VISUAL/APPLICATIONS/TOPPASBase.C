@@ -787,6 +787,18 @@ namespace OpenMS
 		tw->scale(0.75, 0.75);
 		scene->setSceneRect(tw->mapToScene(tw->rect()).boundingRect());
 
+    QRectF items_rect = scene->itemsBoundingRect();
+    QRectF new_scene_rect = items_rect.united(tw->mapToScene(tw->rect()).boundingRect());
+    qreal top_left_x = new_scene_rect.topLeft().x();
+    qreal top_left_y = new_scene_rect.topLeft().y();
+    qreal bottom_right_x = new_scene_rect.bottomRight().x();
+    qreal bottom_right_y = new_scene_rect.bottomRight().y();
+    qreal width = new_scene_rect.width();
+    qreal height = new_scene_rect.height();
+    new_scene_rect.setTopLeft(QPointF(top_left_x - width/2.0, top_left_y - height/2.0));
+    new_scene_rect.setBottomRight(QPointF(bottom_right_x + width/2.0, bottom_right_y + height/2.0));
+    scene->setSceneRect(new_scene_rect);
+
     desc_->blockSignals(true);
     desc_->setHtml(scene->getDescription());
     desc_->blockSignals(false);
