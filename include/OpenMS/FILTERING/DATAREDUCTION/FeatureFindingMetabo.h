@@ -212,7 +212,8 @@ namespace OpenMS
         /// parameter stuff
         DoubleReal local_rt_range_;
         DoubleReal local_mz_range_;
-
+        Size charge_lower_bound_;
+        Size charge_upper_bound_;
         DoubleReal mass_error_ppm_;
         DoubleReal chrom_fwhm_;
 

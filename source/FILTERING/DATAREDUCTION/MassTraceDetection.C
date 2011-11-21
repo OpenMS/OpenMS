@@ -125,7 +125,7 @@ namespace OpenMS
             }
             else
             {
-                std::cout << "width " << mt_vec[i].getRoughFWHM() << " fits!" << std::endl;
+                // std::cout << "width " << mt_vec[i].getRoughFWHM() << " fits!" << std::endl;
                 filt_mtraces.push_back(mt_vec[i]);
             }
         }

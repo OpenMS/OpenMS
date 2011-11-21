@@ -136,10 +136,12 @@ namespace OpenMS
         : DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
     {
         // defaults_.setValue( "name" , 1 , "descript" );
-        defaults_.setValue( "local_rt_range" , 3.0 , "RT range where to look for coeluting mass traces"); // 3.0
+        defaults_.setValue( "local_rt_range" , 5.0 , "RT range where to look for coeluting mass traces"); // 3.0
         defaults_.setValue( "local_mz_range" , 6.5 , "MZ range where to look for isotopic mass traces");    // 5.0
+        defaults_.setValue( "charge_lower_bound" , 1 , "Lowest charge state to consider");    // 1
+        defaults_.setValue( "charge_upper_bound" , 5 , "Highest charge state to consider");    // 5
         defaults_.setValue( "mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");
-        defaults_.setValue( "chrom_fwhm" , 10.0 , "Minimum FWHM (in seconds) a chromatographic peak should have");
+        defaults_.setValue( "chrom_fwhm" , 3.0 , "Minimum FWHM (in seconds) a chromatographic peak should have");
 
         defaultsToParam_();
 
@@ -258,6 +260,8 @@ namespace OpenMS
         mass_error_ppm_ = (DoubleReal)param_.getValue("mass_error_ppm");
         chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
 
+        charge_lower_bound_ = (Size)param_.getValue("charge_lower_bound");
+        charge_upper_bound_ = (Size)param_.getValue("charge_upper_bound");
     }
 
 
@@ -335,7 +339,7 @@ namespace OpenMS
 
         if (x.size() == 0 || y.size() == 0)
         {
-            return -100.0;
+            return 0.0;
         }
 
         DoubleReal x_mean(0.0), y_mean(0.0);
@@ -360,11 +364,10 @@ namespace OpenMS
 
         if (sim_score > 0.0)
         {
-            return std::log(sim_score);
+            return sim_score;
         }
 
-        return -100;
-
+        return 0.0;
     }
 
 
@@ -423,7 +426,7 @@ namespace OpenMS
 
         bool singleton_trace = true;
 
-        for (Size charge = 1; charge < 4; ++charge) {
+        for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge) {
 
             std::cout << "looking at charge state " << charge << std::endl;
             std::cout << "-----------------------" << std::endl;
@@ -442,7 +445,9 @@ namespace OpenMS
 
             Size last_iso_idx(0);
 
-            for (Size iso_pos = 1; iso_pos < 7; ++iso_pos) {
+            Size iso_pos_max(std::floor(charge_upper_bound_ * local_mz_range_));
+
+            for (Size iso_pos = 1; iso_pos <= iso_pos_max; ++iso_pos) {
                 DoubleReal best_so_far(0.0);
                 Size best_idx(0);
 
@@ -454,9 +459,16 @@ namespace OpenMS
                     DoubleReal tmp_iso_mz(candidates[mt_idx]->getCentroidMZ());
                     DoubleReal tmp_iso_int(candidates[mt_idx]->computePeakArea());
 
+
                     DoubleReal rt_score(scoreRT_(mono_iso_rt, tmp_iso_rt));
+
+                    // DoubleReal rt_score(scoreTraceSim_(*candidates[0], *candidates[mt_idx]));
+
                     DoubleReal mz_score(scoreMZ_(mono_iso_mz, tmp_iso_mz, iso_pos, charge));
-                    DoubleReal int_score(scoreIntRatio_(mono_iso_int, tmp_iso_int, iso_pos));
+                    // DoubleReal int_score(scoreIntRatio_(mono_iso_int, tmp_iso_int, iso_pos));
+
+                    // disable intensity scoring for now...
+                    DoubleReal int_score(1.0);
 
                     DoubleReal total_pair_score(0.0);
 
