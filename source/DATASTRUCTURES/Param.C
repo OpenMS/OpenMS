@@ -1234,7 +1234,8 @@ namespace OpenMS
 		for (int i = argc - 1; i > 0; --i)
 		{
 			String arg = argv[i];
-			bool is_option = (arg.size() >= 2) && (arg[0] == '-') && isalpha(arg[1]);
+			// options start with "-" or "--" followed by a letter:
+			bool is_option = (arg.size() >= 2) && (arg[0] == '-') && (isalpha(arg[1]) || ((arg[1] == '-') && (arg.size() >= 3) &&  isalpha(arg[2])));
 			if (is_option) // process content of the queue
 			{
 				ParamMap::iterator pos = param_map.find(arg);
