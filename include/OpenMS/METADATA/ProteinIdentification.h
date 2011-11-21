@@ -171,8 +171,8 @@ namespace OpenMS
 			bool operator != (const ProteinIdentification& rhs) const;
 	    //@}	 
 
-	   	///@name Protein hit information
-	  	//@{	
+	   	///@name Protein hit information (public members)
+	  	//@{
 	    /// Returns the protein hits
 	    const std::vector<ProteinHit>& getHits() const;
 	    /// Returns the protein hits (mutable)
@@ -214,9 +214,13 @@ namespace OpenMS
 			void sort();
 			/// Sorts the protein hits by score and assigns ranks (best score has rank 1)
 	    void assignRanks();
-      /// Compute the coverage (in percent) of all ProteinHits given PeptideHits
-      /// @throws Exception::MissingInformation if ProteinsHits do not have sequence information
-      /// @return The number of Proteins referenced by the @p pep_ids that are not contained in this ProteinIdentification set (should be 0)
+      /**
+				 @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
+      
+				 @throws Exception::MissingInformation if ProteinsHits do not have sequence information
+
+				 @return The number of Proteins referenced by the @p pep_ids that are not contained in this ProteinIdentification set (should be 0)
+			*/
       Size computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
 			//@}
 
@@ -254,7 +258,7 @@ namespace OpenMS
 	    DateTime date_;
 	    //@}
 	   	
-			///@name Protein hit information
+			///@name Protein hit information (protected members)
 	  	//@{
 	    String protein_score_type_;   
 			bool higher_score_better_;
