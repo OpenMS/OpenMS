@@ -264,8 +264,7 @@ namespace OpenMS {
 
     
     // some last fixing of meta-values (this is impossible to do before as we do not know the final number of scans)
-
-    for (Size i=0;i<feature_maps_[0].size();++i)
+    for (Size i = 0 ; i < feature_maps_[0].size() ; ++i)
     {
       Feature& f = feature_maps_[0][i];
       PeptideIdentification& pi = f.getPeptideIdentifications()[0];
@@ -276,10 +275,17 @@ namespace OpenMS {
       pi.setMetaValue("RT", f.getRT());
     }
 
-
-
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
 
+    // reindex spectra to avoid naming conflicts
+    Size id = 1;
+    experiment_.sortSpectra();
+    for(MSSimExperiment::Iterator spectrum_iterator = experiment_.begin() ; spectrum_iterator != experiment_.end() ; ++spectrum_iterator)
+    {
+      MSSimExperiment::SpectrumType& spectrum = *spectrum_iterator;
+      String spec_id = String("spectrum=") + id++;
+      spectrum.setNativeID(spec_id);
+    }
   }
 
 	void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map)
