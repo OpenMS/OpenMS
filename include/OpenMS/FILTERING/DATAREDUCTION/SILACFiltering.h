@@ -66,7 +66,7 @@ namespace OpenMS
       /**
        * @brief Wrapper class for spectrum interpolation
        */
-      class SpectrumInterpolation
+      class OPENMS_DLLAPI SpectrumInterpolation
       {
         private:
           gsl_interp_accel *current_;

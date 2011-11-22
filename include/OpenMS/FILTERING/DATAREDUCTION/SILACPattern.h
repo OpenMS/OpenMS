@@ -37,7 +37,7 @@ namespace OpenMS
    * @see HashGrid
    * @ingroup Datastructures
    */
-  class SILACPattern
+  class OPENMS_DLLAPI SILACPattern
     : public SILACPoint
   {
     public:
