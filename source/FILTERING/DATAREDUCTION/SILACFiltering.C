@@ -66,7 +66,7 @@ namespace OpenMS
     // spline interpolation, used for exact ratio calculation (more accurate when real peak pairs are present)
     current_ = gsl_interp_accel_alloc();
     spline_ = gsl_spline_alloc(gsl_interp_cspline, mz.size());
-    gsl_spline_init(spline_, mz.data(), intensity.data(), mz.size());
+    gsl_spline_init(spline_, &mz.front(), &intensity.front(), mz.size());
   }
 
   SILACFiltering::SpectrumInterpolation::~SpectrumInterpolation()
