@@ -283,7 +283,7 @@ namespace OpenMS {
     for(MSSimExperiment::Iterator spectrum_iterator = experiment_.begin() ; spectrum_iterator != experiment_.end() ; ++spectrum_iterator)
     {
       MSSimExperiment::SpectrumType& spectrum = *spectrum_iterator;
-      String spec_id = String("spectrum=") + id++;
+      String spec_id = String("scan=") + id++;
       spectrum.setNativeID(spec_id);
     }
   }
