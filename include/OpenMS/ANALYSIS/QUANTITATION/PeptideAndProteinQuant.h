@@ -59,7 +59,7 @@ namespace OpenMS
 			std::set<String> accessions;
 		};
 		
-		/// Mapping: peptide sequence -> peptide data
+		/// Mapping: peptide sequence (modified) -> peptide data
 		typedef std::map<AASequence, PeptideData> PeptideQuant;
 
 		/// Quantitative and associated data for a protein
