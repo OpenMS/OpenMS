@@ -29,8 +29,7 @@ obtained via a "contrib" package, which specifically configures these libraries
 for OpenMS and is available on our website.
 
 The respective respective license files for the contrib libraries can be found 
-in the "contrib" package root directory.
-
+in the "contrib" package root directory or online.
 
 libSVM
 	- URL: http://www.csie.ntu.edu.tw/~cjlin/libsvm/
@@ -39,10 +38,14 @@ libSVM
 GSL
 	- URL: http://www.gnu.org/software/gsl/
 	- License.gpl-2.0.txt
-	
+
+GLPK
+	- URL: http://www.gnu.org/s/glpk/
+	- License.gpl-3.0.txt
+
 Qt 4
-	- URL: http://trolltech.com/downloads/opensource
-	- License.gpl-2.0.txt
+	- URL: http://qt.nokia.com/
+	- License available at http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt 
 
 Xerces-C
 	- URL: http://xerces.apache.org/xerces-c/index.html
@@ -58,7 +61,7 @@ ZLib
   
 BZ2Lib
   - URL: http://www.bzip.org/
-  - BSD-style(?)
+  - License.bzip2.txt 
  
 
 -------------------------------------------------------------------------------
