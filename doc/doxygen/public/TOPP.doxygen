@@ -83,10 +83,10 @@
 
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
-	- @subpage TOPP_MapAlignerApplyTransformation - Applies retention time transformations to maps.
 	- @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
   - @subpage TOPP_MapAlignerPoseClustering - Corrects retention time distortions between maps using a pose clustering approach.
   - @subpage TOPP_MapAlignerSpectrum - Corrects retention time distortions between maps by spectrum alignment.
+	- @subpage TOPP_MapRTTransformer - Applies retention time transformations to maps.
   - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.

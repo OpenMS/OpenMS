@@ -69,7 +69,7 @@ namespace OpenMS
       map_[TDE("NoiseFilter",StringList::create("gaussian"))] = TDE("NoiseFilterGaussian",StringList::create(""));
       map_[TDE("NoiseFilter",StringList::create("sgolay"))] = TDE("NoiseFilterSGolay",StringList::create(""));
 
-      map_[TDE("MapAligner",StringList::create("apply_given_trafo"))] = TDE("MapAlignerApplyTransformation",StringList::create(""));
+      map_[TDE("MapAligner",StringList::create("apply_given_trafo"))] = TDE("MapRTTransformer",StringList::create(""));
       map_[TDE("MapAligner",StringList::create("identification"))] = TDE("MapAlignerIdentification",StringList::create(""));
       map_[TDE("MapAligner",StringList::create("pose_clustering"))] = TDE("MapAlignerPoseClustering",StringList::create(""));
       map_[TDE("MapAligner",StringList::create("spectrum_alignment"))] = TDE("MapAlignerSpectrum",StringList::create(""));

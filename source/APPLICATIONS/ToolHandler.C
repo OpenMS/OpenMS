@@ -82,7 +82,7 @@ namespace OpenMS
 		tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
     tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Identification");
 		tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
-		tools_map["MapAlignerApplyTransformation"] = Internal::ToolDescription("MapAlignerApplyTransformation", "Map Alignment");
+		tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", "Map Alignment");
 		tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
 		tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", "Map Alignment");
 		tools_map["MapAlignerSpectrum"] = Internal::ToolDescription("MapAlignerSpectrum", "Map Alignment");

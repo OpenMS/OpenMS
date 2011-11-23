@@ -393,8 +393,8 @@ add_test("TOPP_IDFilter_7" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilt
 add_test("TOPP_IDFilter_7_out1" ${DIFF} -in1 IDFilter_7_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_7_output.idXML )
 set_tests_properties("TOPP_IDFilter_7_out1" PROPERTIES DEPENDS "TOPP_IDFilter_7")
 
-### MapAligner tests
-# "pose_clustering" algorithm with featureXML input:
+### MapAlignerPoseClustering tests
+# featureXML input:
 add_test("TOPP_MapAlignerPoseClustering_1" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input3.featureXML -out MapAlignerPoseClustering_1_output1.tmp MapAlignerPoseClustering_1_output2.tmp MapAlignerPoseClustering_1_output3.tmp -trafo_out MapAlignerPoseClustering_1_trafo1.tmp MapAlignerPoseClustering_1_trafo2.tmp MapAlignerPoseClustering_1_trafo3.tmp)
 add_test("TOPP_MapAlignerPoseClustering_1_out1" ${DIFF} -in1 MapAlignerPoseClustering_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1")
@@ -408,7 +408,7 @@ add_test("TOPP_MapAlignerPoseClustering_1_out5" ${DIFF} -in1 MapAlignerPoseClust
 set_tests_properties("TOPP_MapAlignerPoseClustering_1_out5" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1")
 add_test("TOPP_MapAlignerPoseClustering_1_out6" ${DIFF} -in1 MapAlignerPoseClustering_1_trafo3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo3.trafoXML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_1_out6" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1")
-# "pose_clustering" algorithm with mzML input:
+# mzML input:
 add_test("TOPP_MapAlignerPoseClustering_2" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input1.mzML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input2.mzML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input3.mzML -out MapAlignerPoseClustering_2_output1.tmp MapAlignerPoseClustering_2_output2.tmp MapAlignerPoseClustering_2_output3.tmp)
 add_test("TOPP_MapAlignerPoseClustering_2_out1" ${DIFF} -in1 MapAlignerPoseClustering_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_output1.mzML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_2_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_2")
@@ -416,23 +416,24 @@ add_test("TOPP_MapAlignerPoseClustering_2_out2" ${DIFF} -in1 MapAlignerPoseClust
 set_tests_properties("TOPP_MapAlignerPoseClustering_2_out2" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_2")
 add_test("TOPP_MapAlignerPoseClustering_2_out3" ${DIFF} -in1 MapAlignerPoseClustering_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_output3.mzML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_2_out3" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_2")
-# "pose_clustering" algorithm with "reference:file" option:
+# "reference:file" option:
 add_test("TOPP_MapAlignerPoseClustering_3" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input3.featureXML -out MapAlignerPoseClustering_3_output1.tmp MapAlignerPoseClustering_3_output2.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML)
 add_test("TOPP_MapAlignerPoseClustering_3_out1" ${DIFF} -in1 MapAlignerPoseClustering_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output2.featureXML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_3_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_3")
 add_test("TOPP_MapAlignerPoseClustering_3_out2" ${DIFF} -in1 MapAlignerPoseClustering_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output3.featureXML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_3_out2" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_3")
-# "identification" algorithm:
+
+### MapAlignerIdentification tests:
 add_test("TOPP_MapAlignerIdentification_1" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out MapAlignerIdentification_1_output1.tmp MapAlignerIdentification_1_output2.tmp)
 add_test("TOPP_MapAlignerIdentification_1_out1" ${DIFF} -in1 MapAlignerIdentification_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_1")
 add_test("TOPP_MapAlignerIdentification_1_out2" ${DIFF} -in1 MapAlignerIdentification_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output2.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_1_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_1")
-# "identification" algorithm with "reference:file" option:
+# "reference:file" option:
 add_test("TOPP_MapAlignerIdentification_2" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -out MapAlignerIdentification_2_output1.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML)
 add_test("TOPP_MapAlignerIdentification_2_out1" ${DIFF} -in1 MapAlignerIdentification_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_2_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_2_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_2")
-# "identification" algorithm with "reference:index" option:
+# "reference:index" option:
 add_test("TOPP_MapAlignerIdentification_3" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -out MapAlignerIdentification_3_output1.tmp MapAlignerIdentification_3_output2.tmp -reference:index 1)
 add_test("TOPP_MapAlignerIdentification_3_out1" ${DIFF} -in1 MapAlignerIdentification_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_3_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_3")
@@ -443,13 +444,14 @@ add_test("TOPP_MapAlignerIdentification_4_out1" ${DIFF} -in1 MapAlignerIdentific
 set_tests_properties("TOPP_MapAlignerIdentification_4_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4")
 add_test("TOPP_MapAlignerIdentification_4_out2" ${DIFF} -in1 MapAlignerIdentification_4_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_4_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4")
-# "identification" algorithm with consensusXML input:
+# consensusXML input:
 add_test("TOPP_MapAlignerIdentification_5" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input1.consensusXML ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input2.consensusXML -out MapAlignerIdentification_5_output1.tmp MapAlignerIdentification_5_output2.tmp)
 add_test("TOPP_MapAlignerIdentification_5_out1" ${DIFF} -in1 MapAlignerIdentification_5_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output1.consensusXML )
 set_tests_properties("TOPP_MapAlignerIdentification_5_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5")
 add_test("TOPP_MapAlignerIdentification_5_out2" ${DIFF} -in1 MapAlignerIdentification_5_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output2.consensusXML )
 set_tests_properties("TOPP_MapAlignerIdentification_5_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5")
-# "spectrum_alignment" algorithm:
+
+### MapAlignerSpectrumAlignment tests:
 add_test("TOPP_MapAlignerSpectrum_1" ${TOPP_BIN_PATH}/MapAlignerSpectrum -test -ini ${DATA_DIR_TOPP}/MapAlignerSpectrum_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input1.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input2.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input3.mzML -out MapAlignerSpectrum_1_output1.tmp MapAlignerSpectrum_1_output2.tmp MapAlignerSpectrum_1_output3.tmp)
 add_test("TOPP_MapAlignerSpectrum_1_out1" ${DIFF} -in1 MapAlignerSpectrum_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output1.mzML )
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
@@ -457,19 +459,20 @@ add_test("TOPP_MapAlignerSpectrum_1_out2" ${DIFF} -in1 MapAlignerSpectrum_1_outp
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out2" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
 add_test("TOPP_MapAlignerSpectrum_1_out3" ${DIFF} -in1 MapAlignerSpectrum_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output3.mzML )
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out3" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
-# "apply_transformation" algorithm:
-add_test("TOPP_MapAlignerApplyTransformation_1" ${TOPP_BIN_PATH}/MapAlignerApplyTransformation -test -in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_input.featureXML ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_trafo2.trafoXML -out MapAlignerApplyTransformation_1_output1.tmp MapAlignerApplyTransformation_1_output2.tmp)
-add_test("TOPP_MapAlignerApplyTransformation_1_out1" ${DIFF} -in1 MapAlignerApplyTransformation_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_output1.featureXML )
-set_tests_properties("TOPP_MapAlignerApplyTransformation_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerApplyTransformation_1")
-add_test("TOPP_MapAlignerApplyTransformation_1_out2" ${DIFF} -in1 MapAlignerApplyTransformation_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_1_output2.featureXML )
-set_tests_properties("TOPP_MapAlignerApplyTransformation_1_out2" PROPERTIES DEPENDS "TOPP_MapAlignerApplyTransformation_1")
-add_test("TOPP_MapAlignerApplyTransformation_2" ${TOPP_BIN_PATH}/MapAlignerApplyTransformation -test -in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_2_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_2_trafo.trafoXML -out MapAlignerApplyTransformation_2_output.tmp)
-add_test("TOPP_MapAlignerApplyTransformation_2_out1" ${DIFF} -in1 MapAlignerApplyTransformation_2_output.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_2_output.mzML )
-set_tests_properties("TOPP_MapAlignerApplyTransformation_2_out1" PROPERTIES DEPENDS "TOPP_MapAlignerApplyTransformation_2")
-# "apply_transformation" algorithm with "invert" option:
-add_test("TOPP_MapAlignerApplyTransformation_3" ${TOPP_BIN_PATH}/MapAlignerApplyTransformation -test -invert -trafo_in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo2.trafoXML -trafo_out MapAlignerApplyTransformation_3_output.tmp)
-add_test("TOPP_MapAlignerApplyTransformation_3_out1" ${DIFF} -in1 MapAlignerApplyTransformation_3_output.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerApplyTransformation_3_trafo.trafoXML )
-set_tests_properties("TOPP_MapAlignerApplyTransformation_3_out1" PROPERTIES DEPENDS "TOPP_MapAlignerApplyTransformation_3")
+
+### MapRTTransformer tests:
+add_test("TOPP_MapRTTransformer_1" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_1_trafo1.trafoXML ${DATA_DIR_TOPP}/MapRTTransformer_1_trafo2.trafoXML -out MapRTTransformer_1_output1.tmp MapRTTransformer_1_output2.tmp)
+add_test("TOPP_MapRTTransformer_1_out1" ${DIFF} -in1 MapRTTransformer_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output1.featureXML )
+set_tests_properties("TOPP_MapRTTransformer_1_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_1")
+add_test("TOPP_MapRTTransformer_1_out2" ${DIFF} -in1 MapRTTransformer_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output2.featureXML )
+set_tests_properties("TOPP_MapRTTransformer_1_out2" PROPERTIES DEPENDS "TOPP_MapRTTransformer_1")
+add_test("TOPP_MapRTTransformer_2" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_2_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_2_trafo.trafoXML -out MapRTTransformer_2_output.tmp)
+add_test("TOPP_MapRTTransformer_2_out1" ${DIFF} -in1 MapRTTransformer_2_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_2_output.mzML )
+set_tests_properties("TOPP_MapRTTransformer_2_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_2")
+# "invert" option:
+add_test("TOPP_MapRTTransformer_3" ${TOPP_BIN_PATH}/MapRTTransformer -test -invert -trafo_in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo2.trafoXML -trafo_out MapRTTransformer_3_output.tmp)
+add_test("TOPP_MapRTTransformer_3_out1" ${DIFF} -in1 MapRTTransformer_3_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_3_trafo.trafoXML )
+set_tests_properties("TOPP_MapRTTransformer_3_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_3")
 
 ### MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)
@@ -853,7 +856,6 @@ set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_Pr
 add_test("TOPP_ProteinQuantifier_10" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -id_out ProteinQuantifier_10_output.tmp -top 0 -average sum)
 add_test("TOPP_ProteinQuantifier_10_out1" ${DIFF} -in1 ProteinQuantifier_10_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_10_output.idXML)
 set_tests_properties("TOPP_ProteinQuantifier_10_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_10")
-
 
 ### InclusionExclusionListCreator tests
 add_test("TOPP_InclusionExclusionListCreator_1" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_1_output.tmp)

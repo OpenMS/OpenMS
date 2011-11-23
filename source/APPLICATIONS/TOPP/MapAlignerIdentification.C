@@ -71,7 +71,7 @@ using namespace std;
 	- @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
 	- @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
 
-	@see @ref TOPP_MapAlignerApplyTransformation @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum
+	@see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
 	<B>The command line parameters of this tool are:</B> @n
 	@verbinclude TOPP_MapAlignerIdentification.cli

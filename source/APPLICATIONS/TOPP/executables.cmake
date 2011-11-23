@@ -40,11 +40,11 @@ IDRTCalibration
 ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
-MapAlignerApplyTransformation
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
 MapNormalizer
+MapRTTransformer
 MapStatistics
 MascotAdapter
 MascotAdapterOnline
