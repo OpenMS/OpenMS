@@ -190,7 +190,6 @@ class TOPPConsensusID
 						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
 							{
 								PeptideHit hit = *pit;
-								vector<PeptideHit>::const_iterator tip=pit+1;
 								if (hit.getSequence().size()>=min_length)
 								{
 									if (hit.metaValueExists("scoring"))
@@ -218,7 +217,6 @@ class TOPPConsensusID
 						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
 						{
 							PeptideHit hit = *pit;
-							vector<PeptideHit>::const_iterator tip=pit+1;
 							if (hit.getSequence().size()>=min_length)
 							{
 								if (hit.metaValueExists("scoring"))

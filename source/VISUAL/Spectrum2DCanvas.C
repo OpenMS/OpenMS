@@ -2041,7 +2041,6 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mouseReleaseEvent(QMouseEvent* e)
 	{
-		QPoint pos = e->pos();
 		if (e->button() == Qt::LeftButton)
 		{
 			if (action_mode_==AM_MEASURE)

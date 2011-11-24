@@ -1068,7 +1068,6 @@ namespace OpenMS
 		
 		//determine coordinates;
 		DoubleReal mz = 0.0;
-		DoubleReal rt = 0.0;
 		Real it = 0.0;
 		// only peak data is supported here
     if (getCurrentLayer().type!=LayerData::DT_PEAK)
@@ -1077,7 +1076,6 @@ namespace OpenMS
 			return;
     }
     mz = peak.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-    rt = peak.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
     it = peak.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
 
 		//draw text			

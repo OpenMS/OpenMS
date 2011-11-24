@@ -820,7 +820,6 @@ namespace OpenMS
 
 		// write convex hull
 		vector<ConvexHull2D> hulls = feat.getConvexHulls();
-		vector<ConvexHull2D>::iterator citer = hulls.begin();
 
 		Size hulls_count = hulls.size();
 

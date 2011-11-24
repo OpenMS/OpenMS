@@ -614,7 +614,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 				DoubleReal a_score=(double)hit->getScore();
 				DoubleReal a_sim=1;
 				DoubleReal NumberAnnots=1;
-				UInt IonSeries_out=0;
 
 				set<String> myset;
 				for(vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
@@ -701,7 +700,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 							NumberAnnots+=1;
 							a_score+=zz;
 							a_sim+=a;
-							IonSeries_out=IonSeries;
 							myset.insert(t->getMetaValue("scoring"));
 						}
 					}
