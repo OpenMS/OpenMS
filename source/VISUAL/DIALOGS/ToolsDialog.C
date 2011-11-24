@@ -80,7 +80,7 @@ ToolsDialog::ToolsDialog( QWidget * parent, String ini_file, String default_dir,
   {
     list << "FileFilter" << "FileConverter"
          << "FileInfo" << "Decharger"
-         << "FeatureLinker";
+         << "FeatureLinkerLabeled";
   }
   else if (type == LayerData::DT_CONSENSUS)
   {

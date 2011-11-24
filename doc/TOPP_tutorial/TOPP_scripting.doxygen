@@ -370,7 +370,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Tool:</b> MapAlignerPoseClustering &nbsp;&nbsp; <b>Applicable to:</b> feature maps, peak maps</TD>
+			<TD> <b>Application:</b> MapAlignerPoseClustering &nbsp;&nbsp; <b>Applicable to:</b> feature maps, peak maps</TD>
 		</TR>
 		<TR>
 			<TD>
@@ -385,7 +385,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Tool:</b> MapAlignerIdentification &nbsp;&nbsp; <b>Applicable to:</b> feature maps, consensus maps, identifications</TD>
+			<TD> <b>Application:</b> MapAlignerIdentification &nbsp;&nbsp; <b>Applicable to:</b> feature maps, consensus maps, identifications</TD>
 		</TR>
 		<TR>
 			<TD>
@@ -400,7 +400,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Tool:</b> MapAlignerSpectrum &nbsp;&nbsp; <b>Applicable to:</b> peak maps</TD>
+			<TD> <b>Application:</b> MapAlignerSpectrum &nbsp;&nbsp; <b>Applicable to:</b> peak maps</TD>
 		</TR>
 		<TR>
 			<TD>
@@ -414,7 +414,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Tool:</b> MapRTTransformer &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps, consensus maps, identifications</TD>
+			<TD> <b>Application:</b> MapRTTransformer &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps, consensus maps, identifications</TD>
 		</TR>
 		<TR>
 			<TD>
@@ -590,7 +590,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	@page TOPP_example_featuregrouping Feature grouping
 
 	In order to quantify differences across maps (label-free) or within a map (isotope-labeled),
-	groups of corresponding features have to be found.  The TOPP tool @b FeatureLinker supports both approaches.
+	groups of corresponding features have to be found.  The @b FeatureLinker TOPP tools support both approaches.
 	These groups are represented by consensus features, which contain information about the constituting features
 	in the maps as well as average position, intensity, and charge.
 	
@@ -602,8 +602,8 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		application calculates the features from profile data or centroided data.
 
 		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
-		@b FeatureLinker algorithm type @em labeled.
-		The @b FeatureLinker first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
+		@b FeatureLinkerLabeled application.
+		@b FeatureLinkerLabeled first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
 		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
 		The score of a pair is the product of:
 		- feature quality of feature 1

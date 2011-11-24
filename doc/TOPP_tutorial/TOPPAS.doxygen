@@ -267,7 +267,7 @@
 		@image latex TOPPAS_BSA_Quantitation.png "" width=8cm
 
 		The identifications are mapped at the features by the IDMapper. The last step
-		is the FeatureLinker, that links corresponding features which in turn can be 
+		is the FeatureLinkerUnlabeled, that links corresponding features which in turn can be 
 		used to calculate e.g. ratios. The data could also be exported to a text based
 		format using the TextExporter for further processing.
 	
