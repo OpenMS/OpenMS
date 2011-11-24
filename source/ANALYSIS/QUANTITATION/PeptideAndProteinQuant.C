@@ -415,13 +415,14 @@ namespace OpenMS
 		for (FeatureMap<>::Iterator feat_it = features.begin(); 
 				 feat_it != features.end(); ++feat_it)
 		{
-			PeptideHit hit = getAnnotation_(feat_it->getPeptideIdentifications());
-			FeatureHandle handle(0, *feat_it);
-			quantifyFeature_(handle, hit); // updates "stats_.quant_features"
 			if (feat_it->getPeptideIdentifications().empty())
 			{
 				stats_.blank_features++;
+				continue;
 			}
+			PeptideHit hit = getAnnotation_(feat_it->getPeptideIdentifications());
+			FeatureHandle handle(0, *feat_it);
+			quantifyFeature_(handle, hit); // updates "stats_.quant_features"
 		}
 
 		stats_.ambig_features = stats_.total_features - stats_.blank_features - 
@@ -440,17 +441,18 @@ namespace OpenMS
 		for (ConsensusMap::Iterator cons_it = consensus.begin(); 
 				 cons_it != consensus.end(); ++cons_it)
 		{
+			stats_.total_features += cons_it->getFeatures().size();
+			if (cons_it->getPeptideIdentifications().empty())
+			{
+				stats_.blank_features += cons_it->getFeatures().size();
+				continue;
+			}
 			PeptideHit hit = getAnnotation_(cons_it->getPeptideIdentifications());
 			for (ConsensusFeature::HandleSetType::const_iterator feat_it = 
 						 cons_it->getFeatures().begin(); feat_it !=
 						 cons_it->getFeatures().end(); ++feat_it)
 			{
-				stats_.total_features++;
 				quantifyFeature_(*feat_it, hit); // updates "stats_.quant_features"
-				if (cons_it->getPeptideIdentifications().empty())
-				{
-					stats_.blank_features++;
-				}
 			}
 		}
 		
