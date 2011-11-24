@@ -234,6 +234,8 @@ namespace OpenMS
 				accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
 				os << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" ";
 				os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
+				// os << "coverage=\"" << protein_ids[i].getHits()[j].getCoverage() 
+				// 	 << "\" ";
 				os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
 				writeUserParam_("UserParam", os, protein_ids[i].getHits()[j], 4);
 				os << "\t\t\t</ProteinHit>\n";
