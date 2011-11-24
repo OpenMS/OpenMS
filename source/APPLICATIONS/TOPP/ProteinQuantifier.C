@@ -360,9 +360,11 @@ protected:
 		out << endl;
 
 		bool filter_charge = algo_params_.getValue("filter_charge") == "true";
-		for (PeptideQuant::const_iterator q_it = quant.begin(); 
-				 q_it != quant.end(); ++q_it)
+		for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
+				 ++q_it)
 		{
+			if (q_it->second.total_abundances.empty()) continue; // not quantified
+
 			StringList accessions;
 			for (set<String>::const_iterator acc_it = 
 						 q_it->second.accessions.begin(); acc_it != 
@@ -614,7 +616,6 @@ protected:
 		for (ProteinQuant::const_iterator q_it = prot_quant.begin(); 
 				 q_it != prot_quant.end(); ++q_it)
 		{
-			if (q_it->second.total_abundances.empty()) continue; // not quantified
 			if (accession_map.empty()) // generate a new hit
 			{
 				ProteinHit hit;
@@ -638,6 +639,8 @@ protected:
 			// annotate with abundance values:
 			SampleAbundances total_abundances = q_it->second.total_abundances;
 			storeAbundances_(quantified_prot.back(), total_abundances);
+			quantified_prot.back().setMetaValue("num_peptides", 
+																					q_it->second.id_count);
 		}
 		proteins_.getHits().swap(quantified_prot);
 		// set meta values:

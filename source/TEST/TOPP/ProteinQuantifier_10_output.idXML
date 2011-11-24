@@ -9,6 +9,7 @@
 				<UserParam type="float" name="mzTab:protein_abundance_sub[1]" value="1234"/>
 				<UserParam type="float" name="mzTab:protein_abundance_sub[2]" value="234"/>
 				<UserParam type="float" name="mzTab:protein_abundance_sub[3]" value="1030"/>
+				<UserParam type="int" name="num_peptides" value="4"/>
 			</ProteinHit>
 			<UserParam type="string" name="mzTab:unit_id" value="OpenMS_16627578304933075941"/>
 			<UserParam type="string" name="mzTab:title" value="Quantification by OpenMS/ProteinQuantifier"/>

@@ -856,6 +856,9 @@ set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_Pr
 add_test("TOPP_ProteinQuantifier_10" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -id_out ProteinQuantifier_10_output.tmp -top 0 -average sum)
 add_test("TOPP_ProteinQuantifier_10_out1" ${DIFF} -in1 ProteinQuantifier_10_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_10_output.idXML)
 set_tests_properties("TOPP_ProteinQuantifier_10_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_10")
+add_test("TOPP_ProteinQuantifier_11" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -id_out ProteinQuantifier_11_output.tmp -top 0 -average sum -filter_charge)
+add_test("TOPP_ProteinQuantifier_11_out1" ${DIFF} -in1 ProteinQuantifier_11_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_11_output.idXML)
+set_tests_properties("TOPP_ProteinQuantifier_11_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_11")
 
 ### InclusionExclusionListCreator tests
 add_test("TOPP_InclusionExclusionListCreator_1" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_1_output.tmp)
