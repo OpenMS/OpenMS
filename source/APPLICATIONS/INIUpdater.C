@@ -43,7 +43,6 @@ namespace OpenMS
   {
     StringList tool_names;
     std::set <String> tool_names_set;
-    Size count(0);
     for (Param::ParamIterator it = ini.begin(); it!=ini.end(); ++it)
     {
       if (it.getName().toQString().count(':')==1 && it.getName().hasSuffix(":version"))

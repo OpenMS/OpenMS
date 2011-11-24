@@ -406,7 +406,7 @@ namespace OpenMS
 								il_chargediff.push_back(q2-q1);
 							}
 						}
-						/*if (i_RT==429 && i_RT_window==432)
+						if (i_RT==429 && i_RT_window==432)
 						{
 							std::cout << "DEBUG reached\n hits: " << hits << " with delta_m: " << naive_mass_diff << " and thres: " << thresh_logp << "\n";
 						}
