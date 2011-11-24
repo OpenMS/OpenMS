@@ -400,8 +400,8 @@ class TOPPFileInfo
 			Size peptide_hit_count = 0;
 			UInt runs_count = 0;
 			Size protein_hit_count = 0;
-			vector<String> peptides;
-			vector<String> proteins;
+      set<String> peptides;
+      set<String> proteins;
 
 			// reading input
 			IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
@@ -421,10 +421,7 @@ class TOPPFileInfo
 					const vector<PeptideHit>& temp_hits = id_data.peptides[i].getHits();
 					for (Size j = 0; j < temp_hits.size(); ++j)
 					{
-						if (find(peptides.begin(), peptides.end(), temp_hits[j].getSequence().toString()) == peptides.end())
-						{
-							peptides.push_back(temp_hits[j].getSequence().toString());
-						}
+            peptides.insert(temp_hits[j].getSequence().toString());
 					}
 				}
 			}
@@ -435,10 +432,7 @@ class TOPPFileInfo
 				const vector<ProteinHit>& temp_hits = id_data.proteins[i].getHits();
 				for (Size j = 0; j < temp_hits.size(); ++j)
 				{
-					if (find(proteins.begin(), proteins.end(), temp_hits[j].getAccession()) == proteins.end())
-					{
-						proteins.push_back(temp_hits[j].getAccession());
-					}
+          proteins.insert(temp_hits[j].getAccession());
 				}
 			}
 
@@ -449,12 +443,12 @@ class TOPPFileInfo
 			os << endl;
 			os << "  spectra:             " << spectrum_count << endl;
 			os << "  peptide hits:        " << peptide_hit_count << endl;
-			os << "  unique peptide hits: " << peptides.size() << endl;
+      os << "  non-redundant peptide hits (only hits that differ in sequence and/ or modifications): " << peptides.size() << endl;
       
 			os_tsv << "peptide hits" << "\t" << peptide_hit_count << endl;
 			os_tsv << "unique peptide hits" << "\t" << peptides.size() << endl;
 			os_tsv << "protein hits" << "\t" << protein_hit_count << endl;
-			os_tsv << "unique protein hits" << "\t" << proteins.size() << endl;
+      os_tsv << "unique protein hits (only hits that differ in the accession)" << "\t" << proteins.size() << endl;
 		}
 
 		else if (in_type == FileTypes::PEPXML)
