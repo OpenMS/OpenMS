@@ -439,14 +439,14 @@ class TOPPFileInfo
 			os << "Number of:" << endl;
 			os << "  runs:                " << runs_count << endl;
 			os << "  protein hits:        " << protein_hit_count << endl;
-			os << "  unique protein hits: " << proteins.size() << endl;
+      os << "  non-redundant protein hits (only hits that differ in the accession): " << proteins.size() << endl;
 			os << endl;
 			os << "  spectra:             " << spectrum_count << endl;
 			os << "  peptide hits:        " << peptide_hit_count << endl;
       os << "  non-redundant peptide hits (only hits that differ in sequence and/ or modifications): " << peptides.size() << endl;
       
 			os_tsv << "peptide hits" << "\t" << peptide_hit_count << endl;
-			os_tsv << "unique peptide hits" << "\t" << peptides.size() << endl;
+      os_tsv << "unique peptide hits (only hits that differ in sequence and/ or modifications): " << "\t" << peptides.size() << endl;
 			os_tsv << "protein hits" << "\t" << protein_hit_count << endl;
       os_tsv << "unique protein hits (only hits that differ in the accession)" << "\t" << proteins.size() << endl;
 		}
