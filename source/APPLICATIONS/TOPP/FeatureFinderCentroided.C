@@ -56,8 +56,8 @@ using namespace std;
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAligner </td>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_SeedListGenerator </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAlignerPoseClustering @n (or another alignment tool) </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SeedListGenerator </td>
   </tr>
  </table>
 </CENTER>
