@@ -155,6 +155,7 @@
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -162,11 +163,11 @@ using namespace OpenMS;
 //**********************************************************************************
 //Helper method - use this method to generate the actual parameter documentation
 //**********************************************************************************
-void writeParameters(const String& class_name, const Param& param)
+void writeParameters(const String& class_name, const Param& param, bool table_only=false)
 {
 	ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
 
-	f << "<B>Parameters of this class are:</B><BR><BR>\n";
+	if (!table_only) f << "<B>Parameters of this class are:</B><BR><BR>\n";
 	f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
 	f <<"<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
 	String type, description, restrictions;
@@ -278,13 +279,16 @@ void writeParameters(const String& class_name, const Param& param)
       << "  <td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td>\n"
       << "</tr>\n";
 	}
-	f << "</table>" << "\n"
-	  << "<br>" << "\n"
-    << "<b>Note:</b>" << "\n"
-	  << "<UL style=\"margin-top:0px;\">" << "\n"
-	  << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n"
-	  << "  <LI> Advanced parameter names are italic." << "\n"
-	  << "</UL>" << "\n";
+	f << "</table>" << "\n";
+	if (!table_only)
+	{
+		f << "<br>" << "\n"
+			<< "<b>Note:</b>" << "\n"
+			<< "<UL style=\"margin-top:0px;\">" << "\n"
+			<< "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n"
+			<< "  <LI> Advanced parameter names are italic." << "\n"
+			<< "</UL>" << "\n";
+	}
   f.close();
 }
 
@@ -415,6 +419,11 @@ int main (int argc , char** argv)
   DOCME(SILACLabeler);
   DOCME(ICPLLabeler);
 	DOCME(Math::PosteriorErrorProbabilityModel);
+	// workarounds for documenting model parameters in MapAligners:
+	writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("b_spline"), true);
+	writeParameters("MapAlignerPoseClusteringModel", TOPPMapAlignerBase::getModelDefaults("linear"), true);
+	writeParameters("MapAlignerSpectrumModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
+	writeParameters("MapRTTransformerModel", TOPPMapAlignerBase::getModelDefaults("none"), true);
 
 	//////////////////////////////////
 	// More complicated cases

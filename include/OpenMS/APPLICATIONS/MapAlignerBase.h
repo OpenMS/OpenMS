@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Maintainer: $
+// $Authors: Marc Sturm, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -32,7 +32,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
-
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -47,7 +46,6 @@ using namespace std;
 	@page TOPP_MapAlignerBase MapAlignerBase
 
 	@brief Base class for different MapAligner TOPP tools.
-
 */
 
 // We do not want this class to show up in the docu:
@@ -58,27 +56,15 @@ class TOPPMapAlignerBase
 {
 
 public:
-	TOPPMapAlignerBase(String name, String description)
-		: TOPPBase(name, description)
+	TOPPMapAlignerBase(String name, String description, bool official=true)
+		: TOPPBase(name, description, official)
 	{
 	}
 
-protected:
-	void registerOptionsAndFlags_(const String& file_formats)
+	// "public" so it can be used in DefaultParamHandlerDocumenter to get docu
+	static Param getModelDefaults(const String& default_model)
 	{
-		registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
-		setValidFormats_("in", StringList::create(file_formats));
-		registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks", false);
-		setValidFormats_("out", StringList::create(file_formats));
-		registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks", false);
-		setValidFormats_("trafo_out", StringList::create("trafoXML"));
-    addEmptyLine_();
-		addText_("This tool takes a number of input files, aligns them and writes the results to the output files.");
-		addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
-	}
-
-	void getModelDefaults_(Param& params, const String& default_model) const
-	{
+		Param params;
 		params.setValue("type", default_model, "Type of model");
 		// TODO: avoid referring to each TransformationModel subclass explicitly
 		StringList model_types = StringList::create("linear,b_spline,interpolated");
@@ -107,6 +93,21 @@ protected:
 		params.insert("interpolated:", model_params);
 		params.setSectionDescription("interpolated", 
 																 "Parameters for 'interpolated' model");
+		return params;
+	}
+
+protected:
+	void registerOptionsAndFlags_(const String& file_formats)
+	{
+		registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
+		setValidFormats_("in", StringList::create(file_formats));
+		registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks", false);
+		setValidFormats_("out", StringList::create(file_formats));
+		registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks", false);
+		setValidFormats_("trafo_out", StringList::create("trafoXML"));
+    addEmptyLine_();
+		addText_("This tool takes a number of input files, aligns them and writes the results to the output files.");
+		addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
 	}
 
 	void handleReference_(MapAlignmentAlgorithm* alignment)
@@ -130,7 +131,6 @@ protected:
 		// pass the reference parameters on to the algorithm:
 		alignment->setReference(reference_index, reference_file);
 	}
-
 
 	ExitCodes commonMain_(MapAlignmentAlgorithm* alignment)
 	{
