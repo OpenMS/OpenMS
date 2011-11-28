@@ -39,6 +39,8 @@ using namespace std;
 
 namespace OpenMS
 {
+  IsotopeDistributionCache *SILACFilter::isotope_distribution_;
+
   SILACFilter::SILACFilter(std::vector<DoubleReal> mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide,
       DoubleReal intensity_cutoff, DoubleReal intensity_correlation, bool allow_missing_peaks)
     : mass_separations_(mass_separations),
@@ -47,9 +49,13 @@ namespace OpenMS
       isotopes_per_peptide_(isotopes_per_peptide),
       intensity_cutoff_(intensity_cutoff),
       intensity_correlation_(intensity_correlation),
-      allow_missing_peaks_(allow_missing_peaks),
-      isotope_distribution_(20000.0, 1.0, 0.0, 0.0)
+      allow_missing_peaks_(allow_missing_peaks)
   {
+    // Init isotope distribution cache only once
+    // XXX: Not thread save, no cleanup after the last user is gone
+    // XXX: Move into own caller supplied class?
+    if (!isotope_distribution_) isotope_distribution_ = new IsotopeDistributionCache(20000.0, 1.0, 0.0, 0.0);
+
     isotope_distance_ = 1.000495 / (DoubleReal)charge_;    // distance between isotopic peaks of a peptide [Th]
     number_of_peptides_ = (Int) mass_separations_.size() + 1;    // number of labelled peptides +1 [e.g. for SILAC triplet =3]
     
@@ -393,7 +399,7 @@ namespace OpenMS
         //IsotopeDistribution isoDistribution;    // isotope distribution of an averagene peptide
         //isoDistribution.estimateFromPeptideWeight((mz + exact_shifts_[peptide][0]) * charge_);    // mass of averagene peptide
 
-        const TheoreticalIsotopePattern& pattern = isotope_distribution_.getIsotopeDistribution((mz + exact_shifts_[peptide][0]) * charge_);
+        const TheoreticalIsotopePattern& pattern = isotope_distribution_->getIsotopeDistribution((mz + exact_shifts_[peptide][0]) * charge_);
 
         DoubleReal averagine_mono = pattern.intensity[0];    // intensity of monoisotopic peak of the averagine model
         DoubleReal intensity_mono = exact_intensities_[peptide][0];    // intensity around the (potential) monoisotopic peak in the real data

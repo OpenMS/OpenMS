@@ -93,7 +93,7 @@ namespace OpenMS
       /**
        * Isotope distributions
        */
-      IsotopeDistributionCache isotope_distribution_;
+      static IsotopeDistributionCache *isotope_distribution_;
 
       /**
        * @brief number of peptides [i.e. number of labelled peptides +1, e.g. for SILAC triplet =3]
