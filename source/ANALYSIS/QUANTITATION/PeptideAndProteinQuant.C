@@ -290,8 +290,8 @@ namespace OpenMS
 		{
 			String accession = getAccession_(pep_it->second.accessions, 
 																			 accession_to_leader);
-			cout << "pep: " << pep_it->first << ", acc: " << accession << ", ids: "
-					 << pep_it->second.id_count << endl;
+			// cout << "pep: " << pep_it->first << ", acc: " << accession << ", ids: "
+			// 		 << pep_it->second.id_count << endl;
 			if (!accession.empty()) // proteotypic peptide
 			{
 				prot_quant_[accession].id_count += pep_it->second.id_count;

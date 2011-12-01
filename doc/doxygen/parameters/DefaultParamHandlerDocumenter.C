@@ -62,6 +62,7 @@
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -418,6 +419,7 @@ int main (int argc , char** argv)
 	DOCME(ITRAQLabeler);
   DOCME(SILACLabeler);
   DOCME(ICPLLabeler);
+	DOCME(PeptideAndProteinQuant);
 	DOCME(Math::PosteriorErrorProbabilityModel);
 	// workarounds for documenting model parameters in MapAligners:
 	writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("b_spline"), true);
