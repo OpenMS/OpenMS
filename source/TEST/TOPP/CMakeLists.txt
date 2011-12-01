@@ -503,6 +503,10 @@ set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_Pe
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_4")
+add_test("TOPP_PeakPickerWavelet_5" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters_noMetaData.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_5.tmp -threads 2)
+add_test("TOPP_PeakPickerWavelet_5_out1" ${DIFF} -in1 PeakPickerWavelet_5.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output_noMetaData.mzML)
+set_tests_properties("TOPP_PeakPickerWavelet_5_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_5")
+
 # "high_res" algorithm with "ms1_only" option:
 add_test("TOPP_PeakPickerHiRes_1" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_input.mzML -out PeakPickerHiRes_1.tmp)
 add_test("TOPP_PeakPickerHiRes_1_out1" ${DIFF} -in1 PeakPickerHiRes_1.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_output.mzML)

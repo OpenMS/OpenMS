@@ -122,7 +122,7 @@ protected:
       setValidFormats_("in",StringList::create("mzML"));
       registerOutputFile_("out","<file>","","output peak file ");
       setValidFormats_("out",StringList::create("mzML"));
-
+      registerFlag_("write_peak_meta_data", "Write additional information about the picked peaks (maximal intensity, left and right area...) into the mzML-file.Attention: this can blow up files,as 7 arrays are stored per spectrum!",true);
       addEmptyLine_();
       addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
       registerSubsection_("algorithm","Algorithm parameters section");
@@ -142,7 +142,7 @@ protected:
 
         String in = getStringOption_("in");
         String out = getStringOption_("out");
-
+        bool write_meta_data_arrays(getFlag_("write_peak_meta_data"));
         //-------------------------------------------------------------
         // loading input
         //-------------------------------------------------------------
@@ -177,7 +177,7 @@ protected:
         // pick
         //-------------------------------------------------------------
         MSExperiment<> ms_exp_peaks;
-
+        
         Param pepi_param = getParam_().copy("algorithm:",true);
         writeDebug_("Parameters passed to PeakPickerWavelet", pepi_param,3);
 
@@ -193,7 +193,13 @@ protected:
             LOG_ERROR << "Exception catched: " << e.what() << "\n";
             return INTERNAL_ERROR;
         }
-
+        if(!write_meta_data_arrays)
+          {
+            for(Size i = 0; i < ms_exp_peaks.size(); ++i)
+              {
+                ms_exp_peaks[i].getFloatDataArrays().clear();
+              }
+          }
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
