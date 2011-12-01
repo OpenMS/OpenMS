@@ -68,7 +68,6 @@ protected:
 		registerOutputFile_("out", "<file>", "", "Output file", true);
 		setValidFormats_("out", StringList::create("consensusXML"));
 		addEmptyLine_();
-		// addText_("Additional parameters for consensusXML input:");
 		registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
 	}
 
@@ -112,17 +111,21 @@ protected:
 		ConsensusMap out_map;
 		if (file_type == FileTypes::FEATUREXML)
 		{
-			std::vector< FeatureMap<> > maps(ins.size());
+			vector< FeatureMap<> > maps(ins.size());
 			FeatureXMLFile f;
 			for (Size i = 0; i < ins.size(); ++i)
 			{
 				f.load(ins[i], maps[i]);
-			}
-			for (Size i = 0; i < ins.size(); ++i)
-			{
 				out_map.getFileDescriptions()[i].filename = ins[i];
 				out_map.getFileDescriptions()[i].size = maps[i].size();
 				out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
+				// to save memory, remove convex hulls and subordinates:
+				for (FeatureMap<>::Iterator it = maps[i].begin(); it != maps[i].end();
+						 ++it)
+				{
+					it->getSubordinates().clear();
+					it->getConvexHulls().clear();
+				}
 			}
 			// exception for "labeled" algorithms: copy file descriptions
 			if (labeled)
@@ -136,7 +139,7 @@ protected:
 		}
 		else
 		{
-			std::vector<ConsensusMap> maps(ins.size());
+			vector<ConsensusMap> maps(ins.size());
 			ConsensusXMLFile f;
 			for (Size i = 0; i < ins.size(); ++i)
 			{
