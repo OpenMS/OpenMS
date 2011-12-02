@@ -352,8 +352,8 @@ set(analysis_executables_list
 	FeatureHandle_test
 	HiddenMarkovModel_test
 	IDMapper_test
-  ILPDCWrapper_test
-	PSLPFormulation_test
+	ILPDCWrapper_test
+	InclusionExclusionList_test
 	ItraqChannelExtractor_test
 	ItraqConstants_test
 	ItraqQuantifier_test
@@ -371,6 +371,7 @@ set(analysis_executables_list
 	MassDecompositionAlgorithm_test
 	MassDecomposition_test
 	OfflinePrecursorIonSelection_test
+	PeptideAndProteinQuant_test
 	PILISModelGenerator_test
 	PILISModel_test
 	PILISScoring_test
@@ -383,6 +384,7 @@ set(analysis_executables_list
 	PrecursorIonSelection_test
 	ProteinInference_test
 	ProtonDistributionModel_test
+	PSLPFormulation_test
 	QTClusterFinder_test
 	ReactionMonitoringTransition_test
 	SVMWrapper_test
@@ -390,7 +392,6 @@ set(analysis_executables_list
 	StablePairFinder_test
 	TransformationDescription_test
 	TransformationModel_test
-	InclusionExclusionList_test
 )
 
 set(applications_executables_list

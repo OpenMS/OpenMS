@@ -125,7 +125,6 @@ namespace OpenMS
 		for (PeptideQuant::iterator q_it = pep_quant_.begin(); 
 				 q_it != pep_quant_.end(); ++q_it)
 		{
-			if (q_it->second.abundances.empty()) continue; // only identified
 			if (param_.getValue("filter_charge") == "true")
 			{
 				// find charge state with abundances for highest number of samples
@@ -157,7 +156,7 @@ namespace OpenMS
 					}
 				}
 			}
-			stats_.quant_peptides++;
+			if (!q_it->second.total_abundances.empty()) stats_.quant_peptides++;
 		}
 		
 		if ((stats_.n_samples > 1) && 
