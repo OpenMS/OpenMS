@@ -80,15 +80,15 @@ void SILACClustering::joinLarge_()
   SortRT sort_rt;
   SortRT::iterator sort_rt_check = sort_rt.end();
 
-  // Bin clusters according to MZ
+  // Bucketize clusters according to MZ
   for (Sort::iterator sort_it = sort_mz.begin();
        sort_it != sort_mz.end();
        ++sort_it)
   {
-    // Generate new bin if we got none yet
+    // Generate new bucket if we got none yet
     if (sort_rt_check == sort_rt.end() ||
     // or if the new point is too far from the first one
-        (sort_it->first - sort_rt_check->first) > grid.cell_dimension[1])
+        abs(sort_it->first - sort_rt_check->first) > grid.cell_dimension[1])
     {
       sort_rt_check = sort_rt.insert(sort_rt_check, std::make_pair(sort_it->first, Sort()));
     }
