@@ -608,7 +608,6 @@ namespace OpenMS
 
   void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path,bool save)
   {
-
 #ifdef PISP_DEBUG
     std::cout << "Parameters: "<< param_.getValue("preprocessing:preprocessed_db_path")
               << "\t" << param_.getValue("precursor_mass_tolerance")
@@ -738,6 +737,10 @@ namespace OpenMS
 #ifdef PISP_DEBUG
       std::cout <<"bin_masses_.size() " <<  bin_masses_.size() << " "<<size<< std::endl;
 #endif
+      if(bin_masses_.empty())
+        {
+          throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+        }
       counter_.resize(size,0);
 #ifdef PISP_DEBUG
       std::cout << "masses_.size() "<< masses_.size()
