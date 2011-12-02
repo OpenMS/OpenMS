@@ -117,6 +117,17 @@ namespace OpenMS
         @returns Number of removed scans
       **/
       Size compress();
+
+			/**
+				@brief Expand a convex hull to its bounding box.
+		
+				This reduces the size of a convex hull to four points, its
+        bounding box, thus reducing size when storing the information.
+				Note that this leads to an enclosed area that can be significantly
+				larger than the original convex hull.
+			**/
+			void expandToBoundingBox();
+		
 			
       /** 
 				@brief returns if the @p point lies in the feature hull

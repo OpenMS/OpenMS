@@ -217,8 +217,26 @@ protected:
     // write features to user specified output file
     FeatureXMLFile map_file;
     String out = getStringOption_("out");
+		
+		// Remove detailed convex hull information and subordinate features
+		// (unless requested otherwise) to reduce file size of feature files 
+    // unless debugging is turned on.
+    if (debug_level_ < 5)
+		{
+			FeatureMap<>::Iterator it;
+			for (it = features.begin(); it != features.end(); ++it)
+			{
+				it->getConvexHull().expandToBoundingBox();
+				for (Size i = 0; i < it->getConvexHulls().size(); ++i)
+				{
+					// it->getConvexHulls()[i].expandToBoundingBox();	
+					it->getConvexHulls().clear();
+				}
+				it->getSubordinates().clear();
+			}
+		}
 
-		map_file.store(out,features);
+		map_file.store(out, features);
 
 		return EXECUTION_OK;
 	}

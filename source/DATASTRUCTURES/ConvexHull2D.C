@@ -121,6 +121,17 @@ namespace OpenMS
 		outer_points_ = points;
 	}
 	
+	void ConvexHull2D::expandToBoundingBox()
+	{
+		DBoundingBox<2> bb(getBoundingBox());
+		typedef DBoundingBox<2>::PositionType Point;
+		clear();
+		addPoint(Point(bb.minPosition()[0], bb.minPosition()[1]));
+		addPoint(Point(bb.minPosition()[0], bb.maxPosition()[1]));
+		addPoint(Point(bb.maxPosition()[0], bb.minPosition()[1]));
+		addPoint(Point(bb.maxPosition()[0], bb.maxPosition()[1]));
+	}
+
 	/// returns the bounding box of the convex hull points
 	DBoundingBox<2> ConvexHull2D::getBoundingBox() const
 	{
