@@ -280,7 +280,7 @@ namespace OpenMS
       }
       //sort
       std::sort(w_idx.begin(), w_idx.end(),
-        ret<bool>((&_1 ->* &std::pair<Size, Value>::second) < (&_2 ->* &std::pair<Size, Value>::second)));
+								ret<bool>((&_1 ->* &std::pair<Size, Value>::second) < (&_2 ->* &std::pair<Size, Value>::second)));
       //replace pairs <orig_index, value> in w_idx by pairs <orig_index, rank>
       while (i < n)
       {
@@ -293,11 +293,16 @@ namespace OpenMS
         else // tie, replace by mean rank
         {
 					// count number of ties
-          for (z = i + 1; z <= n && fabs(w_idx[z].second - w_idx[i].second) <= 0.0000001 * fabs(w_idx[z].second); ++z);
+          for (z = i + 1; (z <= n) && fabs(w_idx[z].second - w_idx[i].second) <= 0.0000001 * fabs(w_idx[z].second); ++z)
+					{
+					}
 					// compute mean rank of tie
           rank = 0.5 * (i + z + 1);
 					// replace intensities by rank
-          for (Size v = i; v <= z - 1 ; ++v) w_idx[v].second = rank;
+          for (Size v = i; v <= z - 1 ; ++v)	
+					{
+						w_idx[v].second = rank;
+					}
           i = z;
         }
       }
