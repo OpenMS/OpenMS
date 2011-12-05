@@ -16,7 +16,7 @@
 			<UserParam type="string" name="mzTab:unit_id" value="OpenMS_16627578304933075941"/>
 			<UserParam type="string" name="mzTab:title" value="Quantification by OpenMS/ProteinQuantifier"/>
 			<UserParam type="string" name="mzTab:software[1]" value="[ProteinQuantifier,version_string]"/>
-			<UserParam type="string" name="mzTab:ms_file[1]-location" value="/home/hendrik/OpenMS/source/TEST/TOPP/ProteinQuantifier_input.featureXML"/>
+			<UserParam type="string" name="mzTab:ms_file[1]-location" value="OpenMS/source/TEST/TOPP/ProteinQuantifier_input.featureXML"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<PeptideHit score="0" sequence="AAAAA" charge="1" protein_refs="PH_0" >
