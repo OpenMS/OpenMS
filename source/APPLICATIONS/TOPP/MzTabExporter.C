@@ -151,21 +151,27 @@ protected:
 
   static String mapSearchEngineToCvParam_(const String& openms_search_engine_name)
   {
-    if (openms_search_engine_name == "OMSSA")
+    String s = openms_search_engine_name;
+    s.toUpper();
+
+    if (s == "OMSSA")
     {
       return "[MS,MS:1001475,OMSSA,]";
-    } else if (openms_search_engine_name == "Mascot")
+    } else if (s == "MASCOT")
     {
       return "[MS,MS:1001207,MASCOT,]";
-    } else if (openms_search_engine_name == "XTandem")
+    } else if (s == "XTANDEM")
     {
       return "[MS,MS:1001476,xtandem,]";
-    } else if (openms_search_engine_name == "SEQUEST")
+    } else if (s == "SEQUEST")
     {
       return "[MS,MS:1001208,Sequest,]";
-    } else if (openms_search_engine_name == "CompNovo")
+    } else if (s == "COMPNOVO")
     {
       return "[MS,MS:UNKOWN,CompNovo,]";
+    } else if (s == "PROTEINPROPHET")
+    {
+      return "[MS,MS:UNKNOWN,ProteinProphet,]";
     } else
     {
       return "--";
@@ -216,7 +222,11 @@ protected:
     } else if (openms_search_engine_name == "CompNovo")
     {
       s = "[MS,MS:UNKOWN,CompNovo,";
-    } else
+    } else if (score_type == "ProteinProphet probability")
+    {
+      s = "[MS,MS:UNKOWN,ProteinProphet,";
+    }
+    else
     {
       return "--";
     }
@@ -545,7 +555,8 @@ protected:
              << go_terms << protein_coverage;
 
       // get number of sub samples for this run
-      Size n_subsamples = map_run_to_num_sub.at(prot_id.getIdentifier());
+      map<String, Size>::const_iterator sub_it = map_run_to_num_sub.find(prot_id.getIdentifier());
+      Size n_subsamples = sub_it->second;
       for (Size n = 1; n <= n_subsamples; ++n)
       {
         {
@@ -690,8 +701,8 @@ protected:
       }
 
       // determine the number of sub samples in each run from protein ids (it is assumed that peptide ids don't introduce new sub sample categories)
-      map<String, Size> n_sub_samples = extractNumberOfSubSamples_(map_run_to_proids);
-      writeProteinHeader_(output, n_sub_samples);
+      map<String, Size> map_run_to_n_subsamples = extractNumberOfSubSamples_(map_run_to_proids);
+      writeProteinHeader_(output, map_run_to_n_subsamples);
 
       // write protein table data
       run_count = 0;     
@@ -704,14 +715,14 @@ protected:
         for (vector<ProteinIdentification>::const_iterator prot_id_it = prot_ids.begin();
              prot_id_it != prot_ids.end(); ++prot_id_it, ++run_count)
         {
-          writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides, n_sub_samples);
+          writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides, map_run_to_n_subsamples);
         }
       }
 
       // write peptide header
       output << endl;
 
-      writePeptideHeader_(output, n_sub_samples);
+      writePeptideHeader_(output, map_run_to_n_subsamples);
 
       run_count = 0;
       mprot_it = map_run_to_proids.begin();
@@ -792,7 +803,12 @@ protected:
               mass_to_charge = "--";
             }
 
-            String charge = peptide_hit_it->getCharge();
+            String charge = "NA";
+            if (peptide_hit_it->getCharge() != 0)
+            {
+              charge = peptide_hit_it->getCharge();
+            }
+
             String uri = in;
 
             output << "PEP" << sequence << accession << unit_id << unique << database
@@ -801,7 +817,9 @@ protected:
                    << mass_to_charge << uri << spectra_ref;
 
             // get number of sub samples for this run
-            Size n_subsamples = n_sub_samples.at(mpep_it->first);
+            map<String, Size>::const_iterator sub_it = map_run_to_n_subsamples.find(mpep_it->first);
+            Size n_subsamples = sub_it->second;
+
             for (Size n = 1; n <= n_subsamples; ++n)
             {
               {
