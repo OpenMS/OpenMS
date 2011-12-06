@@ -88,7 +88,7 @@ void SILACClustering::joinLarge_()
     // Generate new bucket if we got none yet
     if (sort_rt_check == sort_rt.end() ||
     // or if the new point is too far from the first one
-        abs(sort_it->first - sort_rt_check->first) > grid.cell_dimension[1])
+        (sort_it->first - sort_rt_check->first) > grid.cell_dimension[1])
     {
       sort_rt_check = sort_rt.insert(sort_rt_check, std::make_pair(sort_it->first, Sort()));
     }
