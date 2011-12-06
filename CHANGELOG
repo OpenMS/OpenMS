@@ -5,74 +5,89 @@ Release date: October 2011
 
 
 OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefor all .ini files
-for 'typed' TOPP tools (i.e. with a type parameter) build with OpenMS 1.8 and below
+for "typed" TOPP tools (i.e. those with a "type" parameter) built with OpenMS 1.8 and below
 are incompatible! To fix your old .ini and .toppas files use the new
 INIUpdater tool (see its documentation and the TOPP documentation).
 
 OpenMS 1.9 removed support for Mac OS X 10.5.
 
 TOPP tools: 
--ADDED:
-  - MapStatistics (statistics for low level quality control)
-	- EICExtractor (quantify known RT,m/z locations in 1-many LC/MS maps and align them)
-  - MassTraceExtractor (annotate mass traces in centroided LC/MS maps. Useful for metabolomics and top-down proteomics. Use FeatureFinder<xxx> tools for peptides)
-	- FeatureFinderRaw (feature finding on raw data)
--MODIFIED:
-  - Split NoiseFilter into NoiseFilterGaussian and NoiseFilterSGolay
-	- MascotAdapterOnline now supports Mascot 2.3 servers
-	- Split PeakPicker into PeakPickerWavelet and PeakPickerHiRes
-	- Split FeatureFinder into FeatureFinderMRM, FeatureFinderCentroided, FeatureFinderIsotopeWavelet
--REMOVED:
+- ADDED:
+  - MapStatistics: statistics for low level quality control
+  - EICExtractor: quantify known RT, m/z locations in one or many LC/MS maps and align them
+  - MassTraceExtractor: annotate mass traces in centroided LC/MS maps - useful for metabolomics and top-down proteomics (use FeatureFinder tools for peptides)
+  - FeatureFinderRaw: feature finding on raw data
+  - IDConflictResolver: resolve ambiguous annotations of features with peptide identifications
+- MODIFIED:
+  - FeatureFinder: split into FeatureFinderMRM, FeatureFinderCentroided, FeatureFinderIsotopeWavelet
+  - FeatureLinker: split into FeatureLinkerLabeled, FeatureLinkerUnlabeled, FeatureLinkerUnlabeledQT
+  - FeatureLinker tools remove unneeded data after loading featureXML files to conserve memory
+  - MapAligner: split into MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerSpectrum, and MapRTTransformer
+  - model parameters of MapAligner tools are now set in the .ini file
+  - NoiseFilter: split into NoiseFilterGaussian and NoiseFilterSGolay
+  - PeakPicker: split into PeakPickerWavelet and PeakPickerHiRes
+  - MascotAdapterOnline: now supports Mascot 2.3 servers
+  - ProteinQuantifier: added support for writing idXML (suitable for export to mzTab)
+- REMOVED:
   - AndiMS/NetCDF is no longer supported on any platform
-  - Removed IDDecoyProbability tool
+  - removed IDDecoyProbability tool
  
 UTIL tools: 
--ADDED:
-  - INIUpdater (update INI and TOPPAS files)
+- ADDED:
+  - INIUpdater: update INI and TOPPAS files
+  - TransformationEvaluation: evaluate a (RT) transformation by applying it to a range of values
 	 
-OpenMS library improvements: 
-- MODIFIED
-	- The type parameter of MSSimulator was moved to MSSim:Labeling:type
+OpenMS library improvements:
+
 
 TOPPView improvements:
--MODIFIED:
+- MODIFIED:
   - ConsensusFeatures can now be colored using MetaValues
-  - Better grid line drawing/calculation, extracted AxisPainter class
+  - better grid line drawing/calculation, extracted AxisPainter class
   - IdentificationView:
     - added automatic labeling with peptide fragment sequence
     - theoretical spectrum is now hidden by default (labeling contains relevant information for most use cases)
     - automatic zoom to measured MS2 data range
 
-TOPPAS improvements: 
-	- TOPPAS allows for interactive download of preconfigured TOPPAS pipelines from OpenMS homepage
-	- "Recycling" mode for nodes, useful for database input files (see docu for details)
+TOPPAS improvements:
+- TOPPAS allows for interactive download of preconfigured TOPPAS pipelines from OpenMS homepage
+- "Recycling" mode for nodes, useful for database input files (see docu for details)
 	 
 Changes to the Build System: 
-	- TOPPAS now requires Qt's Webkit library
-	- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE (removed)
-	- Use CMAKE_FIND_ROOT_PATH instead of CONTRIB_CUSTOM_DIR (deprecated)
-  - Removed AndiMS, NetCDF and dependencies
-	- Removed dependency to imslib, relevant classes were moved directly to OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS
-	- OpenMS now supports ctests functionality for optimized and parallel testing #363
+- TOPPAS now requires Qt's Webkit library
+- Use CMAKE_BUILD_TYPE instead of OPENMS_BUILD_TYPE (removed)
+- Use CMAKE_FIND_ROOT_PATH instead of CONTRIB_CUSTOM_DIR (deprecated)
+- Removed AndiMS, NetCDF and dependencies
+- Removed dependency to imslib, relevant classes were moved directly to OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS
+- OpenMS now supports ctests functionality for optimized and parallel testing #363
 	
 Fixed Issues: 
 	 
 Detailed list of changes to specific OpenMS classes:
 - NEW:
-	- compose_f_gx_hy_t (from imslib)
-	- compose_f_gx_t (from imslib)
-	- IMSAlphabet (from imslib)
-	- IMSAlphabetParser (from imslib)
-	- IMSAlphabetTextParser (from imslib)
-	- IMSElement (from imslib)
-	- IMSIsotopeDistribution (from imslib)
-	- IntegerMassDecomposer (from imslib)
-	- MassDecomposer (from imslib)
-	- RealMassDecomposer (from imslib)
-	- Weights (from imslib)
+  - compose_f_gx_hy_t (from imslib)
+  - compose_f_gx_t (from imslib)
+  - IMSAlphabet (from imslib)
+  - IMSAlphabetParser (from imslib)
+  - IMSAlphabetTextParser (from imslib)
+  - IMSElement (from imslib)
+  - IMSIsotopeDistribution (from imslib)
+  - IntegerMassDecomposer (from imslib)
+  - MassDecomposer (from imslib)
+  - RealMassDecomposer (from imslib)
+  - Weights (from imslib)
+  - sum/mean/median functions added to header "StatisticFunctions"
+  - PeptideAndProteinQuant: contains quantification code formerly included in ProteinQuantifier (TOPP tool)
 - MODIFIED:
   - AASequence: removed AASequence(ConstIterator, ConstIterator) constructor, since it ignored Terminal Modifications; since there was no way to enable correct construction from two Iterators, we removed it
-	- lots more.. too much to list
+  - MSSimulator: "type" parameter moved to "MSSim:Labeling:type"
+  - Param: added new command line parser with improved functionality
+  - PepXMLFile: RTs of peptide identifications are now set based on MS2 spectra, not the MS1 precursors (flag "use_precursor_rt" switches to the old behavior)
+  - ProtXMLFile: set score type for peptides
+  - TOPPBase: added methods to turn Param objects into command line parameters
+  - TransformationModel: simplified handling of parameters
+  - TransformationModelBSpline: new option to distribute breakpoints evenly at data quantiles (instead of uniformly over the data range)
+  - lots more... too much to list
   
 
 
