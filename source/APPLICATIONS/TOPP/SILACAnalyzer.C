@@ -941,7 +941,9 @@ void TOPPSILACAnalyzer::clusterData(const MSExperiment<> &exp, const PeakWidthEs
     sort(space.begin(), space.end());
 
     // Calculate median by extracting the middle element (okay, the upper median)
-    if (space.size()) rt_max_spacing = space[space.size() / 2 + 1] * 2;
+    // Set max spacing to five times the median spectrum spacing
+    // The five is an empirical value
+    if (space.size()) rt_max_spacing = space[space.size() / 2 + 1] * 5;
   }
 
   UInt data_id = 0;
