@@ -94,6 +94,13 @@ namespace OpenMS
       MAX
     };
     
+    enum WriteFormat
+    {
+      FORMAT_LP =0,
+      FORMAT_MPS,
+      FORMAT_GLPK
+    };
+
     enum SOLVER
     {
       SOLVER_GLPK = 0
@@ -210,9 +217,9 @@ namespace OpenMS
      *	@brief Write LP formulation to a file.
      *	
      *	@param filename output filename, if the filename ends with '.gz' it will be compressed
-		 *  @param format can be LP, MPS or GLPK
+		 *  @param format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
      */
-    void writeProblem(String filename,String format);// format=(LP,MPS,GLPK)
+    void writeProblem(const String& filename, const WriteFormat format) const;
     
     /* @brief solve problems, parameters like enabled heuristics can be given via solver_param
 

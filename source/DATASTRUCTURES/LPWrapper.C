@@ -511,29 +511,39 @@ namespace OpenMS
     else throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
   }
 
-  void LPWrapper::writeProblem(String filename, String format)// format=(LP,MPS,GLPK)
+  void LPWrapper::writeProblem(const String& filename, const WriteFormat format) const
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      if(format == "LP")
-        {
-          glp_write_lp(lp_problem_,NULL,filename.c_str());
-        }
-      else if(format == "MPS")
-        {
-          glp_write_mps(lp_problem_,GLP_MPS_FILE,NULL,filename.c_str());
-        }
-      else if(format == "GLPK")
-        {
-          glp_write_prob(lp_problem_,0,filename.c_str());
-        }
-      else  throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"invalid LP format, allowed are LP, MPS, GLPK");
+      if(format == FORMAT_LP)
+      {
+        glp_write_lp(lp_problem_,NULL,filename.c_str());
+      }
+      else if(format == FORMAT_MPS)
+      {
+        glp_write_mps(lp_problem_,GLP_MPS_FILE,NULL,filename.c_str());
+      }
+      else if(format == FORMAT_GLPK)
+      {
+        glp_write_prob(lp_problem_,0,filename.c_str());
+      }
+      else  throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid LP format, allowed are LP, MPS, GLPK");
     }
-    else throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+#if COINOR_SOLVER==1
+    else if (solver_ == LPWrapper::SOLVER_COINOR)
+    {
+      if(format == FORMAT_MPS)
+      {
+        model_->writeMps(filename.c_str());
+      }
+      else  throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid LP format, allowed is MPS");
+    }
+#endif
   }
 
   Int LPWrapper::solve(SolverParam& solver_param, const Size verbose_level)
   {
+    LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
       glp_iocp solver_param_glp;
