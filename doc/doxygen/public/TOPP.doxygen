@@ -107,7 +107,6 @@
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
 	- @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
-  - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
