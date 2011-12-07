@@ -69,13 +69,13 @@ using namespace std;
 
   Isotope correction is done using non-negative least squares (NNLS), i.e.,
 
-  Minimize || A x - b ||, subject to x >= 0, where b is the vector of observed reporter intensities (with 'contaminating'
+  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with 'contaminating'
   isotope species), A is a correction matrix (as supplied by the manufacturer AB Sciex) and x is the desired vector of corrected (real)
   reporter intensities.
   Other software solves this problem using an inverse matrix multiplication, but this can yield entries in x which are negative. In a real sample,
   this solution cannot possibly be true, so usually negative values (= negative reporter intensities) are set to 0.
   However, a negative result usually means, that noise was not accounted for thus we use NNLS to get a non-negative solution, without the need to
-  truncate negative values. In (the usual) case that inverse matrix multiplication yields only positive values, our NNLS with give 
+  truncate negative values. In (the usual) case that inverse matrix multiplication yields only positive values, our NNLS will give 
   the exact same optimal solution.
 
   The correction matrices can be found (and changed) in the INI file. However, these matrices for both 4plex and 8plex are now stable, and every
