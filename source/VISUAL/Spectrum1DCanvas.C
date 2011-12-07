@@ -1104,7 +1104,7 @@ namespace OpenMS
 		
 		//determine coordinates;
 		DoubleReal mz = 0.0;
-		DoubleReal rt = 0.0;
+		//DoubleReal rt = 0.0;
 		Real it = 0.0;
 
     if (getCurrentLayer().type!=LayerData::DT_PEAK)
@@ -1116,14 +1116,14 @@ namespace OpenMS
 		if (end.isValid())
 		{
       mz = end.getPeak(*getCurrentLayer().getPeakData()).getMZ() - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-      rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+      //rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
       it = end.getPeak(*getCurrentLayer().getPeakData()).getIntensity() / start.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
 		}
 		else
 		{
 			PointType point = widgetToData_(last_mouse_pos_);
       mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-      rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+      //rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
 			it = std::numeric_limits<DoubleReal>::quiet_NaN();
 		}
 
