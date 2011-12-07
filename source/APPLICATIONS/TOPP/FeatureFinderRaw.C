@@ -189,8 +189,6 @@ class TOPPFeatureFinderRaw
     registerOutputFile_("out", "<file>", "", "Set of all identified peptides. The m/z-RT positions correspond to the lightest peptide in each group.", false);
     setValidFormats_("out", StringList::create("featureXML"));
 
-    // create section "labels" for adjusting masses of labels
-    registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
     // create section "sample" for adjusting sample parameters
     registerSubsection_("sample", "Parameters describing the sample and its labels.");
     // create section "algorithm" for adjusting algorithm parameters
