@@ -255,7 +255,7 @@ class TOPPFeatureFinderRaw
     //--------------------------------------------------
 
     // get selected missed_cleavages
-    missed_cleavages = getParam_().getValue("sample:missed_cleavages");
+    missed_cleavages = 0;
 
     // get selected charge range
     String charge_string = getParam_().getValue("sample:charge");
