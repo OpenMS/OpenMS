@@ -151,7 +151,7 @@ namespace OpenMS
         Param lowess_params;
 
         // use dynamically computed window sizes
-        Size win_size = mt.getRoughFWHM();
+        Size win_size = mt.getRoughFWHMsize();
 
         lowess_params.setValue("window_size", win_size);
         // lowess_params.setValue("window_size", window_size_);
@@ -195,6 +195,9 @@ namespace OpenMS
                     ++last_idx;
                 }
 
+                // finalize mass trace
+                tmp_mt.finalizeTrace();
+
                 // copy smoothed ints
                 tmp_mt.setSmoothedIntensities(smoothed_tmp);
 
@@ -205,6 +208,8 @@ namespace OpenMS
                 tr_num = "_" + read_in.str();
 
                 tmp_mt.setLabel(mt.getLabel() + tr_num);
+                tmp_mt.updateWeightedMeanRT();
+                tmp_mt.updateWeightedMeanMZ();
 
                 single_mtraces.push_back(tmp_mt);
             }
@@ -222,6 +227,9 @@ namespace OpenMS
                 ++last_idx;
             }
 
+            // finalize mass trace
+            tmp_mt.finalizeTrace();
+
             // copy smoothed ints
             tmp_mt.setSmoothedIntensities(smoothed_tmp);
 
@@ -232,6 +240,9 @@ namespace OpenMS
             tr_num = "_" + read_in.str();
 
             tmp_mt.setLabel(mt.getLabel() + tr_num);
+            tmp_mt.updateWeightedMeanRT();
+            tmp_mt.updateWeightedMeanMZ();
+
 
             single_mtraces.push_back(tmp_mt);
         }

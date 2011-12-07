@@ -168,7 +168,7 @@ namespace OpenMS
                 std::vector<MassTrace*> local_traces;
 
                 DoubleReal ref_trace_mz(input_mtraces[i].getCentroidMZ());
-                DoubleReal ref_trace_rt(input_mtraces[i].getSmoothedMaxRT());
+                DoubleReal ref_trace_rt(input_mtraces[i].getCentroidRT());
 
                 local_traces.push_back(&input_mtraces[i]);
 
@@ -179,7 +179,7 @@ namespace OpenMS
                 {
                     // update diff_mz and diff_rt
                     diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
-                    diff_rt = std::fabs(input_mtraces[ext_idx].getSmoothedMaxRT() - ref_trace_rt);
+                    diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
 
                     if (diff_mz <= local_mz_range_ && diff_rt <= local_rt_range_)
                     {
@@ -411,25 +411,19 @@ namespace OpenMS
 
     void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
     {
-        // check for singleton traces
-        //        if (candidates.size() == 1)
-        //        {
         FeatureHypothesis tmp_hypo;
         tmp_hypo.addMassTrace(*candidates[0]);
         tmp_hypo.setScore(0.0);
 
         output_hypos.push_back(tmp_hypo);
 
-        //            return ;
-        //        }
-
 
         bool singleton_trace = true;
 
         for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge) {
 
-            std::cout << "looking at charge state " << charge << std::endl;
-            std::cout << "-----------------------" << std::endl;
+            // std::cout << "looking at charge state " << charge << std::endl;
+            // std::cout << "-----------------------" << std::endl;
 
 
             FeatureHypothesis fh_tmp;
@@ -437,11 +431,11 @@ namespace OpenMS
 
             fh_tmp.addMassTrace(*candidates[0]);
 
-            DoubleReal mono_iso_rt(candidates[0]->getSmoothedMaxRT());
+            DoubleReal mono_iso_rt(candidates[0]->getCentroidRT());
             DoubleReal mono_iso_mz(candidates[0]->getCentroidMZ());
             DoubleReal mono_iso_int(candidates[0]->computePeakArea());
 
-            std::cout << candidates[0]->getLabel() << " with ";
+            // std::cout << candidates[0]->getLabel() << " with ";
 
             Size last_iso_idx(0);
 
@@ -451,11 +445,11 @@ namespace OpenMS
                 DoubleReal best_so_far(0.0);
                 Size best_idx(0);
 
-                std::cout << "iso_pos" << iso_pos << std::endl;
+                // std::cout << "iso_pos" << iso_pos << std::endl;
 
                 for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
                 {
-                    DoubleReal tmp_iso_rt(candidates[mt_idx]->getSmoothedMaxRT());
+                    DoubleReal tmp_iso_rt(candidates[mt_idx]->getCentroidRT());
                     DoubleReal tmp_iso_mz(candidates[mt_idx]->getCentroidMZ());
                     DoubleReal tmp_iso_int(candidates[mt_idx]->computePeakArea());
 
@@ -508,23 +502,7 @@ namespace OpenMS
 
             } // end for iso_pos
 
-            //            if (fh_tmp.getSize() > 1)
-            //            {
-            //                output_hypos.push_back(fh_tmp);
-            //            }
-            // std::cout << fh_tmp.getLabel() << " " << fh_tmp.getScore() << std::endl;
         } // end for charge
-
-
-        //        if (singleton_trace)
-        //        {
-        //            FeatureHypothesis fh_tmp;
-        //            fh_tmp.setScore(0.0);
-
-        //            fh_tmp.addMassTrace(*candidates[0]);
-
-        //            output_hypos.push_back(fh_tmp);
-        //        }
 
 
         return ;

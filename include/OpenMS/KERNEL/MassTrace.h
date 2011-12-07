@@ -41,15 +41,17 @@ namespace OpenMS
 {
     typedef Peak2D PeakType;
 
+    /** @brief A container type that gathers peaks similar in m/z and moving along retention time. Depending on the method of extraction a mass trace could virtually represent
+      a complete ion chromatogram (XIC) or merely a part of it (e.g., a chromatographic peak). The kernel class provides methods for computing mass trace characteristics such
+      as its centroid m/z and retention time. Coeluting mass traces can be further assembled to complete isotope patterns of peptides/metabolites.
 
-
-    /**@brief MassTrace kernel class
                 @ingroup Kernel
         */
     class OPENMS_DLLAPI MassTrace
     {
     public:
-
+        /** @name Constructors and Destructor
+        */
         /// Default constructor
         MassTrace();
         /// Default destructor
@@ -59,11 +61,12 @@ namespace OpenMS
 
         MassTrace& operator= (const MassTrace& rhs);
 
-        // iterator stuff
-        typedef std::list<PeakType>::iterator iterator;
-        typedef std::list<PeakType>::const_iterator const_iterator;
-        typedef std::list<PeakType>::reverse_iterator reverse_iterator;
-        typedef std::list<PeakType>::const_reverse_iterator const_reverse_iterator;
+        /** @name Iterators
+        */
+        typedef std::vector<PeakType>::iterator iterator;
+        typedef std::vector<PeakType>::const_iterator const_iterator;
+        typedef std::vector<PeakType>::reverse_iterator reverse_iterator;
+        typedef std::vector<PeakType>::const_reverse_iterator const_reverse_iterator;
 
         iterator begin()
         {
@@ -105,35 +108,47 @@ namespace OpenMS
             return trace_peaks_.rend();
         }
 
+        /** @name Getters and Setters
+        */
 
-        /// getter & setter
-
+        /// Returns the number of peaks contained in the mass trace
         inline Size getSize() const
         {
             return trace_peaks_.size();
         }
 
+        /// Return preliminary number of peaks in mass trace (extension phase)
+        inline Size getPrelimSize() const
+        {
+            return fill_list_.size();
+        }
+
+        /// Get label of mass trace
         inline String getLabel()
         {
             return label_;
         }
 
+        /// Set label of mass trace
         inline void setLabel(const String& label)
         {
             label_ = label;
         }
 
+        /// Return the centroid m/z
         inline DoubleReal getCentroidMZ()
         {
             return centroid_mz_;
         }
 
+        /// Return the centroid RT
         inline DoubleReal getCentroidRT()
         {
-          updateWeightedMeanRT_();
-          return centroid_rt_;
+            // updateWeightedMeanRT_();
+            return centroid_rt_;
         }
 
+        /// Get smoothed intensities (empty if no smoothing was explicitly done beforehand!)
         inline std::vector<DoubleReal> getSmoothedIntensities()
         {
             return smoothed_intensities_;
@@ -144,64 +159,109 @@ namespace OpenMS
             return smoothed_intensities_;
         }
 
+        /// Set smoothed intensities
         inline void setSmoothedIntensities(const std::vector<DoubleReal>& db_vec)
         {
+            if (trace_peaks_.size() != db_vec.size())
+            {
+                throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
+            }
+
             smoothed_intensities_ = db_vec;
         }
 
-        inline DoubleReal getSmoothedMaxRT()
-        {
-            Size max_idx(this->findSmoothedMaxIdx());
-
-            MassTrace::const_iterator c_it = trace_peaks_.begin();
-            std::advance(c_it, max_idx);
-
-            return c_it->getRT();
-        }
-
-        inline Size getRoughFWHM()
+        /// Return estimated number of peaks spanning the full-width-at-half-maximum (previous estimation needed!)
+        inline Size getRoughFWHMsize()
         {
             return rough_fwhm_points_;
         }
 
-        inline void setRoughFWHM(Size r_fwhm)
+        /// Set estimated number of peaks spanning the full-width-at-half-maximum
+        inline void setRoughFWHMsize(Size r_fwhm)
         {
             rough_fwhm_points_ = r_fwhm;
         }
 
 
-        /// prepend & append peaks, update centroid mz
+
+        /** @name Methods for mass trace extension
+        */
+        /// Prepend new peak to mass trace
         void prependPeak(PeakType);
+
+        /// Append new peak to mass trace
         void appendPeak(PeakType);
 
-        DoubleReal computeWeightedMeanMZ();
+        /// Finalize mass trace (copy peaks from list to vector)
+        void finalizeTrace();
+
+        /** @name Helper functions
+        */
+        /// Sum up mass trace peak intensities for chromatographic peak area estimation
         DoubleReal computePeakArea();
-        Size findSmoothedMaxIdx();
-        DoubleReal findMaxPeakRT();
+
+        /// Return a pointer to the mass trace's highest peak (based either on raw or smoothed intensities)
+        Size findMaxByIntPeak(bool);
+
+        /// Estimate FWHM of chromatographic peak (based on smoothed intensities)
         DoubleReal estimateFWHM();
+
+        /// Find local extrema in mass trace
         void findLocalExtrema(const Size&, std::vector<Size>&, std::vector<Size>&);
+
+        /// Return the mass trace's convex hull
         ConvexHull2D getConvexhull() const;
 
-    private:
-        void updateWeightedMeanRT_();
-        void updateMedianRT_();
-        void updateMedianMZ_();
-        void updateMeanMZ_();
-        void updateIterativeWeightedMeanMZ_(const PeakType&);
 
-        std::list<PeakType> trace_peaks_;
+        /** @name Update methods for centroid RT and m/z
+        */
+
+        /// Compute & update centroid RT as a intensity-weighted mean of RTs
+        void updateWeightedMeanRT();
+
+        /// Compute & update centroid RT as median position of intensities
+        void updateMedianRT();
+
+        /// Compute & update centroid m/z as median of m/z values
+        void updateMedianMZ();
+
+        /// Compute & update centroid m/z as mean of m/z values
+        void updateMeanMZ();
+
+        /// Compute & update centroid m/z as weighted mean of m/z values
+        void updateWeightedMeanMZ();
+
+        /// Compute & update centroid m/z as weighted mean of m/z values (iterative version). The most recent m/z and intensity values are handed over as function parameters.
+        void updateIterativeWeightedMeanMZ(const DoubleReal&, const DoubleReal&);
+
+
+    private:
+        /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
+        std::vector<PeakType> trace_peaks_;
+
+        /// Temporary list for filling the mass trace (allows for efficient pre- and appending to the mass trace). Before further working on the mass trace, please use finalizeTrace().
+        std::list<PeakType> fill_list_;
+
+        /// Centroid m/z
         DoubleReal centroid_mz_;
+
+        /// Centroid RT
         DoubleReal centroid_rt_;
 
+        /// Trace label
         String label_;
 
+        /// Container for smoothed intensities. Smoothing must be done externally.
         std::vector<DoubleReal> smoothed_intensities_;
 
+        /// Rough estimate of a chromatographic peak's width (can be set while collecting the mass trace)
         Size rough_fwhm_points_;
 
+        /// Temporary variable. Needed for iterative weighted mean computation.
         DoubleReal prev_counter_;
-        DoubleReal prev_denom_;
 
+        /// Temporary variable. Needed for iterative weighted mean computation.
+        DoubleReal prev_denom_;
 
     };
 

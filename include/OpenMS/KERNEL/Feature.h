@@ -51,7 +51,7 @@ namespace OpenMS
 	(proportional to) its total ion count.
 
 	Feature is derived from RichPeak2D.	 Also inherited is a MetaInfoInterface.
-	Features as usually contained in a FeatureMap.	See also FeatureHandle and
+        Features as usually are contained in a FeatureMap. See also FeatureHandle and
 	ConsensusFeature.
 
 	@ingroup Kernel

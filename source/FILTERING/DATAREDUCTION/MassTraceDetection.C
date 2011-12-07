@@ -65,7 +65,7 @@ namespace OpenMS
 
         for (Size i = 0; i < mt_vec.size(); ++i)
         {
-            DoubleReal fwhm(mt_vec[i].getRoughFWHM());
+            DoubleReal fwhm(mt_vec[i].getRoughFWHMsize());
 
             if (fwhm > chrom_fwhm_) {
                 histo_map.insert(std::make_pair(fwhm, i));
@@ -105,27 +105,25 @@ namespace OpenMS
         lower_idx = std::floor(0.02275/bin_width);
         upper_idx = std::floor(0.97725/bin_width);
 
-        std::cout << "rough lower: " << pw_vec[lower_idx] << " upper: " << pw_vec[upper_idx] << std::endl;
+        // std::cout << "rough lower: " << pw_vec[lower_idx] << " upper: " << pw_vec[upper_idx] << std::endl;
 
         for (Size i = 0; i < mt_vec.size(); ++i)
         {
 
             // set to lowest peak width according to distribution
-            if (mt_vec[i].getRoughFWHM() < pw_vec[lower_idx] && mt_vec[i].getSize() >= pw_vec[lower_idx])
+            if (mt_vec[i].getRoughFWHMsize() < pw_vec[lower_idx] && mt_vec[i].getSize() >= pw_vec[lower_idx])
             {
-                std::cout << "change " << mt_vec[i].getRoughFWHM() << " to " << pw_vec[lower_idx] << std::endl;
-                mt_vec[i].setRoughFWHM(pw_vec[lower_idx]);
+                mt_vec[i].setRoughFWHMsize(pw_vec[lower_idx]);
                 filt_mtraces.push_back(mt_vec[i]);
             }
-            else if (mt_vec[i].getRoughFWHM() > pw_vec[upper_idx])
+            else if (mt_vec[i].getRoughFWHMsize() > pw_vec[upper_idx])
             {
-                std::cout << "change " << mt_vec[i].getRoughFWHM() << " to " << pw_vec[upper_idx] << std::endl;
-                mt_vec[i].setRoughFWHM(pw_vec[upper_idx]);
+                mt_vec[i].setRoughFWHMsize(pw_vec[upper_idx]);
                 filt_mtraces.push_back(mt_vec[i]);
             }
             else
             {
-                // std::cout << "width " << mt_vec[i].getRoughFWHM() << " fits!" << std::endl;
+                // std::cout << "width " << mt_vec[i].getRoughFWHMsize() << " fits!" << std::endl;
                 filt_mtraces.push_back(mt_vec[i]);
             }
         }
@@ -200,7 +198,7 @@ namespace OpenMS
 
         // start extending mass traces beginning with the apex peak
 
-        DoubleReal scan_rt_diff = (input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT())/(input_exp.size());
+        // DoubleReal scan_rt_diff = (input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT())/(input_exp.size());
 
 
 
@@ -242,6 +240,7 @@ namespace OpenMS
             MassTrace current_trace;
 
             current_trace.appendPeak(apex_peak);
+            current_trace.updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity());
 
 
             std::vector<std::pair<Size, Size> > gathered_idx;
@@ -266,8 +265,6 @@ namespace OpenMS
 
                 DoubleReal centroid_mz = current_trace.getCentroidMZ();
 
-
-
                 // try to go downwards in RT
                 if (((trace_down_idx > 0) && toggle_down)) {
                     try
@@ -275,7 +272,6 @@ namespace OpenMS
                         Size next_down_peak_idx = work_exp[trace_down_idx - 1].findNearest(centroid_mz);
                         DoubleReal next_down_peak_mz = work_exp[trace_down_idx - 1][next_down_peak_idx].getMZ();
                         DoubleReal next_down_peak_int = work_exp[trace_down_idx - 1][next_down_peak_idx].getIntensity();
-
 
                         DoubleReal right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
                         DoubleReal left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
@@ -288,6 +284,7 @@ namespace OpenMS
                             next_peak.setIntensity(next_down_peak_int);
 
                             current_trace.prependPeak(next_peak);
+                            current_trace.updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int);
                             gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
 
                             // std::cout << (int_midpoint_down + next_down_peak_int)/2.0 << std::endl;
@@ -314,10 +311,6 @@ namespace OpenMS
                     --trace_down_idx;
                     ++down_scan_counter;
 
-                    //                    if (fwhm_down)
-                    //                    {
-                    //                        ++fwhm_counter_down;
-                    //                    }
 
                     if (down_scan_counter > min_data_points) {
                         DoubleReal sample_rate_down = (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter;
@@ -356,6 +349,7 @@ namespace OpenMS
                             next_peak.setIntensity(next_up_peak_int);
 
                             current_trace.appendPeak(next_peak);
+                            current_trace.updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int);
                             gathered_idx.push_back(std::make_pair(trace_up_idx + 1, next_up_peak_idx));
 
                             DoubleReal new_midpoint((int_midpoint_up + next_up_peak_int)/2.0);
@@ -381,10 +375,6 @@ namespace OpenMS
                     ++trace_up_idx;
                     ++up_scan_counter;
 
-                    //                    if (fwhm_up)
-                    //                    {
-                    //                        ++fwhm_counter_up;
-                    //                    }
 
                     if (up_scan_counter > min_data_points) {
                         DoubleReal sample_rate_up = (DoubleReal)up_hitting_peak/(DoubleReal)up_scan_counter;
@@ -402,13 +392,11 @@ namespace OpenMS
 
             }
 
-            //if (current_trace.getSize() >= min_trace_quality) {
 
-
-            if (current_trace.getSize() >= 2*min_data_points + 1)
+            if (current_trace.getPrelimSize() >= 2*min_data_points + 1)
             {
 
-                std::cout << "CURR: " << current_trace.getSize() << " " << fwhm_counter_up+fwhm_counter_down+1 << std::endl;
+                std::cout << "CURR: " << current_trace.getPrelimSize() << " " << fwhm_counter_up+fwhm_counter_down+1 << std::endl;
                 // mark all peaks as visited
                 for (Size i = 0; i < gathered_idx.size(); ++i)
                 {
@@ -421,7 +409,11 @@ namespace OpenMS
                 tr_num = read_in.str();
 
                 current_trace.setLabel("T" + tr_num);
-                current_trace.setRoughFWHM(fwhm_counter_down + fwhm_counter_up + 1);
+                current_trace.setRoughFWHMsize(fwhm_counter_down + fwhm_counter_up + 1);
+
+                current_trace.finalizeTrace();
+                current_trace.updateWeightedMeanRT();
+
                 peaks_detected += current_trace.getSize();
                 this->setProgress(peaks_detected);
                 found_masstraces.push_back(current_trace);
@@ -447,8 +439,6 @@ namespace OpenMS
 
     void MassTraceDetection::updateMembers_()
     {
-        // delta_ = (Size)param_.getValue( "delta" );
-
         mass_error_ppm_ = (DoubleReal)param_.getValue("mass_error_ppm");
         noise_threshold_int_ = (DoubleReal)param_.getValue("noise_threshold_int");
         chrom_apex_snt_ = (DoubleReal)param_.getValue("chrom_apex_snt");

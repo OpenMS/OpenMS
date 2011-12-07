@@ -133,7 +133,9 @@ namespace OpenMS
                 throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
             }
 
-            return iso_pattern_[0]->getSmoothedMaxRT();
+            iso_pattern_[0]->updateWeightedMeanRT();
+
+            return iso_pattern_[0]->getCentroidRT();
         }
 
         DoubleReal getFWHM()
