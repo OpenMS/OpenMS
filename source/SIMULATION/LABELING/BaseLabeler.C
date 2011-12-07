@@ -226,7 +226,7 @@ namespace OpenMS
     consensus_.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  const ConsensusMap& BaseLabeler::getConsensus() const
+  ConsensusMap& BaseLabeler::getConsensus()
   {
     return consensus_;
   }

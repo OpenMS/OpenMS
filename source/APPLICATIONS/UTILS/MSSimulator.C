@@ -294,14 +294,26 @@ class TOPPMSSimulator
 			if (cxml_out != "")
 			{
         writeLog_(String("Storing charged consensus features in: ") + cxml_out);
-        ConsensusXMLFile().store(cxml_out, ms_simulation.getChargeConsensus());
+
+        ConsensusMap & charge_consensus = ms_simulation.getChargeConsensus();
+        charge_consensus.getFileDescriptions()[0].filename = fxml_out;
+        charge_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
+        charge_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
+
+        ConsensusXMLFile().store(cxml_out, charge_consensus);
 			}
       
       String lcxml_out = getStringOption_("out_lcm");
       if(lcxml_out != "")
       {
         writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
-        ConsensusXMLFile().store(lcxml_out, ms_simulation.getLabelingConsensus());
+
+        ConsensusMap & labeling_consensus = ms_simulation.getLabelingConsensus();
+        labeling_consensus.getFileDescriptions()[0].filename = fxml_out;
+        labeling_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
+        labeling_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
+
+        ConsensusXMLFile().store(lcxml_out, labeling_consensus);
       }
 
       String cntxml_out = getStringOption_("out_cntm");

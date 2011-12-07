@@ -89,13 +89,13 @@ namespace OpenMS
     FeatureMapSim const & getSimulatedFeatures() const;
 
 		/// Access the charge consensus map of simulated features
-    ConsensusMap const & getChargeConsensus() const;
+    ConsensusMap & getChargeConsensus();
 
 		/// Access the contaminants feature map of simulated features
     FeatureMapSim const & getContaminants() const;
 
     /// Access the labeling consensus map of simulated features
-    ConsensusMap const & getLabelingConsensus() const;
+    ConsensusMap & getLabelingConsensus();
 
     /// Access the labeling consensus map of simulated features
     MSSimExperiment const & getPeakMap() const;

@@ -367,19 +367,19 @@ namespace OpenMS {
     return feature_maps_[0];
   }
 
-  ConsensusMap const & MSSim::getChargeConsensus() const
+  ConsensusMap & MSSim::getChargeConsensus()
   {
 		return consensus_map_;
+  }
+
+  ConsensusMap & MSSim::getLabelingConsensus()
+  {
+    return labeler_->getConsensus();
   }
   
   FeatureMapSim const & MSSim::getContaminants() const
   {
 		return contaminants_map_;
-  }
-
-  ConsensusMap const & MSSim::getLabelingConsensus() const
-  {
-    return labeler_->getConsensus();
   }
  
   MSSimExperiment const & MSSim::getPeakMap() const

@@ -136,7 +136,7 @@ namespace OpenMS
 
     //@}
 
-    const ConsensusMap& getConsensus() const;
+    ConsensusMap& getConsensus();
 
     /**
       @brief to ensure standardized metavalue names across labelers for channel intensity
