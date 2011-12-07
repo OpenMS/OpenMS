@@ -312,7 +312,7 @@ START_SECTION((void writeProblem(String filename, String format)))
     {
       String tmp_filename;
       NEW_TMP_FILE(tmp_filename);
-      lp.writeProblem(tmp_filename,"LP");
+      lp.writeProblem(tmp_filename,LPWrapper::FORMAT_LP);
       LPWrapper lp2;
       lp2.setSolver(LPWrapper::SOLVER_GLPK);
       lp2.readProblem(tmp_filename,"LP");
@@ -335,7 +335,7 @@ START_SECTION((void writeProblem(String filename, String format)))
 #if COINOR_SOLVER==1
   else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
   {
-    TEST_EXCEPTION(Exception::NotImplemented, lp.writeProblem("/bla/bluff/blblb/sdfhsdjf/test.txt","LP"))
+    TEST_EXCEPTION(Exception::NotImplemented, lp.writeProblem("/bla/bluff/blblb/sdfhsdjf/test.txt",LPWrapper::FORMAT_LP))
   }
 #endif
 }
