@@ -229,8 +229,7 @@ protected:
 				it->getConvexHull().expandToBoundingBox();
 				for (Size i = 0; i < it->getConvexHulls().size(); ++i)
 				{
-					// it->getConvexHulls()[i].expandToBoundingBox();	
-					it->getConvexHulls().clear();
+					it->getConvexHulls()[i].expandToBoundingBox();	
 				}
 				it->getSubordinates().clear();
 			}
