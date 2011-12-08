@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 
 namespace OpenMS
@@ -42,9 +43,9 @@ namespace OpenMS
 		This implementation does currently not support the whole functionality of MzML.
 		Some minor features are still missing:
 			- chromatograms
-			
+
 		@todo Implement chromatograms (Andreas)
-		
+
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MzMLFile
@@ -82,7 +83,26 @@ namespace OpenMS
 
 				Internal::MzMLHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
-				parse_(filename, &handler);
+				//handler can throw parse error and other errors - catch those here - they are the cause for a parse error - report accordingly
+				try
+				{
+					parse_(filename, &handler);
+				}
+				catch (Exception::BaseException& e)
+				{
+					std::string expr;
+					expr.append(e.getFile());
+					expr.append("@");
+					std::stringstream ss;
+					ss << e.getLine(); // we need c++11!! maybe in 2012?
+					expr.append(ss.str());
+					expr.append("-");
+					expr.append(e.getFunction());
+					std::string mess = "- due to that error of type ";
+					mess.append(e.getName());
+					throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,expr, mess);
+				}
+
 			}
 
 			/**
