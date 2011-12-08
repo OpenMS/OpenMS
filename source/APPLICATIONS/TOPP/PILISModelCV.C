@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Johannes Junker $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -43,56 +43,38 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page TOPP_PILISModel PILISModel
+  @page TOPP_PILISModelCV PILISModelCV
 
-	@brief Can be used to train the PILIS model with a given set of spectra and identifications
+  @brief Perform a cross validation of the PILIS model parameters
 	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
 	<CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PILISModel \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PILISModelCV \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PILISIdentification </td>
 		</tr>
+  <tr>
+    <td ROWSPAN=1></td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PILISModelTrainer </td>
+  </tr>
 	</table>
 	</CENTER>
 
-	This tool can be used in three different variants, 'training', 'cross_validation' and
-	'generation'.
-
-	'training' mode:
-	In training mode, the parameters for the fragmentation model needs to be set. Via
-	the -write_ini command line switch an ini file can be created, edited to the needs
-	and used afterwards. Additionally, the spectra should be given as MSP file, which
-	already contains identifications or as mzML files. When using mzML files, idXML files
-	must be used to get the peptide sequence information for the spectra.
-	The tool trains then a model using the spectra and the peptides and writes it to
-	the file given in the parameter 'trained_model_file'. Additionally, a model can
-	be given as starting point via the parameter 'model_file'. With the min_charge and
-	max_charge parameters, the peptides can be restricted to the specified charge range.
-
-	'cross_validation' mode:
-	In cross validation mode a cross validation is performed to find the best parameters.
+  A cross validation is performed to find the best parameters.
 	The ini file contains for each parameter that can be optimized a flag, whether it
 	should be used, a min value, a max value and a step size. These parameters are used
 	to perform a grid search on the parameter. The result is a model with best performing
 	parameter set. More on the cross validation can be found at the docu of the
 	PILISCrossValidation class.
 
-	'generation' mode:
-	This mode is used to generate spectra. A list of peptide must be given as
-	idXML files. The peptides are used to generate spectra. Additionally a model file
-	must be given, which contains the fragmentation model and its parameters. If a
-	peptide has charge 0, spectra for all charges from 'min_charge' to 'max_charge'
-	are generated.
-
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PILISModel.cli
+  @verbinclude TOPP_PILISModelCV.cli
 */
 
 
@@ -137,12 +119,12 @@ void getUniquePeptides(vector<PILISCrossValidation::Peptide>& peptides)
 
 
 
-class TOPPPILISModel
+class TOPPPILISModelCV
 	: public TOPPBase
 {
 	public:
-		TOPPPILISModel()
-			: TOPPBase("PILISModel", "Used to trained the PILIS model with a given set of spectra an identifications")
+    TOPPPILISModelCV()
+      : TOPPBase("PILISModelCV", "Perform a cross validation of the PILIS model parameters")
 		{
 		}
 
@@ -159,12 +141,6 @@ class TOPPPILISModel
 
 			// output
 			registerOutputFile_("trained_model_file", "<file>", "", "The output file of the trained model, used in training mode.", false);
-			registerOutputFile_("spectra_library_file", "<MSP-file>", "", "If this tool is used in generation mode, the spectral library is written into this MSP-file.", false);
-			setValidFormats_("spectra_library_file", StringList::create("MSP"));
-
-			// options
-			registerStringOption_("type", "<usage-type>", "", "This parameter determines whether the model is used in 'training', 'cross_validation' or 'generation' mode.\n'training' is simply to train the model with the given spectra, using the parameters set in the ini file\n'cross_validation' performs a cross_validation using the identifications and the spectra, to find optimal parameters for the model\n'generation' generates a spectral library using a given model", true);
-			setValidStrings_("type", StringList::create("training,cross_validation,generation"));
 
 			registerIntOption_("min_charge", "<charge>", 1, "The minimal charge state used for training (other peptides are ignored) and for 'generation' mode if peptides have charge 0.", false);
 			setMinInt_("min_charge", 1);
@@ -183,18 +159,17 @@ class TOPPPILISModel
 
     Param getSubsectionDefaults_(const String& section) const
     {
-			String type = getStringOption_("type");
       if (section == "PILIS_parameters")
       {
         return PILISModel().getParameters();
       }
 
-			if (section == "cross_validation_parameters" && type == "cross_validation")
+      if (section == "cross_validation_parameters")
 			{
 				return PILISCrossValidation().getParameters();
 			}
 
-			if (section == "grid_search_parameters" && type == "cross_validation")
+      if (section == "grid_search_parameters")
 			{
 				Param p;
 
@@ -316,48 +291,17 @@ class TOPPPILISModel
 			StringList in(getStringList_("in"));
 			StringList id_in(getStringList_("id_in"));
 			String trained_model_file(getStringOption_("trained_model_file"));
-			String model_file(getStringOption_("model_file"));
-			String spectra_library_file(getStringOption_("spectra_library_file"));
+      String model_file(getStringOption_("model_file"));
 			bool score_filtering(getFlag_("score_filtering"));
 			DoubleReal score_threshold(getDoubleOption_("score_threshold"));
 			Int min_charge(getIntOption_("min_charge"));
 			Int max_charge(getIntOption_("max_charge"));
 
-			String type = getStringOption_("type");
-
-
-			if (type == "training")
-			{
-				if (in.size() == 0)
-				{
-					writeLog_("For 'training' mode spectra and identifications are needed.");
-					return INCOMPATIBLE_INPUT_DATA;
-				}
-			}
-			else if (type == "cross_validation")
-			{
-				if (in.size() == 0)
-				{
-					writeLog_("For 'cross_validation' mode spectra and identification are needed.");
-					return INCOMPATIBLE_INPUT_DATA;
-				}
-			}
-			else if (type == "generation")
-			{
-				// TODO
-				if (spectra_library_file == "")
-				{
-					writeLog_("For 'generation' mode, the parameter 'spectra_library_file' must be given.");
-					return MISSING_PARAMETERS;
-				}
-
-				if (model_file == "")
-				{
-					writeLog_("For 'generation' mode, the parameter 'model_file' must be given.");
-					return MISSING_PARAMETERS;
-				}
-			}
-
+      if (in.size() == 0)
+      {
+        writeLog_("Spectra and identification are needed.");
+        return INCOMPATIBLE_INPUT_DATA;
+      }
 
 			//bool duplicates_by_tic(getFlag_("duplicates_by_tic"));
 			//bool base_model_from_file(getFlag_("base_model_from_file"));
@@ -498,125 +442,73 @@ class TOPPPILISModel
 				}
 			}
 
-
 			getUniquePeptides(peptides);
 			writeDebug_("Number of (unique) peptides for training: " + String(peptides.size()), 1);
 
 			//model.writeToFile("pilis_tmp.dat");
 
-			if (type == "cross_validation")
-			{
-				PILISCrossValidation cv;
-				Param cv_param = getParam_().copy("cross_validation_parameters:", true);
-				cv.setParameters(cv_param);
+      PILISCrossValidation cv;
+      Param cv_param = getParam_().copy("cross_validation_parameters:", true);
+      cv.setParameters(cv_param);
 
-				Param optimal_param = model.getParameters();
+      Param optimal_param = model.getParameters();
 
-				Param grid_param = getParam_().copy("grid_search_parameters:", true);
+      Param grid_param = getParam_().copy("grid_search_parameters:", true);
 
-				StringList double_parameters = StringList::create("lower_mz,charge_remote_threshold,charge_directed_threshold,min_enhancement_factor,min_y_ion_intensity,min_b_ion_intensity,min_a_ion_intensity,min_b_loss_intensity,min_y_loss_intensity,side_chain_activation");
-				StringList int_parameters = StringList::create("max_isotope,max_fragment_charge,max_fragment_charge_training"); // todo add model_depth
+      StringList double_parameters = StringList::create("lower_mz,charge_remote_threshold,charge_directed_threshold,min_enhancement_factor,min_y_ion_intensity,min_b_ion_intensity,min_a_ion_intensity,min_b_loss_intensity,min_y_loss_intensity,side_chain_activation");
+      StringList int_parameters = StringList::create("max_isotope,max_fragment_charge,max_fragment_charge_training"); // todo add model_depth
 
-				Size number_of_repeats = (UInt)grid_param.getValue("number_of_repeats");
-				for (Size i = 0; i < number_of_repeats; ++i)
-				{
-					writeDebug_("Repeat " + String(i+1) + " of " + String(number_of_repeats), 1);
-					for (StringList::const_iterator it = double_parameters.begin(); it != double_parameters.end(); ++it)
-					{
-						// check whether this parameters should be used for optimization
-						bool enabled = DataValue(grid_param.getValue("grid_search_" + *it)).toBool();
-						if (!enabled)
-						{
-							continue;
-						}
+      Size number_of_repeats = (UInt)grid_param.getValue("number_of_repeats");
+      for (Size i = 0; i < number_of_repeats; ++i)
+      {
+        writeDebug_("Repeat " + String(i+1) + " of " + String(number_of_repeats), 1);
+        for (StringList::const_iterator it = double_parameters.begin(); it != double_parameters.end(); ++it)
+        {
+          // check whether this parameters should be used for optimization
+          bool enabled = DataValue(grid_param.getValue("grid_search_" + *it)).toBool();
+          if (!enabled)
+          {
+            continue;
+          }
 
-						writeDebug_("Optimizing parameter '" + *it + "'", 1);
+          writeDebug_("Optimizing parameter '" + *it + "'", 1);
 
-						model.setParameters(optimal_param);
-			    	cv.setOptions(Map<String, PILISCrossValidation::Option>());
-						DoubleReal min_value = (DoubleReal)grid_param.getValue(*it + "_min");
-						DoubleReal max_value = (DoubleReal)grid_param.getValue(*it + "_max");
-						DoubleReal step_size_value = (DoubleReal)grid_param.getValue(*it + "_step_size");
-		    		cv.setOption(*it, PILISCrossValidation::Option(PILISCrossValidation::Option::DOUBLE, min_value, max_value, step_size_value));
-				  	cv.apply(optimal_param, model, peptides);
-					}
+          model.setParameters(optimal_param);
+          cv.setOptions(Map<String, PILISCrossValidation::Option>());
+          DoubleReal min_value = (DoubleReal)grid_param.getValue(*it + "_min");
+          DoubleReal max_value = (DoubleReal)grid_param.getValue(*it + "_max");
+          DoubleReal step_size_value = (DoubleReal)grid_param.getValue(*it + "_step_size");
+          cv.setOption(*it, PILISCrossValidation::Option(PILISCrossValidation::Option::DOUBLE, min_value, max_value, step_size_value));
+          cv.apply(optimal_param, model, peptides);
+        }
 
-					for (StringList::const_iterator it = int_parameters.begin(); it != int_parameters.end(); ++it)
-					{
-						bool enabled = DataValue(grid_param.getValue("grid_search_" + *it)).toBool();
-						if (!enabled)
-						{
-							continue;
-						}
+        for (StringList::const_iterator it = int_parameters.begin(); it != int_parameters.end(); ++it)
+        {
+          bool enabled = DataValue(grid_param.getValue("grid_search_" + *it)).toBool();
+          if (!enabled)
+          {
+            continue;
+          }
 
-						writeDebug_("Optimizing parameter '" + *it + "'", 1);
+          writeDebug_("Optimizing parameter '" + *it + "'", 1);
 
-						model.setParameters(optimal_param);
-						cv.setOptions(Map<String, PILISCrossValidation::Option>());
-						Int min_value = (Int)grid_param.getValue(*it + "_min");
-						Int max_value = (Int)grid_param.getValue(*it + "_max");
-						Int step_size_value = (Int)grid_param.getValue(*it + "_step_size");
-		    		cv.setOption(*it, PILISCrossValidation::Option(PILISCrossValidation::Option::INT, min_value, max_value, step_size_value));
-				  	cv.apply(optimal_param, model, peptides);
-					}
-				}
+          model.setParameters(optimal_param);
+          cv.setOptions(Map<String, PILISCrossValidation::Option>());
+          Int min_value = (Int)grid_param.getValue(*it + "_min");
+          Int max_value = (Int)grid_param.getValue(*it + "_max");
+          Int step_size_value = (Int)grid_param.getValue(*it + "_step_size");
+          cv.setOption(*it, PILISCrossValidation::Option(PILISCrossValidation::Option::INT, min_value, max_value, step_size_value));
+          cv.apply(optimal_param, model, peptides);
+        }
+      }
 
-				// finally set the optimal parameters
-				model.setParameters(optimal_param);
-			}
-			else if (type == "generation")
-			{
-				RichPeakMap exp;
-				for (vector<vector<PeptideIdentification> >::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
-				{
-					for (vector<PeptideIdentification>::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
-					{
-						if (it2->getHits().size() == 0)
-						{
-							continue;
-						}
-						PeptideHit hit = *it2->getHits().begin();
-						Int charge = hit.getCharge();
-						if (charge != 0)
-						{
-							RichPeakSpectrum spec;
-							model.getSpectrum(spec, hit.getSequence(), charge);
-							spec.getPeptideIdentifications().push_back(*it2);
-							exp.push_back(spec);
-						}
-						else
-						{
-							for (Int z = min_charge; z < max_charge; ++z)
-							{
-								RichPeakSpectrum spec;
-								model.getSpectrum(spec, hit.getSequence(), z);
-
-								PeptideIdentification id = *it2;
-								vector<PeptideHit> hits = it2->getHits();
-								hits.begin()->setCharge(z);
-								id.setHits(hits);
-								spec.getPeptideIdentifications().push_back(id);
-								exp.push_back(spec);
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				model.setParameters(pilis_param);
-				for (vector<PILISCrossValidation::Peptide>::const_iterator it = peptides.begin(); it != peptides.end(); ++it)
-				{
-					model.train(it->spec, it->sequence, it->charge);
-				}
-				model.evaluate();
-			}
+      // finally set the optimal parameters
+      model.setParameters(optimal_param);
 
 			if (trained_model_file != "")
 			{
 				model.writeToFile(trained_model_file);
 			}
-
 
 			return EXECUTION_OK;
 		}
@@ -627,7 +519,7 @@ class TOPPPILISModel
 
 int main( int argc, const char** argv )
 {
-	TOPPPILISModel tool;
+  TOPPPILISModelCV tool;
 	return tool.main(argc,argv);
 }
 

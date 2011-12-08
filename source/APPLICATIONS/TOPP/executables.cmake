@@ -54,7 +54,9 @@ NoiseFilterSGolay
 OMSSAAdapter
 PhosphoScoring
 PILISIdentification
-PILISModel
+PILISModelCV
+PILISModelTrainer
+PILISSpectraGenerator
 PTModel
 PTPredict
 PeakPickerHiRes

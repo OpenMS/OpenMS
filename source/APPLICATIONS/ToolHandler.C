@@ -96,8 +96,10 @@ namespace OpenMS
 		tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
     tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
     tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Identification");
-    tools_map["PILISModel"] = Internal::ToolDescription("PILISModel", "ID Processing");
-		tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
+    tools_map["PILISModelCV"] = Internal::ToolDescription("PILISModelCV", "ID Processing");
+    tools_map["PILISModelTrainer"] = Internal::ToolDescription("PILISModelTrainer", "ID Processing");
+    tools_map["PILISSpectraGenerator"] = Internal::ToolDescription("PILISSpectraGenerator", "ID Processing");
+    tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
 		tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
 		tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", "Signal processing and preprocessing");
 		tools_map["PeakPickerWavelet"] = Internal::ToolDescription("PeakPickerWavelet", "Signal processing and preprocessing");
