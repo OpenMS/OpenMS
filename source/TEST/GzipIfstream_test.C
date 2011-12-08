@@ -50,9 +50,9 @@ END_SECTION
 
 START_SECTION(GzipIfstream(const char * filename))
 	TEST_EXCEPTION(Exception::FileNotFound, GzipIfstream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
-	
+
 	GzipIfstream gzip(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
-	
+
 	TEST_EQUAL(gzip.streamEnd(), false)
 	TEST_EQUAL(gzip.isOpen(),true)
 	char buffer[30];
@@ -66,9 +66,9 @@ END_SECTION
 START_SECTION(void open(const char *filename))
 	GzipIfstream gzip;
 	TEST_EXCEPTION(Exception::FileNotFound, gzip.open(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
-	
+
 	gzip.open(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
-	
+
 	TEST_EQUAL(gzip.streamEnd(), false)
 	TEST_EQUAL(gzip.isOpen(),true)
 	char buffer[30];
@@ -76,7 +76,7 @@ START_SECTION(void open(const char *filename))
 	size_t len = 29;
 	TEST_EQUAL(29, gzip.read(buffer, len))
 	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
-	
+
 END_SECTION
 
 START_SECTION(size_t read(char *s, size_t n))
@@ -85,33 +85,34 @@ START_SECTION(size_t read(char *s, size_t n))
 		char buffer[30];
 	buffer[29] = '\0';
 	size_t len = 29;
-	gzip.read(buffer,10);
+	TEST_EXCEPTION(Exception::ConversionError,gzip.read(buffer,10));
 	//gzip.updateCRC32(buffer,10);
-	gzip.read(&buffer[9],10);
+	//Why does that throw a "naked" Exception instead of a ConversionError?
+	//~ TEST_EXCEPTION(Exception::BaseException,gzip.read(&buffer[9],10));
 //	gzip.updateCRC32(&buffer[9],19);
 //	TEST_EQUAL(gzip.isCorrupted(),true)
-	
+
 	GzipIfstream gzip2(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	TEST_EQUAL(gzip2.isOpen(),true)
 	gzip2.read(buffer, len);
 	TEST_EQUAL(1, gzip2.read(buffer,10));
 	TEST_EQUAL(gzip2.isOpen(), false)
 	TEST_EQUAL(gzip2.streamEnd(),true)
-	
+
 	gzip2.open(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1_corrupt.gz"));
-	 gzip2.read(buffer,30);
-	 //gzip2.updateCRC32(buffer,(size_t)30);
+	TEST_EXCEPTION(Exception::ConversionError,gzip2.read(buffer,30));
+	//gzip2.updateCRC32(buffer,(size_t)30);
 	//TEST_EQUAL(gzip2.isCorrupted(),true )
 	gzip2.close();
 	TEST_EQUAL(gzip2.isOpen(), false)
 	TEST_EQUAL(gzip2.streamEnd(),true)
 	TEST_EXCEPTION(Exception::IllegalArgument, gzip2.read(buffer,10))
-	gzip2.close();			
+	gzip2.close();
 	TEST_EQUAL(gzip2.isOpen(), false)
 	TEST_EQUAL(gzip2.streamEnd(),true)
 	TEST_EXCEPTION(Exception::IllegalArgument, gzip2.read(buffer,10))
 	gzip2.open(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
-	
+
 		TEST_EQUAL(5, gzip2.read(buffer, 5))
 					//			gzip2.updateCRC32(buffer,5);
 		TEST_EQUAL(5, gzip2.read(&buffer[5], 5))
@@ -127,8 +128,8 @@ START_SECTION(size_t read(char *s, size_t n))
 					char end_of_file[1];
 					TEST_EQUAL(1,gzip2.read(end_of_file,2))
 		//							gzip2.updateCRC32(end_of_file,1);
-					TEST_EQUAL(gzip2.streamEnd(),true)				
-					buffer[29]= '\0';				
+					TEST_EQUAL(gzip2.streamEnd(),true)
+					buffer[29]= '\0';
 //	TEST_EQUAL(gzip2.isCorrupted(),false)
 	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
 END_SECTION
