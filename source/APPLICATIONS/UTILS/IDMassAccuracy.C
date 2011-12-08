@@ -61,8 +61,8 @@ using namespace Math;
 	of the spectra are compared. This can be done for precursor information stored in
 	the spectra as well as for fragment information.
 
-	The result is a distribution of errors of experimental vs. theoretical masses, which 
-	can be used for visualization with HistView for example. Having such distributions given
+	The result is a distribution of errors of experimental vs. theoretical masses.
+    Having such distributions given
 	the search parameters of the sequence database search can be adjusted to speed-up 
 	the identification process and to get a higher performance.
 */

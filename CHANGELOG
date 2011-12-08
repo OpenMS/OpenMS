@@ -26,6 +26,7 @@ TOPP tools:
   - model parameters of MapAligner tools are now set in the .ini file
   - NoiseFilter: split into NoiseFilterGaussian and NoiseFilterSGolay
   - PeakPicker: split into PeakPickerWavelet and PeakPickerHiRes
+  - PILISModel: split into PILISModelCV, PILISModelTrainer, and PILISSpectraGenerator
   - MascotAdapterOnline: now supports Mascot 2.3 servers
   - ProteinQuantifier: added support for writing idXML (suitable for export to mzTab)
 - REMOVED:
@@ -36,6 +37,10 @@ UTIL tools:
 - ADDED:
   - INIUpdater: update INI and TOPPAS files
   - TransformationEvaluation: evaluate a (RT) transformation by applying it to a range of values
+- REMOVED:
+  - CaapConvert
+  - UniqueIdAssigner
+  - HistView
 	 
 OpenMS library improvements:
 
