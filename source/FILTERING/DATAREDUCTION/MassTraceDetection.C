@@ -59,6 +59,31 @@ namespace OpenMS
 
     }
 
+
+    void MassTraceDetection::updateIterativeWeightedMeanMZ(const DoubleReal& added_mz, const DoubleReal& added_int, DoubleReal& centroid_mz, DoubleReal& prev_counter, DoubleReal& prev_denom)
+    {
+//        if (first_time)
+//        {
+//              centroid_mz = added_mz;
+//            prev_counter = added_int * added_mz;
+//            prev_denom = added_int;
+
+//            return ;
+//        }
+
+        DoubleReal new_weight(added_int);
+        DoubleReal new_mz(added_mz);
+
+        DoubleReal counter_tmp(1 + (new_weight*new_mz)/prev_counter);
+        DoubleReal denom_tmp(1 + (new_weight)/prev_denom);
+        centroid_mz *= (counter_tmp/denom_tmp);
+        prev_counter *= counter_tmp;
+        prev_denom *= denom_tmp;
+
+        return ;
+    }
+
+
     void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces)
     {
         std::multimap<Size, Size> histo_map;
@@ -140,7 +165,6 @@ namespace OpenMS
         return ;
 
     }
-
 
 
     void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<MassTrace>& found_masstraces)
@@ -237,11 +261,16 @@ namespace OpenMS
             Size trace_up_idx(apex_scan_idx);
             Size trace_down_idx(apex_scan_idx);
 
-            MassTrace current_trace;
+            // MassTrace current_trace;
+            std::list<PeakType> current_trace;
+            current_trace.push_back(apex_peak);
 
-            current_trace.appendPeak(apex_peak);
-            current_trace.updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity());
+            // Initialization for the iterative version of weighted m/z mean calculation
+            DoubleReal centroid_mz(apex_peak.getMZ());
+            DoubleReal prev_counter(apex_peak.getIntensity() * apex_peak.getMZ());
+            DoubleReal prev_denom(apex_peak.getIntensity());
 
+            updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
 
             std::vector<std::pair<Size, Size> > gathered_idx;
             gathered_idx.push_back(std::make_pair(apex_scan_idx, apex_peak_idx));
@@ -263,7 +292,7 @@ namespace OpenMS
 
             while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size()-1) && toggle_up)) {
 
-                DoubleReal centroid_mz = current_trace.getCentroidMZ();
+                // DoubleReal centroid_mz = current_trace.getCentroidMZ();
 
                 // try to go downwards in RT
                 if (((trace_down_idx > 0) && toggle_down)) {
@@ -283,8 +312,9 @@ namespace OpenMS
                             next_peak.setMZ(next_down_peak_mz);
                             next_peak.setIntensity(next_down_peak_int);
 
-                            current_trace.prependPeak(next_peak);
-                            current_trace.updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int);
+                            current_trace.push_front(next_peak);
+
+                            updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
                             gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
 
                             // std::cout << (int_midpoint_down + next_down_peak_int)/2.0 << std::endl;
@@ -348,8 +378,9 @@ namespace OpenMS
                             next_peak.setMZ(next_up_peak_mz);
                             next_peak.setIntensity(next_up_peak_int);
 
-                            current_trace.appendPeak(next_peak);
-                            current_trace.updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int);
+                            current_trace.push_back(next_peak);
+
+                            updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
                             gathered_idx.push_back(std::make_pair(trace_up_idx + 1, next_up_peak_idx));
 
                             DoubleReal new_midpoint((int_midpoint_up + next_up_peak_int)/2.0);
@@ -393,10 +424,10 @@ namespace OpenMS
             }
 
 
-            if (current_trace.getPrelimSize() >= 2*min_data_points + 1)
+            if (current_trace.size() >= 2*min_data_points + 1)
             {
 
-                std::cout << "CURR: " << current_trace.getPrelimSize() << " " << fwhm_counter_up+fwhm_counter_down+1 << std::endl;
+                // std::cout << "CURR: " << current_trace.getPrelimSize() << " " << fwhm_counter_up+fwhm_counter_down+1 << std::endl;
                 // mark all peaks as visited
                 for (Size i = 0; i < gathered_idx.size(); ++i)
                 {
@@ -408,15 +439,15 @@ namespace OpenMS
                 read_in << trace_number;
                 tr_num = read_in.str();
 
-                current_trace.setLabel("T" + tr_num);
-                current_trace.setRoughFWHMsize(fwhm_counter_down + fwhm_counter_up + 1);
+                // create new MassTrace object and store collected peaks from list current_trace
+                MassTrace new_trace(current_trace);
 
-                current_trace.finalizeTrace();
-                current_trace.updateWeightedMeanRT();
+                new_trace.setLabel("T" + tr_num);
+                new_trace.setRoughFWHMsize(fwhm_counter_down + fwhm_counter_up + 1);
 
-                peaks_detected += current_trace.getSize();
+                peaks_detected += new_trace.getSize();
                 this->setProgress(peaks_detected);
-                found_masstraces.push_back(current_trace);
+                found_masstraces.push_back(new_trace);
                 ++trace_number;
             }
         }

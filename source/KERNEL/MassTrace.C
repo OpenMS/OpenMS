@@ -33,15 +33,35 @@ namespace OpenMS
 {
     MassTrace::MassTrace()
         : trace_peaks_(),
-        fill_list_(),
         centroid_mz_(),
         centroid_rt_(),
         label_(),
         smoothed_intensities_(),
-        rough_fwhm_points_(),
-        prev_counter_(),
-        prev_denom_()
+        rough_fwhm_points_()
     {
+    }
+
+    MassTrace::MassTrace(const std::list<PeakType>& tmp_lst)
+    {
+        trace_peaks_.clear();
+
+        for (std::list<PeakType>::const_iterator l_it = tmp_lst.begin(); l_it != tmp_lst.end(); ++l_it)
+        {
+            trace_peaks_.push_back((*l_it));
+        }
+
+        // update centroid RT & m/z
+        updateWeightedMeanRT();
+        updateWeightedMeanMZ();
+    }
+
+    MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec)
+    {
+        trace_peaks_ = tmp_vec;
+
+        // update centroid RT & m/z
+        updateWeightedMeanRT();
+        updateWeightedMeanMZ();
     }
 
     MassTrace::~MassTrace()
@@ -50,14 +70,11 @@ namespace OpenMS
 
     MassTrace::MassTrace(const MassTrace& mt)
         : trace_peaks_(mt.trace_peaks_),
-        fill_list_(mt.fill_list_),
         centroid_mz_(mt.centroid_mz_),
         centroid_rt_(mt.centroid_rt_),
         label_(mt.label_),
         smoothed_intensities_(mt.smoothed_intensities_),
-        rough_fwhm_points_(mt.rough_fwhm_points_),
-        prev_counter_(mt.prev_counter_),
-        prev_denom_(mt.prev_denom_)
+        rough_fwhm_points_(mt.rough_fwhm_points_)
     {
     }
 
@@ -66,43 +83,15 @@ namespace OpenMS
         if (this==&rhs) return *this;
 
         trace_peaks_ = rhs.trace_peaks_;
-        fill_list_ = rhs.fill_list_;
         centroid_mz_ = rhs.centroid_mz_;
         centroid_rt_ = rhs.centroid_rt_;
         label_ = rhs.label_;
         smoothed_intensities_ = rhs.smoothed_intensities_;
         rough_fwhm_points_ = rhs.rough_fwhm_points_;
-        prev_counter_ = rhs.prev_counter_;
-        prev_denom_ = rhs.prev_denom_;
 
         return *this;
     }
 
-    void MassTrace::prependPeak(PeakType p)
-    {
-        fill_list_.push_front(p);
-
-        return ;
-    }
-
-    void MassTrace::appendPeak(PeakType p)
-    {
-        fill_list_.push_back(p);
-
-        return ;
-    }
-
-    void MassTrace::finalizeTrace()
-    {
-        trace_peaks_.clear();
-
-        for (std::list<PeakType>::const_iterator l_it = fill_list_.begin(); l_it != fill_list_.end(); ++l_it)
-        {
-            trace_peaks_.push_back((*l_it));
-        }
-
-        fill_list_.clear();
-    }
 
     DoubleReal MassTrace::computePeakArea() {
         DoubleReal peak_area(0.0);
@@ -157,33 +146,6 @@ namespace OpenMS
 
         return max_idx;
     }
-
-//    DoubleReal MassTrace::getMaxPeakRT()
-//    {
-//        DoubleReal max_rt((*(trace_peaks_.begin())).getRT());
-
-//        DoubleReal max_int(0.0);
-
-//        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
-//        {
-//            if ((*l_it).getIntensity() > max_int) {
-//                max_int = (*l_it).getIntensity();
-//                max_rt = (*l_it).getRT();
-//            }
-//        }
-
-//        return max_rt;
-//    }
-
-//    DoubleReal MassTrace::getSmoothedMaxPeakRT()
-//    {
-//        Size max_idx(this->findSmoothedMaxIntIdx());
-
-//        MassTrace::const_iterator c_it = trace_peaks_.begin();
-//        std::advance(c_it, max_idx);
-
-//        return c_it->getRT();
-//    }
 
     DoubleReal MassTrace::estimateFWHM()
     {
@@ -518,28 +480,6 @@ namespace OpenMS
     }
 
 
-    void MassTrace::updateIterativeWeightedMeanMZ(const DoubleReal& added_mz, const DoubleReal& added_int) {
-
-        if (fill_list_.size() == 1)
-        {
-            centroid_mz_ = added_mz;
-            prev_counter_ = added_int * added_mz;
-            prev_denom_ = added_int;
-
-            return ;
-        }
-
-        DoubleReal new_weight(added_int);
-        DoubleReal new_mz(added_mz);
-
-        DoubleReal counter_tmp(1 + (new_weight*new_mz)/prev_counter_);
-        DoubleReal denom_tmp(1 + (new_weight)/prev_denom_);
-        centroid_mz_ *= (counter_tmp/denom_tmp);
-        prev_counter_ *= counter_tmp;
-        prev_denom_ *= denom_tmp;
-
-        return ;
-    }
 
 
 

@@ -54,6 +54,14 @@ namespace OpenMS
         */
         /// Default constructor
         MassTrace();
+
+        /// Detailed constructor 1
+        MassTrace(const std::list<PeakType>& );
+
+        /// Detailed constructor 2
+        MassTrace(const std::vector<PeakType>& );
+
+
         /// Default destructor
         ~MassTrace();
         /// Copy constructor
@@ -117,12 +125,6 @@ namespace OpenMS
             return trace_peaks_.size();
         }
 
-        /// Return preliminary number of peaks in mass trace (extension phase)
-        inline Size getPrelimSize() const
-        {
-            return fill_list_.size();
-        }
-
         /// Get label of mass trace
         inline String getLabel()
         {
@@ -144,7 +146,6 @@ namespace OpenMS
         /// Return the centroid RT
         inline DoubleReal getCentroidRT()
         {
-            // updateWeightedMeanRT_();
             return centroid_rt_;
         }
 
@@ -184,16 +185,6 @@ namespace OpenMS
 
 
 
-        /** @name Methods for mass trace extension
-        */
-        /// Prepend new peak to mass trace
-        void prependPeak(PeakType);
-
-        /// Append new peak to mass trace
-        void appendPeak(PeakType);
-
-        /// Finalize mass trace (copy peaks from list to vector)
-        void finalizeTrace();
 
         /** @name Helper functions
         */
@@ -231,16 +222,10 @@ namespace OpenMS
         /// Compute & update centroid m/z as weighted mean of m/z values
         void updateWeightedMeanMZ();
 
-        /// Compute & update centroid m/z as weighted mean of m/z values (iterative version). The most recent m/z and intensity values are handed over as function parameters.
-        void updateIterativeWeightedMeanMZ(const DoubleReal&, const DoubleReal&);
-
 
     private:
         /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
         std::vector<PeakType> trace_peaks_;
-
-        /// Temporary list for filling the mass trace (allows for efficient pre- and appending to the mass trace). Before further working on the mass trace, please use finalizeTrace().
-        std::list<PeakType> fill_list_;
 
         /// Centroid m/z
         DoubleReal centroid_mz_;
@@ -256,13 +241,6 @@ namespace OpenMS
 
         /// Rough estimate of a chromatographic peak's width (can be set while collecting the mass trace)
         Size rough_fwhm_points_;
-
-        /// Temporary variable. Needed for iterative weighted mean computation.
-        DoubleReal prev_counter_;
-
-        /// Temporary variable. Needed for iterative weighted mean computation.
-        DoubleReal prev_denom_;
-
     };
 
 }

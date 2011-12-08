@@ -25,6 +25,7 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -123,7 +124,9 @@ protected:
         MzMLFile mz_data_file;
         mz_data_file.setLogType(log_type_);
         MSExperiment<Peak1D> ms_peakmap;
-        mz_data_file.load(in,ms_peakmap);
+        std::vector<Int> ms_level(1, 1);
+        (mz_data_file.getOptions()).setMSLevels(ms_level);
+        mz_data_file.load(in, ms_peakmap);
 
         if (ms_peakmap.size()==0)
         {

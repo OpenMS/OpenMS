@@ -184,22 +184,22 @@ namespace OpenMS
             for (Size min_idx = 0; min_idx < mins.size(); ++min_idx)
             {
                 // copy subtrace between cp_it and splitpoint
-                MassTrace tmp_mt;
+                std::vector<PeakType> tmp_mt;
                 std::vector<DoubleReal> smoothed_tmp;
 
                 while (last_idx <= mins[min_idx])
                 {
-                    tmp_mt.appendPeak(*cp_it);
+                    tmp_mt.push_back(*cp_it);
                     smoothed_tmp.push_back(mt.getSmoothedIntensities()[last_idx]);
                     ++cp_it;
                     ++last_idx;
                 }
 
-                // finalize mass trace
-                tmp_mt.finalizeTrace();
+                MassTrace new_mt(tmp_mt);
+
 
                 // copy smoothed ints
-                tmp_mt.setSmoothedIntensities(smoothed_tmp);
+                new_mt.setSmoothedIntensities(smoothed_tmp);
 
                 // set label of subtrace
                 String tr_num;
@@ -207,31 +207,30 @@ namespace OpenMS
                 read_in << min_idx;
                 tr_num = "_" + read_in.str();
 
-                tmp_mt.setLabel(mt.getLabel() + tr_num);
-                tmp_mt.updateWeightedMeanRT();
-                tmp_mt.updateWeightedMeanMZ();
+                new_mt.setLabel(mt.getLabel() + tr_num);
+                new_mt.updateWeightedMeanRT();
+                new_mt.updateWeightedMeanMZ();
 
-                single_mtraces.push_back(tmp_mt);
+                single_mtraces.push_back(new_mt);
             }
 
             // don't forget the trailing trace
-            MassTrace tmp_mt;
+            std::vector<PeakType> tmp_mt;
 
             std::vector<DoubleReal> smoothed_tmp;
 
             while (last_idx < mt.getSize())
             {
-                tmp_mt.appendPeak(*cp_it);
+                tmp_mt.push_back(*cp_it);
                 smoothed_tmp.push_back(mt.getSmoothedIntensities()[last_idx]);
                 ++cp_it;
                 ++last_idx;
             }
 
-            // finalize mass trace
-            tmp_mt.finalizeTrace();
+            MassTrace new_mt(tmp_mt);
 
             // copy smoothed ints
-            tmp_mt.setSmoothedIntensities(smoothed_tmp);
+            new_mt.setSmoothedIntensities(smoothed_tmp);
 
             // set label of subtrace
             String tr_num;
@@ -239,12 +238,12 @@ namespace OpenMS
             read_in << mins.size();
             tr_num = "_" + read_in.str();
 
-            tmp_mt.setLabel(mt.getLabel() + tr_num);
-            tmp_mt.updateWeightedMeanRT();
-            tmp_mt.updateWeightedMeanMZ();
+            new_mt.setLabel(mt.getLabel() + tr_num);
+            new_mt.updateWeightedMeanRT();
+            new_mt.updateWeightedMeanMZ();
 
 
-            single_mtraces.push_back(tmp_mt);
+            single_mtraces.push_back(new_mt);
         }
         return ;
     }

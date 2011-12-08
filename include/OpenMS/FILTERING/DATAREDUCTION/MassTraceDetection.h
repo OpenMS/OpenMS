@@ -35,41 +35,42 @@
 
 namespace OpenMS
 {
-    class OPENMS_DLLAPI MassTraceDetection :
-            public DefaultParamHandler,
-            public ProgressLogger
-    {
-    public:
-        /// Default constructor
-        MassTraceDetection();
+class OPENMS_DLLAPI MassTraceDetection :
+        public DefaultParamHandler,
+        public ProgressLogger
+{
+public:
+    /// Default constructor
+    MassTraceDetection();
 
-        /// Default destructor
-        virtual ~MassTraceDetection();
-
-
-        void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
-
-        /// main method of MassTraceDetection
-        void run(const MSExperiment<Peak1D>&, std::vector<MassTrace>&);
+    /// Default destructor
+    virtual ~MassTraceDetection();
 
 
+    void updateIterativeWeightedMeanMZ(const DoubleReal&, const DoubleReal&, DoubleReal&, DoubleReal&, DoubleReal&);
+    void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
+
+    /// main method of MassTraceDetection
+    void run(const MSExperiment<Peak1D>&, std::vector<MassTrace>&);
 
 
 
-    protected:
-        virtual void updateMembers_();
 
 
-    private:
-        /// parameter stuff
-        DoubleReal mass_error_ppm_;
-        DoubleReal noise_threshold_int_;
-        DoubleReal chrom_apex_snt_;
-        DoubleReal chrom_fwhm_;
+protected:
+    virtual void updateMembers_();
 
-        DoubleReal min_sample_rate_;
 
-    };
+private:
+    /// parameter stuff
+    DoubleReal mass_error_ppm_;
+    DoubleReal noise_threshold_int_;
+    DoubleReal chrom_apex_snt_;
+    DoubleReal chrom_fwhm_;
+
+    DoubleReal min_sample_rate_;
+
+};
 
 
 }
