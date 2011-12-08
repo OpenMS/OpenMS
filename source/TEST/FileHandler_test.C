@@ -115,7 +115,7 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
  	TEST_EQUAL(tmp.getTypeByFileName("test.pep.xml"), FileTypes::PEPXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.protXML"), FileTypes::PROTXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.prot.xml"), FileTypes::PROTXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.mzIdentML"), FileTypes::MZIDENTML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.mzid"), FileTypes::MZIDENTML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.GELML"), FileTypes::GELML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.TRAML"), FileTypes::TRAML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MSP"), FileTypes::MSP)
@@ -203,7 +203,7 @@ START_SECTION((template < class PeakType > bool loadExperiment(const String &fil
   TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 	TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
-	
+
 	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"),exp), true)
 
 	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp, FileTypes::DTA2D))
@@ -246,13 +246,13 @@ START_SECTION((template <class PeakType> void storeExperiment(const String& file
 	FileHandler fh;
 	MSExperiment<> exp;
 	fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
-	
+
 	//test mzML
 	String filename;
 	NEW_TMP_FILE(filename)
 	fh.storeExperiment(filename,exp);
 	TEST_EQUAL(fh.getTypeByContent(filename),FileTypes::MZML)
-		
+
 	//other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
 END_SECTION
 
