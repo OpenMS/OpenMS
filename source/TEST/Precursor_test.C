@@ -139,7 +139,7 @@ START_SECTION((Precursor(const Precursor& source)))
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
 	tmp.setMetaValue("label",String("label"));
-	
+
 	Precursor tmp2(tmp);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getActivationMethods().size(),1);
@@ -155,7 +155,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
 	tmp.setMetaValue("label",String("label"));
-	
+
 	//normal assignment
 	Precursor tmp2;
 	tmp2 = tmp;
@@ -164,7 +164,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
-		
+
 	//assignment of empty object
 	tmp2 = Precursor();
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
@@ -176,16 +176,16 @@ END_SECTION
 
 START_SECTION((bool operator== (const Precursor& rhs) const))
 	Precursor tmp,tmp2;
-	
+
 	TEST_EQUAL(tmp==tmp2, true);
-	
+
 	tmp2.setActivationEnergy(47.11);
 	TEST_EQUAL(tmp==tmp2, false);
-	
+
 	tmp2 = tmp;
 	tmp.getActivationMethods().insert(Precursor::CID);
 	TEST_EQUAL(tmp==tmp2, false);
-	
+
 	tmp2 = tmp;
   tmp.setIsolationWindowUpperOffset(22.7);
 	TEST_EQUAL(tmp==tmp2, false);
@@ -209,16 +209,16 @@ END_SECTION
 
 START_SECTION((bool operator!= (const Precursor& rhs) const))
 	Precursor tmp,tmp2;
-	
+
 	TEST_EQUAL(tmp!=tmp2, false);
-	
+
 	tmp2.setActivationEnergy(47.11);
 	TEST_EQUAL(tmp!=tmp2, true);
-	
+
 	tmp2 = tmp;
 	tmp.getActivationMethods().insert(Precursor::CID);
 	TEST_EQUAL(tmp!=tmp2, true);
-	
+
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowUpperOffset(22.7);
 	TEST_EQUAL(tmp!=tmp2, true);
@@ -238,6 +238,13 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp!=tmp2, true);
+END_SECTION
+
+START_SECTION(inline DoubleReal getUnchargedMass())
+  Precursor tmp;
+  tmp.setMZ(123);
+  tmp.setCharge(13);
+  TEST_REAL_SIMILAR(tmp.getUnchargedMass(), 1585.90540593198);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
