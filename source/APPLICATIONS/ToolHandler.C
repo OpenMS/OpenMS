@@ -162,14 +162,12 @@ namespace OpenMS
     util_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", "");
 		util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", "");
 		util_map["MapAlignmentEvaluation"] = Internal::ToolDescription("MapAlignmentEvaluation", "");
-		util_map["CaapConvert"] = Internal::ToolDescription("CaapConvert", "");
 		util_map["CVInspector"] = Internal::ToolDescription("CVInspector", "");
 		util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", "");
 		util_map["Digestor"] = Internal::ToolDescription("Digestor", "");
 		util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", "");
 		util_map["FFEval"] = Internal::ToolDescription("FFEval", "");
 		util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", "");
-		util_map["HistView"] = Internal::ToolDescription("HistView", "");
 		util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", "");
 		util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", "");
 		util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", "");
@@ -182,7 +180,6 @@ namespace OpenMS
 		util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", "");
 		util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", "");
 		util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", "");
-		util_map["UniqueIdAssigner"] = Internal::ToolDescription("UniqueIdAssigner", "");
 		util_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", "");
 		util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", "");
 		util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", "");
