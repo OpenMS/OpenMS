@@ -35,13 +35,13 @@ namespace OpenMS
 {
   /**
   	@brief ThresholdMower removes all peaks below a Threshold
-   	
+
    	@htmlinclude OpenMS_ThresholdMower.Intensitys
 
 		@ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI ThresholdMower
-		: public DefaultParamHandler 
+		: public DefaultParamHandler
   {
   public:
 
@@ -51,11 +51,11 @@ namespace OpenMS
     ThresholdMower();
 		/// destructor
     virtual ~ThresholdMower();
-	
+
 		/// copy constructor
 		ThresholdMower(const ThresholdMower& source);
 		/// assignment operator
-		ThresholdMower& operator=(const ThresholdMower& source);	
+		ThresholdMower& operator=(const ThresholdMower& source);
 		// @}
 
 		// @name Accessors
@@ -64,10 +64,10 @@ namespace OpenMS
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
-		{			
+		{
 			// sort by intensity
 			spectrum.sortByIntensity();
-			
+
 			// find right position to erase
 			typename SpectrumType::PeakType p;
 			threshold_ = ((DoubleReal)param_.getValue("threshold"));
@@ -81,15 +81,12 @@ namespace OpenMS
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
-		
-		DoubleReal getFilterIntensity();
-		void setFilterIntensity(DoubleReal p);
-		
+
 		//TODO reimplement DefaultParamHandler::updateMembers_()
-		
+
 	private:
 		DoubleReal threshold_;
-		
+
 		// @}
   };
 
