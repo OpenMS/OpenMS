@@ -25,8 +25,8 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_TOPPASBASE_H
-#define OPENMS_APPLICATIONS_TOPPASBASE_H
+#ifndef OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
+#define OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>

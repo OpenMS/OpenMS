@@ -25,8 +25,8 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION1DPEAKITEM_H
-#define OPENMS_VISUAL_ANNOTATION1DPEAKITEM_H
+#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DPEAKITEM_H
+#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DPEAKITEM_H
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 

@@ -25,8 +25,8 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATIONS1DCONTAINER_H
-#define OPENMS_VISUAL_ANNOTATIONS1DCONTAINER_H
+#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATIONS1DCONTAINER_H
+#define OPENMS_VISUAL_ANNOTATION_ANNOTATIONS1DCONTAINER_H
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 

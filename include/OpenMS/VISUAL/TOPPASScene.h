@@ -44,6 +44,9 @@ namespace OpenMS
 	class TOPPASEdge;
 	class TOPPASResources;
 	
+  /**
+    @brief A FakeProcess class.
+  */
   class FakeProcess
     : public QProcess
   {
@@ -329,7 +332,7 @@ namespace OpenMS
 			/// DFS helper method. Returns true, if a back edge has been discovered
 			bool dfsVisit_(TOPPASVertex* vertex);
 			/// Performs a sanity check of the pipeline and notifies user when it finds something strange. Returns if pipeline OK.
-			bool sanityCheck();
+      bool sanityCheck_();
 			
 			///@name reimplemented Qt events
       //@{

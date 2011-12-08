@@ -550,7 +550,7 @@ namespace OpenMS
 		update(sceneRect());
 		
 		//check if pipeline OK
-		if (!sanityCheck())
+		if (!sanityCheck_())
 		{
       if (!gui_) emit pipelineExecutionFailed(); // the user cannot interact. End processing.
 			return;
@@ -1842,7 +1842,7 @@ namespace OpenMS
 
 	}
 	
-	bool TOPPASScene::sanityCheck()
+	bool TOPPASScene::sanityCheck_()
 	{
 		QStringList strange_vertices;
 		
