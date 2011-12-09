@@ -44,9 +44,7 @@ namespace OpenMS
    <p>
    Actually only a test model is shipped with OpenMS.<br>
    Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
-   </p>
-
-   @htmlinclude OpenMS_SvmTheoreticalSpectrumGeneratorSet.parameters
+   </p>   
 
    @ingroup Chemistry
    */

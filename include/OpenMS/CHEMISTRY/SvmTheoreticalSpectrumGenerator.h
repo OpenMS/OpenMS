@@ -47,7 +47,7 @@ namespace OpenMS
    The models are generated with the @ref UTILS_SvmTheoreticalSpectrumGeneratorTrainer. \n
    Two modes are supported:\n
    - Only a prediction of abundant/missing is performed and for abundant peaks are generated with user defined intensity. \n
-   - The intensity is predicted using SVM-regression (only for the primary ion types b and y). For the secondary types a Baesian model is used.
+   - The intensity is predicted using SVM-regression (only for the primary ion types b and y). For the secondary types a Bayesian model is used.
 
    <p>
    Currently, only a test model is shipped with OpenMS.<br>

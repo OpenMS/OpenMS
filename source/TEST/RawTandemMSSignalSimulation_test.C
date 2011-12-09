@@ -45,7 +45,7 @@ SimRandomNumberGenerator rng;
 
 START_SECTION((RawTandemMSSignalSimulation(const SimRandomNumberGenerator &rng)))
 {
-	ptr = new RawTandemMSSignalSimulation(rng);
+	ptr = new RawTandemMSSignalSimulation(rng);        
 	TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
@@ -58,19 +58,28 @@ END_SECTION
 
 START_SECTION((RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation &source)))
 {
-  // TODO
+    ptr = new RawTandemMSSignalSimulation(rng);
+    Param tmp_par = ptr->getParameters();
+    tmp_par.setValue("status", "precursor");
+    ptr->setParameters(tmp_par);
+
+    RawTandemMSSignalSimulation copy(*ptr);
+    TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 }
 END_SECTION
 
 START_SECTION((RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSimulation &source)))
-{
-  // TODO
+{    
+    RawTandemMSSignalSimulation copy(rng);
+    copy = *ptr;
+    TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 }
 END_SECTION
 
 START_SECTION((void generateRawTandemSignals(FeatureMapSim &, MSSimExperiment &)))
 {
-  // TODO
+  //Is tested in the TOPPtest for the MSSimulator
+  NOT_TESTABLE
 }
 END_SECTION
 
