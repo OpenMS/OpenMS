@@ -56,7 +56,7 @@ using namespace std;
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_FeatureFinder @n ("centroided" algorithm) </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_FeatureFinderCentroided</td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>

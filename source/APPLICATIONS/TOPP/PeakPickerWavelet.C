@@ -40,21 +40,24 @@ using namespace std;
 /**
 	@page TOPP_PeakPickerWavelet PeakPickerWavelet
 
-	@brief A tool for peak detection in profile data. Executes the peak picking with selected algorithms choosable: @ref OpenMS::PeakPickerCWT "wavelet" (described in Lange et al. (2006) Proc. PSB-06) and @ref OpenMS::PeakPickerHiRes "high_res".
+  @brief A tool for peak detection in profile data. Executes the peak picking with the algorithm described in described in Lange et al. (2006) Proc. PSB-06.
 <CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PeakPicker \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerWavelet \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilter </td>
-		</tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
+    </tr>
 	</table>
 </CENTER>
 	The conversion of the ''raw'' ion count data acquired
@@ -71,11 +74,10 @@ using namespace std;
 	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PeakPicker.cli
+  @verbinclude TOPP_PeakPickerWavelet.cli
 
-	For the parameters of the algorithm section see the algorithms documentation: @n
-		@ref OpenMS::PeakPickerCWT "wavelet" @n
-		@ref OpenMS::PeakPickerHiRes "high_res" @n
+  For the parameters of the algorithm section see the algorithm documentation: @n
+    @ref OpenMS::PeakPickerCWT "PeakPickerCWT" @n
 
 	In the following table you, can find example values of the most important algorithm parameters for
 	different instrument types. @n These parameters are not valid for all instruments of that type,

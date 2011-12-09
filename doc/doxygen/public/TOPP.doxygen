@@ -63,7 +63,7 @@
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC/MS maps.
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
-  - @subpage TOPP_PeakPickerHighRes - Finds mass spectrometric peaks in profile mass spectra.
+  - @subpage TOPP_PeakPickerHiRes - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PeakPickerWavelet - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
   - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans.

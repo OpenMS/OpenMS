@@ -112,13 +112,14 @@ namespace OpenMS {
         Feature f;        
         f.getPeptideIdentifications().push_back(pep_id);
         f.setIntensity(protein_hit->getMetaValue("intensity"));
-				// copy intensity meta-values from Protein to Feature
-				StringList keys;
-				protein_hit->getKeys(keys);
-				for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
-				{
-					f.setMetaValue(*it_key, protein_hit->getMetaValue(*it_key)); 
-				}
+
+        // copy intensity meta-values and additional annotations from Protein to Feature
+        StringList keys;
+        protein_hit->getKeys(keys);
+        for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
+        {
+          f.setMetaValue(*it_key, protein_hit->getMetaValue(*it_key)); 
+        }
 			        
         // add Feature to FeatureMapSim
         feature_map.push_back(f);     
@@ -205,6 +206,17 @@ namespace OpenMS {
           // set intensity to 0 to avoid problems when summing up
           f.setIntensity(0.0);
           
+          // copy all non-intensity meta values
+          StringList keys;
+          protein_hit->getKeys(keys);
+          for(StringList::Iterator key = keys.begin() ; key != keys.end() ; ++key)
+          {
+            if(!key->hasPrefix("intensity"))
+            {
+              f.setMetaValue(*key, protein_hit->getMetaValue(*key));
+            }
+          }
+
           // insert into map
           generated_features.insert(std::make_pair(*dp_it, f));
         }

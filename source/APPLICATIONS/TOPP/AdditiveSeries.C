@@ -60,7 +60,7 @@ typedef Feature::CoordinateType CoordinateType;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
 		</tr>
 		<tr>

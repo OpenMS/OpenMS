@@ -211,7 +211,7 @@
 		
 		The file @a peakpicker_tutorial.toppas contains a simple pipeline representing a
 		common use case: starting with profile data, the noise is eliminated and the baseline
-		is subtracted. Then, the PeakPicker is used to find all peaks in the noise-filtered
+		is subtracted. Then, the PeakPickerWavelet is used to find all peaks in the noise-filtered
 		and baseline-reduced profile data. This workflow is also described in the section
 		@ref TOPP_example_signalprocessing. The individual steps are explained in more
 		detail in the TOPPView tutorial: @ref TOPPView_smoothing, @ref TOPPView_baseline_reduction,
