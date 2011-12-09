@@ -113,12 +113,19 @@ class TOPPMSSimulator
     {
       // I/O settings
       registerInputFileList_("in","<files>",StringList::create(""),"Input protein sequences in FASTA format",true,false);
+      setValidFormats_("in",StringList::create("fasta"));
       registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",true);
+      setValidFormats_("out", StringList::create("mzML"));
       registerOutputFile_("out_pm","<file>","","output (simulated MS map) in mzML format (picked GT)",false);
+      setValidFormats_("out_pm", StringList::create("mzML"));
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
+      setValidFormats_("out_fm", StringList::create("featureXML"));
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
+      setValidFormats_("out_cm", StringList::create("consensusXML"));
       registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)",false);
+      setValidFormats_("out_lcm", StringList::create("consensusXML"));
       registerOutputFile_("out_cntm","<file>","","output (simulated MS map) in featureXML format (contaminants)",false);
+      setValidFormats_("out_cntm", StringList::create("featureXML"));
       
 			addEmptyLine_();
   		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");
