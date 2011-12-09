@@ -178,6 +178,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
     std::vector<Size> spec_offsets;
     spec_offsets.push_back(0);
 
+    Size spectra_count(0);
+
     // this->startProgress(0, input_exp.size(), "Detect potential chromatographic apeces...");
     for (Size scan_idx = 0; scan_idx < input_exp.size(); ++scan_idx)
     {
@@ -212,8 +214,17 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
             work_exp.push_back(tmp_spec);
             spec_offsets.push_back(spec_offsets[spec_offsets.size() - 1] + tmp_spec.size());
+
+            ++spectra_count;
         }
     }
+
+
+    if (spectra_count < 5)
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input map consists of too few spectra (lesser than 5!). Aborting...", String(spectra_count));
+    }
+
 
     // this->endProgress();
 

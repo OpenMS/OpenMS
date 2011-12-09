@@ -110,7 +110,7 @@ namespace OpenMS
 
     Size MassTrace::findMaxByIntPeak(bool use_smoothed_ints = false)
     {
-        if (!use_smoothed_ints && trace_peaks_.size() != smoothed_intensities_.size())
+        if (trace_peaks_.size() != smoothed_intensities_.size())
         {
             throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
         }
