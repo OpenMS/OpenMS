@@ -55,7 +55,7 @@ RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const SimRandomNumberGe
   defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
   defaults_.setMinInt("tandem_mode",0);
   defaults_.setMaxInt("tandem_mode",2);
-  defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.dat", "File containing the Filenames of SVM Models for different charge variants");
+  defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the Filenames of SVM Models for different charge variants");
 
   subsections_.push_back("TandemSim:");
   defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
@@ -276,7 +276,7 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
   Size tandem_mode=param_.getValue("tandem_mode");
 
   SvmTheoreticalSpectrumGeneratorSet svm_spec_gen_set;
-  //this set will hold the precursor charages that have an Svm model
+  //this set will hold the precursor charges that have an Svm model
   std::set<Size>svm_model_charges;
 
   if(tandem_mode)
@@ -304,7 +304,7 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
     IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
     DoubleReal prec_intens = ms2[i].getPrecursors()[0].getIntensity();
     MSSimExperiment tmp_spectra;
-    for(Size id =0; id<ids.size();++id)
+    for(Size id = 0; id < ids.size(); ++id)
     {
       AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
       RichPeakSpectrum tmp_spec;

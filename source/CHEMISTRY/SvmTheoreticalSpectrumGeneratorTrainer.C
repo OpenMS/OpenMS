@@ -1087,7 +1087,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
       {
         primary_type=IonType(Residue::YIon);
       }
-      for(Size region =0; region < number_of_regions; ++region)
+      for(Size region = 0; region < number_of_regions; ++region)
       {
         joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,1));
         background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, number_of_intensity_levels);
