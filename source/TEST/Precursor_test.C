@@ -240,7 +240,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, true);
 END_SECTION
 
-START_SECTION(inline DoubleReal getUnchargedMass())
+START_SECTION(DoubleReal getUnchargedMass() const)
   Precursor tmp;
   tmp.setMZ(123);
   tmp.setCharge(13);
