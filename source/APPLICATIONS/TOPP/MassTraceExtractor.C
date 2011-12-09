@@ -136,17 +136,6 @@ protected:
         }
 
 
-        //                MSExperiment<Peak1D> testmap;
-
-        //                TICResampling tic_res;
-
-        //                tic_res.run(ms_peakmap, testmap);
-
-        //                MzMLFile().store("resampled.mzML", testmap);
-
-        //                return EXECUTION_OK;
-
-
         //-------------------------------------------------------------
         // set parameters and start extraction
         //-------------------------------------------------------------
@@ -250,26 +239,27 @@ protected:
         // writing output
         //-------------------------------------------------------------
 
-        MSExperiment<Peak1D> out_msexp;
 
-        for (std::map<DoubleReal, map<DoubleReal, DoubleReal> >::const_iterator m_it = out_map.begin(); m_it != out_map.end(); ++m_it)
-        {
-            MSSpectrum<Peak1D> tmp_spec;
-            tmp_spec.setRT(m_it->first);
+//        MSExperiment<Peak1D> out_msexp;
 
-            for (std::map<DoubleReal, DoubleReal>::const_iterator c_it = m_it->second.begin(); c_it != m_it->second.end(); ++c_it)
-            {
-                Peak1D tmp_peak;
-                tmp_peak.setMZ(c_it->first);
-                tmp_peak.setIntensity(c_it->second);
-                tmp_spec.push_back(tmp_peak);
-            }
+//        for (std::map<DoubleReal, map<DoubleReal, DoubleReal> >::const_iterator m_it = out_map.begin(); m_it != out_map.end(); ++m_it)
+//        {
+//            MSSpectrum<Peak1D> tmp_spec;
+//            tmp_spec.setRT(m_it->first);
 
-            out_msexp.push_back(tmp_spec);
-        }
+//            for (std::map<DoubleReal, DoubleReal>::const_iterator c_it = m_it->second.begin(); c_it != m_it->second.end(); ++c_it)
+//            {
+//                Peak1D tmp_peak;
+//                tmp_peak.setMZ(c_it->first);
+//                tmp_peak.setIntensity(c_it->second);
+//                tmp_spec.push_back(tmp_peak);
+//            }
+
+//            out_msexp.push_back(tmp_spec);
+//        }
 
 
-        MzMLFile().store("raw_out.mzML", out_msexp);
+//        MzMLFile().store("raw_out.mzML", out_msexp);
 
         //annotate output with data processing info TODO
         // addDataProcessing_(ms_featmap, getProcessingInfo_(DataProcessing::PEAK_PICKING));
