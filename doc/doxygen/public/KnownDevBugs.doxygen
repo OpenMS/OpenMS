@@ -7,7 +7,7 @@
 	@section known_issues_windows ... on Windows
 
     <UL>
-        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinder) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
+        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
           When you run the tool in Debug mode and look where it crashes, you might acutally find it to be a very weird place - e.g.
           when creating a perfectly legal String from a QString:
 @code
@@ -28,7 +28,7 @@
           <b>Fix</b> is easy: recompile Qt (in this case) using VS10 and link against the new Qt.
           
           
-        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinder) gives "Entry point not found"</B><BR>
+        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "Entry point not found"</B><BR>
           This usually happens when your %PATH% contains multiple versions of DLL's on which TOPP/%OpenMS depends.
           Candidates are all QT (QtGui4.dll, QtCore4.dll, ...) or Xerces-C (xerces-c_3_0) libraries.
           Usually other external programms (Miktex, Mendeley etc) put their own binary directory (which contains these incompatible DLL's) before 

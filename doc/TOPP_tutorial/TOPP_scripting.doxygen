@@ -434,14 +434,13 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 /**
 @page TOPP_example_featuredetection Feature detection
 
-	For quantitation, the @b FeatureFinder tool is used. It extracts the
-	features from profile data or centroided data. The @b FeatureFinder offers different
-	algorithms:
+	For quantitation, the @b FeatureFinder tools are used. They extract the
+	features from profile data or centroided data. TOPP offers different types of @b FeatureFinders:
 
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+		<TD> <b>FeatureFinderIsotopeWavelet</b> &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -484,7 +483,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> centroided &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
+		<TD> <b>FeatureFinderCentroided</b> &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -515,7 +514,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		</TD>
 	</TR>
 	</TABLE>
-
+<!--
 	<TABLE border=1>
 	<TR>
 		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
@@ -581,7 +580,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 			</TD>
 		</TR>
 	</TABLE>
-	
+-->	
 
 */
 //##############################################################################
@@ -599,7 +598,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
 
 		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
-		application calculates the features from profile data or centroided data.
+		applications calculate the features from profile data or centroided data.
 
 		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
 		@b FeatureLinkerLabeled application.
