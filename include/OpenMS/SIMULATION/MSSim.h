@@ -108,7 +108,7 @@ namespace OpenMS
 		void syncParams_(Param& p, bool to_outer);
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap
-		void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features);
+    void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features, Size map_index);
 
   private:
     /// Synchronize members with param class

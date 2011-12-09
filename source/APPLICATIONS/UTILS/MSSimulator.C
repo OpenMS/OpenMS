@@ -315,10 +315,14 @@ class TOPPMSSimulator
       {
         writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
 
+        // set file name for all (sub)feature maps
         ConsensusMap & labeling_consensus = ms_simulation.getLabelingConsensus();
-        labeling_consensus.getFileDescriptions()[0].filename = fxml_out;
-        labeling_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
-        labeling_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
+        for(ConsensusMap::FileDescriptions::Iterator fdI = labeling_consensus.getFileDescriptions().begin() ;
+            fdI != labeling_consensus.getFileDescriptions().end();
+            ++fdI)
+        {
+          fdI->second.filename = fxml_out;
+        }
 
         ConsensusXMLFile().store(lcxml_out, labeling_consensus);
       }

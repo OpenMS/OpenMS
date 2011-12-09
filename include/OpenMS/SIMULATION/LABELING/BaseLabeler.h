@@ -139,6 +139,8 @@ namespace OpenMS
       When merging peptides from different channels, the protein accessions should remain intact.
       Usually joining features is based on peptide sequence, so all protein hits should be valid.
 
+      @param target
+      @param source
     */
     void mergeProteinAccessions_(Feature& target, const Feature& source) const;
 
