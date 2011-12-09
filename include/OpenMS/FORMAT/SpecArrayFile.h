@@ -46,7 +46,7 @@ namespace OpenMS
            m/z	     rt(min)	       snr	      charge	   intensity
 
     Every subsequent line is a feature.
-    Entries are separated by Tab (\t).
+    Entries are separated by Tab (\\t).
     
   	
   	@ingroup FileIO

@@ -58,7 +58,7 @@ namespace OpenMS
    * // you do not need the file any more<br>
    * STREAM_HANDLER.unregisterStream(StreamHandler::FILE, "name_of_the_output_file");<br>
    * // StreamHandler will close the file stream if no other part of your program requested the same stream
-   * <code>
+   * </code>
    *
    * @ingroup Concept
    */

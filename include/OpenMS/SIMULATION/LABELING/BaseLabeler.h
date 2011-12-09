@@ -61,9 +61,9 @@ namespace OpenMS
     static void registerChildren();    
         
     /**
-      @brief Returns the default parameters. Reimplement
+      @brief Returns the default parameters. Re-implement
 
-      Reimplement if you derive a class and have to incoorporate sub-algorithm default parameters.
+      Re-implement if you derive a class and have to incorporate sub-algorithm default parameters.
     */
     virtual Param getDefaultParameters() const
     {
@@ -82,10 +82,7 @@ namespace OpenMS
       @param param Param object containing the simulation parameters
       @throws Exception::InvalidParameter if the given parameters are not consistent with the labeling technique
       */
-    virtual void preCheck(Param &) const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void preCheck(Param & param) const = 0;
 
     /** 
     @name Labeling Hooks
@@ -93,55 +90,34 @@ namespace OpenMS
     //@{
     
     /// Hook to prepare the simulation process
-    virtual void setUpHook(FeatureMapSimVector & /* features */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void setUpHook(FeatureMapSimVector & /* features */) = 0;
 
     /// Labeling between digestion and rt simulation
-    virtual void postDigestHook(FeatureMapSimVector & /* features_to_simulate */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void postDigestHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
 
     /// Labeling after rt simulation
-    virtual void postRTHook(FeatureMapSimVector & /* features_to_simulate */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void postRTHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
 
     /// Labeling after detectability simulation
-    virtual void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
 
     /// Labeling after ionization
-    virtual void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
 
     /// Labeling after raw signal generation
-    virtual void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
 
     /// Labeling after Tandem MS (e.g. iTRAQ)
-    virtual void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */) = 0;
 
     //@}
 
     ConsensusMap& getConsensus();
 
     /**
-      @brief to ensure standardized metavalue names across labelers for channel intensity
+      @brief to ensure standardized meta value names across labelers for channel intensity
 
-      Use this function to get the name of the metavalue which holds intensity for channel @p channel_index
+      Use this function to get the name of the meta value which holds intensity for channel @p channel_index
 
     */
     String getChannelIntensityName(const Size channel_index) const;

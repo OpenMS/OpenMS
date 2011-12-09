@@ -760,7 +760,7 @@ svn propset svn:eol-style native MyClass.C
 	              <code>make Project=basic Platform=gcc snapshot</code>
 	         <LI>Copy the snapshot to a new directory, named something like <code>SeqAn_snap_r2666_20080908/</code>,
 	             unzip the snapshot <i>inside there</i>, remove the <code>.zip</code> file, <code>cd ..</code>,
-	             and '<code>tar czf</code>' the directory.
+	             and <code>tar czf</code> the directory.
 	         <LI>Copy the <code>.tar.gz</code> to <code>contrib/src/Seqan...tar.gz</code>
 	         <LI>Adapt in contrib/Makefile.in the line 'SEQAN_SRC_DIR=SeqAn_snap_r2666_20080908' accordingly
 	         <LI>In <code>contrib/</code>:<BR>

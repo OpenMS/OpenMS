@@ -59,7 +59,8 @@ template < typename RandomAccessContainer >
 
       typedef boost::unordered_map<UInt64, Size> UniqueIdMap;
 
-      /**@brief Returns the index of the feature with the given unique id, or Size(-1) if none exists in this random access container.
+      /**
+       @brief Returns the index of the feature with the given unique id, or Size(-1) if none exists in this random access container.
 
        The complexity is expected constant upon success, linear upon failure.
 
@@ -69,7 +70,9 @@ template < typename RandomAccessContainer >
        - if no index is found or the unique ids do not match, then update the hash map (using updateUniqueIdToIndex()) and lookup the index again
        - if an index is found this time, return it, otherwise return Size(-1)
        .
-       Note that subordinate elements are not considered here.
+
+       @note that subordinate elements are not considered here.
+
        */
       Size
       uniqueIdToIndex(UInt64 unique_id) const
@@ -141,13 +144,13 @@ template < typename RandomAccessContainer >
       }
       
       /**
-				@brief Assign new UID's to doubly occuring UID's
+				@brief Assign new UID's to doubly occurring UID's
 				
 				Assign new UID's to non-unique UID's. This usually occurs in merging of
 				'old' feature files, which have sequentially increasing UID's.
 				Conflicting entries receive a new UID, such that all UID's are unique in the container.
 				
-				@Note Subordinate features are not checked and may remain non-unique. However,
+				@note Subordinate features are not checked and may remain non-unique. However,
 				they are associated to their parent which makes identification 'unique'.
 				
 				@return The number of invalid (=replaced) elements
@@ -185,7 +188,7 @@ template < typename RandomAccessContainer >
 
       /**@brief Swap.
        *
-       *  Note: obviously we can swap only with indices for the same type.
+       *  @note obviously we can swap only with indices for the same type.
        */
       void
       swap(UniqueIdIndexer& rhs)

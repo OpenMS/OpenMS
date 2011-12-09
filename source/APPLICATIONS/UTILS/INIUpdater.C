@@ -68,7 +68,7 @@ using namespace std;
    - delete old parameters which no longer have any effect
 
   The new INI files can be created in-place (with -i option), which will overwrite the
-  existing file, but create a backup copy with <filename>_<version>.ini,
+  existing file, but create a backup copy with [filename]_[version].ini,
   e.g.
   @code
   INIUpdater -in FileFilter.ini -i

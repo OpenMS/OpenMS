@@ -53,7 +53,7 @@ namespace OpenMS
 
     The width in m/z of the overall convex hull of each feature is set to 3 Th in lack of a value provided by the Kroenik file.
 
-    @note Kroenik files are Tab (\t) separated files.
+    @note Kroenik files are Tab (\\t) separated files.
   	
   	@ingroup FileIO
   */

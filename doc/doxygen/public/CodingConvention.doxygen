@@ -251,7 +251,7 @@ The OPENMS_DLLAPI macro on the first line is required for correctly building the
 <H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces</H2>
 
 The main %OpenMS classes are implemented in the namespace <TT>%OpenMS</TT>.
-Auxilary classes are implemented in <TT>%OpenMS::Internal</TT>.
+Auxilary classes are implemented in <TT>%OpenMS::%Internal</TT>.
 There are some other namespaces e.g. for constants and exceptions.
 
 Importing a whole namespace in a header files is forbidden. E.g.:
