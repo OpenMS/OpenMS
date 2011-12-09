@@ -121,7 +121,7 @@ namespace OpenMS
     {
       if (it->second.active) ++active_channel_count;
     }
-    if(features.size() != active_channel_count)
+    if (features.size() != active_channel_count)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("iTRAQ Labeling received wrong number of channels: ") + String(active_channel_count) + " defined, but " + String(features.size()) + " given as FASTA files.");
     }
@@ -129,18 +129,19 @@ namespace OpenMS
 
   /// Labeling between digestion and rt simulation
   /// Join all peptides with the same sequence into one feature
-  /// channels are retained via metavalues
-  void ITRAQLabeler::postDigestHook(FeatureMapSimVector & features_to_simulate )
+  /// channels are retained via meta values
+  /// if a peptide is not present in all channels, then there will be missing meta values! (so don't rely on them being present)
+  void ITRAQLabeler::postDigestHook(FeatureMapSimVector & channels)
   {
     // merge channels into a single feature map
-    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
+    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(channels);
 
     std::map<String, Size> peptide_to_feature;
 
-    for (Size i=0;i<features_to_simulate.size();++i)
+    for (Size i=0; i<channels.size(); ++i)
     {
-      for(FeatureMapSim::iterator it_f_o = features_to_simulate[i].begin() ;
-          it_f_o != features_to_simulate[i].end() ;
+      for(FeatureMapSim::iterator it_f_o = channels[i].begin() ;
+          it_f_o != channels[i].end() ;
           ++it_f_o)
       {
         // derive iTRAQ labeled features from original sequence (might be more than one due to partial labeling)
@@ -164,7 +165,7 @@ namespace OpenMS
             f_index=final_feature_map.size()-1;
             peptide_to_feature[seq]=f_index;
           }
-          // add intensity as metavalue
+          // add intensity as meta value
           final_feature_map[f_index].setMetaValue(getChannelIntensityName(i), it_f->getIntensity());
           // increase overall intensity
           final_feature_map[f_index].setIntensity( final_feature_map[f_index].getIntensity() + it_f->getIntensity());
@@ -173,8 +174,8 @@ namespace OpenMS
       }
     }
 
-    features_to_simulate.clear();
-    features_to_simulate.push_back(final_feature_map);
+    channels.clear();
+    channels.push_back(final_feature_map);
   }
 
   /// Labeling between RT and Detectability
@@ -268,10 +269,10 @@ namespace OpenMS
 
   void ITRAQLabeler::labelPeptide_(const Feature& feature, FeatureMapSim& result) const
   {
-    // modify with iTRAQ modification (needed for mass calc and MS/MS signal)
+    // modify with iTRAQ modification (needed for mass calculation and MS/MS signal)
     //site="Y" - low abundance
     //site="N-term"
-    //site="K" - Lysin
+    //site="K" - lysine
     String modification = (itraq_type_==ItraqConstants::FOURPLEX ? "iTRAQ4plex" : "iTRAQ8plex");
     vector<PeptideHit> pep_hits(feature.getPeptideIdentifications()[0].getHits());
     AASequence seq(pep_hits[0].getSequence());
@@ -323,13 +324,13 @@ namespace OpenMS
   {
 		// fill map with values present (all missing ones remain 0)
 		Matrix<SimIntensityType> m(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1, 0);
-    Size ch=0, ch_internal=0;
+    Size ch(0);
+    Size ch_internal(0);
 		for (ChannelMapType::ConstIterator it=channel_map_.begin();it!=channel_map_.end();++it) 
     {
-      SimIntensityType intensity=0;
-      if (it->second.active)
-      {
-        OPENMS_PRECONDITION(f.metaValueExists(getChannelIntensityName(ch_internal)), "ITRAQLabeler::getItraqIntensity_() is missing a channel intensity meta-value!");
+      SimIntensityType intensity(0);
+      if (it->second.active && f.metaValueExists(getChannelIntensityName(ch_internal)))
+      { // peptide is present in this channel
         intensity = (DoubleReal) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
