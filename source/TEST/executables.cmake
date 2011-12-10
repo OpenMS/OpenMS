@@ -395,7 +395,7 @@ set(analysis_executables_list
 )
 
 set(applications_executables_list
-        #INIUpdater_test
+  INIUpdater_test
   TOPPBase_test
   ToolHandler_test
 )
@@ -461,7 +461,7 @@ set(simulation_executables_list
   RTSimulation_test
   RawMSSignalSimulation_test
 	RawTandemMSSignalSimulation_test
-  # abstract base: BaseLabeler_test
+  BaseLabeler_test
 	ITRAQLabeler_test
 	LabelFreeLabeler_test
 	O18Labeler_test

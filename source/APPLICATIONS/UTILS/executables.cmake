@@ -16,7 +16,7 @@ IDMassAccuracy
 IDSplitter
 IdXMLEvaluation
 ImageCreator
-#INIUpdater
+INIUpdater
 LabeledEval
 MassCalculator
 MRMPairFinder
@@ -34,7 +34,7 @@ XMLValidator
 ## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
 set(UTILS_executables_with_GUIlib
 ImageCreator
-#INIUpdater
+INIUpdater
 )
 
 ### add filenames to Visual Studio solution tree
