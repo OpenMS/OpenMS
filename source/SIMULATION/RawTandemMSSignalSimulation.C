@@ -101,8 +101,8 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
   simple_generator.setParameters(simple_gen_params);
 
   SvmTheoreticalSpectrumGeneratorSet svm_spec_gen_set;
-  //this set will hold the precursor charages that have an Svm model
-  std::set<Size>svm_model_charges;
+  //this set will hold the precursor charges that have an Svm model
+  std::set<Size> svm_model_charges;
 
   //if SVR or SVC shall be used
   if(tandem_mode)
@@ -277,7 +277,7 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
 
   SvmTheoreticalSpectrumGeneratorSet svm_spec_gen_set;
   //this set will hold the precursor charges that have an Svm model
-  std::set<Size>svm_model_charges;
+  std::set<Size> svm_model_charges;
 
   if(tandem_mode)
   {
@@ -308,10 +308,10 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
     {
       AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
       RichPeakSpectrum tmp_spec;
-      std::cerr<<"generate Spec for peptide: "<<seq<<std::endl;
+
       Int prec_charge=features[ids[id]].getCharge();
 
-      if(tandem_mode && svm_model_charges.count(prec_charge))
+      if (tandem_mode && svm_model_charges.count(prec_charge))
       {
         svm_spec_gen_set.simulate(tmp_spec, seq, rnd_gen_->biological_rng, prec_charge);
       }
@@ -319,12 +319,11 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
       {
         simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
       }
-      //svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
-      //TODO: work around RichPeak1D restriction
-      for(Size peak=0; peak<tmp_spec.size(); ++peak)
+
+      for (Size peak=0; peak<tmp_spec.size(); ++peak)
       {
         Peak1D p=tmp_spec[peak];
-        p.setIntensity(p.getIntensity()*prec_intens);
+        p.setIntensity(p.getIntensity()*prec_intens); // should be i += i + x
         ms2[i].push_back(p);
       }
     }
