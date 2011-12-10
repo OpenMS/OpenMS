@@ -134,6 +134,7 @@ namespace OpenMS
                                                    const MSExperiment<InputPeakType>& experiment,
 																									 std::vector<std::vector<std::pair<Size,Size> > > & indices)
 	{
+    if(experiment.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
 		for(Size f = 0; f < features.size();++f)
 			{
 				std::vector<std::pair<Size,Size> > vec;
@@ -198,7 +199,7 @@ namespace OpenMS
 						std::cout << "According to the convex hulls no mass traces found for this feature->estimate!"
 											<< features[f].getRT() << " "<<features[f].getMZ()<<" "<<features[f].getCharge()<<std::endl; 
 #endif
-						// we estimate the convex hull
+            // we estimate the convex hull
 					  typename MSExperiment<InputPeakType>::ConstIterator spec_iter = experiment.RTBegin(features[f].getRT());
 						if(spec_iter == experiment.end()) --spec_iter;
 						
@@ -229,12 +230,20 @@ namespace OpenMS
 						typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
 						typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
 						
-            // TODO: spec has at least X peaks (X probably around 3 :) ).
-
-            while (mz_iter != spec_iter->begin() && features[f].getMZ()- mz_iter->getMZ() < 0.1) --mz_iter;
+            if(mz_iter == spec_iter->end())
+              {
+                if(mz_iter != spec_iter->begin() && fabs((mz_iter-1)->getMZ() - features[f].getMZ()) < 0.5)
+                  {
+                    --mz_iter;
+                  }
+                else continue;
+              }
+            if(fabs(mz_iter->getMZ() - features[f].getMZ()) > 0.5) continue;
+            while (mz_iter != spec_iter->begin() && fabs(features[f].getMZ()- mz_iter->getMZ()) < 0.5) --mz_iter;
+            if(mz_iter != spec_iter->end()) ++mz_iter;
 						start.second = distance(spec_iter->begin(), mz_iter);
 #ifdef DEBUG_OPS
-						std::cout << "Start: "<<experiment[start.first].getRT()<<" "<<experiment[start.first][start.second].getMZ();
+            std::cout << features[f].getMZ() << " Start: "<<experiment[start.first].getRT()<<" "<<experiment[start.first][start.second].getMZ();
 #endif
 						Int charge = features[f].getCharge();
 						if (charge == 0) charge = 1;
@@ -246,7 +255,7 @@ namespace OpenMS
             if (mz_end == spec_iter->end() && mz_end != spec_iter->begin() ) --mz_end; // mz_end must be a valid peak
 						end.second = distance(spec_iter->begin(), mz_end);
 #ifdef DEBUG_OPS
-						std::cout << "\tEnd: "<<experiment[end.first].getRT()<<" "<<experiment[end.first][end.second].getMZ()<<std::endl;
+            std::cout << "\tEnd: "<<experiment[end.first].getRT()<<" "<<experiment[end.first][end.second].getMZ()<<std::endl;
 #endif
 						vec.push_back(start);
 						vec.push_back(end);
