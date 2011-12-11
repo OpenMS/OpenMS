@@ -214,7 +214,8 @@ set(math_executables_list
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
-  NonNegativeLeastSquaresSolver_test
+  NNLS_test
+	NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   ROCCurve_test
   StatisticFunctions_test
