@@ -55,10 +55,11 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
@@ -340,7 +341,9 @@ int main (int argc , char** argv)
 	DOCME(FalseDiscoveryRate);
 	DOCME(FeatureDeconvolution);
 	DOCME(FeatureDistance);
+	DOCME(FeatureGroupingAlgorithmIdentification); // deprecated
 	DOCME(FeatureGroupingAlgorithmLabeled);
+	DOCME(FeatureGroupingAlgorithmQT);
 	DOCME(FeatureGroupingAlgorithmUnlabeled);
 	DOCME(GaussFilter);
 	DOCME(GaussFitter1D);

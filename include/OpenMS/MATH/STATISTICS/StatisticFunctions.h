@@ -72,6 +72,8 @@ namespace OpenMS
 		/**
 			 @brief Calculates the median of a range of values
 
+			 @param begin Start of range
+			 @param end End of range (past-the-end iterator)
 			 @param sorted Is the range already sorted? (If not, it may be reordered.)
 
 			 @exception Exception::InvalidRange is thrown if the range is empty

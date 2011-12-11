@@ -158,7 +158,6 @@ namespace OpenMS
 			 Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
 
 			 @param features Input features for RT data
-			 @param unassigned List of unassigned peptide IDs
 			 @param rt_data Lists of RT values for diff. peptide sequences (output)
 		*/
 		template <typename MapType> void getRetentionTimes_(MapType& features,
