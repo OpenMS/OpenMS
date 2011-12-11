@@ -96,8 +96,8 @@ class TOPPINIUpdater
 	public:
 	TOPPINIUpdater()
 		: TOPPBase("INIUpdater", "Update INI and TOPPAS files to new OpenMS version.", false),
-      tmp_files_(),
-      failed_()
+      failed_(),
+      tmp_files_()
 	{
 	}
   	
@@ -144,7 +144,7 @@ class TOPPINIUpdater
     // update sections
     writeDebug_("#Vertices: " + vertices, 1);
     bool update_success = true;
-    for (Size v=0; v<vertices; ++v)
+    for (Int v=0; v<vertices; ++v)
     {
       String sec_inst = "vertices:" + String(v) + ":";
       // check for default instance
@@ -218,8 +218,8 @@ class TOPPINIUpdater
 
     // update internal structure (e.g. edges format changed from 1.8 to 1.9)
     int argc = 1;
-    char* c = "IniUpdater";
-    char** argv = &c;
+    const char* c = "IniUpdater";
+    const char** argv = &c;
     QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;

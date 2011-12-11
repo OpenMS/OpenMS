@@ -1080,7 +1080,7 @@ namespace OpenMS {
     }
     grid.clear();
     SimCoordinateType mz = mz_min;
-    DoubleReal sampling_rate;
+    DoubleReal sampling_rate(0);
     while (mz <= mz_max)
     {
       SimCoordinateType fwhm = getPeakWidth_(mz, param_.getValue("peak_shape") == "Gaussian");
