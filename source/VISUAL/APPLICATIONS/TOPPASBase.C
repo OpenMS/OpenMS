@@ -318,7 +318,7 @@ namespace OpenMS
 
   void TOPPASBase::openOnlinePipelineRepository()
   {
-    QUrl url = QUrl("http://www.OpenMS.de/TOPPAS/");
+    QUrl url = QUrl("http://www.OpenMS.de/TOPPASWorkflows/");
 
     static bool proxy_settings_checked = false;
     if (!proxy_settings_checked) // do only once because may take several seconds on windows
