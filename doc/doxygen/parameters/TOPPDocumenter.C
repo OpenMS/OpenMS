@@ -74,7 +74,7 @@ bool generate(const ToolListType& tools, const String& prefix)
 int main (int , char** )
 {
 	//TOPP tools
-	ToolListType topp_tools = ToolHandler::getTOPPToolList();
+	ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
 	topp_tools["TOPPView"] = Internal::ToolDescription();
 	topp_tools["TOPPAS"] = Internal::ToolDescription();
 	//UTILS
@@ -82,7 +82,7 @@ int main (int , char** )
 
   bool errors_occured = generate(topp_tools,"TOPP_") || generate(util_tools, "UTILS_");
 
-	if(errors_occured)
+	if (errors_occured)
 	{
 		// errors occured while generating the TOPP CLI docu .. tell the user
 		cerr << "Errors occured while generating the command line documentation for some of the " << endl;
