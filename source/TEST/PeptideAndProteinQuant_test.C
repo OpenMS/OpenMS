@@ -67,7 +67,7 @@ START_SECTION((void quantifyPeptides(FeatureMap<>& features)))
 }
 END_SECTION
 
-START_SECTION((void quantifyPeptides(ConsensusMap<>& consensus)))
+START_SECTION((void quantifyPeptides(ConsensusMap& consensus)))
 {
 	ConsensusMap consensus;
 	ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("../TOPP/ProteinQuantifier_input.consensusXML"), consensus);
