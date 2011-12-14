@@ -132,7 +132,7 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 
 	WHITELIST("<?xml-stylesheet");
 	// WHITELIST("<?xml-stylesheet,consensusElement id=");
-	TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"));
+	TEST_FILE_SIMILAR(cm_file_out, OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"));
 }
 END_SECTION
 
@@ -147,7 +147,8 @@ START_SECTION((ItraqQuantifierStats getStats() const))
 
   ItraqQuantifier iq;
   Param p;
-  p.setValue("do_normalization", "true");
+  p.setValue("isotope_correction", "true");
+  p.setValue("do_normalization", "false");
   iq.setParameters(p);
   iq.run(cm_in, cm_out);
 
@@ -156,11 +157,11 @@ START_SECTION((ItraqQuantifierStats getStats() const))
   TEST_EQUAL(stats.number_ms2_total, cm_in.size())
   // ...
 
-  p.setValue("do_normalization", "false");
+  p.setValue("isotope_correction", "false");
   iq.setParameters(p);
   iq.run(cm_in, cm_out);
 
-  ItraqQuantifier::ItraqQuantifierStats stats = iq.getStats();
+  stats = iq.getStats();
   TEST_EQUAL(stats.channel_count, 4)
   TEST_EQUAL(stats.number_ms2_total, cm_in.size())
   TEST_EQUAL(stats.number_reporter_negative, 0)
