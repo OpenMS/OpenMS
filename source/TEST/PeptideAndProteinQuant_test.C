@@ -212,6 +212,40 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 }
 END_SECTION
 
+START_SECTION(([PeptideAndProteinQuant::PeptideData] PeptideData()))
+{
+	PeptideAndProteinQuant::PeptideData data;
+	TEST_EQUAL(data.abundances.empty(), true);
+	TEST_EQUAL(data.total_abundances.empty(), true);
+	TEST_EQUAL(data.accessions.empty(), true);
+	TEST_EQUAL(data.id_count, 0);
+}
+END_SECTION
+
+START_SECTION(([PeptideAndProteinQuant::ProteinData] ProteinData()))
+{
+	PeptideAndProteinQuant::ProteinData data;
+	TEST_EQUAL(data.abundances.empty(), true);
+	TEST_EQUAL(data.total_abundances.empty(), true);
+	TEST_EQUAL(data.id_count, 0);
+}
+END_SECTION
+
+START_SECTION(([PeptideAndProteinQuant::Statistics] Statistics()))
+{
+	PeptideAndProteinQuant::Statistics stats;
+	TEST_EQUAL(stats.n_samples, 0);
+	TEST_EQUAL(stats.quant_proteins, 0);
+	TEST_EQUAL(stats.too_few_peptides, 0);
+	TEST_EQUAL(stats.quant_peptides, 0);
+	TEST_EQUAL(stats.total_peptides, 0);
+	TEST_EQUAL(stats.quant_features, 0);
+	TEST_EQUAL(stats.total_features, 0);
+	TEST_EQUAL(stats.blank_features, 0);
+	TEST_EQUAL(stats.ambig_features, 0);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

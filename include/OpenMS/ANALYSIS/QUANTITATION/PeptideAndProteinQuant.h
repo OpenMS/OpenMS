@@ -64,6 +64,9 @@ namespace OpenMS
 
 			/// number of identifications
 			Size id_count;
+
+			/// constructor
+			PeptideData(): id_count(0) {}
 		};
 		
 		/// Mapping: peptide sequence (modified) -> peptide data
@@ -80,6 +83,9 @@ namespace OpenMS
 
 			/// total number of identifications (of peptides mapping to this protein)
 			Size id_count;
+
+			/// constructor
+			ProteinData(): id_count(0) {}
 		};
 
 		/// Mapping: protein accession -> protein data
