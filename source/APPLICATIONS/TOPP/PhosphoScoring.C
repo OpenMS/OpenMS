@@ -60,7 +60,7 @@ using namespace std;
 For details: Beausoleil et al.
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PhosphoScoring.cli
+	@verbinclude UTILS_PhosphoScoring.cli
 */
 
 
