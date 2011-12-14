@@ -112,7 +112,10 @@ class TOPPITRAQAnalyzer
 		registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
 		setValidFormats_("out", StringList::create("consensusXML"));
 
-		addEmptyLine_();
+    registerOutputFile_("out_stats", "<file>", "", "output statistics as tab-separated file (readable by R or Excel or ...)", false);
+    setValidFormats_("out_stats", StringList::create("tsv"));
+
+    addEmptyLine_();
 
     registerSubsection_("algorithm","Algorithm parameters section");
 	}
@@ -133,6 +136,7 @@ class TOPPITRAQAnalyzer
 		//-------------------------------------------------------------
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
+    String out_stats = getStringOption_("out_stats");
 
 		Int itraq_type = (getStringOption_("type")=="4plex" ?  ItraqQuantifier::FOURPLEX : ItraqQuantifier::EIGHTPLEX );
 		//-------------------------------------------------------------
@@ -159,7 +163,6 @@ class TOPPITRAQAnalyzer
 		ItraqQuantifier itraq_quant(itraq_type, quant_param);
 
 		itraq_quant.run(consensus_map_raw, consensus_map_quant);
-
 
 		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the program to quit then)
 		if (getStringOption_("id_pool").trim().length()>0) getDocumentIDTagger_().tag(consensus_map_quant);
@@ -189,6 +192,15 @@ class TOPPITRAQAnalyzer
 
 		ConsensusXMLFile cm_file;
 		cm_file.store(out, consensus_map_quant);
+    
+    std::cout << itraq_quant.getStats();
+    if (!out_stats.trim().empty())
+    {
+      ofstream f;
+      f.open(out_stats.c_str(), ios_base::out);
+      f << itraq_quant.getStats();
+      f.close();
+    }
 
 		return EXECUTION_OK;
 	}

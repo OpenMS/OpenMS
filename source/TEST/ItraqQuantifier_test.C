@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -136,6 +136,38 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 }
 END_SECTION
 
+START_SECTION((ItraqQuantifierStats getStats() const))
+{
+  ConsensusXMLFile cm_file;
+  ConsensusMap cm_in, cm_out;
+  cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"), cm_in);
+
+  ConsensusFeature cf;
+  //cm_in.push_back(cf);
+
+  ItraqQuantifier iq;
+  Param p;
+  p.setValue("do_normalization", "true");
+  iq.setParameters(p);
+  iq.run(cm_in, cm_out);
+
+  ItraqQuantifier::ItraqQuantifierStats stats = iq.getStats();
+  TEST_EQUAL(stats.channel_count, 4)
+  TEST_EQUAL(stats.number_ms2_total, cm_in.size())
+  // ...
+
+  p.setValue("do_normalization", "false");
+  iq.setParameters(p);
+  iq.run(cm_in, cm_out);
+
+  ItraqQuantifier::ItraqQuantifierStats stats = iq.getStats();
+  TEST_EQUAL(stats.channel_count, 4)
+  TEST_EQUAL(stats.number_ms2_total, cm_in.size())
+  TEST_EQUAL(stats.number_reporter_negative, 0)
+  TEST_EQUAL(stats.number_reporter_different, 0)  
+
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
