@@ -168,13 +168,13 @@ protected:
       return "[MS,MS:1001208,Sequest,]";
     } else if (s == "COMPNOVO")
     {
-      return "[MS,MS:UNKOWN,CompNovo,]";
+      return "[,,CompNovo,]";
     } else if (s == "PROTEINPROPHET")
     {
-      return "[MS,MS:UNKNOWN,ProteinProphet,]";
+      return "[,,ProteinProphet,]";
     } else
     {
-      return "--";
+      return "[,,,]";
     }
     /*
     TODO:
@@ -194,7 +194,7 @@ protected:
 
     if (score_type.hasSubstring("Consensus"))
     {
-      s = "[MS,MS:UNKNOWN,Consensus:score,";
+      s = "[,,Consensus:score,";
     } else if (score_type == "q-value")
     {
       s = "[MS,MS:1001364,pep:global FDR,";
@@ -203,10 +203,10 @@ protected:
       s = "[MS,MS:1001364,pep:global FDR,";
     } else if (score_type == "Posterior Error Probability")
     {
-      s = "[MS,MS:UNKOWN,PEP,";
+      s = "[,,PEP,";
     } else if (score_type == "PhosphoScore")
     {
-      s = "[MS,MS:UNKOWN,PhosphoScore,";
+      s = "[,,PhosphoScore,";
     } else if (openms_search_engine_name == "OMSSA")
     {
       s = "[MS,MS:1001328,OMSSA:evalue,";
@@ -221,14 +221,14 @@ protected:
       s = "[MS,MS:1001155,Sequest:xcorr,";
     } else if (openms_search_engine_name == "CompNovo")
     {
-      s = "[MS,MS:UNKOWN,CompNovo,";
+      s = "[,,CompNovo,";
     } else if (score_type == "ProteinProphet probability")
     {
-      s = "[MS,MS:UNKOWN,ProteinProphet,";
+      s = "[,,ProteinProphet,";
     }
     else
     {
-      return "--";
+      return "[,,,]";
     }
 
     s += String::number(score, 8) + "]";
@@ -503,7 +503,7 @@ protected:
     String UNIT_ID_String = File::basename(input_filename) + "-" + String(run_count);
     String database_String = (sp.db != "" ? sp.db : "--");
     String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
-    String species_String =  (sp.taxonomy != "0" ? sp.taxonomy : "--");
+    String species_String =  (sp.taxonomy == "0" || sp.taxonomy == ""  ? "--" : sp.taxonomy);
     String search_engine_cvParams = mapSearchEngineToCvParam_(prot_id.getSearchEngine());
     String openms_search_engine_name = prot_id.getSearchEngine();
     //
