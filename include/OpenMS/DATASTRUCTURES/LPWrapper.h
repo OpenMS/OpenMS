@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_DATASTRUCTURES_LPWRAPPER_H
 #define OPENMS_DATASTRUCTURES_LPWRAPPER_H
