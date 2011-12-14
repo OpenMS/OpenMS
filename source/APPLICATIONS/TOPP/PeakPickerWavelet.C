@@ -100,7 +100,7 @@ using namespace std;
 		</tr>
 	</table>
 
-	In order to impove the results of the peak detection on low resolution data @ref TOPP_NoiseFilter and @ref TOPP_BaselineFilter can be applied.
+  In order to impove the results of the peak detection on low resolution data @ref TOPP_NoiseFilterSGolay or @ref TOPP_NoiseFilterGaussian and @ref TOPP_BaselineFilter can be applied.
 	For high resolution data this is not necessary.
 */
 

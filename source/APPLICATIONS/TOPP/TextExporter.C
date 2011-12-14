@@ -113,7 +113,7 @@ using namespace std;
 	 - @p "..._cf" columns refer to the consensus feature, the other columns refer to the sub-feature
 
 	 Output format produced for the @p consensus_features parameter:
-	 - one line per consensus feature (suitable for processing with e.g. @link http://www.r-project.org R@endlink)
+   - one line per consensus feature (suitable for processing with e.g. <a href="http://www.r-project.org">R</a>)
 	 - columns: same as for a @p CONSENSUS line above, followed by additional columns for identification data
 	 - additional columns: @p peptide_N0, @p n_diff_peptides_N0, @p protein_N0, @p n_diff_proteins_N0, @p peptide_N1, ...
 	 - @p "..._Ni" columns refer to the identification run with index "Ni", @p n_diff_... stands for "number of different ..."; different peptides/proteins in one column are separated by "/"
