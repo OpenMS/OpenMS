@@ -168,7 +168,7 @@ protected:
             ElutionPeakDetection ep_det;
 
             epd_param.remove("enabled"); // artificially added above
-            epd_param.setValue("window_size", min_datapoints);
+            epd_param.setValue("chrom_fwhm", fwhm);
 
             ep_det.setParameters(epd_param);
 
