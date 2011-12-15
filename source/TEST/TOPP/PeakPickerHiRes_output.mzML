@@ -45,7 +45,7 @@
 		<software id="so_dp_sp_0_pm_4" version="1.7.0" >
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
-		<software id="so_dp_sp_0_pm_5" version="1.9.0" >
+		<software id="so_dp_sp_0_pm_5" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PeakPickerHiRes" />
 		</software>
 	</softwareList>
@@ -113,17 +113,8 @@
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_5">
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
-				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2011-12-08+12:47" />
-				<userParam name="parameter: ini" type="xsd:string" value="PeakPickerHiRes_parameters.ini"/>
-				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
-				<userParam name="parameter: in" type="xsd:string" value="PeakPickerHiRes_input.mzML"/>
-				<userParam name="parameter: out" type="xsd:string" value="PeakPickerHiRes_output.mzML"/>
-				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
-				<userParam name="parameter: test" type="xsd:string" value="false"/>
-				<userParam name="parameter: log" type="xsd:string" value="TOPP.log"/>
-				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:signal_to_noise" type="xsd:double" value="1"/>
-				<userParam name="parameter: algorithm:ms1_only" type="xsd:string" value="true"/>
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>

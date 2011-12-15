@@ -98,15 +98,15 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPeakPickerHiRes
-    : public TOPPBase
+	: public TOPPBase
 {
-public:
+	public:
     TOPPPeakPickerHiRes()
         : TOPPBase("PeakPickerHiRes","Finds mass spectrometric peaks in profile mass spectra.")
     {
     }
 
-protected:
+	protected:
 
     void registerOptionsAndFlags_()
     {
@@ -127,7 +127,6 @@ protected:
 
     ExitCodes main_(int , const char**)
     {
-
         //-------------------------------------------------------------
         // parameter handling
         //-------------------------------------------------------------
@@ -149,6 +148,7 @@ protected:
                     " contain chromatograms. This tool currently cannot handle them, sorry.";
             return INCOMPATIBLE_INPUT_DATA;
         }
+
         //check for peak type (profile data required)
         if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
         {
@@ -156,7 +156,7 @@ protected:
         }
 
         //check if spectra are sorted
-        for (Size i=0; i<ms_exp_raw.size(); ++i)
+        for (Size i = 0; i < ms_exp_raw.size(); ++i)
         {
             if (!ms_exp_raw[i].isSorted())
             {
@@ -170,8 +170,8 @@ protected:
         //-------------------------------------------------------------
         MSExperiment<> ms_exp_peaks;
 
-        Param pepi_param = getParam_().copy("algorithm:",true);
-        writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param,3);
+        Param pepi_param = getParam_().copy("algorithm:", true);
+        writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
 
         PeakPickerHiRes pp;
         pp.setLogType(log_type_);
@@ -181,10 +181,8 @@ protected:
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
-
         //annotate output with data processing info
         addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-
         mz_data_file.store(out,ms_exp_peaks);
 
         return EXECUTION_OK;
@@ -192,7 +190,7 @@ protected:
 };
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char** argv)
 {
     TOPPPeakPickerHiRes tool;
     return tool.main(argc,argv);

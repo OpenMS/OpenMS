@@ -2073,12 +2073,14 @@ namespace OpenMS
 
 		if (test_mode_)
 		{
-			//version
+			// version
 			p.getSoftware().setVersion("version_string");
-			//time
+
+			// time
 			DateTime date_time;
 			date_time.set("1999-12-31 23:59:59");
 			p.setCompletionTime(date_time);
+
 			//parameters
 			p.setMetaValue("parameter: mode" , "test_mode");
 		}
