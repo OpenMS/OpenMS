@@ -35,6 +35,81 @@
 using namespace OpenMS;
 using namespace std;
 
+// dummy implementation for the test
+template <class PeakType>
+class DerivedTraceFitter
+    : public TraceFitter<PeakType>
+{
+
+public:
+
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>&)
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    DoubleReal getLowerRTBound() const
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    DoubleReal getUpperRTBound() const
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    DoubleReal getHeight() const
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    DoubleReal getCenter() const
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    DoubleReal getFWHM() const
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, Size)
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    bool checkMinimalRTSpan(const std::pair<double, double>&, DoubleReal)
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    bool checkMaximalRTSpan(DoubleReal)
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    DoubleReal getFeatureIntensityContribution()
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, char, DoubleReal, DoubleReal)
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    void printState_(SignedSize, gsl_multifit_fdfsolver*)
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+    void getOptimizedParameters_(gsl_multifit_fdfsolver*)
+    {
+        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    }
+
+};
+
 START_TEST(TraceFitter, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -44,7 +119,7 @@ TraceFitter<Peak1D>* ptr = 0;
 TraceFitter<Peak1D>* nullPointer = 0;
 START_SECTION(TraceFitter())
 {
-	ptr = new TraceFitter<Peak1D>();
+    ptr = new DerivedTraceFitter<Peak1D>();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -69,7 +144,7 @@ START_SECTION((virtual TraceFitter& operator=(const TraceFitter &source)))
 }
 END_SECTION
 
-TraceFitter<Peak1D> trace_fitter;
+DerivedTraceFitter<Peak1D> trace_fitter;
 START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces< PeakType > &)))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> m;
