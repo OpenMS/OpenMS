@@ -226,9 +226,9 @@ namespace OpenMS
 			IntList parent_fs = (IntList) it->getMetaValue("parent_feature_ids");
 			for (Size i_f=0; i_f < parent_fs.size(); ++i_f)
 			{
-				// apply isotope matrix to active channels
-				gsl_matrix* row = getItraqIntensity_(fm[0][i_f]).toGslMatrix();
-  			// TODO: rescale intensities according to actual position of feature relative to precursor!
+        // get RT scaled iTRAQ intensities
+        gsl_matrix* row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT()).toGslMatrix();
+        // apply isotope matrix to active channels
 				// row * channel_frequency = observed iTRAQ intensities
 				gsl_blas_dgemm (CblasNoTrans, CblasNoTrans,
 												1.0, channel_frequency, row,
@@ -246,7 +246,7 @@ namespace OpenMS
         DoubleReal rnd_shift = gsl_rng_uniform(rng_->technical_rng) * 2 * rep_shift - rep_shift;
 				p.setMZ(channel_names[itraq_type_].getValue(i_channel,0) + 0.1 + rnd_shift);
 				p.setIntensity(gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
-				std::cout << "inserted iTRAQ peak: " << p << "\n";
+				//std::cout << "inserted iTRAQ peak: " << p << "\n";
 				it->push_back(p);
 			}
 		}
@@ -319,9 +319,37 @@ namespace OpenMS
 
   }
 
-
-  Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f) const
+  DoubleReal ITRAQLabeler::getRTProfileIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
   {
+    // compute intensity correction factor for feature from RT profile
+    const DoubleList& elution_bounds = f.getMetaValue("elution_profile_bounds");
+    const DoubleList& elution_ints   = f.getMetaValue("elution_profile_intensities");
+
+    // check that RT is within the elution bound:
+    OPENMS_POSTCONDITION(f.getConvexHull().getBoundingBox().encloses(MS2_RT_time, f.getMZ()), "The MS2 spectrum has wrong parent features! The feature does not touch the spectrum's RT!")
+
+    if (MS2_RT_time < elution_bounds[1] || elution_bounds[3] < MS2_RT_time)
+    {
+      LOG_WARN << "Warn: requesting MS2 RT for " << MS2_RT_time << ", but bounds are only from [" <<elution_bounds[1] << "," << elution_bounds[3] << "]\n";
+      return 0;
+    }
+
+    // do linear interpolation
+    DoubleReal width = elution_bounds[3] - elution_bounds[1];
+    DoubleReal offset = MS2_RT_time - elution_bounds[1];
+    Int index = floor(offset / (width / (elution_ints.size()-1)) + 0.5);
+
+    OPENMS_POSTCONDITION(index < elution_ints.size(), "Wrong index computation! (Too large)")
+
+    return elution_ints[index];
+  }
+
+  Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
+  {
+
+    DoubleReal factor = getRTProfileIntensity_(f, MS2_RT_time);
+
+    std::cerr << "factor is: " << factor << "\n";
 		// fill map with values present (all missing ones remain 0)
 		Matrix<SimIntensityType> m(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1, 0);
     Size ch(0);
@@ -334,7 +362,7 @@ namespace OpenMS
         intensity = (DoubleReal) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
-      m.setValue(ch, 0, intensity);
+      m.setValue(ch, 0, intensity * factor);
       ++ch;
     }
 

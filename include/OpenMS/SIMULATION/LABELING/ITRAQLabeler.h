@@ -108,8 +108,11 @@ namespace OpenMS
     /// Synchronize members with param class
 		void updateMembers_();
 
-		/// convert meta information from feature into intensity values for iTRAQ
-		Matrix<SimIntensityType> getItraqIntensity_(const Feature & f) const;
+    // get the closest RT profile factor of a feature for a given RT
+    DoubleReal getRTProfileIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const;
+
+    /// convert meta information from feature into intensity values for iTRAQ
+		Matrix<SimIntensityType> getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const;
 
 
 		// Members:
@@ -117,11 +120,11 @@ namespace OpenMS
 		/// set to either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
 		Int itraq_type_;
 		
-		/// map the channel-name (eg 114) onto its description and the centroid mass
+		/// map the channel-name (e.g. 114) onto its description and the centroid mass
 		/// the channel-name is also the id-string in the mapList section of the ConsensusMap
 		ChannelMapType channel_map_;	
 
-		/// Matrixes with isotope correction values (one for each plex-type)
+		/// Matrices with isotope correction values (one for each plex-type)
 		IsotopeMatrices isotope_corrections_;
 
     /// efficiency of "Y" labeling

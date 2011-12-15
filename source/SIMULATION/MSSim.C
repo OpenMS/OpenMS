@@ -260,7 +260,7 @@ namespace OpenMS {
     raw_tandemsim.setParameters(param_.copy("RawTandemSignal:", true));
     raw_tandemsim.generateRawTandemSignals(feature_maps_.front(), experiment_);
 
-    labeler_->postRawTandemMSHook(feature_maps_,experiment_);
+    labeler_->postRawTandemMSHook(feature_maps_, experiment_);
 
     
     // some last fixing of meta-values (this is impossible to do before as we do not know the final number of scans)
