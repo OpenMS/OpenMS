@@ -120,7 +120,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -458,7 +457,6 @@ int main (int argc , char** argv)
 	DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(OpenMS::SimRandomNumberGenerator() ));
 	DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(OpenMS::SimRandomNumberGenerator() ))
 	DOCME2(RTSimulation, RTSimulation(OpenMS::SimRandomNumberGenerator() ))
-	DOCME2(TraceFitter,(TraceFitter<Peak1D>()))
 	DOCME2(GaussTraceFitter,(GaussTraceFitter<Peak1D>()))
 	DOCME2(EGHTraceFitter,(EGHTraceFitter<Peak1D>()))
 

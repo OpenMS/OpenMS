@@ -48,8 +48,6 @@ namespace OpenMS
    * This class provides the basic interface and some functionality to fit multiple mass traces to
    * a given RT shape model using the Levenberg-Marquardt algorithm.
    *
-   * @htmlinclude OpenMS_TraceFitter.parameters
-   *
    * @todo docu needs update
    *
    */
