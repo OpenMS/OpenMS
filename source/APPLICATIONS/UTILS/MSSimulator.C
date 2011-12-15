@@ -114,7 +114,7 @@ class TOPPMSSimulator
       // I/O settings
       registerInputFileList_("in","<files>",StringList::create(""),"Input protein sequences in FASTA format",true,false);
       setValidFormats_("in",StringList::create("fasta"));
-      registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",true);
+      registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",false);
       setValidFormats_("out", StringList::create("mzML"));
       registerOutputFile_("out_pm","<file>","","output (simulated MS map) in mzML format (picked GT)",false);
       setValidFormats_("out_pm", StringList::create("mzML"));
@@ -231,8 +231,24 @@ class TOPPMSSimulator
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
+
+      // check if at least one output file is
+      if(getStringOption_("out") == ""
+         && getStringOption_("out_pm") == ""
+         && getStringOption_("out_fm") == ""
+         && getStringOption_("out_cm") == ""
+         && getStringOption_("out_lcm") == ""
+         && getStringOption_("out_cntm") == "" )
+      {
+        LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
+        return MISSING_PARAMETERS;
+      }
+
       StringList input_files = getStringList_("in");
-			String outputfile_name = getStringOption_("out");	
+      String outputfile_name = getStringOption_("out");
+
+
+
 
       MSSim ms_simulation;
       ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:",true));
