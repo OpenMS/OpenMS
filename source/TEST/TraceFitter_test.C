@@ -78,12 +78,12 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    bool checkMinimalRTSpan(const std::pair<double, double>&, DoubleReal)
+    bool checkMinimalRTSpan(const std::pair<double, double>&, const DoubleReal)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    bool checkMaximalRTSpan(DoubleReal)
+    bool checkMaximalRTSpan(const DoubleReal)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -93,7 +93,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, char, DoubleReal, DoubleReal)
+    String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const &, const char, const DoubleReal, const DoubleReal)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
