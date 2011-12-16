@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 /**
@@ -42,7 +42,7 @@
 					 Accessible from a command prompt/shell or via TOPPAS.
 					 See also: @subpage TOPP_documentation<br>
 	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a pipeline - but you could.
-						See also: @subpage UTILS
+						See also: @subpage UTILS_documentation
 	
 	@section run_tool Run a tool
 	
