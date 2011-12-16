@@ -498,7 +498,9 @@ namespace OpenMS
 									//get the intensity factor for the position in the elution profile
 									if (meta_values_present)
 									{
-										elu_factor = elution_profile_intensities[feature_num][i -feature_elution_bounds[feature_num][0]];
+										DoubleList xxx = elution_profile_intensities[feature_num];
+										DoubleList yyy = feature_elution_bounds[feature_num];
+										elu_factor = xxx[i - yyy[0]]; // segfault here: "i-yyy[0]" yields invalid index
 										iso_factor = isotope_intensities[feature_num][mass_trace_num];
 									}
 									feature_intensity+=features[feature_num].getIntensity() * iso_factor * elu_factor;
