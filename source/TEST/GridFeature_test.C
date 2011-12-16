@@ -112,6 +112,24 @@ START_SECTION((const std::set<AASequence>& getAnnotations() const))
 }
 END_SECTION
 
+START_SECTION((DoubleReal getRT() const))
+{
+	BaseFeature bf;
+	bf.setRT(4.56);
+	GridFeature gf(bf, 0, 123);
+	TEST_REAL_SIMILAR(gf.getRT(), 4.56);
+}
+END_SECTION
+
+START_SECTION((DoubleReal getMZ() const))
+{
+	BaseFeature bf;
+	bf.setMZ(4.56);
+	GridFeature gf(bf, 0, 123);
+	TEST_REAL_SIMILAR(gf.getMZ(), 4.56);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

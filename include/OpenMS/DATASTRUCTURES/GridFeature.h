@@ -79,14 +79,14 @@ namespace OpenMS
 		/// Returns the ID of the GridFeature (same as the feature index)
 		Int getID() const;
 
-		/// Return the set of peptide sequences annotated to the cluster center
+		/// Returns the set of peptide sequences annotated to the cluster center
 		const std::set<AASequence>& getAnnotations() const;
 
-    DoubleReal getRT()
-    { return feature_.getRT(); }
-
-    DoubleReal getMZ()
-    { return feature_.getMZ(); }
+		/// Returns the feature RT
+    DoubleReal getRT() const;
+ 
+		/// Returns the feature m/z
+    DoubleReal getMZ() const;
 	};
 }
 

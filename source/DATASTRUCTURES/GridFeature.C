@@ -76,4 +76,14 @@ namespace OpenMS
 		return annotations_;
 	}
 
+	DoubleReal GridFeature::getRT() const
+	{ 
+		return feature_.getRT();
+	}
+
+	DoubleReal GridFeature::getMZ() const
+	{ 
+		return feature_.getMZ();
+	}
+
 }
