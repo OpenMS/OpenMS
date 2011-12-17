@@ -107,15 +107,20 @@ namespace OpenMS
 	 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
 	 */
 	void ItraqQuantifier::run(const ConsensusMap& consensus_map_in, 
-					 ConsensusMap& consensus_map_out
-					 )
+					                  ConsensusMap& consensus_map_out
+					                 )
 	{
-		reconstructChannelInfo_(consensus_map_in);
-
-		consensus_map_out = consensus_map_in;
-
-    // clear stats
+    // new stats
     stats_ = ItraqQuantifierStats();
+    stats_.channel_count = CHANNEL_COUNT[itraq_type_];
+    if (consensus_map_in.size()==0)
+    {
+      LOG_WARN << "Warning: Empty iTRAQ container. No quantitative information available!" << std::endl;
+      return;
+    }
+
+		reconstructChannelInfo_(consensus_map_in);
+		consensus_map_out = consensus_map_in;
 
 		// first do isotope correction
 		if (String(param_.getValue("isotope_correction")) == "true")
@@ -193,7 +198,7 @@ namespace OpenMS
           {
             ++s_negative;
           }
-          else if (std::fabs(m_x(index, 0) - gsl_vector_get (gsl_x, index)) > 0.0001)
+          else if (std::fabs(m_x(index, 0) - gsl_vector_get (gsl_x, index)) > 0.000001)
           {
             ++s_different_count;
             s_different_intensity += std::fabs(m_x(index, 0) - gsl_vector_get (gsl_x, index));
@@ -206,9 +211,9 @@ namespace OpenMS
         }
 
         // update global stats
-        stats_.number_reporter_negative += s_negative;
-        stats_.number_reporter_different += s_different_count;
-        stats_.solution_different_intensity += s_different_intensity;
+        stats_.iso_number_reporter_negative += s_negative;
+        stats_.iso_number_reporter_different += s_different_count;
+        stats_.iso_solution_different_intensity += s_different_intensity;
 
         // write back the values to the map
         Peak2D::IntensityType cf_intensity(0);
@@ -234,8 +239,8 @@ namespace OpenMS
 
         if (s_negative > 0)
         {
-          ++stats_.number_ms2_negative;
-          stats_.total_intensity_negative_isotope += cf_intensity;
+          ++stats_.iso_number_ms2_negative;
+          stats_.iso_total_intensity_negative += cf_intensity;
         }
 			}
 			
@@ -253,7 +258,6 @@ namespace OpenMS
     }
     
     stats_.number_ms2_total = consensus_map_out.size();
-    stats_.channel_count = CHANNEL_COUNT[itraq_type_];
     // ------------------------------
     // Labeling efficiency statistics
     // ------------------------------
@@ -269,7 +273,11 @@ namespace OpenMS
         it_elements != consensus_map_out[i].end();
         ++it_elements)
       {
-        if (it_elements->getIntensity()==0) ++empty_channel[consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_name")];
+        if (it_elements->getIntensity()==0)
+				{
+	        Int ch_index = consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_name");
+					++empty_channel[ch_index];
+				}
       }
     }
     LOG_INFO <<   "iTRAQ: skipped " << stats_.number_ms2_empty << " of " << consensus_map_out.size() << " selected scans due to lack of iTRAQ information:\n";
@@ -587,11 +595,11 @@ namespace OpenMS
     os << "name\tvalue\t(value in %)\n";
     os << "# channels\t" << stats.channel_count << "\tNA\n";
     os << "# spectra total\t" << stats.number_ms2_total << "\tNA\n";
-    os << "# spectra negative\t" << stats.number_reporter_negative << "\tNA\n";
-    os << "# negative reporter intensity\t" << stats.number_reporter_negative << "\tNA\n";
-    os << "# alternative positive reporter intensity\t" << stats.number_reporter_different << "\tNA\n";
-    os << "total intensity (affected spectra)\t" << stats.total_intensity_negative_isotope << "\tNA\n";
-    os << "total intensity difference (affected spectra)\t" << stats.solution_different_intensity << "\t" << (stats.solution_different_intensity*100/stats.total_intensity_negative_isotope) << "\n";
+    os << "# spectra negative\t" << stats.iso_number_reporter_negative << "\tNA\n";
+    os << "# negative reporter intensity\t" << stats.iso_number_reporter_negative << "\tNA\n";
+    os << "# alternative positive reporter intensity\t" << stats.iso_number_reporter_different << "\tNA\n";
+    os << "total intensity (affected spectra)\t" << stats.iso_total_intensity_negative << "\tNA\n";
+    os << "total intensity difference (affected spectra)\t" << stats.iso_solution_different_intensity << "\t" << (stats.iso_solution_different_intensity*100/stats.iso_total_intensity_negative) << "\n";
 
     for (std::map<Size,Size>::const_iterator it_m=stats.empty_channels.begin(); it_m!=stats.empty_channels.end(); ++it_m)
     {
