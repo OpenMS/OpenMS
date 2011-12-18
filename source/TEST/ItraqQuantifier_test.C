@@ -160,8 +160,29 @@ START_SECTION((ItraqQuantifierStats getStats() const))
   isotope_corrections_[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
   Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(0, isotope_corrections_);
   std::cerr << "matrix: \n\n" << channel_frequency << "\n\n";
-  */
 
+  // some R code to  get the nnls and naive values faster
+
+
+  require("nnls")
+  ## correction matrix (as obtained from 'channel_frequency' matrix above)
+  m = matrix(c(0.929, 0.02, 0, 0,
+  0.059, 0.923,  0.03, 0.001,
+  0.002, 0.056, 0.924,  0.04,
+  0    , 0.001, 0.045, 0.923), ncol=4, nrow=4, byrow=T)
+  ## 'true' intensities
+  x1 = c(-1,100,100,100)
+  ## observed intensities
+  i = m %*% x1 ##   1.071  95.341  101.998  96.900
+
+  ## naive and nnls solution
+  n = solve(m) %*% i ##  -1       100      100        100
+  nn = nnls(m, i)$x  ##  0.00000  99.91414 100.00375  99.99990
+
+  d = n-nn
+  sum(abs(d[2:4]))
+
+  */
   ConsensusXMLFile cm_file;
   ConsensusMap cm_in, cm_out;
   cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"), cm_in);
