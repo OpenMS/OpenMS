@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -80,15 +80,7 @@
 		- @subpage TOPPView_peakpicking
 		- @subpage TOPPView_feature_detection_centroided
 
-  <b>Using TOPPAS to create and run TOPP pipelines</b>
-	
-		This part of the tutorial introduces TOPPAS, a tool for visual creation
-		and execution of TOPP pipelines.
-		
-		- @subpage TOPPAS_general
-		- @subpage TOPPAS_interface
-		- @subpage TOPPAS_examples
-  
+ 
   <b>Advanced Users: Tips & Tricks</b>
     
     Learn how to use advanced functionalities, increasing productivity in @subpage TOPP_advanced .

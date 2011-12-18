@@ -60,6 +60,7 @@
 				<UL>
 					<LI> @subpage Quickstart
 				  <LI> @subpage TOPP_tutorial
+					<LI> @subpage TOPPAS_tutorial
 				  <LI> @subpage TOPP_documentation
 				  <LI> @subpage UTILS_documentation
 				</UL>

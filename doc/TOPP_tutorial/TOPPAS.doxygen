@@ -36,7 +36,7 @@
 		and are also saved as part of the pipeline definition in the @a .toppas file.
 		Furthermore, @b TOPPAS interactively performs validity checks during the pipeline
 		editing process and before execution,
-		in order to make it more difficult to create an invalid workflow.
+		in order to prevent the creation of invalid workflows.
 		Once set up and saved, a workflow can also be run without the GUI using
 		the @a ExecutePipeline @a -in @a \<file\> command line option.
 		
@@ -283,34 +283,23 @@
 		@image latex TOPPAS_BSA_results_3d.png "" width=10cm 
 
 
-		@section TOPPAS_merger_example Mergers
+		@section TOPPAS_merger_example Merger and Collect nodes
 		
 		The following example is actually not a useful workflow but is supposed
-		to demonstrate how merger nodes can be used in a pipeline. Have a look at
+		to demonstrate how merger/collect nodes can be used in a pipeline. Have a look at
 		@a merger_tutorial.toppas:
 		
 		@image html TOPPAS_example_merger.png
 		@image latex TOPPAS_example_merger.png "" width=14cm
 		
-		As its name suggests, a merger merges its incoming file lists. It can do that
-		in two different ways, depending on its mode (which can be changed in the context
-		menu).
-		
-		In the standard mode, a merger
-		first takes all first files of all incoming file lists and merges them into a new list (which
+		As its name suggests, a merger merges its incoming file lists, i.e.,
+		all files of all incoming egdes are appended into a new list (which
 		has as many elements as the merger has incoming edges). All tools this merger has outgoing
 		edges to are called with this merged list as input files.
-		As soon as all files have been processed, the second files of each incoming list are merged
-		and the tools below the merger are called again, and so on.
-		If several mergers are nested, as in this example,
-		mergers further upstream wait until mergers further downstream
-		have performed all their merging rounds and then perform their own next merging round.
 		
-		In "merge all" mode, the merger first waits for all upstream mergers (if there are any)
-		to finish all
-		their merging rounds and then merges all files from all merging rounds for all
+		A collect node on the other hand waits for all merges all files from all rounds for all
 		incoming edges into one single list and calls the next tool with this list of files as input.
-		This will happen exactly once during the entire pipeline run, as opposed to the standard mode.
+		This will happen exactly once during the entire pipeline run.
 		
 		In order to track what is happening, you can just open the example file and run it. When the
 		pipeline execution has finished, have a look at all input and output files (e.g., select

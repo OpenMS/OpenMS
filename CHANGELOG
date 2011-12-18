@@ -1,15 +1,42 @@
+Glossary:
+OpenMS - Name of the project, but also C++ library
+TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
+TOPPAS - "The OpenMS Proteomics Pipeline Assistant", graphical tool to interactively build and run HPLC/MS workflows
+TOPPView - Versatile viewer for HPLC/MS data
+INI file - parameter configuration file, holding custom parameter settings for TOPP tools
+INIFileEditor - graphical parameter editor for INI files
+
 ------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.9                                      ---- 
 ------------------------------------------------------------------------------------------ 
-Release date: October 2011
-
+Release date: December 2011
 
 OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefor all .ini files
 for "typed" TOPP tools (i.e. those with a "type" parameter) built with OpenMS 1.8 and below
 are incompatible! To fix your old .ini and .toppas files use the new
-INIUpdater tool (see its documentation and the TOPP documentation).
+INIUpdater tool (see its documentation and the TOPP documentation in general).
 
 OpenMS 1.9 removed support for Mac OS X 10.5.
+
+Documentation:
+- new Quickstart tutorial
+- dedicated and reworked TOPPAS tutorial
+
+TOPPView improvements:
+- MODIFIED:
+  - ConsensusFeatures can now be colored using MetaValues
+  - better grid line drawing/calculation, extracted AxisPainter class
+  - IdentificationView:
+    - added automatic labeling with peptide fragment sequence
+    - theoretical spectrum is now hidden by default (labeling contains relevant information for most use cases)
+    - automatic zoom to measured MS2 data range
+
+TOPPAS improvements:
+- TOPPAS allows for interactive download of preconfigured TOPPAS pipelines from OpenMS homepage
+- "Recycling" mode for nodes, useful for database input files (see docu for details)
+- more flexible pipeline design for Merger nodes
+- Merger nodes (merge, merge all) renamed to "Merge" (one round) and "Collect" (all rounds)
+
 
 TOPP tools: 
 - ADDED:
@@ -44,19 +71,6 @@ UTIL tools:
 	 
 OpenMS library improvements:
 
-
-TOPPView improvements:
-- MODIFIED:
-  - ConsensusFeatures can now be colored using MetaValues
-  - better grid line drawing/calculation, extracted AxisPainter class
-  - IdentificationView:
-    - added automatic labeling with peptide fragment sequence
-    - theoretical spectrum is now hidden by default (labeling contains relevant information for most use cases)
-    - automatic zoom to measured MS2 data range
-
-TOPPAS improvements:
-- TOPPAS allows for interactive download of preconfigured TOPPAS pipelines from OpenMS homepage
-- "Recycling" mode for nodes, useful for database input files (see docu for details)
 	 
 Changes to the Build System: 
 - TOPPAS now requires Qt's Webkit library
@@ -64,7 +78,7 @@ Changes to the Build System:
 - Use CMAKE_FIND_ROOT_PATH instead of CONTRIB_CUSTOM_DIR (deprecated)
 - Removed AndiMS, NetCDF and dependencies
 - Removed dependency to imslib, relevant classes were moved directly to OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS
-- OpenMS now supports ctests functionality for optimized and parallel testing #363
+- OpenMS now supports ctests functionality for optimized and parallel testing (see ticket #363)
 	
 Fixed Issues: 
 	 
@@ -87,7 +101,7 @@ Detailed list of changes to specific OpenMS classes:
   - AASequence: removed AASequence(ConstIterator, ConstIterator) constructor, since it ignored Terminal Modifications; since there was no way to enable correct construction from two Iterators, we removed it
   - MSSimulator: "type" parameter moved to "MSSim:Labeling:type"
   - Param: added new command line parser with improved functionality
-  - PepXMLFile: RTs of peptide identifications are now set based on MS2 spectra, not the MS1 precursors (flag "use_precursor_rt" switches to the old behavior)
+  - PepXMLFile: RT's of peptide identifications are now set based on MS2 spectra, not the MS1 precursors (flag "use_precursor_rt" switches to the old behavior)
   - ProtXMLFile: set score type for peptides
   - TOPPBase: added methods to turn Param objects into command line parameters
   - TransformationModel: simplified handling of parameters

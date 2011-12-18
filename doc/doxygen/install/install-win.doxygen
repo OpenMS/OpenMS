@@ -84,7 +84,6 @@
 		In order to make the
 		installation of the remaining required libraries easier, we composed a
 		"contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, COINOR, imslib, zlib, libbz2 and XERCES-C.
-		<br>ANDI/MS and NetCDF are currently only included in the Linux version. We are working on a patch of those external libaries for Windows.
 		This contrib package has several advantages over manual installation
 		<ul>
 			<li>You get all the libraries in versions tested with %OpenMS.</li>
