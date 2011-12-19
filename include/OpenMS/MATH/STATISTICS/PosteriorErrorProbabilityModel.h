@@ -66,19 +66,19 @@ namespace OpenMS
 				/**
 					@brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables. computeProbability can be used afterwards.
 					@param search_engine_scores a vector which holds the data points
-					@exception Exception::UnableToFit is thrown if fitting cannot be performed
+					@return true if algorithm has run thourgh. Else false will be returned. In that case no plot and no probabilities are calculated.
 					@note the vector is sorted from smallest to biggest value!
 				*/
-				void fit( std::vector<double>& search_engine_scores);
+				bool fit( std::vector<double>& search_engine_scores);
 
 				/**
 					@brief fits the distributions to the data points(search_engine_scores) and writes the computed probabilites into the given vector (the second one).
 					@param search_engine_scores a vector which holds the data points
 					@param probabilities a vector which holds the probability for each data point after running this function. If it has some content it will be overwritten.
-					@exception Exception::UnableToFit is thrown if fitting cannot be performed
+					@return true if algorithm has run thourgh. Else false will be returned. In that case no plot and no probabilities are calculated.
 					@note the vectors are sorted from smallest to biggest value!
 				*/
-				void fit( std::vector<double>& search_engine_scores, std::vector<double>& probabilities);
+				bool fit( std::vector<double>& search_engine_scores, std::vector<double>& probabilities);
 
 				///Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorreclty assigned seqeuences.
 				void fillDensities(std::vector<double>& x_scores,std::vector<DoubleReal>& incorrect_density,std::vector<DoubleReal>& correct_density);
