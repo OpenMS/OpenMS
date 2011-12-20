@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
@@ -102,6 +102,7 @@ namespace OpenMS
 			// fill in the matrix
 			Size left_ptr(1);
 			Size last_i(0), last_j(0);
+
 			//Size off_band_counter(0);
 			for (Size i = 1; i <= s1.size(); ++i)
 			{
