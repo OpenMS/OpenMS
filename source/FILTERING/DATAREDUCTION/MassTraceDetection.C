@@ -287,7 +287,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
         Size fwhm_counter_down(0), fwhm_counter_up(0);
 
         bool toggle_up = true, toggle_down = true;
-        bool is_valid = false;
 
         DoubleReal int_midpoint_down(apex_peak.getIntensity()), int_midpoint_up(apex_peak.getIntensity());
 
@@ -349,13 +348,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                     if (sample_rate_down < min_sample_rate_) {
                         toggle_down = false;
                     }
-                    else {
-                        is_valid = true;
-                    }
-
                 }
-
-
             }
 
             //}
@@ -411,13 +404,10 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                 if (up_scan_counter > min_data_points) {
                     DoubleReal sample_rate_up = (DoubleReal)up_hitting_peak/(DoubleReal)up_scan_counter;
 
-                    if (sample_rate_up < min_sample_rate_) {
+                    if (sample_rate_up < min_sample_rate_)
+                    {
                         toggle_up = false;
                     }
-                    else {
-                        is_valid = true;
-                    }
-
                 }
 
             }
