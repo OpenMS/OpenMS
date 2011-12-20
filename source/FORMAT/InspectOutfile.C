@@ -801,7 +801,7 @@ namespace OpenMS
 			// whoever wrote this code - please don't ever do this again.
 			// x86 does *not* have a monopoly, nor does little endian.
 			memcpy(record, &source_database_pos, db_pos_length_); // source database position
-			if (OPENMS_IS_BIG_ENDIAN == true)
+      if (OPENMS_IS_BIG_ENDIAN)
 			{
 				char tmp;
 				for (Size i = 0; i < db_pos_length_ / 2; i++)

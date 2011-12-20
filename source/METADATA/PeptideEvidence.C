@@ -105,7 +105,7 @@ namespace OpenMS
   	  pre_ == rhs.pre_ &&
     	post_ == rhs.post_ &&
    	 	id_ == rhs.id_ &&
-    	name_ == name_ &&
+      name_ == rhs.name_ &&
     	missed_cleavages_ == rhs.missed_cleavages_ &&
     	is_decoy_ == rhs.is_decoy_ &&
     	frame_ == rhs.frame_;

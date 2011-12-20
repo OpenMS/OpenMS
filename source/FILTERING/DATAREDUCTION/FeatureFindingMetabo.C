@@ -417,9 +417,6 @@ namespace OpenMS
 
         output_hypos.push_back(tmp_hypo);
 
-
-        bool singleton_trace = true;
-
         for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge) {
 
             // std::cout << "looking at charge state " << charge << std::endl;
@@ -488,11 +485,8 @@ namespace OpenMS
                     fh_tmp.addMassTrace(*candidates[best_idx]);
                     fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
                     fh_tmp.setCharge(charge);
-
                     output_hypos.push_back(fh_tmp);
-
                     last_iso_idx = best_idx;
-                    singleton_trace = false;
                 }
                 else
                 {
@@ -503,7 +497,6 @@ namespace OpenMS
             } // end for iso_pos
 
         } // end for charge
-
 
         return ;
 

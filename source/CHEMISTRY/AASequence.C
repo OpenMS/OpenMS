@@ -749,11 +749,13 @@ namespace OpenMS
 		// split the peptide in its residues
 		vector<String> split;
 		Size pos(0);
-		bool mod_open(false), tag_open(false);
-		if (peptide[0] == '[')
+    bool mod_open(false)/*, tag_open(false)*/;
+    /*
+    if (peptide[0] == '[')
 		{
 			tag_open = true;
 		}
+    */
 		if (peptide[0] == '(')
 		{
 			mod_open = true;
@@ -793,12 +795,12 @@ namespace OpenMS
 			}
 			if (peptide[i] == '[')
 			{
-				tag_open = true;
+        // tag_open = true;
 				continue;
 			}
 			if (peptide[i] == ']')
 			{
-				tag_open = false;
+        // tag_open = false;
 				continue;
 			}
 		}

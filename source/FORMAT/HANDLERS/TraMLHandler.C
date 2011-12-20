@@ -1099,11 +1099,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		else if (parent_tag == "Compound")
     {
       actual_compound_.addCVTerm(cv_term);
-    }
-		else if (parent_tag == "Peptide")
-		{
-			actual_peptide_.addCVTerm(cv_term);
-		}
+    }		
 		else if (parent_tag == "Protein")
 		{
 			actual_protein_.addCVTerm(cv_term);
