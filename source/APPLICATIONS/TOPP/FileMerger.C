@@ -244,7 +244,7 @@ class TOPPFileMerger
 					//load file
 					MSExperiment<> in;
 					fh.loadExperiment(filename,in,force_type,log_type_);
-					if (in.size()==0)
+					if (in.empty())
 					{
 						writeLog_(String("Warning: Empty file '") + filename +"'!");
 						continue;

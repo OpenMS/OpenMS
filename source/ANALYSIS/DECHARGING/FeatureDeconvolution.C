@@ -882,7 +882,7 @@ namespace OpenMS
 		for (ConsensusMap::Iterator it = cons_map.begin(); it!=cons_map.end(); ++it)
 		{
 			// skip if empty
-			if (it->getFeatures().size()==0) continue;
+			if (it->getFeatures().empty()) continue;
 			
 			// skip if no backbone
 			Size backbone_count=0;

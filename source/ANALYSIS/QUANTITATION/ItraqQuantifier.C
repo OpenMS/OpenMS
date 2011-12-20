@@ -113,7 +113,7 @@ namespace OpenMS
     // new stats
     stats_ = ItraqQuantifierStats();
     stats_.channel_count = CHANNEL_COUNT[itraq_type_];
-    if (consensus_map_in.size()==0)
+    if (consensus_map_in.empty())
     {
       LOG_WARN << "Warning: Empty iTRAQ container. No quantitative information available!" << std::endl;
       return;

@@ -628,7 +628,7 @@ namespace OpenMS
 				accession_string.trim();
 				vector<String> accessions;
 				accession_string.split(' ', accessions);
-				if (accession_string!="" && accessions.size()==0)
+				if (accession_string!="" && accessions.empty())
 				{
 					accessions.push_back(accession_string);
 				}

@@ -3941,7 +3941,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
 
-    if (needs_update.size()==0) // no layer references data of filename
+    if (needs_update.empty()) // no layer references data of filename
     {
       watcher_->removeFile(filename);  // remove watcher
       return;

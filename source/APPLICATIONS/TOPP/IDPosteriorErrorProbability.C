@@ -209,7 +209,7 @@ class TOPPIDPosteriorErrorProbability
 		}		
     
     vector<Int>::iterator charge = charges.begin(); // charges can be empty, no problem if split_charge is not set
-    if (split_charge && charges.size()==0)
+    if (split_charge && charges.empty())
     {
       throw Exception::Precondition(__FILE__,__LINE__, __PRETTY_FUNCTION__, "split_charge is set and the list of charge states is empty but should not be!");
     }

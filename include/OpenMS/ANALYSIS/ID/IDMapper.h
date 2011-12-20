@@ -162,7 +162,7 @@ namespace OpenMS
 				{
 					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
 					{
-						if (f_it->getConvexHulls().size()==0)
+            if (f_it->getConvexHulls().empty())
 						{
 							use_centroid_rt = true;
 							use_centroid_mz = true;

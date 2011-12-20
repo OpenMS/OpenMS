@@ -320,7 +320,7 @@ namespace OpenMS
 						return begin();
 						break;
 					default:
-						if(values_.size()==0)
+            if(values_.empty())
 						{
 							//only sparse elements left
 							return begin();

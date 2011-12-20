@@ -98,7 +98,7 @@ namespace OpenMS
 				if (current_peak_ == indices_.end()) 
 				{
 					// if no seed was found:
-					if (indices_.size()==0) throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, IndexPair());
+					if (indices_.empty()) throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, IndexPair());
 					else throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *(current_peak_-1));
 				}
 

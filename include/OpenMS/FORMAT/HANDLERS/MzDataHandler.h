@@ -852,7 +852,7 @@ namespace OpenMS
 				os << "\t\t\t</contact>\n";
 			}
 			//no contacts given => add empty entry as there must be a contact entry
-			if (cexp_->getContacts().size()==0)
+			if (cexp_->getContacts().empty())
 			{
 				os << "\t\t\t<contact>\n"
 					 << "\t\t\t\t<name></name>\n"
@@ -938,7 +938,7 @@ namespace OpenMS
 			os << "\t\t</instrument>\n";
 			
 			//the data processing information of the first spectrum is used for the whole file
-			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().size()==0)
+			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().empty())
 			{
 				os << "\t\t<dataProcessing>\n"
 					 << "\t\t\t<software>\n"

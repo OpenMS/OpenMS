@@ -151,7 +151,7 @@ defaults_.setValidStrings("algorithm",StringList::create("ranked,average,PEPMatr
 	void ConsensusID::apply(vector<PeptideIdentification>& ids)
 	{
 		//Abort if no IDs present
-		if (ids.size()==0)
+		if (ids.empty())
 		{
 			return;
 		}

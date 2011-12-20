@@ -55,7 +55,7 @@ namespace OpenMS {
 	{
     DoubleReal score = 0;
 
-    if (fm.size()==0)
+    if (fm.empty())
     {
       LOG_INFO << "ILPDC wrapper received empty feature list. Nothing to compute! Exiting..." << std::endl;
       return -1;

@@ -303,7 +303,7 @@ class TOPPGenericWrapper
       {
         if ((it->tags).count("required")>0)
         {
-          if (it->value.toString().trim().size()==0 ) // any required parameter should have a value
+          if (it->value.toString().trim().empty() ) // any required parameter should have a value
           {
 					  LOG_ERROR << "The INI-parameter '"+it->name+"' is required, but was not given! Aborting ...";
             return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
@@ -430,7 +430,7 @@ class TOPPGenericWrapper
         // check if target already exists:
         String target_file = (String)p.getValue(target);
 
-        if (target_file.trim().size()==0) // if target was not given, we skip the copying step (usually for optional parameters)
+        if (target_file.trim().empty()) // if target was not given, we skip the copying step (usually for optional parameters)
 				{
 					LOG_INFO << "Parameter '"+target+"' not given. Skipping forwarding of files.\n";
 					continue;

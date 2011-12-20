@@ -64,7 +64,7 @@ namespace OpenMS
 
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{	
-			if (spectrum.size()==0) return;
+			if (spectrum.empty()) return;
 			
 			spectrum.sortByIntensity();
 			typename SpectrumType::size_type count = spectrum.size();

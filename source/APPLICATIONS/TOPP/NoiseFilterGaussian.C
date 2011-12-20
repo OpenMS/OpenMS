@@ -126,7 +126,7 @@ class TOPPNoiseFilterGaussian
       MSExperiment<Peak1D> exp;
       mz_data_file.load(in,exp);
 
-			if (exp.size()==0)
+			if (exp.empty())
 			{
 				LOG_WARN << "The given file does not contain any conventional peak data, but might"
 					          " contain chromatograms. This tool currently cannot handle them, sorry.";

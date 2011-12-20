@@ -117,7 +117,7 @@ class TOPPBaselineFilter
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp);
 
-		if (ms_exp.size()==0)
+		if (ms_exp.empty())
 		{
 			LOG_WARN << "The given file does not contain any conventional peak data, but might"
 				          " contain chromatograms. This tool currently cannot handle them, sorry.";

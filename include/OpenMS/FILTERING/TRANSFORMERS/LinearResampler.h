@@ -78,7 +78,7 @@ namespace OpenMS
 	    void raster(MSSpectrum<PeakType>& spectrum)
       {
       	//return if nothing to do
-      	if (spectrum.size()==0) return;
+      	if (spectrum.empty()) return;
       	
       	typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
       	typename MSSpectrum<PeakType>::iterator last = spectrum.end();

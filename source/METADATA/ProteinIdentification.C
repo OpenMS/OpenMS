@@ -242,7 +242,7 @@ namespace OpenMS
   
   void ProteinIdentification::assignRanks()
   {
-    if (protein_hits_.size()==0) return;
+    if (protein_hits_.empty()) return;
 
 		UInt rank = 1;
     sort();

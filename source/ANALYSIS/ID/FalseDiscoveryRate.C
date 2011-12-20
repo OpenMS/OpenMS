@@ -567,7 +567,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != target_scores.size(); ++i)
       {
-        if (decoy_scores.size()==0)
+        if (decoy_scores.empty())
         {
           // set FDR to 0 (done below automatically)
         }

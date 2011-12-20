@@ -1075,7 +1075,7 @@ namespace OpenMS
 					PeakMap exp;
 					FileHandler().loadExperiment(in, exp);
 
-          if (exp.getChromatograms().size()==0)
+          if (exp.getChromatograms().empty())
           {
             writeLog_("File does not contain chromatograms. No output was generated!");
             return INCOMPATIBLE_INPUT_DATA;

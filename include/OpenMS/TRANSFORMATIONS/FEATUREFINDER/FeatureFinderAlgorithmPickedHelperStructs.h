@@ -102,7 +102,7 @@ namespace OpenMS
       ///Sets the maximum to the highest contained peak of the trace
       void updateMaximum()
       {
-        if (peaks.size()==0) return;
+        if (peaks.empty()) return;
 
         max_rt = peaks.begin()->first;
         max_peak = peaks.begin()->second;

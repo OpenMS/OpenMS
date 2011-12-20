@@ -96,7 +96,7 @@ namespace OpenMS
 	/// @throws Exception::MissingInformation if no scans present or MS² scan has no precursor
 	void ItraqChannelExtractor::run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
 	{
-		if (ms_exp_data.size()==0)
+		if (ms_exp_data.empty())
 		{
 			LOG_WARN << "The given file does not contain any conventional peak data, but might"
 				          " contain chromatograms. This tool currently cannot handle them, sorry.";

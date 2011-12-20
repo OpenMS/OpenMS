@@ -338,7 +338,7 @@ namespace OpenMS
     unsigned int idx =0;
 
 		//two point conversion
-		if(ml3s_.size()==0)
+		if(ml3s_.empty())
 			{
 				for(;spec_iter != calib_spectra.end();++spec_iter)
 					{

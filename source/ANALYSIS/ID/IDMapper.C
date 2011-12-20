@@ -109,7 +109,7 @@ namespace OpenMS
 		//iterate over the peptide IDs
 		for (Size i=0; i<ids.size(); ++i)
 		{
-			if (ids[i].getHits().size()==0) continue;
+			if (ids[i].getHits().empty()) continue;
 			
 			getIDDetails_(ids[i], rt_pep, mz_values, charges);
 

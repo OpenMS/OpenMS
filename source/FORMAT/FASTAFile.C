@@ -124,7 +124,7 @@ namespace OpenMS
 		}
 		in.close();
 
-    if (size_read>0 && data.size()==0) LOG_WARN << "No entries from FASTA file read. Does the file have MacOS line endings? Convert to Unix or Windows line endings to fix!" << std::endl;
+    if (size_read>0 && data.empty()) LOG_WARN << "No entries from FASTA file read. Does the file have MacOS line endings? Convert to Unix or Windows line endings to fix!" << std::endl;
 		
 		return;
   }

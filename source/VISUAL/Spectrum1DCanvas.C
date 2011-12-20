@@ -641,7 +641,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
 	{
 		//no layers
-		if (layers_.size()==0) return;
+		if (layers_.empty()) return;
 			
 		if (draw_modes_[current_layer_]!=mode)
 		{
@@ -653,7 +653,7 @@ namespace OpenMS
 	Spectrum1DCanvas::DrawModes Spectrum1DCanvas::getDrawMode() const
 	{ 
 		//no layers
-		if (layers_.size()==0) return DM_PEAKS;
+		if (layers_.empty()) return DM_PEAKS;
 			
 		return draw_modes_[current_layer_]; 
 	}

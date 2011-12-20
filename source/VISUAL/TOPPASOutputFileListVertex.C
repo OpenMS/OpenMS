@@ -125,7 +125,7 @@ namespace OpenMS
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASVertex* tv = e->getSourceVertex();
     RoundPackages pkg = tv->getOutputFiles();
-    if (pkg.size()==0)
+    if (pkg.empty())
     {
 			std::cerr << "A problem occured while grabbing files from the parent tool. This is a bug, please report it!" << std::endl;
 			__DEBUG_END_METHOD__

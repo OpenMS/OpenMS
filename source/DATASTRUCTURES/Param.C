@@ -1558,7 +1558,7 @@ namespace OpenMS
       trace_()
 	{
 		//Empty Param => begin == end iterator
-		if (root_->entries.size()==0 && root_->nodes.size()==0)
+		if (root_->entries.empty() && root_->nodes.empty())
 		{
 			root_ = 0;
 			return;

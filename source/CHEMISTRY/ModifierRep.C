@@ -144,7 +144,7 @@ Size ModifierRep::getMaxModificationMasses ()
 
 void ModifierRep::refreshModificationList (map<double, SignedSize> & mod_map,const char & c)
 {
-	if (modification_table_.at((int)c).size()==0) {
+  if (modification_table_.at((int)c).empty()) {
 		return;
 	} else
 	{
@@ -185,7 +185,7 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 		5. convertig double to string and deleting doubled entrys
 		6. saving the mapping
 	*/
-	if (mass_mapping_.size()==0&&number_of_modifications_>0){
+  if (mass_mapping_.empty()&&number_of_modifications_>0){
 		set<String> all_mods;
 
 		for (Size i = 0; i < modification_table_.size();++i)
@@ -225,7 +225,7 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 			vector<double> masses;
 			for (Size j = 0 ; j < res.at(i).length();++j)
 			{
-				if (masses.size()==0)
+        if (masses.empty())
 				{
 					masses.insert(masses.end(), modification_table_.at((int)res.at(i)[j]).begin(),modification_table_.at((int)res.at(i)[j]).end());
 				} else
@@ -298,7 +298,7 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 vector<String> ModifierRep::getModificationsForMass (double & m, const String & seq)
 {
 	vector<String> all_mods = getModificationsForMass(m);
-	if (all_mods.size()==0) return (all_mods);
+  if (all_mods.empty()) return (all_mods);
 
 	vector<int> seq_hist;
 	for (int i = 0; i < 256;i++)

@@ -231,7 +231,7 @@ class TOPPINIUpdater
     p.load(tmp_ini_file);
 
     // STORE
-    if (outfile.size()==0)
+    if (outfile.empty())
     { // create a backup
       QFileInfo fi(infile.toQString());
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
@@ -259,7 +259,7 @@ class TOPPINIUpdater
     // get sections (usually there is only one - or the user has merged INI files manually)
     StringList sections = updater.getToolNamesFromINI(p);
 
-    if (sections.size()==0)
+    if (sections.empty())
     {
       writeLog_("Update for file " + infile + " failed because tool section does not exist. Check INI file for corruption!");
       failed_.push_back(infile);
@@ -332,7 +332,7 @@ class TOPPINIUpdater
     }
 
     // STORE
-    if (outfile.size()==0)
+    if (outfile.empty())
     { // create a backup
       QFileInfo fi(infile.toQString());
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".ini";
@@ -354,7 +354,7 @@ class TOPPINIUpdater
     bool inplace = getFlag_("i");
 
     // consistency checks
-    if (out.size()==0 && !inplace)
+    if (out.empty() && !inplace)
     {
       writeLog_("Cannot write output files, as neither -out nor -i are given. Use either of them, but not both!");
       return ILLEGAL_PARAMETERS;

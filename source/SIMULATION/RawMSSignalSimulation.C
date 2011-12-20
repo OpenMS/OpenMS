@@ -245,7 +245,7 @@ namespace OpenMS {
       const UInt COLS_EXPECTED = 8;
       for (Size i=0;i<tf.size();++i)
       {
-        if (tf[i].size()==0 || tf[i].hasPrefix("#")) continue; // skip comments
+        if (tf[i].empty() || tf[i].hasPrefix("#")) continue; // skip comments
         StringList cols;
         tf[i].removeWhitespaces().split(',', cols, true);
         if (cols.size()!=COLS_EXPECTED) throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i],"Expected " + String(COLS_EXPECTED) + " components, got " + String(cols.size()));

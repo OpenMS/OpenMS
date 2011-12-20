@@ -223,7 +223,7 @@ namespace OpenMS
 
 	bool ConvexHull2D::encloses(const PointType& point) const
 	{
-		if ((map_points_.size()==0) && outer_points_.size()>0)
+		if ((map_points_.empty()) && outer_points_.size()>0)
 		{ // we cannot answer the query as we lack the internal data structure
 			// (if you need this you need to augment encloses() to work on outer_points_ only)
 			throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);

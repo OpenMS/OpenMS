@@ -650,7 +650,7 @@ const vector<String> & SuffixArrayTrypticCompressed::getTags ()
 void SuffixArrayTrypticCompressed::setUseTags (bool use_tags)
 {
 	use_tags_ = use_tags;
-	if (tags_.size()==0) use_tags_ = false;
+	if (tags_.empty()) use_tags_ = false;
 }
 
 bool SuffixArrayTrypticCompressed::getUseTags ()

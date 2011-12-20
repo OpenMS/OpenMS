@@ -357,7 +357,7 @@ namespace OpenMS {
 				}
 
         // no charges > 0 selected (this should be really rare)
-				if (charge_states.size()==0) 
+				if (charge_states.empty()) 
 				{
 					++uncharged_feature_count; // OMP!
 					continue;

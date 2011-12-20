@@ -641,7 +641,7 @@ namespace OpenMS
         }
         //cout << "  scans: " << scan_indices.size() << endl;
 
-        if (scan_indices.size()==0) continue;
+        if (scan_indices.empty()) continue;
 
         //iterate over all pixels (m/z dimension)
         for (Size mz=0; mz<mz_pixel_count; ++mz)
@@ -1225,7 +1225,7 @@ namespace OpenMS
 			update_buffer_ = true;
 
 			//Abort if no data points are contained
-      if (currentPeakData_()->getChromatograms().size()==0)
+      if (currentPeakData_()->getChromatograms().empty())
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
@@ -1236,7 +1236,7 @@ namespace OpenMS
 		else if (layers_.back().type==LayerData::DT_IDENT) // identification data
 		{
 			//Abort if no data points are contained
-			if (getCurrentLayer_().peptides.size()==0)
+			if (getCurrentLayer_().peptides.empty())
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;

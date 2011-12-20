@@ -127,7 +127,7 @@ namespace OpenMS
 			errors = errors_;
 			warnings = warnings_;
 			
-			return (errors_.size()==0);
+			return (errors_.empty());
 	  }
 	
 	  void SemanticValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)

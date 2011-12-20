@@ -69,7 +69,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 			std::cout << "feat: "<<i <<" charge "<<features[i].getCharge() << std::endl;
 #endif
 			if (charges_set.count(features[i].getCharge())<1) continue;
-			if(mass_ranges[i].size()==0) continue;
+			if(mass_ranges[i].empty()) continue;
 #ifdef DEBUG_OPS
 			if(mass_ranges[i].size() > 0)
 				{

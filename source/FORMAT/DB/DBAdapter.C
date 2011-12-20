@@ -603,7 +603,7 @@ namespace OpenMS
 			return false;
 		}
 		
-		if (result.size()==0)
+    if (result.size() == 0)
 		{
 			if (warning)
 			{

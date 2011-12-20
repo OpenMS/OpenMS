@@ -207,7 +207,7 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
       }
     }
 
-    if (features_fragmented.size()==0) continue;
+    if (features_fragmented.empty()) continue;
 
     // now we have all features that elute in this scan -> create MS2 scans
     MSSimExperiment MS2_spectra;
