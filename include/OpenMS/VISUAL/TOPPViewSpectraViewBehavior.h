@@ -37,6 +37,9 @@ namespace OpenMS
 {
   class TOPPViewBase;
 
+  /**
+  @brief Behavior of TOPPView in spectra view mode.
+  */
   class TOPPViewSpectraViewBehavior :
       public TOPPViewBehaviorInterface
   {

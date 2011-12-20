@@ -37,6 +37,11 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Hierarchical visualization and selection of spectra.
+
+    @ingroup SpectrumWidgets
+  */
   class SpectraViewWidget
     : public QWidget
   {
