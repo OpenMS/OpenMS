@@ -397,7 +397,7 @@ SignedSize SuffixArrayTrypticCompressed::findFirst_ (const vector<DoubleReal> & 
 void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,SignedSize>,DoubleReal > > >& candidates, const vector<DoubleReal> & spec )
 {
 	//time_t t0 (time(NULL));
-	if (spec.size() == 0)
+	if (spec.empty())
 	{
 		return;
 	}

@@ -484,7 +484,7 @@ namespace OpenMS
 #ifdef PISP_DEBUG
     std::cout << "Finished predictions!"<<std::endl;
 #endif
-    if(masses_.size() == 0)
+    if(masses_.empty())
     {
       std::cout << "no masses entered" << std::endl;
       return;
@@ -685,7 +685,7 @@ namespace OpenMS
 
     }
 
-    if(masses_.size() == 0)
+    if(masses_.empty())
     {
       std::cout << "no masses entered" << std::endl;
       return;

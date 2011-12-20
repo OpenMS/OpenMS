@@ -287,7 +287,7 @@ namespace OpenMS
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: Raw and peak map do not have the same number of spectra");
 		}
 		//do nothing if there are no scans
-		if(ms_exp.size() == 0)
+		if(ms_exp.empty())
 		{
 			return;
 		}
@@ -316,7 +316,7 @@ namespace OpenMS
 
 		typename MSExperiment<OutputPeakType>::Iterator ms_exp_it = ms_exp.begin();
 		typename MSExperiment<OutputPeakType>::Iterator ms_exp_it_end = ms_exp.end();
-		if(ms_exp.size() == 0)
+		if(ms_exp.empty())
 			{
 				std::cout << "empty experiment"<<std::endl;
 				return;

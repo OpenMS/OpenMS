@@ -114,7 +114,7 @@ namespace OpenMS
 			} // ! ConsensusMap loop
 			
 			// no peptides found that match current Protein
-			if (consensus_to_peptide.size() == 0) continue;
+			if (consensus_to_peptide.empty()) continue;
 			
 			// Use all matching ConsensusElements to derive a quantitation for current protein
 			// build up ratios for every map vs reference

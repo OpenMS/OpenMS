@@ -87,7 +87,7 @@ namespace OpenMS
 			{
 				vector<String> slash_split;
 				element_path.split('/', slash_split);
-				if (slash_split.size() == 0)
+				if (slash_split.empty())
 				{
 					slash_split.push_back(element_path);
 				}
@@ -101,7 +101,7 @@ namespace OpenMS
 								
 					vector<String> split;
 					it->split(':', split);
-					if (split.size() == 0)
+					if (split.empty())
 					{
 						element_path += "/" + *it;
 					}

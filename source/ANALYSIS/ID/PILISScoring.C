@@ -65,7 +65,7 @@ namespace OpenMS
 
 	void PILISScoring::getScore(PeptideIdentification& id)
 	{
-    if (id.getHits().size() == 0)
+    if (id.getHits().empty())
     {
       return;
     }
@@ -104,7 +104,7 @@ namespace OpenMS
   	vector<double> global_scores;
   	for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
   	{
-			if (it->getHits().size() == 0)
+			if (it->getHits().empty())
 			{
 				break;
 			}
@@ -131,7 +131,7 @@ namespace OpenMS
 
 	void PILISScoring::getScore_(PeptideIdentification& id, double global_slope, double global_intercept)
 	{
-		if (id.getHits().size() == 0)
+		if (id.getHits().empty())
 		{
 			return;
 		}

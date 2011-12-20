@@ -656,7 +656,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 		if (diff1 < diff2)
 		{
     	getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ion_scores);
-			if (seq1.size() == 0)
+			if (seq1.empty())
 			{
 #ifdef DAC_DEBUG
 				cerr << tabs_ << "first call produced 0 candidates (" << diff1 << ")" << endl;
@@ -669,7 +669,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 		else
 		{
 			getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ion_scores);
-			if (seq2.size() == 0)
+			if (seq2.empty())
 			{
 #ifdef DAC_DEBUG
 				cerr << tabs_ << "second call produced 0 candidates (" << diff2 << ")" << endl;
@@ -693,7 +693,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 		}
 		
 		// test if we found enough sequence candidates
-		if (seq1.size() == 0 || seq2.size() == 0)
+		if (seq1.empty() || seq2.empty())
 		{
 			continue;
 		}

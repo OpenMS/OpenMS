@@ -365,7 +365,10 @@ namespace OpenMS
 
 			/// assignment operator
 			AASequence& operator = (const AASequence& rhs);
-			
+
+      /// check if sequence is empty
+      bool empty() const;
+
 			/** @name Accessors
 			*/
 			//@{

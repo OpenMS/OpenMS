@@ -396,7 +396,7 @@ namespace OpenMS
 	
 	bool EmpiricalFormula::isEmpty() const
 	{
-		return (formula_.size() == 0);
+		return (formula_.empty());
 	}
 
 	bool EmpiricalFormula::hasElement(const Element* element) const

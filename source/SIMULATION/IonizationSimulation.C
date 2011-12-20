@@ -173,7 +173,7 @@ namespace OpenMS {
 
 		// parse possible ESI adducts
     StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
-    if (esi_charge_impurity.size() == 0) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
+    if (esi_charge_impurity.empty()) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
     StringList components;
 		max_adduct_charge_ = 0;
 		// reset internal state:

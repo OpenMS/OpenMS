@@ -306,7 +306,7 @@ namespace OpenMS
       const DoubleReal mz_max = visible_area_.maxPosition()[0];
 
       // skip empty peak maps
-      if (peak_map.size() == 0)
+      if (peak_map.empty())
       {
         return;
       }

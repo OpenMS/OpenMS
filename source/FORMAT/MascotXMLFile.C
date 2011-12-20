@@ -70,7 +70,7 @@ namespace OpenMS
 		while(id_it != id_data.end())
 		{
 			peptide_hits = id_it->getHits();
-			if (peptide_hits.size() == 0 || (peptide_hits.size() == 1 && peptide_hits[0].getSequence() == ""))
+			if (peptide_hits.empty() || (peptide_hits.size() == 1 && peptide_hits[0].getSequence() == ""))
 			{
 				id_it = id_data.erase(id_it);
 			}

@@ -118,7 +118,7 @@ namespace OpenMS
 
         DoubleReal getCentroidMZ()
         {
-            if (iso_pattern_.size() == 0)
+            if (iso_pattern_.empty())
             {
                 throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
             }
@@ -128,7 +128,7 @@ namespace OpenMS
 
         DoubleReal getCentroidRT()
         {
-            if (iso_pattern_.size() == 0)
+            if (iso_pattern_.empty())
             {
                 throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
             }
@@ -140,7 +140,7 @@ namespace OpenMS
 
         DoubleReal getFWHM()
         {
-            if (iso_pattern_.size() == 0)
+            if (iso_pattern_.empty())
             {
                 return 0.0;
             }

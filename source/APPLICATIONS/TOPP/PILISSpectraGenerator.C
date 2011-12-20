@@ -292,7 +292,7 @@ class TOPPPILISSpectraGenerator
 			{
 				for (RichPeakMap::ConstIterator it2 = it1->begin(); it2 != it1->end(); ++it2)
 				{
-					if (it2->getPeptideIdentifications().size() == 0)
+					if (it2->getPeptideIdentifications().empty())
 					{
 						continue;
 					}
@@ -348,7 +348,7 @@ class TOPPPILISSpectraGenerator
       {
         for (vector<PeptideIdentification>::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
         {
-          if (it2->getHits().size() == 0)
+          if (it2->getHits().empty())
           {
             continue;
           }

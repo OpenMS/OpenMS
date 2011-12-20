@@ -156,13 +156,13 @@ class TOPPMRMPairFinder
   		while (getline(is, line))
   		{
     		line.trim();
-    		if (line.size() == 0 || line[0] == '#')
+    		if (line.empty() || line[0] == '#')
     		{
       		continue;
    			}
     		vector<String> split;
     		line.split(' ', split);
-				if (split.size() == 0)
+				if (split.empty())
 				{
 					line.split('\t', split);
 				}
@@ -282,7 +282,7 @@ class TOPPMRMPairFinder
 
 					writeDebug_("Quantitation of pair " + String(it1->first) + " <-> " + String(it2->first) + " (#XIC pairs for quantation=" + String(quantlets.size()) + ")", 1);
 
-					if (quantlets.size() == 0)
+					if (quantlets.empty())
 					{
 						continue;
 					}

@@ -173,7 +173,7 @@ namespace OpenMS
         {
             single_mtraces.push_back(mt);
         }
-        else if (maxes.size() == 0)
+        else if (maxes.empty())
         {
             return ;
         }

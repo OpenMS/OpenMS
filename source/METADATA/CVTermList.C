@@ -94,7 +94,7 @@ namespace OpenMS
 
 	bool CVTermList::empty() const
 	{
-		return cv_terms_.size() == 0;
+		return cv_terms_.empty();
 	}
 
 } // namespace OpenMS

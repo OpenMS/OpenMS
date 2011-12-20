@@ -200,7 +200,7 @@ class TOPPIDMassAccuracy
         {
           for (Size j = 0; j != maps[i].size(); ++j)
           {
-            if (maps[i][j].getPeptideIdentifications().size() == 0)
+            if (maps[i][j].getPeptideIdentifications().empty())
             {
               continue;
             }
@@ -244,7 +244,7 @@ class TOPPIDMassAccuracy
         {
           for (Size j = 0; j != maps[i].size(); ++j)
           {
-            if (maps[i][j].getPeptideIdentifications().size() == 0)
+            if (maps[i][j].getPeptideIdentifications().empty())
             {
               continue;
             }

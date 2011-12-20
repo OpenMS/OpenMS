@@ -387,7 +387,7 @@ namespace OpenMS
 						do
 						{
 							line.trim();
-							if (line.size() == 0)
+							if (line.empty())
 							{
 								continue;
 							}

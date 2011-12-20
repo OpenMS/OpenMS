@@ -184,7 +184,7 @@ class TOPPERPairFinder
   		while (getline(is, line))
   		{
     		line.trim();
-    		if (line.size() == 0 || line[0] == '#')
+    		if (line.empty() || line[0] == '#')
     		{
       		continue;
    			}

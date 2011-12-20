@@ -122,7 +122,7 @@ class TOPPPhosphoScoring
 			id_mapper.annotate(exp, pep_ids, prot_ids); 
 			for(RichPeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
 			{
-				if(it->getPeptideIdentifications().size() == 0)
+				if(it->getPeptideIdentifications().empty())
 				{
 					continue;
 				}

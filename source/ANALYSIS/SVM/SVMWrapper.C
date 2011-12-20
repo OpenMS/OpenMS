@@ -456,11 +456,11 @@ namespace OpenMS
 			{
 				cout << "Model is null" << endl;
 			}
-			else if (problem.sequences.size() == 0)
+			else if (problem.sequences.empty())
 			{
 				cout << "problem is empty" << endl;
 			}
-			else if (training_data_.sequences.size() == 0)
+			else if (training_data_.sequences.empty())
 			{
 				cout << "Training set is empty and kernel type == PRECOMPUTED" << endl;
 			}
@@ -1524,7 +1524,7 @@ namespace OpenMS
 		DoubleReal temp = 0;
 		svm_problem* kernel_matrix;
 				
-		if (problem1.labels.size() == 0 || problem2.labels.size() == 0)
+		if (problem1.labels.empty() || problem2.labels.empty())
 		{
 			return NULL;
 		}

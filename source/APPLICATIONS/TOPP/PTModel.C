@@ -535,7 +535,7 @@ class TOPPPTModel
 					output_flag = true;
 					vector<String> parts;
 					outputfile_name.split('/', parts);
-					if (parts.size() == 0)
+					if (parts.empty())
 					{
 						digest = outputfile_name;
 					}

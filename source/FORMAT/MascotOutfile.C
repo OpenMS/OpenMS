@@ -66,7 +66,7 @@ namespace OpenMS
 
 		peptide_identifications.clear();
 	
-		if (f.size() == 0)
+		if (f.empty())
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
 				"File is empty!", filename);

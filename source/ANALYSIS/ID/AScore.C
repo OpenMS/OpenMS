@@ -62,7 +62,7 @@ namespace OpenMS
 		}
 		AASequence without_phospho(without_phospho_str);
 		Int number_of_STY = Int(without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y"));
-		if(real_spectrum.size() == 0 || number_of_phospho_sites < 1 || number_of_STY == 0)
+		if(real_spectrum.empty() || number_of_phospho_sites < 1 || number_of_STY == 0)
 		{
 			return PeptideHit(-1,0,hit.getCharge(),without_phospho);
 		}	

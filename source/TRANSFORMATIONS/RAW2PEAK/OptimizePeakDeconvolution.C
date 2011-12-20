@@ -357,7 +357,7 @@ namespace OpenMS
 bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks,  Data& data)
 	{
       
-		if (peaks.size() == 0)	return true;
+		if (peaks.empty())	return true;
 
 
 #ifdef DEBUG_DECONV

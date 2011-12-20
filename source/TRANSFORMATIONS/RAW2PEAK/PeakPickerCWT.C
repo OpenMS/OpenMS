@@ -1728,7 +1728,7 @@ namespace OpenMS
 			}
 		// average width over the three tested spectra
 		DoubleReal avg_width = 0.;
-		if(estimated_widths.size() == 0)
+		if(estimated_widths.empty())
 			{
 				std::cout <<"Couldn't estimate peak width!"<<std::endl;
 				return 0.;

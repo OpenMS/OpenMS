@@ -244,7 +244,7 @@ namespace OpenMS
 							std::cerr << "SECTIONS: " << sit->getMZ() << " " << sit->getIntensity() << std::endl;
 						}
 						this_rt = sit->getMZ();
-						if (sections.size() == 0 || (this_rt - last_rt) > min_rt_distance)
+						if (sections.empty() || (this_rt - last_rt) > min_rt_distance)
 						{
 							if (write_debuginfo)
 							{

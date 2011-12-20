@@ -415,7 +415,7 @@ void MascotRemoteQuery::httpDone(bool error)
 	cerr << doc.toPlainText().toStdString() << "\n";
 #endif
 	
-  if (QString(new_bytes).trimmed().size() == 0 )
+  if (QString(new_bytes).trimmed().size() == 0)
   {
     error_message_ = "Error: Reply from mascot server is empty! Possible server overload - see the Mascot Admin!";
     endRun_();

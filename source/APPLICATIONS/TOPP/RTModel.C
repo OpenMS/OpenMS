@@ -867,7 +867,7 @@ class TOPPRTModel
 					output_flag = true;
 					vector<String> parts;
 					inputfile_name.split('/', parts);
-					if (parts.size() == 0)
+					if (parts.empty())
 					{
 						digest = inputfile_name;
 					}

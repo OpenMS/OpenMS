@@ -937,7 +937,7 @@ namespace OpenMS
 							}
 						}
 					}
-					else if (mods.size() == 0)
+					else if (mods.empty())
 					{
 						error(LOAD, String("Cannot parse modification of amino acid '") + it->aminoacid + "'");
 					}

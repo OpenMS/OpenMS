@@ -264,7 +264,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		if (string.size() == 0)
+		if (string.empty())
 		{
 			return true;
 		}
@@ -278,7 +278,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		if (string.size() == 0)
+		if (string.empty())
 		{
 			return true;
 		}
@@ -573,7 +573,7 @@ namespace OpenMS
 				}
 			}
 			// no valid splitter found - return empty list
-			if (substrings.size() == 0) {
+			if (substrings.empty()) {
 				substrings.push_back(*this);
 				return false;
 			}

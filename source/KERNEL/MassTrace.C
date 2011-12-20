@@ -96,7 +96,7 @@ namespace OpenMS
     DoubleReal MassTrace::computePeakArea() {
         DoubleReal peak_area(0.0);
 
-        if (trace_peaks_.size() == 0)
+        if (trace_peaks_.empty())
             return peak_area;
 
         for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
@@ -115,7 +115,7 @@ namespace OpenMS
             throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
         }
 
-        if (trace_peaks_.size() == 0)
+        if (trace_peaks_.empty())
         {
             throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace appears to be empty! Aborting...", String(trace_peaks_.size()));
         }
@@ -364,7 +364,7 @@ namespace OpenMS
 
     void MassTrace::updateMedianRT()
     {
-        if (trace_peaks_.size() == 0)
+        if (trace_peaks_.empty())
         {
             return ;
         }
@@ -404,7 +404,7 @@ namespace OpenMS
 
     void MassTrace::updateMedianMZ()
     {
-        if (trace_peaks_.size() == 0)
+        if (trace_peaks_.empty())
         {
             return ;
         }

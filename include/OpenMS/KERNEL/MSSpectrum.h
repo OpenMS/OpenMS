@@ -301,7 +301,7 @@ namespace OpenMS
 			*/
 			void sortByIntensity(bool reverse=false)
 			{
-				if(float_data_arrays_.size() == 0 && string_data_arrays_.size() && integer_data_arrays_.size())
+				if(float_data_arrays_.empty() && string_data_arrays_.size() && integer_data_arrays_.size())
 				{
 					if (reverse)
 					{
@@ -377,7 +377,7 @@ namespace OpenMS
 			*/
 			void sortByPosition()
 			{
-				if(float_data_arrays_.size() == 0)
+				if(float_data_arrays_.empty())
 				{
 					std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
 				}

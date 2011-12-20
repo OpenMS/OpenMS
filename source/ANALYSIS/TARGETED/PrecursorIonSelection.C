@@ -489,7 +489,7 @@ namespace OpenMS
 							<< "sps "<<SPS << "\n"
 							<< "dex "<<DEX << "\n";
 #endif
-		if(features.size() == 0)  return;
+		if(features.empty())  return;
 		// check if feature map has required user_params-> else add them
 		checkForRequiredUserParams_(features);
 
@@ -639,7 +639,7 @@ namespace OpenMS
 				std::cout << "new features "<<new_features.size() << std::endl;
 				std::cout << "curr_pep_ids "<<curr_pep_ids.size() << std::endl;
 #endif
-				if(curr_pep_ids.size() == 0)
+				if(curr_pep_ids.empty())
 					{
 						// necessary for making the figures later
 						UInt num_prots = filterProtIds_(all_prot_ids);

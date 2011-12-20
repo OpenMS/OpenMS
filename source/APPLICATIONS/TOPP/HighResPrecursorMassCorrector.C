@@ -91,7 +91,7 @@ protected:
     for(Size i = 0; i != exp.size(); ++i)
     {
       vector<Precursor> pcs = exp[i].getPrecursors();
-      if (pcs.size() == 0)
+      if (pcs.empty())
       {
         continue;
       }

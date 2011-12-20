@@ -167,7 +167,7 @@ class TOPPFileFilter
 			}
 			feature.setPeptideIdentifications(vector<PeptideIdentification> (1,temp));
 			// not filtering sequences or accessions
-      if (sequences.size() == 0 && accessions.size() == 0)
+      if (sequences.empty() && accessions.empty())
 			{
 				return true;
 			}

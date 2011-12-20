@@ -104,7 +104,7 @@ namespace OpenMS
 // generate parameter permutations
 void PILISCrossValidation::generateParameters_(const Param& param, const Map<String, Option>& options, vector<Param>& parameters)
 {
-	if (options.size() == 0)
+	if (options.empty())
 	{
 		parameters.push_back(param);
 		return;

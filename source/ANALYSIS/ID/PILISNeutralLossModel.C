@@ -160,7 +160,7 @@ namespace OpenMS
 			// get the position of the peak
 			vector<String> split;
 			it->first.split('-', split);
-			if (split.size() == 0)
+			if (split.empty())
 			{
 				p.setPosition(0);
 			}

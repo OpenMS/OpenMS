@@ -55,7 +55,7 @@ namespace OpenMS
 
   const ToolMapping& INIUpdater::getNameMapping()
   {
-    if (map_.size() == 0)
+    if (map_.empty())
     {
       map_[TDE("FeatureFinder",StringList::create("centroided"))] = TDE("FeatureFinderCentroided",StringList::create(""));
       map_[TDE("FeatureFinder",StringList::create("isotope_wavelet"))] = TDE("FeatureFinderIsotopeWavelet",StringList::create(""));

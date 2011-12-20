@@ -297,7 +297,7 @@ class TOPPPILISModelCV
 			Int min_charge(getIntOption_("min_charge"));
 			Int max_charge(getIntOption_("max_charge"));
 
-      if (in.size() == 0)
+      if (in.empty())
       {
         writeLog_("Spectra and identification are needed.");
         return INCOMPATIBLE_INPUT_DATA;
@@ -397,7 +397,7 @@ class TOPPPILISModelCV
 			{
 				for (RichPeakMap::ConstIterator it2 = it1->begin(); it2 != it1->end(); ++it2)
 				{
-					if (it2->getPeptideIdentifications().size() == 0)
+					if (it2->getPeptideIdentifications().empty())
 					{
 						continue;
 					}

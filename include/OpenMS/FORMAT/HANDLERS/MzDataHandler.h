@@ -879,7 +879,7 @@ namespace OpenMS
 			os << "\t\t\t</source>\n";
 						
 			//no analyzer given => add empty entry as there must be one entry
-			if (inst.getMassAnalyzers().size() == 0)
+			if (inst.getMassAnalyzers().empty())
 			{
 				os << "\t\t\t<analyzerList count=\"1\">\n"
 				   << "\t\t\t\t<analyzer>\n"

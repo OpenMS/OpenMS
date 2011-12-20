@@ -222,7 +222,7 @@ namespace OpenMS
 	{
 		set<String> var_names(getVariableModificationNames()), fixed_names(getFixedModificationNames());
 		// no modifications present and needed
-		if (fixed_names.size() == 0 && !peptide.isModified())
+		if (fixed_names.empty() && !peptide.isModified())
 		{
 			return true;
 		}

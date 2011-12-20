@@ -396,7 +396,7 @@ class AdditiveSeries
 		cout << "Found feature pairs: " <<  intensities.size() << endl;
 		cout << "Spiked concentrations: " << sp_concentrations.size() << endl;
 
-		if (intensities.size() == 0 || sp_concentrations.size() == 0 )
+		if (intensities.empty() || sp_concentrations.empty() )
 		{
 
 			writeLog_("Did not find any data. Aborting!");

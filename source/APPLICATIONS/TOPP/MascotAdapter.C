@@ -395,7 +395,7 @@ class TOPPMascotAdapter
 							charges.push_back(temp_charge.toInt());
 						}
 					}
-				if (charges.size() == 0)
+				if (charges.empty())
 				{
 					writeLog_("No charge states specified for Mascot search. Aborting!");
 					return ILLEGAL_PARAMETERS;

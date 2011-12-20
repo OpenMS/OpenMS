@@ -247,7 +247,7 @@ namespace OpenMS
 	void SuffixArraySeqan::setUseTags (bool use_tags)
 	{
 		use_tags_ = use_tags;
-		if (tags_.size() == 0)
+		if (tags_.empty())
 		{
 			use_tags_ = false;
 		}
@@ -298,7 +298,7 @@ namespace OpenMS
 	// finds all occurences of a given spectrum
 	void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>,DoubleReal> > >& candidates, const vector<DoubleReal> & spec)
 	{
-		if (spec.size() == 0)
+		if (spec.empty())
 		{
 			return;
 		}

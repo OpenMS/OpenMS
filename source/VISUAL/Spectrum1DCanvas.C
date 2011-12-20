@@ -1834,7 +1834,7 @@ namespace OpenMS
   void Spectrum1DCanvas::setCurrentLayerPeakPenStyle(Qt::PenStyle ps)
   {    
     // no layers
-    if (layers_.size() == 0)
+    if (layers_.empty())
     {
       return;
     }

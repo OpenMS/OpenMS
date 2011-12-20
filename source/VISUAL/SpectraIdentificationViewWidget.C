@@ -286,7 +286,7 @@ namespace OpenMS
             // get meta value keys
             vector<String> keys;
             phits_it->getKeys(keys);
-            if (common_keys.size() == 0) // first MS2 peptide hit found. Now insert keys.
+            if (common_keys.empty()) // first MS2 peptide hit found. Now insert keys.
             {
               for(vector<String>::iterator sit = keys.begin(); sit != keys.end(); ++sit)
               {

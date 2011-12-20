@@ -50,7 +50,7 @@ namespace OpenMS
 	void Base64::encodeStrings(std::vector<String>& in,String& out, bool zlib_compression)
 	{
 		out.clear();
-		if (in.size() == 0) return;
+		if (in.empty()) return;
 		std::string str;
 		std::string compressed;
 		Byte* it;

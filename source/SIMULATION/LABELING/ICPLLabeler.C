@@ -67,7 +67,7 @@ namespace OpenMS
   void ICPLLabeler::addLabelToProteinHits_(FeatureMapSim &features, const String &label) const
   {
     // check if proteinIdentification exists before accessing it
-    if(features.getProteinIdentifications().size() == 0) return;
+    if(features.getProteinIdentifications().empty()) return;
     for(std::vector<ProteinHit>::iterator protein_hit = features.getProteinIdentifications()[0].getHits().begin();
       protein_hit != features.getProteinIdentifications()[0].getHits().end();
       ++protein_hit)

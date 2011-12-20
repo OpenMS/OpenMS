@@ -737,7 +737,7 @@ class TOPPFileInfo
 						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
 					//scan size = 0
-					if (exp[s].size() == 0)
+					if (exp[s].empty())
 					{
 						os << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
@@ -953,7 +953,7 @@ class TOPPFileInfo
 			}
 
 			//print data
-			if (dp.size() == 0)
+			if (dp.empty())
 			{
 					os << "No information about data processing available!" << endl << endl;
 			}

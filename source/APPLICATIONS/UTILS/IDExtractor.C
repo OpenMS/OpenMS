@@ -229,7 +229,7 @@ class TOPPIDExtractor
 							}
 						}
 					}
-					if (chosen_protein_hits.size() == 0)
+					if (chosen_protein_hits.empty())
 					{
 						cout << "No protein hits found for " << protein_identifications[i].getIdentifier() 
 							<< " although having " << temp_identifications.size() << " ids" << endl;

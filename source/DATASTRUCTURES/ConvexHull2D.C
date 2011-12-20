@@ -83,7 +83,7 @@ namespace OpenMS
 	const ConvexHull2D::PointArrayType& ConvexHull2D::getHullPoints() const
 	{
 		// construct outer hull if required
-		if (outer_points_.size() == 0 && map_points_.size() > 0)
+		if (outer_points_.empty() && map_points_.size() > 0)
 		{
 
       // walk the outer hull

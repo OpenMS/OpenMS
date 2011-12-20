@@ -486,7 +486,7 @@ namespace OpenMS
 	
 	bool AASequence::hasSubsequence(const AASequence& sequence) const
 	{
-		if (sequence.size() == 0)
+    if (sequence.empty())
 		{
 			return true;
 		}
@@ -528,7 +528,7 @@ namespace OpenMS
 	
 	bool AASequence::hasPrefix(const AASequence& sequence) const
 	{
-		if (sequence.size() == 0)
+    if (sequence.empty())
 		{
 			return true;
 		}
@@ -556,7 +556,7 @@ namespace OpenMS
 	
 	bool AASequence::hasSuffix(const AASequence& sequence) const
 	{
-		if (sequence.size() == 0)
+    if (sequence.empty())
 		{
 			return true;
 		}
@@ -646,6 +646,11 @@ namespace OpenMS
 	{
 		return *this != String(sequence);
 	}
+
+  bool AASequence::empty() const
+  {
+    return (size() == 0);
+  }
 
 	bool AASequence::isModified() const
 	{
@@ -741,7 +746,7 @@ namespace OpenMS
 		String peptide(pep);
 		peptide.trim();
 
-		if (peptide.size() == 0)
+    if (peptide.empty())
 		{
 			return;
 		}
@@ -808,7 +813,7 @@ namespace OpenMS
 		// push_back last residue
 		split.push_back(peptide.substr(pos, peptide.size()-pos));
 
-		if (split.size() > 0 && split[0].size() > 0 && split[0][0] == '(')
+    if (!split.empty() && !split[0].empty() && split[0][0] == '(')
 		{
 			String mod = split[0];
 			mod.trim();
@@ -819,7 +824,7 @@ namespace OpenMS
 			split.erase(split.begin());
     }
 
-		if (split.size() == 0)
+    if (split.empty())
 		{
 			return;
 		}

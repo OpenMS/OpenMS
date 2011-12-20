@@ -150,7 +150,7 @@ namespace OpenMS {
 
   void PeptideIdentification::assignRanks()
   {
-		if (hits_.size() == 0)
+		if (hits_.empty())
 		{
 			return;
 		}
@@ -185,7 +185,7 @@ namespace OpenMS {
 	bool PeptideIdentification::empty() const
 	{
 		return (id_ == ""
-						&& hits_.size() == 0
+						&& hits_.empty()
 						&& significance_threshold_ == 0.0
 						&& score_type_ == ""
 						&& higher_score_better_ == true);

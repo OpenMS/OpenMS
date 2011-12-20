@@ -265,7 +265,7 @@ namespace OpenMS
 			
 			++index.first;
 			while (index.first < map_->size() &&
-						 (*map_)[index.first].size() == 0)
+						 (*map_)[index.first].empty())
 			{
 				++index.first;
 			}
@@ -340,12 +340,12 @@ namespace OpenMS
 			}
 
 			--index.first;
-			while ((index.first > 0) && ((*map_)[index.first].size() == 0))
+			while ((index.first > 0) && ((*map_)[index.first].empty()))
 			{
 				--index.first;
 			}
 			// we only found an empty scan
-			if ((*map_)[index.first].size() == 0) throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getPrevRt", index);
+			if ((*map_)[index.first].empty()) throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getPrevRt", index);
 
 			// perform binary search to find the neighbour in mz dimension
 

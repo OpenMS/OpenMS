@@ -529,7 +529,7 @@ namespace OpenMS
 		out_q.close();
 #endif
 
-    if (feature_relation.size() == 0)
+    if (feature_relation.empty())
     {
       LOG_INFO << "Found NO putative edges. The output generated will be trivial (only singleton clusters and no pairings). "
                << "Your parameters might need revision or the input was ill-formed." << std::endl;

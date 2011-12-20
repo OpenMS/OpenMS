@@ -136,7 +136,7 @@ namespace OpenMS
       }
     endProgress();
 
-		if(coeff_quad_fit_.size() == 0)
+		if(coeff_quad_fit_.empty())
 			{
 				String mess = String("Data can't be calibrated, not enough reference masses found: ") + coeff_quad_fit_.size()/3;
 				Exception::UnableToCalibrate(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToCalibrate", mess.c_str());
