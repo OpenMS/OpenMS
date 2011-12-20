@@ -38,6 +38,9 @@
 
 namespace OpenMS
 {
+  /**
+  @brief Tabular visualization/ selection of identified specra.
+  */
   class SpectraIdentificationViewWidget
     : public QWidget,
       public DefaultParamHandler
