@@ -162,8 +162,8 @@ protected:
         if (use_epd)
         {
             DoubleReal fwhm(mt_ext.getParameters().getValue("chrom_fwhm"));
-            DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
-            Size min_datapoints = std::floor(fwhm/scan_rt_diff);
+            //DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
+            //Size min_datapoints = std::floor(fwhm/scan_rt_diff);
 
             ElutionPeakDetection ep_det;
 

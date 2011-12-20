@@ -764,7 +764,7 @@ namespace OpenMS
 			break;
 		case DataValue::STRING_LIST:
 			if (input_file) type = ParameterInformation::INPUT_FILE_LIST;
-			else if (input_file) type = ParameterInformation::OUTPUT_FILE_LIST;
+      else if (output_file) type = ParameterInformation::OUTPUT_FILE_LIST;
 			else type = ParameterInformation::STRINGLIST;
 			break;
 		case DataValue::INT_LIST:
