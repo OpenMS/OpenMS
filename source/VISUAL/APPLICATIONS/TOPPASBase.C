@@ -171,7 +171,7 @@ namespace OpenMS
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
 		action = help->addAction("TOPPAS tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
-		action->setData("http://www.openms.de/current_doxygen/TOPP_tutorial.html"); // do not change the base URL! Rather change the redirection rule for "www.openms.de/current_doxygen/" on homepage
+		action->setData("http://www.openms.de/current_doxygen/TOPPAS_tutorial.html"); // do not change the base URL! Rather change the redirection rule for "www.openms.de/current_doxygen/" on homepage
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
 		

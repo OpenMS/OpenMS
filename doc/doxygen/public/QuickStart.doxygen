@@ -41,16 +41,20 @@
 	         These tools chained together in a way that fits the requirements of the user.
 					 Accessible from a command prompt/shell or via TOPPAS.
 					 See also: @subpage TOPP_documentation<br>
-	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a pipeline - but you could.
+	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a productive pipeline - but rather during pipeline construction or
+						parameter optimization.
 						See also: @subpage UTILS_documentation
 	
 	@section run_tool How to run a tool
 	
-					We'd recommend just starting TOPPAS and once in there to open the example pipelines (see "File" --> "Open example file" within TOPPAS).
+					We'd recommend using TOPPAS. A good start are the example pipelines (see "File" --> "Open example file" within TOPPAS).
 					In parallel you can read the documentation of the tools (see @subpage TOPP_documentation) 
-					and the one of TOPPAS (@subpage TOPP_tutorial --> TOPPAS).
+					and the one of TOPPAS (@subpage TOPPAS_tutorial).
 					
-					
+					Alternatively, you can use the command line and call tools directly. In this case you'll probably want
+					to use some type of shell script for automation.
+										
+										
 	@section parameters Adapting your pipeline parameters
 	
 		The default parameters of each tool can usually be tweaked to fit your data and improve results.
