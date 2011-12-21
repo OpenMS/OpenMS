@@ -80,10 +80,13 @@ namespace OpenMS
 	
   void MultiGradient::insert (DoubleReal position, QColor color)
 	{
-		if (position >= 0 || position <=100 )
+    if (position >= 0 && position <=100 )
 		{
 			pos_col_[position]=color;
-		}
+    } else
+    {
+      throw InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
 	}
 
 	UInt MultiGradient::position(UInt index)
